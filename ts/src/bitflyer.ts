@@ -128,7 +128,7 @@ export default class bitflyer extends Exchange {
         const day = expiry.slice (0, 2);
         const monthName = expiry.slice (2, 5);
         const year = expiry.slice (5, 9);
-        const months = {
+        const months: Dict = {
             'JAN': '01',
             'FEB': '02',
             'MAR': '03',
@@ -308,7 +308,7 @@ export default class bitflyer extends Exchange {
     }
 
     parseBalance (response): Balances {
-        const result = { 'info': response };
+        const result: Dict = { 'info': response };
         for (let i = 0; i < response.length; i++) {
             const balance = response[i];
             const currencyId = this.safeString (balance, 'currency_code');
@@ -609,7 +609,7 @@ export default class bitflyer extends Exchange {
     }
 
     parseOrderStatus (status: Str) {
-        const statuses = {
+        const statuses: Dict = {
             'ACTIVE': 'open',
             'COMPLETED': 'closed',
             'CANCELED': 'canceled',
@@ -946,7 +946,7 @@ export default class bitflyer extends Exchange {
     }
 
     parseDepositStatus (status) {
-        const statuses = {
+        const statuses: Dict = {
             'PENDING': 'pending',
             'COMPLETED': 'ok',
         };
@@ -954,7 +954,7 @@ export default class bitflyer extends Exchange {
     }
 
     parseWithdrawalStatus (status) {
-        const statuses = {
+        const statuses: Dict = {
             'PENDING': 'pending',
             'COMPLETED': 'ok',
         };

@@ -1423,7 +1423,7 @@ export default class krakenfutures extends Exchange {
     }
 
     parseOrderType (orderType) {
-        const map = {
+        const map: Dict = {
             'lmt': 'limit',
             'mkt': 'market',
             'post': 'limit',
@@ -1433,7 +1433,7 @@ export default class krakenfutures extends Exchange {
     }
 
     verifyOrderActionSuccess (status, method, omit = []) {
-        const errors = {
+        const errors: Dict = {
             'invalidOrderType': InvalidOrder,
             'invalidSide': InvalidOrder,
             'invalidSize': InvalidOrder,
@@ -1461,7 +1461,7 @@ export default class krakenfutures extends Exchange {
     }
 
     parseOrderStatus (status: Str) {
-        const statuses = {
+        const statuses: Dict = {
             'placed': 'open', // the order was placed successfully
             'cancelled': 'canceled', // the order was cancelled successfully
             'invalidOrderType': 'rejected', // the order was not placed because orderType is invalid
@@ -2076,7 +2076,7 @@ export default class krakenfutures extends Exchange {
         const isFlex = (accountType === 'multiCollateralMarginAccount');
         const isCash = (accountType === 'cashAccount');
         const balances = this.safeValue2 (response, 'balances', 'currencies', {});
-        const result = {};
+        const result: Dict = {};
         const currencyIds = Object.keys (balances);
         for (let i = 0; i < currencyIds.length; i++) {
             const currencyId = currencyIds[i];
@@ -2493,7 +2493,7 @@ export default class krakenfutures extends Exchange {
     }
 
     parseAccount (account) {
-        const accountByType = {
+        const accountByType: Dict = {
             'main': 'cash',
             'funding': 'cash',
             'future': 'cash',

@@ -352,7 +352,7 @@ export default class huobijp extends Exchange {
         if (symbols === undefined) {
             symbols = this.symbols;
         }
-        const result = {};
+        const result: Dict = {};
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];
             result[symbol] = await this.fetchTradingLimitsById (this.marketId (symbol), params);
@@ -724,7 +724,7 @@ export default class huobijp extends Exchange {
         const response = await this.marketGetTickers (params);
         const tickers = this.safeValue (response, 'data', []);
         const timestamp = this.safeInteger (response, 'ts');
-        const result = {};
+        const result: Dict = {};
         for (let i = 0; i < tickers.length; i++) {
             const marketId = this.safeString (tickers[i], 'symbol');
             const market = this.safeMarket (marketId);
@@ -1053,7 +1053,7 @@ export default class huobijp extends Exchange {
         //     }
         //
         const currencies = this.safeValue (response, 'data', []);
-        const result = {};
+        const result: Dict = {};
         for (let i = 0; i < currencies.length; i++) {
             const currency = currencies[i];
             const id = this.safeValue (currency, 'name');
@@ -1101,7 +1101,7 @@ export default class huobijp extends Exchange {
 
     parseBalance (response): Balances {
         const balances = this.safeValue (response['data'], 'list', []);
-        const result = { 'info': response };
+        const result: Dict = { 'info': response };
         for (let i = 0; i < balances.length; i++) {
             const balance = balances[i];
             const currencyId = this.safeString (balance, 'currency');
@@ -1295,7 +1295,7 @@ export default class huobijp extends Exchange {
     }
 
     parseOrderStatus (status: Str) {
-        const statuses = {
+        const statuses: Dict = {
             'partial-filled': 'open',
             'partial-canceled': 'canceled',
             'filled': 'closed',
@@ -1620,7 +1620,7 @@ export default class huobijp extends Exchange {
         if (lastCharacter === '1') {
             networkId = networkId.slice (0, lastCharacterIndex);
         }
-        const networksById = {};
+        const networksById: Dict = {};
         return this.safeString (networksById, networkId, networkId);
     }
 
@@ -1803,7 +1803,7 @@ export default class huobijp extends Exchange {
     }
 
     parseTransactionStatus (status) {
-        const statuses = {
+        const statuses: Dict = {
             // deposit statuses
             'unknown': 'failed',
             'confirming': 'pending',

@@ -130,7 +130,7 @@ export default class btcbox extends Exchange {
     }
 
     parseBalance (response): Balances {
-        const result = { 'info': response };
+        const result: Dict = { 'info': response };
         const codes = Object.keys (this.currencies);
         for (let i = 0; i < codes.length; i++) {
             const code = codes[i];
@@ -363,7 +363,7 @@ export default class btcbox extends Exchange {
     }
 
     parseOrderStatus (status: Str) {
-        const statuses = {
+        const statuses: Dict = {
             // TODO: complete list
             'part': 'open', // partially or not at all executed
             'all': 'closed', // fully executed

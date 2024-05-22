@@ -343,7 +343,7 @@ export default class gemini extends Exchange {
         //        ]
         //    }
         //
-        const result = {};
+        const result: Dict = {};
         this.options['tradingPairs'] = this.safeList (data, 'tradingPairs');
         const currenciesArray = this.safeValue (data, 'currencies', []);
         for (let i = 0; i < currenciesArray.length; i++) {
@@ -352,7 +352,7 @@ export default class gemini extends Exchange {
             const code = this.safeCurrencyCode (id);
             const type = this.safeString (currency, 7) ? 'fiat' : 'crypto';
             const precision = this.parseNumber (this.parsePrecision (this.safeString (currency, 5)));
-            const networks = {};
+            const networks: Dict = {};
             const networkId = this.safeString (currency, 9);
             let networkCode = undefined;
             if (networkId !== undefined) {
@@ -526,7 +526,7 @@ export default class gemini extends Exchange {
     }
 
     parseMarketActive (status) {
-        const statuses = {
+        const statuses: Dict = {
             'open': true,
             'closed': false,
             'cancel_only': true,
@@ -1047,7 +1047,7 @@ export default class gemini extends Exchange {
         const orderId = this.safeString (trade, 'order_id');
         const feeCurrencyId = this.safeString (trade, 'fee_currency');
         const feeCurrencyCode = this.safeCurrencyCode (feeCurrencyId);
-        const fee = {
+        const fee: Dict = {
             'cost': this.safeString (trade, 'fee_amount'),
             'currency': feeCurrencyCode,
         };
@@ -1113,7 +1113,7 @@ export default class gemini extends Exchange {
     }
 
     parseBalance (response): Balances {
-        const result = { 'info': response };
+        const result: Dict = { 'info': response };
         for (let i = 0; i < response.length; i++) {
             const balance = response[i];
             const currencyId = this.safeString (balance, 'currency');
@@ -1171,7 +1171,7 @@ export default class gemini extends Exchange {
         const takerString = Precise.stringDiv (takerBps, '10000');
         const maker = this.parseNumber (makerString);
         const taker = this.parseNumber (takerString);
-        const result = {};
+        const result: Dict = {};
         for (let i = 0; i < this.symbols.length; i++) {
             const symbol = this.symbols[i];
             result[symbol] = {
@@ -1766,7 +1766,7 @@ export default class gemini extends Exchange {
     }
 
     parseTransactionStatus (status) {
-        const statuses = {
+        const statuses: Dict = {
             'Advanced': 'ok',
             'Complete': 'ok',
         };

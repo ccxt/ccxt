@@ -1014,7 +1014,7 @@ export default class bitmart extends Exchange {
         //
         const data = this.safeValue (response, 'data', {});
         const currencies = this.safeValue (data, 'currencies', []);
-        const result = {};
+        const result: Dict = {};
         for (let i = 0; i < currencies.length; i++) {
             const currency = currencies[i];
             const id = this.safeString (currency, 'id');
@@ -1072,7 +1072,7 @@ export default class bitmart extends Exchange {
         //     }
         //
         const data = response['data'];
-        const withdrawFees = {};
+        const withdrawFees: Dict = {};
         withdrawFees[code] = this.safeNumber (data, 'withdraw_fee');
         return {
             'info': response,
@@ -1360,7 +1360,7 @@ export default class bitmart extends Exchange {
         }
         const data = this.safeValue (response, 'data', {});
         const tickers = this.safeValue (data, 'tickers', []);
-        const result = {};
+        const result: Dict = {};
         for (let i = 0; i < tickers.length; i++) {
             const ticker = this.parseTicker (tickers[i]);
             const symbol = ticker['symbol'];
@@ -1911,7 +1911,7 @@ export default class bitmart extends Exchange {
         } else {
             wallet = this.safeValue (data, 'wallet', []);
         }
-        const result = { 'info': response };
+        const result: Dict = { 'info': response };
         if (marketType === 'margin') {
             for (let i = 0; i < wallet.length; i++) {
                 const entry = wallet[i];
@@ -1921,7 +1921,7 @@ export default class bitmart extends Exchange {
                 const quote = this.safeValue (entry, 'quote', {});
                 const baseCode = this.safeCurrencyCode (this.safeString (base, 'currency'));
                 const quoteCode = this.safeCurrencyCode (this.safeString (quote, 'currency'));
-                const subResult = {};
+                const subResult: Dict = {};
                 subResult[baseCode] = this.parseBalanceHelper (base);
                 subResult[quoteCode] = this.parseBalanceHelper (quote);
                 result[symbol] = this.safeBalance (subResult);
@@ -2268,7 +2268,7 @@ export default class bitmart extends Exchange {
     }
 
     parseOrderSide (side) {
-        const sides = {
+        const sides: Dict = {
             '1': 'buy',
             '2': 'buy',
             '3': 'sell',
@@ -2278,7 +2278,7 @@ export default class bitmart extends Exchange {
     }
 
     parseOrderStatusByType (type, status) {
-        const statusesByType = {
+        const statusesByType: Dict = {
             'spot': {
                 '1': 'rejected', // Order failure
                 '2': 'open', // Placing order
@@ -3515,7 +3515,7 @@ export default class bitmart extends Exchange {
     }
 
     parseTransactionStatus (status) {
-        const statuses = {
+        const statuses: Dict = {
             '0': 'pending', // Create
             '1': 'pending', // Submitted, waiting for withdrawal
             '2': 'pending', // Processing
@@ -3926,7 +3926,7 @@ export default class bitmart extends Exchange {
     }
 
     parseTransferStatus (status: Str): Str {
-        const statuses = {
+        const statuses: Dict = {
             '1000': 'ok',
             'OK': 'ok',
             'FINISHED': 'ok',
@@ -3935,7 +3935,7 @@ export default class bitmart extends Exchange {
     }
 
     parseTransferToAccount (type) {
-        const types = {
+        const types: Dict = {
             'contract_to_spot': 'spot',
             'spot_to_contract': 'swap',
         };
@@ -3943,7 +3943,7 @@ export default class bitmart extends Exchange {
     }
 
     parseTransferFromAccount (type) {
-        const types = {
+        const types: Dict = {
             'contract_to_spot': 'swap',
             'spot_to_contract': 'spot',
         };

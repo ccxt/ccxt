@@ -322,7 +322,7 @@ export default class coinmate extends Exchange {
 
     parseBalance (response): Balances {
         const balances = this.safeValue (response, 'data', {});
-        const result = { 'info': response };
+        const result: Dict = { 'info': response };
         const currencyIds = Object.keys (balances);
         for (let i = 0; i < currencyIds.length; i++) {
             const currencyId = currencyIds[i];
@@ -445,7 +445,7 @@ export default class coinmate extends Exchange {
         //
         const data = this.safeValue (response, 'data', {});
         const keys = Object.keys (data);
-        const result = {};
+        const result: Dict = {};
         for (let i = 0; i < keys.length; i++) {
             const market = this.market (keys[i]);
             const ticker = this.parseTicker (this.safeValue (data, keys[i]), market);
@@ -526,7 +526,7 @@ export default class coinmate extends Exchange {
     }
 
     parseTransactionStatus (status) {
-        const statuses = {
+        const statuses: Dict = {
             'COMPLETED': 'ok',
             'WAITING': 'pending',
             'SENT': 'pending',
@@ -855,7 +855,7 @@ export default class coinmate extends Exchange {
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         const response = await this.privatePostOpenOrders (this.extend ({}, params));
-        const extension = { 'status': 'open' };
+        const extension: Dict = { 'status': 'open' };
         return this.parseOrders (response['data'], undefined, since, limit, extension);
     }
 
@@ -888,7 +888,7 @@ export default class coinmate extends Exchange {
     }
 
     parseOrderStatus (status: Str) {
-        const statuses = {
+        const statuses: Dict = {
             'FILLED': 'closed',
             'CANCELLED': 'canceled',
             'PARTIALLY_FILLED': 'open',
@@ -898,7 +898,7 @@ export default class coinmate extends Exchange {
     }
 
     parseOrderType (type: Str) {
-        const types = {
+        const types: Dict = {
             'LIMIT': 'limit',
             'MARKET': 'market',
         };

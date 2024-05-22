@@ -238,7 +238,7 @@ export default class zaif extends Exchange {
     parseBalance (response): Balances {
         const balances = this.safeValue (response, 'return', {});
         const deposit = this.safeValue (balances, 'deposit');
-        const result = {
+        const result: Dict = {
             'info': response,
             'timestamp': undefined,
             'datetime': undefined,

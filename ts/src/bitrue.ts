@@ -515,7 +515,7 @@ export default class bitrue extends Exchange {
 
     safeNetwork (networkId) {
         const uppercaseNetworkId = networkId.toUpperCase ();
-        const networksById = {
+        const networksById: Dict = {
             'Aeternity': 'Aeternity',
             'AION': 'AION',
             'Algorand': 'Algorand',
@@ -640,7 +640,7 @@ export default class bitrue extends Exchange {
         //         ],
         //     }
         //
-        const result = {};
+        const result: Dict = {};
         const coins = this.safeValue (response, 'coins', []);
         for (let i = 0; i < coins.length; i++) {
             const currency = coins[i];
@@ -653,7 +653,7 @@ export default class bitrue extends Exchange {
             let maxWithdrawString = undefined;
             let minWithdrawFeeString = undefined;
             const networkDetails = this.safeValue (currency, 'chainDetail', []);
-            const networks = {};
+            const networks: Dict = {};
             for (let j = 0; j < networkDetails.length; j++) {
                 const entry = networkDetails[j];
                 const networkId = this.safeString (entry, 'chain');
@@ -969,7 +969,7 @@ export default class bitrue extends Exchange {
         //         ]
         //     }
         //
-        const result = {
+        const result: Dict = {
             'info': response,
         };
         const timestamp = this.safeInteger (response, 'updateTime');
@@ -1507,7 +1507,7 @@ export default class bitrue extends Exchange {
         //         "time": 1699348013000
         //     }
         //
-        const data = {};
+        const data: Dict = {};
         data[market['id']] = response;
         return this.parseTickers (data, symbols);
     }
@@ -1590,7 +1590,7 @@ export default class bitrue extends Exchange {
         // the exchange returns market ids with an underscore from the tickers endpoint
         // the market ids do not have an underscore, so it has to be removed
         // https://github.com/ccxt/ccxt/issues/13856
-        const tickers = {};
+        const tickers: Dict = {};
         for (let i = 0; i < data.length; i++) {
             const ticker = this.safeValue (data, i, {});
             const market = this.market (this.safeValue (ticker, 'symbol'));
@@ -1738,7 +1738,7 @@ export default class bitrue extends Exchange {
     }
 
     parseOrderStatus (status: Str) {
-        const statuses = {
+        const statuses: Dict = {
             'INIT': 'open',
             'PENDING_CREATE': 'open',
             'NEW': 'open',
@@ -2604,7 +2604,7 @@ export default class bitrue extends Exchange {
     }
 
     parseTransactionStatusByType (status, type = undefined) {
-        const statusesByType = {
+        const statusesByType: Dict = {
             'deposit': {
                 '0': 'pending',
                 '1': 'ok',
@@ -2811,7 +2811,7 @@ export default class bitrue extends Exchange {
         //
         const chainDetails = this.safeValue (fee, 'chainDetail', []);
         const chainDetailLength = chainDetails.length;
-        const result = {
+        const result: Dict = {
             'info': fee,
             'withdraw': {
                 'fee': undefined,

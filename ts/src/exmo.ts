@@ -364,7 +364,7 @@ export default class exmo extends Exchange {
         //     }
         //
         const pairs = this.safeValue (response, 'pairs', []);
-        const result = {};
+        const result: Dict = {};
         for (let i = 0; i < pairs.length; i++) {
             const pair = pairs[i];
             const marketId = this.safeString (pair, 'name');
@@ -403,7 +403,7 @@ export default class exmo extends Exchange {
         //         },
         //     }
         //
-        const result = {};
+        const result: Dict = {};
         for (let i = 0; i < this.symbols.length; i++) {
             const symbol = this.symbols[i];
             const market = this.market (symbol);
@@ -488,7 +488,7 @@ export default class exmo extends Exchange {
         //         ],
         //     }
         //
-        const result = {};
+        const result: Dict = {};
         const cryptoListKeys = Object.keys (cryptoList);
         for (let i = 0; i < cryptoListKeys.length; i++) {
             const code = cryptoListKeys[i];
@@ -650,7 +650,7 @@ export default class exmo extends Exchange {
         //         ],
         //     }
         //
-        const result = {};
+        const result: Dict = {};
         for (let i = 0; i < currencyList.length; i++) {
             const currency = currencyList[i];
             const currencyId = this.safeString (currency, 'name');
@@ -658,7 +658,7 @@ export default class exmo extends Exchange {
             const providers = this.safeValue (cryptoList, currencyId);
             let active = false;
             let type = 'crypto';
-            const limits = {
+            const limits: Dict = {
                 'deposit': {
                     'min': undefined,
                     'max': undefined,
@@ -935,7 +935,7 @@ export default class exmo extends Exchange {
     }
 
     parseBalance (response): Balances {
-        const result = { 'info': response };
+        const result: Dict = { 'info': response };
         const wallets = this.safeValue (response, 'wallets');
         if (wallets !== undefined) {
             const currencyIds = Object.keys (wallets);
@@ -1073,7 +1073,7 @@ export default class exmo extends Exchange {
             request['limit'] = limit;
         }
         const response = await this.publicGetOrderBook (this.extend (request, params));
-        const result = {};
+        const result: Dict = {};
         const marketIds = Object.keys (response);
         for (let i = 0; i < marketIds.length; i++) {
             const marketId = marketIds[i];
@@ -1152,7 +1152,7 @@ export default class exmo extends Exchange {
         //         }
         //     }
         //
-        const result = {};
+        const result: Dict = {};
         const marketIds = Object.keys (response);
         for (let i = 0; i < marketIds.length; i++) {
             const marketId = marketIds[i];
@@ -1792,7 +1792,7 @@ export default class exmo extends Exchange {
         if (status === undefined) {
             return undefined;
         }
-        const statuses = {
+        const statuses: Dict = {
             'cancel_started': 'canceled',
         };
         if (status.indexOf ('cancel') >= 0) {
@@ -1802,7 +1802,7 @@ export default class exmo extends Exchange {
     }
 
     parseSide (orderType) {
-        const side = {
+        const side: Dict = {
             'limit_buy': 'buy',
             'limit_sell': 'sell',
             'market_buy': 'buy',
@@ -2190,7 +2190,7 @@ export default class exmo extends Exchange {
     }
 
     parseTransactionStatus (status) {
-        const statuses = {
+        const statuses: Dict = {
             'transferred': 'ok',
             'paid': 'ok',
             'pending': 'pending',
@@ -2284,7 +2284,7 @@ export default class exmo extends Exchange {
                 }
             }
         }
-        const fee = {
+        const fee: Dict = {
             'currency': undefined,
             'cost': undefined,
             'rate': undefined,

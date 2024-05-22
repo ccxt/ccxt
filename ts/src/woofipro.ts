@@ -549,7 +549,7 @@ export default class woofipro extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} an associative dictionary of currencies
          */
-        const result = {};
+        const result: Dict = {};
         const response = await this.v1PublicGetPublicToken (params);
         //
         // {
@@ -581,7 +581,7 @@ export default class woofipro extends Exchange {
             const networks = this.safeList (token, 'chain_details');
             const code = this.safeCurrencyCode (currencyId);
             let minPrecision = undefined;
-            const resultingNetworks = {};
+            const resultingNetworks: Dict = {};
             for (let j = 0; j < networks.length; j++) {
                 const network = networks[j];
                 // TODO: transform chain id to human readable name
@@ -974,7 +974,7 @@ export default class woofipro extends Exchange {
         const data = this.safeDict (response, 'data', {});
         const maker = this.safeString (data, 'futures_maker_fee_rate');
         const taker = this.safeString (data, 'futures_taker_fee_rate');
-        const result = {};
+        const result: Dict = {};
         for (let i = 0; i < this.symbols.length; i++) {
             const symbol = this.symbols[i];
             result[symbol] = {
@@ -1209,7 +1209,7 @@ export default class woofipro extends Exchange {
     }
 
     parseTimeInForce (timeInForce) {
-        const timeInForces = {
+        const timeInForces: Dict = {
             'ioc': 'IOC',
             'fok': 'FOK',
             'post_only': 'PO',
@@ -1219,7 +1219,7 @@ export default class woofipro extends Exchange {
 
     parseOrderStatus (status: Str) {
         if (status !== undefined) {
-            const statuses = {
+            const statuses: Dict = {
                 'NEW': 'open',
                 'FILLED': 'closed',
                 'CANCEL_SENT': 'canceled',
@@ -1236,7 +1236,7 @@ export default class woofipro extends Exchange {
     }
 
     parseOrderType (type: Str) {
-        const types = {
+        const types: Dict = {
             'LIMIT': 'limit',
             'MARKET': 'market',
             'POST_ONLY': 'limit',
@@ -1307,7 +1307,7 @@ export default class woofipro extends Exchange {
             request['algo_type'] = 'STOP';
         } else if ((stopLoss !== undefined) || (takeProfit !== undefined)) {
             request['algo_type'] = 'TP_SL';
-            const outterOrder = {
+            const outterOrder: Dict = {
                 'symbol': market['id'],
                 'reduce_only': false,
                 'algo_type': 'POSITIONAL_TP_SL',
@@ -1316,7 +1316,7 @@ export default class woofipro extends Exchange {
             const closeSide = (orderSide === 'BUY') ? 'SELL' : 'BUY';
             if (stopLoss !== undefined) {
                 const stopLossPrice = this.safeNumber2 (stopLoss, 'triggerPrice', 'price', stopLoss);
-                const stopLossOrder = {
+                const stopLossOrder: Dict = {
                     'side': closeSide,
                     'algo_type': 'TP_SL',
                     'trigger_price': this.priceToPrecision (symbol, stopLossPrice),
@@ -1327,7 +1327,7 @@ export default class woofipro extends Exchange {
             }
             if (takeProfit !== undefined) {
                 const takeProfitPrice = this.safeNumber2 (takeProfit, 'triggerPrice', 'price', takeProfit);
-                const takeProfitOrder = {
+                const takeProfitOrder: Dict = {
                     'side': closeSide,
                     'algo_type': 'TP_SL',
                     'trigger_price': this.priceToPrecision (symbol, takeProfitPrice),
@@ -1614,7 +1614,7 @@ export default class woofipro extends Exchange {
         //     "status": "CANCEL_SENT"
         // }
         //
-        const extendParams = { 'symbol': symbol };
+        const extendParams: Dict = { 'symbol': symbol };
         if (isByClientOrder) {
             extendParams['client_order_id'] = clientOrderIdExchangeSpecific;
         } else {
@@ -2030,7 +2030,7 @@ export default class woofipro extends Exchange {
     }
 
     parseBalance (response): Balances {
-        const result = {
+        const result: Dict = {
             'info': response,
         };
         const balances = this.safeList (response, 'holding', []);
@@ -2151,7 +2151,7 @@ export default class woofipro extends Exchange {
     }
 
     parseLedgerEntryType (type) {
-        const types = {
+        const types: Dict = {
             'BALANCE': 'transaction', // Funds moved in/out wallet
             'COLLATERAL': 'transfer', // Funds moved between portfolios
         };
@@ -2210,7 +2210,7 @@ export default class woofipro extends Exchange {
     }
 
     parseTransactionStatus (status) {
-        const statuses = {
+        const statuses: Dict = {
             'NEW': 'pending',
             'CONFIRMING': 'pending',
             'PROCESSING': 'pending',
@@ -2345,13 +2345,13 @@ export default class woofipro extends Exchange {
         }
         const withdrawNonce = await this.getWithdrawNonce (params);
         const nonce = this.nonce ();
-        const domain = {
+        const domain: Dict = {
             'chainId': chainId,
             'name': 'Orderly',
             'verifyingContract': verifyingContractAddress,
             'version': '1',
         };
-        const messageTypes = {
+        const messageTypes: Dict = {
             'Withdraw': [
                 { 'name': 'brokerId', 'type': 'string' },
                 { 'name': 'chainId', 'type': 'uint256' },
@@ -2362,7 +2362,7 @@ export default class woofipro extends Exchange {
                 { 'name': 'timestamp', 'type': 'uint64' },
             ],
         };
-        const withdrawRequest = {
+        const withdrawRequest: Dict = {
             'brokerId': this.safeString (this.options, 'keyBrokerId', 'woofi_pro'),
             'chainId': this.parseToInt (chainId),
             'receiver': address,

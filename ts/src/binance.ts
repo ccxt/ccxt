@@ -2638,7 +2638,7 @@ export default class binance extends Exchange {
             return undefined;
         }
         const response = await this.sapiGetCapitalConfigGetall (params);
-        const result = {};
+        const result: Dict = {};
         for (let i = 0; i < response.length; i++) {
             //
             //    {
@@ -2743,9 +2743,9 @@ export default class binance extends Exchange {
             let isWithdrawEnabled = true;
             let isDepositEnabled = true;
             const networkList = this.safeList (entry, 'networkList', []);
-            const fees = {};
+            const fees: Dict = {};
             let fee = undefined;
-            const networks = {};
+            const networks: Dict = {};
             for (let j = 0; j < networkList.length; j++) {
                 const networkItem = networkList[j];
                 const network = this.safeString (networkItem, 'network');
@@ -3146,7 +3146,7 @@ export default class binance extends Exchange {
         if (strike !== undefined) {
             parsedStrike = this.parseToNumeric (strike);
         }
-        const entry = {
+        const entry: Dict = {
             'id': id,
             'lowercaseId': lowercaseId,
             'symbol': symbol,
@@ -3247,7 +3247,7 @@ export default class binance extends Exchange {
     }
 
     parseBalanceCustom (response, type = undefined, marginMode = undefined, isPortfolioMargin = false): Balances {
-        const result = {
+        const result: Dict = {
             'info': response,
         };
         let timestamp = undefined;
@@ -3304,7 +3304,7 @@ export default class binance extends Exchange {
                 const quote = this.safeDict (asset, 'quoteAsset', {});
                 const baseCode = this.safeCurrencyCode (this.safeString (base, 'asset'));
                 const quoteCode = this.safeCurrencyCode (this.safeString (quote, 'asset'));
-                const subResult = {};
+                const subResult: Dict = {};
                 subResult[baseCode] = this.parseBalanceHelper (base);
                 subResult[quoteCode] = this.parseBalanceHelper (quote);
                 result[symbol] = this.safeBalance (subResult);
@@ -5015,7 +5015,7 @@ export default class binance extends Exchange {
     }
 
     parseOrderStatus (status: Str) {
-        const statuses = {
+        const statuses: Dict = {
             'NEW': 'open',
             'PARTIALLY_FILLED': 'open',
             'ACCEPTED': 'open',
@@ -7467,7 +7467,7 @@ export default class binance extends Exchange {
             tradedCurrencyIsQuote = true;
         }
         const feeCostString = this.safeString (trade, 'serviceChargeAmount');
-        const fee = {
+        const fee: Dict = {
             'currency': earnedCurrency,
             'cost': this.parseNumber (feeCostString),
         };
@@ -7765,7 +7765,7 @@ export default class binance extends Exchange {
     }
 
     parseTransactionStatusByType (status, type = undefined) {
-        const statusesByType = {
+        const statusesByType: Dict = {
             'deposit': {
                 '0': 'pending',
                 '1': 'ok',
@@ -7933,7 +7933,7 @@ export default class binance extends Exchange {
     }
 
     parseTransferStatus (status: Str): Str {
-        const statuses = {
+        const statuses: Dict = {
             'CONFIRMED': 'ok',
         };
         return this.safeString (statuses, status, status);
@@ -8364,7 +8364,7 @@ export default class binance extends Exchange {
         //     }
         //  ]
         //
-        const withdrawFees = {};
+        const withdrawFees: Dict = {};
         for (let i = 0; i < response.length; i++) {
             const entry = response[i];
             const currencyId = this.safeString (entry, 'coin');
@@ -8743,7 +8743,7 @@ export default class binance extends Exchange {
             //       },
             //    ]
             //
-            const result = {};
+            const result: Dict = {};
             for (let i = 0; i < response.length; i++) {
                 const fee = this.parseTradingFee (response[i]);
                 const symbol = fee['symbol'];
@@ -8773,7 +8773,7 @@ export default class binance extends Exchange {
             //     }
             //
             const symbols = Object.keys (this.markets);
-            const result = {};
+            const result: Dict = {};
             const feeTier = this.safeInteger (response, 'feeTier');
             const feeTiers = this.fees['linear']['trading']['tiers'];
             const maker = feeTiers['maker'][feeTier][1];
@@ -8804,7 +8804,7 @@ export default class binance extends Exchange {
             //     }
             //
             const symbols = Object.keys (this.markets);
-            const result = {};
+            const result: Dict = {};
             const feeTier = this.safeInteger (response, 'feeTier');
             const feeTiers = this.fees['inverse']['trading']['tiers'];
             const maker = feeTiers['maker'][feeTier][1];
@@ -9063,7 +9063,7 @@ export default class binance extends Exchange {
     parseAccountPositions (account, filterClosed = false) {
         const positions = this.safeList (account, 'positions');
         const assets = this.safeList (account, 'assets', []);
-        const balances = {};
+        const balances: Dict = {};
         for (let i = 0; i < assets.length; i++) {
             const entry = assets[i];
             const currencyId = this.safeString (entry, 'asset');
@@ -10607,7 +10607,7 @@ export default class binance extends Exchange {
         await this.loadMarkets ();
         let type = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('fetchLedgerEntry', undefined, params);
-        const query = {
+        const query: Dict = {
             'recordId': id,
             'type': type,
         };
@@ -10772,7 +10772,7 @@ export default class binance extends Exchange {
     }
 
     parseLedgerEntryType (type) {
-        const ledgerType = {
+        const ledgerType: Dict = {
             'FEE': 'fee',
             'FUNDING_FEE': 'fee',
             'OPTIONS_PREMIUM_FEE': 'fee',
@@ -12214,7 +12214,7 @@ export default class binance extends Exchange {
     async fetchTradingLimits (symbols: Strings = undefined, params = {}) {
         // this method should not be called directly, use loadTradingLimits () instead
         const markets = await this.fetchMarkets ();
-        const tradingLimits = {};
+        const tradingLimits: Dict = {};
         for (let i = 0; i < markets.length; i++) {
             const market = markets[i];
             const symbol = market['symbol'];
@@ -12587,7 +12587,7 @@ export default class binance extends Exchange {
         //         },
         //     ]
         //
-        const result = {};
+        const result: Dict = {};
         for (let i = 0; i < response.length; i++) {
             const entry = response[i];
             const id = this.safeString (entry, 'asset');

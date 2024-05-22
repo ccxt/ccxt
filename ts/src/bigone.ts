@@ -442,14 +442,14 @@ export default class bigone extends Exchange {
         // }
         //
         const currenciesData = this.safeList (data, 'data', []);
-        const result = {};
+        const result: Dict = {};
         for (let i = 0; i < currenciesData.length; i++) {
             const currency = currenciesData[i];
             const id = this.safeString (currency, 'symbol');
             const code = this.safeCurrencyCode (id);
             const name = this.safeString (currency, 'name');
             const type = this.safeBool (currency, 'is_fiat') ? 'fiat' : 'crypto';
-            const networks = {};
+            const networks: Dict = {};
             const chains = this.safeList (currency, 'binding_gateways', []);
             let currencyMaxPrecision = this.parsePrecision (this.safeString2 (currency, 'withdrawal_scale', 'scale'));
             let currencyDepositEnabled: Bool = undefined;
@@ -1109,7 +1109,7 @@ export default class bigone extends Exchange {
             orderId = takerOrderId;
         }
         const id = this.safeString (trade, 'id');
-        const result = {
+        const result: Dict = {
             'id': id,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -1299,7 +1299,7 @@ export default class bigone extends Exchange {
     }
 
     parseBalance (response): Balances {
-        const result = {
+        const result: Dict = {
             'info': response,
             'timestamp': undefined,
             'datetime': undefined,
@@ -1350,7 +1350,7 @@ export default class bigone extends Exchange {
     }
 
     parseType (type: string) {
-        const types = {
+        const types: Dict = {
             'STOP_LIMIT': 'limit',
             'STOP_MARKET': 'market',
             'LIMIT': 'limit',
@@ -1759,7 +1759,7 @@ export default class bigone extends Exchange {
     }
 
     parseOrderStatus (status: Str) {
-        const statuses = {
+        const statuses: Dict = {
             'PENDING': 'open',
             'FILLED': 'closed',
             'CANCELLED': 'canceled',
@@ -1896,7 +1896,7 @@ export default class bigone extends Exchange {
     }
 
     parseTransactionStatus (status) {
-        const statuses = {
+        const statuses: Dict = {
             // what are other statuses here?
             'WITHHOLD': 'ok', // deposits
             'UNCONFIRMED': 'pending',
@@ -2170,7 +2170,7 @@ export default class bigone extends Exchange {
     }
 
     parseTransferStatus (status: Str): Str {
-        const statuses = {
+        const statuses: Dict = {
             '0': 'ok',
         };
         return this.safeString (statuses, status, 'failed');

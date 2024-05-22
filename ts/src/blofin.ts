@@ -895,7 +895,7 @@ export default class blofin extends Exchange {
         //     }
         // }
         //
-        const result = { 'info': response };
+        const result: Dict = { 'info': response };
         const data = this.safeDict (response, 'data', {});
         const timestamp = this.safeInteger (data, 'ts');
         const details = this.safeList (data, 'details', []);
@@ -937,7 +937,7 @@ export default class blofin extends Exchange {
         //      ]
         //  }
         //
-        const result = { 'info': response };
+        const result: Dict = { 'info': response };
         const data = this.safeList (response, 'data', []);
         for (let i = 0; i < data.length; i++) {
             const balance = data[i];
@@ -1043,7 +1043,7 @@ export default class blofin extends Exchange {
     }
 
     parseOrderStatus (status: Str) {
-        const statuses = {
+        const statuses: Dict = {
             'canceled': 'canceled',
             'order_failed': 'canceled',
             'live': 'open',
@@ -1618,7 +1618,7 @@ export default class blofin extends Exchange {
     }
 
     parseTransactionStatus (status) {
-        const statuses = {
+        const statuses: Dict = {
             '0': 'pending',
             '1': 'ok',
             '2': 'failed',
@@ -1628,7 +1628,7 @@ export default class blofin extends Exchange {
     }
 
     parseLedgerEntryType (type) {
-        const types = {
+        const types: Dict = {
             '1': 'transfer', // transfer
             '2': 'trade', // trade
             '3': 'trade', // delivery

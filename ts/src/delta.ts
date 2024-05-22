@@ -453,7 +453,7 @@ export default class delta extends Exchange {
         //     }
         //
         const currencies = this.safeList (response, 'result', []);
-        const result = {};
+        const result: Dict = {};
         for (let i = 0; i < currencies.length; i++) {
             const currency = currencies[i];
             const id = this.safeString (currency, 'symbol');
@@ -502,7 +502,7 @@ export default class delta extends Exchange {
     }
 
     indexByStringifiedNumericId (input) {
-        const result = {};
+        const result: Dict = {};
         if (input === undefined) {
             return undefined;
         }
@@ -1262,7 +1262,7 @@ export default class delta extends Exchange {
         //     }
         //
         const tickers = this.safeList (response, 'result', []);
-        const result = {};
+        const result: Dict = {};
         for (let i = 0; i < tickers.length; i++) {
             const ticker = this.parseTicker (tickers[i]);
             const symbol = ticker['symbol'];
@@ -1526,7 +1526,7 @@ export default class delta extends Exchange {
 
     parseBalance (response): Balances {
         const balances = this.safeList (response, 'result', []);
-        const result = { 'info': response };
+        const result: Dict = { 'info': response };
         const currenciesByNumericId = this.safeDict (this.options, 'currenciesByNumericId', {});
         for (let i = 0; i < balances.length; i++) {
             const balance = balances[i];
@@ -1714,7 +1714,7 @@ export default class delta extends Exchange {
     }
 
     parseOrderStatus (status: Str) {
-        const statuses = {
+        const statuses: Dict = {
             'open': 'open',
             'pending': 'open',
             'closed': 'closed',
@@ -2259,7 +2259,7 @@ export default class delta extends Exchange {
     }
 
     parseLedgerEntryType (type) {
-        const types = {
+        const types: Dict = {
             'pnl': 'pnl',
             'deposit': 'transaction',
             'withdrawal': 'transaction',

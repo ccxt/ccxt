@@ -491,7 +491,7 @@ export default class zonda extends Exchange {
             symbol = this.symbol (symbol);
             request['markets'] = markets;
         }
-        const query = { 'query': this.json (this.extend (request, params)) };
+        const query: Dict = { 'query': this.json (this.extend (request, params)) };
         const response = await this.v1_01PrivateGetTradingHistoryTransactions (query);
         //
         //     {
@@ -526,7 +526,7 @@ export default class zonda extends Exchange {
         if (balances === undefined) {
             throw new ExchangeError (this.id + ' empty balance response ' + this.json (response));
         }
-        const result = { 'info': response };
+        const result: Dict = { 'info': response };
         for (let i = 0; i < balances.length; i++) {
             const balance = balances[i];
             const currencyId = this.safeString (balance, 'currency');
@@ -1146,7 +1146,7 @@ export default class zonda extends Exchange {
     }
 
     parseLedgerEntryType (type) {
-        const types = {
+        const types: Dict = {
             'ADD_FUNDS': 'transaction',
             'BITCOIN_GOLD_FORK': 'transaction',
             'CREATE_BALANCE': 'transaction',
@@ -1510,7 +1510,7 @@ export default class zonda extends Exchange {
     }
 
     isFiat (currency) {
-        const fiatCurrencies = {
+        const fiatCurrencies: Dict = {
             'USD': true,
             'EUR': true,
             'PLN': true,
@@ -1712,7 +1712,7 @@ export default class zonda extends Exchange {
     }
 
     parseTransferStatus (status: Str): Str {
-        const statuses = {
+        const statuses: Dict = {
             'Ok': 'ok',
             'Fail': 'failed',
         };

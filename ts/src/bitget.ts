@@ -1878,14 +1878,14 @@ export default class bitget extends Exchange {
         //         "requestTime": "1700120731773"
         //     }
         //
-        const result = {};
+        const result: Dict = {};
         const data = this.safeValue (response, 'data', []);
         for (let i = 0; i < data.length; i++) {
             const entry = data[i];
             const id = this.safeString (entry, 'coin'); // we don't use 'coinId' as it has no use. it is 'coin' field that needs to be used in currency related endpoints (deposit, withdraw, etc..)
             const code = this.safeCurrencyCode (id);
             const chains = this.safeValue (entry, 'chains', []);
-            const networks = {};
+            const networks: Dict = {};
             let deposit = false;
             let withdraw = false;
             let minWithdrawString = undefined;
@@ -2249,7 +2249,7 @@ export default class bitget extends Exchange {
         //      }
         //
         const data = this.safeValue (response, 'data', {});
-        const result = {
+        const result: Dict = {
             'id': this.safeString (data, 'orderId'),
             'info': response,
             'txid': undefined,
@@ -2431,7 +2431,7 @@ export default class bitget extends Exchange {
     }
 
     parseTransactionStatus (status) {
-        const statuses = {
+        const statuses: Dict = {
             'success': 'ok',
             'Pending': 'pending',
             'pending_review': 'pending',
@@ -3261,7 +3261,7 @@ export default class bitget extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'data', []);
-        const result = {};
+        const result: Dict = {};
         for (let i = 0; i < data.length; i++) {
             const entry = data[i];
             const marketId = this.safeString (entry, 'symbol');
@@ -3574,7 +3574,7 @@ export default class bitget extends Exchange {
     }
 
     parseBalance (balance): Balances {
-        const result = { 'info': balance };
+        const result: Dict = { 'info': balance };
         //
         // spot
         //
@@ -3666,7 +3666,7 @@ export default class bitget extends Exchange {
     }
 
     parseOrderStatus (status: Str) {
-        const statuses = {
+        const statuses: Dict = {
             'new': 'open',
             'init': 'open',
             'not_trigger': 'open',
@@ -4720,7 +4720,7 @@ export default class bitget extends Exchange {
             request['productType'] = productType;
             if (stop || trailing) {
                 const orderIdList = [];
-                const orderId = {
+                const orderId: Dict = {
                     'orderId': id,
                 };
                 orderIdList.push (orderId);
@@ -4840,7 +4840,7 @@ export default class bitget extends Exchange {
         const orderIdList = [];
         for (let i = 0; i < ids.length; i++) {
             const individualId = ids[i];
-            const orderId = {
+            const orderId: Dict = {
                 'orderId': individualId,
             };
             orderIdList.push (orderId);
@@ -4940,7 +4940,7 @@ export default class bitget extends Exchange {
                 }
             } else {
                 if (stop) {
-                    const stopRequest = {
+                    const stopRequest: Dict = {
                         'symbolList': [ market['id'] ],
                     };
                     response = await this.privateSpotPostV2SpotTradeBatchCancelPlanOrder (this.extend (stopRequest, params));
@@ -5965,7 +5965,7 @@ export default class bitget extends Exchange {
     }
 
     parseLedgerType (type) {
-        const types = {
+        const types: Dict = {
             'trans_to_cross': 'transfer',
             'trans_from_cross': 'transfer',
             'trans_to_exchange': 'transfer',
@@ -7401,7 +7401,7 @@ export default class bitget extends Exchange {
     }
 
     parseTransferStatus (status: Str): Str {
-        const statuses = {
+        const statuses: Dict = {
             'successful': 'ok',
         };
         return this.safeString (statuses, status, status);
@@ -7432,7 +7432,7 @@ export default class bitget extends Exchange {
         //
         const chains = this.safeValue (fee, 'chains', []);
         const chainsLength = chains.length;
-        const result = {
+        const result: Dict = {
             'info': fee,
             'withdraw': {
                 'fee': undefined,
@@ -8686,7 +8686,7 @@ export default class bitget extends Exchange {
         //         ]
         //     }
         //
-        const result = {};
+        const result: Dict = {};
         const data = this.safeList (response, 'data', []);
         for (let i = 0; i < data.length; i++) {
             const entry = data[i];

@@ -229,7 +229,7 @@ export default class lykke extends Exchange {
         //         "error":null
         //     }
         //
-        const result = {};
+        const result: Dict = {};
         for (let i = 0; i < currencies.length; i++) {
             const currency = currencies[i];
             const id = this.safeString (currency, 'assetId');
@@ -683,7 +683,7 @@ export default class lykke extends Exchange {
         //         }
         //     ]
         //
-        const result = { 'info': response };
+        const result: Dict = { 'info': response };
         for (let i = 0; i < response.length; i++) {
             const balance = response[i];
             const currencyId = this.safeString (balance, 'assetId');
@@ -727,7 +727,7 @@ export default class lykke extends Exchange {
     }
 
     parseOrderStatus (status: Str) {
-        const statuses = {
+        const statuses: Dict = {
             'Open': 'open',
             'Pending': 'open',
             'InOrderBook': 'open',
@@ -814,7 +814,7 @@ export default class lykke extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const query = {
+        const query: Dict = {
             'assetPairId': market['id'],
             'side': this.capitalize (side),
             'volume': parseFloat (this.amountToPrecision (market['symbol'], amount)),

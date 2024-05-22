@@ -367,7 +367,7 @@ export default class ndax extends Exchange {
         //         },
         //     ]
         //
-        const result = {};
+        const result: Dict = {};
         for (let i = 0; i < response.length; i++) {
             const currency = response[i];
             const id = this.safeString (currency, 'ProductId');
@@ -534,7 +534,7 @@ export default class ndax extends Exchange {
 
     parseOrderBook (orderbook, symbol, timestamp = undefined, bidsKey = 'bids', asksKey = 'asks', priceKey:IndexType = 6, amountKey:IndexType = 8, countOrIdKey: IndexType = 2) {
         let nonce = undefined;
-        const result = {
+        const result: Dict = {
             'symbol': symbol,
             'bids': [],
             'asks': [],
@@ -1041,7 +1041,7 @@ export default class ndax extends Exchange {
     }
 
     parseBalance (response): Balances {
-        const result = {
+        const result: Dict = {
             'info': response,
             'timestamp': undefined,
             'datetime': undefined,
@@ -1115,7 +1115,7 @@ export default class ndax extends Exchange {
     }
 
     parseLedgerEntryType (type) {
-        const types = {
+        const types: Dict = {
             'Trade': 'trade',
             'Deposit': 'transaction',
             'Withdraw': 'transaction',
@@ -1241,7 +1241,7 @@ export default class ndax extends Exchange {
     }
 
     parseOrderStatus (status: Str) {
-        const statuses = {
+        const statuses: Dict = {
             'Accepted': 'open',
             'Rejected': 'rejected',
             'Working': 'open',
@@ -2174,7 +2174,7 @@ export default class ndax extends Exchange {
     }
 
     parseTransactionStatusByType (status, type = undefined) {
-        const statusesByType = {
+        const statusesByType: Dict = {
             'deposit': {
                 'New': 'pending', // new ticket awaiting operator review
                 'AdminProcessing': 'pending', // an admin is looking at the ticket
@@ -2350,7 +2350,7 @@ export default class ndax extends Exchange {
         const accountId = this.safeInteger2 (params, 'accountId', 'AccountId', defaultAccountId);
         params = this.omit (params, [ 'accountId', 'AccountId' ]);
         const currency = this.currency (code);
-        const withdrawTemplateTypesRequest = {
+        const withdrawTemplateTypesRequest: Dict = {
             'omsId': omsId,
             'AccountId': accountId,
             'ProductId': currency['id'],
@@ -2374,7 +2374,7 @@ export default class ndax extends Exchange {
             throw new ExchangeError (this.id + ' withdraw() could not find a withdraw template type for ' + currency['code']);
         }
         const templateName = this.safeString (firstTemplateType, 'TemplateName');
-        const withdrawTemplateRequest = {
+        const withdrawTemplateRequest: Dict = {
             'omsId': omsId,
             'AccountId': accountId,
             'ProductId': currency['id'],
@@ -2401,14 +2401,14 @@ export default class ndax extends Exchange {
                 withdrawTemplate['Memo'] = tag;
             }
         }
-        const withdrawPayload = {
+        const withdrawPayload: Dict = {
             'omsId': omsId,
             'AccountId': accountId,
             'ProductId': currency['id'],
             'TemplateForm': this.json (withdrawTemplate),
             'TemplateType': templateName,
         };
-        const withdrawRequest = {
+        const withdrawRequest: Dict = {
             'TfaType': 'Google',
             'TFaCode': totp (this.twofa),
             'Payload': this.json (withdrawPayload),

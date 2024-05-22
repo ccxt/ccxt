@@ -1112,8 +1112,8 @@ export default class wavesexchange extends Exchange {
         //       ]
         //     }
         //
-        const currencies = {};
-        const networksByCurrency = {};
+        const currencies: Dict = {};
+        const networksByCurrency: Dict = {};
         const items = this.safeValue (supportedCurrencies, 'items', []);
         for (let i = 0; i < items.length; i++) {
             const entry = items[i];
@@ -1393,13 +1393,13 @@ export default class wavesexchange extends Exchange {
         }
         amount = this.customAmountToPrecision (symbol, amount);
         price = this.customPriceToPrecision (symbol, price);
-        const assetPair = {
+        const assetPair: Dict = {
             'amountAsset': amountAsset,
             'priceAsset': priceAsset,
         };
         const sandboxMode = this.safeBool (this.options, 'sandboxMode', false);
         const chainId = (sandboxMode) ? 84 : 87;
-        const body = {
+        const body: Dict = {
             'senderPublicKey': this.apiKey,
             'matcherPublicKey': matcherPublicKey,
             'assetPair': assetPair,
@@ -1425,7 +1425,7 @@ export default class wavesexchange extends Exchange {
             //     },
             // }
             //
-            const attachment = {
+            const attachment: Dict = {
                 'v': 1,
                 'c': {
                     't': 'sp',
@@ -1696,7 +1696,7 @@ export default class wavesexchange extends Exchange {
     }
 
     parseOrderStatus (status: Str) {
-        const statuses = {
+        const statuses: Dict = {
             'Cancelled': 'canceled',
             'Accepted': 'open',
             'Filled': 'closed',
@@ -1914,7 +1914,7 @@ export default class wavesexchange extends Exchange {
         //   ]
         // }
         const balances = this.safeValue (totalBalance, 'balances', []);
-        const result = {};
+        const result: Dict = {};
         let timestamp = undefined;
         const assetIds = [];
         const nonStandardBalances = [];
@@ -1940,7 +1940,7 @@ export default class wavesexchange extends Exchange {
         }
         const nonStandardAssets = assetIds.length;
         if (nonStandardAssets) {
-            const requestInner = {
+            const requestInner: Dict = {
                 'ids': assetIds,
             };
             const response = await this.publicGetAssets (requestInner);
@@ -1964,7 +1964,7 @@ export default class wavesexchange extends Exchange {
         const binary = this.binaryConcatArray (byteArray);
         const hexSecret = this.binaryToBase16 (this.base58ToBinary (this.secret));
         const signature = this.axolotl (this.binaryToBase16 (binary), hexSecret, ed25519);
-        const matcherRequest = {
+        const matcherRequest: Dict = {
             'publicKey': this.apiKey,
             'signature': signature,
             'timestamp': currentTimestamp.toString (),
@@ -1985,7 +1985,7 @@ export default class wavesexchange extends Exchange {
                 result[code]['used'] = amount;
             }
         }
-        const wavesRequest = {
+        const wavesRequest: Dict = {
             'address': wavesAddress,
         };
         const wavesTotal = await this.nodeGetAddressesBalanceAddress (wavesRequest);
@@ -2266,7 +2266,7 @@ export default class wavesexchange extends Exchange {
         }
         const side = this.safeString (order, 'orderType');
         const orderId = this.safeString (order, 'id');
-        const fee = {
+        const fee: Dict = {
             'cost': this.safeString (order, 'matcherFee'),
             'currency': this.safeCurrencyCode (this.safeString (order, 'matcherFeeAssetId', 'WAVES')),
         };
@@ -2288,7 +2288,7 @@ export default class wavesexchange extends Exchange {
     }
 
     parseDepositWithdrawFees (response, codes: Strings = undefined, currencyIdKey = undefined): any {
-        const depositWithdrawFees = {};
+        const depositWithdrawFees: Dict = {};
         codes = this.marketCodes (codes);
         for (let i = 0; i < response.length; i++) {
             const entry = response[i];
@@ -2472,7 +2472,7 @@ export default class wavesexchange extends Exchange {
         // currently only works for BTC and WAVES
         if (code !== 'WAVES') {
             const supportedCurrencies = await this.privateGetWithdrawCurrencies ();
-            const currencies = {};
+            const currencies: Dict = {};
             const items = this.safeValue (supportedCurrencies, 'items', []);
             for (let i = 0; i < items.length; i++) {
                 const entry = items[i];
@@ -2486,7 +2486,7 @@ export default class wavesexchange extends Exchange {
         }
         await this.loadMarkets ();
         const hexChars = [ '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f' ];
-        const set = {};
+        const set: Dict = {};
         for (let i = 0; i < hexChars.length; i++) {
             const key = hexChars[i];
             set[key] = true;
@@ -2507,7 +2507,7 @@ export default class wavesexchange extends Exchange {
         if (code === 'WAVES' && !isErc20) {
             proxyAddress = address;
         } else {
-            const withdrawAddressRequest = {
+            const withdrawAddressRequest: Dict = {
                 'address': address,
                 'currency': code,
             };

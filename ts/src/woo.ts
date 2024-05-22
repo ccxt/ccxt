@@ -690,7 +690,7 @@ export default class woo extends Exchange {
         const data = this.safeDict (response, 'data', {});
         const maker = this.safeString (data, 'makerFeeRate');
         const taker = this.safeString (data, 'takerFeeRate');
-        const result = {};
+        const result: Dict = {};
         for (let i = 0; i < this.symbols.length; i++) {
             const symbol = this.symbols[i];
             result[symbol] = {
@@ -714,7 +714,7 @@ export default class woo extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} an associative dictionary of currencies
          */
-        const result = {};
+        const result: Dict = {};
         const tokenResponse = await this.v1PublicGetToken (params);
         //
         // {
@@ -785,7 +785,7 @@ export default class woo extends Exchange {
             const code = this.safeCurrencyCode (currencyId);
             let name: Str = undefined;
             let minPrecision = undefined;
-            const resultingNetworks = {};
+            const resultingNetworks: Dict = {};
             for (let j = 0; j < networks.length; j++) {
                 const network = networks[j];
                 name = this.safeString (network, 'fullname');
@@ -1039,7 +1039,7 @@ export default class woo extends Exchange {
             }
         } else if ((stopLoss !== undefined) || (takeProfit !== undefined)) {
             request['algoType'] = 'BRACKET';
-            const outterOrder = {
+            const outterOrder: Dict = {
                 'symbol': market['id'],
                 'reduceOnly': false,
                 'algoType': 'POSITIONAL_TP_SL',
@@ -1048,7 +1048,7 @@ export default class woo extends Exchange {
             const closeSide = (orderSide === 'BUY') ? 'SELL' : 'BUY';
             if (stopLoss !== undefined) {
                 const stopLossPrice = this.safeNumber2 (stopLoss, 'triggerPrice', 'price', stopLoss);
-                const stopLossOrder = {
+                const stopLossOrder: Dict = {
                     'side': closeSide,
                     'algoType': 'STOP_LOSS',
                     'triggerPrice': this.priceToPrecision (symbol, stopLossPrice),
@@ -1059,7 +1059,7 @@ export default class woo extends Exchange {
             }
             if (takeProfit !== undefined) {
                 const takeProfitPrice = this.safeNumber2 (takeProfit, 'triggerPrice', 'price', takeProfit);
-                const takeProfitOrder = {
+                const takeProfitOrder: Dict = {
                     'side': closeSide,
                     'algoType': 'TAKE_PROFIT',
                     'triggerPrice': this.priceToPrecision (symbol, takeProfitPrice),
@@ -1252,7 +1252,7 @@ export default class woo extends Exchange {
         //
         // { success: true, status: "CANCEL_SENT" }
         //
-        const extendParams = { 'symbol': symbol };
+        const extendParams: Dict = { 'symbol': symbol };
         if (isByClientOrder) {
             extendParams['client_order_id'] = clientOrderIdExchangeSpecific;
         } else {
@@ -1532,7 +1532,7 @@ export default class woo extends Exchange {
     }
 
     parseTimeInForce (timeInForce) {
-        const timeInForces = {
+        const timeInForces: Dict = {
             'ioc': 'IOC',
             'fok': 'FOK',
             'post_only': 'PO',
@@ -1654,7 +1654,7 @@ export default class woo extends Exchange {
 
     parseOrderStatus (status: Str) {
         if (status !== undefined) {
-            const statuses = {
+            const statuses: Dict = {
                 'NEW': 'open',
                 'FILLED': 'closed',
                 'CANCEL_SENT': 'canceled',
@@ -1999,7 +1999,7 @@ export default class woo extends Exchange {
     }
 
     parseBalance (response): Balances {
-        const result = {
+        const result: Dict = {
             'info': response,
         };
         const balances = this.safeList (response, 'holding', []);
@@ -2154,7 +2154,7 @@ export default class woo extends Exchange {
     }
 
     parseLedgerEntryType (type) {
-        const types = {
+        const types: Dict = {
             'BALANCE': 'transaction', // Funds moved in/out wallet
             'COLLATERAL': 'transfer', // Funds moved between portfolios
         };
@@ -2281,7 +2281,7 @@ export default class woo extends Exchange {
     }
 
     parseTransactionStatus (status) {
-        const statuses = {
+        const statuses: Dict = {
             'NEW': 'pending',
             'CONFIRMING': 'pending',
             'PROCESSING': 'pending',
@@ -2429,7 +2429,7 @@ export default class woo extends Exchange {
     }
 
     parseTransferStatus (status: Str): Str {
-        const statuses = {
+        const statuses: Dict = {
             'NEW': 'pending',
             'CONFIRMING': 'pending',
             'PROCESSING': 'pending',
@@ -3314,7 +3314,7 @@ export default class woo extends Exchange {
         //         ]
         //     }
         //
-        const result = {};
+        const result: Dict = {};
         const data = this.safeList (response, 'rows', []);
         for (let i = 0; i < data.length; i++) {
             const entry = data[i];

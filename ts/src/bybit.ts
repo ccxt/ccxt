@@ -1352,14 +1352,14 @@ export default class bybit extends Exchange {
         //
         const data = this.safeDict (response, 'result', {});
         const rows = this.safeList (data, 'rows', []);
-        const result = {};
+        const result: Dict = {};
         for (let i = 0; i < rows.length; i++) {
             const currency = rows[i];
             const currencyId = this.safeString (currency, 'coin');
             const code = this.safeCurrencyCode (currencyId);
             const name = this.safeString (currency, 'name');
             const chains = this.safeList (currency, 'chains', []);
-            const networks = {};
+            const networks: Dict = {};
             let minPrecision = undefined;
             let minWithdrawFeeString = undefined;
             let minWithdrawString = undefined;
@@ -2460,7 +2460,7 @@ export default class bybit extends Exchange {
         let tickerList = this.safeValue (response, 'result', []);
         const timestamp = this.safeInteger (response, 'time');
         tickerList = this.safeValue (tickerList, 'list');
-        const fundingRates = {};
+        const fundingRates: Dict = {};
         for (let i = 0; i < tickerList.length; i++) {
             const rawTicker = tickerList[i];
             rawTicker['timestamp'] = timestamp; // will be removed inside the parser
@@ -2982,7 +2982,7 @@ export default class bybit extends Exchange {
         //     }
         //
         const timestamp = this.safeInteger (response, 'time');
-        const result = {
+        const result: Dict = {
             'info': response,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -3187,7 +3187,7 @@ export default class bybit extends Exchange {
     }
 
     parseOrderStatus (status: Str) {
-        const statuses = {
+        const statuses: Dict = {
             // v3 spot
             'NEW': 'open',
             'PARTIALLY_FILLED': 'open',
@@ -3216,7 +3216,7 @@ export default class bybit extends Exchange {
     }
 
     parseTimeInForce (timeInForce) {
-        const timeInForces = {
+        const timeInForces: Dict = {
             'GoodTillCancel': 'GTC',
             'ImmediateOrCancel': 'IOC',
             'FillOrKill': 'FOK',
@@ -4405,7 +4405,7 @@ export default class bybit extends Exchange {
             if (clientOrderId !== undefined) {
                 idKey = 'orderLinkId';
             }
-            const orderItem = {
+            const orderItem: Dict = {
                 'symbol': market['id'],
             };
             orderItem[idKey] = (idKey === 'orderId') ? id : clientOrderId;
@@ -5673,7 +5673,7 @@ export default class bybit extends Exchange {
     }
 
     parseTransactionStatus (status) {
-        const statuses = {
+        const statuses: Dict = {
             // v3 deposit status
             '0': 'unknown',
             '1': 'pending',
@@ -6011,7 +6011,7 @@ export default class bybit extends Exchange {
     }
 
     parseLedgerEntryType (type) {
-        const types = {
+        const types: Dict = {
             'Deposit': 'transaction',
             'Withdraw': 'transaction',
             'RealisedPNL': 'trade',
@@ -7328,7 +7328,7 @@ export default class bybit extends Exchange {
     }
 
     parseTransferStatus (status: Str): Str {
-        const statuses = {
+        const statuses: Dict = {
             '0': 'ok',
             'OK': 'ok',
             'SUCCESS': 'ok',
@@ -7544,7 +7544,7 @@ export default class bybit extends Exchange {
         //
         let fees = this.safeDict (response, 'result', {});
         fees = this.safeList (fees, 'list', []);
-        const result = {};
+        const result: Dict = {};
         for (let i = 0; i < fees.length; i++) {
             const fee = this.parseTradingFee (fees[i]);
             const symbol = fee['symbol'];
@@ -7576,7 +7576,7 @@ export default class bybit extends Exchange {
         //
         const chains = this.safeList (fee, 'chains', []);
         const chainsLength = chains.length;
-        const result = {
+        const result: Dict = {
             'info': fee,
             'withdraw': {
                 'fee': undefined,
@@ -8226,7 +8226,7 @@ export default class bybit extends Exchange {
         //      }
         //  ]
         //
-        const tiers = {};
+        const tiers: Dict = {};
         const marketIds = this.marketIds (symbols);
         const filteredResults = this.filterByArray (response, marketIdKey, marketIds, false);
         const grouped = this.groupBy (filteredResults, marketIdKey);

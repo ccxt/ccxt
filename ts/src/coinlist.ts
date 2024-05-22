@@ -362,7 +362,7 @@ export default class coinlist extends Exchange {
         //     }
         //
         const currencies = this.safeValue (response, 'assets', []);
-        const result = {};
+        const result: Dict = {};
         for (let i = 0; i < currencies.length; i++) {
             const currency = currencies[i];
             const id = this.safeString (currency, 'asset');
@@ -952,7 +952,7 @@ export default class coinlist extends Exchange {
         //     }
         //
         const fees = this.safeValue (response, 'fees_by_symbols', {});
-        const result = {};
+        const result: Dict = {};
         const groupsOfSymbols = Object.keys (fees);
         for (let i = 0; i < groupsOfSymbols.length; i++) {
             const group = groupsOfSymbols[i];
@@ -965,7 +965,7 @@ export default class coinlist extends Exchange {
                 const id = ids[j];
                 const market = this.safeMarket (id);
                 const symbol = market['symbol'];
-                const info = {};
+                const info: Dict = {};
                 info[group] = feeTiers;
                 result[symbol] = {
                     'info': info,
@@ -1137,7 +1137,7 @@ export default class coinlist extends Exchange {
         //         "net_liquidation_value_usd": "string"
         //     }
         //
-        const result = {
+        const result: Dict = {
             'info': response,
             'timestamp': undefined,
             'datetime': undefined,
@@ -1717,7 +1717,7 @@ export default class coinlist extends Exchange {
     }
 
     parseOrderStatus (status: Str) {
-        const statuses = {
+        const statuses: Dict = {
             'pending': 'open',
             'accepted': 'open',
             'rejected': 'rejected',
@@ -1728,7 +1728,7 @@ export default class coinlist extends Exchange {
     }
 
     parseOrderType (status) {
-        const statuses = {
+        const statuses: Dict = {
             'market': 'market',
             'limit': 'limit',
             'stop_market': 'market',
@@ -1907,7 +1907,7 @@ export default class coinlist extends Exchange {
     }
 
     parseTransferStatus (status: Str): Str {
-        const statuses = {
+        const statuses: Dict = {
             'confirmed': 'ok',
         };
         return this.safeString (statuses, status, status);
@@ -2084,7 +2084,7 @@ export default class coinlist extends Exchange {
     }
 
     parseTransactionType (type) {
-        const types = {
+        const types: Dict = {
             'CRYPTO_DEPOSIT': 'deposit',
             'CRYPTO_WITHDRAWAL': 'withdrawal',
             'PRO_TRANSFER': 'transfer',
@@ -2305,7 +2305,7 @@ export default class coinlist extends Exchange {
     }
 
     parseLedgerEntryType (type) {
-        const types = {
+        const types: Dict = {
             'atomic token swap': 'trade',
             'fee': 'fee',
             'deposit': 'transfer',

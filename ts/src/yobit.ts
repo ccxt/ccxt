@@ -289,7 +289,7 @@ export default class yobit extends Exchange {
     parseBalance (response): Balances {
         const balances = this.safeDict (response, 'return', {});
         const timestamp = this.safeInteger (balances, 'server_time');
-        const result = {
+        const result: Dict = {
             'info': response,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -505,7 +505,7 @@ export default class yobit extends Exchange {
             request['limit'] = limit;
         }
         const response = await this.publicGetDepthPair (this.extend (request, params));
-        const result = {};
+        const result: Dict = {};
         ids = Object.keys (response);
         for (let i = 0; i < ids.length; i++) {
             const id = ids[i];
@@ -589,7 +589,7 @@ export default class yobit extends Exchange {
             'pair': idsString,
         };
         const tickers = await this.publicGetTickerPair (this.extend (request, params));
-        const result = {};
+        const result: Dict = {};
         const keys = Object.keys (tickers);
         for (let k = 0; k < keys.length; k++) {
             const id = keys[k];
@@ -770,7 +770,7 @@ export default class yobit extends Exchange {
         //
         const pairs = this.safeDict (response, 'pairs', {});
         const marketIds = Object.keys (pairs);
-        const result = {};
+        const result: Dict = {};
         for (let i = 0; i < marketIds.length; i++) {
             const marketId = marketIds[i];
             const pair = this.safeDict (pairs, marketId, {});
@@ -882,7 +882,7 @@ export default class yobit extends Exchange {
     }
 
     parseOrderStatus (status: Str) {
-        const statuses = {
+        const statuses: Dict = {
             '0': 'open',
             '1': 'closed',
             '2': 'canceled',

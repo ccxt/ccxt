@@ -234,7 +234,7 @@ export default class coinone extends Exchange {
         //         ]
         //     }
         //
-        const result = {};
+        const result: Dict = {};
         const currencies = this.safeValue (response, 'currencies', []);
         for (let i = 0; i < currencies.length; i++) {
             const entry = currencies[i];
@@ -381,7 +381,7 @@ export default class coinone extends Exchange {
     }
 
     parseBalance (response): Balances {
-        const result = { 'info': response };
+        const result: Dict = { 'info': response };
         const balances = this.omit (response, [
             'errorCode',
             'result',
@@ -829,7 +829,7 @@ export default class coinone extends Exchange {
     }
 
     parseOrderStatus (status: Str) {
-        const statuses = {
+        const statuses: Dict = {
             'live': 'open',
             'partially_filled': 'open',
             'partially_canceled': 'open',
@@ -1108,7 +1108,7 @@ export default class coinone extends Exchange {
         //
         const walletAddress = this.safeValue (response, 'walletAddress', {});
         const keys = Object.keys (walletAddress);
-        const result = {};
+        const result: Dict = {};
         for (let i = 0; i < keys.length; i++) {
             const key = keys[i];
             const value = walletAddress[key];

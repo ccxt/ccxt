@@ -303,7 +303,7 @@ export default class coinmetro extends Exchange {
         //         ...
         //     ]
         //
-        const result = {};
+        const result: Dict = {};
         for (let i = 0; i < response.length; i++) {
             const currency = response[i];
             const id = this.safeString (currency, 'symbol');
@@ -462,7 +462,7 @@ export default class coinmetro extends Exchange {
                 }
             }
         }
-        const result = {
+        const result: Dict = {
             'baseId': baseId,
             'quoteId': quoteId,
         };
@@ -476,7 +476,7 @@ export default class coinmetro extends Exchange {
         const limits = this.safeValue (currency, 'limits', {});
         const amountLimits = this.safeValue (limits, 'amount', {});
         const minLimit = this.safeNumber (amountLimits, 'min');
-        const result = {
+        const result: Dict = {
             'precision': precision,
             'minLimit': minLimit,
         };
@@ -777,7 +777,7 @@ export default class coinmetro extends Exchange {
         const book = this.safeValue (response, 'book', {});
         const rawBids = this.safeValue (book, 'bid', {});
         const rawAsks = this.safeValue (book, 'ask', {});
-        const rawOrderbook = {
+        const rawOrderbook: Dict = {
             'bids': rawBids,
             'asks': rawAsks,
         };
@@ -860,7 +860,7 @@ export default class coinmetro extends Exchange {
         //
         const latestPrices = this.safeValue (response, 'latestPrices', []);
         const twentyFourHInfos = this.safeValue (response, '24hInfo', []);
-        const tickersObject = {};
+        const tickersObject: Dict = {};
         // merging info from two lists into one
         for (let i = 0; i < latestPrices.length; i++) {
             const latestPrice = latestPrices[i];
@@ -989,7 +989,7 @@ export default class coinmetro extends Exchange {
         //         ...
         //     ]
         //
-        const result = {
+        const result: Dict = {
             'info': balances,
         };
         for (let i = 0; i < balances.length; i++) {
@@ -1142,7 +1142,7 @@ export default class coinmetro extends Exchange {
         const [ type, referenceId ] = this.parseLedgerEntryDescription (description);
         const JSONdata = this.safeValue (item, 'JSONdata', {});
         const feeCost = this.safeString (JSONdata, 'fees');
-        const fee = {
+        const fee: Dict = {
             'cost': feeCost,
             'currency': undefined,
         };
@@ -1195,7 +1195,7 @@ export default class coinmetro extends Exchange {
     }
 
     parseLedgerEntryType (type) {
-        const types = {
+        const types: Dict = {
             'Deposit': 'transaction',
             'Withdraw': 'transaction',
             'Order': 'trade',
@@ -1328,7 +1328,7 @@ export default class coinmetro extends Exchange {
     }
 
     encodeOrderTimeInForce (timeInForce) {
-        const timeInForceTypes = {
+        const timeInForceTypes: Dict = {
             'GTC': 1,
             'IOC': 2,
             'GTD': 3,

@@ -716,7 +716,7 @@ export default class okcoin extends Exchange {
     }
 
     safeNetwork (networkId) {
-        const networksById = {
+        const networksById: Dict = {
             'Bitcoin': 'BTC',
             'Omni': 'OMNI',
             'TRON': 'TRC20',
@@ -740,7 +740,7 @@ export default class okcoin extends Exchange {
         } else {
             const response = await this.privateGetAssetCurrencies (params);
             const data = this.safeValue (response, 'data', []);
-            const result = {};
+            const result: Dict = {};
             const dataByCurrencyId = this.groupBy (data, 'ccy');
             const currencyIds = Object.keys (dataByCurrencyId);
             for (let i = 0; i < currencyIds.length; i++) {
@@ -748,7 +748,7 @@ export default class okcoin extends Exchange {
                 const currency = this.safeCurrency (currencyId);
                 const code = currency['code'];
                 const chains = dataByCurrencyId[currencyId];
-                const networks = {};
+                const networks: Dict = {};
                 let currencyActive = false;
                 let depositEnabled = false;
                 let withdrawEnabled = false;
@@ -1202,7 +1202,7 @@ export default class okcoin extends Exchange {
         //         }
         //     ]
         //
-        const result = {
+        const result: Dict = {
             'info': response,
             'timestamp': undefined,
             'datetime': undefined,
@@ -1265,7 +1265,7 @@ export default class okcoin extends Exchange {
     }
 
     parseTradingBalance (response) {
-        const result = { 'info': response };
+        const result: Dict = { 'info': response };
         const data = this.safeValue (response, 'data', []);
         const first = this.safeValue (data, 0, {});
         const timestamp = this.safeInteger (first, 'uTime');
@@ -1293,7 +1293,7 @@ export default class okcoin extends Exchange {
     }
 
     parseFundingBalance (response) {
-        const result = { 'info': response };
+        const result: Dict = { 'info': response };
         const data = this.safeValue (response, 'data', []);
         for (let i = 0; i < data.length; i++) {
             const balance = data[i];
@@ -1758,7 +1758,7 @@ export default class okcoin extends Exchange {
     }
 
     parseOrderStatus (status: Str) {
-        const statuses = {
+        const statuses: Dict = {
             'canceled': 'canceled',
             'live': 'open',
             'partially_filled': 'open',
@@ -2447,7 +2447,7 @@ export default class okcoin extends Exchange {
     }
 
     parseTransferStatus (status: Str): Str {
-        const statuses = {
+        const statuses: Dict = {
             'success': 'ok',
         };
         return this.safeString (statuses, status, status);
@@ -2680,7 +2680,7 @@ export default class okcoin extends Exchange {
         //         "5": "awaiting identity confirmation"
         //     }
         //
-        const statuses = {
+        const statuses: Dict = {
             '-3': 'pending',
             '-2': 'canceled',
             '-1': 'failed',
@@ -2948,7 +2948,7 @@ export default class okcoin extends Exchange {
     }
 
     parseLedgerEntryType (type) {
-        const types = {
+        const types: Dict = {
             '1': 'transfer', // transfer
             '2': 'trade', // trade
             '3': 'trade', // delivery

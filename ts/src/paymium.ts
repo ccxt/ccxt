@@ -116,7 +116,7 @@ export default class paymium extends Exchange {
     }
 
     parseBalance (response): Balances {
-        const result = { 'info': response };
+        const result: Dict = { 'info': response };
         const currencies = Object.keys (this.currencies);
         for (let i = 0; i < currencies.length; i++) {
             const code = currencies[i];
@@ -560,7 +560,7 @@ export default class paymium extends Exchange {
     }
 
     parseTransferStatus (status: Str): Str {
-        const statuses = {
+        const statuses: Dict = {
             'executed': 'ok',
             // what are the other statuses?
         };

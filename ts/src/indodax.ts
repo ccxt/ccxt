@@ -336,7 +336,7 @@ export default class indodax extends Exchange {
         const free = this.safeValue (balances, 'balance', {});
         const used = this.safeValue (balances, 'balance_hold', {});
         const timestamp = this.safeTimestamp (balances, 'server_time');
-        const result = {
+        const result: Dict = {
             'info': response,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -637,7 +637,7 @@ export default class indodax extends Exchange {
     }
 
     parseOrderStatus (status: Str) {
-        const statuses = {
+        const statuses: Dict = {
             'open': 'open',
             'filled': 'closed',
             'cancelled': 'canceled',
@@ -1154,7 +1154,7 @@ export default class indodax extends Exchange {
     }
 
     parseTransactionStatus (status) {
-        const statuses = {
+        const statuses: Dict = {
             'success': 'ok',
         };
         return this.safeString (statuses, status, status);
@@ -1211,7 +1211,7 @@ export default class indodax extends Exchange {
         const addresses = this.safeDict (data, 'address', {});
         const networks = this.safeDict (data, 'network', {});
         const addressKeys = Object.keys (addresses);
-        const result = {
+        const result: Dict = {
             'info': data,
         };
         for (let i = 0; i < addressKeys.length; i++) {

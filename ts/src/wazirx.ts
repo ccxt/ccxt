@@ -458,7 +458,7 @@ export default class wazirx extends Exchange {
         //     ...
         // ]
         //
-        const result = {};
+        const result: Dict = {};
         for (let i = 0; i < tickers.length; i++) {
             const ticker = tickers[i];
             const parsedTicker = this.parseTicker (ticker);
@@ -641,7 +641,7 @@ export default class wazirx extends Exchange {
     }
 
     parseBalance (response): Balances {
-        const result = { 'info': response };
+        const result: Dict = { 'info': response };
         for (let i = 0; i < response.length; i++) {
             const balance = response[i];
             const id = this.safeString (balance, 'asset');
@@ -934,7 +934,7 @@ export default class wazirx extends Exchange {
     }
 
     parseOrderStatus (status: Str) {
-        const statuses = {
+        const statuses: Dict = {
             'wait': 'open',
             'done': 'closed',
             'cancel': 'canceled',
@@ -1001,14 +1001,14 @@ export default class wazirx extends Exchange {
         //         }
         //     ]
         //
-        const result = {};
+        const result: Dict = {};
         for (let i = 0; i < response.length; i++) {
             const currency = response[i];
             const currencyId = this.safeString (currency, 'currency');
             const code = this.safeCurrencyCode (currencyId);
             const name = this.safeString (currency, 'name');
             const chains = this.safeList (currency, 'networkList', []);
-            const networks = {};
+            const networks: Dict = {};
             let minPrecision = undefined;
             let minWithdrawFeeString = undefined;
             let minWithdrawString = undefined;
@@ -1186,7 +1186,7 @@ export default class wazirx extends Exchange {
     }
 
     parseTransactionStatus (status) {
-        const statuses = {
+        const statuses: Dict = {
             '0': 'ok',
             '1': 'fail',
             '2': 'pending',

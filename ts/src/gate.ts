@@ -1590,7 +1590,7 @@ export default class gate extends Exchange {
         //        "chain":"ETH"
         //    }
         //
-        const result = {};
+        const result: Dict = {};
         for (let i = 0; i < response.length; i++) {
             const entry = response[i];
             const currencyId = this.safeString (entry, 'currency');
@@ -1880,7 +1880,7 @@ export default class gate extends Exchange {
         const addresses = this.safeValue (response, 'multichain_addresses');
         const currencyId = this.safeString (response, 'currency');
         code = this.safeCurrencyCode (currencyId);
-        const result = {};
+        const result: Dict = {};
         for (let i = 0; i < addresses.length; i++) {
             const entry = addresses[i];
             //
@@ -2054,7 +2054,7 @@ export default class gate extends Exchange {
     }
 
     parseTradingFees (response) {
-        const result = {};
+        const result: Dict = {};
         for (let i = 0; i < this.symbols.length; i++) {
             const symbol = this.symbols[i];
             const market = this.market (symbol);
@@ -2124,7 +2124,7 @@ export default class gate extends Exchange {
         //        }
         //    }
         //
-        const result = {};
+        const result: Dict = {};
         let withdrawFees = {};
         for (let i = 0; i < response.length; i++) {
             withdrawFees = {};
@@ -2206,7 +2206,7 @@ export default class gate extends Exchange {
         //    }
         //
         const withdrawFixOnChains = this.safeValue (fee, 'withdraw_fix_on_chains');
-        const result = {
+        const result: Dict = {
             'info': fee,
             'withdraw': {
                 'fee': this.safeNumber (fee, 'withdraw_fix'),
@@ -2839,7 +2839,7 @@ export default class gate extends Exchange {
         //         "orders_limit": 10
         //     }
         //
-        const result = {
+        const result: Dict = {
             'info': response,
         };
         const isolated = marginMode === 'margin';
@@ -2867,7 +2867,7 @@ export default class gate extends Exchange {
                 const quote = this.safeValue (entry, 'quote', {});
                 const baseCode = this.safeCurrencyCode (this.safeString (base, 'currency'));
                 const quoteCode = this.safeCurrencyCode (this.safeString (quote, 'currency'));
-                const subResult = {};
+                const subResult: Dict = {};
                 subResult[baseCode] = this.parseBalanceHelper (base);
                 subResult[quoteCode] = this.parseBalanceHelper (quote);
                 result[symbolInner] = this.safeBalance (subResult);
@@ -3630,7 +3630,7 @@ export default class gate extends Exchange {
     }
 
     parseTransactionStatus (status) {
-        const statuses = {
+        const statuses: Dict = {
             'PEND': 'pending',
             'REQUEST': 'pending',
             'DMOVE': 'pending',
@@ -3649,7 +3649,7 @@ export default class gate extends Exchange {
     }
 
     parseTransactionType (type) {
-        const types = {
+        const types: Dict = {
             'd': 'deposit',
             'w': 'withdrawal',
         };
@@ -4270,7 +4270,7 @@ export default class gate extends Exchange {
     }
 
     parseOrderStatus (status: Str) {
-        const statuses = {
+        const statuses: Dict = {
             'open': 'open',
             '_new': 'open',
             'filled': 'closed',
@@ -6622,7 +6622,7 @@ export default class gate extends Exchange {
     }
 
     parseLedgerEntryType (type) {
-        const ledgerType = {
+        const ledgerType: Dict = {
             'deposit': 'deposit',
             'withdraw': 'withdrawal',
             'sub_account_transfer': 'transfer',

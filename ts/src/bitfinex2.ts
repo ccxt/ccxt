@@ -732,7 +732,7 @@ export default class bitfinex2 extends Exchange {
         //         ],
         //     ]
         //
-        const indexed = {
+        const indexed: Dict = {
             'sym': this.indexBy (this.safeValue (response, 1, []), 0),
             'label': this.indexBy (this.safeValue (response, 2, []), 0),
             'unit': this.indexBy (this.safeValue (response, 3, []), 0),
@@ -742,7 +742,7 @@ export default class bitfinex2 extends Exchange {
             'fees': this.indexBy (this.safeValue (response, 7, []), 0),
         };
         const ids = this.safeValue (response, 0, []);
-        const result = {};
+        const result: Dict = {};
         for (let i = 0; i < ids.length; i++) {
             const id = ids[i];
             if (id.indexOf ('F0') >= 0) {
@@ -785,7 +785,7 @@ export default class bitfinex2 extends Exchange {
                 },
                 'networks': {},
             };
-            const networks = {};
+            const networks: Dict = {};
             const currencyNetworks = this.safeValue (response, 8, []);
             const cleanId = id.replace ('F0', '');
             for (let j = 0; j < currencyNetworks.length; j++) {
@@ -822,7 +822,7 @@ export default class bitfinex2 extends Exchange {
     }
 
     safeNetwork (networkId) {
-        const networksById = {
+        const networksById: Dict = {
             'BITCOIN': 'BTC',
             'LITECOIN': 'LTC',
             'ETHEREUM': 'ERC20',
@@ -864,7 +864,7 @@ export default class bitfinex2 extends Exchange {
         const isDerivative = requestedType === 'derivatives';
         const query = this.omit (params, 'type');
         const response = await this.privatePostAuthRWallets (query);
-        const result = { 'info': response };
+        const result: Dict = { 'info': response };
         for (let i = 0; i < response.length; i++) {
             const balance = response[i];
             const account = this.account ();
@@ -1004,7 +1004,7 @@ export default class bitfinex2 extends Exchange {
     }
 
     parseTransferStatus (status: Str): Str {
-        const statuses = {
+        const statuses: Dict = {
             'SUCCESS': 'ok',
             'ERROR': 'failed',
             'FAILURE': 'failed',
@@ -1061,7 +1061,7 @@ export default class bitfinex2 extends Exchange {
         const fullRequest = this.extend (request, params);
         const orderbook = await this.publicGetBookSymbolPrecision (fullRequest);
         const timestamp = this.milliseconds ();
-        const result = {
+        const result: Dict = {
             'symbol': market['symbol'],
             'bids': [],
             'asks': [],
@@ -1216,7 +1216,7 @@ export default class bitfinex2 extends Exchange {
         //         ...
         //     ]
         //
-        const result = {};
+        const result: Dict = {};
         for (let i = 0; i < tickers.length; i++) {
             const ticker = tickers[i];
             const marketId = this.safeString (ticker, 0);
@@ -1243,7 +1243,7 @@ export default class bitfinex2 extends Exchange {
             'symbol': market['id'],
         };
         const ticker = await this.publicGetTickerSymbol (this.extend (request, params));
-        const result = { 'result': ticker };
+        const result: Dict = { 'result': ticker };
         return this.parseTicker (result, market);
     }
 
@@ -1454,7 +1454,7 @@ export default class bitfinex2 extends Exchange {
         }
         const parts = status.split (' ');
         const state = this.safeString (parts, 0);
-        const statuses = {
+        const statuses: Dict = {
             'ACTIVE': 'open',
             'PARTIALLY': 'open',
             'EXECUTED': 'closed',
@@ -1471,7 +1471,7 @@ export default class bitfinex2 extends Exchange {
 
     parseOrderFlags (flags) {
         // flags can be added to each other...
-        const flagValues = {
+        const flagValues: Dict = {
             '1024': [ 'reduceOnly' ],
             '4096': [ 'postOnly' ],
             '5120': [ 'reduceOnly', 'postOnly' ],
@@ -1484,7 +1484,7 @@ export default class bitfinex2 extends Exchange {
     }
 
     parseTimeInForce (orderType) {
-        const orderTypes = {
+        const orderTypes: Dict = {
             'EXCHANGE IOC': 'IOC',
             'EXCHANGE FOK': 'FOK',
             'IOC': 'IOC', // Margin
@@ -2262,7 +2262,7 @@ export default class bitfinex2 extends Exchange {
     }
 
     parseTransactionStatus (status) {
-        const statuses = {
+        const statuses: Dict = {
             'SUCCESS': 'ok',
             'COMPLETED': 'ok',
             'ERROR': 'failed',
@@ -2495,7 +2495,7 @@ export default class bitfinex2 extends Exchange {
         //         { leo_lev: "0", leo_amount_avg: "0" }
         //     ]
         //
-        const result = {};
+        const result: Dict = {};
         const fiat = this.safeValue (this.options, 'fiat', {});
         const feeData = this.safeValue (response, 4, []);
         const makerData = this.safeValue (feeData, 0, []);
@@ -2509,7 +2509,7 @@ export default class bitfinex2 extends Exchange {
         for (let i = 0; i < this.symbols.length; i++) {
             const symbol = this.symbols[i];
             const market = this.market (symbol);
-            const fee = {
+            const fee: Dict = {
                 'info': response,
                 'symbol': symbol,
                 'percentage': true,

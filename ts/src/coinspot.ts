@@ -148,7 +148,7 @@ export default class coinspot extends Exchange {
     }
 
     parseBalance (response): Balances {
-        const result = { 'info': response };
+        const result: Dict = { 'info': response };
         const balances = this.safeValue2 (response, 'balance', 'balances');
         if (Array.isArray (balances)) {
             for (let i = 0; i < balances.length; i++) {
@@ -324,7 +324,7 @@ export default class coinspot extends Exchange {
         //      }
         //    }
         //
-        const result = {};
+        const result: Dict = {};
         const prices = this.safeValue (response, 'prices');
         const ids = Object.keys (prices);
         for (let i = 0; i < ids.length; i++) {

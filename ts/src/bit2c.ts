@@ -187,7 +187,7 @@ export default class bit2c extends Exchange {
     }
 
     parseBalance (response): Balances {
-        const result = {
+        const result: Dict = {
             'info': response,
             'timestamp': undefined,
             'datetime': undefined,
@@ -404,7 +404,7 @@ export default class bit2c extends Exchange {
         //
         const fees = this.safeValue (response, 'Fees', {});
         const keys = Object.keys (fees);
-        const result = {};
+        const result: Dict = {};
         for (let i = 0; i < keys.length; i++) {
             const marketId = keys[i];
             const symbol = this.safeSymbol (marketId);

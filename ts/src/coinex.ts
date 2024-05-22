@@ -556,7 +556,7 @@ export default class coinex extends Exchange {
         //
         const data = this.safeValue (response, 'data', []);
         const coins = Object.keys (data);
-        const result = {};
+        const result: Dict = {};
         for (let i = 0; i < coins.length; i++) {
             const coin = coins[i];
             const currency = data[coin];
@@ -622,7 +622,7 @@ export default class coinex extends Exchange {
                 minPrecisionString = (minPrecisionString === undefined) ? precisionString : Precise.stringMin (precisionString, minPrecisionString);
             }
             const networks = this.safeValue (result[code], 'networks', {});
-            const network = {
+            const network: Dict = {
                 'info': currency,
                 'id': networkId,
                 'network': networkId,
@@ -1424,7 +1424,7 @@ export default class coinex extends Exchange {
             //
         }
         const data = this.safeList (response, 'data', []);
-        const result = {};
+        const result: Dict = {};
         for (let i = 0; i < data.length; i++) {
             const entry = data[i];
             const marketId = this.safeString (entry, 'market');
@@ -1558,7 +1558,7 @@ export default class coinex extends Exchange {
         //         "message": "OK"
         //     }
         //
-        const result = { 'info': response };
+        const result: Dict = { 'info': response };
         const balances = this.safeList (response, 'data', []);
         for (let i = 0; i < balances.length; i++) {
             const entry = balances[i];
@@ -1595,7 +1595,7 @@ export default class coinex extends Exchange {
         //         "message": "OK"
         //     }
         //
-        const result = { 'info': response };
+        const result: Dict = { 'info': response };
         const balances = this.safeList (response, 'data', []);
         for (let i = 0; i < balances.length; i++) {
             const entry = balances[i];
@@ -1628,7 +1628,7 @@ export default class coinex extends Exchange {
         //         "message": "OK"
         //     }
         //
-        const result = { 'info': response };
+        const result: Dict = { 'info': response };
         const balances = this.safeList (response, 'data', []);
         for (let i = 0; i < balances.length; i++) {
             const entry = balances[i];
@@ -1658,7 +1658,7 @@ export default class coinex extends Exchange {
         //         "message": "OK"
         //     }
         //
-        const result = { 'info': response };
+        const result: Dict = { 'info': response };
         const balances = this.safeList (response, 'data', []);
         for (let i = 0; i < balances.length; i++) {
             const entry = balances[i];
@@ -1703,7 +1703,7 @@ export default class coinex extends Exchange {
     }
 
     parseOrderStatus (status: Str) {
-        const statuses = {
+        const statuses: Dict = {
             'rejected': 'rejected',
             'open': 'open',
             'not_deal': 'open',
@@ -4683,7 +4683,7 @@ export default class coinex extends Exchange {
     }
 
     parseTransactionStatus (status) {
-        const statuses = {
+        const statuses: Dict = {
             'audit': 'pending',
             'pass': 'pending',
             'processing': 'pending',
@@ -4847,7 +4847,7 @@ export default class coinex extends Exchange {
             feeCost = '0';
         }
         const feeCurrencyId = this.safeString (transaction, 'fee_asset');
-        const fee = {
+        const fee: Dict = {
             'cost': this.parseNumber (feeCost),
             'currency': this.safeCurrencyCode (feeCurrencyId),
         };
@@ -4928,7 +4928,7 @@ export default class coinex extends Exchange {
     }
 
     parseTransferStatus (status) {
-        const statuses = {
+        const statuses: Dict = {
             '0': 'ok',
             'SUCCESS': 'ok',
             'OK': 'ok',
@@ -5481,7 +5481,7 @@ export default class coinex extends Exchange {
     }
 
     parseDepositWithdrawFees (response, codes = undefined, currencyIdKey = undefined) {
-        const depositWithdrawFees = {};
+        const depositWithdrawFees: Dict = {};
         codes = this.marketCodes (codes);
         const data = this.safeValue (response, 'data');
         const currencyIds = Object.keys (data);
@@ -5500,11 +5500,11 @@ export default class coinex extends Exchange {
                 depositWithdrawFees[code]['info'][entry] = feeInfo;
                 const networkId = this.safeString (splitEntry, 1);
                 const withdrawFee = this.safeValue (feeInfo, 'withdraw_tx_fee');
-                const withdrawResult = {
+                const withdrawResult: Dict = {
                     'fee': withdrawFee,
                     'percentage': (withdrawFee !== undefined) ? false : undefined,
                 };
-                const depositResult = {
+                const depositResult: Dict = {
                     'fee': undefined,
                     'percentage': undefined,
                 };

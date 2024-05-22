@@ -351,7 +351,7 @@ export default class tradeogre extends Exchange {
         //
         const rawBids = this.safeDict (response, 'buy', {});
         const rawAsks = this.safeDict (response, 'sell', {});
-        const rawOrderbook = {
+        const rawOrderbook: Dict = {
             'bids': rawBids,
             'asks': rawAsks,
         };
@@ -442,7 +442,7 @@ export default class tradeogre extends Exchange {
         //        "USDT": "12"
         //    }
         //
-        const result = {
+        const result: Dict = {
             'info': response,
         };
         const keys = Object.keys (response);
@@ -450,7 +450,7 @@ export default class tradeogre extends Exchange {
             const currencyId = keys[i];
             const balance = response[currencyId];
             const code = this.safeCurrencyCode (currencyId);
-            const account = {
+            const account: Dict = {
                 'total': balance,
             };
             result[code] = account;

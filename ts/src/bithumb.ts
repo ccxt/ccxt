@@ -287,7 +287,7 @@ export default class bithumb extends Exchange {
     }
 
     parseBalance (response): Balances {
-        const result = { 'info': response };
+        const result: Dict = { 'info': response };
         const balances = this.safeValue (response, 'data');
         const codes = Object.keys (this.currencies);
         for (let i = 0; i < codes.length; i++) {
@@ -426,7 +426,7 @@ export default class bithumb extends Exchange {
          * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets ();
-        const result = {};
+        const result: Dict = {};
         const quoteCurrencies = this.safeValue (this.options, 'quoteCurrencies', {});
         const quotes = Object.keys (quoteCurrencies);
         for (let i = 0; i < quotes.length; i++) {
@@ -799,7 +799,7 @@ export default class bithumb extends Exchange {
     }
 
     parseOrderStatus (status: Str) {
-        const statuses = {
+        const statuses: Dict = {
             'Pending': 'open',
             'Completed': 'closed',
             'Cancel': 'canceled',

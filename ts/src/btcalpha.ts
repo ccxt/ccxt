@@ -575,7 +575,7 @@ export default class btcalpha extends Exchange {
     }
 
     parseTransactionStatus (status) {
-        const statuses = {
+        const statuses: Dict = {
             '10': 'pending',  // New
             '20': 'pending',  // Verified, waiting for approving
             '30': 'ok',       // Approved by moderator
@@ -643,7 +643,7 @@ export default class btcalpha extends Exchange {
     }
 
     parseBalance (response): Balances {
-        const result = { 'info': response };
+        const result: Dict = { 'info': response };
         for (let i = 0; i < response.length; i++) {
             const balance = response[i];
             const currencyId = this.safeString (balance, 'currency');
@@ -671,7 +671,7 @@ export default class btcalpha extends Exchange {
     }
 
     parseOrderStatus (status: Str) {
-        const statuses = {
+        const statuses: Dict = {
             '1': 'open',
             '2': 'canceled',
             '3': 'closed',

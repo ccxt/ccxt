@@ -662,7 +662,7 @@ export default class bitstamp extends Exchange {
         //         },
         //     ]
         //
-        const result = {};
+        const result: Dict = {};
         for (let i = 0; i < response.length; i++) {
             const market = response[i];
             const name = this.safeString (market, 'name');
@@ -1157,7 +1157,7 @@ export default class bitstamp extends Exchange {
     }
 
     parseBalance (response): Balances {
-        const result = {
+        const result: Dict = {
             'info': response,
             'timestamp': undefined,
             'datetime': undefined,
@@ -1252,7 +1252,7 @@ export default class bitstamp extends Exchange {
     }
 
     parseTradingFees (fees) {
-        const result = { 'info': fees };
+        const result: Dict = { 'info': fees };
         const symbols = this.symbols;
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];
@@ -1317,7 +1317,7 @@ export default class bitstamp extends Exchange {
     }
 
     parseTransactionFees (response, codes = undefined) {
-        const result = {};
+        const result: Dict = {};
         const currencies = this.indexBy (response, 'currency');
         const ids = Object.keys (currencies);
         for (let i = 0; i < ids.length; i++) {
@@ -1488,7 +1488,7 @@ export default class bitstamp extends Exchange {
     }
 
     parseOrderStatus (status: Str) {
-        const statuses = {
+        const statuses: Dict = {
             'In Queue': 'open',
             'Open': 'open',
             'Finished': 'closed',
@@ -1813,7 +1813,7 @@ export default class bitstamp extends Exchange {
         //   withdrawals:
         //   0 (open), 1 (in process), 2 (finished), 3 (canceled) or 4 (failed).
         //
-        const statuses = {
+        const statuses: Dict = {
             '0': 'pending', // Open
             '1': 'pending', // In process
             '2': 'ok', // Finished
@@ -1904,7 +1904,7 @@ export default class bitstamp extends Exchange {
     }
 
     parseLedgerEntryType (type) {
-        const types = {
+        const types: Dict = {
             '0': 'transaction',
             '1': 'transaction',
             '2': 'trade',
@@ -2217,7 +2217,7 @@ export default class bitstamp extends Exchange {
     }
 
     parseTransferStatus (status: Str): Str {
-        const statuses = {
+        const statuses: Dict = {
             'ok': 'ok',
             'error': 'failed',
         };

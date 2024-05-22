@@ -399,7 +399,7 @@ export default class probit extends Exchange {
         //     }
         //
         const currencies = this.safeValue (response, 'data', []);
-        const result = {};
+        const result: Dict = {};
         for (let i = 0; i < currencies.length; i++) {
             const currency = currencies[i];
             const id = this.safeString (currency, 'id');
@@ -409,7 +409,7 @@ export default class probit extends Exchange {
             const platforms = this.safeValue (currency, 'platform', []);
             const platformsByPriority = this.sortBy (platforms, 'priority');
             let platform = undefined;
-            const networkList = {};
+            const networkList: Dict = {};
             for (let j = 0; j < platformsByPriority.length; j++) {
                 const network = platformsByPriority[j];
                 const idInner = this.safeString (network, 'id');
@@ -508,7 +508,7 @@ export default class probit extends Exchange {
     }
 
     parseBalance (response): Balances {
-        const result = {
+        const result: Dict = {
             'info': response,
             'timestamp': undefined,
             'datetime': undefined,
@@ -1115,7 +1115,7 @@ export default class probit extends Exchange {
     }
 
     parseOrderStatus (status: Str) {
-        const statuses = {
+        const statuses: Dict = {
             'open': 'open',
             'cancelled': 'canceled',
             'filled': 'closed',
@@ -1626,7 +1626,7 @@ export default class probit extends Exchange {
     }
 
     parseTransactionStatus (status) {
-        const statuses = {
+        const statuses: Dict = {
             'requested': 'pending',
             'pending': 'pending',
             'confirming': 'pending',
@@ -1747,7 +1747,7 @@ export default class probit extends Exchange {
         //
         const depositWithdrawFee = this.depositWithdrawFee ({});
         const platforms = this.safeValue (fee, 'platform', []);
-        const depositResult = {
+        const depositResult: Dict = {
             'fee': undefined,
             'percentage': undefined,
         };
@@ -1758,7 +1758,7 @@ export default class probit extends Exchange {
             const withdrawalFees = this.safeValue (network, 'withdrawal_fee', {});
             const withdrawFee = this.safeNumber (withdrawalFees[0], 'amount');
             if (withdrawalFees.length) {
-                const withdrawResult = {
+                const withdrawResult: Dict = {
                     'fee': withdrawFee,
                     'percentage': (withdrawFee !== undefined) ? false : undefined,
                 };

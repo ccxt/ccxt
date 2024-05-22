@@ -694,7 +694,7 @@ export default class tokocrypto extends Exchange {
                 }
             }
             const isMarginTradingAllowed = this.safeBool (market, 'isMarginTradingAllowed', false);
-            const entry = {
+            const entry: Dict = {
                 'id': id,
                 'lowercaseId': lowercaseId,
                 'symbol': symbol,
@@ -1395,7 +1395,7 @@ export default class tokocrypto extends Exchange {
 
     parseBalanceCustom (response, type = undefined, marginMode = undefined) {
         const timestamp = this.safeInteger (response, 'updateTime');
-        const result = {
+        const result: Dict = {
             'info': response,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -1415,7 +1415,7 @@ export default class tokocrypto extends Exchange {
     }
 
     parseOrderStatus (status: Str) {
-        const statuses = {
+        const statuses: Dict = {
             '-2': 'open',
             '0': 'open', // NEW
             '1': 'open', // PARTIALLY_FILLED
@@ -1591,7 +1591,7 @@ export default class tokocrypto extends Exchange {
     }
 
     parseOrderType (status) {
-        const statuses = {
+        const statuses: Dict = {
             '2': 'market',
             '1': 'limit',
             '4': 'limit',
@@ -1645,7 +1645,7 @@ export default class tokocrypto extends Exchange {
                 throw new InvalidOrder (this.id + ' ' + type + ' is not a valid order type for the ' + symbol + ' market');
             }
         }
-        const reverseOrderTypeMapping = {
+        const reverseOrderTypeMapping: Dict = {
             'LIMIT': 1,
             'MARKET': 2,
             'STOP_LOSS': 3,
@@ -2220,7 +2220,7 @@ export default class tokocrypto extends Exchange {
     }
 
     parseTransactionStatusByType (status, type = undefined) {
-        const statusesByType = {
+        const statusesByType: Dict = {
             'deposit': {
                 '0': 'pending',
                 '1': 'ok',
@@ -2311,7 +2311,7 @@ export default class tokocrypto extends Exchange {
             }
         }
         const feeCost = this.safeNumber2 (transaction, 'transactionFee', 'totalFee');
-        const fee = {
+        const fee: Dict = {
             'currency': undefined,
             'cost': undefined,
             'rate': undefined,

@@ -412,7 +412,7 @@ export default class mercado extends Exchange {
     parseBalance (response): Balances {
         const data = this.safeValue (response, 'response_data', {});
         const balances = this.safeValue (data, 'balance', {});
-        const result = { 'info': response };
+        const result: Dict = { 'info': response };
         const currencyIds = Object.keys (balances);
         for (let i = 0; i < currencyIds.length; i++) {
             const currencyId = currencyIds[i];
@@ -532,7 +532,7 @@ export default class mercado extends Exchange {
     }
 
     parseOrderStatus (status: Str) {
-        const statuses = {
+        const statuses: Dict = {
             '2': 'open',
             '3': 'canceled',
             '4': 'closed',
@@ -576,7 +576,7 @@ export default class mercado extends Exchange {
         const marketId = this.safeString (order, 'coin_pair');
         market = this.safeMarket (marketId, market);
         const timestamp = this.safeTimestamp (order, 'created_timestamp');
-        const fee = {
+        const fee: Dict = {
             'cost': this.safeString (order, 'fee'),
             'currency': market['quote'],
         };

@@ -232,7 +232,7 @@ export default class bitso extends Exchange {
     }
 
     parseLedgerEntryType (type) {
-        const types = {
+        const types: Dict = {
             'funding': 'transaction',
             'withdrawal': 'transaction',
             'trade': 'trade',
@@ -403,7 +403,7 @@ export default class bitso extends Exchange {
             const taker = this.parseNumber (Precise.stringDiv (takerString, '100'));
             const maker = this.parseNumber (Precise.stringDiv (makerString, '100'));
             const feeTiers = this.safeValue (fees, 'structure', []);
-            const fee = {
+            const fee: Dict = {
                 'taker': taker,
                 'maker': maker,
                 'percentage': true,
@@ -423,7 +423,7 @@ export default class bitso extends Exchange {
                     fee['maker'] = makerFee;
                 }
             }
-            const tiers = {
+            const tiers: Dict = {
                 'taker': takerFees,
                 'maker': makerFees,
             };
@@ -488,7 +488,7 @@ export default class bitso extends Exchange {
     parseBalance (response): Balances {
         const payload = this.safeValue (response, 'payload', {});
         const balances = this.safeValue (payload, 'balances', []);
-        const result = {
+        const result: Dict = {
             'info': response,
             'timestamp': undefined,
             'datetime': undefined,
@@ -910,7 +910,7 @@ export default class bitso extends Exchange {
         //
         const payload = this.safeValue (response, 'payload', {});
         const fees = this.safeValue (payload, 'fees', []);
-        const result = {};
+        const result: Dict = {};
         for (let i = 0; i < fees.length; i++) {
             const fee = fees[i];
             const marketId = this.safeString (fee, 'book');
@@ -1085,7 +1085,7 @@ export default class bitso extends Exchange {
     }
 
     parseOrderStatus (status: Str) {
-        const statuses = {
+        const statuses: Dict = {
             'partial-fill': 'open', // this is a common substitution in ccxt
             'partially filled': 'open',
             'queued': 'open',
@@ -1405,7 +1405,7 @@ export default class bitso extends Exchange {
         //        }
         //    }
         //
-        const result = {};
+        const result: Dict = {};
         const payload = this.safeValue (response, 'payload', {});
         const depositFees = this.safeValue (payload, 'deposit_fees', []);
         for (let i = 0; i < depositFees.length; i++) {
@@ -1544,7 +1544,7 @@ export default class bitso extends Exchange {
         //        }
         //    }
         //
-        const result = {};
+        const result: Dict = {};
         const depositResponse = this.safeValue (response, 'deposit_fees', []);
         const withdrawalResponse = this.safeValue (response, 'withdrawal_fees', []);
         for (let i = 0; i < depositResponse.length; i++) {
@@ -1598,7 +1598,7 @@ export default class bitso extends Exchange {
         [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
         this.checkAddress (address);
         await this.loadMarkets ();
-        const methods = {
+        const methods: Dict = {
             'BTC': 'Bitcoin',
             'ETH': 'Ether',
             'XRP': 'Ripple',
@@ -1646,7 +1646,7 @@ export default class bitso extends Exchange {
             return undefined;
         }
         networkId = networkId.toUpperCase ();
-        const networksById = {
+        const networksById: Dict = {
             'trx': 'TRC20',
             'erc20': 'ERC20',
             'bsc': 'BEP20',
@@ -1726,7 +1726,7 @@ export default class bitso extends Exchange {
     }
 
     parseTransactionStatus (status) {
-        const statuses = {
+        const statuses: Dict = {
             'pending': 'pending',
             'in_progress': 'pending',
             'complete': 'ok',

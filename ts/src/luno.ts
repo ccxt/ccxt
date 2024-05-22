@@ -306,7 +306,7 @@ export default class luno extends Exchange {
 
     parseBalance (response): Balances {
         const wallets = this.safeValue (response, 'balance', []);
-        const result = {
+        const result: Dict = {
             'info': response,
             'timestamp': undefined,
             'datetime': undefined,
@@ -385,7 +385,7 @@ export default class luno extends Exchange {
     }
 
     parseOrderStatus (status: Str) {
-        const statuses = {
+        const statuses: Dict = {
             // todo add other statuses
             'PENDING': 'open',
         };
@@ -599,7 +599,7 @@ export default class luno extends Exchange {
         const response = await this.publicGetTickers (params);
         const tickers = this.indexBy (response['tickers'], 'pair');
         const ids = Object.keys (tickers);
-        const result = {};
+        const result: Dict = {};
         for (let i = 0; i < ids.length; i++) {
             const id = ids[i];
             const market = this.safeMarket (id);
@@ -1051,7 +1051,7 @@ export default class luno extends Exchange {
 
     parseLedgerComment (comment) {
         const words = comment.split (' ');
-        const types = {
+        const types: Dict = {
             'Withdrawal': 'fee',
             'Trading': 'fee',
             'Payment': 'transaction',

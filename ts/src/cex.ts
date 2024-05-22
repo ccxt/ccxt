@@ -311,7 +311,7 @@ export default class cex extends Exchange {
         //
         const data = this.safeValue (response, 'data', []);
         const currencies = this.safeValue (data, 'symbols', []);
-        const result = {};
+        const result: Dict = {};
         for (let i = 0; i < currencies.length; i++) {
             const currency = currencies[i];
             const id = this.safeString (currency, 'code');
@@ -459,7 +459,7 @@ export default class cex extends Exchange {
     }
 
     parseBalance (response): Balances {
-        const result = { 'info': response };
+        const result: Dict = { 'info': response };
         const ommited = [ 'username', 'timestamp' ];
         const balances = this.omit (response, ommited);
         const currencyIds = Object.keys (balances);
@@ -631,7 +631,7 @@ export default class cex extends Exchange {
         };
         const response = await this.publicGetTickersCurrencies (this.extend (request, params));
         const tickers = this.safeValue (response, 'data', []);
-        const result = {};
+        const result: Dict = {};
         for (let t = 0; t < tickers.length; t++) {
             const ticker = tickers[t];
             const marketId = this.safeString (ticker, 'pair');
@@ -741,7 +741,7 @@ export default class cex extends Exchange {
         //      }
         //
         const data = this.safeValue (response, 'data', {});
-        const result = {};
+        const result: Dict = {};
         for (let i = 0; i < this.symbols.length; i++) {
             const symbol = this.symbols[i];
             const market = this.market (symbol);

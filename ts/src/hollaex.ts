@@ -375,7 +375,7 @@ export default class hollaex extends Exchange {
         //
         const coins = this.safeValue (response, 'coins', {});
         const keys = Object.keys (coins);
-        const result = {};
+        const result: Dict = {};
         for (let i = 0; i < keys.length; i++) {
             const key = keys[i];
             const currency = coins[key];
@@ -429,7 +429,7 @@ export default class hollaex extends Exchange {
          */
         await this.loadMarkets ();
         const response = await this.publicGetOrderbooks (params);
-        const result = {};
+        const result: Dict = {};
         const marketIds = Object.keys (response);
         for (let i = 0; i < marketIds.length; i++) {
             const marketId = marketIds[i];
@@ -544,7 +544,7 @@ export default class hollaex extends Exchange {
     }
 
     parseTickers (tickers, symbols: Strings = undefined, params = {}): Tickers {
-        const result = {};
+        const result: Dict = {};
         const keys = Object.keys (tickers);
         for (let i = 0; i < keys.length; i++) {
             const key = keys[i];
@@ -747,7 +747,7 @@ export default class hollaex extends Exchange {
         const fees = this.safeValue (firstTier, 'fees', {});
         const makerFees = this.safeValue (fees, 'maker', {});
         const takerFees = this.safeValue (fees, 'taker', {});
-        const result = {};
+        const result: Dict = {};
         for (let i = 0; i < this.symbols.length; i++) {
             const symbol = this.symbols[i];
             const market = this.market (symbol);
@@ -844,7 +844,7 @@ export default class hollaex extends Exchange {
 
     parseBalance (response): Balances {
         const timestamp = this.parse8601 (this.safeString (response, 'updated_at'));
-        const result = {
+        const result: Dict = {
             'info': response,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -1081,7 +1081,7 @@ export default class hollaex extends Exchange {
     }
 
     parseOrderStatus (status: Str) {
-        const statuses = {
+        const statuses: Dict = {
             'new': 'open',
             'pfilled': 'open',
             'filled': 'closed',
@@ -1791,7 +1791,7 @@ export default class hollaex extends Exchange {
         //        "owner_id":1
         //    }
         //
-        const result = {
+        const result: Dict = {
             'info': fee,
             'withdraw': {
                 'fee': undefined,

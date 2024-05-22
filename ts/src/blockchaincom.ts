@@ -475,7 +475,7 @@ export default class blockchaincom extends Exchange {
     }
 
     parseOrderState (state) {
-        const states = {
+        const states: Dict = {
             'OPEN': 'open',
             'REJECTED': 'rejected',
             'FILLED': 'closed',
@@ -674,7 +674,7 @@ export default class blockchaincom extends Exchange {
         //
         const makerFee = this.safeNumber (response, 'makerRate');
         const takerFee = this.safeNumber (response, 'takerRate');
-        const result = {};
+        const result: Dict = {};
         for (let i = 0; i < this.symbols.length; i++) {
             const symbol = this.symbols[i];
             result[symbol] = {
@@ -850,7 +850,7 @@ export default class blockchaincom extends Exchange {
             tag = this.safeString (addressParts, 0);
             address = this.safeString (addressParts, 1);
         }
-        const result = { 'info': response };
+        const result: Dict = { 'info': response };
         result['currency'] = currency['code'];
         result['address'] = address;
         if (tag !== undefined) {
@@ -860,7 +860,7 @@ export default class blockchaincom extends Exchange {
     }
 
     parseTransactionState (state) {
-        const states = {
+        const states: Dict = {
             'COMPLETED': 'ok', //
             'REJECTED': 'failed',
             'PENDING': 'pending',
@@ -1107,7 +1107,7 @@ export default class blockchaincom extends Exchange {
         if (balances === undefined) {
             throw new ExchangeError (this.id + ' fetchBalance() could not find the "' + accountName + '" account');
         }
-        const result = { 'info': response };
+        const result: Dict = { 'info': response };
         for (let i = 0; i < balances.length; i++) {
             const entry = balances[i];
             const currencyId = this.safeString (entry, 'currency');

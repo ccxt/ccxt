@@ -246,7 +246,7 @@ export default class btcmarkets extends Exchange {
     }
 
     parseTransactionStatus (status) {
-        const statuses = {
+        const statuses: Dict = {
             'Accepted': 'pending',
             'Pending Authorization': 'pending',
             'Complete': 'ok',
@@ -257,7 +257,7 @@ export default class btcmarkets extends Exchange {
     }
 
     parseTransactionType (type) {
-        const statuses = {
+        const statuses: Dict = {
             'Withdraw': 'withdrawal',
             'Deposit': 'deposit',
         };
@@ -481,7 +481,7 @@ export default class btcmarkets extends Exchange {
     }
 
     parseBalance (response): Balances {
-        const result = { 'info': response };
+        const result: Dict = { 'info': response };
         for (let i = 0; i < response.length; i++) {
             const balance = response[i];
             const currencyId = this.safeString (balance, 'assetName');
@@ -973,7 +973,7 @@ export default class btcmarkets extends Exchange {
     }
 
     parseOrderStatus (status: Str) {
-        const statuses = {
+        const statuses: Dict = {
             'Accepted': 'open',
             'Placed': 'open',
             'Partially Matched': 'open',

@@ -128,7 +128,7 @@ export default class bl3p extends Exchange {
     parseBalance (response): Balances {
         const data = this.safeValue (response, 'data', {});
         const wallets = this.safeValue (data, 'wallets', {});
-        const result = { 'info': data };
+        const result: Dict = { 'info': data };
         const codes = Object.keys (this.currencies);
         for (let i = 0; i < codes.length; i++) {
             const code = codes[i];
@@ -374,7 +374,7 @@ export default class bl3p extends Exchange {
         const data = this.safeValue (response, 'data', {});
         const feeString = this.safeString (data, 'trade_fee');
         const fee = this.parseNumber (Precise.stringDiv (feeString, '100'));
-        const result = {};
+        const result: Dict = {};
         for (let i = 0; i < this.symbols.length; i++) {
             const symbol = this.symbols[i];
             result[symbol] = {
@@ -410,7 +410,7 @@ export default class bl3p extends Exchange {
         const market = this.market (symbol);
         const amountString = this.numberToString (amount);
         const priceString = this.numberToString (price);
-        const order = {
+        const order: Dict = {
             'market': market['id'],
             'amount_int': parseInt (Precise.stringMul (amountString, '100000000')),
             'fee_currency': market['quote'],

@@ -496,7 +496,7 @@ export default class ace extends Exchange {
     }
 
     parseOrderStatus (status: Str) {
-        const statuses = {
+        const statuses: Dict = {
             '0': 'open',
             '1': 'open',
             '2': 'closed',
@@ -978,7 +978,7 @@ export default class ace extends Exchange {
         //         }
         //     ]
         //
-        const result = {
+        const result: Dict = {
             'info': response,
         };
         for (let i = 0; i < response.length; i++) {
@@ -987,7 +987,7 @@ export default class ace extends Exchange {
             const code = this.safeCurrencyCode (currencyId);
             const amount = this.safeString (balance, 'amount');
             const available = this.safeString (balance, 'cashAmount');
-            const account = {
+            const account: Dict = {
                 'free': available,
                 'total': amount,
             };

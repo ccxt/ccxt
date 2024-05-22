@@ -313,7 +313,7 @@ export default class oceanex extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'data', []);
-        const result = {};
+        const result: Dict = {};
         for (let i = 0; i < data.length; i++) {
             const ticker = data[i];
             const marketId = this.safeString (ticker, 'market');
@@ -456,7 +456,7 @@ export default class oceanex extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'data', []);
-        const result = {};
+        const result: Dict = {};
         for (let i = 0; i < data.length; i++) {
             const orderbook = data[i];
             const marketId = this.safeString (orderbook, 'market');
@@ -583,7 +583,7 @@ export default class oceanex extends Exchange {
          */
         const response = await this.publicGetFeesTrading (params);
         const data = this.safeValue (response, 'data', []);
-        const result = {};
+        const result: Dict = {};
         for (let i = 0; i < data.length; i++) {
             const group = data[i];
             const maker = this.safeValue (group, 'ask_fee', {});
@@ -609,7 +609,7 @@ export default class oceanex extends Exchange {
     parseBalance (response): Balances {
         const data = this.safeValue (response, 'data');
         const balances = this.safeValue (data, 'accounts', []);
-        const result = { 'info': response };
+        const result: Dict = { 'info': response };
         for (let i = 0; i < balances.length; i++) {
             const balance = balances[i];
             const currencyId = this.safeValue (balance, 'currency');
@@ -880,7 +880,7 @@ export default class oceanex extends Exchange {
     }
 
     parseOrderStatus (status: Str) {
-        const statuses = {
+        const statuses: Dict = {
             'wait': 'open',
             'done': 'closed',
             'cancel': 'canceled',

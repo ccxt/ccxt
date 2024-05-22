@@ -994,7 +994,7 @@ export default class phemex extends Exchange {
         //     }
         const data = this.safeValue (response, 'data', {});
         const currencies = this.safeValue (data, 'currencies', []);
-        const result = {};
+        const result: Dict = {};
         for (let i = 0; i < currencies.length; i++) {
             const currency = currencies[i];
             const id = this.safeString (currency, 'currency');
@@ -1056,7 +1056,7 @@ export default class phemex extends Exchange {
     }
 
     customParseOrderBook (orderbook, symbol, timestamp = undefined, bidsKey = 'bids', asksKey = 'asks', priceKey = 0, amountKey = 1, market: Market = undefined) {
-        const result = {
+        const result: Dict = {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -1877,7 +1877,7 @@ export default class phemex extends Exchange {
         //     }
         //
         let timestamp = undefined;
-        const result = { 'info': response };
+        const result: Dict = { 'info': response };
         const data = this.safeValue (response, 'data', []);
         for (let i = 0; i < data.length; i++) {
             const balance = data[i];
@@ -1935,7 +1935,7 @@ export default class phemex extends Exchange {
         //         }
         //     }
         //
-        const result = { 'info': response };
+        const result: Dict = { 'info': response };
         const data = this.safeValue (response, 'data', {});
         const balance = this.safeValue (data, 'account', {});
         const currencyId = this.safeString (balance, 'currency');
@@ -2124,7 +2124,7 @@ export default class phemex extends Exchange {
     }
 
     parseOrderStatus (status: Str) {
-        const statuses = {
+        const statuses: Dict = {
             'Created': 'open',
             'Untriggered': 'open',
             'Deactivated': 'closed',
@@ -2147,7 +2147,7 @@ export default class phemex extends Exchange {
     }
 
     parseOrderType (type: Str) {
-        const types = {
+        const types: Dict = {
             '1': 'market',
             '2': 'limit',
             '3': 'stop',
@@ -2165,7 +2165,7 @@ export default class phemex extends Exchange {
     }
 
     parseTimeInForce (timeInForce) {
-        const timeInForces = {
+        const timeInForces: Dict = {
             'GoodTillCancel': 'GTC',
             'PostOnly': 'PO',
             'ImmediateOrCancel': 'IOC',
@@ -2287,7 +2287,7 @@ export default class phemex extends Exchange {
     }
 
     parseOrderSide (side) {
-        const sides = {
+        const sides: Dict = {
             '1': 'buy',
             '2': 'sell',
         };
@@ -3446,7 +3446,7 @@ export default class phemex extends Exchange {
     }
 
     parseTransactionStatus (status) {
-        const statuses = {
+        const statuses: Dict = {
             'Success': 'ok',
             'Succeed': 'ok',
             'Rejected': 'failed',
@@ -4102,7 +4102,7 @@ export default class phemex extends Exchange {
     }
 
     parseMarginStatus (status) {
-        const statuses = {
+        const statuses: Dict = {
             '0': 'ok',
         };
         return this.safeString (statuses, status, status);
@@ -4618,7 +4618,7 @@ export default class phemex extends Exchange {
     }
 
     parseTransferStatus (status: Str): Str {
-        const statuses = {
+        const statuses: Dict = {
             '3': 'rejected', // 'Rejected',
             '6': 'canceled', // 'Got error and wait for recovery',
             '10': 'ok', // 'Success',

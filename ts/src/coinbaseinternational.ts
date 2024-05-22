@@ -544,7 +544,7 @@ export default class coinbaseinternational extends Exchange {
     }
 
     parseNetworks (networks, params = {}) {
-        const result = {};
+        const result: Dict = {};
         for (let i = 0; i < networks.length; i++) {
             const network = this.extend (this.parseNetwork (networks[i]), params);
             result[network['network']] = network;
@@ -870,7 +870,7 @@ export default class coinbaseinternational extends Exchange {
     }
 
     parseTransactionStatus (status) {
-        const statuses = {
+        const statuses: Dict = {
             'PROCESSED': 'ok',
             'NEW': 'pending',
             'STARTED': 'pending',
@@ -1169,7 +1169,7 @@ export default class coinbaseinternational extends Exchange {
         //        ...
         //    ]
         //
-        const result = {};
+        const result: Dict = {};
         for (let i = 0; i < currencies.length; i++) {
             const currency = this.parseCurrency (currencies[i]);
             result[currency['code']] = currency;
@@ -1220,7 +1220,7 @@ export default class coinbaseinternational extends Exchange {
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
         const instruments = await this.v1PublicGetInstruments (params);
-        const tickers = {};
+        const tickers: Dict = {};
         for (let i = 0; i < instruments.length; i++) {
             const instrument = instruments[i];
             const marketId = this.safeString (instrument, 'symbol');
@@ -1346,7 +1346,7 @@ export default class coinbaseinternational extends Exchange {
         //       "loan_collateral_requirement":"0.0"
         //    }
         //
-        const result = {
+        const result: Dict = {
             'info': response,
         };
         for (let i = 0; i < response.length; i++) {
@@ -1554,7 +1554,7 @@ export default class coinbaseinternational extends Exchange {
     }
 
     parseOrderStatus (status: Str) {
-        const statuses = {
+        const statuses: Dict = {
             'NEW': 'open',
             'PARTIAL_FILLED': 'open',
             'FILLED': 'closed',
@@ -1573,7 +1573,7 @@ export default class coinbaseinternational extends Exchange {
         if (type === 'UNKNOWN_ORDER_TYPE') {
             return undefined;
         }
-        const types = {
+        const types: Dict = {
             'MARKET': 'market',
             'LIMIT': 'limit',
             'STOP': 'limit',

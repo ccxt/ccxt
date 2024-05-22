@@ -460,7 +460,7 @@ export default class ascendex extends Exchange {
         const cashById = this.indexBy (cashData, 'assetCode');
         const dataById = this.deepExtend (assetsById, marginById, cashById);
         const ids = Object.keys (dataById);
-        const result = {};
+        const result: Dict = {};
         for (let i = 0; i < ids.length; i++) {
             const id = ids[i];
             const currency = dataById[id];
@@ -765,7 +765,7 @@ export default class ascendex extends Exchange {
     }
 
     parseBalance (response): Balances {
-        const result = {
+        const result: Dict = {
             'info': response,
             'timestamp': undefined,
             'datetime': undefined,
@@ -783,7 +783,7 @@ export default class ascendex extends Exchange {
     }
 
     parseMarginBalance (response) {
-        const result = {
+        const result: Dict = {
             'info': response,
             'timestamp': undefined,
             'datetime': undefined,
@@ -804,7 +804,7 @@ export default class ascendex extends Exchange {
     }
 
     parseSwapBalance (response) {
-        const result = {
+        const result: Dict = {
             'info': response,
             'timestamp': undefined,
             'datetime': undefined,
@@ -1261,7 +1261,7 @@ export default class ascendex extends Exchange {
     }
 
     parseOrderStatus (status: Str) {
-        const statuses = {
+        const statuses: Dict = {
             'PendingNew': 'open',
             'New': 'open',
             'PartiallyFilled': 'open',
@@ -1488,7 +1488,7 @@ export default class ascendex extends Exchange {
         //
         const data = this.safeValue (response, 'data', {});
         const fees = this.safeValue (data, 'fees', []);
-        const result = {};
+        const result: Dict = {};
         for (let i = 0; i < fees.length; i++) {
             const fee = fees[i];
             const marketId = this.safeString (fee, 'symbol');
@@ -2587,7 +2587,7 @@ export default class ascendex extends Exchange {
     }
 
     parseTransactionStatus (status) {
-        const statuses = {
+        const statuses: Dict = {
             'reviewing': 'pending',
             'pending': 'pending',
             'confirmed': 'ok',
@@ -3127,7 +3127,7 @@ export default class ascendex extends Exchange {
         //
         const blockChains = this.safeValue (fee, 'blockChain', []);
         const blockChainsLength = blockChains.length;
-        const result = {
+        const result: Dict = {
             'info': fee,
             'withdraw': {
                 'fee': undefined,

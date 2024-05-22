@@ -830,7 +830,7 @@ export default class hitbtc extends Exchange {
         //       }
         //     }
         //
-        const result = {};
+        const result: Dict = {};
         const currencies = Object.keys (response);
         for (let i = 0; i < currencies.length; i++) {
             const currencyId = currencies[i];
@@ -843,7 +843,7 @@ export default class hitbtc extends Exchange {
             const transferEnabled = this.safeBool (entry, 'transfer_enabled', false);
             const active = payinEnabled && payoutEnabled && transferEnabled;
             const rawNetworks = this.safeValue (entry, 'networks', []);
-            const networks = {};
+            const networks: Dict = {};
             let fee = undefined;
             let depositEnabled = undefined;
             let withdrawEnabled = undefined;
@@ -997,7 +997,7 @@ export default class hitbtc extends Exchange {
     }
 
     parseBalance (response): Balances {
-        const result = { 'info': response };
+        const result: Dict = { 'info': response };
         for (let i = 0; i < response.length; i++) {
             const entry = response[i];
             const currencyId = this.safeString (entry, 'currency');
@@ -1116,7 +1116,7 @@ export default class hitbtc extends Exchange {
         //       }
         //     }
         //
-        const result = {};
+        const result: Dict = {};
         const keys = Object.keys (response);
         for (let i = 0; i < keys.length; i++) {
             const marketId = keys[i];
@@ -1416,7 +1416,7 @@ export default class hitbtc extends Exchange {
     }
 
     parseTransactionStatus (status) {
-        const statuses = {
+        const statuses: Dict = {
             'PENDING': 'pending',
             'FAILED': 'failed',
             'SUCCESS': 'ok',
@@ -1425,7 +1425,7 @@ export default class hitbtc extends Exchange {
     }
 
     parseTransactionType (type) {
-        const types = {
+        const types: Dict = {
             'DEPOSIT': 'deposit',
             'WITHDRAW': 'withdrawal',
         };
@@ -1484,7 +1484,7 @@ export default class hitbtc extends Exchange {
         const subType = this.safeString (transaction, 'subtype');
         const internal = subType === 'OFFCHAIN';
         // https://api.hitbtc.com/#check-if-offchain-is-available
-        const fee = {
+        const fee: Dict = {
             'currency': undefined,
             'cost': undefined,
             'rate': undefined,
@@ -1584,7 +1584,7 @@ export default class hitbtc extends Exchange {
             request['depth'] = limit;
         }
         const response = await this.publicGetPublicOrderbook (this.extend (request, params));
-        const result = {};
+        const result: Dict = {};
         const marketIds = Object.keys (response);
         for (let i = 0; i < marketIds.length; i++) {
             const marketId = marketIds[i];
@@ -1704,7 +1704,7 @@ export default class hitbtc extends Exchange {
         //         }
         //     ]
         //
-        const result = {};
+        const result: Dict = {};
         for (let i = 0; i < response.length; i++) {
             const fee = this.parseTradingFee (response[i]);
             const symbol = fee['symbol'];
@@ -2372,7 +2372,7 @@ export default class hitbtc extends Exchange {
     }
 
     parseOrderStatus (status: Str) {
-        const statuses = {
+        const statuses: Dict = {
             'new': 'open',
             'suspended': 'open',
             'partiallyFilled': 'open',
@@ -2759,7 +2759,7 @@ export default class hitbtc extends Exchange {
         //     }
         //
         const marketIds = Object.keys (response);
-        const fundingRates = {};
+        const fundingRates: Dict = {};
         for (let i = 0; i < marketIds.length; i++) {
             const marketId = this.safeString (marketIds, i);
             const rawFundingRate = this.safeValue (response, marketId);
@@ -3548,7 +3548,7 @@ export default class hitbtc extends Exchange {
             const networkCode = this.networkIdToCode (networkId);
             const withdrawFee = this.safeNumber (networkEntry, 'payout_fee');
             const isDefault = this.safeValue (networkEntry, 'default');
-            const withdrawResult = {
+            const withdrawResult: Dict = {
                 'fee': withdrawFee,
                 'percentage': (withdrawFee !== undefined) ? false : undefined,
             };

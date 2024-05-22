@@ -359,7 +359,7 @@ export default class currencycom extends Exchange {
         //         },
         //     ]
         //
-        const result = {};
+        const result: Dict = {};
         for (let i = 0; i < response.length; i++) {
             const currency = response[i];
             const id = this.safeString (currency, 'displaySymbol');
@@ -670,7 +670,7 @@ export default class currencycom extends Exchange {
         //
         const makerFee = this.safeNumber (response, 'makerCommission');
         const takerFee = this.safeNumber (response, 'takerCommission');
-        const result = {};
+        const result: Dict = {};
         for (let i = 0; i < this.symbols.length; i++) {
             const symbol = this.symbols[i];
             result[symbol] = {
@@ -708,7 +708,7 @@ export default class currencycom extends Exchange {
         //         ]
         //     }
         //
-        const result = { 'info': response };
+        const result: Dict = { 'info': response };
         const balances = this.safeValue (response, 'balances', []);
         for (let i = 0; i < balances.length; i++) {
             const balance = balances[i];
@@ -1238,7 +1238,7 @@ export default class currencycom extends Exchange {
     }
 
     parseOrderStatus (status: Str) {
-        const statuses = {
+        const statuses: Dict = {
             'NEW': 'open',
             'CREATED': 'open',
             'MODIFIED': 'open',
@@ -1253,7 +1253,7 @@ export default class currencycom extends Exchange {
     }
 
     parseOrderType (status) {
-        const statuses = {
+        const statuses: Dict = {
             'MARKET': 'market',
             'LIMIT': 'limit',
             'STOP': 'stop',
@@ -1268,7 +1268,7 @@ export default class currencycom extends Exchange {
     }
 
     parseOrderTimeInForce (status) {
-        const statuses = {
+        const statuses: Dict = {
             'GTC': 'GTC',
             'FOK': 'FOK',
             'IOC': 'IOC',
@@ -1277,7 +1277,7 @@ export default class currencycom extends Exchange {
     }
 
     parseOrderSide (status) {
-        const statuses = {
+        const statuses: Dict = {
             'BUY': 'buy',
             'SELL': 'sell',
         };
@@ -1667,7 +1667,7 @@ export default class currencycom extends Exchange {
         const currencyId = this.safeString (transaction, 'currency');
         const code = this.safeCurrencyCode (currencyId, currency);
         const feeCost = this.safeString (transaction, 'commission');
-        const fee = {
+        const fee: Dict = {
             'currency': undefined,
             'cost': undefined,
             'rate': undefined,
@@ -1701,7 +1701,7 @@ export default class currencycom extends Exchange {
     }
 
     parseTransactionStatus (status) {
-        const statuses = {
+        const statuses: Dict = {
             'APPROVAL': 'pending',
             'PROCESSED': 'ok',
         };
@@ -1709,7 +1709,7 @@ export default class currencycom extends Exchange {
     }
 
     parseTransactionType (type) {
-        const types = {
+        const types: Dict = {
             'deposit': 'deposit',
             'withdrawal': 'withdrawal',
         };
@@ -1784,7 +1784,7 @@ export default class currencycom extends Exchange {
             fee = { 'currency': code, 'cost': feeCost };
         }
         const direction = Precise.stringLt (amountString, '0') ? 'out' : 'in';
-        const result = {
+        const result: Dict = {
             'id': id,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -1805,7 +1805,7 @@ export default class currencycom extends Exchange {
     }
 
     parseLedgerEntryStatus (status) {
-        const statuses = {
+        const statuses: Dict = {
             'APPROVAL': 'pending',
             'PROCESSED': 'ok',
             'CANCELLED': 'canceled',
@@ -1814,7 +1814,7 @@ export default class currencycom extends Exchange {
     }
 
     parseLedgerEntryType (type) {
-        const types = {
+        const types: Dict = {
             'deposit': 'transaction',
             'withdrawal': 'transaction',
             'exchange_commission': 'fee',

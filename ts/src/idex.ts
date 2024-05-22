@@ -664,7 +664,7 @@ export default class idex extends Exchange {
         //
         const maker = this.safeNumber (response, 'makerFeeRate');
         const taker = this.safeNumber (response, 'takerFeeRate');
-        const result = {};
+        const result: Dict = {};
         for (let i = 0; i < this.symbols.length; i++) {
             const symbol = this.symbols[i];
             result[symbol] = {
@@ -767,7 +767,7 @@ export default class idex extends Exchange {
         //        },
         //     ]
         //
-        const result = {};
+        const result: Dict = {};
         for (let i = 0; i < response.length; i++) {
             const entry = response[i];
             const name = this.safeString (entry, 'name');
@@ -795,7 +795,7 @@ export default class idex extends Exchange {
     }
 
     parseBalance (response): Balances {
-        const result = {
+        const result: Dict = {
             'info': response,
             'timestamp': undefined,
             'datetime': undefined,
@@ -1065,7 +1065,7 @@ export default class idex extends Exchange {
 
     parseOrderStatus (status: Str) {
         // https://docs.idex.io/#order-states-amp-lifecycle
-        const statuses = {
+        const statuses: Dict = {
             'active': 'open',
             'partiallyFilled': 'open',
             'rejected': 'canceled',
@@ -1197,7 +1197,7 @@ export default class idex extends Exchange {
         const market = this.market (symbol);
         const nonce = this.uuidv1 ();
         let typeEnum = undefined;
-        const stopLossTypeEnums = {
+        const stopLossTypeEnums: Dict = {
             'stopLoss': 3,
             'stopLossLimit': 4,
             'takeProfit': 5,
@@ -1210,7 +1210,7 @@ export default class idex extends Exchange {
             }
             stopPriceString = this.priceToPrecision (symbol, params['stopPrice']);
         }
-        const limitTypeEnums = {
+        const limitTypeEnums: Dict = {
             'limit': 1,
             'limitMaker': 2,
         };
@@ -1246,7 +1246,7 @@ export default class idex extends Exchange {
         });
         const amountString = this.amountToPrecision (symbol, amount);
         // https://docs.idex.io/#time-in-force
-        const timeInForceEnums = {
+        const timeInForceEnums: Dict = {
             'gtc': 0,
             'ioc': 2,
             'fok': 3,
@@ -1262,7 +1262,7 @@ export default class idex extends Exchange {
             throw new BadRequest (this.id + ' ' + timeInForce + ' is not a valid timeInForce, please choose one of ' + asString);
         }
         // https://docs.idex.io/#self-trade-prevention
-        const selfTradePreventionEnums = {
+        const selfTradePreventionEnums: Dict = {
             'dc': 0,
             'co': 1,
             'cn': 2,
@@ -1681,7 +1681,7 @@ export default class idex extends Exchange {
     }
 
     parseTransactionStatus (status) {
-        const statuses = {
+        const statuses: Dict = {
             'mined': 'ok',
         };
         return this.safeString (statuses, status, status);

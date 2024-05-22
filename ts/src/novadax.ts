@@ -446,7 +446,7 @@ export default class novadax extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'data', []);
-        const result = {};
+        const result: Dict = {};
         for (let i = 0; i < data.length; i++) {
             const ticker = this.parseTicker (data[i]);
             const symbol = ticker['symbol'];
@@ -698,7 +698,7 @@ export default class novadax extends Exchange {
 
     parseBalance (response): Balances {
         const data = this.safeValue (response, 'data', []);
-        const result = {
+        const result: Dict = {
             'info': response,
             'timestamp': undefined,
             'datetime': undefined,
@@ -1060,7 +1060,7 @@ export default class novadax extends Exchange {
     }
 
     parseOrderStatus (status: Str) {
-        const statuses = {
+        const statuses: Dict = {
             'SUBMITTED': 'open',
             'PROCESSING': 'open',
             'PARTIAL_FILLED': 'open',
@@ -1218,7 +1218,7 @@ export default class novadax extends Exchange {
     }
 
     parseTransferStatus (status: Str): Str {
-        const statuses = {
+        const statuses: Dict = {
             'SUCCESS': 'pending',
         };
         return this.safeString (statuses, status, 'failed');
@@ -1396,7 +1396,7 @@ export default class novadax extends Exchange {
         // FAIL the record failed
         const parts = status.split (' ');
         status = this.safeString (parts, 1, status);
-        const statuses = {
+        const statuses: Dict = {
             'Pending': 'pending',
             'confirming': 'pending',
             'SUCCESS': 'ok',

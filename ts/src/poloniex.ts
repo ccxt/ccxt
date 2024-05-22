@@ -715,7 +715,7 @@ export default class poloniex extends Exchange {
         //         }
         //     ]
         //
-        const result = {};
+        const result: Dict = {};
         for (let i = 0; i < response.length; i++) {
             const item = this.safeValue (response, i);
             const ids = Object.keys (item);
@@ -803,7 +803,7 @@ export default class poloniex extends Exchange {
             }
             result[code]['networks'] = networks;
             const info = this.safeValue (result[code], 'info', []);
-            const rawInfo = {};
+            const rawInfo: Dict = {};
             rawInfo[id] = currency;
             info.push (rawInfo);
             result[code]['info'] = info;
@@ -1051,7 +1051,7 @@ export default class poloniex extends Exchange {
     }
 
     parseOrderStatus (status: Str) {
-        const statuses = {
+        const statuses: Dict = {
             'NEW': 'open',
             'PARTIALLY_FILLED': 'open',
             'FILLED': 'closed',
@@ -1181,7 +1181,7 @@ export default class poloniex extends Exchange {
     }
 
     parseOrderType (status) {
-        const statuses = {
+        const statuses: Dict = {
             'MARKET': 'market',
             'LIMIT': 'limit',
             'STOP-LIMIT': 'limit',
@@ -1259,7 +1259,7 @@ export default class poloniex extends Exchange {
         //         }
         //     ]
         //
-        const extension = { 'status': 'open' };
+        const extension: Dict = { 'status': 'open' };
         return this.parseOrders (response, market, since, limit, extension);
     }
 
@@ -1604,7 +1604,7 @@ export default class poloniex extends Exchange {
     }
 
     parseBalance (response): Balances {
-        const result = {
+        const result: Dict = {
             'info': response,
             'timestamp': undefined,
             'datetime': undefined,
@@ -1677,7 +1677,7 @@ export default class poloniex extends Exchange {
         //         "volume30D" : "0.00"
         //     }
         //
-        const result = {};
+        const result: Dict = {};
         for (let i = 0; i < this.symbols.length; i++) {
             const symbol = this.symbols[i];
             result[symbol] = {
@@ -2114,7 +2114,7 @@ export default class poloniex extends Exchange {
         //         }
         //     ]
         //
-        const data = {};
+        const data: Dict = {};
         for (let i = 0; i < response.length; i++) {
             const entry = response[i];
             const currencies = Object.keys (entry);
@@ -2146,7 +2146,7 @@ export default class poloniex extends Exchange {
         //             },
         //         }
         //
-        const depositWithdrawFees = {};
+        const depositWithdrawFees: Dict = {};
         codes = this.marketCodes (codes);
         const responseKeys = Object.keys (response);
         for (let i = 0; i < responseKeys.length; i++) {
@@ -2164,7 +2164,7 @@ export default class poloniex extends Exchange {
                         networkId = networkId.replace (code, '');
                         const networkCode = this.networkIdToCode (networkId);
                         const networkInfo = this.safeValue (response, networkId);
-                        const networkObject = {};
+                        const networkObject: Dict = {};
                         const withdrawFee = this.safeNumber (networkInfo, 'withdrawalFee');
                         networkObject[networkCode] = {
                             'withdraw': {
@@ -2189,11 +2189,11 @@ export default class poloniex extends Exchange {
         depositWithdrawFee['info'][currency['code']] = fee;
         const networkId = this.safeString (fee, 'blockchain');
         const withdrawFee = this.safeNumber (fee, 'withdrawalFee');
-        const withdrawResult = {
+        const withdrawResult: Dict = {
             'fee': withdrawFee,
             'percentage': (withdrawFee !== undefined) ? false : undefined,
         };
-        const depositResult = {
+        const depositResult: Dict = {
             'fee': undefined,
             'percentage': undefined,
         };
@@ -2230,7 +2230,7 @@ export default class poloniex extends Exchange {
     }
 
     parseTransactionStatus (status) {
-        const statuses = {
+        const statuses: Dict = {
             'COMPLETE': 'ok',
             'COMPLETED': 'ok',
             'AWAITING APPROVAL': 'pending',

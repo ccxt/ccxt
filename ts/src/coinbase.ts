@@ -807,7 +807,7 @@ export default class coinbase extends Exchange {
     }
 
     parseTransactionStatus (status) {
-        const statuses = {
+        const statuses: Dict = {
             'created': 'pending',
             'completed': 'ok',
             'canceled': 'canceled',
@@ -1725,9 +1725,9 @@ export default class coinbase extends Exchange {
         //         }
         //     }
         //
-        const result = {};
-        const networks = {};
-        const networksById = {};
+        const result: Dict = {};
+        const networks: Dict = {};
+        const networksById: Dict = {};
         for (let i = 0; i < currencies.length; i++) {
             const currency = currencies[i];
             const assetId = this.safeString (currency, 'asset_id');
@@ -1809,7 +1809,7 @@ export default class coinbase extends Exchange {
         const data = this.safeDict (response, 'data', {});
         const rates = this.safeDict (data, 'rates', {});
         const quoteId = this.safeString (data, 'currency');
-        const result = {};
+        const result: Dict = {};
         const baseIds = Object.keys (rates);
         const delimiter = '-';
         for (let i = 0; i < baseIds.length; i++) {
@@ -1873,7 +1873,7 @@ export default class coinbase extends Exchange {
         //     }
         //
         const data = this.safeList (response, 'products', []);
-        const result = {};
+        const result: Dict = {};
         for (let i = 0; i < data.length; i++) {
             const entry = data[i];
             const marketId = this.safeString (entry, 'product_id');
@@ -1925,7 +1925,7 @@ export default class coinbase extends Exchange {
         const spotData = this.safeDict (spot, 'data', {});
         const askData = this.safeDict (ask, 'data', {});
         const bidData = this.safeDict (bid, 'data', {});
-        const bidAskLast = {
+        const bidAskLast: Dict = {
             'bid': this.safeNumber (bidData, 'amount'),
             'ask': this.safeNumber (askData, 'amount'),
             'price': this.safeNumber (spotData, 'amount'),
@@ -2090,7 +2090,7 @@ export default class coinbase extends Exchange {
         const balances = this.safeList2 (response, 'data', 'accounts', []);
         const accounts = this.safeList (params, 'type', this.options['accounts']);
         const v3Accounts = this.safeList (params, 'type', this.options['v3Accounts']);
-        const result = { 'info': response };
+        const result: Dict = { 'info': response };
         for (let b = 0; b < balances.length; b++) {
             const balance = balances[b];
             const type = this.safeString (balance, 'type');
@@ -2290,14 +2290,14 @@ export default class coinbase extends Exchange {
     }
 
     parseLedgerEntryStatus (status) {
-        const types = {
+        const types: Dict = {
             'completed': 'ok',
         };
         return this.safeString (types, status, status);
     }
 
     parseLedgerEntryType (type) {
-        const types = {
+        const types: Dict = {
             'buy': 'trade',
             'sell': 'trade',
             'fiat_deposit': 'transaction',
@@ -3065,7 +3065,7 @@ export default class coinbase extends Exchange {
     }
 
     parseOrderStatus (status: Str) {
-        const statuses = {
+        const statuses: Dict = {
             'OPEN': 'open',
             'FILLED': 'closed',
             'CANCELLED': 'canceled',
@@ -3080,7 +3080,7 @@ export default class coinbase extends Exchange {
         if (type === 'UNKNOWN_ORDER_TYPE') {
             return undefined;
         }
-        const types = {
+        const types: Dict = {
             'MARKET': 'market',
             'LIMIT': 'limit',
             'STOP': 'limit',
@@ -3090,7 +3090,7 @@ export default class coinbase extends Exchange {
     }
 
     parseTimeInForce (timeInForce) {
-        const timeInForces = {
+        const timeInForces: Dict = {
             'GOOD_UNTIL_CANCELLED': 'GTC',
             'GOOD_UNTIL_DATE_TIME': 'GTD',
             'IMMEDIATE_OR_CANCEL': 'IOC',
@@ -4364,7 +4364,7 @@ export default class coinbase extends Exchange {
             if (productId === undefined) {
                 throw new ArgumentsRequired (this.id + ' fetchPosition() requires a "product_id" in params');
             }
-            const futureRequest = {
+            const futureRequest: Dict = {
                 'product_id': productId,
             };
             response = await this.v3PrivateGetBrokerageCfmPositionsProductId (this.extend (futureRequest, params));

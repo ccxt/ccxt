@@ -552,7 +552,7 @@ export default class deribit extends Exchange {
         //    }
         //
         const data = this.safeValue (response, 'result', {});
-        const result = {};
+        const result: Dict = {};
         for (let i = 0; i < data.length; i++) {
             const currency = data[i];
             const currencyId = this.safeString (currency, 'currency');
@@ -713,7 +713,7 @@ export default class deribit extends Exchange {
          */
         const instrumentsResponses = [];
         const result = [];
-        const parsedMarkets = {};
+        const parsedMarkets: Dict = {};
         let fetchAllMarkets = undefined;
         [ fetchAllMarkets, params ] = this.handleOptionAndParams (params, 'fetchMarkets', 'fetchAllMarkets', true);
         if (fetchAllMarkets) {
@@ -936,7 +936,7 @@ export default class deribit extends Exchange {
     }
 
     parseBalance (balance): Balances {
-        const result = {
+        const result: Dict = {
             'info': balance,
         };
         const currencyId = this.safeString (balance, 'currency');
@@ -1273,7 +1273,7 @@ export default class deribit extends Exchange {
         //     }
         //
         const result = this.safeList (response, 'result', []);
-        const tickers = {};
+        const tickers: Dict = {};
         for (let i = 0; i < result.length; i++) {
             const ticker = this.parseTicker (result[i]);
             const symbol = ticker['symbol'];
@@ -1606,7 +1606,7 @@ export default class deribit extends Exchange {
                 };
             }
         }
-        const parsedFees = {};
+        const parsedFees: Dict = {};
         for (let i = 0; i < this.symbols.length; i++) {
             const symbol = this.symbols[i];
             const market = this.market (symbol);
@@ -1698,7 +1698,7 @@ export default class deribit extends Exchange {
     }
 
     parseOrderStatus (status: Str) {
-        const statuses = {
+        const statuses: Dict = {
             'open': 'open',
             'cancelled': 'canceled',
             'filled': 'closed',
@@ -1709,7 +1709,7 @@ export default class deribit extends Exchange {
     }
 
     parseTimeInForce (timeInForce) {
-        const timeInForces = {
+        const timeInForces: Dict = {
             'good_til_cancelled': 'GTC',
             'fill_or_kill': 'FOK',
             'immediate_or_cancel': 'IOC',
@@ -1718,7 +1718,7 @@ export default class deribit extends Exchange {
     }
 
     parseOrderType (orderType) {
-        const orderTypes = {
+        const orderTypes: Dict = {
             'stop_limit': 'limit',
             'take_limit': 'limit',
             'stop_market': 'market',
@@ -2442,7 +2442,7 @@ export default class deribit extends Exchange {
     }
 
     parseTransactionStatus (status) {
-        const statuses = {
+        const statuses: Dict = {
             'completed': 'ok',
             'unconfirmed': 'pending',
         };
@@ -2916,7 +2916,7 @@ export default class deribit extends Exchange {
     }
 
     parseTransferStatus (status: Str): Str {
-        const statuses = {
+        const statuses: Dict = {
             'prepared': 'pending',
             'confirmed': 'ok',
             'cancelled': 'cancelled',

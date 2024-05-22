@@ -273,7 +273,7 @@ export default class coinbaseexchange extends Exchange {
         //         }
         //     ]
         //
-        const result = {};
+        const result: Dict = {};
         for (let i = 0; i < response.length; i++) {
             const currency = response[i];
             const id = this.safeString (currency, 'id');
@@ -486,7 +486,7 @@ export default class coinbaseexchange extends Exchange {
     }
 
     parseBalance (response): Balances {
-        const result = { 'info': response };
+        const result: Dict = { 'info': response };
         for (let i = 0; i < response.length; i++) {
             const balance = response[i];
             const currencyId = this.safeString (balance, 'currency');
@@ -669,7 +669,7 @@ export default class coinbaseexchange extends Exchange {
         //         ]
         //     }
         //
-        const result = {};
+        const result: Dict = {};
         const marketIds = Object.keys (response);
         const delimiter = '-';
         for (let i = 0; i < marketIds.length; i++) {
@@ -766,7 +766,7 @@ export default class coinbaseexchange extends Exchange {
             }
         }
         const feeCost = this.safeString2 (trade, 'fill_fees', 'fee');
-        const fee = {
+        const fee: Dict = {
             'cost': feeCost,
             'currency': market['quote'],
             'rate': feeRate,
@@ -896,7 +896,7 @@ export default class coinbaseexchange extends Exchange {
         //
         const maker = this.safeNumber (response, 'maker_fee_rate');
         const taker = this.safeNumber (response, 'taker_fee_rate');
-        const result = {};
+        const result: Dict = {};
         for (let i = 0; i < this.symbols.length; i++) {
             const symbol = this.symbols[i];
             result[symbol] = {
@@ -1014,7 +1014,7 @@ export default class coinbaseexchange extends Exchange {
     }
 
     parseOrderStatus (status: Str) {
-        const statuses = {
+        const statuses: Dict = {
             'pending': 'open',
             'active': 'open',
             'open': 'open',
@@ -1423,7 +1423,7 @@ export default class coinbaseexchange extends Exchange {
     }
 
     parseLedgerEntryType (type) {
-        const types = {
+        const types: Dict = {
             'transfer': 'transfer', // Funds moved between portfolios
             'match': 'trade',       // Funds moved as a result of a trade
             'fee': 'fee',           // Fee as a result of a trade
@@ -1753,7 +1753,7 @@ export default class coinbaseexchange extends Exchange {
         let type = this.safeString (transaction, 'type');
         let address = this.safeString (details, 'crypto_address');
         address = this.safeString (transaction, 'crypto_address', address);
-        const fee = {
+        const fee: Dict = {
             'currency': undefined,
             'cost': undefined,
             'rate': undefined,

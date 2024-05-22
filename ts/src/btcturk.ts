@@ -284,7 +284,7 @@ export default class btcturk extends Exchange {
 
     parseBalance (response): Balances {
         const data = this.safeValue (response, 'data', []);
-        const result = {
+        const result: Dict = {
             'info': response,
             'timestamp': undefined,
             'datetime': undefined,
@@ -662,7 +662,7 @@ export default class btcturk extends Exchange {
         const close = this.safeValue (ohlcvs, 'c');
         const volume = this.safeValue (ohlcvs, 'v');
         for (let i = 0; i < timestamp.length; i++) {
-            const ohlcv = {
+            const ohlcv: Dict = {
                 'timestamp': this.safeValue (timestamp, i),
                 'high': this.safeValue (high, i),
                 'open': this.safeValue (open, i),
@@ -804,7 +804,7 @@ export default class btcturk extends Exchange {
     }
 
     parseOrderStatus (status: Str) {
-        const statuses = {
+        const statuses: Dict = {
             'Untouched': 'open',
             'Partial': 'open',
             'Canceled': 'canceled',

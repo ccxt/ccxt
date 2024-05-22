@@ -493,12 +493,12 @@ export default class bitvavo extends Exchange {
         //         },
         //     ]
         //
-        const result = {};
+        const result: Dict = {};
         for (let i = 0; i < currencies.length; i++) {
             const currency = currencies[i];
             const id = this.safeString (currency, 'symbol');
             const code = this.safeCurrencyCode (id);
-            const networks = {};
+            const networks: Dict = {};
             const networksArray = this.safeValue (currency, 'networks', []);
             const networksLength = networksArray.length;
             const isOneNetwork = (networksLength === 1);
@@ -862,7 +862,7 @@ export default class bitvavo extends Exchange {
         const feesValue = this.safeValue (fees, 'fees');
         const maker = this.safeNumber (feesValue, 'maker');
         const taker = this.safeNumber (feesValue, 'taker');
-        const result = {};
+        const result: Dict = {};
         for (let i = 0; i < this.symbols.length; i++) {
             const symbol = this.symbols[i];
             result[symbol] = {
@@ -1001,7 +1001,7 @@ export default class bitvavo extends Exchange {
     }
 
     parseBalance (response): Balances {
-        const result = {
+        const result: Dict = {
             'info': response,
             'timestamp': undefined,
             'datetime': undefined,
@@ -1534,7 +1534,7 @@ export default class bitvavo extends Exchange {
     }
 
     parseOrderStatus (status: Str) {
-        const statuses = {
+        const statuses: Dict = {
             'new': 'open',
             'canceled': 'canceled',
             'canceledAuction': 'canceled',
@@ -1879,7 +1879,7 @@ export default class bitvavo extends Exchange {
     }
 
     parseTransactionStatus (status) {
-        const statuses = {
+        const statuses: Dict = {
             'awaiting_processing': 'pending',
             'awaiting_email_confirmation': 'pending',
             'awaiting_bitvavo_inspection': 'pending',
@@ -1992,7 +1992,7 @@ export default class bitvavo extends Exchange {
         //       "message": ""
         //   }
         //
-        const result = {
+        const result: Dict = {
             'info': fee,
             'withdraw': {
                 'fee': this.safeNumber (fee, 'withdrawalFee'),

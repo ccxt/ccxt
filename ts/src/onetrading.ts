@@ -339,7 +339,7 @@ export default class onetrading extends Exchange {
         //         }
         //     ]
         //
-        const result = {};
+        const result: Dict = {};
         for (let i = 0; i < response.length; i++) {
             const currency = response[i];
             const id = this.safeString (currency, 'code');
@@ -491,7 +491,7 @@ export default class onetrading extends Exchange {
         const feeTiers = this.safeValue (first, 'fee_tiers');
         const tiers = this.parseFeeTiers (feeTiers);
         const firstTier = this.safeValue (feeTiers, 0, {});
-        const result = {};
+        const result: Dict = {};
         for (let i = 0; i < this.symbols.length; i++) {
             const symbol = this.symbols[i];
             result[symbol] = {
@@ -537,7 +537,7 @@ export default class onetrading extends Exchange {
         makerFee = Precise.stringDiv (makerFee, '100');
         takerFee = Precise.stringDiv (takerFee, '100');
         const feeTiers = this.safeValue (response, 'fee_tiers');
-        const result = {};
+        const result: Dict = {};
         const tiers = this.parseFeeTiers (feeTiers);
         for (let i = 0; i < this.symbols.length; i++) {
             const symbol = this.symbols[i];
@@ -694,7 +694,7 @@ export default class onetrading extends Exchange {
         //         }
         //     ]
         //
-        const result = {};
+        const result: Dict = {};
         for (let i = 0; i < response.length; i++) {
             const ticker = this.parseTicker (response[i]);
             const symbol = ticker['symbol'];
@@ -805,7 +805,7 @@ export default class onetrading extends Exchange {
         const granularity = this.safeValue (ohlcv, 'granularity');
         const unit = this.safeString (granularity, 'unit');
         const period = this.safeString (granularity, 'period');
-        const units = {
+        const units: Dict = {
             'MINUTES': 'm',
             'HOURS': 'h',
             'DAYS': 'd',
@@ -1003,7 +1003,7 @@ export default class onetrading extends Exchange {
 
     parseBalance (response): Balances {
         const balances = this.safeValue (response, 'balances', []);
-        const result = { 'info': response };
+        const result: Dict = { 'info': response };
         for (let i = 0; i < balances.length; i++) {
             const balance = balances[i];
             const currencyId = this.safeString (balance, 'currency_code');
@@ -1280,7 +1280,7 @@ export default class onetrading extends Exchange {
                 throw new ArgumentsRequired (this.id + ' withdraw() requires a payout_account_id param for fiat ' + code + ' withdrawals');
             }
         } else {
-            const recipient = { 'address': address };
+            const recipient: Dict = { 'address': address };
             if (tag !== undefined) {
                 recipient['destination_tag'] = tag;
             }
@@ -1387,7 +1387,7 @@ export default class onetrading extends Exchange {
     }
 
     parseOrderStatus (status: Str) {
-        const statuses = {
+        const statuses: Dict = {
             'FILLED': 'open',
             'FILLED_FULLY': 'closed',
             'FILLED_CLOSED': 'canceled',
@@ -1512,7 +1512,7 @@ export default class onetrading extends Exchange {
     }
 
     parseTimeInForce (timeInForce) {
-        const timeInForces = {
+        const timeInForces: Dict = {
             'GOOD_TILL_CANCELLED': 'GTC',
             'GOOD_TILL_TIME': 'GTT',
             'IMMEDIATE_OR_CANCELLED': 'IOC',

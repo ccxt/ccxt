@@ -1543,7 +1543,7 @@ export default class htx extends Exchange {
         if (symbols === undefined) {
             symbols = this.symbols;
         }
-        const result = {};
+        const result: Dict = {};
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];
             result[symbol] = await this.fetchTradingLimitsById (this.marketId (symbol), params);
@@ -1941,7 +1941,7 @@ export default class htx extends Exchange {
             return futureMarketIdsForSymbols[symbolOrMarketId];
         }
         const futureMarkets = this.filterBy (this.markets, 'future', true);
-        const futuresCharsMaps = {
+        const futuresCharsMaps: Dict = {
             'this_week': 'CW',
             'next_week': 'NW',
             'quarter': 'CQ',
@@ -3178,7 +3178,7 @@ export default class htx extends Exchange {
         //    }
         //
         const data = this.safeValue (response, 'data', []);
-        const result = {};
+        const result: Dict = {};
         this.options['networkChainIdsByNames'] = {};
         this.options['networkNamesByChainIds'] = {};
         for (let i = 0; i < data.length; i++) {
@@ -3187,7 +3187,7 @@ export default class htx extends Exchange {
             const code = this.safeCurrencyCode (currencyId);
             this.options['networkChainIdsByNames'][code] = {};
             const chains = this.safeValue (entry, 'chains', []);
-            const networks = {};
+            const networks: Dict = {};
             const instStatus = this.safeString (entry, 'instStatus');
             const currencyActive = instStatus === 'normal';
             let minPrecision = undefined;
@@ -3528,7 +3528,7 @@ export default class htx extends Exchange {
                     const entry = data[i];
                     const symbol = this.safeSymbol (this.safeString (entry, 'symbol'));
                     const balances = this.safeValue (entry, 'list');
-                    const subResult = {};
+                    const subResult: Dict = {};
                     for (let j = 0; j < balances.length; j++) {
                         const balance = balances[j];
                         const currencyId = this.safeString (balance, 'currency');
@@ -3557,7 +3557,7 @@ export default class htx extends Exchange {
                     for (let j = 0; j < isolated_swap.length; j++) {
                         const balance = isolated_swap[j];
                         const marketId = this.safeString (balance, 'contract_code');
-                        const subBalance = {
+                        const subBalance: Dict = {
                             'code': currencyCode,
                             'free': this.safeNumber (balance, 'margin_available'),
                         };
@@ -3590,7 +3590,7 @@ export default class htx extends Exchange {
                         const account = this.account ();
                         account['free'] = this.safeString (balance, 'margin_balance');
                         account['used'] = this.safeString (balance, 'margin_frozen');
-                        const accountsByCode = {};
+                        const accountsByCode: Dict = {};
                         accountsByCode[code] = account;
                         const symbol = market['symbol'];
                         result[symbol] = this.safeBalance (accountsByCode);
@@ -4546,7 +4546,7 @@ export default class htx extends Exchange {
     }
 
     parseOrderStatus (status: Str) {
-        const statuses = {
+        const statuses: Dict = {
             // spot
             'partial-filled': 'open',
             'partial-canceled': 'canceled',
@@ -6352,7 +6352,7 @@ export default class htx extends Exchange {
     }
 
     parseTransactionStatus (status) {
-        const statuses = {
+        const statuses: Dict = {
             // deposit statuses
             'unknown': 'failed',
             'confirming': 'pending',
@@ -7805,7 +7805,7 @@ export default class htx extends Exchange {
     }
 
     parseLedgerEntryType (type) {
-        const types = {
+        const types: Dict = {
             'trade': 'trade',
             'etf': 'trade',
             'transact-fee': 'fee',
@@ -8045,7 +8045,7 @@ export default class htx extends Exchange {
     }
 
     parseLeverageTiers (response, symbols: Strings = undefined, marketIdKey = undefined) {
-        const result = {};
+        const result: Dict = {};
         for (let i = 0; i < response.length; i++) {
             const item = response[i];
             const list = this.safeValue (item, 'list', []);
@@ -8099,7 +8099,7 @@ export default class htx extends Exchange {
             throw new BadRequest (this.id + ' fetchOpenInterestHistory cannot only use the 1h, 4h, 12h and 1d timeframe');
         }
         await this.loadMarkets ();
-        const timeframes = {
+        const timeframes: Dict = {
             '1h': '60min',
             '4h': '4hour',
             '12h': '12hour',
@@ -8817,7 +8817,7 @@ export default class htx extends Exchange {
             const list = this.safeValue (settlement, 'list');
             if (list !== undefined) {
                 const timestamp = this.safeInteger (settlement, 'settlement_time');
-                const timestampDetails = {
+                const timestampDetails: Dict = {
                     'timestamp': timestamp,
                     'datetime': this.iso8601 (timestamp),
                 };

@@ -396,7 +396,7 @@ export default class digifinex extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'data', []);
-        const result = {};
+        const result: Dict = {};
         for (let i = 0; i < data.length; i++) {
             const currency = data[i];
             const id = this.safeString (currency, 'currency');
@@ -420,7 +420,7 @@ export default class digifinex extends Exchange {
             if (networkId !== undefined) {
                 networkCode = this.networkIdToCode (networkId);
             }
-            const network = {
+            const network: Dict = {
                 'info': currency,
                 'id': networkId,
                 'network': networkCode,
@@ -794,7 +794,7 @@ export default class digifinex extends Exchange {
         //         "time_stamp": 1661487402396
         //     }
         //
-        const result = { 'info': response };
+        const result: Dict = { 'info': response };
         for (let i = 0; i < response.length; i++) {
             const balance = response[i];
             const currencyId = this.safeString (balance, 'currency');
@@ -1029,7 +1029,7 @@ export default class digifinex extends Exchange {
         //         ]
         //     }
         //
-        const result = {};
+        const result: Dict = {};
         const tickers = this.safeValue2 (response, 'ticker', 'data', []);
         const date = this.safeInteger (response, 'date');
         for (let i = 0; i < tickers.length; i++) {
@@ -1706,7 +1706,7 @@ export default class digifinex extends Exchange {
         const result = [];
         for (let i = 0; i < orders.length; i++) {
             const rawOrder = orders[i];
-            const individualOrder = {};
+            const individualOrder: Dict = {};
             individualOrder['order_id'] = data[i];
             individualOrder['instrument_id'] = market['id'];
             individualOrder['amount'] = this.safeNumber (rawOrder, 'amount');
@@ -1956,7 +1956,7 @@ export default class digifinex extends Exchange {
     }
 
     parseOrderStatus (status: Str) {
-        const statuses = {
+        const statuses: Dict = {
             '0': 'open',
             '1': 'open', // partially filled
             '2': 'closed',
@@ -2513,7 +2513,7 @@ export default class digifinex extends Exchange {
     }
 
     parseLedgerEntryType (type) {
-        const types = {};
+        const types: Dict = {};
         return this.safeString (types, type, type);
     }
 
@@ -2792,7 +2792,7 @@ export default class digifinex extends Exchange {
     parseTransactionStatus (status) {
         // deposit state includes: 1 (in deposit), 2 (to be confirmed), 3 (successfully deposited), 4 (stopped)
         // withdrawal state includes: 1 (application in progress), 2 (to be confirmed), 3 (completed), 4 (rejected)
-        const statuses = {
+        const statuses: Dict = {
             '1': 'pending', // in Progress
             '2': 'pending', // to be confirmed
             '3': 'ok', // Completed
@@ -2867,7 +2867,7 @@ export default class digifinex extends Exchange {
     }
 
     parseTransferStatus (status: Str): Str {
-        const statuses = {
+        const statuses: Dict = {
             '0': 'ok',
         };
         return this.safeString (statuses, status, status);
@@ -3155,7 +3155,7 @@ export default class digifinex extends Exchange {
         //         "currency": "USDT"
         //     },
         //
-        const result = {};
+        const result: Dict = {};
         for (let i = 0; i < info.length; i++) {
             const item = info[i];
             const currency = this.safeString (item, codeKey);
@@ -3976,7 +3976,7 @@ export default class digifinex extends Exchange {
         //         },
         //     ]
         //
-        const depositWithdrawFees = {};
+        const depositWithdrawFees: Dict = {};
         codes = this.marketCodes (codes);
         for (let i = 0; i < response.length; i++) {
             const entry = response[i];
@@ -3991,11 +3991,11 @@ export default class digifinex extends Exchange {
                 depositWithdrawFees[code]['info'].push (entry);
                 const networkId = this.safeString (entry, 'chain');
                 const withdrawFee = this.safeValue (entry, 'min_withdraw_fee');
-                const withdrawResult = {
+                const withdrawResult: Dict = {
                     'fee': withdrawFee,
                     'percentage': (withdrawFee !== undefined) ? false : undefined,
                 };
-                const depositResult = {
+                const depositResult: Dict = {
                     'fee': undefined,
                     'percentage': undefined,
                 };

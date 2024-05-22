@@ -618,15 +618,15 @@ export default class kraken extends Exchange {
 
     appendInactiveMarkets (result) {
         // result should be an array to append to
-        const precision = {
+        const precision: Dict = {
             'amount': this.parseNumber ('1e-8'),
             'price': this.parseNumber ('1e-8'),
         };
-        const costLimits = { 'min': undefined, 'max': undefined };
-        const priceLimits = { 'min': precision['price'], 'max': undefined };
-        const amountLimits = { 'min': precision['amount'], 'max': undefined };
-        const limits = { 'amount': amountLimits, 'price': priceLimits, 'cost': costLimits };
-        const defaults = {
+        const costLimits: Dict = { 'min': undefined, 'max': undefined };
+        const priceLimits: Dict = { 'min': precision['price'], 'max': undefined };
+        const amountLimits: Dict = { 'min': precision['amount'], 'max': undefined };
+        const limits: Dict = { 'amount': amountLimits, 'price': priceLimits, 'cost': costLimits };
+        const defaults: Dict = {
             'darkpool': false,
             'info': undefined,
             'maker': undefined,
@@ -671,7 +671,7 @@ export default class kraken extends Exchange {
         //
         const currencies = this.safeValue (response, 'result', {});
         const ids = Object.keys (currencies);
-        const result = {};
+        const result: Dict = {};
         for (let i = 0; i < ids.length; i++) {
             const id = ids[i];
             const currency = currencies[id];
@@ -912,7 +912,7 @@ export default class kraken extends Exchange {
         const response = await this.publicGetTicker (this.extend (request, params));
         const tickers = response['result'];
         const ids = Object.keys (tickers);
-        const result = {};
+        const result: Dict = {};
         for (let i = 0; i < ids.length; i++) {
             const id = ids[i];
             const market = this.safeMarket (id);
@@ -1025,7 +1025,7 @@ export default class kraken extends Exchange {
     }
 
     parseLedgerEntryType (type) {
-        const types = {
+        const types: Dict = {
             'trade': 'trade',
             'withdrawal': 'transaction',
             'deposit': 'transaction',
@@ -1327,7 +1327,7 @@ export default class kraken extends Exchange {
 
     parseBalance (response): Balances {
         const balances = this.safeValue (response, 'result', {});
-        const result = {
+        const result: Dict = {
             'info': response,
             'timestamp': undefined,
             'datetime': undefined,
@@ -1499,7 +1499,7 @@ export default class kraken extends Exchange {
     }
 
     parseOrderStatus (status: Str) {
-        const statuses = {
+        const statuses: Dict = {
             'pending': 'open', // order pending book entry
             'open': 'open',
             'closed': 'closed',
@@ -1510,7 +1510,7 @@ export default class kraken extends Exchange {
     }
 
     parseOrderType (status) {
-        const statuses = {
+        const statuses: Dict = {
             'take-profit': 'market',
             'stop-loss-limit': 'limit',
             'stop-loss': 'market',
@@ -2346,7 +2346,7 @@ export default class kraken extends Exchange {
 
     parseTransactionStatus (status) {
         // IFEX transaction states
-        const statuses = {
+        const statuses: Dict = {
             'Initial': 'pending',
             'Pending': 'pending',
             'Success': 'ok',
@@ -2936,7 +2936,7 @@ export default class kraken extends Exchange {
     }
 
     parseAccountType (account) {
-        const accountByType = {
+        const accountByType: Dict = {
             'spot': 'Spot Wallet',
             'swap': 'Futures Wallet',
             'future': 'Futures Wallet',

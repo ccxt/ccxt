@@ -487,7 +487,7 @@ export default class upbit extends Exchange {
     }
 
     parseBalance (response): Balances {
-        const result = {
+        const result: Dict = {
             'info': response,
             'timestamp': undefined,
             'datetime': undefined,
@@ -586,7 +586,7 @@ export default class upbit extends Exchange {
         //                               "ask_size": 2.752,
         //                               "bid_size": 0.4650305 }    ] }   ]
         //
-        const result = {};
+        const result: Dict = {};
         for (let i = 0; i < response.length; i++) {
             const orderbook = response[i];
             const marketId = this.safeString (orderbook, 'market');
@@ -732,7 +732,7 @@ export default class upbit extends Exchange {
         //           "lowest_52_week_date": "2017-12-08",
         //                     "timestamp":  1542883543813  } ]
         //
-        const result = {};
+        const result: Dict = {};
         for (let t = 0; t < response.length; t++) {
             const ticker = this.parseTicker (response[t]);
             const symbol = ticker['symbol'];
@@ -1342,7 +1342,7 @@ export default class upbit extends Exchange {
     }
 
     parseTransactionStatus (status) {
-        const statuses = {
+        const statuses: Dict = {
             'submitting': 'pending', // 처리 중
             'submitted': 'pending', // 처리 완료
             'almost_accepted': 'pending', // 출금대기중
@@ -1424,7 +1424,7 @@ export default class upbit extends Exchange {
     }
 
     parseOrderStatus (status: Str) {
-        const statuses = {
+        const statuses: Dict = {
             'wait': 'open',
             'done': 'closed',
             'cancel': 'canceled',

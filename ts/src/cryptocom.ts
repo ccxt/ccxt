@@ -904,7 +904,7 @@ export default class cryptocom extends Exchange {
         const responseResult = this.safeValue (response, 'result', {});
         const data = this.safeValue (responseResult, 'data', []);
         const positionBalances = this.safeValue (data[0], 'position_balances', []);
-        const result = { 'info': response };
+        const result: Dict = { 'info': response };
         for (let i = 0; i < positionBalances.length; i++) {
             const balance = positionBalances[i];
             const currencyId = this.safeString (balance, 'instrument_name');
@@ -1434,7 +1434,7 @@ export default class cryptocom extends Exchange {
         const orderRequests = [];
         for (let i = 0; i < ids.length; i++) {
             const id = ids[i];
-            const order = {
+            const order: Dict = {
                 'instrument_name': market['id'],
                 'order_id': id.toString (),
             };
@@ -1466,7 +1466,7 @@ export default class cryptocom extends Exchange {
             const id = this.safeString (order, 'id');
             const symbol = this.safeString (order, 'symbol');
             const market = this.market (symbol);
-            const orderItem = {
+            const orderItem: Dict = {
                 'instrument_name': market['id'],
                 'order_id': id.toString (),
             };
@@ -1721,7 +1721,7 @@ export default class cryptocom extends Exchange {
         if (addressesLength === 0) {
             throw new ExchangeError (this.id + ' fetchDepositAddressesByNetwork() generating address...');
         }
-        const result = {};
+        const result: Dict = {};
         for (let i = 0; i < addressesLength; i++) {
             const value = this.safeValue (addresses, i);
             const addressString = this.safeString (value, 'address');
@@ -1763,7 +1763,7 @@ export default class cryptocom extends Exchange {
     }
 
     safeNetwork (networkId) {
-        const networksById = {
+        const networksById: Dict = {
             'BTC': 'BTC',
             'ETH': 'ETH',
             'SOL': 'SOL',
@@ -2041,7 +2041,7 @@ export default class cryptocom extends Exchange {
     }
 
     parseOrderStatus (status: Str) {
-        const statuses = {
+        const statuses: Dict = {
             'ACTIVE': 'open',
             'CANCELED': 'canceled',
             'FILLED': 'closed',
@@ -2052,7 +2052,7 @@ export default class cryptocom extends Exchange {
     }
 
     parseTimeInForce (timeInForce) {
-        const timeInForces = {
+        const timeInForces: Dict = {
             'GOOD_TILL_CANCEL': 'GTC',
             'IMMEDIATE_OR_CANCEL': 'IOC',
             'FILL_OR_KILL': 'FOK',
@@ -2160,7 +2160,7 @@ export default class cryptocom extends Exchange {
     }
 
     parseDepositStatus (status) {
-        const statuses = {
+        const statuses: Dict = {
             '0': 'pending',
             '1': 'ok',
             '2': 'failed',
@@ -2170,7 +2170,7 @@ export default class cryptocom extends Exchange {
     }
 
     parseWithdrawalStatus (status) {
-        const statuses = {
+        const statuses: Dict = {
             '0': 'pending',
             '1': 'pending',
             '2': 'failed',
@@ -2314,7 +2314,7 @@ export default class cryptocom extends Exchange {
         //
         const networkList = this.safeValue (fee, 'network_list');
         const networkListLength = networkList.length;
-        const result = {
+        const result: Dict = {
             'info': fee,
             'withdraw': {
                 'fee': undefined,
@@ -2481,7 +2481,7 @@ export default class cryptocom extends Exchange {
     }
 
     parseLedgerEntryType (type) {
-        const ledgerType = {
+        const ledgerType: Dict = {
             'TRADING': 'trade',
             'TRADE_FEE': 'fee',
             'WITHDRAW_FEE': 'fee',

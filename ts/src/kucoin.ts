@@ -1216,7 +1216,7 @@ export default class kucoin extends Exchange {
         const additionalResponse = this.safeDict (responses, 1, {});
         const additionalData = this.safeList (additionalResponse, 'data', []);
         const additionalDataGrouped = this.groupBy (additionalData, 'currency');
-        const result = {};
+        const result: Dict = {};
         for (let i = 0; i < currenciesData.length; i++) {
             const entry = currenciesData[i];
             const id = this.safeString (entry, 'currency');
@@ -1224,7 +1224,7 @@ export default class kucoin extends Exchange {
             const code = this.safeCurrencyCode (id);
             let isWithdrawEnabled = undefined;
             let isDepositEnabled = undefined;
-            const networks = {};
+            const networks: Dict = {};
             const chains = this.safeList (entry, 'chains', []);
             const extraChainsData = this.indexBy (this.safeList (additionalDataGrouped, id, []), 'chain');
             const rawPrecision = this.safeString (entry, 'precision');
@@ -1368,7 +1368,7 @@ export default class kucoin extends Exchange {
         }
         const response = await this.privateGetWithdrawalsQuotas (this.extend (request, params));
         const data = this.safeDict (response, 'data', {});
-        const withdrawFees = {};
+        const withdrawFees: Dict = {};
         withdrawFees[code] = this.safeNumber (data, 'withdrawMinFee');
         return {
             'info': response,
@@ -1437,7 +1437,7 @@ export default class kucoin extends Exchange {
         //        "chain": "ERC20"
         //    }
         //
-        const result = {
+        const result: Dict = {
             'info': fee,
             'withdraw': {
                 'fee': undefined,
@@ -1623,7 +1623,7 @@ export default class kucoin extends Exchange {
         const data = this.safeDict (response, 'data', {});
         const tickers = this.safeList (data, 'ticker', []);
         const time = this.safeInteger (data, 'time');
-        const result = {};
+        const result: Dict = {};
         for (let i = 0; i < tickers.length; i++) {
             tickers[i]['time'] = time;
             const ticker = this.parseTicker (tickers[i]);
@@ -3291,7 +3291,7 @@ export default class kucoin extends Exchange {
     }
 
     parseTransactionStatus (status) {
-        const statuses = {
+        const statuses: Dict = {
             'SUCCESS': 'ok',
             'PROCESSING': 'pending',
             'WALLET_PROCESSING': 'pending',
@@ -3721,7 +3721,7 @@ export default class kucoin extends Exchange {
         //    }
         //
         let data = undefined;
-        const result = {
+        const result: Dict = {
             'info': response,
             'timestamp': undefined,
             'datetime': undefined,
@@ -3737,7 +3737,7 @@ export default class kucoin extends Exchange {
                 const quote = this.safeDict (entry, 'quoteAsset', {});
                 const baseCode = this.safeCurrencyCode (this.safeString (base, 'currency'));
                 const quoteCode = this.safeCurrencyCode (this.safeString (quote, 'currency'));
-                const subResult = {};
+                const subResult: Dict = {};
                 subResult[baseCode] = this.parseBalanceHelper (base);
                 subResult[quoteCode] = this.parseBalanceHelper (quote);
                 result[symbol] = this.safeBalance (subResult);
@@ -3923,14 +3923,14 @@ export default class kucoin extends Exchange {
     }
 
     parseTransferStatus (status: Str): Str {
-        const statuses = {
+        const statuses: Dict = {
             'PROCESSING': 'pending',
         };
         return this.safeString (statuses, status, status);
     }
 
     parseLedgerEntryType (type) {
-        const types = {
+        const types: Dict = {
             'Assets Transferred in After Upgrading': 'transfer', // Assets Transferred in After V1 to V2 Upgrading
             'Deposit': 'transaction', // Deposit
             'Withdrawal': 'transaction', // Withdrawal
@@ -4514,7 +4514,7 @@ export default class kucoin extends Exchange {
         //         }
         //     ]
         //
-        const borrowRateHistories = {};
+        const borrowRateHistories: Dict = {};
         for (let i = 0; i < response.length; i++) {
             const item = response[i];
             const code = this.safeCurrencyCode (this.safeString (item, 'currency'));

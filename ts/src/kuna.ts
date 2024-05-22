@@ -464,7 +464,7 @@ export default class kuna extends Exchange {
 
     parseCurrencies (currencies, params = {}) {
         currencies = this.toArray (currencies);
-        const result = {};
+        const result: Dict = {};
         for (let i = 0; i < currencies.length; i++) {
             const currency = this.parseCurrency (currencies[i]);
             result[currency['code']] = currency;
@@ -915,7 +915,7 @@ export default class kuna extends Exchange {
         //        ...
         //    ]
         //
-        const result = { 'info': response };
+        const result: Dict = { 'info': response };
         for (let i = 0; i < response.length; i++) {
             const balance = response[i];
             const currencyId = this.safeString (balance, 'currency');
@@ -1076,7 +1076,7 @@ export default class kuna extends Exchange {
     }
 
     parseOrderStatus (status: Str) {
-        const statuses = {
+        const statuses: Dict = {
             'Canceled': 'canceled',
             'Closed': 'filled',
             'Pending': 'open',
@@ -1657,7 +1657,7 @@ export default class kuna extends Exchange {
     }
 
     parseTransactionStatus (status) {
-        const statuses = {
+        const statuses: Dict = {
             'Created': 'pending',
             'Canceled': 'canceled',
             'PartiallyProcessed': 'pending',

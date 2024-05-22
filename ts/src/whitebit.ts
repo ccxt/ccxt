@@ -456,7 +456,7 @@ export default class whitebit extends Exchange {
         //       },
         //
         const ids = Object.keys (response);
-        const result = {};
+        const result: Dict = {};
         for (let i = 0; i < ids.length; i++) {
             const id = ids[i];
             const currency = response[id];
@@ -530,8 +530,8 @@ export default class whitebit extends Exchange {
         //      }
         //
         const currenciesIds = Object.keys (response);
-        const withdrawFees = {};
-        const depositFees = {};
+        const withdrawFees: Dict = {};
+        const depositFees: Dict = {};
         for (let i = 0; i < currenciesIds.length; i++) {
             const currency = currenciesIds[i];
             const data = response[currency];
@@ -648,7 +648,7 @@ export default class whitebit extends Exchange {
         //        ...
         //    }
         //
-        const depositWithdrawFees = {};
+        const depositWithdrawFees: Dict = {};
         codes = this.marketCodes (codes);
         const currencyIds = Object.keys (response);
         for (let i = 0; i < currencyIds.length; i++) {
@@ -668,11 +668,11 @@ export default class whitebit extends Exchange {
                 const deposit = this.safeValue (feeInfo, 'deposit');
                 const withdrawFee = this.safeNumber (withdraw, 'fixed');
                 const depositFee = this.safeNumber (deposit, 'fixed');
-                const withdrawResult = {
+                const withdrawResult: Dict = {
                     'fee': withdrawFee,
                     'percentage': (withdrawFee !== undefined) ? false : undefined,
                 };
-                const depositResult = {
+                const depositResult: Dict = {
                     'fee': depositFee,
                     'percentage': (depositFee !== undefined) ? false : undefined,
                 };
@@ -727,7 +727,7 @@ export default class whitebit extends Exchange {
         //            ...
         //      }
         //
-        const result = {};
+        const result: Dict = {};
         for (let i = 0; i < this.symbols.length; i++) {
             const symbol = this.symbols[i];
             const market = this.market (symbol);
@@ -864,7 +864,7 @@ export default class whitebit extends Exchange {
         //      },
         //
         const marketIds = Object.keys (response);
-        const result = {};
+        const result: Dict = {};
         for (let i = 0; i < marketIds.length; i++) {
             const marketId = marketIds[i];
             const market = this.safeMarket (marketId);
@@ -1518,7 +1518,7 @@ export default class whitebit extends Exchange {
 
     parseBalance (response): Balances {
         const balanceKeys = Object.keys (response);
-        const result = {};
+        const result: Dict = {};
         for (let i = 0; i < balanceKeys.length; i++) {
             const id = balanceKeys[i];
             const code = this.safeCurrencyCode (id);
@@ -1695,7 +1695,7 @@ export default class whitebit extends Exchange {
     }
 
     parseOrderType (type: Str) {
-        const types = {
+        const types: Dict = {
             'limit': 'limit',
             'market': 'market',
             'stop market': 'market',
@@ -2117,7 +2117,7 @@ export default class whitebit extends Exchange {
     }
 
     parseTransactionStatus (status) {
-        const statuses = {
+        const statuses: Dict = {
             '1': 'pending',
             '2': 'pending',
             '3': 'ok',

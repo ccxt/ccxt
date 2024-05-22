@@ -775,7 +775,7 @@ export default class p2b extends Exchange {
         //        }
         //    }
         //
-        const result = {
+        const result: Dict = {
             'info': response,
         };
         const keys = Object.keys (response);
@@ -785,7 +785,7 @@ export default class p2b extends Exchange {
             const code = this.safeCurrencyCode (currencyId);
             const used = this.safeString (balance, 'freeze');
             const available = this.safeString (balance, 'available');
-            const account = {
+            const account: Dict = {
                 'free': available,
                 'used': used,
             };

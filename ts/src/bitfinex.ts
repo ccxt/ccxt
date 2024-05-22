@@ -408,7 +408,7 @@ export default class bitfinex extends Exchange {
          * @returns {object[]} a list of [fees structures]{@link https://docs.ccxt.com/#/?id=fee-structure}
          */
         await this.loadMarkets ();
-        const result = {};
+        const result: Dict = {};
         const response = await this.privatePostAccountFees (params);
         //
         // {
@@ -526,7 +526,7 @@ export default class bitfinex extends Exchange {
         //          "trade_last": null
         //     }
         //
-        const result = {};
+        const result: Dict = {};
         const fiat = this.safeValue (this.options, 'fiat', {});
         const makerFee = this.safeNumber (response, 'maker_fee');
         const takerFee = this.safeNumber (response, 'taker_fee');
@@ -537,7 +537,7 @@ export default class bitfinex extends Exchange {
         for (let i = 0; i < this.symbols.length; i++) {
             const symbol = this.symbols[i];
             const market = this.market (symbol);
-            const fee = {
+            const fee: Dict = {
                 'info': response,
                 'symbol': symbol,
                 'percentage': true,
@@ -717,7 +717,7 @@ export default class bitfinex extends Exchange {
         //        "currency": "btc",
         //        "amount": "0.0005",
         //        "available": "0.0005" } ],
-        const result = { 'info': response };
+        const result: Dict = { 'info': response };
         const isDerivative = requestedType === 'derivatives';
         for (let i = 0; i < response.length; i++) {
             const balance = response[i];
@@ -817,7 +817,7 @@ export default class bitfinex extends Exchange {
     }
 
     parseTransferStatus (status: Str): Str {
-        const statuses = {
+        const statuses: Dict = {
             'SUCCESS': 'ok',
         };
         return this.safeString (statuses, status, status);
@@ -870,7 +870,7 @@ export default class bitfinex extends Exchange {
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
         const response = await this.publicGetTickers (params);
-        const result = {};
+        const result: Dict = {};
         for (let i = 0; i < response.length; i++) {
             const ticker = this.parseTicker ({ 'result': response[i] });
             const symbol = ticker['symbol'];
@@ -1137,7 +1137,7 @@ export default class bitfinex extends Exchange {
 
     async editOrder (id: string, symbol: string, type:OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params = {}) {
         await this.loadMarkets ();
-        const order = {
+        const order: Dict = {
             'order_id': parseInt (id),
         };
         if (price !== undefined) {
@@ -1585,7 +1585,7 @@ export default class bitfinex extends Exchange {
     }
 
     parseTransactionStatus (status) {
-        const statuses = {
+        const statuses: Dict = {
             'SENDING': 'pending',
             'CANCELED': 'canceled',
             'ZEROCONFIRMED': 'failed', // ZEROCONFIRMED happens e.g. in a double spend attempt (I had one in my movements!)

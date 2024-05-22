@@ -543,7 +543,7 @@ export default class bitteam extends Exchange {
         //     }
         //
         statusesResponse = this.indexBy (statusesResponse, 'unified_cryptoasset_id');
-        const result = {};
+        const result: Dict = {};
         for (let i = 0; i < currencies.length; i++) {
             const currency = currencies[i];
             const id = this.safeString (currency, 'symbol');
@@ -570,7 +570,7 @@ export default class bitteam extends Exchange {
             const deposit = this.safeValue (statuses, 'depositStatus');
             const withdraw = this.safeValue (statuses, 'withdrawStatus');
             const networkIds = Object.keys (feesByNetworkId);
-            const networks = {};
+            const networks: Dict = {};
             const networkPrecision = this.safeInteger (currency, 'decimals');
             for (let j = 0; j < networkIds.length; j++) {
                 const networkId = networkIds[j];
@@ -1249,7 +1249,7 @@ export default class bitteam extends Exchange {
     }
 
     parseOrderStatus (status: Str) {
-        const statuses = {
+        const statuses: Dict = {
             'accepted': 'open',
             'executed': 'closed',
             'cancelled': 'canceled',
@@ -1263,7 +1263,7 @@ export default class bitteam extends Exchange {
     }
 
     parseOrderType (status) {
-        const statuses = {
+        const statuses: Dict = {
             'market': 'market',
             'limit': 'limit',
         };
@@ -1955,7 +1955,7 @@ export default class bitteam extends Exchange {
         }
         const feeCurrencyId = this.safeString (feeInfo, 'symbol');
         const feeCost = this.safeString (feeInfo, 'amount');
-        const fee = {
+        const fee: Dict = {
             'currency': this.safeCurrencyCode (feeCurrencyId),
             'cost': feeCost,
             'rate': undefined,
@@ -2035,7 +2035,7 @@ export default class bitteam extends Exchange {
         //     }
         //
         const timestamp = this.milliseconds ();
-        const balance = {
+        const balance: Dict = {
             'info': response,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -2267,7 +2267,7 @@ export default class bitteam extends Exchange {
     }
 
     parseTransactionType (type) {
-        const types = {
+        const types: Dict = {
             'deposit': 'deposit',
             'withdraw': 'withdrawal',
         };
@@ -2275,7 +2275,7 @@ export default class bitteam extends Exchange {
     }
 
     parseTransactionStatus (status) {
-        const statuses = {
+        const statuses: Dict = {
             'approving': 'pending',
             'success': 'ok',
         };

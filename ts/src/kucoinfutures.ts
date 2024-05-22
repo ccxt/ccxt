@@ -1474,7 +1474,7 @@ export default class kucoinfutures extends kucoin {
             'leverage': 1,
         };
         const [ triggerPrice, stopLossPrice, takeProfitPrice ] = this.handleTriggerPrices (params);
-        const triggerPriceTypes = {
+        const triggerPriceTypes: Dict = {
             'mark': 'MP',
             'last': 'TP',
             'index': 'IP',
@@ -2178,7 +2178,7 @@ export default class kucoinfutures extends kucoin {
     }
 
     parseBalance (response): Balances {
-        const result = {
+        const result: Dict = {
             'info': response,
             'timestamp': undefined,
             'datetime': undefined,
@@ -2294,7 +2294,7 @@ export default class kucoinfutures extends kucoin {
     }
 
     parseTransferStatus (status: Str): Str {
-        const statuses = {
+        const statuses: Dict = {
             'PROCESSING': 'pending',
         };
         return this.safeString (statuses, status, status);

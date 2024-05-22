@@ -232,7 +232,7 @@ export default class independentreserve extends Exchange {
     }
 
     parseBalance (response): Balances {
-        const result = { 'info': response };
+        const result: Dict = { 'info': response };
         for (let i = 0; i < response.length; i++) {
             const balance = response[i];
             const currencyId = this.safeString (balance, 'CurrencyCode');
@@ -460,7 +460,7 @@ export default class independentreserve extends Exchange {
     }
 
     parseOrderStatus (status: Str) {
-        const statuses = {
+        const statuses: Dict = {
             'Open': 'open',
             'PartiallyFilled': 'open',
             'Filled': 'closed',
@@ -660,7 +660,7 @@ export default class independentreserve extends Exchange {
         //         ...
         //     ]
         //
-        const fees = {};
+        const fees: Dict = {};
         for (let i = 0; i < response.length; i++) {
             const fee = response[i];
             const currencyId = this.safeString (fee, 'CurrencyCode');
@@ -671,7 +671,7 @@ export default class independentreserve extends Exchange {
                 'fee': tradingFee,
             };
         }
-        const result = {};
+        const result: Dict = {};
         for (let i = 0; i < this.symbols.length; i++) {
             const symbol = this.symbols[i];
             const market = this.market (symbol);

@@ -330,7 +330,7 @@ export default class bitmex extends Exchange {
         //        },
         //     }
         //
-        const result = {};
+        const result: Dict = {};
         for (let i = 0; i < response.length; i++) {
             const currency = response[i];
             const asset = this.safeString (currency, 'asset');
@@ -340,7 +340,7 @@ export default class bitmex extends Exchange {
             const chains = this.safeValue (currency, 'networks', []);
             let depositEnabled = false;
             let withdrawEnabled = false;
-            const networks = {};
+            const networks: Dict = {};
             const scale = this.safeString (currency, 'scale');
             const precisionString = this.parsePrecision (scale);
             const precision = this.parseNumber (precisionString);
@@ -760,7 +760,7 @@ export default class bitmex extends Exchange {
         //         }
         //     ]
         //
-        const result = { 'info': response };
+        const result: Dict = { 'info': response };
         for (let i = 0; i < response.length; i++) {
             const balance = response[i];
             const currencyId = this.safeString (balance, 'currency');
@@ -859,7 +859,7 @@ export default class bitmex extends Exchange {
             request['depth'] = limit;
         }
         const response = await this.publicGetOrderBookL2 (this.extend (request, params));
-        const result = {
+        const result: Dict = {
             'symbol': symbol,
             'bids': [],
             'asks': [],
@@ -894,7 +894,7 @@ export default class bitmex extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
-        const filter = {
+        const filter: Dict = {
             'filter': {
                 'orderID': id,
             },
@@ -1093,7 +1093,7 @@ export default class bitmex extends Exchange {
     }
 
     parseLedgerEntryType (type) {
-        const types = {
+        const types: Dict = {
             'Withdrawal': 'transaction',
             'RealisedPNL': 'margin',
             'UnrealisedPNL': 'margin',
@@ -1167,7 +1167,7 @@ export default class bitmex extends Exchange {
         if (feeCost !== undefined) {
             feeCost = this.convertToRealAmount (code, feeCost);
         }
-        const fee = {
+        const fee: Dict = {
             'cost': this.parseNumber (feeCost),
             'currency': code,
         };
@@ -1292,7 +1292,7 @@ export default class bitmex extends Exchange {
     }
 
     parseTransactionStatus (status) {
-        const statuses = {
+        const statuses: Dict = {
             'Confirmed': 'pending',
             'Canceled': 'canceled',
             'Completed': 'ok',
@@ -1414,7 +1414,7 @@ export default class bitmex extends Exchange {
         symbols = this.marketSymbols (symbols);
         const response = await this.publicGetInstrumentActiveAndIndices (params);
         // same response as under "fetchMarkets"
-        const result = {};
+        const result: Dict = {};
         for (let i = 0; i < response.length; i++) {
             const ticker = this.parseTicker (response[i]);
             const symbol = this.safeString (ticker, 'symbol');
@@ -1679,7 +1679,7 @@ export default class bitmex extends Exchange {
     }
 
     parseOrderStatus (status: Str) {
-        const statuses = {
+        const statuses: Dict = {
             'New': 'open',
             'PartiallyFilled': 'open',
             'Filled': 'closed',
@@ -1697,7 +1697,7 @@ export default class bitmex extends Exchange {
     }
 
     parseTimeInForce (timeInForce) {
-        const timeInForces = {
+        const timeInForces: Dict = {
             'Day': 'Day',
             'GoodTillCancel': 'GTC',
             'ImmediateOrCancel': 'IOC',
@@ -2761,7 +2761,7 @@ export default class bitmex extends Exchange {
         //
         const networks = this.safeValue (fee, 'networks', []);
         const networksLength = networks.length;
-        const result = {
+        const result: Dict = {
             'info': fee,
             'withdraw': {
                 'fee': undefined,

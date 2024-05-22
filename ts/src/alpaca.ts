@@ -1041,7 +1041,7 @@ export default class alpaca extends Exchange {
     }
 
     parseOrderStatus (status: Str) {
-        const statuses = {
+        const statuses: Dict = {
             'pending_new': 'open',
             'accepted': 'open',
             'new': 'open',
@@ -1053,7 +1053,7 @@ export default class alpaca extends Exchange {
     }
 
     parseTimeInForce (timeInForce) {
-        const timeInForces = {
+        const timeInForces: Dict = {
             'day': 'Day',
         };
         return this.safeString (timeInForces, timeInForce, timeInForce);

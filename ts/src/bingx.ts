@@ -524,14 +524,14 @@ export default class bingx extends Exchange {
         //    }
         //
         const data = this.safeList (response, 'data', []);
-        const result = {};
+        const result: Dict = {};
         for (let i = 0; i < data.length; i++) {
             const entry = data[i];
             const currencyId = this.safeString (entry, 'coin');
             const code = this.safeCurrencyCode (currencyId);
             const name = this.safeString (entry, 'name');
             const networkList = this.safeList (entry, 'networkList');
-            const networks = {};
+            const networks: Dict = {};
             let fee = undefined;
             let active = undefined;
             let withdrawEnabled = undefined;
@@ -542,7 +542,7 @@ export default class bingx extends Exchange {
                 const networkCode = this.networkIdToCode (network);
                 const isDefault = this.safeBool (rawNetwork, 'isDefault');
                 withdrawEnabled = this.safeBool (rawNetwork, 'withdrawEnable');
-                const limits = {
+                const limits: Dict = {
                     'amounts': { 'min': this.safeNumber (rawNetwork, 'withdrawMin'), 'max': this.safeNumber (rawNetwork, 'withdrawMax') },
                 };
                 if (isDefault) {
@@ -1655,7 +1655,7 @@ export default class bingx extends Exchange {
     parseBalance (response): Balances {
         const data = this.safeValue (response, 'data');
         const balances = this.safeValue2 (data, 'balance', 'balances', data);
-        const result = { 'info': response };
+        const result: Dict = { 'info': response };
         if (Array.isArray (balances)) {
             for (let i = 0; i < balances.length; i++) {
                 const balance = balances[i];
@@ -2217,7 +2217,7 @@ export default class bingx extends Exchange {
     }
 
     parseOrderSide (side) {
-        const sides = {
+        const sides: Dict = {
             'BUY': 'buy',
             'SELL': 'sell',
             'SHORT': 'sell',
@@ -2229,7 +2229,7 @@ export default class bingx extends Exchange {
     }
 
     parseOrderType (type: Str) {
-        const types = {
+        const types: Dict = {
             'trigger_market': 'market',
             'trigger_limit': 'limit',
             'stop_limit': 'limit',
@@ -2559,7 +2559,7 @@ export default class bingx extends Exchange {
     }
 
     parseOrderStatus (status: Str) {
-        const statuses = {
+        const statuses: Dict = {
             'NEW': 'open',
             'PENDING': 'open',
             'PARTIALLY_FILLED': 'open',
@@ -3634,7 +3634,7 @@ export default class bingx extends Exchange {
     }
 
     parseTransactionStatus (status: string) {
-        const statuses = {
+        const statuses: Dict = {
             '0': 'pending',
             '1': 'ok',
             '10': 'pending',
@@ -3969,7 +3969,7 @@ export default class bingx extends Exchange {
         //
         const networkList = this.safeList (fee, 'networkList', []);
         const networkListLength = networkList.length;
-        const result = {
+        const result: Dict = {
             'info': fee,
             'withdraw': {
                 'fee': undefined,

@@ -174,7 +174,7 @@ export default class coincheck extends Exchange {
     }
 
     parseBalance (response): Balances {
-        const result = { 'info': response };
+        const result: Dict = { 'info': response };
         const codes = Object.keys (this.currencies);
         for (let i = 0; i < codes.length; i++) {
             const code = codes[i];
@@ -567,7 +567,7 @@ export default class coincheck extends Exchange {
         //     }
         //
         const fees = this.safeValue (response, 'exchange_fees', {});
-        const result = {};
+        const result: Dict = {};
         for (let i = 0; i < this.symbols.length; i++) {
             const symbol = this.symbols[i];
             const market = this.market (symbol);
@@ -736,7 +736,7 @@ export default class coincheck extends Exchange {
     }
 
     parseTransactionStatus (status) {
-        const statuses = {
+        const statuses: Dict = {
             // withdrawals
             'pending': 'pending',
             'processing': 'pending',

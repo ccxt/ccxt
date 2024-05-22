@@ -1084,7 +1084,7 @@ export default class coinsph extends Exchange {
 
     parseBalance (response): Balances {
         const balances = this.safeValue (response, 'balances', []);
-        const result = {
+        const result: Dict = {
             'info': response,
             'timestamp': undefined,
             'datetime': undefined,
@@ -1448,7 +1448,7 @@ export default class coinsph extends Exchange {
     }
 
     parseOrderSide (status) {
-        const statuses = {
+        const statuses: Dict = {
             'BUY': 'buy',
             'SELL': 'sell',
         };
@@ -1456,7 +1456,7 @@ export default class coinsph extends Exchange {
     }
 
     encodeOrderSide (status) {
-        const statuses = {
+        const statuses: Dict = {
             'buy': 'BUY',
             'sell': 'SELL',
         };
@@ -1464,7 +1464,7 @@ export default class coinsph extends Exchange {
     }
 
     parseOrderType (status) {
-        const statuses = {
+        const statuses: Dict = {
             'MARKET': 'market',
             'LIMIT': 'limit',
             'LIMIT_MAKER': 'limit',
@@ -1477,7 +1477,7 @@ export default class coinsph extends Exchange {
     }
 
     encodeOrderType (status) {
-        const statuses = {
+        const statuses: Dict = {
             'market': 'MARKET',
             'limit': 'LIMIT',
             'limit_maker': 'LIMIT_MAKER',
@@ -1490,7 +1490,7 @@ export default class coinsph extends Exchange {
     }
 
     parseOrderStatus (status: Str) {
-        const statuses = {
+        const statuses: Dict = {
             'NEW': 'open',
             'FILLED': 'closed',
             'CANCELED': 'canceled',
@@ -1502,7 +1502,7 @@ export default class coinsph extends Exchange {
     }
 
     parseOrderTimeInForce (status) {
-        const statuses = {
+        const statuses: Dict = {
             'GTC': 'GTC',
             'FOK': 'FOK',
             'IOC': 'IOC',
@@ -1564,7 +1564,7 @@ export default class coinsph extends Exchange {
         //         },
         //     ]
         //
-        const result = {};
+        const result: Dict = {};
         for (let i = 0; i < response.length; i++) {
             const fee = this.parseTradingFee (response[i]);
             const symbol = fee['symbol'];
@@ -1848,7 +1848,7 @@ export default class coinsph extends Exchange {
     }
 
     parseTransactionStatus (status) {
-        const statuses = {
+        const statuses: Dict = {
             '0': 'pending',
             '1': 'ok',
             '2': 'failed',

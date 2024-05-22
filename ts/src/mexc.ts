@@ -1053,7 +1053,7 @@ export default class mexc extends Exchange {
         //     ]
         //   }
         //
-        const result = {};
+        const result: Dict = {};
         for (let i = 0; i < response.length; i++) {
             const currency = response[i];
             const id = this.safeString (currency, 'coin');
@@ -1065,7 +1065,7 @@ export default class mexc extends Exchange {
             let currencyWithdrawMax = undefined;
             let depositEnabled = false;
             let withdrawEnabled = false;
-            const networks = {};
+            const networks: Dict = {};
             const chains = this.safeValue (currency, 'networkList', []);
             for (let j = 0; j < chains.length; j++) {
                 const chain = chains[j];
@@ -2991,7 +2991,7 @@ export default class mexc extends Exchange {
             if (symbol === undefined) {
                 throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument');
             }
-            const requestInner = {
+            const requestInner: Dict = {
                 'symbol': market['id'],
             };
             const clientOrderId = this.safeString (params, 'clientOrderId');
@@ -3417,7 +3417,7 @@ export default class mexc extends Exchange {
     }
 
     parseOrderSide (status) {
-        const statuses = {
+        const statuses: Dict = {
             'BUY': 'buy',
             'SELL': 'sell',
             '1': 'buy',
@@ -3428,7 +3428,7 @@ export default class mexc extends Exchange {
     }
 
     parseOrderType (status) {
-        const statuses = {
+        const statuses: Dict = {
             'MARKET': 'market',
             'LIMIT': 'limit',
             'LIMIT_MAKER': 'limit',
@@ -3437,7 +3437,7 @@ export default class mexc extends Exchange {
     }
 
     parseOrderStatus (status: Str) {
-        const statuses = {
+        const statuses: Dict = {
             'NEW': 'open',
             'FILLED': 'closed',
             'CANCELED': 'canceled',
@@ -3454,7 +3454,7 @@ export default class mexc extends Exchange {
     }
 
     parseOrderTimeInForce (status) {
-        const statuses = {
+        const statuses: Dict = {
             'GTC': 'GTC',
             'FOK': 'FOK',
             'IOC': 'IOC',
@@ -3560,7 +3560,7 @@ export default class mexc extends Exchange {
         let takerFee = this.safeString (response, 'takerCommission');
         makerFee = Precise.stringDiv (makerFee, '1000');
         takerFee = Precise.stringDiv (takerFee, '1000');
-        const result = {};
+        const result: Dict = {};
         for (let i = 0; i < this.symbols.length; i++) {
             const symbol = this.symbols[i];
             result[symbol] = {
@@ -3644,7 +3644,7 @@ export default class mexc extends Exchange {
         } else {
             wallet = this.safeValue (response, 'balances', []);
         }
-        const result = { 'info': response };
+        const result: Dict = { 'info': response };
         if (marketType === 'margin') {
             for (let i = 0; i < wallet.length; i++) {
                 const entry = wallet[i];
@@ -3654,7 +3654,7 @@ export default class mexc extends Exchange {
                 const quote = this.safeValue (entry, 'quoteAsset', {});
                 const baseCode = this.safeCurrencyCode (this.safeString (base, 'asset'));
                 const quoteCode = this.safeCurrencyCode (this.safeString (quote, 'asset'));
-                const subResult = {};
+                const subResult: Dict = {};
                 subResult[baseCode] = this.parseBalanceHelper (base);
                 subResult[quoteCode] = this.parseBalanceHelper (quote);
                 result[symbol] = this.safeBalance (subResult);
@@ -4780,7 +4780,7 @@ export default class mexc extends Exchange {
     }
 
     parseTransactionStatusByType (status, type = undefined) {
-        const statusesByType = {
+        const statusesByType: Dict = {
             'deposit': {
                 '1': 'failed', // SMALL
                 '2': 'pending', // TIME_DELAY
@@ -5106,7 +5106,7 @@ export default class mexc extends Exchange {
          */
         await this.loadMarkets ();
         const currency = this.currency (code);
-        const accounts = {
+        const accounts: Dict = {
             'spot': 'SPOT',
             'swap': 'FUTURES',
             'margin': 'ISOLATED_MARGIN',
@@ -5210,7 +5210,7 @@ export default class mexc extends Exchange {
     }
 
     parseAccountId (status) {
-        const statuses = {
+        const statuses: Dict = {
             'MAIN': 'spot',
             'CONTRACT': 'swap',
         };
@@ -5218,7 +5218,7 @@ export default class mexc extends Exchange {
     }
 
     parseTransferStatus (status: Str): Str {
-        const statuses = {
+        const statuses: Dict = {
             'SUCCESS': 'ok',
             'FAILED': 'failed',
             'WAIT': 'pending',
@@ -5342,7 +5342,7 @@ export default class mexc extends Exchange {
     }
 
     parseTransactionFees (response, codes = undefined) {
-        const withdrawFees = {};
+        const withdrawFees: Dict = {};
         for (let i = 0; i < response.length; i++) {
             const entry = response[i];
             const currencyId = this.safeString (entry, 'coin');
@@ -5387,7 +5387,7 @@ export default class mexc extends Exchange {
         //    }
         //
         const networkList = this.safeValue (transaction, 'networkList', []);
-        const result = {};
+        const result: Dict = {};
         for (let j = 0; j < networkList.length; j++) {
             const networkEntry = networkList[j];
             const networkId = this.safeString (networkEntry, 'network');

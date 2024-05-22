@@ -434,7 +434,7 @@ export default class bitbns extends Exchange {
 
     parseBalance (response): Balances {
         const timestamp = undefined;
-        const result = {
+        const result: Dict = {
             'info': response,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -492,7 +492,7 @@ export default class bitbns extends Exchange {
     }
 
     parseStatus (status) {
-        const statuses = {
+        const statuses: Dict = {
             '-1': 'cancelled',
             '0': 'open',
             '1': 'open',
@@ -1047,7 +1047,7 @@ export default class bitbns extends Exchange {
     }
 
     parseTransactionStatusByType (status, type = undefined) {
-        const statusesByType = {
+        const statusesByType: Dict = {
             'deposit': {
                 '0': 'pending',
                 '1': 'ok',
@@ -1201,7 +1201,7 @@ export default class bitbns extends Exchange {
             } else {
                 body = '{}';
             }
-            const auth = {
+            const auth: Dict = {
                 'timeStamp_nonce': nonce,
                 'body': body,
             };

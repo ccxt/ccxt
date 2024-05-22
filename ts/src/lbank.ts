@@ -1125,7 +1125,7 @@ export default class lbank extends Exchange {
         //      ]
         //
         const timestamp = this.safeInteger (response, 'ts');
-        const result = {
+        const result: Dict = {
             'info': response,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -1282,7 +1282,7 @@ export default class lbank extends Exchange {
         const request: Dict = {};
         const response = await this.spotPrivatePostSupplementCustomerTradeFee (this.extend (request, params));
         const fees = this.safeValue (response, 'data', []);
-        const result = {};
+        const result: Dict = {};
         for (let i = 0; i < fees.length; i++) {
             const fee = this.parseTradingFee (fees[i]);
             const symbol = fee['symbol'];
@@ -1414,7 +1414,7 @@ export default class lbank extends Exchange {
     }
 
     parseOrderStatus (status: Str) {
-        const statuses = {
+        const statuses: Dict = {
             '-1': 'canceled', // canceled
             '0': 'open', // not traded
             '1': 'open', // partial deal
@@ -2097,7 +2097,7 @@ export default class lbank extends Exchange {
     }
 
     parseTransactionStatus (status, type) {
-        const statuses = {
+        const statuses: Dict = {
             'deposit': {
                 '1': 'pending',
                 '2': 'ok',
@@ -2379,7 +2379,7 @@ export default class lbank extends Exchange {
         //    }
         //
         const result = this.safeValue (response, 'data', []);
-        const withdrawFees = {};
+        const withdrawFees: Dict = {};
         for (let i = 0; i < result.length; i++) {
             const entry = result[i];
             const currencyId = this.safeString (entry, 'coin');
@@ -2437,7 +2437,7 @@ export default class lbank extends Exchange {
         //    }
         //
         const result = this.safeValue (response, 'data', []);
-        const withdrawFees = {};
+        const withdrawFees: Dict = {};
         for (let i = 0; i < result.length; i++) {
             const item = result[i];
             const canWithdraw = this.safeValue (item, 'canWithDraw');
@@ -2580,7 +2580,7 @@ export default class lbank extends Exchange {
         //        ...
         //    ]
         //
-        const result = {};
+        const result: Dict = {};
         for (let i = 0; i < response.length; i++) {
             const fee = response[i];
             const canWithdraw = this.safeValue (fee, 'canWithDraw');
