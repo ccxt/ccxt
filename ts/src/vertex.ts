@@ -1234,8 +1234,8 @@ export default class vertex extends Exchange {
             remainingNum = this.parseToNumeric (remaining);
         }
         let side = undefined;
-        if (amountNum !== undefined) {
-            side = (amountNum < 0) ? 'sell' : 'buy';
+        if (amountNum !== undefined && remainingNum !== undefined) {
+            side = (amountNum < 0 || remainingNum < 0) ? 'sell' : 'buy';
         }
         return this.safeOrder ({
             'info': order,
