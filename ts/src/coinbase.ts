@@ -344,6 +344,7 @@ export default class coinbase extends Exchange {
                 'CGLD': 'CELO',
             },
             'options': {
+                'usePrivateEndpointsIfApikeysPresent': false,
                 'brokerId': 'ccxt',
                 'stablePairs': [ 'BUSD-USD', 'CBETH-ETH', 'DAI-USD', 'GUSD-USD', 'GYEN-USD', 'PAX-USD', 'PAX-USDT', 'USDC-EUR', 'USDC-GBP', 'USDT-EUR', 'USDT-GBP', 'USDT-USD', 'USDT-USDC', 'WBTC-BTC' ],
                 'fetchCurrencies': {
@@ -1200,55 +1201,62 @@ export default class coinbase extends Exchange {
         return result;
     }
 
+    usePrivate (methodName) {
+        return this.checkRequiredCredentials (false) && this.handleOption (methodName, 'usePrivateEndpointsIfApikeysPresent', false);
+    }
+
     async fetchMarketsV3 (params = {}) {
-        const spotUnresolvedPromises = [
-            this.v3PublicGetBrokerageMarketProducts (params),
-            //
-            //    {
-            //        products: [
-            //            {
-            //                product_id: 'BTC-USD',
-            //                price: '67060',
-            //                price_percentage_change_24h: '3.30054960636883',
-            //                volume_24h: '10967.87426597',
-            //                volume_percentage_change_24h: '141.73048325503036',
-            //                base_increment: '0.00000001',
-            //                quote_increment: '0.01',
-            //                quote_min_size: '1',
-            //                quote_max_size: '150000000',
-            //                base_min_size: '0.00000001',
-            //                base_max_size: '3400',
-            //                base_name: 'Bitcoin',
-            //                quote_name: 'US Dollar',
-            //                watched: false,
-            //                is_disabled: false,
-            //                new: false,
-            //                status: 'online',
-            //                cancel_only: false,
-            //                limit_only: false,
-            //                post_only: false,
-            //                trading_disabled: false,
-            //                auction_mode: false,
-            //                product_type: 'SPOT',
-            //                quote_currency_id: 'USD',
-            //                base_currency_id: 'BTC',
-            //                fcm_trading_session_details: null,
-            //                mid_market_price: '',
-            //                alias: '',
-            //                alias_to: [ 'BTC-USDC' ],
-            //                base_display_symbol: 'BTC',
-            //                quote_display_symbol: 'USD',
-            //                view_only: false,
-            //                price_increment: '0.01',
-            //                display_name: 'BTC-USD',
-            //                product_venue: 'CBE'
-            //            },
-            //            ...
-            //        ],
-            //        num_products: '646'
-            //    }
-            //
-        ];
+        const spotUnresolvedPromises = [];
+        if (this.usePrivate ('fetchMarkets')) {
+            spotUnresolvedPromises.push (this.v3PrivateGetBrokerageProducts (params));
+        } else {
+            spotUnresolvedPromises.push (this.v3PublicGetBrokerageMarketProducts (params));
+        }
+        //
+        //    {
+        //        products: [
+        //            {
+        //                product_id: 'BTC-USD',
+        //                price: '67060',
+        //                price_percentage_change_24h: '3.30054960636883',
+        //                volume_24h: '10967.87426597',
+        //                volume_percentage_change_24h: '141.73048325503036',
+        //                base_increment: '0.00000001',
+        //                quote_increment: '0.01',
+        //                quote_min_size: '1',
+        //                quote_max_size: '150000000',
+        //                base_min_size: '0.00000001',
+        //                base_max_size: '3400',
+        //                base_name: 'Bitcoin',
+        //                quote_name: 'US Dollar',
+        //                watched: false,
+        //                is_disabled: false,
+        //                new: false,
+        //                status: 'online',
+        //                cancel_only: false,
+        //                limit_only: false,
+        //                post_only: false,
+        //                trading_disabled: false,
+        //                auction_mode: false,
+        //                product_type: 'SPOT',
+        //                quote_currency_id: 'USD',
+        //                base_currency_id: 'BTC',
+        //                fcm_trading_session_details: null,
+        //                mid_market_price: '',
+        //                alias: '',
+        //                alias_to: [ 'BTC-USDC' ],
+        //                base_display_symbol: 'BTC',
+        //                quote_display_symbol: 'USD',
+        //                view_only: false,
+        //                price_increment: '0.01',
+        //                display_name: 'BTC-USD',
+        //                product_venue: 'CBE'
+        //            },
+        //            ...
+        //        ],
+        //        num_products: '646'
+        //    }
+        //
         if (this.checkRequiredCredentials (false)) {
             spotUnresolvedPromises.push (this.v3PrivateGetBrokerageTransactionSummary (params));
         }
@@ -1834,7 +1842,12 @@ export default class coinbase extends Exchange {
         if (marketType !== undefined && marketType !== 'default') {
             request['product_type'] = (marketType === 'swap') ? 'FUTURE' : 'SPOT';
         }
-        const response = await this.v3PublicGetBrokerageMarketProducts (this.extend (request, params));
+        let response = undefined;
+        if (this.usePrivate ('fetchTickers')) {
+            response = await this.v3PrivateGetBrokerageProducts (this.extend (request, params));
+        } else {
+            response = await this.v3PublicGetBrokerageMarketProducts (this.extend (request, params));
+        }
         //
         //     {
         //         "products": [
@@ -1940,7 +1953,12 @@ export default class coinbase extends Exchange {
             'product_id': market['id'],
             'limit': 1,
         };
-        const response = await this.v3PublicGetBrokerageMarketProductsProductIdTicker (this.extend (request, params));
+        let response = undefined;
+        if (this.usePrivate ('fetchTicker')) {
+            response = await this.v3PrivateGetBrokerageProductsProductIdTicker (this.extend (request, params));
+        } else {
+            response = await this.v3PublicGetBrokerageMarketProductsProductIdTicker (this.extend (request, params));
+        }
         //
         //     {
         //         "trades": [
