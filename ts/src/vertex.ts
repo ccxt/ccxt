@@ -1145,9 +1145,9 @@ export default class vertex extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const marketId = market['id'];
+        const marketId = this.parseToNumeric (market['id']);
         const contracts = await this.queryContracts ();
-        const chainId = this.safeNumber (contracts, 'chain_id');
+        const chainId = this.safeString (contracts, 'chain_id');
         const bookAddresses = this.safeList (contracts, 'book_addrs', []);
         const verifyingContractAddress = this.safeString (bookAddresses, marketId);
         let timeInForce = this.safeStringLower (params, 'timeInForce');
@@ -1199,7 +1199,7 @@ export default class vertex extends Exchange {
         order['amount'] = this.convertToX18 (this.amountToPrecision (symbol, amount));
         const request = {
             'place_order': {
-                'product_id': this.parseToNumeric (marketId),
+                'product_id': marketId,
                 'order': {
                     'sender': order['sender'],
                     'nonce': order['nonce'],
@@ -1208,7 +1208,7 @@ export default class vertex extends Exchange {
                     'amount': order['amount'],
                 },
                 'signature': this.buildCreateOrderSig (order, chainId, verifyingContractAddress),
-            }
+            },
         };
         params = this.omit (params, [ 'timeInForce', 'reduceOnly', 'postOnly', 'triggerPrice', 'stopPrice', 'stopLossPrice', 'takeProfitPrice' ]);
         let response = undefined;
@@ -1544,7 +1544,7 @@ export default class vertex extends Exchange {
                     'productIds': cancels['productIds'],
                 },
                 'signature': this.buildCancelAllOrdersSig (cancels, chainId, verifyingContractAddress),
-            }
+            },
         };
         const stop = this.safeBool2 (params, 'stop', 'trigger');
         params = this.omit (params, [ 'stop', 'trigger' ]);
@@ -1646,7 +1646,7 @@ export default class vertex extends Exchange {
                     'digests': cancels['digests'],
                 },
                 'signature': this.buildCancelOrdersSig (cancels, chainId, verifyingContractAddress),
-            }
+            },
         };
         const stop = this.safeBool2 (params, 'stop', 'trigger');
         params = this.omit (params, [ 'stop', 'trigger' ]);
