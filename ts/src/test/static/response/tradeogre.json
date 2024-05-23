@@ -156,12 +156,7 @@
                       "currency": null,
                       "cost": null
                     },
-                    "fees": [
-                      {
-                        "currency": null,
-                        "cost": null
-                      }
-                    ]
+                    "fees": []
                   }
                 ]
               }
