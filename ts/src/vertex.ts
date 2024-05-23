@@ -1496,7 +1496,7 @@ export default class vertex extends Exchange {
          */
         await this.loadMarkets ();
         if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' cancelOrders() requires a symbol argument');
+            throw new ArgumentsRequired (this.id + ' cancelAllOrders() requires a symbol argument');
         }
         const market = this.market (symbol);
         const marketId = market['id'];
@@ -1505,6 +1505,7 @@ export default class vertex extends Exchange {
         const verifyingContractAddress = this.safeString (contracts, 'endpoint_addr');
         const now = this.nonce ();
         const nonce = ((BigInt (now) + 90000n) << 20n) + 1000n;
+        // TODO: make sure signature works
         const cancels = {
             'sender': this.convertAddressToSender (this.walletAddress),
             'nonce': nonce,
