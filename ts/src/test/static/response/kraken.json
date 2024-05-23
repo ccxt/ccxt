@@ -380,7 +380,7 @@
                         "status": "open",
                         "symbol": "LTC/USDT",
                         "type": "market",
-                        "timeInForce": "IOC",
+                        "timeInForce": null,
                         "postOnly": false,
                         "side": "sell",
                         "price": null,

@@ -274,13 +274,18 @@ const _decimalToPrecision = (x, roundingMode, numPrecisionDigits, countingMode =
     return String.fromCharCode(...out);
 };
 function omitZero(stringNumber) {
-    if (stringNumber === undefined || stringNumber === '') {
-        return undefined;
+    try {
+        if (stringNumber === undefined || stringNumber === '') {
+            return undefined;
+        }
+        if (parseFloat(stringNumber) === 0) {
+            return undefined;
+        }
+        return stringNumber;
     }
-    if (parseFloat(stringNumber) === 0) {
-        return undefined;
+    catch (e) {
+        return stringNumber;
     }
-    return stringNumber;
 }
 /*  ------------------------------------------------------------------------ */
 export { numberToString, precisionFromString, decimalToPrecision, truncate_to_string, truncate, omitZero, precisionConstants, ROUND, TRUNCATE, ROUND_UP, ROUND_DOWN, DECIMAL_PLACES, SIGNIFICANT_DIGITS, TICK_SIZE, NO_PADDING, PAD_WITH_ZERO, };

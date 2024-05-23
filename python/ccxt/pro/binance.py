@@ -1951,7 +1951,7 @@ class binance(ccxt.async_support.binance):
         orders = self.parse_orders(result)
         client.resolve(orders, messageHash)
 
-    async def edit_order_ws(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}) -> Order:
+    async def edit_order_ws(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: Num = None, price: Num = None, params={}) -> Order:
         """
         edit a trade order
         :see: https://binance-docs.github.io/apidocs/websocket_api/en/#cancel-and-replace-order-trade

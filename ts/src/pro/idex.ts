@@ -494,7 +494,7 @@ export default class idex extends idexRest {
         const price = this.safeFloat (delta, 0);
         const amount = this.safeFloat (delta, 1);
         const count = this.safeInteger (delta, 2);
-        bookside.store (price, amount, count);
+        bookside.storeArray ([ price, amount, count ]);
     }
 
     handleDeltas (bookside, deltas) {

@@ -190,11 +190,10 @@ class luno(ccxt.async_support.luno):
         #
         symbol = subscription['symbol']
         messageHash = 'orderbook:' + symbol
-        timestamp = self.safe_string(message, 'timestamp')
-        orderbook = self.safe_value(self.orderbooks, symbol)
-        if orderbook is None:
-            orderbook = self.indexed_order_book({})
-            self.orderbooks[symbol] = orderbook
+        timestamp = self.safe_integer(message, 'timestamp')
+        if not (symbol in self.orderbooks):
+            self.orderbooks[symbol] = self.indexed_order_book({})
+        orderbook = self.orderbooks[symbol]
         asks = self.safe_value(message, 'asks')
         if asks is not None:
             snapshot = self.custom_parse_order_book(message, symbol, timestamp, 'bids', 'asks', 'price', 'volume', 'id')

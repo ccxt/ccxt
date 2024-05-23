@@ -268,15 +268,19 @@ public partial class coinbase : ccxt.coinbase
         //
         object channel = this.safeString(message, "channel");
         object events = this.safeValue(message, "events", new List<object>() {});
+        object datetime = this.safeString(message, "timestamp");
+        object timestamp = this.parse8601(datetime);
         object newTickers = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(events)); postFixIncrement(ref i))
         {
             object tickersObj = getValue(events, i);
-            object tickers = this.safeValue(tickersObj, "tickers", new List<object>() {});
+            object tickers = this.safeList(tickersObj, "tickers", new List<object>() {});
             for (object j = 0; isLessThan(j, getArrayLength(tickers)); postFixIncrement(ref j))
             {
                 object ticker = getValue(tickers, j);
                 object result = this.parseWsTicker(ticker);
+                ((IDictionary<string,object>)result)["timestamp"] = timestamp;
+                ((IDictionary<string,object>)result)["datetime"] = datetime;
                 object symbol = getValue(result, "symbol");
                 ((IDictionary<string,object>)this.tickers)[(string)symbol] = result;
                 object wsMarketId = this.safeString(ticker, "product_id");

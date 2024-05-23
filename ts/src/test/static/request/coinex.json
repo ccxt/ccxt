@@ -272,18 +272,26 @@
         ],
         "fetchDeposits": [
             {
-                "description": "Fetch deposits",
+                "description": "Fetch deposits with the code and limit arguments",
                 "method": "fetchDeposits",
-                "url": "https://api.coinex.com/v1/balance/coin/deposit?access_id=53DD577FFFD741D4B53A5424ECD33196&tonce=1699458298044",
-                "input": []
+                "url": "https://api.coinex.com/v2/assets/deposit-history?ccy=USDT&limit=3",
+                "input": [
+                  "USDT",
+                  null,
+                  3
+                ]
             }
         ],
         "fetchWithdrawals": [
             {
-                "description": "Fetch withdrawals",
+                "description": "Fetch withdrawals with the code and limit arguments",
                 "method": "fetchWithdrawals",
-                "url": "https://api.coinex.com/v1/balance/coin/withdraw?access_id=53DD577FFFD741D4B53A5424ECD33196&tonce=1699460471647",
-                "input": []
+                "url": "https://api.coinex.com/v2/assets/withdraw?ccy=USDT&limit=3",
+                "input": [
+                  "USDT",
+                  null,
+                  3
+                ]
             }
         ],
         "transfer": [
@@ -924,24 +932,24 @@
         ],
         "fetchTransfers": [
             {
-                "description": "Spot fetch transfers",
+                "description": "Fetch transfers between spot and swap accounts",
                 "method": "fetchTransfers",
-                "url": "https://api.coinex.com/v1/contract/transfer/history?access_id=key&page=1&tonce=1702016708915&asset=BTC&limit=100",
+                "url": "https://api.coinex.com/v2/assets/transfer-history?ccy=BTC&transfer_type=FUTURES",
                 "input": [
-                    "BTC"
+                  "BTC"
                 ]
             },
             {
-                "description": "Spot-margin transfers",
+                "description": "Fetch transfers between spot and margin accounts",
                 "method": "fetchTransfers",
-                "url": "https://api.coinex.com/v1/margin/transfer/history?access_id=85D9FDDCA1914FB78E2F2448A0EF812A&limit=100&page=1&tonce=1706032791206",
+                "url": "https://api.coinex.com/v2/assets/transfer-history?ccy=BTC&transfer_type=MARGIN",
                 "input": [
-                    null,
-                    null,
-                    null,
-                    {
-                        "marginMode": "isolated"
-                    }
+                  "BTC",
+                  null,
+                  null,
+                  {
+                    "marginMode": "isolated"
+                  }
                 ]
             }
         ],

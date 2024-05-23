@@ -489,11 +489,11 @@ class deribit(ccxt.async_support.deribit):
         marketId = self.safe_string(data, 'instrument_name')
         symbol = self.safe_symbol(marketId)
         timestamp = self.safe_integer(data, 'timestamp')
-        storedOrderBook = self.safe_value(self.orderbooks, symbol)
-        if storedOrderBook is None:
-            storedOrderBook = self.counted_order_book()
-        asks = self.safe_value(data, 'asks', [])
-        bids = self.safe_value(data, 'bids', [])
+        if not (symbol in self.orderbooks):
+            self.orderbooks[symbol] = self.counted_order_book()
+        storedOrderBook = self.orderbooks[symbol]
+        asks = self.safe_list(data, 'asks', [])
+        bids = self.safe_list(data, 'bids', [])
         self.handle_deltas(storedOrderBook['asks'], asks)
         self.handle_deltas(storedOrderBook['bids'], bids)
         storedOrderBook['nonce'] = timestamp
@@ -505,8 +505,8 @@ class deribit(ccxt.async_support.deribit):
         client.resolve(storedOrderBook, messageHash)
 
     def clean_order_book(self, data):
-        bids = self.safe_value(data, 'bids', [])
-        asks = self.safe_value(data, 'asks', [])
+        bids = self.safe_list(data, 'bids', [])
+        asks = self.safe_list(data, 'asks', [])
         cleanedBids = []
         for i in range(0, len(bids)):
             cleanedBids.append([bids[i][1], bids[i][2]])
@@ -521,9 +521,9 @@ class deribit(ccxt.async_support.deribit):
         price = delta[1]
         amount = delta[2]
         if delta[0] == 'new' or delta[0] == 'change':
-            bookside.store(price, amount, 1)
+            bookside.storeArray([price, amount, 1])
         elif delta[0] == 'delete':
-            bookside.store(price, amount, 0)
+            bookside.storeArray([price, amount, 0])
 
     def handle_deltas(self, bookside, deltas):
         for i in range(0, len(deltas)):

@@ -556,8 +556,8 @@ public partial class mexc : ccxt.mexc
             return;
         }
         ((IDictionary<string,object>)orderbook)["nonce"] = deltaNonce;
-        object asks = this.safeValue(delta, "asks", new List<object>() {});
-        object bids = this.safeValue(delta, "bids", new List<object>() {});
+        object asks = this.safeList(delta, "asks", new List<object>() {});
+        object bids = this.safeList(delta, "bids", new List<object>() {});
         object asksOrderSide = getValue(orderbook, "asks");
         object bidsOrderSide = getValue(orderbook, "bids");
         this.handleBooksideDelta(asksOrderSide, asks);

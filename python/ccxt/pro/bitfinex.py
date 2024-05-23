@@ -311,7 +311,7 @@ class bitfinex(ccxt.async_support.bitfinex):
                     size = -delta2Value if (delta2Value < 0) else delta2Value
                     side = 'asks' if (delta2Value < 0) else 'bids'
                     bookside = orderbook[side]
-                    bookside.store(price, size, id)
+                    bookside.storeArray([price, size, id])
             else:
                 deltas = message[1]
                 for i in range(0, len(deltas)):
@@ -320,7 +320,7 @@ class bitfinex(ccxt.async_support.bitfinex):
                     size = -delta2 if (delta2 < 0) else delta2
                     side = 'asks' if (delta2 < 0) else 'bids'
                     countedBookSide = orderbook[side]
-                    countedBookSide.store(delta[0], size, delta[1])
+                    countedBookSide.storeArray([delta[0], size, delta[1]])
             client.resolve(orderbook, messageHash)
         else:
             orderbook = self.orderbooks[symbol]
@@ -333,13 +333,13 @@ class bitfinex(ccxt.async_support.bitfinex):
                 bookside = orderbook[side]
                 # price = 0 means that you have to remove the order from your book
                 amount = size if Precise.string_gt(price, '0') else '0'
-                bookside.store(self.parse_number(price), self.parse_number(amount), id)
+                bookside.storeArray([self.parse_number(price), self.parse_number(amount), id])
             else:
                 message3Value = message[3]
                 size = -message3Value if (message3Value < 0) else message3Value
                 side = 'asks' if (message3Value < 0) else 'bids'
                 countedBookSide = orderbook[side]
-                countedBookSide.store(message[1], size, message[2])
+                countedBookSide.storeArray([message[1], size, message[2]])
             client.resolve(orderbook, messageHash)
 
     def handle_heartbeat(self, client: Client, message):
