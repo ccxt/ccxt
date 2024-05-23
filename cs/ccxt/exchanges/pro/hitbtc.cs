@@ -1316,7 +1316,7 @@ public partial class hitbtc : ccxt.hitbtc
         //        "id": 1700233093414
         //    }
         //
-        object messageHash = this.safeInteger(message, "id");
+        object messageHash = this.safeString(message, "id");
         object result = this.safeValue(message, "result", new Dictionary<string, object>() {});
         if (isTrue(((result is IList<object>) || (result.GetType().IsGenericType && result.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
         {

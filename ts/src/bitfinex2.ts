@@ -4,7 +4,7 @@ import { Precise } from './base/Precise.js';
 import Exchange from './abstract/bitfinex2.js';
 import { SIGNIFICANT_DIGITS, DECIMAL_PLACES, TRUNCATE, ROUND } from './base/functions/number.js';
 import { sha384 } from './static_dependencies/noble-hashes/sha512.js';
-import type { TransferEntry, Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderBook, Str, Transaction, Ticker, Balances, Tickers, Strings, Currency, Market, OpenInterest, Liquidation, OrderRequest, Num, MarginModification, Currencies, TradingFees } from './base/types.js';
+import type { TransferEntry, Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderBook, Str, Transaction, Ticker, Balances, Tickers, Strings, Currency, Market, OpenInterest, Liquidation, OrderRequest, Num, MarginModification, Currencies, TradingFees, Dict } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -650,7 +650,7 @@ export default class bitfinex2 extends Exchange {
             'pub:map:tx:method', // maps withdrawal/deposit methods to their API symbols
         ];
         const config = labels.join (',');
-        const request = {
+        const request: Dict = {
             'config': config,
         };
         const response = await this.publicGetConfConfig (this.extend (request, params));
@@ -732,7 +732,7 @@ export default class bitfinex2 extends Exchange {
         //         ],
         //     ]
         //
-        const indexed = {
+        const indexed: Dict = {
             'sym': this.indexBy (this.safeValue (response, 1, []), 0),
             'label': this.indexBy (this.safeValue (response, 2, []), 0),
             'unit': this.indexBy (this.safeValue (response, 3, []), 0),
@@ -742,7 +742,7 @@ export default class bitfinex2 extends Exchange {
             'fees': this.indexBy (this.safeValue (response, 7, []), 0),
         };
         const ids = this.safeValue (response, 0, []);
-        const result = {};
+        const result: Dict = {};
         for (let i = 0; i < ids.length; i++) {
             const id = ids[i];
             if (id.indexOf ('F0') >= 0) {
@@ -785,7 +785,7 @@ export default class bitfinex2 extends Exchange {
                 },
                 'networks': {},
             };
-            const networks = {};
+            const networks: Dict = {};
             const currencyNetworks = this.safeValue (response, 8, []);
             const cleanId = id.replace ('F0', '');
             for (let j = 0; j < currencyNetworks.length; j++) {
@@ -822,7 +822,7 @@ export default class bitfinex2 extends Exchange {
     }
 
     safeNetwork (networkId) {
-        const networksById = {
+        const networksById: Dict = {
             'BITCOIN': 'BTC',
             'LITECOIN': 'LTC',
             'ETHEREUM': 'ERC20',
@@ -864,7 +864,7 @@ export default class bitfinex2 extends Exchange {
         const isDerivative = requestedType === 'derivatives';
         const query = this.omit (params, 'type');
         const response = await this.privatePostAuthRWallets (query);
-        const result = { 'info': response };
+        const result: Dict = { 'info': response };
         for (let i = 0; i < response.length; i++) {
             const balance = response[i];
             const account = this.account ();
@@ -920,7 +920,7 @@ export default class bitfinex2 extends Exchange {
         const toCurrencyId = this.convertDerivativesId (currency, toAccount);
         const requestedAmount = this.currencyToPrecision (code, amount);
         // this request is slightly different from v1 fromAccount -> from
-        const request = {
+        const request: Dict = {
             'amount': requestedAmount,
             'currency': fromCurrencyId,
             'currency_to': toCurrencyId,
@@ -956,10 +956,10 @@ export default class bitfinex2 extends Exchange {
             this.throwExactlyMatchedException (this.exceptions['exact'], message, this.id + ' ' + message);
             throw new ExchangeError (this.id + ' ' + message);
         }
-        return this.parseTransfer (response, currency);
+        return this.parseTransfer ({ 'result': response }, currency);
     }
 
-    parseTransfer (transfer, currency: Currency = undefined) {
+    parseTransfer (transfer: Dict, currency: Currency = undefined): TransferEntry {
         //
         // transfer
         //
@@ -983,12 +983,13 @@ export default class bitfinex2 extends Exchange {
         //         "1.0 Tether USDt transfered from Exchange to Margin"
         //     ]
         //
-        const timestamp = this.safeInteger (transfer, 0);
-        const info = this.safeValue (transfer, 4);
+        const result = this.safeList (transfer, 'result');
+        const timestamp = this.safeInteger (result, 0);
+        const info = this.safeValue (result, 4);
         const fromAccount = this.safeString (info, 1);
         const toAccount = this.safeString (info, 2);
         const currencyId = this.safeString (info, 5);
-        const status = this.safeString (transfer, 6);
+        const status = this.safeString (result, 6);
         return {
             'id': undefined,
             'timestamp': timestamp,
@@ -998,12 +999,12 @@ export default class bitfinex2 extends Exchange {
             'currency': this.safeCurrencyCode (currencyId, currency),
             'fromAccount': fromAccount,
             'toAccount': toAccount,
-            'info': transfer,
+            'info': result,
         };
     }
 
-    parseTransferStatus (status) {
-        const statuses = {
+    parseTransferStatus (status: Str): Str {
+        const statuses: Dict = {
             'SUCCESS': 'ok',
             'ERROR': 'failed',
             'FAILURE': 'failed',
@@ -1050,7 +1051,7 @@ export default class bitfinex2 extends Exchange {
         await this.loadMarkets ();
         const precision = this.safeValue (this.options, 'precision', 'R0');
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'symbol': market['id'],
             'precision': precision,
         };
@@ -1060,7 +1061,7 @@ export default class bitfinex2 extends Exchange {
         const fullRequest = this.extend (request, params);
         const orderbook = await this.publicGetBookSymbolPrecision (fullRequest);
         const timestamp = this.milliseconds ();
-        const result = {
+        const result: Dict = {
             'symbol': market['symbol'],
             'bids': [],
             'asks': [],
@@ -1082,71 +1083,77 @@ export default class bitfinex2 extends Exchange {
         return result as OrderBook;
     }
 
-    parseTicker (ticker, market: Market = undefined): Ticker {
+    parseTicker (ticker: Dict, market: Market = undefined): Ticker {
         //
         // on trading pairs (ex. tBTCUSD)
         //
-        //     [
-        //         SYMBOL,
-        //         BID,
-        //         BID_SIZE,
-        //         ASK,
-        //         ASK_SIZE,
-        //         DAILY_CHANGE,
-        //         DAILY_CHANGE_RELATIVE,
-        //         LAST_PRICE,
-        //         VOLUME,
-        //         HIGH,
-        //         LOW
-        //     ]
+        //    {
+        //        'result': [
+        //            SYMBOL,
+        //            BID,
+        //            BID_SIZE,
+        //            ASK,
+        //            ASK_SIZE,
+        //            DAILY_CHANGE,
+        //            DAILY_CHANGE_RELATIVE,
+        //            LAST_PRICE,
+        //            VOLUME,
+        //            HIGH,
+        //            LOW
+        //        ]
+        //    }
+        //
         //
         // on funding currencies (ex. fUSD)
         //
-        //     [
-        //         SYMBOL,
-        //         FRR,
-        //         BID,
-        //         BID_PERIOD,
-        //         BID_SIZE,
-        //         ASK,
-        //         ASK_PERIOD,
-        //         ASK_SIZE,
-        //         DAILY_CHANGE,
-        //         DAILY_CHANGE_RELATIVE,
-        //         LAST_PRICE,
-        //         VOLUME,
-        //         HIGH,
-        //         LOW,
-        //         _PLACEHOLDER,
-        //         _PLACEHOLDER,
-        //         FRR_AMOUNT_AVAILABLE
-        //     ]
+        //    {
+        //        'result': [
+        //            SYMBOL,
+        //            FRR,
+        //            BID,
+        //            BID_PERIOD,
+        //            BID_SIZE,
+        //            ASK,
+        //            ASK_PERIOD,
+        //            ASK_SIZE,
+        //            DAILY_CHANGE,
+        //            DAILY_CHANGE_RELATIVE,
+        //            LAST_PRICE,
+        //            VOLUME,
+        //            HIGH,
+        //            LOW,
+        //            _PLACEHOLDER,
+        //            _PLACEHOLDER,
+        //            FRR_AMOUNT_AVAILABLE
+        //        ]
+        //    }
         //
+        const result = this.safeList (ticker, 'result');
         const symbol = this.safeSymbol (undefined, market);
-        const length = ticker.length;
-        const last = this.safeString (ticker, length - 4);
-        const percentage = this.safeString (ticker, length - 5);
+        const length = result.length;
+        const last = this.safeString (result, length - 4);
+        const percentage = this.safeString (result, length - 5);
         return this.safeTicker ({
             'symbol': symbol,
             'timestamp': undefined,
             'datetime': undefined,
-            'high': this.safeString (ticker, length - 2),
-            'low': this.safeString (ticker, length - 1),
-            'bid': this.safeString (ticker, length - 10),
-            'bidVolume': this.safeString (ticker, length - 9),
-            'ask': this.safeString (ticker, length - 8),
-            'askVolume': this.safeString (ticker, length - 7),
+            'high': this.safeString (result, length - 2),
+            'low': this.safeString (result, length - 1),
+            'bid': this.safeString (result, length - 10),
+            'bidVolume': this.safeString (result, length - 9),
+            'ask': this.safeString (result, length - 8),
+            'askVolume': this.safeString (result, length - 7),
             'vwap': undefined,
             'open': undefined,
             'close': last,
             'last': last,
             'previousClose': undefined,
-            'change': this.safeString (ticker, length - 6),
+            'change': this.safeString (result, length - 6),
             'percentage': Precise.stringMul (percentage, '100'),
             'average': undefined,
-            'baseVolume': this.safeString (ticker, length - 3),
+            'baseVolume': this.safeString (result, length - 3),
             'quoteVolume': undefined,
-            'info': ticker,
+            'info': result,
         }, market);
     }
 
@@ -1162,7 +1169,7 @@ export default class bitfinex2 extends Exchange {
          */
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
-        const request = {};
+        const request: Dict = {};
         if (symbols !== undefined) {
             const ids = this.marketIds (symbols);
             request['symbols'] = ids.join (',');
@@ -1209,13 +1216,13 @@ export default class bitfinex2 extends Exchange {
         //         ...
         //     ]
         //
-        const result = {};
+        const result: Dict = {};
         for (let i = 0; i < tickers.length; i++) {
             const ticker = tickers[i];
             const marketId = this.safeString (ticker, 0);
             const market = this.safeMarket (marketId);
             const symbol = market['symbol'];
-            result[symbol] = this.parseTicker (ticker, market);
+            result[symbol] = this.parseTicker ({ 'result': ticker }, market);
         }
         return this.filterByArrayTickers (result, 'symbol', symbols);
     }
@@ -1232,11 +1239,12 @@ export default class bitfinex2 extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'symbol': market['id'],
         };
         const ticker = await this.publicGetTickerSymbol (this.extend (request, params));
-        return this.parseTicker (ticker, market);
+        const result: Dict = { 'result': ticker };
+        return this.parseTicker (result, market);
     }
 
     parseTrade (trade, market: Market = undefined): Trade {
@@ -1344,7 +1352,7 @@ export default class bitfinex2 extends Exchange {
         }
         const market = this.market (symbol);
         let sort = '-1';
-        let request = {
+        let request: Dict = {
             'symbol': market['id'],
         };
         if (since !== undefined) {
@@ -1398,7 +1406,7 @@ export default class bitfinex2 extends Exchange {
         } else {
             limit = Math.min (limit, 10000);
         }
-        let request = {
+        let request: Dict = {
             'symbol': market['id'],
             'timeframe': this.safeString (this.timeframes, timeframe, timeframe),
             'sort': 1,
@@ -1440,13 +1448,13 @@ export default class bitfinex2 extends Exchange {
         ];
     }
 
-    parseOrderStatus (status) {
+    parseOrderStatus (status: Str) {
         if (status === undefined) {
             return status;
         }
         const parts = status.split (' ');
         const state = this.safeString (parts, 0);
-        const statuses = {
+        const statuses: Dict = {
             'ACTIVE': 'open',
             'PARTIALLY': 'open',
             'EXECUTED': 'closed',
@@ -1463,7 +1471,7 @@ export default class bitfinex2 extends Exchange {
 
     parseOrderFlags (flags) {
         // flags can be added to each other...
-        const flagValues = {
+        const flagValues: Dict = {
             '1024': [ 'reduceOnly' ],
             '4096': [ 'postOnly' ],
             '5120': [ 'reduceOnly', 'postOnly' ],
@@ -1476,7 +1484,7 @@ export default class bitfinex2 extends Exchange {
     }
 
     parseTimeInForce (orderType) {
-        const orderTypes = {
+        const orderTypes: Dict = {
             'EXCHANGE IOC': 'IOC',
             'EXCHANGE FOK': 'FOK',
             'IOC': 'IOC', // Margin
@@ -1578,7 +1586,7 @@ export default class bitfinex2 extends Exchange {
         const market = this.market (symbol);
         let amountString = this.amountToPrecision (symbol, amount);
         amountString = (side === 'buy') ? amountString : Precise.stringNeg (amountString);
-        const request = {
+        const request: Dict = {
             'symbol': market['id'],
             'amount': amountString,
         };
@@ -1752,7 +1760,7 @@ export default class bitfinex2 extends Exchange {
             const orderRequest = this.createOrderRequest (symbol, type, side, amount, price, orderParams);
             ordersRequests.push ([ 'on', orderRequest ]);
         }
-        const request = {
+        const request: Dict = {
             'ops': ordersRequests,
         };
         const response = await this.privatePostAuthWOrderMulti (request);
@@ -1802,7 +1810,7 @@ export default class bitfinex2 extends Exchange {
          * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
-        const request = {
+        const request: Dict = {
             'all': 1,
         };
         const response = await this.privatePostAuthWOrderCancelMulti (this.extend (request, params));
@@ -1859,7 +1867,7 @@ export default class bitfinex2 extends Exchange {
         for (let i = 0; i < ids.length; i++) {
             ids[i] = this.parseToNumeric (ids[i]);
         }
-        const request = {
+        const request: Dict = {
             'id': ids,
         };
         let market = undefined;
@@ -1933,7 +1941,7 @@ export default class bitfinex2 extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
-        const request = {
+        const request: Dict = {
             'id': [ parseInt (id) ],
         };
         const orders = await this.fetchOpenOrders (symbol, undefined, undefined, this.extend (request, params));
@@ -1956,7 +1964,7 @@ export default class bitfinex2 extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
-        const request = {
+        const request: Dict = {
             'id': [ parseInt (id) ],
         };
         const orders = await this.fetchClosedOrders (symbol, undefined, undefined, this.extend (request, params));
@@ -1981,7 +1989,7 @@ export default class bitfinex2 extends Exchange {
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
-        const request = {};
+        const request: Dict = {};
         let market = undefined;
         let response = undefined;
         if (symbol === undefined) {
@@ -2054,7 +2062,7 @@ export default class bitfinex2 extends Exchange {
         if (paginate) {
             return await this.fetchPaginatedCallDynamic ('fetchClosedOrders', symbol, since, limit, params) as Order[];
         }
-        let request = {};
+        let request: Dict = {};
         if (since !== undefined) {
             request['start'] = since;
         }
@@ -2131,7 +2139,7 @@ export default class bitfinex2 extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const orderId = parseInt (id);
-        const request = {
+        const request: Dict = {
             'id': orderId,
             'symbol': market['id'],
         };
@@ -2155,7 +2163,7 @@ export default class bitfinex2 extends Exchange {
          */
         await this.loadMarkets ();
         let market = undefined;
-        const request = {
+        const request: Dict = {
             'end': this.milliseconds (),
         };
         if (since !== undefined) {
@@ -2186,7 +2194,7 @@ export default class bitfinex2 extends Exchange {
          * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
          */
         await this.loadMarkets ();
-        const request = {
+        const request: Dict = {
             'op_renew': 1,
         };
         return await this.fetchDepositAddress (code, this.extend (request, params));
@@ -2214,7 +2222,7 @@ export default class bitfinex2 extends Exchange {
         }
         const wallet = this.safeString (params, 'wallet', 'exchange');  // 'exchange', 'margin', 'funding' and also old labels 'exchange', 'trading', 'deposit', respectively
         params = this.omit (params, 'network', 'wallet');
-        const request = {
+        const request: Dict = {
             'method': networkId,
             'wallet': wallet,
             'op_renew': 0, // a value of 1 will generate a new address
@@ -2254,7 +2262,7 @@ export default class bitfinex2 extends Exchange {
     }
 
     parseTransactionStatus (status) {
-        const statuses = {
+        const statuses: Dict = {
             'SUCCESS': 'ok',
             'COMPLETED': 'ok',
             'ERROR': 'failed',
@@ -2487,7 +2495,7 @@ export default class bitfinex2 extends Exchange {
         //         { leo_lev: "0", leo_amount_avg: "0" }
         //     ]
         //
-        const result = {};
+        const result: Dict = {};
         const fiat = this.safeValue (this.options, 'fiat', {});
         const feeData = this.safeValue (response, 4, []);
         const makerData = this.safeValue (feeData, 0, []);
@@ -2537,7 +2545,7 @@ export default class bitfinex2 extends Exchange {
          */
         await this.loadMarkets ();
         let currency = undefined;
-        const request = {};
+        const request: Dict = {};
         if (since !== undefined) {
             request['start'] = since;
         }
@@ -2583,7 +2591,7 @@ export default class bitfinex2 extends Exchange {
         return this.parseTransactions (response, currency, since, limit);
     }
 
-    async withdraw (code: string, amount: number, address, tag = undefined, params = {}) {
+    async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}) {
         /**
          * @method
          * @name bitfinex2#withdraw
@@ -2610,7 +2618,7 @@ export default class bitfinex2 extends Exchange {
         }
         const wallet = this.safeString (params, 'wallet', 'exchange');  // 'exchange', 'margin', 'funding' and also old labels 'exchange', 'trading', 'deposit', respectively
         params = this.omit (params, 'network', 'wallet');
-        const request = {
+        const request: Dict = {
             'method': networkId,
             'wallet': wallet,
             'amount': this.numberToString (amount),
@@ -2946,7 +2954,7 @@ export default class bitfinex2 extends Exchange {
             return await this.fetchPaginatedCallDynamic ('fetchLedger', code, since, limit, params, 2500);
         }
         let currency = undefined;
-        let request = {};
+        let request: Dict = {};
         if (since !== undefined) {
             request['start'] = since;
         }
@@ -3008,7 +3016,7 @@ export default class bitfinex2 extends Exchange {
         }
         await this.loadMarkets ();
         const marketIds = this.marketIds (symbols);
-        const request = {
+        const request: Dict = {
             'keys': marketIds.join (','),
         };
         const response = await this.publicGetStatusDeriv (this.extend (request, params));
@@ -3069,7 +3077,7 @@ export default class bitfinex2 extends Exchange {
             return await this.fetchPaginatedCallDeterministic ('fetchFundingRateHistory', symbol, since, limit, '8h', params, 5000) as FundingRateHistory[];
         }
         const market = this.market (symbol);
-        let request = {
+        let request: Dict = {
             'symbol': market['id'],
         };
         if (since !== undefined) {
@@ -3240,7 +3248,7 @@ export default class bitfinex2 extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'keys': market['id'],
         };
         const response = await this.publicGetStatusDeriv (this.extend (request, params));
@@ -3300,7 +3308,7 @@ export default class bitfinex2 extends Exchange {
             return await this.fetchPaginatedCallDeterministic ('fetchOpenInterestHistory', symbol, since, limit, '8h', params, 5000) as OpenInterest[];
         }
         const market = this.market (symbol);
-        let request = {
+        let request: Dict = {
             'symbol': market['id'],
         };
         if (since !== undefined) {
@@ -3437,7 +3445,7 @@ export default class bitfinex2 extends Exchange {
             return await this.fetchPaginatedCallDeterministic ('fetchLiquidations', symbol, since, limit, '8h', params, 500) as Liquidation[];
         }
         const market = this.market (symbol);
-        let request = {};
+        let request: Dict = {};
         if (since !== undefined) {
             request['start'] = since;
         }
@@ -3524,7 +3532,7 @@ export default class bitfinex2 extends Exchange {
         if (!market['swap']) {
             throw new NotSupported (this.id + ' setMargin() only support swap markets');
         }
-        const request = {
+        const request: Dict = {
             'symbol': market['id'],
             'collateral': this.parseToNumeric (amount),
         };
@@ -3556,6 +3564,7 @@ export default class bitfinex2 extends Exchange {
             'info': data,
             'symbol': market['symbol'],
             'type': undefined,
+            'marginMode': 'isolated',
             'amount': undefined,
             'total': undefined,
             'code': undefined,
@@ -3578,7 +3587,7 @@ export default class bitfinex2 extends Exchange {
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
-        const request = {
+        const request: Dict = {
             'id': [ this.parseToNumeric (id) ],
         };
         let market = undefined;
@@ -3656,7 +3665,7 @@ export default class bitfinex2 extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'id': this.parseToNumeric (id),
         };
         if (amount !== undefined) {

@@ -7,7 +7,7 @@ import { AuthenticationError, ExchangeError, ArgumentsRequired, PermissionDenied
 import { Precise } from './base/Precise.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { totp } from './base/functions/totp.js';
-import type { Balances, Currency, FundingRateHistory, Greeks, Int, Liquidation, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry, MarketInterface, Num, Account, Option, OptionChain, Currencies, TradingFees } from './base/types.js';
+import type { Balances, Currency, FundingRateHistory, Greeks, Int, Liquidation, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry, MarketInterface, Num, Account, Option, OptionChain, Currencies, TradingFees, Dict, TransferEntries } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -96,6 +96,7 @@ export default class deribit extends Exchange {
                 'fetchVolatilityHistory': true,
                 'fetchWithdrawal': false,
                 'fetchWithdrawals': true,
+                'sandbox': true,
                 'transfer': true,
                 'withdraw': true,
             },
@@ -551,7 +552,7 @@ export default class deribit extends Exchange {
         //    }
         //
         const data = this.safeValue (response, 'result', {});
-        const result = {};
+        const result: Dict = {};
         for (let i = 0; i < data.length; i++) {
             const currency = data[i];
             const currencyId = this.safeString (currency, 'currency');
@@ -706,117 +707,129 @@ export default class deribit extends Exchange {
          * @name deribit#fetchMarkets
          * @description retrieves data on all markets for deribit
          * @see https://docs.deribit.com/#public-get_currencies
+         * @see https://docs.deribit.com/#public-get_instruments
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} an array of objects representing market data
          */
-        const currenciesResponse = await this.publicGetGetCurrencies (params);
-        //
-        //     {
-        //         "jsonrpc": "2.0",
-        //         "result": [
-        //             {
-        //                 "withdrawal_priorities": [
-        //                     { value: 0.15, name: "very_low" },
-        //                     { value: 1.5, name: "very_high" },
-        //                 ],
-        //                 "withdrawal_fee": 0.0005,
-        //                 "min_withdrawal_fee": 0.0005,
-        //                 "min_confirmations": 1,
-        //                 "fee_precision": 4,
-        //                 "currency_long": "Bitcoin",
-        //                 "currency": "BTC",
-        //                 "coin_type": "BITCOIN"
-        //             }
-        //         ],
-        //         "usIn": 1583761588590479,
-        //         "usOut": 1583761588590544,
-        //         "usDiff": 65,
-        //         "testnet": false
-        //     }
-        //
-        const parsedMarkets = {};
-        const currenciesResult = this.safeValue (currenciesResponse, 'result', []);
+        const instrumentsResponses = [];
         const result = [];
-        for (let i = 0; i < currenciesResult.length; i++) {
-            const currencyId = this.safeString (currenciesResult[i], 'currency');
-            const request = {
-                'currency': currencyId,
-            };
-            const instrumentsResponse = await this.publicGetGetInstruments (this.extend (request, params));
+        const parsedMarkets: Dict = {};
+        let fetchAllMarkets = undefined;
+        [ fetchAllMarkets, params ] = this.handleOptionAndParams (params, 'fetchMarkets', 'fetchAllMarkets', true);
+        if (fetchAllMarkets) {
+            const instrumentsResponse = await this.publicGetGetInstruments (params);
+            instrumentsResponses.push (instrumentsResponse);
+        } else {
+            const currenciesResponse = await this.publicGetGetCurrencies (params);
             //
             //     {
-            //         "jsonrpc":"2.0",
-            //         "result":[
+            //         "jsonrpc": "2.0",
+            //         "result": [
             //             {
-            //                 "tick_size":0.0005,
-            //                 "taker_commission":0.0003,
-            //                 "strike":52000.0,
-            //                 "settlement_period":"month",
-            //                 "settlement_currency":"BTC",
-            //                 "quote_currency":"BTC",
-            //                 "option_type":"put", // put, call
-            //                 "min_trade_amount":0.1,
-            //                 "maker_commission":0.0003,
-            //                 "kind":"option",
-            //                 "is_active":true,
-            //                 "instrument_name":"BTC-24JUN22-52000-P",
-            //                 "expiration_timestamp":1656057600000,
-            //                 "creation_timestamp":1648199543000,
-            //                 "counter_currency":"USD",
-            //                 "contract_size":1.0,
-            //                 "block_trade_commission":0.0003,
-            //                 "base_currency":"BTC"
-            //             },
-            //             {
-            //                 "tick_size":0.5,
-            //                 "taker_commission":0.0005,
-            //                 "settlement_period":"month", // month, week
-            //                 "settlement_currency":"BTC",
-            //                 "quote_currency":"USD",
-            //                 "min_trade_amount":10.0,
-            //                 "max_liquidation_commission":0.0075,
-            //                 "max_leverage":50,
-            //                 "maker_commission":0.0,
-            //                 "kind":"future",
-            //                 "is_active":true,
-            //                 "instrument_name":"BTC-27MAY22",
-            //                 "future_type":"reversed",
-            //                 "expiration_timestamp":1653638400000,
-            //                 "creation_timestamp":1648195209000,
-            //                 "counter_currency":"USD",
-            //                 "contract_size":10.0,
-            //                 "block_trade_commission":0.0001,
-            //                 "base_currency":"BTC"
-            //             },
-            //             {
-            //                 "tick_size":0.5,
-            //                 "taker_commission":0.0005,
-            //                 "settlement_period":"perpetual",
-            //                 "settlement_currency":"BTC",
-            //                 "quote_currency":"USD",
-            //                 "min_trade_amount":10.0,
-            //                 "max_liquidation_commission":0.0075,
-            //                 "max_leverage":50,
-            //                 "maker_commission":0.0,
-            //                 "kind":"future",
-            //                 "is_active":true,
-            //                 "instrument_name":"BTC-PERPETUAL",
-            //                 "future_type":"reversed",
-            //                 "expiration_timestamp":32503708800000,
-            //                 "creation_timestamp":1534242287000,
-            //                 "counter_currency":"USD",
-            //                 "contract_size":10.0,
-            //                 "block_trade_commission":0.0001,
-            //                 "base_currency":"BTC"
-            //             },
+            //                 "withdrawal_priorities": [
+            //                     { value: 0.15, name: "very_low" },
+            //                     { value: 1.5, name: "very_high" },
+            //                 ],
+            //                 "withdrawal_fee": 0.0005,
+            //                 "min_withdrawal_fee": 0.0005,
+            //                 "min_confirmations": 1,
+            //                 "fee_precision": 4,
+            //                 "currency_long": "Bitcoin",
+            //                 "currency": "BTC",
+            //                 "coin_type": "BITCOIN"
+            //             }
             //         ],
-            //         "usIn":1648691472831791,
-            //         "usOut":1648691472831896,
-            //         "usDiff":105,
-            //         "testnet":false
+            //         "usIn": 1583761588590479,
+            //         "usOut": 1583761588590544,
+            //         "usDiff": 65,
+            //         "testnet": false
             //     }
             //
-            const instrumentsResult = this.safeValue (instrumentsResponse, 'result', []);
+            const currenciesResult = this.safeValue (currenciesResponse, 'result', []);
+            for (let i = 0; i < currenciesResult.length; i++) {
+                const currencyId = this.safeString (currenciesResult[i], 'currency');
+                const request: Dict = {
+                    'currency': currencyId,
+                };
+                const instrumentsResponse = await this.publicGetGetInstruments (this.extend (request, params));
+                //
+                //     {
+                //         "jsonrpc":"2.0",
+                //         "result":[
+                //             {
+                //                 "tick_size":0.0005,
+                //                 "taker_commission":0.0003,
+                //                 "strike":52000.0,
+                //                 "settlement_period":"month",
+                //                 "settlement_currency":"BTC",
+                //                 "quote_currency":"BTC",
+                //                 "option_type":"put", // put, call
+                //                 "min_trade_amount":0.1,
+                //                 "maker_commission":0.0003,
+                //                 "kind":"option",
+                //                 "is_active":true,
+                //                 "instrument_name":"BTC-24JUN22-52000-P",
+                //                 "expiration_timestamp":1656057600000,
+                //                 "creation_timestamp":1648199543000,
+                //                 "counter_currency":"USD",
+                //                 "contract_size":1.0,
+                //                 "block_trade_commission":0.0003,
+                //                 "base_currency":"BTC"
+                //             },
+                //             {
+                //                 "tick_size":0.5,
+                //                 "taker_commission":0.0005,
+                //                 "settlement_period":"month", // month, week
+                //                 "settlement_currency":"BTC",
+                //                 "quote_currency":"USD",
+                //                 "min_trade_amount":10.0,
+                //                 "max_liquidation_commission":0.0075,
+                //                 "max_leverage":50,
+                //                 "maker_commission":0.0,
+                //                 "kind":"future",
+                //                 "is_active":true,
+                //                 "instrument_name":"BTC-27MAY22",
+                //                 "future_type":"reversed",
+                //                 "expiration_timestamp":1653638400000,
+                //                 "creation_timestamp":1648195209000,
+                //                 "counter_currency":"USD",
+                //                 "contract_size":10.0,
+                //                 "block_trade_commission":0.0001,
+                //                 "base_currency":"BTC"
+                //             },
+                //             {
+                //                 "tick_size":0.5,
+                //                 "taker_commission":0.0005,
+                //                 "settlement_period":"perpetual",
+                //                 "settlement_currency":"BTC",
+                //                 "quote_currency":"USD",
+                //                 "min_trade_amount":10.0,
+                //                 "max_liquidation_commission":0.0075,
+                //                 "max_leverage":50,
+                //                 "maker_commission":0.0,
+                //                 "kind":"future",
+                //                 "is_active":true,
+                //                 "instrument_name":"BTC-PERPETUAL",
+                //                 "future_type":"reversed",
+                //                 "expiration_timestamp":32503708800000,
+                //                 "creation_timestamp":1534242287000,
+                //                 "counter_currency":"USD",
+                //                 "contract_size":10.0,
+                //                 "block_trade_commission":0.0001,
+                //                 "base_currency":"BTC"
+                //             },
+                //         ],
+                //         "usIn":1648691472831791,
+                //         "usOut":1648691472831896,
+                //         "usDiff":105,
+                //         "testnet":false
+                //     }
+                //
+                instrumentsResponses.push (instrumentsResponse);
+            }
+        }
+        for (let i = 0; i < instrumentsResponses.length; i++) {
+            const instrumentsResult = this.safeValue (instrumentsResponses[i], 'result', []);
             for (let k = 0; k < instrumentsResult.length; k++) {
                 const market = instrumentsResult[k];
                 const kind = this.safeString (market, 'kind');
@@ -923,7 +936,7 @@ export default class deribit extends Exchange {
     }
 
     parseBalance (balance): Balances {
-        const result = {
+        const result: Dict = {
             'info': balance,
         };
         const currencyId = this.safeString (balance, 'currency');
@@ -948,7 +961,7 @@ export default class deribit extends Exchange {
         await this.loadMarkets ();
         const code = this.codeFromOptions ('fetchBalance', params);
         const currency = this.currency (code);
-        const request = {
+        const request: Dict = {
             'currency': currency['id'],
         };
         const response = await this.privateGetGetAccountSummary (this.extend (request, params));
@@ -1010,7 +1023,7 @@ export default class deribit extends Exchange {
          */
         await this.loadMarkets ();
         const currency = this.currency (code);
-        const request = {
+        const request: Dict = {
             'currency': currency['id'],
         };
         const response = await this.privateGetCreateDepositAddress (this.extend (request, params));
@@ -1049,7 +1062,7 @@ export default class deribit extends Exchange {
          */
         await this.loadMarkets ();
         const currency = this.currency (code);
-        const request = {
+        const request: Dict = {
             'currency': currency['id'],
         };
         const response = await this.privateGetGetCurrentDepositAddress (this.extend (request, params));
@@ -1082,7 +1095,7 @@ export default class deribit extends Exchange {
         };
     }
 
-    parseTicker (ticker, market: Market = undefined): Ticker {
+    parseTicker (ticker: Dict, market: Market = undefined): Ticker {
         //
         // fetchTicker /public/ticker
         //
@@ -1170,7 +1183,7 @@ export default class deribit extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'instrument_name': market['id'],
         };
         const response = await this.publicGetTicker (this.extend (request, params));
@@ -1212,15 +1225,20 @@ export default class deribit extends Exchange {
          * @name deribit#fetchTickers
          * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
          * @see https://docs.deribit.com/#public-get_book_summary_by_currency
-         * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+         * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.code] *required* the currency code to fetch the tickers for, eg. 'BTC', 'ETH'
          * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
-        const code = this.codeFromOptions ('fetchTickers', params);
+        const code = this.safeString2 (params, 'code', 'currency');
+        params = this.omit (params, [ 'code' ]);
+        if (code === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchTickers requires a currency/code (eg: BTC/ETH/USDT) parameter to fetch tickers for');
+        }
         const currency = this.currency (code);
-        const request = {
+        const request: Dict = {
             'currency': currency['id'],
         };
         const response = await this.publicGetGetBookSummaryByCurrency (this.extend (request, params));
@@ -1254,8 +1272,8 @@ export default class deribit extends Exchange {
         //         "testnet": false
         //     }
         //
-        const result = this.safeValue (response, 'result', []);
-        const tickers = {};
+        const result = this.safeList (response, 'result', []);
+        const tickers: Dict = {};
         for (let i = 0; i < result.length; i++) {
             const ticker = this.parseTicker (result[i]);
             const symbol = ticker['symbol'];
@@ -1286,7 +1304,7 @@ export default class deribit extends Exchange {
             return await this.fetchPaginatedCallDeterministic ('fetchOHLCV', symbol, since, limit, timeframe, params, 5000) as OHLCV[];
         }
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'instrument_name': market['id'],
             'resolution': this.safeString (this.timeframes, timeframe, timeframe),
         };
@@ -1443,7 +1461,7 @@ export default class deribit extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'instrument_name': market['id'],
             'include_old': true,
         };
@@ -1506,7 +1524,7 @@ export default class deribit extends Exchange {
         await this.loadMarkets ();
         const code = this.codeFromOptions ('fetchTradingFees', params);
         const currency = this.currency (code);
-        const request = {
+        const request: Dict = {
             'currency': currency['id'],
             'extended': true,
         };
@@ -1562,9 +1580,9 @@ export default class deribit extends Exchange {
         //
         const result = this.safeValue (response, 'result', {});
         const fees = this.safeValue (result, 'fees', []);
-        let perpetualFee = {};
-        let futureFee = {};
-        let optionFee = {};
+        let perpetualFee: Dict = {};
+        let futureFee: Dict = {};
+        let optionFee: Dict = {};
         for (let i = 0; i < fees.length; i++) {
             const fee = fees[i];
             const instrumentType = this.safeString (fee, 'instrument_type');
@@ -1588,11 +1606,11 @@ export default class deribit extends Exchange {
                 };
             }
         }
-        const parsedFees = {};
+        const parsedFees: Dict = {};
         for (let i = 0; i < this.symbols.length; i++) {
             const symbol = this.symbols[i];
             const market = this.market (symbol);
-            let fee = {
+            let fee: Dict = {
                 'info': market,
                 'symbol': symbol,
                 'percentage': true,
@@ -1625,7 +1643,7 @@ export default class deribit extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'instrument_name': market['id'],
         };
         if (limit !== undefined) {
@@ -1679,8 +1697,8 @@ export default class deribit extends Exchange {
         return orderbook;
     }
 
-    parseOrderStatus (status) {
-        const statuses = {
+    parseOrderStatus (status: Str) {
+        const statuses: Dict = {
             'open': 'open',
             'cancelled': 'canceled',
             'filled': 'closed',
@@ -1691,7 +1709,7 @@ export default class deribit extends Exchange {
     }
 
     parseTimeInForce (timeInForce) {
-        const timeInForces = {
+        const timeInForces: Dict = {
             'good_til_cancelled': 'GTC',
             'fill_or_kill': 'FOK',
             'immediate_or_cancel': 'IOC',
@@ -1700,7 +1718,7 @@ export default class deribit extends Exchange {
     }
 
     parseOrderType (orderType) {
-        const orderTypes = {
+        const orderTypes: Dict = {
             'stop_limit': 'limit',
             'take_limit': 'limit',
             'stop_market': 'market',
@@ -1819,7 +1837,7 @@ export default class deribit extends Exchange {
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
-        const request = {
+        const request: Dict = {
             'order_id': id,
         };
         let market = undefined;
@@ -1878,7 +1896,7 @@ export default class deribit extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'instrument_name': market['id'],
             'amount': this.amountToPrecision (symbol, amount),
             'type': type, // limit, stop_limit, market, stop_market, default is limit
@@ -2052,7 +2070,7 @@ export default class deribit extends Exchange {
             throw new ArgumentsRequired (this.id + ' editOrder() requires an amount argument');
         }
         await this.loadMarkets ();
-        const request = {
+        const request: Dict = {
             'order_id': id,
             'amount': this.amountToPrecision (symbol, amount),
             // 'post_only': false, // if the new price would cause the order to be filled immediately (as taker), the price will be changed to be just below the spread.
@@ -2090,7 +2108,7 @@ export default class deribit extends Exchange {
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
-        const request = {
+        const request: Dict = {
             'order_id': id,
         };
         const response = await this.privateGetCancel (this.extend (request, params));
@@ -2110,7 +2128,7 @@ export default class deribit extends Exchange {
          * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
-        const request = {};
+        const request: Dict = {};
         let response = undefined;
         if (symbol === undefined) {
             response = await this.privateGetCancelAll (this.extend (request, params));
@@ -2136,7 +2154,7 @@ export default class deribit extends Exchange {
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
-        const request = {};
+        const request: Dict = {};
         let market = undefined;
         let response = undefined;
         if (symbol === undefined) {
@@ -2167,7 +2185,7 @@ export default class deribit extends Exchange {
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
-        const request = {};
+        const request: Dict = {};
         let market = undefined;
         let response = undefined;
         if (symbol === undefined) {
@@ -2198,7 +2216,7 @@ export default class deribit extends Exchange {
          * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
          */
         await this.loadMarkets ();
-        const request = {
+        const request: Dict = {
             'order_id': id,
         };
         const response = await this.privateGetGetUserTradesByOrder (this.extend (request, params));
@@ -2255,7 +2273,7 @@ export default class deribit extends Exchange {
          * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
          */
         await this.loadMarkets ();
-        const request = {
+        const request: Dict = {
             'include_old': true,
         };
         let market = undefined;
@@ -2338,7 +2356,7 @@ export default class deribit extends Exchange {
         }
         await this.loadMarkets ();
         const currency = this.currency (code);
-        const request = {
+        const request: Dict = {
             'currency': currency['id'],
         };
         if (limit !== undefined) {
@@ -2387,7 +2405,7 @@ export default class deribit extends Exchange {
         }
         await this.loadMarkets ();
         const currency = this.currency (code);
-        const request = {
+        const request: Dict = {
             'currency': currency['id'],
         };
         if (limit !== undefined) {
@@ -2424,7 +2442,7 @@ export default class deribit extends Exchange {
     }
 
     parseTransactionStatus (status) {
-        const statuses = {
+        const statuses: Dict = {
             'completed': 'ok',
             'unconfirmed': 'pending',
         };
@@ -2580,7 +2598,7 @@ export default class deribit extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'instrument_name': market['id'],
         };
         const response = await this.privateGetGetPosition (this.extend (request, params));
@@ -2646,7 +2664,7 @@ export default class deribit extends Exchange {
             }
         }
         const currency = this.currency (code);
-        const request = {
+        const request: Dict = {
             'currency': currency['id'],
         };
         if (kind !== undefined) {
@@ -2698,7 +2716,7 @@ export default class deribit extends Exchange {
          */
         await this.loadMarkets ();
         const currency = this.currency (code);
-        const request = {
+        const request: Dict = {
             'currency': currency['id'],
         };
         const response = await this.publicGetGetHistoricalVolatility (this.extend (request, params));
@@ -2749,7 +2767,7 @@ export default class deribit extends Exchange {
         return result;
     }
 
-    async fetchTransfers (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchTransfers (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<TransferEntries> {
         /**
          * @method
          * @name deribit#fetchTransfers
@@ -2766,7 +2784,7 @@ export default class deribit extends Exchange {
         }
         await this.loadMarkets ();
         const currency = this.currency (code);
-        const request = {
+        const request: Dict = {
             'currency': currency['id'],
         };
         if (limit !== undefined) {
@@ -2827,7 +2845,7 @@ export default class deribit extends Exchange {
          */
         await this.loadMarkets ();
         const currency = this.currency (code);
-        const request = {
+        const request: Dict = {
             'amount': amount,
             'currency': currency['id'],
             'destination': toAccount,
@@ -2865,7 +2883,7 @@ export default class deribit extends Exchange {
         return this.parseTransfer (result, currency);
     }
 
-    parseTransfer (transfer, currency: Currency = undefined) {
+    parseTransfer (transfer: Dict, currency: Currency = undefined): TransferEntry {
         //
         //     {
         //         "updated_timestamp": 1550232862350,
@@ -2889,7 +2907,7 @@ export default class deribit extends Exchange {
             'id': this.safeString (transfer, 'id'),
             'status': this.parseTransferStatus (status),
             'amount': this.safeNumber (transfer, 'amount'),
-            'code': this.safeCurrencyCode (currencyId, currency),
+            'currency': this.safeCurrencyCode (currencyId, currency),
             'fromAccount': direction !== 'payment' ? account : undefined,
             'toAccount': direction === 'payment' ? account : undefined,
             'timestamp': timestamp,
@@ -2897,8 +2915,8 @@ export default class deribit extends Exchange {
         };
     }
 
-    parseTransferStatus (status) {
-        const statuses = {
+    parseTransferStatus (status: Str): Str {
+        const statuses: Dict = {
             'prepared': 'pending',
             'confirmed': 'ok',
             'cancelled': 'cancelled',
@@ -2907,7 +2925,7 @@ export default class deribit extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    async withdraw (code: string, amount: number, address, tag = undefined, params = {}) {
+    async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}) {
         /**
          * @method
          * @name deribit#withdraw
@@ -2924,7 +2942,7 @@ export default class deribit extends Exchange {
         this.checkAddress (address);
         await this.loadMarkets ();
         const currency = this.currency (code);
-        const request = {
+        const request: Dict = {
             'currency': currency['id'],
             'address': address, // must be in the address book
             'amount': amount,
@@ -3018,7 +3036,7 @@ export default class deribit extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const time = this.milliseconds ();
-        const request = {
+        const request: Dict = {
             'instrument_name': market['id'],
             'start_timestamp': time - (8 * 60 * 60 * 1000), // 8h ago,
             'end_timestamp': time,
@@ -3061,7 +3079,7 @@ export default class deribit extends Exchange {
         if (since === undefined) {
             since = time - month;
         }
-        const request = {
+        const request: Dict = {
             'instrument_name': market['id'],
             'start_timestamp': since - 1,
             'end_timestamp': time,
@@ -3158,7 +3176,7 @@ export default class deribit extends Exchange {
         if (market['spot']) {
             throw new NotSupported (this.id + ' fetchLiquidations() does not support ' + market['type'] + ' markets');
         }
-        const request = {
+        const request: Dict = {
             'instrument_name': market['id'],
             'type': 'bankruptcy',
         };
@@ -3235,7 +3253,7 @@ export default class deribit extends Exchange {
         if (market['spot']) {
             throw new NotSupported (this.id + ' fetchMyLiquidations() does not support ' + market['type'] + ' markets');
         }
-        const request = {
+        const request: Dict = {
             'instrument_name': market['id'],
             'type': 'bankruptcy',
         };
@@ -3314,7 +3332,7 @@ export default class deribit extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'instrument_name': market['id'],
         };
         const response = await this.publicGetTicker (this.extend (request, params));
@@ -3368,7 +3386,7 @@ export default class deribit extends Exchange {
         return this.parseGreeks (result, market);
     }
 
-    parseGreeks (greeks, market: Market = undefined) {
+    parseGreeks (greeks: Dict, market: Market = undefined): Greeks {
         //
         //     {
         //         "estimated_delivery_price": 36552.72,
@@ -3447,7 +3465,7 @@ export default class deribit extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'instrument_name': market['id'],
         };
         const response = await this.publicGetGetBookSummaryByInstrument (this.extend (request, params));
@@ -3500,7 +3518,7 @@ export default class deribit extends Exchange {
          */
         await this.loadMarkets ();
         const currency = this.currency (code);
-        const request = {
+        const request: Dict = {
             'currency': currency['id'],
             'kind': 'option',
         };
@@ -3541,7 +3559,7 @@ export default class deribit extends Exchange {
         return this.parseOptionChain (result, 'base_currency', 'instrument_name');
     }
 
-    parseOption (chain, currency: Currency = undefined, market: Market = undefined) {
+    parseOption (chain: Dict, currency: Currency = undefined, market: Market = undefined): Option {
         //
         //     {
         //         "mid_price": 0.04025,

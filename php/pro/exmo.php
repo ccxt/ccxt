@@ -671,7 +671,7 @@ class exmo extends \ccxt\async\exmo {
                     'sign' => $sign,
                     'nonce' => $time,
                 );
-                $message = array_merge($request, $query);
+                $message = $this->extend($request, $query);
                 $future = Async\await($this->watch($url, $messageHash, $message, $messageHash));
                 $client->subscriptions[$messageHash] = $future;
             }

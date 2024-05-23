@@ -1,5 +1,5 @@
 import Exchange from './abstract/currencycom.js';
-import type { Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, Leverage, Num, Account, Currencies, TradingFees } from './base/types.js';
+import type { Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, Leverage, Num, Account, Currencies, TradingFees, Dict } from './base/types.js';
 /**
  * @class currencycom
  * @augments Exchange
@@ -15,7 +15,7 @@ export default class currencycom extends Exchange {
     parseBalance(response: any, type?: any): Balances;
     fetchBalance(params?: {}): Promise<Balances>;
     fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
-    parseTicker(ticker: any, market?: Market): Ticker;
+    parseTicker(ticker: Dict, market?: Market): Ticker;
     fetchTicker(symbol: string, params?: {}): Promise<Ticker>;
     fetchTickers(symbols?: Strings, params?: {}): Promise<Tickers>;
     parseOHLCV(ohlcv: any, market?: Market): OHLCV;
@@ -23,7 +23,7 @@ export default class currencycom extends Exchange {
     parseTrade(trade: any, market?: Market): Trade;
     fetchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     parseOrder(order: any, market?: Market): Order;
-    parseOrderStatus(status: any): string;
+    parseOrderStatus(status: Str): string;
     parseOrderType(status: any): string;
     parseOrderTimeInForce(status: any): string;
     parseOrderSide(status: any): string;
@@ -40,27 +40,11 @@ export default class currencycom extends Exchange {
     parseTransactionStatus(status: any): string;
     parseTransactionType(type: any): string;
     fetchLedger(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<any>;
-    parseLedgerEntry(item: any, currency?: Currency): {
-        id: string;
-        timestamp: number;
-        datetime: string;
-        direction: string;
-        account: any;
-        referenceId: string;
-        referenceAccount: any;
-        type: string;
-        currency: string;
-        amount: string;
-        before: any;
-        after: string;
-        status: string;
-        fee: any;
-        info: any;
-    };
+    parseLedgerEntry(item: any, currency?: Currency): Dict;
     parseLedgerEntryStatus(status: any): string;
     parseLedgerEntryType(type: any): string;
     fetchLeverage(symbol: string, params?: {}): Promise<Leverage>;
-    parseLeverage(leverage: any, market?: any): Leverage;
+    parseLeverage(leverage: Dict, market?: Market): Leverage;
     fetchDepositAddress(code: string, params?: {}): Promise<{
         currency: string;
         address: string;

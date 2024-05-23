@@ -485,19 +485,19 @@ public partial class bingx
     /// <item>
     /// <term>params.triggerPrice</term>
     /// <description>
-    /// float : *swap only* triggerPrice at which the attached take profit / stop loss order will be triggered
+    /// float : triggerPrice at which the attached take profit / stop loss order will be triggered
     /// </description>
     /// </item>
     /// <item>
     /// <term>params.stopLossPrice</term>
     /// <description>
-    /// float : *swap only* stop loss trigger price
+    /// float : stop loss trigger price
     /// </description>
     /// </item>
     /// <item>
     /// <term>params.takeProfitPrice</term>
     /// <description>
-    /// float : *swap only* take profit trigger price
+    /// float : take profit trigger price
     /// </description>
     /// </item>
     /// <item>
@@ -642,6 +642,33 @@ public partial class bingx
         return ((Dictionary<string, object>)res);
     }
     /// <summary>
+    /// dead man's switch, cancel all orders after the given timeout
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://bingx-api.github.io/docs/#/en-us/spot/trade-api.html#Cancel%20all%20orders%20in%20countdown"/>  <br/>
+    /// See <see href="https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Cancel%20all%20orders%20in%20countdown"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.type</term>
+    /// <description>
+    /// string : spot or swap market
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> the api result.</returns>
+    public async Task<Dictionary<string, object>> CancelAllOrdersAfter(Int64 timeout, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.cancelAllOrdersAfter(timeout, parameters);
+        return ((Dictionary<string, object>)res);
+    }
+    /// <summary>
     /// fetches information on an order made by the user
     /// </summary>
     /// <remarks>
@@ -661,6 +688,52 @@ public partial class bingx
     {
         var res = await this.fetchOrder(id, symbol, parameters);
         return new Order(res);
+    }
+    /// <summary>
+    /// fetches information on multiple orders made by the user
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#User's%20All%20Orders"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>since</term>
+    /// <description>
+    /// int : the earliest time in ms to fetch orders for
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>limit</term>
+    /// <description>
+    /// int : the maximum number of order structures to retrieve
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.until</term>
+    /// <description>
+    /// int : the latest time in ms to fetch entries for
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.orderId</term>
+    /// <description>
+    /// int : Only return subsequent orders, and return the latest order by default
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>Order[]</term> a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
+    public async Task<List<Order>> FetchOrders(string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    {
+        var since = since2 == 0 ? null : (object)since2;
+        var limit = limit2 == 0 ? null : (object)limit2;
+        var res = await this.fetchOrders(symbol, since, limit, parameters);
+        return ((IList<object>)res).Select(item => new Order(item)).ToList<Order>();
     }
     /// <summary>
     /// fetch all unfilled currently open orders
@@ -804,12 +877,12 @@ public partial class bingx
     /// </list>
     /// </remarks>
     /// <returns> <term>object[]</term> a list of [transfer structures]{@link https://docs.ccxt.com/#/?id=transfer-structure}.</returns>
-    public async Task<Dictionary<string, object>> FetchTransfers(string code = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    public async Task<TransferEntries> FetchTransfers(string code = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;
         var limit = limit2 == 0 ? null : (object)limit2;
         var res = await this.fetchTransfers(code, since, limit, parameters);
-        return ((Dictionary<string, object>)res);
+        return new TransferEntries(res);
     }
     /// <summary>
     /// fetch the deposit addresses for a currency associated with this account
@@ -1111,7 +1184,7 @@ public partial class bingx
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}.</returns>
-    public async Task<Transaction> Withdraw(string code, double amount, object address, object tag = null, Dictionary<string, object> parameters = null)
+    public async Task<Transaction> Withdraw(string code, double amount, string address, object tag = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.withdraw(code, amount, address, tag, parameters);
         return new Transaction(res);

@@ -43,8 +43,8 @@ Exchange::$exchanges = array(
     'bybit',
     'cex',
     'coinbase',
+    'coinbaseexchange',
     'coinbaseinternational',
-    'coinbasepro',
     'coincheck',
     'coinex',
     'coinone',
@@ -83,5 +83,6 @@ Exchange::$exchanges = array(
     'wazirx',
     'whitebit',
     'woo',
+    'woofipro',
 );
 

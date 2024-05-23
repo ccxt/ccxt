@@ -6,7 +6,7 @@ import { ArgumentsRequired, ExchangeError, OrderNotFound, AuthenticationError, I
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
-import type { Dictionary, Int, Order, OrderSide, OrderType, Trade, OrderBook, OHLCV, Balances, Str, Transaction, Ticker, Tickers, Strings, Market, Currency, Num, MarginModification, Currencies, TradingFees } from './base/types.js';
+import type { Dict, Int, Order, OrderSide, OrderType, Trade, OrderBook, OHLCV, Balances, Str, Transaction, Ticker, Tickers, Strings, Market, Currency, Num, MarginModification, Currencies, TradingFees, Dictionary } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -64,7 +64,12 @@ export default class exmo extends Exchange {
                 'fetchOrderBook': true,
                 'fetchOrderBooks': true,
                 'fetchOrderTrades': true,
+                'fetchPosition': false,
+                'fetchPositionHistory': false,
                 'fetchPositionMode': false,
+                'fetchPositions': false,
+                'fetchPositionsHistory': false,
+                'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchTicker': true,
                 'fetchTickers': true,
@@ -236,7 +241,7 @@ export default class exmo extends Exchange {
     async modifyMarginHelper (symbol: string, amount, type, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'position_id': market['id'],
             'quantity': amount,
         };
@@ -259,7 +264,7 @@ export default class exmo extends Exchange {
         return margin;
     }
 
-    parseMarginModification (data, market: Market = undefined): MarginModification {
+    parseMarginModification (data: Dict, market: Market = undefined): MarginModification {
         //
         //      {}
         //
@@ -267,6 +272,7 @@ export default class exmo extends Exchange {
             'info': data,
             'symbol': this.safeSymbol (undefined, market),
             'type': undefined,
+            'marginMode': 'isolated',
             'amount': undefined,
             'total': undefined,
             'code': this.safeValue (market, 'quote'),
@@ -276,7 +282,7 @@ export default class exmo extends Exchange {
         };
     }
 
-    async reduceMargin (symbol: string, amount, params = {}): Promise<MarginModification> {
+    async reduceMargin (symbol: string, amount: number, params = {}): Promise<MarginModification> {
         /**
          * @method
          * @name exmo#reduceMargin
@@ -290,7 +296,7 @@ export default class exmo extends Exchange {
         return await this.modifyMarginHelper (symbol, amount, 'reduce', params);
     }
 
-    async addMargin (symbol: string, amount, params = {}): Promise<MarginModification> {
+    async addMargin (symbol: string, amount: number, params = {}): Promise<MarginModification> {
         /**
          * @method
          * @name exmo#addMargin
@@ -358,7 +364,7 @@ export default class exmo extends Exchange {
         //     }
         //
         const pairs = this.safeValue (response, 'pairs', []);
-        const result = {};
+        const result: Dict = {};
         for (let i = 0; i < pairs.length; i++) {
             const pair = pairs[i];
             const marketId = this.safeString (pair, 'name');
@@ -397,7 +403,7 @@ export default class exmo extends Exchange {
         //         },
         //     }
         //
-        const result = {};
+        const result: Dict = {};
         for (let i = 0; i < this.symbols.length; i++) {
             const symbol = this.symbols[i];
             const market = this.market (symbol);
@@ -482,7 +488,7 @@ export default class exmo extends Exchange {
         //         ],
         //     }
         //
-        const result = {};
+        const result: Dict = {};
         const cryptoListKeys = Object.keys (cryptoList);
         for (let i = 0; i < cryptoListKeys.length; i++) {
             const code = cryptoListKeys[i];
@@ -644,7 +650,7 @@ export default class exmo extends Exchange {
         //         ],
         //     }
         //
-        const result = {};
+        const result: Dict = {};
         for (let i = 0; i < currencyList.length; i++) {
             const currency = currencyList[i];
             const currencyId = this.safeString (currency, 'name');
@@ -652,7 +658,7 @@ export default class exmo extends Exchange {
             const providers = this.safeValue (cryptoList, currencyId);
             let active = false;
             let type = 'crypto';
-            const limits = {
+            const limits: Dict = {
                 'deposit': {
                     'min': undefined,
                     'max': undefined,
@@ -749,7 +755,7 @@ export default class exmo extends Exchange {
         //         },
         //     }
         //
-        let marginPairsDict = {};
+        let marginPairsDict: Dict = {};
         if (this.checkRequiredCredentials (false)) {
             const marginPairs = await this.privatePostMarginPairList (params);
             //
@@ -868,7 +874,7 @@ export default class exmo extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'symbol': market['id'],
             'resolution': this.safeString (this.timeframes, timeframe, timeframe),
         };
@@ -929,7 +935,7 @@ export default class exmo extends Exchange {
     }
 
     parseBalance (response): Balances {
-        const result = { 'info': response };
+        const result: Dict = { 'info': response };
         const wallets = this.safeValue (response, 'wallets');
         if (wallets !== undefined) {
             const currencyIds = Object.keys (wallets);
@@ -1025,7 +1031,7 @@ export default class exmo extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'pair': market['id'],
         };
         if (limit !== undefined) {
@@ -1060,14 +1066,14 @@ export default class exmo extends Exchange {
             ids = this.marketIds (symbols);
             ids = ids.join (',');
         }
-        const request = {
+        const request: Dict = {
             'pair': ids,
         };
         if (limit !== undefined) {
             request['limit'] = limit;
         }
         const response = await this.publicGetOrderBook (this.extend (request, params));
-        const result = {};
+        const result: Dict = {};
         const marketIds = Object.keys (response);
         for (let i = 0; i < marketIds.length; i++) {
             const marketId = marketIds[i];
@@ -1077,7 +1083,7 @@ export default class exmo extends Exchange {
         return result as Dictionary<OrderBook>;
     }
 
-    parseTicker (ticker, market: Market = undefined): Ticker {
+    parseTicker (ticker: Dict, market: Market = undefined): Ticker {
         //
         //     {
         //         "buy_price":"0.00002996",
@@ -1146,7 +1152,7 @@ export default class exmo extends Exchange {
         //         }
         //     }
         //
-        const result = {};
+        const result: Dict = {};
         const marketIds = Object.keys (response);
         for (let i = 0; i < marketIds.length; i++) {
             const marketId = marketIds[i];
@@ -1279,7 +1285,7 @@ export default class exmo extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'pair': market['id'],
         };
         const response = await this.publicGetTrades (this.extend (request, params));
@@ -1340,7 +1346,7 @@ export default class exmo extends Exchange {
         if (limit === undefined) {
             limit = 100;
         }
-        const request = {};
+        const request: Dict = {};
         if (isSpot) {
             request['pair'] = pair;
         } else {
@@ -1440,7 +1446,7 @@ export default class exmo extends Exchange {
         }
         const isSpot = (marginMode !== 'isolated');
         const triggerPrice = this.safeNumberN (params, [ 'triggerPrice', 'stopPrice', 'stop_price' ]);
-        const request = {
+        const request: Dict = {
             'pair': market['id'],
             // 'leverage': 2,
             'quantity': this.amountToPrecision (market['symbol'], amount),
@@ -1535,7 +1541,7 @@ export default class exmo extends Exchange {
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
-        const request = {};
+        const request: Dict = {};
         const stop = this.safeValue2 (params, 'trigger', 'stop');
         params = this.omit (params, [ 'trigger', 'stop' ]);
         let marginMode = undefined;
@@ -1582,7 +1588,7 @@ export default class exmo extends Exchange {
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
-        const request = {
+        const request: Dict = {
             'order_id': id.toString (),
         };
         const response = await this.privatePostOrderTrades (this.extend (request, params));
@@ -1636,7 +1642,7 @@ export default class exmo extends Exchange {
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        const request = {
+        const request: Dict = {
             'order_id': id.toString (),
         };
         let response = undefined;
@@ -1786,7 +1792,7 @@ export default class exmo extends Exchange {
         if (status === undefined) {
             return undefined;
         }
-        const statuses = {
+        const statuses: Dict = {
             'cancel_started': 'canceled',
         };
         if (status.indexOf ('cancel') >= 0) {
@@ -1796,7 +1802,7 @@ export default class exmo extends Exchange {
     }
 
     parseSide (orderType) {
-        const side = {
+        const side: Dict = {
             'limit_buy': 'buy',
             'limit_sell': 'sell',
             'market_buy': 'buy',
@@ -1983,7 +1989,7 @@ export default class exmo extends Exchange {
             const marketInner = this.market (symbol);
             symbol = marketInner['symbol'];
         }
-        const request = {
+        const request: Dict = {
             'limit': limit,
         };
         request['offset'] = (since !== undefined) ? limit : 0;
@@ -2083,7 +2089,7 @@ export default class exmo extends Exchange {
         }
         const triggerPrice = this.safeNumberN (params, [ 'triggerPrice', 'stopPrice', 'stop_price' ]);
         params = this.omit (params, [ 'triggerPrice', 'stopPrice' ]);
-        const request = {
+        const request: Dict = {
             'order_id': id,  // id of the open order
         };
         if (amount !== undefined) {
@@ -2148,7 +2154,7 @@ export default class exmo extends Exchange {
         return undefined;
     }
 
-    async withdraw (code: string, amount: number, address, tag = undefined, params = {}) {
+    async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}) {
         /**
          * @method
          * @name exmo#withdraw
@@ -2164,7 +2170,7 @@ export default class exmo extends Exchange {
         [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
         await this.loadMarkets ();
         const currency = this.currency (code);
-        const request = {
+        const request: Dict = {
             'amount': amount,
             'currency': currency['id'],
             'address': address,
@@ -2184,7 +2190,7 @@ export default class exmo extends Exchange {
     }
 
     parseTransactionStatus (status) {
-        const statuses = {
+        const statuses: Dict = {
             'transferred': 'ok',
             'paid': 'ok',
             'pending': 'pending',
@@ -2343,7 +2349,7 @@ export default class exmo extends Exchange {
          * @returns {object} a list of [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         await this.loadMarkets ();
-        const request = {};
+        const request: Dict = {};
         if (since !== undefined) {
             request['date'] = this.parseToInt (since / 1000);
         }
@@ -2399,7 +2405,7 @@ export default class exmo extends Exchange {
          */
         await this.loadMarkets ();
         let currency = undefined;
-        const request = {
+        const request: Dict = {
             'type': 'withdraw',
         };
         if (limit !== undefined) {
@@ -2453,7 +2459,7 @@ export default class exmo extends Exchange {
          */
         await this.loadMarkets ();
         let currency = undefined;
-        const request = {
+        const request: Dict = {
             'order_id': id,
             'type': 'withdraw',
         };
@@ -2506,7 +2512,7 @@ export default class exmo extends Exchange {
          */
         await this.loadMarkets ();
         let currency = undefined;
-        const request = {
+        const request: Dict = {
             'order_id': id,
             'type': 'deposit',
         };
@@ -2560,7 +2566,7 @@ export default class exmo extends Exchange {
          */
         await this.loadMarkets ();
         let currency = undefined;
-        const request = {
+        const request: Dict = {
             'type': 'deposit',
         };
         if (limit !== undefined) {

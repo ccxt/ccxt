@@ -1,5 +1,5 @@
 import Exchange from './abstract/coinbaseinternational.js';
-import type { Int, OrderSide, OrderType, Order, Trade, Ticker, Str, Transaction, Balances, Tickers, Strings, Market, Currency, TransferEntry, Position, FundingRateHistory, Currencies } from './base/types.js';
+import type { Int, OrderSide, OrderType, Order, Trade, Ticker, Str, Transaction, Balances, Tickers, Strings, Market, Currency, TransferEntry, Position, FundingRateHistory, Currencies, Dict } from './base/types.js';
 /**
  * @class coinbaseinternational
  * @augments Exchange
@@ -42,9 +42,9 @@ export default class coinbaseinternational extends Exchange {
         address: string;
         info: any;
     }>;
-    findDefaultNetwork(networks: any): unknown;
+    findDefaultNetwork(networks: any): any;
     loadCurrencyNetworks(code: any, params?: {}): Promise<void>;
-    parseNetworks(networks: any, params?: {}): {};
+    parseNetworks(networks: any, params?: {}): Dict;
     parseNetwork(network: any, params?: {}): {
         info: any;
         id: string;
@@ -106,15 +106,15 @@ export default class coinbaseinternational extends Exchange {
     transfer(code: string, amount: number, fromAccount: string, toAccount: string, params?: {}): Promise<TransferEntry>;
     createOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: number, params?: {}): Promise<Order>;
     parseOrder(order: any, market?: Market): Order;
-    parseOrderStatus(status: any): string;
-    parseOrderType(type: any): string;
+    parseOrderStatus(status: Str): string;
+    parseOrderType(type: Str): string;
     cancelOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
     cancelAllOrders(symbol?: string, params?: {}): Promise<Order[]>;
     editOrder(id: string, symbol: string, type: OrderType, side: OrderSide, amount?: number, price?: number, params?: {}): Promise<Order>;
     fetchOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
     fetchOpenOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     fetchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
-    withdraw(code: string, amount: number, address: any, tag?: any, params?: {}): Promise<Transaction>;
+    withdraw(code: string, amount: number, address: string, tag?: any, params?: {}): Promise<Transaction>;
     safeNetwork(network: any): {
         info: any;
         id: string;

@@ -5,7 +5,7 @@ import Exchange from './abstract/coinspot.js';
 import { ExchangeError, ArgumentsRequired } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
-import type { Balances, Int, Market, Num, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade } from './base/types.js';
+import type { Balances, Dict, Int, Market, Num, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade } from './base/types.js';
 import { Precise } from './base/Precise.js';
 
 //  ---------------------------------------------------------------------------
@@ -59,8 +59,11 @@ export default class coinspot extends Exchange {
                 'fetchOpenInterestHistory': false,
                 'fetchOrderBook': true,
                 'fetchPosition': false,
+                'fetchPositionHistory': false,
                 'fetchPositionMode': false,
                 'fetchPositions': false,
+                'fetchPositionsForSymbol': false,
+                'fetchPositionsHistory': false,
                 'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchTicker': true,
@@ -145,7 +148,7 @@ export default class coinspot extends Exchange {
     }
 
     parseBalance (response): Balances {
-        const result = { 'info': response };
+        const result: Dict = { 'info': response };
         const balances = this.safeValue2 (response, 'balance', 'balances');
         if (Array.isArray (balances)) {
             for (let i = 0; i < balances.length; i++) {
@@ -217,14 +220,14 @@ export default class coinspot extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'cointype': market['id'],
         };
         const orderbook = await this.privatePostOrders (this.extend (request, params));
         return this.parseOrderBook (orderbook, market['symbol'], undefined, 'buyorders', 'sellorders', 'rate', 'amount');
     }
 
-    parseTicker (ticker, market: Market = undefined): Ticker {
+    parseTicker (ticker: Dict, market: Market = undefined): Ticker {
         //
         //     {
         //         "btc":{
@@ -321,7 +324,7 @@ export default class coinspot extends Exchange {
         //      }
         //    }
         //
-        const result = {};
+        const result: Dict = {};
         const prices = this.safeValue (response, 'prices');
         const ids = Object.keys (prices);
         for (let i = 0; i < ids.length; i++) {
@@ -350,7 +353,7 @@ export default class coinspot extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'cointype': market['id'],
         };
         const response = await this.privatePostOrdersHistory (this.extend (request, params));
@@ -379,7 +382,7 @@ export default class coinspot extends Exchange {
          * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
          */
         await this.loadMarkets ();
-        const request = {};
+        const request: Dict = {};
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
@@ -516,7 +519,7 @@ export default class coinspot extends Exchange {
             throw new ExchangeError (this.id + ' createOrder() allows limit orders only');
         }
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'cointype': market['id'],
             'amount': amount,
             'rate': price,
@@ -542,7 +545,7 @@ export default class coinspot extends Exchange {
         }
         params = this.omit (params, 'side');
         const method = 'privatePostMy' + this.capitalize (side) + 'Cancel';
-        const request = {
+        const request: Dict = {
             'id': id,
         };
         return await this[method] (this.extend (request, params));

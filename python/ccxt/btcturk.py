@@ -66,8 +66,11 @@ class btcturk(Exchange, ImplicitAPI):
                 'fetchOrderBook': True,
                 'fetchOrders': True,
                 'fetchPosition': False,
+                'fetchPositionHistory': False,
                 'fetchPositionMode': False,
                 'fetchPositions': False,
+                'fetchPositionsForSymbol': False,
+                'fetchPositionsHistory': False,
                 'fetchPositionsRisk': False,
                 'fetchPremiumIndexOHLCV': False,
                 'fetchTicker': True,
@@ -278,7 +281,7 @@ class btcturk(Exchange, ImplicitAPI):
 
     def parse_balance(self, response) -> Balances:
         data = self.safe_value(response, 'data', [])
-        result = {
+        result: dict = {
             'info': response,
             'timestamp': None,
             'datetime': None,
@@ -332,7 +335,7 @@ class btcturk(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'pairSymbol': market['id'],
         }
         response = self.publicGetOrderbook(self.extend(request, params))
@@ -351,7 +354,7 @@ class btcturk(Exchange, ImplicitAPI):
         timestamp = self.safe_integer(data, 'timestamp')
         return self.parse_order_book(data, market['symbol'], timestamp, 'bids', 'asks', 0, 1)
 
-    def parse_ticker(self, ticker, market: Market = None) -> Ticker:
+    def parse_ticker(self, ticker: dict, market: Market = None) -> Ticker:
         #
         #   {
         #     "pair": "BTCTRY",
@@ -499,7 +502,7 @@ class btcturk(Exchange, ImplicitAPI):
         self.load_markets()
         market = self.market(symbol)
         # maxCount = 50
-        request = {
+        request: dict = {
             'pairSymbol': market['id'],
         }
         if limit is not None:
@@ -559,7 +562,7 @@ class btcturk(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'symbol': market['id'],
             'resolution': self.safe_value(self.timeframes, timeframe, timeframe),  # allows the user to pass custom timeframes if needed
         }
@@ -627,7 +630,7 @@ class btcturk(Exchange, ImplicitAPI):
         close = self.safe_value(ohlcvs, 'c')
         volume = self.safe_value(ohlcvs, 'v')
         for i in range(0, len(timestamp)):
-            ohlcv = {
+            ohlcv: dict = {
                 'timestamp': self.safe_value(timestamp, i),
                 'high': self.safe_value(high, i),
                 'open': self.safe_value(open, i),
@@ -653,7 +656,7 @@ class btcturk(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'orderType': side,
             'orderMethod': type,
             'pairSymbol': market['id'],
@@ -678,7 +681,7 @@ class btcturk(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
-        request = {
+        request: dict = {
             'id': id,
         }
         return self.privateDeleteOrder(self.extend(request, params))
@@ -694,7 +697,7 @@ class btcturk(Exchange, ImplicitAPI):
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
-        request = {}
+        request: dict = {}
         market = None
         if symbol is not None:
             market = self.market(symbol)
@@ -717,7 +720,7 @@ class btcturk(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'pairSymbol': market['id'],
         }
         if limit is not None:
@@ -749,8 +752,8 @@ class btcturk(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data')
         return self.parse_orders(data, market, since, limit)
 
-    def parse_order_status(self, status):
-        statuses = {
+    def parse_order_status(self, status: Str):
+        statuses: dict = {
             'Untouched': 'open',
             'Partial': 'open',
             'Canceled': 'canceled',

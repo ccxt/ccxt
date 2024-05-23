@@ -240,7 +240,7 @@ class lbank extends \ccxt\async\lbank {
         }
     }
 
-    public function fetch_ticker_ws($symbol, $params = array ()): PromiseInterface {
+    public function fetch_ticker_ws(string $symbol, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * @see https://www.lbank.com/en-US/docs/index.html#$request-amp-subscription-instruction
@@ -895,7 +895,7 @@ class lbank extends \ccxt\async\lbank {
                     $request = array(
                         'subscribeKey' => $authenticated['key'],
                     );
-                    $response = Async\await($this->spotPrivatePostSubscribeRefreshKey (array_merge($request, $params)));
+                    $response = Async\await($this->spotPrivatePostSubscribeRefreshKey ($this->extend($request, $params)));
                     //
                     //    array("result" => "true")
                     //

@@ -107,7 +107,7 @@ class currencycom extends \ccxt\async\currencycom {
         //
         $payload = $this->safe_value($message, 'payload');
         $balance = $this->parse_balance($payload);
-        $this->balance = array_merge($this->balance, $balance);
+        $this->balance = $this->extend($this->balance, $balance);
         $messageHash = $this->safe_string($subscription, 'messageHash');
         $client->resolve ($this->balance, $messageHash);
         if (is_array($client->subscriptions) && array_key_exists($messageHash, $client->subscriptions)) {
@@ -311,7 +311,7 @@ class currencycom extends \ccxt\async\currencycom {
                     'symbols' => [ $market['id'] ],
                 ),
             ), $params);
-            $subscription = array_merge($request, array(
+            $subscription = $this->extend($request, array(
                 'messageHash' => $messageHash,
                 'symbol' => $symbol,
             ));
@@ -336,7 +336,7 @@ class currencycom extends \ccxt\async\currencycom {
                 'payload' => $payload,
             ), $params);
             $request['payload']['signature'] = $this->hmac($this->encode($auth), $this->encode($this->secret), 'sha256');
-            $subscription = array_merge($request, array(
+            $subscription = $this->extend($request, array(
                 'messageHash' => $messageHash,
             ));
             return Async\await($this->watch($url, $messageHash, $request, $messageHash, $subscription));
@@ -377,7 +377,7 @@ class currencycom extends \ccxt\async\currencycom {
                     'symbol' => $market['id'],
                 ),
             ), $params);
-            $subscription = array_merge($request, array(
+            $subscription = $this->extend($request, array(
                 'messageHash' => $messageHash,
                 'symbol' => $symbol,
             ));
@@ -445,7 +445,7 @@ class currencycom extends \ccxt\async\currencycom {
                     ],
                 ),
             );
-            $ohlcv = Async\await($this->watch_public($messageHash, $symbol, array_merge($request, $params)));
+            $ohlcv = Async\await($this->watch_public($messageHash, $symbol, $this->extend($request, $params)));
             if ($this->newUpdates) {
                 $limit = $ohlcv->getLimit ($symbol, $limit);
             }

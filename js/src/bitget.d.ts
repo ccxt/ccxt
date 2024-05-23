@@ -1,5 +1,5 @@
 import Exchange from './abstract/bitget.js';
-import type { Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderRequest, FundingHistory, Balances, Str, Transaction, Ticker, OrderBook, Tickers, Market, Strings, Currency, Position, Liquidation, TransferEntry, Leverage, MarginMode, Num, MarginModification, TradingFeeInterface, Currencies, TradingFees } from './base/types.js';
+import type { Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderRequest, FundingHistory, Balances, Str, Transaction, Ticker, OrderBook, Tickers, Market, Strings, Currency, Position, Liquidation, TransferEntry, Leverage, MarginMode, Num, MarginModification, TradingFeeInterface, Currencies, TradingFees, Conversion, CrossBorrowRate, IsolatedBorrowRate, Dict, TransferEntries } from './base/types.js';
 /**
  * @class bitget
  * @augments Exchange
@@ -17,7 +17,7 @@ export default class bitget extends Exchange {
     fetchMarketLeverageTiers(symbol: string, params?: {}): Promise<any[]>;
     parseMarketLeverageTiers(info: any, market?: Market): any[];
     fetchDeposits(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
-    withdraw(code: string, amount: number, address: any, tag?: any, params?: {}): Promise<Transaction>;
+    withdraw(code: string, amount: number, address: string, tag?: any, params?: {}): Promise<Transaction>;
     fetchWithdrawals(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
     parseTransaction(transaction: any, currency?: Currency): Transaction;
     parseTransactionStatus(status: any): string;
@@ -36,7 +36,7 @@ export default class bitget extends Exchange {
         info: any;
     };
     fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
-    parseTicker(ticker: any, market?: Market): Ticker;
+    parseTicker(ticker: Dict, market?: Market): Ticker;
     fetchTicker(symbol: string, params?: {}): Promise<Ticker>;
     fetchTickers(symbols?: Strings, params?: {}): Promise<Tickers>;
     parseTrade(trade: any, market?: Market): Trade;
@@ -55,7 +55,7 @@ export default class bitget extends Exchange {
     fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
     fetchBalance(params?: {}): Promise<Balances>;
     parseBalance(balance: any): Balances;
-    parseOrderStatus(status: any): string;
+    parseOrderStatus(status: Str): string;
     parseOrder(order: any, market?: Market): Order;
     createMarketBuyOrderWithCost(symbol: string, cost: number, params?: {}): Promise<Order>;
     createOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): Promise<Order>;
@@ -144,42 +144,21 @@ export default class bitget extends Exchange {
     };
     parseFundingHistories(contracts: any, market?: any, since?: Int, limit?: Int): FundingHistory[];
     modifyMarginHelper(symbol: string, amount: any, type: any, params?: {}): Promise<MarginModification>;
-    parseMarginModification(data: any, market?: Market): MarginModification;
-    reduceMargin(symbol: string, amount: any, params?: {}): Promise<MarginModification>;
-    addMargin(symbol: string, amount: any, params?: {}): Promise<MarginModification>;
+    parseMarginModification(data: Dict, market?: Market): MarginModification;
+    reduceMargin(symbol: string, amount: number, params?: {}): Promise<MarginModification>;
+    addMargin(symbol: string, amount: number, params?: {}): Promise<MarginModification>;
     fetchLeverage(symbol: string, params?: {}): Promise<Leverage>;
-    parseLeverage(leverage: any, market?: any): Leverage;
+    parseLeverage(leverage: Dict, market?: Market): Leverage;
     setLeverage(leverage: Int, symbol?: Str, params?: {}): Promise<any>;
     setMarginMode(marginMode: string, symbol?: Str, params?: {}): Promise<any>;
     setPositionMode(hedged: boolean, symbol?: Str, params?: {}): Promise<any>;
     fetchOpenInterest(symbol: string, params?: {}): Promise<import("./base/types.js").OpenInterest>;
     parseOpenInterest(interest: any, market?: Market): import("./base/types.js").OpenInterest;
-    fetchTransfers(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    fetchTransfers(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<TransferEntries>;
     transfer(code: string, amount: number, fromAccount: string, toAccount: string, params?: {}): Promise<TransferEntry>;
-    parseTransfer(transfer: any, currency?: Currency): {
-        info: any;
-        id: string;
-        timestamp: number;
-        datetime: string;
-        currency: string;
-        amount: number;
-        fromAccount: string;
-        toAccount: string;
-        status: string;
-    };
-    parseTransferStatus(status: any): string;
-    parseDepositWithdrawFee(fee: any, currency?: Currency): {
-        info: any;
-        withdraw: {
-            fee: any;
-            percentage: any;
-        };
-        deposit: {
-            fee: any;
-            percentage: any;
-        };
-        networks: {};
-    };
+    parseTransfer(transfer: Dict, currency?: Currency): TransferEntry;
+    parseTransferStatus(status: Str): Str;
+    parseDepositWithdrawFee(fee: any, currency?: Currency): Dict;
     fetchDepositWithdrawFees(codes?: Strings, params?: {}): Promise<any>;
     borrowCrossMargin(code: string, amount: number, params?: {}): Promise<{
         id: string;
@@ -228,36 +207,9 @@ export default class bitget extends Exchange {
     };
     fetchMyLiquidations(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Liquidation[]>;
     parseLiquidation(liquidation: any, market?: Market): Liquidation;
-    fetchIsolatedBorrowRate(symbol: string, params?: {}): Promise<{
-        symbol: string;
-        base: string;
-        baseRate: number;
-        quote: string;
-        quoteRate: number;
-        period: number;
-        timestamp: number;
-        datetime: string;
-        info: any;
-    }>;
-    parseIsolatedBorrowRate(info: any, market?: Market): {
-        symbol: string;
-        base: string;
-        baseRate: number;
-        quote: string;
-        quoteRate: number;
-        period: number;
-        timestamp: number;
-        datetime: string;
-        info: any;
-    };
-    fetchCrossBorrowRate(code: string, params?: {}): Promise<{
-        currency: string;
-        rate: number;
-        period: number;
-        timestamp: number;
-        datetime: string;
-        info: any;
-    }>;
+    fetchIsolatedBorrowRate(symbol: string, params?: {}): Promise<IsolatedBorrowRate>;
+    parseIsolatedBorrowRate(info: any, market?: Market): IsolatedBorrowRate;
+    fetchCrossBorrowRate(code: string, params?: {}): Promise<CrossBorrowRate>;
     parseBorrowRate(info: any, currency?: Currency): {
         currency: string;
         rate: number;
@@ -282,6 +234,12 @@ export default class bitget extends Exchange {
     closeAllPositions(params?: {}): Promise<Position[]>;
     fetchMarginMode(symbol: string, params?: {}): Promise<MarginMode>;
     parseMarginMode(marginMode: any, market?: any): MarginMode;
+    fetchPositionsHistory(symbols?: Strings, since?: Int, limit?: Int, params?: {}): Promise<Position[]>;
+    fetchConvertQuote(fromCode: string, toCode: string, amount?: Num, params?: {}): Promise<Conversion>;
+    createConvertTrade(id: string, fromCode: string, toCode: string, amount?: Num, params?: {}): Promise<Conversion>;
+    fetchConvertTradeHistory(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Conversion[]>;
+    parseConversion(conversion: Dict, fromCurrency?: Currency, toCurrency?: Currency): Conversion;
+    fetchConvertCurrencies(params?: {}): Promise<Currencies>;
     handleErrors(code: any, reason: any, url: any, method: any, headers: any, body: any, response: any, requestHeaders: any, requestBody: any): any;
     sign(path: any, api?: any[], method?: string, params?: {}, headers?: any, body?: any): {
         url: string;

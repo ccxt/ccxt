@@ -6,7 +6,7 @@ import { ArgumentsRequired, ExchangeError, OrderNotFound, InvalidOrder, Insuffic
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
 import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
-import type { Balances, Currency, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade, Transaction } from './base/types.js';
+import type { Balances, Currency, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade, Transaction } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -67,8 +67,11 @@ export default class btcmarkets extends Exchange {
                 'fetchOrderBook': true,
                 'fetchOrders': true,
                 'fetchPosition': false,
+                'fetchPositionHistory': false,
                 'fetchPositionMode': false,
                 'fetchPositions': false,
+                'fetchPositionsForSymbol': false,
+                'fetchPositionsHistory': false,
                 'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchTicker': true,
@@ -182,7 +185,7 @@ export default class btcmarkets extends Exchange {
 
     async fetchTransactionsWithMethod (method, code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         await this.loadMarkets ();
-        const request = {};
+        const request: Dict = {};
         if (limit !== undefined) {
             request['limit'] = limit;
         }
@@ -243,7 +246,7 @@ export default class btcmarkets extends Exchange {
     }
 
     parseTransactionStatus (status) {
-        const statuses = {
+        const statuses: Dict = {
             'Accepted': 'pending',
             'Pending Authorization': 'pending',
             'Complete': 'ok',
@@ -254,7 +257,7 @@ export default class btcmarkets extends Exchange {
     }
 
     parseTransactionType (type) {
-        const statuses = {
+        const statuses: Dict = {
             'Withdraw': 'withdrawal',
             'Deposit': 'deposit',
         };
@@ -478,7 +481,7 @@ export default class btcmarkets extends Exchange {
     }
 
     parseBalance (response): Balances {
-        const result = { 'info': response };
+        const result: Dict = { 'info': response };
         for (let i = 0; i < response.length; i++) {
             const balance = response[i];
             const currencyId = this.safeString (balance, 'assetName');
@@ -541,7 +544,7 @@ export default class btcmarkets extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'marketId': market['id'],
             'timeWindow': this.safeString (this.timeframes, timeframe, timeframe),
             // 'from': this.iso8601 (since),
@@ -580,7 +583,7 @@ export default class btcmarkets extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'marketId': market['id'],
         };
         const response = await this.publicGetMarketsMarketIdOrderbook (this.extend (request, params));
@@ -606,7 +609,7 @@ export default class btcmarkets extends Exchange {
         return orderbook;
     }
 
-    parseTicker (ticker, market: Market = undefined): Ticker {
+    parseTicker (ticker: Dict, market: Market = undefined): Ticker {
         //
         // fetchTicker
         //
@@ -669,7 +672,7 @@ export default class btcmarkets extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'marketId': market['id'],
         };
         const response = await this.publicGetMarketsMarketIdTicker (this.extend (request, params));
@@ -694,7 +697,7 @@ export default class btcmarkets extends Exchange {
     async fetchTicker2 (symbol: string, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'id': market['id'],
         };
         const response = await this.publicGetMarketsMarketIdTicker (this.extend (request, params));
@@ -782,7 +785,7 @@ export default class btcmarkets extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             // 'since': 59868345231,
             'marketId': market['id'],
         };
@@ -813,7 +816,7 @@ export default class btcmarkets extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'marketId': market['id'],
             // 'price': this.priceToPrecision (symbol, price),
             'amount': this.amountToPrecision (symbol, amount),
@@ -909,7 +912,7 @@ export default class btcmarkets extends Exchange {
         for (let i = 0; i < ids.length; i++) {
             ids[i] = parseInt (ids[i]);
         }
-        const request = {
+        const request: Dict = {
             'ids': ids,
         };
         return await this.privateDeleteBatchordersIds (this.extend (request, params));
@@ -927,7 +930,7 @@ export default class btcmarkets extends Exchange {
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
-        const request = {
+        const request: Dict = {
             'id': id,
         };
         return await this.privateDeleteOrdersId (this.extend (request, params));
@@ -969,8 +972,8 @@ export default class btcmarkets extends Exchange {
         };
     }
 
-    parseOrderStatus (status) {
-        const statuses = {
+    parseOrderStatus (status: Str) {
+        const statuses: Dict = {
             'Accepted': 'open',
             'Placed': 'open',
             'Partially Matched': 'open',
@@ -1060,7 +1063,7 @@ export default class btcmarkets extends Exchange {
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
-        const request = {
+        const request: Dict = {
             'id': id,
         };
         const response = await this.privateGetOrdersId (this.extend (request, params));
@@ -1080,7 +1083,7 @@ export default class btcmarkets extends Exchange {
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
-        const request = {
+        const request: Dict = {
             'status': 'all',
         };
         let market = undefined;
@@ -1110,7 +1113,7 @@ export default class btcmarkets extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
-        const request = { 'status': 'open' };
+        const request: Dict = { 'status': 'open' };
         return await this.fetchOrders (symbol, since, limit, this.extend (request, params));
     }
 
@@ -1143,7 +1146,7 @@ export default class btcmarkets extends Exchange {
          * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
          */
         await this.loadMarkets ();
-        const request = {};
+        const request: Dict = {};
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
@@ -1186,7 +1189,7 @@ export default class btcmarkets extends Exchange {
         return this.parseTrades (response, market, since, limit);
     }
 
-    async withdraw (code: string, amount: number, address, tag = undefined, params = {}) {
+    async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}) {
         /**
          * @method
          * @name btcmarkets#withdraw
@@ -1202,7 +1205,7 @@ export default class btcmarkets extends Exchange {
         [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
         await this.loadMarkets ();
         const currency = this.currency (code);
-        const request = {
+        const request: Dict = {
             'currency_id': currency['id'],
             'amount': this.currencyToPrecision (code, amount),
         };

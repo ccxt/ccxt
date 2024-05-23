@@ -3050,6 +3050,7 @@ class bitrue extends bitrue$1 {
             'info': data,
             'symbol': market['symbol'],
             'type': undefined,
+            'marginMode': 'isolated',
             'amount': undefined,
             'total': undefined,
             'code': undefined,
@@ -3141,6 +3142,11 @@ class bitrue extends bitrue$1 {
                 signPath = signPath + '/' + version + '/' + path;
                 let signMessage = timestamp + method + signPath;
                 if (method === 'GET') {
+                    const keys = Object.keys(params);
+                    const keysLength = keys.length;
+                    if (keysLength > 0) {
+                        signMessage += '?' + this.urlencode(params);
+                    }
                     const signature = this.hmac(this.encode(signMessage), this.encode(this.secret), sha256.sha256);
                     headers = {
                         'X-CH-APIKEY': this.apiKey,
@@ -3154,7 +3160,7 @@ class bitrue extends bitrue$1 {
                         'recvWindow': recvWindow,
                     }, params);
                     body = this.json(query);
-                    signMessage = signMessage + JSON.stringify(body);
+                    signMessage += body;
                     const signature = this.hmac(this.encode(signMessage), this.encode(this.secret), sha256.sha256);
                     headers = {
                         'Content-Type': 'application/json',

@@ -72,8 +72,11 @@ export default class bitstamp extends Exchange {
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchPosition': false,
+                'fetchPositionHistory': false,
                 'fetchPositionMode': false,
                 'fetchPositions': false,
+                'fetchPositionsForSymbol': false,
+                'fetchPositionsHistory': false,
                 'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchTicker': true,
@@ -360,6 +363,12 @@ export default class bitstamp extends Exchange {
                         'blur_address/': 1,
                         'vext_withdrawal/': 1,
                         'vext_address/': 1,
+                        'cspr_withdrawal/': 1,
+                        'cspr_address/': 1,
+                        'vchf_withdrawal/': 1,
+                        'vchf_address/': 1,
+                        'veur_withdrawal/': 1,
+                        'veur_address/': 1,
                     },
                 },
             },
@@ -2145,10 +2154,8 @@ export default class bitstamp extends Exchange {
          */
         await this.loadMarkets();
         const currency = this.currency(code);
-        amount = this.currencyToPrecision(code, amount);
-        amount = this.parseToNumeric(amount);
         const request = {
-            'amount': amount,
+            'amount': this.parseToNumeric(this.currencyToPrecision(code, amount)),
             'currency': currency['id'].toUpperCase(),
         };
         let response = undefined;

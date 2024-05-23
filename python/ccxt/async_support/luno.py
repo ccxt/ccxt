@@ -64,8 +64,11 @@ class luno(Exchange, ImplicitAPI):
                 'fetchOrderBook': True,
                 'fetchOrders': True,
                 'fetchPosition': False,
+                'fetchPositionHistory': False,
                 'fetchPositionMode': False,
                 'fetchPositions': False,
+                'fetchPositionsForSymbol': False,
+                'fetchPositionsHistory': False,
                 'fetchPositionsRisk': False,
                 'fetchPremiumIndexOHLCV': False,
                 'fetchTicker': True,
@@ -147,6 +150,7 @@ class luno(Exchange, ImplicitAPI):
                         'withdrawals': 1,
                         'send': 1,
                         'oauth2/grant': 1,
+                        'beneficiaries': 1,
                         # POST /api/exchange/1/move
                     },
                     'put': {
@@ -154,6 +158,7 @@ class luno(Exchange, ImplicitAPI):
                     },
                     'delete': {
                         'withdrawals/{id}': 1,
+                        'beneficiaries/{id}': 1,
                     },
                 },
             },
@@ -293,7 +298,7 @@ class luno(Exchange, ImplicitAPI):
 
     def parse_balance(self, response) -> Balances:
         wallets = self.safe_value(response, 'balance', [])
-        result = {
+        result: dict = {
             'info': response,
             'timestamp': None,
             'datetime': None,
@@ -350,7 +355,7 @@ class luno(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'pair': market['id'],
         }
         response = None
@@ -361,8 +366,8 @@ class luno(Exchange, ImplicitAPI):
         timestamp = self.safe_integer(response, 'timestamp')
         return self.parse_order_book(response, market['symbol'], timestamp, 'bids', 'asks', 'price', 'volume')
 
-    def parse_order_status(self, status):
-        statuses = {
+    def parse_order_status(self, status: Str):
+        statuses: dict = {
             # todo add other statuses
             'PENDING': 'open',
         }
@@ -449,7 +454,7 @@ class luno(Exchange, ImplicitAPI):
         :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
-        request = {
+        request: dict = {
             'id': id,
         }
         response = await self.privateGetOrdersId(self.extend(request, params))
@@ -457,7 +462,7 @@ class luno(Exchange, ImplicitAPI):
 
     async def fetch_orders_by_state(self, state=None, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         await self.load_markets()
-        request = {}
+        request: dict = {}
         market = None
         if state is not None:
             request['state'] = state
@@ -504,7 +509,7 @@ class luno(Exchange, ImplicitAPI):
         """
         return await self.fetch_orders_by_state('COMPLETE', symbol, since, limit, params)
 
-    def parse_ticker(self, ticker, market: Market = None) -> Ticker:
+    def parse_ticker(self, ticker: dict, market: Market = None) -> Ticker:
         # {
         #     "pair":"XBTAUD",
         #     "timestamp":1642201439301,
@@ -554,7 +559,7 @@ class luno(Exchange, ImplicitAPI):
         response = await self.publicGetTickers(params)
         tickers = self.index_by(response['tickers'], 'pair')
         ids = list(tickers.keys())
-        result = {}
+        result: dict = {}
         for i in range(0, len(ids)):
             id = ids[i]
             market = self.safe_market(id)
@@ -573,7 +578,7 @@ class luno(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'pair': market['id'],
         }
         response = await self.publicGetTicker(self.extend(request, params))
@@ -684,7 +689,7 @@ class luno(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'pair': market['id'],
         }
         if since is not None:
@@ -719,7 +724,7 @@ class luno(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'duration': self.safe_value(self.timeframes, timeframe, timeframe),
             'pair': market['id'],
         }
@@ -780,7 +785,7 @@ class luno(Exchange, ImplicitAPI):
             raise ArgumentsRequired(self.id + ' fetchMyTrades() requires a symbol argument')
         await self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'pair': market['id'],
         }
         if since is not None:
@@ -822,7 +827,7 @@ class luno(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'pair': market['id'],
         }
         response = await self.privateGetFeeInfo(self.extend(request, params))
@@ -857,7 +862,7 @@ class luno(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'pair': market['id'],
         }
         response = None
@@ -889,7 +894,7 @@ class luno(Exchange, ImplicitAPI):
         :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
-        request = {
+        request: dict = {
             'order_id': id,
         }
         return await self.privatePostStoporder(self.extend(request, params))
@@ -901,7 +906,7 @@ class luno(Exchange, ImplicitAPI):
         if limit is None:
             limit = 1
         since = None
-        request = {
+        request: dict = {
             'min_row': entry,
             'max_row': self.sum(entry, limit),
         }
@@ -944,7 +949,7 @@ class luno(Exchange, ImplicitAPI):
                 max_row = min_row + limit
         if max_row - min_row > 1000:
             raise ExchangeError(self.id + " fetchLedger() requires the params 'max_row' - 'min_row' <= 1000")
-        request = {
+        request: dict = {
             'id': id,
             'min_row': min_row,
             'max_row': max_row,
@@ -955,7 +960,7 @@ class luno(Exchange, ImplicitAPI):
 
     def parse_ledger_comment(self, comment):
         words = comment.split(' ')
-        types = {
+        types: dict = {
             'Withdrawal': 'fee',
             'Trading': 'fee',
             'Payment': 'transaction',

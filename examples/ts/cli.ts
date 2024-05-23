@@ -109,8 +109,11 @@ try {
     for (const [credential, isRequired] of Object.entries (requiredCredentials)) {
         if (isRequired && exchange[credential] === undefined) {
             const credentialEnvName = (exchangeId + '_' + credential).toUpperCase () // example: KRAKEN_APIKEY
-            const credentialValue = process.env[credentialEnvName]
+            let credentialValue = process.env[credentialEnvName]
             if (credentialValue) {
+                if (credentialValue.indexOf('---BEGIN') > -1) {
+                    credentialValue = (credentialValue as any).replaceAll('\\n', '\n');
+                }
                 exchange[credential] = credentialValue
             }
         }

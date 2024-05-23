@@ -6,7 +6,7 @@ import { ExchangeError, ExchangeNotAvailable, ArgumentsRequired, BadRequest, Inv
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderRequest, Str, Transaction, Ticker, OrderBook, Balances, Tickers, Market, Strings, Currency, Position, TransferEntry, Leverage, Leverages, MarginMode, Num, TradingFeeInterface } from './base/types.js';
+import type { Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderRequest, Str, Transaction, Ticker, OrderBook, Balances, Tickers, Market, Strings, Currency, Position, TransferEntry, Leverage, Leverages, MarginMode, Num, TradingFeeInterface, Dict } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -194,6 +194,8 @@ export default class blofin extends Exchange {
                         'trade/orders-tpsl-pending': 1,
                         'trade/orders-history': 1,
                         'trade/orders-tpsl-history': 1,
+                        'user/query-apikey': 1,
+                        'affiliate/basic': 1,
                     },
                     'post': {
                         'trade/order': 1,
@@ -457,7 +459,7 @@ export default class blofin extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'instId': market['id'],
         };
         limit = (limit === undefined) ? 50 : limit;
@@ -492,7 +494,7 @@ export default class blofin extends Exchange {
         return this.parseOrderBook (first, symbol, timestamp);
     }
 
-    parseTicker (ticker, market: Market = undefined): Ticker {
+    parseTicker (ticker: Dict, market: Market = undefined): Ticker {
         const timestamp = this.safeInteger (ticker, 'ts');
         const marketId = this.safeString (ticker, 'instId');
         market = this.safeMarket (marketId, market, '-');
@@ -540,7 +542,7 @@ export default class blofin extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'instId': market['id'],
         };
         const response = await this.publicGetMarketTickers (this.extend (request, params));
@@ -646,7 +648,7 @@ export default class blofin extends Exchange {
             return await this.fetchPaginatedCallCursor ('fetchTrades', symbol, since, limit, params, 'tradeId', 'after', undefined, 100) as Trade[];
         }
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'instId': market['id'],
         };
         let response = undefined;
@@ -711,7 +713,7 @@ export default class blofin extends Exchange {
         if (limit === undefined) {
             limit = 100; // default 100, max 100
         }
-        const request = {
+        const request: Dict = {
             'instId': market['id'],
             'bar': this.safeString (this.timeframes, timeframe, timeframe),
             'limit': limit,
@@ -750,7 +752,7 @@ export default class blofin extends Exchange {
             return await this.fetchPaginatedCallDeterministic ('fetchFundingRateHistory', symbol, since, limit, '8h', params) as FundingRateHistory[];
         }
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'instId': market['id'],
         };
         if (since !== undefined) {
@@ -832,7 +834,7 @@ export default class blofin extends Exchange {
         if (!market['swap']) {
             throw new ExchangeError (this.id + ' fetchFundingRate() is only valid for swap markets');
         }
-        const request = {
+        const request: Dict = {
             'instId': market['id'],
         };
         const response = await this.publicGetMarketFundingRate (this.extend (request, params));
@@ -893,7 +895,7 @@ export default class blofin extends Exchange {
         //     }
         // }
         //
-        const result = { 'info': response };
+        const result: Dict = { 'info': response };
         const data = this.safeDict (response, 'data', {});
         const timestamp = this.safeInteger (data, 'ts');
         const details = this.safeList (data, 'details', []);
@@ -935,7 +937,7 @@ export default class blofin extends Exchange {
         //      ]
         //  }
         //
-        const result = { 'info': response };
+        const result: Dict = { 'info': response };
         const data = this.safeList (response, 'data', []);
         for (let i = 0; i < data.length; i++) {
             const balance = data[i];
@@ -977,7 +979,7 @@ export default class blofin extends Exchange {
         await this.loadMarkets ();
         const accountType = this.safeString2 (params, 'accountType', 'type');
         params = this.omit (params, [ 'accountType', 'type' ]);
-        const request = {
+        const request: Dict = {
         };
         let response = undefined;
         if (accountType !== undefined) {
@@ -993,7 +995,7 @@ export default class blofin extends Exchange {
 
     createOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'instId': market['id'],
             'side': side,
             'orderType': type,
@@ -1040,8 +1042,8 @@ export default class blofin extends Exchange {
         return this.extend (request, params);
     }
 
-    parseOrderStatus (status) {
-        const statuses = {
+    parseOrderStatus (status: Str) {
+        const statuses: Dict = {
             'canceled': 'canceled',
             'order_failed': 'canceled',
             'live': 'open',
@@ -1225,7 +1227,7 @@ export default class blofin extends Exchange {
     createTpslOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params = {}) {
         const market = this.market (symbol);
         const positionSide = this.safeString (params, 'positionSide', 'net');
-        const request = {
+        const request: Dict = {
             'instId': market['id'],
             'side': side,
             'positionSide': positionSide,
@@ -1278,7 +1280,7 @@ export default class blofin extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'instId': market['id'],
         };
         const isTrigger = this.safeBoolN (params, [ 'stop', 'trigger', 'tpsl' ], false);
@@ -1353,7 +1355,7 @@ export default class blofin extends Exchange {
         if (paginate) {
             return await this.fetchPaginatedCallDynamic ('fetchOpenOrders', symbol, since, limit, params) as Order[];
         }
-        const request = {
+        const request: Dict = {
         };
         let market = undefined;
         if (symbol !== undefined) {
@@ -1397,7 +1399,7 @@ export default class blofin extends Exchange {
         if (paginate) {
             return await this.fetchPaginatedCallDynamic ('fetchMyTrades', symbol, since, limit, params) as Trade[];
         }
-        let request = {
+        let request: Dict = {
         };
         let market = undefined;
         if (symbol !== undefined) {
@@ -1433,7 +1435,7 @@ export default class blofin extends Exchange {
         if (paginate) {
             return await this.fetchPaginatedCallDynamic ('fetchDeposits', code, since, limit, params);
         }
-        let request = {
+        let request: Dict = {
         };
         let currency = undefined;
         if (code !== undefined) {
@@ -1472,7 +1474,7 @@ export default class blofin extends Exchange {
         if (paginate) {
             return await this.fetchPaginatedCallDynamic ('fetchWithdrawals', code, since, limit, params);
         }
-        let request = {
+        let request: Dict = {
         };
         let currency = undefined;
         if (code !== undefined) {
@@ -1512,7 +1514,7 @@ export default class blofin extends Exchange {
         if (paginate) {
             return await this.fetchPaginatedCallDynamic ('fetchLedger', code, since, limit, params);
         }
-        let request = {
+        let request: Dict = {
         };
         if (limit !== undefined) {
             request['limit'] = limit;
@@ -1616,7 +1618,7 @@ export default class blofin extends Exchange {
     }
 
     parseTransactionStatus (status) {
-        const statuses = {
+        const statuses: Dict = {
             '0': 'pending',
             '1': 'ok',
             '2': 'failed',
@@ -1626,7 +1628,7 @@ export default class blofin extends Exchange {
     }
 
     parseLedgerEntryType (type) {
-        const types = {
+        const types: Dict = {
             '1': 'transfer', // transfer
             '2': 'trade', // trade
             '3': 'trade', // delivery
@@ -1770,7 +1772,7 @@ export default class blofin extends Exchange {
         const accountsByType = this.safeDict (this.options, 'accountsByType', {});
         const fromId = this.safeString (accountsByType, fromAccount, fromAccount);
         const toId = this.safeString (accountsByType, toAccount, toAccount);
-        const request = {
+        const request: Dict = {
             'currency': currency['id'],
             'amount': this.currencyToPrecision (code, amount),
             'fromAccount': fromId,
@@ -1781,7 +1783,7 @@ export default class blofin extends Exchange {
         return this.parseTransfer (data, currency);
     }
 
-    parseTransfer (transfer, currency: Currency = undefined) {
+    parseTransfer (transfer: Dict, currency: Currency = undefined): TransferEntry {
         const id = this.safeString (transfer, 'transferId');
         return {
             'info': transfer,
@@ -1809,7 +1811,7 @@ export default class blofin extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'instId': market['id'],
         };
         const response = await this.privateGetAccountPositions (this.extend (request, params));
@@ -1962,7 +1964,7 @@ export default class blofin extends Exchange {
                 instIds = instIds + entryMarket['id'];
             }
         }
-        const request = {
+        const request: Dict = {
             'instId': instIds,
             'marginMode': marginMode,
         };
@@ -2005,7 +2007,7 @@ export default class blofin extends Exchange {
             throw new BadRequest (this.id + ' fetchLeverage() requires a marginMode parameter that must be either cross or isolated');
         }
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'instId': market['id'],
             'marginMode': marginMode,
         };
@@ -2025,7 +2027,7 @@ export default class blofin extends Exchange {
         return this.parseLeverage (data, market);
     }
 
-    parseLeverage (leverage, market = undefined): Leverage {
+    parseLeverage (leverage: Dict, market: Market = undefined): Leverage {
         const marketId = this.safeString (leverage, 'instId');
         const leverageValue = this.safeInteger (leverage, 'leverage');
         return {
@@ -2064,7 +2066,7 @@ export default class blofin extends Exchange {
         if ((marginMode !== 'cross') && (marginMode !== 'isolated')) {
             throw new BadRequest (this.id + ' setLeverage() requires a marginMode parameter that must be either cross or isolated');
         }
-        const request = {
+        const request: Dict = {
             'leverage': leverage,
             'marginMode': marginMode,
             'instId': market['id'],
@@ -2096,7 +2098,7 @@ export default class blofin extends Exchange {
         const clientOrderId = this.safeString (params, 'clientOrderId');
         let marginMode = undefined;
         [ marginMode, params ] = this.handleMarginModeAndParams ('closePosition', params, 'cross');
-        const request = {
+        const request: Dict = {
             'instId': market['id'],
             'marginMode': marginMode,
         };
@@ -2128,7 +2130,7 @@ export default class blofin extends Exchange {
         if (paginate) {
             return await this.fetchPaginatedCallDynamic ('fetchClosedOrders', symbol, since, limit, params) as Order[];
         }
-        const request = {
+        const request: Dict = {
         };
         let market = undefined;
         if (symbol !== undefined) {

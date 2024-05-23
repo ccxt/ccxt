@@ -80,6 +80,7 @@ public partial class hollaex : Exchange
                 { "fetchWithdrawal", true },
                 { "fetchWithdrawals", true },
                 { "reduceMargin", false },
+                { "sandbox", true },
                 { "setLeverage", false },
                 { "setMarginMode", false },
                 { "setPositionMode", false },
@@ -545,15 +546,15 @@ public partial class hollaex : Exchange
         return this.parseTickers(response, symbols);
     }
 
-    public override object parseTickers(object response, object symbols = null, object parameters = null)
+    public override object parseTickers(object tickers, object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object result = new Dictionary<string, object>() {};
-        object keys = new List<object>(((IDictionary<string,object>)response).Keys);
+        object keys = new List<object>(((IDictionary<string,object>)tickers).Keys);
         for (object i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
         {
             object key = getValue(keys, i);
-            object ticker = getValue(response, key);
+            object ticker = getValue(tickers, key);
             object marketId = this.safeString(ticker, "symbol", key);
             object market = this.safeMarket(marketId, null, "-");
             object symbol = getValue(market, "symbol");

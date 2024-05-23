@@ -315,7 +315,7 @@ class wazirx extends \ccxt\async\wazirx {
                 'event' => 'subscribe',
                 'streams' => array( $messageHash ),
             );
-            $request = array_merge($message, $params);
+            $request = $this->extend($message, $params);
             $trades = Async\await($this->watch($url, $messageHash, $request, $messageHash));
             if ($this->newUpdates) {
                 $limit = $trades->getLimit ($symbol, $limit);
@@ -780,7 +780,8 @@ class wazirx extends \ccxt\async\wazirx {
         );
         $streams = is_array($streamHandlers) ? array_keys($streamHandlers) : array();
         for ($i = 0; $i < count($streams); $i++) {
-            if ($this->in_array($streams[$i], $stream)) {
+            $streamContains = mb_strpos($stream, $streams[$i]) > -1;
+            if ($streamContains) {
                 $handler = $streamHandlers[$streams[$i]];
                 $handler($client, $message);
                 return;

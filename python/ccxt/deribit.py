@@ -6,9 +6,10 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.deribit import ImplicitAPI
 import hashlib
-from ccxt.base.types import Account, Balances, Currencies, Currency, Greeks, Int, Market, MarketInterface, Num, Option, OptionChain, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction, TransferEntry
+from ccxt.base.types import Account, Balances, Currencies, Currency, Greeks, Int, Market, MarketInterface, Num, Option, OptionChain, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction, TransferEntry, TransferEntries
 from typing import List
 from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
@@ -20,7 +21,6 @@ from ccxt.base.errors import NotSupported
 from ccxt.base.errors import DDoSProtection
 from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import OnMaintenance
-from ccxt.base.errors import AuthenticationError
 from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
@@ -107,6 +107,7 @@ class deribit(Exchange, ImplicitAPI):
                 'fetchVolatilityHistory': True,
                 'fetchWithdrawal': False,
                 'fetchWithdrawals': True,
+                'sandbox': True,
                 'transfer': True,
                 'withdraw': True,
             },
@@ -549,7 +550,7 @@ class deribit(Exchange, ImplicitAPI):
         #    }
         #
         data = self.safe_value(response, 'result', {})
-        result = {}
+        result: dict = {}
         for i in range(0, len(data)):
             currency = data[i]
             currencyId = self.safe_string(currency, 'currency')
@@ -692,117 +693,127 @@ class deribit(Exchange, ImplicitAPI):
         """
         retrieves data on all markets for deribit
         :see: https://docs.deribit.com/#public-get_currencies
+        :see: https://docs.deribit.com/#public-get_instruments
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: an array of objects representing market data
         """
-        currenciesResponse = self.publicGetGetCurrencies(params)
-        #
-        #     {
-        #         "jsonrpc": "2.0",
-        #         "result": [
-        #             {
-        #                 "withdrawal_priorities": [
-        #                     {value: 0.15, name: "very_low"},
-        #                     {value: 1.5, name: "very_high"},
-        #                 ],
-        #                 "withdrawal_fee": 0.0005,
-        #                 "min_withdrawal_fee": 0.0005,
-        #                 "min_confirmations": 1,
-        #                 "fee_precision": 4,
-        #                 "currency_long": "Bitcoin",
-        #                 "currency": "BTC",
-        #                 "coin_type": "BITCOIN"
-        #             }
-        #         ],
-        #         "usIn": 1583761588590479,
-        #         "usOut": 1583761588590544,
-        #         "usDiff": 65,
-        #         "testnet": False
-        #     }
-        #
-        parsedMarkets = {}
-        currenciesResult = self.safe_value(currenciesResponse, 'result', [])
+        instrumentsResponses = []
         result = []
-        for i in range(0, len(currenciesResult)):
-            currencyId = self.safe_string(currenciesResult[i], 'currency')
-            request = {
-                'currency': currencyId,
-            }
-            instrumentsResponse = self.publicGetGetInstruments(self.extend(request, params))
+        parsedMarkets: dict = {}
+        fetchAllMarkets = None
+        fetchAllMarkets, params = self.handle_option_and_params(params, 'fetchMarkets', 'fetchAllMarkets', True)
+        if fetchAllMarkets:
+            instrumentsResponse = self.publicGetGetInstruments(params)
+            instrumentsResponses.append(instrumentsResponse)
+        else:
+            currenciesResponse = self.publicGetGetCurrencies(params)
             #
             #     {
-            #         "jsonrpc":"2.0",
-            #         "result":[
+            #         "jsonrpc": "2.0",
+            #         "result": [
             #             {
-            #                 "tick_size":0.0005,
-            #                 "taker_commission":0.0003,
-            #                 "strike":52000.0,
-            #                 "settlement_period":"month",
-            #                 "settlement_currency":"BTC",
-            #                 "quote_currency":"BTC",
-            #                 "option_type":"put",  # put, call
-            #                 "min_trade_amount":0.1,
-            #                 "maker_commission":0.0003,
-            #                 "kind":"option",
-            #                 "is_active":true,
-            #                 "instrument_name":"BTC-24JUN22-52000-P",
-            #                 "expiration_timestamp":1656057600000,
-            #                 "creation_timestamp":1648199543000,
-            #                 "counter_currency":"USD",
-            #                 "contract_size":1.0,
-            #                 "block_trade_commission":0.0003,
-            #                 "base_currency":"BTC"
-            #             },
-            #             {
-            #                 "tick_size":0.5,
-            #                 "taker_commission":0.0005,
-            #                 "settlement_period":"month",  # month, week
-            #                 "settlement_currency":"BTC",
-            #                 "quote_currency":"USD",
-            #                 "min_trade_amount":10.0,
-            #                 "max_liquidation_commission":0.0075,
-            #                 "max_leverage":50,
-            #                 "maker_commission":0.0,
-            #                 "kind":"future",
-            #                 "is_active":true,
-            #                 "instrument_name":"BTC-27MAY22",
-            #                 "future_type":"reversed",
-            #                 "expiration_timestamp":1653638400000,
-            #                 "creation_timestamp":1648195209000,
-            #                 "counter_currency":"USD",
-            #                 "contract_size":10.0,
-            #                 "block_trade_commission":0.0001,
-            #                 "base_currency":"BTC"
-            #             },
-            #             {
-            #                 "tick_size":0.5,
-            #                 "taker_commission":0.0005,
-            #                 "settlement_period":"perpetual",
-            #                 "settlement_currency":"BTC",
-            #                 "quote_currency":"USD",
-            #                 "min_trade_amount":10.0,
-            #                 "max_liquidation_commission":0.0075,
-            #                 "max_leverage":50,
-            #                 "maker_commission":0.0,
-            #                 "kind":"future",
-            #                 "is_active":true,
-            #                 "instrument_name":"BTC-PERPETUAL",
-            #                 "future_type":"reversed",
-            #                 "expiration_timestamp":32503708800000,
-            #                 "creation_timestamp":1534242287000,
-            #                 "counter_currency":"USD",
-            #                 "contract_size":10.0,
-            #                 "block_trade_commission":0.0001,
-            #                 "base_currency":"BTC"
-            #             },
+            #                 "withdrawal_priorities": [
+            #                     {value: 0.15, name: "very_low"},
+            #                     {value: 1.5, name: "very_high"},
+            #                 ],
+            #                 "withdrawal_fee": 0.0005,
+            #                 "min_withdrawal_fee": 0.0005,
+            #                 "min_confirmations": 1,
+            #                 "fee_precision": 4,
+            #                 "currency_long": "Bitcoin",
+            #                 "currency": "BTC",
+            #                 "coin_type": "BITCOIN"
+            #             }
             #         ],
-            #         "usIn":1648691472831791,
-            #         "usOut":1648691472831896,
-            #         "usDiff":105,
-            #         "testnet":false
+            #         "usIn": 1583761588590479,
+            #         "usOut": 1583761588590544,
+            #         "usDiff": 65,
+            #         "testnet": False
             #     }
             #
-            instrumentsResult = self.safe_value(instrumentsResponse, 'result', [])
+            currenciesResult = self.safe_value(currenciesResponse, 'result', [])
+            for i in range(0, len(currenciesResult)):
+                currencyId = self.safe_string(currenciesResult[i], 'currency')
+                request: dict = {
+                    'currency': currencyId,
+                }
+                instrumentsResponse = self.publicGetGetInstruments(self.extend(request, params))
+                #
+                #     {
+                #         "jsonrpc":"2.0",
+                #         "result":[
+                #             {
+                #                 "tick_size":0.0005,
+                #                 "taker_commission":0.0003,
+                #                 "strike":52000.0,
+                #                 "settlement_period":"month",
+                #                 "settlement_currency":"BTC",
+                #                 "quote_currency":"BTC",
+                #                 "option_type":"put",  # put, call
+                #                 "min_trade_amount":0.1,
+                #                 "maker_commission":0.0003,
+                #                 "kind":"option",
+                #                 "is_active":true,
+                #                 "instrument_name":"BTC-24JUN22-52000-P",
+                #                 "expiration_timestamp":1656057600000,
+                #                 "creation_timestamp":1648199543000,
+                #                 "counter_currency":"USD",
+                #                 "contract_size":1.0,
+                #                 "block_trade_commission":0.0003,
+                #                 "base_currency":"BTC"
+                #             },
+                #             {
+                #                 "tick_size":0.5,
+                #                 "taker_commission":0.0005,
+                #                 "settlement_period":"month",  # month, week
+                #                 "settlement_currency":"BTC",
+                #                 "quote_currency":"USD",
+                #                 "min_trade_amount":10.0,
+                #                 "max_liquidation_commission":0.0075,
+                #                 "max_leverage":50,
+                #                 "maker_commission":0.0,
+                #                 "kind":"future",
+                #                 "is_active":true,
+                #                 "instrument_name":"BTC-27MAY22",
+                #                 "future_type":"reversed",
+                #                 "expiration_timestamp":1653638400000,
+                #                 "creation_timestamp":1648195209000,
+                #                 "counter_currency":"USD",
+                #                 "contract_size":10.0,
+                #                 "block_trade_commission":0.0001,
+                #                 "base_currency":"BTC"
+                #             },
+                #             {
+                #                 "tick_size":0.5,
+                #                 "taker_commission":0.0005,
+                #                 "settlement_period":"perpetual",
+                #                 "settlement_currency":"BTC",
+                #                 "quote_currency":"USD",
+                #                 "min_trade_amount":10.0,
+                #                 "max_liquidation_commission":0.0075,
+                #                 "max_leverage":50,
+                #                 "maker_commission":0.0,
+                #                 "kind":"future",
+                #                 "is_active":true,
+                #                 "instrument_name":"BTC-PERPETUAL",
+                #                 "future_type":"reversed",
+                #                 "expiration_timestamp":32503708800000,
+                #                 "creation_timestamp":1534242287000,
+                #                 "counter_currency":"USD",
+                #                 "contract_size":10.0,
+                #                 "block_trade_commission":0.0001,
+                #                 "base_currency":"BTC"
+                #             },
+                #         ],
+                #         "usIn":1648691472831791,
+                #         "usOut":1648691472831896,
+                #         "usDiff":105,
+                #         "testnet":false
+                #     }
+                #
+                instrumentsResponses.append(instrumentsResponse)
+        for i in range(0, len(instrumentsResponses)):
+            instrumentsResult = self.safe_value(instrumentsResponses[i], 'result', [])
             for k in range(0, len(instrumentsResult)):
                 market = instrumentsResult[k]
                 kind = self.safe_string(market, 'kind')
@@ -901,7 +912,7 @@ class deribit(Exchange, ImplicitAPI):
         return result
 
     def parse_balance(self, balance) -> Balances:
-        result = {
+        result: dict = {
             'info': balance,
         }
         currencyId = self.safe_string(balance, 'currency')
@@ -923,7 +934,7 @@ class deribit(Exchange, ImplicitAPI):
         self.load_markets()
         code = self.code_from_options('fetchBalance', params)
         currency = self.currency(code)
-        request = {
+        request: dict = {
             'currency': currency['id'],
         }
         response = self.privateGetGetAccountSummary(self.extend(request, params))
@@ -982,7 +993,7 @@ class deribit(Exchange, ImplicitAPI):
         """
         self.load_markets()
         currency = self.currency(code)
-        request = {
+        request: dict = {
             'currency': currency['id'],
         }
         response = self.privateGetCreateDepositAddress(self.extend(request, params))
@@ -1018,7 +1029,7 @@ class deribit(Exchange, ImplicitAPI):
         """
         self.load_markets()
         currency = self.currency(code)
-        request = {
+        request: dict = {
             'currency': currency['id'],
         }
         response = self.privateGetGetCurrentDepositAddress(self.extend(request, params))
@@ -1050,7 +1061,7 @@ class deribit(Exchange, ImplicitAPI):
             'info': response,
         }
 
-    def parse_ticker(self, ticker, market: Market = None) -> Ticker:
+    def parse_ticker(self, ticker: dict, market: Market = None) -> Ticker:
         #
         # fetchTicker /public/ticker
         #
@@ -1135,7 +1146,7 @@ class deribit(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'instrument_name': market['id'],
         }
         response = self.publicGetTicker(self.extend(request, params))
@@ -1174,15 +1185,19 @@ class deribit(Exchange, ImplicitAPI):
         """
         fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
         :see: https://docs.deribit.com/#public-get_book_summary_by_currency
-        :param str[]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+        :param str[] [symbols]: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.code]: *required* the currency code to fetch the tickers for, eg. 'BTC', 'ETH'
         :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
         self.load_markets()
         symbols = self.market_symbols(symbols)
-        code = self.code_from_options('fetchTickers', params)
+        code = self.safe_string_2(params, 'code', 'currency')
+        params = self.omit(params, ['code'])
+        if code is None:
+            raise ArgumentsRequired(self.id + ' fetchTickers requires a currency/code(eg: BTC/ETH/USDT) parameter to fetch tickers for')
         currency = self.currency(code)
-        request = {
+        request: dict = {
             'currency': currency['id'],
         }
         response = self.publicGetGetBookSummaryByCurrency(self.extend(request, params))
@@ -1216,8 +1231,8 @@ class deribit(Exchange, ImplicitAPI):
         #         "testnet": False
         #     }
         #
-        result = self.safe_value(response, 'result', [])
-        tickers = {}
+        result = self.safe_list(response, 'result', [])
+        tickers: dict = {}
         for i in range(0, len(result)):
             ticker = self.parse_ticker(result[i])
             symbol = ticker['symbol']
@@ -1243,7 +1258,7 @@ class deribit(Exchange, ImplicitAPI):
         if paginate:
             return self.fetch_paginated_call_deterministic('fetchOHLCV', symbol, since, limit, timeframe, params, 5000)
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'instrument_name': market['id'],
             'resolution': self.safe_string(self.timeframes, timeframe, timeframe),
         }
@@ -1389,7 +1404,7 @@ class deribit(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'instrument_name': market['id'],
             'include_old': True,
         }
@@ -1445,7 +1460,7 @@ class deribit(Exchange, ImplicitAPI):
         self.load_markets()
         code = self.code_from_options('fetchTradingFees', params)
         currency = self.currency(code)
-        request = {
+        request: dict = {
             'currency': currency['id'],
             'extended': True,
         }
@@ -1501,9 +1516,9 @@ class deribit(Exchange, ImplicitAPI):
         #
         result = self.safe_value(response, 'result', {})
         fees = self.safe_value(result, 'fees', [])
-        perpetualFee = {}
-        futureFee = {}
-        optionFee = {}
+        perpetualFee: dict = {}
+        futureFee: dict = {}
+        optionFee: dict = {}
         for i in range(0, len(fees)):
             fee = fees[i]
             instrumentType = self.safe_string(fee, 'instrument_type')
@@ -1525,11 +1540,11 @@ class deribit(Exchange, ImplicitAPI):
                     'maker': self.safe_number(fee, 'maker_fee'),
                     'taker': self.safe_number(fee, 'taker_fee'),
                 }
-        parsedFees = {}
+        parsedFees: dict = {}
         for i in range(0, len(self.symbols)):
             symbol = self.symbols[i]
             market = self.market(symbol)
-            fee = {
+            fee: dict = {
                 'info': market,
                 'symbol': symbol,
                 'percentage': True,
@@ -1557,7 +1572,7 @@ class deribit(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'instrument_name': market['id'],
         }
         if limit is not None:
@@ -1609,8 +1624,8 @@ class deribit(Exchange, ImplicitAPI):
         orderbook['nonce'] = nonce
         return orderbook
 
-    def parse_order_status(self, status):
-        statuses = {
+    def parse_order_status(self, status: Str):
+        statuses: dict = {
             'open': 'open',
             'cancelled': 'canceled',
             'filled': 'closed',
@@ -1620,7 +1635,7 @@ class deribit(Exchange, ImplicitAPI):
         return self.safe_string(statuses, status, status)
 
     def parse_time_in_force(self, timeInForce):
-        timeInForces = {
+        timeInForces: dict = {
             'good_til_cancelled': 'GTC',
             'fill_or_kill': 'FOK',
             'immediate_or_cancel': 'IOC',
@@ -1628,7 +1643,7 @@ class deribit(Exchange, ImplicitAPI):
         return self.safe_string(timeInForces, timeInForce, timeInForce)
 
     def parse_order_type(self, orderType):
-        orderTypes = {
+        orderTypes: dict = {
             'stop_limit': 'limit',
             'take_limit': 'limit',
             'stop_market': 'market',
@@ -1737,7 +1752,7 @@ class deribit(Exchange, ImplicitAPI):
         :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
-        request = {
+        request: dict = {
             'order_id': id,
         }
         market = None
@@ -1792,7 +1807,7 @@ class deribit(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'instrument_name': market['id'],
             'amount': self.amount_to_precision(symbol, amount),
             'type': type,  # limit, stop_limit, market, stop_market, default is limit
@@ -1949,7 +1964,7 @@ class deribit(Exchange, ImplicitAPI):
         if amount is None:
             raise ArgumentsRequired(self.id + ' editOrder() requires an amount argument')
         self.load_markets()
-        request = {
+        request: dict = {
             'order_id': id,
             'amount': self.amount_to_precision(symbol, amount),
             # 'post_only': False,  # if the new price would cause the order to be filled immediately(as taker), the price will be changed to be just below the spread.
@@ -1982,7 +1997,7 @@ class deribit(Exchange, ImplicitAPI):
         :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
-        request = {
+        request: dict = {
             'order_id': id,
         }
         response = self.privateGetCancel(self.extend(request, params))
@@ -1999,7 +2014,7 @@ class deribit(Exchange, ImplicitAPI):
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
-        request = {}
+        request: dict = {}
         response = None
         if symbol is None:
             response = self.privateGetCancelAll(self.extend(request, params))
@@ -2021,7 +2036,7 @@ class deribit(Exchange, ImplicitAPI):
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
-        request = {}
+        request: dict = {}
         market = None
         response = None
         if symbol is None:
@@ -2048,7 +2063,7 @@ class deribit(Exchange, ImplicitAPI):
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
-        request = {}
+        request: dict = {}
         market = None
         response = None
         if symbol is None:
@@ -2075,7 +2090,7 @@ class deribit(Exchange, ImplicitAPI):
         :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
         """
         self.load_markets()
-        request = {
+        request: dict = {
             'order_id': id,
         }
         response = self.privateGetGetUserTradesByOrder(self.extend(request, params))
@@ -2129,7 +2144,7 @@ class deribit(Exchange, ImplicitAPI):
         :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
         """
         self.load_markets()
-        request = {
+        request: dict = {
             'include_old': True,
         }
         market = None
@@ -2204,7 +2219,7 @@ class deribit(Exchange, ImplicitAPI):
             raise ArgumentsRequired(self.id + ' fetchDeposits() requires a currency code argument')
         self.load_markets()
         currency = self.currency(code)
-        request = {
+        request: dict = {
             'currency': currency['id'],
         }
         if limit is not None:
@@ -2248,7 +2263,7 @@ class deribit(Exchange, ImplicitAPI):
             raise ArgumentsRequired(self.id + ' fetchWithdrawals() requires a currency code argument')
         self.load_markets()
         currency = self.currency(code)
-        request = {
+        request: dict = {
             'currency': currency['id'],
         }
         if limit is not None:
@@ -2283,7 +2298,7 @@ class deribit(Exchange, ImplicitAPI):
         return self.parse_transactions(data, currency, since, limit, params)
 
     def parse_transaction_status(self, status):
-        statuses = {
+        statuses: dict = {
             'completed': 'ok',
             'unconfirmed': 'pending',
         }
@@ -2433,7 +2448,7 @@ class deribit(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'instrument_name': market['id'],
         }
         response = self.privateGetGetPosition(self.extend(request, params))
@@ -2493,7 +2508,7 @@ class deribit(Exchange, ImplicitAPI):
                 code = settle if (settle is not None) else market['base']
                 kind = market['info']['kind']
         currency = self.currency(code)
-        request = {
+        request: dict = {
             'currency': currency['id'],
         }
         if kind is not None:
@@ -2541,7 +2556,7 @@ class deribit(Exchange, ImplicitAPI):
         """
         self.load_markets()
         currency = self.currency(code)
-        request = {
+        request: dict = {
             'currency': currency['id'],
         }
         response = self.publicGetGetHistoricalVolatility(self.extend(request, params))
@@ -2589,7 +2604,7 @@ class deribit(Exchange, ImplicitAPI):
             })
         return result
 
-    def fetch_transfers(self, code: Str = None, since: Int = None, limit: Int = None, params={}):
+    def fetch_transfers(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> TransferEntries:
         """
         fetch a history of internal transfers made on an account
         :see: https://docs.deribit.com/#private-get_transfers
@@ -2603,7 +2618,7 @@ class deribit(Exchange, ImplicitAPI):
             raise ArgumentsRequired(self.id + ' fetchTransfers() requires a currency code argument')
         self.load_markets()
         currency = self.currency(code)
-        request = {
+        request: dict = {
             'currency': currency['id'],
         }
         if limit is not None:
@@ -2660,7 +2675,7 @@ class deribit(Exchange, ImplicitAPI):
         """
         self.load_markets()
         currency = self.currency(code)
-        request = {
+        request: dict = {
             'amount': amount,
             'currency': currency['id'],
             'destination': toAccount,
@@ -2695,7 +2710,7 @@ class deribit(Exchange, ImplicitAPI):
         result = self.safe_dict(response, 'result', {})
         return self.parse_transfer(result, currency)
 
-    def parse_transfer(self, transfer, currency: Currency = None):
+    def parse_transfer(self, transfer: dict, currency: Currency = None) -> TransferEntry:
         #
         #     {
         #         "updated_timestamp": 1550232862350,
@@ -2719,15 +2734,15 @@ class deribit(Exchange, ImplicitAPI):
             'id': self.safe_string(transfer, 'id'),
             'status': self.parse_transfer_status(status),
             'amount': self.safe_number(transfer, 'amount'),
-            'code': self.safe_currency_code(currencyId, currency),
+            'currency': self.safe_currency_code(currencyId, currency),
             'fromAccount': direction != account if 'payment' else None,
             'toAccount': direction == account if 'payment' else None,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
         }
 
-    def parse_transfer_status(self, status):
-        statuses = {
+    def parse_transfer_status(self, status: Str) -> Str:
+        statuses: dict = {
             'prepared': 'pending',
             'confirmed': 'ok',
             'cancelled': 'cancelled',
@@ -2735,7 +2750,7 @@ class deribit(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def withdraw(self, code: str, amount: float, address, tag=None, params={}):
+    def withdraw(self, code: str, amount: float, address: str, tag=None, params={}):
         """
         make a withdrawal
         :see: https://docs.deribit.com/#private-withdraw
@@ -2750,7 +2765,7 @@ class deribit(Exchange, ImplicitAPI):
         self.check_address(address)
         self.load_markets()
         currency = self.currency(code)
-        request = {
+        request: dict = {
             'currency': currency['id'],
             'address': address,  # must be in the address book
             'amount': amount,
@@ -2836,7 +2851,7 @@ class deribit(Exchange, ImplicitAPI):
         self.load_markets()
         market = self.market(symbol)
         time = self.milliseconds()
-        request = {
+        request: dict = {
             'instrument_name': market['id'],
             'start_timestamp': time - (8 * 60 * 60 * 1000),  # 8h ago,
             'end_timestamp': time,
@@ -2874,7 +2889,7 @@ class deribit(Exchange, ImplicitAPI):
         month = 30 * 24 * 60 * 60 * 1000
         if since is None:
             since = time - month
-        request = {
+        request: dict = {
             'instrument_name': market['id'],
             'start_timestamp': since - 1,
             'end_timestamp': time,
@@ -2964,7 +2979,7 @@ class deribit(Exchange, ImplicitAPI):
         market = self.market(symbol)
         if market['spot']:
             raise NotSupported(self.id + ' fetchLiquidations() does not support ' + market['type'] + ' markets')
-        request = {
+        request: dict = {
             'instrument_name': market['id'],
             'type': 'bankruptcy',
         }
@@ -3031,7 +3046,7 @@ class deribit(Exchange, ImplicitAPI):
         market = self.market(symbol)
         if market['spot']:
             raise NotSupported(self.id + ' fetchMyLiquidations() does not support ' + market['type'] + ' markets')
-        request = {
+        request: dict = {
             'instrument_name': market['id'],
             'type': 'bankruptcy',
         }
@@ -3104,7 +3119,7 @@ class deribit(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'instrument_name': market['id'],
         }
         response = self.publicGetTicker(self.extend(request, params))
@@ -3157,7 +3172,7 @@ class deribit(Exchange, ImplicitAPI):
         result = self.safe_value(response, 'result', {})
         return self.parse_greeks(result, market)
 
-    def parse_greeks(self, greeks, market: Market = None):
+    def parse_greeks(self, greeks: dict, market: Market = None) -> Greeks:
         #
         #     {
         #         "estimated_delivery_price": 36552.72,
@@ -3233,7 +3248,7 @@ class deribit(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'instrument_name': market['id'],
         }
         response = self.publicGetGetBookSummaryByInstrument(self.extend(request, params))
@@ -3283,7 +3298,7 @@ class deribit(Exchange, ImplicitAPI):
         """
         self.load_markets()
         currency = self.currency(code)
-        request = {
+        request: dict = {
             'currency': currency['id'],
             'kind': 'option',
         }
@@ -3323,7 +3338,7 @@ class deribit(Exchange, ImplicitAPI):
         result = self.safe_list(response, 'result', [])
         return self.parse_option_chain(result, 'base_currency', 'instrument_name')
 
-    def parse_option(self, chain, currency: Currency = None, market: Market = None):
+    def parse_option(self, chain: dict, currency: Currency = None, market: Market = None) -> Option:
         #
         #     {
         #         "mid_price": 0.04025,

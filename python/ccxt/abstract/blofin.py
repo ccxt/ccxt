@@ -24,6 +24,8 @@ class ImplicitAPI:
     private_get_trade_orders_tpsl_pending = privateGetTradeOrdersTpslPending = Entry('trade/orders-tpsl-pending', 'private', 'GET', {'cost': 1})
     private_get_trade_orders_history = privateGetTradeOrdersHistory = Entry('trade/orders-history', 'private', 'GET', {'cost': 1})
     private_get_trade_orders_tpsl_history = privateGetTradeOrdersTpslHistory = Entry('trade/orders-tpsl-history', 'private', 'GET', {'cost': 1})
+    private_get_user_query_apikey = privateGetUserQueryApikey = Entry('user/query-apikey', 'private', 'GET', {'cost': 1})
+    private_get_affiliate_basic = privateGetAffiliateBasic = Entry('affiliate/basic', 'private', 'GET', {'cost': 1})
     private_post_trade_order = privatePostTradeOrder = Entry('trade/order', 'private', 'POST', {'cost': 1})
     private_post_trade_cancel_order = privatePostTradeCancelOrder = Entry('trade/cancel-order', 'private', 'POST', {'cost': 1})
     private_post_account_set_leverage = privatePostAccountSetLeverage = Entry('account/set-leverage', 'private', 'POST', {'cost': 1})

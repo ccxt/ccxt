@@ -70,8 +70,11 @@ export default class probit extends Exchange {
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchPosition': false,
+                'fetchPositionHistory': false,
                 'fetchPositionMode': false,
                 'fetchPositions': false,
+                'fetchPositionsForSymbol': false,
+                'fetchPositionsHistory': false,
                 'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchTicker': true,
@@ -86,6 +89,7 @@ export default class probit extends Exchange {
                 'fetchWithdrawal': false,
                 'fetchWithdrawals': true,
                 'reduceMargin': false,
+                'sandbox': true,
                 'setLeverage': false,
                 'setMarginMode': false,
                 'setPositionMode': false,
@@ -204,41 +208,22 @@ export default class probit extends Exchange {
                 },
             },
             'commonCurrencies': {
-                'AUTO': 'Cube',
-                'AZU': 'Azultec',
-                'BCC': 'BCC',
-                'BDP': 'BidiPass',
-                'BIRD': 'Birdchain',
-                'BTCBEAR': 'BEAR',
-                'BTCBULL': 'BULL',
+                'BB': 'Baby Bali',
                 'CBC': 'CryptoBharatCoin',
-                'CHE': 'Chellit',
-                'CLR': 'Color Platform',
                 'CTK': 'Cryptyk',
                 'CTT': 'Castweet',
-                'DIP': 'Dipper',
                 'DKT': 'DAKOTA',
                 'EGC': 'EcoG9coin',
                 'EPS': 'Epanus',
                 'FX': 'Fanzy',
-                'GDT': 'Gorilla Diamond',
                 'GM': 'GM Holding',
                 'GOGOL': 'GOL',
                 'GOL': 'Goldofir',
-                'GRB': 'Global Reward Bank',
-                'HBC': 'Hybrid Bank Cash',
                 'HUSL': 'The Hustle App',
                 'LAND': 'Landbox',
-                'LBK': 'Legal Block',
-                'ORC': 'Oracle System',
-                'PXP': 'PIXSHOP COIN',
-                'PYE': 'CreamPYE',
-                'ROOK': 'Reckoon',
-                'SOC': 'Soda Coin',
                 'SST': 'SocialSwap',
                 'TCT': 'Top Coin Token',
                 'TOR': 'Torex',
-                'TPAY': 'Tetra Pay',
                 'UNI': 'UNICORN Token',
                 'UNISWAP': 'UNI',
             },
@@ -1490,12 +1475,11 @@ export default class probit extends Exchange {
         const result = await this.fetchTransactions(code, since, limit, this.extend(request, params));
         return result;
     }
-    async fetchTransactions(code = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchDepositsWithdrawals(code = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
-         * @name probit#fetchTransactions
-         * @deprecated
-         * @description use fetchDepositsWithdrawals instead
+         * @name probit#fetchDepositsWithdrawals
+         * @description fetch history of deposits and withdrawals
          * @see https://docs-en.probit.com/reference/transferpayment
          * @param {string} code unified currency code
          * @param {int} [since] the earliest time in ms to fetch transactions for
@@ -1517,10 +1501,10 @@ export default class probit extends Exchange {
         else {
             request['start_time'] = this.iso8601(1);
         }
-        const until = this.safeInteger2(params, 'till', 'until');
+        const until = this.safeInteger(params, 'until');
         if (until !== undefined) {
             request['end_time'] = this.iso8601(until);
-            params = this.omit(params, ['until', 'till']);
+            params = this.omit(params, ['until']);
         }
         else {
             request['end_time'] = this.iso8601(this.milliseconds());

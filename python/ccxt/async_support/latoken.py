@@ -6,9 +6,10 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.latoken import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Currencies, Currency, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, Transaction, TransferEntry
+from ccxt.base.types import Balances, Currencies, Currency, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, Transaction, TransferEntry, TransferEntries
 from typing import List
 from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import AccountSuspended
 from ccxt.base.errors import ArgumentsRequired
@@ -20,7 +21,6 @@ from ccxt.base.errors import NotSupported
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import InvalidNonce
-from ccxt.base.errors import AuthenticationError
 from ccxt.base.decimal_to_precision import TICK_SIZE
 
 
@@ -69,7 +69,13 @@ class latoken(Exchange, ImplicitAPI):
                 'fetchOrder': True,
                 'fetchOrderBook': True,
                 'fetchOrders': True,
+                'fetchPosition': False,
+                'fetchPositionHistory': False,
                 'fetchPositionMode': False,
+                'fetchPositions': False,
+                'fetchPositionsForSymbol': False,
+                'fetchPositionsHistory': False,
+                'fetchPositionsRisk': False,
                 'fetchTicker': True,
                 'fetchTickers': True,
                 'fetchTime': True,
@@ -440,7 +446,7 @@ class latoken(Exchange, ImplicitAPI):
         #         },
         #     ]
         #
-        result = {}
+        result: dict = {}
         for i in range(0, len(response)):
             currency = response[i]
             id = self.safe_string(currency, 'id')
@@ -513,7 +519,7 @@ class latoken(Exchange, ImplicitAPI):
         #         }
         #     ]
         #
-        result = {
+        result: dict = {
             'info': response,
             'timestamp': None,
             'datetime': None,
@@ -554,7 +560,7 @@ class latoken(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'currency': market['baseId'],
             'quote': market['quoteId'],
         }
@@ -579,7 +585,7 @@ class latoken(Exchange, ImplicitAPI):
         #
         return self.parse_order_book(response, symbol, None, 'bid', 'ask', 'price', 'quantity')
 
-    def parse_ticker(self, ticker, market: Market = None) -> Ticker:
+    def parse_ticker(self, ticker: dict, market: Market = None) -> Ticker:
         #
         #    {
         #        "symbol": "92151d82-df98-4d88-9a4d-284fa9eca49f/0c3a106d-bde3-4c13-a26e-3fd2394529e5",
@@ -602,7 +608,7 @@ class latoken(Exchange, ImplicitAPI):
         #
         marketId = self.safe_string(ticker, 'symbol')
         last = self.safe_string(ticker, 'lastPrice')
-        timestamp = self.safe_integer(ticker, 'updateTimestamp')
+        timestamp = self.safe_integer_omit_zero(ticker, 'updateTimestamp')  # sometimes latoken provided '0' ts from /ticker endpoint
         return self.safe_ticker({
             'symbol': self.safe_symbol(marketId, market),
             'timestamp': timestamp,
@@ -636,7 +642,7 @@ class latoken(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'base': market['baseId'],
             'quote': market['quoteId'],
         }
@@ -790,7 +796,7 @@ class latoken(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'currency': market['baseId'],
             'quote': market['quoteId'],
             # 'from': str(since),  # milliseconds
@@ -831,7 +837,7 @@ class latoken(Exchange, ImplicitAPI):
     async def fetch_public_trading_fee(self, symbol: str, params={}):
         await self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'currency': market['baseId'],
             'quote': market['quoteId'],
         }
@@ -856,7 +862,7 @@ class latoken(Exchange, ImplicitAPI):
     async def fetch_private_trading_fee(self, symbol: str, params={}):
         await self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'currency': market['baseId'],
             'quote': market['quoteId'],
         }
@@ -890,7 +896,7 @@ class latoken(Exchange, ImplicitAPI):
         :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
         """
         await self.load_markets()
-        request = {
+        request: dict = {
             # 'currency': market['baseId'],
             # 'quote': market['quoteId'],
             # 'from': self.milliseconds(),
@@ -927,8 +933,8 @@ class latoken(Exchange, ImplicitAPI):
         #
         return self.parse_trades(response, market, since, limit)
 
-    def parse_order_status(self, status):
-        statuses = {
+    def parse_order_status(self, status: Str):
+        statuses: dict = {
             'ORDER_STATUS_PLACED': 'open',
             'ORDER_STATUS_CLOSED': 'closed',
             'ORDER_STATUS_CANCELLED': 'canceled',
@@ -936,14 +942,14 @@ class latoken(Exchange, ImplicitAPI):
         return self.safe_string(statuses, status, status)
 
     def parse_order_type(self, status):
-        statuses = {
+        statuses: dict = {
             'ORDER_TYPE_MARKET': 'market',
             'ORDER_TYPE_LIMIT': 'limit',
         }
         return self.safe_string(statuses, status, status)
 
     def parse_time_in_force(self, timeInForce):
-        timeInForces = {
+        timeInForces: dict = {
             'ORDER_CONDITION_GOOD_TILL_CANCELLED': 'GTC',
             'ORDER_CONDITION_IMMEDIATE_OR_CANCEL': 'IOC',
             'ORDER_CONDITION_FILL_OR_KILL': 'FOK',
@@ -1071,7 +1077,7 @@ class latoken(Exchange, ImplicitAPI):
         params = self.omit(params, 'stop')
         # privateGetAuthOrderActive doesn't work even though its listed at https://api.latoken.com/doc/v2/#tag/Order/operation/getMyActiveOrders
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'currency': market['baseId'],
             'quote': market['quoteId'],
         }
@@ -1118,7 +1124,7 @@ class latoken(Exchange, ImplicitAPI):
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
-        request = {
+        request: dict = {
             # 'currency': market['baseId'],
             # 'quote': market['quoteId'],
             # 'from': self.milliseconds(),
@@ -1178,7 +1184,7 @@ class latoken(Exchange, ImplicitAPI):
         :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
-        request = {
+        request: dict = {
             'id': id,
         }
         isTrigger = self.safe_value_2(params, 'trigger', 'stop')
@@ -1231,7 +1237,7 @@ class latoken(Exchange, ImplicitAPI):
         await self.load_markets()
         market = self.market(symbol)
         uppercaseType = type.upper()
-        request = {
+        request: dict = {
             'baseCurrency': market['baseId'],
             'quoteCurrency': market['quoteId'],
             'side': side.upper(),  # "BUY", "BID", "SELL", "ASK"
@@ -1279,7 +1285,7 @@ class latoken(Exchange, ImplicitAPI):
         :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
-        request = {
+        request: dict = {
             'id': id,
         }
         isTrigger = self.safe_value_2(params, 'trigger', 'stop')
@@ -1311,7 +1317,7 @@ class latoken(Exchange, ImplicitAPI):
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
-        request = {
+        request: dict = {
             # 'currency': market['baseId'],
             # 'quote': market['quoteId'],
         }
@@ -1352,7 +1358,7 @@ class latoken(Exchange, ImplicitAPI):
         :returns dict: a list of `transaction structure <https://docs.ccxt.com/#/?id=transaction-structure>`
         """
         await self.load_markets()
-        request = {
+        request: dict = {
             # 'page': '1',
             # 'size': 100,
         }
@@ -1452,7 +1458,7 @@ class latoken(Exchange, ImplicitAPI):
         }
 
     def parse_transaction_status(self, status):
-        statuses = {
+        statuses: dict = {
             'TRANSACTION_STATUS_CONFIRMED': 'ok',
             'TRANSACTION_STATUS_EXECUTED': 'ok',
             'TRANSACTION_STATUS_CANCELLED': 'canceled',
@@ -1460,13 +1466,13 @@ class latoken(Exchange, ImplicitAPI):
         return self.safe_string(statuses, status, status)
 
     def parse_transaction_type(self, type):
-        types = {
+        types: dict = {
             'TRANSACTION_TYPE_DEPOSIT': 'deposit',
             'TRANSACTION_TYPE_WITHDRAWAL': 'withdrawal',
         }
         return self.safe_string(types, type, type)
 
-    async def fetch_transfers(self, code: Str = None, since: Int = None, limit: Int = None, params={}):
+    async def fetch_transfers(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> TransferEntries:
         """
         fetch a history of internal transfers made on an account
         :see: https://api.latoken.com/doc/v2/#tag/Transfer/operation/getUsersTransfers
@@ -1528,7 +1534,7 @@ class latoken(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         currency = self.currency(code)
-        request = {
+        request: dict = {
             'currency': currency['id'],
             'recipient': toAccount,
             'value': self.currency_to_precision(code, amount),
@@ -1564,7 +1570,7 @@ class latoken(Exchange, ImplicitAPI):
         #
         return self.parse_transfer(response)
 
-    def parse_transfer(self, transfer, currency: Currency = None):
+    def parse_transfer(self, transfer: dict, currency: Currency = None) -> TransferEntry:
         #
         #     {
         #         "id": "e6fc4ace-7750-44e4-b7e9-6af038ac7107",
@@ -1602,8 +1608,8 @@ class latoken(Exchange, ImplicitAPI):
             'status': self.parse_transfer_status(status),
         }
 
-    def parse_transfer_status(self, status):
-        statuses = {
+    def parse_transfer_status(self, status: Str) -> Str:
+        statuses: dict = {
             'TRANSFER_STATUS_COMPLETED': 'ok',
             'TRANSFER_STATUS_PENDING': 'pending',
             'TRANSFER_STATUS_REJECTED': 'failed',

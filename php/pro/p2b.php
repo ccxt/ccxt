@@ -81,7 +81,7 @@ class p2b extends \ccxt\async\p2b {
                 'params' => $request,
                 'id' => $this->milliseconds(),
             );
-            $query = array_merge($subscribe, $params);
+            $query = $this->extend($subscribe, $params);
             return Async\await($this->watch($url, $messageHash, $query, $messageHash));
         }) ();
     }

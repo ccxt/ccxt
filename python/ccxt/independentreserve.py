@@ -64,8 +64,11 @@ class independentreserve(Exchange, ImplicitAPI):
                 'fetchOrder': True,
                 'fetchOrderBook': True,
                 'fetchPosition': False,
+                'fetchPositionHistory': False,
                 'fetchPositionMode': False,
                 'fetchPositions': False,
+                'fetchPositionsForSymbol': False,
+                'fetchPositionsHistory': False,
                 'fetchPositionsRisk': False,
                 'fetchPremiumIndexOHLCV': False,
                 'fetchTicker': True,
@@ -223,7 +226,7 @@ class independentreserve(Exchange, ImplicitAPI):
         return result
 
     def parse_balance(self, response) -> Balances:
-        result = {'info': response}
+        result: dict = {'info': response}
         for i in range(0, len(response)):
             balance = response[i]
             currencyId = self.safe_string(balance, 'CurrencyCode')
@@ -254,7 +257,7 @@ class independentreserve(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'primaryCurrencyCode': market['baseId'],
             'secondaryCurrencyCode': market['quoteId'],
         }
@@ -262,7 +265,7 @@ class independentreserve(Exchange, ImplicitAPI):
         timestamp = self.parse8601(self.safe_string(response, 'CreatedTimestampUtc'))
         return self.parse_order_book(response, market['symbol'], timestamp, 'BuyOrders', 'SellOrders', 'Price', 'Volume')
 
-    def parse_ticker(self, ticker, market: Market = None) -> Ticker:
+    def parse_ticker(self, ticker: dict, market: Market = None) -> Ticker:
         # {
         #     "DayHighestPrice":43489.49,
         #     "DayLowestPrice":41998.32,
@@ -317,7 +320,7 @@ class independentreserve(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'primaryCurrencyCode': market['baseId'],
             'secondaryCurrencyCode': market['quoteId'],
         }
@@ -431,8 +434,8 @@ class independentreserve(Exchange, ImplicitAPI):
             'trades': None,
         }, market)
 
-    def parse_order_status(self, status):
-        statuses = {
+    def parse_order_status(self, status: Str):
+        statuses: dict = {
             'Open': 'open',
             'PartiallyFilled': 'open',
             'Filled': 'closed',
@@ -578,7 +581,7 @@ class independentreserve(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'primaryCurrencyCode': market['baseId'],
             'secondaryCurrencyCode': market['quoteId'],
             'numberOfRecentTradesToRetrieve': 50,  # max = 50
@@ -603,7 +606,7 @@ class independentreserve(Exchange, ImplicitAPI):
         #         ...
         #     ]
         #
-        fees = {}
+        fees: dict = {}
         for i in range(0, len(response)):
             fee = response[i]
             currencyId = self.safe_string(fee, 'CurrencyCode')
@@ -613,7 +616,7 @@ class independentreserve(Exchange, ImplicitAPI):
                 'info': fee,
                 'fee': tradingFee,
             }
-        result = {}
+        result: dict = {}
         for i in range(0, len(self.symbols)):
             symbol = self.symbols[i]
             market = self.market(symbol)
@@ -669,7 +672,7 @@ class independentreserve(Exchange, ImplicitAPI):
         :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
-        request = {
+        request: dict = {
             'orderGuid': id,
         }
         return self.privatePostCancelOrder(self.extend(request, params))
@@ -684,7 +687,7 @@ class independentreserve(Exchange, ImplicitAPI):
         """
         self.load_markets()
         currency = self.currency(code)
-        request = {
+        request: dict = {
             'primaryCurrencyCode': currency['id'],
         }
         response = self.privatePostGetDigitalCurrencyDepositAddress(self.extend(request, params))

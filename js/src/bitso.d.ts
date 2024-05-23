@@ -1,5 +1,5 @@
 import Exchange from './abstract/bitso.js';
-import type { Balances, Currency, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Trade, TradingFees, Transaction } from './base/types.js';
+import type { Balances, Currency, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Trade, TradingFees, Transaction } from './base/types.js';
 /**
  * @class bitso
  * @augments Exchange
@@ -29,7 +29,7 @@ export default class bitso extends Exchange {
     parseBalance(response: any): Balances;
     fetchBalance(params?: {}): Promise<Balances>;
     fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
-    parseTicker(ticker: any, market?: Market): Ticker;
+    parseTicker(ticker: Dict, market?: Market): Ticker;
     fetchTicker(symbol: string, params?: {}): Promise<Ticker>;
     fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
     parseOHLCV(ohlcv: any, market?: Market): OHLCV;
@@ -41,7 +41,7 @@ export default class bitso extends Exchange {
     cancelOrder(id: string, symbol?: Str, params?: {}): Promise<any>;
     cancelOrders(ids: any, symbol?: Str, params?: {}): Promise<any[]>;
     cancelAllOrders(symbol?: Str, params?: {}): Promise<any[]>;
-    parseOrderStatus(status: any): string;
+    parseOrderStatus(status: Str): string;
     parseOrder(order: any, market?: Market): Order;
     fetchOpenOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     fetchOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
@@ -55,10 +55,10 @@ export default class bitso extends Exchange {
         network: any;
         info: any;
     }>;
-    fetchTransactionFees(codes?: string[], params?: {}): Promise<{}>;
-    fetchDepositWithdrawFees(codes?: Strings, params?: {}): Promise<{}>;
-    parseDepositWithdrawFees(response: any, codes?: any, currencyIdKey?: any): {};
-    withdraw(code: string, amount: number, address: any, tag?: any, params?: {}): Promise<Transaction>;
+    fetchTransactionFees(codes?: string[], params?: {}): Promise<Dict>;
+    fetchDepositWithdrawFees(codes?: Strings, params?: {}): Promise<Dict>;
+    parseDepositWithdrawFees(response: any, codes?: any, currencyIdKey?: any): Dict;
+    withdraw(code: string, amount: number, address: string, tag?: any, params?: {}): Promise<Transaction>;
     safeNetwork(networkId: any): string;
     parseTransaction(transaction: any, currency?: Currency): Transaction;
     parseTransactionStatus(status: any): string;

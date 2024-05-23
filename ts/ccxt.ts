@@ -33,14 +33,14 @@ import { Exchange }  from './src/base/Exchange.js'
 import { Precise }   from './src/base/Precise.js'
 import * as functions from './src/base/functions.js'
 import * as errors   from './src/base/errors.js'
-import type { Market, Trade , Fee, Ticker, OrderBook, Order, Transaction, Tickers, Currency, Balance, DepositAddress, WithdrawalResponse, DepositAddressResponse, OHLCV, Balances, PartialBalances, Dictionary, MinMax, Position, FundingRateHistory, Liquidation, FundingHistory, MarginMode, Greeks, Leverage, Leverages, Option, OptionChain } from './src/base/types.js'
-import {BaseError, ExchangeError, AuthenticationError, PermissionDenied, AccountNotEnabled, AccountSuspended, ArgumentsRequired, BadRequest, BadSymbol, OperationRejected, NoChange, MarginModeAlreadySet, BadResponse, NullResponse, InsufficientFunds, InvalidAddress, AddressPending, InvalidOrder, OrderNotFound, OrderNotCached, CancelPending, OrderImmediatelyFillable, OrderNotFillable, DuplicateOrderId, ContractUnavailable, NotSupported, ProxyError, OperationFailed, NetworkError, DDoSProtection, RateLimitExceeded, ExchangeNotAvailable, OnMaintenance, InvalidNonce, RequestTimeout, ExchangeClosedByUser}  from './src/base/errors.js'
+import type { Market, Trade , Fee, Ticker, OrderBook, Order, Transaction, Tickers, Currency, Balance, DepositAddress, WithdrawalResponse, DepositAddressResponse, OHLCV, Balances, PartialBalances, Dictionary, MinMax, Position, FundingRateHistory, Liquidation, FundingHistory, MarginMode, Greeks, Leverage, Leverages, Option, OptionChain, Conversion } from './src/base/types.js'
+import {BaseError, ExchangeError, AuthenticationError, PermissionDenied, AccountNotEnabled, AccountSuspended, ArgumentsRequired, BadRequest, BadSymbol, OperationRejected, NoChange, MarginModeAlreadySet, MarketClosed, BadResponse, NullResponse, InsufficientFunds, InvalidAddress, AddressPending, InvalidOrder, OrderNotFound, OrderNotCached, CancelPending, OrderImmediatelyFillable, OrderNotFillable, DuplicateOrderId, ContractUnavailable, NotSupported, ProxyError, ExchangeClosedByUser, OperationFailed, NetworkError, DDoSProtection, RateLimitExceeded, ExchangeNotAvailable, OnMaintenance, InvalidNonce, RequestTimeout}  from './src/base/errors.js'
 
 
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '4.2.89';
+const version = '4.3.30';
 
 (Exchange as any).ccxtVersion = version
 
@@ -85,8 +85,9 @@ import btcturk from  './src/btcturk.js'
 import bybit from  './src/bybit.js'
 import cex from  './src/cex.js'
 import coinbase from  './src/coinbase.js'
+import coinbaseadvanced from  './src/coinbaseadvanced.js'
+import coinbaseexchange from  './src/coinbaseexchange.js'
 import coinbaseinternational from  './src/coinbaseinternational.js'
-import coinbasepro from  './src/coinbasepro.js'
 import coincheck from  './src/coincheck.js'
 import coinex from  './src/coinex.js'
 import coinlist from  './src/coinlist.js'
@@ -146,6 +147,7 @@ import wavesexchange from  './src/wavesexchange.js'
 import wazirx from  './src/wazirx.js'
 import whitebit from  './src/whitebit.js'
 import woo from  './src/woo.js'
+import woofipro from  './src/woofipro.js'
 import yobit from  './src/yobit.js'
 import zaif from  './src/zaif.js'
 import zonda from  './src/zonda.js'
@@ -176,8 +178,8 @@ import blockchaincomPro from  './src/pro/blockchaincom.js'
 import bybitPro from  './src/pro/bybit.js'
 import cexPro from  './src/pro/cex.js'
 import coinbasePro from  './src/pro/coinbase.js'
+import coinbaseexchangePro from  './src/pro/coinbaseexchange.js'
 import coinbaseinternationalPro from  './src/pro/coinbaseinternational.js'
-import coinbaseproPro from  './src/pro/coinbasepro.js'
 import coincheckPro from  './src/pro/coincheck.js'
 import coinexPro from  './src/pro/coinex.js'
 import coinonePro from  './src/pro/coinone.js'
@@ -216,6 +218,7 @@ import upbitPro from  './src/pro/upbit.js'
 import wazirxPro from  './src/pro/wazirx.js'
 import whitebitPro from  './src/pro/whitebit.js'
 import wooPro from  './src/pro/woo.js'
+import woofiproPro from  './src/pro/woofipro.js'
 
 const exchanges = {
     'ace':                    ace,
@@ -257,8 +260,9 @@ const exchanges = {
     'bybit':                  bybit,
     'cex':                    cex,
     'coinbase':               coinbase,
+    'coinbaseadvanced':       coinbaseadvanced,
+    'coinbaseexchange':       coinbaseexchange,
     'coinbaseinternational':  coinbaseinternational,
-    'coinbasepro':            coinbasepro,
     'coincheck':              coincheck,
     'coinex':                 coinex,
     'coinlist':               coinlist,
@@ -318,6 +322,7 @@ const exchanges = {
     'wazirx':                 wazirx,
     'whitebit':               whitebit,
     'woo':                    woo,
+    'woofipro':               woofipro,
     'yobit':                  yobit,
     'zaif':                   zaif,
     'zonda':                  zonda,
@@ -348,8 +353,8 @@ const pro = {
     'bybit':                  bybitPro,
     'cex':                    cexPro,
     'coinbase':               coinbasePro,
+    'coinbaseexchange':       coinbaseexchangePro,
     'coinbaseinternational':  coinbaseinternationalPro,
-    'coinbasepro':            coinbaseproPro,
     'coincheck':              coincheckPro,
     'coinex':                 coinexPro,
     'coinone':                coinonePro,
@@ -388,6 +393,7 @@ const pro = {
     'wazirx':                 wazirxPro,
     'whitebit':               whitebitPro,
     'woo':                    wooPro,
+    'woofipro':               woofiproPro,
 }
 
 for (const exchange in pro) {
@@ -425,6 +431,7 @@ export {
     OperationRejected,
     NoChange,
     MarginModeAlreadySet,
+    MarketClosed,
     BadResponse,
     NullResponse,
     InsufficientFunds,
@@ -440,6 +447,7 @@ export {
     ContractUnavailable,
     NotSupported,
     ProxyError,
+    ExchangeClosedByUser,
     OperationFailed,
     NetworkError,
     DDoSProtection,
@@ -448,7 +456,6 @@ export {
     OnMaintenance,
     InvalidNonce,
     RequestTimeout,
-    ExchangeClosedByUser,
     Market,
     Trade,
     Fee,
@@ -477,6 +484,7 @@ export {
     Leverages,
     Option,
     OptionChain,
+    Conversion,
     ace,
     alpaca,
     ascendex,
@@ -516,8 +524,9 @@ export {
     bybit,
     cex,
     coinbase,
+    coinbaseadvanced,
+    coinbaseexchange,
     coinbaseinternational,
-    coinbasepro,
     coincheck,
     coinex,
     coinlist,
@@ -577,6 +586,7 @@ export {
     wazirx,
     whitebit,
     woo,
+    woofipro,
     yobit,
     zaif,
     zonda,    

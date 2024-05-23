@@ -1,5 +1,5 @@
 import Exchange from './abstract/bitstamp.js';
-import type { Balances, Currencies, Currency, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry } from './base/types.js';
+import type { Balances, Currencies, Currency, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry } from './base/types.js';
 /**
  * @class bitstamp
  * @augments Exchange
@@ -41,7 +41,7 @@ export default class bitstamp extends Exchange {
     fetchMarketsFromCache(params?: {}): Promise<any>;
     fetchCurrencies(params?: {}): Promise<Currencies>;
     fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
-    parseTicker(ticker: any, market?: Market): Ticker;
+    parseTicker(ticker: Dict, market?: Market): Ticker;
     fetchTicker(symbol: string, params?: {}): Promise<Ticker>;
     fetchTickers(symbols?: Strings, params?: {}): Promise<Tickers>;
     getCurrencyIdFromTransaction(transaction: any): string;
@@ -54,18 +54,16 @@ export default class bitstamp extends Exchange {
     fetchBalance(params?: {}): Promise<Balances>;
     fetchTradingFee(symbol: string, params?: {}): Promise<TradingFeeInterface>;
     parseTradingFee(fee: any, market?: Market): TradingFeeInterface;
-    parseTradingFees(fees: any): {
-        info: any;
-    };
+    parseTradingFees(fees: any): Dict;
     fetchTradingFees(params?: {}): Promise<TradingFees>;
-    fetchTransactionFees(codes?: string[], params?: {}): Promise<{}>;
-    parseTransactionFees(response: any, codes?: any): {};
+    fetchTransactionFees(codes?: string[], params?: {}): Promise<Dict>;
+    parseTransactionFees(response: any, codes?: any): Dict;
     fetchDepositWithdrawFees(codes?: any, params?: {}): Promise<any>;
     parseDepositWithdrawFee(fee: any, currency?: any): any;
     createOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): Promise<Order>;
     cancelOrder(id: string, symbol?: Str, params?: {}): Promise<any>;
     cancelAllOrders(symbol?: Str, params?: {}): Promise<any>;
-    parseOrderStatus(status: any): string;
+    parseOrderStatus(status: Str): string;
     fetchOrderStatus(id: string, symbol?: Str, params?: {}): Promise<string>;
     fetchOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
     fetchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
@@ -119,7 +117,7 @@ export default class bitstamp extends Exchange {
         network: any;
         info: any;
     }>;
-    withdraw(code: string, amount: number, address: any, tag?: any, params?: {}): Promise<Transaction>;
+    withdraw(code: string, amount: number, address: string, tag?: any, params?: {}): Promise<Transaction>;
     transfer(code: string, amount: number, fromAccount: string, toAccount: string, params?: {}): Promise<TransferEntry>;
     parseTransfer(transfer: any, currency?: any): {
         info: any;
@@ -132,7 +130,7 @@ export default class bitstamp extends Exchange {
         toAccount: any;
         status: string;
     };
-    parseTransferStatus(status: any): string;
+    parseTransferStatus(status: Str): Str;
     nonce(): number;
     sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {
         url: string;

@@ -3,7 +3,7 @@
 import alpacaRest from '../alpaca.js';
 import { ExchangeError, AuthenticationError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
-import type { Int, Str, Ticker, OrderBook, Order, Trade, OHLCV } from '../base/types.js';
+import type { Int, Str, Ticker, OrderBook, Order, Trade, OHLCV, Dict } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -63,7 +63,7 @@ export default class alpaca extends alpacaRest {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const messageHash = 'ticker:' + market['symbol'];
-        const request = {
+        const request: Dict = {
             'action': 'subscribe',
             'quotes': [ market['id'] ],
         };
@@ -144,7 +144,7 @@ export default class alpaca extends alpacaRest {
         await this.loadMarkets ();
         const market = this.market (symbol);
         symbol = market['symbol'];
-        const request = {
+        const request: Dict = {
             'action': 'subscribe',
             'bars': [ market['id'] ],
         };
@@ -201,7 +201,7 @@ export default class alpaca extends alpacaRest {
         const market = this.market (symbol);
         symbol = market['symbol'];
         const messageHash = 'orderbook' + ':' + symbol;
-        const request = {
+        const request: Dict = {
             'action': 'subscribe',
             'orderbooks': [ market['id'] ],
         };
@@ -284,7 +284,7 @@ export default class alpaca extends alpacaRest {
         const market = this.market (symbol);
         symbol = market['symbol'];
         const messageHash = 'trade:' + symbol;
-        const request = {
+        const request: Dict = {
             'action': 'subscribe',
             'trades': [ market['id'] ],
         };
@@ -341,7 +341,7 @@ export default class alpaca extends alpacaRest {
             symbol = this.symbol (symbol);
             messageHash += ':' + symbol;
         }
-        const request = {
+        const request: Dict = {
             'action': 'listen',
             'data': {
                 'streams': [ 'trade_updates' ],
@@ -374,7 +374,7 @@ export default class alpaca extends alpacaRest {
             symbol = market['symbol'];
             messageHash = 'orders:' + symbol;
         }
-        const request = {
+        const request: Dict = {
             'action': 'listen',
             'data': {
                 'streams': [ 'trade_updates' ],
@@ -647,7 +647,7 @@ export default class alpaca extends alpacaRest {
                 this.handleAuthenticate (client, data);
                 return;
             }
-            const methods = {
+            const methods: Dict = {
                 'error': this.handleErrorMessage,
                 'b': this.handleOHLCV,
                 'q': this.handleTicker,
@@ -663,7 +663,7 @@ export default class alpaca extends alpacaRest {
 
     handleTradingMessage (client: Client, message) {
         const stream = this.safeString (message, 'stream');
-        const methods = {
+        const methods: Dict = {
             'authorization': this.handleAuthenticate,
             'listening': this.handleSubscription,
             'trade_updates': this.handleTradeUpdate,

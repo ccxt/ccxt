@@ -69,8 +69,11 @@ class indodax extends indodax$1 {
                 'fetchOrderBook': true,
                 'fetchOrders': false,
                 'fetchPosition': false,
+                'fetchPositionHistory': false,
                 'fetchPositionMode': false,
                 'fetchPositions': false,
+                'fetchPositionsForSymbol': false,
+                'fetchPositionsHistory': false,
                 'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchTicker': true,
@@ -507,7 +510,7 @@ class indodax extends indodax$1 {
         // }
         //
         const response = await this.publicGetApiTickerAll(params);
-        const tickers = this.safeList(response, 'tickers');
+        const tickers = this.safeDict(response, 'tickers', {});
         return this.parseTickers(tickers, symbols);
     }
     parseTrade(trade, market = undefined) {
@@ -586,8 +589,8 @@ class indodax extends indodax$1 {
         const timeframes = this.options['timeframes'];
         const selectedTimeframe = this.safeString(timeframes, timeframe, timeframe);
         const now = this.seconds();
-        const until = this.safeInteger2(params, 'until', 'till', now);
-        params = this.omit(params, ['until', 'till']);
+        const until = this.safeInteger(params, 'until', now);
+        params = this.omit(params, ['until']);
         const request = {
             'to': until,
             'tf': selectedTimeframe,

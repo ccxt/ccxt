@@ -22,7 +22,7 @@
 
 # ----------------------------------------------------------------------------
 
-__version__ = '4.2.89'
+__version__ = '4.3.30'
 
 # ----------------------------------------------------------------------------
 
@@ -53,6 +53,7 @@ from ccxt.base.errors import BadSymbol                                # noqa: F4
 from ccxt.base.errors import OperationRejected                        # noqa: F401
 from ccxt.base.errors import NoChange                                 # noqa: F401
 from ccxt.base.errors import MarginModeAlreadySet                     # noqa: F401
+from ccxt.base.errors import MarketClosed                             # noqa: F401
 from ccxt.base.errors import BadResponse                              # noqa: F401
 from ccxt.base.errors import NullResponse                             # noqa: F401
 from ccxt.base.errors import InsufficientFunds                        # noqa: F401
@@ -68,6 +69,7 @@ from ccxt.base.errors import DuplicateOrderId                         # noqa: F4
 from ccxt.base.errors import ContractUnavailable                      # noqa: F401
 from ccxt.base.errors import NotSupported                             # noqa: F401
 from ccxt.base.errors import ProxyError                               # noqa: F401
+from ccxt.base.errors import ExchangeClosedByUser                     # noqa: F401
 from ccxt.base.errors import OperationFailed                          # noqa: F401
 from ccxt.base.errors import NetworkError                             # noqa: F401
 from ccxt.base.errors import DDoSProtection                           # noqa: F401
@@ -76,7 +78,6 @@ from ccxt.base.errors import ExchangeNotAvailable                     # noqa: F4
 from ccxt.base.errors import OnMaintenance                            # noqa: F401
 from ccxt.base.errors import InvalidNonce                             # noqa: F401
 from ccxt.base.errors import RequestTimeout                           # noqa: F401
-from ccxt.base.errors import ExchangeClosedByUser                     # noqa: F401
 from ccxt.base.errors import error_hierarchy                          # noqa: F401
 
 from ccxt.ace import ace                                              # noqa: F401
@@ -118,8 +119,9 @@ from ccxt.btcturk import btcturk                                      # noqa: F4
 from ccxt.bybit import bybit                                          # noqa: F401
 from ccxt.cex import cex                                              # noqa: F401
 from ccxt.coinbase import coinbase                                    # noqa: F401
+from ccxt.coinbaseadvanced import coinbaseadvanced                    # noqa: F401
+from ccxt.coinbaseexchange import coinbaseexchange                    # noqa: F401
 from ccxt.coinbaseinternational import coinbaseinternational          # noqa: F401
-from ccxt.coinbasepro import coinbasepro                              # noqa: F401
 from ccxt.coincheck import coincheck                                  # noqa: F401
 from ccxt.coinex import coinex                                        # noqa: F401
 from ccxt.coinlist import coinlist                                    # noqa: F401
@@ -179,6 +181,7 @@ from ccxt.wavesexchange import wavesexchange                          # noqa: F4
 from ccxt.wazirx import wazirx                                        # noqa: F401
 from ccxt.whitebit import whitebit                                    # noqa: F401
 from ccxt.woo import woo                                              # noqa: F401
+from ccxt.woofipro import woofipro                                    # noqa: F401
 from ccxt.yobit import yobit                                          # noqa: F401
 from ccxt.zaif import zaif                                            # noqa: F401
 from ccxt.zonda import zonda                                          # noqa: F401
@@ -223,8 +226,9 @@ exchanges = [
     'bybit',
     'cex',
     'coinbase',
+    'coinbaseadvanced',
+    'coinbaseexchange',
     'coinbaseinternational',
-    'coinbasepro',
     'coincheck',
     'coinex',
     'coinlist',
@@ -284,6 +288,7 @@ exchanges = [
     'wazirx',
     'whitebit',
     'woo',
+    'woofipro',
     'yobit',
     'zaif',
     'zonda',

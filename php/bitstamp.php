@@ -66,8 +66,11 @@ class bitstamp extends Exchange {
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
                 'fetchPosition' => false,
+                'fetchPositionHistory' => false,
                 'fetchPositionMode' => false,
                 'fetchPositions' => false,
+                'fetchPositionsForSymbol' => false,
+                'fetchPositionsHistory' => false,
                 'fetchPositionsRisk' => false,
                 'fetchPremiumIndexOHLCV' => false,
                 'fetchTicker' => true,
@@ -354,6 +357,12 @@ class bitstamp extends Exchange {
                         'blur_address/' => 1,
                         'vext_withdrawal/' => 1,
                         'vext_address/' => 1,
+                        'cspr_withdrawal/' => 1,
+                        'cspr_address/' => 1,
+                        'vchf_withdrawal/' => 1,
+                        'vchf_address/' => 1,
+                        'veur_withdrawal/' => 1,
+                        'veur_address/' => 1,
                     ),
                 ),
             ),
@@ -614,7 +623,7 @@ class bitstamp extends Exchange {
         $now = $this->milliseconds();
         if (($timestamp === null) || (($now - $timestamp) > $expires)) {
             $response = $this->publicGetTradingPairsInfo ($params);
-            $this->options['fetchMarkets'] = array_merge($options, array(
+            $this->options['fetchMarkets'] = $this->extend($options, array(
                 'response' => $response,
                 'timestamp' => $now,
             ));
@@ -622,7 +631,7 @@ class bitstamp extends Exchange {
         return $this->safe_value($this->options['fetchMarkets'], 'response');
     }
 
-    public function fetch_currencies($params = array ()): array {
+    public function fetch_currencies($params = array ()): ?array {
         /**
          * fetches all available currencies on an exchange
          * @see https://www.bitstamp.net/api/#tag/Market-info/operation/GetTradingPairsInfo
@@ -684,7 +693,7 @@ class bitstamp extends Exchange {
         $request = array(
             'pair' => $market['id'],
         );
-        $response = $this->publicGetOrderBookPair (array_merge($request, $params));
+        $response = $this->publicGetOrderBookPair ($this->extend($request, $params));
         //
         //     {
         //         "timestamp" => "1583652948",
@@ -708,7 +717,7 @@ class bitstamp extends Exchange {
         return $orderbook;
     }
 
-    public function parse_ticker($ticker, ?array $market = null): array {
+    public function parse_ticker(array $ticker, ?array $market = null): array {
         //
         // {
         //     "timestamp" => "1686068944",
@@ -769,7 +778,7 @@ class bitstamp extends Exchange {
         $request = array(
             'pair' => $market['id'],
         );
-        $ticker = $this->publicGetTickerPair (array_merge($request, $params));
+        $ticker = $this->publicGetTickerPair ($this->extend($request, $params));
         //
         // {
         //     "timestamp" => "1686068944",
@@ -1031,7 +1040,7 @@ class bitstamp extends Exchange {
             'pair' => $market['id'],
             'time' => 'hour',
         );
-        $response = $this->publicGetTransactionsPair (array_merge($request, $params));
+        $response = $this->publicGetTransactionsPair ($this->extend($request, $params));
         //
         //     array(
         //         array(
@@ -1110,7 +1119,7 @@ class bitstamp extends Exchange {
             }
             $request['limit'] = min ($limit, 1000); // min 1, max 1000
         }
-        $response = $this->publicGetOhlcPair (array_merge($request, $params));
+        $response = $this->publicGetOhlcPair ($this->extend($request, $params));
         //
         //     {
         //         "data" => {
@@ -1186,7 +1195,7 @@ class bitstamp extends Exchange {
         $request = array(
             'market_symbol' => $market['id'],
         );
-        $response = $this->privatePostFeesTrading (array_merge($request, $params));
+        $response = $this->privatePostFeesTrading ($this->extend($request, $params));
         //
         //     array(
         //         {
@@ -1381,22 +1390,22 @@ class bitstamp extends Exchange {
         $capitalizedSide = $this->capitalize($side);
         if ($type === 'market') {
             if ($capitalizedSide === 'Buy') {
-                $response = $this->privatePostBuyMarketPair (array_merge($request, $params));
+                $response = $this->privatePostBuyMarketPair ($this->extend($request, $params));
             } else {
-                $response = $this->privatePostSellMarketPair (array_merge($request, $params));
+                $response = $this->privatePostSellMarketPair ($this->extend($request, $params));
             }
         } elseif ($type === 'instant') {
             if ($capitalizedSide === 'Buy') {
-                $response = $this->privatePostBuyInstantPair (array_merge($request, $params));
+                $response = $this->privatePostBuyInstantPair ($this->extend($request, $params));
             } else {
-                $response = $this->privatePostSellInstantPair (array_merge($request, $params));
+                $response = $this->privatePostSellInstantPair ($this->extend($request, $params));
             }
         } else {
             $request['price'] = $this->price_to_precision($symbol, $price);
             if ($capitalizedSide === 'Buy') {
-                $response = $this->privatePostBuyPair (array_merge($request, $params));
+                $response = $this->privatePostBuyPair ($this->extend($request, $params));
             } else {
-                $response = $this->privatePostSellPair (array_merge($request, $params));
+                $response = $this->privatePostSellPair ($this->extend($request, $params));
             }
         }
         $order = $this->parse_order($response, $market);
@@ -1417,7 +1426,7 @@ class bitstamp extends Exchange {
         $request = array(
             'id' => $id,
         );
-        return $this->privatePostCancelOrder (array_merge($request, $params));
+        return $this->privatePostCancelOrder ($this->extend($request, $params));
     }
 
     public function cancel_all_orders(?string $symbol = null, $params = array ()) {
@@ -1436,14 +1445,14 @@ class bitstamp extends Exchange {
         if ($symbol !== null) {
             $market = $this->market($symbol);
             $request['pair'] = $market['id'];
-            $response = $this->privatePostCancelAllOrdersPair (array_merge($request, $params));
+            $response = $this->privatePostCancelAllOrdersPair ($this->extend($request, $params));
         } else {
-            $response = $this->privatePostCancelAllOrders (array_merge($request, $params));
+            $response = $this->privatePostCancelAllOrders ($this->extend($request, $params));
         }
         return $response;
     }
 
-    public function parse_order_status($status) {
+    public function parse_order_status(?string $status) {
         $statuses = array(
             'In Queue' => 'open',
             'Open' => 'open',
@@ -1463,7 +1472,7 @@ class bitstamp extends Exchange {
         } else {
             $request['id'] = $id;
         }
-        $response = $this->privatePostOrderStatus (array_merge($request, $params));
+        $response = $this->privatePostOrderStatus ($this->extend($request, $params));
         return $this->parse_order_status($this->safe_string($response, 'status'));
     }
 
@@ -1488,7 +1497,7 @@ class bitstamp extends Exchange {
         } else {
             $request['id'] = $id;
         }
-        $response = $this->privatePostOrderStatus (array_merge($request, $params));
+        $response = $this->privatePostOrderStatus ($this->extend($request, $params));
         //
         //      {
         //          "status" => "Finished",
@@ -1533,7 +1542,7 @@ class bitstamp extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
-        $response = $this->$method (array_merge($request, $params));
+        $response = $this->$method ($this->extend($request, $params));
         $result = $this->filter_by($response, 'type', '2');
         return $this->parse_trades($result, $market, $since, $limit);
     }
@@ -1553,7 +1562,7 @@ class bitstamp extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
-        $response = $this->privatePostUserTransactions (array_merge($request, $params));
+        $response = $this->privatePostUserTransactions ($this->extend($request, $params));
         //
         //     array(
         //         array(
@@ -1605,7 +1614,7 @@ class bitstamp extends Exchange {
         } else {
             $request['timedelta'] = 50000000; // use max bitstamp approved value
         }
-        $response = $this->privatePostWithdrawalRequests (array_merge($request, $params));
+        $response = $this->privatePostWithdrawalRequests ($this->extend($request, $params));
         //
         //     array(
         //         array(
@@ -1969,7 +1978,7 @@ class bitstamp extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
-        $response = $this->privatePostUserTransactions (array_merge($request, $params));
+        $response = $this->privatePostUserTransactions ($this->extend($request, $params));
         $currency = null;
         if ($code !== null) {
             $currency = $this->currency($code);
@@ -2052,7 +2061,7 @@ class bitstamp extends Exchange {
         );
     }
 
-    public function withdraw(string $code, float $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()) {
         /**
          * make a withdrawal
          * @see https://www.bitstamp.net/api/#tag/Withdrawals/operation/RequestFiatWithdrawal
@@ -2093,7 +2102,7 @@ class bitstamp extends Exchange {
             $request['iban'] = $address;
             $request['account_currency'] = $currency['id'];
         }
-        $response = $this->$method (array_merge($request, $params));
+        $response = $this->$method ($this->extend($request, $params));
         return $this->parse_transaction($response, $currency);
     }
 
@@ -2111,19 +2120,17 @@ class bitstamp extends Exchange {
          */
         $this->load_markets();
         $currency = $this->currency($code);
-        $amount = $this->currency_to_precision($code, $amount);
-        $amount = $this->parse_to_numeric($amount);
         $request = array(
-            'amount' => $amount,
+            'amount' => $this->parse_to_numeric($this->currency_to_precision($code, $amount)),
             'currency' => strtoupper($currency['id']),
         );
         $response = null;
         if ($fromAccount === 'main') {
             $request['subAccount'] = $toAccount;
-            $response = $this->privatePostTransferFromMain (array_merge($request, $params));
+            $response = $this->privatePostTransferFromMain ($this->extend($request, $params));
         } elseif ($toAccount === 'main') {
             $request['subAccount'] = $fromAccount;
-            $response = $this->privatePostTransferToMain (array_merge($request, $params));
+            $response = $this->privatePostTransferToMain ($this->extend($request, $params));
         } else {
             throw new BadRequest($this->id . ' $transfer() only supports from or to main');
         }
@@ -2155,7 +2162,7 @@ class bitstamp extends Exchange {
         );
     }
 
-    public function parse_transfer_status($status) {
+    public function parse_transfer_status(?string $status): ?string {
         $statuses = array(
             'ok' => 'ok',
             'error' => 'failed',
