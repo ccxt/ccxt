@@ -1,7 +1,7 @@
 //  ---------------------------------------------------------------------------
 
 import bitgetRest from '../bitget.js';
-import { AuthenticationError, BadRequest, ArgumentsRequired, NotSupported, ExchangeError, RateLimitExceeded } from '../base/errors.js';
+import { AuthenticationError, BadRequest, ArgumentsRequired, ExchangeError, RateLimitExceeded } from '../base/errors.js';
 import { Precise } from '../base/Precise.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
