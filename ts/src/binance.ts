@@ -5796,7 +5796,6 @@ export default class binance extends Exchange {
         const initialUppercaseType = type.toUpperCase ();
         const isMarketOrder = initialUppercaseType === 'MARKET';
         const isLimitOrder = initialUppercaseType === 'LIMIT';
-        const timeInForce = this.safeString (params, 'timeInForce');
         const request = {
             'symbol': market['id'],
             'side': side.toUpperCase (),
