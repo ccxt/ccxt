@@ -5243,6 +5243,18 @@ export default class coinex extends Exchange {
     }
 
     async fetchBorrowInterest (code: Str = undefined, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+        /**
+         * @method
+         * @name coinex#fetchBorrowInterest
+         * @description fetch the interest owed by the user for borrowing currency for margin trading
+         * @see https://docs.coinex.com/api/v2/assets/loan-flat/http/list-margin-borrow-history
+         * @param {string} [code] unified currency code
+         * @param {string} [symbol] unified market symbol when fetch interest in isolated markets
+         * @param {int} [since] the earliest time in ms to fetch borrrow interest for
+         * @param {int} [limit] the maximum number of structures to retrieve
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object[]} a list of [borrow interest structures]{@link https://docs.ccxt.com/#/?id=borrow-interest-structure}
+         */
         await this.loadMarkets ();
         const request = {};
         let market = undefined;
@@ -5253,39 +5265,32 @@ export default class coinex extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this.v1PrivateGetMarginLoanHistory (this.extend (request, params));
+        const response = await this.v2PrivateGetAssetsMarginBorrowHistory (this.extend (request, params));
         //
         //     {
-        //         "code": 0,
-        //         "data": {
-        //             "page": 1,
-        //             "limit": 10,
-        //             "total": 1,
-        //             "has_next": false,
-        //             "curr_page": 1,
-        //             "count": 1,
-        //             "data": [
-        //                 {
-        //                     "loan_id": 2616357,
-        //                     "create_time": 1654214027,
-        //                     "market_type": "BTCUSDT",
-        //                     "coin_type": "BTC",
-        //                     "day_rate": "0.001",
-        //                     "loan_amount": "0.0144",
-        //                     "interest_amount": "0",
-        //                     "unflat_amount": "0",
-        //                     "expire_time": 1655078027,
-        //                     "is_renew": true,
-        //                     "status": "finish"
-        //                 }
-        //             ],
-        //             "total_page": 1
+        //         "data": [
+        //             {
+        //                 "borrow_id": 2642934,
+        //                 "created_at": 1654761016000,
+        //                 "market": "BTCUSDT",
+        //                 "ccy": "USDT",
+        //                 "daily_interest_rate": "0.001",
+        //                 "expired_at": 1655625016000,
+        //                 "borrow_amount": "100",
+        //                 "to_repaied_amount": "0",
+        //                 "is_auto_renew": false,
+        //                 "status": "finish"
+        //             },
+        //         ],
+        //         "pagination": {
+        //             "total": 4,
+        //             "has_next": true
         //         },
-        //         "message": "Success"
+        //         "code": 0,
+        //         "message": "OK"
         //     }
         //
-        const data = this.safeValue (response, 'data', {});
-        const rows = this.safeValue (data, 'data', []);
+        const rows = this.safeValue (response, 'data', []);
         const interest = this.parseBorrowInterests (rows, market);
         return this.filterByCurrencySinceLimit (interest, code, since, limit);
     }
@@ -5293,38 +5298,30 @@ export default class coinex extends Exchange {
     parseBorrowInterest (info, market: Market = undefined) {
         //
         //     {
-        //         "loan_id": 2616357,
-        //         "create_time": 1654214027,
-        //         "market_type": "BTCUSDT",
-        //         "coin_type": "BTC",
-        //         "day_rate": "0.001",
-        //         "loan_amount": "0.0144",
-        //         "interest_amount": "0",
-        //         "unflat_amount": "0",
-        //         "expire_time": 1655078027,
-        //         "is_renew": true,
+        //         "borrow_id": 2642934,
+        //         "created_at": 1654761016000,
+        //         "market": "BTCUSDT",
+        //         "ccy": "USDT",
+        //         "daily_interest_rate": "0.001",
+        //         "expired_at": 1655625016000,
+        //         "borrow_amount": "100",
+        //         "to_repaied_amount": "0",
+        //         "is_auto_renew": false,
         //         "status": "finish"
         //     }
         //
-        const marketId = this.safeString (info, 'market_type');
+        const marketId = this.safeString (info, 'market');
         market = this.safeMarket (marketId, market, undefined, 'spot');
-        const symbol = this.safeString (market, 'symbol');
-        const timestamp = this.safeTimestamp (info, 'expire_time');
-        const unflatAmount = this.safeString (info, 'unflat_amount');
-        const loanAmount = this.safeString (info, 'loan_amount');
-        let interest = Precise.stringSub (unflatAmount, loanAmount);
-        if (unflatAmount === '0') {
-            interest = undefined;
-        }
+        const timestamp = this.safeInteger (info, 'expired_at');
         return {
             'account': undefined, // deprecated
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'marginMode': 'isolated',
             'marginType': undefined, // deprecated
-            'currency': this.safeCurrencyCode (this.safeString (info, 'coin_type')),
-            'interest': this.parseNumber (interest),
-            'interestRate': this.safeNumber (info, 'day_rate'),
-            'amountBorrowed': this.parseNumber (loanAmount),
+            'currency': this.safeCurrencyCode (this.safeString (info, 'ccy')),
+            'interest': this.safeNumber (info, 'to_repaied_amount'),
+            'interestRate': this.safeNumber (info, 'daily_interest_rate'),
+            'amountBorrowed': this.safeNumber (info, 'borrow_amount'),
             'timestamp': timestamp,  // expiry time
             'datetime': this.iso8601 (timestamp),
             'info': info,
