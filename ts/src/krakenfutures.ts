@@ -6,7 +6,7 @@ import { ArgumentsRequired, AuthenticationError, BadRequest, ContractUnavailable
 import { Precise } from './base/Precise.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
-import type { TransferEntry, Int, OrderSide, OrderType, OHLCV, Trade, FundingRateHistory, OrderRequest, Order, Balances, Str, Ticker, OrderBook, Tickers, Strings, Market, Currency, Leverage, Leverages, Num } from './base/types.js';
+import type { TransferEntry, Int, OrderSide, OrderType, OHLCV, Trade, FundingRateHistory, OrderRequest, Order, Balances, Str, Dict, Ticker, OrderBook, Tickers, Strings, Market, Currency, Leverage, Leverages, Num } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -32,6 +32,7 @@ export default class krakenfutures extends Exchange {
                 'future': true,
                 'option': false,
                 'cancelAllOrders': true,
+                'cancelAllOrdersAfter': true,
                 'cancelOrder': true,
                 'cancelOrders': true,
                 'createMarketOrder': false,
@@ -71,6 +72,7 @@ export default class krakenfutures extends Exchange {
                 'fetchPremiumIndexOHLCV': false,
                 'fetchTickers': true,
                 'fetchTrades': true,
+                'sandbox': true,
                 'setLeverage': true,
                 'setMarginMode': false,
                 'transfer': true,
@@ -455,7 +457,7 @@ export default class krakenfutures extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'symbol': market['id'],
         };
         const response = await this.publicGetOrderbook (this.extend (request, params));
@@ -541,7 +543,7 @@ export default class krakenfutures extends Exchange {
         return this.parseTickers (tickers, symbols);
     }
 
-    parseTicker (ticker, market: Market = undefined): Ticker {
+    parseTicker (ticker: Dict, market: Market = undefined): Ticker {
         //
         //    {
         //        "tag": 'semiannual',  // 'month', 'quarter', "perpetual", "semiannual",
@@ -633,7 +635,7 @@ export default class krakenfutures extends Exchange {
         if (paginate) {
             return await this.fetchPaginatedCallDeterministic ('fetchOHLCV', symbol, since, limit, timeframe, params, 5000) as OHLCV[];
         }
-        const request = {
+        const request: Dict = {
             'symbol': market['id'],
             'price_type': this.safeString (params, 'price', 'trade'),
             'interval': this.timeframes[timeframe],
@@ -719,7 +721,7 @@ export default class krakenfutures extends Exchange {
             return await this.fetchPaginatedCallDynamic ('fetchTrades', symbol, since, limit, params) as Trade[];
         }
         const market = this.market (symbol);
-        let request = {
+        let request: Dict = {
             'symbol': market['id'],
         };
         let method = undefined;
@@ -979,7 +981,7 @@ export default class krakenfutures extends Exchange {
         } else if (type === 'market') {
             type = 'mkt';
         }
-        const request = {
+        const request: Dict = {
             'symbol': market['id'],
             'side': side,
             'size': this.amountToPrecision (symbol, amount),
@@ -1111,7 +1113,7 @@ export default class krakenfutures extends Exchange {
             const orderRequest = this.createOrderRequest (marketId, type, side, amount, price, extendedParams);
             ordersRequests.push (orderRequest);
         }
-        const request = {
+        const request: Dict = {
             'batchOrder': ordersRequests,
         };
         const response = await this.privatePostBatchorder (this.extend (request, params));
@@ -1151,7 +1153,7 @@ export default class krakenfutures extends Exchange {
          * @returns An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
-        const request = {
+        const request: Dict = {
             'orderId': id,
         };
         if (amount !== undefined) {
@@ -1183,7 +1185,7 @@ export default class krakenfutures extends Exchange {
         const response = await this.privatePostCancelorder (this.extend ({ 'order_id': id }, params));
         const status = this.safeString (this.safeValue (response, 'cancelStatus', {}), 'status');
         this.verifyOrderActionSuccess (status, 'cancelOrder');
-        let order = {};
+        let order: Dict = {};
         if ('cancelStatus' in response) {
             order = this.parseOrder (response['cancelStatus']);
         }
@@ -1217,7 +1219,7 @@ export default class krakenfutures extends Exchange {
                 orders.push ({ 'order': 'cancel', 'order_id': ids[i] });
             }
         }
-        const request = {
+        const request: Dict = {
             'batchOrder': orders,
         };
         const response = await this.privatePostBatchorder (this.extend (request, params));
@@ -1264,11 +1266,39 @@ export default class krakenfutures extends Exchange {
          * @param {dict} [params] Exchange specific params
          * @returns Response from exchange api
          */
-        const request = {};
+        const request: Dict = {};
         if (symbol !== undefined) {
             request['symbol'] = this.marketId (symbol);
         }
         const response = await this.privatePostCancelallorders (this.extend (request, params));
+        return response;
+    }
+
+    async cancelAllOrdersAfter (timeout: Int, params = {}) {
+        /**
+         * @method
+         * @name krakenfutures#cancelAllOrdersAfter
+         * @description dead man's switch, cancel all orders after the given timeout
+         * @see https://docs.futures.kraken.com/#http-api-trading-v3-api-order-management-dead-man-39-s-switch
+         * @param {number} timeout time in milliseconds, 0 represents cancel the timer
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} the api result
+         */
+        await this.loadMarkets ();
+        const request: Dict = {
+            'timeout': (timeout > 0) ? (this.parseToInt (timeout / 1000)) : 0,
+        };
+        const response = await this.privatePostCancelallordersafter (this.extend (request, params));
+        //
+        //     {
+        //         "result": "success",
+        //         "serverTime": "2018-06-19T16:51:23.839Z",
+        //         "status": {
+        //             "currentTime": "2018-06-19T16:51:23.839Z",
+        //             "triggerTime": "0"
+        //         }
+        //     }
+        //
         return response;
     }
 
@@ -1311,7 +1341,7 @@ export default class krakenfutures extends Exchange {
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        const request = {};
+        const request: Dict = {};
         if (limit !== undefined) {
             request['count'] = limit;
         }
@@ -1354,7 +1384,7 @@ export default class krakenfutures extends Exchange {
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        const request = {};
+        const request: Dict = {};
         if (limit !== undefined) {
             request['count'] = limit;
         }
@@ -1393,7 +1423,7 @@ export default class krakenfutures extends Exchange {
     }
 
     parseOrderType (orderType) {
-        const map = {
+        const map: Dict = {
             'lmt': 'limit',
             'mkt': 'market',
             'post': 'limit',
@@ -1403,7 +1433,7 @@ export default class krakenfutures extends Exchange {
     }
 
     verifyOrderActionSuccess (status, method, omit = []) {
-        const errors = {
+        const errors: Dict = {
             'invalidOrderType': InvalidOrder,
             'invalidSide': InvalidOrder,
             'invalidSize': InvalidOrder,
@@ -1430,8 +1460,8 @@ export default class krakenfutures extends Exchange {
         }
     }
 
-    parseOrderStatus (status) {
-        const statuses = {
+    parseOrderStatus (status: Str) {
+        const statuses: Dict = {
             'placed': 'open', // the order was placed successfully
             'cancelled': 'canceled', // the order was cancelled successfully
             'invalidOrderType': 'rejected', // the order was not placed because orderType is invalid
@@ -2046,7 +2076,7 @@ export default class krakenfutures extends Exchange {
         const isFlex = (accountType === 'multiCollateralMarginAccount');
         const isCash = (accountType === 'cashAccount');
         const balances = this.safeValue2 (response, 'balances', 'currencies', {});
-        const result = {};
+        const result: Dict = {};
         const currencyIds = Object.keys (balances);
         for (let i = 0; i < currencyIds.length; i++) {
             const currencyId = currencyIds[i];
@@ -2181,7 +2211,7 @@ export default class krakenfutures extends Exchange {
         if (!market['swap']) {
             throw new BadRequest (this.id + ' fetchFundingRateHistory() supports swap contracts only');
         }
-        const request = {
+        const request: Dict = {
             'symbol': market['id'].toUpperCase (),
         };
         const response = await this.publicGetHistoricalfundingrates (this.extend (request, params));
@@ -2218,14 +2248,14 @@ export default class krakenfutures extends Exchange {
         /**
          * @method
          * @name krakenfutures#fetchPositions
-         * @see https://docs.futures.kraken.com/#websocket-api-private-feeds-open-positions
+         * @see https://docs.futures.kraken.com/#http-api-trading-v3-api-account-information-get-open-positions
          * @description Fetches current contract trading positions
          * @param {string[]} symbols List of unified symbols
          * @param {object} [params] Not used by krakenfutures
          * @returns Parsed exchange response for positions
          */
         await this.loadMarkets ();
-        const request = {};
+        const request: Dict = {};
         const response = await this.privateGetOpenpositions (request);
         //
         //    {
@@ -2439,7 +2469,7 @@ export default class krakenfutures extends Exchange {
         return tiers;
     }
 
-    parseTransfer (transfer, currency: Currency = undefined) {
+    parseTransfer (transfer: Dict, currency: Currency = undefined): TransferEntry {
         //
         // transfer
         //
@@ -2463,7 +2493,7 @@ export default class krakenfutures extends Exchange {
     }
 
     parseAccount (account) {
-        const accountByType = {
+        const accountByType: Dict = {
             'main': 'cash',
             'funding': 'cash',
             'future': 'cash',
@@ -2519,7 +2549,7 @@ export default class krakenfutures extends Exchange {
         if (fromAccount === 'spot') {
             throw new BadRequest (this.id + ' transfer does not yet support transfers from spot');
         }
-        const request = {
+        const request: Dict = {
             'amount': amount,
         };
         let response = undefined;
@@ -2564,7 +2594,7 @@ export default class krakenfutures extends Exchange {
             throw new ArgumentsRequired (this.id + ' setLeverage() requires a symbol argument');
         }
         await this.loadMarkets ();
-        const request = {
+        const request: Dict = {
             'maxLeverage': leverage,
             'symbol': this.marketId (symbol).toUpperCase (),
         };
@@ -2617,7 +2647,7 @@ export default class krakenfutures extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'symbol': this.marketId (symbol).toUpperCase (),
         };
         const response = await this.privateGetLeveragepreferences (this.extend (request, params));
@@ -2633,7 +2663,7 @@ export default class krakenfutures extends Exchange {
         return this.parseLeverage (data, market);
     }
 
-    parseLeverage (leverage, market = undefined): Leverage {
+    parseLeverage (leverage: Dict, market: Market = undefined): Leverage {
         const marketId = this.safeString (leverage, 'symbol');
         const leverageValue = this.safeInteger (leverage, 'maxLeverage');
         return {

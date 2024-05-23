@@ -84,6 +84,7 @@ public partial class deribit : Exchange
                 { "fetchVolatilityHistory", true },
                 { "fetchWithdrawal", false },
                 { "fetchWithdrawals", true },
+                { "sandbox", true },
                 { "transfer", true },
                 { "withdraw", true },
             } },
@@ -1244,14 +1245,20 @@ public partial class deribit : Exchange
         * @name deribit#fetchTickers
         * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
         * @see https://docs.deribit.com/#public-get_book_summary_by_currency
-        * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+        * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @param {string} [params.code] *required* the currency code to fetch the tickers for, eg. 'BTC', 'ETH'
         * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
         */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         symbols = this.marketSymbols(symbols);
-        object code = this.codeFromOptions("fetchTickers", parameters);
+        object code = this.safeString2(parameters, "code", "currency");
+        parameters = this.omit(parameters, new List<object>() {"code"});
+        if (isTrue(isEqual(code, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " fetchTickers requires a currency/code (eg: BTC/ETH/USDT) parameter to fetch tickers for")) ;
+        }
         object currency = this.currency(code);
         object request = new Dictionary<string, object>() {
             { "currency", getValue(currency, "id") },
@@ -1287,7 +1294,7 @@ public partial class deribit : Exchange
         //         "testnet": false
         //     }
         //
-        object result = this.safeValue(response, "result", new List<object>() {});
+        object result = this.safeList(response, "result", new List<object>() {});
         object tickers = new Dictionary<string, object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(result)); postFixIncrement(ref i))
         {
@@ -2894,7 +2901,7 @@ public partial class deribit : Exchange
         return result;
     }
 
-    public async virtual Task<object> fetchTransfers(object code = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<object> fetchTransfers(object code = null, object since = null, object limit = null, object parameters = null)
     {
         /**
         * @method
@@ -3044,7 +3051,7 @@ public partial class deribit : Exchange
             { "id", this.safeString(transfer, "id") },
             { "status", this.parseTransferStatus(status) },
             { "amount", this.safeNumber(transfer, "amount") },
-            { "code", this.safeCurrencyCode(currencyId, currency) },
+            { "currency", this.safeCurrencyCode(currencyId, currency) },
             { "fromAccount", ((bool) isTrue(!isEqual(direction, "payment"))) ? account : null },
             { "toAccount", ((bool) isTrue(isEqual(direction, "payment"))) ? account : null },
             { "timestamp", timestamp },

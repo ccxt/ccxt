@@ -6,7 +6,7 @@ import { ExchangeError, InvalidNonce, AuthenticationError, PermissionDenied, Not
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
-import type { Balances, Currency, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade, TradingFees } from './base/types.js';
+import type { Balances, Currency, Dict, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade, TradingFees } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -187,7 +187,7 @@ export default class bit2c extends Exchange {
     }
 
     parseBalance (response): Balances {
-        const result = {
+        const result: Dict = {
             'info': response,
             'timestamp': undefined,
             'datetime': undefined,
@@ -276,14 +276,14 @@ export default class bit2c extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'pair': market['id'],
         };
         const orderbook = await this.publicGetExchangesPairOrderbook (this.extend (request, params));
         return this.parseOrderBook (orderbook, symbol);
     }
 
-    parseTicker (ticker, market: Market = undefined): Ticker {
+    parseTicker (ticker: Dict, market: Market = undefined): Ticker {
         const symbol = this.safeSymbol (undefined, market);
         const averagePrice = this.safeString (ticker, 'av');
         const baseVolume = this.safeString (ticker, 'a');
@@ -324,7 +324,7 @@ export default class bit2c extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'pair': market['id'],
         };
         const response = await this.publicGetExchangesPairTicker (this.extend (request, params));
@@ -347,7 +347,7 @@ export default class bit2c extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const method = this.options['fetchTradesMethod']; // public_get_exchanges_pair_trades or public_get_exchanges_pair_lasttrades
-        const request = {
+        const request: Dict = {
             'pair': market['id'],
         };
         if (since !== undefined) {
@@ -404,7 +404,7 @@ export default class bit2c extends Exchange {
         //
         const fees = this.safeValue (response, 'Fees', {});
         const keys = Object.keys (fees);
-        const result = {};
+        const result: Dict = {};
         for (let i = 0; i < keys.length; i++) {
             const marketId = keys[i];
             const symbol = this.safeSymbol (marketId);
@@ -442,7 +442,7 @@ export default class bit2c extends Exchange {
         await this.loadMarkets ();
         let method = 'privatePostOrderAddOrder';
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'Amount': amount,
             'Pair': market['id'],
         };
@@ -470,7 +470,7 @@ export default class bit2c extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
-        const request = {
+        const request: Dict = {
             'id': id,
         };
         return await this.privatePostOrderCancelOrder (this.extend (request, params));
@@ -493,7 +493,7 @@ export default class bit2c extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'pair': market['id'],
         };
         const response = await this.privateGetOrderMyOrders (this.extend (request, params));
@@ -515,7 +515,7 @@ export default class bit2c extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'id': id,
         };
         const response = await this.privateGetOrderGetById (this.extend (request, params));
@@ -665,7 +665,7 @@ export default class bit2c extends Exchange {
          */
         await this.loadMarkets ();
         let market = undefined;
-        const request = {};
+        const request: Dict = {};
         if (limit !== undefined) {
             request['take'] = limit;
         }
@@ -848,7 +848,7 @@ export default class bit2c extends Exchange {
         if (this.isFiat (code)) {
             throw new NotSupported (this.id + ' fetchDepositAddress() does not support fiat currencies');
         }
-        const request = {
+        const request: Dict = {
             'Coin': currency['id'],
         };
         const response = await this.privatePostFundsAddCoinFundsRequest (this.extend (request, params));

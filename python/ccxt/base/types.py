@@ -149,6 +149,12 @@ class OrderRequest(TypedDict):
     params: Dict[str, Any]
 
 
+class CancellationRequest(TypedDict):
+    id: Str
+    symbol: Str
+    clientOrderId: Str
+
+
 class Order(TypedDict):
     info: Dict[str, Any]
     id: Str
@@ -172,6 +178,8 @@ class Order(TypedDict):
     stopLossPrice: Num
     cost: Num
     trades: List[Trade]
+    reduceOnly: Bool
+    postOnly: Bool
     fee: Fee
 
 
@@ -431,9 +439,52 @@ class MarginModification(TypedDict):
     datetime: Str
 
 
+class CrossBorrowRate(TypedDict):
+    info: Dict[str, any]
+    currency: Str
+    rate: float
+    period: Optional[float]
+    timestamp: Int
+    datetime: Str
+
+
+class IsolatedBorrowRate(TypedDict):
+    info: Dict[str, any]
+    symbol: str
+    base: str
+    baseRate: float
+    quote: str
+    quoteRate: float
+    period: Int
+    timestamp: Int
+    datetime: Str
+
+class FundingRate(TypedDict):
+    symbol: Str
+    timestamp: Int
+    fundingRate: Num
+    datetime: Str
+    markPrice: Num
+    indexPrice: Num
+    interestRate: Num
+    estimatedSettlePrice: Num
+    fundingTimestamp: Int
+    fundingDatetime: Str
+    nextFundingTimestamp: Int
+    nextFundingDatetime: Str
+    nextFundingRate: Num
+    previousFundingTimestamp: Int
+    previousFundingDatetime: Str
+    previousFundingRate: Num
+    info: Dict[str, Any]
+
+FundingRates = Dict[Str, FundingRate]
 LastPrices = Dict[Str, LastPrice]
 Currencies = Dict[Str, CurrencyInterface]
 TradingFees = Dict[Str, TradingFeeInterface]
+IsolatedBorrowRates = Dict[Str, IsolatedBorrowRate]
+CrossBorrowRates = Dict[Str, CrossBorrowRate]
+TransferEntries = Dict[Str, TransferEntry]
 
 Market = Optional[MarketInterface]
 Currency = Optional[CurrencyInterface]

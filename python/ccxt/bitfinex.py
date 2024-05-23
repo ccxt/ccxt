@@ -775,7 +775,7 @@ class bitfinex(Exchange, ImplicitAPI):
             'amount': self.parse_number(requestedAmount),
         })
 
-    def parse_transfer(self, transfer, currency: Currency = None):
+    def parse_transfer(self, transfer: dict, currency: Currency = None) -> TransferEntry:
         #
         #     {
         #         "status": "success",
@@ -794,7 +794,7 @@ class bitfinex(Exchange, ImplicitAPI):
             'status': self.parse_transfer_status(self.safe_string(transfer, 'status')),
         }
 
-    def parse_transfer_status(self, status):
+    def parse_transfer_status(self, status: Str) -> Str:
         statuses = {
             'SUCCESS': 'ok',
         }
@@ -841,7 +841,7 @@ class bitfinex(Exchange, ImplicitAPI):
         response = self.publicGetTickers(params)
         result = {}
         for i in range(0, len(response)):
-            ticker = self.parse_ticker(response[i])
+            ticker = self.parse_ticker({'result': response[i]})
             symbol = ticker['symbol']
             result[symbol] = ticker
         return self.filter_by_array_tickers(result, 'symbol', symbols)
@@ -860,9 +860,33 @@ class bitfinex(Exchange, ImplicitAPI):
             'symbol': market['id'],
         }
         ticker = self.publicGetPubtickerSymbol(self.extend(request, params))
+        #
+        #    {
+        #        mid: '63560.5',
+        #        bid: '63560.0',
+        #        ask: '63561.0',
+        #        last_price: '63547.0',
+        #        low: '62812.0',
+        #        high: '64480.0',
+        #        volume: '517.25634977',
+        #        timestamp: '1715102384.9849467'
+        #    }
+        #
         return self.parse_ticker(ticker, market)
 
-    def parse_ticker(self, ticker, market: Market = None) -> Ticker:
+    def parse_ticker(self, ticker: dict, market: Market = None) -> Ticker:
+        #
+        #    {
+        #        mid: '63560.5',
+        #        bid: '63560.0',
+        #        ask: '63561.0',
+        #        last_price: '63547.0',
+        #        low: '62812.0',
+        #        high: '64480.0',
+        #        volume: '517.25634977',
+        #        timestamp: '1715102384.9849467'
+        #    }
+        #
         timestamp = self.safe_timestamp(ticker, 'timestamp')
         marketId = self.safe_string(ticker, 'pair')
         market = self.safe_market(marketId, market)
@@ -1462,7 +1486,7 @@ class bitfinex(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def withdraw(self, code: str, amount: float, address, tag=None, params={}):
+    def withdraw(self, code: str, amount: float, address: str, tag=None, params={}):
         """
         make a withdrawal
         :see: https://docs.bitfinex.com/v1/reference/rest-auth-withdrawal

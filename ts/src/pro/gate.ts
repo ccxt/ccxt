@@ -5,7 +5,7 @@ import gateRest from '../gate.js';
 import { AuthenticationError, BadRequest, ArgumentsRequired } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide } from '../base/ws/Cache.js';
 import { sha512 } from '../static_dependencies/noble-hashes/sha512.js';
-import type { Int, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Position, Balances } from '../base/types.js';
+import type { Int, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Position, Balances, Dict } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -121,7 +121,7 @@ export default class gate extends gateRest {
             const stringLimit = limit.toString ();
             payload.push (stringLimit);
         }
-        const subscription = {
+        const subscription: Dict = {
             'symbol': symbol,
             'limit': limit,
         };
@@ -381,7 +381,7 @@ export default class gate extends gateRest {
         }
         const tickerOrBidAsk = await this.subscribePublicMultiple (url, messageHashes, marketIds, channel, params);
         if (this.newUpdates) {
-            const items = {};
+            const items: Dict = {};
             items[tickerOrBidAsk['symbol']] = tickerOrBidAsk;
             return items;
         }
@@ -556,7 +556,7 @@ export default class gate extends gateRest {
         if (!Array.isArray (result)) {
             result = [ result ];
         }
-        const marketIds = {};
+        const marketIds: Dict = {};
         for (let i = 0; i < result.length; i++) {
             const ohlcv = result[i];
             const subscription = this.safeString (ohlcv, 'n', '');
@@ -667,7 +667,7 @@ export default class gate extends gateRest {
             this.myTrades = cachedTrades;
         }
         const parsed = this.parseTrades (result);
-        const marketIds = {};
+        const marketIds: Dict = {};
         for (let i = 0; i < parsed.length; i++) {
             const trade = parsed[i];
             cachedTrades.append (trade);
@@ -1032,7 +1032,7 @@ export default class gate extends gateRest {
             this.orders = new ArrayCacheBySymbolById (limit);
         }
         const stored = this.orders;
-        const marketIds = {};
+        const marketIds: Dict = {};
         const parsedOrders = this.parseOrders (orders);
         for (let i = 0; i < parsedOrders.length; i++) {
             const parsed = parsedOrders[i];
@@ -1108,7 +1108,7 @@ export default class gate extends gateRest {
 
     handleSubscriptionStatus (client: Client, message) {
         const channel = this.safeString (message, 'channel');
-        const methods = {
+        const methods: Dict = {
             'balance': this.handleBalanceSubscription,
             'spot.order_book_update': this.handleOrderBookSubscription,
             'futures.order_book_update': this.handleOrderBookSubscription,
@@ -1226,7 +1226,7 @@ export default class gate extends gateRest {
         const channel = this.safeString (message, 'channel', '');
         const channelParts = channel.split ('.');
         const channelType = this.safeValue (channelParts, 1);
-        const v4Methods = {
+        const v4Methods: Dict = {
             'usertrades': this.handleMyTrades,
             'candlesticks': this.handleOHLCV,
             'orders': this.handleOrder,
@@ -1273,7 +1273,7 @@ export default class gate extends gateRest {
     }
 
     getMarketTypeByUrl (url: string) {
-        const findBy = {
+        const findBy: Dict = {
             'op-': 'option',
             'delivery': 'future',
             'fx': 'swap',
@@ -1299,7 +1299,7 @@ export default class gate extends gateRest {
     async subscribePublic (url, messageHash, payload, channel, params = {}, subscription = undefined) {
         const requestId = this.requestId ();
         const time = this.seconds ();
-        const request = {
+        const request: Dict = {
             'id': requestId,
             'time': time,
             'channel': channel,
@@ -1320,7 +1320,7 @@ export default class gate extends gateRest {
     async subscribePublicMultiple (url, messageHashes, payload, channel, params = {}) {
         const requestId = this.requestId ();
         const time = this.seconds ();
-        const request = {
+        const request: Dict = {
             'id': requestId,
             'time': time,
             'channel': channel,
@@ -1349,13 +1349,13 @@ export default class gate extends gateRest {
         const event = 'subscribe';
         const signaturePayload = 'channel=' + channel + '&' + 'event=' + event + '&' + 'time=' + time.toString ();
         const signature = this.hmac (this.encode (signaturePayload), this.encode (this.secret), sha512, 'hex');
-        const auth = {
+        const auth: Dict = {
             'method': 'api_key',
             'KEY': this.apiKey,
             'SIGN': signature,
         };
         const requestId = this.requestId ();
-        const request = {
+        const request: Dict = {
             'id': requestId,
             'time': time,
             'channel': channel,

@@ -353,7 +353,7 @@ class poloniexfutures extends Exchange {
         );
     }
 
-    public function parse_ticker($ticker, ?array $market = null): array {
+    public function parse_ticker(array $ticker, ?array $market = null): array {
         //
         //    {
         //        "symbol" => "BTCUSDTPERP",                   // Market of the $symbol
@@ -379,7 +379,18 @@ class poloniexfutures extends Exchange {
         //
         $marketId = $this->safe_string($ticker, 'symbol');
         $symbol = $this->safe_symbol($marketId, $market);
-        $timestamp = $this->safe_integer_product($ticker, 'ts', 0.000001);
+        $timestampString = $this->safe_string($ticker, 'ts');
+        // check $timestamp bcz bug => https://app.travis-ci.com/github/ccxt/ccxt/builds/269959181#L4011 and also 17 digits occured
+        $multiplier = null;
+        if (strlen($timestampString) === 17) {
+            $multiplier = 0.0001;
+        } elseif (strlen($timestampString) === 18) {
+            $multiplier = 0.00001;
+        } else {
+            // 19 length default
+            $multiplier = 0.000001;
+        }
+        $timestamp = $this->safe_integer_product($ticker, 'ts', $multiplier);
         $last = $this->safe_string_2($ticker, 'price', 'lastPrice');
         $percentage = Precise::string_mul($this->safe_string($ticker, 'priceChgPct'), '100');
         return $this->safe_ticker(array(
@@ -420,7 +431,7 @@ class poloniexfutures extends Exchange {
             $request = array(
                 'symbol' => $market['id'],
             );
-            $response = Async\await($this->publicGetTicker (array_merge($request, $params)));
+            $response = Async\await($this->publicGetTicker ($this->extend($request, $params)));
             //
             // {
             //     "code" => "200000",
@@ -481,9 +492,9 @@ class poloniexfutures extends Exchange {
             );
             $response = null;
             if ($level === 3) {
-                $response = Async\await($this->publicGetLevel3Snapshot (array_merge($request, $params)));
+                $response = Async\await($this->publicGetLevel3Snapshot ($this->extend($request, $params)));
             } else {
-                $response = Async\await($this->publicGetLevel2Snapshot (array_merge($request, $params)));
+                $response = Async\await($this->publicGetLevel2Snapshot ($this->extend($request, $params)));
             }
             // L2
             //
@@ -668,7 +679,7 @@ class poloniexfutures extends Exchange {
             $request = array(
                 'symbol' => $market['id'],
             );
-            $response = Async\await($this->publicGetTradeHistory (array_merge($request, $params)));
+            $response = Async\await($this->publicGetTradeHistory ($this->extend($request, $params)));
             //
             //    {
             //        "code" => "200000",
@@ -747,7 +758,7 @@ class poloniexfutures extends Exchange {
                 $since = $endAt - $limit * $duration;
                 $request['from'] = $since;
             }
-            $response = Async\await($this->publicGetKlineQuery (array_merge($request, $params)));
+            $response = Async\await($this->publicGetKlineQuery ($this->extend($request, $params)));
             //
             //    {
             //        "code" => "200000",
@@ -796,7 +807,7 @@ class poloniexfutures extends Exchange {
                     'currency' => $currency['id'],
                 );
             }
-            $response = Async\await($this->privateGetAccountOverview (array_merge($request, $params)));
+            $response = Async\await($this->privateGetAccountOverview ($this->extend($request, $params)));
             //
             //     {
             //         "code" => "200000",
@@ -888,7 +899,7 @@ class poloniexfutures extends Exchange {
                 }
             }
             $params = $this->omit($params, array( 'timeInForce', 'stopPrice', 'triggerPrice' )); // Time in force only valid for limit orders, exchange error when gtc for $market orders
-            $response = Async\await($this->privatePostOrders (array_merge($request, $params)));
+            $response = Async\await($this->privatePostOrders ($this->extend($request, $params)));
             //
             //    {
             //        "code" => "200000",
@@ -938,7 +949,7 @@ class poloniexfutures extends Exchange {
             $request = array(
                 'order-id' => $id,
             );
-            $response = Async\await($this->privateDeleteOrdersOrderId (array_merge($request, $params)));
+            $response = Async\await($this->privateDeleteOrdersOrderId ($this->extend($request, $params)));
             //
             //    {
             //        "code" => "200000",
@@ -1145,7 +1156,7 @@ class poloniexfutures extends Exchange {
                 // * Since is ignored if $limit is defined
                 $request['maxCount'] = $limit;
             }
-            $response = Async\await($this->privateGetFundingHistory (array_merge($request, $params)));
+            $response = Async\await($this->privateGetFundingHistory ($this->extend($request, $params)));
             //
             //    {
             //        "code" => "200000",
@@ -1211,9 +1222,9 @@ class poloniexfutures extends Exchange {
             $params = $this->omit($params, array( 'stop', 'trigger' ));
             $response = null;
             if ($stop) {
-                $response = Async\await($this->privateDeleteStopOrders (array_merge($request, $params)));
+                $response = Async\await($this->privateDeleteStopOrders ($this->extend($request, $params)));
             } else {
-                $response = Async\await($this->privateDeleteOrders (array_merge($request, $params)));
+                $response = Async\await($this->privateDeleteOrders ($this->extend($request, $params)));
             }
             //
             //   {
@@ -1278,8 +1289,8 @@ class poloniexfutures extends Exchange {
              */
             Async\await($this->load_markets());
             $stop = $this->safe_value_2($params, 'stop', 'trigger');
-            $until = $this->safe_integer_2($params, 'until', 'till');
-            $params = $this->omit($params, array( 'triger', 'stop', 'until', 'till' ));
+            $until = $this->safe_integer($params, 'until');
+            $params = $this->omit($params, array( 'trigger', 'stop', 'until' ));
             if ($status === 'closed') {
                 $status = 'done';
             }
@@ -1302,9 +1313,9 @@ class poloniexfutures extends Exchange {
             }
             $response = null;
             if ($stop) {
-                $response = Async\await($this->privateGetStopOrders (array_merge($request, $params)));
+                $response = Async\await($this->privateGetStopOrders ($this->extend($request, $params)));
             } else {
-                $response = Async\await($this->privateGetOrders (array_merge($request, $params)));
+                $response = Async\await($this->privateGetOrders ($this->extend($request, $params)));
             }
             //
             //    {
@@ -1378,7 +1389,7 @@ class poloniexfutures extends Exchange {
              * @param {int} [$since] the earliest time in ms to fetch open orders for
              * @param {int} [$limit] the maximum number of  open orders structures to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {int} [$params->till] end time in ms
+             * @param {int} [$params->until] end time in ms
              * @param {string} [$params->side] buy or sell
              * @param {string} [$params->type] $limit, or market
              * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
@@ -1397,7 +1408,7 @@ class poloniexfutures extends Exchange {
              * @param {int} [$since] the earliest time in ms to fetch orders for
              * @param {int} [$limit] the maximum number of order structures to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {int} [$params->till] end time in ms
+             * @param {int} [$params->until] end time in ms
              * @param {string} [$params->side] buy or sell
              * @param {string} [$params->type] $limit, or market
              * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
@@ -1426,10 +1437,10 @@ class poloniexfutures extends Exchange {
                 }
                 $request['clientOid'] = $clientOrderId;
                 $params = $this->omit($params, array( 'clientOid', 'clientOrderId' ));
-                $response = Async\await($this->privateGetClientOrderIdClientOid (array_merge($request, $params)));
+                $response = Async\await($this->privateGetClientOrderIdClientOid ($this->extend($request, $params)));
             } else {
                 $request['order-id'] = $id;
-                $response = Async\await($this->privateGetOrdersOrderId (array_merge($request, $params)));
+                $response = Async\await($this->privateGetOrdersOrderId ($this->extend($request, $params)));
             }
             //
             //    {
@@ -1620,7 +1631,7 @@ class poloniexfutures extends Exchange {
             $request = array(
                 'symbol' => $market['id'],
             );
-            $response = Async\await($this->publicGetFundingRateSymbolCurrent (array_merge($request, $params)));
+            $response = Async\await($this->publicGetFundingRateSymbolCurrent ($this->extend($request, $params)));
             //
             //    {
             //        "symbol" => ".BTCUSDTPERPFPI8H",
@@ -1681,7 +1692,7 @@ class poloniexfutures extends Exchange {
             if ($since !== null) {
                 $request['startAt'] = $since;
             }
-            $response = Async\await($this->privateGetFills (array_merge($request, $params)));
+            $response = Async\await($this->privateGetFills ($this->extend($request, $params)));
             //
             //    {
             //        "code" => "200000",

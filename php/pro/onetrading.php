@@ -1363,7 +1363,7 @@ class onetrading extends \ccxt\async\onetrading {
                     'type' => 'AUTHENTICATE',
                     'api_token' => $this->apiKey,
                 );
-                $this->watch($url, $messageHash, array_merge($request, $params), $messageHash);
+                $this->watch($url, $messageHash, $this->extend($request, $params), $messageHash);
             }
             return Async\await($future);
         }) ();

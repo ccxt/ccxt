@@ -98,6 +98,7 @@ class deribit extends Exchange {
                 'fetchVolatilityHistory' => true,
                 'fetchWithdrawal' => false,
                 'fetchWithdrawals' => true,
+                'sandbox' => true,
                 'transfer' => true,
                 'withdraw' => true,
             ),
@@ -751,7 +752,7 @@ class deribit extends Exchange {
                     $request = array(
                         'currency' => $currencyId,
                     );
-                    $instrumentsResponse = Async\await($this->publicGetGetInstruments (array_merge($request, $params)));
+                    $instrumentsResponse = Async\await($this->publicGetGetInstruments ($this->extend($request, $params)));
                     //
                     //     {
                     //         "jsonrpc":"2.0",
@@ -964,7 +965,7 @@ class deribit extends Exchange {
             $request = array(
                 'currency' => $currency['id'],
             );
-            $response = Async\await($this->privateGetGetAccountSummary (array_merge($request, $params)));
+            $response = Async\await($this->privateGetGetAccountSummary ($this->extend($request, $params)));
             //
             //     {
             //         "jsonrpc" => "2.0",
@@ -1026,7 +1027,7 @@ class deribit extends Exchange {
             $request = array(
                 'currency' => $currency['id'],
             );
-            $response = Async\await($this->privateGetCreateDepositAddress (array_merge($request, $params)));
+            $response = Async\await($this->privateGetCreateDepositAddress ($this->extend($request, $params)));
             //
             //     {
             //         "jsonrpc" => "2.0",
@@ -1065,7 +1066,7 @@ class deribit extends Exchange {
             $request = array(
                 'currency' => $currency['id'],
             );
-            $response = Async\await($this->privateGetGetCurrentDepositAddress (array_merge($request, $params)));
+            $response = Async\await($this->privateGetGetCurrentDepositAddress ($this->extend($request, $params)));
             //
             //     {
             //         "jsonrpc" => "2.0",
@@ -1096,7 +1097,7 @@ class deribit extends Exchange {
         }) ();
     }
 
-    public function parse_ticker($ticker, ?array $market = null): array {
+    public function parse_ticker(array $ticker, ?array $market = null): array {
         //
         // fetchTicker /public/ticker
         //
@@ -1186,7 +1187,7 @@ class deribit extends Exchange {
             $request = array(
                 'instrument_name' => $market['id'],
             );
-            $response = Async\await($this->publicGetTicker (array_merge($request, $params)));
+            $response = Async\await($this->publicGetTicker ($this->extend($request, $params)));
             //
             //     {
             //         "jsonrpc" => "2.0",
@@ -1225,18 +1226,23 @@ class deribit extends Exchange {
             /**
              * fetches price $tickers for multiple markets, statistical information calculated over the past 24 hours for each market
              * @see https://docs.deribit.com/#public-get_book_summary_by_currency
-             * @param {string[]|null} $symbols unified $symbols of the markets to fetch the $ticker for, all market $tickers are returned if not assigned
+             * @param {string[]} [$symbols] unified $symbols of the markets to fetch the $ticker for, all market $tickers are returned if not assigned
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {string} [$params->code] *required* the $currency $code to fetch the $tickers for, eg. 'BTC', 'ETH'
              * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=$ticker-structure $ticker structures~
              */
             Async\await($this->load_markets());
             $symbols = $this->market_symbols($symbols);
-            $code = $this->code_from_options('fetchTickers', $params);
+            $code = $this->safe_string_2($params, 'code', 'currency');
+            $params = $this->omit($params, array( 'code' ));
+            if ($code === null) {
+                throw new ArgumentsRequired($this->id . ' fetchTickers requires a currency/code (eg => BTC/ETH/USDT) parameter to fetch $tickers for');
+            }
             $currency = $this->currency($code);
             $request = array(
                 'currency' => $currency['id'],
             );
-            $response = Async\await($this->publicGetGetBookSummaryByCurrency (array_merge($request, $params)));
+            $response = Async\await($this->publicGetGetBookSummaryByCurrency ($this->extend($request, $params)));
             //
             //     {
             //         "jsonrpc" => "2.0",
@@ -1267,7 +1273,7 @@ class deribit extends Exchange {
             //         "testnet" => false
             //     }
             //
-            $result = $this->safe_value($response, 'result', array());
+            $result = $this->safe_list($response, 'result', array());
             $tickers = array();
             for ($i = 0; $i < count($result); $i++) {
                 $ticker = $this->parse_ticker($result[$i]);
@@ -1325,7 +1331,7 @@ class deribit extends Exchange {
                 $params = $this->omit($params, 'until');
                 $request['end_timestamp'] = $until;
             }
-            $response = Async\await($this->publicGetGetTradingviewChartData (array_merge($request, $params)));
+            $response = Async\await($this->publicGetGetTradingviewChartData ($this->extend($request, $params)));
             //
             //     {
             //         "jsonrpc" => "2.0",
@@ -1473,9 +1479,9 @@ class deribit extends Exchange {
             }
             $response = null;
             if (($since === null) && !(is_array($request) && array_key_exists('end_timestamp', $request))) {
-                $response = Async\await($this->publicGetGetLastTradesByInstrument (array_merge($request, $params)));
+                $response = Async\await($this->publicGetGetLastTradesByInstrument ($this->extend($request, $params)));
             } else {
-                $response = Async\await($this->publicGetGetLastTradesByInstrumentAndTime (array_merge($request, $params)));
+                $response = Async\await($this->publicGetGetLastTradesByInstrumentAndTime ($this->extend($request, $params)));
             }
             //
             //      {
@@ -1523,7 +1529,7 @@ class deribit extends Exchange {
                 'currency' => $currency['id'],
                 'extended' => true,
             );
-            $response = Async\await($this->privateGetGetAccountSummary (array_merge($request, $params)));
+            $response = Async\await($this->privateGetGetAccountSummary ($this->extend($request, $params)));
             //
             //     {
             //         "jsonrpc" => "2.0",
@@ -1614,11 +1620,11 @@ class deribit extends Exchange {
                     'taker' => $market['taker'],
                 );
                 if ($market['swap']) {
-                    $fee = array_merge($fee, $perpetualFee);
+                    $fee = $this->extend($fee, $perpetualFee);
                 } elseif ($market['future']) {
-                    $fee = array_merge($fee, $futureFee);
+                    $fee = $this->extend($fee, $futureFee);
                 } elseif ($market['option']) {
-                    $fee = array_merge($fee, $optionFee);
+                    $fee = $this->extend($fee, $optionFee);
                 }
                 $parsedFees[$symbol] = $fee;
             }
@@ -1644,7 +1650,7 @@ class deribit extends Exchange {
             if ($limit !== null) {
                 $request['depth'] = $limit;
             }
-            $response = Async\await($this->publicGetGetOrderBook (array_merge($request, $params)));
+            $response = Async\await($this->publicGetGetOrderBook ($this->extend($request, $params)));
             //
             //     {
             //         "jsonrpc" => "2.0",
@@ -1839,7 +1845,7 @@ class deribit extends Exchange {
             if ($symbol !== null) {
                 $market = $this->market($symbol);
             }
-            $response = Async\await($this->privateGetGetOrderState (array_merge($request, $params)));
+            $response = Async\await($this->privateGetGetOrderState ($this->extend($request, $params)));
             //
             //     {
             //         "jsonrpc" => "2.0",
@@ -1982,9 +1988,9 @@ class deribit extends Exchange {
             $params = $this->omit($params, array( 'timeInForce', 'stopLossPrice', 'takeProfitPrice', 'postOnly', 'reduceOnly', 'trailingAmount' ));
             $response = null;
             if ($this->capitalize($side) === 'Buy') {
-                $response = Async\await($this->privateGetBuy (array_merge($request, $params)));
+                $response = Async\await($this->privateGetBuy ($this->extend($request, $params)));
             } else {
-                $response = Async\await($this->privateGetSell (array_merge($request, $params)));
+                $response = Async\await($this->privateGetSell ($this->extend($request, $params)));
             }
             //
             //     {
@@ -2083,7 +2089,7 @@ class deribit extends Exchange {
                 $request['trigger_offset'] = $this->parse_to_numeric($trailingAmount);
                 $params = $this->omit($params, 'trigger_offset');
             }
-            $response = Async\await($this->privateGetEdit (array_merge($request, $params)));
+            $response = Async\await($this->privateGetEdit ($this->extend($request, $params)));
             $result = $this->safe_value($response, 'result', array());
             $order = $this->safe_value($result, 'order');
             $trades = $this->safe_value($result, 'trades', array());
@@ -2106,7 +2112,7 @@ class deribit extends Exchange {
             $request = array(
                 'order_id' => $id,
             );
-            $response = Async\await($this->privateGetCancel (array_merge($request, $params)));
+            $response = Async\await($this->privateGetCancel ($this->extend($request, $params)));
             $result = $this->safe_dict($response, 'result', array());
             return $this->parse_order($result);
         }) ();
@@ -2126,11 +2132,11 @@ class deribit extends Exchange {
             $request = array();
             $response = null;
             if ($symbol === null) {
-                $response = Async\await($this->privateGetCancelAll (array_merge($request, $params)));
+                $response = Async\await($this->privateGetCancelAll ($this->extend($request, $params)));
             } else {
                 $market = $this->market($symbol);
                 $request['instrument_name'] = $market['id'];
-                $response = Async\await($this->privateGetCancelAllByInstrument (array_merge($request, $params)));
+                $response = Async\await($this->privateGetCancelAllByInstrument ($this->extend($request, $params)));
             }
             return $response;
         }) ();
@@ -2156,11 +2162,11 @@ class deribit extends Exchange {
                 $code = $this->code_from_options('fetchOpenOrders', $params);
                 $currency = $this->currency($code);
                 $request['currency'] = $currency['id'];
-                $response = Async\await($this->privateGetGetOpenOrdersByCurrency (array_merge($request, $params)));
+                $response = Async\await($this->privateGetGetOpenOrdersByCurrency ($this->extend($request, $params)));
             } else {
                 $market = $this->market($symbol);
                 $request['instrument_name'] = $market['id'];
-                $response = Async\await($this->privateGetGetOpenOrdersByInstrument (array_merge($request, $params)));
+                $response = Async\await($this->privateGetGetOpenOrdersByInstrument ($this->extend($request, $params)));
             }
             $result = $this->safe_list($response, 'result', array());
             return $this->parse_orders($result, $market, $since, $limit);
@@ -2187,11 +2193,11 @@ class deribit extends Exchange {
                 $code = $this->code_from_options('fetchClosedOrders', $params);
                 $currency = $this->currency($code);
                 $request['currency'] = $currency['id'];
-                $response = Async\await($this->privateGetGetOrderHistoryByCurrency (array_merge($request, $params)));
+                $response = Async\await($this->privateGetGetOrderHistoryByCurrency ($this->extend($request, $params)));
             } else {
                 $market = $this->market($symbol);
                 $request['instrument_name'] = $market['id'];
-                $response = Async\await($this->privateGetGetOrderHistoryByInstrument (array_merge($request, $params)));
+                $response = Async\await($this->privateGetGetOrderHistoryByInstrument ($this->extend($request, $params)));
             }
             $result = $this->safe_list($response, 'result', array());
             return $this->parse_orders($result, $market, $since, $limit);
@@ -2214,7 +2220,7 @@ class deribit extends Exchange {
             $request = array(
                 'order_id' => $id,
             );
-            $response = Async\await($this->privateGetGetUserTradesByOrder (array_merge($request, $params)));
+            $response = Async\await($this->privateGetGetUserTradesByOrder ($this->extend($request, $params)));
             //
             //     {
             //         "jsonrpc" => "2.0",
@@ -2281,19 +2287,19 @@ class deribit extends Exchange {
                 $currency = $this->currency($code);
                 $request['currency'] = $currency['id'];
                 if ($since === null) {
-                    $response = Async\await($this->privateGetGetUserTradesByCurrency (array_merge($request, $params)));
+                    $response = Async\await($this->privateGetGetUserTradesByCurrency ($this->extend($request, $params)));
                 } else {
                     $request['start_timestamp'] = $since;
-                    $response = Async\await($this->privateGetGetUserTradesByCurrencyAndTime (array_merge($request, $params)));
+                    $response = Async\await($this->privateGetGetUserTradesByCurrencyAndTime ($this->extend($request, $params)));
                 }
             } else {
                 $market = $this->market($symbol);
                 $request['instrument_name'] = $market['id'];
                 if ($since === null) {
-                    $response = Async\await($this->privateGetGetUserTradesByInstrument (array_merge($request, $params)));
+                    $response = Async\await($this->privateGetGetUserTradesByInstrument ($this->extend($request, $params)));
                 } else {
                     $request['start_timestamp'] = $since;
-                    $response = Async\await($this->privateGetGetUserTradesByInstrumentAndTime (array_merge($request, $params)));
+                    $response = Async\await($this->privateGetGetUserTradesByInstrumentAndTime ($this->extend($request, $params)));
                 }
             }
             //
@@ -2357,7 +2363,7 @@ class deribit extends Exchange {
             if ($limit !== null) {
                 $request['count'] = $limit;
             }
-            $response = Async\await($this->privateGetGetDeposits (array_merge($request, $params)));
+            $response = Async\await($this->privateGetGetDeposits ($this->extend($request, $params)));
             //
             //     {
             //         "jsonrpc" => "2.0",
@@ -2406,7 +2412,7 @@ class deribit extends Exchange {
             if ($limit !== null) {
                 $request['count'] = $limit;
             }
-            $response = Async\await($this->privateGetGetWithdrawals (array_merge($request, $params)));
+            $response = Async\await($this->privateGetGetWithdrawals ($this->extend($request, $params)));
             //
             //     {
             //         "jsonrpc" => "2.0",
@@ -2596,7 +2602,7 @@ class deribit extends Exchange {
             $request = array(
                 'instrument_name' => $market['id'],
             );
-            $response = Async\await($this->privateGetGetPosition (array_merge($request, $params)));
+            $response = Async\await($this->privateGetGetPosition ($this->extend($request, $params)));
             //
             //     {
             //         "jsonrpc" => "2.0",
@@ -2665,7 +2671,7 @@ class deribit extends Exchange {
             if ($kind !== null) {
                 $request['kind'] = $kind;
             }
-            $response = Async\await($this->privateGetGetPositions (array_merge($request, $params)));
+            $response = Async\await($this->privateGetGetPositions ($this->extend($request, $params)));
             //
             //     {
             //         "jsonrpc" => "2.0",
@@ -2714,7 +2720,7 @@ class deribit extends Exchange {
             $request = array(
                 'currency' => $currency['id'],
             );
-            $response = Async\await($this->publicGetGetHistoricalVolatility (array_merge($request, $params)));
+            $response = Async\await($this->publicGetGetHistoricalVolatility ($this->extend($request, $params)));
             //
             //     {
             //         "jsonrpc" => "2.0",
@@ -2763,7 +2769,7 @@ class deribit extends Exchange {
         return $result;
     }
 
-    public function fetch_transfers(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_transfers(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch a history of internal $transfers made on an account
@@ -2785,7 +2791,7 @@ class deribit extends Exchange {
             if ($limit !== null) {
                 $request['count'] = $limit;
             }
-            $response = Async\await($this->privateGetGetTransfers (array_merge($request, $params)));
+            $response = Async\await($this->privateGetGetTransfers ($this->extend($request, $params)));
             //
             //     {
             //         "jsonrpc" => "2.0",
@@ -2853,9 +2859,9 @@ class deribit extends Exchange {
             }
             $response = null;
             if ($method === 'privateGetSubmitTransferToUser') {
-                $response = Async\await($this->privateGetSubmitTransferToUser (array_merge($request, $params)));
+                $response = Async\await($this->privateGetSubmitTransferToUser ($this->extend($request, $params)));
             } else {
-                $response = Async\await($this->privateGetSubmitTransferToSubaccount (array_merge($request, $params)));
+                $response = Async\await($this->privateGetSubmitTransferToSubaccount ($this->extend($request, $params)));
             }
             //
             //     {
@@ -2879,7 +2885,7 @@ class deribit extends Exchange {
         }) ();
     }
 
-    public function parse_transfer($transfer, ?array $currency = null) {
+    public function parse_transfer(array $transfer, ?array $currency = null): array {
         //
         //     {
         //         "updated_timestamp" => 1550232862350,
@@ -2903,7 +2909,7 @@ class deribit extends Exchange {
             'id' => $this->safe_string($transfer, 'id'),
             'status' => $this->parse_transfer_status($status),
             'amount' => $this->safe_number($transfer, 'amount'),
-            'code' => $this->safe_currency_code($currencyId, $currency),
+            'currency' => $this->safe_currency_code($currencyId, $currency),
             'fromAccount' => $direction !== 'payment' ? $account : null,
             'toAccount' => $direction === 'payment' ? $account : null,
             'timestamp' => $timestamp,
@@ -2911,7 +2917,7 @@ class deribit extends Exchange {
         );
     }
 
-    public function parse_transfer_status($status) {
+    public function parse_transfer_status(?string $status): ?string {
         $statuses = array(
             'prepared' => 'pending',
             'confirmed' => 'ok',
@@ -2921,7 +2927,7 @@ class deribit extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function withdraw(string $code, float $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()) {
         return Async\async(function () use ($code, $amount, $address, $tag, $params) {
             /**
              * make a withdrawal
@@ -2947,7 +2953,7 @@ class deribit extends Exchange {
             if ($this->twofa !== null) {
                 $request['tfa'] = $this->totp($this->twofa);
             }
-            $response = Async\await($this->privateGetWithdraw (array_merge($request, $params)));
+            $response = Async\await($this->privateGetWithdraw ($this->extend($request, $params)));
             return $this->parse_transaction($response, $currency);
         }) ();
     }
@@ -3036,7 +3042,7 @@ class deribit extends Exchange {
                 'start_timestamp' => $time - (8 * 60 * 60 * 1000), // 8h ago,
                 'end_timestamp' => $time,
             );
-            $response = Async\await($this->publicGetGetFundingRateValue (array_merge($request, $params)));
+            $response = Async\await($this->publicGetGetFundingRateValue ($this->extend($request, $params)));
             //
             //   {
             //       "jsonrpc":"2.0",
@@ -3079,7 +3085,7 @@ class deribit extends Exchange {
                 'start_timestamp' => $since - 1,
                 'end_timestamp' => $time,
             );
-            $response = Async\await($this->publicGetGetFundingRateHistory (array_merge($request, $params)));
+            $response = Async\await($this->publicGetGetFundingRateHistory ($this->extend($request, $params)));
             //
             //    {
             //        "jsonrpc" => "2.0",
@@ -3181,7 +3187,7 @@ class deribit extends Exchange {
             if ($limit !== null) {
                 $request['count'] = $limit;
             }
-            $response = Async\await($this->publicGetGetLastSettlementsByInstrument (array_merge($request, $params)));
+            $response = Async\await($this->publicGetGetLastSettlementsByInstrument ($this->extend($request, $params)));
             //
             //     {
             //         "jsonrpc" => "2.0",
@@ -3258,7 +3264,7 @@ class deribit extends Exchange {
             if ($limit !== null) {
                 $request['count'] = $limit;
             }
-            $response = Async\await($this->privateGetGetSettlementHistoryByInstrument (array_merge($request, $params)));
+            $response = Async\await($this->privateGetGetSettlementHistoryByInstrument ($this->extend($request, $params)));
             //
             //     {
             //         "jsonrpc" => "2.0",
@@ -3330,7 +3336,7 @@ class deribit extends Exchange {
             $request = array(
                 'instrument_name' => $market['id'],
             );
-            $response = Async\await($this->publicGetTicker (array_merge($request, $params)));
+            $response = Async\await($this->publicGetTicker ($this->extend($request, $params)));
             //
             //     {
             //         "jsonrpc" => "2.0",
@@ -3382,7 +3388,7 @@ class deribit extends Exchange {
         }) ();
     }
 
-    public function parse_greeks($greeks, ?array $market = null) {
+    public function parse_greeks(array $greeks, ?array $market = null): array {
         //
         //     {
         //         "estimated_delivery_price" => 36552.72,
@@ -3463,7 +3469,7 @@ class deribit extends Exchange {
             $request = array(
                 'instrument_name' => $market['id'],
             );
-            $response = Async\await($this->publicGetGetBookSummaryByInstrument (array_merge($request, $params)));
+            $response = Async\await($this->publicGetGetBookSummaryByInstrument ($this->extend($request, $params)));
             //
             //     {
             //         "jsonrpc" => "2.0",
@@ -3517,7 +3523,7 @@ class deribit extends Exchange {
                 'currency' => $currency['id'],
                 'kind' => 'option',
             );
-            $response = Async\await($this->publicGetGetBookSummaryByCurrency (array_merge($request, $params)));
+            $response = Async\await($this->publicGetGetBookSummaryByCurrency ($this->extend($request, $params)));
             //
             //     {
             //         "jsonrpc" => "2.0",
@@ -3555,7 +3561,7 @@ class deribit extends Exchange {
         }) ();
     }
 
-    public function parse_option($chain, ?array $currency = null, ?array $market = null) {
+    public function parse_option(array $chain, ?array $currency = null, ?array $market = null): Option {
         //
         //     {
         //         "mid_price" => 0.04025,

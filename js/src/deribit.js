@@ -97,6 +97,7 @@ export default class deribit extends Exchange {
                 'fetchVolatilityHistory': true,
                 'fetchWithdrawal': false,
                 'fetchWithdrawals': true,
+                'sandbox': true,
                 'transfer': true,
                 'withdraw': true,
             },
@@ -1215,13 +1216,18 @@ export default class deribit extends Exchange {
          * @name deribit#fetchTickers
          * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
          * @see https://docs.deribit.com/#public-get_book_summary_by_currency
-         * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+         * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.code] *required* the currency code to fetch the tickers for, eg. 'BTC', 'ETH'
          * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets();
         symbols = this.marketSymbols(symbols);
-        const code = this.codeFromOptions('fetchTickers', params);
+        const code = this.safeString2(params, 'code', 'currency');
+        params = this.omit(params, ['code']);
+        if (code === undefined) {
+            throw new ArgumentsRequired(this.id + ' fetchTickers requires a currency/code (eg: BTC/ETH/USDT) parameter to fetch tickers for');
+        }
         const currency = this.currency(code);
         const request = {
             'currency': currency['id'],
@@ -1257,7 +1263,7 @@ export default class deribit extends Exchange {
         //         "testnet": false
         //     }
         //
-        const result = this.safeValue(response, 'result', []);
+        const result = this.safeList(response, 'result', []);
         const tickers = {};
         for (let i = 0; i < result.length; i++) {
             const ticker = this.parseTicker(result[i]);
@@ -2884,7 +2890,7 @@ export default class deribit extends Exchange {
             'id': this.safeString(transfer, 'id'),
             'status': this.parseTransferStatus(status),
             'amount': this.safeNumber(transfer, 'amount'),
-            'code': this.safeCurrencyCode(currencyId, currency),
+            'currency': this.safeCurrencyCode(currencyId, currency),
             'fromAccount': direction !== 'payment' ? account : undefined,
             'toAccount': direction === 'payment' ? account : undefined,
             'timestamp': timestamp,

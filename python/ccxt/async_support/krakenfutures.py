@@ -46,6 +46,7 @@ class krakenfutures(Exchange, ImplicitAPI):
                 'future': True,
                 'option': False,
                 'cancelAllOrders': True,
+                'cancelAllOrdersAfter': True,
                 'cancelOrder': True,
                 'cancelOrders': True,
                 'createMarketOrder': False,
@@ -85,6 +86,7 @@ class krakenfutures(Exchange, ImplicitAPI):
                 'fetchPremiumIndexOHLCV': False,
                 'fetchTickers': True,
                 'fetchTrades': True,
+                'sandbox': True,
                 'setLeverage': True,
                 'setMarginMode': False,
                 'transfer': True,
@@ -539,7 +541,7 @@ class krakenfutures(Exchange, ImplicitAPI):
         tickers = self.safe_list(response, 'tickers')
         return self.parse_tickers(tickers, symbols)
 
-    def parse_ticker(self, ticker, market: Market = None) -> Ticker:
+    def parse_ticker(self, ticker: dict, market: Market = None) -> Ticker:
         #
         #    {
         #        "tag": 'semiannual',  # 'month', 'quarter', "perpetual", "semiannual",
@@ -1205,6 +1207,31 @@ class krakenfutures(Exchange, ImplicitAPI):
         if symbol is not None:
             request['symbol'] = self.market_id(symbol)
         response = await self.privatePostCancelallorders(self.extend(request, params))
+        return response
+
+    async def cancel_all_orders_after(self, timeout: Int, params={}):
+        """
+        dead man's switch, cancel all orders after the given timeout
+        :see: https://docs.futures.kraken.com/#http-api-trading-v3-api-order-management-dead-man-39-s-switch
+        :param number timeout: time in milliseconds, 0 represents cancel the timer
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: the api result
+        """
+        await self.load_markets()
+        request: dict = {
+            'timeout': (self.parse_to_int(timeout / 1000)) if (timeout > 0) else 0,
+        }
+        response = await self.privatePostCancelallordersafter(self.extend(request, params))
+        #
+        #     {
+        #         "result": "success",
+        #         "serverTime": "2018-06-19T16:51:23.839Z",
+        #         "status": {
+        #             "currentTime": "2018-06-19T16:51:23.839Z",
+        #             "triggerTime": "0"
+        #         }
+        #     }
+        #
         return response
 
     async def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
@@ -2072,7 +2099,7 @@ class krakenfutures(Exchange, ImplicitAPI):
 
     async def fetch_positions(self, symbols: Strings = None, params={}):
         """
-        :see: https://docs.futures.kraken.com/#websocket-api-private-feeds-open-positions
+        :see: https://docs.futures.kraken.com/#http-api-trading-v3-api-account-information-get-open-positions
         Fetches current contract trading positions
         :param str[] symbols: List of unified symbols
         :param dict [params]: Not used by krakenfutures
@@ -2281,7 +2308,7 @@ class krakenfutures(Exchange, ImplicitAPI):
             })
         return tiers
 
-    def parse_transfer(self, transfer, currency: Currency = None):
+    def parse_transfer(self, transfer: dict, currency: Currency = None) -> TransferEntry:
         #
         # transfer
         #
@@ -2453,7 +2480,7 @@ class krakenfutures(Exchange, ImplicitAPI):
         data = self.safe_dict(leveragePreferences, 0, {})
         return self.parse_leverage(data, market)
 
-    def parse_leverage(self, leverage, market=None) -> Leverage:
+    def parse_leverage(self, leverage: dict, market: Market = None) -> Leverage:
         marketId = self.safe_string(leverage, 'symbol')
         leverageValue = self.safe_integer(leverage, 'maxLeverage')
         return {

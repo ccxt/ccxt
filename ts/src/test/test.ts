@@ -32,8 +32,24 @@ const ExchangeNotAvailable = ccxt.ExchangeNotAvailable;
 const OperationFailed = ccxt.OperationFailed;
 const OnMaintenance = ccxt.OnMaintenance;
 
-const [ processPath, , exchangeIdFromArgv = null, exchangeSymbol = undefined ] = process.argv.filter ((x) => !x.startsWith ('--'));
-// const sanitizedSymnol = exchangeSymbol !== undefined && exchangeSymbol.includes ('/') ? exchangeSymbol : undefined;
+
+// ############## detect cli arguments ############## //
+const argv = process.argv.slice (2); // remove first two arguments (which is process and script path "js/src/test/test.js")
+
+function filterArgvs (argsArray, needle, include = true) {
+    return argsArray.filter ((x) => (include && x.includes (needle)) || (!include && !x.includes (needle)));
+}
+function selectArgv (argsArray, needle) {
+    const foundArray = argsArray.filter ((x) => (x.includes (needle)));
+    return foundArray.length ? foundArray[0] : undefined;
+}
+
+const argvExchange = filterArgvs (argv, '--', false)[0];
+const argvSymbol   = selectArgv (argv, '/');
+const argvMethod   = selectArgv (argv, '()');
+// #################################################### //
+
+
 // non-transpiled part, but shared names among langs
 function getCliArgValue (arg) {
     return process.argv.includes (arg) || false;
@@ -212,7 +228,7 @@ export default class testMainClass extends baseMainTestClass {
         this.wsTests = getCliArgValue ('--ws');
     }
 
-    async init (exchangeId, symbolArgv) {
+    async init (exchangeId, symbolArgv, methodArgv) {
         this.parseCliArgs ();
 
         if (this.requestTests && this.responseTests) {
@@ -232,9 +248,7 @@ export default class testMainClass extends baseMainTestClass {
             await this.runBrokerIdTests ();
             return;
         }
-        const symbolStr = symbolArgv !== undefined ? symbolArgv : 'all';
-        const exchangeObject = { 'exchange': exchangeId, 'symbol': symbolStr, 'isWs': this.wsTests };
-        dump (this.newLine + '' + this.newLine + '' + '[INFO] TESTING ', this.ext, jsonStringify (exchangeObject), this.newLine);
+        dump (this.newLine + '' + this.newLine + '' + '[INFO] TESTING ', this.ext, { 'exchange': exchangeId, 'symbol': symbolArgv, 'method': methodArgv, 'isWs': this.wsTests }, this.newLine);
         const exchangeArgs = {
             'verbose': this.verbose,
             'debug': this.debug,
@@ -248,32 +262,28 @@ export default class testMainClass extends baseMainTestClass {
         await this.importFiles (exchange);
         assert (Object.keys (this.testFiles).length > 0, 'Test files were not loaded'); // ensure test files are found & filled
         this.expandSettings (exchange);
-        const symbol = this.checkIfSpecificTestIsChosen (symbolArgv);
-        await this.startTest (exchange, symbol);
+        this.checkIfSpecificTestIsChosen (methodArgv);
+        await this.startTest (exchange, symbolArgv);
         exitScript (0); // needed to be explicitly finished for WS tests
     }
 
-    checkIfSpecificTestIsChosen (symbolArgv) {
-        if (symbolArgv !== undefined) {
+    checkIfSpecificTestIsChosen (methodArgv) {
+        if (methodArgv !== undefined) {
             const testFileNames = Object.keys (this.testFiles);
-            const possibleMethodNames = symbolArgv.split (','); // i.e. `test.ts binance fetchBalance,fetchDeposits`
+            const possibleMethodNames = methodArgv.split (','); // i.e. `test.ts binance fetchBalance,fetchDeposits`
             if (possibleMethodNames.length >= 1) {
                 for (let i = 0; i < testFileNames.length; i++) {
                     const testFileName = testFileNames[i];
                     for (let j = 0; j < possibleMethodNames.length; j++) {
-                        const methodName = possibleMethodNames[j];
+                        let methodName = possibleMethodNames[j];
+                        methodName = methodName.replace ('()', '');
                         if (testFileName === methodName) {
                             this.onlySpecificTests.push (testFileName);
                         }
                     }
                 }
             }
-            // if method names were found, then remove them from symbolArgv
-            if (this.onlySpecificTests.length > 0) {
-                return undefined;
-            }
         }
-        return symbolArgv;
     }
 
     async importFiles (exchange: Exchange) {
@@ -481,6 +491,9 @@ export default class testMainClass extends baseMainTestClass {
         }
         if (('bid' in finalSkips) && !('ask' in finalSkips)) {
             finalSkips['ask'] = finalSkips['bid'];
+        }
+        if (('baseVolume' in finalSkips) && !('quoteVolume' in finalSkips)) {
+            finalSkips['quoteVolume'] = finalSkips['baseVolume'];
         }
         return finalSkips;
     }
@@ -1307,7 +1320,7 @@ export default class testMainClass extends baseMainTestClass {
     initOfflineExchange (exchangeName: string) {
         const markets = this.loadMarketsFromFile (exchangeName);
         const currencies = this.loadCurrenciesFromFile (exchangeName);
-        const exchange = initExchange (exchangeName, { 'markets': markets, 'currencies': currencies, 'enableRateLimit': false, 'rateLimit': 1, 'httpProxy': 'http://fake:8080', 'httpsProxy': 'http://fake:8080', 'apiKey': 'key', 'secret': 'secretsecret', 'password': 'password', 'walletAddress': 'wallet', 'privateKey': '0xff3bdd43534543d421f05aec535965b5050ad6ac15345435345435453495e771', 'uid': 'uid', 'token': 'token', 'accounts': [ { 'id': 'myAccount', 'code': 'USDT' }, { 'id': 'myAccount', 'code': 'USDC' } ], 'options': { 'enableUnifiedAccount': true, 'enableUnifiedMargin': false, 'accessToken': 'token', 'expires': 999999999999999, 'leverageBrackets': {}}});
+        const exchange = initExchange (exchangeName, { 'markets': markets, 'currencies': currencies, 'enableRateLimit': false, 'rateLimit': 1, 'httpProxy': 'http://fake:8080', 'httpsProxy': 'http://fake:8080', 'apiKey': 'key', 'secret': 'secretsecret', 'password': 'password', 'walletAddress': 'wallet', 'privateKey': '0xff3bdd43534543d421f05aec535965b5050ad6ac15345435345435453495e771', 'uid': 'uid', 'token': 'token', 'accountId':'accountId', 'accounts': [ { 'id': 'myAccount', 'code': 'USDT' }, { 'id': 'myAccount', 'code': 'USDC' } ], 'options': { 'enableUnifiedAccount': true, 'enableUnifiedMargin': false, 'accessToken': 'token', 'expires': 999999999999999, 'leverageBrackets': {}}});
         exchange.currencies = currencies; // not working in python if assigned  in the config dict
         return exchange;
     }
@@ -1316,6 +1329,18 @@ export default class testMainClass extends baseMainTestClass {
         // instantiate the exchange and make sure that we sink the requests to avoid an actual request
         const exchange = this.initOfflineExchange (exchangeName);
         const globalOptions = exchange.safeDict (exchangeData, 'options', {});
+
+        // read apiKey/secret from the test file
+        const apiKey = exchange.safeString (exchangeData, 'apiKey');
+        if (apiKey) {
+            // c# to string requirement
+            exchange.apiKey = apiKey.toString ();
+        }
+        const secret = exchange.safeString (exchangeData, 'secret');
+        if (secret) {
+            // c# to string requirement
+            exchange.secret = secret.toString ();
+        }
         // exchange.options = exchange.deepExtend (exchange.options, globalOptions); // custom options to be used in the tests
         exchange.extendExchangeOptions (globalOptions);
         const methods = exchange.safeValue (exchangeData, 'methods', {});
@@ -1351,6 +1376,17 @@ export default class testMainClass extends baseMainTestClass {
 
     async testExchangeResponseStatically (exchangeName: string, exchangeData: object, testName: Str = undefined) {
         const exchange = this.initOfflineExchange (exchangeName);
+        // read apiKey/secret from the test file
+        const apiKey = exchange.safeString (exchangeData, 'apiKey');
+        if (apiKey) {
+            // c# to string requirement
+            exchange.apiKey = apiKey.toString ();
+        }
+        const secret = exchange.safeString (exchangeData, 'secret');
+        if (secret) {
+            // c# to string requirement
+            exchange.secret = secret.toString ();
+        }
         const methods = exchange.safeValue (exchangeData, 'methods', {});
         const options = exchange.safeValue (exchangeData, 'options', {});
         // exchange.options = exchange.deepExtend (exchange.options, options); // custom options to be used in the tests
@@ -1477,7 +1513,8 @@ export default class testMainClass extends baseMainTestClass {
             this.testBlofin (),
             this.testHyperliquid (),
             this.testCoinbaseinternational (),
-            this.testCoinbaseAdvanced ()
+            this.testCoinbaseAdvanced (),
+            this.testWoofiPro ()
         ];
         await Promise.all (promises);
         const successMessage = '[' + this.lang + '][TEST_SUCCESS] brokerId tests passed.';
@@ -1831,7 +1868,24 @@ export default class testMainClass extends baseMainTestClass {
         await close (exchange);
         return true;
     }
+
+    async testWoofiPro () {
+        const exchange = this.initOfflineExchange ('woofipro');
+        exchange.secret = 'secretsecretsecretsecretsecretsecretsecrets';
+        const id = 'CCXT';
+        await exchange.loadMarkets ();
+        let request = undefined;
+        try {
+            await exchange.createOrder ('BTC/USDC:USDC', 'limit', 'buy', 1, 20000);
+        } catch (e) {
+            request = jsonParse (exchange.last_request_body);
+        }
+        const brokerId = request['order_tag'];
+        assert (brokerId === id, 'woofipro - id: ' + id + ' different from  broker_id: ' + brokerId);
+        await close (exchange);
+        return true;
+    }
 }
 // ***** AUTO-TRANSPILER-END *****
 // *******************************
-(new testMainClass ()).init (exchangeIdFromArgv, exchangeSymbol);
+(new testMainClass ()).init (argvExchange, argvSymbol, argvMethod);

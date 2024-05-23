@@ -227,7 +227,7 @@ class lbank(ccxt.async_support.lbank):
             messageHash = 'ohlcv:' + symbol + ':' + timeframeId
             client.resolve(stored, messageHash)
 
-    async def fetch_ticker_ws(self, symbol, params={}) -> Ticker:
+    async def fetch_ticker_ws(self, symbol: str, params={}) -> Ticker:
         """
         :see: https://www.lbank.com/en-US/docs/index.html#request-amp-subscription-instruction
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market

@@ -357,7 +357,7 @@ public partial class bitfinex : ccxt.bitfinex
                     object size = ((bool) isTrue((isLessThan(delta2Value, 0)))) ? prefixUnaryNeg(ref delta2Value) : delta2Value;
                     object side = ((bool) isTrue((isLessThan(delta2Value, 0)))) ? "asks" : "bids";
                     object bookside = getValue(orderbook, side);
-                    (bookside as IOrderBookSide).store(price, size, id);
+                    (bookside as IOrderBookSide).storeArray(new List<object>() {price, size, id});
                 }
             } else
             {
@@ -369,7 +369,7 @@ public partial class bitfinex : ccxt.bitfinex
                     object size = ((bool) isTrue((isLessThan(delta2, 0)))) ? prefixUnaryNeg(ref delta2) : delta2;
                     object side = ((bool) isTrue((isLessThan(delta2, 0)))) ? "asks" : "bids";
                     object countedBookSide = getValue(orderbook, side);
-                    (countedBookSide as IOrderBookSide).store(getValue(delta, 0), size, getValue(delta, 1));
+                    (countedBookSide as IOrderBookSide).storeArray(new List<object>() {getValue(delta, 0), size, getValue(delta, 1)});
                 }
             }
             callDynamically(client as WebSocketClient, "resolve", new object[] {orderbook, messageHash});
@@ -386,14 +386,14 @@ public partial class bitfinex : ccxt.bitfinex
                 object bookside = getValue(orderbook, side);
                 // price = 0 means that you have to remove the order from your book
                 object amount = ((bool) isTrue(Precise.stringGt(price, "0"))) ? size : "0";
-                (bookside as IOrderBookSide).store(this.parseNumber(price), this.parseNumber(amount), id);
+                (bookside as IOrderBookSide).storeArray(new List<object> {this.parseNumber(price), this.parseNumber(amount), id});
             } else
             {
                 object message3Value = getValue(message, 3);
                 object size = ((bool) isTrue((isLessThan(message3Value, 0)))) ? prefixUnaryNeg(ref message3Value) : message3Value;
                 object side = ((bool) isTrue((isLessThan(message3Value, 0)))) ? "asks" : "bids";
                 object countedBookSide = getValue(orderbook, side);
-                (countedBookSide as IOrderBookSide).store(getValue(message, 1), size, getValue(message, 2));
+                (countedBookSide as IOrderBookSide).storeArray(new List<object>() {getValue(message, 1), size, getValue(message, 2)});
             }
             callDynamically(client as WebSocketClient, "resolve", new object[] {orderbook, messageHash});
         }

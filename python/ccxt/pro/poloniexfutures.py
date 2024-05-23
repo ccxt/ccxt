@@ -8,9 +8,9 @@ from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById
 from ccxt.base.types import Balances, Int, Order, OrderBook, Str, Ticker, Trade
 from ccxt.async_support.base.ws.client import Client
 from typing import List
-from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import BadRequest
+from ccxt.base.errors import InvalidNonce
 
 
 class poloniexfutures(ccxt.async_support.poloniexfutures):
@@ -809,26 +809,33 @@ class poloniexfutures(ccxt.async_support.poloniexfutures):
     def handle_delta(self, orderbook, delta):
         #
         #    {
-        #        "sequence": 18,                   # Sequence number which is used to judge the continuity of pushed messages
-        #        "change": "5000.0,sell,83"        # Price, side, quantity
-        #        "timestamp": 1551770400000
-        #    }
+        #      sequence: 123677914,
+        #      lastSequence: 123677913,
+        #      change: '80.36,buy,4924',
+        #      changes: ['80.19,buy,0',"80.15,buy,10794"],
+        #      timestamp: 1715643483528
+        #    },
         #
         sequence = self.safe_integer(delta, 'sequence')
+        lastSequence = self.safe_integer(delta, 'lastSequence')
         nonce = self.safe_integer(orderbook, 'nonce')
-        if nonce != sequence - 1:
-            raise ExchangeError(self.id + ' watchOrderBook received an out-of-order nonce')
-        change = self.safe_string(delta, 'change')
-        splitChange = change.split(',')
-        price = self.safe_number(splitChange, 0)
-        side = self.safe_string(splitChange, 1)
-        size = self.safe_number(splitChange, 2)
+        if nonce > sequence:
+            return
+        if nonce != lastSequence:
+            raise InvalidNonce(self.id + ' watchOrderBook received an out-of-order nonce')
+        changes = self.safe_list(delta, 'changes')
+        for i in range(0, len(changes)):
+            change = changes[i]
+            splitChange = change.split(',')
+            price = self.safe_number(splitChange, 0)
+            side = self.safe_string(splitChange, 1)
+            size = self.safe_number(splitChange, 2)
+            orderBookSide = orderbook['bids'] if (side == 'buy') else orderbook['asks']
+            orderBookSide.store(price, size)
         timestamp = self.safe_integer(delta, 'timestamp')
         orderbook['timestamp'] = timestamp
         orderbook['datetime'] = self.iso8601(timestamp)
         orderbook['nonce'] = sequence
-        orderBookSide = orderbook['bids'] if (side == 'buy') else orderbook['asks']
-        orderBookSide.store(price, size)
 
     def handle_balance(self, client: Client, message):
         #

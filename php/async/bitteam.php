@@ -92,7 +92,11 @@ class bitteam extends Exchange {
                 'fetchOrders' => true,
                 'fetchOrderTrades' => false,
                 'fetchPosition' => false,
+                'fetchPositionHistory' => false,
+                'fetchPositionMode' => false,
                 'fetchPositions' => false,
+                'fetchPositionsForSymbol' => false,
+                'fetchPositionsHistory' => false,
                 'fetchPositionsRisk' => false,
                 'fetchPremiumIndexOHLCV' => false,
                 'fetchStatus' => false,
@@ -649,7 +653,7 @@ class bitteam extends Exchange {
                 'pairName' => $market['id'],
                 'resolution' => $resolution,
             );
-            $response = Async\await($this->historyGetApiTwHistoryPairNameResolution (array_merge($request, $params)));
+            $response = Async\await($this->historyGetApiTwHistoryPairNameResolution ($this->extend($request, $params)));
             //
             //     {
             //         "ok" => true,
@@ -719,7 +723,7 @@ class bitteam extends Exchange {
             $request = array(
                 'pair' => $market['id'],
             );
-            $response = Async\await($this->publicGetTradeApiCmcOrderbookPair (array_merge($request, $params)));
+            $response = Async\await($this->publicGetTradeApiCmcOrderbookPair ($this->extend($request, $params)));
             //
             //     {
             //         "timestamp" => 1701166703285,
@@ -778,7 +782,7 @@ class bitteam extends Exchange {
             if ($limit !== null) {
                 $request['limit'] = $limit;
             }
-            $response = Async\await($this->privateGetTradeApiCcxtOrdersOfUser (array_merge($request, $params)));
+            $response = Async\await($this->privateGetTradeApiCcxtOrdersOfUser ($this->extend($request, $params)));
             //
             //     {
             //         "ok" => true,
@@ -885,7 +889,7 @@ class bitteam extends Exchange {
             if ($symbol !== null) {
                 $market = $this->market($symbol);
             }
-            $response = Async\await($this->privateGetTradeApiCcxtOrderId (array_merge($request, $params)));
+            $response = Async\await($this->privateGetTradeApiCcxtOrderId ($this->extend($request, $params)));
             //
             //     {
             //         "ok" => true,
@@ -943,7 +947,7 @@ class bitteam extends Exchange {
             $request = array(
                 'type' => 'active',
             );
-            return Async\await($this->fetch_orders($symbol, $since, $limit, array_merge($request, $params)));
+            return Async\await($this->fetch_orders($symbol, $since, $limit, $this->extend($request, $params)));
         }) ();
     }
 
@@ -962,7 +966,7 @@ class bitteam extends Exchange {
             $request = array(
                 'type' => 'closed',
             );
-            return Async\await($this->fetch_orders($symbol, $since, $limit, array_merge($request, $params)));
+            return Async\await($this->fetch_orders($symbol, $since, $limit, $this->extend($request, $params)));
         }) ();
     }
 
@@ -981,7 +985,7 @@ class bitteam extends Exchange {
             $request = array(
                 'type' => 'cancelled',
             );
-            return Async\await($this->fetch_orders($symbol, $since, $limit, array_merge($request, $params)));
+            return Async\await($this->fetch_orders($symbol, $since, $limit, $this->extend($request, $params)));
         }) ();
     }
 
@@ -1013,7 +1017,7 @@ class bitteam extends Exchange {
                     $request['price'] = $this->price_to_precision($symbol, $price);
                 }
             }
-            $response = Async\await($this->privatePostTradeApiCcxtOrdercreate (array_merge($request, $params)));
+            $response = Async\await($this->privatePostTradeApiCcxtOrdercreate ($this->extend($request, $params)));
             //
             //     {
             //         "ok" => true,
@@ -1056,7 +1060,7 @@ class bitteam extends Exchange {
             $request = array(
                 'id' => $id,
             );
-            $response = Async\await($this->privatePostTradeApiCcxtCancelorder (array_merge($request, $params)));
+            $response = Async\await($this->privatePostTradeApiCcxtCancelorder ($this->extend($request, $params)));
             //
             //     {
             //         "ok" => true,
@@ -1088,7 +1092,7 @@ class bitteam extends Exchange {
             } else {
                 $request['pairId'] = '0'; // '0' for all markets
             }
-            $response = Async\await($this->privatePostTradeApiCcxtCancelAllOrder (array_merge($request, $params)));
+            $response = Async\await($this->privatePostTradeApiCcxtCancelAllOrder ($this->extend($request, $params)));
             //
             //     {
             //         "ok" => true,
@@ -1348,7 +1352,7 @@ class bitteam extends Exchange {
             $request = array(
                 'name' => $market['id'],
             );
-            $response = Async\await($this->publicGetTradeApiPairName (array_merge($request, $params)));
+            $response = Async\await($this->publicGetTradeApiPairName ($this->extend($request, $params)));
             //
             //     {
             //         "ok" => true,
@@ -1538,7 +1542,7 @@ class bitteam extends Exchange {
         }) ();
     }
 
-    public function parse_ticker($ticker, ?array $market = null): array {
+    public function parse_ticker(array $ticker, ?array $market = null): array {
         //
         // fetchTicker
         //     {
@@ -1682,7 +1686,7 @@ class bitteam extends Exchange {
             $request = array(
                 'pair' => $market['id'],
             );
-            $response = Async\await($this->publicGetTradeApiCmcTradesPair (array_merge($request, $params)));
+            $response = Async\await($this->publicGetTradeApiCmcTradesPair ($this->extend($request, $params)));
             //
             //     array(
             //         array(
@@ -1729,7 +1733,7 @@ class bitteam extends Exchange {
             if ($limit !== null) {
                 $request['limit'] = $limit;
             }
-            $response = Async\await($this->privateGetTradeApiCcxtTradesOfUser (array_merge($request, $params)));
+            $response = Async\await($this->privateGetTradeApiCcxtTradesOfUser ($this->extend($request, $params)));
             //
             //     {
             //         "ok" => true,
@@ -2079,7 +2083,7 @@ class bitteam extends Exchange {
             if ($limit !== null) {
                 $request['limit'] = $limit;
             }
-            $response = Async\await($this->privateGetTradeApiTransactionsOfUser (array_merge($request, $params)));
+            $response = Async\await($this->privateGetTradeApiTransactionsOfUser ($this->extend($request, $params)));
             //
             //     {
             //         "ok" => true,

@@ -6,7 +6,7 @@ import { ExchangeError, BadRequest } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
-import type { Balances, Currency, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade, Transaction } from './base/types.js';
+import type { Balances, Currency, Dict, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade, Transaction } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -238,7 +238,7 @@ export default class zaif extends Exchange {
     parseBalance (response): Balances {
         const balances = this.safeValue (response, 'return', {});
         const deposit = this.safeValue (balances, 'deposit');
-        const result = {
+        const result: Dict = {
             'info': response,
             'timestamp': undefined,
             'datetime': undefined,
@@ -289,14 +289,14 @@ export default class zaif extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'pair': market['id'],
         };
         const response = await this.publicGetDepthPair (this.extend (request, params));
         return this.parseOrderBook (response, market['symbol']);
     }
 
-    parseTicker (ticker, market: Market = undefined): Ticker {
+    parseTicker (ticker: Dict, market: Market = undefined): Ticker {
         //
         // {
         //     "last": 9e-08,
@@ -349,7 +349,7 @@ export default class zaif extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'pair': market['id'],
         };
         const ticker = await this.publicGetTickerPair (this.extend (request, params));
@@ -419,7 +419,7 @@ export default class zaif extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'pair': market['id'],
         };
         let response = await this.publicGetTradesPair (this.extend (request, params));
@@ -464,7 +464,7 @@ export default class zaif extends Exchange {
             throw new ExchangeError (this.id + ' createOrder() allows limit orders only');
         }
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'currency_pair': market['id'],
             'action': (side === 'buy') ? 'bid' : 'ask',
             'amount': amount,
@@ -488,7 +488,7 @@ export default class zaif extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
-        const request = {
+        const request: Dict = {
             'order_id': id,
         };
         return await this.privatePostCancelOrder (this.extend (request, params));
@@ -553,7 +553,7 @@ export default class zaif extends Exchange {
          */
         await this.loadMarkets ();
         let market: Market = undefined;
-        const request = {
+        const request: Dict = {
             // 'is_token': false,
             // 'is_token_both': false,
         };
@@ -579,7 +579,7 @@ export default class zaif extends Exchange {
          */
         await this.loadMarkets ();
         let market: Market = undefined;
-        const request = {
+        const request: Dict = {
             // 'from': 0,
             // 'count': 1000,
             // 'from_id': 0,
@@ -597,7 +597,7 @@ export default class zaif extends Exchange {
         return this.parseOrders (response['return'], market, since, limit);
     }
 
-    async withdraw (code: string, amount: number, address, tag = undefined, params = {}) {
+    async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}) {
         /**
          * @method
          * @name zaif#withdraw
@@ -617,7 +617,7 @@ export default class zaif extends Exchange {
         if (code === 'JPY') {
             throw new ExchangeError (this.id + ' withdraw() does not allow ' + code + ' withdrawals');
         }
-        const request = {
+        const request: Dict = {
             'currency': currency['id'],
             'amount': amount,
             'address': address,
@@ -696,7 +696,7 @@ export default class zaif extends Exchange {
     }
 
     customNonce () {
-        const num = (this.milliseconds () / 1000).toString ();
+        const num = this.numberToString (this.milliseconds () / 1000);
         const nonce = parseFloat (num);
         return nonce.toFixed (8);
     }

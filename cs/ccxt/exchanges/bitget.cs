@@ -30,6 +30,7 @@ public partial class bitget : Exchange
                 { "cancelOrders", true },
                 { "closeAllPositions", true },
                 { "closePosition", true },
+                { "createConvertTrade", true },
                 { "createDepositAddress", false },
                 { "createMarketBuyOrderWithCost", true },
                 { "createMarketOrderWithCost", false },
@@ -58,6 +59,8 @@ public partial class bitget : Exchange
                 { "fetchClosedOrders", true },
                 { "fetchConvertCurrencies", true },
                 { "fetchConvertQuote", true },
+                { "fetchConvertTrade", false },
+                { "fetchConvertTradeHistory", true },
                 { "fetchCrossBorrowRate", true },
                 { "fetchCrossBorrowRates", false },
                 { "fetchCurrencies", true },
@@ -96,8 +99,10 @@ public partial class bitget : Exchange
                 { "fetchOrders", false },
                 { "fetchOrderTrades", false },
                 { "fetchPosition", true },
+                { "fetchPositionHistory", "emulated" },
                 { "fetchPositionMode", false },
                 { "fetchPositions", true },
+                { "fetchPositionsHistory", true },
                 { "fetchPositionsRisk", false },
                 { "fetchPremiumIndexOHLCV", false },
                 { "fetchStatus", false },
@@ -286,6 +291,9 @@ public partial class bitget : Exchange
                             { "v2/spot/account/subaccount-assets", 2 },
                             { "v2/spot/account/bills", 2 },
                             { "v2/spot/account/transferRecords", 1 },
+                            { "v2/account/funding-assets", 2 },
+                            { "v2/account/bot-assets", 2 },
+                            { "v2/account/all-account-balance", 20 },
                             { "v2/spot/wallet/deposit-address", 2 },
                             { "v2/spot/wallet/deposit-records", 2 },
                             { "v2/spot/wallet/withdrawal-records", 2 },
@@ -730,6 +738,7 @@ public partial class bitget : Exchange
                             { "v2/earn/loan/borrow-history", 2 },
                             { "v2/earn/loan/debts", 2 },
                             { "v2/earn/loan/reduces", 2 },
+                            { "v2/earn/account/assets", 2 },
                         } },
                         { "post", new Dictionary<string, object>() {
                             { "v2/earn/savings/subscribe", 2 },
@@ -2702,12 +2711,7 @@ public partial class bitget : Exchange
         //
         object marketId = this.safeString(ticker, "symbol");
         object close = this.safeString(ticker, "lastPr");
-        object timestampString = this.omitZero(this.safeString(ticker, "ts")); // exchange sometimes provided 0
-        object timestamp = null;
-        if (isTrue(!isEqual(timestampString, null)))
-        {
-            timestamp = this.parseToInt(timestampString);
-        }
+        object timestamp = this.safeIntegerOmitZero(ticker, "ts"); // exchange bitget provided 0
         object change = this.safeString(ticker, "change24h");
         object open24 = this.safeString(ticker, "open24");
         object open = this.safeString(ticker, "open");
@@ -3498,11 +3502,11 @@ public partial class bitget : Exchange
             { "symbol", getValue(market, "id") },
             { "granularity", this.safeString(timeframes, timeframe, timeframe) },
         };
-        object until = this.safeInteger2(parameters, "until", "till");
+        object until = this.safeInteger(parameters, "until");
         object limitDefined = !isEqual(limit, null);
         object sinceDefined = !isEqual(since, null);
         object untilDefined = !isEqual(until, null);
-        parameters = this.omit(parameters, new List<object>() {"until", "till"});
+        parameters = this.omit(parameters, new List<object>() {"until"});
         object response = null;
         object now = this.milliseconds();
         // retrievable periods listed here:
@@ -4871,6 +4875,10 @@ public partial class bitget : Exchange
         object response = null;
         if (isTrue(getValue(market, "spot")))
         {
+            if (isTrue(isEqual(triggerPrice, null)))
+            {
+                throw new NotSupported ((string)add(this.id, "editOrder() only supports plan/trigger spot orders")) ;
+            }
             object editMarketBuyOrderRequiresPrice = this.safeBool(this.options, "editMarketBuyOrderRequiresPrice", true);
             if (isTrue(isTrue(isTrue(editMarketBuyOrderRequiresPrice) && isTrue(isMarketOrder)) && isTrue((isEqual(side, "buy")))))
             {
@@ -6034,8 +6042,8 @@ public partial class bitget : Exchange
                     {
                         throw new ArgumentsRequired ((string)add(this.id, " fetchCanceledAndClosedOrders() requires a symbol argument")) ;
                     }
-                    object endTime = this.safeIntegerN(parameters, new List<object>() {"endTime", "until", "till"});
-                    parameters = this.omit(parameters, new List<object>() {"until", "till"});
+                    object endTime = this.safeIntegerN(parameters, new List<object>() {"endTime", "until"});
+                    parameters = this.omit(parameters, new List<object>() {"until"});
                     if (isTrue(isEqual(since, null)))
                     {
                         since = subtract(now, 7776000000);
@@ -7025,7 +7033,7 @@ public partial class bitget : Exchange
         //         "cTime": "1700807507275"
         //     }
         //
-        // fetchPositions: privateMixGetV2MixPositionHistoryPosition
+        // fetchPositionsHistory: privateMixGetV2MixPositionHistoryPosition
         //
         //     {
         //         "symbol": "BTCUSDT",
@@ -7910,7 +7918,7 @@ public partial class bitget : Exchange
         }, market);
     }
 
-    public async virtual Task<object> fetchTransfers(object code = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<object> fetchTransfers(object code = null, object since = null, object limit = null, object parameters = null)
     {
         /**
         * @method
@@ -8654,7 +8662,7 @@ public partial class bitget : Exchange
         return this.parseIsolatedBorrowRate(first, market);
     }
 
-    public virtual object parseIsolatedBorrowRate(object info, object market = null)
+    public override object parseIsolatedBorrowRate(object info, object market = null)
     {
         //
         //     {
@@ -9140,6 +9148,85 @@ public partial class bitget : Exchange
         };
     }
 
+    public async override Task<object> fetchPositionsHistory(object symbols = null, object since = null, object limit = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name bitget#fetchPositionsHistory
+        * @description fetches historical positions
+        * @see https://www.bitget.com/api-doc/contract/position/Get-History-Position
+        * @param {string[]} [symbols] unified contract symbols
+        * @param {int} [since] timestamp in ms of the earliest position to fetch, default=3 months ago, max range for params["until"] - since is 3 months
+        * @param {int} [limit] the maximum amount of records to fetch, default=20, max=100
+        * @param {object} params extra parameters specific to the exchange api endpoint
+        * @param {int} [params.until] timestamp in ms of the latest position to fetch, max range for params["until"] - since is 3 months
+        *
+        * EXCHANGE SPECIFIC PARAMETERS
+        * @param {string} [params.productType] USDT-FUTURES (default), COIN-FUTURES, USDC-FUTURES, SUSDT-FUTURES, SCOIN-FUTURES, or SUSDC-FUTURES
+        * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object until = this.safeInteger(parameters, "until");
+        parameters = this.omit(parameters, "until");
+        object request = new Dictionary<string, object>() {};
+        if (isTrue(!isEqual(symbols, null)))
+        {
+            object symbolsLength = getArrayLength(symbols);
+            if (isTrue(isGreaterThan(symbolsLength, 0)))
+            {
+                object market = this.market(getValue(symbols, 0));
+                ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
+            }
+        }
+        if (isTrue(!isEqual(since, null)))
+        {
+            ((IDictionary<string,object>)request)["startTime"] = since;
+        }
+        if (isTrue(!isEqual(limit, null)))
+        {
+            ((IDictionary<string,object>)request)["limit"] = limit;
+        }
+        if (isTrue(!isEqual(until, null)))
+        {
+            ((IDictionary<string,object>)request)["endTime"] = until;
+        }
+        object response = await this.privateMixGetV2MixPositionHistoryPosition(this.extend(request, parameters));
+        //
+        //    {
+        //        code: '00000',
+        //        msg: 'success',
+        //        requestTime: '1712794148791',
+        //        data: {
+        //            list: [
+        //                {
+        //                    symbol: 'XRPUSDT',
+        //                    marginCoin: 'USDT',
+        //                    holdSide: 'long',
+        //                    openAvgPrice: '0.64967',
+        //                    closeAvgPrice: '0.58799',
+        //                    marginMode: 'isolated',
+        //                    openTotalPos: '10',
+        //                    closeTotalPos: '10',
+        //                    pnl: '-0.62976205',
+        //                    netProfit: '-0.65356802',
+        //                    totalFunding: '-0.01638',
+        //                    openFee: '-0.00389802',
+        //                    closeFee: '-0.00352794',
+        //                    ctime: '1709590322199',
+        //                    utime: '1709667583395'
+        //                },
+        //                ...
+        //            ]
+        //        }
+        //    }
+        //
+        object data = this.safeDict(response, "data");
+        object responseList = this.safeList(data, "list");
+        object positions = this.parsePositions(responseList, symbols, parameters);
+        return this.filterBySinceLimit(positions, since, limit);
+    }
+
     public async override Task<object> fetchConvertQuote(object fromCode, object toCode, object amount = null, object parameters = null)
     {
         /**
@@ -9156,8 +9243,8 @@ public partial class bitget : Exchange
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object request = new Dictionary<string, object>() {
-            { "fromCoin", ((string)fromCode).ToUpper() },
-            { "toCoin", ((string)toCode).ToUpper() },
+            { "fromCoin", fromCode },
+            { "toCoin", toCode },
             { "fromCoinSize", this.numberToString(amount) },
         };
         object response = await this.privateConvertGetV2ConvertQuotedPrice(this.extend(request, parameters));
@@ -9185,6 +9272,129 @@ public partial class bitget : Exchange
         return this.parseConversion(data, fromCurrency, toCurrency);
     }
 
+    public async virtual Task<object> createConvertTrade(object id, object fromCode, object toCode, object amount = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name bitget#createConvertTrade
+        * @description convert from one currency to another
+        * @see https://www.bitget.com/api-doc/common/convert/Trade
+        * @param {string} id the id of the trade that you want to make
+        * @param {string} fromCode the currency that you want to sell and convert from
+        * @param {string} toCode the currency that you want to buy and convert into
+        * @param {float} amount how much you want to trade in units of the from currency
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @param {string} params.price the price of the conversion, obtained from fetchConvertQuote()
+        * @param {string} params.toAmount the amount you want to trade in units of the toCurrency, obtained from fetchConvertQuote()
+        * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/#/?id=conversion-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object price = this.safeString2(parameters, "price", "cnvtPrice");
+        if (isTrue(isEqual(price, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " createConvertTrade() requires a price parameter")) ;
+        }
+        object toAmount = this.safeString2(parameters, "toAmount", "toCoinSize");
+        if (isTrue(isEqual(toAmount, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " createConvertTrade() requires a toAmount parameter")) ;
+        }
+        parameters = this.omit(parameters, new List<object>() {"price", "toAmount"});
+        object request = new Dictionary<string, object>() {
+            { "traceId", id },
+            { "fromCoin", fromCode },
+            { "toCoin", toCode },
+            { "fromCoinSize", this.numberToString(amount) },
+            { "toCoinSize", toAmount },
+            { "cnvtPrice", price },
+        };
+        object response = await this.privateConvertPostV2ConvertTrade(this.extend(request, parameters));
+        //
+        //     {
+        //         "code": "00000",
+        //         "msg": "success",
+        //         "requestTime": 1712123746203,
+        //         "data": {
+        //             "cnvtPrice": "0.99940076",
+        //             "toCoin": "USDC",
+        //             "toCoinSize": "4.99700379",
+        //             "ts": "1712123746217"
+        //         }
+        //     }
+        //
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        object toCurrencyId = this.safeString(data, "toCoin", toCode);
+        object toCurrency = this.currency(toCurrencyId);
+        return this.parseConversion(data, null, toCurrency);
+    }
+
+    public async virtual Task<object> fetchConvertTradeHistory(object code = null, object since = null, object limit = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name bitget#fetchConvertTradeHistory
+        * @description fetch the users history of conversion trades
+        * @see https://www.bitget.com/api-doc/common/convert/Get-Convert-Record
+        * @param {string} [code] the unified currency code
+        * @param {int} [since] the earliest time in ms to fetch conversions for
+        * @param {int} [limit] the maximum number of conversion structures to retrieve
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {object[]} a list of [conversion structures]{@link https://docs.ccxt.com/#/?id=conversion-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object request = new Dictionary<string, object>() {};
+        object msInDay = 86400000;
+        object now = this.milliseconds();
+        if (isTrue(!isEqual(since, null)))
+        {
+            ((IDictionary<string,object>)request)["startTime"] = since;
+        } else
+        {
+            ((IDictionary<string,object>)request)["startTime"] = subtract(now, msInDay);
+        }
+        object endTime = this.safeString2(parameters, "endTime", "until");
+        if (isTrue(!isEqual(endTime, null)))
+        {
+            ((IDictionary<string,object>)request)["endTime"] = endTime;
+        } else
+        {
+            ((IDictionary<string,object>)request)["endTime"] = now;
+        }
+        if (isTrue(!isEqual(limit, null)))
+        {
+            ((IDictionary<string,object>)request)["limit"] = limit;
+        }
+        parameters = this.omit(parameters, "until");
+        object response = await this.privateConvertGetV2ConvertConvertRecord(this.extend(request, parameters));
+        //
+        //     {
+        //         "code": "00000",
+        //         "msg": "success",
+        //         "requestTime": 1712124371799,
+        //         "data": {
+        //             "dataList": [
+        //                 {
+        //                     "id": "1159296505255219205",
+        //                     "fromCoin": "USDT",
+        //                     "fromCoinSize": "5",
+        //                     "cnvtPrice": "0.99940076",
+        //                     "toCoin": "USDC",
+        //                     "toCoinSize": "4.99700379",
+        //                     "ts": "1712123746217",
+        //                     "fee": "0"
+        //                 }
+        //             ],
+        //             "endId": "1159296505255219205"
+        //         }
+        //     }
+        //
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        object dataList = this.safeList(data, "dataList", new List<object>() {});
+        return this.parseConversions(dataList, code, "fromCoin", "toCoin", since, limit);
+    }
+
     public override object parseConversion(object conversion, object fromCurrency = null, object toCurrency = null)
     {
         //
@@ -9200,6 +9410,28 @@ public partial class bitget : Exchange
         //         "fee": "0"
         //     }
         //
+        // createConvertTrade
+        //
+        //     {
+        //         "cnvtPrice": "0.99940076",
+        //         "toCoin": "USDC",
+        //         "toCoinSize": "4.99700379",
+        //         "ts": "1712123746217"
+        //     }
+        //
+        // fetchConvertTradeHistory
+        //
+        //     {
+        //         "id": "1159296505255219205",
+        //         "fromCoin": "USDT",
+        //         "fromCoinSize": "5",
+        //         "cnvtPrice": "0.99940076",
+        //         "toCoin": "USDC",
+        //         "toCoinSize": "4.99700379",
+        //         "ts": "1712123746217",
+        //         "fee": "0"
+        //     }
+        //
         object timestamp = this.safeInteger(conversion, "ts");
         object fromCoin = this.safeString(conversion, "fromCoin");
         object fromCode = this.safeCurrencyCode(fromCoin, fromCurrency);
@@ -9209,7 +9441,7 @@ public partial class bitget : Exchange
             { "info", conversion },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
-            { "id", this.safeString(conversion, "traceId") },
+            { "id", this.safeString2(conversion, "id", "traceId") },
             { "fromCurrency", fromCode },
             { "fromAmount", this.safeNumber(conversion, "fromCoinSize") },
             { "toCurrency", toCode },
@@ -9295,6 +9527,8 @@ public partial class bitget : Exchange
         //
         // spot
         //
+        //     {"code":"00000","msg":"success","requestTime":1713294492511,"data":[...]}"
+        //
         //     {"status":"fail","err_code":"01001","err_msg":"系统异常，请稍后重试"}
         //     {"status":"error","ts":1595594160149,"err_code":"invalid-parameter","err_msg":"invalid size, valid range: [1,2000]"}
         //     {"status":"error","ts":1595684716042,"err_code":"invalid-parameter","err_msg":"illegal sign invalid"}
@@ -9316,15 +9550,15 @@ public partial class bitget : Exchange
         //     {"code":"40108","msg":"","requestTime":1595885064600,"data":null}
         //     {"order_id":"513468410013679613","client_oid":null,"symbol":"ethusd","result":false,"err_code":"order_no_exist_error","err_msg":"订单不存在！"}
         //
-        object message = this.safeString(response, "err_msg");
-        object errorCode = this.safeString2(response, "code", "err_code");
+        object message = this.safeString2(response, "err_msg", "msg");
         object feedback = add(add(this.id, " "), body);
-        object nonEmptyMessage = (isTrue((!isEqual(message, null))) && isTrue((!isEqual(message, ""))));
+        object nonEmptyMessage = (isTrue(isTrue((!isEqual(message, null))) && isTrue((!isEqual(message, "")))) && isTrue((!isEqual(message, "success"))));
         if (isTrue(nonEmptyMessage))
         {
             this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), message, feedback);
             this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), message, feedback);
         }
+        object errorCode = this.safeString2(response, "code", "err_code");
         object nonZeroErrorCode = isTrue((!isEqual(errorCode, null))) && isTrue((!isEqual(errorCode, "00000")));
         if (isTrue(nonZeroErrorCode))
         {

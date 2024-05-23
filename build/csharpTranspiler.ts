@@ -147,7 +147,7 @@ class NewTranspiler {
                 "parser": {
                     "ELEMENT_ACCESS_WRAPPER_OPEN": "getValue(",
                     "ELEMENT_ACCESS_WRAPPER_CLOSE": ")",
-                    "VAR_TOKEN": "var",
+                    // "VAR_TOKEN": "var",
                 }
             },
         }
@@ -286,7 +286,7 @@ class NewTranspiler {
     }
 
     isDictionary(type: string): boolean {
-        return (type === 'Object') || (type === 'Dictionary<any>') || (type === 'unknown') || ((type.startsWith('{')) && (type.endsWith('}')))
+        return (type === 'Object') || (type === 'Dictionary<any>') || (type === 'unknown') || (type === 'Dict') || ((type.startsWith('{')) && (type.endsWith('}')))
     }
 
     isStringType(type: string) {
@@ -302,7 +302,7 @@ class NewTranspiler {
     }
 
     isBooleanType(type: string) {
-        return (type === 'boolean') || (type === 'BooleanLiteral') || (type === 'BooleanLiteralType')
+        return (type === 'boolean') || (type === 'BooleanLiteral') || (type === 'BooleanLiteralType') || (type === 'Bool')
     }
 
     convertJavascriptTypeToCsharpType(name: string, type: string, isReturn = false): string | undefined {
@@ -505,6 +505,11 @@ class NewTranspiler {
         // custom handling for now
         if (methodName === 'fetchTime'){
             return `return (Int64)res;`;
+        }
+
+        // handle the typescript type Dict
+        if (unwrappedType === 'Dict') {
+            return `return (Dictionary<string, object>)res;`;
         }
 
         const needsToInstantiate = !unwrappedType.startsWith('List<') && !unwrappedType.startsWith('Dictionary<') && unwrappedType !== 'object' && unwrappedType !== 'string' && unwrappedType !== 'float' && unwrappedType !== 'bool' && unwrappedType !== 'Int64';
@@ -979,7 +984,7 @@ class NewTranspiler {
 
         if (csharpFolder) {
             overwriteFile (csharpFolder + csharpFilename, csharp)
-            fs.utimesSync (csharpFolder + csharpFilename, new Date (), new Date (tsMtime))
+            // fs.utimesSync (csharpFolder + csharpFilename, new Date (), new Date (tsMtime))
         }
     }
 

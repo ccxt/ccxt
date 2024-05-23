@@ -2,7 +2,7 @@
 
 import bitrueRest from '../bitrue.js';
 import { ArrayCacheBySymbolById } from '../base/ws/Cache.js';
-import type { Int, Str, OrderBook, Order, Balances } from '../base/types.js';
+import type { Int, Str, OrderBook, Order, Balances, Dict } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -65,7 +65,7 @@ export default class bitrue extends bitrueRest {
          */
         const url = await this.authenticate ();
         const messageHash = 'balance';
-        const message = {
+        const message: Dict = {
             'event': 'sub',
             'params': {
                 'channel': 'user_balance_update',
@@ -188,7 +188,7 @@ export default class bitrue extends bitrueRest {
         }
         const url = await this.authenticate ();
         const messageHash = 'orders';
-        const message = {
+        const message: Dict = {
             'event': 'sub',
             'params': {
                 'channel': 'user_order_update',
@@ -305,7 +305,7 @@ export default class bitrue extends bitrueRest {
         const marketIdLowercase = market['id'].toLowerCase ();
         const channel = 'market_' + marketIdLowercase + '_simple_depth_step0';
         const url = this.urls['api']['ws']['public'];
-        const message = {
+        const message: Dict = {
             'event': 'sub',
             'params': {
                 'cb_id': marketIdLowercase,
@@ -368,7 +368,7 @@ export default class bitrue extends bitrueRest {
     }
 
     parseWsOrderType (typeId) {
-        const types = {
+        const types: Dict = {
             '1': 'limit',
             '2': 'market',
             '3': 'limit',
@@ -377,7 +377,7 @@ export default class bitrue extends bitrueRest {
     }
 
     parseWsOrderStatus (status) {
-        const statuses = {
+        const statuses: Dict = {
             '0': 'open', // The order has not been accepted by the engine.
             '1': 'open', // The order has been accepted by the engine.
             '2': 'closed', // The order has been completed.
@@ -399,7 +399,7 @@ export default class bitrue extends bitrueRest {
         //     }
         //
         const time = this.safeInteger (message, 'ping');
-        const pong = {
+        const pong: Dict = {
             'pong': time,
         };
         await client.send (pong);
@@ -412,7 +412,7 @@ export default class bitrue extends bitrueRest {
             this.handlePing (client, message);
         } else {
             const event = this.safeString (message, 'e');
-            const handlers = {
+            const handlers: Dict = {
                 'BALANCE': this.handleBalance,
                 'ORDER': this.handleOrder,
             };
@@ -455,7 +455,7 @@ export default class bitrue extends bitrueRest {
 
     async keepAliveListenKey (params = {}) {
         const listenKey = this.safeString (this.options, 'listenKey');
-        const request = {
+        const request: Dict = {
             'listenKey': listenKey,
         };
         try {

@@ -86,6 +86,7 @@ interface binance {
     sapiGetCapitalDepositSubAddress(params?: {}): Promise<implicitReturnType>;
     sapiGetCapitalDepositSubHisrec(params?: {}): Promise<implicitReturnType>;
     sapiGetCapitalWithdrawHistory(params?: {}): Promise<implicitReturnType>;
+    sapiGetCapitalWithdrawAddressList(params?: {}): Promise<implicitReturnType>;
     sapiGetCapitalContractConvertibleCoins(params?: {}): Promise<implicitReturnType>;
     sapiGetConvertTradeFlow(params?: {}): Promise<implicitReturnType>;
     sapiGetConvertExchangeInfo(params?: {}): Promise<implicitReturnType>;
@@ -463,6 +464,7 @@ interface binance {
     fapiPublicGetContinuousKlines(params?: {}): Promise<implicitReturnType>;
     fapiPublicGetMarkPriceKlines(params?: {}): Promise<implicitReturnType>;
     fapiPublicGetIndexPriceKlines(params?: {}): Promise<implicitReturnType>;
+    fapiPublicGetPremiumIndexKlines(params?: {}): Promise<implicitReturnType>;
     fapiPublicGetFundingRate(params?: {}): Promise<implicitReturnType>;
     fapiPublicGetFundingInfo(params?: {}): Promise<implicitReturnType>;
     fapiPublicGetPremiumIndex(params?: {}): Promise<implicitReturnType>;

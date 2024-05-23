@@ -15,9 +15,12 @@ const json = (data, params = undefined) => JSON.stringify(data), isJsonEncodedOb
 , urlencodeWithArrayRepeat = (object) => index$1.stringify(object, { arrayFormat: 'repeat' }), rawencode = (object) => index$1.stringify(object, { encode: false }), encode = index.utf8.decode // lol
 , decode = index.utf8.encode
 // Url-safe-base64 without equals signs, with + replaced by - and slashes replaced by underscores
-, urlencodeBase64 = (base64string) => base64string.replace(/[=]+$/, '')
-    .replace(/\+/g, '-')
-    .replace(/\//g, '_'), numberToLE = (n, padding) => utils.numberToBytesLE(BigInt(n), padding), numberToBE = (n, padding) => utils.numberToBytesBE(BigInt(n), padding);
+, urlencodeBase64 = (payload) => {
+    const payload64 = (typeof payload === 'string') ? stringToBase64(payload) : binaryToBase64(payload);
+    return payload64.replace(/[=]+$/, '')
+        .replace(/\+/g, '-')
+        .replace(/\//g, '_');
+}, numberToLE = (n, padding) => utils.numberToBytesLE(BigInt(n), padding), numberToBE = (n, padding) => utils.numberToBytesBE(BigInt(n), padding);
 function packb(req) {
     return msgpack.serialize(req);
 }

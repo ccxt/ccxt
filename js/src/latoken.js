@@ -58,7 +58,13 @@ export default class latoken extends Exchange {
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchOrders': true,
+                'fetchPosition': false,
+                'fetchPositionHistory': false,
                 'fetchPositionMode': false,
+                'fetchPositions': false,
+                'fetchPositionsForSymbol': false,
+                'fetchPositionsHistory': false,
+                'fetchPositionsRisk': false,
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTime': true,
@@ -613,7 +619,7 @@ export default class latoken extends Exchange {
         //
         const marketId = this.safeString(ticker, 'symbol');
         const last = this.safeString(ticker, 'lastPrice');
-        const timestamp = this.safeInteger(ticker, 'updateTimestamp');
+        const timestamp = this.safeIntegerOmitZero(ticker, 'updateTimestamp'); // sometimes latoken provided '0' ts from /ticker endpoint
         return this.safeTicker({
             'symbol': this.safeSymbol(marketId, market),
             'timestamp': timestamp,

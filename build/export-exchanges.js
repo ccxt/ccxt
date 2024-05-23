@@ -521,7 +521,7 @@ function generateErrorsTs () {
     const classBlock = (className, extendedClassName) => {
         return '' + 
             `class ${className} extends ${extendedClassName} {\n` +
-            `    constructor (message) {\n` +
+            `    constructor (message: string) {\n` +
             `        super (message);\n` +
             `        this.name = '${className}';\n` +
             `    }\n` +

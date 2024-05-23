@@ -49,5 +49,35 @@ namespace Org.BouncyCastle.OpenSsl
 
             throw new EncryptionException("Unknown DEK algorithm: " + dekAlgName);
         }
+
+        private static ICipherParameters GetCipherParameters(
+            char[] password,
+            PemBaseAlg baseAlg,
+            byte[] salt)
+        {
+            string algorithm;
+            int keyBits;
+            switch (baseAlg)
+            {
+                case PemBaseAlg.AES_128: keyBits = 128; algorithm = "AES128"; break;
+                case PemBaseAlg.AES_192: keyBits = 192; algorithm = "AES192"; break;
+                case PemBaseAlg.AES_256: keyBits = 256; algorithm = "AES256"; break;
+                case PemBaseAlg.BF: keyBits = 128; algorithm = "BLOWFISH"; break;
+                case PemBaseAlg.DES: keyBits = 64; algorithm = "DES"; break;
+                case PemBaseAlg.DES_EDE: keyBits = 128; algorithm = "DESEDE"; break;
+                case PemBaseAlg.DES_EDE3: keyBits = 192; algorithm = "DESEDE3"; break;
+                case PemBaseAlg.RC2: keyBits = 128; algorithm = "RC2"; break;
+                case PemBaseAlg.RC2_40: keyBits = 40; algorithm = "RC2"; break;
+                case PemBaseAlg.RC2_64: keyBits = 64; algorithm = "RC2"; break;
+                default:
+                    return null;
+            }
+
+            OpenSslPbeParametersGenerator pGen = new OpenSslPbeParametersGenerator();
+
+            pGen.Init(PbeParametersGenerator.Pkcs5PasswordToBytes(password), salt);
+
+            return pGen.GenerateDerivedParameters(algorithm, keyBits);
+        }
     }
 }

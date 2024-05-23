@@ -70,7 +70,7 @@ class hyperliquid(ccxt.async_support.hyperliquid):
             'method': 'subscribe',
             'subscription': {
                 'type': 'l2Book',
-                'coin': market['base'],
+                'coin': market['base'] if market['swap'] else market['id'],
             },
         }
         message = self.extend(request, params)
@@ -105,7 +105,7 @@ class hyperliquid(ccxt.async_support.hyperliquid):
         #
         entry = self.safe_dict(message, 'data', {})
         coin = self.safe_string(entry, 'coin')
-        marketId = coin + '/USDC:USDC'
+        marketId = self.coinToMarketId(coin)
         market = self.market(marketId)
         symbol = market['symbol']
         rawData = self.safe_list(entry, 'levels', [])
@@ -225,7 +225,7 @@ class hyperliquid(ccxt.async_support.hyperliquid):
             'method': 'subscribe',
             'subscription': {
                 'type': 'trades',
-                'coin': market['base'],
+                'coin': market['base'] if market['swap'] else market['id'],
             },
         }
         message = self.extend(request, params)
@@ -254,7 +254,7 @@ class hyperliquid(ccxt.async_support.hyperliquid):
         entry = self.safe_list(message, 'data', [])
         first = self.safe_dict(entry, 0, {})
         coin = self.safe_string(first, 'coin')
-        marketId = coin + '/USDC:USDC'
+        marketId = self.coinToMarketId(coin)
         market = self.market(marketId)
         symbol = market['symbol']
         if not (symbol in self.trades):
@@ -307,7 +307,7 @@ class hyperliquid(ccxt.async_support.hyperliquid):
         price = self.safe_string(trade, 'px')
         amount = self.safe_string(trade, 'sz')
         coin = self.safe_string(trade, 'coin')
-        marketId = coin + '/USDC:USDC'
+        marketId = self.coinToMarketId(coin)
         market = self.safe_market(marketId, None)
         symbol = market['symbol']
         id = self.safe_string(trade, 'tid')
@@ -349,7 +349,7 @@ class hyperliquid(ccxt.async_support.hyperliquid):
             'method': 'subscribe',
             'subscription': {
                 'type': 'candle',
-                'coin': market['base'],
+                'coin': market['base'] if market['swap'] else market['id'],
                 'interval': timeframe,
             },
         }
@@ -380,7 +380,8 @@ class hyperliquid(ccxt.async_support.hyperliquid):
         #
         data = self.safe_dict(message, 'data', {})
         base = self.safe_string(data, 's')
-        symbol = base + '/USDC:USDC'
+        marketId = self.coinToMarketId(base)
+        symbol = self.safe_symbol(marketId)
         timeframe = self.safe_string(data, 'i')
         if not (symbol in self.ohlcvs):
             self.ohlcvs[symbol] = {}

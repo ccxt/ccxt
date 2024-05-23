@@ -746,7 +746,8 @@
                     [
                         "BTC/USDT",
                         "ETH/USDT"
-                    ]
+                    ],
+                    {"code": "BTC"}
                 ]
             },
             {
@@ -757,7 +758,8 @@
                     [
                         "BTC/USDT:USDT",
                         "ETH/USDT:USDT"
-                    ]
+                    ],
+                    {"code": "BTC"}
                 ]
             }
         ],

@@ -321,6 +321,10 @@ namespace Org.BouncyCastle.OpenSsl
 
                     //         return PrivateKeyFactory.DecryptKey(password, EncryptedPrivateKeyInfo.GetInstance(seq));
                     //     }
+                    case "":
+                        {
+                            return PrivateKeyFactory.CreateKey(PrivateKeyInfo.GetInstance(seq));
+                        }
                     default:
                         throw new ArgumentException("Unknown key type: " + type, "type");
                 }

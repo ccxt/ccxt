@@ -6,7 +6,7 @@
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache
 import hashlib
-from ccxt.base.types import Int, Market, OrderBook, Strings, Ticker, Trade
+from ccxt.base.types import Int, Market, OrderBook, Strings, Ticker, FundingRate, FundingRates, Trade
 from ccxt.async_support.base.ws.client import Client
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -148,7 +148,7 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
         }
         return await self.watch_multiple(url, messageHashes, self.extend(subscribe, params), messageHashes)
 
-    async def watch_funding_rate(self, symbol: str, params={}) -> {}:
+    async def watch_funding_rate(self, symbol: str, params={}) -> FundingRate:
         """
         watch the current funding rate
         :see: https://docs.cloud.coinbase.com/intx/docs/websocket-channels#funding-channel
@@ -158,7 +158,7 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
         """
         return await self.subscribe('RISK', [symbol], params)
 
-    async def watch_funding_rates(self, symbols: List[str], params={}) -> {}:
+    async def watch_funding_rates(self, symbols: List[str], params={}) -> FundingRates:
         """
         watch the funding rate for multiple markets
         :see: https://docs.cloud.coinbase.com/intx/docs/websocket-channels#funding-channel
@@ -166,7 +166,13 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `funding rates structures <https://docs.ccxt.com/#/?id=funding-rates-structure>`, indexe by market symbols
         """
-        return await self.subscribe_multiple('RISK', symbols, params)
+        fundingRate = await self.subscribe_multiple('RISK', symbols, params)
+        symbol = self.safe_string(fundingRate, 'symbol')
+        if self.newUpdates:
+            result = {}
+            result[symbol] = fundingRate
+            return result
+        return self.filter_by_array(self.fundingRates, 'symbol', symbols)
 
     async def watch_ticker(self, symbol: str, params={}) -> Ticker:
         """
@@ -566,6 +572,7 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
         #
         channel = self.safe_string(message, 'channel')
         fundingRate = self.parse_funding_rate(message)
+        self.fundingRates[fundingRate['symbol']] = fundingRate
         client.resolve(fundingRate, channel + '::' + fundingRate['symbol'])
 
     def handle_error_message(self, client: Client, message):

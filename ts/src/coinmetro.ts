@@ -5,7 +5,7 @@ import Exchange from './abstract/coinmetro.js';
 import { ArgumentsRequired, BadRequest, BadSymbol, InsufficientFunds, InvalidOrder, ExchangeError, OrderNotFound, PermissionDenied, RateLimitExceeded } from './base/errors.js';
 import { DECIMAL_PLACES } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
-import { Balances, Currencies, Currency, IndexType, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade } from './base/types.js';
+import { Balances, Currencies, Currency, Dict, IndexType, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -114,6 +114,7 @@ export default class coinmetro extends Exchange {
                 'reduceMargin': false,
                 'repayCrossMargin': false,
                 'repayIsolatedMargin': false,
+                'sandbox': true,
                 'setLeverage': false,
                 'setMargin': false,
                 'setMarginMode': false,
@@ -163,6 +164,7 @@ export default class coinmetro extends Exchange {
                 'private': {
                     'get': {
                         'users/balances': 1,
+                        'users/wallets': 1,
                         'users/wallets/history/{since}': 1.67,
                         'exchange/orders/status/{orderID}': 1,
                         'exchange/orders/active': 1,
@@ -301,7 +303,7 @@ export default class coinmetro extends Exchange {
         //         ...
         //     ]
         //
-        const result = {};
+        const result: Dict = {};
         for (let i = 0; i < response.length; i++) {
             const currency = response[i];
             const id = this.safeString (currency, 'symbol');
@@ -460,7 +462,7 @@ export default class coinmetro extends Exchange {
                 }
             }
         }
-        const result = {
+        const result: Dict = {
             'baseId': baseId,
             'quoteId': quoteId,
         };
@@ -474,7 +476,7 @@ export default class coinmetro extends Exchange {
         const limits = this.safeValue (currency, 'limits', {});
         const amountLimits = this.safeValue (limits, 'amount', {});
         const minLimit = this.safeNumber (amountLimits, 'min');
-        const result = {
+        const result: Dict = {
             'precision': precision,
             'minLimit': minLimit,
         };
@@ -497,7 +499,7 @@ export default class coinmetro extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'pair': market['id'],
             'timeframe': this.safeString (this.timeframes, timeframe, timeframe),
         };
@@ -511,9 +513,9 @@ export default class coinmetro extends Exchange {
         } else {
             request['from'] = ':from'; // this endpoint doesn't accept empty from and to params (setting them into the value described in the documentation)
         }
-        until = this.safeInteger2 (params, 'till', 'until', until);
+        until = this.safeInteger (params, 'until', until);
         if (until !== undefined) {
-            params = this.omit (params, [ 'till', 'until' ]);
+            params = this.omit (params, [ 'until' ]);
             request['to'] = until;
         } else {
             request['to'] = ':to';
@@ -575,7 +577,7 @@ export default class coinmetro extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'pair': market['id'],
         };
         if (since !== undefined) {
@@ -634,7 +636,7 @@ export default class coinmetro extends Exchange {
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        const request = {};
+        const request: Dict = {};
         if (since !== undefined) {
             request['since'] = since;
         } else {
@@ -741,7 +743,7 @@ export default class coinmetro extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'pair': market['id'],
         };
         const response = await this.publicGetExchangeBookPair (this.extend (request, params));
@@ -775,7 +777,7 @@ export default class coinmetro extends Exchange {
         const book = this.safeValue (response, 'book', {});
         const rawBids = this.safeValue (book, 'bid', {});
         const rawAsks = this.safeValue (book, 'ask', {});
-        const rawOrderbook = {
+        const rawOrderbook: Dict = {
             'bids': rawBids,
             'asks': rawAsks,
         };
@@ -858,7 +860,7 @@ export default class coinmetro extends Exchange {
         //
         const latestPrices = this.safeValue (response, 'latestPrices', []);
         const twentyFourHInfos = this.safeValue (response, '24hInfo', []);
-        const tickersObject = {};
+        const tickersObject: Dict = {};
         // merging info from two lists into one
         for (let i = 0; i < latestPrices.length; i++) {
             const latestPrice = latestPrices[i];
@@ -895,7 +897,7 @@ export default class coinmetro extends Exchange {
         return this.parseTickers (latestPrices, symbols);
     }
 
-    parseTicker (ticker, market: Market = undefined): Ticker {
+    parseTicker (ticker: Dict, market: Market = undefined): Ticker {
         //
         //     {
         //         "pair": "PERPUSD",
@@ -954,50 +956,49 @@ export default class coinmetro extends Exchange {
          * @method
          * @name coinmetro#fetchBalance
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
-         * @see https://documenter.getpostman.com/view/3653795/SVfWN6KS#698ae067-43dd-4e19-a0ac-d9ba91381816
+         * @see https://documenter.getpostman.com/view/3653795/SVfWN6KS#741a1dcc-7307-40d0-acca-28d003d1506a
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
          */
         await this.loadMarkets ();
-        const response = await this.privateGetUsersBalances (params);
-        return this.parseBalance (response);
+        const response = await this.privateGetUsersWallets (params);
+        const list = this.safeList (response, 'list', []);
+        return this.parseBalance (list);
     }
 
-    parseBalance (response): Balances {
+    parseBalance (balances): Balances {
         //
-        //     {
-        //         "USDC": {
-        //             "USDC": 99,
-        //             "EUR": 91.16,
-        //             "BTC": 0.002334
+        //     [
+        //         {
+        //             "xcmLocks": [],
+        //             "xcmLockAmounts": [],
+        //             "refList": [],
+        //             "balanceHistory": [],
+        //             "_id": "5fecd3c998e75c2e4d63f7c3",
+        //             "currency": "BTC",
+        //             "label": "BTC",
+        //             "userId": "5fecd3c97fbfed1521db23bd",
+        //             "__v": 0,
+        //             "balance": 0.5,
+        //             "createdAt": "2020-12-30T19:23:53.646Z",
+        //             "disabled": false,
+        //             "updatedAt": "2020-12-30T19:23:53.653Z",
+        //             "reserved": 0,
+        //             "id": "5fecd3c998e75c2e4d63f7c3"
         //         },
-        //         "XCM": {
-        //             "XCM": 0,
-        //             "EUR": 0,
-        //             "BTC": 0
-        //         },
-        //         "TOTAL": {
-        //             "EUR": 91.16,
-        //             "BTC": 0.002334
-        //         },
-        //         "REF": {
-        //             "XCM": 0,
-        //             "EUR": 0,
-        //             "BTC": 0
-        //         }
-        //     }
+        //         ...
+        //     ]
         //
-        const result = {
-            'info': response,
+        const result: Dict = {
+            'info': balances,
         };
-        const balances = this.omit (response, [ 'TOTAL', 'REF' ]);
-        const currencyIds = Object.keys (balances);
-        for (let i = 0; i < currencyIds.length; i++) {
-            const currencyId = currencyIds[i];
+        for (let i = 0; i < balances.length; i++) {
+            const balanceEntry = this.safeDict (balances, i, {});
+            const currencyId = this.safeString (balanceEntry, 'currency');
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
-            const currency = this.safeValue (balances, currencyId, {});
-            account['total'] = this.safeString (currency, currencyId);
+            account['total'] = this.safeString (balanceEntry, 'balance');
+            account['used'] = this.safeString (balanceEntry, 'reserved');
             result[code] = account;
         }
         return this.safeBalance (result);
@@ -1017,7 +1018,7 @@ export default class coinmetro extends Exchange {
          * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
          */
         await this.loadMarkets ();
-        const request = {};
+        const request: Dict = {};
         if (since !== undefined) {
             request['since'] = since;
         } else {
@@ -1194,7 +1195,7 @@ export default class coinmetro extends Exchange {
     }
 
     parseLedgerEntryType (type) {
-        const types = {
+        const types: Dict = {
             'Deposit': 'transaction',
             'Withdraw': 'transaction',
             'Order': 'trade',
@@ -1227,7 +1228,7 @@ export default class coinmetro extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        let request = {
+        let request: Dict = {
         };
         request['orderType'] = type;
         let precisedAmount = undefined;
@@ -1327,7 +1328,7 @@ export default class coinmetro extends Exchange {
     }
 
     encodeOrderTimeInForce (timeInForce) {
-        const timeInForceTypes = {
+        const timeInForceTypes: Dict = {
             'GTC': 1,
             'IOC': 2,
             'GTD': 3,
@@ -1350,7 +1351,7 @@ export default class coinmetro extends Exchange {
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
-        const request = {
+        const request: Dict = {
             'orderID': id,
         };
         const marginMode = undefined;
@@ -1403,7 +1404,7 @@ export default class coinmetro extends Exchange {
         if (orderId === undefined) {
             throw new ArgumentsRequired (this.id + ' closePosition() requires a orderId parameter');
         }
-        const request = {
+        const request: Dict = {
             'orderID': orderId,
         };
         const response = await this.privatePostExchangeOrdersCloseOrderID (this.extend (request, params));
@@ -1482,7 +1483,7 @@ export default class coinmetro extends Exchange {
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        const request = {};
+        const request: Dict = {};
         if (since !== undefined) {
             request['since'] = since;
         }
@@ -1502,7 +1503,7 @@ export default class coinmetro extends Exchange {
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
-        const request = {
+        const request: Dict = {
             'orderID': id,
         };
         const response = await this.privateGetExchangeOrdersStatusOrderID (this.extend (request, params));
@@ -1847,7 +1848,7 @@ export default class coinmetro extends Exchange {
         await this.loadMarkets ();
         const currency = this.currency (code);
         const currencyId = currency['id'];
-        const request = {};
+        const request: Dict = {};
         request[currencyId] = this.currencyToPrecision (code, amount);
         const response = await this.privatePutUsersMarginCollateral (this.extend (request, params));
         //

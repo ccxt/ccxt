@@ -194,6 +194,8 @@ class Transpiler {
             [ /\.fetchOrders\s/g, '.fetch_orders'],
             [ /\.fetchOrderTrades\s/g, '.fetch_order_trades'],
             [ /\.fetchOrder\s/g, '.fetch_order'],
+            [ /\.fetchPositionHistory\s/g, '.fetch_position_history'],
+            [ /\.fetchPositionsHistory\s/g, '.fetch_positions_history'],
             [ /\.fetchBalance\s/g, '.fetch_balance'],
             [ /\.fetchTotalBalance\s/g, '.fetch_total_balance'],
             [ /\.fetchUsedBalance\s/g, '.fetch_used_balance'],
@@ -349,7 +351,10 @@ class Transpiler {
             [ /\.fetchIsolatedBorrowRates\s/g, '.fetch_isolated_borrow_rates'],
             [ /\.extendExchangeOptions\s/g, '.extend_exchange_options'],
             [ /\.createSafeDictionary\s/g, '.create_safe_dictionary'],
+            [ /\.setTakeProfitAndStopLossParams\s/g, '.set_take_profit_and_stop_loss_params'],
             [ /\.randomBytes\s/g, '.random_bytes'],
+            [ /\.createAuthToken\s/g, '.create_auth_token'],
+            [ /\.cancelOrderRequest\s/g, '.cancel_order_request'],
             [ /\ssha(1|256|384|512)([,)])/g, ' \'sha$1\'$2'], // from js imports to this
             [ /\s(md5|secp256k1|ed25519|keccak)([,)])/g, ' \'$1\'$2'], // from js imports to this
 
@@ -455,6 +460,8 @@ class Transpiler {
             [ /this\./g, 'self.' ],
             [ /([^a-zA-Z\'])this([^a-zA-Z])/g, '$1self$2' ],
             [ /\[\s*([^\]]+)\s\]\s=/g, '$1 =' ],
+            [ /((?:let|const|var) \w+\: )([0-9a-zA-Z]+)\[\]/, '$1List[$2]' ],  // typed variable with list type
+            [ /((?:let|const|var) \w+\: )([0-9a-zA-Z]+)\[\]\[\]/, '$1List[List[$2]]' ],  // typed variables with double list type
             [ /(^|[^a-zA-Z0-9_])(?:let|const|var)\s\[\s*([^\]]+)\s\]/g, '$1$2' ],
             [ /(^|[^a-zA-Z0-9_])(?:let|const|var)\s\{\s*([^\}]+)\s\}\s\=\s([^\;]+)/g, '$1$2 = (lambda $2: ($2))(**$3)' ],
             [ /(^|[^a-zA-Z0-9_])(?:let|const|var)\s/g, '$1' ],
@@ -606,8 +613,8 @@ class Transpiler {
             [ /Number\.isInteger\s*\(([^\)]+)\)/g, "is_int($1)" ],
             [ /([^\(\s]+)\s+instanceof\s+String/g, 'is_string($1)' ],
             // we want to remove type hinting variable lines
-            [ /^\s+(?:let|const|var)\s+\w+:\s+(?:Str|Int|Num|SubType|MarketType|string|number|Dict|any);\n/mg, '' ],
-            [ /(^|[^a-zA-Z0-9_])(let|const|var)(\s+\w+):\s+(?:Str|Int|Num|Bool|Market|Currency|string|number|Dict|any)(\s+=\s+[\w+\{}])/g, '$1$2$3$4' ],
+            [ /^\s+(?:let|const|var)\s+\w+:\s+(?:Str|Int|Num|SubType|MarketType|string|number|Dict|any(?:\[\])*);\n/mg, '' ],
+            [ /(^|[^a-zA-Z0-9_])(let|const|var)(\s+\w+):\s+(?:Str|Int|Num|Bool|Market|Currency|string|number|Dict|any(?:\[\])*)(\s+=\s+[\w+\{}])/g, '$1$2$3$4' ],
 
             [ /typeof\s+([^\s\[]+)(?:\s|\[(.+?)\])\s+\=\=\=?\s+\'undefined\'/g, '$1[$2] === null' ],
             [ /typeof\s+([^\s\[]+)(?:\s|\[(.+?)\])\s+\!\=\=?\s+\'undefined\'/g, '$1[$2] !== null' ],
@@ -644,7 +651,6 @@ class Transpiler {
 
             [ /undefined/g, 'null' ],
             [ /\} else if/g, '} elseif' ],
-            [ /this\.extend\s/g, 'array_merge' ],
             [ /this\.stringToBinary\s*\((.*)\)/g, '$1' ],
             [ /this\.stringToBase64\s/g, 'base64_encode' ],
             [ /this\.binaryToBase16\s/g, 'bin2hex' ],
@@ -988,18 +994,21 @@ class Transpiler {
         }
         const matchObject = {
             'Account': /-> (?:List\[)?Account/,
-            'Any': /: Any =/,
+            'Any': /: (?:List\[)?Any/,
             'BalanceAccount': /-> BalanceAccount:/,
             'Balances': /-> Balances:/,
-            'Bool': /: Bool =/,
+            'Bool': /: (?:List\[)?Bool =/,
             'Conversion': /-> Conversion:/,
+            'CrossBorrowRate': /-> CrossBorrowRate:/,
+            'CrossBorrowRates': /-> CrossBorrowRates:/,
             'Currencies': /-> Currencies:/,
             'Currency': /(-> Currency:|: Currency)/,
             'FundingHistory': /\[FundingHistory/,
             'Greeks': /-> Greeks:/,
             'IndexType': /: IndexType/,
-            'Int': /: Int =/,
-            'Liquidation': /-> (?:List\[)?Liquidation/,
+            'Int': /: (?:List\[)?Int =/,
+            'IsolatedBorrowRate': /-> IsolatedBorrowRate:/,
+            'IsolatedBorrowRates': /-> IsolatedBorrowRates:/,
             'LastPrice': /-> LastPrice:/,
             'LastPrices': /-> LastPrices:/,
             'Leverage': /-> Leverage:/,
@@ -1011,25 +1020,29 @@ class Transpiler {
             'Market': /(-> Market:|: Market)/,
             'MarketInterface': /-> MarketInterface:/,
             'MarketType': /: MarketType/,
-            'Num': /: Num =/,
+            'Num': /: (?:List\[)?Num =/,
             'Option': /-> Option:/,
             'OptionChain': /-> OptionChain:/,
             'Order': /-> (?:List\[)?Order\]?:/,
             'OrderBook': /-> OrderBook:/,
             'OrderRequest': /: (?:List\[)?OrderRequest/,
+            'CancellationRequest': /: (?:List\[)?CancellationRequest/,
             'OrderSide': /: OrderSide/,
             'OrderType': /: OrderType/,
             'Position': /-> (?:List\[)?Position/,
-            'Str': /: Str =/,
-            'Strings': /: Strings =/,
+            'Str': /: (?:List\[)?Str =/,
+            'Strings': /: (?:List\[)?Strings =/,
             'SubType': /: SubType/,
             'Ticker': /-> Ticker:/,
             'Tickers': /-> Tickers:/,
+            'FundingRate': /-> FundingRate:/,
+            'FundingRates': /-> FundingRates:/,
             'Trade': /-> (?:List\[)?Trade/,
             'TradingFeeInterface': /-> TradingFeeInterface:/,
             'TradingFees': /-> TradingFees:/,
             'Transaction': /-> (?:List\[)?Transaction/,
             'TransferEntry': /-> TransferEntry:/,
+            'TransferEntries': /-> TransferEntries:/,
         }
         const matches = []
         let match
@@ -1517,7 +1530,8 @@ class Transpiler {
                     if (folder) {
                         const qualifiedPath = path.join (folder, filename)
                         overwriteFile (qualifiedPath, code)
-                        fs.utimesSync (qualifiedPath, new Date (), new Date (tsMtime))
+                        // fs.utimesSync (qualifiedPath, new Date (), new Date (tsMtime))
+                        // this line makes it impossible to detect if the files were properly transpiled or not (to avoid stale files)
                     }
                 })
 
@@ -1681,7 +1695,7 @@ class Transpiler {
                 'Dictionary<any>': 'array',
                 'Dict': 'array',
             }
-            const phpArrayRegex = /^(?:Market|Currency|Account|AccountStructure|BalanceAccount|object|OHLCV|Order|OrderBook|Tickers?|Trade|Transaction|Balances?|MarketInterface|TransferEntry|Leverages|Leverage|Greeks|MarginModes|MarginMode|MarginModification|LastPrice|LastPrices|TradingFeeInterface|Currencies|TradingFees)( \| undefined)?$|\w+\[\]/
+            const phpArrayRegex = /^(?:Market|Currency|Account|AccountStructure|BalanceAccount|object|OHLCV|Order|OrderBook|Tickers?|Trade|Transaction|Balances?|MarketInterface|TransferEntry|TransferEntries|Leverages|Leverage|Greeks|MarginModes|MarginMode|MarginModification|LastPrice|LastPrices|TradingFeeInterface|Currencies|TradingFees|CrossBorrowRate|IsolatedBorrowRate|FundingRates|FundingRate)( \| undefined)?$|\w+\[\]/
             let phpArgs = args.map (x => {
                 const parts = x.split (':')
                 if (parts.length === 1) {
@@ -1719,7 +1733,9 @@ class Transpiler {
             if (returnType) {
                 promiseReturnTypeMatch = returnType.match (/^Promise<([^>]+)>$/)
                 syncReturnType = promiseReturnTypeMatch ? promiseReturnTypeMatch[1] : returnType
-                if (syncReturnType.match (phpArrayRegex)) {
+                if (syncReturnType === 'Currencies') {
+                    syncPhpReturnType = ': ?array'; // since for now `fetchCurrencies` returns null or Currencies
+                } else if (syncReturnType.match (phpArrayRegex)) {
                     syncPhpReturnType = ': array'
                 } else {
                     syncPhpReturnType = ': ' + (phpTypes[syncReturnType] ?? syncReturnType)
@@ -2475,10 +2491,13 @@ class Transpiler {
                 replace (/precision_mode/g, 'precisionMode');
         };
 
-        const pyFixes = (str) => {
+        const pyFixes = (str, sync = false) => {
             str = str.replace (/assert\((.*)\)(?!$)/g, 'assert $1');
             str = str.replace (/ == True/g, ' is True');
             str = str.replace (/ == False/g, ' is False');
+            if (sync) {
+                str = str.replace (/asyncio\.gather\(\*(\[.+\])\)/g, '$1');
+            }
             return exchangeCamelCaseProps(str);
         }
 
@@ -2503,7 +2522,7 @@ class Transpiler {
             const isWs = test.tsFile.includes('ts/src/pro/');
             let phpAsync = phpFixes(result[0].content);
             let phpSync = phpFixes(result[1].content);
-            let pythonSync = pyFixes (result[2].content);
+            let pythonSync = pyFixes (result[2].content, true);
             let pythonAsync = pyFixes (result[3].content);
             if (tests.base) {
                 phpAsync = '';
@@ -2933,15 +2952,21 @@ class Transpiler {
     }
 }
 
-function parallelizeTranspiling (exchanges, processes = undefined) {
+function parallelizeTranspiling (exchanges, processes = undefined, force = false) {
     const processesNum = Math.min(processes || os.cpus ().length, exchanges.length)
     log.bright.green ('starting ' + processesNum + ' new processes...')
     let isFirst = true
+    const args = [];
+    if (force) {
+        args.push ('--force')
+    }
     for (let i = 0; i < processesNum; i ++) {
         const toProcess = exchanges.filter ((_, index) => index % processesNum === i)
-        const args = isFirst ? [ '--force' ] : [ '--child', '--force' ]
-        isFirst = false
         fork (process.argv[1], toProcess.concat (args))
+        if (isFirst) {
+            args.push ('--child');
+            isFirst = false
+        }
     }
 }
 
@@ -2976,7 +3001,7 @@ if (isMainEntry(import.meta.url)) {
     } else if (errors) {
         transpiler.transpileErrorHierarchy ({ tsFilename })
     } else if (multiprocess) {
-        parallelizeTranspiling (exchangeIds)
+        parallelizeTranspiling (exchangeIds, undefined, force)
     } else {
         (async () => {
             await transpiler.transpileEverything (force, child)

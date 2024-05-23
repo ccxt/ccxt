@@ -3,7 +3,7 @@
 import probitRest from '../probit.js';
 import { NotSupported, ExchangeError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
-import type { Int, Str, OrderBook, Order, Trade, Ticker, Balances } from '../base/types.js';
+import type { Int, Str, OrderBook, Order, Trade, Ticker, Balances, Dict } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -64,7 +64,7 @@ export default class probit extends probitRest {
         await this.authenticate (params);
         const messageHash = 'balance';
         const url = this.urls['api']['ws'];
-        const subscribe = {
+        const subscribe: Dict = {
             'type': 'subscribe',
             'channel': 'balance',
         };
@@ -251,7 +251,7 @@ export default class probit extends probitRest {
         }
         const url = this.urls['api']['ws'];
         const channel = 'trade_history';
-        const message = {
+        const message: Dict = {
             'type': 'subscribe',
             'channel': channel,
         };
@@ -297,7 +297,7 @@ export default class probit extends probitRest {
             this.myTrades = stored;
         }
         const trades = this.parseTrades (rawTrades);
-        const tradeSymbols = {};
+        const tradeSymbols: Dict = {};
         for (let j = 0; j < trades.length; j++) {
             const trade = trades[j];
             tradeSymbols[trade['symbol']] = true;
@@ -335,7 +335,7 @@ export default class probit extends probitRest {
         }
         let channel = undefined;
         [ channel, params ] = this.handleOptionAndParams (params, 'watchOrders', 'channel', 'open_order');
-        const subscribe = {
+        const subscribe: Dict = {
             'type': 'subscribe',
             'channel': channel,
         };
@@ -385,7 +385,7 @@ export default class probit extends probitRest {
             stored = new ArrayCacheBySymbolById (limit);
             this.orders = stored;
         }
-        const orderSymbols = {};
+        const orderSymbols: Dict = {};
         for (let i = 0; i < rawOrders.length; i++) {
             const rawOrder = rawOrders[i];
             const order = this.parseOrder (rawOrder);
@@ -439,7 +439,7 @@ export default class probit extends probitRest {
         }
         filters[filter] = true;
         const keys = Object.keys (filters);
-        const message = {
+        const message: Dict = {
             'channel': 'marketdata',
             'interval': interval,
             'market_id': market['id'],
@@ -566,7 +566,7 @@ export default class probit extends probitRest {
             this.handleAuthenticate (client, message);
             return;
         }
-        const handlers = {
+        const handlers: Dict = {
             'marketdata': this.handleMarketData,
             'balance': this.handleBalance,
             'trade_history': this.handleMyTrades,
@@ -599,7 +599,7 @@ export default class probit extends probitRest {
             //     }
             //
             const accessToken = this.safeString (response, 'access_token');
-            const request = {
+            const request: Dict = {
                 'type': 'authorization',
                 'token': accessToken,
             };
