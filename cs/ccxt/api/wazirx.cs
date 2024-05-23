@@ -91,6 +91,31 @@ public partial class wazirx : Exchange
         return await this.callAsync ("privateGetMyTrades",parameters);
     }
 
+    public async Task<object> privateGetCoins (object parameters = null)
+    {
+        return await this.callAsync ("privateGetCoins",parameters);
+    }
+
+    public async Task<object> privateGetCryptoWithdraws (object parameters = null)
+    {
+        return await this.callAsync ("privateGetCryptoWithdraws",parameters);
+    }
+
+    public async Task<object> privateGetCryptoDepositsAddress (object parameters = null)
+    {
+        return await this.callAsync ("privateGetCryptoDepositsAddress",parameters);
+    }
+
+    public async Task<object> privateGetSubAccountFundTransferHistory (object parameters = null)
+    {
+        return await this.callAsync ("privateGetSubAccountFundTransferHistory",parameters);
+    }
+
+    public async Task<object> privateGetSubAccountAccounts (object parameters = null)
+    {
+        return await this.callAsync ("privateGetSubAccountAccounts",parameters);
+    }
+
     public async Task<object> privatePostOrder (object parameters = null)
     {
         return await this.callAsync ("privatePostOrder",parameters);

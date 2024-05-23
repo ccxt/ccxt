@@ -55,8 +55,11 @@ export default class coincheck extends Exchange {
                 'fetchOpenOrders': true,
                 'fetchOrderBook': true,
                 'fetchPosition': false,
+                'fetchPositionHistory': false,
                 'fetchPositionMode': false,
                 'fetchPositions': false,
+                'fetchPositionsForSymbol': false,
+                'fetchPositionsHistory': false,
                 'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchTicker': true,
@@ -488,7 +491,7 @@ export default class coincheck extends Exchange {
         //                  ]
         //      }
         //
-        const transactions = this.safeValue(response, 'data', []);
+        const transactions = this.safeList(response, 'data', []);
         return this.parseTrades(transactions, market, since, limit);
     }
     async fetchTrades(symbol, since = undefined, limit = undefined, params = {}) {
@@ -522,7 +525,7 @@ export default class coincheck extends Exchange {
         //          "created_at": "2021-12-08T14:10:33.000Z"
         //      }
         //
-        const data = this.safeValue(response, 'data', []);
+        const data = this.safeList(response, 'data', []);
         return this.parseTrades(data, market, since, limit);
     }
     async fetchTradingFees(params = {}) {
@@ -671,7 +674,7 @@ export default class coincheck extends Exchange {
         //     }
         //   ]
         // }
-        const data = this.safeValue(response, 'deposits', []);
+        const data = this.safeList(response, 'deposits', []);
         return this.parseTransactions(data, currency, since, limit, { 'type': 'deposit' });
     }
     async fetchWithdrawals(code = undefined, since = undefined, limit = undefined, params = {}) {
@@ -717,7 +720,7 @@ export default class coincheck extends Exchange {
         //     }
         //   ]
         // }
-        const data = this.safeValue(response, 'data', []);
+        const data = this.safeList(response, 'data', []);
         return this.parseTransactions(data, currency, since, limit, { 'type': 'withdrawal' });
     }
     parseTransactionStatus(status) {

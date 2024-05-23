@@ -28,7 +28,7 @@ async def test_watch_my_trades(exchange, skipped_properties, symbol):
                 raise e
             now = exchange.milliseconds()
             continue
-        assert isinstance(response, list), exchange.id + ' ' + method + ' ' + symbol + ' must return an array. ' + exchange.json(response)
+        test_shared_methods.assert_non_emtpy_array(exchange, skipped_properties, method, response, symbol)
         now = exchange.milliseconds()
         for i in range(0, len(response)):
             test_trade(exchange, skipped_properties, method, response[i], symbol, now)

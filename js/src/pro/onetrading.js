@@ -1335,6 +1335,6 @@ export default class onetrading extends onetradingRest {
             };
             this.watch(url, messageHash, this.extend(request, params), messageHash);
         }
-        return future;
+        return await future;
     }
 }

@@ -80,6 +80,7 @@ public partial class hollaex : Exchange
                 { "fetchWithdrawal", true },
                 { "fetchWithdrawals", true },
                 { "reduceMargin", false },
+                { "sandbox", true },
                 { "setLeverage", false },
                 { "setMarginMode", false },
                 { "setPositionMode", false },
@@ -545,15 +546,15 @@ public partial class hollaex : Exchange
         return this.parseTickers(response, symbols);
     }
 
-    public override object parseTickers(object response, object symbols = null, object parameters = null)
+    public override object parseTickers(object tickers, object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object result = new Dictionary<string, object>() {};
-        object keys = new List<object>(((IDictionary<string,object>)response).Keys);
+        object keys = new List<object>(((IDictionary<string,object>)tickers).Keys);
         for (object i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
         {
             object key = getValue(keys, i);
-            object ticker = getValue(response, key);
+            object ticker = getValue(tickers, key);
             object marketId = this.safeString(ticker, "symbol", key);
             object market = this.safeMarket(marketId, null, "-");
             object symbol = getValue(market, "symbol");
@@ -652,7 +653,7 @@ public partial class hollaex : Exchange
         //         ]
         //     }
         //
-        object trades = this.safeValue(response, getValue(market, "id"), new List<object>() {});
+        object trades = this.safeList(response, getValue(market, "id"), new List<object>() {});
         return this.parseTrades(trades, market, since, limit);
     }
 
@@ -1098,7 +1099,7 @@ public partial class hollaex : Exchange
         //         ]
         //     }
         //
-        object data = this.safeValue(response, "data", new List<object>() {});
+        object data = this.safeList(response, "data", new List<object>() {});
         return this.parseOrders(data, market, since, limit);
     }
 
@@ -1377,7 +1378,7 @@ public partial class hollaex : Exchange
         //         ]
         //     }
         //
-        object data = this.safeValue(response, "data", new List<object>() {});
+        object data = this.safeList(response, "data", new List<object>() {});
         return this.parseTrades(data, market, since, limit);
     }
 
@@ -1534,7 +1535,7 @@ public partial class hollaex : Exchange
         //         ]
         //     }
         //
-        object data = this.safeValue(response, "data", new List<object>() {});
+        object data = this.safeList(response, "data", new List<object>() {});
         return this.parseTransactions(data, currency, since, limit);
     }
 
@@ -1586,7 +1587,7 @@ public partial class hollaex : Exchange
         //     }
         //
         object data = this.safeValue(response, "data", new List<object>() {});
-        object transaction = this.safeValue(data, 0, new Dictionary<string, object>() {});
+        object transaction = this.safeDict(data, 0, new Dictionary<string, object>() {});
         return this.parseTransaction(transaction, currency);
     }
 
@@ -1644,7 +1645,7 @@ public partial class hollaex : Exchange
         //         ]
         //     }
         //
-        object data = this.safeValue(response, "data", new List<object>() {});
+        object data = this.safeList(response, "data", new List<object>() {});
         return this.parseTransactions(data, currency, since, limit);
     }
 
@@ -1928,7 +1929,7 @@ public partial class hollaex : Exchange
         //         "network":"https://api.hollaex.network"
         //     }
         //
-        object coins = this.safeValue(response, "coins");
+        object coins = this.safeList(response, "coins");
         return this.parseDepositWithdrawFees(coins, codes, "symbol");
     }
 

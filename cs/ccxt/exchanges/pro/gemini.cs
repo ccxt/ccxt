@@ -450,7 +450,7 @@ public partial class gemini : ccxt.gemini
         return (orderbook as IOrderBook).limit();
     }
 
-    public async virtual Task<object> watchBidsAsks(object symbols, object limit = null, object parameters = null)
+    public async override Task<object> watchBidsAsks(object symbols = null, object parameters = null)
     {
         /**
         * @method
@@ -999,7 +999,8 @@ public partial class gemini : ccxt.gemini
                 } },
             } },
         };
-        this.options = this.extend(defaultOptions, this.options);
+        // this.options = this.extend (defaultOptions, this.options);
+        this.extendExchangeOptions(defaultOptions);
         object originalHeaders = getValue(getValue(getValue(this.options, "ws"), "options"), "headers");
         object headers = new Dictionary<string, object>() {
             { "X-GEMINI-APIKEY", this.apiKey },

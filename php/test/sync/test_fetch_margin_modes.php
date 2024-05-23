@@ -11,17 +11,13 @@ include_once PATH_TO_CCXT . '/test/base/test_margin_mode.php';
 
 function test_fetch_margin_modes($exchange, $skipped_properties, $symbol) {
     $method = 'fetchMarginModes';
-    $margin_modes = $exchange->fetch_margin_modes($symbol);
+    $margin_modes = $exchange->fetch_margin_modes(['symbol']);
     assert(is_array($margin_modes), $exchange->id . ' ' . $method . ' ' . $symbol . ' must return an object. ' . $exchange->json($margin_modes));
     $margin_mode_keys = is_array($margin_modes) ? array_keys($margin_modes) : array();
-    $array_length = count($margin_mode_keys);
-    assert($array_length >= 1, $exchange->id . ' ' . $method . ' ' . $symbol . ' must have at least one entry. ' . $exchange->json($margin_modes));
-    for ($i = 0; $i < $array_length; $i++) {
-        $margin_modes_for_symbol = $margin_modes[$margin_mode_keys[$i]];
-        $array_length_symbol = count($margin_modes_for_symbol);
-        assert($array_length_symbol >= 1, $exchange->id . ' ' . $method . ' ' . $symbol . ' must have at least one entry. ' . $exchange->json($margin_modes));
-        for ($j = 0; $j < count($margin_modes_for_symbol); $j++) {
-            test_margin_mode($exchange, $skipped_properties, $method, $margin_modes_for_symbol[$j]);
-        }
+    assert_non_emtpy_array($exchange, $skipped_properties, $method, $margin_modes, $symbol);
+    for ($i = 0; $i < count($margin_mode_keys); $i++) {
+        $margin_mode = $margin_modes[$margin_mode_keys[$i]];
+        assert_non_emtpy_array($exchange, $skipped_properties, $method, $margin_mode, $symbol);
+        test_margin_mode($exchange, $skipped_properties, $method, $margin_mode);
     }
 }

@@ -320,5 +320,51 @@
         },
         "taker": 0.002,
         "maker": 0.002
+    },
+    "ETH/USDT": {
+        "id": "ETH_USDT",
+        "symbol": "ETH/USDT",
+        "base": "ETH",
+        "quote": "USDT",
+        "baseId": "ETH",
+        "quoteId": "USDT",
+        "type": "spot",
+        "spot": true,
+        "margin": false,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "active": true,
+        "contract": false,
+        "taker": 0.002,
+        "maker": 0.002,
+        "precision": {
+            "amount": 0.0001,
+            "price": 0.01
+        },
+        "limits": {
+            "leverage": {},
+            "amount": {
+                "min": 0.0001,
+                "max": 100000
+            },
+            "price": {
+                "min": 0.01
+            },
+            "cost": {
+                "min": 0.000001
+            }
+        },
+        "info": {
+            "name": "ETH_USDT",
+            "currency1": "ETH",
+            "currency2": "USDT",
+            "price_precision": "2",
+            "amount_precision": "4",
+            "minimum_order_size": "0.00010000",
+            "maximum_order_size": "100000.00000000",
+            "minimum_order_value": "3.00000000",
+            "liquidity_type": "10"
+        }
     }
 }

@@ -1212,7 +1212,7 @@ class bitvavo extends bitvavo$1 {
                 'timestamp': timestamp,
             };
             const message = this.extend(request, params);
-            future = this.watch(url, messageHash, message);
+            future = await this.watch(url, messageHash, message, messageHash);
             client.subscriptions[messageHash] = future;
         }
         return future;

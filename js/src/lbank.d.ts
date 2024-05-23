@@ -1,5 +1,5 @@
 import Exchange from './abstract/lbank.js';
-import type { Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
+import type { Balances, Currency, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction } from './base/types.js';
 /**
  * @class lbank
  * @augments Exchange
@@ -7,10 +7,10 @@ import type { Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSid
 export default class lbank extends Exchange {
     describe(): any;
     fetchTime(params?: {}): Promise<number>;
-    fetchMarkets(params?: {}): Promise<any>;
+    fetchMarkets(params?: {}): Promise<Market[]>;
     fetchSpotMarkets(params?: {}): Promise<any[]>;
     fetchSwapMarkets(params?: {}): Promise<any[]>;
-    parseTicker(ticker: any, market?: Market): Ticker;
+    parseTicker(ticker: Dict, market?: Market): Ticker;
     fetchTicker(symbol: string, params?: {}): Promise<Ticker>;
     fetchTickers(symbols?: Strings, params?: {}): Promise<Tickers>;
     fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
@@ -20,17 +20,12 @@ export default class lbank extends Exchange {
     fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
     parseBalance(response: any): Balances;
     fetchBalance(params?: {}): Promise<Balances>;
-    parseTradingFee(fee: any, market?: Market): {
-        info: any;
-        symbol: string;
-        maker: number;
-        taker: number;
-    };
-    fetchTradingFee(symbol: string, params?: {}): Promise<{}>;
-    fetchTradingFees(params?: {}): Promise<{}>;
+    parseTradingFee(fee: any, market?: Market): TradingFeeInterface;
+    fetchTradingFee(symbol: string, params?: {}): Promise<TradingFeeInterface>;
+    fetchTradingFees(params?: {}): Promise<TradingFees>;
     createMarketBuyOrderWithCost(symbol: string, cost: number, params?: {}): Promise<Order>;
-    createOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: number, params?: {}): Promise<Order>;
-    parseOrderStatus(status: any): string;
+    createOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): Promise<Order>;
+    parseOrderStatus(status: Str): string;
     parseOrder(order: any, market?: Market): Order;
     fetchOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
     fetchOrderSupplement(id: string, symbol?: Str, params?: {}): Promise<Order>;
@@ -56,26 +51,26 @@ export default class lbank extends Exchange {
         network: string;
         info: any;
     }>;
-    withdraw(code: string, amount: number, address: any, tag?: any, params?: {}): Promise<Transaction>;
+    withdraw(code: string, amount: number, address: string, tag?: any, params?: {}): Promise<Transaction>;
     parseTransactionStatus(status: any, type: any): string;
     parseTransaction(transaction: any, currency?: Currency): Transaction;
     fetchDeposits(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
     fetchWithdrawals(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
     fetchTransactionFees(codes?: string[], params?: {}): Promise<any>;
     fetchPrivateTransactionFees(params?: {}): Promise<{
-        withdraw: {};
+        withdraw: Dict;
         deposit: {};
         info: any;
     }>;
     fetchPublicTransactionFees(params?: {}): Promise<{
-        withdraw: {};
+        withdraw: Dict;
         deposit: {};
         info: any;
     }>;
     fetchDepositWithdrawFees(codes?: Strings, params?: {}): Promise<any>;
     fetchPrivateDepositWithdrawFees(codes?: any, params?: {}): Promise<any>;
-    fetchPublicDepositWithdrawFees(codes?: any, params?: {}): Promise<{}>;
-    parsePublicDepositWithdrawFees(response: any, codes?: any): {};
+    fetchPublicDepositWithdrawFees(codes?: any, params?: {}): Promise<Dict>;
+    parsePublicDepositWithdrawFees(response: any, codes?: any): Dict;
     parseDepositWithdrawFee(fee: any, currency?: Currency): any;
     sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {
         url: string;

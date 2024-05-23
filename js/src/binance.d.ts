@@ -1,30 +1,29 @@
 import Exchange from './abstract/binance.js';
-import type { TransferEntry, Int, OrderSide, Balances, OrderType, Trade, OHLCV, Order, FundingRateHistory, OpenInterest, Liquidation, OrderRequest, Str, Transaction, Ticker, OrderBook, Tickers, Market, Greeks, Strings, Currency, MarketInterface, MarginMode, MarginModes, Leverage, Leverages } from './base/types.js';
+import type { TransferEntry, Int, OrderSide, Balances, OrderType, Trade, OHLCV, Order, FundingRateHistory, OpenInterest, Liquidation, OrderRequest, Str, Transaction, Ticker, OrderBook, Tickers, Market, Greeks, Strings, Currency, MarketInterface, MarginMode, MarginModes, Leverage, Leverages, Num, Option, MarginModification, TradingFeeInterface, Currencies, TradingFees, Conversion, CrossBorrowRate, IsolatedBorrowRates, IsolatedBorrowRate, Dict, TransferEntries } from './base/types.js';
 /**
  * @class binance
  * @augments Exchange
  */
 export default class binance extends Exchange {
     describe(): any;
-    isInverse(type: any, subType?: any): boolean;
-    isLinear(type: any, subType?: any): boolean;
-    setSandboxMode(enable: any): void;
-    convertExpireDate(date: any): string;
+    isInverse(type: string, subType?: Str): boolean;
+    isLinear(type: string, subType?: Str): boolean;
+    setSandboxMode(enable: boolean): void;
     createExpiredOptionMarket(symbol: string): MarketInterface;
-    market(symbol: any): any;
-    safeMarket(marketId?: any, market?: any, delimiter?: any, marketType?: any): MarketInterface;
-    costToPrecision(symbol: any, cost: any): any;
-    currencyToPrecision(code: any, fee: any, networkCode?: any): any;
+    market(symbol: string): MarketInterface;
+    safeMarket(marketId?: Str, market?: Market, delimiter?: Str, marketType?: Str): MarketInterface;
+    costToPrecision(symbol: any, cost: any): string;
+    currencyToPrecision(code: any, fee: any, networkCode?: any): string;
     nonce(): number;
     fetchTime(params?: {}): Promise<number>;
-    fetchCurrencies(params?: {}): Promise<{}>;
-    fetchMarkets(params?: {}): Promise<any[]>;
+    fetchCurrencies(params?: {}): Promise<Currencies>;
+    fetchMarkets(params?: {}): Promise<Market[]>;
     parseMarket(market: any): Market;
-    parseBalanceHelper(entry: any): import("./base/types.js").Account;
+    parseBalanceHelper(entry: any): import("./base/types.js").BalanceAccount;
     parseBalanceCustom(response: any, type?: any, marginMode?: any, isPortfolioMargin?: boolean): Balances;
     fetchBalance(params?: {}): Promise<Balances>;
     fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
-    parseTicker(ticker: any, market?: Market): Ticker;
+    parseTicker(ticker: Dict, market?: Market): Ticker;
     fetchStatus(params?: {}): Promise<{
         status: string;
         updated: any;
@@ -33,8 +32,8 @@ export default class binance extends Exchange {
         info: any;
     }>;
     fetchTicker(symbol: string, params?: {}): Promise<Ticker>;
-    fetchBidsAsks(symbols?: Strings, params?: {}): Promise<import("./base/types.js").Dictionary<Ticker>>;
-    fetchLastPrices(symbols?: Strings, params?: {}): Promise<any>;
+    fetchBidsAsks(symbols?: Strings, params?: {}): Promise<Tickers>;
+    fetchLastPrices(symbols?: Strings, params?: {}): Promise<import("./base/types.js").LastPrices>;
     parseLastPrice(entry: any, market?: Market): {
         symbol: string;
         timestamp: number;
@@ -48,15 +47,16 @@ export default class binance extends Exchange {
     fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
     parseTrade(trade: any, market?: Market): Trade;
     fetchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
-    editSpotOrder(id: string, symbol: any, type: any, side: any, amount: number, price?: number, params?: {}): Promise<Order>;
-    editSpotOrderRequest(id: string, symbol: any, type: any, side: any, amount: number, price?: number, params?: {}): any;
-    editContractOrder(id: string, symbol: any, type: any, side: any, amount: number, price?: number, params?: {}): Promise<Order>;
-    editOrder(id: string, symbol: string, type: OrderType, side: OrderSide, amount?: number, price?: number, params?: {}): Promise<Order>;
-    parseOrderStatus(status: any): string;
+    editSpotOrder(id: string, symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): Promise<Order>;
+    editSpotOrderRequest(id: string, symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): any;
+    editContractOrderRequest(id: string, symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): Dict;
+    editContractOrder(id: string, symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): Promise<Order>;
+    editOrder(id: string, symbol: string, type: OrderType, side: OrderSide, amount?: Num, price?: Num, params?: {}): Promise<Order>;
+    parseOrderStatus(status: Str): string;
     parseOrder(order: any, market?: Market): Order;
     createOrders(orders: OrderRequest[], params?: {}): Promise<Order[]>;
-    createOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: number, params?: {}): Promise<Order>;
-    createOrderRequest(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: number, params?: {}): any;
+    createOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): Promise<Order>;
+    createOrderRequest(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): any;
     createMarketOrderWithCost(symbol: string, side: OrderSide, cost: number, params?: {}): Promise<Order>;
     createMarketBuyOrderWithCost(symbol: string, cost: number, params?: {}): Promise<Order>;
     createMarketSellOrderWithCost(symbol: string, cost: number, params?: {}): Promise<Order>;
@@ -95,18 +95,8 @@ export default class binance extends Exchange {
     fetchWithdrawals(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
     parseTransactionStatusByType(status: any, type?: any): string;
     parseTransaction(transaction: any, currency?: Currency): Transaction;
-    parseTransferStatus(status: any): string;
-    parseTransfer(transfer: any, currency?: Currency): {
-        info: any;
-        id: string;
-        timestamp: number;
-        datetime: string;
-        currency: string;
-        amount: number;
-        fromAccount: any;
-        toAccount: any;
-        status: string;
-    };
+    parseTransferStatus(status: Str): Str;
+    parseTransfer(transfer: Dict, currency?: Currency): TransferEntry;
     parseIncome(income: any, market?: Market): {
         info: any;
         symbol: string;
@@ -117,7 +107,7 @@ export default class binance extends Exchange {
         amount: number;
     };
     transfer(code: string, amount: number, fromAccount: string, toAccount: string, params?: {}): Promise<TransferEntry>;
-    fetchTransfers(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    fetchTransfers(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<TransferEntries>;
     fetchDepositAddress(code: string, params?: {}): Promise<{
         currency: string;
         address: string;
@@ -126,37 +116,17 @@ export default class binance extends Exchange {
         info: any;
     }>;
     fetchTransactionFees(codes?: string[], params?: {}): Promise<{
-        withdraw: {};
+        withdraw: Dict;
         deposit: {};
         info: any;
     }>;
     fetchDepositWithdrawFees(codes?: Strings, params?: {}): Promise<any>;
     parseDepositWithdrawFee(fee: any, currency?: Currency): any;
-    withdraw(code: string, amount: number, address: any, tag?: any, params?: {}): Promise<Transaction>;
-    parseTradingFee(fee: any, market?: Market): {
-        info: any;
-        symbol: string;
-        maker: number;
-        taker: number;
-    };
-    fetchTradingFee(symbol: string, params?: {}): Promise<{
-        info: any;
-        symbol: string;
-        maker: number;
-        taker: number;
-    }>;
-    fetchTradingFees(params?: {}): Promise<{}>;
-    futuresTransfer(code: string, amount: any, type: any, params?: {}): Promise<{
-        info: any;
-        id: string;
-        timestamp: number;
-        datetime: string;
-        currency: string;
-        amount: number;
-        fromAccount: any;
-        toAccount: any;
-        status: string;
-    }>;
+    withdraw(code: string, amount: number, address: string, tag?: any, params?: {}): Promise<Transaction>;
+    parseTradingFee(fee: any, market?: Market): TradingFeeInterface;
+    fetchTradingFee(symbol: string, params?: {}): Promise<TradingFeeInterface>;
+    fetchTradingFees(params?: {}): Promise<TradingFees>;
+    futuresTransfer(code: string, amount: any, type: any, params?: {}): Promise<TransferEntry>;
     fetchFundingRate(symbol: string, params?: {}): Promise<{
         info: any;
         symbol: string;
@@ -197,7 +167,7 @@ export default class binance extends Exchange {
         previousFundingTimestamp: any;
         previousFundingDatetime: any;
     };
-    parseAccountPositions(account: any): any[];
+    parseAccountPositions(account: any, filterClosed?: boolean): any[];
     parseAccountPosition(position: any, market?: Market): {
         info: any;
         id: any;
@@ -265,7 +235,7 @@ export default class binance extends Exchange {
     setMarginMode(marginMode: string, symbol?: Str, params?: {}): Promise<any>;
     setPositionMode(hedged: boolean, symbol?: Str, params?: {}): Promise<any>;
     fetchLeverages(symbols?: string[], params?: {}): Promise<Leverages>;
-    parseLeverage(leverage: any, market?: any): Leverage;
+    parseLeverage(leverage: Dict, market?: Market): Leverage;
     fetchSettlementHistory(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<any>;
     fetchMySettlementHistory(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<any>;
     parseSettlement(settlement: any, market: any): {
@@ -307,24 +277,12 @@ export default class binance extends Exchange {
     calculateRateLimiterCost(api: any, method: any, path: any, params: any, config?: {}): any;
     request(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any, config?: {}): Promise<any>;
     modifyMarginHelper(symbol: string, amount: any, addOrReduce: any, params?: {}): Promise<any>;
-    parseMarginModification(data: any, market?: Market): {
-        info: any;
-        type: string;
-        amount: number;
-        code: any;
-        symbol: string;
-        status: string;
-    };
-    reduceMargin(symbol: string, amount: any, params?: {}): Promise<any>;
-    addMargin(symbol: string, amount: any, params?: {}): Promise<any>;
-    fetchCrossBorrowRate(code: string, params?: {}): Promise<{
-        currency: string;
-        rate: number;
-        period: number;
-        timestamp: number;
-        datetime: string;
-        info: any;
-    }>;
+    parseMarginModification(data: Dict, market?: Market): MarginModification;
+    reduceMargin(symbol: string, amount: number, params?: {}): Promise<MarginModification>;
+    addMargin(symbol: string, amount: number, params?: {}): Promise<MarginModification>;
+    fetchCrossBorrowRate(code: string, params?: {}): Promise<CrossBorrowRate>;
+    fetchIsolatedBorrowRate(symbol: string, params?: {}): Promise<IsolatedBorrowRate>;
+    fetchIsolatedBorrowRates(params?: {}): Promise<IsolatedBorrowRates>;
     fetchBorrowRateHistory(code: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     parseBorrowRateHistory(response: any, code: any, since: any, limit: any): any;
     parseBorrowRate(info: any, currency?: Currency): {
@@ -334,6 +292,17 @@ export default class binance extends Exchange {
         timestamp: number;
         datetime: string;
         info: any;
+    };
+    parseIsolatedBorrowRate(info: any, market?: Market): {
+        info: any;
+        symbol: string;
+        base: string;
+        baseRate: number;
+        quote: string;
+        quoteRate: number;
+        period: number;
+        timestamp: any;
+        datetime: any;
     };
     createGiftCode(code: string, amount: any, params?: {}): Promise<{
         info: any;
@@ -408,32 +377,21 @@ export default class binance extends Exchange {
     fetchMyLiquidations(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Liquidation[]>;
     parseLiquidation(liquidation: any, market?: Market): Liquidation;
     fetchGreeks(symbol: string, params?: {}): Promise<Greeks>;
-    parseGreeks(greeks: any, market?: Market): {
-        symbol: string;
-        timestamp: any;
-        datetime: any;
-        delta: number;
-        gamma: number;
-        theta: number;
-        vega: number;
-        rho: any;
-        bidSize: any;
-        askSize: any;
-        bidImpliedVolatility: number;
-        askImpliedVolatility: number;
-        markImpliedVolatility: number;
-        bidPrice: any;
-        askPrice: any;
-        markPrice: number;
-        lastPrice: any;
-        underlyingPrice: any;
-        info: any;
-    };
-    fetchTradingLimits(symbols?: Strings, params?: {}): Promise<{}>;
+    parseGreeks(greeks: Dict, market?: Market): Greeks;
+    fetchTradingLimits(symbols?: Strings, params?: {}): Promise<Dict>;
     fetchPositionMode(symbol?: Str, params?: {}): Promise<{
         info: any;
         hedged: boolean;
     }>;
     fetchMarginModes(symbols?: string[], params?: {}): Promise<MarginModes>;
     parseMarginMode(marginMode: any, market?: any): MarginMode;
+    fetchOption(symbol: string, params?: {}): Promise<Option>;
+    parseOption(chain: Dict, currency?: Currency, market?: Market): Option;
+    fetchMarginAdjustmentHistory(symbol?: Str, type?: Str, since?: Num, limit?: Num, params?: {}): Promise<MarginModification[]>;
+    fetchConvertCurrencies(params?: {}): Promise<Currencies>;
+    fetchConvertQuote(fromCode: string, toCode: string, amount?: Num, params?: {}): Promise<Conversion>;
+    createConvertTrade(id: string, fromCode: string, toCode: string, amount?: Num, params?: {}): Promise<Conversion>;
+    fetchConvertTrade(id: string, code?: Str, params?: {}): Promise<Conversion>;
+    fetchConvertTradeHistory(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Conversion[]>;
+    parseConversion(conversion: Dict, fromCurrency?: Currency, toCurrency?: Currency): Conversion;
 }

@@ -5,7 +5,7 @@ import bitmartRest from '../bitmart.js';
 import { ArgumentsRequired, AuthenticationError, ExchangeError, NotSupported } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide } from '../base/ws/Cache.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
-import type { Int, Market, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Position, Balances } from '../base/types.js';
+import type { Int, Market, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Position, Balances, Dict } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 import { Asks, Bids } from '../base/ws/OrderBookSide.js';
 
@@ -128,7 +128,7 @@ export default class bitmart extends bitmartRest {
         if ((type !== 'spot') && (channel === 'ticker')) {
             rawSubscriptions = [ channelType + '/' + channel ];
         }
-        const request = {
+        const request: Dict = {
             'args': rawSubscriptions,
         };
         request[actionType] = 'subscribe';
@@ -356,7 +356,7 @@ export default class bitmart extends bitmartRest {
         [ marketType, params ] = this.handleMarketTypeAndParams ('watchTickers', market, params);
         const ticker = await this.subscribeMultiple ('ticker', marketType, symbols, params);
         if (this.newUpdates) {
-            const tickers = {};
+            const tickers: Dict = {};
             tickers[ticker['symbol']] = ticker;
             return tickers;
         }
@@ -470,7 +470,7 @@ export default class bitmart extends bitmartRest {
         }
         const ordersLength = orders.length;
         const newOrders = [];
-        const symbols = {};
+        const symbols: Dict = {};
         if (ordersLength > 0) {
             const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
             if (this.orders === undefined) {
@@ -628,7 +628,7 @@ export default class bitmart extends bitmartRest {
     }
 
     parseWsOrderStatus (statusId) {
-        const statuses = {
+        const statuses: Dict = {
             '1': 'closed', // match deal
             '2': 'open', // submit order
             '3': 'canceled', // cancel order
@@ -643,7 +643,7 @@ export default class bitmart extends bitmartRest {
     }
 
     parseWsOrderSide (sideId) {
-        const sides = {
+        const sides: Dict = {
             '1': 'buy', // buy_open_long
             '2': 'buy', // buy_close_short
             '3': 'sell', // sell_close_long
@@ -671,7 +671,7 @@ export default class bitmart extends bitmartRest {
             messageHash += '::' + symbols.join (',');
         }
         const subscriptionHash = 'futures/position';
-        const request = {
+        const request: Dict = {
             'action': 'subscribe',
             'args': [ 'futures/position' ],
         };
@@ -720,10 +720,10 @@ export default class bitmart extends bitmartRest {
         //    }
         //
         const data = this.safeValue (message, 'data', []);
-        const cache = this.positions;
         if (this.positions === undefined) {
             this.positions = new ArrayCacheBySymbolBySide ();
         }
+        const cache = this.positions;
         const newPositions = [];
         for (let i = 0; i < data.length; i++) {
             const rawPosition = data[i];
@@ -845,9 +845,9 @@ export default class bitmart extends bitmartRest {
         const isSwap = ('group' in message);
         if (isSwap) {
             // in swap, chronologically decreasing: 1709536849322, 1709536848954,
-            const maxLen = Math.max (length - 1, 0);
-            for (let i = maxLen; i >= 0; i--) {
-                symbol = this.handleTradeLoop (data[i]);
+            for (let i = 0; i < length; i++) {
+                const index = length - i - 1;
+                symbol = this.handleTradeLoop (data[index]);
             }
         } else {
             // in spot, chronologically increasing: 1709536771200, 1709536771226,
@@ -1429,7 +1429,7 @@ export default class bitmart extends bitmartRest {
             const message = this.extend (request, params);
             this.watch (url, messageHash, message, messageHash);
         }
-        return future;
+        return await future;
     }
 
     handleSubscriptionStatus (client: Client, message) {
@@ -1497,7 +1497,17 @@ export default class bitmart extends bitmartRest {
         }
         //
         //     {"event":"error","message":"Unrecognized request: {\"event\":\"subscribe\",\"channel\":\"spot/depth:BTC-USDT\"}","errorCode":30039}
-        //     {"event":"subscribe","channel":"spot/depth:BTC-USDT"}
+        //
+        // subscribe events on spot:
+        //
+        //     {"event":"subscribe", "topic":"spot/kline1m:BTC_USDT" }
+        //
+        // subscribe on contracts:
+        //
+        //     {"action":"subscribe", "group":"futures/klineBin1m:BTCUSDT", "success":true, "request":{"action":"subscribe", "args":[ "futures/klineBin1m:BTCUSDT" ] } }
+        //
+        // regular updates - spot
+        //
         //     {
         //         "table": "spot/depth",
         //         "action": "partial",
@@ -1518,13 +1528,24 @@ export default class bitmart extends bitmartRest {
         //         ]
         //     }
         //
+        // regular updates - contracts
+        //
+        //     {
+        //         group: "futures/klineBin1m:BTCUSDT",
+        //         data: {
+        //           symbol: "BTCUSDT",
+        //           items: [ { o: "67944.7", "h": .... } ],
+        //         },
+        //       }
+        //
         //     { data: '', table: "spot/user/order" }
         //
-        const channel = this.safeString2 (message, 'table', 'group');
-        if (channel === undefined) {
+        // the only realiable way (for both spot & swap) is to check 'data' key
+        const isDataUpdate = ('data' in message);
+        if (!isDataUpdate) {
             const event = this.safeString2 (message, 'event', 'action');
             if (event !== undefined) {
-                const methods = {
+                const methods: Dict = {
                     // 'info': this.handleSystemStatus,
                     'login': this.handleAuthenticate,
                     'access': this.handleAuthenticate,
@@ -1536,7 +1557,8 @@ export default class bitmart extends bitmartRest {
                 }
             }
         } else {
-            const methods = {
+            const channel = this.safeString2 (message, 'table', 'group');
+            const methods: Dict = {
                 'depth': this.handleOrderBook,
                 'ticker': this.handleTicker,
                 'trade': this.handleTrade,

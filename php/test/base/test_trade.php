@@ -36,7 +36,7 @@ function test_trade($exchange, $skipped_properties, $method, $entry, $symbol, $n
     assert_in_array($exchange, $skipped_properties, $method, $entry, 'takerOrMaker', ['taker', 'maker']);
     assert_fee_structure($exchange, $skipped_properties, $method, $entry, 'fee');
     if (!(is_array($skipped_properties) && array_key_exists('fees', $skipped_properties))) {
-        // todo: remove undefined check
+        // todo: remove undefined check and probably non-empty array check later
         if ($entry['fees'] !== null) {
             for ($i = 0; $i < count($entry['fees']); $i++) {
                 assert_fee_structure($exchange, $skipped_properties, $method, $entry['fees'], $i);

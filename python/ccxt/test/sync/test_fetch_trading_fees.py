@@ -13,11 +13,13 @@ sys.path.append(root)
 # -*- coding: utf-8 -*-
 
 from ccxt.test.base import test_trading_fee  # noqa E402
+from ccxt.test.base import test_shared_methods  # noqa E402
 
 def test_fetch_trading_fees(exchange, skipped_properties):
     method = 'fetchTradingFees'
     fees = exchange.fetch_trading_fees()
     symbols = list(fees.keys())
+    test_shared_methods.assert_non_emtpy_array(exchange, skipped_properties, method, symbols)
     for i in range(0, len(symbols)):
         symbol = symbols[i]
         test_trading_fee(exchange, skipped_properties, method, symbol, fees[symbol])

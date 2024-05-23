@@ -711,7 +711,7 @@ public partial class bitbns : Exchange
         //     }
         //
         object data = this.safeValue(response, "data", new List<object>() {});
-        object first = this.safeValue(data, 0);
+        object first = this.safeDict(data, 0);
         return this.parseOrder(first, market);
     }
 
@@ -766,7 +766,7 @@ public partial class bitbns : Exchange
         //         "code":200
         //     }
         //
-        object data = this.safeValue(response, "data", new List<object>() {});
+        object data = this.safeList(response, "data", new List<object>() {});
         return this.parseOrders(data, market, since, limit);
     }
 
@@ -927,7 +927,7 @@ public partial class bitbns : Exchange
         //         "code": 200
         //     }
         //
-        object data = this.safeValue(response, "data", new List<object>() {});
+        object data = this.safeList(response, "data", new List<object>() {});
         return this.parseTrades(data, market, since, limit);
     }
 
@@ -1012,7 +1012,7 @@ public partial class bitbns : Exchange
         //         "code":200
         //     }
         //
-        object data = this.safeValue(response, "data", new List<object>() {});
+        object data = this.safeList(response, "data", new List<object>() {});
         return this.parseTransactions(data, currency, since, limit);
     }
 
@@ -1043,7 +1043,7 @@ public partial class bitbns : Exchange
         //
         //     ...
         //
-        object data = this.safeValue(response, "data", new List<object>() {});
+        object data = this.safeList(response, "data", new List<object>() {});
         return this.parseTransactions(data, currency, since, limit);
     }
 

@@ -16,8 +16,10 @@ function test_ohlcv($exchange, $skipped_properties, $method, $entry, $symbol, $n
     assert_timestamp_and_datetime($exchange, $skipped_properties, $method, $entry, $now, 0);
     $log_text = log_template($exchange, $method, $entry);
     //
-    $length = count($entry);
-    assert($length >= 6, 'ohlcv array length should be >= 6;' . $log_text);
+    assert(count($entry) >= 6, 'ohlcv array length should be >= 6;' . $log_text);
+    if (!(is_array($skipped_properties) && array_key_exists('roundTimestamp', $skipped_properties))) {
+        assert_round_minute_timestamp($exchange, $skipped_properties, $method, $entry, 0);
+    }
     $high = $exchange->safe_string($entry, 2);
     $low = $exchange->safe_string($entry, 3);
     assert_less_or_equal($exchange, $skipped_properties, $method, $entry, '1', $high);

@@ -13,6 +13,7 @@ function test_fetch_trading_fees($exchange, $skipped_properties) {
     $method = 'fetchTradingFees';
     $fees = $exchange->fetch_trading_fees();
     $symbols = is_array($fees) ? array_keys($fees) : array();
+    assert_non_emtpy_array($exchange, $skipped_properties, $method, $symbols);
     for ($i = 0; $i < count($symbols); $i++) {
         $symbol = $symbols[$i];
         test_trading_fee($exchange, $skipped_properties, $method, $symbol, $fees[$symbol]);

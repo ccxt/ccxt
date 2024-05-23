@@ -6,13 +6,13 @@
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp
 import hashlib
-from ccxt.base.types import Balances, Int, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade
+from ccxt.base.types import Balances, Int, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade
 from ccxt.async_support.base.ws.client import Client
 from typing import List
 from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import InvalidOrder
-from ccxt.base.errors import AuthenticationError
 from ccxt.base.precise import Precise
 
 
@@ -99,7 +99,7 @@ class poloniex(ccxt.async_support.poloniex):
             accessPath = '/ws'
             requestString = 'GET\n' + accessPath + '\nsignTimestamp=' + timestamp
             signature = self.hmac(self.encode(requestString), self.encode(self.secret), hashlib.sha256, 'base64')
-            request = {
+            request: dict = {
                 'event': 'subscribe',
                 'channel': ['auth'],
                 'params': {
@@ -111,7 +111,7 @@ class poloniex(ccxt.async_support.poloniex):
                 },
             }
             message = self.extend(request, params)
-            future = await self.watch(url, messageHash, message)
+            future = await self.watch(url, messageHash, message, messageHash)
             #
             #    {
             #        "data": {
@@ -147,7 +147,7 @@ class poloniex(ccxt.async_support.poloniex):
         """
         publicOrPrivate = 'private' if isPrivate else 'public'
         url = self.urls['api']['ws'][publicOrPrivate]
-        subscribe = {
+        subscribe: dict = {
             'event': 'subscribe',
             'channel': [
                 name,
@@ -175,14 +175,14 @@ class poloniex(ccxt.async_support.poloniex):
         """
         url = self.urls['api']['ws']['private']
         messageHash = str(self.nonce())
-        subscribe = {
+        subscribe: dict = {
             'id': messageHash,
             'event': name,
             'params': params,
         }
         return await self.watch(url, messageHash, subscribe, messageHash)
 
-    async def create_order_ws(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: float = None, params={}) -> Order:
+    async def create_order_ws(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}) -> Order:
         """
         :see: https://docs.poloniex.com/#authenticated-channels-trade-requests-create-order
         create a trade order
@@ -211,7 +211,7 @@ class poloniex(ccxt.async_support.poloniex):
         isPostOnly = self.is_post_only(uppercaseType == 'MARKET', uppercaseType == 'LIMIT_MAKER', params)
         if isPostOnly:
             uppercaseType = 'LIMIT_MAKER'
-        request = {
+        request: dict = {
             'symbol': market['id'],
             'side': side.upper(),
             'type': type.upper(),
@@ -241,7 +241,7 @@ class poloniex(ccxt.async_support.poloniex):
                 request['price'] = self.price_to_precision(symbol, price)
         return await self.trade_request('createOrder', self.extend(request, params))
 
-    async def cancel_order_ws(self, id: str, symbol: str = None, params={}):
+    async def cancel_order_ws(self, id: str, symbol: Str = None, params={}):
         """
         :see: https://docs.poloniex.com/#authenticated-channels-trade-requests-cancel-multiple-orders
         cancel multiple orders
@@ -257,7 +257,7 @@ class poloniex(ccxt.async_support.poloniex):
             params['clientOrderIds'] = self.array_concat(clientOrderIds, [clientOrderId])
         return await self.cancel_orders_ws([id], symbol, params)
 
-    async def cancel_orders_ws(self, ids: List[str], symbol: str = None, params={}):
+    async def cancel_orders_ws(self, ids: List[str], symbol: Str = None, params={}):
         """
         :see: https://docs.poloniex.com/#authenticated-channels-trade-requests-cancel-multiple-orders
         cancel multiple orders
@@ -269,12 +269,12 @@ class poloniex(ccxt.async_support.poloniex):
         """
         await self.load_markets()
         await self.authenticate()
-        request = {
+        request: dict = {
             'orderIds': ids,
         }
         return await self.trade_request('cancelOrders', self.extend(request, params))
 
-    async def cancel_all_orders_ws(self, symbol: str = None, params={}):
+    async def cancel_all_orders_ws(self, symbol: Str = None, params={}):
         """
         :see: https://docs.poloniex.com/#authenticated-channels-trade-requests-cancel-all-orders
         cancel all open orders of a type. Only applicable to Option in Portfolio Margin mode, and MMP privilege is required.
@@ -298,7 +298,7 @@ class poloniex(ccxt.async_support.poloniex):
         #        }]
         #    }
         #
-        messageHash = self.safe_integer(message, 'id')
+        messageHash = self.safe_string(message, 'id')
         data = self.safe_value(message, 'data', [])
         orders = []
         for i in range(0, len(data)):
@@ -606,8 +606,8 @@ class poloniex(ccxt.async_support.poloniex):
             'type': self.safe_string_lower(trade, 'type'),
             'side': self.safe_string_lower_2(trade, 'takerSide', 'side'),
             'takerOrMaker': takerMaker,
-            'price': self.omit_zero(self.safe_number_2(trade, 'tradePrice', 'price')),
-            'amount': self.omit_zero(self.safe_number_2(trade, 'filledQuantity', 'quantity')),
+            'price': self.omit_zero(self.safe_string_2(trade, 'tradePrice', 'price')),
+            'amount': self.omit_zero(self.safe_string_2(trade, 'filledQuantity', 'quantity')),
             'cost': self.safe_string_2(trade, 'amount', 'filledAmount'),
             'fee': {
                 'rate': None,
@@ -617,7 +617,7 @@ class poloniex(ccxt.async_support.poloniex):
         }, market)
 
     def parse_status(self, status):
-        statuses = {
+        statuses: dict = {
             'NEW': 'open',
             'PARTIALLY_FILLED': 'open',
             'FILLED': 'closed',
@@ -880,7 +880,7 @@ class poloniex(ccxt.async_support.poloniex):
         #    }
         #
         data = self.safe_value(message, 'data', [])
-        newTickers = {}
+        newTickers: dict = {}
         for i in range(0, len(data)):
             item = data[i]
             marketId = self.safe_string(item, 'symbol')
@@ -1032,7 +1032,7 @@ class poloniex(ccxt.async_support.poloniex):
         #
         firstBalance = self.safe_value(response, 0, {})
         timestamp = self.safe_integer(firstBalance, 'ts')
-        result = {
+        result: dict = {
             'info': response,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
@@ -1070,7 +1070,7 @@ class poloniex(ccxt.async_support.poloniex):
         event = self.safe_string(message, 'event')
         if event == 'pong':
             client.lastPong = self.milliseconds()
-        methods = {
+        methods: dict = {
             'candles_minute_1': self.handle_ohlcv,
             'candles_minute_5': self.handle_ohlcv,
             'candles_minute_10': self.handle_ohlcv,

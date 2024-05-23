@@ -10,9 +10,9 @@ namespace ccxt;
 include_once PATH_TO_CCXT . '/test/base/test_ticker.php';
 
 function test_fetch_tickers($exchange, $skipped_properties, $symbol) {
-    $without_symbol = test_fetch_tickers_helper($exchange, $skipped_properties, null);
-    $with_symbol = test_fetch_tickers_helper($exchange, $skipped_properties, [$symbol]);
-    Promise\all([$with_symbol, $without_symbol]);
+    // const withoutSymbol = testFetchTickersHelper (exchange, skippedProperties, undefined);
+    // const withSymbol = testFetchTickersHelper (exchange, skippedProperties, [ symbol ]);
+    Promise\all([test_fetch_tickers_helper($exchange, $skipped_properties, null), test_fetch_tickers_helper($exchange, $skipped_properties, [$symbol])]);
 }
 
 
@@ -25,6 +25,7 @@ function test_fetch_tickers_helper($exchange, $skipped_properties, $arg_symbols,
     if ($arg_symbols !== null && count($arg_symbols) === 1) {
         $checked_symbol = $arg_symbols[0];
     }
+    assert_non_emtpy_array($exchange, $skipped_properties, $method, $values, $checked_symbol);
     for ($i = 0; $i < count($values); $i++) {
         // todo: symbol check here
         $ticker = $values[$i];

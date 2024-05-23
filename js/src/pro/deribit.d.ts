@@ -25,7 +25,7 @@ export default class deribit extends deribitRest {
     watchOHLCVForSymbols(symbolsAndTimeframes: string[][], since?: Int, limit?: Int, params?: {}): Promise<import("../base/types.js").Dictionary<import("../base/types.js").Dictionary<OHLCV[]>>>;
     handleOHLCV(client: Client, message: any): void;
     parseWsOHLCV(ohlcv: any, market?: any): OHLCV;
-    watchMultipleWrapper(channelName: string, channelDescriptor: string, symbolsArray?: any, params?: {}): Promise<any>;
+    watchMultipleWrapper(channelName: string, channelDescriptor: Str, symbolsArray?: any, params?: {}): Promise<any>;
     handleMessage(client: Client, message: any): void;
     handleAuthenticationMessage(client: Client, message: any): any;
     authenticate(params?: {}): Promise<any>;

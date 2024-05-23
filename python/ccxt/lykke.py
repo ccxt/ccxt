@@ -5,7 +5,7 @@
 
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.lykke import ImplicitAPI
-from ccxt.base.types import Balances, Currency, Int, Market, Order, OrderBook, OrderSide, OrderType, IndexType, Str, Strings, Ticker, Tickers, Trade, Transaction
+from ccxt.base.types import Balances, Currencies, Currency, IndexType, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import BadRequest
@@ -70,8 +70,13 @@ class lykke(Exchange, ImplicitAPI):
                 'fetchOrderBook': True,
                 'fetchOrders': False,
                 'fetchOrderTrades': False,
+                'fetchPosition': False,
+                'fetchPositionHistory': False,
                 'fetchPositionMode': False,
                 'fetchPositions': False,
+                'fetchPositionsForSymbol': False,
+                'fetchPositionsHistory': False,
+                'fetchPositionsRisk': False,
                 'fetchPremiumIndexOHLCV': False,
                 'fetchTicker': True,
                 'fetchTickers': True,
@@ -187,7 +192,7 @@ class lykke(Exchange, ImplicitAPI):
             },
         })
 
-    def fetch_currencies(self, params={}):
+    def fetch_currencies(self, params={}) -> Currencies:
         """
         fetches all available currencies on an exchange
         :see: https://lykkecity.github.io/Trading-API/#get-all-assets
@@ -226,7 +231,7 @@ class lykke(Exchange, ImplicitAPI):
         #         "error":null
         #     }
         #
-        result = {}
+        result: dict = {}
         for i in range(0, len(currencies)):
             currency = currencies[i]
             id = self.safe_string(currency, 'assetId')
@@ -263,7 +268,7 @@ class lykke(Exchange, ImplicitAPI):
             }
         return result
 
-    def fetch_markets(self, params={}):
+    def fetch_markets(self, params={}) -> List[Market]:
         """
         retrieves data on all markets for lykke
         :see: https://lykkecity.github.io/Trading-API/#get-asset-by-id
@@ -352,7 +357,7 @@ class lykke(Exchange, ImplicitAPI):
             })
         return result
 
-    def parse_ticker(self, ticker, market: Market = None) -> Ticker:
+    def parse_ticker(self, ticker: dict, market: Market = None) -> Ticker:
         #
         # fetchTickers
         #
@@ -431,7 +436,7 @@ class lykke(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'assetPairIds': market['id'],
         }
         # publicGetTickers or publicGetPrices
@@ -518,7 +523,7 @@ class lykke(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'assetPairId': market['id'],
         }
         if limit is not None:
@@ -620,7 +625,7 @@ class lykke(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'assetPairId': market['id'],
             # 'offset': 0,
         }
@@ -656,7 +661,7 @@ class lykke(Exchange, ImplicitAPI):
         #         }
         #     ]
         #
-        result = {'info': response}
+        result: dict = {'info': response}
         for i in range(0, len(response)):
             balance = response[i]
             currencyId = self.safe_string(balance, 'assetId')
@@ -694,8 +699,8 @@ class lykke(Exchange, ImplicitAPI):
         #
         return self.parse_balance(payload)
 
-    def parse_order_status(self, status):
-        statuses = {
+    def parse_order_status(self, status: Str):
+        statuses: dict = {
             'Open': 'open',
             'Pending': 'open',
             'InOrderBook': 'open',
@@ -763,7 +768,7 @@ class lykke(Exchange, ImplicitAPI):
             'trades': None,
         }, market)
 
-    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: float = None, params={}):
+    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         """
         create a trade order
         :see: https://lykkecity.github.io/Trading-API/#place-a-limit-order
@@ -778,7 +783,7 @@ class lykke(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = self.market(symbol)
-        query = {
+        query: dict = {
             'assetPairId': market['id'],
             'side': self.capitalize(side),
             'volume': float(self.amount_to_precision(market['symbol'], amount)),
@@ -844,7 +849,7 @@ class lykke(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
-        request = {
+        request: dict = {
             'orderId': id,
         }
         #
@@ -864,7 +869,7 @@ class lykke(Exchange, ImplicitAPI):
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
-        request = {
+        request: dict = {
             # 'side': 'Buy',
         }
         market = None
@@ -888,7 +893,7 @@ class lykke(Exchange, ImplicitAPI):
         :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
-        request = {
+        request: dict = {
             'orderId': id,
         }
         response = self.privateGetOrdersOrderId(self.extend(request, params))
@@ -928,7 +933,7 @@ class lykke(Exchange, ImplicitAPI):
         market = None
         if symbol is not None:
             market = self.market(symbol)
-        request = {
+        request: dict = {
             # 'offset': 0,
             # 'take': 1,
         }
@@ -973,7 +978,7 @@ class lykke(Exchange, ImplicitAPI):
         market = None
         if symbol is not None:
             market = self.market(symbol)
-        request = {
+        request: dict = {
             # 'offset': 0,
             # 'take': 1,
         }
@@ -1015,7 +1020,7 @@ class lykke(Exchange, ImplicitAPI):
         :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
         """
         self.load_markets()
-        request = {
+        request: dict = {
             # 'side': 'buy',
             # 'offset': 0,
             # 'take': 1,
@@ -1069,7 +1074,7 @@ class lykke(Exchange, ImplicitAPI):
         """
         self.load_markets()
         currency = self.currency(code)
-        request = {
+        request: dict = {
             'assetId': self.safe_string(currency, 'id'),
         }
         response = self.privateGetOperationsDepositsAddressesAssetId(self.extend(request, params))
@@ -1164,7 +1169,7 @@ class lykke(Exchange, ImplicitAPI):
         :returns dict: a list of `transaction structure <https://docs.ccxt.com/#/?id=transaction-structure>`
         """
         self.load_markets()
-        request = {
+        request: dict = {
             # 'offset': 0,
             # 'take': 1,
         }
@@ -1192,7 +1197,7 @@ class lykke(Exchange, ImplicitAPI):
             currency = self.currency(code)
         return self.parse_transactions(payload, currency, since, limit)
 
-    def withdraw(self, code: str, amount: float, address, tag=None, params={}):
+    def withdraw(self, code: str, amount: float, address: str, tag=None, params={}):
         """
         make a withdrawal
         :see: https://lykkecity.github.io/Trading-API/#withdrawal
@@ -1206,7 +1211,7 @@ class lykke(Exchange, ImplicitAPI):
         self.load_markets()
         self.check_address(address)
         currency = self.currency(code)
-        request = {
+        request: dict = {
             'assetId': currency['id'],
             'volume': float(self.currency_to_precision(code, amount)),
             'destinationAddress': address,

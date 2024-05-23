@@ -586,7 +586,7 @@ export default class alpaca extends alpacaRest {
             }
             this.watch(url, messageHash, request, messageHash, future);
         }
-        return future;
+        return await future;
     }
     handleErrorMessage(client, message) {
         //

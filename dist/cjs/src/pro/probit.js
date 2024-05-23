@@ -580,7 +580,7 @@ class probit extends probit$1 {
                 'type': 'authorization',
                 'token': accessToken,
             };
-            future = this.watch(url, messageHash, this.extend(request, params));
+            future = await this.watch(url, messageHash, this.extend(request, params), messageHash);
             client.subscriptions[messageHash] = future;
         }
         return future;

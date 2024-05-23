@@ -792,11 +792,11 @@ public partial class bitmart : ccxt.bitmart
         //    }
         //
         object data = this.safeValue(message, "data", new List<object>() {});
-        object cache = this.positions;
         if (isTrue(isEqual(this.positions, null)))
         {
             this.positions = new ArrayCacheBySymbolBySide();
         }
+        object cache = this.positions;
         object newPositions = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
         {
@@ -925,10 +925,10 @@ public partial class bitmart : ccxt.bitmart
         if (isTrue(isSwap))
         {
             // in swap, chronologically decreasing: 1709536849322, 1709536848954,
-            object maxLen = mathMax(subtract(length, 1), 0);
-            for (object i = maxLen; isGreaterThanOrEqual(i, 0); postFixDecrement(ref i))
+            for (object i = 0; isLessThan(i, length); postFixIncrement(ref i))
             {
-                symbol = this.handleTradeLoop(getValue(data, i));
+                object index = subtract(subtract(length, i), 1);
+                symbol = this.handleTradeLoop(getValue(data, index));
             }
         } else
         {
@@ -1568,7 +1568,7 @@ public partial class bitmart : ccxt.bitmart
             object message = this.extend(request, parameters);
             this.watch(url, messageHash, message, messageHash);
         }
-        return future;
+        return await (future as Exchange.Future);
     }
 
     public virtual object handleSubscriptionStatus(WebSocketClient client, object message)
@@ -1647,7 +1647,17 @@ public partial class bitmart : ccxt.bitmart
         }
         //
         //     {"event":"error","message":"Unrecognized request: {\"event\":\"subscribe\",\"channel\":\"spot/depth:BTC-USDT\"}","errorCode":30039}
-        //     {"event":"subscribe","channel":"spot/depth:BTC-USDT"}
+        //
+        // subscribe events on spot:
+        //
+        //     {"event":"subscribe", "topic":"spot/kline1m:BTC_USDT" }
+        //
+        // subscribe on contracts:
+        //
+        //     {"action":"subscribe", "group":"futures/klineBin1m:BTCUSDT", "success":true, "request":{"action":"subscribe", "args":[ "futures/klineBin1m:BTCUSDT" ] } }
+        //
+        // regular updates - spot
+        //
         //     {
         //         "table": "spot/depth",
         //         "action": "partial",
@@ -1668,10 +1678,21 @@ public partial class bitmart : ccxt.bitmart
         //         ]
         //     }
         //
+        // regular updates - contracts
+        //
+        //     {
+        //         group: "futures/klineBin1m:BTCUSDT",
+        //         data: {
+        //           symbol: "BTCUSDT",
+        //           items: [ { o: "67944.7", "h": .... } ],
+        //         },
+        //       }
+        //
         //     { data: '', table: "spot/user/order" }
         //
-        object channel = this.safeString2(message, "table", "group");
-        if (isTrue(isEqual(channel, null)))
+        // the only realiable way (for both spot & swap) is to check 'data' key
+        object isDataUpdate = (inOp(message, "data"));
+        if (!isTrue(isDataUpdate))
         {
             object eventVar = this.safeString2(message, "event", "action");
             if (isTrue(!isEqual(eventVar, null)))
@@ -1689,6 +1710,7 @@ public partial class bitmart : ccxt.bitmart
             }
         } else
         {
+            object channel = this.safeString2(message, "table", "group");
             object methods = new Dictionary<string, object>() {
                 { "depth", this.handleOrderBook },
                 { "ticker", this.handleTicker },

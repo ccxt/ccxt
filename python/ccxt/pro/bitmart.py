@@ -11,9 +11,9 @@ from ccxt.base.types import Balances, Int, Market, Order, OrderBook, Position, S
 from ccxt.async_support.base.ws.client import Client
 from typing import List
 from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import NotSupported
-from ccxt.base.errors import AuthenticationError
 
 
 class bitmart(ccxt.async_support.bitmart):
@@ -129,7 +129,7 @@ class bitmart(ccxt.async_support.bitmart):
         # exclusion, futures "tickers" need one generic request for all symbols
         if (type != 'spot') and (channel == 'ticker'):
             rawSubscriptions = [channelType + '/' + channel]
-        request = {
+        request: dict = {
             'args': rawSubscriptions,
         }
         request[actionType] = 'subscribe'
@@ -326,7 +326,7 @@ class bitmart(ccxt.async_support.bitmart):
         marketType, params = self.handle_market_type_and_params('watchTickers', market, params)
         ticker = await self.subscribe_multiple('ticker', marketType, symbols, params)
         if self.newUpdates:
-            tickers = {}
+            tickers: dict = {}
             tickers[ticker['symbol']] = ticker
             return tickers
         return self.filter_by_array(self.tickers, 'symbol', symbols)
@@ -430,7 +430,7 @@ class bitmart(ccxt.async_support.bitmart):
             return
         ordersLength = len(orders)
         newOrders = []
-        symbols = {}
+        symbols: dict = {}
         if ordersLength > 0:
             limit = self.safe_integer(self.options, 'ordersLimit', 1000)
             if self.orders is None:
@@ -578,7 +578,7 @@ class bitmart(ccxt.async_support.bitmart):
             }, market)
 
     def parse_ws_order_status(self, statusId):
-        statuses = {
+        statuses: dict = {
             '1': 'closed',  # match deal
             '2': 'open',  # submit order
             '3': 'canceled',  # cancel order
@@ -592,7 +592,7 @@ class bitmart(ccxt.async_support.bitmart):
         return self.safe_string(statuses, statusId, statusId)
 
     def parse_ws_order_side(self, sideId):
-        sides = {
+        sides: dict = {
             '1': 'buy',  # buy_open_long
             '2': 'buy',  # buy_close_short
             '3': 'sell',  # sell_close_long
@@ -616,7 +616,7 @@ class bitmart(ccxt.async_support.bitmart):
         if symbols is not None:
             messageHash += '::' + ','.join(symbols)
         subscriptionHash = 'futures/position'
-        request = {
+        request: dict = {
             'action': 'subscribe',
             'args': ['futures/position'],
         }
@@ -663,9 +663,9 @@ class bitmart(ccxt.async_support.bitmart):
         #    }
         #
         data = self.safe_value(message, 'data', [])
-        cache = self.positions
         if self.positions is None:
             self.positions = ArrayCacheBySymbolBySide()
+        cache = self.positions
         newPositions = []
         for i in range(0, len(data)):
             rawPosition = data[i]
@@ -781,9 +781,9 @@ class bitmart(ccxt.async_support.bitmart):
         isSwap = ('group' in message)
         if isSwap:
             # in swap, chronologically decreasing: 1709536849322, 1709536848954,
-            maxLen = max(length - 1, 0)
-            for i in range(maxLen, 0):
-                symbol = self.handle_trade_loop(data[i])
+            for i in range(0, length):
+                index = length - i - 1
+                symbol = self.handle_trade_loop(data[index])
         else:
             # in spot, chronologically increasing: 1709536771200, 1709536771226,
             for i in range(0, length):
@@ -1312,7 +1312,7 @@ class bitmart(ccxt.async_support.bitmart):
                 }
             message = self.extend(request, params)
             self.watch(url, messageHash, message, messageHash)
-        return future
+        return await future
 
     def handle_subscription_status(self, client: Client, message):
         #
@@ -1370,7 +1370,17 @@ class bitmart(ccxt.async_support.bitmart):
             return
         #
         #     {"event":"error","message":"Unrecognized request: {\"event\":\"subscribe\",\"channel\":\"spot/depth:BTC-USDT\"}","errorCode":30039}
-        #     {"event":"subscribe","channel":"spot/depth:BTC-USDT"}
+        #
+        # subscribe events on spot:
+        #
+        #     {"event":"subscribe", "topic":"spot/kline1m:BTC_USDT"}
+        #
+        # subscribe on contracts:
+        #
+        #     {"action":"subscribe", "group":"futures/klineBin1m:BTCUSDT", "success":true, "request":{"action":"subscribe", "args":["futures/klineBin1m:BTCUSDT"]}}
+        #
+        # regular updates - spot
+        #
         #     {
         #         "table": "spot/depth",
         #         "action": "partial",
@@ -1391,13 +1401,24 @@ class bitmart(ccxt.async_support.bitmart):
         #         ]
         #     }
         #
+        # regular updates - contracts
+        #
+        #     {
+        #         group: "futures/klineBin1m:BTCUSDT",
+        #         data: {
+        #           symbol: "BTCUSDT",
+        #           items: [{o: "67944.7", "h": ....}],
+        #         },
+        #       }
+        #
         #     {data: '', table: "spot/user/order"}
         #
-        channel = self.safe_string_2(message, 'table', 'group')
-        if channel is None:
+        # the only realiable way(for both spot & swap) is to check 'data' key
+        isDataUpdate = ('data' in message)
+        if not isDataUpdate:
             event = self.safe_string_2(message, 'event', 'action')
             if event is not None:
-                methods = {
+                methods: dict = {
                     # 'info': self.handleSystemStatus,
                     'login': self.handle_authenticate,
                     'access': self.handle_authenticate,
@@ -1407,7 +1428,8 @@ class bitmart(ccxt.async_support.bitmart):
                 if method is not None:
                     method(client, message)
         else:
-            methods = {
+            channel = self.safe_string_2(message, 'table', 'group')
+            methods: dict = {
                 'depth': self.handle_order_book,
                 'ticker': self.handle_ticker,
                 'trade': self.handle_trade,

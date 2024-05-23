@@ -2171,7 +2171,7 @@
         "option": true,
         "margin": false,
         "contract": true,
-        "contractSize": 1.0,
+        "contractSize": 1,
         "settle": "USDT",
         "settleId": "USDT"
     },

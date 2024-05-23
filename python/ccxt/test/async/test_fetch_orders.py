@@ -12,13 +12,14 @@ sys.path.append(root)
 # ----------------------------------------------------------------------------
 # -*- coding: utf-8 -*-
 
-from ccxt.test.base import test_shared_methods  # noqa E402
 from ccxt.test.base import test_order  # noqa E402
+from ccxt.test.base import test_shared_methods  # noqa E402
 
 async def test_fetch_orders(exchange, skipped_properties, symbol):
     method = 'fetchOrders'
     orders = await exchange.fetch_orders(symbol)
     assert isinstance(orders, list), exchange.id + ' ' + method + ' must return an array, returned ' + exchange.json(orders)
+    test_shared_methods.assert_non_emtpy_array(exchange, skipped_properties, method, orders, symbol)
     now = exchange.milliseconds()
     for i in range(0, len(orders)):
         test_order(exchange, skipped_properties, method, orders[i], symbol, now)

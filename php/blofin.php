@@ -77,7 +77,10 @@ class blofin extends Exchange {
                 'fetchLedger' => true,
                 'fetchLedgerEntry' => null,
                 'fetchLeverage' => true,
+                'fetchLeverages' => true,
                 'fetchLeverageTiers' => false,
+                'fetchMarginMode' => true,
+                'fetchMarginModes' => false,
                 'fetchMarketLeverageTiers' => false,
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => false,
@@ -181,9 +184,13 @@ class blofin extends Exchange {
                         'account/balance' => 1,
                         'account/positions' => 1,
                         'account/leverage-info' => 1,
+                        'account/margin-mode' => 1,
+                        'account/batch-leverage-info' => 1,
                         'trade/orders-tpsl-pending' => 1,
                         'trade/orders-history' => 1,
                         'trade/orders-tpsl-history' => 1,
+                        'user/query-apikey' => 1,
+                        'affiliate/basic' => 1,
                     ),
                     'post' => array(
                         'trade/order' => 1,
@@ -339,7 +346,7 @@ class blofin extends Exchange {
         ));
     }
 
-    public function fetch_markets($params = array ()) {
+    public function fetch_markets($params = array ()): array {
         /**
          * retrieves $data on all markets for blofin
          * @see https://blofin.com/docs#get-instruments
@@ -373,7 +380,7 @@ class blofin extends Exchange {
         $strikePrice = null;
         $optionType = null;
         $tickSize = $this->safe_string($market, 'tickSize');
-        $fees = $this->safe_value_2($this->fees, $type, 'trading', array());
+        $fees = $this->safe_dict_2($this->fees, $type, 'trading', array());
         $taker = $this->safe_number($fees, 'taker');
         $maker = $this->safe_number($fees, 'maker');
         $maxLeverage = $this->safe_string($market, 'maxLeverage', '100');
@@ -450,7 +457,7 @@ class blofin extends Exchange {
         if ($limit !== null) {
             $request['size'] = $limit; // max 100
         }
-        $response = $this->publicGetMarketBooks (array_merge($request, $params));
+        $response = $this->publicGetMarketBooks ($this->extend($request, $params));
         //
         //     {
         //         "code" => "0",
@@ -473,12 +480,12 @@ class blofin extends Exchange {
         //     }
         //
         $data = $this->safe_list($response, 'data', array());
-        $first = $this->safe_value($data, 0, array());
+        $first = $this->safe_dict($data, 0, array());
         $timestamp = $this->safe_integer($first, 'ts');
         return $this->parse_order_book($first, $symbol, $timestamp);
     }
 
-    public function parse_ticker($ticker, ?array $market = null): array {
+    public function parse_ticker(array $ticker, ?array $market = null): array {
         $timestamp = $this->safe_integer($ticker, 'ts');
         $marketId = $this->safe_string($ticker, 'instId');
         $market = $this->safe_market($marketId, $market, '-');
@@ -527,9 +534,9 @@ class blofin extends Exchange {
         $request = array(
             'instId' => $market['id'],
         );
-        $response = $this->publicGetMarketTickers (array_merge($request, $params));
+        $response = $this->publicGetMarketTickers ($this->extend($request, $params));
         $data = $this->safe_list($response, 'data', array());
-        $first = $this->safe_value($data, 0, array());
+        $first = $this->safe_dict($data, 0, array());
         return $this->parse_ticker($first, $market);
     }
 
@@ -636,7 +643,7 @@ class blofin extends Exchange {
         $method = null;
         list($method, $params) = $this->handle_option_and_params($params, 'fetchTrades', 'method', 'publicGetMarketTrades');
         if ($method === 'publicGetMarketTrades') {
-            $response = $this->publicGetMarketTrades (array_merge($request, $params));
+            $response = $this->publicGetMarketTrades ($this->extend($request, $params));
         }
         $data = $this->safe_list($response, 'data', array());
         return $this->parse_trades($data, $market, $since, $limit);
@@ -700,7 +707,7 @@ class blofin extends Exchange {
             $params = $this->omit($params, 'until');
         }
         $response = null;
-        $response = $this->publicGetMarketCandles (array_merge($request, $params));
+        $response = $this->publicGetMarketCandles ($this->extend($request, $params));
         $data = $this->safe_list($response, 'data', array());
         return $this->parse_ohlcvs($data, $market, $timeframe, $since, $limit);
     }
@@ -735,7 +742,7 @@ class blofin extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
-        $response = $this->publicGetMarketFundingRateHistory (array_merge($request, $params));
+        $response = $this->publicGetMarketFundingRateHistory ($this->extend($request, $params));
         $rates = array();
         $data = $this->safe_list($response, 'data', array());
         for ($i = 0; $i < count($data); $i++) {
@@ -809,7 +816,7 @@ class blofin extends Exchange {
         $request = array(
             'instId' => $market['id'],
         );
-        $response = $this->publicGetMarketFundingRate (array_merge($request, $params));
+        $response = $this->publicGetMarketFundingRate ($this->extend($request, $params));
         //
         //    {
         //        "code" => "0",
@@ -925,13 +932,15 @@ class blofin extends Exchange {
         return $this->safe_balance($result);
     }
 
-    public function parse_trading_fee($fee, ?array $market = null) {
+    public function parse_trading_fee($fee, ?array $market = null): array {
         return array(
             'info' => $fee,
             'symbol' => $this->safe_symbol(null, $market),
             // blofin returns the fees values opposed to other exchanges, so the sign needs to be flipped
             'maker' => $this->parse_number(Precise::string_neg($this->safe_string_2($fee, 'maker', 'makerU'))),
             'taker' => $this->parse_number(Precise::string_neg($this->safe_string_2($fee, 'taker', 'takerU'))),
+            'percentage' => null,
+            'tierBased' => null,
         );
     }
 
@@ -954,9 +963,9 @@ class blofin extends Exchange {
             $options = $this->safe_dict($this->options, 'accountsByType', array());
             $parsedAccountType = $this->safe_string($options, $accountType, $accountType);
             $request['accountType'] = $parsedAccountType;
-            $response = $this->privateGetAssetBalances (array_merge($request, $params));
+            $response = $this->privateGetAssetBalances ($this->extend($request, $params));
         } else {
-            $response = $this->privateGetAccountBalance (array_merge($request, $params));
+            $response = $this->privateGetAccountBalance ($this->extend($request, $params));
         }
         return $this->parse_balance_by_type($accountType, $response);
     }
@@ -988,8 +997,8 @@ class blofin extends Exchange {
         if ($postOnly) {
             $request['type'] = 'post_only';
         }
-        $stopLoss = $this->safe_value($params, 'stopLoss');
-        $takeProfit = $this->safe_value($params, 'takeProfit');
+        $stopLoss = $this->safe_dict($params, 'stopLoss');
+        $takeProfit = $this->safe_dict($params, 'takeProfit');
         $params = $this->omit($params, array( 'stopLoss', 'takeProfit' ));
         $isStopLoss = $stopLoss !== null;
         $isTakeProfit = $takeProfit !== null;
@@ -1007,10 +1016,10 @@ class blofin extends Exchange {
                 $request['tpOrderPrice'] = $this->price_to_precision($symbol, $tpPrice);
             }
         }
-        return array_merge($request, $params);
+        return $this->extend($request, $params);
     }
 
-    public function parse_order_status($status) {
+    public function parse_order_status(?string $status) {
         $statuses = array(
             'canceled' => 'canceled',
             'order_failed' => 'canceled',
@@ -1225,7 +1234,7 @@ class blofin extends Exchange {
         }
         $request['marginMode'] = $marginMode;
         $params = $this->omit($params, array( 'stopLossPrice', 'takeProfitPrice' ));
-        return array_merge($request, $params);
+        return $this->extend($request, $params);
     }
 
     public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
@@ -1236,6 +1245,7 @@ class blofin extends Exchange {
          * @param {string} $id $order $id
          * @param {string} $symbol unified $symbol of the $market the $order was made in
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {boolean} [$params->trigger] True if cancelling a trigger/conditional order/tp sl orders
          * @return {array} An ~@link https://docs.ccxt.com/#/?$id=$order-structure $order structure~
          */
         if ($symbol === null) {
@@ -1246,14 +1256,24 @@ class blofin extends Exchange {
         $request = array(
             'instId' => $market['id'],
         );
+        $isTrigger = $this->safe_bool_n($params, array( 'stop', 'trigger', 'tpsl' ), false);
         $clientOrderId = $this->safe_string($params, 'clientOrderId');
         if ($clientOrderId !== null) {
             $request['clientOrderId'] = $clientOrderId;
         } else {
-            $request['orderId'] = $id;
+            if (!$isTrigger) {
+                $request['orderId'] = (string) $id;
+            } else {
+                $request['tpslId'] = (string) $id;
+            }
         }
-        $query = $this->omit($params, array( 'orderId', 'clientOrderId' ));
-        $response = $this->privatePostTradeCancelOrder (array_merge($request, $query));
+        $query = $this->omit($params, array( 'orderId', 'clientOrderId', 'stop', 'trigger', 'tpsl' ));
+        if ($isTrigger) {
+            $tpslResponse = $this->cancel_orders(array( $id ), $symbol, $params);
+            $first = $this->safe_dict($tpslResponse, 0);
+            return $first;
+        }
+        $response = $this->privatePostTradeCancelOrder ($this->extend($request, $query));
         $data = $this->safe_list($response, 'data', array());
         $order = $this->safe_dict($data, 0);
         return $this->parse_order($order, $market);
@@ -1275,8 +1295,8 @@ class blofin extends Exchange {
             $side = $this->safe_string($rawOrder, 'side');
             $amount = $this->safe_value($rawOrder, 'amount');
             $price = $this->safe_value($rawOrder, 'price');
-            $orderParams = $this->safe_value($rawOrder, 'params', array());
-            $extendedParams = array_merge($orderParams, $params); // the request does not accept extra $params since it's a list, so we're extending each order with the common $params
+            $orderParams = $this->safe_dict($rawOrder, 'params', array());
+            $extendedParams = $this->extend($orderParams, $params); // the request does not accept extra $params since it's a list, so we're extending each order with the common $params
             $orderRequest = $this->create_order_request($marketId, $type, $side, $amount, $price, $extendedParams);
             $ordersRequests[] = $orderRequest;
         }
@@ -1314,15 +1334,15 @@ class blofin extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit; // default 100, max 100
         }
-        $isStop = $this->safe_value_n($params, array( 'stop', 'trigger', 'tpsl', 'TPSL' ), false);
+        $isStop = $this->safe_bool_n($params, array( 'stop', 'trigger', 'tpsl', 'TPSL' ), false);
         $method = null;
         list($method, $params) = $this->handle_option_and_params($params, 'fetchOpenOrders', 'method', 'privateGetTradeOrdersPending');
         $query = $this->omit($params, array( 'method', 'stop', 'trigger', 'tpsl', 'TPSL' ));
         $response = null;
         if ($isStop || ($method === 'privateGetTradeOrdersTpslPending')) {
-            $response = $this->privateGetTradeOrdersTpslPending (array_merge($request, $query));
+            $response = $this->privateGetTradeOrdersTpslPending ($this->extend($request, $query));
         } else {
-            $response = $this->privateGetTradeOrdersPending (array_merge($request, $query));
+            $response = $this->privateGetTradeOrdersPending ($this->extend($request, $query));
         }
         $data = $this->safe_list($response, 'data', array());
         return $this->parse_orders($data, $market, $since, $limit);
@@ -1357,7 +1377,7 @@ class blofin extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit; // default 100, max 100
         }
-        $response = $this->privateGetTradeFillsHistory (array_merge($request, $params));
+        $response = $this->privateGetTradeFillsHistory ($this->extend($request, $params));
         $data = $this->safe_list($response, 'data', array());
         return $this->parse_trades($data, $market, $since, $limit);
     }
@@ -1394,7 +1414,7 @@ class blofin extends Exchange {
             $request['limit'] = $limit; // default 100, max 100
         }
         list($request, $params) = $this->handle_until_option('after', $request, $params);
-        $response = $this->privateGetAssetDepositHistory (array_merge($request, $params));
+        $response = $this->privateGetAssetDepositHistory ($this->extend($request, $params));
         $data = $this->safe_list($response, 'data', array());
         return $this->parse_transactions($data, $currency, $since, $limit, $params);
     }
@@ -1431,7 +1451,7 @@ class blofin extends Exchange {
             $request['limit'] = $limit; // default 100, max 100
         }
         list($request, $params) = $this->handle_until_option('after', $request, $params);
-        $response = $this->privateGetAssetWithdrawalHistory (array_merge($request, $params));
+        $response = $this->privateGetAssetWithdrawalHistory ($this->extend($request, $params));
         $data = $this->safe_list($response, 'data', array());
         return $this->parse_transactions($data, $currency, $since, $limit, $params);
     }
@@ -1467,7 +1487,7 @@ class blofin extends Exchange {
         }
         list($request, $params) = $this->handle_until_option('end', $request, $params);
         $response = null;
-        $response = $this->privateGetAssetBills (array_merge($request, $params));
+        $response = $this->privateGetAssetBills ($this->extend($request, $params));
         $data = $this->safe_list($response, 'data', array());
         return $this->parse_ledger($data, $currency, $since, $limit);
     }
@@ -1641,7 +1661,7 @@ class blofin extends Exchange {
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array();
-        $options = $this->safe_value($this->options, 'cancelOrders', array());
+        $options = $this->safe_dict($this->options, 'cancelOrders', array());
         $defaultMethod = $this->safe_string($options, 'method', 'privatePostTradeCancelBatchOrders');
         $method = $this->safe_string($params, 'method', $defaultMethod);
         $clientOrderIds = $this->parse_ids($this->safe_value($params, 'clientOrderId'));
@@ -1691,7 +1711,7 @@ class blofin extends Exchange {
         return $this->parse_orders($ordersData, $market, null, null, $params);
     }
 
-    public function transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array ()): TransferEntry {
+    public function transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array ()): array {
         /**
          * transfer $currency internally between wallets on the same account
          * @see https://blofin.com/docs#funds-transfer
@@ -1704,7 +1724,7 @@ class blofin extends Exchange {
          */
         $this->load_markets();
         $currency = $this->currency($code);
-        $accountsByType = $this->safe_value($this->options, 'accountsByType', array());
+        $accountsByType = $this->safe_dict($this->options, 'accountsByType', array());
         $fromId = $this->safe_string($accountsByType, $fromAccount, $fromAccount);
         $toId = $this->safe_string($accountsByType, $toAccount, $toAccount);
         $request = array(
@@ -1713,12 +1733,12 @@ class blofin extends Exchange {
             'fromAccount' => $fromId,
             'toAccount' => $toId,
         );
-        $response = $this->privatePostAssetTransfer (array_merge($request, $params));
+        $response = $this->privatePostAssetTransfer ($this->extend($request, $params));
         $data = $this->safe_dict($response, 'data', array());
         return $this->parse_transfer($data, $currency);
     }
 
-    public function parse_transfer($transfer, ?array $currency = null) {
+    public function parse_transfer(array $transfer, ?array $currency = null): array {
         $id = $this->safe_string($transfer, 'transferId');
         return array(
             'info' => $transfer,
@@ -1747,7 +1767,7 @@ class blofin extends Exchange {
         $request = array(
             'instId' => $market['id'],
         );
-        $response = $this->privateGetAccountPositions (array_merge($request, $params));
+        $response = $this->privateGetAccountPositions ($this->extend($request, $params));
         $data = $this->safe_list($response, 'data', array());
         $position = $this->safe_dict($data, 0);
         if ($position === null) {
@@ -1861,10 +1881,64 @@ class blofin extends Exchange {
         ));
     }
 
-    public function fetch_leverage(string $symbol, $params = array ()): Leverage {
+    public function fetch_leverages(?array $symbols = null, $params = array ()): array {
+        /**
+         * fetch the set leverage for all contract markets
+         * @see https://docs.blofin.com/index.html#get-multiple-leverage
+         * @param {string[]} $symbols a list of unified market $symbols, required on blofin
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->marginMode] 'cross' or 'isolated'
+         * @return {array} a list of ~@link https://docs.ccxt.com/#/?id=leverage-structure leverage structures~
+         */
+        $this->load_markets();
+        if ($symbols === null) {
+            throw new ArgumentsRequired($this->id . ' fetchLeverages() requires a $symbols argument');
+        }
+        $marginMode = null;
+        list($marginMode, $params) = $this->handle_margin_mode_and_params('fetchLeverages', $params);
+        if ($marginMode === null) {
+            $marginMode = $this->safe_string($params, 'marginMode', 'cross'); // cross $marginMode
+        }
+        if (($marginMode !== 'cross') && ($marginMode !== 'isolated')) {
+            throw new BadRequest($this->id . ' fetchLeverages() requires a $marginMode parameter that must be either cross or isolated');
+        }
+        $symbols = $this->market_symbols($symbols);
+        $instIds = '';
+        for ($i = 0; $i < count($symbols); $i++) {
+            $entry = $symbols[$i];
+            $entryMarket = $this->market($entry);
+            if ($i > 0) {
+                $instIds = $instIds . ',' . $entryMarket['id'];
+            } else {
+                $instIds = $instIds . $entryMarket['id'];
+            }
+        }
+        $request = array(
+            'instId' => $instIds,
+            'marginMode' => $marginMode,
+        );
+        $response = $this->privateGetAccountBatchLeverageInfo ($this->extend($request, $params));
+        //
+        //     {
+        //         "code" => "0",
+        //         "msg" => "success",
+        //         "data" => array(
+        //             array(
+        //                 "leverage" => "3",
+        //                 "marginMode" => "cross",
+        //                 "instId" => "BTC-USDT"
+        //             ),
+        //         )
+        //     }
+        //
+        $leverages = $this->safe_list($response, 'data', array());
+        return $this->parse_leverages($leverages, $symbols, 'instId');
+    }
+
+    public function fetch_leverage(string $symbol, $params = array ()): array {
         /**
          * fetch the set leverage for a $market
-         * @see https://blofin.com/docs#set-leverage
+         * @see https://docs.blofin.com/index.html#get-leverage
          * @param {string} $symbol unified $market $symbol
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->marginMode] 'cross' or 'isolated'
@@ -1884,7 +1958,7 @@ class blofin extends Exchange {
             'instId' => $market['id'],
             'marginMode' => $marginMode,
         );
-        $response = $this->privateGetAccountLeverageInfo (array_merge($request, $params));
+        $response = $this->privateGetAccountLeverageInfo ($this->extend($request, $params));
         //
         //     {
         //         "code" => "0",
@@ -1900,7 +1974,7 @@ class blofin extends Exchange {
         return $this->parse_leverage($data, $market);
     }
 
-    public function parse_leverage($leverage, $market = null): Leverage {
+    public function parse_leverage(array $leverage, ?array $market = null): array {
         $marketId = $this->safe_string($leverage, 'instId');
         $leverageValue = $this->safe_integer($leverage, 'leverage');
         return array(
@@ -1942,7 +2016,7 @@ class blofin extends Exchange {
             'marginMode' => $marginMode,
             'instId' => $market['id'],
         );
-        $response = $this->privatePostAccountSetLeverage (array_merge($request, $params));
+        $response = $this->privatePostAccountSetLeverage ($this->extend($request, $params));
         return $response;
     }
 
@@ -1974,8 +2048,8 @@ class blofin extends Exchange {
         if ($clientOrderId !== null) {
             $request['clientOrderId'] = $clientOrderId;
         }
-        $response = $this->privatePostTradeClosePosition (array_merge($request, $params));
-        return $this->safe_value($response, 'data');
+        $response = $this->privatePostTradeClosePosition ($this->extend($request, $params));
+        return $this->safe_dict($response, 'data');
     }
 
     public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
@@ -2010,18 +2084,50 @@ class blofin extends Exchange {
         if ($since !== null) {
             $request['begin'] = $since;
         }
-        $isStop = $this->safe_value_n($params, array( 'stop', 'trigger', 'tpsl', 'TPSL' ), false);
+        $isStop = $this->safe_bool_n($params, array( 'stop', 'trigger', 'tpsl', 'TPSL' ), false);
         $method = null;
         list($method, $params) = $this->handle_option_and_params($params, 'fetchOpenOrders', 'method', 'privateGetTradeOrdersHistory');
         $query = $this->omit($params, array( 'method', 'stop', 'trigger', 'tpsl', 'TPSL' ));
         $response = null;
         if (($isStop) || ($method === 'privateGetTradeOrdersTpslHistory')) {
-            $response = $this->privateGetTradeOrdersTpslHistory (array_merge($request, $query));
+            $response = $this->privateGetTradeOrdersTpslHistory ($this->extend($request, $query));
         } else {
-            $response = $this->privateGetTradeOrdersHistory (array_merge($request, $query));
+            $response = $this->privateGetTradeOrdersHistory ($this->extend($request, $query));
         }
         $data = $this->safe_list($response, 'data', array());
         return $this->parse_orders($data, $market, $since, $limit);
+    }
+
+    public function fetch_margin_mode(string $symbol, $params = array ()): array {
+        /**
+         * fetches the margin mode of a trading pair
+         * @see https://docs.blofin.com/index.html#get-margin-mode
+         * @param {string} $symbol unified $symbol of the $market to fetch the margin mode for
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/#/?id=margin-mode-structure margin mode structure~
+         */
+        $this->load_markets();
+        $market = $this->market($symbol);
+        $response = $this->privateGetAccountMarginMode ($params);
+        //
+        //     {
+        //         "code" => "0",
+        //         "msg" => "success",
+        //         "data" => {
+        //             "marginMode" => "cross"
+        //         }
+        //     }
+        //
+        $data = $this->safe_dict($response, 'data', array());
+        return $this->parse_margin_mode($data, $market);
+    }
+
+    public function parse_margin_mode($marginMode, $market = null): array {
+        return array(
+            'info' => $marginMode,
+            'symbol' => $market['symbol'],
+            'marginMode' => $this->safe_string($marginMode, 'marginMode'),
+        );
     }
 
     public function handle_errors($httpCode, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {

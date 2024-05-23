@@ -26,11 +26,12 @@ public partial class bitmart : Exchange
                 { "borrowIsolatedMargin", true },
                 { "cancelAllOrders", true },
                 { "cancelOrder", true },
-                { "cancelOrders", false },
+                { "cancelOrders", true },
                 { "createMarketBuyOrderWithCost", true },
                 { "createMarketOrderWithCost", false },
                 { "createMarketSellOrderWithCost", false },
                 { "createOrder", true },
+                { "createOrders", true },
                 { "createPostOnlyOrder", true },
                 { "createStopLimitOrder", false },
                 { "createStopMarketOrder", false },
@@ -164,7 +165,7 @@ public partial class bitmart : Exchange
                         { "spot/v1/order_detail", 1 },
                         { "spot/v2/orders", 5 },
                         { "spot/v1/trades", 5 },
-                        { "spot/v2/trades", 5 },
+                        { "spot/v2/trades", 4 },
                         { "spot/v3/orders", 5 },
                         { "spot/v2/order_detail", 1 },
                         { "spot/v1/margin/isolated/borrow_record", 1 },
@@ -202,6 +203,8 @@ public partial class bitmart : Exchange
                         { "spot/v4/query/history-orders", 5 },
                         { "spot/v4/query/trades", 5 },
                         { "spot/v4/query/order-trades", 5 },
+                        { "spot/v4/cancel_orders", 3 },
+                        { "spot/v4/batch_orders", 3 },
                         { "spot/v3/cancel_order", 1 },
                         { "spot/v2/batch_orders", 1 },
                         { "spot/v2/submit_order", 1 },
@@ -302,6 +305,7 @@ public partial class bitmart : Exchange
                     { "70000", typeof(ExchangeError) },
                     { "70001", typeof(BadRequest) },
                     { "70002", typeof(BadSymbol) },
+                    { "70003", typeof(NetworkError) },
                     { "71001", typeof(BadRequest) },
                     { "71002", typeof(BadRequest) },
                     { "71003", typeof(BadRequest) },
@@ -464,6 +468,7 @@ public partial class bitmart : Exchange
                 } },
                 { "networks", new Dictionary<string, object>() {
                     { "ERC20", "ERC20" },
+                    { "SOL", "SOL" },
                     { "BTC", "BTC" },
                     { "TRC20", "TRC20" },
                     { "OMNI", "OMNI" },
@@ -481,7 +486,6 @@ public partial class bitmart : Exchange
                     { "FIO", "FIO" },
                     { "SCRT", "SCRT" },
                     { "IOTX", "IOTX" },
-                    { "SOL", "SOL" },
                     { "ALGO", "ALGO" },
                     { "ATOM", "ATOM" },
                     { "DOT", "DOT" },
@@ -1267,7 +1271,7 @@ public partial class bitmart : Exchange
         {
             tickersById = this.indexBy(tickers, "contract_symbol");
         }
-        object ticker = this.safeValue(tickersById, getValue(market, "id"));
+        object ticker = this.safeDict(tickersById, getValue(market, "id"));
         return this.parseTicker(ticker, market);
     }
 
@@ -1556,7 +1560,7 @@ public partial class bitmart : Exchange
         //     }
         //
         object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
-        object trades = this.safeValue(data, "trades", new List<object>() {});
+        object trades = this.safeList(data, "trades", new List<object>() {});
         return this.parseTrades(trades, market, since, limit);
     }
 
@@ -1733,7 +1737,7 @@ public partial class bitmart : Exchange
         //         "trace": "96c989db-e0f5-46f5-bba6-60cfcbde699b"
         //     }
         //
-        object ohlcv = this.safeValue(response, "data", new List<object>() {});
+        object ohlcv = this.safeList(response, "data", new List<object>() {});
         return this.parseOHLCVs(ohlcv, market, timeframe, since, limit);
     }
 
@@ -1865,7 +1869,7 @@ public partial class bitmart : Exchange
         //         "trace": "4cad855074634097ac6ba5257c47305d.62.16959616054873723"
         //     }
         //
-        object data = this.safeValue(response, "data", new List<object>() {});
+        object data = this.safeList(response, "data", new List<object>() {});
         return this.parseTrades(data, market, since, limit);
     }
 
@@ -1889,7 +1893,7 @@ public partial class bitmart : Exchange
             { "orderId", id },
         };
         object response = await this.privatePostSpotV4QueryOrderTrades(this.extend(request, parameters));
-        object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
+        object data = this.safeList(response, "data", new List<object>() {});
         return this.parseTrades(data, null, since, limit);
     }
 
@@ -2112,6 +2116,8 @@ public partial class bitmart : Exchange
             { "symbol", symbol },
             { "maker", this.safeNumber(fee, "maker_fee_rate") },
             { "taker", this.safeNumber(fee, "taker_fee_rate") },
+            { "percentage", null },
+            { "tierBased", null },
         };
     }
 
@@ -2430,6 +2436,86 @@ public partial class bitmart : Exchange
         return order;
     }
 
+    public async override Task<object> createOrders(object orders, object parameters = null)
+    {
+        /**
+        * @method
+        * @name bitmart#createOrders
+        * @description create a list of trade orders
+        * @see https://developer-pro.bitmart.com/en/spot/#new-batch-order-v4-signed
+        * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
+        * @param {object} [params]  extra parameters specific to the exchange API endpoint
+        * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object ordersRequests = new List<object>() {};
+        object symbol = null;
+        object market = null;
+        for (object i = 0; isLessThan(i, getArrayLength(orders)); postFixIncrement(ref i))
+        {
+            object rawOrder = getValue(orders, i);
+            object marketId = this.safeString(rawOrder, "symbol");
+            market = this.market(marketId);
+            if (!isTrue(getValue(market, "spot")))
+            {
+                throw new NotSupported ((string)add(this.id, " createOrders() supports spot orders only")) ;
+            }
+            if (isTrue(isEqual(symbol, null)))
+            {
+                symbol = marketId;
+            } else
+            {
+                if (isTrue(!isEqual(symbol, marketId)))
+                {
+                    throw new BadRequest ((string)add(this.id, " createOrders() requires all orders to have the same symbol")) ;
+                }
+            }
+            object type = this.safeString(rawOrder, "type");
+            object side = this.safeString(rawOrder, "side");
+            object amount = this.safeValue(rawOrder, "amount");
+            object price = this.safeValue(rawOrder, "price");
+            object orderParams = this.safeDict(rawOrder, "params", new Dictionary<string, object>() {});
+            object orderRequest = this.createSpotOrderRequest(marketId, type, side, amount, price, orderParams);
+            orderRequest = this.omit(orderRequest, new List<object>() {"symbol"}); // not needed because it goes in the outter object
+            ((IList<object>)ordersRequests).Add(orderRequest);
+        }
+        object request = new Dictionary<string, object>() {
+            { "symbol", getValue(market, "id") },
+            { "orderParams", ordersRequests },
+        };
+        object response = await this.privatePostSpotV4BatchOrders(request);
+        //
+        // {
+        //     "message": "OK",
+        //     "code": 1000,
+        //     "trace": "5fc697fb817a4b5396284786a9b2609a.263.17022620476480263",
+        //     "data": {
+        //       "code": 0,
+        //       "msg": "success",
+        //       "data": {
+        //         "orderIds": [
+        //           "212751308355553320"
+        //         ]
+        //       }
+        //     }
+        // }
+        //
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        object innderData = this.safeDict(data, "data", new Dictionary<string, object>() {});
+        object orderIds = this.safeList(innderData, "orderIds", new List<object>() {});
+        object parsedOrders = new List<object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(orderIds)); postFixIncrement(ref i))
+        {
+            object orderId = getValue(orderIds, i);
+            object order = this.safeOrder(new Dictionary<string, object>() {
+                { "id", orderId },
+            }, market);
+            ((IList<object>)parsedOrders).Add(order);
+        }
+        return parsedOrders;
+    }
+
     public virtual object createSwapOrderRequest(object symbol, object type, object side, object amount, object price = null, object parameters = null)
     {
         /**
@@ -2614,7 +2700,7 @@ public partial class bitmart : Exchange
             // for market buy it requires the amount of quote currency to spend
             if (isTrue(isEqual(side, "buy")))
             {
-                object notional = this.safeNumber2(parameters, "cost", "notional");
+                object notional = this.safeString2(parameters, "cost", "notional");
                 parameters = this.omit(parameters, "cost");
                 object createMarketBuyOrderRequiresPrice = true;
                 var createMarketBuyOrderRequiresPriceparametersVariable = this.handleOptionAndParams(parameters, "createOrder", "createMarketBuyOrderRequiresPrice", true);
@@ -2629,11 +2715,11 @@ public partial class bitmart : Exchange
                     {
                         object amountString = this.numberToString(amount);
                         object priceString = this.numberToString(price);
-                        notional = this.parseNumber(Precise.stringMul(amountString, priceString));
+                        notional = Precise.stringMul(amountString, priceString);
                     }
                 } else
                 {
-                    notional = ((bool) isTrue((isEqual(notional, null)))) ? amount : notional;
+                    notional = ((bool) isTrue((isEqual(notional, null)))) ? this.numberToString(amount) : notional;
                 }
                 ((IDictionary<string,object>)request)["notional"] = this.decimalToPrecision(notional, TRUNCATE, getValue(getValue(market, "precision"), "price"), this.precisionMode);
             } else if (isTrue(isEqual(side, "sell")))
@@ -2758,6 +2844,82 @@ public partial class bitmart : Exchange
         });
     }
 
+    public async virtual Task<object> cancelOrders(object ids, object symbol = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name bitmart#cancelOrders
+        * @description cancel multiple orders
+        * @see https://developer-pro.bitmart.com/en/spot/#cancel-batch-order-v4-signed
+        * @param {string[]} ids order ids
+        * @param {string} symbol unified symbol of the market the order was made in
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @param {string[]} [params.clientOrderIds] client order ids
+        * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        if (isTrue(isEqual(symbol, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " cancelOrders() requires a symbol argument")) ;
+        }
+        await this.loadMarkets();
+        object market = this.market(symbol);
+        if (!isTrue(getValue(market, "spot")))
+        {
+            throw new NotSupported ((string)add(add(add(this.id, " cancelOrders() does not support "), getValue(market, "type")), " orders, only spot orders are accepted")) ;
+        }
+        object clientOrderIds = this.safeList(parameters, "clientOrderIds");
+        parameters = this.omit(parameters, new List<object>() {"clientOrderIds"});
+        object request = new Dictionary<string, object>() {
+            { "symbol", getValue(market, "id") },
+        };
+        if (isTrue(!isEqual(clientOrderIds, null)))
+        {
+            ((IDictionary<string,object>)request)["clientOrderIds"] = clientOrderIds;
+        } else
+        {
+            ((IDictionary<string,object>)request)["orderIds"] = ids;
+        }
+        object response = await this.privatePostSpotV4CancelOrders(this.extend(request, parameters));
+        //
+        //  {
+        //      "message": "OK",
+        //      "code": 1000,
+        //      "trace": "c4edbce860164203954f7c3c81d60fc6.309.17022669632770001",
+        //      "data": {
+        //        "successIds": [
+        //          "213055379155243012"
+        //        ],
+        //        "failIds": [],
+        //        "totalCount": 1,
+        //        "successCount": 1,
+        //        "failedCount": 0
+        //      }
+        //  }
+        //
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        object allOrders = new List<object>() {};
+        object successIds = this.safeList(data, "successIds", new List<object>() {});
+        for (object i = 0; isLessThan(i, getArrayLength(successIds)); postFixIncrement(ref i))
+        {
+            object id = getValue(successIds, i);
+            ((IList<object>)allOrders).Add(this.safeOrder(new Dictionary<string, object>() {
+                { "id", id },
+                { "status", "canceled" },
+            }, market));
+        }
+        object failIds = this.safeList(data, "failIds", new List<object>() {});
+        for (object i = 0; isLessThan(i, getArrayLength(failIds)); postFixIncrement(ref i))
+        {
+            object id = getValue(failIds, i);
+            ((IList<object>)allOrders).Add(this.safeOrder(new Dictionary<string, object>() {
+                { "id", id },
+                { "status", "failed" },
+            }, market));
+        }
+        return allOrders;
+    }
+
     public async override Task<object> cancelAllOrders(object symbol = null, object parameters = null)
     {
         /**
@@ -2878,7 +3040,7 @@ public partial class bitmart : Exchange
         //     }
         //
         object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
-        object orders = this.safeValue(data, "orders", new List<object>() {});
+        object orders = this.safeList(data, "orders", new List<object>() {});
         return this.parseOrders(orders, market, since, limit);
     }
 
@@ -3023,7 +3185,7 @@ public partial class bitmart : Exchange
         //         "trace": "7f9d94g10f9d4513bc08a7rfc3a5559a.71.16957022303515933"
         //     }
         //
-        object data = this.safeValue(response, "data", new List<object>() {});
+        object data = this.safeList(response, "data", new List<object>() {});
         return this.parseOrders(data, market, since, limit);
     }
 
@@ -3091,7 +3253,7 @@ public partial class bitmart : Exchange
         {
             response = await this.privateGetContractPrivateOrderHistory(this.extend(request, parameters));
         }
-        object data = this.safeValue(response, "data", new List<object>() {});
+        object data = this.safeList(response, "data", new List<object>() {});
         return this.parseOrders(data, market, since, limit);
     }
 
@@ -3226,7 +3388,7 @@ public partial class bitmart : Exchange
         //         "trace": "4cad855075664097af6ba5257c47605d.63.14957831547451715"
         //     }
         //
-        object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         return this.parseOrder(data, market);
     }
 
@@ -3236,6 +3398,7 @@ public partial class bitmart : Exchange
         * @method
         * @name bitmart#fetchDepositAddress
         * @description fetch the deposit address for a currency associated with this account
+        * @see https://developer-pro.bitmart.com/en/spot/#deposit-address-keyed
         * @param {string} code unified currency code
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
@@ -3261,43 +3424,63 @@ public partial class bitmart : Exchange
         }
         object response = await this.privateGetAccountV1DepositAddress(this.extend(request, parameters));
         //
-        //     {
-        //         "message":"OK",
-        //         "code":1000,
-        //         "trace":"0e6edd79-f77f-4251-abe5-83ba75d06c1a",
-        //         "data":{
-        //             "currency":"USDT-TRC20",
-        //             "chain":"USDT-TRC20",
-        //             "address":"TGR3ghy2b5VLbyAYrmiE15jasR6aPHTvC5",
-        //             "address_memo":""
-        //         }
-        //     }
+        //    {
+        //        "message": "OK",
+        //        "code": 1000,
+        //        "trace": "0e6edd79-f77f-4251-abe5-83ba75d06c1a",
+        //        "data": {
+        //            currency: 'ETH',
+        //            chain: 'Ethereum',
+        //            address: '0x99B5EEc2C520f86F0F62F05820d28D05D36EccCf',
+        //            address_memo: ''
+        //        }
+        //    }
         //
-        object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
-        object address = this.safeString(data, "address");
-        object tag = this.safeString(data, "address_memo");
-        object chain = this.safeString(data, "chain");
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        return this.parseDepositAddress(data, currency);
+    }
+
+    public override object parseDepositAddress(object depositAddress, object currency = null)
+    {
+        //
+        //    {
+        //        currency: 'ETH',
+        //        chain: 'Ethereum',
+        //        address: '0x99B5EEc2C520f86F0F62F05820d28D05D36EccCf',
+        //        address_memo: ''
+        //    }
+        //
+        object currencyId = this.safeString(depositAddress, "currency");
+        object address = this.safeString(depositAddress, "address");
+        object chain = this.safeString(depositAddress, "chain");
         object network = null;
+        currency = this.safeCurrency(currencyId, currency);
         if (isTrue(!isEqual(chain, null)))
         {
             object parts = ((string)chain).Split(new [] {((string)"-")}, StringSplitOptions.None).ToList<object>();
-            object networkId = this.safeString(parts, 1);
-            network = this.safeNetwork(networkId);
+            object partsLength = getArrayLength(parts);
+            object networkId = this.safeString(parts, subtract(partsLength, 1));
+            network = this.safeNetworkCode(networkId, currency);
         }
         this.checkAddress(address);
         return new Dictionary<string, object>() {
-            { "currency", code },
+            { "info", depositAddress },
+            { "currency", this.safeString(currency, "code") },
             { "address", address },
-            { "tag", tag },
+            { "tag", this.safeString(depositAddress, "address_memo") },
             { "network", network },
-            { "info", response },
         };
     }
 
-    public virtual object safeNetwork(object networkId)
+    public virtual object safeNetworkCode(object networkId, object currency = null)
     {
-        // TODO: parse
-        return networkId;
+        object name = this.safeString(currency, "name");
+        if (isTrue(isEqual(networkId, name)))
+        {
+            object code = this.safeString(currency, "code");
+            return code;
+        }
+        return this.networkIdToCode(networkId);
     }
 
     public async override Task<object> withdraw(object code, object amount, object address, object tag = null, object parameters = null)
@@ -3422,7 +3605,7 @@ public partial class bitmart : Exchange
         //     }
         //
         object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
-        object records = this.safeValue(data, "records", new List<object>() {});
+        object records = this.safeList(data, "records", new List<object>() {});
         return this.parseTransactions(records, currency, since, limit);
     }
 
@@ -3466,7 +3649,7 @@ public partial class bitmart : Exchange
         //     }
         //
         object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
-        object record = this.safeValue(data, "record", new Dictionary<string, object>() {});
+        object record = this.safeDict(data, "record", new Dictionary<string, object>() {});
         return this.parseTransaction(record);
     }
 
@@ -3526,7 +3709,7 @@ public partial class bitmart : Exchange
         //     }
         //
         object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
-        object record = this.safeValue(data, "record", new Dictionary<string, object>() {});
+        object record = this.safeDict(data, "record", new Dictionary<string, object>() {});
         return this.parseTransaction(record);
     }
 
@@ -3802,7 +3985,7 @@ public partial class bitmart : Exchange
         return this.parseIsolatedBorrowRate(borrowRate, market);
     }
 
-    public virtual object parseIsolatedBorrowRate(object info, object market = null)
+    public override object parseIsolatedBorrowRate(object info, object market = null)
     {
         //
         //     {
@@ -3893,13 +4076,7 @@ public partial class bitmart : Exchange
         //
         object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
         object symbols = this.safeValue(data, "symbols", new List<object>() {});
-        object result = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
-        {
-            object symbol = this.safeValue(symbols, i);
-            ((IList<object>)result).Add(this.parseIsolatedBorrowRate(symbol));
-        }
-        return result;
+        return this.parseIsolatedBorrowRates(symbols);
     }
 
     public async override Task<object> transfer(object code, object amount, object fromAccount, object toAccount, object parameters = null)
@@ -4058,7 +4235,7 @@ public partial class bitmart : Exchange
         };
     }
 
-    public async virtual Task<object> fetchTransfers(object code = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<object> fetchTransfers(object code = null, object since = null, object limit = null, object parameters = null)
     {
         /**
         * @method
@@ -4097,9 +4274,9 @@ public partial class bitmart : Exchange
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
-        object until = this.safeInteger2(parameters, "until", "till"); // unified in milliseconds
+        object until = this.safeInteger(parameters, "until"); // unified in milliseconds
         object endTime = this.safeInteger(parameters, "time_end", until); // exchange-specific in milliseconds
-        parameters = this.omit(parameters, new List<object>() {"till", "until"});
+        parameters = this.omit(parameters, new List<object>() {"until"});
         if (isTrue(!isEqual(endTime, null)))
         {
             ((IDictionary<string,object>)request)["time_end"] = endTime;
@@ -4125,7 +4302,7 @@ public partial class bitmart : Exchange
         //     }
         //
         object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
-        object records = this.safeValue(data, "records", new List<object>() {});
+        object records = this.safeList(data, "records", new List<object>() {});
         return this.parseTransfers(records, currency, since, limit);
     }
 
@@ -4254,7 +4431,7 @@ public partial class bitmart : Exchange
         //         "trace": "7f9c94e10f9d4513bc08a7bfc2a5559a.72.16946575108274991"
         //     }
         //
-        object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         return this.parseOpenInterest(data, market);
     }
 
@@ -4437,7 +4614,7 @@ public partial class bitmart : Exchange
         //     }
         //
         object data = this.safeValue(response, "data", new List<object>() {});
-        object first = this.safeValue(data, 0, new Dictionary<string, object>() {});
+        object first = this.safeDict(data, 0, new Dictionary<string, object>() {});
         return this.parsePosition(first, market);
     }
 

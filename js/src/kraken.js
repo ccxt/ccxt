@@ -24,7 +24,10 @@ export default class kraken extends Exchange {
             'name': 'Kraken',
             'countries': ['US'],
             'version': '0',
-            'rateLimit': 3000,
+            // rate-limits: https://support.kraken.com/hc/en-us/articles/206548367-What-are-the-API-rate-limits-#1
+            // for public: 1 req/s
+            // for private: every second 0.33 weight added to your allowed capacity (some private endpoints need 1 weight, some need 2)
+            'rateLimit': 1000,
             'certified': false,
             'pro': true,
             'has': {
@@ -36,9 +39,13 @@ export default class kraken extends Exchange {
                 'option': false,
                 'addMargin': false,
                 'cancelAllOrders': true,
+                'cancelAllOrdersAfter': true,
                 'cancelOrder': true,
                 'cancelOrders': true,
                 'createDepositAddress': true,
+                'createMarketBuyOrderWithCost': true,
+                'createMarketOrderWithCost': false,
+                'createMarketSellOrderWithCost': false,
                 'createOrder': true,
                 'createStopLimitOrder': true,
                 'createStopMarketOrder': true,
@@ -154,7 +161,7 @@ export default class kraken extends Exchange {
                 },
                 'public': {
                     'get': {
-                        // public endpoint rate-limits are described in article: https://support.kraken.com/hc/en-us/articles/206548367-What-are-the-API-rate-limits-#1
+                        // rate-limits explained in comment in the top of this file
                         'Assets': 1,
                         'AssetPairs': 1,
                         'Depth': 1,
@@ -170,48 +177,48 @@ export default class kraken extends Exchange {
                     'post': {
                         'AddOrder': 0,
                         'AddOrderBatch': 0,
-                        'AddExport': 1,
-                        'Balance': 1,
-                        'CancelAll': 1,
-                        'CancelAllOrdersAfter': 1,
+                        'AddExport': 3,
+                        'Balance': 3,
+                        'CancelAll': 3,
+                        'CancelAllOrdersAfter': 3,
                         'CancelOrder': 0,
                         'CancelOrderBatch': 0,
-                        'ClosedOrders': 1,
-                        'DepositAddresses': 1,
-                        'DepositMethods': 1,
-                        'DepositStatus': 1,
+                        'ClosedOrders': 3,
+                        'DepositAddresses': 3,
+                        'DepositMethods': 3,
+                        'DepositStatus': 3,
                         'EditOrder': 0,
-                        'ExportStatus': 1,
-                        'GetWebSocketsToken': 1,
-                        'Ledgers': 2,
-                        'OpenOrders': 1,
-                        'OpenPositions': 1,
-                        'QueryLedgers': 1,
-                        'QueryOrders': 1,
-                        'QueryTrades': 1,
-                        'RetrieveExport': 1,
-                        'RemoveExport': 1,
-                        'BalanceEx': 1,
-                        'TradeBalance': 1,
-                        'TradesHistory': 2,
-                        'TradeVolume': 1,
-                        'Withdraw': 1,
-                        'WithdrawCancel': 1,
-                        'WithdrawInfo': 1,
-                        'WithdrawMethods': 1,
-                        'WithdrawAddresses': 1,
-                        'WithdrawStatus': 1,
-                        'WalletTransfer': 1,
+                        'ExportStatus': 3,
+                        'GetWebSocketsToken': 3,
+                        'Ledgers': 6,
+                        'OpenOrders': 3,
+                        'OpenPositions': 3,
+                        'QueryLedgers': 3,
+                        'QueryOrders': 3,
+                        'QueryTrades': 3,
+                        'RetrieveExport': 3,
+                        'RemoveExport': 3,
+                        'BalanceEx': 3,
+                        'TradeBalance': 3,
+                        'TradesHistory': 6,
+                        'TradeVolume': 3,
+                        'Withdraw': 3,
+                        'WithdrawCancel': 3,
+                        'WithdrawInfo': 3,
+                        'WithdrawMethods': 3,
+                        'WithdrawAddresses': 3,
+                        'WithdrawStatus': 3,
+                        'WalletTransfer': 3,
                         // sub accounts
-                        'CreateSubaccount': 1,
-                        'AccountTransfer': 1,
+                        'CreateSubaccount': 3,
+                        'AccountTransfer': 3,
                         // earn
-                        'Earn/Allocate': 1,
-                        'Earn/Deallocate': 1,
-                        'Earn/AllocateStatus': 1,
-                        'Earn/DeallocateStatus': 1,
-                        'Earn/Strategies': 1,
-                        'Earn/Allocations': 1,
+                        'Earn/Allocate': 3,
+                        'Earn/Deallocate': 3,
+                        'Earn/AllocateStatus': 3,
+                        'Earn/DeallocateStatus': 3,
+                        'Earn/Strategies': 3,
+                        'Earn/Allocations': 3,
                     },
                 },
             },
@@ -452,7 +459,7 @@ export default class kraken extends Exchange {
          * @method
          * @name kraken#fetchMarkets
          * @description retrieves data on all markets for kraken
-         * @see https://docs.kraken.com/rest/#tag/Market-Data/operation/getTradableAssetPairs
+         * @see https://docs.kraken.com/rest/#tag/Spot-Market-Data/operation/getTradableAssetPairs
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} an array of objects representing market data
          */
@@ -533,6 +540,8 @@ export default class kraken extends Exchange {
             const leverageBuy = this.safeValue(market, 'leverage_buy', []);
             const leverageBuyLength = leverageBuy.length;
             const precisionPrice = this.parseNumber(this.parsePrecision(this.safeString(market, 'pair_decimals')));
+            const status = this.safeString(market, 'status');
+            const isActive = status === 'online';
             result.push({
                 'id': id,
                 'wsId': this.safeString(market, 'wsname'),
@@ -551,7 +560,7 @@ export default class kraken extends Exchange {
                 'swap': false,
                 'future': false,
                 'option': false,
-                'active': true,
+                'active': isActive,
                 'contract': false,
                 'linear': undefined,
                 'inverse': undefined,
@@ -596,10 +605,7 @@ export default class kraken extends Exchange {
         if (currencyId !== undefined) {
             if (currencyId.length > 3) {
                 if ((currencyId.indexOf('X') === 0) || (currencyId.indexOf('Z') === 0)) {
-                    if (currencyId.indexOf('.') > 0) {
-                        return super.safeCurrency(currencyId, currency);
-                    }
-                    else {
+                    if (!(currencyId.indexOf('.') > 0)) {
                         currencyId = currencyId.slice(1);
                     }
                 }
@@ -639,7 +645,7 @@ export default class kraken extends Exchange {
          * @method
          * @name kraken#fetchCurrencies
          * @description fetches all available currencies on an exchange
-         * @see https://docs.kraken.com/rest/#tag/Market-Data/operation/getAssetInfo
+         * @see https://docs.kraken.com/rest/#tag/Spot-Market-Data/operation/getAssetInfo
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} an associative dictionary of currencies
          */
@@ -648,8 +654,13 @@ export default class kraken extends Exchange {
         //     {
         //         "error": [],
         //         "result": {
-        //             "ADA": { "aclass": "currency", "altname": "ADA", "decimals": 8, "display_decimals": 6 },
-        //             "BCH": { "aclass": "currency", "altname": "BCH", "decimals": 10, "display_decimals": 5 },
+        //             "BCH": {
+        //                 "aclass": "currency",
+        //                 "altname": "BCH",
+        //                 "decimals": 10,
+        //                 "display_decimals": 5
+        //                 "status": "enabled",
+        //             },
         //             ...
         //         },
         //     }
@@ -664,15 +675,15 @@ export default class kraken extends Exchange {
             // see: https://support.kraken.com/hc/en-us/articles/201893608-What-are-the-withdrawal-fees-
             // to add support for multiple withdrawal/deposit methods and
             // differentiated fees for each particular method
-            const code = this.safeCurrencyCode(this.safeString(currency, 'altname'));
+            const code = this.safeCurrencyCode(id);
             const precision = this.parseNumber(this.parsePrecision(this.safeString(currency, 'decimals')));
             // assumes all currencies are active except those listed above
-            const active = !this.inArray(code, this.options['inactiveCurrencies']);
+            const active = this.safeString(currency, 'status') === 'enabled';
             result[code] = {
                 'id': id,
                 'code': code,
                 'info': currency,
-                'name': code,
+                'name': this.safeString(currency, 'altname'),
                 'active': active,
                 'deposit': undefined,
                 'withdraw': undefined,
@@ -767,7 +778,7 @@ export default class kraken extends Exchange {
          * @method
          * @name kraken#fetchOrderBook
          * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-         * @see https://docs.kraken.com/rest/#tag/Market-Data/operation/getOrderBook
+         * @see https://docs.kraken.com/rest/#tag/Spot-Market-Data/operation/getOrderBook
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int} [limit] the maximum amount of order book entries to return
          * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -869,7 +880,7 @@ export default class kraken extends Exchange {
          * @method
          * @name kraken#fetchTickers
          * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
-         * @see https://docs.kraken.com/rest/#tag/Market-Data/operation/getTickerInformation
+         * @see https://docs.kraken.com/rest/#tag/Spot-Market-Data/operation/getTickerInformation
          * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
@@ -906,7 +917,7 @@ export default class kraken extends Exchange {
          * @method
          * @name kraken#fetchTicker
          * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-         * @see https://docs.kraken.com/rest/#tag/Market-Data/operation/getTickerInformation
+         * @see https://docs.kraken.com/rest/#tag/Spot-Market-Data/operation/getTickerInformation
          * @param {string} symbol unified symbol of the market to fetch the ticker for
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
@@ -951,7 +962,7 @@ export default class kraken extends Exchange {
          * @method
          * @name kraken#fetchOHLCV
          * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-         * @see https://docs.kraken.com/rest/#tag/Market-Data/operation/getOHLCData
+         * @see https://docs.kraken.com/rest/#tag/Spot-Market-Data/operation/getOHLCData
          * @param {string} symbol unified symbol of the market to fetch OHLCV data for
          * @param {string} timeframe the length of time each candle represents
          * @param {int} [since] timestamp in ms of the earliest candle to fetch
@@ -997,7 +1008,7 @@ export default class kraken extends Exchange {
         //         }
         //     }
         const result = this.safeValue(response, 'result', {});
-        const ohlcvs = this.safeValue(result, market['id'], []);
+        const ohlcvs = this.safeList(result, market['id'], []);
         return this.parseOHLCVs(ohlcvs, market, timeframe, since, limit);
     }
     parseLedgerEntryType(type) {
@@ -1249,7 +1260,7 @@ export default class kraken extends Exchange {
          * @method
          * @name kraken#fetchTrades
          * @description get the list of most recent trades for a particular symbol
-         * @see https://docs.kraken.com/rest/#tag/Market-Data/operation/getRecentTrades
+         * @see https://docs.kraken.com/rest/#tag/Spot-Market-Data/operation/getRecentTrades
          * @param {string} symbol unified symbol of the market to fetch trades for
          * @param {int} [since] timestamp in ms of the earliest trade to fetch
          * @param {int} [limit] the maximum amount of trades to fetch
@@ -1295,6 +1306,7 @@ export default class kraken extends Exchange {
         const lastTrade = trades[length - 1];
         const lastTradeId = this.safeString(result, 'last');
         lastTrade.push(lastTradeId);
+        trades[length - 1] = lastTrade;
         return this.parseTrades(trades, market, since, limit);
     }
     parseBalance(response) {
@@ -1344,6 +1356,37 @@ export default class kraken extends Exchange {
         //
         return this.parseBalance(response);
     }
+    async createMarketOrderWithCost(symbol, side, cost, params = {}) {
+        /**
+         * @method
+         * @name kraken#createMarketOrderWithCost
+         * @description create a market order by providing the symbol, side and cost
+         * @see https://docs.kraken.com/rest/#tag/Trading/operation/addOrder
+         * @param {string} symbol unified symbol of the market to create an order in (only USD markets are supported)
+         * @param {string} side 'buy' or 'sell'
+         * @param {float} cost how much you want to trade in units of the quote currency
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        await this.loadMarkets();
+        // only buy orders are supported by the endpoint
+        params['cost'] = cost;
+        return await this.createOrder(symbol, 'market', side, cost, undefined, params);
+    }
+    async createMarketBuyOrderWithCost(symbol, cost, params = {}) {
+        /**
+         * @method
+         * @name kraken#createMarketBuyOrderWithCost
+         * @description create a market buy order by providing the symbol, side and cost
+         * @see https://docs.kraken.com/rest/#tag/Trading/operation/addOrder
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {float} cost how much you want to trade in units of the quote currency
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        await this.loadMarkets();
+        return await this.createMarketOrderWithCost(symbol, 'buy', cost, params);
+    }
     async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
         /**
          * @method
@@ -1374,7 +1417,7 @@ export default class kraken extends Exchange {
             'ordertype': type,
             'volume': this.amountToPrecision(symbol, amount),
         };
-        const orderRequest = this.orderRequest('createOrder()', symbol, type, request, price, params);
+        const orderRequest = this.orderRequest('createOrder', symbol, type, request, amount, price, params);
         const response = await this.privatePostAddOrder(this.extend(orderRequest[0], orderRequest[1]));
         //
         //     {
@@ -1385,7 +1428,7 @@ export default class kraken extends Exchange {
         //         }
         //     }
         //
-        const result = this.safeValue(response, 'result');
+        const result = this.safeDict(response, 'result');
         return this.parseOrder(result);
     }
     findMarketByAltnameOrId(id) {
@@ -1547,8 +1590,15 @@ export default class kraken extends Exchange {
         //      }
         //  }
         //
-        const description = this.safeValue(order, 'descr', {});
-        const orderDescription = this.safeString(description, 'order', description);
+        const description = this.safeDict(order, 'descr', {});
+        const orderDescriptionObj = this.safeDict(order, 'descr'); // can be null
+        let orderDescription = undefined;
+        if (orderDescriptionObj !== undefined) {
+            orderDescription = this.safeString(orderDescriptionObj, 'order');
+        }
+        else {
+            orderDescription = this.safeString(order, 'descr');
+        }
         let side = undefined;
         let type = undefined;
         let marketId = undefined;
@@ -1619,8 +1669,8 @@ export default class kraken extends Exchange {
         }
         const status = this.parseOrderStatus(this.safeString(order, 'status'));
         let id = this.safeString2(order, 'id', 'txid');
-        if ((id === undefined) || (id.slice(0, 1) === '[')) {
-            const txid = this.safeValue(order, 'txid');
+        if ((id === undefined) || (id.startsWith('['))) {
+            const txid = this.safeList(order, 'txid');
             id = this.safeString(txid, 0);
         }
         const clientOrderId = this.safeString(order, 'userref');
@@ -1673,7 +1723,7 @@ export default class kraken extends Exchange {
             'trades': trades,
         }, market);
     }
-    orderRequest(method, symbol, type, request, price = undefined, params = {}) {
+    orderRequest(method, symbol, type, request, amount, price = undefined, params = {}) {
         const clientOrderId = this.safeString2(params, 'userref', 'clientOrderId');
         params = this.omit(params, ['userref', 'clientOrderId']);
         if (clientOrderId !== undefined) {
@@ -1688,10 +1738,25 @@ export default class kraken extends Exchange {
         const trailingLimitAmount = this.safeString(params, 'trailingLimitAmount');
         const isTrailingAmountOrder = trailingAmount !== undefined;
         const isLimitOrder = type.endsWith('limit'); // supporting limit, stop-loss-limit, take-profit-limit, etc
-        if (isLimitOrder && !isTrailingAmountOrder) {
+        const isMarketOrder = type === 'market';
+        const cost = this.safeString(params, 'cost');
+        const flags = this.safeString(params, 'oflags');
+        params = this.omit(params, ['cost', 'oflags']);
+        const isViqcOrder = (flags !== undefined) && (flags.indexOf('viqc') > -1); // volume in quote currency
+        if (isMarketOrder && (cost !== undefined || isViqcOrder)) {
+            if (cost === undefined && (amount !== undefined)) {
+                request['volume'] = this.costToPrecision(symbol, this.numberToString(amount));
+            }
+            else {
+                request['volume'] = this.costToPrecision(symbol, cost);
+            }
+            const extendedOflags = (flags !== undefined) ? flags + ',viqc' : 'viqc';
+            request['oflags'] = extendedOflags;
+        }
+        else if (isLimitOrder && !isTrailingAmountOrder) {
             request['price'] = this.priceToPrecision(symbol, price);
         }
-        const reduceOnly = this.safeValue2(params, 'reduceOnly', 'reduce_only');
+        const reduceOnly = this.safeBool2(params, 'reduceOnly', 'reduce_only');
         if (isStopLossOrTakeProfitTrigger) {
             if (isStopLossTriggerOrder) {
                 request['price'] = this.priceToPrecision(symbol, stopLossTriggerPrice);
@@ -1732,9 +1797,14 @@ export default class kraken extends Exchange {
             }
         }
         if (reduceOnly) {
-            request['reduce_only'] = 'true'; // not using boolean in this case, because the urlencodedNested transforms it into 'True' string
+            if (method === 'createOrderWs') {
+                request['reduce_only'] = true; // ws request can't have stringified bool
+            }
+            else {
+                request['reduce_only'] = 'true'; // not using boolean in this case, because the urlencodedNested transforms it into 'True' string
+            }
         }
-        let close = this.safeValue(params, 'close');
+        let close = this.safeDict(params, 'close');
         if (close !== undefined) {
             close = this.extend({}, close);
             const closePrice = this.safeValue(close, 'price');
@@ -1755,7 +1825,8 @@ export default class kraken extends Exchange {
         let postOnly = undefined;
         [postOnly, params] = this.handlePostOnly(isMarket, false, params);
         if (postOnly) {
-            request['oflags'] = 'post';
+            const extendedPostFlags = (flags !== undefined) ? flags + ',post' : 'post';
+            request['oflags'] = extendedPostFlags;
         }
         params = this.omit(params, ['timeInForce', 'reduceOnly', 'stopLossPrice', 'takeProfitPrice', 'trailingAmount', 'trailingLimitAmount', 'offset']);
         return [request, params];
@@ -1793,7 +1864,7 @@ export default class kraken extends Exchange {
         if (amount !== undefined) {
             request['volume'] = this.amountToPrecision(symbol, amount);
         }
-        const orderRequest = this.orderRequest('editOrder()', symbol, type, request, price, params);
+        const orderRequest = this.orderRequest('editOrder', symbol, type, request, amount, price, params);
         const response = await this.privatePostEditOrder(this.extend(orderRequest[0], orderRequest[1]));
         //
         //     {
@@ -1811,7 +1882,7 @@ export default class kraken extends Exchange {
         //         }
         //     }
         //
-        const data = this.safeValue(response, 'result', {});
+        const data = this.safeDict(response, 'result', {});
         return this.parseOrder(data, market);
     }
     async fetchOrder(id, symbol = undefined, params = {}) {
@@ -2121,6 +2192,35 @@ export default class kraken extends Exchange {
         await this.loadMarkets();
         return await this.privatePostCancelAll(params);
     }
+    async cancelAllOrdersAfter(timeout, params = {}) {
+        /**
+         * @method
+         * @name kraken#cancelAllOrdersAfter
+         * @description dead man's switch, cancel all orders after the given timeout
+         * @see https://docs.kraken.com/rest/#tag/Spot-Trading/operation/cancelAllOrdersAfter
+         * @param {number} timeout time in milliseconds, 0 represents cancel the timer
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} the api result
+         */
+        if (timeout > 86400000) {
+            throw new BadRequest(this.id + 'cancelAllOrdersAfter timeout should be less than 86400000 milliseconds');
+        }
+        await this.loadMarkets();
+        const request = {
+            'timeout': (timeout > 0) ? (this.parseToInt(timeout / 1000)) : 0,
+        };
+        const response = await this.privatePostCancelAllOrdersAfter(this.extend(request, params));
+        //
+        //     {
+        //         "error": [ ],
+        //         "result": {
+        //             "currentTime": "2023-03-24T17:41:56Z",
+        //             "triggerTime": "2023-03-24T17:42:56Z"
+        //         }
+        //     }
+        //
+        return response;
+    }
     async fetchOpenOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
@@ -2149,8 +2249,8 @@ export default class kraken extends Exchange {
         if (symbol !== undefined) {
             market = this.market(symbol);
         }
-        const result = this.safeValue(response, 'result', {});
-        const orders = this.safeValue(result, 'open', []);
+        const result = this.safeDict(response, 'result', {});
+        const orders = this.safeDict(result, 'open', {});
         return this.parseOrders(orders, market, since, limit);
     }
     async fetchClosedOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -2222,8 +2322,8 @@ export default class kraken extends Exchange {
         if (symbol !== undefined) {
             market = this.market(symbol);
         }
-        const result = this.safeValue(response, 'result', {});
-        const orders = this.safeValue(result, 'closed', []);
+        const result = this.safeDict(response, 'result', {});
+        const orders = this.safeDict(result, 'closed', {});
         return this.parseOrders(orders, market, since, limit);
     }
     parseTransactionStatus(status) {
@@ -2406,7 +2506,7 @@ export default class kraken extends Exchange {
          * @method
          * @name kraken#fetchTime
          * @description fetches the current integer timestamp in milliseconds from the exchange server
-         * @see https://docs.kraken.com/rest/#tag/Market-Data/operation/getServerTime
+         * @see https://docs.kraken.com/rest/#tag/Spot-Market-Data/operation/getServerTime
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {int} the current integer timestamp in milliseconds from the exchange server
          */
@@ -2683,7 +2783,7 @@ export default class kraken extends Exchange {
             //         }
             //     }
             //
-            const result = this.safeValue(response, 'result', {});
+            const result = this.safeDict(response, 'result', {});
             return this.parseTransaction(result, currency);
         }
         throw new ExchangeError(this.id + " withdraw() requires a 'key' parameter (withdrawal key name, as set up on your account)");
@@ -2694,15 +2794,15 @@ export default class kraken extends Exchange {
          * @name kraken#fetchPositions
          * @description fetch all open positions
          * @see https://docs.kraken.com/rest/#tag/Account-Data/operation/getOpenPositions
-         * @param {string[]|undefined} symbols not used by kraken fetchPositions ()
+         * @param {string[]} [symbols] not used by kraken fetchPositions ()
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
          */
         await this.loadMarkets();
         const request = {
-        // 'txid': 'comma delimited list of transaction ids to restrict output to',
-        // 'docalcs': false, // whether or not to include profit/loss calculations
-        // 'consolidation': 'market', // what to consolidate the positions data around, market will consolidate positions based on market pair
+            // 'txid': 'comma delimited list of transaction ids to restrict output to',
+            'docalcs': 'true',
+            'consolidation': 'market', // what to consolidate the positions data around, market will consolidate positions based on market pair
         };
         const response = await this.privatePostOpenPositions(this.extend(request, params));
         //
@@ -2750,11 +2850,60 @@ export default class kraken extends Exchange {
         //         ]
         //     }
         //
-        const result = this.safeValue(response, 'result');
-        // todo unify parsePosition/parsePositions
-        return result;
+        symbols = this.marketSymbols(symbols);
+        const result = this.safeList(response, 'result');
+        const results = this.parsePositions(result, symbols);
+        return this.filterByArrayPositions(results, 'symbol', symbols, false);
     }
-    parseAccount(account) {
+    parsePosition(position, market = undefined) {
+        //
+        //             {
+        //                 "pair": "ETHUSDT",
+        //                 "positions": "1",
+        //                 "type": "buy",
+        //                 "leverage": "2.00000",
+        //                 "cost": "28.49800",
+        //                 "fee": "0.07979",
+        //                 "vol": "0.02000000",
+        //                 "vol_closed": "0.00000000",
+        //                 "margin": "14.24900"
+        //             }
+        //
+        const marketId = this.safeString(position, 'pair');
+        const rawSide = this.safeString(position, 'type');
+        const side = (rawSide === 'buy') ? 'long' : 'short';
+        return this.safePosition({
+            'info': position,
+            'id': undefined,
+            'symbol': this.safeSymbol(marketId, market),
+            'notional': undefined,
+            'marginMode': undefined,
+            'liquidationPrice': undefined,
+            'entryPrice': undefined,
+            'unrealizedPnl': this.safeNumber(position, 'net'),
+            'realizedPnl': undefined,
+            'percentage': undefined,
+            'contracts': this.safeNumber(position, 'vol'),
+            'contractSize': undefined,
+            'markPrice': undefined,
+            'lastPrice': undefined,
+            'side': side,
+            'hedged': undefined,
+            'timestamp': undefined,
+            'datetime': undefined,
+            'lastUpdateTimestamp': undefined,
+            'maintenanceMargin': undefined,
+            'maintenanceMarginPercentage': undefined,
+            'collateral': undefined,
+            'initialMargin': this.safeNumber(position, 'margin'),
+            'initialMarginPercentage': undefined,
+            'leverage': this.safeNumber(position, 'leverage'),
+            'marginRatio': undefined,
+            'stopLossPrice': undefined,
+            'takeProfitPrice': undefined,
+        });
+    }
+    parseAccountType(account) {
         const accountByType = {
             'spot': 'Spot Wallet',
             'swap': 'Futures Wallet',
@@ -2788,8 +2937,8 @@ export default class kraken extends Exchange {
          */
         await this.loadMarkets();
         const currency = this.currency(code);
-        fromAccount = this.parseAccount(fromAccount);
-        toAccount = this.parseAccount(toAccount);
+        fromAccount = this.parseAccountType(fromAccount);
+        toAccount = this.parseAccountType(toAccount);
         const request = {
             'amount': this.currencyToPrecision(code, amount),
             'from': fromAccount,
@@ -2906,6 +3055,9 @@ export default class kraken extends Exchange {
             throw new CancelPending(this.id + ' ' + body);
         }
         if (body.indexOf('Invalid arguments:volume') >= 0) {
+            throw new InvalidOrder(this.id + ' ' + body);
+        }
+        if (body.indexOf('Invalid arguments:viqc') >= 0) {
             throw new InvalidOrder(this.id + ' ' + body);
         }
         if (body.indexOf('Rate limit exceeded') >= 0) {

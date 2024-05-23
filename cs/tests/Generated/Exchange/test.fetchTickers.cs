@@ -9,9 +9,9 @@ public partial class testMainClass : BaseTest
 {
     async static public Task testFetchTickers(Exchange exchange, object skippedProperties, object symbol)
     {
-        object withoutSymbol = testFetchTickersHelper(exchange, skippedProperties, null);
-        object withSymbol = testFetchTickersHelper(exchange, skippedProperties, new List<object>() {symbol});
-        await promiseAll(new List<object>() {withSymbol, withoutSymbol});
+        // const withoutSymbol = testFetchTickersHelper (exchange, skippedProperties, undefined);
+        // const withSymbol = testFetchTickersHelper (exchange, skippedProperties, [ symbol ]);
+        await promiseAll(new List<object> {testFetchTickersHelper(exchange, skippedProperties, null), testFetchTickersHelper(exchange, skippedProperties, new List<object>() {symbol})});
     }
     async static public Task testFetchTickersHelper(Exchange exchange, object skippedProperties, object argSymbols, object argParams = null)
     {
@@ -25,6 +25,7 @@ public partial class testMainClass : BaseTest
         {
             checkedSymbol = getValue(argSymbols, 0);
         }
+        testSharedMethods.assertNonEmtpyArray(exchange, skippedProperties, method, values, checkedSymbol);
         for (object i = 0; isLessThan(i, getArrayLength(values)); postFixIncrement(ref i))
         {
             // todo: symbol check here

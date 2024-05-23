@@ -192,7 +192,21 @@ public partial class Exchange
     }
     public bool inArray(object elem, object list2)
     {
+        if (list2 == null)
+            return false;
+        if (list2 is List<string>)
+        {
+            return ((List<string>)list2).Contains((string)elem);
+        }
+        if (list2 is List<Int64>)
+        {
+            return ((List<Int64>)list2).Contains(Convert.ToInt64(elem));
+        }
         var list = (List<object>)list2;
+        if (elem is Int32 || elem is Int64)
+        {
+            return list.Contains(Convert.ToInt64(elem)) || list.Contains(Convert.ToInt32(elem));
+        }
         return list.Contains(elem);
     }
 
@@ -315,33 +329,41 @@ public partial class Exchange
 
     public object omitZero(object value)
     {
-        if (value is double)
+        try
         {
-            if ((double)value == 0.0)
+            if (value is double)
             {
-                return null;
+                if ((double)value == 0.0)
+                {
+                    return null;
+                }
             }
+            if (value is Int64)
+            {
+                if ((Int64)value == 0)
+                {
+                    return null;
+                }
+            }
+            if (value is string)
+            {
+                // if ((string)value == "0")
+                // {
+                //     return null;
+                // }
+                var parsed = Convert.ToDouble(value, CultureInfo.InvariantCulture);
+                if (parsed == 0)
+                {
+                    return null;
+                }
+            }
+            return value;
         }
-        if (value is Int64)
+        catch (Exception e)
         {
-            if ((Int64)value == 0)
-            {
-                return null;
-            }
+            return value;
         }
-        if (value is string)
-        {
-            // if ((string)value == "0")
-            // {
-            //     return null;
-            // }
-            var parsed = Convert.ToDouble(value, CultureInfo.InvariantCulture);
-            if (parsed == 0)
-            {
-                return null;
-            }
-        }
-        return value;
+
     }
 
     public virtual object sum(params object[] args)

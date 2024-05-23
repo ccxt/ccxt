@@ -47,16 +47,16 @@ abstract class kraken extends \ccxt\Exchange {
         return $this->request('AddOrderBatch', 'private', 'POST', $params, null, null, array("cost" => 0));
     }
     public function private_post_addexport($params = array()) {
-        return $this->request('AddExport', 'private', 'POST', $params, null, null, array("cost" => 1));
+        return $this->request('AddExport', 'private', 'POST', $params, null, null, array("cost" => 3));
     }
     public function private_post_balance($params = array()) {
-        return $this->request('Balance', 'private', 'POST', $params, null, null, array("cost" => 1));
+        return $this->request('Balance', 'private', 'POST', $params, null, null, array("cost" => 3));
     }
     public function private_post_cancelall($params = array()) {
-        return $this->request('CancelAll', 'private', 'POST', $params, null, null, array("cost" => 1));
+        return $this->request('CancelAll', 'private', 'POST', $params, null, null, array("cost" => 3));
     }
     public function private_post_cancelallordersafter($params = array()) {
-        return $this->request('CancelAllOrdersAfter', 'private', 'POST', $params, null, null, array("cost" => 1));
+        return $this->request('CancelAllOrdersAfter', 'private', 'POST', $params, null, null, array("cost" => 3));
     }
     public function private_post_cancelorder($params = array()) {
         return $this->request('CancelOrder', 'private', 'POST', $params, null, null, array("cost" => 0));
@@ -65,106 +65,106 @@ abstract class kraken extends \ccxt\Exchange {
         return $this->request('CancelOrderBatch', 'private', 'POST', $params, null, null, array("cost" => 0));
     }
     public function private_post_closedorders($params = array()) {
-        return $this->request('ClosedOrders', 'private', 'POST', $params, null, null, array("cost" => 1));
+        return $this->request('ClosedOrders', 'private', 'POST', $params, null, null, array("cost" => 3));
     }
     public function private_post_depositaddresses($params = array()) {
-        return $this->request('DepositAddresses', 'private', 'POST', $params, null, null, array("cost" => 1));
+        return $this->request('DepositAddresses', 'private', 'POST', $params, null, null, array("cost" => 3));
     }
     public function private_post_depositmethods($params = array()) {
-        return $this->request('DepositMethods', 'private', 'POST', $params, null, null, array("cost" => 1));
+        return $this->request('DepositMethods', 'private', 'POST', $params, null, null, array("cost" => 3));
     }
     public function private_post_depositstatus($params = array()) {
-        return $this->request('DepositStatus', 'private', 'POST', $params, null, null, array("cost" => 1));
+        return $this->request('DepositStatus', 'private', 'POST', $params, null, null, array("cost" => 3));
     }
     public function private_post_editorder($params = array()) {
         return $this->request('EditOrder', 'private', 'POST', $params, null, null, array("cost" => 0));
     }
     public function private_post_exportstatus($params = array()) {
-        return $this->request('ExportStatus', 'private', 'POST', $params, null, null, array("cost" => 1));
+        return $this->request('ExportStatus', 'private', 'POST', $params, null, null, array("cost" => 3));
     }
     public function private_post_getwebsocketstoken($params = array()) {
-        return $this->request('GetWebSocketsToken', 'private', 'POST', $params, null, null, array("cost" => 1));
+        return $this->request('GetWebSocketsToken', 'private', 'POST', $params, null, null, array("cost" => 3));
     }
     public function private_post_ledgers($params = array()) {
-        return $this->request('Ledgers', 'private', 'POST', $params, null, null, array("cost" => 2));
+        return $this->request('Ledgers', 'private', 'POST', $params, null, null, array("cost" => 6));
     }
     public function private_post_openorders($params = array()) {
-        return $this->request('OpenOrders', 'private', 'POST', $params, null, null, array("cost" => 1));
+        return $this->request('OpenOrders', 'private', 'POST', $params, null, null, array("cost" => 3));
     }
     public function private_post_openpositions($params = array()) {
-        return $this->request('OpenPositions', 'private', 'POST', $params, null, null, array("cost" => 1));
+        return $this->request('OpenPositions', 'private', 'POST', $params, null, null, array("cost" => 3));
     }
     public function private_post_queryledgers($params = array()) {
-        return $this->request('QueryLedgers', 'private', 'POST', $params, null, null, array("cost" => 1));
+        return $this->request('QueryLedgers', 'private', 'POST', $params, null, null, array("cost" => 3));
     }
     public function private_post_queryorders($params = array()) {
-        return $this->request('QueryOrders', 'private', 'POST', $params, null, null, array("cost" => 1));
+        return $this->request('QueryOrders', 'private', 'POST', $params, null, null, array("cost" => 3));
     }
     public function private_post_querytrades($params = array()) {
-        return $this->request('QueryTrades', 'private', 'POST', $params, null, null, array("cost" => 1));
+        return $this->request('QueryTrades', 'private', 'POST', $params, null, null, array("cost" => 3));
     }
     public function private_post_retrieveexport($params = array()) {
-        return $this->request('RetrieveExport', 'private', 'POST', $params, null, null, array("cost" => 1));
+        return $this->request('RetrieveExport', 'private', 'POST', $params, null, null, array("cost" => 3));
     }
     public function private_post_removeexport($params = array()) {
-        return $this->request('RemoveExport', 'private', 'POST', $params, null, null, array("cost" => 1));
+        return $this->request('RemoveExport', 'private', 'POST', $params, null, null, array("cost" => 3));
     }
     public function private_post_balanceex($params = array()) {
-        return $this->request('BalanceEx', 'private', 'POST', $params, null, null, array("cost" => 1));
+        return $this->request('BalanceEx', 'private', 'POST', $params, null, null, array("cost" => 3));
     }
     public function private_post_tradebalance($params = array()) {
-        return $this->request('TradeBalance', 'private', 'POST', $params, null, null, array("cost" => 1));
+        return $this->request('TradeBalance', 'private', 'POST', $params, null, null, array("cost" => 3));
     }
     public function private_post_tradeshistory($params = array()) {
-        return $this->request('TradesHistory', 'private', 'POST', $params, null, null, array("cost" => 2));
+        return $this->request('TradesHistory', 'private', 'POST', $params, null, null, array("cost" => 6));
     }
     public function private_post_tradevolume($params = array()) {
-        return $this->request('TradeVolume', 'private', 'POST', $params, null, null, array("cost" => 1));
+        return $this->request('TradeVolume', 'private', 'POST', $params, null, null, array("cost" => 3));
     }
     public function private_post_withdraw($params = array()) {
-        return $this->request('Withdraw', 'private', 'POST', $params, null, null, array("cost" => 1));
+        return $this->request('Withdraw', 'private', 'POST', $params, null, null, array("cost" => 3));
     }
     public function private_post_withdrawcancel($params = array()) {
-        return $this->request('WithdrawCancel', 'private', 'POST', $params, null, null, array("cost" => 1));
+        return $this->request('WithdrawCancel', 'private', 'POST', $params, null, null, array("cost" => 3));
     }
     public function private_post_withdrawinfo($params = array()) {
-        return $this->request('WithdrawInfo', 'private', 'POST', $params, null, null, array("cost" => 1));
+        return $this->request('WithdrawInfo', 'private', 'POST', $params, null, null, array("cost" => 3));
     }
     public function private_post_withdrawmethods($params = array()) {
-        return $this->request('WithdrawMethods', 'private', 'POST', $params, null, null, array("cost" => 1));
+        return $this->request('WithdrawMethods', 'private', 'POST', $params, null, null, array("cost" => 3));
     }
     public function private_post_withdrawaddresses($params = array()) {
-        return $this->request('WithdrawAddresses', 'private', 'POST', $params, null, null, array("cost" => 1));
+        return $this->request('WithdrawAddresses', 'private', 'POST', $params, null, null, array("cost" => 3));
     }
     public function private_post_withdrawstatus($params = array()) {
-        return $this->request('WithdrawStatus', 'private', 'POST', $params, null, null, array("cost" => 1));
+        return $this->request('WithdrawStatus', 'private', 'POST', $params, null, null, array("cost" => 3));
     }
     public function private_post_wallettransfer($params = array()) {
-        return $this->request('WalletTransfer', 'private', 'POST', $params, null, null, array("cost" => 1));
+        return $this->request('WalletTransfer', 'private', 'POST', $params, null, null, array("cost" => 3));
     }
     public function private_post_createsubaccount($params = array()) {
-        return $this->request('CreateSubaccount', 'private', 'POST', $params, null, null, array("cost" => 1));
+        return $this->request('CreateSubaccount', 'private', 'POST', $params, null, null, array("cost" => 3));
     }
     public function private_post_accounttransfer($params = array()) {
-        return $this->request('AccountTransfer', 'private', 'POST', $params, null, null, array("cost" => 1));
+        return $this->request('AccountTransfer', 'private', 'POST', $params, null, null, array("cost" => 3));
     }
     public function private_post_earn_allocate($params = array()) {
-        return $this->request('Earn/Allocate', 'private', 'POST', $params, null, null, array("cost" => 1));
+        return $this->request('Earn/Allocate', 'private', 'POST', $params, null, null, array("cost" => 3));
     }
     public function private_post_earn_deallocate($params = array()) {
-        return $this->request('Earn/Deallocate', 'private', 'POST', $params, null, null, array("cost" => 1));
+        return $this->request('Earn/Deallocate', 'private', 'POST', $params, null, null, array("cost" => 3));
     }
     public function private_post_earn_allocatestatus($params = array()) {
-        return $this->request('Earn/AllocateStatus', 'private', 'POST', $params, null, null, array("cost" => 1));
+        return $this->request('Earn/AllocateStatus', 'private', 'POST', $params, null, null, array("cost" => 3));
     }
     public function private_post_earn_deallocatestatus($params = array()) {
-        return $this->request('Earn/DeallocateStatus', 'private', 'POST', $params, null, null, array("cost" => 1));
+        return $this->request('Earn/DeallocateStatus', 'private', 'POST', $params, null, null, array("cost" => 3));
     }
     public function private_post_earn_strategies($params = array()) {
-        return $this->request('Earn/Strategies', 'private', 'POST', $params, null, null, array("cost" => 1));
+        return $this->request('Earn/Strategies', 'private', 'POST', $params, null, null, array("cost" => 3));
     }
     public function private_post_earn_allocations($params = array()) {
-        return $this->request('Earn/Allocations', 'private', 'POST', $params, null, null, array("cost" => 1));
+        return $this->request('Earn/Allocations', 'private', 'POST', $params, null, null, array("cost" => 3));
     }
     public function zendeskGet360000292886($params = array()) {
         return $this->request('360000292886', 'zendesk', 'GET', $params, null, null, array());
@@ -206,16 +206,16 @@ abstract class kraken extends \ccxt\Exchange {
         return $this->request('AddOrderBatch', 'private', 'POST', $params, null, null, array("cost" => 0));
     }
     public function privatePostAddExport($params = array()) {
-        return $this->request('AddExport', 'private', 'POST', $params, null, null, array("cost" => 1));
+        return $this->request('AddExport', 'private', 'POST', $params, null, null, array("cost" => 3));
     }
     public function privatePostBalance($params = array()) {
-        return $this->request('Balance', 'private', 'POST', $params, null, null, array("cost" => 1));
+        return $this->request('Balance', 'private', 'POST', $params, null, null, array("cost" => 3));
     }
     public function privatePostCancelAll($params = array()) {
-        return $this->request('CancelAll', 'private', 'POST', $params, null, null, array("cost" => 1));
+        return $this->request('CancelAll', 'private', 'POST', $params, null, null, array("cost" => 3));
     }
     public function privatePostCancelAllOrdersAfter($params = array()) {
-        return $this->request('CancelAllOrdersAfter', 'private', 'POST', $params, null, null, array("cost" => 1));
+        return $this->request('CancelAllOrdersAfter', 'private', 'POST', $params, null, null, array("cost" => 3));
     }
     public function privatePostCancelOrder($params = array()) {
         return $this->request('CancelOrder', 'private', 'POST', $params, null, null, array("cost" => 0));
@@ -224,105 +224,105 @@ abstract class kraken extends \ccxt\Exchange {
         return $this->request('CancelOrderBatch', 'private', 'POST', $params, null, null, array("cost" => 0));
     }
     public function privatePostClosedOrders($params = array()) {
-        return $this->request('ClosedOrders', 'private', 'POST', $params, null, null, array("cost" => 1));
+        return $this->request('ClosedOrders', 'private', 'POST', $params, null, null, array("cost" => 3));
     }
     public function privatePostDepositAddresses($params = array()) {
-        return $this->request('DepositAddresses', 'private', 'POST', $params, null, null, array("cost" => 1));
+        return $this->request('DepositAddresses', 'private', 'POST', $params, null, null, array("cost" => 3));
     }
     public function privatePostDepositMethods($params = array()) {
-        return $this->request('DepositMethods', 'private', 'POST', $params, null, null, array("cost" => 1));
+        return $this->request('DepositMethods', 'private', 'POST', $params, null, null, array("cost" => 3));
     }
     public function privatePostDepositStatus($params = array()) {
-        return $this->request('DepositStatus', 'private', 'POST', $params, null, null, array("cost" => 1));
+        return $this->request('DepositStatus', 'private', 'POST', $params, null, null, array("cost" => 3));
     }
     public function privatePostEditOrder($params = array()) {
         return $this->request('EditOrder', 'private', 'POST', $params, null, null, array("cost" => 0));
     }
     public function privatePostExportStatus($params = array()) {
-        return $this->request('ExportStatus', 'private', 'POST', $params, null, null, array("cost" => 1));
+        return $this->request('ExportStatus', 'private', 'POST', $params, null, null, array("cost" => 3));
     }
     public function privatePostGetWebSocketsToken($params = array()) {
-        return $this->request('GetWebSocketsToken', 'private', 'POST', $params, null, null, array("cost" => 1));
+        return $this->request('GetWebSocketsToken', 'private', 'POST', $params, null, null, array("cost" => 3));
     }
     public function privatePostLedgers($params = array()) {
-        return $this->request('Ledgers', 'private', 'POST', $params, null, null, array("cost" => 2));
+        return $this->request('Ledgers', 'private', 'POST', $params, null, null, array("cost" => 6));
     }
     public function privatePostOpenOrders($params = array()) {
-        return $this->request('OpenOrders', 'private', 'POST', $params, null, null, array("cost" => 1));
+        return $this->request('OpenOrders', 'private', 'POST', $params, null, null, array("cost" => 3));
     }
     public function privatePostOpenPositions($params = array()) {
-        return $this->request('OpenPositions', 'private', 'POST', $params, null, null, array("cost" => 1));
+        return $this->request('OpenPositions', 'private', 'POST', $params, null, null, array("cost" => 3));
     }
     public function privatePostQueryLedgers($params = array()) {
-        return $this->request('QueryLedgers', 'private', 'POST', $params, null, null, array("cost" => 1));
+        return $this->request('QueryLedgers', 'private', 'POST', $params, null, null, array("cost" => 3));
     }
     public function privatePostQueryOrders($params = array()) {
-        return $this->request('QueryOrders', 'private', 'POST', $params, null, null, array("cost" => 1));
+        return $this->request('QueryOrders', 'private', 'POST', $params, null, null, array("cost" => 3));
     }
     public function privatePostQueryTrades($params = array()) {
-        return $this->request('QueryTrades', 'private', 'POST', $params, null, null, array("cost" => 1));
+        return $this->request('QueryTrades', 'private', 'POST', $params, null, null, array("cost" => 3));
     }
     public function privatePostRetrieveExport($params = array()) {
-        return $this->request('RetrieveExport', 'private', 'POST', $params, null, null, array("cost" => 1));
+        return $this->request('RetrieveExport', 'private', 'POST', $params, null, null, array("cost" => 3));
     }
     public function privatePostRemoveExport($params = array()) {
-        return $this->request('RemoveExport', 'private', 'POST', $params, null, null, array("cost" => 1));
+        return $this->request('RemoveExport', 'private', 'POST', $params, null, null, array("cost" => 3));
     }
     public function privatePostBalanceEx($params = array()) {
-        return $this->request('BalanceEx', 'private', 'POST', $params, null, null, array("cost" => 1));
+        return $this->request('BalanceEx', 'private', 'POST', $params, null, null, array("cost" => 3));
     }
     public function privatePostTradeBalance($params = array()) {
-        return $this->request('TradeBalance', 'private', 'POST', $params, null, null, array("cost" => 1));
+        return $this->request('TradeBalance', 'private', 'POST', $params, null, null, array("cost" => 3));
     }
     public function privatePostTradesHistory($params = array()) {
-        return $this->request('TradesHistory', 'private', 'POST', $params, null, null, array("cost" => 2));
+        return $this->request('TradesHistory', 'private', 'POST', $params, null, null, array("cost" => 6));
     }
     public function privatePostTradeVolume($params = array()) {
-        return $this->request('TradeVolume', 'private', 'POST', $params, null, null, array("cost" => 1));
+        return $this->request('TradeVolume', 'private', 'POST', $params, null, null, array("cost" => 3));
     }
     public function privatePostWithdraw($params = array()) {
-        return $this->request('Withdraw', 'private', 'POST', $params, null, null, array("cost" => 1));
+        return $this->request('Withdraw', 'private', 'POST', $params, null, null, array("cost" => 3));
     }
     public function privatePostWithdrawCancel($params = array()) {
-        return $this->request('WithdrawCancel', 'private', 'POST', $params, null, null, array("cost" => 1));
+        return $this->request('WithdrawCancel', 'private', 'POST', $params, null, null, array("cost" => 3));
     }
     public function privatePostWithdrawInfo($params = array()) {
-        return $this->request('WithdrawInfo', 'private', 'POST', $params, null, null, array("cost" => 1));
+        return $this->request('WithdrawInfo', 'private', 'POST', $params, null, null, array("cost" => 3));
     }
     public function privatePostWithdrawMethods($params = array()) {
-        return $this->request('WithdrawMethods', 'private', 'POST', $params, null, null, array("cost" => 1));
+        return $this->request('WithdrawMethods', 'private', 'POST', $params, null, null, array("cost" => 3));
     }
     public function privatePostWithdrawAddresses($params = array()) {
-        return $this->request('WithdrawAddresses', 'private', 'POST', $params, null, null, array("cost" => 1));
+        return $this->request('WithdrawAddresses', 'private', 'POST', $params, null, null, array("cost" => 3));
     }
     public function privatePostWithdrawStatus($params = array()) {
-        return $this->request('WithdrawStatus', 'private', 'POST', $params, null, null, array("cost" => 1));
+        return $this->request('WithdrawStatus', 'private', 'POST', $params, null, null, array("cost" => 3));
     }
     public function privatePostWalletTransfer($params = array()) {
-        return $this->request('WalletTransfer', 'private', 'POST', $params, null, null, array("cost" => 1));
+        return $this->request('WalletTransfer', 'private', 'POST', $params, null, null, array("cost" => 3));
     }
     public function privatePostCreateSubaccount($params = array()) {
-        return $this->request('CreateSubaccount', 'private', 'POST', $params, null, null, array("cost" => 1));
+        return $this->request('CreateSubaccount', 'private', 'POST', $params, null, null, array("cost" => 3));
     }
     public function privatePostAccountTransfer($params = array()) {
-        return $this->request('AccountTransfer', 'private', 'POST', $params, null, null, array("cost" => 1));
+        return $this->request('AccountTransfer', 'private', 'POST', $params, null, null, array("cost" => 3));
     }
     public function privatePostEarnAllocate($params = array()) {
-        return $this->request('Earn/Allocate', 'private', 'POST', $params, null, null, array("cost" => 1));
+        return $this->request('Earn/Allocate', 'private', 'POST', $params, null, null, array("cost" => 3));
     }
     public function privatePostEarnDeallocate($params = array()) {
-        return $this->request('Earn/Deallocate', 'private', 'POST', $params, null, null, array("cost" => 1));
+        return $this->request('Earn/Deallocate', 'private', 'POST', $params, null, null, array("cost" => 3));
     }
     public function privatePostEarnAllocateStatus($params = array()) {
-        return $this->request('Earn/AllocateStatus', 'private', 'POST', $params, null, null, array("cost" => 1));
+        return $this->request('Earn/AllocateStatus', 'private', 'POST', $params, null, null, array("cost" => 3));
     }
     public function privatePostEarnDeallocateStatus($params = array()) {
-        return $this->request('Earn/DeallocateStatus', 'private', 'POST', $params, null, null, array("cost" => 1));
+        return $this->request('Earn/DeallocateStatus', 'private', 'POST', $params, null, null, array("cost" => 3));
     }
     public function privatePostEarnStrategies($params = array()) {
-        return $this->request('Earn/Strategies', 'private', 'POST', $params, null, null, array("cost" => 1));
+        return $this->request('Earn/Strategies', 'private', 'POST', $params, null, null, array("cost" => 3));
     }
     public function privatePostEarnAllocations($params = array()) {
-        return $this->request('Earn/Allocations', 'private', 'POST', $params, null, null, array("cost" => 1));
+        return $this->request('Earn/Allocations', 'private', 'POST', $params, null, null, array("cost" => 3));
     }
 }

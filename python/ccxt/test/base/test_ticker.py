@@ -39,7 +39,13 @@ def test_ticker(exchange, skipped_properties, method, entry, symbol):
         'quoteVolume': exchange.parse_number('1.234'),
     }
     # todo: atm, many exchanges fail, so temporarily decrease stict mode
-    empty_allowed_for = ['timestamp', 'datetime', 'open', 'high', 'low', 'close', 'last', 'ask', 'bid', 'bidVolume', 'askVolume', 'baseVolume', 'quoteVolume', 'previousClose', 'vwap', 'change', 'percentage', 'average']
+    empty_allowed_for = ['timestamp', 'datetime', 'open', 'high', 'low', 'close', 'last', 'baseVolume', 'quoteVolume', 'previousClose', 'vwap', 'change', 'percentage', 'average']
+    # trick csharp-transpiler for string
+    if not 'BidsAsks' in str(method):
+        empty_allowed_for.append('bid')
+        empty_allowed_for.append('ask')
+        empty_allowed_for.append('bidVolume')
+        empty_allowed_for.append('askVolume')
     test_shared_methods.assert_structure(exchange, skipped_properties, method, entry, format, empty_allowed_for)
     test_shared_methods.assert_timestamp_and_datetime(exchange, skipped_properties, method, entry)
     log_text = test_shared_methods.log_template(exchange, method, entry)

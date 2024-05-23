@@ -33,8 +33,8 @@ class bitfinex2 extends Exchange {
                 'spot' => true,
                 'margin' => true,
                 'swap' => true,
-                'future' => null,
-                'option' => null,
+                'future' => false,
+                'option' => false,
                 'addMargin' => false,
                 'borrowCrossMargin' => false,
                 'borrowIsolatedMargin' => false,
@@ -45,6 +45,7 @@ class bitfinex2 extends Exchange {
                 'createLimitOrder' => true,
                 'createMarketOrder' => true,
                 'createOrder' => true,
+                'createPostOnlyOrder' => true,
                 'createReduceOnlyOrder' => true,
                 'createStopLimitOrder' => true,
                 'createStopMarketOrder' => true,
@@ -55,8 +56,11 @@ class bitfinex2 extends Exchange {
                 'editOrder' => true,
                 'fetchBalance' => true,
                 'fetchBorrowInterest' => false,
+                'fetchBorrowRate' => false,
                 'fetchBorrowRateHistories' => false,
                 'fetchBorrowRateHistory' => false,
+                'fetchBorrowRates' => false,
+                'fetchBorrowRatesPerSymbol' => false,
                 'fetchClosedOrder' => true,
                 'fetchClosedOrders' => true,
                 'fetchCrossBorrowRate' => false,
@@ -85,6 +89,8 @@ class bitfinex2 extends Exchange {
                 'fetchOpenOrder' => true,
                 'fetchOpenOrders' => true,
                 'fetchOrder' => true,
+                'fetchOrderBook' => true,
+                'fetchOrderBooks' => false,
                 'fetchOrderTrades' => true,
                 'fetchPosition' => false,
                 'fetchPositionMode' => false,
@@ -104,6 +110,8 @@ class bitfinex2 extends Exchange {
                 'setMargin' => true,
                 'setMarginMode' => false,
                 'setPositionMode' => false,
+                'signIn' => false,
+                'transfer' => true,
                 'withdraw' => true,
             ),
             'timeframes' => array(
@@ -497,7 +505,7 @@ class bitfinex2 extends Exchange {
         }) ();
     }
 
-    public function fetch_markets($params = array ()) {
+    public function fetch_markets($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * retrieves data on all $markets for bitfinex2
@@ -627,7 +635,7 @@ class bitfinex2 extends Exchange {
         }) ();
     }
 
-    public function fetch_currencies($params = array ()) {
+    public function fetch_currencies($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * fetches all available currencies on an exchange
@@ -650,7 +658,7 @@ class bitfinex2 extends Exchange {
             $request = array(
                 'config' => $config,
             );
-            $response = Async\await($this->publicGetConfConfig (array_merge($request, $params)));
+            $response = Async\await($this->publicGetConfConfig ($this->extend($request, $params)));
             //
             //     [
             //
@@ -924,7 +932,7 @@ class bitfinex2 extends Exchange {
                 'from' => $fromId,
                 'to' => $toId,
             );
-            $response = Async\await($this->privatePostAuthWTransfer (array_merge($request, $params)));
+            $response = Async\await($this->privatePostAuthWTransfer ($this->extend($request, $params)));
             //
             //     array(
             //         1616451183763,
@@ -953,11 +961,11 @@ class bitfinex2 extends Exchange {
                 $this->throw_exactly_matched_exception($this->exceptions['exact'], $message, $this->id . ' ' . $message);
                 throw new ExchangeError($this->id . ' ' . $message);
             }
-            return $this->parse_transfer($response, $currency);
+            return $this->parse_transfer(array( 'result' => $response ), $currency);
         }) ();
     }
 
-    public function parse_transfer($transfer, ?array $currency = null) {
+    public function parse_transfer(array $transfer, ?array $currency = null): array {
         //
         // $transfer
         //
@@ -981,12 +989,13 @@ class bitfinex2 extends Exchange {
         //         "1.0 Tether USDt transfered from Exchange to Margin"
         //     )
         //
-        $timestamp = $this->safe_integer($transfer, 0);
-        $info = $this->safe_value($transfer, 4);
+        $result = $this->safe_list($transfer, 'result');
+        $timestamp = $this->safe_integer($result, 0);
+        $info = $this->safe_value($result, 4);
         $fromAccount = $this->safe_string($info, 1);
         $toAccount = $this->safe_string($info, 2);
         $currencyId = $this->safe_string($info, 5);
-        $status = $this->safe_string($transfer, 6);
+        $status = $this->safe_string($result, 6);
         return array(
             'id' => null,
             'timestamp' => $timestamp,
@@ -996,11 +1005,11 @@ class bitfinex2 extends Exchange {
             'currency' => $this->safe_currency_code($currencyId, $currency),
             'fromAccount' => $fromAccount,
             'toAccount' => $toAccount,
-            'info' => $transfer,
+            'info' => $result,
         );
     }
 
-    public function parse_transfer_status($status) {
+    public function parse_transfer_status(?string $status): ?string {
         $statuses = array(
             'SUCCESS' => 'ok',
             'ERROR' => 'failed',
@@ -1054,7 +1063,7 @@ class bitfinex2 extends Exchange {
             if ($limit !== null) {
                 $request['len'] = $limit;
             }
-            $fullRequest = array_merge($request, $params);
+            $fullRequest = $this->extend($request, $params);
             $orderbook = Async\await($this->publicGetBookSymbolPrecision ($fullRequest));
             $timestamp = $this->milliseconds();
             $result = array(
@@ -1080,71 +1089,77 @@ class bitfinex2 extends Exchange {
         }) ();
     }
 
-    public function parse_ticker($ticker, ?array $market = null): array {
+    public function parse_ticker(array $ticker, ?array $market = null): array {
         //
         // on trading pairs (ex. tBTCUSD)
         //
-        //     array(
-        //         SYMBOL,
-        //         BID,
-        //         BID_SIZE,
-        //         ASK,
-        //         ASK_SIZE,
-        //         DAILY_CHANGE,
-        //         DAILY_CHANGE_RELATIVE,
-        //         LAST_PRICE,
-        //         VOLUME,
-        //         HIGH,
-        //         LOW
-        //     )
+        //    {
+        //        'result' => array(
+        //            SYMBOL,
+        //            BID,
+        //            BID_SIZE,
+        //            ASK,
+        //            ASK_SIZE,
+        //            DAILY_CHANGE,
+        //            DAILY_CHANGE_RELATIVE,
+        //            LAST_PRICE,
+        //            VOLUME,
+        //            HIGH,
+        //            LOW
+        //        )
+        //    }
+        //
         //
         // on funding currencies (ex. fUSD)
         //
-        //     array(
-        //         SYMBOL,
-        //         FRR,
-        //         BID,
-        //         BID_PERIOD,
-        //         BID_SIZE,
-        //         ASK,
-        //         ASK_PERIOD,
-        //         ASK_SIZE,
-        //         DAILY_CHANGE,
-        //         DAILY_CHANGE_RELATIVE,
-        //         LAST_PRICE,
-        //         VOLUME,
-        //         HIGH,
-        //         LOW,
-        //         _PLACEHOLDER,
-        //         _PLACEHOLDER,
-        //         FRR_AMOUNT_AVAILABLE
-        //     )
+        //    {
+        //        'result' => array(
+        //            SYMBOL,
+        //            FRR,
+        //            BID,
+        //            BID_PERIOD,
+        //            BID_SIZE,
+        //            ASK,
+        //            ASK_PERIOD,
+        //            ASK_SIZE,
+        //            DAILY_CHANGE,
+        //            DAILY_CHANGE_RELATIVE,
+        //            LAST_PRICE,
+        //            VOLUME,
+        //            HIGH,
+        //            LOW,
+        //            _PLACEHOLDER,
+        //            _PLACEHOLDER,
+        //            FRR_AMOUNT_AVAILABLE
+        //        )
+        //    }
         //
+        $result = $this->safe_list($ticker, 'result');
         $symbol = $this->safe_symbol(null, $market);
-        $length = count($ticker);
-        $last = $this->safe_string($ticker, $length - 4);
-        $percentage = $this->safe_string($ticker, $length - 5);
+        $length = count($result);
+        $last = $this->safe_string($result, $length - 4);
+        $percentage = $this->safe_string($result, $length - 5);
         return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => null,
             'datetime' => null,
-            'high' => $this->safe_string($ticker, $length - 2),
-            'low' => $this->safe_string($ticker, $length - 1),
-            'bid' => $this->safe_string($ticker, $length - 10),
-            'bidVolume' => $this->safe_string($ticker, $length - 9),
-            'ask' => $this->safe_string($ticker, $length - 8),
-            'askVolume' => $this->safe_string($ticker, $length - 7),
+            'high' => $this->safe_string($result, $length - 2),
+            'low' => $this->safe_string($result, $length - 1),
+            'bid' => $this->safe_string($result, $length - 10),
+            'bidVolume' => $this->safe_string($result, $length - 9),
+            'ask' => $this->safe_string($result, $length - 8),
+            'askVolume' => $this->safe_string($result, $length - 7),
             'vwap' => null,
             'open' => null,
             'close' => $last,
             'last' => $last,
             'previousClose' => null,
-            'change' => $this->safe_string($ticker, $length - 6),
+            'change' => $this->safe_string($result, $length - 6),
             'percentage' => Precise::string_mul($percentage, '100'),
             'average' => null,
-            'baseVolume' => $this->safe_string($ticker, $length - 3),
+            'baseVolume' => $this->safe_string($result, $length - 3),
             'quoteVolume' => null,
-            'info' => $ticker,
+            'info' => $result,
         ), $market);
     }
 
@@ -1166,7 +1181,7 @@ class bitfinex2 extends Exchange {
             } else {
                 $request['symbols'] = 'ALL';
             }
-            $tickers = Async\await($this->publicGetTickers (array_merge($request, $params)));
+            $tickers = Async\await($this->publicGetTickers ($this->extend($request, $params)));
             //
             //     array(
             //         // on trading pairs (ex. tBTCUSD)
@@ -1212,7 +1227,7 @@ class bitfinex2 extends Exchange {
                 $marketId = $this->safe_string($ticker, 0);
                 $market = $this->safe_market($marketId);
                 $symbol = $market['symbol'];
-                $result[$symbol] = $this->parse_ticker($ticker, $market);
+                $result[$symbol] = $this->parse_ticker(array( 'result' => $ticker ), $market);
             }
             return $this->filter_by_array_tickers($result, 'symbol', $symbols);
         }) ();
@@ -1232,8 +1247,9 @@ class bitfinex2 extends Exchange {
             $request = array(
                 'symbol' => $market['id'],
             );
-            $ticker = Async\await($this->publicGetTickerSymbol (array_merge($request, $params)));
-            return $this->parse_ticker($ticker, $market);
+            $ticker = Async\await($this->publicGetTickerSymbol ($this->extend($request, $params)));
+            $result = array( 'result' => $ticker );
+            return $this->parse_ticker($result, $market);
         }) ();
     }
 
@@ -1353,7 +1369,7 @@ class bitfinex2 extends Exchange {
             }
             $request['sort'] = $sort;
             list($request, $params) = $this->handle_until_option('end', $request, $params);
-            $response = Async\await($this->publicGetTradesSymbolHist (array_merge($request, $params)));
+            $response = Async\await($this->publicGetTradesSymbolHist ($this->extend($request, $params)));
             //
             //     array(
             //         array(
@@ -1392,16 +1408,20 @@ class bitfinex2 extends Exchange {
             $market = $this->market($symbol);
             if ($limit === null) {
                 $limit = 10000;
+            } else {
+                $limit = min ($limit, 10000);
             }
             $request = array(
                 'symbol' => $market['id'],
                 'timeframe' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
                 'sort' => 1,
-                'start' => $since,
                 'limit' => $limit,
             );
+            if ($since !== null) {
+                $request['start'] = $since;
+            }
             list($request, $params) = $this->handle_until_option('end', $request, $params);
-            $response = Async\await($this->publicGetCandlesTradeTimeframeSymbolHist (array_merge($request, $params)));
+            $response = Async\await($this->publicGetCandlesTradeTimeframeSymbolHist ($this->extend($request, $params)));
             //
             //     [
             //         [1591503840000,0.025069,0.025068,0.025069,0.025068,1.97828998],
@@ -1434,7 +1454,7 @@ class bitfinex2 extends Exchange {
         );
     }
 
-    public function parse_order_status($status) {
+    public function parse_order_status(?string $status) {
         if ($status === null) {
             return $status;
         }
@@ -1556,7 +1576,16 @@ class bitfinex2 extends Exchange {
          * @param {float} $amount how much you want to trade in units of the base currency
          * @param {float} [$price] the $price of the order, in units of the quote currency, ignored in $market orders
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} $request to be sent to the exchange
+         * @param {float} [$params->stopPrice] The $price at which a trigger order is triggered at
+         * @param {string} [$params->timeInForce] "GTC", "IOC", "FOK", or "PO"
+         * @param {bool} [$params->postOnly]
+         * @param {bool} [$params->reduceOnly] Ensures that the executed order does not flip the opened position.
+         * @param {int} [$params->flags] additional order parameters => 4096 (Post Only), 1024 (Reduce Only), 16384 (OCO), 64 (Hidden), 512 (Close), 524288 (No Var Rates)
+         * @param {int} [$params->lev] leverage for a derivative order, supported by derivative $symbol orders only. The value should be between 1 and 100 inclusive.
+         * @param {string} [$params->price_traling] The trailing $price for a trailing stop order
+         * @param {string} [$params->price_aux_limit] Order $price for stop limit orders
+         * @param {string} [$params->price_oco_stop] OCO stop $price
+         * @return {array} an {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structure}
          */
         $market = $this->market($symbol);
         $amountString = $this->amount_to_precision($symbol, $amount);
@@ -1624,7 +1653,7 @@ class bitfinex2 extends Exchange {
             $request['cid'] = $clientOrderId;
         }
         $params = $this->omit($params, array( 'triggerPrice', 'stopPrice', 'timeInForce', 'postOnly', 'reduceOnly', 'trailingAmount', 'clientOrderId' ));
-        return array_merge($request, $params);
+        return $this->extend($request, $params);
     }
 
     public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
@@ -1787,8 +1816,8 @@ class bitfinex2 extends Exchange {
             $request = array(
                 'all' => 1,
             );
-            $response = Async\await($this->privatePostAuthWOrderCancelMulti (array_merge($request, $params)));
-            $orders = $this->safe_value($response, 4, array());
+            $response = Async\await($this->privatePostAuthWOrderCancelMulti ($this->extend($request, $params)));
+            $orders = $this->safe_list($response, 4, array());
             return $this->parse_orders($orders);
         }) ();
     }
@@ -1821,7 +1850,7 @@ class bitfinex2 extends Exchange {
                     'id' => intval($id),
                 );
             }
-            $response = Async\await($this->privatePostAuthWOrderCancel (array_merge($request, $params)));
+            $response = Async\await($this->privatePostAuthWOrderCancel ($this->extend($request, $params)));
             $order = $this->safe_value($response, 4);
             return $this->parse_order($order);
         }) ();
@@ -1848,7 +1877,7 @@ class bitfinex2 extends Exchange {
             if ($symbol !== null) {
                 $market = $this->market($symbol);
             }
-            $response = Async\await($this->privatePostAuthWOrderCancelMulti (array_merge($request, $params)));
+            $response = Async\await($this->privatePostAuthWOrderCancelMulti ($this->extend($request, $params)));
             //
             //     array(
             //         1706740198811,
@@ -1918,7 +1947,7 @@ class bitfinex2 extends Exchange {
             $request = array(
                 'id' => array( intval($id) ),
             );
-            $orders = Async\await($this->fetch_open_orders($symbol, null, null, array_merge($request, $params)));
+            $orders = Async\await($this->fetch_open_orders($symbol, null, null, $this->extend($request, $params)));
             $order = $this->safe_value($orders, 0);
             if ($order === null) {
                 throw new OrderNotFound($this->id . ' $order ' . $id . ' not found');
@@ -1941,7 +1970,7 @@ class bitfinex2 extends Exchange {
             $request = array(
                 'id' => array( intval($id) ),
             );
-            $orders = Async\await($this->fetch_closed_orders($symbol, null, null, array_merge($request, $params)));
+            $orders = Async\await($this->fetch_closed_orders($symbol, null, null, $this->extend($request, $params)));
             $order = $this->safe_value($orders, 0);
             if ($order === null) {
                 throw new OrderNotFound($this->id . ' $order ' . $id . ' not found');
@@ -1967,11 +1996,11 @@ class bitfinex2 extends Exchange {
             $market = null;
             $response = null;
             if ($symbol === null) {
-                $response = Async\await($this->privatePostAuthROrders (array_merge($request, $params)));
+                $response = Async\await($this->privatePostAuthROrders ($this->extend($request, $params)));
             } else {
                 $market = $this->market($symbol);
                 $request['symbol'] = $market['id'];
-                $response = Async\await($this->privatePostAuthROrdersSymbol (array_merge($request, $params)));
+                $response = Async\await($this->privatePostAuthROrdersSymbol ($this->extend($request, $params)));
             }
             //
             //      array(
@@ -2047,11 +2076,11 @@ class bitfinex2 extends Exchange {
             $market = null;
             $response = null;
             if ($symbol === null) {
-                $response = Async\await($this->privatePostAuthROrdersHist (array_merge($request, $params)));
+                $response = Async\await($this->privatePostAuthROrdersHist ($this->extend($request, $params)));
             } else {
                 $market = $this->market($symbol);
                 $request['symbol'] = $market['id'];
-                $response = Async\await($this->privatePostAuthROrdersSymbolHist (array_merge($request, $params)));
+                $response = Async\await($this->privatePostAuthROrdersSymbolHist ($this->extend($request, $params)));
             }
             //
             //      array(
@@ -2118,7 +2147,7 @@ class bitfinex2 extends Exchange {
                 'symbol' => $market['id'],
             );
             // valid for trades upto 10 days old
-            $response = Async\await($this->privatePostAuthROrderSymbolIdTrades (array_merge($request, $params)));
+            $response = Async\await($this->privatePostAuthROrderSymbolIdTrades ($this->extend($request, $params)));
             return $this->parse_trades($response, $market, $since, $limit);
         }) ();
     }
@@ -2150,9 +2179,9 @@ class bitfinex2 extends Exchange {
             if ($symbol !== null) {
                 $market = $this->market($symbol);
                 $request['symbol'] = $market['id'];
-                $response = Async\await($this->privatePostAuthRTradesSymbolHist (array_merge($request, $params)));
+                $response = Async\await($this->privatePostAuthRTradesSymbolHist ($this->extend($request, $params)));
             } else {
-                $response = Async\await($this->privatePostAuthRTradesHist (array_merge($request, $params)));
+                $response = Async\await($this->privatePostAuthRTradesHist ($this->extend($request, $params)));
             }
             return $this->parse_trades($response, $market, $since, $limit);
         }) ();
@@ -2171,7 +2200,7 @@ class bitfinex2 extends Exchange {
             $request = array(
                 'op_renew' => 1,
             );
-            return Async\await($this->fetch_deposit_address($code, array_merge($request, $params)));
+            return Async\await($this->fetch_deposit_address($code, $this->extend($request, $params)));
         }) ();
     }
 
@@ -2201,7 +2230,7 @@ class bitfinex2 extends Exchange {
                 'wallet' => $wallet,
                 'op_renew' => 0, // a value of 1 will generate a new $address
             );
-            $response = Async\await($this->privatePostAuthWDepositAddress (array_merge($request, $params)));
+            $response = Async\await($this->privatePostAuthWDepositAddress ($this->extend($request, $params)));
             //
             //     array(
             //         1582269616687, // MTS Millisecond Time Stamp of the update
@@ -2392,7 +2421,7 @@ class bitfinex2 extends Exchange {
         );
     }
 
-    public function fetch_trading_fees($params = array ()) {
+    public function fetch_trading_fees($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * fetch the trading fees for multiple markets
@@ -2530,9 +2559,9 @@ class bitfinex2 extends Exchange {
             if ($code !== null) {
                 $currency = $this->currency($code);
                 $request['currency'] = $currency['uppercaseId'];
-                $response = Async\await($this->privatePostAuthRMovementsCurrencyHist (array_merge($request, $params)));
+                $response = Async\await($this->privatePostAuthRMovementsCurrencyHist ($this->extend($request, $params)));
             } else {
-                $response = Async\await($this->privatePostAuthRMovementsHist (array_merge($request, $params)));
+                $response = Async\await($this->privatePostAuthRMovementsHist ($this->extend($request, $params)));
             }
             //
             //     array(
@@ -2566,7 +2595,7 @@ class bitfinex2 extends Exchange {
         }) ();
     }
 
-    public function withdraw(string $code, float $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()) {
         return Async\async(function () use ($code, $amount, $address, $tag, $params) {
             /**
              * make a withdrawal
@@ -2606,7 +2635,7 @@ class bitfinex2 extends Exchange {
             if ($includeFee) {
                 $request['fee_deduct'] = 1;
             }
-            $response = Async\await($this->privatePostAuthWWithdraw (array_merge($request, $params)));
+            $response = Async\await($this->privatePostAuthWWithdraw ($this->extend($request, $params)));
             //
             //     array(
             //         1582271520931, // MTS Millisecond Time Stamp of the update
@@ -2651,7 +2680,7 @@ class bitfinex2 extends Exchange {
                 $this->throw_broadly_matched_exception($this->exceptions['broad'], $text, $text);
             }
             $transaction = $this->parse_transaction($response, $currency);
-            return array_merge($transaction, array(
+            return $this->extend($transaction, array(
                 'address' => $address,
             ));
         }) ();
@@ -2940,9 +2969,9 @@ class bitfinex2 extends Exchange {
             if ($code !== null) {
                 $currency = $this->currency($code);
                 $request['currency'] = $currency['uppercaseId'];
-                $response = Async\await($this->privatePostAuthRLedgersCurrencyHist (array_merge($request, $params)));
+                $response = Async\await($this->privatePostAuthRLedgersCurrencyHist ($this->extend($request, $params)));
             } else {
-                $response = Async\await($this->privatePostAuthRLedgersHist (array_merge($request, $params)));
+                $response = Async\await($this->privatePostAuthRLedgersHist ($this->extend($request, $params)));
             }
             //
             //     array(
@@ -2964,14 +2993,16 @@ class bitfinex2 extends Exchange {
     }
 
     public function fetch_funding_rate(string $symbol, $params = array ()) {
-        /**
-         * fetch the current funding rate
-         * @see https://docs.bitfinex.com/reference/rest-public-derivatives-status
-         * @param {string} $symbol unified market $symbol
-         * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a ~@link https://docs.ccxt.com/#/?id=funding-rate-structure funding rate structure~
-         */
-        return $this->fetch_funding_rates(array( $symbol ), $params);
+        return Async\async(function () use ($symbol, $params) {
+            /**
+             * fetch the current funding rate
+             * @see https://docs.bitfinex.com/reference/rest-public-derivatives-status
+             * @param {string} $symbol unified market $symbol
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=funding-rate-structure funding rate structure~
+             */
+            return Async\await($this->fetch_funding_rates(array( $symbol ), $params));
+        }) ();
     }
 
     public function fetch_funding_rates(?array $symbols = null, $params = array ()) {
@@ -2991,7 +3022,7 @@ class bitfinex2 extends Exchange {
             $request = array(
                 'keys' => implode(',', $marketIds),
             );
-            $response = Async\await($this->publicGetStatusDeriv (array_merge($request, $params)));
+            $response = Async\await($this->publicGetStatusDeriv ($this->extend($request, $params)));
             //
             //   array(
             //       array(
@@ -3056,7 +3087,7 @@ class bitfinex2 extends Exchange {
                 $request['start'] = $since;
             }
             list($request, $params) = $this->handle_until_option('end', $request, $params);
-            $response = Async\await($this->publicGetStatusDerivSymbolHist (array_merge($request, $params)));
+            $response = Async\await($this->publicGetStatusDerivSymbolHist ($this->extend($request, $params)));
             //
             //   array(
             //       array(
@@ -3095,10 +3126,10 @@ class bitfinex2 extends Exchange {
             }
             $reversedArray = array();
             $rawRates = $this->filter_by_symbol_since_limit($rates, $symbol, $since, $limit);
-            $rawRatesLength = count($rawRates);
-            $ratesLength = max ($rawRatesLength - 1, 0);
-            for ($i = $ratesLength; $i >= 0; $i--) {
-                $valueAtIndex = $rawRates[$i];
+            $ratesLength = count($rawRates);
+            for ($i = 0; $i < $ratesLength; $i++) {
+                $index = $ratesLength - $i - 1;
+                $valueAtIndex = $rawRates[$index];
                 $reversedArray[] = $valueAtIndex;
             }
             return $reversedArray;
@@ -3223,7 +3254,7 @@ class bitfinex2 extends Exchange {
             $request = array(
                 'keys' => $market['id'],
             );
-            $response = Async\await($this->publicGetStatusDeriv (array_merge($request, $params)));
+            $response = Async\await($this->publicGetStatusDeriv ($this->extend($request, $params)));
             //
             //     array(
             //         array(
@@ -3290,7 +3321,7 @@ class bitfinex2 extends Exchange {
                 $request['limit'] = $limit;
             }
             list($request, $params) = $this->handle_until_option('end', $request, $params);
-            $response = Async\await($this->publicGetStatusDerivSymbolHist (array_merge($request, $params)));
+            $response = Async\await($this->publicGetStatusDerivSymbolHist ($this->extend($request, $params)));
             //
             //     array(
             //         array(
@@ -3425,7 +3456,7 @@ class bitfinex2 extends Exchange {
                 $request['limit'] = $limit;
             }
             list($request, $params) = $this->handle_until_option('end', $request, $params);
-            $response = Async\await($this->publicGetLiquidationsHist (array_merge($request, $params)));
+            $response = Async\await($this->publicGetLiquidationsHist ($this->extend($request, $params)));
             //
             //     array(
             //         array(
@@ -3489,7 +3520,7 @@ class bitfinex2 extends Exchange {
         ));
     }
 
-    public function set_margin(string $symbol, float $amount, $params = array ()) {
+    public function set_margin(string $symbol, float $amount, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $amount, $params) {
             /**
              * either adds or reduces margin in a swap position in order to set the margin to a specific value
@@ -3508,7 +3539,7 @@ class bitfinex2 extends Exchange {
                 'symbol' => $market['id'],
                 'collateral' => $this->parse_to_numeric($amount),
             );
-            $response = Async\await($this->privatePostAuthWDerivCollateralSet (array_merge($request, $params)));
+            $response = Async\await($this->privatePostAuthWDerivCollateralSet ($this->extend($request, $params)));
             //
             //     array(
             //         array(
@@ -3521,16 +3552,29 @@ class bitfinex2 extends Exchange {
         }) ();
     }
 
-    public function parse_margin_modification($data, $market = null) {
+    public function parse_margin_modification($data, $market = null): array {
+        //
+        // setMargin
+        //
+        //     array(
+        //         array(
+        //             1
+        //         )
+        //     )
+        //
         $marginStatusRaw = $data[0];
         $marginStatus = ($marginStatusRaw === 1) ? 'ok' : 'failed';
         return array(
             'info' => $data,
-            'type' => null,
-            'amount' => null,
-            'code' => null,
             'symbol' => $market['symbol'],
+            'type' => null,
+            'marginMode' => 'isolated',
+            'amount' => null,
+            'total' => null,
+            'code' => null,
             'status' => $marginStatus,
+            'timestamp' => null,
+            'datetime' => null,
         );
     }
 
@@ -3552,11 +3596,11 @@ class bitfinex2 extends Exchange {
             $market = null;
             $response = null;
             if ($symbol === null) {
-                $response = Async\await($this->privatePostAuthROrders (array_merge($request, $params)));
+                $response = Async\await($this->privatePostAuthROrders ($this->extend($request, $params)));
             } else {
                 $market = $this->market($symbol);
                 $request['symbol'] = $market['id'];
-                $response = Async\await($this->privatePostAuthROrdersSymbol (array_merge($request, $params)));
+                $response = Async\await($this->privatePostAuthROrdersSymbol ($this->extend($request, $params)));
             }
             //
             //     array(
@@ -3670,7 +3714,7 @@ class bitfinex2 extends Exchange {
                 $request['lev'] = $leverage;
             }
             $params = $this->omit($params, array( 'triggerPrice', 'stopPrice', 'timeInForce', 'postOnly', 'reduceOnly', 'trailingAmount', 'clientOrderId', 'leverage' ));
-            $response = Async\await($this->privatePostAuthWOrderUpdate (array_merge($request, $params)));
+            $response = Async\await($this->privatePostAuthWOrderUpdate ($this->extend($request, $params)));
             //
             //     array(
             //         1706845376402,

@@ -10,6 +10,7 @@ namespace ccxt;
 use React\Async;
 use React\Promise;
 include_once PATH_TO_CCXT . '/test/base/test_last_price.php';
+include_once PATH_TO_CCXT . '/test/base/test_shared_methods.php';
 
 function test_fetch_last_prices($exchange, $skipped_properties, $symbol) {
     return Async\async(function () use ($exchange, $skipped_properties, $symbol) {
@@ -25,6 +26,7 @@ function test_fetch_last_prices($exchange, $skipped_properties, $symbol) {
         }
         assert(is_array($response), $exchange->id . ' ' . $method . ' ' . $checked_symbol . ' must return an object. ' . $exchange->json($response));
         $values = is_array($response) ? array_values($response) : array();
+        assert_non_emtpy_array($exchange, $skipped_properties, $method, $values, $checked_symbol);
         for ($i = 0; $i < count($values); $i++) {
             // todo: symbol check here
             test_last_price($exchange, $skipped_properties, $method, $values[$i], $checked_symbol);

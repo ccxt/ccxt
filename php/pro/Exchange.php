@@ -31,6 +31,7 @@ Exchange::$exchanges = array(
     'bitfinex',
     'bitfinex2',
     'bitget',
+    'bithumb',
     'bitmart',
     'bitmex',
     'bitopro',
@@ -42,7 +43,8 @@ Exchange::$exchanges = array(
     'bybit',
     'cex',
     'coinbase',
-    'coinbasepro',
+    'coinbaseexchange',
+    'coinbaseinternational',
     'coincheck',
     'coinex',
     'coinone',
@@ -58,6 +60,7 @@ Exchange::$exchanges = array(
     'htx',
     'huobi',
     'huobijp',
+    'hyperliquid',
     'idex',
     'independentreserve',
     'kraken',
@@ -80,5 +83,6 @@ Exchange::$exchanges = array(
     'wazirx',
     'whitebit',
     'woo',
+    'woofipro',
 );
 

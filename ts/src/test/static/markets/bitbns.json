@@ -338,5 +338,73 @@
         "maker": 0.0025,
         "feeSide": "quote",
         "uppercaseId": "TRX_USDT"
+    },
+    "ETH/USDT": {
+        "id": "ETHUSDT",
+        "symbol": "ETH/USDT",
+        "base": "ETH",
+        "quote": "USDT",
+        "baseId": "ETH",
+        "quoteId": "USDT",
+        "type": "spot",
+        "spot": true,
+        "margin": false,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "contract": false,
+        "taker": 0.0025,
+        "maker": 0.0025,
+        "precision": {
+            "amount": 0.0001,
+            "price": 0.0001
+        },
+        "limits": {
+            "leverage": {},
+            "amount": {
+                "min": 0.0003,
+                "max": 200
+            },
+            "price": {
+                "min": 2297.3337,
+                "max": 5360.4453
+            },
+            "cost": {
+                "min": 1,
+                "max": 1072089.06
+            }
+        },
+        "info": {
+            "id": "ETHUSDT",
+            "symbol": "ETH/USDT",
+            "base": "ETH",
+            "quote": "USDT",
+            "baseId": "ETH",
+            "quoteId": "USDT",
+            "active": true,
+            "limits": {
+                "amount": {
+                    "min": "0.0003",
+                    "max": "200"
+                },
+                "price": {
+                    "min": "2297.3337",
+                    "max": "5360.4453"
+                },
+                "cost": {
+                    "min": "1",
+                    "max": "1072089.06"
+                }
+            },
+            "precision": {
+                "amount": "4",
+                "price": "4"
+            },
+            "info": {}
+        },
+        "tierBased": false,
+        "percentage": true,
+        "feeSide": "quote",
+        "uppercaseId": "ETH_USDT"
     }
 }

@@ -40,7 +40,7 @@ interface Exchange {
     privatePostTransferFromMain(params?: {}): Promise<implicitReturnType>;
     privatePostMyTradingPairs(params?: {}): Promise<implicitReturnType>;
     privatePostFeesTrading(params?: {}): Promise<implicitReturnType>;
-    privatePostFeesTradingPair(params?: {}): Promise<implicitReturnType>;
+    privatePostFeesTradingMarketSymbol(params?: {}): Promise<implicitReturnType>;
     privatePostFeesWithdrawal(params?: {}): Promise<implicitReturnType>;
     privatePostFeesWithdrawalCurrency(params?: {}): Promise<implicitReturnType>;
     privatePostWithdrawalRequests(params?: {}): Promise<implicitReturnType>;
@@ -233,6 +233,12 @@ interface Exchange {
     privatePostBlurAddress(params?: {}): Promise<implicitReturnType>;
     privatePostVextWithdrawal(params?: {}): Promise<implicitReturnType>;
     privatePostVextAddress(params?: {}): Promise<implicitReturnType>;
+    privatePostCsprWithdrawal(params?: {}): Promise<implicitReturnType>;
+    privatePostCsprAddress(params?: {}): Promise<implicitReturnType>;
+    privatePostVchfWithdrawal(params?: {}): Promise<implicitReturnType>;
+    privatePostVchfAddress(params?: {}): Promise<implicitReturnType>;
+    privatePostVeurWithdrawal(params?: {}): Promise<implicitReturnType>;
+    privatePostVeurAddress(params?: {}): Promise<implicitReturnType>;
 }
 declare abstract class Exchange extends _Exchange {
 }

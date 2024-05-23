@@ -29,6 +29,7 @@ public partial class binance : Exchange
                 { "cancelOrders", true },
                 { "closeAllPositions", false },
                 { "closePosition", false },
+                { "createConvertTrade", true },
                 { "createDepositAddress", false },
                 { "createLimitBuyOrder", true },
                 { "createLimitSellOrder", true },
@@ -60,6 +61,10 @@ public partial class binance : Exchange
                 { "fetchCanceledOrders", "emulated" },
                 { "fetchClosedOrder", false },
                 { "fetchClosedOrders", "emulated" },
+                { "fetchConvertCurrencies", true },
+                { "fetchConvertQuote", true },
+                { "fetchConvertTrade", true },
+                { "fetchConvertTradeHistory", true },
                 { "fetchCrossBorrowRate", true },
                 { "fetchCrossBorrowRates", false },
                 { "fetchCurrencies", true },
@@ -77,8 +82,8 @@ public partial class binance : Exchange
                 { "fetchFundingRates", true },
                 { "fetchGreeks", true },
                 { "fetchIndexOHLCV", true },
-                { "fetchIsolatedBorrowRate", false },
-                { "fetchIsolatedBorrowRates", false },
+                { "fetchIsolatedBorrowRate", "emulated" },
+                { "fetchIsolatedBorrowRates", true },
                 { "fetchL3OrderBook", false },
                 { "fetchLastPrices", true },
                 { "fetchLedger", true },
@@ -87,6 +92,7 @@ public partial class binance : Exchange
                 { "fetchLeverages", true },
                 { "fetchLeverageTiers", true },
                 { "fetchLiquidations", false },
+                { "fetchMarginAdjustmentHistory", true },
                 { "fetchMarginMode", "emulated" },
                 { "fetchMarginModes", true },
                 { "fetchMarketLeverageTiers", "emulated" },
@@ -100,16 +106,20 @@ public partial class binance : Exchange
                 { "fetchOpenInterestHistory", true },
                 { "fetchOpenOrder", true },
                 { "fetchOpenOrders", true },
+                { "fetchOption", true },
+                { "fetchOptionChain", false },
                 { "fetchOrder", true },
                 { "fetchOrderBook", true },
                 { "fetchOrderBooks", false },
                 { "fetchOrders", true },
                 { "fetchOrderTrades", true },
                 { "fetchPosition", true },
+                { "fetchPositionHistory", false },
                 { "fetchPositionMode", true },
                 { "fetchPositions", true },
+                { "fetchPositionsHistory", false },
                 { "fetchPositionsRisk", true },
-                { "fetchPremiumIndexOHLCV", false },
+                { "fetchPremiumIndexOHLCV", true },
                 { "fetchSettlementHistory", true },
                 { "fetchStatus", true },
                 { "fetchTicker", true },
@@ -133,6 +143,7 @@ public partial class binance : Exchange
                 { "reduceMargin", true },
                 { "repayCrossMargin", true },
                 { "repayIsolatedMargin", true },
+                { "sandbox", true },
                 { "setLeverage", true },
                 { "setMargin", false },
                 { "setMarginMode", true },
@@ -297,6 +308,7 @@ public partial class binance : Exchange
                         { "capital/deposit/subAddress", 0.1 },
                         { "capital/deposit/subHisrec", 0.1 },
                         { "capital/withdraw/history", 1800 },
+                        { "capital/withdraw/address/list", 10 },
                         { "capital/contract/convertible-coins", 4.0002 },
                         { "convert/tradeFlow", 20.001 },
                         { "convert/exchangeInfo", 50 },
@@ -779,6 +791,10 @@ public partial class binance : Exchange
                             { "cost", 1 },
                             { "byLimit", new List<object>() {new List<object>() {99, 1}, new List<object>() {499, 2}, new List<object>() {1000, 5}, new List<object>() {10000, 10}} },
                         } },
+                        { "premiumIndexKlines", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                            { "byLimit", new List<object>() {new List<object>() {99, 1}, new List<object>() {499, 2}, new List<object>() {1000, 5}, new List<object>() {10000, 10}} },
+                        } },
                         { "fundingRate", 1 },
                         { "fundingInfo", 1 },
                         { "premiumIndex", 1 },
@@ -838,6 +854,7 @@ public partial class binance : Exchange
                         { "userTrades", 5 },
                         { "income", 30 },
                         { "commissionRate", 20 },
+                        { "rateLimit/order", 1 },
                         { "apiTradingStatus", 1 },
                         { "multiAssetsMargin", 30 },
                         { "apiReferral/ifNewUser", 1 },
@@ -1013,6 +1030,7 @@ public partial class binance : Exchange
                     } },
                     { "post", new Dictionary<string, object>() {
                         { "order/oco", 0.2 },
+                        { "orderList/oco", 0.2 },
                         { "sor/order", 0.2 },
                         { "sor/order/test", 0.2 },
                         { "order", 0.2 },
@@ -1133,7 +1151,7 @@ public partial class binance : Exchange
                         { "feeSide", "quote" },
                         { "tierBased", true },
                         { "percentage", true },
-                        { "taker", this.parseNumber("0.000400") },
+                        { "taker", this.parseNumber("0.000500") },
                         { "maker", this.parseNumber("0.000200") },
                         { "tiers", new Dictionary<string, object>() {
                             { "taker", new List<object>() {new List<object> {this.parseNumber("0"), this.parseNumber("0.000400")}, new List<object> {this.parseNumber("250"), this.parseNumber("0.000400")}, new List<object> {this.parseNumber("2500"), this.parseNumber("0.000350")}, new List<object> {this.parseNumber("7500"), this.parseNumber("0.000320")}, new List<object> {this.parseNumber("22500"), this.parseNumber("0.000300")}, new List<object> {this.parseNumber("50000"), this.parseNumber("0.000270")}, new List<object> {this.parseNumber("100000"), this.parseNumber("0.000250")}, new List<object> {this.parseNumber("200000"), this.parseNumber("0.000220")}, new List<object> {this.parseNumber("400000"), this.parseNumber("0.000200")}, new List<object> {this.parseNumber("750000"), this.parseNumber("0.000170")}} },
@@ -1454,56 +1472,16 @@ public partial class binance : Exchange
             { "exceptions", new Dictionary<string, object>() {
                 { "spot", new Dictionary<string, object>() {
                     { "exact", new Dictionary<string, object>() {
-                        { "-1000", typeof(OperationFailed) },
-                        { "-1001", typeof(OperationFailed) },
-                        { "-1002", typeof(AuthenticationError) },
-                        { "-1003", typeof(RateLimitExceeded) },
                         { "-1004", typeof(OperationFailed) },
-                        { "-1006", typeof(OperationFailed) },
-                        { "-1007", typeof(RequestTimeout) },
                         { "-1008", typeof(OperationFailed) },
-                        { "-1010", typeof(OperationFailed) },
-                        { "-1013", typeof(OperationFailed) },
-                        { "-1014", typeof(InvalidOrder) },
-                        { "-1015", typeof(RateLimitExceeded) },
-                        { "-1016", typeof(BadRequest) },
-                        { "-1020", typeof(BadRequest) },
-                        { "-1021", typeof(InvalidNonce) },
-                        { "-1022", typeof(AuthenticationError) },
                         { "-1099", typeof(AuthenticationError) },
-                        { "-1100", typeof(BadRequest) },
-                        { "-1101", typeof(BadRequest) },
-                        { "-1102", typeof(BadRequest) },
-                        { "-1103", typeof(BadRequest) },
-                        { "-1104", typeof(BadRequest) },
-                        { "-1105", typeof(BadRequest) },
-                        { "-1106", typeof(BadRequest) },
                         { "-1108", typeof(BadRequest) },
-                        { "-1111", typeof(BadRequest) },
-                        { "-1112", typeof(OperationFailed) },
-                        { "-1114", typeof(BadRequest) },
-                        { "-1115", typeof(BadRequest) },
-                        { "-1116", typeof(BadRequest) },
-                        { "-1117", typeof(BadRequest) },
-                        { "-1118", typeof(BadRequest) },
-                        { "-1119", typeof(BadRequest) },
-                        { "-1120", typeof(BadRequest) },
-                        { "-1121", typeof(BadSymbol) },
-                        { "-1125", typeof(AuthenticationError) },
-                        { "-1127", typeof(BadRequest) },
-                        { "-1128", typeof(BadRequest) },
-                        { "-1130", typeof(BadRequest) },
                         { "-1131", typeof(BadRequest) },
                         { "-1134", typeof(BadRequest) },
                         { "-1135", typeof(BadRequest) },
                         { "-1145", typeof(BadRequest) },
                         { "-1151", typeof(BadSymbol) },
                         { "-2008", typeof(AuthenticationError) },
-                        { "-2010", typeof(InvalidOrder) },
-                        { "-2011", typeof(OrderNotFound) },
-                        { "-2013", typeof(OrderNotFound) },
-                        { "-2014", typeof(AuthenticationError) },
-                        { "-2015", typeof(AuthenticationError) },
                         { "-2016", typeof(OperationRejected) },
                         { "-2021", typeof(BadResponse) },
                         { "-2022", typeof(BadResponse) },
@@ -1547,6 +1525,7 @@ public partial class binance : Exchange
                         { "-3044", typeof(OperationFailed) },
                         { "-3045", typeof(OperationFailed) },
                         { "-3999", typeof(PermissionDenied) },
+                        { "-4000", typeof(ExchangeError) },
                         { "-4001", typeof(BadRequest) },
                         { "-4002", typeof(BadRequest) },
                         { "-4003", typeof(BadRequest) },
@@ -1566,6 +1545,7 @@ public partial class binance : Exchange
                         { "-4017", typeof(PermissionDenied) },
                         { "-4018", typeof(BadSymbol) },
                         { "-4019", typeof(BadRequest) },
+                        { "-4020", typeof(ExchangeError) },
                         { "-4021", typeof(BadRequest) },
                         { "-4022", typeof(BadRequest) },
                         { "-4023", typeof(OperationFailed) },
@@ -1593,7 +1573,105 @@ public partial class binance : Exchange
                         { "-4045", typeof(OperationFailed) },
                         { "-4046", typeof(AuthenticationError) },
                         { "-4047", typeof(BadRequest) },
+                        { "-4048", typeof(ExchangeError) },
+                        { "-4049", typeof(ExchangeError) },
+                        { "-4050", typeof(ExchangeError) },
+                        { "-4051", typeof(ExchangeError) },
+                        { "-4052", typeof(ExchangeError) },
+                        { "-4053", typeof(ExchangeError) },
+                        { "-4054", typeof(ExchangeError) },
+                        { "-4055", typeof(ExchangeError) },
+                        { "-4056", typeof(ExchangeError) },
+                        { "-4057", typeof(ExchangeError) },
+                        { "-4058", typeof(ExchangeError) },
+                        { "-4059", typeof(ExchangeError) },
                         { "-4060", typeof(OperationFailed) },
+                        { "-4061", typeof(ExchangeError) },
+                        { "-4062", typeof(ExchangeError) },
+                        { "-4063", typeof(ExchangeError) },
+                        { "-4064", typeof(ExchangeError) },
+                        { "-4065", typeof(ExchangeError) },
+                        { "-4066", typeof(ExchangeError) },
+                        { "-4067", typeof(ExchangeError) },
+                        { "-4068", typeof(ExchangeError) },
+                        { "-4069", typeof(ExchangeError) },
+                        { "-4070", typeof(ExchangeError) },
+                        { "-4071", typeof(ExchangeError) },
+                        { "-4072", typeof(ExchangeError) },
+                        { "-4073", typeof(ExchangeError) },
+                        { "-4074", typeof(ExchangeError) },
+                        { "-4075", typeof(ExchangeError) },
+                        { "-4076", typeof(ExchangeError) },
+                        { "-4077", typeof(ExchangeError) },
+                        { "-4078", typeof(ExchangeError) },
+                        { "-4079", typeof(ExchangeError) },
+                        { "-4080", typeof(ExchangeError) },
+                        { "-4081", typeof(ExchangeError) },
+                        { "-4082", typeof(ExchangeError) },
+                        { "-4083", typeof(ExchangeError) },
+                        { "-4084", typeof(ExchangeError) },
+                        { "-4085", typeof(ExchangeError) },
+                        { "-4086", typeof(ExchangeError) },
+                        { "-4087", typeof(ExchangeError) },
+                        { "-4088", typeof(ExchangeError) },
+                        { "-4089", typeof(ExchangeError) },
+                        { "-4091", typeof(ExchangeError) },
+                        { "-4092", typeof(ExchangeError) },
+                        { "-4093", typeof(ExchangeError) },
+                        { "-4094", typeof(ExchangeError) },
+                        { "-4095", typeof(ExchangeError) },
+                        { "-4096", typeof(ExchangeError) },
+                        { "-4097", typeof(ExchangeError) },
+                        { "-4098", typeof(ExchangeError) },
+                        { "-4099", typeof(ExchangeError) },
+                        { "-4101", typeof(ExchangeError) },
+                        { "-4102", typeof(ExchangeError) },
+                        { "-4103", typeof(ExchangeError) },
+                        { "-4104", typeof(ExchangeError) },
+                        { "-4105", typeof(ExchangeError) },
+                        { "-4106", typeof(ExchangeError) },
+                        { "-4107", typeof(ExchangeError) },
+                        { "-4108", typeof(ExchangeError) },
+                        { "-4109", typeof(ExchangeError) },
+                        { "-4110", typeof(ExchangeError) },
+                        { "-4112", typeof(ExchangeError) },
+                        { "-4113", typeof(ExchangeError) },
+                        { "-4114", typeof(ExchangeError) },
+                        { "-4115", typeof(ExchangeError) },
+                        { "-4116", typeof(ExchangeError) },
+                        { "-4117", typeof(ExchangeError) },
+                        { "-4118", typeof(ExchangeError) },
+                        { "-4119", typeof(ExchangeError) },
+                        { "-4120", typeof(ExchangeError) },
+                        { "-4121", typeof(ExchangeError) },
+                        { "-4122", typeof(ExchangeError) },
+                        { "-4123", typeof(ExchangeError) },
+                        { "-4124", typeof(ExchangeError) },
+                        { "-4125", typeof(ExchangeError) },
+                        { "-4126", typeof(ExchangeError) },
+                        { "-4127", typeof(ExchangeError) },
+                        { "-4128", typeof(ExchangeError) },
+                        { "-4129", typeof(ExchangeError) },
+                        { "-4130", typeof(ExchangeError) },
+                        { "-4131", typeof(ExchangeError) },
+                        { "-4132", typeof(ExchangeError) },
+                        { "-4133", typeof(ExchangeError) },
+                        { "-4134", typeof(ExchangeError) },
+                        { "-4135", typeof(ExchangeError) },
+                        { "-4136", typeof(ExchangeError) },
+                        { "-4137", typeof(ExchangeError) },
+                        { "-4138", typeof(ExchangeError) },
+                        { "-4139", typeof(ExchangeError) },
+                        { "-4141", typeof(ExchangeError) },
+                        { "-4142", typeof(ExchangeError) },
+                        { "-4143", typeof(ExchangeError) },
+                        { "-4144", typeof(ExchangeError) },
+                        { "-4145", typeof(ExchangeError) },
+                        { "-4146", typeof(ExchangeError) },
+                        { "-4147", typeof(ExchangeError) },
+                        { "-4148", typeof(ExchangeError) },
+                        { "-4149", typeof(ExchangeError) },
+                        { "-4150", typeof(ExchangeError) },
                         { "-5001", typeof(BadRequest) },
                         { "-5002", typeof(InsufficientFunds) },
                         { "-5003", typeof(InsufficientFunds) },
@@ -1682,15 +1760,6 @@ public partial class binance : Exchange
                         { "-18005", typeof(PermissionDenied) },
                         { "-18006", typeof(OperationRejected) },
                         { "-18007", typeof(OperationRejected) },
-                        { "-20121", typeof(BadSymbol) },
-                        { "-20124", typeof(BadRequest) },
-                        { "-20130", typeof(BadRequest) },
-                        { "-20132", typeof(BadRequest) },
-                        { "-20194", typeof(BadRequest) },
-                        { "-20195", typeof(BadRequest) },
-                        { "-20196", typeof(BadRequest) },
-                        { "-20198", typeof(OperationRejected) },
-                        { "-20204", typeof(BadRequest) },
                         { "-21001", typeof(BadRequest) },
                         { "-21002", typeof(BadRequest) },
                         { "-21003", typeof(BadResponse) },
@@ -1706,60 +1775,18 @@ public partial class binance : Exchange
                 } },
                 { "linear", new Dictionary<string, object>() {
                     { "exact", new Dictionary<string, object>() {
-                        { "-1000", typeof(OperationFailed) },
-                        { "-1001", typeof(OperationFailed) },
-                        { "-1002", typeof(AuthenticationError) },
-                        { "-1003", typeof(RateLimitExceeded) },
-                        { "-1004", typeof(OperationRejected) },
                         { "-1005", typeof(PermissionDenied) },
-                        { "-1006", typeof(OperationFailed) },
-                        { "-1007", typeof(RequestTimeout) },
                         { "-1008", typeof(OperationFailed) },
-                        { "-1010", typeof(OperationFailed) },
                         { "-1011", typeof(PermissionDenied) },
-                        { "-1013", typeof(BadRequest) },
-                        { "-1014", typeof(InvalidOrder) },
-                        { "-1015", typeof(RateLimitExceeded) },
-                        { "-1016", typeof(BadRequest) },
-                        { "-1020", typeof(BadRequest) },
-                        { "-1021", typeof(InvalidNonce) },
-                        { "-1022", typeof(AuthenticationError) },
                         { "-1023", typeof(BadRequest) },
                         { "-1099", typeof(AuthenticationError) },
-                        { "-1100", typeof(BadRequest) },
-                        { "-1101", typeof(BadRequest) },
-                        { "-1102", typeof(BadRequest) },
-                        { "-1103", typeof(BadRequest) },
-                        { "-1104", typeof(BadRequest) },
-                        { "-1105", typeof(BadRequest) },
-                        { "-1106", typeof(BadRequest) },
-                        { "-1108", typeof(BadSymbol) },
                         { "-1109", typeof(PermissionDenied) },
                         { "-1110", typeof(BadRequest) },
-                        { "-1111", typeof(BadRequest) },
-                        { "-1112", typeof(OperationFailed) },
                         { "-1113", typeof(BadRequest) },
-                        { "-1114", typeof(BadRequest) },
-                        { "-1115", typeof(BadRequest) },
-                        { "-1116", typeof(BadRequest) },
-                        { "-1117", typeof(BadRequest) },
-                        { "-1118", typeof(BadRequest) },
-                        { "-1119", typeof(BadRequest) },
-                        { "-1120", typeof(BadRequest) },
-                        { "-1121", typeof(BadSymbol) },
                         { "-1122", typeof(BadRequest) },
-                        { "-1125", typeof(AuthenticationError) },
                         { "-1126", typeof(BadSymbol) },
-                        { "-1127", typeof(BadRequest) },
-                        { "-1128", typeof(BadRequest) },
-                        { "-1130", typeof(BadRequest) },
                         { "-1136", typeof(BadRequest) },
-                        { "-2010", typeof(OrderNotFound) },
-                        { "-2011", typeof(OrderNotFound) },
                         { "-2012", typeof(OperationFailed) },
-                        { "-2013", typeof(OrderNotFound) },
-                        { "-2014", typeof(AuthenticationError) },
-                        { "-2015", typeof(AuthenticationError) },
                         { "-2016", typeof(OperationRejected) },
                         { "-2017", typeof(PermissionDenied) },
                         { "-2018", typeof(InsufficientFunds) },
@@ -1773,65 +1800,10 @@ public partial class binance : Exchange
                         { "-2026", typeof(InvalidOrder) },
                         { "-2027", typeof(OperationRejected) },
                         { "-2028", typeof(OperationRejected) },
-                        { "-4000", typeof(InvalidOrder) },
-                        { "-4001", typeof(BadRequest) },
-                        { "-4002", typeof(BadRequest) },
-                        { "-4003", typeof(BadRequest) },
-                        { "-4004", typeof(BadRequest) },
-                        { "-4005", typeof(BadRequest) },
-                        { "-4006", typeof(BadRequest) },
-                        { "-4007", typeof(BadRequest) },
-                        { "-4008", typeof(BadRequest) },
-                        { "-4009", typeof(BadRequest) },
-                        { "-4010", typeof(BadRequest) },
-                        { "-4011", typeof(BadRequest) },
-                        { "-4012", typeof(BadRequest) },
-                        { "-4013", typeof(BadRequest) },
-                        { "-4014", typeof(BadRequest) },
-                        { "-4015", typeof(BadRequest) },
-                        { "-4016", typeof(OperationRejected) },
-                        { "-4017", typeof(BadRequest) },
-                        { "-4018", typeof(BadRequest) },
-                        { "-4019", typeof(OperationRejected) },
-                        { "-4020", typeof(BadRequest) },
-                        { "-4021", typeof(BadRequest) },
-                        { "-4022", typeof(BadRequest) },
-                        { "-4023", typeof(BadRequest) },
-                        { "-4024", typeof(BadRequest) },
-                        { "-4025", typeof(BadRequest) },
-                        { "-4026", typeof(BadRequest) },
-                        { "-4027", typeof(BadRequest) },
-                        { "-4028", typeof(BadRequest) },
-                        { "-4029", typeof(BadRequest) },
-                        { "-4030", typeof(BadRequest) },
-                        { "-4031", typeof(BadRequest) },
-                        { "-4032", typeof(OperationRejected) },
-                        { "-4033", typeof(BadRequest) },
-                        { "-4044", typeof(BadRequest) },
-                        { "-4045", typeof(OperationRejected) },
-                        { "-4046", typeof(OperationRejected) },
-                        { "-4047", typeof(OperationRejected) },
-                        { "-4048", typeof(OperationRejected) },
-                        { "-4049", typeof(BadRequest) },
-                        { "-4050", typeof(InsufficientFunds) },
-                        { "-4051", typeof(InsufficientFunds) },
-                        { "-4052", typeof(OperationRejected) },
-                        { "-4053", typeof(BadRequest) },
-                        { "-4054", typeof(OperationRejected) },
-                        { "-4055", typeof(BadRequest) },
-                        { "-4056", typeof(AuthenticationError) },
-                        { "-4057", typeof(AuthenticationError) },
-                        { "-4058", typeof(BadRequest) },
-                        { "-4059", typeof(OperationRejected) },
-                        { "-4060", typeof(BadRequest) },
-                        { "-4061", typeof(BadRequest) },
-                        { "-4062", typeof(BadRequest) },
                         { "-4063", typeof(BadRequest) },
                         { "-4064", typeof(BadRequest) },
                         { "-4065", typeof(BadRequest) },
                         { "-4066", typeof(BadRequest) },
-                        { "-4067", typeof(OperationRejected) },
-                        { "-4068", typeof(OperationRejected) },
                         { "-4069", typeof(BadRequest) },
                         { "-4070", typeof(BadRequest) },
                         { "-4071", typeof(BadRequest) },
@@ -1845,34 +1817,24 @@ public partial class binance : Exchange
                         { "-4079", typeof(BadRequest) },
                         { "-4080", typeof(PermissionDenied) },
                         { "-4081", typeof(BadRequest) },
-                        { "-4082", typeof(OperationRejected) },
-                        { "-4083", typeof(OperationFailed) },
-                        { "-4084", typeof(BadRequest) },
                         { "-4085", typeof(BadRequest) },
-                        { "-4086", typeof(BadRequest) },
                         { "-4087", typeof(PermissionDenied) },
                         { "-4088", typeof(PermissionDenied) },
-                        { "-4104", typeof(BadRequest) },
                         { "-4114", typeof(BadRequest) },
                         { "-4115", typeof(BadRequest) },
                         { "-4118", typeof(OperationRejected) },
                         { "-4131", typeof(OperationRejected) },
-                        { "-4135", typeof(BadRequest) },
-                        { "-4137", typeof(BadRequest) },
-                        { "-4138", typeof(BadRequest) },
-                        { "-4139", typeof(BadRequest) },
                         { "-4140", typeof(BadRequest) },
                         { "-4141", typeof(OperationRejected) },
-                        { "-4142", typeof(OrderImmediatelyFillable) },
                         { "-4144", typeof(BadSymbol) },
-                        { "-4164", typeof(OperationRejected) },
+                        { "-4164", typeof(InvalidOrder) },
                         { "-4165", typeof(BadRequest) },
                         { "-4167", typeof(BadRequest) },
                         { "-4168", typeof(BadRequest) },
                         { "-4169", typeof(OperationRejected) },
                         { "-4170", typeof(OperationRejected) },
                         { "-4171", typeof(OperationRejected) },
-                        { "-4172 ", typeof(OperationRejected) },
+                        { "-4172", typeof(OperationRejected) },
                         { "-4183", typeof(BadRequest) },
                         { "-4184", typeof(BadRequest) },
                         { "-4192", typeof(PermissionDenied) },
@@ -1900,68 +1862,18 @@ public partial class binance : Exchange
                         { "-5039", typeof(BadRequest) },
                         { "-5040", typeof(BadRequest) },
                         { "-5041", typeof(OperationFailed) },
-                        { "-20121", typeof(BadSymbol) },
-                        { "-20124", typeof(BadRequest) },
-                        { "-20130", typeof(BadRequest) },
-                        { "-20132", typeof(BadRequest) },
-                        { "-20194", typeof(BadRequest) },
-                        { "-20195", typeof(BadRequest) },
-                        { "-20196", typeof(BadRequest) },
-                        { "-20198", typeof(OperationRejected) },
-                        { "-20204", typeof(BadRequest) },
                     } },
                 } },
                 { "inverse", new Dictionary<string, object>() {
                     { "exact", new Dictionary<string, object>() {
-                        { "-1000", typeof(OperationFailed) },
-                        { "-1001", typeof(OperationFailed) },
-                        { "-1002", typeof(AuthenticationError) },
-                        { "-1003", typeof(RateLimitExceeded) },
-                        { "-1004", typeof(OperationRejected) },
                         { "-1005", typeof(PermissionDenied) },
-                        { "-1006", typeof(OperationFailed) },
-                        { "-1007", typeof(RequestTimeout) },
-                        { "-1010", typeof(OperationFailed) },
                         { "-1011", typeof(PermissionDenied) },
-                        { "-1013", typeof(BadRequest) },
-                        { "-1014", typeof(InvalidOrder) },
-                        { "-1015", typeof(RateLimitExceeded) },
-                        { "-1016", typeof(BadRequest) },
-                        { "-1020", typeof(BadRequest) },
-                        { "-1021", typeof(InvalidNonce) },
-                        { "-1022", typeof(AuthenticationError) },
                         { "-1023", typeof(BadRequest) },
-                        { "-1100", typeof(BadRequest) },
-                        { "-1101", typeof(BadRequest) },
-                        { "-1102", typeof(BadRequest) },
-                        { "-1103", typeof(BadRequest) },
-                        { "-1104", typeof(BadRequest) },
-                        { "-1105", typeof(BadRequest) },
-                        { "-1106", typeof(BadRequest) },
-                        { "-1108", typeof(BadSymbol) },
                         { "-1109", typeof(AuthenticationError) },
                         { "-1110", typeof(BadSymbol) },
-                        { "-1111", typeof(BadRequest) },
-                        { "-1112", typeof(OperationFailed) },
                         { "-1113", typeof(BadRequest) },
-                        { "-1114", typeof(BadRequest) },
-                        { "-1115", typeof(BadRequest) },
-                        { "-1116", typeof(BadRequest) },
-                        { "-1117", typeof(BadRequest) },
-                        { "-1118", typeof(BadRequest) },
-                        { "-1119", typeof(BadRequest) },
-                        { "-1120", typeof(BadRequest) },
-                        { "-1121", typeof(BadSymbol) },
-                        { "-1125", typeof(AuthenticationError) },
-                        { "-1127", typeof(BadRequest) },
                         { "-1128", typeof(BadRequest) },
-                        { "-1130", typeof(BadRequest) },
                         { "-1136", typeof(BadRequest) },
-                        { "-2010", typeof(InvalidOrder) },
-                        { "-2011", typeof(OrderNotFound) },
-                        { "-2013", typeof(OrderNotFound) },
-                        { "-2014", typeof(AuthenticationError) },
-                        { "-2015", typeof(AuthenticationError) },
                         { "-2016", typeof(OperationRejected) },
                         { "-2018", typeof(InsufficientFunds) },
                         { "-2019", typeof(InsufficientFunds) },
@@ -1974,85 +1886,22 @@ public partial class binance : Exchange
                         { "-2026", typeof(InvalidOrder) },
                         { "-2027", typeof(OperationRejected) },
                         { "-2028", typeof(OperationRejected) },
-                        { "-4000", typeof(InvalidOrder) },
-                        { "-4001", typeof(BadRequest) },
-                        { "-4002", typeof(BadRequest) },
-                        { "-4003", typeof(BadRequest) },
-                        { "-4004", typeof(BadRequest) },
-                        { "-4005", typeof(BadRequest) },
-                        { "-4006", typeof(BadRequest) },
-                        { "-4007", typeof(BadRequest) },
-                        { "-4008", typeof(BadRequest) },
-                        { "-4009", typeof(BadRequest) },
-                        { "-4010", typeof(BadRequest) },
-                        { "-4011", typeof(BadRequest) },
-                        { "-4012", typeof(BadRequest) },
-                        { "-4013", typeof(BadRequest) },
-                        { "-4014", typeof(BadRequest) },
-                        { "-4015", typeof(BadRequest) },
-                        { "-4016", typeof(BadRequest) },
-                        { "-4017", typeof(BadRequest) },
-                        { "-4018", typeof(BadRequest) },
-                        { "-4019", typeof(OperationRejected) },
-                        { "-4020", typeof(BadRequest) },
-                        { "-4021", typeof(BadRequest) },
-                        { "-4022", typeof(BadRequest) },
-                        { "-4023", typeof(BadRequest) },
-                        { "-4024", typeof(BadRequest) },
-                        { "-4025", typeof(BadRequest) },
-                        { "-4026", typeof(BadRequest) },
-                        { "-4027", typeof(BadRequest) },
-                        { "-4028", typeof(BadRequest) },
-                        { "-4029", typeof(BadRequest) },
-                        { "-4030", typeof(BadRequest) },
-                        { "-4031", typeof(BadRequest) },
-                        { "-4032", typeof(OperationRejected) },
-                        { "-4033", typeof(BadRequest) },
-                        { "-4044", typeof(BadRequest) },
-                        { "-4045", typeof(OperationRejected) },
-                        { "-4046", typeof(BadRequest) },
-                        { "-4047", typeof(OperationRejected) },
-                        { "-4048", typeof(OperationRejected) },
-                        { "-4049", typeof(OperationRejected) },
-                        { "-4050", typeof(InsufficientFunds) },
-                        { "-4051", typeof(InsufficientFunds) },
-                        { "-4052", typeof(OperationRejected) },
-                        { "-4053", typeof(OperationRejected) },
-                        { "-4054", typeof(OperationRejected) },
-                        { "-4055", typeof(BadRequest) },
-                        { "-4056", typeof(AuthenticationError) },
-                        { "-4057", typeof(AuthenticationError) },
-                        { "-4058", typeof(BadRequest) },
-                        { "-4059", typeof(OperationRejected) },
-                        { "-4060", typeof(BadRequest) },
-                        { "-4061", typeof(OperationRejected) },
-                        { "-4062", typeof(BadRequest) },
-                        { "-4067", typeof(OperationRejected) },
-                        { "-4068", typeof(OperationRejected) },
-                        { "-4082", typeof(OperationRejected) },
-                        { "-4083", typeof(OperationRejected) },
-                        { "-4084", typeof(BadRequest) },
                         { "-4086", typeof(BadRequest) },
                         { "-4087", typeof(BadSymbol) },
                         { "-4088", typeof(BadRequest) },
                         { "-4089", typeof(PermissionDenied) },
                         { "-4090", typeof(PermissionDenied) },
-                        { "-4104", typeof(BadRequest) },
                         { "-4110", typeof(BadRequest) },
                         { "-4111", typeof(BadRequest) },
                         { "-4112", typeof(OperationRejected) },
                         { "-4113", typeof(OperationRejected) },
-                        { "-4135", typeof(BadRequest) },
-                        { "-4137", typeof(BadRequest) },
-                        { "-4138", typeof(BadRequest) },
-                        { "-4139", typeof(BadRequest) },
-                        { "-4142", typeof(OrderImmediatelyFillable) },
                         { "-4150", typeof(OperationRejected) },
                         { "-4151", typeof(BadRequest) },
                         { "-4152", typeof(BadRequest) },
                         { "-4154", typeof(BadRequest) },
                         { "-4155", typeof(BadRequest) },
                         { "-4178", typeof(BadRequest) },
+                        { "-4188", typeof(BadRequest) },
                         { "-4192", typeof(PermissionDenied) },
                         { "-4194", typeof(PermissionDenied) },
                         { "-4195", typeof(PermissionDenied) },
@@ -2063,120 +1912,185 @@ public partial class binance : Exchange
                         { "-4200", typeof(PermissionDenied) },
                         { "-4201", typeof(PermissionDenied) },
                         { "-4202", typeof(OperationRejected) },
-                        { "-4188", typeof(BadRequest) },
-                        { "-20121", typeof(BadSymbol) },
-                        { "-20124", typeof(BadRequest) },
-                        { "-20130", typeof(BadRequest) },
-                        { "-20132", typeof(BadRequest) },
-                        { "-20194", typeof(BadRequest) },
-                        { "-20195", typeof(BadRequest) },
-                        { "-20196", typeof(BadRequest) },
-                        { "-20198", typeof(OperationRejected) },
-                        { "-20204", typeof(BadRequest) },
                     } },
                 } },
                 { "option", new Dictionary<string, object>() {
                     { "exact", new Dictionary<string, object>() {
-                        { "-1000", typeof(OperationFailed) },
-                        { "-1001", typeof(OperationFailed) },
-                        { "-1002", typeof(AuthenticationError) },
+                        { "-1003", typeof(ExchangeError) },
+                        { "-1004", typeof(ExchangeError) },
+                        { "-1006", typeof(ExchangeError) },
+                        { "-1007", typeof(ExchangeError) },
                         { "-1008", typeof(RateLimitExceeded) },
-                        { "-1014", typeof(InvalidOrder) },
-                        { "-1015", typeof(RateLimitExceeded) },
-                        { "-1016", typeof(BadRequest) },
-                        { "-1020", typeof(BadRequest) },
-                        { "-1021", typeof(InvalidNonce) },
-                        { "-1022", typeof(AuthenticationError) },
-                        { "-1100", typeof(BadRequest) },
-                        { "-1101", typeof(BadRequest) },
-                        { "-1102", typeof(BadRequest) },
-                        { "-1103", typeof(BadRequest) },
-                        { "-1104", typeof(BadRequest) },
-                        { "-1105", typeof(BadRequest) },
-                        { "-1106", typeof(BadRequest) },
-                        { "-1111", typeof(BadRequest) },
-                        { "-1115", typeof(BadRequest) },
-                        { "-1116", typeof(BadRequest) },
-                        { "-1117", typeof(BadRequest) },
-                        { "-1118", typeof(BadRequest) },
-                        { "-1119", typeof(BadRequest) },
-                        { "-1120", typeof(BadRequest) },
-                        { "-1121", typeof(BadSymbol) },
-                        { "-1125", typeof(AuthenticationError) },
-                        { "-1127", typeof(BadRequest) },
+                        { "-1010", typeof(ExchangeError) },
+                        { "-1013", typeof(ExchangeError) },
+                        { "-1108", typeof(ExchangeError) },
+                        { "-1112", typeof(ExchangeError) },
+                        { "-1114", typeof(ExchangeError) },
                         { "-1128", typeof(BadSymbol) },
                         { "-1129", typeof(BadSymbol) },
-                        { "-1130", typeof(BadRequest) },
                         { "-1131", typeof(BadRequest) },
-                        { "-2010", typeof(InvalidOrder) },
-                        { "-2013", typeof(OrderNotFound) },
-                        { "-2014", typeof(AuthenticationError) },
-                        { "-2015", typeof(AuthenticationError) },
+                        { "-2011", typeof(ExchangeError) },
                         { "-2018", typeof(InsufficientFunds) },
                         { "-2027", typeof(InsufficientFunds) },
                         { "-3029", typeof(OperationFailed) },
-                        { "-4001", typeof(BadRequest) },
-                        { "-4002", typeof(BadRequest) },
-                        { "-4003", typeof(BadRequest) },
-                        { "-4004", typeof(BadRequest) },
-                        { "-4005", typeof(BadRequest) },
-                        { "-4013", typeof(BadRequest) },
-                        { "-4029", typeof(BadRequest) },
-                        { "-4030", typeof(BadRequest) },
-                        { "-4055", typeof(BadRequest) },
+                        { "-4006", typeof(ExchangeError) },
+                        { "-4007", typeof(ExchangeError) },
+                        { "-4008", typeof(ExchangeError) },
+                        { "-4009", typeof(ExchangeError) },
+                        { "-4010", typeof(ExchangeError) },
+                        { "-4011", typeof(ExchangeError) },
+                        { "-4012", typeof(ExchangeError) },
+                        { "-4014", typeof(ExchangeError) },
+                        { "-4015", typeof(ExchangeError) },
+                        { "-4016", typeof(ExchangeError) },
+                        { "-4017", typeof(ExchangeError) },
+                        { "-4018", typeof(ExchangeError) },
+                        { "-4019", typeof(ExchangeError) },
+                        { "-4020", typeof(ExchangeError) },
+                        { "-4021", typeof(ExchangeError) },
+                        { "-4022", typeof(ExchangeError) },
+                        { "-4023", typeof(ExchangeError) },
+                        { "-4024", typeof(ExchangeError) },
+                        { "-4025", typeof(ExchangeError) },
+                        { "-4026", typeof(ExchangeError) },
+                        { "-4027", typeof(ExchangeError) },
+                        { "-4028", typeof(ExchangeError) },
+                        { "-4031", typeof(ExchangeError) },
+                        { "-4032", typeof(ExchangeError) },
+                        { "-4033", typeof(ExchangeError) },
+                        { "-4034", typeof(ExchangeError) },
+                        { "-4035", typeof(ExchangeError) },
+                        { "-4036", typeof(ExchangeError) },
+                        { "-4037", typeof(ExchangeError) },
+                        { "-4038", typeof(ExchangeError) },
+                        { "-4039", typeof(ExchangeError) },
+                        { "-4040", typeof(ExchangeError) },
+                        { "-4041", typeof(ExchangeError) },
+                        { "-4042", typeof(ExchangeError) },
+                        { "-4043", typeof(ExchangeError) },
+                        { "-4044", typeof(ExchangeError) },
+                        { "-4045", typeof(ExchangeError) },
+                        { "-4046", typeof(ExchangeError) },
+                        { "-4047", typeof(ExchangeError) },
+                        { "-4048", typeof(ExchangeError) },
+                        { "-4049", typeof(ExchangeError) },
+                        { "-4050", typeof(ExchangeError) },
+                        { "-4051", typeof(ExchangeError) },
+                        { "-4052", typeof(ExchangeError) },
+                        { "-4053", typeof(ExchangeError) },
+                        { "-4054", typeof(ExchangeError) },
+                        { "-4056", typeof(ExchangeError) },
+                        { "-4057", typeof(ExchangeError) },
+                        { "-4058", typeof(ExchangeError) },
+                        { "-4059", typeof(ExchangeError) },
+                        { "-4060", typeof(ExchangeError) },
+                        { "-4061", typeof(ExchangeError) },
+                        { "-4062", typeof(ExchangeError) },
+                        { "-4063", typeof(ExchangeError) },
+                        { "-4064", typeof(ExchangeError) },
+                        { "-4065", typeof(ExchangeError) },
+                        { "-4066", typeof(ExchangeError) },
+                        { "-4067", typeof(ExchangeError) },
+                        { "-4068", typeof(ExchangeError) },
+                        { "-4069", typeof(ExchangeError) },
+                        { "-4070", typeof(ExchangeError) },
+                        { "-4071", typeof(ExchangeError) },
+                        { "-4072", typeof(ExchangeError) },
+                        { "-4073", typeof(ExchangeError) },
+                        { "-4074", typeof(ExchangeError) },
+                        { "-4075", typeof(ExchangeError) },
+                        { "-4076", typeof(ExchangeError) },
+                        { "-4077", typeof(ExchangeError) },
+                        { "-4078", typeof(ExchangeError) },
+                        { "-4079", typeof(ExchangeError) },
+                        { "-4080", typeof(ExchangeError) },
+                        { "-4081", typeof(ExchangeError) },
+                        { "-4082", typeof(ExchangeError) },
+                        { "-4083", typeof(ExchangeError) },
+                        { "-4084", typeof(ExchangeError) },
+                        { "-4085", typeof(ExchangeError) },
+                        { "-4086", typeof(ExchangeError) },
+                        { "-4087", typeof(ExchangeError) },
+                        { "-4088", typeof(ExchangeError) },
+                        { "-4089", typeof(ExchangeError) },
+                        { "-4091", typeof(ExchangeError) },
+                        { "-4092", typeof(ExchangeError) },
+                        { "-4093", typeof(ExchangeError) },
+                        { "-4094", typeof(ExchangeError) },
+                        { "-4095", typeof(ExchangeError) },
+                        { "-4096", typeof(ExchangeError) },
+                        { "-4097", typeof(ExchangeError) },
+                        { "-4098", typeof(ExchangeError) },
+                        { "-4099", typeof(ExchangeError) },
+                        { "-4101", typeof(ExchangeError) },
+                        { "-4102", typeof(ExchangeError) },
+                        { "-4103", typeof(ExchangeError) },
+                        { "-4104", typeof(ExchangeError) },
+                        { "-4105", typeof(ExchangeError) },
+                        { "-4106", typeof(ExchangeError) },
+                        { "-4107", typeof(ExchangeError) },
+                        { "-4108", typeof(ExchangeError) },
+                        { "-4109", typeof(ExchangeError) },
+                        { "-4110", typeof(ExchangeError) },
+                        { "-4112", typeof(ExchangeError) },
+                        { "-4113", typeof(ExchangeError) },
+                        { "-4114", typeof(ExchangeError) },
+                        { "-4115", typeof(ExchangeError) },
+                        { "-4116", typeof(ExchangeError) },
+                        { "-4117", typeof(ExchangeError) },
+                        { "-4118", typeof(ExchangeError) },
+                        { "-4119", typeof(ExchangeError) },
+                        { "-4120", typeof(ExchangeError) },
+                        { "-4121", typeof(ExchangeError) },
+                        { "-4122", typeof(ExchangeError) },
+                        { "-4123", typeof(ExchangeError) },
+                        { "-4124", typeof(ExchangeError) },
+                        { "-4125", typeof(ExchangeError) },
+                        { "-4126", typeof(ExchangeError) },
+                        { "-4127", typeof(ExchangeError) },
+                        { "-4128", typeof(ExchangeError) },
+                        { "-4129", typeof(ExchangeError) },
+                        { "-4130", typeof(ExchangeError) },
+                        { "-4131", typeof(ExchangeError) },
+                        { "-4132", typeof(ExchangeError) },
+                        { "-4133", typeof(ExchangeError) },
+                        { "-4134", typeof(ExchangeError) },
+                        { "-4135", typeof(ExchangeError) },
+                        { "-4136", typeof(ExchangeError) },
+                        { "-4137", typeof(ExchangeError) },
+                        { "-4138", typeof(ExchangeError) },
+                        { "-4139", typeof(ExchangeError) },
+                        { "-4141", typeof(ExchangeError) },
+                        { "-4142", typeof(ExchangeError) },
+                        { "-4143", typeof(ExchangeError) },
+                        { "-4144", typeof(ExchangeError) },
+                        { "-4145", typeof(ExchangeError) },
+                        { "-4146", typeof(ExchangeError) },
+                        { "-4147", typeof(ExchangeError) },
+                        { "-4148", typeof(ExchangeError) },
+                        { "-4149", typeof(ExchangeError) },
+                        { "-4150", typeof(ExchangeError) },
+                        { "-20121", typeof(ExchangeError) },
+                        { "-20124", typeof(ExchangeError) },
+                        { "-20130", typeof(ExchangeError) },
+                        { "-20132", typeof(ExchangeError) },
+                        { "-20194", typeof(ExchangeError) },
+                        { "-20195", typeof(ExchangeError) },
+                        { "-20196", typeof(ExchangeError) },
+                        { "-20198", typeof(ExchangeError) },
+                        { "-20204", typeof(ExchangeError) },
                     } },
                 } },
                 { "portfolioMargin", new Dictionary<string, object>() {
                     { "exact", new Dictionary<string, object>() {
-                        { "-1000", typeof(OperationFailed) },
-                        { "-1001", typeof(OperationFailed) },
-                        { "-1002", typeof(AuthenticationError) },
-                        { "-1003", typeof(RateLimitExceeded) },
-                        { "-1004", typeof(OperationRejected) },
                         { "-1005", typeof(PermissionDenied) },
-                        { "-1006", typeof(OperationFailed) },
-                        { "-1007", typeof(RequestTimeout) },
-                        { "-1010", typeof(OperationFailed) },
                         { "-1011", typeof(PermissionDenied) },
-                        { "-1013", typeof(OperationFailed) },
-                        { "-1014", typeof(InvalidOrder) },
-                        { "-1015", typeof(RateLimitExceeded) },
-                        { "-1016", typeof(BadRequest) },
-                        { "-1020", typeof(BadRequest) },
-                        { "-1021", typeof(InvalidNonce) },
-                        { "-1022", typeof(AuthenticationError) },
                         { "-1023", typeof(BadRequest) },
-                        { "-1100", typeof(BadRequest) },
-                        { "-1101", typeof(BadRequest) },
-                        { "-1102", typeof(BadRequest) },
-                        { "-1103", typeof(BadRequest) },
-                        { "-1104", typeof(BadRequest) },
-                        { "-1105", typeof(BadRequest) },
-                        { "-1106", typeof(BadRequest) },
-                        { "-1108", typeof(BadSymbol) },
                         { "-1109", typeof(BadRequest) },
                         { "-1110", typeof(BadSymbol) },
-                        { "-1111", typeof(BadRequest) },
-                        { "-1112", typeof(OperationFailed) },
                         { "-1113", typeof(BadRequest) },
-                        { "-1114", typeof(BadRequest) },
-                        { "-1115", typeof(BadRequest) },
-                        { "-1116", typeof(BadRequest) },
-                        { "-1117", typeof(BadRequest) },
-                        { "-1118", typeof(BadRequest) },
-                        { "-1119", typeof(BadRequest) },
-                        { "-1120", typeof(BadRequest) },
-                        { "-1121", typeof(BadSymbol) },
-                        { "-1125", typeof(AuthenticationError) },
-                        { "-1127", typeof(BadRequest) },
                         { "-1128", typeof(BadRequest) },
-                        { "-1130", typeof(BadRequest) },
                         { "-1136", typeof(BadRequest) },
-                        { "-2010", typeof(InvalidOrder) },
-                        { "-2011", typeof(OrderNotFound) },
-                        { "-2013", typeof(OrderNotFound) },
-                        { "-2014", typeof(AuthenticationError) },
-                        { "-2015", typeof(AuthenticationError) },
                         { "-2016", typeof(OperationRejected) },
                         { "-2018", typeof(InsufficientFunds) },
                         { "-2019", typeof(InsufficientFunds) },
@@ -2189,65 +2103,10 @@ public partial class binance : Exchange
                         { "-2026", typeof(InvalidOrder) },
                         { "-2027", typeof(OperationRejected) },
                         { "-2028", typeof(OperationRejected) },
-                        { "-4000", typeof(InvalidOrder) },
-                        { "-4001", typeof(BadRequest) },
-                        { "-4002", typeof(BadRequest) },
-                        { "-4003", typeof(BadRequest) },
-                        { "-4004", typeof(BadRequest) },
-                        { "-4005", typeof(BadRequest) },
-                        { "-4006", typeof(BadRequest) },
-                        { "-4007", typeof(BadRequest) },
-                        { "-4008", typeof(BadRequest) },
-                        { "-4009", typeof(BadRequest) },
-                        { "-4010", typeof(BadRequest) },
-                        { "-4011", typeof(BadRequest) },
-                        { "-4012", typeof(BadRequest) },
-                        { "-4013", typeof(BadRequest) },
-                        { "-4014", typeof(BadRequest) },
-                        { "-4015", typeof(BadRequest) },
-                        { "-4016", typeof(BadRequest) },
-                        { "-4017", typeof(BadRequest) },
-                        { "-4018", typeof(BadRequest) },
-                        { "-4019", typeof(OperationRejected) },
-                        { "-4020", typeof(BadRequest) },
-                        { "-4021", typeof(BadRequest) },
-                        { "-4022", typeof(BadRequest) },
-                        { "-4023", typeof(BadRequest) },
-                        { "-4024", typeof(BadRequest) },
-                        { "-4025", typeof(BadRequest) },
-                        { "-4026", typeof(BadRequest) },
-                        { "-4027", typeof(BadRequest) },
-                        { "-4028", typeof(BadRequest) },
-                        { "-4029", typeof(BadRequest) },
-                        { "-4030", typeof(BadRequest) },
-                        { "-4031", typeof(BadRequest) },
-                        { "-4032", typeof(OperationRejected) },
-                        { "-4033", typeof(BadRequest) },
-                        { "-4044", typeof(BadRequest) },
-                        { "-4045", typeof(OperationRejected) },
-                        { "-4046", typeof(OperationRejected) },
-                        { "-4047", typeof(OperationRejected) },
-                        { "-4048", typeof(OperationRejected) },
-                        { "-4049", typeof(BadRequest) },
-                        { "-4050", typeof(InsufficientFunds) },
-                        { "-4051", typeof(InsufficientFunds) },
-                        { "-4052", typeof(OperationRejected) },
-                        { "-4053", typeof(BadRequest) },
-                        { "-4054", typeof(OperationRejected) },
-                        { "-4055", typeof(BadRequest) },
-                        { "-4056", typeof(AuthenticationError) },
-                        { "-4057", typeof(AuthenticationError) },
-                        { "-4058", typeof(BadRequest) },
-                        { "-4059", typeof(OperationRejected) },
-                        { "-4060", typeof(BadRequest) },
-                        { "-4061", typeof(BadRequest) },
-                        { "-4062", typeof(BadRequest) },
                         { "-4063", typeof(BadRequest) },
                         { "-4064", typeof(BadRequest) },
                         { "-4065", typeof(BadRequest) },
                         { "-4066", typeof(BadRequest) },
-                        { "-4067", typeof(OperationRejected) },
-                        { "-4068", typeof(OperationRejected) },
                         { "-4069", typeof(BadRequest) },
                         { "-4070", typeof(BadRequest) },
                         { "-4071", typeof(BadRequest) },
@@ -2261,25 +2120,16 @@ public partial class binance : Exchange
                         { "-4079", typeof(BadRequest) },
                         { "-4080", typeof(PermissionDenied) },
                         { "-4081", typeof(BadRequest) },
-                        { "-4082", typeof(BadRequest) },
-                        { "-4083", typeof(OperationFailed) },
-                        { "-4084", typeof(BadRequest) },
                         { "-4085", typeof(BadRequest) },
                         { "-4086", typeof(BadRequest) },
                         { "-4087", typeof(PermissionDenied) },
                         { "-4088", typeof(PermissionDenied) },
-                        { "-4104", typeof(BadRequest) },
                         { "-4114", typeof(BadRequest) },
                         { "-4115", typeof(BadRequest) },
                         { "-4118", typeof(OperationRejected) },
                         { "-4131", typeof(OperationRejected) },
-                        { "-4135", typeof(BadRequest) },
-                        { "-4137", typeof(BadRequest) },
-                        { "-4138", typeof(BadRequest) },
-                        { "-4139", typeof(BadRequest) },
                         { "-4140", typeof(BadRequest) },
                         { "-4141", typeof(BadRequest) },
-                        { "-4142", typeof(OrderImmediatelyFillable) },
                         { "-4144", typeof(BadSymbol) },
                         { "-4161", typeof(OperationRejected) },
                         { "-4164", typeof(OperationRejected) },
@@ -2288,9 +2138,141 @@ public partial class binance : Exchange
                         { "-4184", typeof(BadRequest) },
                         { "-5021", typeof(OrderNotFillable) },
                         { "-5022", typeof(OrderNotFillable) },
+                        { "-20121", typeof(ExchangeError) },
+                        { "-20124", typeof(ExchangeError) },
+                        { "-20130", typeof(ExchangeError) },
+                        { "-20132", typeof(ExchangeError) },
+                        { "-20194", typeof(ExchangeError) },
+                        { "-20195", typeof(ExchangeError) },
+                        { "-20196", typeof(ExchangeError) },
+                        { "-20198", typeof(ExchangeError) },
+                        { "-20204", typeof(ExchangeError) },
+                        { "-21001", typeof(BadRequest) },
+                        { "-21002", typeof(BadRequest) },
+                        { "-21003", typeof(BadResponse) },
+                        { "-21004", typeof(OperationRejected) },
+                        { "-21005", typeof(InsufficientFunds) },
+                        { "-21006", typeof(OperationFailed) },
+                        { "-21007", typeof(OperationFailed) },
                     } },
                 } },
                 { "exact", new Dictionary<string, object>() {
+                    { "-1000", typeof(OperationFailed) },
+                    { "-1001", typeof(OperationFailed) },
+                    { "-1002", typeof(AuthenticationError) },
+                    { "-1003", typeof(RateLimitExceeded) },
+                    { "-1004", typeof(OperationRejected) },
+                    { "-1006", typeof(OperationFailed) },
+                    { "-1007", typeof(RequestTimeout) },
+                    { "-1010", typeof(OperationFailed) },
+                    { "-1013", typeof(BadRequest) },
+                    { "-1014", typeof(InvalidOrder) },
+                    { "-1015", typeof(RateLimitExceeded) },
+                    { "-1016", typeof(BadRequest) },
+                    { "-1020", typeof(BadRequest) },
+                    { "-1021", typeof(InvalidNonce) },
+                    { "-1022", typeof(AuthenticationError) },
+                    { "-1100", typeof(BadRequest) },
+                    { "-1101", typeof(BadRequest) },
+                    { "-1102", typeof(BadRequest) },
+                    { "-1103", typeof(BadRequest) },
+                    { "-1104", typeof(BadRequest) },
+                    { "-1105", typeof(BadRequest) },
+                    { "-1106", typeof(BadRequest) },
+                    { "-1108", typeof(BadSymbol) },
+                    { "-1111", typeof(BadRequest) },
+                    { "-1112", typeof(OperationFailed) },
+                    { "-1114", typeof(BadRequest) },
+                    { "-1115", typeof(BadRequest) },
+                    { "-1116", typeof(BadRequest) },
+                    { "-1117", typeof(BadRequest) },
+                    { "-1118", typeof(BadRequest) },
+                    { "-1119", typeof(BadRequest) },
+                    { "-1120", typeof(BadRequest) },
+                    { "-1121", typeof(BadSymbol) },
+                    { "-1125", typeof(AuthenticationError) },
+                    { "-1127", typeof(BadRequest) },
+                    { "-1128", typeof(BadRequest) },
+                    { "-1130", typeof(BadRequest) },
+                    { "-2010", typeof(InvalidOrder) },
+                    { "-2011", typeof(OrderNotFound) },
+                    { "-2013", typeof(OrderNotFound) },
+                    { "-2014", typeof(AuthenticationError) },
+                    { "-2015", typeof(AuthenticationError) },
+                    { "-4000", typeof(InvalidOrder) },
+                    { "-4001", typeof(BadRequest) },
+                    { "-4002", typeof(BadRequest) },
+                    { "-4003", typeof(BadRequest) },
+                    { "-4004", typeof(BadRequest) },
+                    { "-4005", typeof(BadRequest) },
+                    { "-4006", typeof(BadRequest) },
+                    { "-4007", typeof(BadRequest) },
+                    { "-4008", typeof(BadRequest) },
+                    { "-4009", typeof(BadRequest) },
+                    { "-4010", typeof(BadRequest) },
+                    { "-4011", typeof(BadRequest) },
+                    { "-4012", typeof(BadRequest) },
+                    { "-4013", typeof(BadRequest) },
+                    { "-4014", typeof(BadRequest) },
+                    { "-4015", typeof(BadRequest) },
+                    { "-4016", typeof(BadRequest) },
+                    { "-4017", typeof(BadRequest) },
+                    { "-4018", typeof(BadRequest) },
+                    { "-4019", typeof(OperationRejected) },
+                    { "-4020", typeof(BadRequest) },
+                    { "-4021", typeof(BadRequest) },
+                    { "-4022", typeof(BadRequest) },
+                    { "-4023", typeof(BadRequest) },
+                    { "-4024", typeof(BadRequest) },
+                    { "-4025", typeof(BadRequest) },
+                    { "-4026", typeof(BadRequest) },
+                    { "-4027", typeof(BadRequest) },
+                    { "-4028", typeof(BadRequest) },
+                    { "-4029", typeof(BadRequest) },
+                    { "-4030", typeof(BadRequest) },
+                    { "-4031", typeof(BadRequest) },
+                    { "-4032", typeof(OperationRejected) },
+                    { "-4033", typeof(BadRequest) },
+                    { "-4044", typeof(BadRequest) },
+                    { "-4045", typeof(OperationRejected) },
+                    { "-4046", typeof(OperationRejected) },
+                    { "-4047", typeof(OperationRejected) },
+                    { "-4048", typeof(OperationRejected) },
+                    { "-4049", typeof(BadRequest) },
+                    { "-4050", typeof(InsufficientFunds) },
+                    { "-4051", typeof(InsufficientFunds) },
+                    { "-4052", typeof(OperationRejected) },
+                    { "-4053", typeof(BadRequest) },
+                    { "-4054", typeof(OperationRejected) },
+                    { "-4055", typeof(BadRequest) },
+                    { "-4056", typeof(AuthenticationError) },
+                    { "-4057", typeof(AuthenticationError) },
+                    { "-4058", typeof(BadRequest) },
+                    { "-4059", typeof(OperationRejected) },
+                    { "-4060", typeof(BadRequest) },
+                    { "-4061", typeof(OperationRejected) },
+                    { "-4062", typeof(BadRequest) },
+                    { "-4067", typeof(OperationRejected) },
+                    { "-4068", typeof(OperationRejected) },
+                    { "-4082", typeof(BadRequest) },
+                    { "-4083", typeof(OperationRejected) },
+                    { "-4084", typeof(BadRequest) },
+                    { "-4086", typeof(BadRequest) },
+                    { "-4104", typeof(BadRequest) },
+                    { "-4135", typeof(BadRequest) },
+                    { "-4137", typeof(BadRequest) },
+                    { "-4138", typeof(BadRequest) },
+                    { "-4139", typeof(BadRequest) },
+                    { "-4142", typeof(OrderImmediatelyFillable) },
+                    { "-20121", typeof(BadSymbol) },
+                    { "-20124", typeof(BadRequest) },
+                    { "-20130", typeof(BadRequest) },
+                    { "-20132", typeof(BadRequest) },
+                    { "-20194", typeof(BadRequest) },
+                    { "-20195", typeof(BadRequest) },
+                    { "-20196", typeof(BadRequest) },
+                    { "-20198", typeof(OperationRejected) },
+                    { "-20204", typeof(BadRequest) },
                     { "System is under maintenance.", typeof(OnMaintenance) },
                     { "System abnormality", typeof(OperationFailed) },
                     { "You are not authorized to execute this request.", typeof(PermissionDenied) },
@@ -2302,7 +2284,7 @@ public partial class binance : Exchange
                     { "Rest API trading is not enabled.", typeof(PermissionDenied) },
                     { "This account may not place or cancel orders.", typeof(PermissionDenied) },
                     { "You don\'t have permission.", typeof(PermissionDenied) },
-                    { "Market is closed.", typeof(OperationRejected) },
+                    { "Market is closed.", typeof(MarketClosed) },
                     { "Too many requests. Please try again later.", typeof(RateLimitExceeded) },
                     { "This action is disabled on this account.", typeof(AccountSuspended) },
                     { "Limit orders require GTC for this phase.", typeof(BadRequest) },
@@ -2323,7 +2305,7 @@ public partial class binance : Exchange
     {
         if (isTrue(isEqual(subType, null)))
         {
-            return isEqual(type, "delivery");
+            return (isEqual(type, "delivery"));
         } else
         {
             return isEqual(subType, "inverse");
@@ -2345,16 +2327,6 @@ public partial class binance : Exchange
     {
         base.setSandboxMode(enable);
         ((IDictionary<string,object>)this.options)["sandboxMode"] = enable;
-    }
-
-    public virtual object convertExpireDate(object date)
-    {
-        // parse YYMMDD to timestamp
-        object year = slice(date, 0, 2);
-        object month = slice(date, 2, 4);
-        object day = slice(date, 4, 6);
-        object reconstructedDate = add(add(add(add(add(add("20", year), "-"), month), "-"), day), "T00:00:00Z");
-        return reconstructedDate;
     }
 
     public override object createExpiredOptionMarket(object symbol)
@@ -2497,7 +2469,7 @@ public partial class binance : Exchange
         throw new BadSymbol ((string)add(add(this.id, " does not have market symbol "), symbol)) ;
     }
 
-    public override object safeMarket(object marketId, object market = null, object delimiter = null, object marketType = null)
+    public override object safeMarket(object marketId = null, object market = null, object delimiter = null, object marketType = null)
     {
         object isOption = isTrue((!isEqual(marketId, null))) && isTrue((isTrue((isGreaterThan(getIndexOf(marketId, "-C"), -1))) || isTrue((isGreaterThan(getIndexOf(marketId, "-P"), -1)))));
         if (isTrue(isTrue(isOption) && !isTrue((inOp(this.markets_by_id, marketId)))))
@@ -2540,6 +2512,7 @@ public partial class binance : Exchange
         * @see https://binance-docs.github.io/apidocs/futures/en/#check-server-time    // swap
         * @see https://binance-docs.github.io/apidocs/delivery/en/#check-server-time   // future
         * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @param {string} [params.subType] "linear" or "inverse"
         * @returns {int} the current integer timestamp in milliseconds from the exchange server
         */
         parameters ??= new Dictionary<string, object>();
@@ -2575,7 +2548,7 @@ public partial class binance : Exchange
         * @returns {object} an associative dictionary of currencies
         */
         parameters ??= new Dictionary<string, object>();
-        object fetchCurrenciesEnabled = this.safeValue(this.options, "fetchCurrencies");
+        object fetchCurrenciesEnabled = this.safeBool(this.options, "fetchCurrencies");
         if (!isTrue(fetchCurrenciesEnabled))
         {
             return null;
@@ -2822,14 +2795,13 @@ public partial class binance : Exchange
             }
         }
         object promises = await promiseAll(promisesRaw);
-        object spotMarkets = this.safeValue(this.safeValue(promises, 0), "symbols", new List<object>() {});
-        object futureMarkets = this.safeValue(this.safeValue(promises, 1), "symbols", new List<object>() {});
-        object deliveryMarkets = this.safeValue(this.safeValue(promises, 2), "symbols", new List<object>() {});
-        object optionMarkets = this.safeValue(this.safeValue(promises, 3), "optionSymbols", new List<object>() {});
-        object markets = spotMarkets;
-        markets = this.arrayConcat(markets, futureMarkets);
-        markets = this.arrayConcat(markets, deliveryMarkets);
-        markets = this.arrayConcat(markets, optionMarkets);
+        object markets = new List<object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(fetchMarkets)); postFixIncrement(ref i))
+        {
+            object promise = this.safeDict(promises, i);
+            object promiseMarkets = this.safeList2(promise, "symbols", "optionSymbols", new List<object>() {});
+            markets = this.arrayConcat(markets, promiseMarkets);
+        }
         //
         // spot / margin
         //
@@ -3392,6 +3364,7 @@ public partial class binance : Exchange
         * @param {string} [params.marginMode] 'cross' or 'isolated', for margin trading, uses this.options.defaultMarginMode if not passed, defaults to undefined/None/null
         * @param {string[]|undefined} [params.symbols] unified market symbols, only used in isolated margin mode
         * @param {boolean} [params.portfolioMargin] set to true if you would like to fetch the balance for a portfolio margin account
+        * @param {string} [params.subType] "linear" or "inverse"
         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
         */
         parameters ??= new Dictionary<string, object>();
@@ -4006,25 +3979,21 @@ public partial class binance : Exchange
         * @see https://binance-docs.github.io/apidocs/delivery/en/#symbol-order-book-ticker    // future
         * @param {string[]|undefined} symbols unified symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
         * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @param {string} [params.subType] "linear" or "inverse"
         * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
         */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        symbols = this.marketSymbols(symbols);
-        object market = null;
-        if (isTrue(!isEqual(symbols, null)))
-        {
-            object first = this.safeString(symbols, 0);
-            market = this.market(first);
-        }
+        symbols = this.marketSymbols(symbols, null, true, true, true);
+        object market = this.getMarketFromSymbols(symbols);
         object type = null;
+        var typeparametersVariable = this.handleMarketTypeAndParams("fetchBidsAsks", market, parameters);
+        type = ((IList<object>)typeparametersVariable)[0];
+        parameters = ((IList<object>)typeparametersVariable)[1];
         object subType = null;
         var subTypeparametersVariable = this.handleSubTypeAndParams("fetchBidsAsks", market, parameters);
         subType = ((IList<object>)subTypeparametersVariable)[0];
         parameters = ((IList<object>)subTypeparametersVariable)[1];
-        var typeparametersVariable = this.handleMarketTypeAndParams("fetchBidsAsks", market, parameters);
-        type = ((IList<object>)typeparametersVariable)[0];
-        parameters = ((IList<object>)typeparametersVariable)[1];
         object response = null;
         if (isTrue(this.isLinear(type, subType)))
         {
@@ -4032,15 +4001,17 @@ public partial class binance : Exchange
         } else if (isTrue(this.isInverse(type, subType)))
         {
             response = await this.dapiPublicGetTickerBookTicker(parameters);
-        } else
+        } else if (isTrue(isEqual(type, "spot")))
         {
             object request = new Dictionary<string, object>() {};
             if (isTrue(!isEqual(symbols, null)))
             {
-                object marketIds = this.marketIds(symbols);
-                ((IDictionary<string,object>)request)["symbols"] = this.json(marketIds);
+                ((IDictionary<string,object>)request)["symbols"] = this.json(this.marketIds(symbols));
             }
             response = await this.publicGetTickerBookTicker(this.extend(request, parameters));
+        } else
+        {
+            throw new NotSupported ((string)add(add(add(this.id, " fetchBidsAsks() does not support "), type), " markets yet")) ;
         }
         return this.parseTickers(response, symbols);
     }
@@ -4052,24 +4023,25 @@ public partial class binance : Exchange
         * @name binance#fetchLastPrices
         * @description fetches the last price for multiple markets
         * @see https://binance-docs.github.io/apidocs/spot/en/#symbol-price-ticker         // spot
-        * @see https://binance-docs.github.io/apidocs/future/en/#symbol-price-ticker       // swap
-        * @see https://binance-docs.github.io/apidocs/delivery/en/#symbol-price-ticker     // future
+        * @see https://binance-docs.github.io/apidocs/futures/en/#symbol-price-ticker       // swap
+        * @see https://binance-docs.github.io/apidocs/delivery/en/#symbol-price-tickers     // future
         * @param {string[]|undefined} symbols unified symbols of the markets to fetch the last prices
         * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @param {string} [params.subType] "linear" or "inverse"
         * @returns {object} a dictionary of lastprices structures
         */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        symbols = this.marketSymbols(symbols);
+        symbols = this.marketSymbols(symbols, null, true, true, true);
         object market = this.getMarketFromSymbols(symbols);
         object type = null;
+        var typeparametersVariable = this.handleMarketTypeAndParams("fetchLastPrices", market, parameters);
+        type = ((IList<object>)typeparametersVariable)[0];
+        parameters = ((IList<object>)typeparametersVariable)[1];
         object subType = null;
         var subTypeparametersVariable = this.handleSubTypeAndParams("fetchLastPrices", market, parameters);
         subType = ((IList<object>)subTypeparametersVariable)[0];
         parameters = ((IList<object>)subTypeparametersVariable)[1];
-        var typeparametersVariable = this.handleMarketTypeAndParams("fetchLastPrices", market, parameters);
-        type = ((IList<object>)typeparametersVariable)[0];
-        parameters = ((IList<object>)typeparametersVariable)[1];
         object response = null;
         if (isTrue(this.isLinear(type, subType)))
         {
@@ -4142,18 +4114,15 @@ public partial class binance : Exchange
         * @see https://binance-docs.github.io/apidocs/voptions/en/#24hr-ticker-price-change-statistics     // option
         * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @param {string} [params.subType] "linear" or "inverse"
+        * @param {string} [params.type] 'spot', 'option', use params["subType"] for swap and future markets
         * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
         */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        object type = null;
-        object market = null;
         symbols = this.marketSymbols(symbols, null, true, true, true);
-        if (isTrue(!isEqual(symbols, null)))
-        {
-            object first = this.safeString(symbols, 0);
-            market = this.market(first);
-        }
+        object market = this.getMarketFromSymbols(symbols);
+        object type = null;
         var typeparametersVariable = this.handleMarketTypeAndParams("fetchTickers", market, parameters);
         type = ((IList<object>)typeparametersVariable)[0];
         parameters = ((IList<object>)typeparametersVariable)[1];
@@ -4162,24 +4131,26 @@ public partial class binance : Exchange
         subType = ((IList<object>)subTypeparametersVariable)[0];
         parameters = ((IList<object>)subTypeparametersVariable)[1];
         object response = null;
-        if (isTrue(isEqual(type, "option")))
-        {
-            response = await this.eapiPublicGetTicker(parameters);
-        } else if (isTrue(this.isLinear(type, subType)))
+        if (isTrue(this.isLinear(type, subType)))
         {
             response = await this.fapiPublicGetTicker24hr(parameters);
         } else if (isTrue(this.isInverse(type, subType)))
         {
             response = await this.dapiPublicGetTicker24hr(parameters);
-        } else
+        } else if (isTrue(isEqual(type, "spot")))
         {
             object request = new Dictionary<string, object>() {};
             if (isTrue(!isEqual(symbols, null)))
             {
-                object marketIds = this.marketIds(symbols);
-                ((IDictionary<string,object>)request)["symbols"] = this.json(marketIds);
+                ((IDictionary<string,object>)request)["symbols"] = this.json(this.marketIds(symbols));
             }
             response = await this.publicGetTicker24hr(this.extend(request, parameters));
+        } else if (isTrue(isEqual(type, "option")))
+        {
+            response = await this.eapiPublicGetTicker(parameters);
+        } else
+        {
+            throw new NotSupported ((string)add(add(add(this.id, " fetchTickers() does not support "), type), " markets yet")) ;
         }
         return this.parseTickers(response, symbols);
     }
@@ -4239,7 +4210,7 @@ public partial class binance : Exchange
         //
         object inverse = this.safeBool(market, "inverse");
         object volumeIndex = ((bool) isTrue(inverse)) ? 7 : 5;
-        return new List<object> {this.safeInteger2(ohlcv, 0, "closeTime"), this.safeNumber2(ohlcv, 1, "open"), this.safeNumber2(ohlcv, 2, "high"), this.safeNumber2(ohlcv, 3, "low"), this.safeNumber2(ohlcv, 4, "close"), this.safeNumber2(ohlcv, volumeIndex, "volume")};
+        return new List<object> {this.safeInteger2(ohlcv, 0, "openTime"), this.safeNumber2(ohlcv, 1, "open"), this.safeNumber2(ohlcv, 2, "high"), this.safeNumber2(ohlcv, 3, "low"), this.safeNumber2(ohlcv, 4, "close"), this.safeNumber2(ohlcv, volumeIndex, "volume")};
     }
 
     public async override Task<object> fetchOHLCV(object symbol, object timeframe = null, object since = null, object limit = null, object parameters = null)
@@ -4290,12 +4261,15 @@ public partial class binance : Exchange
             { "interval", this.safeString(this.timeframes, timeframe, timeframe) },
             { "limit", limit },
         };
+        object marketId = getValue(market, "id");
         if (isTrue(isEqual(price, "index")))
         {
-            ((IDictionary<string,object>)request)["pair"] = getValue(market, "id"); // Index price takes this argument instead of symbol
+            object parts = ((string)marketId).Split(new [] {((string)"_")}, StringSplitOptions.None).ToList<object>();
+            object pair = this.safeString(parts, 0);
+            ((IDictionary<string,object>)request)["pair"] = pair; // Index price takes this argument instead of symbol
         } else
         {
-            ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
+            ((IDictionary<string,object>)request)["symbol"] = marketId;
         }
         // const duration = this.parseTimeframe (timeframe);
         if (isTrue(!isEqual(since, null)))
@@ -4341,6 +4315,15 @@ public partial class binance : Exchange
             } else
             {
                 response = await this.fapiPublicGetIndexPriceKlines(this.extend(request, parameters));
+            }
+        } else if (isTrue(isEqual(price, "premiumIndex")))
+        {
+            if (isTrue(getValue(market, "inverse")))
+            {
+                response = await this.dapiPublicGetPremiumIndexKlines(this.extend(request, parameters));
+            } else
+            {
+                response = await this.fapiPublicGetPremiumIndexKlines(this.extend(request, parameters));
             }
         } else if (isTrue(getValue(market, "linear")))
         {
@@ -4593,7 +4576,7 @@ public partial class binance : Exchange
         market = this.safeMarket(marketId, market, null, marketType);
         object symbol = getValue(market, "symbol");
         object side = null;
-        object buyerMaker = this.safeValue2(trade, "m", "isBuyerMaker");
+        object buyerMaker = this.safeBool2(trade, "m", "isBuyerMaker");
         object takerOrMaker = null;
         if (isTrue(!isEqual(buyerMaker, null)))
         {
@@ -4881,7 +4864,7 @@ public partial class binance : Exchange
         //         }
         //     }
         //
-        object data = this.safeValue(response, "newOrderResponse");
+        object data = this.safeDict(response, "newOrderResponse");
         return this.parseOrder(data, market);
     }
 
@@ -4928,7 +4911,7 @@ public partial class binance : Exchange
                 uppercaseType = "STOP_LOSS_LIMIT";
             }
         }
-        object validOrderTypes = this.safeValue(getValue(market, "info"), "orderTypes");
+        object validOrderTypes = this.safeList(getValue(market, "info"), "orderTypes");
         if (!isTrue(this.inArray(uppercaseType, validOrderTypes)))
         {
             if (isTrue(!isEqual(initialUppercaseType, uppercaseType)))
@@ -4941,7 +4924,7 @@ public partial class binance : Exchange
         }
         if (isTrue(isEqual(clientOrderId, null)))
         {
-            object broker = this.safeValue(this.options, "broker");
+            object broker = this.safeDict(this.options, "broker");
             if (isTrue(!isEqual(broker, null)))
             {
                 object brokerId = this.safeString(broker, "spot");
@@ -5044,25 +5027,9 @@ public partial class binance : Exchange
         return this.extend(request, parameters);
     }
 
-    public async virtual Task<object> editContractOrder(object id, object symbol, object type, object side, object amount, object price = null, object parameters = null)
+    public virtual object editContractOrderRequest(object id, object symbol, object type, object side, object amount, object price = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name binance#editContractOrder
-        * @description edit a trade order
-        * @see https://binance-docs.github.io/apidocs/futures/en/#modify-order-trade
-        * @see https://binance-docs.github.io/apidocs/delivery/en/#modify-order-trade
-        * @param {string} id cancel order id
-        * @param {string} symbol unified symbol of the market to create an order in
-        * @param {string} type 'market' or 'limit'
-        * @param {string} side 'buy' or 'sell'
-        * @param {float} amount how much of currency you want to trade in units of base currency
-        * @param {float} [price] the price at which the order is to be fullfilled, in units of the base currency, ignored in market orders
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
         object market = this.market(symbol);
         if (!isTrue(getValue(market, "contract")))
         {
@@ -5084,6 +5051,30 @@ public partial class binance : Exchange
             ((IDictionary<string,object>)request)["origClientOrderId"] = clientOrderId;
         }
         parameters = this.omit(parameters, new List<object>() {"clientOrderId", "newClientOrderId"});
+        return request;
+    }
+
+    public async virtual Task<object> editContractOrder(object id, object symbol, object type, object side, object amount, object price = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name binance#editContractOrder
+        * @description edit a trade order
+        * @see https://binance-docs.github.io/apidocs/futures/en/#modify-order-trade
+        * @see https://binance-docs.github.io/apidocs/delivery/en/#modify-order-trade
+        * @param {string} id cancel order id
+        * @param {string} symbol unified symbol of the market to create an order in
+        * @param {string} type 'market' or 'limit'
+        * @param {string} side 'buy' or 'sell'
+        * @param {float} amount how much of currency you want to trade in units of base currency
+        * @param {float} [price] the price at which the order is to be fullfilled, in units of the base currency, ignored in market orders
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object market = this.market(symbol);
+        object request = this.editContractOrderRequest(id, symbol, type, side, amount, price, parameters);
         object response = null;
         if (isTrue(getValue(market, "linear")))
         {
@@ -5869,6 +5860,7 @@ public partial class binance : Exchange
         * @param {float} [params.stopLossPrice] the price that a stop loss order is triggered at
         * @param {float} [params.takeProfitPrice] the price that a take profit order is triggered at
         * @param {boolean} [params.portfolioMargin] set to true if you would like to create an order in a portfolio margin account
+        * @param {string} [params.stopLossOrTakeProfit] 'stopLoss' or 'takeProfit', required for spot trailing orders
         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
         */
         parameters ??= new Dictionary<string, object>();
@@ -5942,7 +5934,7 @@ public partial class binance : Exchange
             {
                 response = await this.dapiPrivatePostOrder(request);
             }
-        } else if (isTrue(isTrue(isEqual(marketType, "margin")) || isTrue(!isEqual(marginMode, null))))
+        } else if (isTrue(isTrue(isTrue(isEqual(marketType, "margin")) || isTrue(!isEqual(marginMode, null))) || isTrue(isPortfolioMargin)))
         {
             if (isTrue(isPortfolioMargin))
             {
@@ -6018,8 +6010,8 @@ public partial class binance : Exchange
         object stopLossPrice = this.safeString(parameters, "stopLossPrice", triggerPrice); // fallback to stopLoss
         object takeProfitPrice = this.safeString(parameters, "takeProfitPrice");
         object trailingDelta = this.safeString(parameters, "trailingDelta");
-        object trailingTriggerPrice = this.safeString2(parameters, "trailingTriggerPrice", "activationPrice", this.numberToString(price));
-        object trailingPercent = this.safeString2(parameters, "trailingPercent", "callbackRate");
+        object trailingTriggerPrice = this.safeString2(parameters, "trailingTriggerPrice", "activationPrice");
+        object trailingPercent = this.safeStringN(parameters, new List<object>() {"trailingPercent", "callbackRate", "trailingDelta"});
         object priceMatch = this.safeString(parameters, "priceMatch");
         object isTrailingPercentOrder = !isEqual(trailingPercent, null);
         object isStopLoss = isTrue(!isEqual(stopLossPrice, null)) || isTrue(!isEqual(trailingDelta, null));
@@ -6032,11 +6024,39 @@ public partial class binance : Exchange
         object stopPrice = null;
         if (isTrue(isTrailingPercentOrder))
         {
-            uppercaseType = "TRAILING_STOP_MARKET";
-            ((IDictionary<string,object>)request)["callbackRate"] = trailingPercent;
-            if (isTrue(!isEqual(trailingTriggerPrice, null)))
+            if (isTrue(getValue(market, "swap")))
             {
-                ((IDictionary<string,object>)request)["activationPrice"] = this.priceToPrecision(symbol, trailingTriggerPrice);
+                uppercaseType = "TRAILING_STOP_MARKET";
+                ((IDictionary<string,object>)request)["callbackRate"] = trailingPercent;
+                if (isTrue(!isEqual(trailingTriggerPrice, null)))
+                {
+                    ((IDictionary<string,object>)request)["activationPrice"] = this.priceToPrecision(symbol, trailingTriggerPrice);
+                }
+            } else
+            {
+                if (isTrue(isMarketOrder))
+                {
+                    throw new InvalidOrder ((string)add(add(add(add(add(this.id, " trailingPercent orders are not supported for "), symbol), " "), type), " orders")) ;
+                }
+                object stopLossOrTakeProfit = this.safeString(parameters, "stopLossOrTakeProfit");
+                parameters = this.omit(parameters, "stopLossOrTakeProfit");
+                if (isTrue(isTrue(!isEqual(stopLossOrTakeProfit, "stopLoss")) && isTrue(!isEqual(stopLossOrTakeProfit, "takeProfit"))))
+                {
+                    throw new InvalidOrder ((string)add(add(this.id, symbol), " trailingPercent orders require a stopLossOrTakeProfit parameter of either stopLoss or takeProfit")) ;
+                }
+                if (isTrue(isEqual(stopLossOrTakeProfit, "stopLoss")))
+                {
+                    uppercaseType = "STOP_LOSS_LIMIT";
+                } else if (isTrue(isEqual(stopLossOrTakeProfit, "takeProfit")))
+                {
+                    uppercaseType = "TAKE_PROFIT_LIMIT";
+                }
+                if (isTrue(!isEqual(trailingTriggerPrice, null)))
+                {
+                    stopPrice = this.priceToPrecision(symbol, trailingTriggerPrice);
+                }
+                object trailingPercentConverted = Precise.stringMul(trailingPercent, "100");
+                ((IDictionary<string,object>)request)["trailingDelta"] = trailingPercentConverted;
             }
         } else if (isTrue(isStopLoss))
         {
@@ -6059,17 +6079,6 @@ public partial class binance : Exchange
             } else if (isTrue(isLimitOrder))
             {
                 uppercaseType = ((bool) isTrue(getValue(market, "contract"))) ? "TAKE_PROFIT" : "TAKE_PROFIT_LIMIT";
-            }
-        }
-        if (isTrue(isTrue((isEqual(marketType, "spot"))) || isTrue((isEqual(marketType, "margin")))))
-        {
-            ((IDictionary<string,object>)request)["newOrderRespType"] = this.safeString(getValue(this.options, "newOrderRespType"), type, "RESULT"); // 'ACK' for order id, 'RESULT' for full order or 'FULL' for order with fills
-        } else
-        {
-            // swap, futures and options
-            if (!isTrue(isPortfolioMargin))
-            {
-                ((IDictionary<string,object>)request)["newOrderRespType"] = "RESULT"; // "ACK", "RESULT", default "ACK"
             }
         }
         if (isTrue(getValue(market, "option")))
@@ -6119,6 +6128,28 @@ public partial class binance : Exchange
                     ((IDictionary<string,object>)request)["isIsolated"] = true;
                 }
             }
+        } else
+        {
+            postOnly = this.isPostOnly(isMarketOrder, isEqual(initialUppercaseType, "LIMIT_MAKER"), parameters);
+            if (isTrue(postOnly))
+            {
+                if (!isTrue(getValue(market, "contract")))
+                {
+                    uppercaseType = "LIMIT_MAKER"; // only this endpoint accepts GTXhttps://binance-docs.github.io/apidocs/pm/en/#new-margin-order-trade
+                } else
+                {
+                    ((IDictionary<string,object>)request)["timeInForce"] = "GTX";
+                }
+            }
+        }
+        // handle newOrderRespType response type
+        if (isTrue(isTrue((isTrue((isEqual(marketType, "spot"))) || isTrue((isEqual(marketType, "margin"))))) && !isTrue(isPortfolioMargin)))
+        {
+            ((IDictionary<string,object>)request)["newOrderRespType"] = this.safeString(getValue(this.options, "newOrderRespType"), type, "FULL"); // 'ACK' for order id, 'RESULT' for full order or 'FULL' for order with fills
+        } else
+        {
+            // swap, futures and options
+            ((IDictionary<string,object>)request)["newOrderRespType"] = "RESULT"; // "ACK", "RESULT", default "ACK"
         }
         object typeRequest = ((bool) isTrue(isPortfolioMarginConditional)) ? "strategyType" : "type";
         ((IDictionary<string,object>)request)[(string)typeRequest] = uppercaseType;
@@ -6251,9 +6282,9 @@ public partial class binance : Exchange
             } else
             {
                 // check for delta price as well
-                if (isTrue(isTrue(isEqual(trailingDelta, null)) && isTrue(isEqual(stopPrice, null))))
+                if (isTrue(isTrue(isTrue(isEqual(trailingDelta, null)) && isTrue(isEqual(stopPrice, null))) && isTrue(isEqual(trailingPercent, null))))
                 {
-                    throw new InvalidOrder ((string)add(add(add(this.id, " createOrder() requires a stopPrice or trailingDelta param for a "), type), " order")) ;
+                    throw new InvalidOrder ((string)add(add(add(this.id, " createOrder() requires a stopPrice, trailingDelta or trailingPercent param for a "), type), " order")) ;
                 }
             }
             if (isTrue(!isEqual(stopPrice, null)))
@@ -6261,7 +6292,7 @@ public partial class binance : Exchange
                 ((IDictionary<string,object>)request)["stopPrice"] = this.priceToPrecision(symbol, stopPrice);
             }
         }
-        if (isTrue(isTrue(timeInForceIsRequired) && isTrue((isEqual(this.safeString(parameters, "timeInForce"), null)))))
+        if (isTrue(isTrue(isTrue(timeInForceIsRequired) && isTrue((isEqual(this.safeString(parameters, "timeInForce"), null)))) && isTrue((isEqual(this.safeString(request, "timeInForce"), null)))))
         {
             ((IDictionary<string,object>)request)["timeInForce"] = getValue(this.options, "defaultTimeInForce"); // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
         }
@@ -6775,6 +6806,7 @@ public partial class binance : Exchange
         * @param {string} [params.marginMode] 'cross' or 'isolated', for spot margin trading
         * @param {boolean} [params.portfolioMargin] set to true if you would like to fetch open orders in the portfolio margin account
         * @param {boolean} [params.stop] set to true if you would like to fetch portfolio margin account conditional orders
+        * @param {string} [params.subType] "linear" or "inverse"
         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
         */
         parameters ??= new Dictionary<string, object>();
@@ -6856,7 +6888,7 @@ public partial class binance : Exchange
             {
                 response = await this.dapiPrivateGetOpenOrders(this.extend(request, parameters));
             }
-        } else if (isTrue(isTrue(isEqual(type, "margin")) || isTrue(!isEqual(marginMode, null))))
+        } else if (isTrue(isTrue(isTrue(isEqual(type, "margin")) || isTrue(!isEqual(marginMode, null))) || isTrue(isPortfolioMargin)))
         {
             if (isTrue(isPortfolioMargin))
             {
@@ -7416,7 +7448,7 @@ public partial class binance : Exchange
             {
                 response = await this.dapiPrivateDeleteAllOpenOrders(this.extend(request, parameters));
             }
-        } else if (isTrue(isTrue((isEqual(type, "margin"))) || isTrue((!isEqual(marginMode, null)))))
+        } else if (isTrue(isTrue(isTrue((isEqual(type, "margin"))) || isTrue((!isEqual(marginMode, null)))) || isTrue(isPortfolioMargin)))
         {
             if (isTrue(isPortfolioMargin))
             {
@@ -8028,7 +8060,7 @@ public partial class binance : Exchange
                 ((IDictionary<string,object>)request)["endTime"] = until;
             }
             object raw = await this.sapiGetFiatOrders(this.extend(request, parameters));
-            response = this.safeValue(raw, "data");
+            response = this.safeList(raw, "data", new List<object>() {});
         } else
         {
             if (isTrue(!isEqual(code, null)))
@@ -8113,7 +8145,7 @@ public partial class binance : Exchange
                 ((IDictionary<string,object>)request)["beginTime"] = since;
             }
             object raw = await this.sapiGetFiatOrders(this.extend(request, parameters));
-            response = this.safeValue(raw, "data");
+            response = this.safeList(raw, "data", new List<object>() {});
         } else
         {
             if (isTrue(!isEqual(code, null)))
@@ -8272,7 +8304,7 @@ public partial class binance : Exchange
             {
                 type = ((bool) isTrue((isEqual(txType, "0")))) ? "deposit" : "withdrawal";
             }
-            object legalMoneyCurrenciesById = this.safeValue(this.options, "legalMoneyCurrenciesById");
+            object legalMoneyCurrenciesById = this.safeDict(this.options, "legalMoneyCurrenciesById");
             code = this.safeString(legalMoneyCurrenciesById, code, code);
         }
         object status = this.parseTransactionStatusByType(this.safeString(transaction, "status"), type);
@@ -8527,7 +8559,7 @@ public partial class binance : Exchange
         return this.parseTransfer(response, currency);
     }
 
-    public async virtual Task<object> fetchTransfers(object code = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<object> fetchTransfers(object code = null, object since = null, object limit = null, object parameters = null)
     {
         /**
         * @method
@@ -8674,7 +8706,7 @@ public partial class binance : Exchange
                 }
             }
             impliedNetwork = this.safeString(reverseNetworks, topLevel);
-            object impliedNetworks = this.safeValue(this.options, "impliedNetworks", new Dictionary<string, object>() {
+            object impliedNetworks = this.safeDict(this.options, "impliedNetworks", new Dictionary<string, object>() {
                 { "ETH", new Dictionary<string, object>() {
                     { "ERC20", "ETH" },
                 } },
@@ -9023,6 +9055,8 @@ public partial class binance : Exchange
             { "symbol", symbol },
             { "maker", this.safeNumber2(fee, "makerCommission", "makerCommissionRate") },
             { "taker", this.safeNumber2(fee, "takerCommission", "takerCommissionRate") },
+            { "percentage", null },
+            { "tierBased", null },
         };
     }
 
@@ -9040,6 +9074,7 @@ public partial class binance : Exchange
         * @param {string} symbol unified market symbol
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @param {boolean} [params.portfolioMargin] set to true if you would like to fetch trading fees in a portfolio margin account
+        * @param {string} [params.subType] "linear" or "inverse"
         * @returns {object} a [fee structure]{@link https://docs.ccxt.com/#/?id=fee-structure}
         */
         parameters ??= new Dictionary<string, object>();
@@ -9119,6 +9154,7 @@ public partial class binance : Exchange
         * @see https://binance-docs.github.io/apidocs/futures/en/#account-information-v2-user_data
         * @see https://binance-docs.github.io/apidocs/delivery/en/#account-information-user_data
         * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @param {string} [params.subType] "linear" or "inverse"
         * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols
         */
         parameters ??= new Dictionary<string, object>();
@@ -9399,6 +9435,7 @@ public partial class binance : Exchange
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @param {int} [params.until] timestamp in ms of the latest funding rate
         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+        * @param {string} [params.subType] "linear" or "inverse"
         * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure}
         */
         parameters ??= new Dictionary<string, object>();
@@ -9430,9 +9467,9 @@ public partial class binance : Exchange
         {
             ((IDictionary<string,object>)request)["startTime"] = since;
         }
-        object until = this.safeInteger2(parameters, "until", "till"); // unified in milliseconds
+        object until = this.safeInteger(parameters, "until"); // unified in milliseconds
         object endTime = this.safeInteger(parameters, "endTime", until); // exchange-specific in milliseconds
-        parameters = this.omit(parameters, new List<object>() {"endTime", "till", "until"});
+        parameters = this.omit(parameters, new List<object>() {"endTime", "until"});
         if (isTrue(!isEqual(endTime, null)))
         {
             ((IDictionary<string,object>)request)["endTime"] = endTime;
@@ -9486,6 +9523,7 @@ public partial class binance : Exchange
         * @see https://binance-docs.github.io/apidocs/delivery/en/#index-price-and-mark-price
         * @param {string[]|undefined} symbols list of unified market symbols
         * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @param {string} [params.subType] "linear" or "inverse"
         * @returns {object} a dictionary of [funding rates structures]{@link https://docs.ccxt.com/#/?id=funding-rates-structure}, indexe by market symbols
         */
         parameters ??= new Dictionary<string, object>();
@@ -9564,8 +9602,9 @@ public partial class binance : Exchange
         };
     }
 
-    public virtual object parseAccountPositions(object account)
+    public virtual object parseAccountPositions(object account, object filterClosed = null)
     {
+        filterClosed ??= false;
         object positions = this.safeList(account, "positions");
         object assets = this.safeList(account, "assets", new List<object>() {});
         object balances = new Dictionary<string, object>() {};
@@ -9590,7 +9629,8 @@ public partial class binance : Exchange
             object code = ((bool) isTrue(getValue(market, "linear"))) ? getValue(market, "quote") : getValue(market, "base");
             object maintenanceMargin = this.safeString(position, "maintMargin");
             // check for maintenance margin so empty positions are not returned
-            if (isTrue(isTrue((!isEqual(maintenanceMargin, "0"))) && isTrue((!isEqual(maintenanceMargin, "0.00000000")))))
+            object isPositionOpen = isTrue((!isEqual(maintenanceMargin, "0"))) && isTrue((!isEqual(maintenanceMargin, "0.00000000")));
+            if (isTrue(!isTrue(filterClosed) || isTrue(isPositionOpen)))
             {
                 // sometimes not all the codes are correctly returned...
                 if (isTrue(inOp(balances, code)))
@@ -10094,7 +10134,7 @@ public partial class binance : Exchange
         await this.loadMarkets();
         // by default cache the leverage bracket
         // it contains useful stuff like the maintenance margin and initial margin for positions
-        object leverageBrackets = this.safeValue(this.options, "leverageBrackets");
+        object leverageBrackets = this.safeDict(this.options, "leverageBrackets");
         if (isTrue(isTrue((isEqual(leverageBrackets, null))) || isTrue((reload))))
         {
             object defaultType = this.safeString(this.options, "defaultType", "future");
@@ -10165,6 +10205,7 @@ public partial class binance : Exchange
         * @param {string[]|undefined} symbols list of unified market symbols
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @param {boolean} [params.portfolioMargin] set to true if you would like to fetch the leverage tiers for a portfolio margin account
+        * @param {string} [params.subType] "linear" or "inverse"
         * @returns {object} a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/#/?id=leverage-tiers-structure}, indexed by market symbols
         */
         parameters ??= new Dictionary<string, object>();
@@ -10511,9 +10552,11 @@ public partial class binance : Exchange
         * @see https://binance-docs.github.io/apidocs/delivery/en/#account-information-user_data
         * @see https://binance-docs.github.io/apidocs/pm/en/#get-um-account-detail-user_data
         * @see https://binance-docs.github.io/apidocs/pm/en/#get-cm-account-detail-user_data
-        * @param {string[]|undefined} symbols list of unified market symbols
+        * @param {string[]} [symbols] list of unified market symbols
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @param {boolean} [params.portfolioMargin] set to true if you would like to fetch positions in a portfolio margin account
+        * @param {string} [params.subType] "linear" or "inverse"
+        * @param {boolean} [params.filterClosed] set to true if you would like to filter out closed positions, default is false
         * @returns {object} data on account positions
         */
         parameters ??= new Dictionary<string, object>();
@@ -10560,7 +10603,11 @@ public partial class binance : Exchange
         {
             throw new NotSupported ((string)add(this.id, " fetchPositions() supports linear and inverse contracts only")) ;
         }
-        object result = this.parseAccountPositions(response);
+        object filterClosed = null;
+        var filterClosedparametersVariable = this.handleOptionAndParams(parameters, "fetchAccountPositions", "filterClosed", false);
+        filterClosed = ((IList<object>)filterClosedparametersVariable)[0];
+        parameters = ((IList<object>)filterClosedparametersVariable)[1];
+        object result = this.parseAccountPositions(response, filterClosed);
         symbols = this.marketSymbols(symbols);
         return this.filterByArrayPositions(result, "symbol", symbols, false);
     }
@@ -10579,6 +10626,7 @@ public partial class binance : Exchange
         * @param {string[]|undefined} symbols list of unified market symbols
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @param {boolean} [params.portfolioMargin] set to true if you would like to fetch positions for a portfolio margin account
+        * @param {string} [params.subType] "linear" or "inverse"
         * @returns {object} data on the positions risk
         */
         parameters ??= new Dictionary<string, object>();
@@ -10752,6 +10800,7 @@ public partial class binance : Exchange
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @param {int} [params.until] timestamp in ms of the latest funding history entry
         * @param {boolean} [params.portfolioMargin] set to true if you would like to fetch the funding history for a portfolio margin account
+        * @param {string} [params.subType] "linear" or "inverse"
         * @returns {object} a [funding history structure]{@link https://docs.ccxt.com/#/?id=funding-history-structure}
         */
         parameters ??= new Dictionary<string, object>();
@@ -10975,6 +11024,7 @@ public partial class binance : Exchange
         * @param {string} symbol not used by binance setPositionMode ()
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @param {boolean} [params.portfolioMargin] set to true if you would like to set the position mode for a portfolio margin account
+        * @param {string} [params.subType] "linear" or "inverse"
         * @returns {object} response from the exchange
         */
         parameters ??= new Dictionary<string, object>();
@@ -11010,7 +11060,7 @@ public partial class binance : Exchange
             {
                 response = await this.dapiPrivatePostPositionSideDual(this.extend(request, parameters));
             }
-        } else
+        } else if (isTrue(this.isLinear(type, subType)))
         {
             if (isTrue(isPortfolioMargin))
             {
@@ -11019,6 +11069,9 @@ public partial class binance : Exchange
             {
                 response = await this.fapiPrivatePostPositionSideDual(this.extend(request, parameters));
             }
+        } else
+        {
+            throw new BadRequest ((string)add(this.id, " setPositionMode() supports linear and inverse contracts only")) ;
         }
         //
         //     {
@@ -11041,6 +11094,7 @@ public partial class binance : Exchange
         * @see https://binance-docs.github.io/apidocs/pm/en/#get-cm-account-detail-user_data
         * @param {string[]} [symbols] a list of unified market symbols
         * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @param {string} [params.subType] "linear" or "inverse"
         * @returns {object} a list of [leverage structures]{@link https://docs.ccxt.com/#/?id=leverage-structure}
         */
         parameters ??= new Dictionary<string, object>();
@@ -11360,6 +11414,7 @@ public partial class binance : Exchange
         * @param {int} [params.until] timestamp in ms of the latest ledger entry
         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         * @param {boolean} [params.portfolioMargin] set to true if you would like to fetch the ledger for a portfolio margin account
+        * @param {string} [params.subType] "linear" or "inverse"
         * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
         */
         parameters ??= new Dictionary<string, object>();
@@ -11890,7 +11945,7 @@ public partial class binance : Exchange
         }
         await this.loadMarkets();
         object market = this.market(symbol);
-        amount = this.costToPrecision(symbol, amount);
+        amount = this.amountToPrecision(symbol, amount);
         object request = new Dictionary<string, object>() {
             { "type", addOrReduce },
             { "symbol", getValue(market, "id") },
@@ -11920,20 +11975,49 @@ public partial class binance : Exchange
         });
     }
 
-    public virtual object parseMarginModification(object data, object market = null)
+    public override object parseMarginModification(object data, object market = null)
     {
+        //
+        // add/reduce margin
+        //
+        //     {
+        //         "code": 200,
+        //         "msg": "Successfully modify position margin.",
+        //         "amount": 0.001,
+        //         "type": 1
+        //     }
+        //
+        // fetchMarginAdjustmentHistory
+        //
+        //    {
+        //        symbol: "XRPUSDT",
+        //        type: "1",
+        //        deltaType: "TRADE",
+        //        amount: "2.57148240",
+        //        asset: "USDT",
+        //        time: "1711046271555",
+        //        positionSide: "BOTH",
+        //        clientTranId: ""
+        //    }
+        //
         object rawType = this.safeInteger(data, "type");
-        object resultType = ((bool) isTrue((isEqual(rawType, 1)))) ? "add" : "reduce";
-        object resultAmount = this.safeNumber(data, "amount");
         object errorCode = this.safeString(data, "code");
-        object status = ((bool) isTrue((isEqual(errorCode, "200")))) ? "ok" : "failed";
+        object marketId = this.safeString(data, "symbol");
+        object timestamp = this.safeInteger(data, "time");
+        market = this.safeMarket(marketId, market, null, "swap");
+        object noErrorCode = isEqual(errorCode, null);
+        object success = isEqual(errorCode, "200");
         return new Dictionary<string, object>() {
             { "info", data },
-            { "type", resultType },
-            { "amount", resultAmount },
-            { "code", null },
             { "symbol", getValue(market, "symbol") },
-            { "status", status },
+            { "type", ((bool) isTrue((isEqual(rawType, 1)))) ? "add" : "reduce" },
+            { "marginMode", "isolated" },
+            { "amount", this.safeNumber(data, "amount") },
+            { "code", this.safeString(data, "asset") },
+            { "total", null },
+            { "status", ((bool) isTrue((isTrue(success) || isTrue(noErrorCode)))) ? "ok" : "failed" },
+            { "timestamp", timestamp },
+            { "datetime", this.iso8601(timestamp) },
         };
     }
 
@@ -12001,6 +12085,77 @@ public partial class binance : Exchange
         //
         object rate = this.safeDict(response, 0);
         return this.parseBorrowRate(rate);
+    }
+
+    public async override Task<object> fetchIsolatedBorrowRate(object symbol, object parameters = null)
+    {
+        /**
+        * @method
+        * @name binance#fetchIsolatedBorrowRate
+        * @description fetch the rate of interest to borrow a currency for margin trading
+        * @see https://binance-docs.github.io/apidocs/spot/en/#query-isolated-margin-fee-data-user_data
+        * @param {string} symbol unified market symbol
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        *
+        * EXCHANGE SPECIFIC PARAMETERS
+        * @param {object} [params.vipLevel] user's current specific margin data will be returned if viplevel is omitted
+        * @returns {object} an [isolated borrow rate structure]{@link https://docs.ccxt.com/#/?id=isolated-borrow-rate-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        object request = new Dictionary<string, object>() {
+            { "symbol", symbol },
+        };
+        object borrowRates = await this.fetchIsolatedBorrowRates(this.extend(request, parameters));
+        return this.safeDict(borrowRates, symbol);
+    }
+
+    public async override Task<object> fetchIsolatedBorrowRates(object parameters = null)
+    {
+        /**
+        * @method
+        * @name binance#fetchIsolatedBorrowRates
+        * @description fetch the borrow interest rates of all currencies
+        * @see https://binance-docs.github.io/apidocs/spot/en/#query-isolated-margin-fee-data-user_data
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @param {object} [params.symbol] unified market symbol
+        *
+        * EXCHANGE SPECIFIC PARAMETERS
+        * @param {object} [params.vipLevel] user's current specific margin data will be returned if viplevel is omitted
+        * @returns {object} a [borrow rate structure]{@link https://docs.ccxt.com/#/?id=borrow-rate-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object request = new Dictionary<string, object>() {};
+        object symbol = this.safeString(parameters, "symbol");
+        parameters = this.omit(parameters, "symbol");
+        if (isTrue(!isEqual(symbol, null)))
+        {
+            object market = this.market(symbol);
+            ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
+        }
+        object response = await this.sapiGetMarginIsolatedMarginData(this.extend(request, parameters));
+        //
+        //    [
+        //        {
+        //            "vipLevel": 0,
+        //            "symbol": "BTCUSDT",
+        //            "leverage": "10",
+        //            "data": [
+        //                {
+        //                    "coin": "BTC",
+        //                    "dailyInterest": "0.00026125",
+        //                    "borrowLimit": "270"
+        //                },
+        //                {
+        //                    "coin": "USDT",
+        //                    "dailyInterest": "0.000475",
+        //                    "borrowLimit": "2100000"
+        //                }
+        //            ]
+        //        }
+        //    ]
+        //
+        return this.parseIsolatedBorrowRates(response);
     }
 
     public async virtual Task<object> fetchBorrowRateHistory(object code, object since = null, object limit = null, object parameters = null)
@@ -12083,6 +12238,45 @@ public partial class binance : Exchange
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
             { "info", info },
+        };
+    }
+
+    public override object parseIsolatedBorrowRate(object info, object market = null)
+    {
+        //
+        //    {
+        //        "vipLevel": 0,
+        //        "symbol": "BTCUSDT",
+        //        "leverage": "10",
+        //        "data": [
+        //            {
+        //                "coin": "BTC",
+        //                "dailyInterest": "0.00026125",
+        //                "borrowLimit": "270"
+        //            },
+        //            {
+        //                "coin": "USDT",
+        //                "dailyInterest": "0.000475",
+        //                "borrowLimit": "2100000"
+        //            }
+        //        ]
+        //    }
+        //
+        object marketId = this.safeString(info, "symbol");
+        market = this.safeMarket(marketId, market, null, "spot");
+        object data = this.safeList(info, "data");
+        object baseInfo = this.safeDict(data, 0);
+        object quoteInfo = this.safeDict(data, 1);
+        return new Dictionary<string, object>() {
+            { "info", info },
+            { "symbol", this.safeString(market, "symbol") },
+            { "base", this.safeString(baseInfo, "coin") },
+            { "baseRate", this.safeNumber(baseInfo, "dailyInterest") },
+            { "quote", this.safeString(quoteInfo, "coin") },
+            { "quoteRate", this.safeNumber(quoteInfo, "dailyInterest") },
+            { "period", 86400000 },
+            { "timestamp", null },
+            { "datetime", null },
         };
     }
 
@@ -12486,6 +12680,7 @@ public partial class binance : Exchange
         * @param {int} [limit] default 30, max 500
         * @param {object} [params] exchange specific parameters
         * @param {int} [params.until] the time(ms) of the latest record to retrieve as a unix timestamp
+        * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         * @returns {object} an array of [open interest structure]{@link https://docs.ccxt.com/#/?id=open-interest-structure}
         */
         timeframe ??= "5m";
@@ -12521,9 +12716,9 @@ public partial class binance : Exchange
         {
             ((IDictionary<string,object>)request)["startTime"] = since;
         }
-        object until = this.safeInteger2(parameters, "until", "till"); // unified in milliseconds
+        object until = this.safeInteger(parameters, "until"); // unified in milliseconds
         object endTime = this.safeInteger(parameters, "endTime", until); // exchange-specific in milliseconds
-        parameters = this.omit(parameters, new List<object>() {"endTime", "until", "till"});
+        parameters = this.omit(parameters, new List<object>() {"endTime", "until"});
         if (isTrue(endTime))
         {
             ((IDictionary<string,object>)request)["endTime"] = endTime;
@@ -12681,6 +12876,8 @@ public partial class binance : Exchange
         * @param {int} [params.until] timestamp in ms of the latest liquidation
         * @param {boolean} [params.paginate] *spot only* default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         * @param {boolean} [params.portfolioMargin] set to true if you would like to fetch liquidations in a portfolio margin account
+        * @param {string} [params.type] "spot"
+        * @param {string} [params.subType] "linear" or "inverse"
         * @returns {object} an array of [liquidation structures]{@link https://docs.ccxt.com/#/?id=liquidation-structure}
         */
         parameters ??= new Dictionary<string, object>();
@@ -13043,8 +13240,8 @@ public partial class binance : Exchange
         * @name binance#fetchPositionMode
         * @description fetchs the position mode, hedged or one way, hedged for binance is set identically for all linear markets or all inverse markets
         * @param {string} symbol unified symbol of the market to fetch the order book for
-        * @param {object} params extra parameters specific to the exchange API endpoint
-        * @param {string} params.subType "linear" or "inverse"
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @param {string} [params.subType] "linear" or "inverse"
         * @returns {object} an object detailing whether the market is in hedged or one-way mode
         */
         parameters ??= new Dictionary<string, object>();
@@ -13089,7 +13286,8 @@ public partial class binance : Exchange
         * @see https://binance-docs.github.io/apidocs/futures/en/#account-information-v2-user_data
         * @param {string} symbol unified symbol of the market the order was made in
         * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} struct of marginMode
+        * @param {string} [params.subType] "linear" or "inverse"
+        * @returns {object} a list of [margin mode structures]{@link https://docs.ccxt.com/#/?id=margin-mode-structure}
         */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -13114,7 +13312,7 @@ public partial class binance : Exchange
         {
             throw new BadRequest ((string)add(this.id, " fetchMarginModes () supports linear and inverse subTypes only")) ;
         }
-        object assets = this.safeValue(response, "positions", new List<object>() {});
+        object assets = this.safeList(response, "positions", new List<object>() {});
         return this.parseMarginModes(assets, symbols, "symbol", "swap");
     }
 
@@ -13127,6 +13325,526 @@ public partial class binance : Exchange
             { "info", marginMode },
             { "symbol", getValue(market, "symbol") },
             { "marginMode", ((bool) isTrue(isIsolated)) ? "isolated" : "cross" },
+        };
+    }
+
+    public async override Task<object> fetchOption(object symbol, object parameters = null)
+    {
+        /**
+        * @method
+        * @name binance#fetchOption
+        * @description fetches option data that is commonly found in an option chain
+        * @see https://binance-docs.github.io/apidocs/voptions/en/#24hr-ticker-price-change-statistics
+        * @param {string} symbol unified market symbol
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {object} an [option chain structure]{@link https://docs.ccxt.com/#/?id=option-chain-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object market = this.market(symbol);
+        object request = new Dictionary<string, object>() {
+            { "symbol", getValue(market, "id") },
+        };
+        object response = await this.eapiPublicGetTicker(this.extend(request, parameters));
+        //
+        //     [
+        //         {
+        //             "symbol": "BTC-241227-80000-C",
+        //             "priceChange": "0",
+        //             "priceChangePercent": "0",
+        //             "lastPrice": "2750",
+        //             "lastQty": "0",
+        //             "open": "2750",
+        //             "high": "2750",
+        //             "low": "2750",
+        //             "volume": "0",
+        //             "amount": "0",
+        //             "bidPrice": "4880",
+        //             "askPrice": "0",
+        //             "openTime": 0,
+        //             "closeTime": 0,
+        //             "firstTradeId": 0,
+        //             "tradeCount": 0,
+        //             "strikePrice": "80000",
+        //             "exercisePrice": "63944.09893617"
+        //         }
+        //     ]
+        //
+        object chain = this.safeDict(response, 0, new Dictionary<string, object>() {});
+        return this.parseOption(chain, null, market);
+    }
+
+    public override object parseOption(object chain, object currency = null, object market = null)
+    {
+        //
+        //     {
+        //         "symbol": "BTC-241227-80000-C",
+        //         "priceChange": "0",
+        //         "priceChangePercent": "0",
+        //         "lastPrice": "2750",
+        //         "lastQty": "0",
+        //         "open": "2750",
+        //         "high": "2750",
+        //         "low": "2750",
+        //         "volume": "0",
+        //         "amount": "0",
+        //         "bidPrice": "4880",
+        //         "askPrice": "0",
+        //         "openTime": 0,
+        //         "closeTime": 0,
+        //         "firstTradeId": 0,
+        //         "tradeCount": 0,
+        //         "strikePrice": "80000",
+        //         "exercisePrice": "63944.09893617"
+        //     }
+        //
+        object marketId = this.safeString(chain, "symbol");
+        market = this.safeMarket(marketId, market);
+        return new Dictionary<string, object>() {
+            { "info", chain },
+            { "currency", null },
+            { "symbol", getValue(market, "symbol") },
+            { "timestamp", null },
+            { "datetime", null },
+            { "impliedVolatility", null },
+            { "openInterest", null },
+            { "bidPrice", this.safeNumber(chain, "bidPrice") },
+            { "askPrice", this.safeNumber(chain, "askPrice") },
+            { "midPrice", null },
+            { "markPrice", null },
+            { "lastPrice", this.safeNumber(chain, "lastPrice") },
+            { "underlyingPrice", this.safeNumber(chain, "exercisePrice") },
+            { "change", this.safeNumber(chain, "priceChange") },
+            { "percentage", this.safeNumber(chain, "priceChangePercent") },
+            { "baseVolume", this.safeNumber(chain, "volume") },
+            { "quoteVolume", null },
+        };
+    }
+
+    public async override Task<object> fetchMarginAdjustmentHistory(object symbol = null, object type = null, object since = null, object limit = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @description fetches the history of margin added or reduced from contract isolated positions
+        * @see https://binance-docs.github.io/apidocs/futures/en/#get-position-margin-change-history-trade
+        * @see https://binance-docs.github.io/apidocs/delivery/en/#get-position-margin-change-history-trade
+        * @param {string} symbol unified market symbol
+        * @param {string} [type] "add" or "reduce"
+        * @param {int} [since] timestamp in ms of the earliest change to fetch
+        * @param {int} [limit] the maximum amount of changes to fetch
+        * @param {object} params extra parameters specific to the exchange api endpoint
+        * @param {int} [params.until] timestamp in ms of the latest change to fetch
+        * @returns {object[]} a list of [margin structures]{@link https://docs.ccxt.com/#/?id=margin-loan-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        if (isTrue(isEqual(symbol, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " fetchMarginAdjustmentHistory () requires a symbol argument")) ;
+        }
+        object market = this.market(symbol);
+        object until = this.safeInteger(parameters, "until");
+        parameters = this.omit(parameters, "until");
+        object request = new Dictionary<string, object>() {
+            { "symbol", getValue(market, "id") },
+        };
+        if (isTrue(!isEqual(type, null)))
+        {
+            ((IDictionary<string,object>)request)["type"] = ((bool) isTrue((isEqual(type, "add")))) ? 1 : 2;
+        }
+        if (isTrue(!isEqual(since, null)))
+        {
+            ((IDictionary<string,object>)request)["startTime"] = since;
+        }
+        if (isTrue(!isEqual(limit, null)))
+        {
+            ((IDictionary<string,object>)request)["limit"] = limit;
+        }
+        if (isTrue(!isEqual(until, null)))
+        {
+            ((IDictionary<string,object>)request)["endTime"] = until;
+        }
+        object response = null;
+        if (isTrue(getValue(market, "linear")))
+        {
+            response = await this.fapiPrivateGetPositionMarginHistory(this.extend(request, parameters));
+        } else if (isTrue(getValue(market, "inverse")))
+        {
+            response = await this.dapiPrivateGetPositionMarginHistory(this.extend(request, parameters));
+        } else
+        {
+            throw new BadRequest ((string)add(add(this.id, "fetchMarginAdjustmentHistory () is not supported for markets of type "), getValue(market, "type"))) ;
+        }
+        //
+        //    [
+        //        {
+        //            symbol: "XRPUSDT",
+        //            type: "1",
+        //            deltaType: "TRADE",
+        //            amount: "2.57148240",
+        //            asset: "USDT",
+        //            time: "1711046271555",
+        //            positionSide: "BOTH",
+        //            clientTranId: ""
+        //        }
+        //        ...
+        //    ]
+        //
+        object modifications = this.parseMarginModifications(response);
+        return this.filterBySymbolSinceLimit(modifications, symbol, since, limit);
+    }
+
+    public async override Task<object> fetchConvertCurrencies(object parameters = null)
+    {
+        /**
+        * @method
+        * @name binance#fetchConvertCurrencies
+        * @description fetches all available currencies that can be converted
+        * @see https://binance-docs.github.io/apidocs/spot/en/#query-order-quantity-precision-per-asset-user_data
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {object} an associative dictionary of currencies
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object response = await this.sapiGetConvertAssetInfo(parameters);
+        //
+        //     [
+        //         {
+        //             "asset": "BTC",
+        //             "fraction": 8
+        //         },
+        //     ]
+        //
+        object result = new Dictionary<string, object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
+        {
+            object entry = getValue(response, i);
+            object id = this.safeString(entry, "asset");
+            object code = this.safeCurrencyCode(id);
+            ((IDictionary<string,object>)result)[(string)code] = new Dictionary<string, object>() {
+                { "info", entry },
+                { "id", id },
+                { "code", code },
+                { "networks", null },
+                { "type", null },
+                { "name", null },
+                { "active", null },
+                { "deposit", null },
+                { "withdraw", null },
+                { "fee", null },
+                { "precision", this.safeInteger(entry, "fraction") },
+                { "limits", new Dictionary<string, object>() {
+                    { "amount", new Dictionary<string, object>() {
+                        { "min", null },
+                        { "max", null },
+                    } },
+                    { "withdraw", new Dictionary<string, object>() {
+                        { "min", null },
+                        { "max", null },
+                    } },
+                    { "deposit", new Dictionary<string, object>() {
+                        { "min", null },
+                        { "max", null },
+                    } },
+                } },
+                { "created", null },
+            };
+        }
+        return result;
+    }
+
+    public async override Task<object> fetchConvertQuote(object fromCode, object toCode, object amount = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name binance#fetchConvertQuote
+        * @description fetch a quote for converting from one currency to another
+        * @see https://binance-docs.github.io/apidocs/spot/en/#send-quote-request-user_data
+        * @param {string} fromCode the currency that you want to sell and convert from
+        * @param {string} toCode the currency that you want to buy and convert into
+        * @param {float} amount how much you want to trade in units of the from currency
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @param {string} [params.walletType] either 'SPOT' or 'FUNDING', the default is 'SPOT'
+        * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/#/?id=conversion-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        if (isTrue(isEqual(amount, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " fetchConvertQuote() requires an amount argument")) ;
+        }
+        await this.loadMarkets();
+        object request = new Dictionary<string, object>() {
+            { "fromAsset", fromCode },
+            { "toAsset", toCode },
+            { "fromAmount", amount },
+        };
+        object response = await this.sapiPostConvertGetQuote(this.extend(request, parameters));
+        //
+        //     {
+        //         "quoteId":"12415572564",
+        //         "ratio":"38163.7",
+        //         "inverseRatio":"0.0000262",
+        //         "validTimestamp":1623319461670,
+        //         "toAmount":"3816.37",
+        //         "fromAmount":"0.1"
+        //     }
+        //
+        object fromCurrency = this.currency(fromCode);
+        object toCurrency = this.currency(toCode);
+        return this.parseConversion(response, fromCurrency, toCurrency);
+    }
+
+    public async virtual Task<object> createConvertTrade(object id, object fromCode, object toCode, object amount = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name binance#createConvertTrade
+        * @description convert from one currency to another
+        * @see https://binance-docs.github.io/apidocs/spot/en/#busd-convert-trade
+        * @see https://binance-docs.github.io/apidocs/spot/en/#accept-quote-trade
+        * @param {string} id the id of the trade that you want to make
+        * @param {string} fromCode the currency that you want to sell and convert from
+        * @param {string} toCode the currency that you want to buy and convert into
+        * @param {float} [amount] how much you want to trade in units of the from currency
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/#/?id=conversion-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object request = new Dictionary<string, object>() {};
+        object response = null;
+        if (isTrue(isTrue((isEqual(fromCode, "BUSD"))) || isTrue((isEqual(toCode, "BUSD")))))
+        {
+            if (isTrue(isEqual(amount, null)))
+            {
+                throw new ArgumentsRequired ((string)add(this.id, " createConvertTrade() requires an amount argument")) ;
+            }
+            ((IDictionary<string,object>)request)["clientTranId"] = id;
+            ((IDictionary<string,object>)request)["asset"] = fromCode;
+            ((IDictionary<string,object>)request)["targetAsset"] = toCode;
+            ((IDictionary<string,object>)request)["amount"] = amount;
+            response = await this.sapiPostAssetConvertTransfer(this.extend(request, parameters));
+        } else
+        {
+            ((IDictionary<string,object>)request)["quoteId"] = id;
+            response = await this.sapiPostConvertAcceptQuote(this.extend(request, parameters));
+        }
+        object fromCurrency = this.currency(fromCode);
+        object toCurrency = this.currency(toCode);
+        return this.parseConversion(response, fromCurrency, toCurrency);
+    }
+
+    public async virtual Task<object> fetchConvertTrade(object id, object code = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name binance#fetchConvertTrade
+        * @description fetch the data for a conversion trade
+        * @see https://binance-docs.github.io/apidocs/spot/en/#busd-convert-history-user_data
+        * @see https://binance-docs.github.io/apidocs/spot/en/#order-status-user_data
+        * @param {string} id the id of the trade that you want to fetch
+        * @param {string} [code] the unified currency code of the conversion trade
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/#/?id=conversion-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object request = new Dictionary<string, object>() {};
+        object response = null;
+        if (isTrue(isEqual(code, "BUSD")))
+        {
+            object msInDay = 86400000;
+            object now = this.milliseconds();
+            if (isTrue(!isEqual(code, null)))
+            {
+                object currency = this.currency(code);
+                ((IDictionary<string,object>)request)["asset"] = getValue(currency, "id");
+            }
+            ((IDictionary<string,object>)request)["tranId"] = id;
+            ((IDictionary<string,object>)request)["startTime"] = subtract(now, msInDay);
+            ((IDictionary<string,object>)request)["endTime"] = now;
+            response = await this.sapiGetAssetConvertTransferQueryByPage(this.extend(request, parameters));
+        } else
+        {
+            ((IDictionary<string,object>)request)["orderId"] = id;
+            response = await this.sapiGetConvertOrderStatus(this.extend(request, parameters));
+        }
+        object data = response;
+        if (isTrue(isEqual(code, "BUSD")))
+        {
+            object rows = this.safeList(response, "rows", new List<object>() {});
+            data = this.safeDict(rows, 0, new Dictionary<string, object>() {});
+        }
+        object fromCurrencyId = this.safeString2(data, "deductedAsset", "fromAsset");
+        object toCurrencyId = this.safeString2(data, "targetAsset", "toAsset");
+        object fromCurrency = null;
+        object toCurrency = null;
+        if (isTrue(!isEqual(fromCurrencyId, null)))
+        {
+            fromCurrency = this.currency(fromCurrencyId);
+        }
+        if (isTrue(!isEqual(toCurrencyId, null)))
+        {
+            toCurrency = this.currency(toCurrencyId);
+        }
+        return this.parseConversion(data, fromCurrency, toCurrency);
+    }
+
+    public async virtual Task<object> fetchConvertTradeHistory(object code = null, object since = null, object limit = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name binance#fetchConvertTradeHistory
+        * @description fetch the users history of conversion trades
+        * @see https://binance-docs.github.io/apidocs/spot/en/#busd-convert-history-user_data
+        * @see https://binance-docs.github.io/apidocs/spot/en/#get-convert-trade-history-user_data
+        * @param {string} [code] the unified currency code
+        * @param {int} [since] the earliest time in ms to fetch conversions for
+        * @param {int} [limit] the maximum number of conversion structures to retrieve
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @param {int} [params.until] timestamp in ms of the latest conversion to fetch
+        * @returns {object[]} a list of [conversion structures]{@link https://docs.ccxt.com/#/?id=conversion-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object request = new Dictionary<string, object>() {};
+        object msInThirtyDays = 2592000000;
+        object now = this.milliseconds();
+        if (isTrue(!isEqual(since, null)))
+        {
+            ((IDictionary<string,object>)request)["startTime"] = since;
+        } else
+        {
+            ((IDictionary<string,object>)request)["startTime"] = subtract(now, msInThirtyDays);
+        }
+        object endTime = this.safeString2(parameters, "endTime", "until");
+        if (isTrue(!isEqual(endTime, null)))
+        {
+            ((IDictionary<string,object>)request)["endTime"] = endTime;
+        } else
+        {
+            ((IDictionary<string,object>)request)["endTime"] = now;
+        }
+        parameters = this.omit(parameters, "until");
+        object response = null;
+        object responseQuery = null;
+        object fromCurrencyKey = null;
+        object toCurrencyKey = null;
+        if (isTrue(isEqual(code, "BUSD")))
+        {
+            object currency = this.currency(code);
+            ((IDictionary<string,object>)request)["asset"] = getValue(currency, "id");
+            if (isTrue(!isEqual(limit, null)))
+            {
+                ((IDictionary<string,object>)request)["size"] = limit;
+            }
+            fromCurrencyKey = "deductedAsset";
+            toCurrencyKey = "targetAsset";
+            responseQuery = "rows";
+            response = await this.sapiGetAssetConvertTransferQueryByPage(this.extend(request, parameters));
+        } else
+        {
+            if (isTrue(!isEqual(limit, null)))
+            {
+                ((IDictionary<string,object>)request)["limit"] = limit;
+            }
+            fromCurrencyKey = "fromAsset";
+            toCurrencyKey = "toAsset";
+            responseQuery = "list";
+            response = await this.sapiGetConvertTradeFlow(this.extend(request, parameters));
+        }
+        object rows = this.safeList(response, responseQuery, new List<object>() {});
+        return this.parseConversions(rows, code, fromCurrencyKey, toCurrencyKey, since, limit);
+    }
+
+    public override object parseConversion(object conversion, object fromCurrency = null, object toCurrency = null)
+    {
+        //
+        // fetchConvertQuote
+        //
+        //     {
+        //         "quoteId":"12415572564",
+        //         "ratio":"38163.7",
+        //         "inverseRatio":"0.0000262",
+        //         "validTimestamp":1623319461670,
+        //         "toAmount":"3816.37",
+        //         "fromAmount":"0.1"
+        //     }
+        //
+        // createConvertTrade
+        //
+        //     {
+        //         "orderId":"933256278426274426",
+        //         "createTime":1623381330472,
+        //         "orderStatus":"PROCESS"
+        //     }
+        //
+        // createConvertTrade BUSD
+        //
+        //     {
+        //         "tranId": 118263407119,
+        //         "status": "S"
+        //     }
+        //
+        // fetchConvertTrade, fetchConvertTradeHistory BUSD
+        //
+        //     {
+        //         "tranId": 118263615991,
+        //         "type": 244,
+        //         "time": 1664442078000,
+        //         "deductedAsset": "BUSD",
+        //         "deductedAmount": "1",
+        //         "targetAsset": "USDC",
+        //         "targetAmount": "1",
+        //         "status": "S",
+        //         "accountType": "MAIN"
+        //     }
+        //
+        // fetchConvertTrade
+        //
+        //     {
+        //         "orderId":933256278426274426,
+        //         "orderStatus":"SUCCESS",
+        //         "fromAsset":"BTC",
+        //         "fromAmount":"0.00054414",
+        //         "toAsset":"USDT",
+        //         "toAmount":"20",
+        //         "ratio":"36755",
+        //         "inverseRatio":"0.00002721",
+        //         "createTime":1623381330472
+        //     }
+        //
+        // fetchConvertTradeHistory
+        //
+        //     {
+        //         "quoteId": "f3b91c525b2644c7bc1e1cd31b6e1aa6",
+        //         "orderId": 940708407462087195,
+        //         "orderStatus": "SUCCESS",
+        //         "fromAsset": "USDT",
+        //         "fromAmount": "20",
+        //         "toAsset": "BNB",
+        //         "toAmount": "0.06154036",
+        //         "ratio": "0.00307702",
+        //         "inverseRatio": "324.99",
+        //         "createTime": 1624248872184
+        //     }
+        //
+        object timestamp = this.safeIntegerN(conversion, new List<object>() {"time", "validTimestamp", "createTime"});
+        object fromCur = this.safeString2(conversion, "deductedAsset", "fromAsset");
+        object fromCode = this.safeCurrencyCode(fromCur, fromCurrency);
+        object to = this.safeString2(conversion, "targetAsset", "toAsset");
+        object toCode = this.safeCurrencyCode(to, toCurrency);
+        return new Dictionary<string, object>() {
+            { "info", conversion },
+            { "timestamp", timestamp },
+            { "datetime", this.iso8601(timestamp) },
+            { "id", this.safeStringN(conversion, new List<object>() {"tranId", "orderId", "quoteId"}) },
+            { "fromCurrency", fromCode },
+            { "fromAmount", this.safeNumber2(conversion, "deductedAmount", "fromAmount") },
+            { "toCurrency", toCode },
+            { "toAmount", this.safeNumber2(conversion, "targetAmount", "toAmount") },
+            { "price", null },
+            { "fee", null },
         };
     }
 }

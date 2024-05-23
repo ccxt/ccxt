@@ -48,6 +48,7 @@ async def test_watch_tickers_helper(exchange, skipped_properties, arg_symbols, a
         checked_symbol = None
         if arg_symbols is not None and len(arg_symbols) == 1:
             checked_symbol = arg_symbols[0]
+        test_shared_methods.assert_non_emtpy_array(exchange, skipped_properties, method, values, checked_symbol)
         for i in range(0, len(values)):
             ticker = values[i]
             test_ticker(exchange, skipped_properties, method, ticker, checked_symbol)

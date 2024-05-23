@@ -43,6 +43,7 @@ class ImplicitAPI:
     v1_private_get_position_symbol = v1PrivateGetPositionSymbol = Entry('position/{symbol}', ['v1', 'private'], 'GET', {'cost': 3.33})
     v1_private_get_client_transaction_history = v1PrivateGetClientTransactionHistory = Entry('client/transaction_history', ['v1', 'private'], 'GET', {'cost': 60})
     v1_private_post_order = v1PrivatePostOrder = Entry('order', ['v1', 'private'], 'POST', {'cost': 5})
+    v1_private_post_order_cancel_all_after = v1PrivatePostOrderCancelAllAfter = Entry('order/cancel_all_after', ['v1', 'private'], 'POST', {'cost': 1})
     v1_private_post_asset_main_sub_transfer = v1PrivatePostAssetMainSubTransfer = Entry('asset/main_sub_transfer', ['v1', 'private'], 'POST', {'cost': 30})
     v1_private_post_asset_ltv = v1PrivatePostAssetLtv = Entry('asset/ltv', ['v1', 'private'], 'POST', {'cost': 30})
     v1_private_post_asset_withdraw = v1PrivatePostAssetWithdraw = Entry('asset/withdraw', ['v1', 'private'], 'POST', {'cost': 30})

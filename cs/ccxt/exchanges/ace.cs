@@ -55,8 +55,13 @@ public partial class ace : Exchange
                 { "fetchOrderBook", true },
                 { "fetchOrders", false },
                 { "fetchOrderTrades", true },
+                { "fetchPosition", false },
+                { "fetchPositionHistory", false },
                 { "fetchPositionMode", false },
                 { "fetchPositions", false },
+                { "fetchPositionsForSymbol", false },
+                { "fetchPositionsHistory", false },
+                { "fetchPositionsRisk", false },
                 { "fetchPremiumIndexOHLCV", false },
                 { "fetchTicker", true },
                 { "fetchTickers", true },
@@ -394,7 +399,7 @@ public partial class ace : Exchange
         //         "status": 200
         //     }
         //
-        object orderBook = this.safeValue(response, "attachment");
+        object orderBook = this.safeDict(response, "attachment");
         return this.parseOrderBook(orderBook, getValue(market, "symbol"), null, "bids", "asks");
     }
 
@@ -632,7 +637,7 @@ public partial class ace : Exchange
         //         "status": 200
         //     }
         //
-        object data = this.safeValue(response, "attachment");
+        object data = this.safeDict(response, "attachment");
         return this.parseOrder(data, market);
     }
 
@@ -704,7 +709,7 @@ public partial class ace : Exchange
         //         "status": 200
         //     }
         //
-        object data = this.safeValue(response, "attachment");
+        object data = this.safeDict(response, "attachment");
         return this.parseOrder(data, null);
     }
 
@@ -910,7 +915,7 @@ public partial class ace : Exchange
         //     }
         //
         object data = this.safeValue(response, "attachment");
-        object trades = this.safeValue(data, "trades", new List<object>() {});
+        object trades = this.safeList(data, "trades", new List<object>() {});
         return this.parseTrades(trades, market, since, limit);
     }
 
@@ -971,7 +976,7 @@ public partial class ace : Exchange
         //         "status": 200
         //     }
         //
-        object trades = this.safeValue(response, "attachment", new List<object>() {});
+        object trades = this.safeList(response, "attachment", new List<object>() {});
         return this.parseTrades(trades, market, since, limit);
     }
 

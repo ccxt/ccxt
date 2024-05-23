@@ -374,6 +374,12 @@ public partial class blofin
     /// object : extra parameters specific to the exchange API endpoint
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>params.trigger</term>
+    /// <description>
+    /// boolean : True if cancelling a trigger/conditional order/tp sl orders
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
@@ -711,10 +717,36 @@ public partial class blofin
         return ((IList<object>)res).Select(item => new Position(item)).ToList<Position>();
     }
     /// <summary>
+    /// fetch the set leverage for all contract markets
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://docs.blofin.com/index.html#get-multiple-leverage"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.marginMode</term>
+    /// <description>
+    /// string : 'cross' or 'isolated'
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a list of [leverage structures]{@link https://docs.ccxt.com/#/?id=leverage-structure}.</returns>
+    public async Task<Leverages> FetchLeverages(List<string> symbols = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchLeverages(symbols, parameters);
+        return new Leverages(res);
+    }
+    /// <summary>
     /// fetch the set leverage for a market
     /// </summary>
     /// <remarks>
-    /// See <see href="https://blofin.com/docs#set-leverage"/>  <br/>
+    /// See <see href="https://docs.blofin.com/index.html#get-leverage"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -808,5 +840,25 @@ public partial class blofin
         var limit = limit2 == 0 ? null : (object)limit2;
         var res = await this.fetchClosedOrders(symbol, since, limit, parameters);
         return ((IList<object>)res).Select(item => new Order(item)).ToList<Order>();
+    }
+    /// <summary>
+    /// fetches the margin mode of a trading pair
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://docs.blofin.com/index.html#get-margin-mode"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a [margin mode structure]{@link https://docs.ccxt.com/#/?id=margin-mode-structure}.</returns>
+    public async Task<MarginMode> FetchMarginMode(string symbol, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchMarginMode(symbol, parameters);
+        return new MarginMode(res);
     }
 }

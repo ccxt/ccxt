@@ -19,8 +19,8 @@ public partial class bitfinex2 : Exchange
                 { "spot", true },
                 { "margin", true },
                 { "swap", true },
-                { "future", null },
-                { "option", null },
+                { "future", false },
+                { "option", false },
                 { "addMargin", false },
                 { "borrowCrossMargin", false },
                 { "borrowIsolatedMargin", false },
@@ -31,6 +31,7 @@ public partial class bitfinex2 : Exchange
                 { "createLimitOrder", true },
                 { "createMarketOrder", true },
                 { "createOrder", true },
+                { "createPostOnlyOrder", true },
                 { "createReduceOnlyOrder", true },
                 { "createStopLimitOrder", true },
                 { "createStopMarketOrder", true },
@@ -41,8 +42,11 @@ public partial class bitfinex2 : Exchange
                 { "editOrder", true },
                 { "fetchBalance", true },
                 { "fetchBorrowInterest", false },
+                { "fetchBorrowRate", false },
                 { "fetchBorrowRateHistories", false },
                 { "fetchBorrowRateHistory", false },
+                { "fetchBorrowRates", false },
+                { "fetchBorrowRatesPerSymbol", false },
                 { "fetchClosedOrder", true },
                 { "fetchClosedOrders", true },
                 { "fetchCrossBorrowRate", false },
@@ -71,6 +75,8 @@ public partial class bitfinex2 : Exchange
                 { "fetchOpenOrder", true },
                 { "fetchOpenOrders", true },
                 { "fetchOrder", true },
+                { "fetchOrderBook", true },
+                { "fetchOrderBooks", false },
                 { "fetchOrderTrades", true },
                 { "fetchPosition", false },
                 { "fetchPositionMode", false },
@@ -90,6 +96,8 @@ public partial class bitfinex2 : Exchange
                 { "setMargin", true },
                 { "setMarginMode", false },
                 { "setPositionMode", false },
+                { "signIn", false },
+                { "transfer", true },
                 { "withdraw", true },
             } },
             { "timeframes", new Dictionary<string, object>() {
@@ -922,7 +930,9 @@ public partial class bitfinex2 : Exchange
             this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), message, add(add(this.id, " "), message));
             throw new ExchangeError ((string)add(add(this.id, " "), message)) ;
         }
-        return this.parseTransfer(response, currency);
+        return this.parseTransfer(new Dictionary<string, object>() {
+            { "result", response },
+        }, currency);
     }
 
     public override object parseTransfer(object transfer, object currency = null)
@@ -950,12 +960,13 @@ public partial class bitfinex2 : Exchange
         //         "1.0 Tether USDt transfered from Exchange to Margin"
         //     ]
         //
-        object timestamp = this.safeInteger(transfer, 0);
-        object info = this.safeValue(transfer, 4);
+        object result = this.safeList(transfer, "result");
+        object timestamp = this.safeInteger(result, 0);
+        object info = this.safeValue(result, 4);
         object fromAccount = this.safeString(info, 1);
         object toAccount = this.safeString(info, 2);
         object currencyId = this.safeString(info, 5);
-        object status = this.safeString(transfer, 6);
+        object status = this.safeString(result, 6);
         return new Dictionary<string, object>() {
             { "id", null },
             { "timestamp", timestamp },
@@ -965,7 +976,7 @@ public partial class bitfinex2 : Exchange
             { "currency", this.safeCurrencyCode(currencyId, currency) },
             { "fromAccount", fromAccount },
             { "toAccount", toAccount },
-            { "info", transfer },
+            { "info", result },
         };
     }
 
@@ -1064,67 +1075,73 @@ public partial class bitfinex2 : Exchange
         //
         // on trading pairs (ex. tBTCUSD)
         //
-        //     [
-        //         SYMBOL,
-        //         BID,
-        //         BID_SIZE,
-        //         ASK,
-        //         ASK_SIZE,
-        //         DAILY_CHANGE,
-        //         DAILY_CHANGE_RELATIVE,
-        //         LAST_PRICE,
-        //         VOLUME,
-        //         HIGH,
-        //         LOW
-        //     ]
+        //    {
+        //        'result': [
+        //            SYMBOL,
+        //            BID,
+        //            BID_SIZE,
+        //            ASK,
+        //            ASK_SIZE,
+        //            DAILY_CHANGE,
+        //            DAILY_CHANGE_RELATIVE,
+        //            LAST_PRICE,
+        //            VOLUME,
+        //            HIGH,
+        //            LOW
+        //        ]
+        //    }
+        //
         //
         // on funding currencies (ex. fUSD)
         //
-        //     [
-        //         SYMBOL,
-        //         FRR,
-        //         BID,
-        //         BID_PERIOD,
-        //         BID_SIZE,
-        //         ASK,
-        //         ASK_PERIOD,
-        //         ASK_SIZE,
-        //         DAILY_CHANGE,
-        //         DAILY_CHANGE_RELATIVE,
-        //         LAST_PRICE,
-        //         VOLUME,
-        //         HIGH,
-        //         LOW,
-        //         _PLACEHOLDER,
-        //         _PLACEHOLDER,
-        //         FRR_AMOUNT_AVAILABLE
-        //     ]
+        //    {
+        //        'result': [
+        //            SYMBOL,
+        //            FRR,
+        //            BID,
+        //            BID_PERIOD,
+        //            BID_SIZE,
+        //            ASK,
+        //            ASK_PERIOD,
+        //            ASK_SIZE,
+        //            DAILY_CHANGE,
+        //            DAILY_CHANGE_RELATIVE,
+        //            LAST_PRICE,
+        //            VOLUME,
+        //            HIGH,
+        //            LOW,
+        //            _PLACEHOLDER,
+        //            _PLACEHOLDER,
+        //            FRR_AMOUNT_AVAILABLE
+        //        ]
+        //    }
         //
+        object result = this.safeList(ticker, "result");
         object symbol = this.safeSymbol(null, market);
-        object length = getArrayLength(ticker);
-        object last = this.safeString(ticker, subtract(length, 4));
-        object percentage = this.safeString(ticker, subtract(length, 5));
+        object length = getArrayLength(result);
+        object last = this.safeString(result, subtract(length, 4));
+        object percentage = this.safeString(result, subtract(length, 5));
         return this.safeTicker(new Dictionary<string, object>() {
             { "symbol", symbol },
             { "timestamp", null },
             { "datetime", null },
-            { "high", this.safeString(ticker, subtract(length, 2)) },
-            { "low", this.safeString(ticker, subtract(length, 1)) },
-            { "bid", this.safeString(ticker, subtract(length, 10)) },
-            { "bidVolume", this.safeString(ticker, subtract(length, 9)) },
-            { "ask", this.safeString(ticker, subtract(length, 8)) },
-            { "askVolume", this.safeString(ticker, subtract(length, 7)) },
+            { "high", this.safeString(result, subtract(length, 2)) },
+            { "low", this.safeString(result, subtract(length, 1)) },
+            { "bid", this.safeString(result, subtract(length, 10)) },
+            { "bidVolume", this.safeString(result, subtract(length, 9)) },
+            { "ask", this.safeString(result, subtract(length, 8)) },
+            { "askVolume", this.safeString(result, subtract(length, 7)) },
             { "vwap", null },
             { "open", null },
             { "close", last },
             { "last", last },
             { "previousClose", null },
-            { "change", this.safeString(ticker, subtract(length, 6)) },
+            { "change", this.safeString(result, subtract(length, 6)) },
             { "percentage", Precise.stringMul(percentage, "100") },
             { "average", null },
-            { "baseVolume", this.safeString(ticker, subtract(length, 3)) },
+            { "baseVolume", this.safeString(result, subtract(length, 3)) },
             { "quoteVolume", null },
-            { "info", ticker },
+            { "info", result },
         }, market);
     }
 
@@ -1198,7 +1215,9 @@ public partial class bitfinex2 : Exchange
             object marketId = this.safeString(ticker, 0);
             object market = this.safeMarket(marketId);
             object symbol = getValue(market, "symbol");
-            ((IDictionary<string,object>)result)[(string)symbol] = this.parseTicker(ticker, market);
+            ((IDictionary<string,object>)result)[(string)symbol] = this.parseTicker(new Dictionary<string, object>() {
+                { "result", ticker },
+            }, market);
         }
         return this.filterByArrayTickers(result, "symbol", symbols);
     }
@@ -1221,7 +1240,10 @@ public partial class bitfinex2 : Exchange
             { "symbol", getValue(market, "id") },
         };
         object ticker = await this.publicGetTickerSymbol(this.extend(request, parameters));
-        return this.parseTicker(ticker, market);
+        object result = new Dictionary<string, object>() {
+            { "result", ticker },
+        };
+        return this.parseTicker(result, market);
     }
 
     public override object parseTrade(object trade, object market = null)
@@ -1401,14 +1423,20 @@ public partial class bitfinex2 : Exchange
         if (isTrue(isEqual(limit, null)))
         {
             limit = 10000;
+        } else
+        {
+            limit = mathMin(limit, 10000);
         }
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
             { "timeframe", this.safeString(this.timeframes, timeframe, timeframe) },
             { "sort", 1 },
-            { "start", since },
             { "limit", limit },
         };
+        if (isTrue(!isEqual(since, null)))
+        {
+            ((IDictionary<string,object>)request)["start"] = since;
+        }
         var requestparametersVariable = this.handleUntilOption("end", request, parameters);
         request = ((IList<object>)requestparametersVariable)[0];
         parameters = ((IList<object>)requestparametersVariable)[1];
@@ -1570,7 +1598,16 @@ public partial class bitfinex2 : Exchange
         * @param {float} amount how much you want to trade in units of the base currency
         * @param {float} [price] the price of the order, in units of the quote currency, ignored in market orders
         * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} request to be sent to the exchange
+        * @param {float} [params.stopPrice] The price at which a trigger order is triggered at
+        * @param {string} [params.timeInForce] "GTC", "IOC", "FOK", or "PO"
+        * @param {bool} [params.postOnly]
+        * @param {bool} [params.reduceOnly] Ensures that the executed order does not flip the opened position.
+        * @param {int} [params.flags] additional order parameters: 4096 (Post Only), 1024 (Reduce Only), 16384 (OCO), 64 (Hidden), 512 (Close), 524288 (No Var Rates)
+        * @param {int} [params.lev] leverage for a derivative order, supported by derivative symbol orders only. The value should be between 1 and 100 inclusive.
+        * @param {string} [params.price_traling] The trailing price for a trailing stop order
+        * @param {string} [params.price_aux_limit] Order price for stop limit orders
+        * @param {string} [params.price_oco_stop] OCO stop price
+        * @returns {object} an [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
         */
         parameters ??= new Dictionary<string, object>();
         object market = this.market(symbol);
@@ -1829,7 +1866,7 @@ public partial class bitfinex2 : Exchange
             { "all", 1 },
         };
         object response = await this.privatePostAuthWOrderCancelMulti(this.extend(request, parameters));
-        object orders = this.safeValue(response, 4, new List<object>() {});
+        object orders = this.safeList(response, 4, new List<object>() {});
         return this.parseOrders(orders);
     }
 
@@ -3135,7 +3172,7 @@ public partial class bitfinex2 : Exchange
         * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
         */
         parameters ??= new Dictionary<string, object>();
-        return ((object)this.fetchFundingRates(new List<object>() {symbol}, parameters));
+        return ((object)await this.fetchFundingRates(new List<object>() {symbol}, parameters));
     }
 
     public async override Task<object> fetchFundingRates(object symbols = null, object parameters = null)
@@ -3273,11 +3310,11 @@ public partial class bitfinex2 : Exchange
         }
         object reversedArray = new List<object>() {};
         object rawRates = this.filterBySymbolSinceLimit(rates, symbol, since, limit);
-        object rawRatesLength = getArrayLength(rawRates);
-        object ratesLength = mathMax(subtract(rawRatesLength, 1), 0);
-        for (object i = ratesLength; isGreaterThanOrEqual(i, 0); postFixDecrement(ref i))
+        object ratesLength = getArrayLength(rawRates);
+        for (object i = 0; isLessThan(i, ratesLength); postFixIncrement(ref i))
         {
-            object valueAtIndex = getValue(rawRates, i);
+            object index = subtract(subtract(ratesLength, i), 1);
+            object valueAtIndex = getValue(rawRates, index);
             ((IList<object>)reversedArray).Add(valueAtIndex);
         }
         return reversedArray;
@@ -3727,17 +3764,30 @@ public partial class bitfinex2 : Exchange
         return this.parseMarginModification(data, market);
     }
 
-    public virtual object parseMarginModification(object data, object market = null)
+    public override object parseMarginModification(object data, object market = null)
     {
+        //
+        // setMargin
+        //
+        //     [
+        //         [
+        //             1
+        //         ]
+        //     ]
+        //
         object marginStatusRaw = getValue(data, 0);
         object marginStatus = ((bool) isTrue((isEqual(marginStatusRaw, 1)))) ? "ok" : "failed";
         return new Dictionary<string, object>() {
             { "info", data },
-            { "type", null },
-            { "amount", null },
-            { "code", null },
             { "symbol", getValue(market, "symbol") },
+            { "type", null },
+            { "marginMode", "isolated" },
+            { "amount", null },
+            { "total", null },
+            { "code", null },
             { "status", marginStatus },
+            { "timestamp", null },
+            { "datetime", null },
         };
     }
 

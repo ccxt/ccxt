@@ -21,6 +21,9 @@ public partial class testMainClass : BaseTest
         object codesTotal = new List<object>(((IDictionary<string,object>)getValue(entry, "total")).Keys);
         object codesFree = new List<object>(((IDictionary<string,object>)getValue(entry, "free")).Keys);
         object codesUsed = new List<object>(((IDictionary<string,object>)getValue(entry, "used")).Keys);
+        testSharedMethods.assertNonEmtpyArray(exchange, skippedProperties, method, codesTotal, "total");
+        testSharedMethods.assertNonEmtpyArray(exchange, skippedProperties, method, codesFree, "free");
+        testSharedMethods.assertNonEmtpyArray(exchange, skippedProperties, method, codesUsed, "used");
         object allCodes = exchange.arrayConcat(codesTotal, codesFree);
         allCodes = exchange.arrayConcat(allCodes, codesUsed);
         object codesLength = getArrayLength(codesTotal);

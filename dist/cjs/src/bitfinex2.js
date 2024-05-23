@@ -27,8 +27,8 @@ class bitfinex2 extends bitfinex2$1 {
                 'spot': true,
                 'margin': true,
                 'swap': true,
-                'future': undefined,
-                'option': undefined,
+                'future': false,
+                'option': false,
                 'addMargin': false,
                 'borrowCrossMargin': false,
                 'borrowIsolatedMargin': false,
@@ -39,6 +39,7 @@ class bitfinex2 extends bitfinex2$1 {
                 'createLimitOrder': true,
                 'createMarketOrder': true,
                 'createOrder': true,
+                'createPostOnlyOrder': true,
                 'createReduceOnlyOrder': true,
                 'createStopLimitOrder': true,
                 'createStopMarketOrder': true,
@@ -49,8 +50,11 @@ class bitfinex2 extends bitfinex2$1 {
                 'editOrder': true,
                 'fetchBalance': true,
                 'fetchBorrowInterest': false,
+                'fetchBorrowRate': false,
                 'fetchBorrowRateHistories': false,
                 'fetchBorrowRateHistory': false,
+                'fetchBorrowRates': false,
+                'fetchBorrowRatesPerSymbol': false,
                 'fetchClosedOrder': true,
                 'fetchClosedOrders': true,
                 'fetchCrossBorrowRate': false,
@@ -79,6 +83,8 @@ class bitfinex2 extends bitfinex2$1 {
                 'fetchOpenOrder': true,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
+                'fetchOrderBook': true,
+                'fetchOrderBooks': false,
                 'fetchOrderTrades': true,
                 'fetchPosition': false,
                 'fetchPositionMode': false,
@@ -98,6 +104,8 @@ class bitfinex2 extends bitfinex2$1 {
                 'setMargin': true,
                 'setMarginMode': false,
                 'setPositionMode': false,
+                'signIn': false,
+                'transfer': true,
                 'withdraw': true,
             },
             'timeframes': {
@@ -938,7 +946,7 @@ class bitfinex2 extends bitfinex2$1 {
             this.throwExactlyMatchedException(this.exceptions['exact'], message, this.id + ' ' + message);
             throw new errors.ExchangeError(this.id + ' ' + message);
         }
-        return this.parseTransfer(response, currency);
+        return this.parseTransfer({ 'result': response }, currency);
     }
     parseTransfer(transfer, currency = undefined) {
         //
@@ -964,12 +972,13 @@ class bitfinex2 extends bitfinex2$1 {
         //         "1.0 Tether USDt transfered from Exchange to Margin"
         //     ]
         //
-        const timestamp = this.safeInteger(transfer, 0);
-        const info = this.safeValue(transfer, 4);
+        const result = this.safeList(transfer, 'result');
+        const timestamp = this.safeInteger(result, 0);
+        const info = this.safeValue(result, 4);
         const fromAccount = this.safeString(info, 1);
         const toAccount = this.safeString(info, 2);
         const currencyId = this.safeString(info, 5);
-        const status = this.safeString(transfer, 6);
+        const status = this.safeString(result, 6);
         return {
             'id': undefined,
             'timestamp': timestamp,
@@ -979,7 +988,7 @@ class bitfinex2 extends bitfinex2$1 {
             'currency': this.safeCurrencyCode(currencyId, currency),
             'fromAccount': fromAccount,
             'toAccount': toAccount,
-            'info': transfer,
+            'info': result,
         };
     }
     parseTransferStatus(status) {
@@ -1065,67 +1074,73 @@ class bitfinex2 extends bitfinex2$1 {
         //
         // on trading pairs (ex. tBTCUSD)
         //
-        //     [
-        //         SYMBOL,
-        //         BID,
-        //         BID_SIZE,
-        //         ASK,
-        //         ASK_SIZE,
-        //         DAILY_CHANGE,
-        //         DAILY_CHANGE_RELATIVE,
-        //         LAST_PRICE,
-        //         VOLUME,
-        //         HIGH,
-        //         LOW
-        //     ]
+        //    {
+        //        'result': [
+        //            SYMBOL,
+        //            BID,
+        //            BID_SIZE,
+        //            ASK,
+        //            ASK_SIZE,
+        //            DAILY_CHANGE,
+        //            DAILY_CHANGE_RELATIVE,
+        //            LAST_PRICE,
+        //            VOLUME,
+        //            HIGH,
+        //            LOW
+        //        ]
+        //    }
+        //
         //
         // on funding currencies (ex. fUSD)
         //
-        //     [
-        //         SYMBOL,
-        //         FRR,
-        //         BID,
-        //         BID_PERIOD,
-        //         BID_SIZE,
-        //         ASK,
-        //         ASK_PERIOD,
-        //         ASK_SIZE,
-        //         DAILY_CHANGE,
-        //         DAILY_CHANGE_RELATIVE,
-        //         LAST_PRICE,
-        //         VOLUME,
-        //         HIGH,
-        //         LOW,
-        //         _PLACEHOLDER,
-        //         _PLACEHOLDER,
-        //         FRR_AMOUNT_AVAILABLE
-        //     ]
+        //    {
+        //        'result': [
+        //            SYMBOL,
+        //            FRR,
+        //            BID,
+        //            BID_PERIOD,
+        //            BID_SIZE,
+        //            ASK,
+        //            ASK_PERIOD,
+        //            ASK_SIZE,
+        //            DAILY_CHANGE,
+        //            DAILY_CHANGE_RELATIVE,
+        //            LAST_PRICE,
+        //            VOLUME,
+        //            HIGH,
+        //            LOW,
+        //            _PLACEHOLDER,
+        //            _PLACEHOLDER,
+        //            FRR_AMOUNT_AVAILABLE
+        //        ]
+        //    }
         //
+        const result = this.safeList(ticker, 'result');
         const symbol = this.safeSymbol(undefined, market);
-        const length = ticker.length;
-        const last = this.safeString(ticker, length - 4);
-        const percentage = this.safeString(ticker, length - 5);
+        const length = result.length;
+        const last = this.safeString(result, length - 4);
+        const percentage = this.safeString(result, length - 5);
         return this.safeTicker({
             'symbol': symbol,
             'timestamp': undefined,
             'datetime': undefined,
-            'high': this.safeString(ticker, length - 2),
-            'low': this.safeString(ticker, length - 1),
-            'bid': this.safeString(ticker, length - 10),
-            'bidVolume': this.safeString(ticker, length - 9),
-            'ask': this.safeString(ticker, length - 8),
-            'askVolume': this.safeString(ticker, length - 7),
+            'high': this.safeString(result, length - 2),
+            'low': this.safeString(result, length - 1),
+            'bid': this.safeString(result, length - 10),
+            'bidVolume': this.safeString(result, length - 9),
+            'ask': this.safeString(result, length - 8),
+            'askVolume': this.safeString(result, length - 7),
             'vwap': undefined,
             'open': undefined,
             'close': last,
             'last': last,
             'previousClose': undefined,
-            'change': this.safeString(ticker, length - 6),
+            'change': this.safeString(result, length - 6),
             'percentage': Precise["default"].stringMul(percentage, '100'),
             'average': undefined,
-            'baseVolume': this.safeString(ticker, length - 3),
+            'baseVolume': this.safeString(result, length - 3),
             'quoteVolume': undefined,
-            'info': ticker,
+            'info': result,
         }, market);
     }
     async fetchTickers(symbols = undefined, params = {}) {
@@ -1194,7 +1209,7 @@ class bitfinex2 extends bitfinex2$1 {
             const marketId = this.safeString(ticker, 0);
             const market = this.safeMarket(marketId);
             const symbol = market['symbol'];
-            result[symbol] = this.parseTicker(ticker, market);
+            result[symbol] = this.parseTicker({ 'result': ticker }, market);
         }
         return this.filterByArrayTickers(result, 'symbol', symbols);
     }
@@ -1214,7 +1229,8 @@ class bitfinex2 extends bitfinex2$1 {
             'symbol': market['id'],
         };
         const ticker = await this.publicGetTickerSymbol(this.extend(request, params));
-        return this.parseTicker(ticker, market);
+        const result = { 'result': ticker };
+        return this.parseTicker(result, market);
     }
     parseTrade(trade, market = undefined) {
         //
@@ -1372,13 +1388,18 @@ class bitfinex2 extends bitfinex2$1 {
         if (limit === undefined) {
             limit = 10000;
         }
+        else {
+            limit = Math.min(limit, 10000);
+        }
         let request = {
             'symbol': market['id'],
             'timeframe': this.safeString(this.timeframes, timeframe, timeframe),
             'sort': 1,
-            'start': since,
             'limit': limit,
         };
+        if (since !== undefined) {
+            request['start'] = since;
+        }
         [request, params] = this.handleUntilOption('end', request, params);
         const response = await this.publicGetCandlesTradeTimeframeSymbolHist(this.extend(request, params));
         //
@@ -1530,7 +1551,16 @@ class bitfinex2 extends bitfinex2$1 {
          * @param {float} amount how much you want to trade in units of the base currency
          * @param {float} [price] the price of the order, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} request to be sent to the exchange
+         * @param {float} [params.stopPrice] The price at which a trigger order is triggered at
+         * @param {string} [params.timeInForce] "GTC", "IOC", "FOK", or "PO"
+         * @param {bool} [params.postOnly]
+         * @param {bool} [params.reduceOnly] Ensures that the executed order does not flip the opened position.
+         * @param {int} [params.flags] additional order parameters: 4096 (Post Only), 1024 (Reduce Only), 16384 (OCO), 64 (Hidden), 512 (Close), 524288 (No Var Rates)
+         * @param {int} [params.lev] leverage for a derivative order, supported by derivative symbol orders only. The value should be between 1 and 100 inclusive.
+         * @param {string} [params.price_traling] The trailing price for a trailing stop order
+         * @param {string} [params.price_aux_limit] Order price for stop limit orders
+         * @param {string} [params.price_oco_stop] OCO stop price
+         * @returns {object} an [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         const market = this.market(symbol);
         let amountString = this.amountToPrecision(symbol, amount);
@@ -1763,7 +1793,7 @@ class bitfinex2 extends bitfinex2$1 {
             'all': 1,
         };
         const response = await this.privatePostAuthWOrderCancelMulti(this.extend(request, params));
-        const orders = this.safeValue(response, 4, []);
+        const orders = this.safeList(response, 4, []);
         return this.parseOrders(orders);
     }
     async cancelOrder(id, symbol = undefined, params = {}) {
@@ -2942,7 +2972,7 @@ class bitfinex2 extends bitfinex2$1 {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
          */
-        return this.fetchFundingRates([symbol], params);
+        return await this.fetchFundingRates([symbol], params);
     }
     async fetchFundingRates(symbols = undefined, params = {}) {
         /**
@@ -3065,10 +3095,10 @@ class bitfinex2 extends bitfinex2$1 {
         }
         const reversedArray = [];
         const rawRates = this.filterBySymbolSinceLimit(rates, symbol, since, limit);
-        const rawRatesLength = rawRates.length;
-        const ratesLength = Math.max(rawRatesLength - 1, 0);
-        for (let i = ratesLength; i >= 0; i--) {
-            const valueAtIndex = rawRates[i];
+        const ratesLength = rawRates.length;
+        for (let i = 0; i < ratesLength; i++) {
+            const index = ratesLength - i - 1;
+            const valueAtIndex = rawRates[index];
             reversedArray.push(valueAtIndex);
         }
         return reversedArray;
@@ -3482,15 +3512,28 @@ class bitfinex2 extends bitfinex2$1 {
         return this.parseMarginModification(data, market);
     }
     parseMarginModification(data, market = undefined) {
+        //
+        // setMargin
+        //
+        //     [
+        //         [
+        //             1
+        //         ]
+        //     ]
+        //
         const marginStatusRaw = data[0];
         const marginStatus = (marginStatusRaw === 1) ? 'ok' : 'failed';
         return {
             'info': data,
-            'type': undefined,
-            'amount': undefined,
-            'code': undefined,
             'symbol': market['symbol'],
+            'type': undefined,
+            'marginMode': 'isolated',
+            'amount': undefined,
+            'total': undefined,
+            'code': undefined,
             'status': marginStatus,
+            'timestamp': undefined,
+            'datetime': undefined,
         };
     }
     async fetchOrder(id, symbol = undefined, params = {}) {

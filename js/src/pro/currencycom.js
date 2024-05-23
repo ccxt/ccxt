@@ -194,7 +194,7 @@ export default class currencycom extends currencycomRest {
             'fee': undefined,
         };
     }
-    handleTrades(client, message, subscription) {
+    handleTrades(client, message) {
         //
         //     {
         //         "status": "OK",

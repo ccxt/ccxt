@@ -6,7 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.zaif import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Currency, Int, Market, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade, Transaction
+from ccxt.base.types import Balances, Currency, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import BadRequest
@@ -143,7 +143,7 @@ class zaif(Exchange, ImplicitAPI):
             },
         })
 
-    async def fetch_markets(self, params={}):
+    async def fetch_markets(self, params={}) -> List[Market]:
         """
         :see: https://zaif-api-document.readthedocs.io/ja/latest/PublicAPI.html#id12
         retrieves data on all markets for zaif
@@ -234,7 +234,7 @@ class zaif(Exchange, ImplicitAPI):
     def parse_balance(self, response) -> Balances:
         balances = self.safe_value(response, 'return', {})
         deposit = self.safe_value(balances, 'deposit')
-        result = {
+        result: dict = {
             'info': response,
             'timestamp': None,
             'datetime': None,
@@ -276,13 +276,13 @@ class zaif(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'pair': market['id'],
         }
         response = await self.publicGetDepthPair(self.extend(request, params))
         return self.parse_order_book(response, market['symbol'])
 
-    def parse_ticker(self, ticker, market: Market = None) -> Ticker:
+    def parse_ticker(self, ticker: dict, market: Market = None) -> Ticker:
         #
         # {
         #     "last": 9e-08,
@@ -332,7 +332,7 @@ class zaif(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'pair': market['id'],
         }
         ticker = await self.publicGetTickerPair(self.extend(request, params))
@@ -398,7 +398,7 @@ class zaif(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'pair': market['id'],
         }
         response = await self.publicGetTradesPair(self.extend(request, params))
@@ -421,7 +421,7 @@ class zaif(Exchange, ImplicitAPI):
                 response = []
         return self.parse_trades(response, market, since, limit)
 
-    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: float = None, params={}):
+    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         """
         :see: https://zaif-api-document.readthedocs.io/ja/latest/MarginTradingAPI.html#id23
         create a trade order
@@ -437,7 +437,7 @@ class zaif(Exchange, ImplicitAPI):
         if type != 'limit':
             raise ExchangeError(self.id + ' createOrder() allows limit orders only')
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'currency_pair': market['id'],
             'action': 'bid' if (side == 'buy') else 'ask',
             'amount': amount,
@@ -458,7 +458,7 @@ class zaif(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
-        request = {
+        request: dict = {
             'order_id': id,
         }
         return await self.privatePostCancelOrder(self.extend(request, params))
@@ -519,7 +519,7 @@ class zaif(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         market: Market = None
-        request = {
+        request: dict = {
             # 'is_token': False,
             # 'is_token_both': False,
         }
@@ -541,7 +541,7 @@ class zaif(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         market: Market = None
-        request = {
+        request: dict = {
             # 'from': 0,
             # 'count': 1000,
             # 'from_id': 0,
@@ -557,7 +557,7 @@ class zaif(Exchange, ImplicitAPI):
         response = await self.privatePostTradeHistory(self.extend(request, params))
         return self.parse_orders(response['return'], market, since, limit)
 
-    async def withdraw(self, code: str, amount: float, address, tag=None, params={}):
+    async def withdraw(self, code: str, amount: float, address: str, tag=None, params={}):
         """
         :see: https://zaif-api-document.readthedocs.io/ja/latest/TradingAPI.html#id41
         make a withdrawal
@@ -574,7 +574,7 @@ class zaif(Exchange, ImplicitAPI):
         currency = self.currency(code)
         if code == 'JPY':
             raise ExchangeError(self.id + ' withdraw() does not allow ' + code + ' withdrawals')
-        request = {
+        request: dict = {
             'currency': currency['id'],
             'amount': amount,
             'address': address,
@@ -600,7 +600,7 @@ class zaif(Exchange, ImplicitAPI):
         #         }
         #     }
         #
-        returnData = self.safe_value(result, 'return')
+        returnData = self.safe_dict(result, 'return')
         return self.parse_transaction(returnData, currency)
 
     def parse_transaction(self, transaction, currency: Currency = None) -> Transaction:
@@ -649,7 +649,7 @@ class zaif(Exchange, ImplicitAPI):
         }
 
     def custom_nonce(self):
-        num = (self.milliseconds() / str(1000))
+        num = self.number_to_string(self.milliseconds() / 1000)
         nonce = float(num)
         return format(nonce, '.8f')
 

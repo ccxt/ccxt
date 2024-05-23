@@ -625,7 +625,7 @@ class zaif extends zaif$1 {
         //         }
         //     }
         //
-        const returnData = this.safeValue(result, 'return');
+        const returnData = this.safeDict(result, 'return');
         return this.parseTransaction(returnData, currency);
     }
     parseTransaction(transaction, currency = undefined) {
@@ -675,7 +675,7 @@ class zaif extends zaif$1 {
         };
     }
     customNonce() {
-        const num = (this.milliseconds() / 1000).toString();
+        const num = this.numberToString(this.milliseconds() / 1000);
         const nonce = parseFloat(num);
         return nonce.toFixed(8);
     }

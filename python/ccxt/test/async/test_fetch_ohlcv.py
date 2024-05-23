@@ -13,6 +13,7 @@ sys.path.append(root)
 # -*- coding: utf-8 -*-
 
 from ccxt.test.base import test_ohlcv  # noqa E402
+from ccxt.test.base import test_shared_methods  # noqa E402
 
 async def test_fetch_ohlcv(exchange, skipped_properties, symbol):
     method = 'fetchOHLCV'
@@ -26,7 +27,7 @@ async def test_fetch_ohlcv(exchange, skipped_properties, symbol):
     duration = exchange.parse_timeframe(chosen_timeframe_key)
     since = exchange.milliseconds() - duration * limit * 1000 - 1000
     ohlcvs = await exchange.fetch_ohlcv(symbol, chosen_timeframe_key, since, limit)
-    assert isinstance(ohlcvs, list), exchange.id + ' ' + method + ' must return an array, returned ' + exchange.json(ohlcvs)
+    test_shared_methods.assert_non_emtpy_array(exchange, skipped_properties, method, ohlcvs, symbol)
     now = exchange.milliseconds()
     for i in range(0, len(ohlcvs)):
         test_ohlcv(exchange, skipped_properties, method, ohlcvs[i], symbol, now)

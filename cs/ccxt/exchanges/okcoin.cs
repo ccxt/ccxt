@@ -223,6 +223,16 @@ public partial class okcoin : Exchange
                     { "50026", typeof(ExchangeNotAvailable) },
                     { "50027", typeof(PermissionDenied) },
                     { "50028", typeof(ExchangeError) },
+                    { "50029", typeof(ExchangeError) },
+                    { "50030", typeof(PermissionDenied) },
+                    { "50032", typeof(AccountSuspended) },
+                    { "50033", typeof(AccountSuspended) },
+                    { "50035", typeof(BadRequest) },
+                    { "50036", typeof(BadRequest) },
+                    { "50037", typeof(BadRequest) },
+                    { "50038", typeof(ExchangeError) },
+                    { "50039", typeof(ExchangeError) },
+                    { "50041", typeof(ExchangeError) },
                     { "50044", typeof(BadRequest) },
                     { "50100", typeof(ExchangeError) },
                     { "50101", typeof(AuthenticationError) },
@@ -264,9 +274,25 @@ public partial class okcoin : Exchange
                     { "51024", typeof(AccountSuspended) },
                     { "51025", typeof(ExchangeError) },
                     { "51026", typeof(BadSymbol) },
+                    { "51030", typeof(InvalidOrder) },
+                    { "51031", typeof(InvalidOrder) },
+                    { "51032", typeof(InvalidOrder) },
+                    { "51033", typeof(InvalidOrder) },
+                    { "51037", typeof(InvalidOrder) },
+                    { "51038", typeof(InvalidOrder) },
+                    { "51044", typeof(InvalidOrder) },
                     { "51046", typeof(InvalidOrder) },
                     { "51047", typeof(InvalidOrder) },
-                    { "51031", typeof(InvalidOrder) },
+                    { "51048", typeof(InvalidOrder) },
+                    { "51049", typeof(InvalidOrder) },
+                    { "51050", typeof(InvalidOrder) },
+                    { "51051", typeof(InvalidOrder) },
+                    { "51052", typeof(InvalidOrder) },
+                    { "51053", typeof(InvalidOrder) },
+                    { "51054", typeof(BadRequest) },
+                    { "51056", typeof(InvalidOrder) },
+                    { "51058", typeof(InvalidOrder) },
+                    { "51059", typeof(InvalidOrder) },
                     { "51100", typeof(InvalidOrder) },
                     { "51102", typeof(InvalidOrder) },
                     { "51103", typeof(InvalidOrder) },
@@ -948,7 +974,7 @@ public partial class okcoin : Exchange
             { "instType", "SPOT" },
         };
         object response = await this.publicGetMarketTickers(this.extend(request, parameters));
-        object data = this.safeValue(response, "data", new List<object>() {});
+        object data = this.safeList(response, "data", new List<object>() {});
         return this.parseTickers(data, symbols, parameters);
     }
 
@@ -1068,7 +1094,7 @@ public partial class okcoin : Exchange
         {
             response = await this.publicGetMarketHistoryTrades(this.extend(request, parameters));
         }
-        object data = this.safeValue(response, "data", new List<object>() {});
+        object data = this.safeList(response, "data", new List<object>() {});
         return this.parseTrades(data, market, since, limit);
     }
 
@@ -1120,8 +1146,11 @@ public partial class okcoin : Exchange
         object request = new Dictionary<string, object>() {
             { "instId", getValue(market, "id") },
             { "bar", bar },
-            { "limit", limit },
         };
+        if (isTrue(!isEqual(limit, null)))
+        {
+            ((IDictionary<string,object>)request)["limit"] = limit; // default 100, max 100
+        }
         object method = null;
         var methodparametersVariable = this.handleOptionAndParams(parameters, "fetchOHLCV", "method", "publicGetMarketCandles");
         method = ((IList<object>)methodparametersVariable)[0];
@@ -1134,7 +1163,7 @@ public partial class okcoin : Exchange
         {
             response = await this.publicGetMarketHistoryCandles(this.extend(request, parameters));
         }
-        object data = this.safeValue(response, "data", new List<object>() {});
+        object data = this.safeList(response, "data", new List<object>() {});
         return this.parseOHLCVs(data, market, timeframe, since, limit);
     }
 
@@ -1703,7 +1732,7 @@ public partial class okcoin : Exchange
         object response = await this.privatePostTradeCancelOrder(this.extend(request, query));
         // {"code":"0","data":[{"clOrdId":"","ordId":"317251910906576896","sCode":"0","sMsg":""}],"msg":""}
         object data = this.safeValue(response, "data", new List<object>() {});
-        object order = this.safeValue(data, 0);
+        object order = this.safeDict(data, 0);
         return this.parseOrder(order, market);
     }
 
@@ -1818,7 +1847,7 @@ public partial class okcoin : Exchange
         //     }
         //
         //
-        object ordersData = this.safeValue(response, "data", new List<object>() {});
+        object ordersData = this.safeList(response, "data", new List<object>() {});
         return this.parseOrders(ordersData, market, null, null, parameters);
     }
 
@@ -2093,7 +2122,7 @@ public partial class okcoin : Exchange
             response = await this.privateGetTradeOrder(this.extend(request, query));
         }
         object data = this.safeValue(response, "data", new List<object>() {});
-        object order = this.safeValue(data, 0);
+        object order = this.safeDict(data, 0);
         return this.parseOrder(order);
     }
 
@@ -2141,7 +2170,7 @@ public partial class okcoin : Exchange
         {
             response = await this.privateGetTradeOrdersPending(this.extend(request, parameters));
         }
-        object data = this.safeValue(response, "data", new List<object>() {});
+        object data = this.safeList(response, "data", new List<object>() {});
         return this.parseOrders(data, market, since, limit);
     }
 
@@ -2239,7 +2268,7 @@ public partial class okcoin : Exchange
         //         "msg":""
         //     }
         //
-        object data = this.safeValue(response, "data", new List<object>() {});
+        object data = this.safeList(response, "data", new List<object>() {});
         return this.parseOrders(data, market, since, limit);
     }
 
@@ -2465,7 +2494,7 @@ public partial class okcoin : Exchange
         //     }
         //
         object data = this.safeValue(response, "data", new List<object>() {});
-        object rawTransfer = this.safeValue(data, 0, new Dictionary<string, object>() {});
+        object rawTransfer = this.safeDict(data, 0, new Dictionary<string, object>() {});
         return this.parseTransfer(rawTransfer, currency);
     }
 
@@ -2622,7 +2651,7 @@ public partial class okcoin : Exchange
         //     }
         //
         object data = this.safeValue(response, "data", new List<object>() {});
-        object transaction = this.safeValue(data, 0);
+        object transaction = this.safeDict(data, 0);
         return this.parseTransaction(transaction, currency);
     }
 
@@ -2698,7 +2727,7 @@ public partial class okcoin : Exchange
         //         ]
         //     }
         //
-        object data = this.safeValue(response, "data", new List<object>() {});
+        object data = this.safeList(response, "data", new List<object>() {});
         return this.parseTransactions(data, currency, since, limit, parameters);
     }
 
@@ -2766,7 +2795,7 @@ public partial class okcoin : Exchange
         //         ]
         //     }
         //
-        object data = this.safeValue(response, "data", new List<object>() {});
+        object data = this.safeList(response, "data", new List<object>() {});
         return this.parseTransactions(data, currency, since, limit, parameters);
     }
 
@@ -2951,7 +2980,7 @@ public partial class okcoin : Exchange
         {
             response = await this.privateGetTradeFills(this.extend(request, parameters));
         }
-        object data = this.safeValue(response, "data", new List<object>() {});
+        object data = this.safeList(response, "data", new List<object>() {});
         return this.parseTrades(data, market, since, limit);
     }
 

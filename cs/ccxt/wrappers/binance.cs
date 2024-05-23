@@ -25,6 +25,12 @@ public partial class binance
     /// object : extra parameters specific to the exchange API endpoint
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>params.subType</term>
+    /// <description>
+    /// string : "linear" or "inverse"
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
     /// <returns> <term>int</term> the current integer timestamp in milliseconds from the exchange server.</returns>
@@ -51,10 +57,10 @@ public partial class binance
     /// </list>
     /// </remarks>
     /// <returns> <term>object[]</term> an array of objects representing market data.</returns>
-    public async Task<List<Dictionary<string, object>>> FetchMarkets(Dictionary<string, object> parameters = null)
+    public async Task<List<MarketInterface>> FetchMarkets(Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchMarkets(parameters);
-        return ((IList<object>)res).Select(item => (item as Dictionary<string, object>)).ToList();
+        return ((IList<object>)res).Select(item => new MarketInterface(item)).ToList<MarketInterface>();
     }
     /// <summary>
     /// query for balance and get the amount of funds available for trading or funds locked in orders
@@ -92,6 +98,12 @@ public partial class binance
     /// <term>params.portfolioMargin</term>
     /// <description>
     /// boolean : set to true if you would like to fetch the balance for a portfolio margin account
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.subType</term>
+    /// <description>
+    /// string : "linear" or "inverse"
     /// </description>
     /// </item>
     /// </list>
@@ -196,13 +208,19 @@ public partial class binance
     /// object : extra parameters specific to the exchange API endpoint
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>params.subType</term>
+    /// <description>
+    /// string : "linear" or "inverse"
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}.</returns>
-    public async Task<Dictionary<string, Ticker>> FetchBidsAsks(List<String> symbols = null, Dictionary<string, object> parameters = null)
+    public async Task<Tickers> FetchBidsAsks(List<String> symbols = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchBidsAsks(symbols, parameters);
-        return ((Dictionary<string, Ticker>)res);
+        return new Tickers(res);
     }
     /// <summary>
     /// fetches the last price for multiple markets
@@ -221,10 +239,10 @@ public partial class binance
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a dictionary of lastprices structures.</returns>
-    public async Task<Dictionary<string, object>> FetchLastPrices(List<String> symbols = null, Dictionary<string, object> parameters = null)
+    public async Task<LastPrices> FetchLastPrices(List<String> symbols = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchLastPrices(symbols, parameters);
-        return ((Dictionary<string, object>)res);
+        return new LastPrices(res);
     }
     /// <summary>
     /// fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
@@ -239,6 +257,18 @@ public partial class binance
     /// <term>params</term>
     /// <description>
     /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.subType</term>
+    /// <description>
+    /// string : "linear" or "inverse"
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.type</term>
+    /// <description>
+    /// string : 'spot', 'option', use params["subType"] for swap and future markets
     /// </description>
     /// </item>
     /// </list>
@@ -403,7 +433,7 @@ public partial class binance
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
-    public async Task<Order> EditSpotOrder(string id, object symbol, object type, object side, double amount, double? price2 = 0, Dictionary<string, object> parameters = null)
+    public async Task<Order> EditSpotOrder(string id, string symbol, string type, string side, double amount, double? price2 = 0, Dictionary<string, object> parameters = null)
     {
         var price = price2 == 0 ? null : (object)price2;
         var res = await this.editSpotOrder(id, symbol, type, side, amount, price, parameters);
@@ -429,10 +459,16 @@ public partial class binance
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> request to be sent to the exchange.</returns>
-    public Dictionary<string, object> EditSpotOrderRequest(string id, object symbol, object type, object side, double amount, double? price2 = 0, Dictionary<string, object> parameters = null)
+    public Dictionary<string, object> EditSpotOrderRequest(string id, string symbol, string type, string side, double amount, double? price2 = 0, Dictionary<string, object> parameters = null)
     {
         var price = price2 == 0 ? null : (object)price2;
         var res = this.editSpotOrderRequest(id, symbol, type, side, amount, price, parameters);
+        return ((Dictionary<string, object>)res);
+    }
+    public Dictionary<string, object> EditContractOrderRequest(string id, string symbol, string type, string side, double amount, double? price2 = 0, Dictionary<string, object> parameters = null)
+    {
+        var price = price2 == 0 ? null : (object)price2;
+        var res = this.editContractOrderRequest(id, symbol, type, side, amount, price, parameters);
         return ((Dictionary<string, object>)res);
     }
     /// <summary>
@@ -457,7 +493,7 @@ public partial class binance
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
-    public async Task<Order> EditContractOrder(string id, object symbol, object type, object side, double amount, double? price2 = 0, Dictionary<string, object> parameters = null)
+    public async Task<Order> EditContractOrder(string id, string symbol, string type, string side, double amount, double? price2 = 0, Dictionary<string, object> parameters = null)
     {
         var price = price2 == 0 ? null : (object)price2;
         var res = await this.editContractOrder(id, symbol, type, side, amount, price, parameters);
@@ -594,6 +630,12 @@ public partial class binance
     /// <term>params.portfolioMargin</term>
     /// <description>
     /// boolean : set to true if you would like to create an order in a portfolio margin account
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.stopLossOrTakeProfit</term>
+    /// <description>
+    /// string : 'stopLoss' or 'takeProfit', required for spot trailing orders
     /// </description>
     /// </item>
     /// </list>
@@ -856,6 +898,12 @@ public partial class binance
     /// <term>params.stop</term>
     /// <description>
     /// boolean : set to true if you would like to fetch portfolio margin account conditional orders
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.subType</term>
+    /// <description>
+    /// string : "linear" or "inverse"
     /// </description>
     /// </item>
     /// </list>
@@ -1508,12 +1556,12 @@ public partial class binance
     /// </list>
     /// </remarks>
     /// <returns> <term>object[]</term> a list of [transfer structures]{@link https://docs.ccxt.com/#/?id=transfer-structure}.</returns>
-    public async Task<Dictionary<string, object>> FetchTransfers(string code = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    public async Task<TransferEntries> FetchTransfers(string code = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;
         var limit = limit2 == 0 ? null : (object)limit2;
         var res = await this.fetchTransfers(code, since, limit, parameters);
-        return ((Dictionary<string, object>)res);
+        return new TransferEntries(res);
     }
     /// <summary>
     /// fetch the deposit address for a currency associated with this account
@@ -1590,7 +1638,7 @@ public partial class binance
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}.</returns>
-    public async Task<Transaction> Withdraw(string code, double amount, object address, object tag = null, Dictionary<string, object> parameters = null)
+    public async Task<Transaction> Withdraw(string code, double amount, string address, object tag = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.withdraw(code, amount, address, tag, parameters);
         return new Transaction(res);
@@ -1617,13 +1665,19 @@ public partial class binance
     /// boolean : set to true if you would like to fetch trading fees in a portfolio margin account
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>params.subType</term>
+    /// <description>
+    /// string : "linear" or "inverse"
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a [fee structure]{@link https://docs.ccxt.com/#/?id=fee-structure}.</returns>
-    public async Task<Dictionary<string, object>> FetchTradingFee(string symbol, Dictionary<string, object> parameters = null)
+    public async Task<TradingFeeInterface> FetchTradingFee(string symbol, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchTradingFee(symbol, parameters);
-        return ((Dictionary<string, object>)res);
+        return new TradingFeeInterface(res);
     }
     /// <summary>
     /// fetch the trading fees for multiple markets
@@ -1639,13 +1693,19 @@ public partial class binance
     /// object : extra parameters specific to the exchange API endpoint
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>params.subType</term>
+    /// <description>
+    /// string : "linear" or "inverse"
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols.</returns>
-    public async Task<Dictionary<string, object>> FetchTradingFees(Dictionary<string, object> parameters = null)
+    public async Task<TradingFees> FetchTradingFees(Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchTradingFees(parameters);
-        return ((Dictionary<string, object>)res);
+        return new TradingFees(res);
     }
     /// <summary>
     /// fetch the current funding rate
@@ -1705,6 +1765,12 @@ public partial class binance
     /// boolean : default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>params.subType</term>
+    /// <description>
+    /// string : "linear" or "inverse"
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
     /// <returns> <term>object[]</term> a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure}.</returns>
@@ -1726,6 +1792,12 @@ public partial class binance
     /// <term>params</term>
     /// <description>
     /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.subType</term>
+    /// <description>
+    /// string : "linear" or "inverse"
     /// </description>
     /// </item>
     /// </list>
@@ -1755,6 +1827,12 @@ public partial class binance
     /// <term>params.portfolioMargin</term>
     /// <description>
     /// boolean : set to true if you would like to fetch the leverage tiers for a portfolio margin account
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.subType</term>
+    /// <description>
+    /// string : "linear" or "inverse"
     /// </description>
     /// </item>
     /// </list>
@@ -1856,6 +1934,18 @@ public partial class binance
     /// boolean : set to true if you would like to fetch positions in a portfolio margin account
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>params.subType</term>
+    /// <description>
+    /// string : "linear" or "inverse"
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.filterClosed</term>
+    /// <description>
+    /// boolean : set to true if you would like to filter out closed positions, default is false
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> data on account positions.</returns>
@@ -1883,6 +1973,12 @@ public partial class binance
     /// <term>params.portfolioMargin</term>
     /// <description>
     /// boolean : set to true if you would like to fetch positions for a portfolio margin account
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.subType</term>
+    /// <description>
+    /// string : "linear" or "inverse"
     /// </description>
     /// </item>
     /// </list>
@@ -1930,6 +2026,12 @@ public partial class binance
     /// <term>params.portfolioMargin</term>
     /// <description>
     /// boolean : set to true if you would like to fetch the funding history for a portfolio margin account
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.subType</term>
+    /// <description>
+    /// string : "linear" or "inverse"
     /// </description>
     /// </item>
     /// </list>
@@ -2013,6 +2115,12 @@ public partial class binance
     /// boolean : set to true if you would like to set the position mode for a portfolio margin account
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>params.subType</term>
+    /// <description>
+    /// string : "linear" or "inverse"
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> response from the exchange.</returns>
@@ -2034,6 +2142,12 @@ public partial class binance
     /// <term>params</term>
     /// <description>
     /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.subType</term>
+    /// <description>
+    /// string : "linear" or "inverse"
     /// </description>
     /// </item>
     /// </list>
@@ -2163,6 +2277,12 @@ public partial class binance
     /// boolean : set to true if you would like to fetch the ledger for a portfolio margin account
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>params.subType</term>
+    /// <description>
+    /// string : "linear" or "inverse"
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}.</returns>
@@ -2188,10 +2308,68 @@ public partial class binance
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a [borrow rate structure]{@link https://docs.ccxt.com/#/?id=borrow-rate-structure}.</returns>
-    public async Task<Dictionary<string, object>> FetchCrossBorrowRate(string code, Dictionary<string, object> parameters = null)
+    public async Task<CrossBorrowRate> FetchCrossBorrowRate(string code, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchCrossBorrowRate(code, parameters);
-        return ((Dictionary<string, object>)res);
+        return new CrossBorrowRate(res);
+    }
+    /// <summary>
+    /// fetch the rate of interest to borrow a currency for margin trading
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://binance-docs.github.io/apidocs/spot/en/#query-isolated-margin-fee-data-user_data"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.vipLevel</term>
+    /// <description>
+    /// object : user's current specific margin data will be returned if viplevel is omitted
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> an [isolated borrow rate structure]{@link https://docs.ccxt.com/#/?id=isolated-borrow-rate-structure}.</returns>
+    public async Task<IsolatedBorrowRate> FetchIsolatedBorrowRate(string symbol, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchIsolatedBorrowRate(symbol, parameters);
+        return new IsolatedBorrowRate(res);
+    }
+    /// <summary>
+    /// fetch the borrow interest rates of all currencies
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://binance-docs.github.io/apidocs/spot/en/#query-isolated-margin-fee-data-user_data"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.symbol</term>
+    /// <description>
+    /// object : unified market symbol
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.vipLevel</term>
+    /// <description>
+    /// object : user's current specific margin data will be returned if viplevel is omitted
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a [borrow rate structure]{@link https://docs.ccxt.com/#/?id=borrow-rate-structure}.</returns>
+    public async Task<IsolatedBorrowRates> FetchIsolatedBorrowRates(Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchIsolatedBorrowRates(parameters);
+        return new IsolatedBorrowRates(res);
     }
     /// <summary>
     /// retrieves a history of a currencies borrow interest rate at specific time slots
@@ -2331,6 +2509,12 @@ public partial class binance
     /// int : the time(ms) of the latest record to retrieve as a unix timestamp
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>params.paginate</term>
+    /// <description>
+    /// boolean : default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> an array of [open interest structure]{@link https://docs.ccxt.com/#/?id=open-interest-structure}.</returns>
@@ -2416,6 +2600,18 @@ public partial class binance
     /// boolean : set to true if you would like to fetch liquidations in a portfolio margin account
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>params.type</term>
+    /// <description>
+    /// string : "spot"
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.subType</term>
+    /// <description>
+    /// string : "linear" or "inverse"
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> an array of [liquidation structures]{@link https://docs.ccxt.com/#/?id=liquidation-structure}.</returns>
@@ -2456,6 +2652,18 @@ public partial class binance
     /// </summary>
     /// <remarks>
     /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.subType</term>
+    /// <description>
+    /// string : "linear" or "inverse"
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> an object detailing whether the market is in hedged or one-way mode.</returns>
@@ -2468,5 +2676,181 @@ public partial class binance
     {
         var res = await this.fetchMarginModes(symbols, parameters);
         return new MarginModes(res);
+    }
+    /// <summary>
+    /// fetches option data that is commonly found in an option chain
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://binance-docs.github.io/apidocs/voptions/en/#24hr-ticker-price-change-statistics"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> an [option chain structure]{@link https://docs.ccxt.com/#/?id=option-chain-structure}.</returns>
+    public async Task<Option> FetchOption(string symbol, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchOption(symbol, parameters);
+        return new Option(res);
+    }
+    public async Task<List<MarginModification>> FetchMarginAdjustmentHistory(string symbol = null, string type = null, double? since2 = 0, double? limit2 = 0, Dictionary<string, object> parameters = null)
+    {
+        var since = since2 == 0 ? null : (object)since2;
+        var limit = limit2 == 0 ? null : (object)limit2;
+        var res = await this.fetchMarginAdjustmentHistory(symbol, type, since, limit, parameters);
+        return ((IList<object>)res).Select(item => new MarginModification(item)).ToList<MarginModification>();
+    }
+    /// <summary>
+    /// fetches all available currencies that can be converted
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://binance-docs.github.io/apidocs/spot/en/#query-order-quantity-precision-per-asset-user_data"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> an associative dictionary of currencies.</returns>
+    public async Task<Currencies> FetchConvertCurrencies(Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchConvertCurrencies(parameters);
+        return new Currencies(res);
+    }
+    /// <summary>
+    /// fetch a quote for converting from one currency to another
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://binance-docs.github.io/apidocs/spot/en/#send-quote-request-user_data"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.walletType</term>
+    /// <description>
+    /// string : either 'SPOT' or 'FUNDING', the default is 'SPOT'
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a [conversion structure]{@link https://docs.ccxt.com/#/?id=conversion-structure}.</returns>
+    public async Task<Conversion> FetchConvertQuote(string fromCode, string toCode, double? amount2 = 0, Dictionary<string, object> parameters = null)
+    {
+        var amount = amount2 == 0 ? null : (object)amount2;
+        var res = await this.fetchConvertQuote(fromCode, toCode, amount, parameters);
+        return new Conversion(res);
+    }
+    /// <summary>
+    /// convert from one currency to another
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://binance-docs.github.io/apidocs/spot/en/#busd-convert-trade"/>  <br/>
+    /// See <see href="https://binance-docs.github.io/apidocs/spot/en/#accept-quote-trade"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>amount</term>
+    /// <description>
+    /// float : how much you want to trade in units of the from currency
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a [conversion structure]{@link https://docs.ccxt.com/#/?id=conversion-structure}.</returns>
+    public async Task<Conversion> CreateConvertTrade(string id, string fromCode, string toCode, double? amount2 = 0, Dictionary<string, object> parameters = null)
+    {
+        var amount = amount2 == 0 ? null : (object)amount2;
+        var res = await this.createConvertTrade(id, fromCode, toCode, amount, parameters);
+        return new Conversion(res);
+    }
+    /// <summary>
+    /// fetch the data for a conversion trade
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://binance-docs.github.io/apidocs/spot/en/#busd-convert-history-user_data"/>  <br/>
+    /// See <see href="https://binance-docs.github.io/apidocs/spot/en/#order-status-user_data"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>code</term>
+    /// <description>
+    /// string : the unified currency code of the conversion trade
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a [conversion structure]{@link https://docs.ccxt.com/#/?id=conversion-structure}.</returns>
+    public async Task<Conversion> FetchConvertTrade(string id, string code = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchConvertTrade(id, code, parameters);
+        return new Conversion(res);
+    }
+    /// <summary>
+    /// fetch the users history of conversion trades
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://binance-docs.github.io/apidocs/spot/en/#busd-convert-history-user_data"/>  <br/>
+    /// See <see href="https://binance-docs.github.io/apidocs/spot/en/#get-convert-trade-history-user_data"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>code</term>
+    /// <description>
+    /// string : the unified currency code
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>since</term>
+    /// <description>
+    /// int : the earliest time in ms to fetch conversions for
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>limit</term>
+    /// <description>
+    /// int : the maximum number of conversion structures to retrieve
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.until</term>
+    /// <description>
+    /// int : timestamp in ms of the latest conversion to fetch
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object[]</term> a list of [conversion structures]{@link https://docs.ccxt.com/#/?id=conversion-structure}.</returns>
+    public async Task<List<Conversion>> FetchConvertTradeHistory(string code = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    {
+        var since = since2 == 0 ? null : (object)since2;
+        var limit = limit2 == 0 ? null : (object)limit2;
+        var res = await this.fetchConvertTradeHistory(code, since, limit, parameters);
+        return ((IList<object>)res).Select(item => new Conversion(item)).ToList<Conversion>();
     }
 }

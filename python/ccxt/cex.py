@@ -7,9 +7,10 @@ from ccxt.base.exchange import Exchange
 from ccxt.abstract.cex import ImplicitAPI
 import hashlib
 import json
-from ccxt.base.types import Balances, Int, Market, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade
+from ccxt.base.types import Balances, Currencies, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees
 from typing import List
 from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import NullResponse
@@ -19,7 +20,6 @@ from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import DDoSProtection
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import InvalidNonce
-from ccxt.base.errors import AuthenticationError
 from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
@@ -75,7 +75,13 @@ class cex(Exchange, ImplicitAPI):
                 'fetchOrder': True,
                 'fetchOrderBook': True,
                 'fetchOrders': True,
+                'fetchPosition': False,
+                'fetchPositionHistory': False,
                 'fetchPositionMode': False,
+                'fetchPositions': False,
+                'fetchPositionsForSymbol': False,
+                'fetchPositionsHistory': False,
+                'fetchPositionsRisk': False,
                 'fetchPremiumIndexOHLCV': False,
                 'fetchTicker': True,
                 'fetchTickers': True,
@@ -237,7 +243,7 @@ class cex(Exchange, ImplicitAPI):
             })
         return self.safe_value(self.options['fetchCurrencies'], 'response')
 
-    def fetch_currencies(self, params={}):
+    def fetch_currencies(self, params={}) -> Currencies:
         """
         fetches all available currencies on an exchange
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -311,7 +317,7 @@ class cex(Exchange, ImplicitAPI):
         #
         data = self.safe_value(response, 'data', [])
         currencies = self.safe_value(data, 'symbols', [])
-        result = {}
+        result: dict = {}
         for i in range(0, len(currencies)):
             currency = currencies[i]
             id = self.safe_string(currency, 'code')
@@ -340,7 +346,7 @@ class cex(Exchange, ImplicitAPI):
             }
         return result
 
-    def fetch_markets(self, params={}):
+    def fetch_markets(self, params={}) -> List[Market]:
         """
         retrieves data on all markets for cex
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -451,7 +457,7 @@ class cex(Exchange, ImplicitAPI):
         return result
 
     def parse_balance(self, response) -> Balances:
-        result = {'info': response}
+        result: dict = {'info': response}
         ommited = ['username', 'timestamp']
         balances = self.omit(response, ommited)
         currencyIds = list(balances.keys())
@@ -488,7 +494,7 @@ class cex(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'pair': market['id'],
         }
         if limit is not None:
@@ -535,7 +541,7 @@ class cex(Exchange, ImplicitAPI):
         else:
             if self.options['fetchOHLCVWarning']:
                 raise ExchangeError(self.id + " fetchOHLCV warning: CEX can return historical candles for a certain date only, self might produce an empty or None reply. Set exchange.options['fetchOHLCVWarning'] = False or add({'options': {'fetchOHLCVWarning': False}}) to constructor params to suppress self warning message.")
-        request = {
+        request: dict = {
             'pair': market['id'],
             'yyyymmdd': self.yyyymmdd(since, ''),
         }
@@ -556,7 +562,7 @@ class cex(Exchange, ImplicitAPI):
                 return []
         return None
 
-    def parse_ticker(self, ticker, market: Market = None) -> Ticker:
+    def parse_ticker(self, ticker: dict, market: Market = None) -> Ticker:
         timestamp = self.safe_timestamp(ticker, 'timestamp')
         volume = self.safe_string(ticker, 'volume')
         high = self.safe_string(ticker, 'high')
@@ -598,12 +604,12 @@ class cex(Exchange, ImplicitAPI):
         self.load_markets()
         symbols = self.market_symbols(symbols)
         currencies = list(self.currencies.keys())
-        request = {
+        request: dict = {
             'currencies': '/'.join(currencies),
         }
         response = self.publicGetTickersCurrencies(self.extend(request, params))
         tickers = self.safe_value(response, 'data', [])
-        result = {}
+        result: dict = {}
         for t in range(0, len(tickers)):
             ticker = tickers[t]
             marketId = self.safe_string(ticker, 'pair')
@@ -622,7 +628,7 @@ class cex(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'pair': market['id'],
         }
         ticker = self.publicGetTickerPair(self.extend(request, params))
@@ -675,13 +681,13 @@ class cex(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'pair': market['id'],
         }
         response = self.publicGetTradeHistoryPair(self.extend(request, params))
         return self.parse_trades(response, market, since, limit)
 
-    def fetch_trading_fees(self, params={}):
+    def fetch_trading_fees(self, params={}) -> TradingFees:
         """
         :see: https://docs.cex.io/#get-my-fee
         fetch the trading fees for multiple markets
@@ -702,7 +708,7 @@ class cex(Exchange, ImplicitAPI):
         #      }
         #
         data = self.safe_value(response, 'data', {})
-        result = {}
+        result: dict = {}
         for i in range(0, len(self.symbols)):
             symbol = self.symbols[i]
             market = self.market(symbol)
@@ -720,7 +726,7 @@ class cex(Exchange, ImplicitAPI):
             }
         return result
 
-    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: float = None, params={}):
+    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         """
         :see: https://docs.cex.io/#place-order
         create a trade order
@@ -736,7 +742,7 @@ class cex(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'pair': market['id'],
             'type': side,
         }
@@ -817,14 +823,14 @@ class cex(Exchange, ImplicitAPI):
         :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
-        request = {
+        request: dict = {
             'id': id,
         }
         response = self.privatePostCancelOrder(self.extend(request, params))
         # 'true'
         return self.extend(self.parse_order({}), {'info': response, 'type': None, 'id': id, 'status': 'canceled'})
 
-    def cancel_all_orders(self, symbol: str = None, params={}):
+    def cancel_all_orders(self, symbol: Str = None, params={}):
         """
         :see: https://docs.cex.io/#cancel-all-orders-for-given-pair
         cancel all open orders in a market
@@ -837,7 +843,7 @@ class cex(Exchange, ImplicitAPI):
             raise ArgumentsRequired(self.id + ' cancelAllOrders requires a symbol.')
         self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'pair': market['id'],
         }
         orders = self.privatePostCancelOrdersPair(self.extend(request, params))
@@ -1108,7 +1114,7 @@ class cex(Exchange, ImplicitAPI):
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
-        request = {}
+        request: dict = {}
         market = None
         orders = None
         if symbol is not None:
@@ -1135,7 +1141,7 @@ class cex(Exchange, ImplicitAPI):
             raise ArgumentsRequired(self.id + ' fetchClosedOrders() requires a symbol argument')
         self.load_markets()
         market = self.market(symbol)
-        request = {'pair': market['id']}
+        request: dict = {'pair': market['id']}
         response = self.privatePostArchivedOrdersPair(self.extend(request, params))
         return self.parse_orders(response, market, since, limit)
 
@@ -1148,7 +1154,7 @@ class cex(Exchange, ImplicitAPI):
         :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
-        request = {
+        request: dict = {
             'id': str(id),
         }
         response = self.privatePostGetOrderTx(self.extend(request, params))
@@ -1267,7 +1273,7 @@ class cex(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'limit': limit,
             'pair': market['id'],
             'dateFrom': since,
@@ -1471,10 +1477,10 @@ class cex(Exchange, ImplicitAPI):
             results.append(safeOrder)
         return results
 
-    def parse_order_status(self, status):
+    def parse_order_status(self, status: Str):
         return self.safe_string(self.options['order']['status'], status, status)
 
-    def edit_order(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: float = None, price: float = None, params={}):
+    def edit_order(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: Num = None, price: Num = None, params={}):
         """
         edit a trade order
         :see: https://docs.cex.io/#cancel-replace-order
@@ -1494,7 +1500,7 @@ class cex(Exchange, ImplicitAPI):
         self.load_markets()
         market = self.market(symbol)
         # see: https://cex.io/rest-api#/definitions/CancelReplaceOrderRequest
-        request = {
+        request: dict = {
             'pair': market['id'],
             'type': side,
             'amount': amount,
@@ -1514,7 +1520,7 @@ class cex(Exchange, ImplicitAPI):
         """
         self.load_markets()
         currency = self.currency(code)
-        request = {
+        request: dict = {
             'currency': currency['id'],
         }
         networkCode, query = self.handle_network_code_and_params(params)

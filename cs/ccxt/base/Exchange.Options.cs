@@ -1,4 +1,7 @@
 namespace ccxt;
+
+using System.Collections.Concurrent;
+
 using dict = Dictionary<string, object>;
 using list = List<object>;
 
@@ -61,7 +64,7 @@ public partial class Exchange
 
     public object number { get; set; } = typeof(float);
     public Dictionary<string, object> has { get; set; } = new dict();
-    public Dictionary<string, object> options { get; set; } = new dict();
+    public ConcurrentDictionary<string, object> options { get; set; } = new ConcurrentDictionary<string, object>();
     public object markets { get; set; } = null;
     public object currencies { get; set; } = null;
     public object fees { get; set; } = new dict();
@@ -76,6 +79,7 @@ public partial class Exchange
     public string apiKey { get; set; }
     public string password { get; set; }
     public string uid { get; set; }
+    public string accountId { get; set; }
 
     public dict userAgents { get; set; } = new dict(){
         {"chrome", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/62.0.3202.94 Safari/537.36"},
@@ -153,6 +157,7 @@ public partial class Exchange
 
     // WS options
     public object tickers = new ccxt.pro.CustomConcurrentDictionary<string, object>();
+    public object fundingRates = new ccxt.pro.CustomConcurrentDictionary<string, object>();
     public object bidsasks = new ccxt.pro.CustomConcurrentDictionary<string, object>();
 
     public object transactions = new dict();
@@ -247,7 +252,15 @@ public partial class Exchange
                 { "fetchCanceledOrders", null },
                 { "fetchClosedOrder", null },
                 { "fetchClosedOrders", null },
+                { "fetchClosedOrdersWs", null },
+                { "fetchConvertCurrencies", null },
+                { "fetchConvertQuote", null },
+                { "fetchConvertTrade", null },
+                { "fetchConvertTradeHistory", null },
+                { "fetchCrossBorrowRate", null },
+                { "fetchCrossBorrowRates", null },
                 { "fetchCurrencies", "emulated" },
+                { "fetchCurrenciesWs", "emulated" },
                 { "fetchDeposit", null },
                 { "fetchDepositAddress", null },
                 { "fetchDepositAddresses", null },
@@ -281,7 +294,7 @@ public partial class Exchange
                 { "fetchPositions", null },
                 { "fetchPositionsRisk", null },
                 { "fetchPremiumIndexOHLCV", null },
-                { "fetchStatus", "emulated" },
+                { "fetchStatus", null },
                 { "fetchTicker", true },
                 { "fetchTickers", null },
                 { "fetchTime", null },
@@ -314,6 +327,7 @@ public partial class Exchange
                 { "apiKey", true },
                 { "secret", true },
                 { "uid", false },
+                { "accountId", false },
                 { "login", false },
                 { "password", false },
                 { "twofa", false },
@@ -418,6 +432,7 @@ public partial class Exchange
         this.walletAddress = SafeString(extendedProperties, "walletAddress", "");
         this.token = SafeString(extendedProperties, "token", "");
         this.uid = SafeString(extendedProperties, "uid", "");
+        this.accountId = SafeString(extendedProperties, "accountId", "");
 
         this.userAgents = SafeValue(extendedProperties, "userAgents", userAgents) as dict;
         this.userAgent = SafeString(extendedProperties, "userAgent");
@@ -429,7 +444,15 @@ public partial class Exchange
         this.api = SafeValue(extendedProperties, "api") as dict;
         this.hostname = SafeString(extendedProperties, "hostname");
         this.urls = SafeValue(extendedProperties, "urls") as dict;
-        this.options = SafeValue(extendedProperties, "options") as dict ?? new dict();
+
+        // handle options
+        var extendedOptions = safeDict(extendedProperties, "options");
+        if (extendedOptions != null)
+        {
+            var extendedDict = extendedOptions as dict;
+            var concurrentExtendedDict = new ConcurrentDictionary<string, object>(extendedDict);
+            this.options = concurrentExtendedDict;
+        }
         this.verbose = (bool)this.safeValue(extendedProperties, "verbose", false);
         this.timeframes = SafeValue(extendedProperties, "timeframes", new dict()) as dict;
         this.fees = SafeValue(extendedProperties, "fees") as dict;

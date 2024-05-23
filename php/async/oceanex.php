@@ -152,7 +152,7 @@ class oceanex extends Exchange {
         ));
     }
 
-    public function fetch_markets($params = array ()) {
+    public function fetch_markets($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * retrieves data on all $markets for oceanex
@@ -161,7 +161,7 @@ class oceanex extends Exchange {
              * @return {array[]} an array of objects representing market data
              */
             $request = array( 'show_details' => true );
-            $response = Async\await($this->publicGetMarkets (array_merge($request, $params)));
+            $response = Async\await($this->publicGetMarkets ($this->extend($request, $params)));
             //
             //    array(
             //        "id" => "xtzusdt",
@@ -254,7 +254,7 @@ class oceanex extends Exchange {
             $request = array(
                 'pair' => $market['id'],
             );
-            $response = Async\await($this->publicGetTickersPair (array_merge($request, $params)));
+            $response = Async\await($this->publicGetTickersPair ($this->extend($request, $params)));
             //
             //     {
             //         "code":0,
@@ -272,7 +272,7 @@ class oceanex extends Exchange {
             //         }
             //     }
             //
-            $data = $this->safe_value($response, 'data', array());
+            $data = $this->safe_dict($response, 'data', array());
             return $this->parse_ticker($data, $market);
         }) ();
     }
@@ -293,7 +293,7 @@ class oceanex extends Exchange {
             }
             $marketIds = $this->market_ids($symbols);
             $request = array( 'markets' => $marketIds );
-            $response = Async\await($this->publicGetTickersMulti (array_merge($request, $params)));
+            $response = Async\await($this->publicGetTickersMulti ($this->extend($request, $params)));
             //
             //     {
             //         "code":0,
@@ -383,7 +383,7 @@ class oceanex extends Exchange {
             if ($limit !== null) {
                 $request['limit'] = $limit;
             }
-            $response = Async\await($this->publicGetOrderBook (array_merge($request, $params)));
+            $response = Async\await($this->publicGetOrderBook ($this->extend($request, $params)));
             //
             //     {
             //         "code":0,
@@ -430,7 +430,7 @@ class oceanex extends Exchange {
             if ($limit !== null) {
                 $request['limit'] = $limit;
             }
-            $response = Async\await($this->publicGetOrderBookMulti (array_merge($request, $params)));
+            $response = Async\await($this->publicGetOrderBookMulti ($this->extend($request, $params)));
             //
             //     {
             //         "code":0,
@@ -486,7 +486,7 @@ class oceanex extends Exchange {
             if ($limit !== null) {
                 $request['limit'] = min ($limit, 1000);
             }
-            $response = Async\await($this->publicGetTrades (array_merge($request, $params)));
+            $response = Async\await($this->publicGetTrades ($this->extend($request, $params)));
             //
             //      {
             //          "code":0,
@@ -505,7 +505,7 @@ class oceanex extends Exchange {
             //          )
             //      }
             //
-            $data = $this->safe_value($response, 'data');
+            $data = $this->safe_list($response, 'data');
             return $this->parse_trades($data, $market, $since, $limit);
         }) ();
     }
@@ -572,7 +572,7 @@ class oceanex extends Exchange {
         }) ();
     }
 
-    public function fetch_trading_fees($params = array ()) {
+    public function fetch_trading_fees($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * fetch the trading fees for multiple markets
@@ -662,8 +662,8 @@ class oceanex extends Exchange {
             if ($type === 'limit') {
                 $request['price'] = $this->price_to_precision($symbol, $price);
             }
-            $response = Async\await($this->privatePostOrders (array_merge($request, $params)));
-            $data = $this->safe_value($response, 'data');
+            $response = Async\await($this->privatePostOrders ($this->extend($request, $params)));
+            $data = $this->safe_dict($response, 'data');
             return $this->parse_order($data, $market);
         }) ();
     }
@@ -684,7 +684,7 @@ class oceanex extends Exchange {
             }
             $ids = array( $id );
             $request = array( 'ids' => $ids );
-            $response = Async\await($this->privateGetOrders (array_merge($request, $params)));
+            $response = Async\await($this->privateGetOrders ($this->extend($request, $params)));
             $data = $this->safe_value($response, 'data');
             $dataLength = count($data);
             if ($data === null) {
@@ -715,7 +715,7 @@ class oceanex extends Exchange {
             $request = array(
                 'states' => array( 'wait' ),
             );
-            return Async\await($this->fetch_orders($symbol, $since, $limit, array_merge($request, $params)));
+            return Async\await($this->fetch_orders($symbol, $since, $limit, $this->extend($request, $params)));
         }) ();
     }
 
@@ -733,7 +733,7 @@ class oceanex extends Exchange {
             $request = array(
                 'states' => array( 'done', 'cancel' ),
             );
-            return Async\await($this->fetch_orders($symbol, $since, $limit, array_merge($request, $params)));
+            return Async\await($this->fetch_orders($symbol, $since, $limit, $this->extend($request, $params)));
         }) ();
     }
 
@@ -763,7 +763,7 @@ class oceanex extends Exchange {
             if ($limit !== null) {
                 $request['limit'] = $limit;
             }
-            $response = Async\await($this->privateGetOrdersFilter (array_merge($request, $query)));
+            $response = Async\await($this->privateGetOrdersFilter ($this->extend($request, $query)));
             $data = $this->safe_value($response, 'data', array());
             $result = array();
             for ($i = 0; $i < count($data); $i++) {
@@ -817,10 +817,10 @@ class oceanex extends Exchange {
                 $request['timestamp'] = $since;
             }
             if ($limit !== null) {
-                $request['limit'] = $limit;
+                $request['limit'] = min ($limit, 10000);
             }
-            $response = Async\await($this->publicPostK (array_merge($request, $params)));
-            $ohlcvs = $this->safe_value($response, 'data', array());
+            $response = Async\await($this->publicPostK ($this->extend($request, $params)));
+            $ohlcvs = $this->safe_list($response, 'data', array());
             return $this->parse_ohlcvs($ohlcvs, $market, $timeframe, $since, $limit);
         }) ();
     }
@@ -881,7 +881,7 @@ class oceanex extends Exchange {
         ), $market);
     }
 
-    public function parse_order_status($status) {
+    public function parse_order_status(?string $status) {
         $statuses = array(
             'wait' => 'open',
             'done' => 'closed',
@@ -901,8 +901,8 @@ class oceanex extends Exchange {
              * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
              */
             Async\await($this->load_markets());
-            $response = Async\await($this->privatePostOrderDelete (array_merge(array( 'id' => $id ), $params)));
-            $data = $this->safe_value($response, 'data');
+            $response = Async\await($this->privatePostOrderDelete ($this->extend(array( 'id' => $id ), $params)));
+            $data = $this->safe_dict($response, 'data');
             return $this->parse_order($data);
         }) ();
     }
@@ -918,8 +918,8 @@ class oceanex extends Exchange {
              * @return {array} an list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             Async\await($this->load_markets());
-            $response = Async\await($this->privatePostOrderDeleteMulti (array_merge(array( 'ids' => $ids ), $params)));
-            $data = $this->safe_value($response, 'data');
+            $response = Async\await($this->privatePostOrderDeleteMulti ($this->extend(array( 'ids' => $ids ), $params)));
+            $data = $this->safe_list($response, 'data');
             return $this->parse_orders($data);
         }) ();
     }
@@ -935,7 +935,7 @@ class oceanex extends Exchange {
              */
             Async\await($this->load_markets());
             $response = Async\await($this->privatePostOrdersClear ($params));
-            $data = $this->safe_value($response, 'data');
+            $data = $this->safe_list($response, 'data');
             return $this->parse_orders($data);
         }) ();
     }

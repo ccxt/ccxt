@@ -23,7 +23,7 @@ async function testWatchPositions(exchange, skippedProperties, symbol) {
             now = exchange.milliseconds();
             continue;
         }
-        assert(Array.isArray(response), exchange.id + ' ' + method + ' ' + symbol + ' must return an array. ' + exchange.json(response));
+        testSharedMethods.assertNonEmtpyArray(exchange, skippedProperties, method, response, symbol);
         now = exchange.milliseconds();
         for (let i = 0; i < response.length; i++) {
             testPosition(exchange, skippedProperties, method, response[i], undefined, now);

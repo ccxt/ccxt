@@ -9,8 +9,8 @@ namespace ccxt;
 // -----------------------------------------------------------------------------
 use React\Async;
 use React\Promise;
-include_once PATH_TO_CCXT . '/test/base/test_shared_methods.php';
 include_once PATH_TO_CCXT . '/test/base/test_position.php';
+include_once PATH_TO_CCXT . '/test/base/test_shared_methods.php';
 
 function test_fetch_positions($exchange, $skipped_properties, $symbol) {
     return Async\async(function () use ($exchange, $skipped_properties, $symbol) {
@@ -18,7 +18,7 @@ function test_fetch_positions($exchange, $skipped_properties, $symbol) {
         $now = $exchange->milliseconds();
         // without symbol
         $positions = Async\await($exchange->fetch_positions());
-        assert(gettype($positions) === 'array' && array_keys($positions) === array_keys(array_keys($positions)), $exchange->id . ' ' . $method . ' must return an array, returned ' . $exchange->json($positions));
+        assert_non_emtpy_array($exchange, $skipped_properties, $method, $positions, $symbol);
         for ($i = 0; $i < count($positions); $i++) {
             test_position($exchange, $skipped_properties, $method, $positions[$i], null, $now);
         }

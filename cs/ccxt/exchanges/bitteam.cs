@@ -81,7 +81,11 @@ public partial class bitteam : Exchange
                 { "fetchOrders", true },
                 { "fetchOrderTrades", false },
                 { "fetchPosition", false },
+                { "fetchPositionHistory", false },
+                { "fetchPositionMode", false },
                 { "fetchPositions", false },
+                { "fetchPositionsForSymbol", false },
+                { "fetchPositionsHistory", false },
                 { "fetchPositionsRisk", false },
                 { "fetchPremiumIndexOHLCV", false },
                 { "fetchStatus", false },
@@ -678,7 +682,7 @@ public partial class bitteam : Exchange
         //     }
         //
         object result = this.safeValue(response, "result", new Dictionary<string, object>() {});
-        object data = this.safeValue(result, "data", new List<object>() {});
+        object data = this.safeList(result, "data", new List<object>() {});
         return this.parseOHLCVs(data, market, timeframe, since, limit);
     }
 
@@ -862,7 +866,7 @@ public partial class bitteam : Exchange
         //     }
         //
         object result = this.safeValue(response, "result", new Dictionary<string, object>() {});
-        object orders = this.safeValue(result, "orders", new List<object>() {});
+        object orders = this.safeList(result, "orders", new List<object>() {});
         return this.parseOrders(orders, market, since, limit);
     }
 
@@ -926,7 +930,7 @@ public partial class bitteam : Exchange
         //         }
         //     }
         //
-        object result = this.safeValue(response, "result");
+        object result = this.safeDict(response, "result");
         return this.parseOrder(result, market);
     }
 
@@ -1051,7 +1055,7 @@ public partial class bitteam : Exchange
         //         }
         //     }
         //
-        object order = this.safeValue(response, "result", new Dictionary<string, object>() {});
+        object order = this.safeDict(response, "result", new Dictionary<string, object>() {});
         return this.parseOrder(order, market);
     }
 
@@ -1081,7 +1085,7 @@ public partial class bitteam : Exchange
         //         }
         //     }
         //
-        object result = this.safeValue(response, "result", new Dictionary<string, object>() {});
+        object result = this.safeDict(response, "result", new Dictionary<string, object>() {});
         return this.parseOrder(result);
     }
 
@@ -1567,7 +1571,7 @@ public partial class bitteam : Exchange
         //     }
         //
         object result = this.safeValue(response, "result", new Dictionary<string, object>() {});
-        object pair = this.safeValue(result, "pair", new Dictionary<string, object>() {});
+        object pair = this.safeDict(result, "pair", new Dictionary<string, object>() {});
         return this.parseTicker(pair, market);
     }
 
@@ -1907,7 +1911,7 @@ public partial class bitteam : Exchange
         //     }
         //
         object result = this.safeValue(response, "result", new Dictionary<string, object>() {});
-        object trades = this.safeValue(result, "trades", new List<object>() {});
+        object trades = this.safeList(result, "trades", new List<object>() {});
         return this.parseTrades(trades, market, since, limit);
     }
 
@@ -2226,7 +2230,7 @@ public partial class bitteam : Exchange
         //     }
         //
         object result = this.safeValue(response, "result", new Dictionary<string, object>() {});
-        object transactions = this.safeValue(result, "transactions", new List<object>() {});
+        object transactions = this.safeList(result, "transactions", new List<object>() {});
         return this.parseTransactions(transactions, currency, since, limit);
     }
 

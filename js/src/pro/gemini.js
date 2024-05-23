@@ -418,7 +418,7 @@ export default class gemini extends geminiRest {
         const orderbook = await this.helperForWatchMultipleConstruct('orderbook', symbols, params);
         return orderbook.limit();
     }
-    async watchBidsAsks(symbols, limit = undefined, params = {}) {
+    async watchBidsAsks(symbols = undefined, params = {}) {
         /**
          * @method
          * @name gemini#watchBidsAsks
@@ -914,7 +914,8 @@ export default class gemini extends geminiRest {
                 },
             },
         };
-        this.options = this.extend(defaultOptions, this.options);
+        // this.options = this.extend (defaultOptions, this.options);
+        this.extendExchangeOptions(defaultOptions);
         const originalHeaders = this.options['ws']['options']['headers'];
         const headers = {
             'X-GEMINI-APIKEY': this.apiKey,

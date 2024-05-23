@@ -1043,8 +1043,12 @@ class coinex extends \ccxt\async\coinex {
         //
         $messageHashSpot = 'authenticated:spot';
         $messageHashSwap = 'authenticated:swap';
-        $client->resolve ($message, $messageHashSpot);
-        $client->resolve ($message, $messageHashSwap);
+        // $client->resolve ($message, $messageHashSpot);
+        // $client->resolve ($message, $messageHashSwap);
+        $spotFuture = $this->safe_value($client->futures, $messageHashSpot);
+        $spotFuture->resolve (true);
+        $swapFutures = $this->safe_value($client->futures, $messageHashSwap);
+        $swapFutures->resolve (true);
         return $message;
     }
 
@@ -1066,61 +1070,65 @@ class coinex extends \ccxt\async\coinex {
     }
 
     public function authenticate($params = array ()) {
-        $type = null;
-        list($type, $params) = $this->handle_market_type_and_params('authenticate', null, $params);
-        $url = $this->urls['api']['ws'][$type];
-        $client = $this->client($url);
-        $time = $this->milliseconds();
-        if ($type === 'spot') {
-            $messageHash = 'authenticated:spot';
-            $future = $this->safe_value($client->subscriptions, $messageHash);
-            if ($future !== null) {
-                return $future;
+        return Async\async(function () use ($params) {
+            $type = null;
+            list($type, $params) = $this->handle_market_type_and_params('authenticate', null, $params);
+            $url = $this->urls['api']['ws'][$type];
+            $client = $this->client($url);
+            $time = $this->milliseconds();
+            $isSpot = ($type === 'spot');
+            $spotMessageHash = 'authenticated:spot';
+            $swapMessageHash = 'authenticated:swap';
+            $messageHash = $isSpot ? $spotMessageHash : $swapMessageHash;
+            $future = $client->future ($messageHash);
+            $authenticated = $this->safe_value($client->subscriptions, $messageHash);
+            if ($type === 'spot') {
+                if ($authenticated !== null) {
+                    return Async\await($future);
+                }
+                $requestId = $this->request_id();
+                $subscribe = array(
+                    'id' => $requestId,
+                    'future' => $spotMessageHash,
+                );
+                $signData = 'access_id=' . $this->apiKey . '&tonce=' . $this->number_to_string($time) . '&secret_key=' . $this->secret;
+                $hash = $this->hash($this->encode($signData), 'md5');
+                $request = array(
+                    'method' => 'server.sign',
+                    'params' => array(
+                        $this->apiKey,
+                        strtoupper($hash),
+                        $time,
+                    ),
+                    'id' => $requestId,
+                );
+                $this->watch($url, $messageHash, $request, $requestId, $subscribe);
+                $client->subscriptions[$messageHash] = true;
+                return Async\await($future);
+            } else {
+                if ($authenticated !== null) {
+                    return Async\await($future);
+                }
+                $requestId = $this->request_id();
+                $subscribe = array(
+                    'id' => $requestId,
+                    'future' => $swapMessageHash,
+                );
+                $signData = 'access_id=' . $this->apiKey . '&timestamp=' . $this->number_to_string($time) . '&secret_key=' . $this->secret;
+                $hash = $this->hash($this->encode($signData), 'sha256', 'hex');
+                $request = array(
+                    'method' => 'server.sign',
+                    'params' => array(
+                        $this->apiKey,
+                        strtolower($hash),
+                        $time,
+                    ),
+                    'id' => $requestId,
+                );
+                $this->watch($url, $messageHash, $request, $requestId, $subscribe);
+                $client->subscriptions[$messageHash] = true;
+                return Async\await($future);
             }
-            $requestId = $this->request_id();
-            $subscribe = array(
-                'id' => $requestId,
-                'future' => 'authenticated:spot',
-            );
-            $signData = 'access_id=' . $this->apiKey . '&tonce=' . $this->number_to_string($time) . '&secret_key=' . $this->secret;
-            $hash = $this->hash($this->encode($signData), 'md5');
-            $request = array(
-                'method' => 'server.sign',
-                'params' => array(
-                    $this->apiKey,
-                    strtoupper($hash),
-                    $time,
-                ),
-                'id' => $requestId,
-            );
-            $future = $this->watch($url, $messageHash, $request, $requestId, $subscribe);
-            $client->subscriptions[$messageHash] = $future;
-            return $future;
-        } else {
-            $messageHash = 'authenticated:swap';
-            $future = $this->safe_value($client->subscriptions, $messageHash);
-            if ($future !== null) {
-                return $future;
-            }
-            $requestId = $this->request_id();
-            $subscribe = array(
-                'id' => $requestId,
-                'future' => 'authenticated:swap',
-            );
-            $signData = 'access_id=' . $this->apiKey . '&timestamp=' . $this->number_to_string($time) . '&secret_key=' . $this->secret;
-            $hash = $this->hash($this->encode($signData), 'sha256', 'hex');
-            $request = array(
-                'method' => 'server.sign',
-                'params' => array(
-                    $this->apiKey,
-                    strtolower($hash),
-                    $time,
-                ),
-                'id' => $requestId,
-            );
-            $future = $this->watch($url, $messageHash, $request, $requestId, $subscribe);
-            $client->subscriptions[$messageHash] = $future;
-            return $future;
-        }
+        }) ();
     }
 }
