@@ -5796,6 +5796,7 @@ export default class binance extends Exchange {
         const initialUppercaseType = type.toUpperCase ();
         const isMarketOrder = initialUppercaseType === 'MARKET';
         const isLimitOrder = initialUppercaseType === 'LIMIT';
+        const timeInForce = this.safeString (params, 'timeInForce');
         const request = {
             'symbol': market['id'],
             'side': side.toUpperCase (),
@@ -5910,6 +5911,11 @@ export default class binance extends Exchange {
                 if (marginMode === 'isolated') {
                     request['isIsolated'] = true;
                 }
+            }
+        } else {
+            postOnly = this.isPostOnly (isMarketOrder, timeInForce === 'GTX', params);
+            if (postOnly) {
+                request['timeInForce'] = 'GTX';
             }
         }
         // handle newOrderRespType response type
@@ -6031,7 +6037,7 @@ export default class binance extends Exchange {
                 request['stopPrice'] = this.priceToPrecision (symbol, stopPrice);
             }
         }
-        if (timeInForceIsRequired && (this.safeString (params, 'timeInForce') === undefined)) {
+        if (timeInForceIsRequired && (this.safeString (params, 'timeInForce') === undefined) && (this.safeString (params, 'timeInForce') === undefined)) {
             request['timeInForce'] = this.options['defaultTimeInForce']; // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
         }
         if (!isPortfolioMargin && market['contract'] && postOnly) {
