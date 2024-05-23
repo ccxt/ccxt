@@ -5,7 +5,7 @@ import binanceRest from '../binance.js';
 import { Precise } from '../base/Precise.js';
 import { InvalidNonce, ArgumentsRequired, BadRequest, NotSupported } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide } from '../base/ws/Cache.js';
-import type { Int, OrderSide, OrderType, Str, Strings, Trade, OrderBook, Order, Ticker, Tickers, OHLCV, Position, Balances, Num } from '../base/types.js';
+import type { Int, OrderSide, OrderType, Str, Strings, Trade, OrderBook, Order, Ticker, Tickers, OHLCV, Position, Balances, Num, Dict } from '../base/types.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
 import { rsa } from '../base/functions/rsa.js';
 import { eddsa } from '../base/functions/crypto.js';
@@ -275,12 +275,12 @@ export default class binance extends binanceRest {
         const messageHashesLength = messageHashes.length;
         const url = this.urls['api']['ws'][type] + '/' + this.stream (type, streamHash, messageHashesLength);
         const requestId = this.requestId (url);
-        const request = {
+        const request: Dict = {
             'method': 'SUBSCRIBE',
             'params': subParams,
             'id': requestId,
         };
-        const subscription = {
+        const subscription: Dict = {
             'id': requestId.toString (),
             'name': name,
             'symbols': symbols,
@@ -307,7 +307,7 @@ export default class binance extends binanceRest {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const payload = {
+        const payload: Dict = {
             'symbol': market['id'],
         };
         if (limit !== undefined) {
@@ -324,12 +324,12 @@ export default class binance extends binanceRest {
         [ returnRateLimits, params ] = this.handleOptionAndParams (params, 'createOrderWs', 'returnRateLimits', false);
         payload['returnRateLimits'] = returnRateLimits;
         params = this.omit (params, 'test');
-        const message = {
+        const message: Dict = {
             'id': messageHash,
             'method': 'depth',
             'params': this.signParams (this.extend (payload, params)),
         };
-        const subscription = {
+        const subscription: Dict = {
             'method': this.handleFetchOrderBook,
         };
         const orderbook = await this.watch (url, messageHash, message, messageHash, subscription);
@@ -625,12 +625,12 @@ export default class binance extends binanceRest {
         const subParamsLength = subParams.length;
         const url = this.urls['api']['ws'][type] + '/' + this.stream (type, streamHash, subParamsLength);
         const requestId = this.requestId (url);
-        const request = {
+        const request: Dict = {
             'method': 'SUBSCRIBE',
             'params': subParams,
             'id': requestId,
         };
-        const subscribe = {
+        const subscribe: Dict = {
             'id': requestId,
         };
         const trades = await this.watchMultiple (url, subParams, this.extend (request, query), subParams, subscribe);
@@ -872,14 +872,14 @@ export default class binance extends binanceRest {
         }
         const url = this.urls['api']['ws'][type] + '/' + this.stream (type, messageHash);
         const requestId = this.requestId (url);
-        const request = {
+        const request: Dict = {
             'method': 'SUBSCRIBE',
             'params': [
                 messageHash,
             ],
             'id': requestId,
         };
-        const subscribe = {
+        const subscribe: Dict = {
             'id': requestId,
         };
         const ohlcv = await this.watch (url, messageHash, this.extend (request, params), messageHash, subscribe);
@@ -917,7 +917,7 @@ export default class binance extends binanceRest {
         //     }
         //
         let event = this.safeString (message, 'e');
-        const eventMap = {
+        const eventMap: Dict = {
             'indexPrice_kline': 'indexPriceKline',
             'markPrice_kline': 'markPriceKline',
         };
@@ -969,7 +969,7 @@ export default class binance extends binanceRest {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const payload = {
+        const payload: Dict = {
             'symbol': market['id'],
         };
         const type = this.getMarketType ('fetchTickerWs', market, params);
@@ -979,7 +979,7 @@ export default class binance extends binanceRest {
         const url = this.urls['api']['ws']['ws-api'][type];
         const requestId = this.requestId (url);
         const messageHash = requestId.toString ();
-        const subscription = {
+        const subscription: Dict = {
             'method': this.handleTickerWs,
         };
         let returnRateLimits = false;
@@ -988,7 +988,7 @@ export default class binance extends binanceRest {
         params = this.omit (params, 'test');
         let method = undefined;
         [ method, params ] = this.handleOptionAndParams (params, 'fetchTickerWs', 'method', 'ticker.book');
-        const message = {
+        const message: Dict = {
             'id': messageHash,
             'method': method,
             'params': this.signParams (this.extend (payload, params)),
@@ -1025,7 +1025,7 @@ export default class binance extends binanceRest {
         const messageHash = requestId.toString ();
         let returnRateLimits = false;
         [ returnRateLimits, params ] = this.handleOptionAndParams (params, 'fetchOHLCVWs', 'returnRateLimits', false);
-        const payload = {
+        const payload: Dict = {
             'symbol': this.marketId (symbol),
             'returnRateLimits': returnRateLimits,
             'interval': this.timeframes[timeframe],
@@ -1041,12 +1041,12 @@ export default class binance extends binanceRest {
         if (until !== undefined) {
             payload['endTime'] = until;
         }
-        const message = {
+        const message: Dict = {
             'id': messageHash,
             'method': 'klines',
             'params': this.extend (payload, params),
         };
-        const subscription = {
+        const subscription: Dict = {
             'method': this.handleFetchOHLCV,
         };
         return await this.watch (url, messageHash, message, messageHash, subscription);
@@ -1196,12 +1196,12 @@ export default class binance extends binanceRest {
         }
         const url = this.urls['api']['ws'][rawMarketType] + '/' + this.stream (rawMarketType, streamHash);
         const requestId = this.requestId (url);
-        const request = {
+        const request: Dict = {
             'method': 'SUBSCRIBE',
             'params': subscriptionArgs,
             'id': requestId,
         };
-        const subscribe = {
+        const subscribe: Dict = {
             'id': requestId,
         };
         const result = await this.watchMultiple (url, messageHashes, this.deepExtend (request, params), subscriptionArgs, subscribe);
@@ -1210,7 +1210,7 @@ export default class binance extends binanceRest {
         if (!symbolsDefined) {
             return result;
         } else {
-            const newDict = {};
+            const newDict: Dict = {};
             newDict[result['symbol']] = result;
             return newDict;
         }
@@ -1403,7 +1403,7 @@ export default class binance extends binanceRest {
         let channelName = undefined;
         const resolvedMessageHashes = [];
         let rawTickers = [];
-        const newTickers = {};
+        const newTickers: Dict = {};
         if (Array.isArray (message)) {
             rawTickers = message;
         } else {
@@ -1548,7 +1548,7 @@ export default class binance extends binanceRest {
             // A network error happened: we can't renew a listen key that does not exist.
             return;
         }
-        const request = {};
+        const request: Dict = {};
         const symbol = this.safeString (params, 'symbol');
         params = this.omit (params, [ 'type', 'symbol' ]);
         const time = this.milliseconds ();
@@ -1624,7 +1624,7 @@ export default class binance extends binanceRest {
     }
 
     async loadBalanceSnapshot (client, messageHash, type, isPortfolioMargin) {
-        const params = {
+        const params: Dict = {
             'type': type,
         };
         if (isPortfolioMargin) {
@@ -1663,17 +1663,17 @@ export default class binance extends binanceRest {
         const messageHash = requestId.toString ();
         let returnRateLimits = false;
         [ returnRateLimits, params ] = this.handleOptionAndParams (params, 'fetchBalanceWs', 'returnRateLimits', false);
-        const payload = {
+        const payload: Dict = {
             'returnRateLimits': returnRateLimits,
         };
         let method = undefined;
         [ method, params ] = this.handleOptionAndParams (params, 'fetchBalanceWs', 'method', 'account.status');
-        const message = {
+        const message: Dict = {
             'id': messageHash,
             'method': method,
             'params': this.signParams (this.extend (payload, params)),
         };
-        const subscription = {
+        const subscription: Dict = {
             'method': (method === 'account.status') ? this.handleAccountStatusWs : this.handleBalanceWs,
         };
         return await this.watch (url, messageHash, message, messageHash, subscription);
@@ -1771,7 +1771,7 @@ export default class binance extends binanceRest {
         const url = this.urls['api']['ws']['ws-api']['future'];
         const requestId = this.requestId (url);
         const messageHash = requestId.toString ();
-        const payload = {};
+        const payload: Dict = {};
         if (symbols !== undefined) {
             const symbolsLength = symbols.length;
             if (symbolsLength === 1) {
@@ -1781,12 +1781,12 @@ export default class binance extends binanceRest {
         let returnRateLimits = false;
         [ returnRateLimits, params ] = this.handleOptionAndParams (params, 'fetchPositionsWs', 'returnRateLimits', false);
         payload['returnRateLimits'] = returnRateLimits;
-        const message = {
+        const message: Dict = {
             'id': messageHash,
             'method': 'account.position',
             'params': this.signParams (this.extend (payload, params)),
         };
-        const subscription = {
+        const subscription: Dict = {
             'method': this.handlePositionsWs,
         };
         const result = await this.watch (url, messageHash, message, messageHash, subscription);
@@ -2030,7 +2030,7 @@ export default class binance extends binanceRest {
         payload['returnRateLimits'] = returnRateLimits;
         const test = this.safeBool (params, 'test', false);
         params = this.omit (params, 'test');
-        const message = {
+        const message: Dict = {
             'id': messageHash,
             'method': 'order.place',
             'params': this.signParams (this.extend (payload, params)),
@@ -2042,7 +2042,7 @@ export default class binance extends binanceRest {
                 message['method'] = 'order.test';
             }
         }
-        const subscription = {
+        const subscription: Dict = {
             'method': this.handleOrderWs,
         };
         return await this.watch (url, messageHash, message, messageHash, subscription);
@@ -2180,12 +2180,12 @@ export default class binance extends binanceRest {
         let returnRateLimits = false;
         [ returnRateLimits, params ] = this.handleOptionAndParams (params, 'editOrderWs', 'returnRateLimits', false);
         payload['returnRateLimits'] = returnRateLimits;
-        const message = {
+        const message: Dict = {
             'id': messageHash,
             'method': (marketType === 'future') ? 'order.modify' : 'order.cancelReplace',
             'params': this.signParams (this.extend (payload, params)),
         };
-        const subscription = {
+        const subscription: Dict = {
             'method': this.handleEditOrderWs,
         };
         return await this.watch (url, messageHash, message, messageHash, subscription);
@@ -2326,7 +2326,7 @@ export default class binance extends binanceRest {
         const messageHash = requestId.toString ();
         let returnRateLimits = false;
         [ returnRateLimits, params ] = this.handleOptionAndParams (params, 'cancelOrderWs', 'returnRateLimits', false);
-        const payload = {
+        const payload: Dict = {
             'symbol': this.marketId (symbol),
             'returnRateLimits': returnRateLimits,
         };
@@ -2337,12 +2337,12 @@ export default class binance extends binanceRest {
             payload['orderId'] = this.parseToInt (id);
         }
         params = this.omit (params, [ 'origClientOrderId', 'clientOrderId' ]);
-        const message = {
+        const message: Dict = {
             'id': messageHash,
             'method': 'order.cancel',
             'params': this.signParams (this.extend (payload, params)),
         };
-        const subscription = {
+        const subscription: Dict = {
             'method': this.handleOrderWs,
         };
         return await this.watch (url, messageHash, message, messageHash, subscription);
@@ -2369,16 +2369,16 @@ export default class binance extends binanceRest {
         const messageHash = requestId.toString ();
         let returnRateLimits = false;
         [ returnRateLimits, params ] = this.handleOptionAndParams (params, 'cancelAllOrdersWs', 'returnRateLimits', false);
-        const payload = {
+        const payload: Dict = {
             'symbol': this.marketId (symbol),
             'returnRateLimits': returnRateLimits,
         };
-        const message = {
+        const message: Dict = {
             'id': messageHash,
             'method': 'order.cancel',
             'params': this.signParams (this.extend (payload, params)),
         };
-        const subscription = {
+        const subscription: Dict = {
             'method': this.handleOrdersWs,
         };
         return await this.watch (url, messageHash, message, messageHash, subscription);
@@ -2409,7 +2409,7 @@ export default class binance extends binanceRest {
         const messageHash = requestId.toString ();
         let returnRateLimits = false;
         [ returnRateLimits, params ] = this.handleOptionAndParams (params, 'fetchOrderWs', 'returnRateLimits', false);
-        const payload = {
+        const payload: Dict = {
             'symbol': this.marketId (symbol),
             'returnRateLimits': returnRateLimits,
         };
@@ -2419,12 +2419,12 @@ export default class binance extends binanceRest {
         } else {
             payload['orderId'] = this.parseToInt (id);
         }
-        const message = {
+        const message: Dict = {
             'id': messageHash,
             'method': 'order.status',
             'params': this.signParams (this.extend (payload, params)),
         };
-        const subscription = {
+        const subscription: Dict = {
             'method': this.handleOrderWs,
         };
         return await this.watch (url, messageHash, message, messageHash, subscription);
@@ -2460,16 +2460,16 @@ export default class binance extends binanceRest {
         const messageHash = requestId.toString ();
         let returnRateLimits = false;
         [ returnRateLimits, params ] = this.handleOptionAndParams (params, 'fetchOrderWs', 'returnRateLimits', false);
-        const payload = {
+        const payload: Dict = {
             'symbol': this.marketId (symbol),
             'returnRateLimits': returnRateLimits,
         };
-        const message = {
+        const message: Dict = {
             'id': messageHash,
             'method': 'allOrders',
             'params': this.signParams (this.extend (payload, params)),
         };
-        const subscription = {
+        const subscription: Dict = {
             'method': this.handleOrdersWs,
         };
         const orders = await this.watch (url, messageHash, message, messageHash, subscription);
@@ -2522,18 +2522,18 @@ export default class binance extends binanceRest {
         const messageHash = requestId.toString ();
         let returnRateLimits = false;
         [ returnRateLimits, params ] = this.handleOptionAndParams (params, 'fetchOrderWs', 'returnRateLimits', false);
-        const payload = {
+        const payload: Dict = {
             'returnRateLimits': returnRateLimits,
         };
         if (symbol !== undefined) {
             payload['symbol'] = this.marketId (symbol);
         }
-        const message = {
+        const message: Dict = {
             'id': messageHash,
             'method': 'openOrders.status',
             'params': this.signParams (this.extend (payload, params)),
         };
-        const subscription = {
+        const subscription: Dict = {
             'method': this.handleOrdersWs,
         };
         const orders = await this.watch (url, messageHash, message, messageHash, subscription);
@@ -2857,7 +2857,7 @@ export default class binance extends binanceRest {
             market = this.getMarketFromSymbols (symbols);
             messageHash = '::' + symbols.join (',');
         }
-        const marketTypeObject = {};
+        const marketTypeObject: Dict = {};
         if (market !== undefined) {
             marketTypeObject['type'] = market['type'];
             marketTypeObject['subType'] = market['subType'];
@@ -2923,7 +2923,7 @@ export default class binance extends binanceRest {
     }
 
     async loadPositionsSnapshot (client, messageHash, type, isPortfolioMargin) {
-        const params = {
+        const params: Dict = {
             'type': type,
         };
         if (isPortfolioMargin) {
@@ -3093,7 +3093,7 @@ export default class binance extends binanceRest {
         const messageHash = requestId.toString ();
         let returnRateLimits = false;
         [ returnRateLimits, params ] = this.handleOptionAndParams (params, 'fetchMyTradesWs', 'returnRateLimits', false);
-        const payload = {
+        const payload: Dict = {
             'symbol': this.marketId (symbol),
             'returnRateLimits': returnRateLimits,
         };
@@ -3107,12 +3107,12 @@ export default class binance extends binanceRest {
         if (fromId !== undefined && since !== undefined) {
             throw new BadRequest (this.id + 'fetchMyTradesWs does not support fetching by both fromId and since parameters at the same time');
         }
-        const message = {
+        const message: Dict = {
             'id': messageHash,
             'method': 'myTrades',
             'params': this.signParams (this.extend (payload, params)),
         };
-        const subscription = {
+        const subscription: Dict = {
             'method': this.handleTradesWs,
         };
         const trades = await this.watch (url, messageHash, message, messageHash, subscription);
@@ -3148,19 +3148,19 @@ export default class binance extends binanceRest {
         const messageHash = requestId.toString ();
         let returnRateLimits = false;
         [ returnRateLimits, params ] = this.handleOptionAndParams (params, 'fetchTradesWs', 'returnRateLimits', false);
-        const payload = {
+        const payload: Dict = {
             'symbol': this.marketId (symbol),
             'returnRateLimits': returnRateLimits,
         };
         if (limit !== undefined) {
             payload['limit'] = limit;
         }
-        const message = {
+        const message: Dict = {
             'id': messageHash,
             'method': 'trades.historical',
             'params': this.extend (payload, params),
         };
-        const subscription = {
+        const subscription: Dict = {
             'method': this.handleTradesWs,
         };
         const trades = await this.watch (url, messageHash, message, messageHash, subscription);
@@ -3437,7 +3437,7 @@ export default class binance extends binanceRest {
             return;
         }
         // handle other APIs
-        const methods = {
+        const methods: Dict = {
             'depthUpdate': this.handleOrderBook,
             'trade': this.handleTrade,
             'aggTrade': this.handleTrade,

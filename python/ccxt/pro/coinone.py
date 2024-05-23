@@ -64,7 +64,7 @@ class coinone(ccxt.async_support.coinone):
         market = self.market(symbol)
         messageHash = 'orderbook:' + market['symbol']
         url = self.urls['api']['ws']
-        request = {
+        request: dict = {
             'request_type': 'SUBSCRIBE',
             'channel': 'ORDERBOOK',
             'topic': {
@@ -140,7 +140,7 @@ class coinone(ccxt.async_support.coinone):
         market = self.market(symbol)
         messageHash = 'ticker:' + market['symbol']
         url = self.urls['api']['ws']
-        request = {
+        request: dict = {
             'request_type': 'SUBSCRIBE',
             'channel': 'TICKER',
             'topic': {
@@ -258,7 +258,7 @@ class coinone(ccxt.async_support.coinone):
         market = self.market(symbol)
         messageHash = 'trade:' + market['symbol']
         url = self.urls['api']['ws']
-        request = {
+        request: dict = {
             'request_type': 'SUBSCRIBE',
             'channel': 'TRADE',
             'topic': {
@@ -363,7 +363,7 @@ class coinone(ccxt.async_support.coinone):
             return
         if type == 'DATA':
             topic = self.safe_string(message, 'channel', '')
-            methods = {
+            methods: dict = {
                 'ORDERBOOK': self.handle_order_book,
                 'TICKER': self.handle_ticker,
                 'TRADE': self.handle_trades,

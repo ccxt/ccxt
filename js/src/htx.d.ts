@@ -16,7 +16,7 @@ export default class htx extends Exchange {
     fetchTime(params?: {}): Promise<number>;
     parseTradingFee(fee: any, market?: Market): TradingFeeInterface;
     fetchTradingFee(symbol: string, params?: {}): Promise<TradingFeeInterface>;
-    fetchTradingLimits(symbols?: Strings, params?: {}): Promise<{}>;
+    fetchTradingLimits(symbols?: Strings, params?: {}): Promise<Dict>;
     fetchTradingLimitsById(id: string, params?: {}): Promise<{
         info: any;
         limits: {
@@ -81,7 +81,7 @@ export default class htx extends Exchange {
     fetchOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     fetchClosedOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     fetchOpenOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
-    parseOrderStatus(status: any): string;
+    parseOrderStatus(status: Str): string;
     parseOrder(order: any, market?: Market): Order;
     createMarketBuyOrderWithCost(symbol: string, cost: number, params?: {}): Promise<Order>;
     createTrailingPercentOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, trailingPercent?: any, trailingTriggerPrice?: any, params?: {}): Promise<Order>;
@@ -206,9 +206,9 @@ export default class htx extends Exchange {
         info: any;
     };
     fetchLedger(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<any>;
-    fetchLeverageTiers(symbols?: Strings, params?: {}): Promise<{}>;
+    fetchLeverageTiers(symbols?: Strings, params?: {}): Promise<Dict>;
     fetchMarketLeverageTiers(symbol: string, params?: {}): Promise<any>;
-    parseLeverageTiers(response: any, symbols?: Strings, marketIdKey?: any): {};
+    parseLeverageTiers(response: any, symbols?: Strings, marketIdKey?: any): Dict;
     fetchOpenInterestHistory(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").OpenInterest[]>;
     fetchOpenInterest(symbol: string, params?: {}): Promise<import("./base/types.js").OpenInterest>;
     parseOpenInterest(interest: any, market?: Market): import("./base/types.js").OpenInterest;

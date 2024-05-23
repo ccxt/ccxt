@@ -6128,6 +6128,19 @@ public partial class binance : Exchange
                     ((IDictionary<string,object>)request)["isIsolated"] = true;
                 }
             }
+        } else
+        {
+            postOnly = this.isPostOnly(isMarketOrder, isEqual(initialUppercaseType, "LIMIT_MAKER"), parameters);
+            if (isTrue(postOnly))
+            {
+                if (!isTrue(getValue(market, "contract")))
+                {
+                    uppercaseType = "LIMIT_MAKER"; // only this endpoint accepts GTXhttps://binance-docs.github.io/apidocs/pm/en/#new-margin-order-trade
+                } else
+                {
+                    ((IDictionary<string,object>)request)["timeInForce"] = "GTX";
+                }
+            }
         }
         // handle newOrderRespType response type
         if (isTrue(isTrue((isTrue((isEqual(marketType, "spot"))) || isTrue((isEqual(marketType, "margin"))))) && !isTrue(isPortfolioMargin)))
@@ -6279,7 +6292,7 @@ public partial class binance : Exchange
                 ((IDictionary<string,object>)request)["stopPrice"] = this.priceToPrecision(symbol, stopPrice);
             }
         }
-        if (isTrue(isTrue(timeInForceIsRequired) && isTrue((isEqual(this.safeString(parameters, "timeInForce"), null)))))
+        if (isTrue(isTrue(isTrue(timeInForceIsRequired) && isTrue((isEqual(this.safeString(parameters, "timeInForce"), null)))) && isTrue((isEqual(this.safeString(request, "timeInForce"), null)))))
         {
             ((IDictionary<string,object>)request)["timeInForce"] = getValue(this.options, "defaultTimeInForce"); // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
         }

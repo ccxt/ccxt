@@ -2233,7 +2233,7 @@ class bingx extends Exchange {
         return $this->safe_string($sides, $side, $side);
     }
 
-    public function parse_order_type($type) {
+    public function parse_order_type(?string $type) {
         $types = array(
             'trigger_market' => 'market',
             'trigger_limit' => 'limit',
@@ -2549,7 +2549,7 @@ class bingx extends Exchange {
             'stopLossPrice' => $stopLossPrice,
             'takeProfitPrice' => $takeProfitPrice,
             'average' => $this->safe_string_2($order, 'avgPrice', 'ap'),
-            'cost' => null,
+            'cost' => $this->safe_string($order, 'cummulativeQuoteQty'),
             'amount' => $this->safe_string_n($order, array( 'origQty', 'q', 'quantity' )),
             'filled' => $this->safe_string_2($order, 'executedQty', 'z'),
             'remaining' => null,
@@ -2563,7 +2563,7 @@ class bingx extends Exchange {
         ), $market);
     }
 
-    public function parse_order_status($status) {
+    public function parse_order_status(?string $status) {
         $statuses = array(
             'NEW' => 'open',
             'PENDING' => 'open',

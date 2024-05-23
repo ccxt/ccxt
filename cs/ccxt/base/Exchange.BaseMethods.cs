@@ -6167,6 +6167,10 @@ public partial class Exchange
     public virtual object parseMarginModes(object response, object symbols = null, object symbolKey = null, object marketType = null)
     {
         object marginModeStructures = new Dictionary<string, object>() {};
+        if (isTrue(isEqual(marketType, null)))
+        {
+            marketType = "swap"; // default to swap
+        }
         for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
         {
             object info = getValue(response, i);
@@ -6188,6 +6192,10 @@ public partial class Exchange
     public virtual object parseLeverages(object response, object symbols = null, object symbolKey = null, object marketType = null)
     {
         object leverageStructures = new Dictionary<string, object>() {};
+        if (isTrue(isEqual(marketType, null)))
+        {
+            marketType = "swap"; // default to swap
+        }
         for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
         {
             object info = getValue(response, i);

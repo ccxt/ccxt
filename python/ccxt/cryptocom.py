@@ -593,7 +593,7 @@ class cryptocom(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = None
-        request = {}
+        request: dict = {}
         if symbols is not None:
             symbol = None
             if isinstance(symbols, list):
@@ -665,7 +665,7 @@ class cryptocom(Exchange, ImplicitAPI):
         if paginate:
             return self.fetch_paginated_call_dynamic('fetchOrders', symbol, since, limit, params)
         market = None
-        request = {}
+        request: dict = {}
         if symbol is not None:
             market = self.market(symbol)
             request['instrument_name'] = market['id']
@@ -739,7 +739,7 @@ class cryptocom(Exchange, ImplicitAPI):
         if paginate:
             return self.fetch_paginated_call_dynamic('fetchTrades', symbol, since, limit, params)
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'instrument_name': market['id'],
         }
         if since is not None:
@@ -794,7 +794,7 @@ class cryptocom(Exchange, ImplicitAPI):
         if paginate:
             return self.fetch_paginated_call_deterministic('fetchOHLCV', symbol, since, limit, timeframe, params, 300)
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'instrument_name': market['id'],
             'timeframe': self.safe_string(self.timeframes, timeframe, timeframe),
         }
@@ -843,7 +843,7 @@ class cryptocom(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'instrument_name': market['id'],
         }
         if limit:
@@ -877,7 +877,7 @@ class cryptocom(Exchange, ImplicitAPI):
         responseResult = self.safe_value(response, 'result', {})
         data = self.safe_value(responseResult, 'data', [])
         positionBalances = self.safe_value(data[0], 'position_balances', [])
-        result = {'info': response}
+        result: dict = {'info': response}
         for i in range(0, len(positionBalances)):
             balance = positionBalances[i]
             currencyId = self.safe_string(balance, 'instrument_name')
@@ -954,7 +954,7 @@ class cryptocom(Exchange, ImplicitAPI):
         market = None
         if symbol is not None:
             market = self.market(symbol)
-        request = {
+        request: dict = {
             'order_id': id,
         }
         response = self.v1PrivatePostPrivateGetOrderDetail(self.extend(request, params))
@@ -997,7 +997,7 @@ class cryptocom(Exchange, ImplicitAPI):
     def create_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         market = self.market(symbol)
         uppercaseType = type.upper()
-        request = {
+        request: dict = {
             'instrument_name': market['id'],
             'side': side.upper(),
             'quantity': self.amount_to_precision(symbol, amount),
@@ -1132,7 +1132,7 @@ class cryptocom(Exchange, ImplicitAPI):
             orderRequest = self.create_advanced_order_request(marketId, type, side, amount, price, orderParams)
             ordersRequests.append(orderRequest)
         contigency = self.safe_string(params, 'contingency_type', 'LIST')
-        request = {
+        request: dict = {
             'contingency_type': contigency,  # or OCO
             'order_list': ordersRequests,
         }
@@ -1192,7 +1192,7 @@ class cryptocom(Exchange, ImplicitAPI):
         # and market-buy orders need to send notional instead of quantity
         market = self.market(symbol)
         uppercaseType = type.upper()
-        request = {
+        request: dict = {
             'instrument_name': market['id'],
             'side': side.upper(),
         }
@@ -1291,7 +1291,7 @@ class cryptocom(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = None
-        request = {}
+        request: dict = {}
         if symbol is not None:
             market = self.market(symbol)
             request['instrument_name'] = market['id']
@@ -1310,7 +1310,7 @@ class cryptocom(Exchange, ImplicitAPI):
         market = None
         if symbol is not None:
             market = self.market(symbol)
-        request = {
+        request: dict = {
             'order_id': id,
         }
         response = self.v1PrivatePostPrivateCancelOrder(self.extend(request, params))
@@ -1345,12 +1345,12 @@ class cryptocom(Exchange, ImplicitAPI):
         orderRequests = []
         for i in range(0, len(ids)):
             id = ids[i]
-            order = {
+            order: dict = {
                 'instrument_name': market['id'],
                 'order_id': str(id),
             }
             orderRequests.append(order)
-        request = {
+        request: dict = {
             'contingency_type': 'LIST',
             'order_list': orderRequests,
         }
@@ -1373,12 +1373,12 @@ class cryptocom(Exchange, ImplicitAPI):
             id = self.safe_string(order, 'id')
             symbol = self.safe_string(order, 'symbol')
             market = self.market(symbol)
-            orderItem = {
+            orderItem: dict = {
                 'instrument_name': market['id'],
                 'order_id': str(id),
             }
             orderRequests.append(orderItem)
-        request = {
+        request: dict = {
             'contingency_type': 'LIST',
             'order_list': orderRequests,
         }
@@ -1398,7 +1398,7 @@ class cryptocom(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = None
-        request = {}
+        request: dict = {}
         if symbol is not None:
             market = self.market(symbol)
             request['instrument_name'] = market['id']
@@ -1461,7 +1461,7 @@ class cryptocom(Exchange, ImplicitAPI):
         paginate, params = self.handle_option_and_params(params, 'fetchMyTrades', 'paginate')
         if paginate:
             return self.fetch_paginated_call_dynamic('fetchMyTrades', symbol, since, limit, params)
-        request = {}
+        request: dict = {}
         market = None
         if symbol is not None:
             market = self.market(symbol)
@@ -1534,7 +1534,7 @@ class cryptocom(Exchange, ImplicitAPI):
         tag, params = self.handle_withdraw_tag_and_params(tag, params)
         self.load_markets()
         currency = self.safe_currency(code)  # for instance, USDC is not inferred from markets but it's still available
-        request = {
+        request: dict = {
             'currency': currency['id'],
             'amount': amount,
             'address': address,
@@ -1576,7 +1576,7 @@ class cryptocom(Exchange, ImplicitAPI):
         """
         self.load_markets()
         currency = self.safe_currency(code)
-        request = {
+        request: dict = {
             'currency': currency['id'],
         }
         response = self.v1PrivatePostPrivateGetDepositAddress(self.extend(request, params))
@@ -1604,7 +1604,7 @@ class cryptocom(Exchange, ImplicitAPI):
         addressesLength = len(addresses)
         if addressesLength == 0:
             raise ExchangeError(self.id + ' fetchDepositAddressesByNetwork() generating address...')
-        result = {}
+        result: dict = {}
         for i in range(0, addressesLength):
             value = self.safe_value(addresses, i)
             addressString = self.safe_string(value, 'address')
@@ -1640,7 +1640,7 @@ class cryptocom(Exchange, ImplicitAPI):
             return depositAddresses[keys[0]]
 
     def safe_network(self, networkId):
-        networksById = {
+        networksById: dict = {
             'BTC': 'BTC',
             'ETH': 'ETH',
             'SOL': 'SOL',
@@ -1664,7 +1664,7 @@ class cryptocom(Exchange, ImplicitAPI):
         """
         self.load_markets()
         currency = None
-        request = {}
+        request: dict = {}
         if code is not None:
             currency = self.safe_currency(code)
             request['currency'] = currency['id']
@@ -1717,7 +1717,7 @@ class cryptocom(Exchange, ImplicitAPI):
         """
         self.load_markets()
         currency = None
-        request = {}
+        request: dict = {}
         if code is not None:
             currency = self.safe_currency(code)
             request['currency'] = currency['id']
@@ -1899,8 +1899,8 @@ class cryptocom(Exchange, ImplicitAPI):
             self.safe_number(ohlcv, 'v'),
         ]
 
-    def parse_order_status(self, status):
-        statuses = {
+    def parse_order_status(self, status: Str):
+        statuses: dict = {
             'ACTIVE': 'open',
             'CANCELED': 'canceled',
             'FILLED': 'closed',
@@ -1910,7 +1910,7 @@ class cryptocom(Exchange, ImplicitAPI):
         return self.safe_string(statuses, status, status)
 
     def parse_time_in_force(self, timeInForce):
-        timeInForces = {
+        timeInForces: dict = {
             'GOOD_TILL_CANCEL': 'GTC',
             'IMMEDIATE_OR_CANCEL': 'IOC',
             'FILL_OR_KILL': 'FOK',
@@ -2012,7 +2012,7 @@ class cryptocom(Exchange, ImplicitAPI):
         }, market)
 
     def parse_deposit_status(self, status):
-        statuses = {
+        statuses: dict = {
             '0': 'pending',
             '1': 'ok',
             '2': 'failed',
@@ -2021,7 +2021,7 @@ class cryptocom(Exchange, ImplicitAPI):
         return self.safe_string(statuses, status, status)
 
     def parse_withdrawal_status(self, status):
-        statuses = {
+        statuses: dict = {
             '0': 'pending',
             '1': 'pending',
             '2': 'failed',
@@ -2156,7 +2156,7 @@ class cryptocom(Exchange, ImplicitAPI):
         #
         networkList = self.safe_value(fee, 'network_list')
         networkListLength = len(networkList)
-        result = {
+        result: dict = {
             'info': fee,
             'withdraw': {
                 'fee': None,
@@ -2209,7 +2209,7 @@ class cryptocom(Exchange, ImplicitAPI):
         :returns dict: a `ledger structure <https://docs.ccxt.com/#/?id=ledger-structure>`
         """
         self.load_markets()
-        request = {}
+        request: dict = {}
         currency = None
         if code is not None:
             currency = self.safe_currency(code)
@@ -2307,7 +2307,7 @@ class cryptocom(Exchange, ImplicitAPI):
         }
 
     def parse_ledger_entry_type(self, type):
-        ledgerType = {
+        ledgerType: dict = {
             'TRADING': 'trade',
             'TRADE_FEE': 'fee',
             'WITHDRAW_FEE': 'fee',
@@ -2431,7 +2431,7 @@ class cryptocom(Exchange, ImplicitAPI):
         self.check_required_argument('fetchSettlementHistory', type, 'type', ['future', 'option', 'WARRANT', 'FUTURE'])
         if type == 'option':
             type = 'WARRANT'
-        request = {
+        request: dict = {
             'instrument_type': type.upper(),
         }
         response = self.v1PublicGetPublicGetExpiredSettlementPrice(self.extend(request, params))
@@ -2515,7 +2515,7 @@ class cryptocom(Exchange, ImplicitAPI):
         market = self.market(symbol)
         if not market['swap']:
             raise BadSymbol(self.id + ' fetchFundingRateHistory() supports swap contracts only')
-        request = {
+        request: dict = {
             'instrument_name': market['id'],
             'valuation_type': 'funding_hist',
         }
@@ -2571,7 +2571,7 @@ class cryptocom(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'instrument_name': market['id'],
         }
         response = self.v1PrivatePostPrivateGetPositions(self.extend(request, params))
@@ -2611,7 +2611,7 @@ class cryptocom(Exchange, ImplicitAPI):
         """
         self.load_markets()
         symbols = self.market_symbols(symbols)
-        request = {}
+        request: dict = {}
         market = None
         if symbols is not None:
             symbol = None
@@ -2749,7 +2749,7 @@ class cryptocom(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'instrument_name': market['id'],
             'type': 'MARKET',
         }

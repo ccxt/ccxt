@@ -53,7 +53,7 @@ export default class bitmex extends Exchange {
     parseOHLCV(ohlcv: any, market?: Market): OHLCV;
     fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
     parseTrade(trade: any, market?: Market): Trade;
-    parseOrderStatus(status: any): string;
+    parseOrderStatus(status: Str): string;
     parseTimeInForce(timeInForce: any): string;
     parseOrder(order: any, market?: Market): Order;
     fetchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
@@ -105,18 +105,7 @@ export default class bitmex extends Exchange {
         network: any;
         info: any;
     }>;
-    parseDepositWithdrawFee(fee: any, currency?: Currency): {
-        info: any;
-        withdraw: {
-            fee: any;
-            percentage: any;
-        };
-        deposit: {
-            fee: any;
-            percentage: any;
-        };
-        networks: {};
-    };
+    parseDepositWithdrawFee(fee: any, currency?: Currency): Dict;
     fetchDepositWithdrawFees(codes?: Strings, params?: {}): Promise<any>;
     calculateRateLimiterCost(api: any, method: any, path: any, params: any, config?: {}): any;
     fetchLiquidations(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Liquidation[]>;

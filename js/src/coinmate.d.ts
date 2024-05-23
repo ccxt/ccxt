@@ -23,8 +23,8 @@ export default class coinmate extends Exchange {
     fetchTradingFee(symbol: string, params?: {}): Promise<TradingFeeInterface>;
     fetchOpenOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     fetchOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
-    parseOrderStatus(status: any): string;
-    parseOrderType(type: any): string;
+    parseOrderStatus(status: Str): string;
+    parseOrderType(type: Str): string;
     parseOrder(order: any, market?: Market): Order;
     createOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): Promise<Order>;
     fetchOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;

@@ -1215,7 +1215,7 @@ class ndax extends Exchange {
         return $this->parse_ledger($response, $currency, $since, $limit);
     }
 
-    public function parse_order_status($status) {
+    public function parse_order_status(?string $status) {
         $statuses = array(
             'Accepted' => 'open',
             'Rejected' => 'rejected',

@@ -2383,7 +2383,7 @@ public partial class gate : Exchange
         await this.loadMarkets();
         object market = this.market(symbol);
         //
-        //     const request = {
+        //     const request: Dict = {
         //         'currency_pair': market['id'],
         //         'interval': '0', // depth, 0 means no aggregation is applied, default to 0
         //         'limit': limit, // maximum number of order depth data in asks or bids
@@ -3222,7 +3222,7 @@ public partial class gate : Exchange
         //
         // spot
         //
-        //     const request = {
+        //     const request: Dict = {
         //         'currency_pair': market['id'],
         //         'limit': limit, // maximum number of records to be returned in a single list
         //         'last_id': 'id', // specify list staring point using the id of last record in previous list-query results
@@ -3231,7 +3231,7 @@ public partial class gate : Exchange
         //
         // swap, future
         //
-        //     const request = {
+        //     const request: Dict = {
         //         'settle': market['settleId'],
         //         'contract': market['id'],
         //         'limit': limit, // maximum number of records to be returned in a single list

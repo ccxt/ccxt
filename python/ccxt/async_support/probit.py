@@ -405,7 +405,7 @@ class probit(Exchange, ImplicitAPI):
         #     }
         #
         currencies = self.safe_value(response, 'data', [])
-        result = {}
+        result: dict = {}
         for i in range(0, len(currencies)):
             currency = currencies[i]
             id = self.safe_string(currency, 'id')
@@ -415,7 +415,7 @@ class probit(Exchange, ImplicitAPI):
             platforms = self.safe_value(currency, 'platform', [])
             platformsByPriority = self.sort_by(platforms, 'priority')
             platform = None
-            networkList = {}
+            networkList: dict = {}
             for j in range(0, len(platformsByPriority)):
                 network = platformsByPriority[j]
                 idInner = self.safe_string(network, 'id')
@@ -505,7 +505,7 @@ class probit(Exchange, ImplicitAPI):
         return result
 
     def parse_balance(self, response) -> Balances:
-        result = {
+        result: dict = {
             'info': response,
             'timestamp': None,
             'datetime': None,
@@ -554,7 +554,7 @@ class probit(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'market_id': market['id'],
         }
         response = await self.publicGetOrderBook(self.extend(request, params))
@@ -580,7 +580,7 @@ class probit(Exchange, ImplicitAPI):
         :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
         await self.load_markets()
-        request = {}
+        request: dict = {}
         if symbols is not None:
             marketIds = self.market_ids(symbols)
             request['market_ids'] = ','.join(marketIds)
@@ -614,7 +614,7 @@ class probit(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'market_ids': market['id'],
         }
         response = await self.publicGetTicker(self.extend(request, params))
@@ -696,7 +696,7 @@ class probit(Exchange, ImplicitAPI):
         await self.load_markets()
         market: Market = None
         now = self.milliseconds()
-        request = {
+        request: dict = {
             'limit': 100,
             'start_time': self.iso8601(now - 31536000000),  # -365 days
             'end_time': self.iso8601(now),
@@ -744,7 +744,7 @@ class probit(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'market_id': market['id'],
             'start_time': '1970-01-01T00:00:00.000Z',
             'end_time': self.iso8601(self.milliseconds()),
@@ -907,7 +907,7 @@ class probit(Exchange, ImplicitAPI):
         limit = 100 if (limit is None) else limit
         requestLimit = self.sum(limit, 1)
         requestLimit = min(1000, requestLimit)  # max 1000
-        request = {
+        request: dict = {
             'market_ids': market['id'],
             'interval': interval,
             'sort': 'asc',  # 'asc' will always include the start_time, 'desc' will always include end_time
@@ -986,7 +986,7 @@ class probit(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         since = self.parse8601(since)
-        request = {}
+        request: dict = {}
         market: Market = None
         if symbol is not None:
             market = self.market(symbol)
@@ -1006,7 +1006,7 @@ class probit(Exchange, ImplicitAPI):
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
-        request = {
+        request: dict = {
             'start_time': self.iso8601(0),
             'end_time': self.iso8601(self.milliseconds()),
             'limit': 100,
@@ -1035,7 +1035,7 @@ class probit(Exchange, ImplicitAPI):
             raise ArgumentsRequired(self.id + ' fetchOrder() requires a symbol argument')
         await self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'market_id': market['id'],
         }
         clientOrderId = self.safe_string_2(params, 'clientOrderId', 'client_order_id')
@@ -1049,8 +1049,8 @@ class probit(Exchange, ImplicitAPI):
         order = self.safe_dict(data, 0)
         return self.parse_order(order, market)
 
-    def parse_order_status(self, status):
-        statuses = {
+    def parse_order_status(self, status: Str):
+        statuses: dict = {
             'open': 'open',
             'cancelled': 'canceled',
             'filled': 'closed',
@@ -1141,7 +1141,7 @@ class probit(Exchange, ImplicitAPI):
         options = self.safe_value(self.options, 'timeInForce')
         defaultTimeInForce = self.safe_value(options, type)
         timeInForce = self.safe_string_2(params, 'timeInForce', 'time_in_force', defaultTimeInForce)
-        request = {
+        request: dict = {
             'market_id': market['id'],
             'type': type,
             'side': side,
@@ -1222,7 +1222,7 @@ class probit(Exchange, ImplicitAPI):
             raise ArgumentsRequired(self.id + ' cancelOrder() requires a symbol argument')
         await self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'market_id': market['id'],
             'order_id': id,
         }
@@ -1256,7 +1256,7 @@ class probit(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         currency = self.currency(code)
-        request = {
+        request: dict = {
             'currency_id': currency['id'],
             # 'platform_id': 'TRON',(undocumented)
         }
@@ -1305,7 +1305,7 @@ class probit(Exchange, ImplicitAPI):
         :returns dict: a list of `address structures <https://docs.ccxt.com/#/?id=address-structure>`
         """
         await self.load_markets()
-        request = {}
+        request: dict = {}
         if codes:
             currencyIds = []
             for i in range(0, len(codes)):
@@ -1337,7 +1337,7 @@ class probit(Exchange, ImplicitAPI):
         currency = self.currency(code)
         if tag is None:
             tag = ''
-        request = {
+        request: dict = {
             'currency_id': currency['id'],
             # 'platform_id': 'ETH',  # if omitted it will use the default platform for the currency
             'address': address,
@@ -1368,7 +1368,7 @@ class probit(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/#/?id=transaction-structure>`
         """
-        request = {
+        request: dict = {
             'type': 'deposit',
         }
         result = await self.fetch_transactions(code, since, limit, self.extend(request, params))
@@ -1383,7 +1383,7 @@ class probit(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/#/?id=transaction-structure>`
         """
-        request = {
+        request: dict = {
             'type': 'withdrawal',
         }
         result = await self.fetch_transactions(code, since, limit, self.extend(request, params))
@@ -1402,7 +1402,7 @@ class probit(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         currency: Currency = None
-        request = {}
+        request: dict = {}
         if code is not None:
             currency = self.currency(code)
             request['currency_id'] = currency['id']
@@ -1512,7 +1512,7 @@ class probit(Exchange, ImplicitAPI):
         }
 
     def parse_transaction_status(self, status):
-        statuses = {
+        statuses: dict = {
             'requested': 'pending',
             'pending': 'pending',
             'confirming': 'pending',
@@ -1629,7 +1629,7 @@ class probit(Exchange, ImplicitAPI):
         #
         depositWithdrawFee = self.deposit_withdraw_fee({})
         platforms = self.safe_value(fee, 'platform', [])
-        depositResult = {
+        depositResult: dict = {
             'fee': None,
             'percentage': None,
         }
@@ -1640,7 +1640,7 @@ class probit(Exchange, ImplicitAPI):
             withdrawalFees = self.safe_value(network, 'withdrawal_fee', {})
             withdrawFee = self.safe_number(withdrawalFees[0], 'amount')
             if len(withdrawalFees):
-                withdrawResult = {
+                withdrawResult: dict = {
                     'fee': withdrawFee,
                     'percentage': False if (withdrawFee is not None) else None,
                 }
@@ -1703,7 +1703,7 @@ class probit(Exchange, ImplicitAPI):
         :returns: response from exchange
         """
         self.check_required_credentials()
-        request = {
+        request: dict = {
             'grant_type': 'client_credentials',  # the only supported value
         }
         response = await self.accountsPostToken(self.extend(request, params))

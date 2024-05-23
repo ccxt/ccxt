@@ -122,7 +122,7 @@ class kucoin(ccxt.async_support.kucoin):
 
     async def subscribe(self, url, messageHash, subscriptionHash, params={}, subscription=None):
         requestId = str(self.request_id())
-        request = {
+        request: dict = {
             'id': requestId,
             'type': 'subscribe',
             'topic': subscriptionHash,
@@ -136,7 +136,7 @@ class kucoin(ccxt.async_support.kucoin):
 
     async def subscribe_multiple(self, url, messageHashes, topic, subscriptionHashes, params={}, subscription=None):
         requestId = str(self.request_id())
-        request = {
+        request: dict = {
             'id': requestId,
             'type': 'subscribe',
             'topic': topic,
@@ -200,7 +200,7 @@ class kucoin(ccxt.async_support.kucoin):
             symbolsTopic = method + ':' + ','.join(marketIds)
             tickers = await self.subscribe_multiple(url, messageHashes, symbolsTopic, topics, params)
             if self.newUpdates:
-                newDict = {}
+                newDict: dict = {}
                 newDict[tickers['symbol']] = tickers
                 return newDict
         return self.filter_by_array(self.tickers, 'symbol', symbols)
@@ -279,7 +279,7 @@ class kucoin(ccxt.async_support.kucoin):
         messageHash = 'ticker:' + symbol
         client.resolve(ticker, messageHash)
         # watchTickers
-        allTickers = {}
+        allTickers: dict = {}
         allTickers[symbol] = ticker
         client.resolve(allTickers, 'tickers')
 
@@ -293,7 +293,7 @@ class kucoin(ccxt.async_support.kucoin):
         """
         ticker = await self.watch_multi_helper('watchBidsAsks', '/spotMarket/level1:', symbols, params)
         if self.newUpdates:
-            tickers = {}
+            tickers: dict = {}
             tickers[ticker['symbol']] = ticker
             return tickers
         return self.filter_by_array(self.bidsasks, 'symbol', symbols)
@@ -313,7 +313,7 @@ class kucoin(ccxt.async_support.kucoin):
         marketIds = self.market_ids(symbols)
         joined = ','.join(marketIds)
         requestId = str(self.request_id())
-        request = {
+        request: dict = {
             'id': requestId,
             'type': 'subscribe',
             'topic': channelName + joined,
@@ -753,7 +753,7 @@ class kucoin(ccxt.async_support.kucoin):
         params = self.omit(params, ['stop', 'trigger'])
         url = await self.negotiate(True)
         topic = '/spotMarket/advancedOrders' if stop else '/spotMarket/tradeOrders'
-        request = {
+        request: dict = {
             'privateChannel': True,
         }
         messageHash = 'orders'
@@ -767,7 +767,7 @@ class kucoin(ccxt.async_support.kucoin):
         return self.filter_by_symbol_since_limit(orders, symbol, since, limit, True)
 
     def parse_ws_order_status(self, status):
-        statuses = {
+        statuses: dict = {
             'open': 'open',
             'filled': 'closed',
             'match': 'open',
@@ -907,7 +907,7 @@ class kucoin(ccxt.async_support.kucoin):
         await self.load_markets()
         url = await self.negotiate(True)
         topic = '/spot/tradeFills'
-        request = {
+        request: dict = {
             'privateChannel': True,
         }
         messageHash = 'myTrades'
@@ -991,7 +991,7 @@ class kucoin(ccxt.async_support.kucoin):
         await self.load_markets()
         url = await self.negotiate(True)
         topic = '/account/balance'
-        request = {
+        request: dict = {
             'privateChannel': True,
         }
         messageHash = 'balance'
@@ -1070,7 +1070,7 @@ class kucoin(ccxt.async_support.kucoin):
             self.handle_ticker(client, message)
             return
         subject = self.safe_string(message, 'subject')
-        methods = {
+        methods: dict = {
             'level1': self.handle_bid_ask,
             'level2': self.handle_order_book,
             'trade.l2update': self.handle_order_book,
@@ -1120,7 +1120,7 @@ class kucoin(ccxt.async_support.kucoin):
 
     def handle_message(self, client: Client, message):
         type = self.safe_string(message, 'type')
-        methods = {
+        methods: dict = {
             # 'heartbeat': self.handleHeartbeat,
             'welcome': self.handle_system_status,
             'ack': self.handle_subscription_status,

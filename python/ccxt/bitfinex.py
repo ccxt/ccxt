@@ -419,7 +419,7 @@ class bitfinex(Exchange, ImplicitAPI):
         :returns dict[]: a list of `fees structures <https://docs.ccxt.com/#/?id=fee-structure>`
         """
         self.load_markets()
-        result = {}
+        result: dict = {}
         response = self.privatePostAccountFees(params)
         #
         # {
@@ -528,7 +528,7 @@ class bitfinex(Exchange, ImplicitAPI):
         #          "trade_last": null
         #     }
         #
-        result = {}
+        result: dict = {}
         fiat = self.safe_value(self.options, 'fiat', {})
         makerFee = self.safe_number(response, 'maker_fee')
         takerFee = self.safe_number(response, 'taker_fee')
@@ -704,7 +704,7 @@ class bitfinex(Exchange, ImplicitAPI):
         #        "currency": "btc",
         #        "amount": "0.0005",
         #        "available": "0.0005"}],
-        result = {'info': response}
+        result: dict = {'info': response}
         isDerivative = requestedType == 'derivatives'
         for i in range(0, len(response)):
             balance = response[i]
@@ -749,7 +749,7 @@ class bitfinex(Exchange, ImplicitAPI):
         fromCurrencyId = self.convert_derivatives_id(currency['id'], fromAccount)
         toCurrencyId = self.convert_derivatives_id(currency['id'], toAccount)
         requestedAmount = self.currency_to_precision(code, amount)
-        request = {
+        request: dict = {
             'amount': requestedAmount,
             'currency': fromCurrencyId,
             'currency_to': toCurrencyId,
@@ -795,7 +795,7 @@ class bitfinex(Exchange, ImplicitAPI):
         }
 
     def parse_transfer_status(self, status: Str) -> Str:
-        statuses = {
+        statuses: dict = {
             'SUCCESS': 'ok',
         }
         return self.safe_string(statuses, status, status)
@@ -820,7 +820,7 @@ class bitfinex(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'symbol': market['id'],
         }
         if limit is not None:
@@ -839,7 +839,7 @@ class bitfinex(Exchange, ImplicitAPI):
         self.load_markets()
         symbols = self.market_symbols(symbols)
         response = self.publicGetTickers(params)
-        result = {}
+        result: dict = {}
         for i in range(0, len(response)):
             ticker = self.parse_ticker({'result': response[i]})
             symbol = ticker['symbol']
@@ -856,7 +856,7 @@ class bitfinex(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'symbol': market['id'],
         }
         ticker = self.publicGetPubtickerSymbol(self.extend(request, params))
@@ -996,7 +996,7 @@ class bitfinex(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'symbol': market['id'],
             'limit_trades': limit,
         }
@@ -1031,7 +1031,7 @@ class bitfinex(Exchange, ImplicitAPI):
             raise ArgumentsRequired(self.id + ' fetchMyTrades() requires a symbol argument')
         self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'symbol': market['id'],
         }
         if limit is not None:
@@ -1062,7 +1062,7 @@ class bitfinex(Exchange, ImplicitAPI):
             # although they claim that type needs to be 'exchange limit' or 'exchange market'
             # in fact that's not the case for swap markets
             type = self.safe_string_lower(self.options['orderTypes'], type, type)
-        request = {
+        request: dict = {
             'symbol': market['id'],
             'side': side,
             'amount': self.amount_to_precision(symbol, amount),
@@ -1082,7 +1082,7 @@ class bitfinex(Exchange, ImplicitAPI):
 
     def edit_order(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: Num = None, price: Num = None, params={}):
         self.load_markets()
-        order = {
+        order: dict = {
             'order_id': int(id),
         }
         if price is not None:
@@ -1108,7 +1108,7 @@ class bitfinex(Exchange, ImplicitAPI):
         :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
-        request = {
+        request: dict = {
             'order_id': int(id),
         }
         return self.privatePostOrderCancel(self.extend(request, params))
@@ -1224,7 +1224,7 @@ class bitfinex(Exchange, ImplicitAPI):
         """
         self.load_markets()
         symbol = self.symbol(symbol)
-        request = {}
+        request: dict = {}
         if limit is not None:
             request['limit'] = limit
         response = self.privatePostOrdersHist(self.extend(request, params))
@@ -1243,7 +1243,7 @@ class bitfinex(Exchange, ImplicitAPI):
         :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
-        request = {
+        request: dict = {
             'order_id': int(id),
         }
         response = self.privatePostOrderStatus(self.extend(request, params))
@@ -1287,7 +1287,7 @@ class bitfinex(Exchange, ImplicitAPI):
             limit = min(limit, 10000)
         market = self.market(symbol)
         v2id = 't' + market['id']
-        request = {
+        request: dict = {
             'symbol': v2id,
             'timeframe': self.safe_string(self.timeframes, timeframe, timeframe),
             'sort': 1,
@@ -1320,7 +1320,7 @@ class bitfinex(Exchange, ImplicitAPI):
         :returns dict: an `address structure <https://docs.ccxt.com/#/?id=address-structure>`
         """
         self.load_markets()
-        request = {
+        request: dict = {
             'renew': 1,
         }
         return self.fetch_deposit_address(code, self.extend(request, params))
@@ -1336,7 +1336,7 @@ class bitfinex(Exchange, ImplicitAPI):
         self.load_markets()
         # todo rewrite for https://api-pub.bitfinex.com//v2/conf/pub:map:tx:method
         name = self.get_currency_name(code)
-        request = {
+        request: dict = {
             'method': name,
             'wallet_name': 'exchange',
             'renew': 0,  # a value of 1 will generate a new address
@@ -1478,7 +1478,7 @@ class bitfinex(Exchange, ImplicitAPI):
         }
 
     def parse_transaction_status(self, status):
-        statuses = {
+        statuses: dict = {
             'SENDING': 'pending',
             'CANCELED': 'canceled',
             'ZEROCONFIRMED': 'failed',  # ZEROCONFIRMED happens e.g. in a double spend attempt(I had one in my movementsnot )
@@ -1503,7 +1503,7 @@ class bitfinex(Exchange, ImplicitAPI):
         # todo rewrite for https://api-pub.bitfinex.com//v2/conf/pub:map:tx:method
         name = self.get_currency_name(code)
         currency = self.currency(code)
-        request = {
+        request: dict = {
             'withdraw_type': name,
             'walletselected': 'exchange',
             'amount': self.number_to_string(amount),

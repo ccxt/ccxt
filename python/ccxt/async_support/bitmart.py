@@ -1011,7 +1011,7 @@ class bitmart(Exchange, ImplicitAPI):
         #
         data = self.safe_value(response, 'data', {})
         currencies = self.safe_value(data, 'currencies', [])
-        result = {}
+        result: dict = {}
         for i in range(0, len(currencies)):
             currency = currencies[i]
             id = self.safe_string(currency, 'id')
@@ -1047,7 +1047,7 @@ class bitmart(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         currency = self.currency(code)
-        request = {
+        request: dict = {
             'currency': currency['id'],
         }
         response = await self.privateGetAccountV1WithdrawCharge(self.extend(request, params))
@@ -1065,7 +1065,7 @@ class bitmart(Exchange, ImplicitAPI):
         #     }
         #
         data = response['data']
-        withdrawFees = {}
+        withdrawFees: dict = {}
         withdrawFees[code] = self.safe_number(data, 'withdraw_fee')
         return {
             'info': response,
@@ -1104,7 +1104,7 @@ class bitmart(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         currency = self.currency(code)
-        request = {
+        request: dict = {
             'currency': currency['id'],
         }
         response = await self.privateGetAccountV1WithdrawCharge(self.extend(request, params))
@@ -1234,7 +1234,7 @@ class bitmart(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         market = self.market(symbol)
-        request = {}
+        request: dict = {}
         response = None
         if market['swap']:
             request['contract_symbol'] = market['id']
@@ -1333,7 +1333,7 @@ class bitmart(Exchange, ImplicitAPI):
             raise NotSupported(self.id + ' fetchTickers() does not support ' + type + ' markets, only spot and swap markets are accepted')
         data = self.safe_value(response, 'data', {})
         tickers = self.safe_value(data, 'tickers', [])
-        result = {}
+        result: dict = {}
         for i in range(0, len(tickers)):
             ticker = self.parse_ticker(tickers[i])
             symbol = ticker['symbol']
@@ -1352,7 +1352,7 @@ class bitmart(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'symbol': market['id'],
         }
         response = None
@@ -1527,7 +1527,7 @@ class bitmart(Exchange, ImplicitAPI):
         market = self.market(symbol)
         if not market['spot']:
             raise NotSupported(self.id + ' fetchTrades() does not support ' + market['type'] + ' orders, only spot orders are accepted')
-        request = {
+        request: dict = {
             'symbol': market['id'],
         }
         response = await self.publicGetSpotV1SymbolsTrades(self.extend(request, params))
@@ -1639,7 +1639,7 @@ class bitmart(Exchange, ImplicitAPI):
         market = self.market(symbol)
         duration = self.parse_timeframe(timeframe)
         parsedTimeframe = self.safe_integer(self.timeframes, timeframe)
-        request = {
+        request: dict = {
             'symbol': market['id'],
         }
         if parsedTimeframe is not None:
@@ -1724,7 +1724,7 @@ class bitmart(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         market = None
-        request = {}
+        request: dict = {}
         if symbol is not None:
             market = self.market(symbol)
             request['symbol'] = market['id']
@@ -1824,7 +1824,7 @@ class bitmart(Exchange, ImplicitAPI):
         :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
         """
         await self.load_markets()
-        request = {
+        request: dict = {
             'orderId': id,
         }
         response = await self.privatePostSpotV4QueryOrderTrades(self.extend(request, params))
@@ -1850,7 +1850,7 @@ class bitmart(Exchange, ImplicitAPI):
                 quote = self.safe_value(entry, 'quote', {})
                 baseCode = self.safe_currency_code(self.safe_string(base, 'currency'))
                 quoteCode = self.safe_currency_code(self.safe_string(quote, 'currency'))
-                subResult = {}
+                subResult: dict = {}
                 subResult[baseCode] = self.parse_balance_helper(base)
                 subResult[quoteCode] = self.parse_balance_helper(quote)
                 result[symbol] = self.safe_balance(subResult)
@@ -2032,7 +2032,7 @@ class bitmart(Exchange, ImplicitAPI):
         market = self.market(symbol)
         if not market['spot']:
             raise NotSupported(self.id + ' fetchTradingFee() does not support ' + market['type'] + ' orders, only spot orders are accepted')
-        request = {
+        request: dict = {
             'symbol': market['id'],
         }
         response = await self.privateGetSpotV1TradeFee(self.extend(request, params))
@@ -2177,7 +2177,7 @@ class bitmart(Exchange, ImplicitAPI):
         }, market)
 
     def parse_order_side(self, side):
-        sides = {
+        sides: dict = {
             '1': 'buy',
             '2': 'buy',
             '3': 'sell',
@@ -2186,7 +2186,7 @@ class bitmart(Exchange, ImplicitAPI):
         return self.safe_string(sides, side, side)
 
     def parse_order_status_by_type(self, type, status):
-        statusesByType = {
+        statusesByType: dict = {
             'spot': {
                 '1': 'rejected',  # Order failure
                 '2': 'open',  # Placing order
@@ -2325,7 +2325,7 @@ class bitmart(Exchange, ImplicitAPI):
             orderRequest = self.create_spot_order_request(marketId, type, side, amount, price, orderParams)
             orderRequest = self.omit(orderRequest, ['symbol'])  # not needed because it goes in the outter object
             ordersRequests.append(orderRequest)
-        request = {
+        request: dict = {
             'symbol': market['id'],
             'orderParams': ordersRequests,
         }
@@ -2381,7 +2381,7 @@ class bitmart(Exchange, ImplicitAPI):
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'symbol': market['id'],
             'type': type,
             'size': int(self.amount_to_precision(symbol, amount)),
@@ -2466,7 +2466,7 @@ class bitmart(Exchange, ImplicitAPI):
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'symbol': market['id'],
             'side': side,
             'type': type,
@@ -2529,7 +2529,7 @@ class bitmart(Exchange, ImplicitAPI):
             raise ArgumentsRequired(self.id + ' cancelOrder() requires a symbol argument')
         await self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'symbol': market['id'],
         }
         clientOrderId = self.safe_string_2(params, 'clientOrderId', 'client_order_id')
@@ -2606,7 +2606,7 @@ class bitmart(Exchange, ImplicitAPI):
             raise NotSupported(self.id + ' cancelOrders() does not support ' + market['type'] + ' orders, only spot orders are accepted')
         clientOrderIds = self.safe_list(params, 'clientOrderIds')
         params = self.omit(params, ['clientOrderIds'])
-        request = {
+        request: dict = {
             'symbol': market['id'],
         }
         if clientOrderIds is not None:
@@ -2653,7 +2653,7 @@ class bitmart(Exchange, ImplicitAPI):
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
-        request = {}
+        request: dict = {}
         market = None
         if symbol is not None:
             market = self.market(symbol)
@@ -2694,7 +2694,7 @@ class bitmart(Exchange, ImplicitAPI):
         market = self.market(symbol)
         if not market['spot']:
             raise NotSupported(self.id + ' fetchOrdersByStatus() does not support ' + market['type'] + ' orders, only spot orders are accepted')
-        request = {
+        request: dict = {
             'symbol': market['id'],
             'offset': 1,  # max offset * limit < 500
             'N': 100,  # max limit is 100
@@ -2761,7 +2761,7 @@ class bitmart(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         market = None
-        request = {}
+        request: dict = {}
         if symbol is not None:
             market = self.market(symbol)
             request['symbol'] = market['id']
@@ -2870,7 +2870,7 @@ class bitmart(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         market = None
-        request = {}
+        request: dict = {}
         if symbol is not None:
             market = self.market(symbol)
             request['symbol'] = market['id']
@@ -2925,7 +2925,7 @@ class bitmart(Exchange, ImplicitAPI):
         :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
-        request = {}
+        request: dict = {}
         type = None
         market = None
         response = None
@@ -3016,7 +3016,7 @@ class bitmart(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         currency = self.currency(code)
-        request = {
+        request: dict = {
             'currency': currency['id'],
         }
         if code == 'USDT':
@@ -3094,7 +3094,7 @@ class bitmart(Exchange, ImplicitAPI):
         self.check_address(address)
         await self.load_markets()
         currency = self.currency(code)
-        request = {
+        request: dict = {
             'currency': currency['id'],
             'amount': amount,
             'destination': 'To Digital Address',  # To Digital Address, To Binance, To OKEX
@@ -3134,7 +3134,7 @@ class bitmart(Exchange, ImplicitAPI):
         await self.load_markets()
         if limit is None:
             limit = 50  # max 50
-        request = {
+        request: dict = {
             'operation_type': type,  # deposit or withdraw
             'offset': 1,
             'N': limit,
@@ -3191,7 +3191,7 @@ class bitmart(Exchange, ImplicitAPI):
         :returns dict: a `transaction structure <https://docs.ccxt.com/#/?id=transaction-structure>`
         """
         await self.load_markets()
-        request = {
+        request: dict = {
             'id': id,
         }
         response = await self.privateGetAccountV1DepositWithdrawDetail(self.extend(request, params))
@@ -3241,7 +3241,7 @@ class bitmart(Exchange, ImplicitAPI):
         :returns dict: a `transaction structure <https://docs.ccxt.com/#/?id=transaction-structure>`
         """
         await self.load_markets()
-        request = {
+        request: dict = {
             'id': id,
         }
         response = await self.privateGetAccountV1DepositWithdrawDetail(self.extend(request, params))
@@ -3283,7 +3283,7 @@ class bitmart(Exchange, ImplicitAPI):
         return await self.fetch_transactions_by_type('withdraw', code, since, limit, params)
 
     def parse_transaction_status(self, status):
-        statuses = {
+        statuses: dict = {
             '0': 'pending',  # Create
             '1': 'pending',  # Submitted, waiting for withdrawal
             '2': 'pending',  # Processing
@@ -3378,7 +3378,7 @@ class bitmart(Exchange, ImplicitAPI):
         await self.load_markets()
         market = self.market(symbol)
         currency = self.currency(code)
-        request = {
+        request: dict = {
             'symbol': market['id'],
             'currency': currency['id'],
             'amount': self.currency_to_precision(code, amount),
@@ -3414,7 +3414,7 @@ class bitmart(Exchange, ImplicitAPI):
         await self.load_markets()
         market = self.market(symbol)
         currency = self.currency(code)
-        request = {
+        request: dict = {
             'symbol': market['id'],
             'currency': currency['id'],
             'amount': self.currency_to_precision(code, amount),
@@ -3471,7 +3471,7 @@ class bitmart(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'symbol': market['id'],
         }
         response = await self.privateGetSpotV1MarginIsolatedPairs(self.extend(request, params))
@@ -3614,7 +3614,7 @@ class bitmart(Exchange, ImplicitAPI):
         await self.load_markets()
         currency = self.currency(code)
         amountToPrecision = self.currency_to_precision(code, amount)
-        request = {
+        request: dict = {
             'amount': amountToPrecision,
             'currency': currency['id'],
         }
@@ -3669,7 +3669,7 @@ class bitmart(Exchange, ImplicitAPI):
         })
 
     def parse_transfer_status(self, status: Str) -> Str:
-        statuses = {
+        statuses: dict = {
             '1000': 'ok',
             'OK': 'ok',
             'FINISHED': 'ok',
@@ -3677,14 +3677,14 @@ class bitmart(Exchange, ImplicitAPI):
         return self.safe_string(statuses, status, status)
 
     def parse_transfer_to_account(self, type):
-        types = {
+        types: dict = {
             'contract_to_spot': 'spot',
             'spot_to_contract': 'swap',
         }
         return self.safe_string(types, type, type)
 
     def parse_transfer_from_account(self, type):
-        types = {
+        types: dict = {
             'contract_to_spot': 'swap',
             'spot_to_contract': 'spot',
         }
@@ -3744,7 +3744,7 @@ class bitmart(Exchange, ImplicitAPI):
         await self.load_markets()
         if limit is None:
             limit = 10
-        request = {
+        request: dict = {
             'page': self.safe_integer(params, 'page', 1),  # default is 1, max is 1000
             'limit': limit,  # default is 10, max is 100
         }
@@ -3800,7 +3800,7 @@ class bitmart(Exchange, ImplicitAPI):
             raise ArgumentsRequired(self.id + ' fetchBorrowInterest() requires a symbol argument')
         await self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'symbol': market['id'],
         }
         if limit is not None:
@@ -3874,7 +3874,7 @@ class bitmart(Exchange, ImplicitAPI):
         market = self.market(symbol)
         if not market['contract']:
             raise BadRequest(self.id + ' fetchOpenInterest() supports contract markets only')
-        request = {
+        request: dict = {
             'symbol': market['id'],
         }
         response = await self.publicGetContractPublicOpenInterest(self.extend(request, params))
@@ -3933,7 +3933,7 @@ class bitmart(Exchange, ImplicitAPI):
         market = self.market(symbol)
         if not market['swap']:
             raise BadSymbol(self.id + ' setLeverage() supports swap contracts only')
-        request = {
+        request: dict = {
             'symbol': market['id'],
             'leverage': str(leverage),
             'open_type': marginMode,
@@ -3952,7 +3952,7 @@ class bitmart(Exchange, ImplicitAPI):
         market = self.market(symbol)
         if not market['swap']:
             raise BadSymbol(self.id + ' fetchFundingRate() supports swap contracts only')
-        request = {
+        request: dict = {
             'symbol': market['id'],
         }
         response = await self.publicGetContractPublicFundingRate(self.extend(request, params))
@@ -4013,7 +4013,7 @@ class bitmart(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'symbol': market['id'],
         }
         response = await self.privateGetContractPrivatePosition(self.extend(request, params))
@@ -4065,7 +4065,7 @@ class bitmart(Exchange, ImplicitAPI):
             symbolsLength = len(symbols)
             first = self.safe_string(symbols, 0)
             market = self.market(first)
-        request = {}
+        request: dict = {}
         if symbolsLength == 1:
             # only supports symbols or sending one symbol
             request['symbol'] = market['id']
@@ -4187,7 +4187,7 @@ class bitmart(Exchange, ImplicitAPI):
         market = self.market(symbol)
         if not market['swap']:
             raise NotSupported(self.id + ' fetchMyLiquidations() supports swap markets only')
-        request = {
+        request: dict = {
             'symbol': market['id'],
         }
         if since is not None:

@@ -39,7 +39,7 @@ use BN\BN;
 use Sop\ASN1\Type\UnspecifiedType;
 use Exception;
 
-$version = '4.3.29';
+$version = '4.3.30';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -58,7 +58,7 @@ const PAD_WITH_ZERO = 6;
 
 class Exchange {
 
-    const VERSION = '4.3.29';
+    const VERSION = '4.3.30';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -7068,6 +7068,9 @@ class Exchange {
 
     public function parse_margin_modes(mixed $response, ?array $symbols = null, ?string $symbolKey = null, ?string $marketType = null) {
         $marginModeStructures = array();
+        if ($marketType === null) {
+            $marketType = 'swap'; // default to swap
+        }
         for ($i = 0; $i < count($response); $i++) {
             $info = $response[$i];
             $marketId = $this->safe_string($info, $symbolKey);
@@ -7085,6 +7088,9 @@ class Exchange {
 
     public function parse_leverages(mixed $response, ?array $symbols = null, ?string $symbolKey = null, ?string $marketType = null) {
         $leverageStructures = array();
+        if ($marketType === null) {
+            $marketType = 'swap'; // default to swap
+        }
         for ($i = 0; $i < count($response); $i++) {
             $info = $response[$i];
             $marketId = $this->safe_string($info, $symbolKey);

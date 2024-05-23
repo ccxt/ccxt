@@ -1710,7 +1710,7 @@ class bitrue extends Exchange {
         return $this->parse_trades($response, $market, $since, $limit);
     }
 
-    public function parse_order_status($status) {
+    public function parse_order_status(?string $status) {
         $statuses = array(
             'INIT' => 'open',
             'PENDING_CREATE' => 'open',

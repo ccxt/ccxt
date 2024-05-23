@@ -1510,7 +1510,7 @@ class kraken extends Exchange {
         return $market;
     }
 
-    public function parse_order_status($status) {
+    public function parse_order_status(?string $status) {
         $statuses = array(
             'pending' => 'open', // order pending book entry
             'open' => 'open',

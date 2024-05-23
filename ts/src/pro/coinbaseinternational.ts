@@ -97,7 +97,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         const timestamp = this.nonce ().toString ();
         const auth = timestamp + this.apiKey + 'CBINTLMD' + this.password;
         const signature = this.hmac (this.encode (auth), this.base64ToBinary (this.secret), sha256, 'base64');
-        const subscribe = {
+        const subscribe: Dict = {
             'type': 'SUBSCRIBE',
             'product_ids': productIds,
             'channels': [ name ],
@@ -141,7 +141,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         const timestamp = this.numberToString (this.seconds ());
         const auth = timestamp + this.apiKey + 'CBINTLMD' + this.password;
         const signature = this.hmac (this.encode (auth), this.base64ToBinary (this.secret), sha256, 'base64');
-        const subscribe = {
+        const subscribe: Dict = {
             'type': 'SUBSCRIBE',
             'time': timestamp,
             'product_ids': productIds,
@@ -179,7 +179,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         const fundingRate = await this.subscribeMultiple ('RISK', symbols, params);
         const symbol = this.safeString (fundingRate, 'symbol');
         if (this.newUpdates) {
-            const result = {};
+            const result: Dict = {};
             result[symbol] = fundingRate;
             return result;
         }
@@ -649,7 +649,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
             return;
         }
         const channel = this.safeString (message, 'channel');
-        const methods = {
+        const methods: Dict = {
             'SUBSCRIPTIONS': this.handleSubscriptionStatus,
             'INSTRUMENTS': this.handleInstrument,
             'LEVEL1': this.handleTicker,

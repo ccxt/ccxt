@@ -49,7 +49,7 @@ export default class deribit extends Exchange {
     fetchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     fetchTradingFees(params?: {}): Promise<TradingFees>;
     fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
-    parseOrderStatus(status: any): string;
+    parseOrderStatus(status: Str): string;
     parseTimeInForce(timeInForce: any): string;
     parseOrderType(orderType: any): string;
     parseOrder(order: any, market?: Market): Order;

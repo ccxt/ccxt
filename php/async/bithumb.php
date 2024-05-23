@@ -799,7 +799,7 @@ class bithumb extends Exchange {
         }) ();
     }
 
-    public function parse_order_status($status) {
+    public function parse_order_status(?string $status) {
         $statuses = array(
             'Pending' => 'open',
             'Completed' => 'closed',

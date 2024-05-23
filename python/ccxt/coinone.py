@@ -236,7 +236,7 @@ class coinone(Exchange, ImplicitAPI):
         #         ]
         #     }
         #
-        result = {}
+        result: dict = {}
         currencies = self.safe_value(response, 'currencies', [])
         for i in range(0, len(currencies)):
             entry = currencies[i]
@@ -278,7 +278,7 @@ class coinone(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: an array of objects representing market data
         """
-        request = {
+        request: dict = {
             'quote_currency': 'KRW',
         }
         response = self.v2PublicGetTickerNewQuoteCurrency(request)
@@ -377,7 +377,7 @@ class coinone(Exchange, ImplicitAPI):
         return result
 
     def parse_balance(self, response) -> Balances:
-        result = {'info': response}
+        result: dict = {'info': response}
         balances = self.omit(response, [
             'errorCode',
             'result',
@@ -416,7 +416,7 @@ class coinone(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'quote_currency': market['quote'],
             'target_currency': market['base'],
         }
@@ -460,7 +460,7 @@ class coinone(Exchange, ImplicitAPI):
         """
         self.load_markets()
         symbols = self.market_symbols(symbols)
-        request = {
+        request: dict = {
             'quote_currency': 'KRW',
         }
         market = None
@@ -519,7 +519,7 @@ class coinone(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'quote_currency': market['quote'],
             'target_currency': market['base'],
         }
@@ -692,7 +692,7 @@ class coinone(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'quote_currency': market['quote'],
             'target_currency': market['base'],
         }
@@ -737,7 +737,7 @@ class coinone(Exchange, ImplicitAPI):
             raise ExchangeError(self.id + ' createOrder() allows limit orders only')
         self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'price': price,
             'currency': market['id'],
             'qty': amount,
@@ -764,7 +764,7 @@ class coinone(Exchange, ImplicitAPI):
             raise ArgumentsRequired(self.id + ' fetchOrder() requires a symbol argument')
         self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'order_id': id,
             'currency': market['id'],
         }
@@ -792,8 +792,8 @@ class coinone(Exchange, ImplicitAPI):
         #
         return self.parse_order(response, market)
 
-    def parse_order_status(self, status):
-        statuses = {
+    def parse_order_status(self, status: Str):
+        statuses: dict = {
             'live': 'open',
             'partially_filled': 'open',
             'partially_canceled': 'open',
@@ -924,7 +924,7 @@ class coinone(Exchange, ImplicitAPI):
             raise ExchangeError(self.id + ' fetchOpenOrders() allows fetching closed orders with a specific symbol')
         self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'currency': market['id'],
         }
         response = self.privatePostOrderLimitOrders(self.extend(request, params))
@@ -961,7 +961,7 @@ class coinone(Exchange, ImplicitAPI):
             raise ArgumentsRequired(self.id + ' fetchMyTrades() requires a symbol argument')
         self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'currency': market['id'],
         }
         response = self.v2PrivatePostOrderCompleteOrders(self.extend(request, params))
@@ -1006,7 +1006,7 @@ class coinone(Exchange, ImplicitAPI):
             # eslint-disable-next-line quotes
             raise ArgumentsRequired(self.id + " cancelOrder() requires {'price': 12345, 'qty': 1.2345, 'is_ask': 0} in the params argument.")
         self.load_markets()
-        request = {
+        request: dict = {
             'order_id': id,
             'price': price,
             'qty': qty,
@@ -1047,7 +1047,7 @@ class coinone(Exchange, ImplicitAPI):
         #
         walletAddress = self.safe_value(response, 'walletAddress', {})
         keys = list(walletAddress.keys())
-        result = {}
+        result: dict = {}
         for i in range(0, len(keys)):
             key = keys[i]
             value = walletAddress[key]

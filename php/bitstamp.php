@@ -1452,7 +1452,7 @@ class bitstamp extends Exchange {
         return $response;
     }
 
-    public function parse_order_status($status) {
+    public function parse_order_status(?string $status) {
         $statuses = array(
             'In Queue' => 'open',
             'Open' => 'open',

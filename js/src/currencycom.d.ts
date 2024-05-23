@@ -23,7 +23,7 @@ export default class currencycom extends Exchange {
     parseTrade(trade: any, market?: Market): Trade;
     fetchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     parseOrder(order: any, market?: Market): Order;
-    parseOrderStatus(status: any): string;
+    parseOrderStatus(status: Str): string;
     parseOrderType(status: any): string;
     parseOrderTimeInForce(status: any): string;
     parseOrderSide(status: any): string;
@@ -40,23 +40,7 @@ export default class currencycom extends Exchange {
     parseTransactionStatus(status: any): string;
     parseTransactionType(type: any): string;
     fetchLedger(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<any>;
-    parseLedgerEntry(item: any, currency?: Currency): {
-        id: string;
-        timestamp: number;
-        datetime: string;
-        direction: string;
-        account: any;
-        referenceId: string;
-        referenceAccount: any;
-        type: string;
-        currency: string;
-        amount: string;
-        before: any;
-        after: string;
-        status: string;
-        fee: any;
-        info: any;
-    };
+    parseLedgerEntry(item: any, currency?: Currency): Dict;
     parseLedgerEntryStatus(status: any): string;
     parseLedgerEntryType(type: any): string;
     fetchLeverage(symbol: string, params?: {}): Promise<Leverage>;

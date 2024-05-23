@@ -34,6 +34,9 @@ export default class whitebit extends Exchange {
                 'cancelAllOrdersAfter': true,
                 'cancelOrder': true,
                 'cancelOrders': false,
+                'createMarketBuyOrderWithCost': true,
+                'createMarketOrderWithCost': false,
+                'createMarketSellOrderWithCost': false,
                 'createOrder': true,
                 'createStopLimitOrder': true,
                 'createStopMarketOrder': true,
@@ -453,7 +456,7 @@ export default class whitebit extends Exchange {
         //       },
         //
         const ids = Object.keys (response);
-        const result = {};
+        const result: Dict = {};
         for (let i = 0; i < ids.length; i++) {
             const id = ids[i];
             const currency = response[id];
@@ -527,8 +530,8 @@ export default class whitebit extends Exchange {
         //      }
         //
         const currenciesIds = Object.keys (response);
-        const withdrawFees = {};
-        const depositFees = {};
+        const withdrawFees: Dict = {};
+        const depositFees: Dict = {};
         for (let i = 0; i < currenciesIds.length; i++) {
             const currency = currenciesIds[i];
             const data = response[currency];
@@ -645,7 +648,7 @@ export default class whitebit extends Exchange {
         //        ...
         //    }
         //
-        const depositWithdrawFees = {};
+        const depositWithdrawFees: Dict = {};
         codes = this.marketCodes (codes);
         const currencyIds = Object.keys (response);
         for (let i = 0; i < currencyIds.length; i++) {
@@ -665,11 +668,11 @@ export default class whitebit extends Exchange {
                 const deposit = this.safeValue (feeInfo, 'deposit');
                 const withdrawFee = this.safeNumber (withdraw, 'fixed');
                 const depositFee = this.safeNumber (deposit, 'fixed');
-                const withdrawResult = {
+                const withdrawResult: Dict = {
                     'fee': withdrawFee,
                     'percentage': (withdrawFee !== undefined) ? false : undefined,
                 };
-                const depositResult = {
+                const depositResult: Dict = {
                     'fee': depositFee,
                     'percentage': (depositFee !== undefined) ? false : undefined,
                 };
@@ -724,7 +727,7 @@ export default class whitebit extends Exchange {
         //            ...
         //      }
         //
-        const result = {};
+        const result: Dict = {};
         for (let i = 0; i < this.symbols.length; i++) {
             const symbol = this.symbols[i];
             const market = this.market (symbol);
@@ -757,7 +760,7 @@ export default class whitebit extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'market': market['id'],
         };
         const response = await this.v1PublicGetTicker (this.extend (request, params));
@@ -861,7 +864,7 @@ export default class whitebit extends Exchange {
         //      },
         //
         const marketIds = Object.keys (response);
-        const result = {};
+        const result: Dict = {};
         for (let i = 0; i < marketIds.length; i++) {
             const marketId = marketIds[i];
             const market = this.safeMarket (marketId);
@@ -885,7 +888,7 @@ export default class whitebit extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'market': market['id'],
         };
         if (limit !== undefined) {
@@ -929,7 +932,7 @@ export default class whitebit extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'market': market['id'],
         };
         const response = await this.v4PublicGetTradesMarket (this.extend (request, params));
@@ -962,7 +965,7 @@ export default class whitebit extends Exchange {
          */
         await this.loadMarkets ();
         let market: Market = undefined;
-        const request = {};
+        const request: Dict = {};
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['market'] = market['id'];
@@ -1118,7 +1121,7 @@ export default class whitebit extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'market': market['id'],
             'interval': this.safeString (this.timeframes, timeframe, timeframe),
         };
@@ -1215,6 +1218,35 @@ export default class whitebit extends Exchange {
         return this.safeInteger (response, 'time');
     }
 
+    async createMarketOrderWithCost (symbol: string, side: OrderSide, cost: number, params = {}) {
+        /**
+         * @method
+         * @name createMarketOrderWithCost
+         * @description create a market order by providing the symbol, side and cost
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {string} side 'buy' or 'sell'
+         * @param {float} cost how much you want to trade in units of the quote currency
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        params['cost'] = cost;
+        // only buy side is supported
+        return await this.createOrder (symbol, 'market', side, 0, undefined, params);
+    }
+
+    async createMarketBuyOrderWithCost (symbol: string, cost: number, params = {}): Promise<Order> {
+        /**
+         * @method
+         * @name createMarketBuyOrderWithCost
+         * @description create a market buy order by providing the symbol and cost
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {float} cost how much you want to trade in units of the quote currency
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        return await this.createMarketOrderWithCost (symbol, 'buy', cost, params);
+    }
+
     async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
         /**
          * @method
@@ -1231,15 +1263,25 @@ export default class whitebit extends Exchange {
          * @param {float} amount how much of currency you want to trade in units of base currency
          * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {float} [params.cost] *market orders only* the cost of the order in units of the base currency
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'market': market['id'],
             'side': side,
-            'amount': this.amountToPrecision (symbol, amount),
         };
+        let cost = undefined;
+        [ cost, params ] = this.handleParamString (params, 'cost');
+        if (cost !== undefined) {
+            if ((side !== 'buy') || (type !== 'market')) {
+                throw new InvalidOrder (this.id + ' createOrder() cost is only supported for market buy orders');
+            }
+            request['amount'] = this.costToPrecision (symbol, cost);
+        } else {
+            request['amount'] = this.amountToPrecision (symbol, amount);
+        }
         const clientOrderId = this.safeString2 (params, 'clOrdId', 'clientOrderId');
         if (clientOrderId === undefined) {
             const brokerId = this.safeString (this.options, 'brokerId');
@@ -1294,7 +1336,11 @@ export default class whitebit extends Exchange {
                 if (useCollateralEndpoint) {
                     response = await this.v4PrivatePostOrderCollateralMarket (this.extend (request, params));
                 } else {
-                    response = await this.v4PrivatePostOrderStockMarket (this.extend (request, params));
+                    if (cost !== undefined) {
+                        response = await this.v4PrivatePostOrderMarket (this.extend (request, params));
+                    } else {
+                        response = await this.v4PrivatePostOrderStockMarket (this.extend (request, params));
+                    }
                 }
             }
         }
@@ -1324,7 +1370,7 @@ export default class whitebit extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'orderId': id,
             'market': market['id'],
         };
@@ -1379,7 +1425,7 @@ export default class whitebit extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'market': market['id'],
             'orderId': parseInt (id),
         };
@@ -1400,7 +1446,7 @@ export default class whitebit extends Exchange {
          */
         await this.loadMarkets ();
         let market = undefined;
-        const request = {};
+        const request: Dict = {};
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['market'] = market['id'];
@@ -1472,7 +1518,7 @@ export default class whitebit extends Exchange {
 
     parseBalance (response): Balances {
         const balanceKeys = Object.keys (response);
-        const result = {};
+        const result: Dict = {};
         for (let i = 0; i < balanceKeys.length; i++) {
             const id = balanceKeys[i];
             const code = this.safeCurrencyCode (id);
@@ -1561,7 +1607,7 @@ export default class whitebit extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'market': market['id'],
         };
         if (limit !== undefined) {
@@ -1604,7 +1650,7 @@ export default class whitebit extends Exchange {
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
-        const request = {};
+        const request: Dict = {};
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
@@ -1648,8 +1694,8 @@ export default class whitebit extends Exchange {
         return results as Order[];
     }
 
-    parseOrderType (type) {
-        const types = {
+    parseOrderType (type: Str) {
+        const types: Dict = {
             'limit': 'limit',
             'market': 'market',
             'stop market': 'market',
@@ -1705,7 +1751,7 @@ export default class whitebit extends Exchange {
         const symbol = market['symbol'];
         const side = this.safeString (order, 'side');
         const filled = this.safeString (order, 'dealStock');
-        const remaining = this.safeString (order, 'left');
+        let remaining = this.safeString (order, 'left');
         let clientOrderId = this.safeString (order, 'clientOrderId');
         if (clientOrderId === '') {
             clientOrderId = undefined;
@@ -1714,6 +1760,10 @@ export default class whitebit extends Exchange {
         const stopPrice = this.safeNumber (order, 'activation_price');
         const orderId = this.safeString2 (order, 'orderId', 'id');
         const type = this.safeString (order, 'type');
+        const orderType = this.parseOrderType (type);
+        if (orderType === 'market') {
+            remaining = undefined;
+        }
         let amount = this.safeString (order, 'amount');
         const cost = this.safeString (order, 'dealMoney');
         if ((side === 'buy') && ((type === 'market') || (type === 'stop market'))) {
@@ -1742,7 +1792,7 @@ export default class whitebit extends Exchange {
             'status': undefined,
             'side': side,
             'price': price,
-            'type': this.parseOrderType (type),
+            'type': orderType,
             'stopPrice': stopPrice,
             'triggerPrice': stopPrice,
             'amount': amount,
@@ -1769,7 +1819,7 @@ export default class whitebit extends Exchange {
          * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
          */
         await this.loadMarkets ();
-        const request = {
+        const request: Dict = {
             'orderId': parseInt (id),
         };
         let market = undefined;
@@ -1817,7 +1867,7 @@ export default class whitebit extends Exchange {
          */
         await this.loadMarkets ();
         const currency = this.currency (code);
-        const request = {
+        const request: Dict = {
             'ticker': currency['id'],
         };
         let response = undefined;
@@ -1898,7 +1948,7 @@ export default class whitebit extends Exchange {
         if ((leverage < 1) || (leverage > 20)) {
             throw new BadRequest (this.id + ' setLeverage() leverage should be between 1 and 20');
         }
-        const request = {
+        const request: Dict = {
             'leverage': leverage,
         };
         return await this.v4PrivatePostCollateralAccountLeverage (this.extend (request, params));
@@ -1926,7 +1976,7 @@ export default class whitebit extends Exchange {
         const fromAccountId = this.safeString (accountsByType, fromAccount, fromAccount);
         const toAccountId = this.safeString (accountsByType, toAccount, toAccount);
         const amountString = this.currencyToPrecision (code, amount);
-        const request = {
+        const request: Dict = {
             'ticker': currency['id'],
             'amount': amountString,
             'from': fromAccountId,
@@ -1971,7 +2021,7 @@ export default class whitebit extends Exchange {
          */
         await this.loadMarkets ();
         const currency = this.currency (code); // check if it has canDeposit
-        const request = {
+        const request: Dict = {
             'ticker': currency['id'],
             'amount': this.currencyToPrecision (code, amount),
             'address': address,
@@ -2067,7 +2117,7 @@ export default class whitebit extends Exchange {
     }
 
     parseTransactionStatus (status) {
-        const statuses = {
+        const statuses: Dict = {
             '1': 'pending',
             '2': 'pending',
             '3': 'ok',
@@ -2101,7 +2151,7 @@ export default class whitebit extends Exchange {
          */
         await this.loadMarkets ();
         let currency = undefined;
-        const request = {
+        const request: Dict = {
             'transactionMethod': 1,
             'uniqueId': id,
             'limit': 1,
@@ -2168,7 +2218,7 @@ export default class whitebit extends Exchange {
          */
         await this.loadMarkets ();
         let currency = undefined;
-        const request = {
+        const request: Dict = {
             'transactionMethod': 1,
             'limit': 100,
             'offset': 0,
@@ -2236,7 +2286,7 @@ export default class whitebit extends Exchange {
          * @returns {object[]} a list of [borrow interest structures]{@link https://docs.ccxt.com/#/?id=borrow-interest-structure}
          */
         await this.loadMarkets ();
-        const request = {};
+        const request: Dict = {};
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
@@ -2463,7 +2513,7 @@ export default class whitebit extends Exchange {
          * @returns {object} a list of [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         await this.loadMarkets ();
-        const request = {};
+        const request: Dict = {};
         let currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);

@@ -4974,7 +4974,7 @@ class binance extends Exchange {
         }
     }
 
-    public function parse_order_status($status) {
+    public function parse_order_status(?string $status) {
         $statuses = array(
             'NEW' => 'open',
             'PARTIALLY_FILLED' => 'open',
@@ -5865,6 +5865,15 @@ class binance extends Exchange {
                     $request['isIsolated'] = true;
                 }
             }
+        } else {
+            $postOnly = $this->is_post_only($isMarketOrder, $initialUppercaseType === 'LIMIT_MAKER', $params);
+            if ($postOnly) {
+                if (!$market['contract']) {
+                    $uppercaseType = 'LIMIT_MAKER'; // only this endpoint accepts GTXhttps://binance-docs.github.io/apidocs/pm/en/#new-margin-order-trade
+                } else {
+                    $request['timeInForce'] = 'GTX';
+                }
+            }
         }
         // handle newOrderRespType response $type
         if ((($marketType === 'spot') || ($marketType === 'margin')) && !$isPortfolioMargin) {
@@ -5985,7 +5994,7 @@ class binance extends Exchange {
                 $request['stopPrice'] = $this->price_to_precision($symbol, $stopPrice);
             }
         }
-        if ($timeInForceIsRequired && ($this->safe_string($params, 'timeInForce') === null)) {
+        if ($timeInForceIsRequired && ($this->safe_string($params, 'timeInForce') === null) && ($this->safe_string($request, 'timeInForce') === null)) {
             $request['timeInForce'] = $this->options['defaultTimeInForce']; // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
         }
         if (!$isPortfolioMargin && $market['contract'] && $postOnly) {

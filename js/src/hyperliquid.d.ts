@@ -63,7 +63,7 @@ export default class hyperliquid extends Exchange {
     fetchClosedOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     fetchOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
     parseOrder(order: any, market?: Market): Order;
-    parseOrderStatus(status: any): string;
+    parseOrderStatus(status: Str): string;
     parseOrderType(status: any): string;
     fetchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     parseTrade(trade: any, market?: Market): Trade;

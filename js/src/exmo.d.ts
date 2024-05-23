@@ -11,10 +11,10 @@ export default class exmo extends Exchange {
     reduceMargin(symbol: string, amount: number, params?: {}): Promise<MarginModification>;
     addMargin(symbol: string, amount: number, params?: {}): Promise<MarginModification>;
     fetchTradingFees(params?: {}): Promise<TradingFees>;
-    fetchPrivateTradingFees(params?: {}): Promise<{}>;
-    fetchPublicTradingFees(params?: {}): Promise<{}>;
+    fetchPrivateTradingFees(params?: {}): Promise<Dict>;
+    fetchPublicTradingFees(params?: {}): Promise<Dict>;
     parseFixedFloatValue(input: any): number;
-    fetchTransactionFees(codes?: string[], params?: {}): Promise<{}>;
+    fetchTransactionFees(codes?: string[], params?: {}): Promise<Dict>;
     fetchDepositWithdrawFees(codes?: Strings, params?: {}): Promise<any>;
     parseDepositWithdrawFee(fee: any, currency?: Currency): any;
     fetchCurrencies(params?: {}): Promise<Currencies>;

@@ -1258,7 +1258,7 @@ export default class okx extends Exchange {
         //
         const data = this.safeList (response, 'data', []);
         const dataLength = data.length;
-        const update = {
+        const update: Dict = {
             'updated': undefined,
             'status': (dataLength === 0) ? 'ok' : 'maintenance',
             'eta': undefined,
@@ -1522,7 +1522,7 @@ export default class okx extends Exchange {
     }
 
     async fetchMarketsByType (type, params = {}) {
-        const request = {
+        const request: Dict = {
             'instType': this.convertToInstrumentType (type),
         };
         if (type === 'option') {
@@ -1581,7 +1581,7 @@ export default class okx extends Exchange {
     }
 
     safeNetwork (networkId) {
-        const networksById = {
+        const networksById: Dict = {
             'Bitcoin': 'BTC',
             'Omni': 'OMNI',
             'TRON': 'TRC20',
@@ -1656,7 +1656,7 @@ export default class okx extends Exchange {
         //    }
         //
         const data = this.safeList (response, 'data', []);
-        const result = {};
+        const result: Dict = {};
         const dataByCurrencyId = this.groupBy (data, 'ccy');
         const currencyIds = Object.keys (dataByCurrencyId);
         for (let i = 0; i < currencyIds.length; i++) {
@@ -1664,7 +1664,7 @@ export default class okx extends Exchange {
             const currency = this.safeCurrency (currencyId);
             const code = currency['code'];
             const chains = dataByCurrencyId[currencyId];
-            const networks = {};
+            const networks: Dict = {};
             let currencyActive = false;
             let depositEnabled = false;
             let withdrawEnabled = false;
@@ -1744,7 +1744,7 @@ export default class okx extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'instId': market['id'],
         };
         let method = undefined;
@@ -1857,7 +1857,7 @@ export default class okx extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'instId': market['id'],
         };
         const response = await this.publicGetMarketTicker (this.extend (request, params));
@@ -1907,7 +1907,7 @@ export default class okx extends Exchange {
         const market = this.getMarketFromSymbols (symbols);
         let marketType = undefined;
         [ marketType, params ] = this.handleMarketTypeAndParams ('fetchTickers', market, params);
-        const request = {
+        const request: Dict = {
             'instType': this.convertToInstrumentType (marketType),
         };
         if (marketType === 'option') {
@@ -2064,7 +2064,7 @@ export default class okx extends Exchange {
             return await this.fetchPaginatedCallCursor ('fetchTrades', symbol, since, limit, params, 'tradeId', 'after', undefined, 100) as Trade[];
         }
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'instId': market['id'],
         };
         let response = undefined;
@@ -2187,7 +2187,7 @@ export default class okx extends Exchange {
         if ((timezone === 'UTC') && (duration >= 21600)) { // if utc and timeframe >= 6h
             bar += timezone.toLowerCase ();
         }
-        const request = {
+        const request: Dict = {
             'instId': market['id'],
             'bar': bar,
             'limit': limit,
@@ -2273,7 +2273,7 @@ export default class okx extends Exchange {
             return await this.fetchPaginatedCallDeterministic ('fetchFundingRateHistory', symbol, since, limit, '8h', params, 100) as FundingRateHistory[];
         }
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'instId': market['id'],
         };
         if (since !== undefined) {
@@ -2331,7 +2331,7 @@ export default class okx extends Exchange {
     }
 
     parseTradingBalance (response) {
-        const result = { 'info': response };
+        const result: Dict = { 'info': response };
         const data = this.safeList (response, 'data', []);
         const first = this.safeDict (data, 0, {});
         const timestamp = this.safeInteger (first, 'uTime');
@@ -2359,7 +2359,7 @@ export default class okx extends Exchange {
     }
 
     parseFundingBalance (response) {
-        const result = { 'info': response };
+        const result: Dict = { 'info': response };
         const data = this.safeList (response, 'data', []);
         for (let i = 0; i < data.length; i++) {
             const balance = data[i];
@@ -2412,7 +2412,7 @@ export default class okx extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'instType': this.convertToInstrumentType (market['type']), // SPOT, MARGIN, SWAP, FUTURES, OPTION
             // "instId": market["id"], // only applicable to SPOT/MARGIN
             // "uly": market["id"], // only applicable to FUTURES/SWAP/OPTION
@@ -2461,7 +2461,7 @@ export default class okx extends Exchange {
          */
         await this.loadMarkets ();
         const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params);
-        const request = {
+        const request: Dict = {
             // 'ccy': 'BTC,ETH', // comma-separated list of currency ids
         };
         let response = undefined;
@@ -2619,7 +2619,7 @@ export default class okx extends Exchange {
 
     createOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'instId': market['id'],
             // 'ccy': currency['id'], // only applicable to cross MARGIN orders in single-currency margin
             // 'clOrdId': clientOrderId, // up to 32 characters, must be unique
@@ -2993,7 +2993,7 @@ export default class okx extends Exchange {
 
     editOrderRequest (id: string, symbol, type, side, amount = undefined, price = undefined, params = {}) {
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'instId': market['id'],
         };
         let isAlgoOrder = undefined;
@@ -3178,7 +3178,7 @@ export default class okx extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'instId': market['id'],
             // 'ordId': id, // either ordId or clOrdId is required
             // 'clOrdId': clientOrderId,
@@ -3349,7 +3349,7 @@ export default class okx extends Exchange {
             } else if (clientOrderId !== undefined) {
                 idKey = 'clOrdId';
             }
-            const requestItem = {
+            const requestItem: Dict = {
                 'instId': market['id'],
             };
             requestItem[idKey] = (clientOrderId !== undefined) ? clientOrderId : id;
@@ -3424,8 +3424,8 @@ export default class okx extends Exchange {
         return response;
     }
 
-    parseOrderStatus (status) {
-        const statuses = {
+    parseOrderStatus (status: Str) {
+        const statuses: Dict = {
             'canceled': 'canceled',
             'order_failed': 'canceled',
             'live': 'open',
@@ -3661,7 +3661,7 @@ export default class okx extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'instId': market['id'],
             // 'clOrdId': 'abcdef12345', // optional, [a-z0-9]{1,32}
             // 'ordId': id,
@@ -3818,7 +3818,7 @@ export default class okx extends Exchange {
         if (paginate) {
             return await this.fetchPaginatedCallDynamic ('fetchOpenOrders', symbol, since, limit, params) as Order[];
         }
-        const request = {
+        const request: Dict = {
             // 'instType': 'SPOT', // SPOT, MARGIN, SWAP, FUTURES, OPTION
             // 'uly': currency['id'],
             // 'instId': market['id'],
@@ -3976,7 +3976,7 @@ export default class okx extends Exchange {
          * @returns {object} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
-        const request = {
+        const request: Dict = {
             // 'instType': type.toUpperCase (), // SPOT, MARGIN, SWAP, FUTURES, OPTION
             // 'uly': currency['id'],
             // 'instId': market['id'],
@@ -4169,7 +4169,7 @@ export default class okx extends Exchange {
         if (paginate) {
             return await this.fetchPaginatedCallDynamic ('fetchClosedOrders', symbol, since, limit, params) as Order[];
         }
-        const request = {
+        const request: Dict = {
             // 'instType': type.toUpperCase (), // SPOT, MARGIN, SWAP, FUTURES, OPTION
             // 'uly': currency['id'],
             // 'instId': market['id'],
@@ -4348,7 +4348,7 @@ export default class okx extends Exchange {
         if (paginate) {
             return await this.fetchPaginatedCallDynamic ('fetchMyTrades', symbol, since, limit, params) as Trade[];
         }
-        let request = {
+        let request: Dict = {
             // 'instType': 'SPOT', // SPOT, MARGIN, SWAP, FUTURES, OPTION
             // 'uly': currency['id'],
             // 'instId': market['id'],
@@ -4414,7 +4414,7 @@ export default class okx extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
          */
-        const request = {
+        const request: Dict = {
             // 'instrument_id': market['id'],
             'ordId': id,
             // 'after': '1', // return the page after the specified page number
@@ -4451,7 +4451,7 @@ export default class okx extends Exchange {
         let method = this.safeString (options, 'method');
         method = this.safeString (params, 'method', method);
         params = this.omit (params, 'method');
-        let request = {
+        let request: Dict = {
             // 'instType': undefined, // 'SPOT', 'MARGIN', 'SWAP', 'FUTURES", 'OPTION'
             // 'ccy': undefined, // currency['id'],
             // 'mgnMode': undefined, // 'isolated', 'cross'
@@ -4548,7 +4548,7 @@ export default class okx extends Exchange {
     }
 
     parseLedgerEntryType (type) {
-        const types = {
+        const types: Dict = {
             '1': 'transfer', // transfer
             '2': 'trade', // trade
             '3': 'trade', // delivery
@@ -4753,7 +4753,7 @@ export default class okx extends Exchange {
          */
         await this.loadMarkets ();
         const currency = this.currency (code);
-        const request = {
+        const request: Dict = {
             'ccy': currency['id'],
         };
         const response = await this.privateGetAssetDepositAddress (this.extend (request, params));
@@ -4846,7 +4846,7 @@ export default class okx extends Exchange {
         if ((tag !== undefined) && (tag.length > 0)) {
             address = address + ':' + tag;
         }
-        const request = {
+        const request: Dict = {
             'ccy': currency['id'],
             'toAddr': address,
             'dest': '4', // 2 = OKCoin International, 3 = OKX 4 = others
@@ -4910,7 +4910,7 @@ export default class okx extends Exchange {
         if (paginate) {
             return await this.fetchPaginatedCallDynamic ('fetchDeposits', code, since, limit, params);
         }
-        let request = {
+        let request: Dict = {
             // 'ccy': currency['id'],
             // 'state': 2, // 0 waiting for confirmation, 1 deposit credited, 2 deposit successful
             // 'after': since,
@@ -4984,7 +4984,7 @@ export default class okx extends Exchange {
          * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         await this.loadMarkets ();
-        const request = {
+        const request: Dict = {
             'depId': id,
         };
         let currency = undefined;
@@ -5018,7 +5018,7 @@ export default class okx extends Exchange {
         if (paginate) {
             return await this.fetchPaginatedCallDynamic ('fetchWithdrawals', code, since, limit, params);
         }
-        let request = {
+        let request: Dict = {
             // 'ccy': currency['id'],
             // 'state': 2, // -3: pending cancel, -2 canceled, -1 failed, 0, pending, 1 sending, 2 sent, 3 awaiting email verification, 4 awaiting manual verification, 5 awaiting identity verification
             // 'after': since,
@@ -5084,7 +5084,7 @@ export default class okx extends Exchange {
          * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         await this.loadMarkets ();
-        const request = {
+        const request: Dict = {
             'wdId': id,
         };
         let currency = undefined;
@@ -5143,7 +5143,7 @@ export default class okx extends Exchange {
         //         "5": "awaiting identity verification"
         //     }
         //
-        const statuses = {
+        const statuses: Dict = {
             '-3': 'pending',
             '-2': 'canceled',
             '-1': 'failed',
@@ -5282,7 +5282,7 @@ export default class okx extends Exchange {
             throw new BadRequest (this.id + ' fetchLeverage() requires a marginMode parameter that must be either cross or isolated');
         }
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'instId': market['id'],
             'mgnMode': marginMode,
         };
@@ -5347,7 +5347,7 @@ export default class okx extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const [ type, query ] = this.handleMarketTypeAndParams ('fetchPosition', market, params);
-        const request = {
+        const request: Dict = {
             // instType String No Instrument type, MARGIN, SWAP, FUTURES, OPTION
             'instId': market['id'],
             // posId String No Single position ID or multiple position IDs (no more than 20) separated with comma
@@ -5423,7 +5423,7 @@ export default class okx extends Exchange {
          * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
          */
         await this.loadMarkets ();
-        const request = {
+        const request: Dict = {
             // 'instType': 'MARGIN', // optional string, MARGIN, SWAP, FUTURES, OPTION
             // 'instId': market['id'], // optional string, e.g. 'BTC-USD-190927-5000-C'
             // 'posId': '307173036051017730', // optional string, Single or multiple position IDs (no more than 20) separated with commas
@@ -5703,7 +5703,7 @@ export default class okx extends Exchange {
         const accountsByType = this.safeDict (this.options, 'accountsByType', {});
         const fromId = this.safeString (accountsByType, fromAccount, fromAccount);
         const toId = this.safeString (accountsByType, toAccount, toAccount);
-        const request = {
+        const request: Dict = {
             'ccy': currency['id'],
             'amt': this.currencyToPrecision (code, amount),
             'type': '0', // 0 = transfer within account by default, 1 = master account to sub-account, 2 = sub-account to master account, 3 = sub-account to master account (Only applicable to APIKey from sub-account), 4 = sub-account to sub-account
@@ -5825,7 +5825,7 @@ export default class okx extends Exchange {
     }
 
     parseTransferStatus (status: Str): Str {
-        const statuses = {
+        const statuses: Dict = {
             'success': 'ok',
         };
         return this.safeString (statuses, status, status);
@@ -5833,7 +5833,7 @@ export default class okx extends Exchange {
 
     async fetchTransfer (id: string, code: Str = undefined, params = {}): Promise<TransferEntry> {
         await this.loadMarkets ();
-        const request = {
+        const request: Dict = {
             'transId': id,
             // 'type': 0, // default is 0 transfer within account, 1 master to sub, 2 sub to master
         };
@@ -5877,7 +5877,7 @@ export default class okx extends Exchange {
          */
         await this.loadMarkets ();
         let currency = undefined;
-        const request = {
+        const request: Dict = {
             'type': '1', // https://www.okx.com/docs-v5/en/#rest-api-account-get-bills-details-last-3-months
         };
         if (code !== undefined) {
@@ -6061,7 +6061,7 @@ export default class okx extends Exchange {
         if (!market['swap']) {
             throw new ExchangeError (this.id + ' fetchFundingRate() is only valid for swap markets');
         }
-        const request = {
+        const request: Dict = {
             'instId': market['id'],
         };
         const response = await this.publicGetPublicFundingRate (this.extend (request, params));
@@ -6099,7 +6099,7 @@ export default class okx extends Exchange {
          * @returns {object} a [funding history structure]{@link https://docs.ccxt.com/#/?id=funding-history-structure}
          */
         await this.loadMarkets ();
-        const request = {
+        const request: Dict = {
             // 'instType': 'SPOT', // SPOT, MARGIN, SWAP, FUTURES, OPTION
             // 'ccy': currency['id'],
             // 'mgnMode': 'isolated', // isolated, cross
@@ -6276,7 +6276,7 @@ export default class okx extends Exchange {
         if ((marginMode !== 'cross') && (marginMode !== 'isolated')) {
             throw new BadRequest (this.id + ' setLeverage() requires a marginMode parameter that must be either cross or isolated');
         }
-        const request = {
+        const request: Dict = {
             'lever': leverage,
             'mgnMode': marginMode,
             'instId': market['id'],
@@ -6360,7 +6360,7 @@ export default class okx extends Exchange {
         } else {
             hedgeMode = 'net_mode';
         }
-        const request = {
+        const request: Dict = {
             'posMode': hedgeMode,
         };
         const response = await this.privatePostAccountSetPositionMode (this.extend (request, params));
@@ -6406,7 +6406,7 @@ export default class okx extends Exchange {
             throw new BadRequest (this.id + ' setMarginMode() params["lever"] should be between 1 and 125');
         }
         params = this.omit (params, [ 'leverage' ]);
-        const request = {
+        const request: Dict = {
             'lever': lever,
             'mgnMode': marginMode,
             'instId': market['id'],
@@ -6472,7 +6472,7 @@ export default class okx extends Exchange {
          */
         await this.loadMarkets ();
         const currency = this.currency (code);
-        const request = {
+        const request: Dict = {
             'ccy': currency['id'],
         };
         const response = await this.privateGetAccountInterestRate (this.extend (request, params));
@@ -6527,7 +6527,7 @@ export default class okx extends Exchange {
         //        ...
         //    ]
         //
-        const borrowRateHistories = {};
+        const borrowRateHistories: Dict = {};
         for (let i = 0; i < response.length; i++) {
             const item = response[i];
             const code = this.safeCurrencyCode (this.safeString (item, 'ccy'));
@@ -6571,7 +6571,7 @@ export default class okx extends Exchange {
          * @returns {object} a dictionary of [borrow rate structures]{@link https://docs.ccxt.com/#/?id=borrow-rate-structure} indexed by the market symbol
          */
         await this.loadMarkets ();
-        const request = {
+        const request: Dict = {
             // 'ccy': currency['id'],
             // 'after': this.milliseconds (), // Pagination of data to return records earlier than the requested ts,
             // 'before': since, // Pagination of data to return records newer than the requested ts,
@@ -6616,7 +6616,7 @@ export default class okx extends Exchange {
          */
         await this.loadMarkets ();
         const currency = this.currency (code);
-        const request = {
+        const request: Dict = {
             'ccy': currency['id'],
             // 'after': this.milliseconds (), // Pagination of data to return records earlier than the requested ts,
             // 'before': since, // Pagination of data to return records newer than the requested ts,
@@ -6652,7 +6652,7 @@ export default class okx extends Exchange {
         const market = this.market (symbol);
         const posSide = this.safeString (params, 'posSide', 'net');
         params = this.omit (params, [ 'posSide' ]);
-        const request = {
+        const request: Dict = {
             'instId': market['id'],
             'amt': amount,
             'type': type,
@@ -6809,7 +6809,7 @@ export default class okx extends Exchange {
         if (marginMode === undefined) {
             marginMode = this.safeString (params, 'tdMode', 'cross'); // cross as default marginMode
         }
-        const request = {
+        const request: Dict = {
             'instType': type,
             'tdMode': marginMode,
             'uly': uly,
@@ -6905,7 +6905,7 @@ export default class okx extends Exchange {
         if (marginMode === undefined) {
             marginMode = this.safeString (params, 'mgnMode', 'cross'); // cross as default marginMode
         }
-        const request = {
+        const request: Dict = {
             'mgnMode': marginMode,
         };
         let market = undefined;
@@ -6980,7 +6980,7 @@ export default class okx extends Exchange {
          */
         await this.loadMarkets ();
         const currency = this.currency (code);
-        const request = {
+        const request: Dict = {
             'ccy': currency['id'],
             'amt': this.currencyToPrecision (code, amount),
             'side': 'borrow',
@@ -7025,7 +7025,7 @@ export default class okx extends Exchange {
             throw new ArgumentsRequired (this.id + ' repayCrossMargin() requires an id parameter');
         }
         const currency = this.currency (code);
-        const request = {
+        const request: Dict = {
             'ccy': currency['id'],
             'amt': this.currencyToPrecision (code, amount),
             'side': 'repay',
@@ -7093,7 +7093,7 @@ export default class okx extends Exchange {
         }
         const type = this.convertToInstrumentType (market['type']);
         const uly = this.safeString (market['info'], 'uly');
-        const request = {
+        const request: Dict = {
             'instType': type,
             'uly': uly,
             'instId': market['id'],
@@ -7150,7 +7150,7 @@ export default class okx extends Exchange {
             const currency = this.currency (symbol);
             currencyId = currency['id'];
         }
-        const request = {
+        const request: Dict = {
             'ccy': currencyId,
             'period': timeframe,
         };
@@ -7333,7 +7333,7 @@ export default class okx extends Exchange {
         //   }
         // ]
         //
-        const depositWithdrawFees = {};
+        const depositWithdrawFees: Dict = {};
         codes = this.marketCodes (codes);
         for (let i = 0; i < response.length; i++) {
             const feeInfo = response[i];
@@ -7349,11 +7349,11 @@ export default class okx extends Exchange {
                 const chainSplit = chain.split ('-');
                 const networkId = this.safeValue (chainSplit, 1);
                 const withdrawFee = this.safeNumber (feeInfo, 'minFee');
-                const withdrawResult = {
+                const withdrawResult: Dict = {
                     'fee': withdrawFee,
                     'percentage': (withdrawFee !== undefined) ? false : undefined,
                 };
-                const depositResult = {
+                const depositResult: Dict = {
                     'fee': undefined,
                     'percentage': undefined,
                 };
@@ -7395,7 +7395,7 @@ export default class okx extends Exchange {
         if (type !== 'future' && type !== 'option') {
             throw new NotSupported (this.id + ' fetchSettlementHistory() supports futures and options markets only');
         }
-        const request = {
+        const request: Dict = {
             'instType': this.convertToInstrumentType (type),
             'uly': market['baseId'] + '-' + market['quoteId'],
         };
@@ -7496,7 +7496,7 @@ export default class okx extends Exchange {
         if ((marketType !== 'option') && (marketType !== 'swap') && (marketType !== 'future')) {
             throw new NotSupported (this.id + ' fetchUnderlyingAssets() supports contract markets only');
         }
-        const request = {
+        const request: Dict = {
             'instType': this.convertToInstrumentType (marketType),
         };
         const response = await this.publicGetPublicUnderlying (this.extend (request, params));
@@ -7530,7 +7530,7 @@ export default class okx extends Exchange {
         const market = this.market (symbol);
         const marketId = market['id'];
         const optionParts = marketId.split ('-');
-        const request = {
+        const request: Dict = {
             'uly': market['info']['uly'],
             'instFamily': market['info']['instFamily'],
             'expTime': this.safeString (optionParts, 2),
@@ -7650,7 +7650,7 @@ export default class okx extends Exchange {
         const code = this.safeString (params, 'code');
         let marginMode = undefined;
         [ marginMode, params ] = this.handleMarginModeAndParams ('closePosition', params, 'cross');
-        const request = {
+        const request: Dict = {
             'instId': market['id'],
             'mgnMode': marginMode,
         };
@@ -7705,7 +7705,7 @@ export default class okx extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'instId': market['id'],
         };
         const response = await this.publicGetMarketTicker (this.extend (request, params));
@@ -7753,7 +7753,7 @@ export default class okx extends Exchange {
          */
         await this.loadMarkets ();
         const currency = this.currency (code);
-        const request = {
+        const request: Dict = {
             'uly': currency['code'] + '-USD',
             'instType': 'OPTION',
         };
@@ -7846,7 +7846,7 @@ export default class okx extends Exchange {
          * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/#/?id=conversion-structure}
          */
         await this.loadMarkets ();
-        const request = {
+        const request: Dict = {
             'baseCcy': fromCode.toUpperCase (),
             'quoteCcy': toCode.toUpperCase (),
             'rfqSzCcy': fromCode.toUpperCase (),
@@ -7900,7 +7900,7 @@ export default class okx extends Exchange {
          * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/#/?id=conversion-structure}
          */
         await this.loadMarkets ();
-        const request = {
+        const request: Dict = {
             'quoteId': id,
             'baseCcy': fromCode,
             'quoteCcy': toCode,
@@ -7952,7 +7952,7 @@ export default class okx extends Exchange {
          * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/#/?id=conversion-structure}
          */
         await this.loadMarkets ();
-        const request = {
+        const request: Dict = {
             'clTReqId': id,
         };
         const response = await this.privateGetAssetConvertHistory (this.extend (request, params));
@@ -8006,7 +8006,7 @@ export default class okx extends Exchange {
          * @returns {object[]} a list of [conversion structures]{@link https://docs.ccxt.com/#/?id=conversion-structure}
          */
         await this.loadMarkets ();
-        let request = {};
+        let request: Dict = {};
         [ request, params ] = this.handleUntilOption ('after', request, params);
         if (since !== undefined) {
             request['before'] = since;
@@ -8136,7 +8136,7 @@ export default class okx extends Exchange {
         //         "msg": ""
         //     }
         //
-        const result = {};
+        const result: Dict = {};
         const data = this.safeList (response, 'data', []);
         for (let i = 0; i < data.length; i++) {
             const entry = data[i];
@@ -8242,7 +8242,7 @@ export default class okx extends Exchange {
                 throw new BadRequest (this.id + ' cannot fetch margin adjustments for type ' + type);
             }
         }
-        const request = {
+        const request: Dict = {
             'subType': subType,
             'mgnMode': 'isolated',
         };
@@ -8342,7 +8342,7 @@ export default class okx extends Exchange {
         if (limit === undefined) {
             limit = 100;
         }
-        const request = {
+        const request: Dict = {
             'limit': limit,
         };
         if (symbols !== undefined) {

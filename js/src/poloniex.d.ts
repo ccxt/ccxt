@@ -19,7 +19,7 @@ export default class poloniex extends Exchange {
     parseTrade(trade: any, market?: Market): Trade;
     fetchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     fetchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
-    parseOrderStatus(status: any): string;
+    parseOrderStatus(status: Str): string;
     parseOrder(order: any, market?: Market): Order;
     parseOrderType(status: any): string;
     parseOpenOrders(orders: any, market: any, result: any): any;
@@ -56,8 +56,8 @@ export default class poloniex extends Exchange {
     fetchTransactionsHelper(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<any>;
     fetchDepositsWithdrawals(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
     fetchWithdrawals(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
-    fetchDepositWithdrawFees(codes?: Strings, params?: {}): Promise<{}>;
-    parseDepositWithdrawFees(response: any, codes?: any, currencyIdKey?: any): {};
+    fetchDepositWithdrawFees(codes?: Strings, params?: {}): Promise<Dict>;
+    parseDepositWithdrawFees(response: any, codes?: any, currencyIdKey?: any): Dict;
     parseDepositWithdrawFee(fee: any, currency?: Currency): any;
     fetchDeposits(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
     parseTransactionStatus(status: any): string;

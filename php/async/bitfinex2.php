@@ -1454,7 +1454,7 @@ class bitfinex2 extends Exchange {
         );
     }
 
-    public function parse_order_status($status) {
+    public function parse_order_status(?string $status) {
         if ($status === null) {
             return $status;
         }

@@ -4572,7 +4572,7 @@ export default class coinbase extends Exchange {
                     //     uri = uri.slice (0, quesPos);
                     // }
                     // const nonce = this.randomBytes (16);
-                    // const request = {
+                    // const request: Dict = {
                     //     'aud': [ 'retail_rest_api_proxy' ],
                     //     'iss': 'coinbase-cloud',
                     //     'nbf': seconds,

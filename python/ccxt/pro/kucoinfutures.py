@@ -145,14 +145,14 @@ class kucoinfutures(ccxt.async_support.kucoinfutures):
 
     async def subscribe(self, url, messageHash, subscriptionHash, subscription, params={}):
         requestId = str(self.request_id())
-        request = {
+        request: dict = {
             'id': requestId,
             'type': 'subscribe',
             'topic': subscriptionHash,
             'response': True,
         }
         message = self.extend(request, params)
-        subscriptionRequest = {
+        subscriptionRequest: dict = {
             'id': requestId,
         }
         if subscription is None:
@@ -163,7 +163,7 @@ class kucoinfutures(ccxt.async_support.kucoinfutures):
 
     async def subscribe_multiple(self, url, messageHashes, topic, subscriptionHashes, subscriptionArgs, params={}):
         requestId = str(self.request_id())
-        request = {
+        request: dict = {
             'id': requestId,
             'type': 'subscribe',
             'topic': topic,
@@ -196,7 +196,7 @@ class kucoinfutures(ccxt.async_support.kucoinfutures):
         await self.load_markets()
         ticker = await self.watch_multi_request('watchTickers', '/contractMarket/ticker:', symbols, params)
         if self.newUpdates:
-            tickers = {}
+            tickers: dict = {}
             tickers[ticker['symbol']] = ticker
             return tickers
         return self.filter_by_array(self.tickers, 'symbol', symbols)
@@ -240,7 +240,7 @@ class kucoinfutures(ccxt.async_support.kucoinfutures):
         """
         ticker = await self.watch_multi_request('watchBidsAsks', '/contractMarket/tickerV2:', symbols, params)
         if self.newUpdates:
-            tickers = {}
+            tickers: dict = {}
             tickers[ticker['symbol']] = ticker
             return tickers
         return self.filter_by_array(self.bidsasks, 'symbol', symbols)
@@ -263,13 +263,13 @@ class kucoinfutures(ccxt.async_support.kucoinfutures):
         marketIds = self.market_ids(symbols)
         joined = ','.join(marketIds)
         requestId = str(self.request_id())
-        request = {
+        request: dict = {
             'id': requestId,
             'type': 'subscribe',
             'topic': channelName + joined,
             'response': True,
         }
-        subscription = {
+        subscription: dict = {
             'id': requestId,
         }
         return await self.watch_multiple(url, messageHashes, self.extend(request, params), messageHashes, subscription)
@@ -327,7 +327,7 @@ class kucoinfutures(ccxt.async_support.kucoinfutures):
         url = await self.negotiate(True)
         market = self.market(symbol)
         topic = '/contract/position:' + market['id']
-        request = {
+        request: dict = {
             'privateChannel': True,
         }
         messageHash = 'position:' + market['symbol']
@@ -663,7 +663,7 @@ class kucoinfutures(ccxt.async_support.kucoinfutures):
         marketIds = self.market_ids(symbols)
         url = await self.negotiate(False)
         topic = '/contractMarket/level2:' + ','.join(marketIds)
-        subscriptionArgs = {
+        subscriptionArgs: dict = {
             'limit': limit,
         }
         subscriptionHashes = []
@@ -790,7 +790,7 @@ class kucoinfutures(ccxt.async_support.kucoinfutures):
         await self.load_markets()
         url = await self.negotiate(True)
         topic = '/contractMarket/tradeOrders'
-        request = {
+        request: dict = {
             'privateChannel': True,
         }
         messageHash = 'orders'
@@ -804,7 +804,7 @@ class kucoinfutures(ccxt.async_support.kucoinfutures):
         return self.filter_by_symbol_since_limit(orders, symbol, since, limit, True)
 
     def parse_ws_order_status(self, status):
-        statuses = {
+        statuses: dict = {
             'open': 'open',
             'filled': 'closed',
             'match': 'open',
@@ -903,10 +903,10 @@ class kucoinfutures(ccxt.async_support.kucoinfutures):
         await self.load_markets()
         url = await self.negotiate(True)
         topic = '/contractAccount/wallet'
-        request = {
+        request: dict = {
             'privateChannel': True,
         }
-        subscription = {
+        subscription: dict = {
             'method': self.handle_balance_subscription,
         }
         messageHash = 'balance'
@@ -948,7 +948,7 @@ class kucoinfutures(ccxt.async_support.kucoinfutures):
         self.check_required_credentials()
         messageHash = 'balance'
         selectedType = self.safe_string_2(self.options, 'watchBalance', 'defaultType', 'swap')  # spot, margin, main, funding, future, mining, trade, contract, pool
-        params = {
+        params: dict = {
             'type': selectedType,
         }
         snapshot = await self.fetch_balance(params)
@@ -1007,7 +1007,7 @@ class kucoinfutures(ccxt.async_support.kucoinfutures):
         #    }
         #
         subject = self.safe_string(message, 'subject')
-        methods = {
+        methods: dict = {
             'level2': self.handle_order_book,
             'ticker': self.handle_ticker,
             'candle.stick': self.handle_ohlcv,
@@ -1065,7 +1065,7 @@ class kucoinfutures(ccxt.async_support.kucoinfutures):
 
     def handle_message(self, client: Client, message):
         type = self.safe_string(message, 'type')
-        methods = {
+        methods: dict = {
             # 'heartbeat': self.handleHeartbeat,
             'welcome': self.handle_system_status,
             'message': self.handle_subject,

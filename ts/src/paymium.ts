@@ -116,7 +116,7 @@ export default class paymium extends Exchange {
     }
 
     parseBalance (response): Balances {
-        const result = { 'info': response };
+        const result: Dict = { 'info': response };
         const currencies = Object.keys (this.currencies);
         for (let i = 0; i < currencies.length; i++) {
             const code = currencies[i];
@@ -161,7 +161,7 @@ export default class paymium extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'currency': market['id'],
         };
         const response = await this.publicGetDataCurrencyDepth (this.extend (request, params));
@@ -229,7 +229,7 @@ export default class paymium extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'currency': market['id'],
         };
         const ticker = await this.publicGetDataCurrencyTicker (this.extend (request, params));
@@ -293,7 +293,7 @@ export default class paymium extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'currency': market['id'],
         };
         const response = await this.publicGetDataCurrencyTrades (this.extend (request, params));
@@ -334,7 +334,7 @@ export default class paymium extends Exchange {
          * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
          */
         await this.loadMarkets ();
-        const request = {
+        const request: Dict = {
             'address': code,
         };
         const response = await this.privateGetUserAddressesAddress (this.extend (request, params));
@@ -410,7 +410,7 @@ export default class paymium extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'type': this.capitalize (type) + 'Order',
             'currency': market['id'],
             'direction': side,
@@ -438,7 +438,7 @@ export default class paymium extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
-        const request = {
+        const request: Dict = {
             'uuid': id,
         };
         return await this.privateDeleteUserOrdersUuidCancel (this.extend (request, params));
@@ -465,7 +465,7 @@ export default class paymium extends Exchange {
         if (code !== 'BTC' && code !== 'EUR') {
             throw new ExchangeError (this.id + ' transfer() only allows BTC or EUR');
         }
-        const request = {
+        const request: Dict = {
             'currency': currency['id'],
             'amount': this.currencyToPrecision (code, amount),
             'email': toAccount,
@@ -560,7 +560,7 @@ export default class paymium extends Exchange {
     }
 
     parseTransferStatus (status: Str): Str {
-        const statuses = {
+        const statuses: Dict = {
             'executed': 'ok',
             // what are the other statuses?
         };

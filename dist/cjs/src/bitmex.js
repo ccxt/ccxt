@@ -1489,7 +1489,7 @@ class bitmex extends bitmex$1 {
         }
         // send JSON key/value pairs, such as {"key": "value"}
         // filter by individual fields and do advanced queries on timestamps
-        // let filter = { 'key': 'value' };
+        // let filter: Dict = { 'key': 'value' };
         // send a bare series (e.g. XBU) to nearest expiring contract in that series
         // you can also send a timeframe, e.g. XBU:monthly
         // timeframes: daily, weekly, monthly, quarterly, and biquarterly

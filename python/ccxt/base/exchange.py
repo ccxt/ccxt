@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.3.29'
+__version__ = '4.3.30'
 
 # -----------------------------------------------------------------------------
 
@@ -5185,7 +5185,7 @@ class Exchange(object):
         :returns float[][]: A list of candles ordered, open, high, low, close, None
         """
         if self.has['fetchMarkOHLCV']:
-            request = {
+            request: dict = {
                 'price': 'mark',
             }
             return self.fetch_ohlcv(symbol, timeframe, since, limit, self.extend(request, params))
@@ -5203,7 +5203,7 @@ class Exchange(object):
          * @returns {} A list of candles ordered, open, high, low, close, None
         """
         if self.has['fetchIndexOHLCV']:
-            request = {
+            request: dict = {
                 'price': 'index',
             }
             return self.fetch_ohlcv(symbol, timeframe, since, limit, self.extend(request, params))
@@ -5221,7 +5221,7 @@ class Exchange(object):
         :returns float[][]: A list of candles ordered, open, high, low, close, None
         """
         if self.has['fetchPremiumIndexOHLCV']:
-            request = {
+            request: dict = {
                 'price': 'premiumIndex',
             }
             return self.fetch_ohlcv(symbol, timeframe, since, limit, self.extend(request, params))
@@ -5712,6 +5712,8 @@ class Exchange(object):
 
     def parse_margin_modes(self, response: List[object], symbols: List[str] = None, symbolKey: Str = None, marketType: MarketType = None):
         marginModeStructures = {}
+        if marketType is None:
+            marketType = 'swap'  # default to swap
         for i in range(0, len(response)):
             info = response[i]
             marketId = self.safe_string(info, symbolKey)
@@ -5725,6 +5727,8 @@ class Exchange(object):
 
     def parse_leverages(self, response: List[object], symbols: List[str] = None, symbolKey: Str = None, marketType: MarketType = None):
         leverageStructures = {}
+        if marketType is None:
+            marketType = 'swap'  # default to swap
         for i in range(0, len(response)):
             info = response[i]
             marketId = self.safe_string(info, symbolKey)

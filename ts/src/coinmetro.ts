@@ -303,7 +303,7 @@ export default class coinmetro extends Exchange {
         //         ...
         //     ]
         //
-        const result = {};
+        const result: Dict = {};
         for (let i = 0; i < response.length; i++) {
             const currency = response[i];
             const id = this.safeString (currency, 'symbol');
@@ -462,7 +462,7 @@ export default class coinmetro extends Exchange {
                 }
             }
         }
-        const result = {
+        const result: Dict = {
             'baseId': baseId,
             'quoteId': quoteId,
         };
@@ -476,7 +476,7 @@ export default class coinmetro extends Exchange {
         const limits = this.safeValue (currency, 'limits', {});
         const amountLimits = this.safeValue (limits, 'amount', {});
         const minLimit = this.safeNumber (amountLimits, 'min');
-        const result = {
+        const result: Dict = {
             'precision': precision,
             'minLimit': minLimit,
         };
@@ -499,7 +499,7 @@ export default class coinmetro extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'pair': market['id'],
             'timeframe': this.safeString (this.timeframes, timeframe, timeframe),
         };
@@ -577,7 +577,7 @@ export default class coinmetro extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'pair': market['id'],
         };
         if (since !== undefined) {
@@ -636,7 +636,7 @@ export default class coinmetro extends Exchange {
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        const request = {};
+        const request: Dict = {};
         if (since !== undefined) {
             request['since'] = since;
         } else {
@@ -743,7 +743,7 @@ export default class coinmetro extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'pair': market['id'],
         };
         const response = await this.publicGetExchangeBookPair (this.extend (request, params));
@@ -777,7 +777,7 @@ export default class coinmetro extends Exchange {
         const book = this.safeValue (response, 'book', {});
         const rawBids = this.safeValue (book, 'bid', {});
         const rawAsks = this.safeValue (book, 'ask', {});
-        const rawOrderbook = {
+        const rawOrderbook: Dict = {
             'bids': rawBids,
             'asks': rawAsks,
         };
@@ -860,7 +860,7 @@ export default class coinmetro extends Exchange {
         //
         const latestPrices = this.safeValue (response, 'latestPrices', []);
         const twentyFourHInfos = this.safeValue (response, '24hInfo', []);
-        const tickersObject = {};
+        const tickersObject: Dict = {};
         // merging info from two lists into one
         for (let i = 0; i < latestPrices.length; i++) {
             const latestPrice = latestPrices[i];
@@ -989,7 +989,7 @@ export default class coinmetro extends Exchange {
         //         ...
         //     ]
         //
-        const result = {
+        const result: Dict = {
             'info': balances,
         };
         for (let i = 0; i < balances.length; i++) {
@@ -1018,7 +1018,7 @@ export default class coinmetro extends Exchange {
          * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
          */
         await this.loadMarkets ();
-        const request = {};
+        const request: Dict = {};
         if (since !== undefined) {
             request['since'] = since;
         } else {
@@ -1195,7 +1195,7 @@ export default class coinmetro extends Exchange {
     }
 
     parseLedgerEntryType (type) {
-        const types = {
+        const types: Dict = {
             'Deposit': 'transaction',
             'Withdraw': 'transaction',
             'Order': 'trade',
@@ -1228,7 +1228,7 @@ export default class coinmetro extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        let request = {
+        let request: Dict = {
         };
         request['orderType'] = type;
         let precisedAmount = undefined;
@@ -1328,7 +1328,7 @@ export default class coinmetro extends Exchange {
     }
 
     encodeOrderTimeInForce (timeInForce) {
-        const timeInForceTypes = {
+        const timeInForceTypes: Dict = {
             'GTC': 1,
             'IOC': 2,
             'GTD': 3,
@@ -1351,7 +1351,7 @@ export default class coinmetro extends Exchange {
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
-        const request = {
+        const request: Dict = {
             'orderID': id,
         };
         const marginMode = undefined;
@@ -1404,7 +1404,7 @@ export default class coinmetro extends Exchange {
         if (orderId === undefined) {
             throw new ArgumentsRequired (this.id + ' closePosition() requires a orderId parameter');
         }
-        const request = {
+        const request: Dict = {
             'orderID': orderId,
         };
         const response = await this.privatePostExchangeOrdersCloseOrderID (this.extend (request, params));
@@ -1483,7 +1483,7 @@ export default class coinmetro extends Exchange {
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        const request = {};
+        const request: Dict = {};
         if (since !== undefined) {
             request['since'] = since;
         }
@@ -1503,7 +1503,7 @@ export default class coinmetro extends Exchange {
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
-        const request = {
+        const request: Dict = {
             'orderID': id,
         };
         const response = await this.privateGetExchangeOrdersStatusOrderID (this.extend (request, params));
@@ -1848,7 +1848,7 @@ export default class coinmetro extends Exchange {
         await this.loadMarkets ();
         const currency = this.currency (code);
         const currencyId = currency['id'];
-        const request = {};
+        const request: Dict = {};
         request[currencyId] = this.currencyToPrecision (code, amount);
         const response = await this.privatePutUsersMarginCollateral (this.extend (request, params));
         //

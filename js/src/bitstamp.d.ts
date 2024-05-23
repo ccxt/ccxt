@@ -54,18 +54,16 @@ export default class bitstamp extends Exchange {
     fetchBalance(params?: {}): Promise<Balances>;
     fetchTradingFee(symbol: string, params?: {}): Promise<TradingFeeInterface>;
     parseTradingFee(fee: any, market?: Market): TradingFeeInterface;
-    parseTradingFees(fees: any): {
-        info: any;
-    };
+    parseTradingFees(fees: any): Dict;
     fetchTradingFees(params?: {}): Promise<TradingFees>;
-    fetchTransactionFees(codes?: string[], params?: {}): Promise<{}>;
-    parseTransactionFees(response: any, codes?: any): {};
+    fetchTransactionFees(codes?: string[], params?: {}): Promise<Dict>;
+    parseTransactionFees(response: any, codes?: any): Dict;
     fetchDepositWithdrawFees(codes?: any, params?: {}): Promise<any>;
     parseDepositWithdrawFee(fee: any, currency?: any): any;
     createOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): Promise<Order>;
     cancelOrder(id: string, symbol?: Str, params?: {}): Promise<any>;
     cancelAllOrders(symbol?: Str, params?: {}): Promise<any>;
-    parseOrderStatus(status: any): string;
+    parseOrderStatus(status: Str): string;
     fetchOrderStatus(id: string, symbol?: Str, params?: {}): Promise<string>;
     fetchOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
     fetchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;

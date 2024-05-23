@@ -31,9 +31,7 @@ export default class blockchaincom extends Exchange {
     fetchOrdersByState(state: any, symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     parseTrade(trade: any, market?: Market): Trade;
     fetchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
-    fetchDepositAddress(code: string, params?: {}): Promise<{
-        info: any;
-    }>;
+    fetchDepositAddress(code: string, params?: {}): Promise<Dict>;
     parseTransactionState(state: any): string;
     parseTransaction(transaction: any, currency?: Currency): Transaction;
     withdraw(code: string, amount: number, address: string, tag?: any, params?: {}): Promise<Transaction>;

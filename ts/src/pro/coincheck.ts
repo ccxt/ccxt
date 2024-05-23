@@ -3,7 +3,7 @@
 
 import coincheckRest from '../coincheck.js';
 import { AuthenticationError } from '../base/errors.js';
-import type { Int, Market, OrderBook, Trade } from '../base/types.js';
+import type { Int, Market, OrderBook, Trade, Dict } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 import { ArrayCache } from '../base/ws/Cache.js';
 
@@ -60,7 +60,7 @@ export default class coincheck extends coincheckRest {
         const market = this.market (symbol);
         const messageHash = 'orderbook:' + market['symbol'];
         const url = this.urls['api']['ws'];
-        const request = {
+        const request: Dict = {
             'type': 'subscribe',
             'channel': market['id'] + '-orderbook',
         };
@@ -123,7 +123,7 @@ export default class coincheck extends coincheckRest {
         symbol = market['symbol'];
         const messageHash = 'trade:' + market['symbol'];
         const url = this.urls['api']['ws'];
-        const request = {
+        const request: Dict = {
             'type': 'subscribe',
             'channel': market['id'] + '-trades',
         };

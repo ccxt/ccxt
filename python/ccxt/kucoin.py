@@ -1036,7 +1036,7 @@ class kucoin(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data')
         options = self.safe_dict(self.options, 'fetchMarkets', {})
         fetchTickersFees = self.safe_bool(options, 'fetchTickersFees', True)
-        tickersResponse = {}
+        tickersResponse: dict = {}
         if fetchTickersFees:
             tickersResponse = self.publicGetMarketAllTickers(params)
         #
@@ -1218,7 +1218,7 @@ class kucoin(Exchange, ImplicitAPI):
         additionalResponse = self.safe_dict(responses, 1, {})
         additionalData = self.safe_list(additionalResponse, 'data', [])
         additionalDataGrouped = self.group_by(additionalData, 'currency')
-        result = {}
+        result: dict = {}
         for i in range(0, len(currenciesData)):
             entry = currenciesData[i]
             id = self.safe_string(entry, 'currency')
@@ -1226,7 +1226,7 @@ class kucoin(Exchange, ImplicitAPI):
             code = self.safe_currency_code(id)
             isWithdrawEnabled = None
             isDepositEnabled = None
-            networks = {}
+            networks: dict = {}
             chains = self.safe_list(entry, 'chains', [])
             extraChainsData = self.index_by(self.safe_list(additionalDataGrouped, id, []), 'chain')
             rawPrecision = self.safe_string(entry, 'precision')
@@ -1348,7 +1348,7 @@ class kucoin(Exchange, ImplicitAPI):
         """
         self.load_markets()
         currency = self.currency(code)
-        request = {
+        request: dict = {
             'currency': currency['id'],
         }
         networkCode = None
@@ -1357,7 +1357,7 @@ class kucoin(Exchange, ImplicitAPI):
             request['chain'] = self.network_code_to_id(networkCode).lower()
         response = self.privateGetWithdrawalsQuotas(self.extend(request, params))
         data = self.safe_dict(response, 'data', {})
-        withdrawFees = {}
+        withdrawFees: dict = {}
         withdrawFees[code] = self.safe_number(data, 'withdrawMinFee')
         return {
             'info': response,
@@ -1376,7 +1376,7 @@ class kucoin(Exchange, ImplicitAPI):
         """
         self.load_markets()
         currency = self.currency(code)
-        request = {
+        request: dict = {
             'currency': currency['id'],
         }
         networkCode = None
@@ -1421,7 +1421,7 @@ class kucoin(Exchange, ImplicitAPI):
         #        "chain": "ERC20"
         #    }
         #
-        result = {
+        result: dict = {
             'info': fee,
             'withdraw': {
                 'fee': None,
@@ -1598,7 +1598,7 @@ class kucoin(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 'data', {})
         tickers = self.safe_list(data, 'ticker', [])
         time = self.safe_integer(data, 'time')
-        result = {}
+        result: dict = {}
         for i in range(0, len(tickers)):
             tickers[i]['time'] = time
             ticker = self.parse_ticker(tickers[i])
@@ -1617,7 +1617,7 @@ class kucoin(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'symbol': market['id'],
         }
         response = self.publicGetMarketStats(self.extend(request, params))
@@ -1686,7 +1686,7 @@ class kucoin(Exchange, ImplicitAPI):
             return self.fetch_paginated_call_deterministic('fetchOHLCV', symbol, since, limit, timeframe, params, 1500)
         market = self.market(symbol)
         marketId = market['id']
-        request = {
+        request: dict = {
             'symbol': marketId,
             'type': self.safe_string(self.timeframes, timeframe, timeframe),
         }
@@ -1730,7 +1730,7 @@ class kucoin(Exchange, ImplicitAPI):
         """
         self.load_markets()
         currency = self.currency(code)
-        request = {
+        request: dict = {
             'currency': currency['id'],
         }
         networkCode = None
@@ -1755,7 +1755,7 @@ class kucoin(Exchange, ImplicitAPI):
         """
         self.load_markets()
         currency = self.currency(code)
-        request = {
+        request: dict = {
             'currency': currency['id'],
             # for USDT - OMNI, ERC20, TRC20, default is ERC20
             # for BTC - Native, Segwit, TRC20, the parameters are bech32, btc, trx, default is Native
@@ -1805,7 +1805,7 @@ class kucoin(Exchange, ImplicitAPI):
         """
         self.load_markets()
         currency = self.currency(code)
-        request = {
+        request: dict = {
             'currency': currency['id'],
         }
         version = self.options['versions']['private']['GET']['deposit-addresses']
@@ -1846,7 +1846,7 @@ class kucoin(Exchange, ImplicitAPI):
         self.load_markets()
         market = self.market(symbol)
         level = self.safe_integer(params, 'level', 2)
-        request = {'symbol': market['id']}
+        request: dict = {'symbol': market['id']}
         isAuthenticated = self.check_required_credentials(False)
         response = None
         if not isAuthenticated or limit is not None:
@@ -2056,7 +2056,7 @@ class kucoin(Exchange, ImplicitAPI):
             orderRequest = self.create_order_request(marketId, type, side, amount, price, orderParams)
             ordersRequests.append(orderRequest)
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'symbol': market['id'],
             'orderList': ordersRequests,
         }
@@ -2113,7 +2113,7 @@ class kucoin(Exchange, ImplicitAPI):
         # required param, cannot be used twice
         clientOrderId = self.safe_string_2(params, 'clientOid', 'clientOrderId', self.uuid())
         params = self.omit(params, ['clientOid', 'clientOrderId'])
-        request = {
+        request: dict = {
             'clientOid': clientOrderId,
             'side': side,
             'symbol': market['id'],
@@ -2181,7 +2181,7 @@ class kucoin(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'symbol': market['id'],
         }
         clientOrderId = self.safe_string_2(params, 'clientOid', 'clientOrderId')
@@ -2222,7 +2222,7 @@ class kucoin(Exchange, ImplicitAPI):
         :returns: Response from the exchange
         """
         self.load_markets()
-        request = {}
+        request: dict = {}
         clientOrderId = self.safe_string_2(params, 'clientOid', 'clientOrderId')
         stop = self.safe_bool_2(params, 'stop', 'trigger', False)
         hf = self.safe_bool(params, 'hf', False)
@@ -2267,7 +2267,7 @@ class kucoin(Exchange, ImplicitAPI):
         :returns: Response from the exchange
         """
         self.load_markets()
-        request = {}
+        request: dict = {}
         stop = self.safe_bool(params, 'stop', False)
         hf = self.safe_bool(params, 'hf', False)
         params = self.omit(params, ['stop', 'hf'])
@@ -2324,7 +2324,7 @@ class kucoin(Exchange, ImplicitAPI):
             lowercaseStatus = 'active'
         elif lowercaseStatus == 'closed':
             lowercaseStatus = 'done'
-        request = {
+        request: dict = {
             'status': lowercaseStatus,
         }
         market = None
@@ -2473,7 +2473,7 @@ class kucoin(Exchange, ImplicitAPI):
         :returns: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
-        request = {}
+        request: dict = {}
         clientOrderId = self.safe_string_2(params, 'clientOid', 'clientOrderId')
         stop = self.safe_bool(params, 'stop', False)
         hf = self.safe_bool(params, 'hf', False)
@@ -2701,7 +2701,7 @@ class kucoin(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
         """
-        request = {
+        request: dict = {
             'orderId': id,
         }
         return self.fetch_my_trades(symbol, since, limit, self.extend(request, params))
@@ -2725,7 +2725,7 @@ class kucoin(Exchange, ImplicitAPI):
         paginate, params = self.handle_option_and_params(params, 'fetchMyTrades', 'paginate')
         if paginate:
             return self.fetch_paginated_call_dynamic('fetchMyTrades', symbol, since, limit, params)
-        request = {}
+        request: dict = {}
         hf = self.safe_bool(params, 'hf', False)
         if hf and symbol is None:
             raise ArgumentsRequired(self.id + ' fetchMyTrades() requires a symbol parameter for hf orders')
@@ -2815,7 +2815,7 @@ class kucoin(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'symbol': market['id'],
         }
         # pagination is not supported on the exchange side anymore
@@ -2978,7 +2978,7 @@ class kucoin(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'symbols': market['id'],
         }
         response = self.privateGetTradeFees(self.extend(request, params))
@@ -3021,7 +3021,7 @@ class kucoin(Exchange, ImplicitAPI):
         self.load_markets()
         self.check_address(address)
         currency = self.currency(code)
-        request = {
+        request: dict = {
             'currency': currency['id'],
             'address': address,
             # 'memo': tag,
@@ -3067,7 +3067,7 @@ class kucoin(Exchange, ImplicitAPI):
                 # if precision exists, no need to refetch
                 return
             # otherwise try to fetch and store in instance
-            request = {
+            request: dict = {
                 'currency': currency['id'],
                 'chain': self.network_code_to_id(networkCode).lower(),
             }
@@ -3101,7 +3101,7 @@ class kucoin(Exchange, ImplicitAPI):
             self.currencies[code]['networks'][networkCode]['precision'] = precision
 
     def parse_transaction_status(self, status):
-        statuses = {
+        statuses: dict = {
             'SUCCESS': 'ok',
             'PROCESSING': 'pending',
             'WALLET_PROCESSING': 'pending',
@@ -3231,7 +3231,7 @@ class kucoin(Exchange, ImplicitAPI):
         paginate, params = self.handle_option_and_params(params, 'fetchDeposits', 'paginate')
         if paginate:
             return self.fetch_paginated_call_dynamic('fetchDeposits', code, since, limit, params)
-        request = {}
+        request: dict = {}
         currency = None
         if code is not None:
             currency = self.currency(code)
@@ -3307,7 +3307,7 @@ class kucoin(Exchange, ImplicitAPI):
         paginate, params = self.handle_option_and_params(params, 'fetchWithdrawals', 'paginate')
         if paginate:
             return self.fetch_paginated_call_dynamic('fetchWithdrawals', code, since, limit, params)
-        request = {}
+        request: dict = {}
         currency = None
         if code is not None:
             currency = self.currency(code)
@@ -3404,7 +3404,7 @@ class kucoin(Exchange, ImplicitAPI):
         params = self.omit(params, 'hf')
         marginMode, query = self.handle_margin_mode_and_params('fetchBalance', params)
         response = None
-        request = {}
+        request: dict = {}
         isolated = (marginMode == 'isolated') or (type == 'isolated')
         cross = (marginMode == 'cross') or (type == 'margin')
         if isolated:
@@ -3496,7 +3496,7 @@ class kucoin(Exchange, ImplicitAPI):
         #    }
         #
         data = None
-        result = {
+        result: dict = {
             'info': response,
             'timestamp': None,
             'datetime': None,
@@ -3512,7 +3512,7 @@ class kucoin(Exchange, ImplicitAPI):
                 quote = self.safe_dict(entry, 'quoteAsset', {})
                 baseCode = self.safe_currency_code(self.safe_string(base, 'currency'))
                 quoteCode = self.safe_currency_code(self.safe_string(quote, 'currency'))
-                subResult = {}
+                subResult: dict = {}
                 subResult[baseCode] = self.parse_balance_helper(base)
                 subResult[quoteCode] = self.parse_balance_helper(quote)
                 result[symbol] = self.safe_balance(subResult)
@@ -3563,7 +3563,7 @@ class kucoin(Exchange, ImplicitAPI):
         if fromId == 'contract':
             if toId != 'main':
                 raise ExchangeError(self.id + ' transfer() only supports transferring from futures account to main account')
-            request = {
+            request: dict = {
                 'currency': currency['id'],
                 'amount': requestedAmount,
             }
@@ -3598,7 +3598,7 @@ class kucoin(Exchange, ImplicitAPI):
             data = self.safe_dict(response, 'data')
             return self.parse_transfer(data, currency)
         else:
-            request = {
+            request: dict = {
                 'currency': currency['id'],
                 'amount': requestedAmount,
             }
@@ -3681,13 +3681,13 @@ class kucoin(Exchange, ImplicitAPI):
         }
 
     def parse_transfer_status(self, status: Str) -> Str:
-        statuses = {
+        statuses: dict = {
             'PROCESSING': 'pending',
         }
         return self.safe_string(statuses, status, status)
 
     def parse_ledger_entry_type(self, type):
-        types = {
+        types: dict = {
             'Assets Transferred in After Upgrading': 'transfer',  # Assets Transferred in After V1 to V2 Upgrading
             'Deposit': 'transaction',  # Deposit
             'Withdrawal': 'transaction',  # Withdrawal
@@ -3831,7 +3831,7 @@ class kucoin(Exchange, ImplicitAPI):
         params = self.omit(params, 'hf')
         if paginate:
             return self.fetch_paginated_call_dynamic('fetchLedger', code, since, limit, params)
-        request = {
+        request: dict = {
             # 'currency': currency['id'],  # can choose up to 10, if not provided returns for all currencies by default
             # 'direction': 'in',  # 'out'
             # 'bizType': 'DEPOSIT',  # DEPOSIT, WITHDRAW, TRANSFER, SUB_TRANSFER,TRADE_EXCHANGE, MARGIN_EXCHANGE, KUCOIN_BONUS(optional)
@@ -3971,7 +3971,7 @@ class kucoin(Exchange, ImplicitAPI):
         marginMode, params = self.handle_margin_mode_and_params('fetchBorrowInterest', params)
         if marginMode is None:
             marginMode = 'cross'  # cross marginMode
-        request = {}
+        request: dict = {}
         response = None
         if code is not None:
             currency = self.currency(code)
@@ -4138,7 +4138,7 @@ class kucoin(Exchange, ImplicitAPI):
         marginResult = self.handle_margin_mode_and_params('fetchBorrowRateHistories', params)
         marginMode = self.safe_string(marginResult, 0, 'cross')
         isIsolated = (marginMode == 'isolated')  # True-isolated, False-cross
-        request = {
+        request: dict = {
             'isIsolated': isIsolated,
         }
         if since is not None:
@@ -4188,7 +4188,7 @@ class kucoin(Exchange, ImplicitAPI):
         marginMode = self.safe_string(marginResult, 0, 'cross')
         isIsolated = (marginMode == 'isolated')  # True-isolated, False-cross
         currency = self.currency(code)
-        request = {
+        request: dict = {
             'isIsolated': isIsolated,
             'currency': currency['id'],
         }
@@ -4233,7 +4233,7 @@ class kucoin(Exchange, ImplicitAPI):
         #         }
         #     ]
         #
-        borrowRateHistories = {}
+        borrowRateHistories: dict = {}
         for i in range(0, len(response)):
             item = response[i]
             code = self.safe_currency_code(self.safe_string(item, 'currency'))
@@ -4260,7 +4260,7 @@ class kucoin(Exchange, ImplicitAPI):
         """
         self.load_markets()
         currency = self.currency(code)
-        request = {
+        request: dict = {
             'currency': currency['id'],
             'size': self.currency_to_precision(code, amount),
             'timeInForce': 'FOK',
@@ -4295,7 +4295,7 @@ class kucoin(Exchange, ImplicitAPI):
         self.load_markets()
         market = self.market(symbol)
         currency = self.currency(code)
-        request = {
+        request: dict = {
             'currency': currency['id'],
             'size': self.currency_to_precision(code, amount),
             'symbol': market['id'],
@@ -4329,7 +4329,7 @@ class kucoin(Exchange, ImplicitAPI):
         """
         self.load_markets()
         currency = self.currency(code)
-        request = {
+        request: dict = {
             'currency': currency['id'],
             'size': self.currency_to_precision(code, amount),
         }
@@ -4362,7 +4362,7 @@ class kucoin(Exchange, ImplicitAPI):
         self.load_markets()
         market = self.market(symbol)
         currency = self.currency(code)
-        request = {
+        request: dict = {
             'currency': currency['id'],
             'size': self.currency_to_precision(code, amount),
             'symbol': market['id'],

@@ -9,14 +9,8 @@ export default class coinmetro extends Exchange {
     fetchCurrencies(params?: {}): Promise<Currencies>;
     fetchMarkets(params?: {}): Promise<Market[]>;
     parseMarket(market: any): Market;
-    parseMarketId(marketId: any): {
-        baseId: any;
-        quoteId: any;
-    };
-    parseMarketPrecisionAndLimits(currencyId: any): {
-        precision: number;
-        minLimit: number;
-    };
+    parseMarketId(marketId: any): Dict;
+    parseMarketPrecisionAndLimits(currencyId: any): Dict;
     fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
     parseOHLCV(ohlcv: any, market?: Market): OHLCV;
     fetchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;

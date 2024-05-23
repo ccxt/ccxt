@@ -2541,7 +2541,7 @@ class bingx extends bingx$1 {
             'stopLossPrice': stopLossPrice,
             'takeProfitPrice': takeProfitPrice,
             'average': this.safeString2(order, 'avgPrice', 'ap'),
-            'cost': undefined,
+            'cost': this.safeString(order, 'cummulativeQuoteQty'),
             'amount': this.safeStringN(order, ['origQty', 'q', 'quantity']),
             'filled': this.safeString2(order, 'executedQty', 'z'),
             'remaining': undefined,

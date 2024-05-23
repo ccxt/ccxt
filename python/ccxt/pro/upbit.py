@@ -214,7 +214,7 @@ class upbit(ccxt.async_support.upbit):
         client.resolve(stored, messageHash)
 
     def handle_message(self, client: Client, message):
-        methods = {
+        methods: dict = {
             'ticker': self.handle_ticker,
             'orderbook': self.handle_order_book,
             'trade': self.handle_trades,

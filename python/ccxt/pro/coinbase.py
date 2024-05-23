@@ -121,7 +121,7 @@ class coinbase(ccxt.async_support.coinbase):
         return await self.watch_multiple(url, messageHashes, subscribe, messageHashes)
 
     def create_ws_auth(self, name: str, productIds: List[str]):
-        subscribe = {}
+        subscribe: dict = {}
         timestamp = self.number_to_string(self.seconds())
         self.check_required_credentials()
         isCloudAPiKey = (self.apiKey.find('organizations/') >= 0) or (self.secret.startswith('-----BEGIN'))
@@ -632,7 +632,7 @@ class coinbase(ccxt.async_support.coinbase):
 
     def handle_message(self, client, message):
         channel = self.safe_string(message, 'channel')
-        methods = {
+        methods: dict = {
             'subscriptions': self.handle_subscription_status,
             'ticker': self.handle_tickers,
             'ticker_batch': self.handle_tickers,
