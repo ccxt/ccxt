@@ -380,9 +380,12 @@ class poloniexfutures extends Exchange {
         $marketId = $this->safe_string($ticker, 'symbol');
         $symbol = $this->safe_symbol($marketId, $market);
         $timestampString = $this->safe_string($ticker, 'ts');
-        // check $timestamp bcz bug => https://app.travis-ci.com/github/ccxt/ccxt/builds/269959181#L4011 and also 17 digits occured
         $multiplier = null;
-        if (strlen($timestampString) === 17) {
+        if (strlen($timestampString) === 16) {
+            // 16 digits => https://app.travis-ci.com/github/ccxt/ccxt/builds/270587157#L5454
+            $multiplier = 0.001;
+        } elseif (strlen($timestampString) === 17) {
+            // 17 digits => https://app.travis-ci.com/github/ccxt/ccxt/builds/269959181#L4011
             $multiplier = 0.0001;
         } elseif (strlen($timestampString) === 18) {
             $multiplier = 0.00001;
@@ -465,7 +468,8 @@ class poloniexfutures extends Exchange {
              */
             Async\await($this->load_markets());
             $response = Async\await($this->publicGetTickers ($params));
-            return $this->parse_tickers($this->safe_value($response, 'data', array()), $symbols);
+            $data = $this->safe_list($response, 'data', array());
+            return $this->parse_tickers($data, $symbols);
         }) ();
     }
 

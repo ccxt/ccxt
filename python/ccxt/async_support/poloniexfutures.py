@@ -383,9 +383,12 @@ class poloniexfutures(Exchange, ImplicitAPI):
         marketId = self.safe_string(ticker, 'symbol')
         symbol = self.safe_symbol(marketId, market)
         timestampString = self.safe_string(ticker, 'ts')
-        # check timestamp bcz bug: https://app.travis-ci.com/github/ccxt/ccxt/builds/269959181#L4011 and also 17 digits occured
         multiplier = None
-        if len(timestampString) == 17:
+        if len(timestampString) == 16:
+            # 16 digits: https://app.travis-ci.com/github/ccxt/ccxt/builds/270587157#L5454
+            multiplier = 0.001
+        elif len(timestampString) == 17:
+            # 17 digits: https://app.travis-ci.com/github/ccxt/ccxt/builds/269959181#L4011
             multiplier = 0.0001
         elif len(timestampString) == 18:
             multiplier = 0.00001
@@ -462,7 +465,8 @@ class poloniexfutures(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         response = await self.publicGetTickers(params)
-        return self.parse_tickers(self.safe_value(response, 'data', []), symbols)
+        data = self.safe_list(response, 'data', [])
+        return self.parse_tickers(data, symbols)
 
     async def fetch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
