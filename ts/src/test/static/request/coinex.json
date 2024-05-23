@@ -1248,6 +1248,32 @@
                   5
                 ]
             }
+        ],
+        "borrowIsolatedMargin": [
+            {
+                "description": "Borrow isolated margin",
+                "method": "borrowIsolatedMargin",
+                "url": "https://api.coinex.com/v2/assets/margin/borrow",
+                "input": [
+                  "BTC/USDT",
+                  "USDT",
+                  60
+                ],
+                "output": "{\"borrow_amount\":\"60\",\"ccy\":\"USDT\",\"is_auto_renew\":false,\"market\":\"BTCUSDT\"}"
+            }
+        ],
+        "repayIsolatedMargin": [
+            {
+                "description": "Repay isolated margin",
+                "method": "repayIsolatedMargin",
+                "url": "https://api.coinex.com/v2/assets/margin/repay",
+                "input": [
+                  "BTC/USDT",
+                  "USDT",
+                  60.0025
+                ],
+                "output": "{\"amount\":\"60.0025\",\"ccy\":\"USDT\",\"market\":\"BTCUSDT\"}"
+            }
         ]
     },
     "disabledTests": {}
