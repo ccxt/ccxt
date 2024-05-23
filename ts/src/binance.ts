@@ -5913,9 +5913,13 @@ export default class binance extends Exchange {
                 }
             }
         } else {
-            postOnly = this.isPostOnly (isMarketOrder, timeInForce === 'GTX', params);
+            postOnly = this.isPostOnly (isMarketOrder, initialUppercaseType === 'LIMIT_MAKER', params);
             if (postOnly) {
-                request['timeInForce'] = 'GTX';
+                if (!market['contract']) {
+                    uppercaseType = 'LIMIT_MAKER'; // only this endpoint accepts GTXhttps://binance-docs.github.io/apidocs/pm/en/#new-margin-order-trade
+                } else {
+                    request['timeInForce'] = 'GTX';
+                }
             }
         }
         // handle newOrderRespType response type
@@ -6037,7 +6041,7 @@ export default class binance extends Exchange {
                 request['stopPrice'] = this.priceToPrecision (symbol, stopPrice);
             }
         }
-        if (timeInForceIsRequired && (this.safeString (params, 'timeInForce') === undefined) && (this.safeString (params, 'timeInForce') === undefined)) {
+        if (timeInForceIsRequired && (this.safeString (params, 'timeInForce') === undefined) && (this.safeString (request, 'timeInForce') === undefined)) {
             request['timeInForce'] = this.options['defaultTimeInForce']; // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
         }
         if (!isPortfolioMargin && market['contract'] && postOnly) {
