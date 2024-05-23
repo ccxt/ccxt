@@ -1122,8 +1122,14 @@ public partial class coinex
     /// fetch all withdrawals made from an account
     /// </summary>
     /// <remarks>
-    /// See <see href="https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot002_account026_withdraw_list"/>  <br/>
+    /// See <see href="https://docs.coinex.com/api/v2/assets/deposit-withdrawal/http/list-withdrawal-history"/>  <br/>
     /// <list type="table">
+    /// <item>
+    /// <term>code</term>
+    /// <description>
+    /// string : unified currency code
+    /// </description>
+    /// </item>
     /// <item>
     /// <term>since</term>
     /// <description>
@@ -1133,7 +1139,7 @@ public partial class coinex
     /// <item>
     /// <term>limit</term>
     /// <description>
-    /// int : the maximum number of withdrawals structures to retrieve
+    /// int : the maximum number of withdrawal structures to retrieve
     /// </description>
     /// </item>
     /// <item>
@@ -1156,8 +1162,14 @@ public partial class coinex
     /// fetch all deposits made to an account
     /// </summary>
     /// <remarks>
-    /// See <see href="https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot002_account009_deposit_list"/>  <br/>
+    /// See <see href="https://docs.coinex.com/api/v2/assets/deposit-withdrawal/http/list-deposit-history"/>  <br/>
     /// <list type="table">
+    /// <item>
+    /// <term>code</term>
+    /// <description>
+    /// string : unified currency code
+    /// </description>
+    /// </item>
     /// <item>
     /// <term>since</term>
     /// <description>
@@ -1167,7 +1179,7 @@ public partial class coinex
     /// <item>
     /// <term>limit</term>
     /// <description>
-    /// int : the maximum number of deposits structures to retrieve
+    /// int : the maximum number of deposit structures to retrieve
     /// </description>
     /// </item>
     /// <item>

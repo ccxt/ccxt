@@ -10,6 +10,7 @@ use ccxt\async\abstract\whitebit as Exchange;
 use ccxt\ExchangeError;
 use ccxt\ArgumentsRequired;
 use ccxt\BadRequest;
+use ccxt\InvalidOrder;
 use ccxt\NotSupported;
 use ccxt\DDoSProtection;
 use ccxt\Precise;
@@ -37,6 +38,9 @@ class whitebit extends Exchange {
                 'cancelAllOrdersAfter' => true,
                 'cancelOrder' => true,
                 'cancelOrders' => false,
+                'createMarketBuyOrderWithCost' => true,
+                'createMarketOrderWithCost' => false,
+                'createMarketSellOrderWithCost' => false,
                 'createOrder' => true,
                 'createStopLimitOrder' => true,
                 'createStopMarketOrder' => true,
@@ -1217,6 +1221,35 @@ class whitebit extends Exchange {
         }) ();
     }
 
+    public function create_market_order_with_cost(string $symbol, string $side, float $cost, $params = array ()) {
+        return Async\async(function () use ($symbol, $side, $cost, $params) {
+            /**
+             * create a market order by providing the $symbol, $side and $cost
+             * @param {string} $symbol unified $symbol of the market to create an order in
+             * @param {string} $side 'buy' or 'sell'
+             * @param {float} $cost how much you want to trade in units of the quote currency
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
+             */
+            $params['cost'] = $cost;
+            // only buy $side is supported
+            return Async\await($this->create_order($symbol, 'market', $side, 0, null, $params));
+        }) ();
+    }
+
+    public function create_market_buy_order_with_cost(string $symbol, float $cost, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbol, $cost, $params) {
+            /**
+             * create a market buy order by providing the $symbol and $cost
+             * @param {string} $symbol unified $symbol of the market to create an order in
+             * @param {float} $cost how much you want to trade in units of the quote currency
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
+             */
+            return Async\await($this->create_market_order_with_cost($symbol, 'buy', $cost, $params));
+        }) ();
+    }
+
     public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
@@ -1232,6 +1265,7 @@ class whitebit extends Exchange {
              * @param {float} $amount how much of currency you want to trade in units of base currency
              * @param {float} [$price] the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {float} [$params->cost] *$market orders only* the $cost of the order in units of the base currency
              * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
              */
             Async\await($this->load_markets());
@@ -1239,8 +1273,17 @@ class whitebit extends Exchange {
             $request = array(
                 'market' => $market['id'],
                 'side' => $side,
-                'amount' => $this->amount_to_precision($symbol, $amount),
             );
+            $cost = null;
+            list($cost, $params) = $this->handle_param_string($params, 'cost');
+            if ($cost !== null) {
+                if (($side !== 'buy') || ($type !== 'market')) {
+                    throw new InvalidOrder($this->id . ' createOrder() $cost is only supported for $market buy orders');
+                }
+                $request['amount'] = $this->cost_to_precision($symbol, $cost);
+            } else {
+                $request['amount'] = $this->amount_to_precision($symbol, $amount);
+            }
             $clientOrderId = $this->safe_string_2($params, 'clOrdId', 'clientOrderId');
             if ($clientOrderId === null) {
                 $brokerId = $this->safe_string($this->options, 'brokerId');
@@ -1295,7 +1338,11 @@ class whitebit extends Exchange {
                     if ($useCollateralEndpoint) {
                         $response = Async\await($this->v4PrivatePostOrderCollateralMarket ($this->extend($request, $params)));
                     } else {
-                        $response = Async\await($this->v4PrivatePostOrderStockMarket ($this->extend($request, $params)));
+                        if ($cost !== null) {
+                            $response = Async\await($this->v4PrivatePostOrderMarket ($this->extend($request, $params)));
+                        } else {
+                            $response = Async\await($this->v4PrivatePostOrderStockMarket ($this->extend($request, $params)));
+                        }
                     }
                 }
             }
@@ -1716,6 +1763,10 @@ class whitebit extends Exchange {
         $stopPrice = $this->safe_number($order, 'activation_price');
         $orderId = $this->safe_string_2($order, 'orderId', 'id');
         $type = $this->safe_string($order, 'type');
+        $orderType = $this->parse_order_type($type);
+        if ($orderType === 'market') {
+            $remaining = null;
+        }
         $amount = $this->safe_string($order, 'amount');
         $cost = $this->safe_string($order, 'dealMoney');
         if (($side === 'buy') && (($type === 'market') || ($type === 'stop market'))) {
@@ -1744,7 +1795,7 @@ class whitebit extends Exchange {
             'status' => null,
             'side' => $side,
             'price' => $price,
-            'type' => $this->parse_order_type($type),
+            'type' => $orderType,
             'stopPrice' => $stopPrice,
             'triggerPrice' => $stopPrice,
             'amount' => $amount,

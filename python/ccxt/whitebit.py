@@ -45,6 +45,9 @@ class whitebit(Exchange, ImplicitAPI):
                 'cancelAllOrdersAfter': True,
                 'cancelOrder': True,
                 'cancelOrders': False,
+                'createMarketBuyOrderWithCost': True,
+                'createMarketOrderWithCost': False,
+                'createMarketSellOrderWithCost': False,
                 'createOrder': True,
                 'createStopLimitOrder': True,
                 'createStopMarketOrder': True,
@@ -1162,6 +1165,29 @@ class whitebit(Exchange, ImplicitAPI):
         #
         return self.safe_integer(response, 'time')
 
+    def create_market_order_with_cost(self, symbol: str, side: OrderSide, cost: float, params={}):
+        """
+        create a market order by providing the symbol, side and cost
+        :param str symbol: unified symbol of the market to create an order in
+        :param str side: 'buy' or 'sell'
+        :param float cost: how much you want to trade in units of the quote currency
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        """
+        params['cost'] = cost
+        # only buy side is supported
+        return self.create_order(symbol, 'market', side, 0, None, params)
+
+    def create_market_buy_order_with_cost(self, symbol: str, cost: float, params={}) -> Order:
+        """
+        create a market buy order by providing the symbol and cost
+        :param str symbol: unified symbol of the market to create an order in
+        :param float cost: how much you want to trade in units of the quote currency
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        """
+        return self.create_market_order_with_cost(symbol, 'buy', cost, params)
+
     def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         """
         create a trade order
@@ -1176,6 +1202,7 @@ class whitebit(Exchange, ImplicitAPI):
         :param float amount: how much of currency you want to trade in units of base currency
         :param float [price]: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param float [params.cost]: *market orders only* the cost of the order in units of the base currency
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
@@ -1183,8 +1210,15 @@ class whitebit(Exchange, ImplicitAPI):
         request = {
             'market': market['id'],
             'side': side,
-            'amount': self.amount_to_precision(symbol, amount),
         }
+        cost = None
+        cost, params = self.handle_param_string(params, 'cost')
+        if cost is not None:
+            if (side != 'buy') or (type != 'market'):
+                raise InvalidOrder(self.id + ' createOrder() cost is only supported for market buy orders')
+            request['amount'] = self.cost_to_precision(symbol, cost)
+        else:
+            request['amount'] = self.amount_to_precision(symbol, amount)
         clientOrderId = self.safe_string_2(params, 'clOrdId', 'clientOrderId')
         if clientOrderId is None:
             brokerId = self.safe_string(self.options, 'brokerId')
@@ -1232,7 +1266,10 @@ class whitebit(Exchange, ImplicitAPI):
                 if useCollateralEndpoint:
                     response = self.v4PrivatePostOrderCollateralMarket(self.extend(request, params))
                 else:
-                    response = self.v4PrivatePostOrderStockMarket(self.extend(request, params))
+                    if cost is not None:
+                        response = self.v4PrivatePostOrderMarket(self.extend(request, params))
+                    else:
+                        response = self.v4PrivatePostOrderStockMarket(self.extend(request, params))
         return self.parse_order(response)
 
     def edit_order(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: Num = None, price: Num = None, params={}):
@@ -1601,6 +1638,9 @@ class whitebit(Exchange, ImplicitAPI):
         stopPrice = self.safe_number(order, 'activation_price')
         orderId = self.safe_string_2(order, 'orderId', 'id')
         type = self.safe_string(order, 'type')
+        orderType = self.parse_order_type(type)
+        if orderType == 'market':
+            remaining = None
         amount = self.safe_string(order, 'amount')
         cost = self.safe_string(order, 'dealMoney')
         if (side == 'buy') and ((type == 'market') or (type == 'stop market')):
@@ -1627,7 +1667,7 @@ class whitebit(Exchange, ImplicitAPI):
             'status': None,
             'side': side,
             'price': price,
-            'type': self.parse_order_type(type),
+            'type': orderType,
             'stopPrice': stopPrice,
             'triggerPrice': stopPrice,
             'amount': amount,

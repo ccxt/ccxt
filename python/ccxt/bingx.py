@@ -2389,7 +2389,7 @@ class bingx(Exchange, ImplicitAPI):
             'stopLossPrice': stopLossPrice,
             'takeProfitPrice': takeProfitPrice,
             'average': self.safe_string_2(order, 'avgPrice', 'ap'),
-            'cost': None,
+            'cost': self.safe_string(order, 'cummulativeQuoteQty'),
             'amount': self.safe_string_n(order, ['origQty', 'q', 'quantity']),
             'filled': self.safe_string_2(order, 'executedQty', 'z'),
             'remaining': None,

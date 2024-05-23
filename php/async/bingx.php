@@ -2549,7 +2549,7 @@ class bingx extends Exchange {
             'stopLossPrice' => $stopLossPrice,
             'takeProfitPrice' => $takeProfitPrice,
             'average' => $this->safe_string_2($order, 'avgPrice', 'ap'),
-            'cost' => null,
+            'cost' => $this->safe_string($order, 'cummulativeQuoteQty'),
             'amount' => $this->safe_string_n($order, array( 'origQty', 'q', 'quantity' )),
             'filled' => $this->safe_string_2($order, 'executedQty', 'z'),
             'remaining' => null,
