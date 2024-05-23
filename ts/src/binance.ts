@@ -10385,8 +10385,14 @@ export default class binance extends Exchange {
         } else {
             throw new NotSupported (this.id + ' fetchLeverages() supports linear and inverse contracts only');
         }
+        let marketType = undefined;
+        if (symbols !== undefined) {
+            symbols = this.marketSymbols (symbols, undefined, false, true, true);
+            const market = this.getMarketFromSymbols (symbols);
+            marketType = market['type'];
+        }
         const leverages = this.safeList (response, 'positions', []);
-        return this.parseLeverages (leverages, symbols, 'symbol');
+        return this.parseLeverages (leverages, symbols, 'symbol', marketType);
     }
 
     parseLeverage (leverage: Dict, market: Market = undefined): Leverage {
