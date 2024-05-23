@@ -1120,7 +1120,6 @@ export default class vertex extends Exchange {
             now = this.nonce ();
         }
         // nonce = ((now + expiration) << 20) + 1000
-        // x << 20 = x * 1048576
         return Precise.stringAdd (Precise.stringMul (Precise.stringAdd (this.numberToString (now), this.numberToString (expiration)), '1048576'), '1000');
     }
 
@@ -1157,35 +1156,29 @@ export default class vertex extends Exchange {
         const stopLossPrice = this.safeString (params, 'stopLossPrice', triggerPrice);
         const takeProfitPrice = this.safeString (params, 'takeProfitPrice');
         const isTrigger = (stopLossPrice || takeProfitPrice);
-        let sigBit = 0n;
+        const now = this.nonce ();
+        let nonce = this.getNonce (now, 90000);
+        let expiration = Precise.stringAdd (this.numberToString (now), '86400');
         if (timeInForce === 'ioc') {
-            sigBit = 1n;
+            // 1 << 62 = 4611686018427387904
+            expiration = Precise.stringOr (expiration, '4611686018427387904');
         } else if (timeInForce === 'fok') {
-            sigBit = 2n;
+            // 2 << 62 = 9223372036854775808
+            expiration = Precise.stringOr (expiration, '9223372036854775808');
         } else if (postOnly) {
-            sigBit = 3n;
+            // 3 << 62 = 13835058055282163712
+            expiration = Precise.stringOr (expiration, '13835058055282163712');
             if (reduceOnly) {
                 throw new NotSupported (this.id + ' reduceOnly not supported when postOnly is enabled' );
             }
         }
-        const now = this.nonce ();
-        let nonce = this.getNonce (now, 90000);
-        let expiration = Precise.stringAdd (this.numberToString (now), '86400');
-        if (sigBit > 0) {
-            // sigBit << 62
-            // 1 << 62 4611686018427387904
-            // 2 << 62 9223372036854775808
-            // 3 << 62 13835058055282163712
-            // 1 << 61 2305843009213693952
-        }
         if (isTrigger) {
             // 1 << 63 = 9223372036854775808
-            if (Precise.stringLt (nonce, '9223372036854775808')) {
-                nonce = Precise.stringAdd (nonce, '9223372036854775808');
-            }
+            nonce = Precise.stringOr (nonce, '9223372036854775808');
         }
         if (reduceOnly) {
-            // expiration = expiration | (1n << 61n);
+            // 1 << 61 = 2305843009213693952
+            expiration = Precise.stringOr (expiration, '2305843009213693952');
         }
         const order = {
             'sender': this.convertAddressToSender (this.walletAddress),
@@ -1227,22 +1220,20 @@ export default class vertex extends Exchange {
             }
             request['place_order']['trigger'] = trigger;
             response = await this.v1TriggerPostExecute (this.extend (request, params));
-            //
-            //
         } else {
             response = await this.v1GatewayPostExecute (this.extend (request, params));
-            //
-            // {
-            //     "status": "success",
-            //     "signature": {signature},
-            //     "data": { 
-            //       "digest": {order digest} 
-            //     },
-            //     "request_type": "execute_place_order"
-            //     "id": 100
-            // }
-            //
         }
+        //
+        // {
+        //     "status": "success",
+        //     "signature": {signature},
+        //     "data": { 
+        //       "digest": {order digest} 
+        //     },
+        //     "request_type": "execute_place_order"
+        //     "id": 100
+        // }
+        //
         const data = this.safeDict (response, 'data', {});
         return this.safeOrder ({
             'id': this.safeString (data, 'digest'),
