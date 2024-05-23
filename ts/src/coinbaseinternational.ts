@@ -1177,7 +1177,7 @@ export default class coinbaseinternational extends Exchange {
         return result;
     }
 
-    parseCurrency (currency) {
+    parseCurrency (currency: Dict) {
         //
         //    {
         //       "asset_id":"1",

@@ -3345,7 +3345,7 @@ export default class delta extends Exchange {
         return this.parseMarginMode (result, market);
     }
 
-    parseMarginMode (marginMode, market = undefined): MarginMode {
+    parseMarginMode (marginMode: Dict, market = undefined): MarginMode {
         let symbol = undefined;
         if (market !== undefined) {
             symbol = market['symbol'];

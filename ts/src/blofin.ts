@@ -953,7 +953,7 @@ export default class blofin extends Exchange {
         return this.safeBalance (result);
     }
 
-    parseTradingFee (fee, market: Market = undefined): TradingFeeInterface {
+    parseTradingFee (fee: Dict, market: Market = undefined): TradingFeeInterface {
         return {
             'info': fee,
             'symbol': this.safeSymbol (undefined, market),
@@ -1823,7 +1823,7 @@ export default class blofin extends Exchange {
         return this.parsePosition (position, market);
     }
 
-    async fetchPositions (symbols: string[] = undefined, params = {}): Promise<Position[]> {
+    async fetchPositions (symbols: Strings = undefined, params = {}): Promise<Position[]> {
         /**
          * @method
          * @name blofin#fetchPosition
@@ -1930,7 +1930,7 @@ export default class blofin extends Exchange {
         });
     }
 
-    async fetchLeverages (symbols: string[] = undefined, params = {}): Promise<Leverages> {
+    async fetchLeverages (symbols: Strings = undefined, params = {}): Promise<Leverages> {
         /**
          * @method
          * @name blofin#fetchLeverages
@@ -2183,7 +2183,7 @@ export default class blofin extends Exchange {
         return this.parseMarginMode (data, market);
     }
 
-    parseMarginMode (marginMode, market = undefined): MarginMode {
+    parseMarginMode (marginMode: Dict, market = undefined): MarginMode {
         return {
             'info': marginMode,
             'symbol': market['symbol'],
