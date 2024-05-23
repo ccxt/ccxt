@@ -2865,7 +2865,7 @@ export default class bitfinex2 extends Exchange {
         return response;
     }
 
-    parseLedgerEntryType (type) {
+    parseLedgerEntryType (type: Str) {
         if (type === undefined) {
             return undefined;
         } else if (type.indexOf ('fee') >= 0 || type.indexOf ('charged') >= 0) {
@@ -2885,7 +2885,7 @@ export default class bitfinex2 extends Exchange {
         }
     }
 
-    parseLedgerEntry (item, currency: Currency = undefined) {
+    parseLedgerEntry (item: Dict, currency: Currency = undefined) {
         //
         //     [
         //         [
@@ -2901,14 +2901,15 @@ export default class bitfinex2 extends Exchange {
         //         ]
         //     ]
         //
+        const itemList = this.safeList (item, 'result', []);
         let type = undefined;
-        const id = this.safeString (item, 0);
-        const currencyId = this.safeString (item, 1);
+        const id = this.safeString (itemList, 0);
+        const currencyId = this.safeString (itemList, 1);
         const code = this.safeCurrencyCode (currencyId, currency);
-        const timestamp = this.safeInteger (item, 3);
-        const amount = this.safeNumber (item, 5);
-        const after = this.safeNumber (item, 6);
-        const description = this.safeString (item, 8);
+        const timestamp = this.safeInteger (itemList, 3);
+        const amount = this.safeNumber (itemList, 5);
+        const after = this.safeNumber (itemList, 6);
+        const description = this.safeString (itemList, 8);
         if (description !== undefined) {
             const parts = description.split (' @ ');
             const first = this.safeStringLower (parts, 0);
@@ -2985,7 +2986,12 @@ export default class bitfinex2 extends Exchange {
         //         ]
         //     ]
         //
-        return this.parseLedger (response, currency, since, limit);
+        const ledgerObjects = [];
+        for (let i = 0; i < response.length; i++) {
+            const item = response[i];
+            ledgerObjects.push ({ 'result': item });
+        }
+        return this.parseLedger (ledgerObjects, currency, since, limit);
     }
 
     async fetchFundingRate (symbol: string, params = {}) {
