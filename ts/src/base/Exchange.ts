@@ -3274,7 +3274,7 @@ export default class Exchange {
             if (!feesDefined) {
                 trade['fees'] = reducedFees;
             }
-            if (!feeDefined  && (reducedLength === 1)) {
+            if (!feeDefined && (reducedLength === 1)) {
                 trade['fee'] = reducedFees[0];
             }
         }
