@@ -422,6 +422,41 @@
                   }
                 ],
                 "output": "timestamp=1715064136268&symbol=BTCUSDT&side=SELL&trailingDelta=500&newClientOrderId=x-R4BD3S829874c25a35ce4766a6c7bc&newOrderRespType=FULL&type=TAKE_PROFIT_LIMIT&quantity=0.1&price=70000&timeInForce=GTC&recvWindow=10000&signature=221d429c7db5a26495d5c0d9287f6e6a08fb59f45b3f71c3c6bfe8e319e35341"
+            },
+            {
+                "description": "spot portfolioMargin postOnly order",
+                "method": "createOrder",
+                "url": "https://papi.binance.com/papi/v1/margin/order",
+                "input": [
+                  "LTC/USDT",
+                  "limit",
+                  "buy",
+                  0.25,
+                  50.1,
+                  {
+                    "portfolioMargin": true,
+                    "postOnly": true
+                  }
+                ],
+                "output": "timestamp=1716470235123&symbol=LTCUSDT&side=BUY&newClientOrderId=x-R4BD3S8270e7c9840bb6463fb08c23&newOrderRespType=RESULT&type=LIMIT_MAKER&quantity=0.25&price=50.1&recvWindow=10000&signature=444e202f5d5916737d7fb6386199d06e8dcf86fae0605b631f4cf170497d98e5"
+            },
+            {
+                "description": "swap portfolioMargin postOnly order",
+                "method": "createOrder",
+                "url": "https://papi.binance.com/papi/v1/um/order",
+                "input": [
+                  "LTC/USDT:USDT",
+                  "limit",
+                  "buy",
+                  0.41,
+                  50,
+                  {
+                    "portfolioMargin": true,
+                    "postOnly": true,
+                    "positionSide": "LONG"
+                  }
+                ],
+                "output": "timestamp=1716470360382&symbol=LTCUSDT&side=BUY&newClientOrderId=x-xcKtGhcu08549492ddff403d8a6466&timeInForce=GTX&newOrderRespType=RESULT&type=LIMIT&quantity=0.41&price=50&positionSide=LONG&recvWindow=10000&signature=e9499c199ddedd7dec114f6b0491f6e41789b0fe0e6130b539b5ad6f9f0a549b"
             }
         ],
         "createOrders": [
