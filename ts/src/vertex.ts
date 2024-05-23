@@ -36,8 +36,8 @@ export default class vertex extends Exchange {
                 'addMargin': true,
                 'borrowCrossMargin': false,
                 'borrowIsolatedMargin': false,
-                'cancelAllOrders': false,
-                'cancelAllOrdersAfter': true,
+                'cancelAllOrders': true,
+                'cancelAllOrdersAfter': false,
                 'cancelOrder': true,
                 'cancelOrders': true,
                 'cancelOrdersForSymbols': true,
@@ -1077,11 +1077,22 @@ export default class vertex extends Exchange {
         return this.buildSig (chainId, messageTypes, message, verifyingContractAddress);
     }
 
-    buildListTxSig (message, chainId, verifyingContractAddress) {
+    buildListTriggerTxSig (message, chainId, verifyingContractAddress) {
         const messageTypes = {
-            'ListTriggerOrders ': [
+            'ListTriggerOrders': [
                 { 'name': 'sender', 'type': 'bytes32' },
                 { 'name': 'recvTime', 'type': 'uint64' },
+            ],
+        };
+        return this.buildSig (chainId, messageTypes, message, verifyingContractAddress);
+    }
+
+    buildCancelAllOrdersSig (message, chainId, verifyingContractAddress) {
+        const messageTypes = {
+            'CancellationProducts': [
+                { 'name': 'sender', 'type': 'bytes32' },
+                { 'name': 'productIds', 'type': 'uint32[]' },
+                { 'name': 'nonce', 'type': 'uint64' },
             ],
         };
         return this.buildSig (chainId, messageTypes, message, verifyingContractAddress);
@@ -1207,6 +1218,18 @@ export default class vertex extends Exchange {
         });
     }
 
+    parseOrderStatus (status) {
+        if (status !== undefined) {
+            const statuses = {
+                'pending': 'open',
+                'triggered': 'closed',
+                'cancelled': 'canceled',
+            };
+            return this.safeString (statuses, status, status);
+        }
+        return status;
+    }
+
     parseOrder (order, market: Market = undefined): Order {
         //
         // {
@@ -1220,29 +1243,63 @@ export default class vertex extends Exchange {
         //     "digest": "0x0000000000000000000000000000000000000000000000000000000000000000",
         //     "placed_at": 1681951347,
         //     "order_type": "ioc"
-        // },
+        // }
+        // stop order
+        // {
+        //     "order": {
+        //       "order": {
+        //         "sender": "0x7a5ec2748e9065794491a8d29dcf3f9edb8d7c43000000000000000000000000",
+        //         "priceX18": "1000000000000000000",
+        //         "amount": "1000000000000000000",
+        //         "expiration": "2000000000",
+        //         "nonce": "1",
+        //       },
+        //       "signature": "0x...",
+        //       "product_id": 1,
+        //       "spot_leverage": true,
+        //       "trigger": {
+        //         "price_above": "1000000000000000000"
+        //       },
+        //       "digest": "0x..."
+        //     },
+        //     "status": "pending",
+        //     "updated_at": 1688768157050
+        // }
         //
-        const marketId = this.safeString (order, 'product_id');
+        let marketId = this.safeString (order, 'product_id');
+        let timestamp = this.safeTimestamp (order, 'placed_at');
+        let amount = this.safeString (order, 'amount');
+        let price = this.safeString (order, 'price_X18');
+        let remaining = this.safeString (order, 'unfilled_amount');
+        let triggerPriceNum = undefined;
+        const status = this.safeString (order, 'status');
+        if (status !== undefined) {
+            // trigger order
+            const outerOrder = this.safeDict (order, 'order', {});
+            const innerOrder = this.safeDict (outerOrder, 'order', {});
+            marketId = this.safeString (outerOrder, 'product_id');
+            amount = this.safeString (innerOrder, 'amount');
+            price = this.safeString (innerOrder, 'priceX18');
+            timestamp = this.safeTimestamp(order, 'updated_at');
+            const trigger = this.safeDict (outerOrder, 'trigger', {});
+            const triggerPrice = this.safeStringN (trigger, [ 'price_above', 'price_below', 'last_price_above', 'last_price_below' ]);
+            if (triggerPrice !== undefined) {
+                triggerPriceNum = this.parseToNumeric (this.convertFromX18 (triggerPrice));
+            }
+        }
         market = this.safeMarket (marketId, market);
         const symbol = market['symbol'];
-        const timestamp = this.safeTimestamp (order, 'placed_at');
-        let price = this.safeString (order, 'price_X18');
         let priceNum = undefined;
         if (price !== undefined) {
-            price = this.convertFromX18 (price);
-            priceNum = this.parseToNumeric (price);
+            priceNum = this.parseToNumeric (this.convertFromX18 (price));
         }
-        let amount = this.safeString (order, 'amount');
         let amountNum = undefined;
         if (amount !== undefined) {
-            amount = this.convertFromX18 (amount);
-            amountNum = this.parseToNumeric (amount);
+            amountNum = this.parseToNumeric (this.convertFromX18 (amount));
         }
-        let remaining = this.safeString (order, 'unfilled_amount');
         let remainingNum = undefined;
         if (remaining !== undefined) {
-            remaining = this.convertFromX18 (remaining);
-            remainingNum = this.parseToNumeric (remaining);
+            remainingNum = this.parseToNumeric (this.convertFromX18 (remaining));
         }
         let side = undefined;
         if (amountNum !== undefined && remainingNum !== undefined) {
@@ -1263,13 +1320,13 @@ export default class vertex extends Exchange {
             'reduceOnly': undefined,
             'side': side,
             'price': priceNum,
-            'triggerPrice': undefined,
+            'triggerPrice': triggerPriceNum,
             'amount': amountNum,
             'cost': undefined,
             'average': undefined,
             'filled': undefined,
             'remaining': remainingNum,
-            'status': undefined,
+            'status': this.parseOrderStatus (status),
             'fee': undefined,
             'trades': undefined,
         }, market);
@@ -1344,14 +1401,12 @@ export default class vertex extends Exchange {
             this.checkRequiredArgument ('fetchOrders', symbol, 'symbol');
             const contracts = await this.queryContracts ();
             const chainId = this.safeNumber (contracts, 'chain_id');
-            const bookAddresses = this.safeList (contracts, 'book_addrs', []);
-            const marketId = this.parseToNumeric (market['id']);
-            const verifyingContractAddress = this.safeString (bookAddresses, marketId);
+            const verifyingContractAddress = this.safeString (contracts, 'endpoint_addr');
             const tx = {
                 'sender': this.convertAddressToSender (this.walletAddress),
                 'recvTime': this.nonce () + 90000,
             };
-            request['signature'] = this.buildListTxSig (tx, chainId, verifyingContractAddress);
+            request['signature'] = this.buildListTriggerTxSig (tx, chainId, verifyingContractAddress);
             request['tx'] = {
                 'sender': tx['sender'],
                 'recvTime': this.numberToString (tx['recvTime']),
@@ -1427,6 +1482,88 @@ export default class vertex extends Exchange {
         return this.parseOrders (orders, market, since, limit);
     }
 
+    async cancelAllOrders (symbol: Str = undefined, params = {}) {
+        /**
+         * @method
+         * @name vertex#cancelAllOrders
+         * @see https://docs.vertexprotocol.com/developer-resources/api/gateway/executes/cancel-product-orders
+         * @see https://docs.vertexprotocol.com/developer-resources/api/trigger/executes/cancel-product-orders
+         * @description cancel all open orders in a market
+         * @param {string} symbol unified market symbol
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {boolean} [params.stop] whether the order is a stop/algo order
+         * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        await this.loadMarkets ();
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' cancelOrders() requires a symbol argument');
+        }
+        const market = this.market (symbol);
+        const marketId = market['id'];
+        const contracts = await this.queryContracts ();
+        const chainId = this.safeNumber (contracts, 'chain_id');
+        const verifyingContractAddress = this.safeString (contracts, 'endpoint_addr');
+        const now = this.nonce ();
+        const nonce = ((BigInt (now) + 90000n) << 20n) + 1000n;
+        const cancels = {
+            'sender': this.convertAddressToSender (this.walletAddress),
+            'nonce': nonce,
+            'productIds': [
+                this.parseToNumeric (marketId),
+            ],
+        };
+        const request = {
+            'cancel_product_orders': {
+                'tx': {
+                    'sender': cancels['sender'],
+                    'nonce': this.numberToString (cancels['nonce']),
+                    'productIds': cancels['productIds'],
+                },
+                'signature': this.buildCancelAllOrdersSig (cancels, chainId, verifyingContractAddress),
+            }
+        };
+        const stop = this.safeBool2 (params, 'stop', 'trigger');
+        params = this.omit (params, [ 'stop', 'trigger' ]);
+        let response = undefined;
+        if (stop) {
+            response = await this.v1TriggerPostExecute (this.extend (request, params));
+            //
+            // {
+            //     "status": "success",
+            //     "signature": {signature},
+            //     "request_type": "execute_cancel_product_orders"
+            // }
+            //
+        } else {
+            response = await this.v1GatewayPostExecute (this.extend (request, params));
+            //
+            // {
+            //     "status": "success",
+            //     "signature": {signature},
+            //     "data": {
+            //       "cancelled_orders": [
+            //         {
+            //           "product_id": 2,
+            //           "sender": "0x7a5ec2748e9065794491a8d29dcf3f9edb8d7c43746573743000000000000000",
+            //           "price_x18": "20000000000000000000000",
+            //           "amount": "-100000000000000000",
+            //           "expiration": "1686332748",
+            //           "order_type": "post_only",
+            //           "nonce": "1768248100142339392",
+            //           "unfilled_amount": "-100000000000000000",
+            //           "digest": "0x3195a7929feb8307edecf9c045j5ced68925108f0aa305f0ee5773854159377c",
+            //           "placed_at": 1686332708
+            //         },
+            //         ...
+            //       ]
+            //     },
+            //     "request_type": "execute_cancel_product_orders"
+            // }
+            //
+        }
+        return response;
+    }
+
     handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (!response) {
             return undefined; // fallback to default error handler
@@ -1435,8 +1572,8 @@ export default class vertex extends Exchange {
         //
         const status = this.safeString (response, 'status', '');
         let message = undefined;
-        if (status === 'err') {
-            message = this.safeString (response, 'response');
+        if (status === 'failure') {
+            message = this.safeString (response, 'error');
         } else {
             const responsePayload = this.safeDict (response, 'response', {});
             const data = this.safeDict (responsePayload, 'data', {});
