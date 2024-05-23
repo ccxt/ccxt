@@ -3255,6 +3255,9 @@ export default class Exchange {
             }
             cost = Precise.stringMul (multiplyPrice, amount);
         }
+        if (!('fees' in trade)) {
+            trade['fees'] = undefined;
+        }
         const fee = this.safeDict (trade, 'fee');
         const fees = this.safeList (trade, 'fees');
         const feeDefined = fee !== undefined;
