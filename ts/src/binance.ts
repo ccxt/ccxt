@@ -10390,6 +10390,8 @@ export default class binance extends Exchange {
             symbols = this.marketSymbols (symbols, undefined, false, true, true);
             const market = this.getMarketFromSymbols (symbols);
             marketType = market['type'];
+        } else {
+            marketType = (type === 'future') ? 'future' : 'swap';
         }
         const leverages = this.safeList (response, 'positions', []);
         return this.parseLeverages (leverages, symbols, 'symbol', marketType);
