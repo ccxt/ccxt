@@ -1098,6 +1098,18 @@ export default class vertex extends Exchange {
         return this.buildSig (chainId, messageTypes, message, verifyingContractAddress);
     }
 
+    buildCancelOrdersSig (message, chainId, verifyingContractAddress) {
+        const messageTypes = {
+            'CancellationProducts': [
+                { 'name': 'sender', 'type': 'bytes32' },
+                { 'name': 'productIds', 'type': 'uint32[]' },
+                { 'name': 'digests', 'type': 'bytes32[]' },
+                { 'name': 'nonce', 'type': 'uint64' },
+            ],
+        };
+        return this.buildSig (chainId, messageTypes, message, verifyingContractAddress);
+    }
+
     convertAddressToSender (address: string) {
         const sender = address + '64656661756c74';
         return sender.padEnd (66, '0');
@@ -1559,6 +1571,111 @@ export default class vertex extends Exchange {
             //       ]
             //     },
             //     "request_type": "execute_cancel_product_orders"
+            // }
+            //
+        }
+        return response;
+    }
+
+    async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
+        /**
+         * @method
+         * @name vertex#cancelOrder
+         * @description cancels an open order
+         * @see https://docs.vertexprotocol.com/developer-resources/api/gateway/executes/cancel-orders
+         * @see https://docs.vertexprotocol.com/developer-resources/api/trigger/executes/cancel-orders
+         * @param {string} id order id
+         * @param {string} symbol unified symbol of the market the order was made in
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        return await this.cancelOrders ([ id ], symbol, params);
+    }
+
+    async cancelOrders (ids: string[], symbol: Str = undefined, params = {}) {
+        /**
+         * @method
+         * @name vertex#cancelOrders
+         * @description cancel multiple orders
+         * @see https://docs.vertexprotocol.com/developer-resources/api/gateway/executes/cancel-orders
+         * @see https://docs.vertexprotocol.com/developer-resources/api/trigger/executes/cancel-orders
+         * @param {string[]} ids order ids
+         * @param {string} [symbol] unified market symbol
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' cancelOrders() requires a symbol argument');
+        }
+        await this.loadMarkets ();
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' cancelAllOrders() requires a symbol argument');
+        }
+        const market = this.market (symbol);
+        const marketId = market['id'];
+        const contracts = await this.queryContracts ();
+        const chainId = this.safeNumber (contracts, 'chain_id');
+        const verifyingContractAddress = this.safeString (contracts, 'endpoint_addr');
+        const now = this.nonce ();
+        const nonce = ((BigInt (now) + 90000n) << 20n) + 1000n;
+        // TODO: make sure signature works
+        const cancels = {
+            'sender': this.convertAddressToSender (this.walletAddress),
+            'nonce': nonce,
+            'productIds': [],
+            'digests': ids,
+        };
+        const marketIdNum = this.parseToNumeric (marketId);
+        for (let i = 0; i < ids.length; i++) {
+            cancels['productIds'].push (marketIdNum);
+        }
+        const request = {
+            'cancel_orders': {
+                'tx': {
+                    'sender': cancels['sender'],
+                    'nonce': this.numberToString (cancels['nonce']),
+                    'productIds': cancels['productIds'],
+                    'digests': cancels['digests'],
+                },
+                'signature': this.buildCancelOrdersSig (cancels, chainId, verifyingContractAddress),
+            }
+        };
+        const stop = this.safeBool2 (params, 'stop', 'trigger');
+        params = this.omit (params, [ 'stop', 'trigger' ]);
+        let response = undefined;
+        if (stop) {
+            response = await this.v1TriggerPostExecute (this.extend (request, params));
+            //
+            // {
+            //     "status": "success",
+            //     "signature": {signature},
+            //     "request_type": "execute_cancel_orders"
+            // }
+            //
+        } else {
+            response = await this.v1GatewayPostExecute (this.extend (request, params));
+            //
+            // {
+            //     "status": "success",
+            //     "signature": {signature},
+            //     "data": {
+            //       "cancelled_orders": [
+            //         {
+            //           "product_id": 2,
+            //           "sender": "0x7a5ec2748e9065794491a8d29dcf3f9edb8d7c43746573743000000000000000",
+            //           "price_x18": "20000000000000000000000",
+            //           "amount": "-100000000000000000",
+            //           "expiration": "1686332748",
+            //           "order_type": "post_only",
+            //           "nonce": "1768248100142339392",
+            //           "unfilled_amount": "-100000000000000000",
+            //           "digest": "0x3195a7929feb8307edecf9c045j5ced68925108f0aa305f0ee5773854159377c",
+            //           "placed_at": 1686332708
+            //         },
+            //         ...
+            //       ]
+            //     },
+            //     "request_type": "execute_cancel_orders"
             // }
             //
         }
