@@ -715,20 +715,15 @@
         ],
         "fetchIsolatedBorrowRate": [
             {
-                "description": "Fetch isolated borrow rate",
+                "description": "Fetch the isolated borrow rate",
                 "method": "fetchIsolatedBorrowRate",
-                "url": "https://api.coinex.com/v1/margin/config?access_id=86AC33D5904F432C9C9DDD4708233F38&market=BTCUSDT&tonce=1700201048704",
+                "url": "https://api.coinex.com/v2/assets/margin/interest-limit?ccy=USDT&market=BTCUSDT",
                 "input": [
-                    "BTC/USDT"
+                  "BTC/USDT",
+                  {
+                    "code": "USDT"
+                  }
                 ]
-            }
-        ],
-        "fetchIsolatedBorrowRates": [
-            {
-                "description": "Fetch isolated borrow rates",
-                "method": "fetchIsolatedBorrowRates",
-                "url": "https://api.coinex.com/v1/margin/config?access_id=86AC33D5904F432C9C9DDD4708233F38&tonce=1700202207814",
-                "input": []
             }
         ],
         "cancelOrders": [
