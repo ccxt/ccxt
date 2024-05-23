@@ -128,7 +128,7 @@ export default class bl3p extends Exchange {
     parseBalance (response): Balances {
         const data = this.safeValue (response, 'data', {});
         const wallets = this.safeValue (data, 'wallets', {});
-        const result = { 'info': data };
+        const result: Dict = { 'info': data };
         const codes = Object.keys (this.currencies);
         for (let i = 0; i < codes.length; i++) {
             const code = codes[i];
@@ -180,7 +180,7 @@ export default class bl3p extends Exchange {
          * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
          */
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'market': market['id'],
         };
         const response = await this.publicGetMarketOrderbook (this.extend (request, params));
@@ -243,7 +243,7 @@ export default class bl3p extends Exchange {
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'market': market['id'],
         };
         const ticker = await this.publicGetMarketTicker (this.extend (request, params));
@@ -374,7 +374,7 @@ export default class bl3p extends Exchange {
         const data = this.safeValue (response, 'data', {});
         const feeString = this.safeString (data, 'trade_fee');
         const fee = this.parseNumber (Precise.stringDiv (feeString, '100'));
-        const result = {};
+        const result: Dict = {};
         for (let i = 0; i < this.symbols.length; i++) {
             const symbol = this.symbols[i];
             result[symbol] = {
@@ -410,7 +410,7 @@ export default class bl3p extends Exchange {
         const market = this.market (symbol);
         const amountString = this.numberToString (amount);
         const priceString = this.numberToString (price);
-        const order = {
+        const order: Dict = {
             'market': market['id'],
             'amount_int': parseInt (Precise.stringMul (amountString, '100000000')),
             'fee_currency': market['quote'],
@@ -438,7 +438,7 @@ export default class bl3p extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
-        const request = {
+        const request: Dict = {
             'order_id': id,
         };
         return await this.privatePostMarketMoneyOrderCancel (this.extend (request, params));
@@ -456,7 +456,7 @@ export default class bl3p extends Exchange {
          */
         await this.loadMarkets ();
         const currency = this.currency (code);
-        const request = {
+        const request: Dict = {
             'currency': currency['id'],
         };
         const response = await this.privatePostGENMKTMoneyNewDepositAddress (this.extend (request, params));

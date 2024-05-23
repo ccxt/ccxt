@@ -3,7 +3,7 @@
 import wazirxRest from '../wazirx.js';
 import { NotSupported, ExchangeError } from '../base/errors.js';
 import { ArrayCacheBySymbolById, ArrayCacheByTimestamp, ArrayCache } from '../base/ws/Cache.js';
-import type { Int, OHLCV, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, Balances } from '../base/types.js';
+import type { Int, OHLCV, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, Balances, Dict } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -56,7 +56,7 @@ export default class wazirx extends wazirxRest {
         const token = await this.authenticate (params);
         const messageHash = 'balance';
         const url = this.urls['api']['ws'];
-        const subscribe = {
+        const subscribe: Dict = {
             'event': 'subscribe',
             'streams': [ 'outboundAccountPosition' ],
             'auth_key': token,
@@ -182,7 +182,7 @@ export default class wazirx extends wazirxRest {
         const messageHash = 'ticker:' + market['symbol'];
         const subscribeHash = 'tickers';
         const stream = '!' + 'ticker@arr';
-        const subscribe = {
+        const subscribe: Dict = {
             'event': 'subscribe',
             'streams': [ stream ],
         };
@@ -205,7 +205,7 @@ export default class wazirx extends wazirxRest {
         const url = this.urls['api']['ws'];
         const messageHash = 'tickers';
         const stream = '!' + 'ticker@arr';
-        const subscribe = {
+        const subscribe: Dict = {
             'event': 'subscribe',
             'streams': [ stream ],
         };
@@ -308,7 +308,7 @@ export default class wazirx extends wazirxRest {
         symbol = market['symbol'];
         const messageHash = market['id'] + '@trades';
         const url = this.urls['api']['ws'];
-        const message = {
+        const message: Dict = {
             'event': 'subscribe',
             'streams': [ messageHash ],
         };
@@ -379,7 +379,7 @@ export default class wazirx extends wazirxRest {
         }
         const url = this.urls['api']['ws'];
         const messageHash = 'myTrades';
-        const message = {
+        const message: Dict = {
             'event': 'subscribe',
             'streams': [ 'ownTrade' ],
             'auth_key': token,
@@ -410,7 +410,7 @@ export default class wazirx extends wazirxRest {
         const url = this.urls['api']['ws'];
         const messageHash = 'ohlcv:' + symbol + ':' + timeframe;
         const stream = market['id'] + '@kline_' + timeframe;
-        const message = {
+        const message: Dict = {
             'event': 'subscribe',
             'streams': [ stream ],
         };
@@ -500,7 +500,7 @@ export default class wazirx extends wazirxRest {
         const url = this.urls['api']['ws'];
         const messageHash = 'orderbook:' + symbol;
         const stream = market['id'] + '@depth';
-        const subscribe = {
+        const subscribe: Dict = {
             'event': 'subscribe',
             'streams': [ stream ],
         };
@@ -568,7 +568,7 @@ export default class wazirx extends wazirxRest {
         }
         const token = await this.authenticate (params);
         const messageHash = 'orders';
-        const message = {
+        const message: Dict = {
             'event': 'subscribe',
             'streams': [ 'orderUpdate' ],
             'auth_key': token,
@@ -752,7 +752,7 @@ export default class wazirx extends wazirxRest {
             return;
         }
         const event = this.safeString (message, 'event');
-        const eventHandlers = {
+        const eventHandlers: Dict = {
             'error': this.handleError,
             'connected': this.handleConnected,
             'subscribed': this.handleSubscribed,
@@ -763,7 +763,7 @@ export default class wazirx extends wazirxRest {
             return;
         }
         const stream = this.safeString (message, 'stream', '');
-        const streamHandlers = {
+        const streamHandlers: Dict = {
             'ticker@arr': this.handleTicker,
             '@depth': this.handleOrderBook,
             '@kline': this.handleOHLCV,

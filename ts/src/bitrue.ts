@@ -515,7 +515,7 @@ export default class bitrue extends Exchange {
 
     safeNetwork (networkId) {
         const uppercaseNetworkId = networkId.toUpperCase ();
-        const networksById = {
+        const networksById: Dict = {
             'Aeternity': 'Aeternity',
             'AION': 'AION',
             'Algorand': 'Algorand',
@@ -640,7 +640,7 @@ export default class bitrue extends Exchange {
         //         ],
         //     }
         //
-        const result = {};
+        const result: Dict = {};
         const coins = this.safeValue (response, 'coins', []);
         for (let i = 0; i < coins.length; i++) {
             const currency = coins[i];
@@ -653,7 +653,7 @@ export default class bitrue extends Exchange {
             let maxWithdrawString = undefined;
             let minWithdrawFeeString = undefined;
             const networkDetails = this.safeValue (currency, 'chainDetail', []);
-            const networks = {};
+            const networks: Dict = {};
             for (let j = 0; j < networkDetails.length; j++) {
                 const entry = networkDetails[j];
                 const networkId = this.safeString (entry, 'chain');
@@ -969,7 +969,7 @@ export default class bitrue extends Exchange {
         //         ]
         //     }
         //
-        const result = {
+        const result: Dict = {
             'info': response,
         };
         const timestamp = this.safeInteger (response, 'updateTime');
@@ -1117,7 +1117,7 @@ export default class bitrue extends Exchange {
         const market = this.market (symbol);
         let response = undefined;
         if (market['swap']) {
-            const request = {
+            const request: Dict = {
                 'contractName': market['id'],
             };
             if (limit !== undefined) {
@@ -1132,7 +1132,7 @@ export default class bitrue extends Exchange {
                 response = await this.dapiV1PublicGetDepth (this.extend (request, params));
             }
         } else if (market['spot']) {
-            const request = {
+            const request: Dict = {
                 'symbol': market['id'],
             };
             if (limit !== undefined) {
@@ -1262,7 +1262,7 @@ export default class bitrue extends Exchange {
         let response = undefined;
         let data = undefined;
         if (market['swap']) {
-            const request = {
+            const request: Dict = {
                 'contractName': market['id'],
             };
             if (market['linear']) {
@@ -1272,7 +1272,7 @@ export default class bitrue extends Exchange {
             }
             data = response;
         } else if (market['spot']) {
-            const request = {
+            const request: Dict = {
                 'symbol': market['id'],
             };
             response = await this.spotV1PublicGetTicker24hr (this.extend (request, params));
@@ -1343,7 +1343,7 @@ export default class bitrue extends Exchange {
         let data = undefined;
         if (market['swap']) {
             const timeframesFuture = this.safeValue (timeframes, 'future', {});
-            const request = {
+            const request: Dict = {
                 'contractName': market['id'],
                 // 1min / 5min / 15min / 30min / 1h / 1day / 1week / 1month
                 'interval': this.safeString (timeframesFuture, timeframe, '1min'),
@@ -1359,7 +1359,7 @@ export default class bitrue extends Exchange {
             data = response;
         } else if (market['spot']) {
             const timeframesSpot = this.safeValue (timeframes, 'spot', {});
-            const request = {
+            const request: Dict = {
                 'symbol': market['id'],
                 // 1m / 5m / 15m / 30m / 1H / 2H / 4H / 12H / 1D / 1W
                 'scale': this.safeString (timeframesSpot, timeframe, '1m'),
@@ -1467,7 +1467,7 @@ export default class bitrue extends Exchange {
         const market = this.market (first);
         let response = undefined;
         if (market['swap']) {
-            const request = {
+            const request: Dict = {
                 'contractName': market['id'],
             };
             if (market['linear']) {
@@ -1476,7 +1476,7 @@ export default class bitrue extends Exchange {
                 response = await this.dapiV1PublicGetTicker (this.extend (request, params));
             }
         } else if (market['spot']) {
-            const request = {
+            const request: Dict = {
                 'symbol': market['id'],
             };
             response = await this.spotV1PublicGetTickerBookTicker (this.extend (request, params));
@@ -1507,7 +1507,7 @@ export default class bitrue extends Exchange {
         //         "time": 1699348013000
         //     }
         //
-        const data = {};
+        const data: Dict = {};
         data[market['id']] = response;
         return this.parseTickers (data, symbols);
     }
@@ -1528,7 +1528,7 @@ export default class bitrue extends Exchange {
         symbols = this.marketSymbols (symbols);
         let response = undefined;
         let data = undefined;
-        const request = {};
+        const request: Dict = {};
         let type = undefined;
         if (symbols !== undefined) {
             const first = this.safeString (symbols, 0);
@@ -1590,7 +1590,7 @@ export default class bitrue extends Exchange {
         // the exchange returns market ids with an underscore from the tickers endpoint
         // the market ids do not have an underscore, so it has to be removed
         // https://github.com/ccxt/ccxt/issues/13856
-        const tickers = {};
+        const tickers: Dict = {};
         for (let i = 0; i < data.length; i++) {
             const ticker = this.safeValue (data, i, {});
             const market = this.market (this.safeValue (ticker, 'symbol'));
@@ -1709,7 +1709,7 @@ export default class bitrue extends Exchange {
         const market = this.market (symbol);
         let response = undefined;
         if (market['spot']) {
-            const request = {
+            const request: Dict = {
                 'symbol': market['id'],
                 // 'limit': 100, // default 100, max = 1000
             };
@@ -1737,8 +1737,8 @@ export default class bitrue extends Exchange {
         return this.parseTrades (response, market, since, limit);
     }
 
-    parseOrderStatus (status) {
-        const statuses = {
+    parseOrderStatus (status: Str) {
+        const statuses: Dict = {
             'INIT': 'open',
             'PENDING_CREATE': 'open',
             'NEW': 'open',
@@ -1923,7 +1923,7 @@ export default class bitrue extends Exchange {
         let response = undefined;
         let data = undefined;
         const uppercaseType = type.toUpperCase ();
-        const request = {
+        const request: Dict = {
             'side': side.toUpperCase (),
             'type': uppercaseType,
             // 'timeInForce': '',
@@ -2048,7 +2048,7 @@ export default class bitrue extends Exchange {
         params = this.omit (params, [ 'origClientOrderId', 'clientOrderId' ]);
         let response = undefined;
         let data = undefined;
-        const request = {};
+        const request: Dict = {};
         if (origClientOrderId === undefined) {
             request['orderId'] = id;
         } else {
@@ -2140,7 +2140,7 @@ export default class bitrue extends Exchange {
         if (!market['spot']) {
             throw new NotSupported (this.id + ' fetchClosedOrders only support spot markets');
         }
-        const request = {
+        const request: Dict = {
             'symbol': market['id'],
             // 'orderId': 123445, // long
             // 'startTime': since,
@@ -2200,7 +2200,7 @@ export default class bitrue extends Exchange {
         const market = this.market (symbol);
         let response = undefined;
         let data = undefined;
-        const request = {};
+        const request: Dict = {};
         if (market['swap']) {
             request['contractName'] = market['id'];
             if (market['linear']) {
@@ -2287,7 +2287,7 @@ export default class bitrue extends Exchange {
         params = this.omit (params, [ 'origClientOrderId', 'clientOrderId' ]);
         let response = undefined;
         let data = undefined;
-        const request = {};
+        const request: Dict = {};
         if (origClientOrderId === undefined) {
             request['orderId'] = id;
         } else {
@@ -2352,7 +2352,7 @@ export default class bitrue extends Exchange {
         let response = undefined;
         let data = undefined;
         if (market['swap']) {
-            const request = {
+            const request: Dict = {
                 'contractName': market['id'],
             };
             if (market['linear']) {
@@ -2397,7 +2397,7 @@ export default class bitrue extends Exchange {
         const market = this.market (symbol);
         let response = undefined;
         let data = undefined;
-        const request = {};
+        const request: Dict = {};
         if (since !== undefined) {
             request['startTime'] = since;
         }
@@ -2487,7 +2487,7 @@ export default class bitrue extends Exchange {
         }
         await this.loadMarkets ();
         const currency = this.currency (code);
-        const request = {
+        const request: Dict = {
             'coin': currency['id'],
             'status': 1, // 0 init, 1 finished, default 0
             // 'offset': 0,
@@ -2560,7 +2560,7 @@ export default class bitrue extends Exchange {
         }
         await this.loadMarkets ();
         const currency = this.currency (code);
-        const request = {
+        const request: Dict = {
             'coin': currency['id'],
             'status': 5, // 0 init, 5 finished, 6 canceled, default 0
             // 'offset': 0,
@@ -2604,7 +2604,7 @@ export default class bitrue extends Exchange {
     }
 
     parseTransactionStatusByType (status, type = undefined) {
-        const statusesByType = {
+        const statusesByType: Dict = {
             'deposit': {
                 '0': 'pending',
                 '1': 'ok',
@@ -2763,7 +2763,7 @@ export default class bitrue extends Exchange {
         this.checkAddress (address);
         await this.loadMarkets ();
         const currency = this.currency (code);
-        const request = {
+        const request: Dict = {
             'coin': currency['id'],
             'amount': amount,
             'addressTo': address,
@@ -2811,7 +2811,7 @@ export default class bitrue extends Exchange {
         //
         const chainDetails = this.safeValue (fee, 'chainDetail', []);
         const chainDetailLength = chainDetails.length;
-        const result = {
+        const result: Dict = {
             'info': fee,
             'withdraw': {
                 'fee': undefined,
@@ -2913,7 +2913,7 @@ export default class bitrue extends Exchange {
          */
         await this.loadMarkets ();
         const type = this.safeString2 (params, 'type', 'transferType');
-        const request = {
+        const request: Dict = {
             'transferType': type,
         };
         let currency = undefined;
@@ -2972,7 +2972,7 @@ export default class bitrue extends Exchange {
         const accountTypes = this.safeValue (this.options, 'accountsByType', {});
         const fromId = this.safeString (accountTypes, fromAccount, fromAccount);
         const toId = this.safeString (accountTypes, toAccount, toAccount);
-        const request = {
+        const request: Dict = {
             'coinSymbol': currency['id'],
             'amount': this.currencyToPrecision (code, amount),
             'transferType': fromId + '_to_' + toId,
@@ -3010,7 +3010,7 @@ export default class bitrue extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         let response = undefined;
-        const request = {
+        const request: Dict = {
             'contractName': market['id'],
             'leverage': leverage,
         };
@@ -3067,7 +3067,7 @@ export default class bitrue extends Exchange {
             throw new NotSupported (this.id + ' setMargin only support swap markets');
         }
         let response = undefined;
-        const request = {
+        const request: Dict = {
             'contractName': market['id'],
             'amount': this.parseToNumeric (amount),
         };

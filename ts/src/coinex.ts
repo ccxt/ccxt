@@ -556,7 +556,7 @@ export default class coinex extends Exchange {
         //
         const data = this.safeValue (response, 'data', []);
         const coins = Object.keys (data);
-        const result = {};
+        const result: Dict = {};
         for (let i = 0; i < coins.length; i++) {
             const coin = coins[i];
             const currency = data[coin];
@@ -622,7 +622,7 @@ export default class coinex extends Exchange {
                 minPrecisionString = (minPrecisionString === undefined) ? precisionString : Precise.stringMin (precisionString, minPrecisionString);
             }
             const networks = this.safeValue (result[code], 'networks', {});
-            const network = {
+            const network: Dict = {
                 'info': currency,
                 'id': networkId,
                 'network': networkId,
@@ -942,7 +942,7 @@ export default class coinex extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'market': market['id'],
         };
         let response = undefined;
@@ -1119,7 +1119,7 @@ export default class coinex extends Exchange {
         if (limit === undefined) {
             limit = 20; // default
         }
-        const request = {
+        const request: Dict = {
             'market': market['id'],
             'limit': limit,
             'interval': '0',
@@ -1262,7 +1262,7 @@ export default class coinex extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'market': market['id'],
             // 'last_id': 0,
         };
@@ -1308,7 +1308,7 @@ export default class coinex extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'market': market['id'],
         };
         let response = undefined;
@@ -1424,7 +1424,7 @@ export default class coinex extends Exchange {
             //
         }
         const data = this.safeList (response, 'data', []);
-        const result = {};
+        const result: Dict = {};
         for (let i = 0; i < data.length; i++) {
             const entry = data[i];
             const marketId = this.safeString (entry, 'market');
@@ -1487,7 +1487,7 @@ export default class coinex extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'market': market['id'],
             'period': this.safeString (this.timeframes, timeframe, timeframe),
         };
@@ -1558,7 +1558,7 @@ export default class coinex extends Exchange {
         //         "message": "OK"
         //     }
         //
-        const result = { 'info': response };
+        const result: Dict = { 'info': response };
         const balances = this.safeList (response, 'data', []);
         for (let i = 0; i < balances.length; i++) {
             const entry = balances[i];
@@ -1595,7 +1595,7 @@ export default class coinex extends Exchange {
         //         "message": "OK"
         //     }
         //
-        const result = { 'info': response };
+        const result: Dict = { 'info': response };
         const balances = this.safeList (response, 'data', []);
         for (let i = 0; i < balances.length; i++) {
             const entry = balances[i];
@@ -1628,7 +1628,7 @@ export default class coinex extends Exchange {
         //         "message": "OK"
         //     }
         //
-        const result = { 'info': response };
+        const result: Dict = { 'info': response };
         const balances = this.safeList (response, 'data', []);
         for (let i = 0; i < balances.length; i++) {
             const entry = balances[i];
@@ -1658,7 +1658,7 @@ export default class coinex extends Exchange {
         //         "message": "OK"
         //     }
         //
-        const result = { 'info': response };
+        const result: Dict = { 'info': response };
         const balances = this.safeList (response, 'data', []);
         for (let i = 0; i < balances.length; i++) {
             const entry = balances[i];
@@ -1702,8 +1702,8 @@ export default class coinex extends Exchange {
         }
     }
 
-    parseOrderStatus (status) {
-        const statuses = {
+    parseOrderStatus (status: Str) {
+        const statuses: Dict = {
             'rejected': 'rejected',
             'open': 'open',
             'not_deal': 'open',
@@ -2021,7 +2021,7 @@ export default class coinex extends Exchange {
                 throw new InvalidOrder (this.id + ' createOrder() does not support reduceOnly for ' + market['type'] + ' orders, reduceOnly orders are supported for swap markets only');
             }
         }
-        const request = {
+        const request: Dict = {
             'market': market['id'],
         };
         if (clientOrderId === undefined) {
@@ -2397,7 +2397,7 @@ export default class coinex extends Exchange {
             ordersRequests.push (orderRequest);
         }
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'market': market['id'],
             'orders': ordersRequests,
         };
@@ -2568,7 +2568,7 @@ export default class coinex extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'market': market['id'],
         };
         const stop = this.safeBool2 (params, 'stop', 'trigger');
@@ -2752,7 +2752,7 @@ export default class coinex extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'market': market['id'],
         };
         if (amount !== undefined) {
@@ -2899,7 +2899,7 @@ export default class coinex extends Exchange {
         const market = this.market (symbol);
         const isTriggerOrder = this.safeBool2 (params, 'stop', 'trigger');
         const swap = market['swap'];
-        const request = {
+        const request: Dict = {
             'market': market['id'],
         };
         let marginMode = undefined;
@@ -3184,7 +3184,7 @@ export default class coinex extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'market': market['id'],
         };
         let response = undefined;
@@ -3226,7 +3226,7 @@ export default class coinex extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'market': market['id'],
             'order_id': this.parseToNumeric (id),
         };
@@ -3316,7 +3316,7 @@ export default class coinex extends Exchange {
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
-        const request = {};
+        const request: Dict = {};
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
@@ -3673,7 +3673,7 @@ export default class coinex extends Exchange {
             throw new ArgumentsRequired (this.id + ' createDepositAddress() requires a network parameter');
         }
         params = this.omit (params, 'network');
-        const request = {
+        const request: Dict = {
             'ccy': currency['id'],
             'chain': this.networkCodeToId (network, currency['code']),
         };
@@ -3718,7 +3718,7 @@ export default class coinex extends Exchange {
                 throw new ExchangeError (this.id + ' fetchDepositAddress() ' + network + ' network not supported for ' + code);
             }
         }
-        const request = {
+        const request: Dict = {
             'ccy': currency['id'],
             'chain': network,
         };
@@ -3808,7 +3808,7 @@ export default class coinex extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        let request = {
+        let request: Dict = {
             'market': market['id'],
         };
         if (limit !== undefined) {
@@ -3893,7 +3893,7 @@ export default class coinex extends Exchange {
         let defaultMethod = undefined;
         [ defaultMethod, params ] = this.handleOptionAndParams (params, 'fetchPositions', 'method', 'v2PrivateGetFuturesPendingPosition');
         symbols = this.marketSymbols (symbols);
-        const request = {
+        const request: Dict = {
             'market_type': 'FUTURES',
         };
         let market = undefined;
@@ -3980,7 +3980,7 @@ export default class coinex extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'market_type': 'FUTURES',
             'market': market['id'],
         };
@@ -4134,7 +4134,7 @@ export default class coinex extends Exchange {
         if ((leverage < 1) || (leverage > maxLeverage)) {
             throw new BadRequest (this.id + ' setMarginMode() leverage should be between 1 and ' + maxLeverage.toString () + ' for ' + symbol);
         }
-        const request = {
+        const request: Dict = {
             'market': market['id'],
             'market_type': 'FUTURES',
             'margin_mode': marginMode,
@@ -4180,7 +4180,7 @@ export default class coinex extends Exchange {
         if ((leverage < minLeverage) || (leverage > maxLeverage)) {
             throw new BadRequest (this.id + ' setLeverage() leverage should be between ' + minLeverage.toString () + ' and ' + maxLeverage.toString () + ' for ' + symbol);
         }
-        const request = {
+        const request: Dict = {
             'market': market['id'],
             'market_type': 'FUTURES',
             'margin_mode': marginMode,
@@ -4210,7 +4210,7 @@ export default class coinex extends Exchange {
          * @returns {object} a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/#/?id=leverage-tiers-structure}, indexed by market symbols
          */
         await this.loadMarkets ();
-        const request = {};
+        const request: Dict = {};
         if (symbols !== undefined) {
             const marketIds = this.marketIds (symbols);
             request['market'] = marketIds.join (',');
@@ -4276,7 +4276,7 @@ export default class coinex extends Exchange {
         if (addOrReduce === 'reduce') {
             requestAmount = Precise.stringNeg (rawAmount);
         }
-        const request = {
+        const request: Dict = {
             'market': market['id'],
             'market_type': 'FUTURES',
             'amount': requestAmount,
@@ -4446,7 +4446,7 @@ export default class coinex extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        let request = {
+        let request: Dict = {
             'market': market['id'],
             'market_type': 'FUTURES',
         };
@@ -4514,7 +4514,7 @@ export default class coinex extends Exchange {
         if (!market['swap']) {
             throw new BadSymbol (this.id + ' fetchFundingRate() supports swap contracts only');
         }
-        const request = {
+        const request: Dict = {
             'market': market['id'],
         };
         const response = await this.v2PublicGetFuturesFundingRate (this.extend (request, params));
@@ -4592,7 +4592,7 @@ export default class coinex extends Exchange {
          */
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
-        const request = {};
+        const request: Dict = {};
         let market = undefined;
         if (symbols !== undefined) {
             const symbol = this.safeValue (symbols, 0);
@@ -4650,7 +4650,7 @@ export default class coinex extends Exchange {
         if (tag) {
             address = address + ':' + tag;
         }
-        const request = {
+        const request: Dict = {
             'coin_type': currency['id'],
             'coin_address': address, // must be authorized, inter-user transfer by a registered mobile phone number or an email address is supported
             'actual_amount': parseFloat (this.numberToString (amount)), // the actual amount without fees, https://www.coinex.com/fees
@@ -4683,7 +4683,7 @@ export default class coinex extends Exchange {
     }
 
     parseTransactionStatus (status) {
-        const statuses = {
+        const statuses: Dict = {
             'audit': 'pending',
             'pass': 'pending',
             'processing': 'pending',
@@ -4720,7 +4720,7 @@ export default class coinex extends Exchange {
             return await this.fetchPaginatedCallDeterministic ('fetchFundingRateHistory', symbol, since, limit, '8h', params, 1000) as FundingRateHistory[];
         }
         const market = this.market (symbol);
-        let request = {
+        let request: Dict = {
             'market': market['id'],
         };
         if (since !== undefined) {
@@ -4895,7 +4895,7 @@ export default class coinex extends Exchange {
         const accountsByType = this.safeDict (this.options, 'accountsById', {});
         const fromId = this.safeString (accountsByType, fromAccount, fromAccount);
         const toId = this.safeString (accountsByType, toAccount, toAccount);
-        const request = {
+        const request: Dict = {
             'ccy': currency['id'],
             'amount': amountToPrecision,
             'from_account_type': fromId,
@@ -4928,7 +4928,7 @@ export default class coinex extends Exchange {
     }
 
     parseTransferStatus (status) {
-        const statuses = {
+        const statuses: Dict = {
             '0': 'ok',
             'SUCCESS': 'ok',
             'OK': 'ok',
@@ -4974,7 +4974,7 @@ export default class coinex extends Exchange {
             throw new ArgumentsRequired (this.id + ' fetchTransfers() requires a code argument');
         }
         const currency = this.currency (code);
-        let request = {
+        let request: Dict = {
             'ccy': currency['id'],
         };
         let marginMode = undefined;
@@ -5029,7 +5029,7 @@ export default class coinex extends Exchange {
          * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         await this.loadMarkets ();
-        const request = {};
+        const request: Dict = {};
         let currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
@@ -5088,7 +5088,7 @@ export default class coinex extends Exchange {
          * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         await this.loadMarkets ();
-        const request = {};
+        const request: Dict = {};
         let currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
@@ -5185,7 +5185,7 @@ export default class coinex extends Exchange {
         params = this.omit (params, 'code');
         const currency = this.currency (code);
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'market': market['id'],
             'ccy': currency['id'],
         };
@@ -5222,7 +5222,7 @@ export default class coinex extends Exchange {
          * @returns {object[]} a list of [borrow interest structures]{@link https://docs.ccxt.com/#/?id=borrow-interest-structure}
          */
         await this.loadMarkets ();
-        const request = {};
+        const request: Dict = {};
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
@@ -5312,7 +5312,7 @@ export default class coinex extends Exchange {
         const currency = this.currency (code);
         const isAutoRenew = this.safeBool2 (params, 'isAutoRenew', 'is_auto_renew', false);
         params = this.omit (params, 'isAutoRenew');
-        const request = {
+        const request: Dict = {
             'market': market['id'],
             'ccy': currency['id'],
             'borrow_amount': this.currencyToPrecision (code, amount),
@@ -5359,7 +5359,7 @@ export default class coinex extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const currency = this.currency (code);
-        const request = {
+        const request: Dict = {
             'market': market['id'],
             'ccy': currency['id'],
             'amount': this.currencyToPrecision (code, amount),
@@ -5418,7 +5418,7 @@ export default class coinex extends Exchange {
          * @returns {object[]} a list of [fees structures]{@link https://docs.ccxt.com/#/?id=fee-structure}
          */
         await this.loadMarkets ();
-        const request = {};
+        const request: Dict = {};
         if (codes !== undefined) {
             const codesLength = codes.length;
             if (codesLength === 1) {
@@ -5456,7 +5456,7 @@ export default class coinex extends Exchange {
     }
 
     parseDepositWithdrawFees (response, codes = undefined, currencyIdKey = undefined) {
-        const depositWithdrawFees = {};
+        const depositWithdrawFees: Dict = {};
         codes = this.marketCodes (codes);
         const data = this.safeValue (response, 'data');
         const currencyIds = Object.keys (data);
@@ -5475,11 +5475,11 @@ export default class coinex extends Exchange {
                 depositWithdrawFees[code]['info'][entry] = feeInfo;
                 const networkId = this.safeString (splitEntry, 1);
                 const withdrawFee = this.safeValue (feeInfo, 'withdraw_tx_fee');
-                const withdrawResult = {
+                const withdrawResult: Dict = {
                     'fee': withdrawFee,
                     'percentage': (withdrawFee !== undefined) ? false : undefined,
                 };
-                const depositResult = {
+                const depositResult: Dict = {
                     'fee': undefined,
                     'percentage': undefined,
                 };
@@ -5580,7 +5580,7 @@ export default class coinex extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        let request = {
+        let request: Dict = {
             'market_type': 'FUTURES',
             'market': market['id'],
         };
@@ -5810,7 +5810,7 @@ export default class coinex extends Exchange {
             throw new ArgumentsRequired (this.id + ' fetchMarginAdjustmentHistory() requires a positionId parameter');
         }
         const market = this.market (symbol);
-        let request = {
+        let request: Dict = {
             'market': market['id'],
             'market_type': 'FUTURES',
             'position_id': positionId,

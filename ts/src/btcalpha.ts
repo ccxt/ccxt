@@ -289,7 +289,7 @@ export default class btcalpha extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'pair': market['id'],
         };
         const response = await this.publicGetTicker (this.extend (request, params));
@@ -365,7 +365,7 @@ export default class btcalpha extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'pair_name': market['id'],
         };
         if (limit) {
@@ -451,7 +451,7 @@ export default class btcalpha extends Exchange {
          */
         await this.loadMarkets ();
         let market = undefined;
-        const request = {};
+        const request: Dict = {};
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['pair'] = market['id'];
@@ -508,7 +508,7 @@ export default class btcalpha extends Exchange {
          */
         await this.loadMarkets ();
         let currency = undefined;
-        const request = {};
+        const request: Dict = {};
         if (code !== undefined) {
             currency = this.currency (code);
             request['currency_id'] = currency['id'];
@@ -575,7 +575,7 @@ export default class btcalpha extends Exchange {
     }
 
     parseTransactionStatus (status) {
-        const statuses = {
+        const statuses: Dict = {
             '10': 'pending',  // New
             '20': 'pending',  // Verified, waiting for approving
             '30': 'ok',       // Approved by moderator
@@ -621,7 +621,7 @@ export default class btcalpha extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'pair': market['id'],
             'type': this.safeString (this.timeframes, timeframe, timeframe),
         };
@@ -643,7 +643,7 @@ export default class btcalpha extends Exchange {
     }
 
     parseBalance (response): Balances {
-        const result = { 'info': response };
+        const result: Dict = { 'info': response };
         for (let i = 0; i < response.length; i++) {
             const balance = response[i];
             const currencyId = this.safeString (balance, 'currency');
@@ -670,8 +670,8 @@ export default class btcalpha extends Exchange {
         return this.parseBalance (response);
     }
 
-    parseOrderStatus (status) {
-        const statuses = {
+    parseOrderStatus (status: Str) {
+        const statuses: Dict = {
             '1': 'open',
             '2': 'canceled',
             '3': 'closed',
@@ -771,7 +771,7 @@ export default class btcalpha extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'pair': market['id'],
             'type': side,
             'amount': amount,
@@ -799,7 +799,7 @@ export default class btcalpha extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
-        const request = {
+        const request: Dict = {
             'order': id,
         };
         const response = await this.privatePostOrderCancel (this.extend (request, params));
@@ -817,7 +817,7 @@ export default class btcalpha extends Exchange {
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
-        const request = {
+        const request: Dict = {
             'id': id,
         };
         const order = await this.privateGetOrderId (this.extend (request, params));
@@ -837,7 +837,7 @@ export default class btcalpha extends Exchange {
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
-        const request = {};
+        const request: Dict = {};
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
@@ -862,7 +862,7 @@ export default class btcalpha extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
-        const request = {
+        const request: Dict = {
             'status': '1',
         };
         return await this.fetchOrders (symbol, since, limit, this.extend (request, params));
@@ -880,7 +880,7 @@ export default class btcalpha extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
-        const request = {
+        const request: Dict = {
             'status': '3',
         };
         return await this.fetchOrders (symbol, since, limit, this.extend (request, params));
@@ -899,7 +899,7 @@ export default class btcalpha extends Exchange {
          * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
          */
         await this.loadMarkets ();
-        const request = {};
+        const request: Dict = {};
         if (symbol !== undefined) {
             const market = this.market (symbol);
             request['pair'] = market['id'];
