@@ -88,7 +88,7 @@ export default class vertex extends Exchange {
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
-                'fetchOrders': false,
+                'fetchOrders': true,
                 'fetchOrderTrades': false,
                 'fetchPosition': true,
                 'fetchPositionMode': false,
@@ -1115,6 +1115,15 @@ export default class vertex extends Exchange {
         return sender.padEnd (66, '0');
     }
 
+    getNonce (now, expiration) {
+        if (now === undefined) {
+            now = this.nonce ();
+        }
+        // nonce = ((now + expiration) << 20) + 1000
+        // x << 20 = x * 1048576
+        return Precise.stringAdd (Precise.stringMul (Precise.stringAdd (this.numberToString (now), this.numberToString (expiration)), '1048576'), '1000');
+    }
+
     async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
         /**
          * @method
@@ -1160,13 +1169,23 @@ export default class vertex extends Exchange {
             }
         }
         const now = this.nonce ();
-        let nonce = ((BigInt (now) + 90000n) << 20n) + 1000n;
-        let expiration = (BigInt (now) + 86400n) | (sigBit << 62n);
+        let nonce = this.getNonce (now, 90000);
+        let expiration = Precise.stringAdd (this.numberToString (now), '86400');
+        if (sigBit > 0) {
+            // sigBit << 62
+            // 1 << 62 4611686018427387904
+            // 2 << 62 9223372036854775808
+            // 3 << 62 13835058055282163712
+            // 1 << 61 2305843009213693952
+        }
         if (isTrigger) {
-            nonce = nonce | (1n << 63n);
+            // 1 << 63 = 9223372036854775808
+            if (Precise.stringLt (nonce, '9223372036854775808')) {
+                nonce = Precise.stringAdd (nonce, '9223372036854775808');
+            }
         }
         if (reduceOnly) {
-            expiration = expiration | (1n << 61n);
+            // expiration = expiration | (1n << 61n);
         }
         const order = {
             'sender': this.convertAddressToSender (this.walletAddress),
@@ -1189,7 +1208,7 @@ export default class vertex extends Exchange {
                 'product_id': this.parseToNumeric (marketId),
                 'order': {
                     'sender': order['sender'],
-                    'nonce': this.numberToString (order['nonce']),
+                    'nonce': order['nonce'],
                     'expiration': this.numberToString (order['expiration']),
                     'priceX18': order['priceX18'],
                     'amount': order['amount'],
@@ -1516,7 +1535,7 @@ export default class vertex extends Exchange {
         const chainId = this.safeNumber (contracts, 'chain_id');
         const verifyingContractAddress = this.safeString (contracts, 'endpoint_addr');
         const now = this.nonce ();
-        const nonce = ((BigInt (now) + 90000n) << 20n) + 1000n;
+        const nonce = this.getNonce(now, 90000);
         // TODO: make sure signature works
         const cancels = {
             'sender': this.convertAddressToSender (this.walletAddress),
@@ -1614,7 +1633,7 @@ export default class vertex extends Exchange {
         const chainId = this.safeNumber (contracts, 'chain_id');
         const verifyingContractAddress = this.safeString (contracts, 'endpoint_addr');
         const now = this.nonce ();
-        const nonce = ((BigInt (now) + 90000n) << 20n) + 1000n;
+        const nonce = this.getNonce(now, 90000);
         // TODO: make sure signature works
         const cancels = {
             'sender': this.convertAddressToSender (this.walletAddress),
