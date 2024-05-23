@@ -5372,7 +5372,7 @@ export default class coinex extends Exchange {
         //         "message": "OK"
         //     }
         //
-        const data = this.safeValue (response, 'data', {});
+        const data = this.safeDict (response, 'data', {});
         const transaction = this.parseMarginLoan (data, currency);
         return this.extend (transaction, {
             'amount': amount,
@@ -5385,12 +5385,12 @@ export default class coinex extends Exchange {
          * @method
          * @name coinex#repayIsolatedMargin
          * @description repay borrowed margin and interest
-         * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot002_account018_margin_flat
+         * @see https://docs.coinex.com/api/v2/assets/loan-flat/http/margin-repay
          * @param {string} symbol unified market symbol, required for coinex
          * @param {string} code unified currency code of the currency to repay
          * @param {float} amount the amount to repay
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {string} [params.loan_id] extra parameter that is not required
+         * @param {string} [params.borrow_id] extra parameter that is not required
          * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/#/?id=margin-loan-structure}
          */
         await this.loadMarkets ();
@@ -5398,18 +5398,19 @@ export default class coinex extends Exchange {
         const currency = this.currency (code);
         const request = {
             'market': market['id'],
-            'coin_type': currency['id'],
+            'ccy': currency['id'],
             'amount': this.currencyToPrecision (code, amount),
         };
-        const response = await this.v1PrivatePostMarginFlat (this.extend (request, params));
+        const response = await this.v2PrivatePostAssetsMarginRepay (this.extend (request, params));
         //
         //     {
         //         "code": 0,
-        //         "data": null,
-        //         "message": "Success"
+        //         "data": {},
+        //         "message": "OK"
         //     }
         //
-        const transaction = this.parseMarginLoan (response, currency);
+        const data = this.safeDict (response, 'data', {});
+        const transaction = this.parseMarginLoan (data, currency);
         return this.extend (transaction, {
             'amount': amount,
             'symbol': symbol,
@@ -5417,8 +5418,6 @@ export default class coinex extends Exchange {
     }
 
     parseMarginLoan (info, currency: Currency = undefined) {
-        //
-        // borrowMargin
         //
         //     {
         //         "borrow_id": 13784021,
@@ -5430,9 +5429,6 @@ export default class coinex extends Exchange {
         //         "to_repaied_amount": "60.0025",
         //         "status": "loan"
         //     }
-        //
-        // repayMargin
-        //
         //
         const currencyId = this.safeString (info, 'ccy');
         const marketId = this.safeString (info, 'market');
