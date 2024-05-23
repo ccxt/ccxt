@@ -5336,29 +5336,40 @@ export default class coinex extends Exchange {
          * @method
          * @name coinex#borrowIsolatedMargin
          * @description create a loan to borrow margin
-         * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot002_account017_margin_loan
+         * @see https://docs.coinex.com/api/v2/assets/loan-flat/http/margin-borrow
          * @param {string} symbol unified market symbol, required for coinex
          * @param {string} code unified currency code of the currency to borrow
          * @param {float} amount the amount to borrow
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {boolean} [params.isAutoRenew] whether to renew the margin loan automatically or not, default is false
          * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/#/?id=margin-loan-structure}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const currency = this.currency (code);
+        const isAutoRenew = this.safeBool2 (params, 'isAutoRenew', 'is_auto_renew', false);
+        params = this.omit (params, 'isAutoRenew');
         const request = {
             'market': market['id'],
-            'coin_type': currency['id'],
-            'amount': this.currencyToPrecision (code, amount),
+            'ccy': currency['id'],
+            'borrow_amount': this.currencyToPrecision (code, amount),
+            'is_auto_renew': isAutoRenew,
         };
-        const response = await this.v1PrivatePostMarginLoan (this.extend (request, params));
+        const response = await this.v2PrivatePostAssetsMarginBorrow (this.extend (request, params));
         //
         //     {
         //         "code": 0,
         //         "data": {
-        //             "loan_id": 1670
+        //             "borrow_id": 13784021,
+        //             "market": "BTCUSDT",
+        //             "ccy": "USDT",
+        //             "daily_interest_rate": "0.001",
+        //             "expired_at": 1717299948340,
+        //             "borrow_amount": "60",
+        //             "to_repaied_amount": "60.0025",
+        //             "status": "loan"
         //         },
-        //         "message": "Success"
+        //         "message": "OK"
         //     }
         //
         const data = this.safeValue (response, 'data', {});
@@ -5410,24 +5421,29 @@ export default class coinex extends Exchange {
         // borrowMargin
         //
         //     {
-        //         "loan_id": 1670
+        //         "borrow_id": 13784021,
+        //         "market": "BTCUSDT",
+        //         "ccy": "USDT",
+        //         "daily_interest_rate": "0.001",
+        //         "expired_at": 1717299948340,
+        //         "borrow_amount": "60",
+        //         "to_repaied_amount": "60.0025",
+        //         "status": "loan"
         //     }
         //
         // repayMargin
         //
-        //     {
-        //         "code": 0,
-        //         "data": null,
-        //         "message": "Success"
-        //     }
         //
+        const currencyId = this.safeString (info, 'ccy');
+        const marketId = this.safeString (info, 'market');
+        const timestamp = this.safeInteger (info, 'expired_at');
         return {
-            'id': this.safeInteger (info, 'loan_id'),
-            'currency': this.safeCurrencyCode (undefined, currency),
-            'amount': undefined,
-            'symbol': undefined,
-            'timestamp': undefined,
-            'datetime': undefined,
+            'id': this.safeInteger (info, 'borrow_id'),
+            'currency': this.safeCurrencyCode (currencyId, currency),
+            'amount': this.safeString (info, 'borrow_amount'),
+            'symbol': this.safeSymbol (marketId, undefined, undefined, 'spot'),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
             'info': info,
         };
     }
