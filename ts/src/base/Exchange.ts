@@ -6724,6 +6724,10 @@ export default class Exchange {
         for (let i = 0; i < response.length; i++) {
             const info = response[i];
             const marketId = this.safeString (info, symbolKey);
+            if (marketType === undefined && symbols !== undefined) {
+                const market = this.getMarketFromSymbols (symbols);
+                marketType = market['type'];
+            }
             const market = this.safeMarket (marketId, undefined, undefined, marketType);
             if ((symbols === undefined) || this.inArray (market['symbol'], symbols)) {
                 leverageStructures[market['symbol']] = this.parseLeverage (info, market);
