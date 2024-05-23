@@ -82,7 +82,7 @@ class coinex extends Exchange {
                 'fetchFundingRates' => true,
                 'fetchIndexOHLCV' => false,
                 'fetchIsolatedBorrowRate' => true,
-                'fetchIsolatedBorrowRates' => true,
+                'fetchIsolatedBorrowRates' => false,
                 'fetchLeverage' => 'emulated',
                 'fetchLeverages' => true,
                 'fetchLeverageTiers' => true,
@@ -5155,29 +5155,30 @@ class coinex extends Exchange {
         //
         //     {
         //         "market" => "BTCUSDT",
+        //         "ccy" => "USDT",
         //         "leverage" => 10,
-        //         "BTC" => array(
-        //             "min_amount" => "0.002",
-        //             "max_amount" => "200",
-        //             "day_rate" => "0.001"
-        //         ),
-        //         "USDT" => array(
-        //             "min_amount" => "60",
-        //             "max_amount" => "5000000",
-        //             "day_rate" => "0.001"
-        //         }
-        //     ),
+        //         "min_amount" => "60",
+        //         "max_amount" => "500000",
+        //         "daily_interest_rate" => "0.001"
+        //     }
         //
         $marketId = $this->safe_string($info, 'market');
         $market = $this->safe_market($marketId, $market, null, 'spot');
-        $baseInfo = $this->safe_value($info, $market['baseId']);
-        $quoteInfo = $this->safe_value($info, $market['quoteId']);
+        $currency = $this->safe_string($info, 'ccy');
+        $rate = $this->safe_number($info, 'daily_interest_rate');
+        $baseRate = null;
+        $quoteRate = null;
+        if ($currency === $market['baseId']) {
+            $baseRate = $rate;
+        } elseif ($currency === $market['quoteId']) {
+            $quoteRate = $rate;
+        }
         return array(
             'symbol' => $market['symbol'],
             'base' => $market['base'],
-            'baseRate' => $this->safe_number($baseInfo, 'day_rate'),
+            'baseRate' => $baseRate,
             'quote' => $market['quote'],
-            'quoteRate' => $this->safe_number($quoteInfo, 'day_rate'),
+            'quoteRate' => $quoteRate,
             'period' => 86400000,
             'timestamp' => null,
             'datetime' => null,
@@ -5188,82 +5189,57 @@ class coinex extends Exchange {
     public function fetch_isolated_borrow_rate(string $symbol, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
-             * fetch the rate of interest to borrow a currency for margin trading
-             * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot002_account007_margin_account_settings
+             * fetch the rate of interest to borrow a $currency for margin trading
+             * @see https://docs.coinex.com/api/v2/assets/loan-flat/http/list-margin-interest-limit
              * @param {string} $symbol unified $symbol of the $market to fetch the borrow rate for
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {string} $params->code unified $currency $code
              * @return {array} an ~@link https://docs.ccxt.com/#/?id=isolated-borrow-rate-structure isolated borrow rate structure~
              */
             Async\await($this->load_markets());
+            $code = $this->safe_string($params, 'code');
+            if ($code === null) {
+                throw new ArgumentsRequired($this->id . ' fetchIsolatedBorrowRate() requires a $code parameter');
+            }
+            $params = $this->omit($params, 'code');
+            $currency = $this->currency($code);
             $market = $this->market($symbol);
             $request = array(
                 'market' => $market['id'],
+                'ccy' => $currency['id'],
             );
-            $response = Async\await($this->v1PrivateGetMarginConfig ($this->extend($request, $params)));
-            //
-            //     {
-            //         "code" => 0,
-            //         "data" => {
-            //             "market" => "BTCUSDT",
-            //             "leverage" => 10,
-            //             "BTC" => array(
-            //                 "min_amount" => "0.002",
-            //                 "max_amount" => "200",
-            //                 "day_rate" => "0.001"
-            //             ),
-            //             "USDT" => array(
-            //                 "min_amount" => "60",
-            //                 "max_amount" => "5000000",
-            //                 "day_rate" => "0.001"
-            //             }
-            //         ),
-            //         "message" => "Success"
-            //     }
-            //
-            $data = $this->safe_value($response, 'data', array());
-            return $this->parse_isolated_borrow_rate($data, $market);
-        }) ();
-    }
-
-    public function fetch_isolated_borrow_rates($params = array ()): PromiseInterface {
-        return Async\async(function () use ($params) {
-            /**
-             * fetch the borrow interest rates of all currencies
-             * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot002_account007_margin_account_settings
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#isolated-borrow-rate-structure isolated borrow rate structures}
-             */
-            Async\await($this->load_markets());
-            $response = Async\await($this->v1PrivateGetMarginConfig ($params));
+            $response = Async\await($this->v2PrivateGetAssetsMarginInterestLimit ($this->extend($request, $params)));
             //
             //     {
             //         "code" => 0,
             //         "data" => array(
-            //             {
-            //                 "market" => "BTCUSDT",
-            //                 "leverage" => 10,
-            //                 "BTC" => array(
-            //                     "min_amount" => "0.002",
-            //                     "max_amount" => "200",
-            //                     "day_rate" => "0.001"
-            //                 ),
-            //                 "USDT" => array(
-            //                     "min_amount" => "60",
-            //                     "max_amount" => "5000000",
-            //                     "day_rate" => "0.001"
-            //                 }
-            //             ),
+            //             "market" => "BTCUSDT",
+            //             "ccy" => "USDT",
+            //             "leverage" => 10,
+            //             "min_amount" => "60",
+            //             "max_amount" => "500000",
+            //             "daily_interest_rate" => "0.001"
             //         ),
-            //         "message" => "Success"
+            //         "message" => "OK"
             //     }
             //
-            $data = $this->safe_value($response, 'data', array());
-            return $this->parse_isolated_borrow_rates($data);
+            $data = $this->safe_dict($response, 'data', array());
+            return $this->parse_isolated_borrow_rate($data, $market);
         }) ();
     }
 
     public function fetch_borrow_interest(?string $code = null, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($code, $symbol, $since, $limit, $params) {
+            /**
+             * fetch the $interest owed by the user for borrowing currency for margin trading
+             * @see https://docs.coinex.com/api/v2/assets/loan-flat/http/list-margin-borrow-history
+             * @param {string} [$code] unified currency $code
+             * @param {string} [$symbol] unified $market $symbol when fetch $interest in isolated markets
+             * @param {int} [$since] the earliest time in ms to fetch borrrow $interest for
+             * @param {int} [$limit] the maximum number of structures to retrieve
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=borrow-$interest-structure borrow $interest structures~
+             */
             Async\await($this->load_markets());
             $request = array();
             $market = null;
@@ -5274,39 +5250,32 @@ class coinex extends Exchange {
             if ($limit !== null) {
                 $request['limit'] = $limit;
             }
-            $response = Async\await($this->v1PrivateGetMarginLoanHistory ($this->extend($request, $params)));
+            $response = Async\await($this->v2PrivateGetAssetsMarginBorrowHistory ($this->extend($request, $params)));
             //
             //     {
-            //         "code" => 0,
-            //         "data" => {
-            //             "page" => 1,
-            //             "limit" => 10,
-            //             "total" => 1,
-            //             "has_next" => false,
-            //             "curr_page" => 1,
-            //             "count" => 1,
-            //             "data" => array(
-            //                 array(
-            //                     "loan_id" => 2616357,
-            //                     "create_time" => 1654214027,
-            //                     "market_type" => "BTCUSDT",
-            //                     "coin_type" => "BTC",
-            //                     "day_rate" => "0.001",
-            //                     "loan_amount" => "0.0144",
-            //                     "interest_amount" => "0",
-            //                     "unflat_amount" => "0",
-            //                     "expire_time" => 1655078027,
-            //                     "is_renew" => true,
-            //                     "status" => "finish"
-            //                 }
+            //         "data" => array(
+            //             array(
+            //                 "borrow_id" => 2642934,
+            //                 "created_at" => 1654761016000,
+            //                 "market" => "BTCUSDT",
+            //                 "ccy" => "USDT",
+            //                 "daily_interest_rate" => "0.001",
+            //                 "expired_at" => 1655625016000,
+            //                 "borrow_amount" => "100",
+            //                 "to_repaied_amount" => "0",
+            //                 "is_auto_renew" => false,
+            //                 "status" => "finish"
             //             ),
-            //             "total_page" => 1
             //         ),
-            //         "message" => "Success"
+            //         "pagination" => array(
+            //             "total" => 4,
+            //             "has_next" => true
+            //         ),
+            //         "code" => 0,
+            //         "message" => "OK"
             //     }
             //
-            $data = $this->safe_value($response, 'data', array());
-            $rows = $this->safe_value($data, 'data', array());
+            $rows = $this->safe_value($response, 'data', array());
             $interest = $this->parse_borrow_interests($rows, $market);
             return $this->filter_by_currency_since_limit($interest, $code, $since, $limit);
         }) ();
@@ -5315,38 +5284,30 @@ class coinex extends Exchange {
     public function parse_borrow_interest($info, ?array $market = null) {
         //
         //     {
-        //         "loan_id" => 2616357,
-        //         "create_time" => 1654214027,
-        //         "market_type" => "BTCUSDT",
-        //         "coin_type" => "BTC",
-        //         "day_rate" => "0.001",
-        //         "loan_amount" => "0.0144",
-        //         "interest_amount" => "0",
-        //         "unflat_amount" => "0",
-        //         "expire_time" => 1655078027,
-        //         "is_renew" => true,
+        //         "borrow_id" => 2642934,
+        //         "created_at" => 1654761016000,
+        //         "market" => "BTCUSDT",
+        //         "ccy" => "USDT",
+        //         "daily_interest_rate" => "0.001",
+        //         "expired_at" => 1655625016000,
+        //         "borrow_amount" => "100",
+        //         "to_repaied_amount" => "0",
+        //         "is_auto_renew" => false,
         //         "status" => "finish"
         //     }
         //
-        $marketId = $this->safe_string($info, 'market_type');
+        $marketId = $this->safe_string($info, 'market');
         $market = $this->safe_market($marketId, $market, null, 'spot');
-        $symbol = $this->safe_string($market, 'symbol');
-        $timestamp = $this->safe_timestamp($info, 'expire_time');
-        $unflatAmount = $this->safe_string($info, 'unflat_amount');
-        $loanAmount = $this->safe_string($info, 'loan_amount');
-        $interest = Precise::string_sub($unflatAmount, $loanAmount);
-        if ($unflatAmount === '0') {
-            $interest = null;
-        }
+        $timestamp = $this->safe_integer($info, 'expired_at');
         return array(
             'account' => null, // deprecated
-            'symbol' => $symbol,
+            'symbol' => $market['symbol'],
             'marginMode' => 'isolated',
             'marginType' => null, // deprecated
-            'currency' => $this->safe_currency_code($this->safe_string($info, 'coin_type')),
-            'interest' => $this->parse_number($interest),
-            'interestRate' => $this->safe_number($info, 'day_rate'),
-            'amountBorrowed' => $this->parse_number($loanAmount),
+            'currency' => $this->safe_currency_code($this->safe_string($info, 'ccy')),
+            'interest' => $this->safe_number($info, 'to_repaied_amount'),
+            'interestRate' => $this->safe_number($info, 'daily_interest_rate'),
+            'amountBorrowed' => $this->safe_number($info, 'borrow_amount'),
             'timestamp' => $timestamp,  // expiry time
             'datetime' => $this->iso8601($timestamp),
             'info' => $info,
@@ -5357,32 +5318,43 @@ class coinex extends Exchange {
         return Async\async(function () use ($symbol, $code, $amount, $params) {
             /**
              * create a loan to borrow margin
-             * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot002_account017_margin_loan
+             * @see https://docs.coinex.com/api/v2/assets/loan-flat/http/margin-borrow
              * @param {string} $symbol unified $market $symbol, required for coinex
              * @param {string} $code unified $currency $code of the $currency to borrow
              * @param {float} $amount the $amount to borrow
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {boolean} [$params->isAutoRenew] whether to renew the margin loan automatically or not, default is false
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=margin-loan-structure margin loan structure~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
             $currency = $this->currency($code);
+            $isAutoRenew = $this->safe_bool_2($params, 'isAutoRenew', 'is_auto_renew', false);
+            $params = $this->omit($params, 'isAutoRenew');
             $request = array(
                 'market' => $market['id'],
-                'coin_type' => $currency['id'],
-                'amount' => $this->currency_to_precision($code, $amount),
+                'ccy' => $currency['id'],
+                'borrow_amount' => $this->currency_to_precision($code, $amount),
+                'is_auto_renew' => $isAutoRenew,
             );
-            $response = Async\await($this->v1PrivatePostMarginLoan ($this->extend($request, $params)));
+            $response = Async\await($this->v2PrivatePostAssetsMarginBorrow ($this->extend($request, $params)));
             //
             //     {
             //         "code" => 0,
             //         "data" => array(
-            //             "loan_id" => 1670
+            //             "borrow_id" => 13784021,
+            //             "market" => "BTCUSDT",
+            //             "ccy" => "USDT",
+            //             "daily_interest_rate" => "0.001",
+            //             "expired_at" => 1717299948340,
+            //             "borrow_amount" => "60",
+            //             "to_repaied_amount" => "60.0025",
+            //             "status" => "loan"
             //         ),
-            //         "message" => "Success"
+            //         "message" => "OK"
             //     }
             //
-            $data = $this->safe_value($response, 'data', array());
+            $data = $this->safe_dict($response, 'data', array());
             $transaction = $this->parse_margin_loan($data, $currency);
             return $this->extend($transaction, array(
                 'amount' => $amount,
@@ -5395,12 +5367,12 @@ class coinex extends Exchange {
         return Async\async(function () use ($symbol, $code, $amount, $params) {
             /**
              * repay borrowed margin and interest
-             * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot002_account018_margin_flat
+             * @see https://docs.coinex.com/api/v2/assets/loan-flat/http/margin-repay
              * @param {string} $symbol unified $market $symbol, required for coinex
              * @param {string} $code unified $currency $code of the $currency to repay
              * @param {float} $amount the $amount to repay
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {string} [$params->loan_id] extra parameter that is not required
+             * @param {string} [$params->borrow_id] extra parameter that is not required
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=margin-loan-structure margin loan structure~
              */
             Async\await($this->load_markets());
@@ -5408,18 +5380,19 @@ class coinex extends Exchange {
             $currency = $this->currency($code);
             $request = array(
                 'market' => $market['id'],
-                'coin_type' => $currency['id'],
+                'ccy' => $currency['id'],
                 'amount' => $this->currency_to_precision($code, $amount),
             );
-            $response = Async\await($this->v1PrivatePostMarginFlat ($this->extend($request, $params)));
+            $response = Async\await($this->v2PrivatePostAssetsMarginRepay ($this->extend($request, $params)));
             //
             //     {
             //         "code" => 0,
-            //         "data" => null,
-            //         "message" => "Success"
+            //         "data" => array(),
+            //         "message" => "OK"
             //     }
             //
-            $transaction = $this->parse_margin_loan($response, $currency);
+            $data = $this->safe_dict($response, 'data', array());
+            $transaction = $this->parse_margin_loan($data, $currency);
             return $this->extend($transaction, array(
                 'amount' => $amount,
                 'symbol' => $symbol,
@@ -5429,27 +5402,27 @@ class coinex extends Exchange {
 
     public function parse_margin_loan($info, ?array $currency = null) {
         //
-        // borrowMargin
-        //
         //     {
-        //         "loan_id" => 1670
+        //         "borrow_id" => 13784021,
+        //         "market" => "BTCUSDT",
+        //         "ccy" => "USDT",
+        //         "daily_interest_rate" => "0.001",
+        //         "expired_at" => 1717299948340,
+        //         "borrow_amount" => "60",
+        //         "to_repaied_amount" => "60.0025",
+        //         "status" => "loan"
         //     }
         //
-        // repayMargin
-        //
-        //     {
-        //         "code" => 0,
-        //         "data" => null,
-        //         "message" => "Success"
-        //     }
-        //
+        $currencyId = $this->safe_string($info, 'ccy');
+        $marketId = $this->safe_string($info, 'market');
+        $timestamp = $this->safe_integer($info, 'expired_at');
         return array(
-            'id' => $this->safe_integer($info, 'loan_id'),
-            'currency' => $this->safe_currency_code(null, $currency),
-            'amount' => null,
-            'symbol' => null,
-            'timestamp' => null,
-            'datetime' => null,
+            'id' => $this->safe_integer($info, 'borrow_id'),
+            'currency' => $this->safe_currency_code($currencyId, $currency),
+            'amount' => $this->safe_string($info, 'borrow_amount'),
+            'symbol' => $this->safe_symbol($marketId, null, null, 'spot'),
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
             'info' => $info,
         );
     }

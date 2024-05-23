@@ -1,5 +1,5 @@
 import Exchange from './abstract/coinex.js';
-import type { Balances, Currency, FundingHistory, FundingRateHistory, Int, Market, OHLCV, Order, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, OrderRequest, TransferEntry, Leverage, Leverages, Num, MarginModification, TradingFeeInterface, Currencies, TradingFees, Position, IsolatedBorrowRates, IsolatedBorrowRate, Dict, TransferEntries } from './base/types.js';
+import type { Balances, Currency, FundingHistory, FundingRateHistory, Int, Market, OHLCV, Order, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, OrderRequest, TransferEntry, Leverage, Leverages, Num, MarginModification, TradingFeeInterface, Currencies, TradingFees, Position, IsolatedBorrowRate, Dict, TransferEntries } from './base/types.js';
 /**
  * @class coinex
  * @augments Exchange
@@ -128,7 +128,6 @@ export default class coinex extends Exchange {
     fetchDeposits(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
     parseIsolatedBorrowRate(info: any, market?: Market): IsolatedBorrowRate;
     fetchIsolatedBorrowRate(symbol: string, params?: {}): Promise<IsolatedBorrowRate>;
-    fetchIsolatedBorrowRates(params?: {}): Promise<IsolatedBorrowRates>;
     fetchBorrowInterest(code?: Str, symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<any>;
     parseBorrowInterest(info: any, market?: Market): {
         account: any;
@@ -148,10 +147,10 @@ export default class coinex extends Exchange {
     parseMarginLoan(info: any, currency?: Currency): {
         id: number;
         currency: string;
-        amount: any;
-        symbol: any;
-        timestamp: any;
-        datetime: any;
+        amount: string;
+        symbol: string;
+        timestamp: number;
+        datetime: string;
         info: any;
     };
     fetchDepositWithdrawFees(codes?: Strings, params?: {}): Promise<{}>;

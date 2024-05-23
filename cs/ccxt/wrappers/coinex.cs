@@ -1202,7 +1202,7 @@ public partial class coinex
     /// fetch the rate of interest to borrow a currency for margin trading
     /// </summary>
     /// <remarks>
-    /// See <see href="https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot002_account007_margin_account_settings"/>  <br/>
+    /// See <see href="https://docs.coinex.com/api/v2/assets/loan-flat/http/list-margin-interest-limit"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -1219,11 +1219,35 @@ public partial class coinex
         return new IsolatedBorrowRate(res);
     }
     /// <summary>
-    /// fetch the borrow interest rates of all currencies
+    /// fetch the interest owed by the user for borrowing currency for margin trading
     /// </summary>
     /// <remarks>
-    /// See <see href="https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot002_account007_margin_account_settings"/>  <br/>
+    /// See <see href="https://docs.coinex.com/api/v2/assets/loan-flat/http/list-margin-borrow-history"/>  <br/>
     /// <list type="table">
+    /// <item>
+    /// <term>code</term>
+    /// <description>
+    /// string : unified currency code
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>symbol</term>
+    /// <description>
+    /// string : unified market symbol when fetch interest in isolated markets
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>since</term>
+    /// <description>
+    /// int : the earliest time in ms to fetch borrrow interest for
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>limit</term>
+    /// <description>
+    /// int : the maximum number of structures to retrieve
+    /// </description>
+    /// </item>
     /// <item>
     /// <term>params</term>
     /// <description>
@@ -1232,12 +1256,7 @@ public partial class coinex
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> a list of [isolated borrow rate structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#isolated-borrow-rate-structure}.</returns>
-    public async Task<IsolatedBorrowRates> FetchIsolatedBorrowRates(Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchIsolatedBorrowRates(parameters);
-        return new IsolatedBorrowRates(res);
-    }
+    /// <returns> <term>object[]</term> a list of [borrow interest structures]{@link https://docs.ccxt.com/#/?id=borrow-interest-structure}.</returns>
     public async Task<Dictionary<string, object>> FetchBorrowInterest(string code = null, string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;

@@ -6126,6 +6126,9 @@ class Exchange {
     }
     parseMarginModes(response, symbols = undefined, symbolKey = undefined, marketType = undefined) {
         const marginModeStructures = {};
+        if (marketType === undefined) {
+            marketType = 'swap'; // default to swap
+        }
         for (let i = 0; i < response.length; i++) {
             const info = response[i];
             const marketId = this.safeString(info, symbolKey);
@@ -6141,6 +6144,9 @@ class Exchange {
     }
     parseLeverages(response, symbols = undefined, symbolKey = undefined, marketType = undefined) {
         const leverageStructures = {};
+        if (marketType === undefined) {
+            marketType = 'swap'; // default to swap
+        }
         for (let i = 0; i < response.length; i++) {
             const info = response[i];
             const marketId = this.safeString(info, symbolKey);

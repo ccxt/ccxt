@@ -5712,6 +5712,8 @@ class Exchange(object):
 
     def parse_margin_modes(self, response: List[object], symbols: List[str] = None, symbolKey: Str = None, marketType: MarketType = None):
         marginModeStructures = {}
+        if marketType is None:
+            marketType = 'swap'  # default to swap
         for i in range(0, len(response)):
             info = response[i]
             marketId = self.safe_string(info, symbolKey)
@@ -5725,6 +5727,8 @@ class Exchange(object):
 
     def parse_leverages(self, response: List[object], symbols: List[str] = None, symbolKey: Str = None, marketType: MarketType = None):
         leverageStructures = {}
+        if marketType is None:
+            marketType = 'swap'  # default to swap
         for i in range(0, len(response)):
             info = response[i]
             marketId = self.safe_string(info, symbolKey)
