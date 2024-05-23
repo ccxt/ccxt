@@ -3003,7 +3003,7 @@ export default class woo extends Exchange {
         return this.parsePositions (positions, symbols);
     }
 
-    parsePosition (position, market: Market = undefined) {
+    parsePosition (position: Dict, market: Market = undefined) {
         //
         //     {
         //         "symbol": "0_symbol",

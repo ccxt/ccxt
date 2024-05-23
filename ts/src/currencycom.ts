@@ -1974,7 +1974,7 @@ export default class currencycom extends Exchange {
         return this.parsePositions (data, symbols);
     }
 
-    parsePosition (position, market: Market = undefined) {
+    parsePosition (position: Dict, market: Market = undefined) {
         //
         //    {
         //        "accountId": "109698017416453793",

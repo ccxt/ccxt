@@ -5407,7 +5407,7 @@ export default class okx extends Exchange {
         if (position === undefined) {
             return undefined;
         }
-        return this.parsePosition (position, market);
+        return this.parsePosition (position: Dict, market);
     }
 
     async fetchPositions (symbols: Strings = undefined, params = {}) {
@@ -5516,7 +5516,7 @@ export default class okx extends Exchange {
         return await this.fetchPositions ([ symbol ], params);
     }
 
-    parsePosition (position, market: Market = undefined) {
+    parsePosition (position: Dict, market: Market = undefined) {
         //
         //     {
         //        "adl": "3",

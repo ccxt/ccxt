@@ -4381,10 +4381,10 @@ export default class coinbase extends Exchange {
             response = await this.v3PrivateGetBrokerageIntxPositionsPortfolioUuidSymbol (this.extend (request, params));
         }
         const position = this.safeDict (response, 'position', {});
-        return this.parsePosition (position, market);
+        return this.parsePosition (position: Dict, market);
     }
 
-    parsePosition (position, market: Market = undefined) {
+    parsePosition (position: Dict, market: Market = undefined) {
         //
         // {
         //     "product_id": "1r4njf84-0-0",

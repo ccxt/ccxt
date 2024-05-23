@@ -5225,7 +5225,7 @@ export default class gate extends Exchange {
         return response;
     }
 
-    parsePosition (position, market: Market = undefined) {
+    parsePosition (position: Dict, market: Market = undefined) {
         //
         // swap and future
         //

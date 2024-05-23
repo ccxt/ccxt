@@ -1036,7 +1036,7 @@ export default class poloniexfutures extends Exchange {
         return this.parsePositions (data, symbols);
     }
 
-    parsePosition (position, market: Market = undefined) {
+    parsePosition (position: Dict, market: Market = undefined) {
         //
         //    {
         //        "code": "200000",

@@ -1643,7 +1643,7 @@ export default class delta extends Exchange {
         return this.parsePositions (result, symbols);
     }
 
-    parsePosition (position, market: Market = undefined) {
+    parsePosition (position: Dict, market: Market = undefined) {
         //
         // fetchPosition
         //

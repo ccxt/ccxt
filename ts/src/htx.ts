@@ -7322,7 +7322,7 @@ export default class htx extends Exchange {
         };
     }
 
-    parsePosition (position, market: Market = undefined) {
+    parsePosition (position: Dict, market: Market = undefined) {
         //
         //    {
         //        "symbol": "BTC",

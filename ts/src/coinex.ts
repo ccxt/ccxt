@@ -4032,7 +4032,7 @@ export default class coinex extends Exchange {
         return this.parsePosition (data[0], market);
     }
 
-    parsePosition (position, market: Market = undefined) {
+    parsePosition (position: Dict, market: Market = undefined) {
         //
         //     {
         //         "position_id": 305891033,

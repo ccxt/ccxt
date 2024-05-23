@@ -3553,7 +3553,7 @@ export default class digifinex extends Exchange {
         }
     }
 
-    parsePosition (position, market: Market = undefined) {
+    parsePosition (position: Dict, market: Market = undefined) {
         //
         // swap
         //

@@ -1820,7 +1820,7 @@ export default class blofin extends Exchange {
         if (position === undefined) {
             return undefined;
         }
-        return this.parsePosition (position, market);
+        return this.parsePosition (position: Dict, market);
     }
 
     async fetchPositions (symbols: Strings = undefined, params = {}): Promise<Position[]> {
@@ -1842,7 +1842,7 @@ export default class blofin extends Exchange {
         return this.filterByArrayPositions (result, 'symbol', symbols, false);
     }
 
-    parsePosition (position, market: Market = undefined) {
+    parsePosition (position: Dict, market: Market = undefined) {
         const marketId = this.safeString (position, 'instId');
         market = this.safeMarket (marketId, market);
         const symbol = market['symbol'];

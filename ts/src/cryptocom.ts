@@ -2864,7 +2864,7 @@ export default class cryptocom extends Exchange {
         return this.filterByArrayPositions (result, 'symbol', undefined, false);
     }
 
-    parsePosition (position, market: Market = undefined) {
+    parsePosition (position: Dict, market: Market = undefined) {
         //
         //     {
         //         "account_id": "ce075bef-b600-4277-bd6e-ff9007251e63",

@@ -2519,7 +2519,7 @@ export default class deribit extends Exchange {
         };
     }
 
-    parsePosition (position, market: Market = undefined) {
+    parsePosition (position: Dict, market: Market = undefined) {
         //
         //     {
         //         "jsonrpc": "2.0",

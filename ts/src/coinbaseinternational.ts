@@ -732,7 +732,7 @@ export default class coinbaseinternational extends Exchange {
         return this.parsePosition (position);
     }
 
-    parsePosition (position, market: Market = undefined) {
+    parsePosition (position: Dict, market: Market = undefined) {
         //
         //    {
         //       "symbol":"BTC-PERP",

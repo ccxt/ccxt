@@ -2287,7 +2287,7 @@ export default class krakenfutures extends Exchange {
         return result;
     }
 
-    parsePosition (position, market: Market = undefined) {
+    parsePosition (position: Dict, market: Market = undefined) {
         // cross
         //    {
         //        "side": "long",

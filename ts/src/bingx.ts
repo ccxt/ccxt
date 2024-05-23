@@ -1725,7 +1725,7 @@ export default class bingx extends Exchange {
         return this.parsePositions (positions, symbols);
     }
 
-    parsePosition (position, market: Market = undefined) {
+    parsePosition (position: Dict, market: Market = undefined) {
         //
         //    {
         //        "positionId":"1773122376147623936",
