@@ -2168,7 +2168,7 @@ class phemex(Exchange, ImplicitAPI):
         if feeCost is not None:
             fee = {
                 'cost': feeCost,
-                'currency': None,
+                'currency': self.safe_currency_code(self.safe_string(order, 'feeCurrency')),
             }
         timeInForce = self.parse_time_in_force(self.safe_string(order, 'timeInForce'))
         stopPrice = self.parse_number(self.omit_zero(self.from_ep(self.safe_string(order, 'stopPxEp'))))
@@ -2313,6 +2313,7 @@ class phemex(Exchange, ImplicitAPI):
             clientOrderId = None
         marketId = self.safe_string(order, 'symbol')
         symbol = self.safe_symbol(marketId, market)
+        market = self.safe_market(marketId, market)
         status = self.parse_order_status(self.safe_string(order, 'ordStatus'))
         side = self.parse_order_side(self.safe_string_lower(order, 'side'))
         type = self.parse_order_type(self.safe_string(order, 'orderType'))
@@ -2338,6 +2339,19 @@ class phemex(Exchange, ImplicitAPI):
             reduceOnly = True
         takeProfit = self.safe_string(order, 'takeProfitRp')
         stopLoss = self.safe_string(order, 'stopLossRp')
+        feeValue = self.omit_zero(self.safe_string(order, 'execFeeRv'))
+        ptFeeRv = self.omit_zero(self.safe_string(order, 'ptFeeRv'))
+        fee = None
+        if feeValue is not None:
+            fee = {
+                'cost': feeValue,
+                'currency': market['quote'],
+            }
+        elif ptFeeRv is not None:
+            fee = {
+                'cost': ptFeeRv,
+                'currency': 'PT',
+            }
         return self.safe_order({
             'info': order,
             'id': id,
@@ -2362,7 +2376,7 @@ class phemex(Exchange, ImplicitAPI):
             'cost': cost,
             'average': None,
             'status': status,
-            'fee': None,
+            'fee': fee,
             'trades': None,
         })
 
@@ -3638,7 +3652,8 @@ class phemex(Exchange, ImplicitAPI):
                 raise BadRequest(self.id + ' fetchFundingHistory() limit argument cannot exceed 200')
             request['limit'] = limit
         response = None
-        if market['settle'] == 'USDT':
+        isUsdt = market['settle'] == 'USDT'
+        if isUsdt:
             response = self.privateGetApiDataGFuturesFundingFees(self.extend(request, params))
         else:
             response = self.privateGetApiDataFuturesFundingFees(self.extend(request, params))
@@ -3651,13 +3666,13 @@ class phemex(Exchange, ImplicitAPI):
         #                 {
         #                     "symbol": "BTCUSD",
         #                     "currency": "BTC",
-        #                     "execQty": 18,
+        #                     "execQty": 18,  # "execQty" regular, but "execQtyRq" in hedge
         #                     "side": "Buy",
-        #                     "execPriceEp": 360086455,
-        #                     "execValueEv": 49987,
-        #                     "fundingRateEr": 10000,
-        #                     "feeRateEr": 10000,
-        #                     "execFeeEv": 5,
+        #                     "execPriceEp": 360086455,  # "execPriceEp" regular, but "execPriceRp" in hedge
+        #                     "execValueEv": 49987,  # "execValueEv" regular, but "execValueRv" in hedge
+        #                     "fundingRateEr": 10000,  # "fundingRateEr" regular, but "fundingRateRr" in hedge
+        #                     "feeRateEr": 10000,  # "feeRateEr" regular, but "feeRateRr" in hedge
+        #                     "execFeeEv": 5,  # "execFeeEv" regular, but "execFeeRv" in hedge
         #                     "createTime": 1651881600000
         #                 }
         #             ]
@@ -3670,16 +3685,30 @@ class phemex(Exchange, ImplicitAPI):
         for i in range(0, len(rows)):
             entry = rows[i]
             timestamp = self.safe_integer(entry, 'createTime')
+            execFee = self.safe_string_2(entry, 'execFeeEv', 'execFeeRv')
+            currencyCode = self.safe_currency_code(self.safe_string(entry, 'currency'))
             result.append({
                 'info': entry,
                 'symbol': self.safe_string(entry, 'symbol'),
-                'code': self.safe_currency_code(self.safe_string(entry, 'currency')),
+                'code': currencyCode,
                 'timestamp': timestamp,
                 'datetime': self.iso8601(timestamp),
                 'id': None,
-                'amount': self.from_ev(self.safe_string(entry, 'execFeeEv'), market),
+                'amount': self.parse_funding_fee_to_precision(execFee, market, currencyCode),
             })
         return result
+
+    def parse_funding_fee_to_precision(self, value, market: Market = None, currencyCode: Str = None):
+        if value is None or currencyCode is None:
+            return value
+        # it was confirmed by phemex support, that USDT contracts use direct amounts in funding fees, while USD & INVERSE needs 'valueScale'
+        isUsdt = market['settle'] == 'USDT'
+        if not isUsdt:
+            currency = self.safe_currency(currencyCode)
+            scale = self.safe_string(currency['info'], 'valueScale')
+            tickPrecision = self.parse_precision(scale)
+            value = Precise.string_mul(value, tickPrecision)
+        return value
 
     def fetch_funding_rate(self, symbol: str, params={}):
         """

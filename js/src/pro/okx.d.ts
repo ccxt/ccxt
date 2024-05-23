@@ -36,7 +36,7 @@ export default class okx extends okxRest {
     handleMyTrades(client: Client, message: any): void;
     createOrderWs(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): Promise<Order>;
     handlePlaceOrders(client: Client, message: any): void;
-    editOrderWs(id: string, symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): Promise<Order>;
+    editOrderWs(id: string, symbol: string, type: OrderType, side: OrderSide, amount?: Num, price?: Num, params?: {}): Promise<Order>;
     cancelOrderWs(id: string, symbol?: Str, params?: {}): Promise<Order>;
     cancelOrdersWs(ids: string[], symbol?: Str, params?: {}): Promise<any>;
     cancelAllOrdersWs(symbol?: Str, params?: {}): Promise<any>;

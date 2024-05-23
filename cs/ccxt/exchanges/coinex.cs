@@ -427,8 +427,15 @@ public partial class coinex : Exchange
                 { "fetchDepositAddress", new Dictionary<string, object>() {
                     { "fillResponseFromRequest", true },
                 } },
+                { "accountsByType", new Dictionary<string, object>() {
+                    { "spot", "SPOT" },
+                    { "margin", "MARGIN" },
+                    { "swap", "FUTURES" },
+                } },
                 { "accountsById", new Dictionary<string, object>() {
-                    { "spot", "0" },
+                    { "SPOT", "spot" },
+                    { "MARGIN", "margin" },
+                    { "FUTURES", "swap" },
                 } },
                 { "networks", new Dictionary<string, object>() {
                     { "BEP20", "BSC" },
@@ -2730,7 +2737,12 @@ public partial class coinex : Exchange
         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
         */
         parameters ??= new Dictionary<string, object>();
-        return await this.fetchOrdersByStatus("pending", symbol, since, limit, parameters);
+        object openOrders = await this.fetchOrdersByStatus("pending", symbol, since, limit, parameters);
+        for (object i = 0; isLessThan(i, getArrayLength(openOrders)); postFixIncrement(ref i))
+        {
+            ((IDictionary<string,object>)getValue(openOrders, i))["status"] = "open";
+        }
+        return openOrders;
     }
 
     public async override Task<object> fetchClosedOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
@@ -3620,7 +3632,7 @@ public partial class coinex : Exchange
         * @method
         * @name coinex#fetchFundingRate
         * @description fetch the current funding rate
-        * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http008_market_ticker
+        * @see https://docs.coinex.com/api/v2/futures/market/http/list-market-funding-rate
         * @param {string} symbol unified market symbol
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
@@ -3635,95 +3647,65 @@ public partial class coinex : Exchange
         object request = new Dictionary<string, object>() {
             { "market", getValue(market, "id") },
         };
-        object response = await this.v1PerpetualPublicGetMarketTicker(this.extend(request, parameters));
+        object response = await this.v2PublicGetFuturesFundingRate(this.extend(request, parameters));
         //
         //     {
-        //          "code": 0,
-        //         "data":
-        //         {
-        //             "date": 1650678472474,
-        //             "ticker": {
-        //                 "vol": "6090.9430",
-        //                 "low": "39180.30",
-        //                 "open": "40474.97",
-        //                 "high": "40798.01",
-        //                 "last": "39659.30",
-        //                 "buy": "39663.79",
-        //                 "period": 86400,
-        //                 "funding_time": 372,
-        //                 "position_amount": "270.1956",
-        //                 "funding_rate_last": "0.00022913",
-        //                 "funding_rate_next": "0.00013158",
-        //                 "funding_rate_predict": "0.00016552",
-        //                 "insurance": "16045554.83969682659674035672",
-        //                 "sign_price": "39652.48",
-        //                 "index_price": "39648.44250000",
-        //                 "sell_total": "22.3913",
-        //                 "buy_total": "19.4498",
-        //                 "buy_amount": "12.8942",
-        //                 "sell": "39663.80",
-        //                 "sell_amount": "0.9388"
+        //         "code": 0,
+        //         "data": [
+        //             {
+        //                 "latest_funding_rate": "0",
+        //                 "latest_funding_time": 1715731200000,
+        //                 "mark_price": "61602.22",
+        //                 "market": "BTCUSDT",
+        //                 "max_funding_rate": "0.00375",
+        //                 "min_funding_rate": "-0.00375",
+        //                 "next_funding_rate": "0.00021074",
+        //                 "next_funding_time": 1715760000000
         //             }
-        //         },
+        //         ],
         //         "message": "OK"
         //     }
         //
-        object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
-        object ticker = this.safeValue(data, "ticker", new Dictionary<string, object>() {});
-        object timestamp = this.safeInteger(data, "date");
-        ((IDictionary<string,object>)ticker)["timestamp"] = timestamp; // avoid changing parseFundingRate signature
-        return this.parseFundingRate(ticker, market);
+        object data = this.safeList(response, "data", new List<object>() {});
+        object first = this.safeDict(data, 0, new Dictionary<string, object>() {});
+        return this.parseFundingRate(first, market);
     }
 
     public override object parseFundingRate(object contract, object market = null)
     {
         //
-        // fetchFundingRate
+        // fetchFundingRate, fetchFundingRates
         //
         //     {
-        //         "vol": "6090.9430",
-        //         "low": "39180.30",
-        //         "open": "40474.97",
-        //         "high": "40798.01",
-        //         "last": "39659.30",
-        //         "buy": "39663.79",
-        //         "period": 86400,
-        //         "funding_time": 372,
-        //         "position_amount": "270.1956",
-        //         "funding_rate_last": "0.00022913",
-        //         "funding_rate_next": "0.00013158",
-        //         "funding_rate_predict": "0.00016552",
-        //         "insurance": "16045554.83969682659674035672",
-        //         "sign_price": "39652.48",
-        //         "index_price": "39648.44250000",
-        //         "sell_total": "22.3913",
-        //         "buy_total": "19.4498",
-        //         "buy_amount": "12.8942",
-        //         "sell": "39663.80",
-        //         "sell_amount": "0.9388"
+        //         "latest_funding_rate": "0",
+        //         "latest_funding_time": 1715731200000,
+        //         "mark_price": "61602.22",
+        //         "market": "BTCUSDT",
+        //         "max_funding_rate": "0.00375",
+        //         "min_funding_rate": "-0.00375",
+        //         "next_funding_rate": "0.00021074",
+        //         "next_funding_time": 1715760000000
         //     }
         //
-        object timestamp = this.safeInteger(contract, "timestamp");
-        contract = this.omit(contract, "timestamp");
-        object fundingDelta = multiply(multiply(this.safeInteger(contract, "funding_time"), 60), 1000);
-        object fundingHour = divide((add(timestamp, fundingDelta)), 3600000);
-        object fundingTimestamp = multiply(Math.Round(Convert.ToDouble(fundingHour)), 3600000);
+        object currentFundingTimestamp = this.safeInteger(contract, "latest_funding_time");
+        object futureFundingTimestamp = this.safeInteger(contract, "next_funding_time");
+        object marketId = this.safeString(contract, "market");
         return new Dictionary<string, object>() {
             { "info", contract },
-            { "symbol", this.safeSymbol(null, market) },
-            { "markPrice", this.safeNumber(contract, "sign_price") },
-            { "indexPrice", this.safeNumber(contract, "index_price") },
+            { "symbol", this.safeSymbol(marketId, market, null, "swap") },
+            { "markPrice", this.safeNumber(contract, "mark_price") },
+            { "indexPrice", null },
             { "interestRate", null },
             { "estimatedSettlePrice", null },
-            { "timestamp", timestamp },
-            { "datetime", this.iso8601(timestamp) },
-            { "fundingRate", this.safeNumber(contract, "funding_rate_next") },
-            { "fundingTimestamp", fundingTimestamp },
-            { "fundingDatetime", this.iso8601(fundingTimestamp) },
-            { "nextFundingRate", this.safeNumber(contract, "funding_rate_predict") },
-            { "nextFundingTimestamp", null },
-            { "nextFundingDatetime", null },
-            { "previousFundingRate", this.safeNumber(contract, "funding_rate_last") },
+            { "timestamp", null },
+            { "datetime", null },
+            { "fundingRate", this.safeNumber(contract, "latest_funding_rate") },
+            { "fundingTimestamp", currentFundingTimestamp },
+            { "fundingDatetime", this.iso8601(currentFundingTimestamp) },
+            { "nextFundingRate", this.safeNumber(contract, "next_funding_rate") },
+            { "nextFundingTimestamp", futureFundingTimestamp },
+            { "nextFundingDatetime", this.iso8601(futureFundingTimestamp) },
+            { "previousFundingRate", null },
             { "previousFundingTimestamp", null },
             { "previousFundingDatetime", null },
         };
@@ -3735,7 +3717,7 @@ public partial class coinex : Exchange
         * @method
         * @name coinex#fetchFundingRates
         * @description fetch the current funding rates
-        * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http009_market_ticker_all
+        * @see https://docs.coinex.com/api/v2/futures/market/http/list-market-funding-rate
         * @param {string[]} symbols unified market symbols
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object[]} an array of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
@@ -3743,6 +3725,7 @@ public partial class coinex : Exchange
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         symbols = this.marketSymbols(symbols);
+        object request = new Dictionary<string, object>() {};
         object market = null;
         if (isTrue(!isEqual(symbols, null)))
         {
@@ -3752,57 +3735,30 @@ public partial class coinex : Exchange
             {
                 throw new BadSymbol ((string)add(this.id, " fetchFundingRates() supports swap contracts only")) ;
             }
+            object marketIds = this.marketIds(symbols);
+            ((IDictionary<string,object>)request)["market"] = String.Join(",", ((IList<object>)marketIds).ToArray());
         }
-        object response = await this.v1PerpetualPublicGetMarketTickerAll(parameters);
+        object response = await this.v2PublicGetFuturesFundingRate(this.extend(request, parameters));
         //
         //     {
         //         "code": 0,
-        //         "data":
-        //         {
-        //             "date": 1650678472474,
-        //             "ticker": {
-        //                 "BTCUSDT": {
-        //                     "vol": "6090.9430",
-        //                     "low": "39180.30",
-        //                     "open": "40474.97",
-        //                     "high": "40798.01",
-        //                     "last": "39659.30",
-        //                     "buy": "39663.79",
-        //                     "period": 86400,
-        //                     "funding_time": 372,
-        //                     "position_amount": "270.1956",
-        //                     "funding_rate_last": "0.00022913",
-        //                     "funding_rate_next": "0.00013158",
-        //                     "funding_rate_predict": "0.00016552",
-        //                     "insurance": "16045554.83969682659674035672",
-        //                     "sign_price": "39652.48",
-        //                     "index_price": "39648.44250000",
-        //                     "sell_total": "22.3913",
-        //                     "buy_total": "19.4498",
-        //                     "buy_amount": "12.8942",
-        //                     "sell": "39663.80",
-        //                     "sell_amount": "0.9388"
-        //                 }
+        //         "data": [
+        //             {
+        //                 "latest_funding_rate": "0",
+        //                 "latest_funding_time": 1715731200000,
+        //                 "mark_price": "61602.22",
+        //                 "market": "BTCUSDT",
+        //                 "max_funding_rate": "0.00375",
+        //                 "min_funding_rate": "-0.00375",
+        //                 "next_funding_rate": "0.00021074",
+        //                 "next_funding_time": 1715760000000
         //             }
-        //         },
+        //         ],
         //         "message": "OK"
         //     }
-        object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
-        object tickers = this.safeValue(data, "ticker", new Dictionary<string, object>() {});
-        object timestamp = this.safeInteger(data, "date");
-        object result = new List<object>() {};
-        object marketIds = new List<object>(((IDictionary<string,object>)tickers).Keys);
-        for (object i = 0; isLessThan(i, getArrayLength(marketIds)); postFixIncrement(ref i))
-        {
-            object marketId = getValue(marketIds, i);
-            if (isTrue(isEqual(getIndexOf(marketId, "_"), -1)))
-            {
-                object marketInner = this.safeMarket(marketId, null, null, "swap");
-                object ticker = getValue(tickers, marketId);
-                ((IDictionary<string,object>)ticker)["timestamp"] = timestamp;
-                ((IList<object>)result).Add(this.parseFundingRate(ticker, marketInner));
-            }
-        }
+        //
+        object data = this.safeList(response, "data", new List<object>() {});
+        object result = this.parseFundingRates(data, market);
         return this.filterByArray(result, "symbol", symbols);
     }
 
@@ -3887,13 +3843,13 @@ public partial class coinex : Exchange
         /**
         * @method
         * @name coinex#fetchFundingRateHistory
-        * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http038_funding_history
         * @description fetches historical funding rate prices
+        * @see https://docs.coinex.com/api/v2/futures/market/http/list-market-funding-rate-history
         * @param {string} symbol unified symbol of the market to fetch the funding rate history for
         * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
         * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure} to fetch
         * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+        * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         * @param {int} [params.until] timestamp in ms of the latest funding rate
         * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure}
         */
@@ -3911,56 +3867,51 @@ public partial class coinex : Exchange
         {
             return await this.fetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol, since, limit, "8h", parameters, 1000);
         }
-        if (isTrue(isEqual(limit, null)))
-        {
-            limit = 100;
-        }
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "market", getValue(market, "id") },
-            { "limit", limit },
-            { "offset", 0 },
         };
         if (isTrue(!isEqual(since, null)))
         {
             ((IDictionary<string,object>)request)["start_time"] = since;
         }
+        if (isTrue(!isEqual(limit, null)))
+        {
+            ((IDictionary<string,object>)request)["limit"] = limit;
+        }
         var requestparametersVariable = this.handleUntilOption("end_time", request, parameters);
         request = ((IList<object>)requestparametersVariable)[0];
         parameters = ((IList<object>)requestparametersVariable)[1];
-        object response = await this.v1PerpetualPublicGetMarketFundingHistory(this.extend(request, parameters));
+        object response = await this.v2PublicGetFuturesFundingRateHistory(this.extend(request, parameters));
         //
         //     {
         //         "code": 0,
-        //         "data": {
-        //             "offset": 0,
-        //             "limit": 3,
-        //             "records": [
-        //                 {
-        //                     "time": 1650672021.6230309,
-        //                     "market": "BTCUSDT",
-        //                     "asset": "USDT",
-        //                     "funding_rate": "0.00022913",
-        //                     "funding_rate_real": "0.00022913"
-        //                 },
-        //             ]
-        //         },
-        //         "message": "OK"
+        //         "data": [
+        //             {
+        //                 "actual_funding_rate": "0",
+        //                 "funding_time": 1715731221761,
+        //                 "market": "BTCUSDT",
+        //                 "theoretical_funding_rate": "0"
+        //             },
+        //         ],
+        //         "message": "OK",
+        //         "pagination": {
+        //             "has_next": true
+        //         }
         //     }
         //
-        object data = this.safeValue(response, "data");
-        object result = this.safeValue(data, "records", new List<object>() {});
+        object data = this.safeList(response, "data", new List<object>() {});
         object rates = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(result)); postFixIncrement(ref i))
+        for (object i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
         {
-            object entry = getValue(result, i);
+            object entry = getValue(data, i);
             object marketId = this.safeString(entry, "market");
             object symbolInner = this.safeSymbol(marketId, market, null, "swap");
-            object timestamp = this.safeTimestamp(entry, "time");
+            object timestamp = this.safeInteger(entry, "funding_time");
             ((IList<object>)rates).Add(new Dictionary<string, object>() {
                 { "info", entry },
                 { "symbol", symbolInner },
-                { "fundingRate", this.safeNumber(entry, "funding_rate") },
+                { "fundingRate", this.safeNumber(entry, "actual_funding_rate") },
                 { "timestamp", timestamp },
                 { "datetime", this.iso8601(timestamp) },
             });
@@ -3974,59 +3925,49 @@ public partial class coinex : Exchange
         //
         // fetchDeposits
         //
-        //    {
-        //        "coin_deposit_id": 32555985,
-        //        "create_time": 1673325495,
-        //        "amount": "12.71",
-        //        "amount_display": "12.71",
-        //        "diff_amount": "0",
-        //        "min_amount": "0",
-        //        "actual_amount": "12.71",
-        //        "actual_amount_display": "12.71",
-        //        "confirmations": 35,
-        //        "tx_id": "0x57f1c92cc10b48316e2bf5faf230694fec2174e7744c1562a9a88b9c1e585f56",
-        //        "tx_id_display": "0x57f1c92cc10b48316e2bf5faf230694fec2174e7744c1562a9a88b9c1e585f56",
-        //        "coin_address": "0xe7a3831c56836f466b6a6268cff4fc852cf4b738",
-        //        "coin_address_display": "0xe7a3****f4b738",
-        //        "add_explorer": "https://bscscan.com/address/0xe7a3831c56836f466b6a6268cff4fc852cf4b738",
-        //        "coin_type": "USDT",
-        //        "smart_contract_name": "BSC",
-        //        "transfer_method": "onchain",
-        //        "status": "finish",
-        //        "status_display": "finish",
-        //        "remark": "",
-        //        "explorer": "https://bscscan.com/tx/0x57f1c92cc10b48316e2bf5faf230694fec2174e7744c1562a9a88b9c1e585f56"
-        //    }
+        //     {
+        //         "deposit_id": 5173806,
+        //         "created_at": 1714021652557,
+        //         "tx_id": "d9f47d2550397c635cb89a8963118f8fe78ef048bc8b6f0caaeaa7dc6",
+        //         "tx_id_display": "",
+        //         "ccy": "USDT",
+        //         "chain": "TRC20",
+        //         "deposit_method": "ON_CHAIN",
+        //         "amount": "30",
+        //         "actual_amount": "",
+        //         "to_address": "TYewD2pVWDUwfNr9A",
+        //         "confirmations": 20,
+        //         "status": "FINISHED",
+        //         "tx_explorer_url": "https://tronscan.org/#/transaction",
+        //         "to_addr_explorer_url": "https://tronscan.org/#/address",
+        //         "remark": ""
+        //     }
         //
         // fetchWithdrawals
         //
-        //    {
-        //        "coin_withdraw_id": 20076836,
-        //        "create_time": 1673325776,
-        //        "actual_amount": "0.029",
-        //        "actual_amount_display": "0.029",
-        //        "amount": "0.03",
-        //        "amount_display": "0.03",
-        //        "coin_address": "MBhJcc3r5b3insc7QxyvEPtf31NqUdJpAb",
-        //        "app_coin_address_display": "MBh****pAb",
-        //        "coin_address_display": "MBhJcc****UdJpAb",
-        //        "add_explorer": "https://explorer.viawallet.com/ltc/address/MBhJcc3r5b3insc7QxyvEPtf31NqUdJpAb",
-        //        "coin_type": "LTC",
-        //        "confirmations": 7,
-        //        "explorer": "https://explorer.viawallet.com/ltc/tx/a0aa082132619b8a499b87e7d5bc3c508e0227104f5202ae26b695bb4cb7fbf9",
-        //        "fee": "0",
-        //        "remark": "",
-        //        "smart_contract_name": "",
-        //        "status": "finish",
-        //        "status_display": "finish",
-        //        "transfer_method": "onchain",
-        //        "tx_fee": "0.001",
-        //        "tx_id": "a0aa082132619b8a499b87e7d5bc3c508e0227104f5202ae26b695bb4cb7fbf9"
-        //    }
+        //     {
+        //         "withdraw_id": 259364,
+        //         "created_at": 1701323541548,
+        //         "withdraw_method": "ON_CHAIN",
+        //         "ccy": "USDT",
+        //         "amount": "23.845744",
+        //         "actual_amount": "22.445744",
+        //         "chain": "TRC20",
+        //         "tx_fee": "1.4",
+        //         "fee_asset": "USDT",
+        //         "fee_amount": "1.4",
+        //         "to_address": "T8t5i2454dhdhnnnGdi49vMbihvY",
+        //         "memo": "",
+        //         "tx_id": "1237623941964de9954ed2e36640228d78765c1026",
+        //         "confirmations": 18,
+        //         "explorer_address_url": "https://tronscan.org/#/address",
+        //         "explorer_tx_url": "https://tronscan.org/#/transaction",
+        //         "remark": "",
+        //         "status": "finished"
+        //     }
         //
-        object id = this.safeString2(transaction, "coin_withdraw_id", "coin_deposit_id");
-        object address = this.safeString(transaction, "coin_address");
-        object tag = this.safeString(transaction, "remark"); // set but unused
+        object address = this.safeString(transaction, "to_address");
+        object tag = this.safeString(transaction, "memo");
         if (isTrue(!isEqual(tag, null)))
         {
             if (isTrue(isLessThan(((string)tag).Length, 1)))
@@ -4034,58 +3975,64 @@ public partial class coinex : Exchange
                 tag = null;
             }
         }
-        object txid = this.safeValue(transaction, "tx_id");
+        object remark = this.safeString(transaction, "remark");
+        if (isTrue(!isEqual(remark, null)))
+        {
+            if (isTrue(isLessThan(((string)remark).Length, 1)))
+            {
+                remark = null;
+            }
+        }
+        object txid = this.safeString(transaction, "tx_id");
         if (isTrue(!isEqual(txid, null)))
         {
-            if (isTrue(isLessThan(getArrayLength(txid), 1)))
+            if (isTrue(isLessThan(((string)txid).Length, 1)))
             {
                 txid = null;
             }
         }
-        object currencyId = this.safeString(transaction, "coin_type");
+        object currencyId = this.safeString(transaction, "ccy");
         object code = this.safeCurrencyCode(currencyId, currency);
-        object timestamp = this.safeTimestamp(transaction, "create_time");
-        object type = ((bool) isTrue((inOp(transaction, "coin_withdraw_id")))) ? "withdrawal" : "deposit";
-        object status = this.parseTransactionStatus(this.safeString(transaction, "status"));
-        object networkId = this.safeString(transaction, "smart_contract_name");
-        object amount = this.safeNumber(transaction, "actual_amount");
+        object timestamp = this.safeInteger(transaction, "created_at");
+        object type = ((bool) isTrue((inOp(transaction, "withdraw_id")))) ? "withdrawal" : "deposit";
+        object networkId = this.safeString(transaction, "chain");
         object feeCost = this.safeString(transaction, "tx_fee");
-        object transferMethod = this.safeString(transaction, "transfer_method");
+        object transferMethod = this.safeStringLower2(transaction, "withdraw_method", "deposit_method");
         object intern = isEqual(transferMethod, "local");
-        object addressTo = null;
-        object addressFrom = null;
+        object amount = this.safeNumber(transaction, "actual_amount");
+        if (isTrue(isEqual(amount, null)))
+        {
+            amount = this.safeNumber(transaction, "amount");
+        }
         if (isTrue(isEqual(type, "deposit")))
         {
             feeCost = "0";
-            addressTo = address;
-        } else
-        {
-            addressFrom = address;
         }
+        object feeCurrencyId = this.safeString(transaction, "fee_asset");
         object fee = new Dictionary<string, object>() {
             { "cost", this.parseNumber(feeCost) },
-            { "currency", code },
+            { "currency", this.safeCurrencyCode(feeCurrencyId) },
         };
         return new Dictionary<string, object>() {
             { "info", transaction },
-            { "id", id },
+            { "id", this.safeString2(transaction, "withdraw_id", "deposit_id") },
             { "txid", txid },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
             { "network", this.networkIdToCode(networkId) },
             { "address", address },
-            { "addressTo", null },
+            { "addressTo", address },
             { "addressFrom", null },
             { "tag", tag },
-            { "tagTo", addressTo },
-            { "tagFrom", addressFrom },
+            { "tagTo", null },
+            { "tagFrom", null },
             { "type", type },
-            { "amount", this.parseNumber(amount) },
+            { "amount", amount },
             { "currency", code },
-            { "status", status },
+            { "status", this.parseTransactionStatus(this.safeString(transaction, "status")) },
             { "updated", null },
             { "fee", fee },
-            { "comment", null },
+            { "comment", remark },
             { "internal", intern },
         };
     }
@@ -4096,45 +4043,49 @@ public partial class coinex : Exchange
         * @method
         * @name coinex#transfer
         * @description transfer currency internally between wallets on the same account
-        * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot002_account014_balance_contract_transfer
-        * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot002_account013_margin_transfer
+        * @see https://docs.coinex.com/api/v2/assets/transfer/http/transfer
         * @param {string} code unified currency code
         * @param {float} amount amount to transfer
         * @param {string} fromAccount account to transfer from
         * @param {string} toAccount account to transfer to
         * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @param {string} [params.symbol] unified ccxt symbol, required when either the fromAccount or toAccount is margin
         * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
         */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object currency = this.currency(code);
         object amountToPrecision = this.currencyToPrecision(code, amount);
+        object accountsByType = this.safeDict(this.options, "accountsById", new Dictionary<string, object>() {});
+        object fromId = this.safeString(accountsByType, fromAccount, fromAccount);
+        object toId = this.safeString(accountsByType, toAccount, toAccount);
         object request = new Dictionary<string, object>() {
+            { "ccy", getValue(currency, "id") },
             { "amount", amountToPrecision },
-            { "coin_type", getValue(currency, "id") },
+            { "from_account_type", fromId },
+            { "to_account_type", toId },
         };
-        object response = null;
-        if (isTrue(isTrue((isEqual(fromAccount, "spot"))) && isTrue((isEqual(toAccount, "swap")))))
+        if (isTrue(isTrue((isEqual(fromAccount, "margin"))) || isTrue((isEqual(toAccount, "margin")))))
         {
-            ((IDictionary<string,object>)request)["transfer_side"] = "in"; // 'in' spot to swap, 'out' swap to spot
-            response = await this.v1PrivatePostContractBalanceTransfer(this.extend(request, parameters));
-        } else if (isTrue(isTrue((isEqual(fromAccount, "swap"))) && isTrue((isEqual(toAccount, "spot")))))
-        {
-            ((IDictionary<string,object>)request)["transfer_side"] = "out"; // 'in' spot to swap, 'out' swap to spot
-            response = await this.v1PrivatePostContractBalanceTransfer(this.extend(request, parameters));
-        } else
-        {
-            object accountsById = this.safeValue(this.options, "accountsById", new Dictionary<string, object>() {});
-            object fromId = this.safeString(accountsById, fromAccount, fromAccount);
-            object toId = this.safeString(accountsById, toAccount, toAccount);
-            // fromAccount and toAccount must be integers for margin transfers
-            // spot is 0, use fetchBalance() to find the margin account id
-            ((IDictionary<string,object>)request)["from_account"] = parseInt(fromId);
-            ((IDictionary<string,object>)request)["to_account"] = parseInt(toId);
-            response = await this.v1PrivatePostMarginTransfer(this.extend(request, parameters));
+            object symbol = this.safeString(parameters, "symbol");
+            if (isTrue(isEqual(symbol, null)))
+            {
+                throw new ArgumentsRequired ((string)add(this.id, " transfer() the symbol parameter must be defined for a margin account")) ;
+            }
+            parameters = this.omit(parameters, "symbol");
+            ((IDictionary<string,object>)request)["market"] = this.marketId(symbol);
         }
+        if (isTrue(isTrue((!isEqual(fromAccount, "spot"))) && isTrue((!isEqual(toAccount, "spot")))))
+        {
+            throw new BadRequest ((string)add(this.id, " transfer() can only be between spot and swap, or spot and margin, either the fromAccount or toAccount must be spot")) ;
+        }
+        object response = await this.v2PrivatePostAssetsTransfer(this.extend(request, parameters));
         //
-        //     {"code": 0, "data": null, "message": "Success"}
+        //     {
+        //         "code": 0,
+        //         "data": {},
+        //         "message": "OK"
+        //     }
         //
         return this.extend(this.parseTransfer(response, currency), new Dictionary<string, object>() {
             { "amount", this.parseNumber(amountToPrecision) },
@@ -4148,70 +4099,28 @@ public partial class coinex : Exchange
         object statuses = new Dictionary<string, object>() {
             { "0", "ok" },
             { "SUCCESS", "ok" },
+            { "OK", "ok" },
+            { "finished", "ok" },
+            { "FINISHED", "ok" },
         };
         return this.safeString(statuses, status, status);
     }
 
     public override object parseTransfer(object transfer, object currency = null)
     {
-        //
-        // fetchTransfers Swap
-        //
-        //     {
-        //         "amount": "10",
-        //         "asset": "USDT",
-        //         "transfer_type": "transfer_out", // from swap to spot
-        //         "created_at": 1651633422
-        //     },
-        //
-        // fetchTransfers Margin
-        //
-        //     {
-        //         "id": 7580062,
-        //         "updated_at": 1653684379,
-        //         "user_id": 3620173,
-        //         "from_account_id": 0,
-        //         "to_account_id": 1,
-        //         "asset": "BTC",
-        //         "amount": "0.00160829",
-        //         "balance": "0.00160829",
-        //         "transfer_type": "IN",
-        //         "status": "SUCCESS",
-        //         "created_at": 1653684379
-        //     },
-        //
-        object timestamp = this.safeTimestamp(transfer, "created_at");
-        object transferType = this.safeString(transfer, "transfer_type");
-        object fromAccount = null;
-        object toAccount = null;
-        if (isTrue(isEqual(transferType, "transfer_out")))
-        {
-            fromAccount = "swap";
-            toAccount = "spot";
-        } else if (isTrue(isEqual(transferType, "transfer_in")))
-        {
-            fromAccount = "spot";
-            toAccount = "swap";
-        } else if (isTrue(isEqual(transferType, "IN")))
-        {
-            fromAccount = "spot";
-            toAccount = "margin";
-        } else if (isTrue(isEqual(transferType, "OUT")))
-        {
-            fromAccount = "margin";
-            toAccount = "spot";
-        }
-        object currencyId = this.safeString(transfer, "asset");
-        object currencyCode = this.safeCurrencyCode(currencyId, currency);
+        object timestamp = this.safeInteger(transfer, "created_at");
+        object currencyId = this.safeString(transfer, "ccy");
+        object fromId = this.safeString(transfer, "from_account_type");
+        object toId = this.safeString(transfer, "to_account_type");
+        object accountsById = this.safeValue(this.options, "accountsById", new Dictionary<string, object>() {});
         return new Dictionary<string, object>() {
-            { "info", transfer },
-            { "id", this.safeString(transfer, "id") },
+            { "id", null },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
-            { "currency", currencyCode },
+            { "currency", this.safeCurrencyCode(currencyId, currency) },
             { "amount", this.safeNumber(transfer, "amount") },
-            { "fromAccount", fromAccount },
-            { "toAccount", toAccount },
+            { "fromAccount", this.safeString(accountsById, fromId, fromId) },
+            { "toAccount", this.safeString(accountsById, toId, toId) },
             { "status", this.parseTransferStatus(this.safeString2(transfer, "code", "status")) },
         };
     }
@@ -4222,29 +4131,34 @@ public partial class coinex : Exchange
         * @method
         * @name coinex#fetchTransfers
         * @description fetch a history of internal transfers made on an account
-        * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot002_account025_margin_transfer_history
-        * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot002_account024_contract_transfer_history
+        * @see https://docs.coinex.com/api/v2/assets/transfer/http/list-transfer-history
         * @param {string} code unified currency code of the currency transferred
         * @param {int} [since] the earliest time in ms to fetch transfers for
-        * @param {int} [limit] the maximum number of  transfers structures to retrieve
+        * @param {int} [limit] the maximum number of transfer structures to retrieve
         * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @param {string} [params.marginMode] 'cross' or 'isolated' for fetching transfers to and from your margin account
         * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/#/?id=transfer-structure}
         */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        object currency = null;
-        object request = new Dictionary<string, object>() {
-            { "page", 1 },
-        };
-        object page = this.safeInteger(parameters, "page");
-        if (isTrue(!isEqual(page, null)))
+        if (isTrue(isEqual(code, null)))
         {
-            ((IDictionary<string,object>)request)["page"] = page;
+            throw new ArgumentsRequired ((string)add(this.id, " fetchTransfers() requires a code argument")) ;
         }
-        if (isTrue(!isEqual(code, null)))
+        object currency = this.currency(code);
+        object request = new Dictionary<string, object>() {
+            { "ccy", getValue(currency, "id") },
+        };
+        object marginMode = null;
+        var marginModeparametersVariable = this.handleMarginModeAndParams("fetchTransfers", parameters);
+        marginMode = ((IList<object>)marginModeparametersVariable)[0];
+        parameters = ((IList<object>)marginModeparametersVariable)[1];
+        if (isTrue(!isEqual(marginMode, null)))
         {
-            currency = this.currency(code);
-            ((IDictionary<string,object>)request)["asset"] = getValue(currency, "id");
+            ((IDictionary<string,object>)request)["transfer_type"] = "MARGIN";
+        } else
+        {
+            ((IDictionary<string,object>)request)["transfer_type"] = "FUTURES";
         }
         if (isTrue(!isEqual(since, null)))
         {
@@ -4253,70 +4167,33 @@ public partial class coinex : Exchange
         if (isTrue(!isEqual(limit, null)))
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
-        } else
-        {
-            ((IDictionary<string,object>)request)["limit"] = 100;
         }
-        parameters = this.omit(parameters, "page");
-        object marginMode = null;
-        var marginModeparametersVariable = this.handleMarginModeAndParams("fetchTransfers", parameters);
-        marginMode = ((IList<object>)marginModeparametersVariable)[0];
-        parameters = ((IList<object>)marginModeparametersVariable)[1];
-        object response = null;
-        if (isTrue(!isEqual(marginMode, null)))
-        {
-            response = await this.v1PrivateGetMarginTransferHistory(this.extend(request, parameters));
-        } else
-        {
-            response = await this.v1PrivateGetContractTransferHistory(this.extend(request, parameters));
-        }
-        //
-        // Swap
+        var requestparametersVariable = this.handleUntilOption("end_time", request, parameters);
+        request = ((IList<object>)requestparametersVariable)[0];
+        parameters = ((IList<object>)requestparametersVariable)[1];
+        object response = await this.v2PrivateGetAssetsTransferHistory(this.extend(request, parameters));
         //
         //     {
-        //         "code": 0,
-        //         "data": {
-        //             "records": [
-        //                 {
-        //                     "amount": "10",
-        //                     "asset": "USDT",
-        //                     "transfer_type": "transfer_out",
-        //                     "created_at": 1651633422
-        //                 },
-        //             ],
-        //             "total": 5
+        //         "data": [
+        //             {
+        //                 "created_at": 1715848480646,
+        //                 "from_account_type": "SPOT",
+        //                 "to_account_type": "FUTURES",
+        //                 "ccy": "USDT",
+        //                 "amount": "10",
+        //                 "status": "finished"
+        //             },
+        //         ],
+        //         "pagination": {
+        //             "total": 8,
+        //             "has_next": false
         //         },
-        //         "message": "Success"
+        //         "code": 0,
+        //         "message": "OK"
         //     }
         //
-        // Margin
-        //
-        //     {
-        //         "code": 0,
-        //         "data": {
-        //             "records": [
-        //                 {
-        //                     "id": 7580062,
-        //                     "updated_at": 1653684379,
-        //                     "user_id": 3620173,
-        //                     "from_account_id": 0,
-        //                     "to_account_id": 1,
-        //                     "asset": "BTC",
-        //                     "amount": "0.00160829",
-        //                     "balance": "0.00160829",
-        //                     "transfer_type": "IN",
-        //                     "status": "SUCCESS",
-        //                     "created_at": 1653684379
-        //                 }
-        //             ],
-        //             "total": 1
-        //         },
-        //         "message": "Success"
-        //     }
-        //
-        object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
-        object transfers = this.safeList(data, "records", new List<object>() {});
-        return this.parseTransfers(transfers, currency, since, limit);
+        object data = this.safeList(response, "data", new List<object>() {});
+        return this.parseTransfers(data, currency, since, limit);
     }
 
     public async override Task<object> fetchWithdrawals(object code = null, object since = null, object limit = null, object parameters = null)
@@ -4325,70 +4202,60 @@ public partial class coinex : Exchange
         * @method
         * @name coinex#fetchWithdrawals
         * @description fetch all withdrawals made from an account
-        * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot002_account026_withdraw_list
-        * @param {string} code unified currency code
+        * @see https://docs.coinex.com/api/v2/assets/deposit-withdrawal/http/list-withdrawal-history
+        * @param {string} [code] unified currency code
         * @param {int} [since] the earliest time in ms to fetch withdrawals for
-        * @param {int} [limit] the maximum number of withdrawals structures to retrieve
+        * @param {int} [limit] the maximum number of withdrawal structures to retrieve
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
         */
         parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
         object request = new Dictionary<string, object>() {};
         object currency = null;
         if (isTrue(!isEqual(code, null)))
         {
-            await this.loadMarkets();
             currency = this.currency(code);
-            ((IDictionary<string,object>)request)["coin_type"] = getValue(currency, "id");
+            ((IDictionary<string,object>)request)["ccy"] = getValue(currency, "id");
         }
         if (isTrue(!isEqual(limit, null)))
         {
-            ((IDictionary<string,object>)request)["Limit"] = limit;
+            ((IDictionary<string,object>)request)["limit"] = limit;
         }
-        object response = await this.v1PrivateGetBalanceCoinWithdraw(this.extend(request, parameters));
+        object response = await this.v2PrivateGetAssetsWithdraw(this.extend(request, parameters));
         //
-        //    {
-        //        "code": 0,
-        //        "data": {
-        //            "has_next": false,
-        //            "curr_page": 1,
-        //            "count": 1,
-        //            "data": [
-        //                {
-        //                    "coin_withdraw_id": 20076836,
-        //                    "create_time": 1673325776,
-        //                    "actual_amount": "0.029",
-        //                    "actual_amount_display": "0.029",
-        //                    "amount": "0.03",
-        //                    "amount_display": "0.03",
-        //                    "coin_address": "MBhJcc3r5b3insc7QxyvEPtf31NqUdJpAb",
-        //                    "app_coin_address_display": "MBh****pAb",
-        //                    "coin_address_display": "MBhJcc****UdJpAb",
-        //                    "add_explorer": "https://explorer.viawallet.com/ltc/address/MBhJcc3r5b3insc7QxyvEPtf31NqUdJpAb",
-        //                    "coin_type": "LTC",
-        //                    "confirmations": 7,
-        //                    "explorer": "https://explorer.viawallet.com/ltc/tx/a0aa082132619b8a499b87e7d5bc3c508e0227104f5202ae26b695bb4cb7fbf9",
-        //                    "fee": "0",
-        //                    "remark": "",
-        //                    "smart_contract_name": "",
-        //                    "status": "finish",
-        //                    "status_display": "finish",
-        //                    "transfer_method": "onchain",
-        //                    "tx_fee": "0.001",
-        //                    "tx_id": "a0aa082132619b8a499b87e7d5bc3c508e0227104f5202ae26b695bb4cb7fbf9"
-        //                }
-        //            ],
-        //            "total": 1,
-        //            "total_page": 1
-        //        },
-        //        "message": "Success"
-        //    }
+        //     {
+        //         "data": [
+        //             {
+        //                 "withdraw_id": 259364,
+        //                 "created_at": 1701323541548,
+        //                 "withdraw_method": "ON_CHAIN",
+        //                 "ccy": "USDT",
+        //                 "amount": "23.845744",
+        //                 "actual_amount": "22.445744",
+        //                 "chain": "TRC20",
+        //                 "tx_fee": "1.4",
+        //                 "fee_asset": "USDT",
+        //                 "fee_amount": "1.4",
+        //                 "to_address": "T8t5i2454dhdhnnnGdi49vMbihvY",
+        //                 "memo": "",
+        //                 "tx_id": "1237623941964de9954ed2e36640228d78765c1026",
+        //                 "confirmations": 18,
+        //                 "explorer_address_url": "https://tronscan.org/#/address",
+        //                 "explorer_tx_url": "https://tronscan.org/#/transaction",
+        //                 "remark": "",
+        //                 "status": "finished"
+        //             },
+        //         ],
+        //         "pagination": {
+        //             "total": 9,
+        //             "has_next": true
+        //         },
+        //         "code": 0,
+        //         "message": "OK"
+        //     }
         //
-        object data = this.safeValue(response, "data");
-        if (!isTrue(((data is IList<object>) || (data.GetType().IsGenericType && data.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
-        {
-            data = this.safeValue(data, "data", new List<object>() {});
-        }
+        object data = this.safeList(response, "data", new List<object>() {});
         return this.parseTransactions(data, currency, since, limit);
     }
 
@@ -4398,70 +4265,57 @@ public partial class coinex : Exchange
         * @method
         * @name coinex#fetchDeposits
         * @description fetch all deposits made to an account
-        * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot002_account009_deposit_list
-        * @param {string} code unified currency code
+        * @see https://docs.coinex.com/api/v2/assets/deposit-withdrawal/http/list-deposit-history
+        * @param {string} [code] unified currency code
         * @param {int} [since] the earliest time in ms to fetch deposits for
-        * @param {int} [limit] the maximum number of deposits structures to retrieve
+        * @param {int} [limit] the maximum number of deposit structures to retrieve
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
         */
         parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
         object request = new Dictionary<string, object>() {};
         object currency = null;
         if (isTrue(!isEqual(code, null)))
         {
-            await this.loadMarkets();
             currency = this.currency(code);
-            ((IDictionary<string,object>)request)["coin_type"] = getValue(currency, "id");
+            ((IDictionary<string,object>)request)["ccy"] = getValue(currency, "id");
         }
         if (isTrue(!isEqual(limit, null)))
         {
-            ((IDictionary<string,object>)request)["Limit"] = limit;
+            ((IDictionary<string,object>)request)["limit"] = limit;
         }
-        object response = await this.v1PrivateGetBalanceCoinDeposit(this.extend(request, parameters));
+        object response = await this.v2PrivateGetAssetsDepositHistory(this.extend(request, parameters));
         //
-        //    {
-        //        "code": 0,
-        //        "data": {
-        //            "has_next": false,
-        //            "curr_page": 1,
-        //            "count": 1,
-        //            "data": [
-        //                {
-        //                    "coin_deposit_id": 32555985,
-        //                    "create_time": 1673325495,
-        //                    "amount": "12.71",
-        //                    "amount_display": "12.71",
-        //                    "diff_amount": "0",
-        //                    "min_amount": "0",
-        //                    "actual_amount": "12.71",
-        //                    "actual_amount_display": "12.71",
-        //                    "confirmations": 35,
-        //                    "tx_id": "0x57f1c92cc10b48316e2bf5faf230694fec2174e7744c1562a9a88b9c1e585f56",
-        //                    "tx_id_display": "0x57f1c92cc10b48316e2bf5faf230694fec2174e7744c1562a9a88b9c1e585f56",
-        //                    "coin_address": "0xe7a3831c56836f466b6a6268cff4fc852cf4b738",
-        //                    "coin_address_display": "0xe7a3****f4b738",
-        //                    "add_explorer": "https://bscscan.com/address/0xe7a3831c56836f466b6a6268cff4fc852cf4b738",
-        //                    "coin_type": "USDT",
-        //                    "smart_contract_name": "BSC",
-        //                    "transfer_method": "onchain",
-        //                    "status": "finish",
-        //                    "status_display": "finish",
-        //                    "remark": "",
-        //                    "explorer": "https://bscscan.com/tx/0x57f1c92cc10b48316e2bf5faf230694fec2174e7744c1562a9a88b9c1e585f56"
-        //                }
-        //            ],
-        //            "total": 1,
-        //            "total_page": 1
-        //        },
-        //        "message": "Success"
-        //    }
+        //     {
+        //         "data": [
+        //             {
+        //                 "deposit_id": 5173806,
+        //                 "created_at": 1714021652557,
+        //                 "tx_id": "d9f47d2550397c635cb89a8963118f8fe78ef048bc8b6f0caaeaa7dc6",
+        //                 "tx_id_display": "",
+        //                 "ccy": "USDT",
+        //                 "chain": "TRC20",
+        //                 "deposit_method": "ON_CHAIN",
+        //                 "amount": "30",
+        //                 "actual_amount": "",
+        //                 "to_address": "TYewD2pVWDUwfNr9A",
+        //                 "confirmations": 20,
+        //                 "status": "FINISHED",
+        //                 "tx_explorer_url": "https://tronscan.org/#/transaction",
+        //                 "to_addr_explorer_url": "https://tronscan.org/#/address",
+        //                 "remark": ""
+        //             },
+        //         ],
+        //         "paginatation": {
+        //             "total": 8,
+        //             "has_next": true
+        //         },
+        //         "code": 0,
+        //         "message": "OK"
+        //     }
         //
-        object data = this.safeValue(response, "data");
-        if (!isTrue(((data is IList<object>) || (data.GetType().IsGenericType && data.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
-        {
-            data = this.safeValue(data, "data", new List<object>() {});
-        }
+        object data = this.safeList(response, "data", new List<object>() {});
         return this.parseTransactions(data, currency, since, limit);
     }
 

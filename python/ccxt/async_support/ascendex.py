@@ -1362,7 +1362,7 @@ class ascendex(Exchange, ImplicitAPI):
                 'cost': feeCost,
                 'currency': feeCurrencyCode,
             }
-        stopPrice = self.safe_number(order, 'stopPrice')
+        stopPrice = self.omit_zero(self.safe_string(order, 'stopPrice'))
         reduceOnly = None
         execInst = self.safe_string(order, 'execInst')
         if execInst == 'reduceOnly':

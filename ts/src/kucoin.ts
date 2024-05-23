@@ -429,6 +429,7 @@ export default class kucoin extends Exchange {
                     'The withdrawal amount is below the minimum requirement.': ExchangeError, // {"code":"400100","msg":"The withdrawal amount is below the minimum requirement."}
                     'Unsuccessful! Exceeded the max. funds out-transfer limit': InsufficientFunds, // {"code":"200000","msg":"Unsuccessful! Exceeded the max. funds out-transfer limit"}
                     'The amount increment is invalid.': BadRequest,
+                    'The quantity is below the minimum requirement.': InvalidOrder, // {"msg":"The quantity is below the minimum requirement.","code":"400100"}
                     '400': BadRequest,
                     '401': AuthenticationError,
                     '403': NotSupported,
@@ -4795,6 +4796,7 @@ export default class kucoin extends Exchange {
                 const partnerSignature = this.hmac (this.encode (partnerPayload), this.encode (partnerSecret), sha256, 'base64');
                 headers['KC-API-PARTNER-SIGN'] = partnerSignature;
                 headers['KC-API-PARTNER'] = partnerId;
+                headers['KC-API-PARTNER-VERIFY'] = 'true';
             }
             if (isBroker) {
                 const brokerName = this.safeString (partner, 'name');

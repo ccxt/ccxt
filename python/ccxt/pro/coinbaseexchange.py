@@ -16,10 +16,10 @@ from ccxt.base.errors import BadRequest
 from ccxt.base.errors import BadSymbol
 
 
-class coinbasepro(ccxt.async_support.coinbasepro):
+class coinbaseexchange(ccxt.async_support.coinbaseexchange):
 
     def describe(self):
-        return self.deep_extend(super(coinbasepro, self).describe(), {
+        return self.deep_extend(super(coinbaseexchange, self).describe(), {
             'has': {
                 'ws': True,
                 'watchOHLCV': False,  # missing on the exchange side
@@ -38,7 +38,7 @@ class coinbasepro(ccxt.async_support.coinbasepro):
             },
             'urls': {
                 'api': {
-                    'ws': 'wss://ws-feed.pro.coinbase.com',
+                    'ws': 'wss://ws-feed.exchange.coinbase.com',
                 },
                 'test': {
                     'ws': 'wss://ws-feed-public.sandbox.exchange.coinbase.com',
@@ -437,7 +437,7 @@ class coinbasepro(ccxt.async_support.coinbasepro):
         #     "side": "buy",
         #     "order_type": "limit"
         # }
-        parsed = super(coinbasepro, self).parse_trade(trade)
+        parsed = super(coinbaseexchange, self).parse_trade(trade)
         feeRate = None
         isMaker = False
         if 'maker_fee_rate' in trade:
@@ -727,7 +727,7 @@ class coinbasepro(ccxt.async_support.coinbasepro):
         #
         type = self.safe_string(ticker, 'type')
         if type is None:
-            return super(coinbasepro, self).parse_ticker(ticker, market)
+            return super(coinbaseexchange, self).parse_ticker(ticker, market)
         marketId = self.safe_string(ticker, 'product_id')
         symbol = self.safe_symbol(marketId, market, '-')
         timestamp = self.parse8601(self.safe_string(ticker, 'time'))

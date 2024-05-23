@@ -446,6 +446,7 @@ class kucoin(Exchange, ImplicitAPI):
                     'The withdrawal amount is below the minimum requirement.': ExchangeError,  # {"code":"400100","msg":"The withdrawal amount is below the minimum requirement."}
                     'Unsuccessful! Exceeded the max. funds out-transfer limit': InsufficientFunds,  # {"code":"200000","msg":"Unsuccessful! Exceeded the max. funds out-transfer limit"}
                     'The amount increment is invalid.': BadRequest,
+                    'The quantity is below the minimum requirement.': InvalidOrder,  # {"msg":"The quantity is below the minimum requirement.","code":"400100"}
                     '400': BadRequest,
                     '401': AuthenticationError,
                     '403': NotSupported,
@@ -4489,6 +4490,7 @@ class kucoin(Exchange, ImplicitAPI):
                 partnerSignature = self.hmac(self.encode(partnerPayload), self.encode(partnerSecret), hashlib.sha256, 'base64')
                 headers['KC-API-PARTNER-SIGN'] = partnerSignature
                 headers['KC-API-PARTNER'] = partnerId
+                headers['KC-API-PARTNER-VERIFY'] = 'true'
             if isBroker:
                 brokerName = self.safe_string(partner, 'name')
                 if brokerName is not None:

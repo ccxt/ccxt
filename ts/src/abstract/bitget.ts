@@ -505,6 +505,7 @@ interface Exchange {
     privateEarnGetV2EarnLoanBorrowHistory (params?: {}): Promise<implicitReturnType>;
     privateEarnGetV2EarnLoanDebts (params?: {}): Promise<implicitReturnType>;
     privateEarnGetV2EarnLoanReduces (params?: {}): Promise<implicitReturnType>;
+    privateEarnGetV2EarnAccountAssets (params?: {}): Promise<implicitReturnType>;
     privateEarnPostV2EarnSavingsSubscribe (params?: {}): Promise<implicitReturnType>;
     privateEarnPostV2EarnSavingsRedeem (params?: {}): Promise<implicitReturnType>;
     privateEarnPostV2EarnSharkfinSubscribe (params?: {}): Promise<implicitReturnType>;

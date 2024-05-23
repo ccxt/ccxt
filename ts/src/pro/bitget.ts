@@ -1142,7 +1142,7 @@ export default class bitget extends bitgetRest {
         //         "executePrice": "35123", // this is limit price
         //         "triggerType": "fill_price",
         //         "planType": "amount",
-        //                   #### in case order had fill: ####
+        //                   #### in case order had a partial fill: ####
         //         fillPrice: '35123',
         //         tradeId: '1171775539946528779',
         //         baseVolume: '7', // field present in market order
@@ -1261,13 +1261,20 @@ export default class bitget extends bitgetRest {
         let totalAmount = undefined;
         let filledAmount = undefined;
         let cost = undefined;
+        let remaining = undefined;
+        const totalFilled = this.safeString (order, 'accBaseVolume');
         if (isSpot) {
             if (isMargin) {
                 filledAmount = this.omitZero (this.safeString (order, 'fillTotalAmount'));
                 totalAmount = this.omitZero (this.safeString (order, 'baseSize')); // for margin trading
                 cost = this.safeString (order, 'quoteSize');
             } else {
-                filledAmount = this.omitZero (this.safeString2 (order, 'accBaseVolume', 'baseVolume'));
+                const partialFillAmount = this.safeString (order, 'baseVolume');
+                if (partialFillAmount !== undefined) {
+                    filledAmount = partialFillAmount;
+                } else {
+                    filledAmount = totalFilled;
+                }
                 if (isMarketOrder) {
                     if (isBuy) {
                         totalAmount = accBaseVolume;
@@ -1287,6 +1294,7 @@ export default class bitget extends bitgetRest {
             totalAmount = this.safeString (order, 'size');
             cost = this.safeString (order, 'fillNotionalUsd');
         }
+        remaining = this.omitZero (Precise.stringSub (totalAmount, totalFilled));
         return this.safeOrder ({
             'info': order,
             'symbol': symbol,
@@ -1305,7 +1313,7 @@ export default class bitget extends bitgetRest {
             'cost': cost,
             'average': avgPrice,
             'filled': filledAmount,
-            'remaining': undefined,
+            'remaining': remaining,
             'status': this.parseWsOrderStatus (rawStatus),
             'fee': feeObject,
             'trades': undefined,

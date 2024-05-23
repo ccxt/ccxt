@@ -1376,7 +1376,7 @@ class bitmex(ccxt.async_support.bitmex):
         data = self.safe_value(message, 'data', [])
         # if it's an initial snapshot
         if action == 'partial':
-            filter = self.safe_value(message, 'filter', {})
+            filter = self.safe_dict(message, 'filter', {})
             marketId = self.safe_value(filter, 'symbol')
             market = self.safe_market(marketId)
             symbol = market['symbol']
@@ -1395,7 +1395,7 @@ class bitmex(ccxt.async_support.bitmex):
                 side = self.safe_string(data[i], 'side')
                 side = 'bids' if (side == 'Buy') else 'asks'
                 bookside = orderbook[side]
-                bookside.store(price, size, id)
+                bookside.storeArray([price, size, id])
                 datetime = self.safe_string(data[i], 'timestamp')
                 orderbook['timestamp'] = self.parse8601(datetime)
                 orderbook['datetime'] = datetime
@@ -1417,7 +1417,7 @@ class bitmex(ccxt.async_support.bitmex):
                 side = self.safe_string(data[i], 'side')
                 side = 'bids' if (side == 'Buy') else 'asks'
                 bookside = orderbook[side]
-                bookside.store(price, size, id)
+                bookside.storeArray([price, size, id])
                 datetime = self.safe_string(data[i], 'timestamp')
                 orderbook['timestamp'] = self.parse8601(datetime)
                 orderbook['datetime'] = datetime

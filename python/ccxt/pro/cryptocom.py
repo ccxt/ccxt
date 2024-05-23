@@ -103,13 +103,16 @@ class cryptocom(ccxt.async_support.cryptocom):
         if topicParams is None:
             params['params'] = {}
         bookSubscriptionType = None
-        bookSubscriptionType, params = self.handle_option_and_params_2(params, 'watchOrderBook', 'watchOrderBookForSymbols', 'bookSubscriptionType', 'SNAPSHOT_AND_UPDATE')
-        if bookSubscriptionType is not None:
-            params['params']['bookSubscriptionType'] = bookSubscriptionType
+        bookSubscriptionType2 = None
+        bookSubscriptionType, params = self.handle_option_and_params(params, 'watchOrderBook', 'bookSubscriptionType', 'SNAPSHOT_AND_UPDATE')
+        bookSubscriptionType2, params = self.handle_option_and_params(params, 'watchOrderBookForSymbols', 'bookSubscriptionType', bookSubscriptionType)
+        params['params']['bookSubscriptionType'] = bookSubscriptionType2
         bookUpdateFrequency = None
-        bookUpdateFrequency, params = self.handle_option_and_params_2(params, 'watchOrderBook', 'watchOrderBookForSymbols', 'bookUpdateFrequency')
-        if bookUpdateFrequency is not None:
-            params['params']['bookSubscriptionType'] = bookSubscriptionType
+        bookUpdateFrequency2 = None
+        bookUpdateFrequency, params = self.handle_option_and_params(params, 'watchOrderBook', 'bookUpdateFrequency')
+        bookUpdateFrequency2, params = self.handle_option_and_params(params, 'watchOrderBookForSymbols', 'bookUpdateFrequency', bookUpdateFrequency)
+        if bookUpdateFrequency2 is not None:
+            params['params']['bookSubscriptionType'] = bookUpdateFrequency2
         for i in range(0, len(symbols)):
             symbol = symbols[i]
             market = self.market(symbol)
@@ -124,7 +127,7 @@ class cryptocom(ccxt.async_support.cryptocom):
         price = self.safe_float(delta, 0)
         amount = self.safe_float(delta, 1)
         count = self.safe_integer(delta, 2)
-        bookside.store(price, amount, count)
+        bookside.storeArray([price, amount, count])
 
     def handle_deltas(self, bookside, deltas):
         for i in range(0, len(deltas)):
@@ -192,10 +195,10 @@ class cryptocom(ccxt.async_support.cryptocom):
         data = self.safe_value(message, 'data')
         data = self.safe_value(data, 0)
         timestamp = self.safe_integer(data, 't')
-        orderbook = self.safe_value(self.orderbooks, symbol)
-        if orderbook is None:
+        if not (symbol in self.orderbooks):
             limit = self.safe_integer(message, 'depth')
-            orderbook = self.counted_order_book({}, limit)
+            self.orderbooks[symbol] = self.counted_order_book({}, limit)
+        orderbook = self.orderbooks[symbol]
         channel = self.safe_string(message, 'channel')
         nonce = self.safe_integer_2(data, 'u', 's')
         books = data

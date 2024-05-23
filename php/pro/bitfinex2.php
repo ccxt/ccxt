@@ -648,7 +648,7 @@ class bitfinex2 extends \ccxt\async\bitfinex2 {
                 // $price = 0 means that you have to remove the order from your book
                 $amount = Precise::string_gt($price, '0') ? $size : '0';
                 $idString = $this->safe_string($deltas, 0);
-                $bookside->store ($this->parse_number($price), $this->parse_number($amount), $idString);
+                $bookside->storeArray (array( $this->parse_number($price), $this->parse_number($amount), $idString ));
             } else {
                 $amount = $this->safe_string($deltas, 2);
                 $counter = $this->safe_string($deltas, 1);
@@ -656,7 +656,7 @@ class bitfinex2 extends \ccxt\async\bitfinex2 {
                 $size = Precise::string_lt($amount, '0') ? Precise::string_neg($amount) : $amount;
                 $side = Precise::string_lt($amount, '0') ? 'asks' : 'bids';
                 $bookside = $orderbookItem[$side];
-                $bookside->store ($this->parse_number($price), $this->parse_number($size), $this->parse_number($counter));
+                $bookside->storeArray (array( $this->parse_number($price), $this->parse_number($size), $this->parse_number($counter) ));
             }
             $client->resolve ($orderbook, $messageHash);
         }

@@ -1060,7 +1060,7 @@ class bitget(ccxt.async_support.bitget):
         #         "executePrice": "35123",  # self is limit price
         #         "triggerType": "fill_price",
         #         "planType": "amount",
-        #                   #### in case order had fill:  ####
+        #                   #### in case order had a partial fill:  ####
         #         fillPrice: '35123',
         #         tradeId: '1171775539946528779',
         #         baseVolume: '7',  # field present in market order
@@ -1177,13 +1177,19 @@ class bitget(ccxt.async_support.bitget):
         totalAmount = None
         filledAmount = None
         cost = None
+        remaining = None
+        totalFilled = self.safe_string(order, 'accBaseVolume')
         if isSpot:
             if isMargin:
                 filledAmount = self.omit_zero(self.safe_string(order, 'fillTotalAmount'))
                 totalAmount = self.omit_zero(self.safe_string(order, 'baseSize'))  # for margin trading
                 cost = self.safe_string(order, 'quoteSize')
             else:
-                filledAmount = self.omit_zero(self.safe_string_2(order, 'accBaseVolume', 'baseVolume'))
+                partialFillAmount = self.safe_string(order, 'baseVolume')
+                if partialFillAmount is not None:
+                    filledAmount = partialFillAmount
+                else:
+                    filledAmount = totalFilled
                 if isMarketOrder:
                     if isBuy:
                         totalAmount = accBaseVolume
@@ -1199,6 +1205,7 @@ class bitget(ccxt.async_support.bitget):
             filledAmount = self.safe_string(order, 'baseVolume')
             totalAmount = self.safe_string(order, 'size')
             cost = self.safe_string(order, 'fillNotionalUsd')
+        remaining = self.omit_zero(Precise.string_sub(totalAmount, totalFilled))
         return self.safe_order({
             'info': order,
             'symbol': symbol,
@@ -1217,7 +1224,7 @@ class bitget(ccxt.async_support.bitget):
             'cost': cost,
             'average': avgPrice,
             'filled': filledAmount,
-            'remaining': None,
+            'remaining': remaining,
             'status': self.parse_ws_order_status(rawStatus),
             'fee': feeObject,
             'trades': None,

@@ -3020,7 +3020,7 @@ class coinbase extends Exchange {
         $marketId = $this->safe_string($order, 'product_id');
         $symbol = $this->safe_symbol($marketId, $market, '-');
         if ($symbol !== null) {
-            $market = $this->market($symbol);
+            $market = $this->safe_market($symbol, $market);
         }
         $orderConfiguration = $this->safe_dict($order, 'order_configuration', array());
         $limitGTC = $this->safe_dict($orderConfiguration, 'limit_limit_gtc');

@@ -636,7 +636,7 @@
             "fetchTrades": "datetime is not same as timestamp"
         }
     },
-    "coinbasepro": {
+    "coinbaseexchange": {
         "skipWs": "needs auth",
         "skipMethods": {
             "loadMarkets":{
