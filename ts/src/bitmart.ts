@@ -2717,7 +2717,7 @@ export default class bitmart extends Exchange {
         }
         const data = this.safeValue (response, 'data');
         if (data === true) {
-            return this.parseOrder (id, market);
+            return this.safeOrder ({ 'id': id }, market);
         }
         const succeeded = this.safeValue (data, 'succeed');
         if (succeeded !== undefined) {
@@ -2731,7 +2731,7 @@ export default class bitmart extends Exchange {
                 throw new InvalidOrder (this.id + ' cancelOrder() ' + symbol + ' order id ' + id + ' is filled or canceled');
             }
         }
-        const order = this.parseOrder (id, market);
+        const order = this.safeOrder ({ 'id': id }, market);
         return this.extend (order, { 'id': id });
     }
 
