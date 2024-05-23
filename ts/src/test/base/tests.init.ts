@@ -33,6 +33,7 @@ function testCalculateFee () {
         'quote':  'BAR',
         'taker':   taker,
         'maker':   maker,
+        'spot': true,
         'precision': {
             'amount': 8,
             'price': 8,
@@ -152,16 +153,16 @@ function testCamelCasePropertyConversion () {
     const props = index (Object.getOwnPropertyNames (exchange).concat (Object.getOwnPropertyNames (exchange.constructor.prototype)))
 
     for (const k of Array.from (propsSeenBefore)) {
-        if (this[k] && !props.has (k)) {
+        if (exchange[k] && !props.has (k)) {
             throw new Error (`missing prop: ${k}`)
         }
     }
 
-    for (const k of Array.from (props)) {
-        if (!propsSeenBefore.has (k)) {
-            log.magenta.noLocate (`+ ${k}`)
-        }
-    }
+    // for (const k of Array.from (props)) {
+    //     if (!propsSeenBefore.has (k)) {
+    //         log.magenta.noLocate (`+ ${k}`)
+    //     }
+    // }
 
 }
 
