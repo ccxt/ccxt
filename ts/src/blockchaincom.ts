@@ -752,7 +752,7 @@ export default class blockchaincom extends Exchange {
         return this.parseOrders (response, market, since, limit);
     }
 
-    parseTrade (trade, market: Market = undefined): Trade {
+    parseTrade (trade: Dict, market: Market = undefined): Trade {
         //
         //     {
         //         "exOrdId":281685751028507,

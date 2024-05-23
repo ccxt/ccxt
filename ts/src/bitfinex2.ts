@@ -1247,7 +1247,7 @@ export default class bitfinex2 extends Exchange {
         return this.parseTicker (result, market);
     }
 
-    parseTrade (trade, market: Market = undefined): Trade {
+    parseTrade (trade: Dict, market: Market = undefined): Trade {
         //
         // fetchTrades (public)
         //

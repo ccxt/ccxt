@@ -977,7 +977,7 @@ export default class coinbase extends Exchange {
         } as Transaction;
     }
 
-    parseTrade (trade, market: Market = undefined): Trade {
+    parseTrade (trade: Dict, market: Market = undefined): Trade {
         //
         // fetchMyBuys, fetchMySells
         //

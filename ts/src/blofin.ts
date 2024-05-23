@@ -568,7 +568,7 @@ export default class blofin extends Exchange {
         return this.parseTickers (tickers, symbols);
     }
 
-    parseTrade (trade, market: Market = undefined): Trade {
+    parseTrade (trade: Dict, market: Market = undefined): Trade {
         //
         // fetch trades
         //   {

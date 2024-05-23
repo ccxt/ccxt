@@ -499,7 +499,7 @@ export default class novadax extends Exchange {
         return this.parseOrderBook (data, market['symbol'], timestamp, 'bids', 'asks');
     }
 
-    parseTrade (trade, market: Market = undefined): Trade {
+    parseTrade (trade: Dict, market: Market = undefined): Trade {
         //
         // public fetchTrades
         //

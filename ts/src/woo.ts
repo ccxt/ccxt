@@ -572,7 +572,7 @@ export default class woo extends Exchange {
         return this.parseTrades (resultResponse, market, since, limit);
     }
 
-    parseTrade (trade, market: Market = undefined): Trade {
+    parseTrade (trade: Dict, market: Market = undefined): Trade {
         //
         // public/market_trades
         //

@@ -908,7 +908,7 @@ export default class bitstamp extends Exchange {
         return undefined;
     }
 
-    parseTrade (trade, market: Market = undefined): Trade {
+    parseTrade (trade: Dict, market: Market = undefined): Trade {
         //
         // fetchTrades (public)
         //

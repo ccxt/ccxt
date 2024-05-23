@@ -254,7 +254,7 @@ export default class paymium extends Exchange {
         return this.parseTicker (ticker, market);
     }
 
-    parseTrade (trade, market: Market = undefined): Trade {
+    parseTrade (trade: Dict, market: Market = undefined): Trade {
         const timestamp = this.safeTimestamp (trade, 'created_at_int');
         const id = this.safeString (trade, 'uuid');
         market = this.safeMarket (undefined, market);

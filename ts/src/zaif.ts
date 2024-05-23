@@ -367,7 +367,7 @@ export default class zaif extends Exchange {
         return this.parseTicker (ticker, market);
     }
 
-    parseTrade (trade, market: Market = undefined): Trade {
+    parseTrade (trade: Dict, market: Market = undefined): Trade {
         //
         // fetchTrades (public)
         //

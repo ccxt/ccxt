@@ -1241,7 +1241,7 @@ export default class zonda extends Exchange {
         return this.parseOHLCVs (items, market, timeframe, since, limit);
     }
 
-    parseTrade (trade, market: Market = undefined): Trade {
+    parseTrade (trade: Dict, market: Market = undefined): Trade {
         //
         // createOrder trades
         //

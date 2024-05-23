@@ -387,7 +387,7 @@ export default class btcalpha extends Exchange {
         return result;
     }
 
-    parseTrade (trade, market: Market = undefined): Trade {
+    parseTrade (trade: Dict, market: Market = undefined): Trade {
         //
         // fetchTrades (public)
         //

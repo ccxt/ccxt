@@ -985,7 +985,7 @@ export default class okcoin extends Exchange {
         return this.parseTickers (data, symbols, params);
     }
 
-    parseTrade (trade, market: Market = undefined): Trade {
+    parseTrade (trade: Dict, market: Market = undefined): Trade {
         //
         // public fetchTrades
         //

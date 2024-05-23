@@ -2330,7 +2330,7 @@ export default class Exchange {
         throw new NotSupported (this.id + ' parseDepositAddress() is not supported yet');
     }
 
-    parseTrade (trade: object, market: Market = undefined): Trade {
+    parseTrade (trade: Dict, market: Market = undefined): Trade {
         throw new NotSupported (this.id + ' parseTrade() is not supported yet');
     }
 

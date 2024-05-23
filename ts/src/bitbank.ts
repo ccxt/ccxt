@@ -335,7 +335,7 @@ export default class bitbank extends Exchange {
         return this.parseOrderBook (orderbook, market['symbol'], timestamp);
     }
 
-    parseTrade (trade, market: Market = undefined): Trade {
+    parseTrade (trade: Dict, market: Market = undefined): Trade {
         //
         // fetchTrades
         //
