@@ -41,7 +41,8 @@
                         "amount": 0.00007448,
                         "fee": {
                             "cost": null,
-                            "currency": "USDT"
+                            "currency": "USDT",
+                            "rate": null
                         },
                         "cost": 5.4572710024,
                         "fees": []
