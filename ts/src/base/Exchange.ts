@@ -3255,9 +3255,6 @@ export default class Exchange {
             }
             cost = Precise.stringMul (multiplyPrice, amount);
         }
-        if (!('fees' in trade)) {
-            trade['fees'] = undefined;
-        }
         const fee = this.safeDict (trade, 'fee');
         const fees = this.safeList (trade, 'fees');
         const feeDefined = fee !== undefined;
@@ -3277,9 +3274,12 @@ export default class Exchange {
             if (!feesDefined) {
                 trade['fees'] = reducedFees;
             }
-            if (!feeDefined && (reducedLength === 1)) {
+            if (!feeDefined  && (reducedLength === 1)) {
                 trade['fee'] = reducedFees[0];
             }
+        }
+        if (!('fees' in trade)) {
+            trade['fees'] = [];
         }
         trade['amount'] = this.parseNumber (amount);
         trade['price'] = this.parseNumber (price);
@@ -3352,8 +3352,8 @@ export default class Exchange {
             const feeCurrencyCode = this.safeString (fee, 'currency');
             if (feeCurrencyCode !== undefined) {
                 const rate = this.safeString (fee, 'rate');
-                const cost = this.safeValue (fee, 'cost');
-                if (Precise.stringEq (cost, '0')) {
+                const cost = this.safeString (fee, 'cost');
+                if (cost === undefined || Precise.stringEq (cost, '0') || Precise.stringEq (cost, '0.0')) {
                     // omit zero cost fees
                     continue;
                 }
