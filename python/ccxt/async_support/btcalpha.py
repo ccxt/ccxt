@@ -283,7 +283,7 @@ class btcalpha(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'pair': market['id'],
         }
         response = await self.publicGetTicker(self.extend(request, params))
@@ -355,7 +355,7 @@ class btcalpha(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'pair_name': market['id'],
         }
         if limit:
@@ -433,7 +433,7 @@ class btcalpha(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         market = None
-        request = {}
+        request: dict = {}
         if symbol is not None:
             market = self.market(symbol)
             request['pair'] = market['id']
@@ -481,7 +481,7 @@ class btcalpha(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         currency = None
-        request = {}
+        request: dict = {}
         if code is not None:
             currency = self.currency(code)
             request['currency_id'] = currency['id']
@@ -545,7 +545,7 @@ class btcalpha(Exchange, ImplicitAPI):
         }
 
     def parse_transaction_status(self, status):
-        statuses = {
+        statuses: dict = {
             '10': 'pending',  # New
             '20': 'pending',  # Verified, waiting for approving
             '30': 'ok',       # Approved by moderator
@@ -587,7 +587,7 @@ class btcalpha(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'pair': market['id'],
             'type': self.safe_string(self.timeframes, timeframe, timeframe),
         }
@@ -606,7 +606,7 @@ class btcalpha(Exchange, ImplicitAPI):
         return self.parse_ohlcvs(response, market, timeframe, since, limit)
 
     def parse_balance(self, response) -> Balances:
-        result = {'info': response}
+        result: dict = {'info': response}
         for i in range(0, len(response)):
             balance = response[i]
             currencyId = self.safe_string(balance, 'currency')
@@ -628,8 +628,8 @@ class btcalpha(Exchange, ImplicitAPI):
         response = await self.privateGetWallets(params)
         return self.parse_balance(response)
 
-    def parse_order_status(self, status):
-        statuses = {
+    def parse_order_status(self, status: Str):
+        statuses: dict = {
             '1': 'open',
             '2': 'canceled',
             '3': 'closed',
@@ -723,7 +723,7 @@ class btcalpha(Exchange, ImplicitAPI):
             raise InvalidOrder(self.id + ' only limits orders are supported')
         await self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'pair': market['id'],
             'type': side,
             'amount': amount,
@@ -747,7 +747,7 @@ class btcalpha(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
-        request = {
+        request: dict = {
             'order': id,
         }
         response = await self.privatePostOrderCancel(self.extend(request, params))
@@ -762,7 +762,7 @@ class btcalpha(Exchange, ImplicitAPI):
         :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
-        request = {
+        request: dict = {
             'id': id,
         }
         order = await self.privateGetOrderId(self.extend(request, params))
@@ -779,7 +779,7 @@ class btcalpha(Exchange, ImplicitAPI):
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
-        request = {}
+        request: dict = {}
         market = None
         if symbol is not None:
             market = self.market(symbol)
@@ -799,7 +799,7 @@ class btcalpha(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
-        request = {
+        request: dict = {
             'status': '1',
         }
         return await self.fetch_orders(symbol, since, limit, self.extend(request, params))
@@ -814,7 +814,7 @@ class btcalpha(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
-        request = {
+        request: dict = {
             'status': '3',
         }
         return await self.fetch_orders(symbol, since, limit, self.extend(request, params))
@@ -830,7 +830,7 @@ class btcalpha(Exchange, ImplicitAPI):
         :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
         """
         await self.load_markets()
-        request = {}
+        request: dict = {}
         if symbol is not None:
             market = self.market(symbol)
             request['pair'] = market['id']

@@ -977,7 +977,7 @@ public partial class hyperliquid : Exchange
         object hash = this.actionHash(action, vaultAdress, nonce);
         object isTestnet = this.safeBool(this.options, "sandboxMode", false);
         object phantomAgent = this.constructPhantomAgent(hash, isTestnet);
-        // const data = {
+        // const data: Dict = {
         //     'domain': {
         //         'chainId': 1337,
         //         'name': 'Exchange',

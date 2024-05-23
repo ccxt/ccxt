@@ -67,7 +67,7 @@ class blockchaincom(ccxt.async_support.blockchaincom):
         await self.authenticate(params)
         messageHash = 'balance'
         url = self.urls['api']['ws']
-        subscribe = {
+        subscribe: dict = {
             'action': 'subscribe',
             'channel': 'balances',
         }
@@ -107,7 +107,7 @@ class blockchaincom(ccxt.async_support.blockchaincom):
         event = self.safe_string(message, 'event')
         if event == 'subscribed':
             return
-        result = {'info': message}
+        result: dict = {'info': message}
         balances = self.safe_value(message, 'balances', [])
         for i in range(0, len(balances)):
             entry = balances[i]
@@ -406,7 +406,7 @@ class blockchaincom(ccxt.async_support.blockchaincom):
             market = self.market(symbol)
             symbol = market['symbol']
         url = self.urls['api']['ws']
-        message = {
+        message: dict = {
             'action': 'subscribe',
             'channel': 'trading',
         }
@@ -582,7 +582,7 @@ class blockchaincom(ccxt.async_support.blockchaincom):
         }, market)
 
     def parse_ws_order_status(self, status):
-        statuses = {
+        statuses: dict = {
             'pending': 'open',
             'open': 'open',
             'rejected': 'rejected',
@@ -609,7 +609,7 @@ class blockchaincom(ccxt.async_support.blockchaincom):
         type = self.safe_string(params, 'type', 'l2')
         params = self.omit(params, 'type')
         messageHash = 'orderbook:' + symbol + ':' + type
-        subscribe = {
+        subscribe: dict = {
             'action': 'subscribe',
             'channel': type,
             'symbol': market['id'],
@@ -689,7 +689,7 @@ class blockchaincom(ccxt.async_support.blockchaincom):
 
     def handle_message(self, client: Client, message):
         channel = self.safe_string(message, 'channel')
-        handlers = {
+        handlers: dict = {
             'ticker': self.handle_ticker,
             'trades': self.handle_trades,
             'prices': self.handle_ohlcv,
@@ -729,7 +729,7 @@ class blockchaincom(ccxt.async_support.blockchaincom):
         isAuthenticated = self.safe_value(client.subscriptions, messageHash)
         if isAuthenticated is None:
             self.check_required_credentials()
-            request = {
+            request: dict = {
                 'action': 'subscribe',
                 'channel': 'auth',
                 'token': self.secret,

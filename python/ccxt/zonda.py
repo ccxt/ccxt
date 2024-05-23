@@ -419,7 +419,7 @@ class zonda(Exchange, ImplicitAPI):
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
-        request = {}
+        request: dict = {}
         response = self.v1_01PrivateGetTradingOffer(self.extend(request, params))
         items = self.safe_list(response, 'items', [])
         return self.parse_orders(items, None, since, limit, {'status': 'open'})
@@ -485,12 +485,12 @@ class zonda(Exchange, ImplicitAPI):
         :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
         """
         self.load_markets()
-        request = {}
+        request: dict = {}
         if symbol:
             markets = [self.market_id(symbol)]
             symbol = self.symbol(symbol)
             request['markets'] = markets
-        query = {'query': self.json(self.extend(request, params))}
+        query: dict = {'query': self.json(self.extend(request, params))}
         response = self.v1_01PrivateGetTradingHistoryTransactions(query)
         #
         #     {
@@ -522,7 +522,7 @@ class zonda(Exchange, ImplicitAPI):
         balances = self.safe_value(response, 'balances')
         if balances is None:
             raise ExchangeError(self.id + ' empty balance response ' + self.json(response))
-        result = {'info': response}
+        result: dict = {'info': response}
         for i in range(0, len(balances)):
             balance = balances[i]
             currencyId = self.safe_string(balance, 'currency')
@@ -555,7 +555,7 @@ class zonda(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'symbol': market['id'],
         }
         response = self.v1_01PublicGetTradingOrderbookSymbol(self.extend(request, params))
@@ -665,7 +665,7 @@ class zonda(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'symbol': market['id'],
         }
         method = 'v1_01PublicGetTradingTickerSymbol'
@@ -805,7 +805,7 @@ class zonda(Exchange, ImplicitAPI):
         if code is not None:
             currency = self.currency(code)
             balanceCurrencies.append(currency['id'])
-        request = {
+        request: dict = {
             'balanceCurrencies': balanceCurrencies,
         }
         if since is not None:
@@ -1117,7 +1117,7 @@ class zonda(Exchange, ImplicitAPI):
         }
 
     def parse_ledger_entry_type(self, type):
-        types = {
+        types: dict = {
             'ADD_FUNDS': 'transaction',
             'BITCOIN_GOLD_FORK': 'transaction',
             'CREATE_BALANCE': 'transaction',
@@ -1173,7 +1173,7 @@ class zonda(Exchange, ImplicitAPI):
         self.load_markets()
         market = self.market(symbol)
         tradingSymbol = market['baseId'] + '-' + market['quoteId']
-        request = {
+        request: dict = {
             'symbol': tradingSymbol,
             'resolution': self.safe_string(self.timeframes, timeframe, timeframe),
             # 'from': 1574709092000,  # unix timestamp in milliseconds, required
@@ -1292,7 +1292,7 @@ class zonda(Exchange, ImplicitAPI):
         self.load_markets()
         market = self.market(symbol)
         tradingSymbol = market['baseId'] + '-' + market['quoteId']
-        request = {
+        request: dict = {
             'symbol': tradingSymbol,
         }
         if since is not None:
@@ -1318,7 +1318,7 @@ class zonda(Exchange, ImplicitAPI):
         market = self.market(symbol)
         tradingSymbol = market['baseId'] + '-' + market['quoteId']
         amount = float(self.amount_to_precision(symbol, amount))
-        request = {
+        request: dict = {
             'symbol': tradingSymbol,
             'offerType': side.upper(),
             'amount': amount,
@@ -1443,7 +1443,7 @@ class zonda(Exchange, ImplicitAPI):
         self.load_markets()
         market = self.market(symbol)
         tradingSymbol = market['baseId'] + '-' + market['quoteId']
-        request = {
+        request: dict = {
             'symbol': tradingSymbol,
             'id': id,
             'side': side,
@@ -1454,7 +1454,7 @@ class zonda(Exchange, ImplicitAPI):
         return self.v1_01PrivateDeleteTradingOfferSymbolIdSidePrice(self.extend(request, params))
 
     def is_fiat(self, currency):
-        fiatCurrencies = {
+        fiatCurrencies: dict = {
             'USD': True,
             'EUR': True,
             'PLN': True,
@@ -1493,7 +1493,7 @@ class zonda(Exchange, ImplicitAPI):
         """
         self.load_markets()
         currency = self.currency(code)
-        request = {
+        request: dict = {
             'currency': currency['id'],
         }
         response = self.v1_01PrivateGetApiPaymentsDepositsCryptoAddresses(self.extend(request, params))
@@ -1553,7 +1553,7 @@ class zonda(Exchange, ImplicitAPI):
         """
         self.load_markets()
         currency = self.currency(code)
-        request = {
+        request: dict = {
             'source': fromAccount,
             'destination': toAccount,
             'currency': code,
@@ -1643,7 +1643,7 @@ class zonda(Exchange, ImplicitAPI):
         }
 
     def parse_transfer_status(self, status: Str) -> Str:
-        statuses = {
+        statuses: dict = {
             'Ok': 'ok',
             'Fail': 'failed',
         }
@@ -1665,7 +1665,7 @@ class zonda(Exchange, ImplicitAPI):
         self.load_markets()
         response = None
         currency = self.currency(code)
-        request = {
+        request: dict = {
             'currency': currency['id'],
             'amount': amount,
             'address': address,

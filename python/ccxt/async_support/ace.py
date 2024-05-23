@@ -356,7 +356,7 @@ class ace(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'quoteCurrencyId': market['quoteId'],
             'baseCurrencyId': market['baseId'],
         }
@@ -444,7 +444,7 @@ class ace(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'duration': self.timeframes[timeframe],
             'quoteCurrencyId': market['quoteId'],
             'baseCurrencyId': market['baseId'],
@@ -475,8 +475,8 @@ class ace(Exchange, ImplicitAPI):
         #
         return self.parse_ohlcvs(data, market, timeframe, since, limit)
 
-    def parse_order_status(self, status):
-        statuses = {
+    def parse_order_status(self, status: Str):
+        statuses: dict = {
             '0': 'open',
             '1': 'open',
             '2': 'closed',
@@ -589,7 +589,7 @@ class ace(Exchange, ImplicitAPI):
         market = self.market(symbol)
         orderType = type.upper()
         orderSide = side.upper()
-        request = {
+        request: dict = {
             'baseCurrencyId': market['baseId'],
             'quoteCurrencyId': market['quoteId'],
             'type': 1 if (orderType == 'LIMIT') else 2,
@@ -620,7 +620,7 @@ class ace(Exchange, ImplicitAPI):
         :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
-        request = {
+        request: dict = {
             'orderNo': id,
         }
         response = await self.privatePostV2OrderCancel(self.extend(request, params))
@@ -643,7 +643,7 @@ class ace(Exchange, ImplicitAPI):
         :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
-        request = {
+        request: dict = {
             'orderNo': id,
         }
         response = await self.privatePostV2OrderShowOrderStatus(self.extend(request, params))
@@ -686,7 +686,7 @@ class ace(Exchange, ImplicitAPI):
             raise ArgumentsRequired(self.id + ' fetchOpenOrders() requires a symbol argument')
         await self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'quoteCurrencyId': market['quoteId'],
             'baseCurrencyId': market['baseId'],
             # 'start': 0,
@@ -814,7 +814,7 @@ class ace(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         market = self.safe_market(symbol)
-        request = {
+        request: dict = {
             'orderNo': id,
         }
         response = await self.privatePostV2OrderShowOrderHistory(self.extend(request, params))
@@ -867,7 +867,7 @@ class ace(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         market = self.safe_market(symbol)
-        request = {
+        request: dict = {
             # 'buyOrSell': 1,
             # 'start': 0,
         }
@@ -922,7 +922,7 @@ class ace(Exchange, ImplicitAPI):
         #         }
         #     ]
         #
-        result = {
+        result: dict = {
             'info': response,
         }
         for i in range(0, len(response)):
@@ -931,7 +931,7 @@ class ace(Exchange, ImplicitAPI):
             code = self.safe_currency_code(currencyId)
             amount = self.safe_string(balance, 'amount')
             available = self.safe_string(balance, 'cashAmount')
-            account = {
+            account: dict = {
                 'free': available,
                 'total': amount,
             }

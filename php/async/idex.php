@@ -1064,7 +1064,7 @@ class idex extends Exchange {
         }) ();
     }
 
-    public function parse_order_status($status) {
+    public function parse_order_status(?string $status) {
         // https://docs.idex.io/#order-states-amp-lifecycle
         $statuses = array(
             'active' => 'open',

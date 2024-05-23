@@ -567,7 +567,7 @@ class coinex(Exchange, ImplicitAPI):
         #
         data = self.safe_value(response, 'data', [])
         coins = list(data.keys())
-        result = {}
+        result: dict = {}
         for i in range(0, len(coins)):
             coin = coins[i]
             currency = data[coin]
@@ -628,7 +628,7 @@ class coinex(Exchange, ImplicitAPI):
             if precisionString is not None:
                 minPrecisionString = precisionString if (minPrecisionString is None) else Precise.string_min(precisionString, minPrecisionString)
             networks = self.safe_value(result[code], 'networks', {})
-            network = {
+            network: dict = {
                 'info': currency,
                 'id': networkId,
                 'network': networkId,
@@ -936,7 +936,7 @@ class coinex(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'market': market['id'],
         }
         response = None
@@ -1100,7 +1100,7 @@ class coinex(Exchange, ImplicitAPI):
         market = self.market(symbol)
         if limit is None:
             limit = 20  # default
-        request = {
+        request: dict = {
             'market': market['id'],
             'limit': limit,
             'interval': '0',
@@ -1237,7 +1237,7 @@ class coinex(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'market': market['id'],
             # 'last_id': 0,
         }
@@ -1278,7 +1278,7 @@ class coinex(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'market': market['id'],
         }
         response = None
@@ -1389,7 +1389,7 @@ class coinex(Exchange, ImplicitAPI):
             #     }
             #
         data = self.safe_list(response, 'data', [])
-        result = {}
+        result: dict = {}
         for i in range(0, len(data)):
             entry = data[i]
             marketId = self.safe_string(entry, 'market')
@@ -1446,7 +1446,7 @@ class coinex(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'market': market['id'],
             'period': self.safe_string(self.timeframes, timeframe, timeframe),
         }
@@ -1514,7 +1514,7 @@ class coinex(Exchange, ImplicitAPI):
         #         "message": "OK"
         #     }
         #
-        result = {'info': response}
+        result: dict = {'info': response}
         balances = self.safe_list(response, 'data', [])
         for i in range(0, len(balances)):
             entry = balances[i]
@@ -1549,7 +1549,7 @@ class coinex(Exchange, ImplicitAPI):
         #         "message": "OK"
         #     }
         #
-        result = {'info': response}
+        result: dict = {'info': response}
         balances = self.safe_list(response, 'data', [])
         for i in range(0, len(balances)):
             entry = balances[i]
@@ -1580,7 +1580,7 @@ class coinex(Exchange, ImplicitAPI):
         #         "message": "OK"
         #     }
         #
-        result = {'info': response}
+        result: dict = {'info': response}
         balances = self.safe_list(response, 'data', [])
         for i in range(0, len(balances)):
             entry = balances[i]
@@ -1608,7 +1608,7 @@ class coinex(Exchange, ImplicitAPI):
         #         "message": "OK"
         #     }
         #
-        result = {'info': response}
+        result: dict = {'info': response}
         balances = self.safe_list(response, 'data', [])
         for i in range(0, len(balances)):
             entry = balances[i]
@@ -1646,8 +1646,8 @@ class coinex(Exchange, ImplicitAPI):
         else:
             return await self.fetch_spot_balance(params)
 
-    def parse_order_status(self, status):
-        statuses = {
+    def parse_order_status(self, status: Str):
+        statuses: dict = {
             'rejected': 'rejected',
             'open': 'open',
             'not_deal': 'open',
@@ -1952,7 +1952,7 @@ class coinex(Exchange, ImplicitAPI):
         if reduceOnly:
             if not market['swap']:
                 raise InvalidOrder(self.id + ' createOrder() does not support reduceOnly for ' + market['type'] + ' orders, reduceOnly orders are supported for swap markets only')
-        request = {
+        request: dict = {
             'market': market['id'],
         }
         if clientOrderId is None:
@@ -2298,7 +2298,7 @@ class coinex(Exchange, ImplicitAPI):
             orderRequest = self.create_order_request(marketId, type, side, amount, price, orderParams)
             ordersRequests.append(orderRequest)
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'market': market['id'],
             'orders': ordersRequests,
         }
@@ -2457,7 +2457,7 @@ class coinex(Exchange, ImplicitAPI):
             raise ArgumentsRequired(self.id + ' cancelOrders() requires a symbol argument')
         await self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'market': market['id'],
         }
         stop = self.safe_bool_2(params, 'stop', 'trigger')
@@ -2632,7 +2632,7 @@ class coinex(Exchange, ImplicitAPI):
             raise ArgumentsRequired(self.id + ' editOrder() requires a symbol argument')
         await self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'market': market['id'],
         }
         if amount is not None:
@@ -2768,7 +2768,7 @@ class coinex(Exchange, ImplicitAPI):
         market = self.market(symbol)
         isTriggerOrder = self.safe_bool_2(params, 'stop', 'trigger')
         swap = market['swap']
-        request = {
+        request: dict = {
             'market': market['id'],
         }
         marginMode = None
@@ -3039,7 +3039,7 @@ class coinex(Exchange, ImplicitAPI):
             raise ArgumentsRequired(self.id + ' cancelAllOrders() requires a symbol argument')
         await self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'market': market['id'],
         }
         response = None
@@ -3075,7 +3075,7 @@ class coinex(Exchange, ImplicitAPI):
             raise ArgumentsRequired(self.id + ' fetchOrder() requires a symbol argument')
         await self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'market': market['id'],
             'order_id': self.parse_to_numeric(id),
         }
@@ -3161,7 +3161,7 @@ class coinex(Exchange, ImplicitAPI):
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
-        request = {}
+        request: dict = {}
         market = None
         if symbol is not None:
             market = self.market(symbol)
@@ -3497,7 +3497,7 @@ class coinex(Exchange, ImplicitAPI):
         if network is None:
             raise ArgumentsRequired(self.id + ' createDepositAddress() requires a network parameter')
         params = self.omit(params, 'network')
-        request = {
+        request: dict = {
             'ccy': currency['id'],
             'chain': self.network_code_to_id(network, currency['code']),
         }
@@ -3536,7 +3536,7 @@ class coinex(Exchange, ImplicitAPI):
                 raise ArgumentsRequired(self.id + ' fetchDepositAddress() ' + code + ' requires a network parameter')
             if not (network in networks):
                 raise ExchangeError(self.id + ' fetchDepositAddress() ' + network + ' network not supported for ' + code)
-        request = {
+        request: dict = {
             'ccy': currency['id'],
             'chain': network,
         }
@@ -3616,7 +3616,7 @@ class coinex(Exchange, ImplicitAPI):
             raise ArgumentsRequired(self.id + ' fetchMyTrades() requires a symbol argument')
         await self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'market': market['id'],
         }
         if limit is not None:
@@ -3694,7 +3694,7 @@ class coinex(Exchange, ImplicitAPI):
         defaultMethod = None
         defaultMethod, params = self.handle_option_and_params(params, 'fetchPositions', 'method', 'v2PrivateGetFuturesPendingPosition')
         symbols = self.market_symbols(symbols)
-        request = {
+        request: dict = {
             'market_type': 'FUTURES',
         }
         market = None
@@ -3773,7 +3773,7 @@ class coinex(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'market_type': 'FUTURES',
             'market': market['id'],
         }
@@ -3918,7 +3918,7 @@ class coinex(Exchange, ImplicitAPI):
             raise ArgumentsRequired(self.id + ' setMarginMode() requires a leverage parameter')
         if (leverage < 1) or (leverage > maxLeverage):
             raise BadRequest(self.id + ' setMarginMode() leverage should be between 1 and ' + str(maxLeverage) + ' for ' + symbol)
-        request = {
+        request: dict = {
             'market': market['id'],
             'market_type': 'FUTURES',
             'margin_mode': marginMode,
@@ -3958,7 +3958,7 @@ class coinex(Exchange, ImplicitAPI):
         maxLeverage = self.safe_integer(market['limits']['leverage'], 'max', 100)
         if (leverage < minLeverage) or (leverage > maxLeverage):
             raise BadRequest(self.id + ' setLeverage() leverage should be between ' + str(minLeverage) + ' and ' + str(maxLeverage) + ' for ' + symbol)
-        request = {
+        request: dict = {
             'market': market['id'],
             'market_type': 'FUTURES',
             'margin_mode': marginMode,
@@ -3985,7 +3985,7 @@ class coinex(Exchange, ImplicitAPI):
         :returns dict: a dictionary of `leverage tiers structures <https://docs.ccxt.com/#/?id=leverage-tiers-structure>`, indexed by market symbols
         """
         await self.load_markets()
-        request = {}
+        request: dict = {}
         if symbols is not None:
             marketIds = self.market_ids(symbols)
             request['market'] = ','.join(marketIds)
@@ -4046,7 +4046,7 @@ class coinex(Exchange, ImplicitAPI):
         requestAmount = rawAmount
         if addOrReduce == 'reduce':
             requestAmount = Precise.string_neg(rawAmount)
-        request = {
+        request: dict = {
             'market': market['id'],
             'market_type': 'FUTURES',
             'amount': requestAmount,
@@ -4205,7 +4205,7 @@ class coinex(Exchange, ImplicitAPI):
             raise ArgumentsRequired(self.id + ' fetchFundingHistory() requires a symbol argument')
         await self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'market': market['id'],
             'market_type': 'FUTURES',
         }
@@ -4266,7 +4266,7 @@ class coinex(Exchange, ImplicitAPI):
         market = self.market(symbol)
         if not market['swap']:
             raise BadSymbol(self.id + ' fetchFundingRate() supports swap contracts only')
-        request = {
+        request: dict = {
             'market': market['id'],
         }
         response = await self.v2PublicGetFuturesFundingRate(self.extend(request, params))
@@ -4340,7 +4340,7 @@ class coinex(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         symbols = self.market_symbols(symbols)
-        request = {}
+        request: dict = {}
         market = None
         if symbols is not None:
             symbol = self.safe_value(symbols, 0)
@@ -4392,7 +4392,7 @@ class coinex(Exchange, ImplicitAPI):
         params = self.omit(params, 'network')
         if tag:
             address = address + ':' + tag
-        request = {
+        request: dict = {
             'coin_type': currency['id'],
             'coin_address': address,  # must be authorized, inter-user transfer by a registered mobile phone number or an email address is supported
             'actual_amount': float(self.number_to_string(amount)),  # the actual amount without fees, https://www.coinex.com/fees
@@ -4423,7 +4423,7 @@ class coinex(Exchange, ImplicitAPI):
         return self.parse_transaction(transaction, currency)
 
     def parse_transaction_status(self, status):
-        statuses = {
+        statuses: dict = {
             'audit': 'pending',
             'pass': 'pending',
             'processing': 'pending',
@@ -4455,7 +4455,7 @@ class coinex(Exchange, ImplicitAPI):
         if paginate:
             return await self.fetch_paginated_call_deterministic('fetchFundingRateHistory', symbol, since, limit, '8h', params, 1000)
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'market': market['id'],
         }
         if since is not None:
@@ -4615,7 +4615,7 @@ class coinex(Exchange, ImplicitAPI):
         accountsByType = self.safe_dict(self.options, 'accountsById', {})
         fromId = self.safe_string(accountsByType, fromAccount, fromAccount)
         toId = self.safe_string(accountsByType, toAccount, toAccount)
-        request = {
+        request: dict = {
             'ccy': currency['id'],
             'amount': amountToPrecision,
             'from_account_type': fromId,
@@ -4644,7 +4644,7 @@ class coinex(Exchange, ImplicitAPI):
         })
 
     def parse_transfer_status(self, status):
-        statuses = {
+        statuses: dict = {
             '0': 'ok',
             'SUCCESS': 'ok',
             'OK': 'ok',
@@ -4685,7 +4685,7 @@ class coinex(Exchange, ImplicitAPI):
         if code is None:
             raise ArgumentsRequired(self.id + ' fetchTransfers() requires a code argument')
         currency = self.currency(code)
-        request = {
+        request: dict = {
             'ccy': currency['id'],
         }
         marginMode = None
@@ -4734,7 +4734,7 @@ class coinex(Exchange, ImplicitAPI):
         :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/#/?id=transaction-structure>`
         """
         await self.load_markets()
-        request = {}
+        request: dict = {}
         currency = None
         if code is not None:
             currency = self.currency(code)
@@ -4788,7 +4788,7 @@ class coinex(Exchange, ImplicitAPI):
         :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/#/?id=transaction-structure>`
         """
         await self.load_markets()
-        request = {}
+        request: dict = {}
         currency = None
         if code is not None:
             currency = self.currency(code)
@@ -4877,7 +4877,7 @@ class coinex(Exchange, ImplicitAPI):
         params = self.omit(params, 'code')
         currency = self.currency(code)
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'market': market['id'],
             'ccy': currency['id'],
         }
@@ -4911,7 +4911,7 @@ class coinex(Exchange, ImplicitAPI):
         :returns dict[]: a list of `borrow interest structures <https://docs.ccxt.com/#/?id=borrow-interest-structure>`
         """
         await self.load_markets()
-        request = {}
+        request: dict = {}
         market = None
         if symbol is not None:
             market = self.market(symbol)
@@ -4995,7 +4995,7 @@ class coinex(Exchange, ImplicitAPI):
         currency = self.currency(code)
         isAutoRenew = self.safe_bool_2(params, 'isAutoRenew', 'is_auto_renew', False)
         params = self.omit(params, 'isAutoRenew')
-        request = {
+        request: dict = {
             'market': market['id'],
             'ccy': currency['id'],
             'borrow_amount': self.currency_to_precision(code, amount),
@@ -5039,7 +5039,7 @@ class coinex(Exchange, ImplicitAPI):
         await self.load_markets()
         market = self.market(symbol)
         currency = self.currency(code)
-        request = {
+        request: dict = {
             'market': market['id'],
             'ccy': currency['id'],
             'amount': self.currency_to_precision(code, amount),
@@ -5094,7 +5094,7 @@ class coinex(Exchange, ImplicitAPI):
         :returns dict[]: a list of `fees structures <https://docs.ccxt.com/#/?id=fee-structure>`
         """
         await self.load_markets()
-        request = {}
+        request: dict = {}
         if codes is not None:
             codesLength = len(codes)
             if codesLength == 1:
@@ -5129,7 +5129,7 @@ class coinex(Exchange, ImplicitAPI):
         return self.parse_deposit_withdraw_fees(response, codes)
 
     def parse_deposit_withdraw_fees(self, response, codes=None, currencyIdKey=None):
-        depositWithdrawFees = {}
+        depositWithdrawFees: dict = {}
         codes = self.market_codes(codes)
         data = self.safe_value(response, 'data')
         currencyIds = list(data.keys())
@@ -5147,11 +5147,11 @@ class coinex(Exchange, ImplicitAPI):
                 depositWithdrawFees[code]['info'][entry] = feeInfo
                 networkId = self.safe_string(splitEntry, 1)
                 withdrawFee = self.safe_value(feeInfo, 'withdraw_tx_fee')
-                withdrawResult = {
+                withdrawResult: dict = {
                     'fee': withdrawFee,
                     'percentage': False if (withdrawFee is not None) else None,
                 }
-                depositResult = {
+                depositResult: dict = {
                     'fee': None,
                     'percentage': None,
                 }
@@ -5239,7 +5239,7 @@ class coinex(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'market_type': 'FUTURES',
             'market': market['id'],
         }
@@ -5442,7 +5442,7 @@ class coinex(Exchange, ImplicitAPI):
         if positionId is None:
             raise ArgumentsRequired(self.id + ' fetchMarginAdjustmentHistory() requires a positionId parameter')
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'market': market['id'],
             'market_type': 'FUTURES',
             'position_id': positionId,

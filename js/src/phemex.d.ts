@@ -31,8 +31,8 @@ export default class phemex extends Exchange {
     parseSpotBalance(response: any): Balances;
     parseSwapBalance(response: any): Balances;
     fetchBalance(params?: {}): Promise<Balances>;
-    parseOrderStatus(status: any): string;
-    parseOrderType(type: any): string;
+    parseOrderStatus(status: Str): string;
+    parseOrderType(type: Str): string;
     parseTimeInForce(timeInForce: any): string;
     parseSpotOrder(order: any, market?: Market): Order;
     parseOrderSide(side: any): string;

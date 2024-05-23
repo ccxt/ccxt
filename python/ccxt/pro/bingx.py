@@ -95,7 +95,7 @@ class bingx(ccxt.async_support.bingx):
             raise BadRequest(self.id + ' watchTrades is not supported for ' + marketType + ' markets.')
         messageHash = market['id'] + '@ticker'
         uuid = self.uuid()
-        request = {
+        request: dict = {
             'id': uuid,
             'dataType': messageHash,
         }
@@ -193,7 +193,7 @@ class bingx(ccxt.async_support.bingx):
         #         "b": "2.5747"
         #     }
         #
-        timestamp = self.safe_integer(message, 'ts')
+        timestamp = self.safe_integer(message, 'C')
         marketId = self.safe_string(message, 's')
         market = self.safe_market(marketId, market)
         close = self.safe_string(message, 'c')
@@ -239,7 +239,7 @@ class bingx(ccxt.async_support.bingx):
             raise BadRequest(self.id + ' watchTrades is not supported for ' + marketType + ' markets.')
         messageHash = market['id'] + '@trade'
         uuid = self.uuid()
-        request = {
+        request: dict = {
             'id': uuid,
             'dataType': messageHash,
         }
@@ -358,7 +358,7 @@ class bingx(ccxt.async_support.bingx):
             raise BadRequest(self.id + ' watchOrderBook is not supported for ' + marketType + ' markets.')
         messageHash = market['id'] + '@depth' + str(limit)
         uuid = self.uuid()
-        request = {
+        request: dict = {
             'id': uuid,
             'dataType': messageHash,
         }
@@ -544,7 +544,7 @@ class bingx(ccxt.async_support.bingx):
         interval = self.safe_string(timeframes, timeframe, timeframe)
         messageHash = market['id'] + '@kline_' + interval
         uuid = self.uuid()
-        request = {
+        request: dict = {
             'id': uuid,
             'dataType': messageHash,
         }

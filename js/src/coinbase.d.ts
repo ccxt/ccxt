@@ -68,15 +68,13 @@ export default class coinbase extends Exchange {
         fee: any;
     };
     findAccountId(code: any, params?: {}): Promise<any>;
-    prepareAccountRequest(limit?: Int, params?: {}): {
-        account_id: string;
-    };
-    prepareAccountRequestWithCurrencyCode(code?: Str, limit?: Int, params?: {}): Promise<{}[]>;
+    prepareAccountRequest(limit?: Int, params?: {}): Dict;
+    prepareAccountRequestWithCurrencyCode(code?: Str, limit?: Int, params?: {}): Promise<Dict[]>;
     createMarketBuyOrderWithCost(symbol: string, cost: number, params?: {}): Promise<Order>;
     createOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): Promise<Order>;
     parseOrder(order: any, market?: Market): Order;
-    parseOrderStatus(status: any): string;
-    parseOrderType(type: any): string;
+    parseOrderStatus(status: Str): string;
+    parseOrderType(type: Str): string;
     parseTimeInForce(timeInForce: any): string;
     cancelOrder(id: string, symbol?: Str, params?: {}): Promise<import("./base/types.js").Dictionary<any>>;
     cancelOrders(ids: any, symbol?: Str, params?: {}): Promise<Order[]>;

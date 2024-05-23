@@ -1642,7 +1642,7 @@ class whitebit extends Exchange {
         return $results;
     }
 
-    public function parse_order_type($type) {
+    public function parse_order_type(?string $type) {
         $types = array(
             'limit' => 'limit',
             'market' => 'market',

@@ -122,7 +122,7 @@ class bitget(ccxt.async_support.bitget):
         messageHash = 'ticker:' + symbol
         instType = None
         instType, params = self.get_inst_type(market, params)
-        args = {
+        args: dict = {
             'instType': instType,
             'channel': 'ticker',
             'instId': market['id'],
@@ -148,7 +148,7 @@ class bitget(ccxt.async_support.bitget):
         for i in range(0, len(symbols)):
             symbol = symbols[i]
             marketInner = self.market(symbol)
-            args = {
+            args: dict = {
                 'instType': instType,
                 'channel': 'ticker',
                 'instId': marketInner['id'],
@@ -157,7 +157,7 @@ class bitget(ccxt.async_support.bitget):
             messageHashes.append('ticker:' + symbol)
         tickers = await self.watch_public_multiple(messageHashes, topics, params)
         if self.newUpdates:
-            result = {}
+            result: dict = {}
             result[tickers['symbol']] = tickers
             return result
         return self.filter_by_array(self.tickers, 'symbol', symbols)
@@ -324,7 +324,7 @@ class bitget(ccxt.async_support.bitget):
         messageHash = 'candles:' + timeframe + ':' + symbol
         instType = None
         instType, params = self.get_inst_type(market, params)
-        args = {
+        args: dict = {
             'instType': instType,
             'channel': 'candle' + interval,
             'instId': market['id'],
@@ -450,7 +450,7 @@ class bitget(ccxt.async_support.bitget):
             market = self.market(symbol)
             instType = None
             instType, params = self.get_inst_type(market, params)
-            args = {
+            args: dict = {
                 'instType': instType,
                 'channel': channel,
                 'instId': market['id'],
@@ -598,7 +598,7 @@ class bitget(ccxt.async_support.bitget):
             market = self.market(symbol)
             instType = None
             instType, params = self.get_inst_type(market, params)
-            args = {
+            args: dict = {
                 'instType': instType,
                 'channel': 'trade',
                 'instId': market['id'],
@@ -760,7 +760,7 @@ class bitget(ccxt.async_support.bitget):
             market = self.get_market_from_symbols(symbols)
             instType, params = self.get_inst_type(market, params)
         messageHash = instType + ':positions' + messageHash
-        args = {
+        args: dict = {
             'instType': instType,
             'channel': 'positions',
             'instId': 'default',
@@ -952,7 +952,7 @@ class bitget(ccxt.async_support.bitget):
                 channel = 'orders-isolated'
             else:
                 channel = 'orders-crossed'
-        args = {
+        args: dict = {
             'instType': instType,
             'channel': channel,
             'instId': instId,
@@ -1015,7 +1015,7 @@ class bitget(ccxt.async_support.bitget):
         isTrigger = (channel == 'orders-algo') or (channel == 'ordersAlgo')
         stored = self.triggerOrders if isTrigger else self.orders
         messageHash = 'triggerOrder' if isTrigger else 'order'
-        marketSymbols = {}
+        marketSymbols: dict = {}
         for i in range(0, len(data)):
             order = data[i]
             marketId = self.safe_string(order, 'instId')
@@ -1231,7 +1231,7 @@ class bitget(ccxt.async_support.bitget):
         }, market)
 
     def parse_ws_order_status(self, status):
-        statuses = {
+        statuses: dict = {
             'live': 'open',
             'partially_filled': 'open',
             'filled': 'closed',
@@ -1260,7 +1260,7 @@ class bitget(ccxt.async_support.bitget):
         instType = None
         instType, params = self.get_inst_type(market, params)
         subscriptionHash = 'fill:' + instType
-        args = {
+        args: dict = {
             'instType': instType,
             'channel': 'fill',
             'instId': 'default',
@@ -1388,7 +1388,7 @@ class bitget(ccxt.async_support.bitget):
         else:
             instType = 'SPOT'
         instType, params = self.handle_option_and_params(params, 'watchBalance', 'instType', instType)
-        args = {
+        args: dict = {
             'instType': instType,
             'channel': channel,
             'coin': 'default',
@@ -1478,7 +1478,7 @@ class bitget(ccxt.async_support.bitget):
 
     async def watch_public(self, messageHash, args, params={}):
         url = self.urls['api']['ws']['public']
-        request = {
+        request: dict = {
             'op': 'subscribe',
             'args': [args],
         }
@@ -1487,7 +1487,7 @@ class bitget(ccxt.async_support.bitget):
 
     async def watch_public_multiple(self, messageHashes, argsArray, params={}):
         url = self.urls['api']['ws']['public']
-        request = {
+        request: dict = {
             'op': 'subscribe',
             'args': argsArray,
         }
@@ -1506,7 +1506,7 @@ class bitget(ccxt.async_support.bitget):
             auth = timestamp + 'GET' + '/user/verify'
             signature = self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha256, 'base64')
             operation = 'login'
-            request = {
+            request: dict = {
                 'op': operation,
                 'args': [
                     {
@@ -1524,7 +1524,7 @@ class bitget(ccxt.async_support.bitget):
     async def watch_private(self, messageHash, subscriptionHash, args, params={}):
         await self.authenticate()
         url = self.urls['api']['ws']['private']
-        request = {
+        request: dict = {
             'op': 'subscribe',
             'args': [args],
         }
@@ -1615,7 +1615,7 @@ class bitget(ccxt.async_support.bitget):
         if event == 'subscribe':
             self.handle_subscription_status(client, message)
             return
-        methods = {
+        methods: dict = {
             'ticker': self.handle_ticker,
             'trade': self.handle_trades,
             'fill': self.handle_my_trades,

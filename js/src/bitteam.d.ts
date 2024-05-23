@@ -21,7 +21,7 @@ export default class bitteam extends Exchange {
     cancelOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
     cancelAllOrders(symbol?: Str, params?: {}): Promise<Order[]>;
     parseOrder(order: any, market?: Market): Order;
-    parseOrderStatus(status: any): string;
+    parseOrderStatus(status: Str): string;
     parseOrderType(status: any): string;
     parseValueToPricision(valueObject: any, valueKey: any, preciseObject: any, precisionKey: any): string;
     fetchTickers(symbols?: Strings, params?: {}): Promise<Tickers>;

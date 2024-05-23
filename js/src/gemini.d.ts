@@ -7,7 +7,7 @@ import type { Balances, Currencies, Currency, Dict, Int, Market, Num, OHLCV, Ord
 export default class gemini extends Exchange {
     describe(): any;
     fetchCurrencies(params?: {}): Promise<Currencies>;
-    fetchCurrenciesFromWeb(params?: {}): Promise<{}>;
+    fetchCurrenciesFromWeb(params?: {}): Promise<Dict>;
     fetchMarkets(params?: {}): Promise<Market[]>;
     fetchMarketsFromWeb(params?: {}): Promise<any[]>;
     parseMarketActive(status: any): boolean;

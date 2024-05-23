@@ -11,8 +11,8 @@ export default class onetrading extends Exchange {
     fetchMarkets(params?: {}): Promise<Market[]>;
     parseMarket(market: any): Market;
     fetchTradingFees(params?: {}): Promise<TradingFees>;
-    fetchPublicTradingFees(params?: {}): Promise<{}>;
-    fetchPrivateTradingFees(params?: {}): Promise<{}>;
+    fetchPublicTradingFees(params?: {}): Promise<Dict>;
+    fetchPrivateTradingFees(params?: {}): Promise<Dict>;
     parseFeeTiers(feeTiers: any, market?: Market): {
         maker: any[];
         taker: any[];
@@ -52,7 +52,7 @@ export default class onetrading extends Exchange {
     fetchWithdrawals(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
     withdraw(code: string, amount: number, address: string, tag?: any, params?: {}): Promise<Transaction>;
     parseTransaction(transaction: any, currency?: Currency): Transaction;
-    parseOrderStatus(status: any): string;
+    parseOrderStatus(status: Str): string;
     parseOrder(order: any, market?: Market): Order;
     parseTimeInForce(timeInForce: any): string;
     createOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): Promise<Order>;

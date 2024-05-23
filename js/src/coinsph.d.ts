@@ -39,7 +39,7 @@ export default class coinsph extends Exchange {
     encodeOrderSide(status: any): string;
     parseOrderType(status: any): string;
     encodeOrderType(status: any): string;
-    parseOrderStatus(status: any): string;
+    parseOrderStatus(status: Str): string;
     parseOrderTimeInForce(status: any): string;
     fetchTradingFee(symbol: string, params?: {}): Promise<TradingFeeInterface>;
     fetchTradingFees(params?: {}): Promise<TradingFees>;

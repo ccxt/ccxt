@@ -2321,7 +2321,7 @@ class hitbtc extends Exchange {
         return array( $request, $params );
     }
 
-    public function parse_order_status($status) {
+    public function parse_order_status(?string $status) {
         $statuses = array(
             'new' => 'open',
             'suspended' => 'open',

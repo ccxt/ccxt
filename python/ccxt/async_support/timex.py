@@ -379,7 +379,7 @@ class timex(Exchange, ImplicitAPI):
         params = self.omit(params, 'address')
         if address is None:
             raise ArgumentsRequired(self.id + ' fetchDeposits() requires an address parameter')
-        request = {
+        request: dict = {
             'address': address,
         }
         response = await self.managerGetDeposits(self.extend(request, params))
@@ -412,7 +412,7 @@ class timex(Exchange, ImplicitAPI):
         params = self.omit(params, 'address')
         if address is None:
             raise ArgumentsRequired(self.id + ' fetchDeposits() requires an address parameter')
-        request = {
+        request: dict = {
             'address': address,
         }
         response = await self.managerGetWithdrawals(self.extend(request, params))
@@ -488,7 +488,7 @@ class timex(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         period = self.safe_string(self.options['fetchTickers'], 'period', '1d')
-        request = {
+        request: dict = {
             'period': self.timeframes[period],  # I1, I5, I15, I30, H1, H2, H4, H6, H12, D1, W1
         }
         response = await self.publicGetTickers(self.extend(request, params))
@@ -522,7 +522,7 @@ class timex(Exchange, ImplicitAPI):
         await self.load_markets()
         market = self.market(symbol)
         period = self.safe_string(self.options['fetchTickers'], 'period', '1d')
-        request = {
+        request: dict = {
             'market': market['id'],
             'period': self.timeframes[period],  # I1, I5, I15, I30, H1, H2, H4, H6, H12, D1, W1
         }
@@ -558,7 +558,7 @@ class timex(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'market': market['id'],
         }
         if limit is not None:
@@ -607,7 +607,7 @@ class timex(Exchange, ImplicitAPI):
         defaultSort = self.safe_value(options, 'sort', 'timestamp,asc')
         sort = self.safe_string(params, 'sort', defaultSort)
         query = self.omit(params, 'sort')
-        request = {
+        request: dict = {
             # 'address': 'string',  # trade’s member account(?)
             # 'cursor': 1234,  # int64(?)
             # 'from': self.iso8601(since),
@@ -648,7 +648,7 @@ class timex(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'market': market['id'],
             'period': self.safe_string(self.timeframes, timeframe, timeframe),
         }
@@ -680,7 +680,7 @@ class timex(Exchange, ImplicitAPI):
         return self.parse_ohlcvs(response, market, timeframe, since, limit)
 
     def parse_balance(self, response) -> Balances:
-        result = {
+        result: dict = {
             'info': response,
             'timestamp': None,
             'datetime': None,
@@ -735,7 +735,7 @@ class timex(Exchange, ImplicitAPI):
         if postOnly:
             uppercaseType = 'POST_ONLY'
             params = self.omit(params, ['postOnly'])
-        request = {
+        request: dict = {
             'symbol': market['id'],
             'quantity': self.amount_to_precision(symbol, amount),
             'side': uppercaseSide,
@@ -788,7 +788,7 @@ class timex(Exchange, ImplicitAPI):
     async def edit_order(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: Num = None, price: Num = None, params={}):
         await self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'id': id,
         }
         if amount is not None:
@@ -855,7 +855,7 @@ class timex(Exchange, ImplicitAPI):
         :returns dict: an list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
-        request = {
+        request: dict = {
             'id': ids,
         }
         response = await self.tradingDeleteOrders(self.extend(request, params))
@@ -894,7 +894,7 @@ class timex(Exchange, ImplicitAPI):
         :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
-        request = {
+        request: dict = {
             'orderHash': id,
         }
         response = await self.historyGetOrdersDetails(request)
@@ -950,7 +950,7 @@ class timex(Exchange, ImplicitAPI):
         defaultSort = self.safe_value(options, 'sort', 'createdAt,asc')
         sort = self.safe_string(params, 'sort', defaultSort)
         query = self.omit(params, 'sort')
-        request = {
+        request: dict = {
             # 'clientOrderId': '123',  # order’s client id list for filter
             # page: 0,  # results page you want to retrieve(0 .. N)
             'sort': sort,  # sorting criteria in the format "property,asc" or "property,desc", default order is ascending, multiple sort criteria are supported
@@ -1001,7 +1001,7 @@ class timex(Exchange, ImplicitAPI):
         defaultSort = self.safe_value(options, 'sort', 'createdAt,asc')
         sort = self.safe_string(params, 'sort', defaultSort)
         query = self.omit(params, 'sort')
-        request = {
+        request: dict = {
             # 'clientOrderId': '123',  # order’s client id list for filter
             # page: 0,  # results page you want to retrieve(0 .. N)
             'sort': sort,  # sorting criteria in the format "property,asc" or "property,desc", default order is ascending, multiple sort criteria are supported
@@ -1056,7 +1056,7 @@ class timex(Exchange, ImplicitAPI):
         defaultSort = self.safe_value(options, 'sort', 'timestamp,asc')
         sort = self.safe_string(params, 'sort', defaultSort)
         query = self.omit(params, 'sort')
-        request = {
+        request: dict = {
             # 'cursorId': 123,  # int64(?)
             # 'from': self.iso8601(since),
             # 'makerOrderId': '1234',  # maker order hash
@@ -1127,7 +1127,7 @@ class timex(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'markets': market['id'],
         }
         response = await self.tradingGetFees(self.extend(request, params))
@@ -1510,7 +1510,7 @@ class timex(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         currency = self.currency(code)
-        request = {
+        request: dict = {
             'symbol': currency['code'],
         }
         response = await self.currenciesGetSSymbol(self.extend(request, params))

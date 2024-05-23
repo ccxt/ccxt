@@ -432,13 +432,13 @@ class htx(ccxt.async_support.htx):
         market = self.market(symbol)
         url = self.get_url_by_market_type(market['type'], market['linear'], False, True)
         requestId = self.request_id()
-        request = {
+        request: dict = {
             'req': messageHash,
             'id': requestId,
         }
         # self is a temporary subscription by a specific requestId
         # it has a very short lifetime until the snapshot is received over ws
-        snapshotSubscription = {
+        snapshotSubscription: dict = {
             'id': requestId,
             'messageHash': messageHash,
             'symbol': symbol,
@@ -886,7 +886,7 @@ class htx(ccxt.async_support.htx):
                 status = self.parse_order_status(self.safe_string_2(data, 'orderStatus', 'status', 'closed'))
                 filled = self.safe_string(data, 'execAmt')
                 remaining = self.safe_string(data, 'remainAmt')
-                order = {
+                order: dict = {
                     'id': orderId,
                     'trades': trades,
                     'status': status,
@@ -903,13 +903,13 @@ class htx(ccxt.async_support.htx):
             rawTrades = self.safe_value(message, 'trade', [])
             tradesLength = len(rawTrades)
             if tradesLength > 0:
-                tradesObject = {
+                tradesObject: dict = {
                     'trades': rawTrades,
                     'ch': messageHash,
                     'symbol': marketId,
                 }
                 # inject order params in every trade
-                extendTradeParams = {
+                extendTradeParams: dict = {
                     'order': self.safe_string(parsedOrder, 'id'),
                     'type': self.safe_string(parsedOrder, 'type'),
                     'side': self.safe_string(parsedOrder, 'side'),
@@ -1334,7 +1334,7 @@ class htx(ccxt.async_support.htx):
                 else:
                     # subscribe to all
                     channel = prefix + '.' + '*'
-        subscriptionParams = {
+        subscriptionParams: dict = {
             'type': type,
             'subType': subType,
             'margin': marginMode,
@@ -1541,7 +1541,7 @@ class htx(ccxt.async_support.htx):
                                 account = self.account()
                                 account['free'] = self.safe_string_2(balance, 'margin_balance', 'margin_available')
                                 account['used'] = self.safe_string(balance, 'margin_frozen')
-                                accountsByCode = {}
+                                accountsByCode: dict = {}
                                 accountsByCode[code] = account
                                 symbol = market['symbol']
                                 self.balance[symbol] = self.safe_balance(accountsByCode)
@@ -1687,7 +1687,7 @@ class htx(ccxt.async_support.htx):
         type = self.safe_string(parts, 0)
         if type == 'market':
             methodName = self.safe_string(parts, 2)
-            methods = {
+            methods: dict = {
                 'depth': self.handle_order_book,
                 'mbp': self.handle_order_book,
                 'detail': self.handle_ticker,
@@ -2083,7 +2083,7 @@ class htx(ccxt.async_support.htx):
 
     def get_url_by_market_type(self, type, isLinear=True, isPrivate=False, isFeed=False):
         api = self.safe_string(self.options, 'api', 'api')
-        hostname = {'hostname': self.hostname}
+        hostname: dict = {'hostname': self.hostname}
         hostnameURL = None
         url = None
         if type == 'spot':
@@ -2103,11 +2103,11 @@ class htx(ccxt.async_support.htx):
 
     async def subscribe_public(self, url, symbol, messageHash, method=None, params={}):
         requestId = self.request_id()
-        request = {
+        request: dict = {
             'sub': messageHash,
             'id': requestId,
         }
-        subscription = {
+        subscription: dict = {
             'id': requestId,
             'messageHash': messageHash,
             'symbol': symbol,
@@ -2119,7 +2119,7 @@ class htx(ccxt.async_support.htx):
 
     async def subscribe_private(self, channel, messageHash, type, subtype, params={}, subscriptionParams={}):
         requestId = self.request_id()
-        subscription = {
+        subscription: dict = {
             'id': requestId,
             'messageHash': messageHash,
             'params': params,
@@ -2140,7 +2140,7 @@ class htx(ccxt.async_support.htx):
         isLinear = subtype == 'linear'
         url = self.get_url_by_market_type(type, isLinear, True)
         hostname = self.urls['hostnames']['spot'] if (type == 'spot') else self.urls['hostnames']['contract']
-        authParams = {
+        authParams: dict = {
             'type': type,
             'url': url,
             'hostname': hostname,
@@ -2183,7 +2183,7 @@ class htx(ccxt.async_support.htx):
             signature = self.hmac(self.encode(payload), self.encode(self.secret), hashlib.sha256, 'base64')
             request = None
             if type == 'spot':
-                newParams = {
+                newParams: dict = {
                     'authType': 'api',
                     'accessKey': self.apiKey,
                     'signatureMethod': 'HmacSHA256',
@@ -2207,7 +2207,7 @@ class htx(ccxt.async_support.htx):
                     'Signature': signature,
                 }
             requestId = self.request_id()
-            subscription = {
+            subscription: dict = {
                 'id': requestId,
                 'messageHash': messageHash,
                 'params': params,

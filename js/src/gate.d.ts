@@ -65,7 +65,7 @@ export default class gate extends Exchange {
     };
     fetchOptionMarkets(params?: {}): Promise<any[]>;
     fetchOptionUnderlyings(): Promise<any[]>;
-    prepareRequest(market?: any, type?: any, params?: {}): {}[];
+    prepareRequest(market?: any, type?: any, params?: {}): Dict[];
     spotOrderPrepareRequest(market?: any, stop?: boolean, params?: {}): any[];
     multiOrderSpotPrepareRequest(market?: any, stop?: boolean, params?: {}): any[];
     getMarginMode(stop: any, params: any): any[];
@@ -110,7 +110,7 @@ export default class gate extends Exchange {
         previousFundingTimestamp: any;
         previousFundingDatetime: any;
     };
-    fetchNetworkDepositAddress(code: string, params?: {}): Promise<{}>;
+    fetchNetworkDepositAddress(code: string, params?: {}): Promise<Dict>;
     fetchDepositAddress(code: string, params?: {}): Promise<{
         info: any;
         code: string;
@@ -121,7 +121,7 @@ export default class gate extends Exchange {
     }>;
     fetchTradingFee(symbol: string, params?: {}): Promise<TradingFeeInterface>;
     fetchTradingFees(params?: {}): Promise<TradingFees>;
-    parseTradingFees(response: any): {};
+    parseTradingFees(response: any): Dict;
     parseTradingFee(info: any, market?: Market): {
         info: any;
         symbol: string;
@@ -130,20 +130,9 @@ export default class gate extends Exchange {
         percentage: any;
         tierBased: any;
     };
-    fetchTransactionFees(codes?: string[], params?: {}): Promise<{}>;
+    fetchTransactionFees(codes?: string[], params?: {}): Promise<Dict>;
     fetchDepositWithdrawFees(codes?: Strings, params?: {}): Promise<any>;
-    parseDepositWithdrawFee(fee: any, currency?: Currency): {
-        info: any;
-        withdraw: {
-            fee: number;
-            percentage: boolean;
-        };
-        deposit: {
-            fee: number;
-            percentage: boolean;
-        };
-        networks: {};
-    };
+    parseDepositWithdrawFee(fee: any, currency?: Currency): Dict;
     fetchFundingHistory(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<FundingHistory[]>;
     parseFundingHistories(response: any, symbol: any, since: any, limit: any): FundingHistory[];
     parseFundingHistory(info: any, market?: Market): {
@@ -180,7 +169,7 @@ export default class gate extends Exchange {
     createOrderRequest(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): any;
     createMarketBuyOrderWithCost(symbol: string, cost: number, params?: {}): Promise<Order>;
     editOrder(id: string, symbol: string, type: OrderType, side: OrderSide, amount?: Num, price?: Num, params?: {}): Promise<Order>;
-    parseOrderStatus(status: any): string;
+    parseOrderStatus(status: Str): string;
     parseOrder(order: any, market?: Market): Order;
     fetchOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
     fetchOpenOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;

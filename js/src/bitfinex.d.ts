@@ -6,7 +6,7 @@ import type { TransferEntry, Balances, Currency, Int, Market, OHLCV, Order, Orde
  */
 export default class bitfinex extends Exchange {
     describe(): any;
-    fetchTransactionFees(codes?: string[], params?: {}): Promise<{}>;
+    fetchTransactionFees(codes?: string[], params?: {}): Promise<Dict>;
     fetchDepositWithdrawFees(codes?: Strings, params?: {}): Promise<any>;
     parseDepositWithdrawFee(fee: any, currency?: Currency): {
         withdraw: {
