@@ -1208,7 +1208,7 @@ export default class woofipro extends Exchange {
         }, market);
     }
 
-    parseTimeInForce (timeInForce) {
+    parseTimeInForce (timeInForce: Str) {
         const timeInForces: Dict = {
             'ioc': 'IOC',
             'fok': 'FOK',
