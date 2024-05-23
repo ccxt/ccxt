@@ -1410,16 +1410,9 @@
                         "cost": 7048.5329088,
                         "fee": {
                             "cost": null,
-                            "currency": null,
-                            "rate": null
+                            "currency": null
                         },
-                        "fees": [
-                            {
-                                "cost": null,
-                                "currency": null,
-                                "rate": null
-                            }
-                        ]
+                        "fees": []
                     }
                 ]
             }
