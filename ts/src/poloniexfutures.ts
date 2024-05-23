@@ -378,9 +378,12 @@ export default class poloniexfutures extends Exchange {
         const marketId = this.safeString (ticker, 'symbol');
         const symbol = this.safeSymbol (marketId, market);
         const timestampString = this.safeString (ticker, 'ts');
-        // check timestamp bcz bug: https://app.travis-ci.com/github/ccxt/ccxt/builds/269959181#L4011 and also 17 digits occured
         let multiplier = undefined;
-        if (timestampString.length === 17) {
+        if (timestampString.length === 16) {
+            // 16 digits: https://app.travis-ci.com/github/ccxt/ccxt/builds/270587157#L5454
+            multiplier = 0.001;
+        } else if (timestampString.length === 17) {
+            // 17 digits: https://app.travis-ci.com/github/ccxt/ccxt/builds/269959181#L4011
             multiplier = 0.0001;
         } else if (timestampString.length === 18) {
             multiplier = 0.00001;
@@ -464,7 +467,8 @@ export default class poloniexfutures extends Exchange {
          */
         await this.loadMarkets ();
         const response = await this.publicGetTickers (params);
-        return this.parseTickers (this.safeValue (response, 'data', []), symbols);
+        const data = this.safeList (response, 'data', []);
+        return this.parseTickers (data, symbols);
     }
 
     async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
