@@ -10,12 +10,12 @@ export default class whitebit extends Exchange {
     parseMarket(market: any): Market;
     fetchCurrencies(params?: {}): Promise<Currencies>;
     fetchTransactionFees(codes?: string[], params?: {}): Promise<{
-        withdraw: {};
-        deposit: {};
+        withdraw: Dict;
+        deposit: Dict;
         info: any;
     }>;
-    fetchDepositWithdrawFees(codes?: Strings, params?: {}): Promise<{}>;
-    parseDepositWithdrawFees(response: any, codes?: any, currencyIdKey?: any): {};
+    fetchDepositWithdrawFees(codes?: Strings, params?: {}): Promise<Dict>;
+    parseDepositWithdrawFees(response: any, codes?: any, currencyIdKey?: any): Dict;
     fetchTradingFees(params?: {}): Promise<TradingFees>;
     fetchTicker(symbol: string, params?: {}): Promise<Ticker>;
     parseTicker(ticker: Dict, market?: Market): Ticker;
@@ -34,6 +34,8 @@ export default class whitebit extends Exchange {
         info: any;
     }>;
     fetchTime(params?: {}): Promise<number>;
+    createMarketOrderWithCost(symbol: string, side: OrderSide, cost: number, params?: {}): Promise<Order>;
+    createMarketBuyOrderWithCost(symbol: string, cost: number, params?: {}): Promise<Order>;
     createOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): Promise<Order>;
     editOrder(id: string, symbol: string, type: OrderType, side: OrderSide, amount?: Num, price?: Num, params?: {}): Promise<Order>;
     cancelOrder(id: string, symbol?: Str, params?: {}): Promise<any>;
@@ -43,7 +45,7 @@ export default class whitebit extends Exchange {
     fetchBalance(params?: {}): Promise<Balances>;
     fetchOpenOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     fetchClosedOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
-    parseOrderType(type: any): string;
+    parseOrderType(type: Str): string;
     parseOrder(order: any, market?: Market): Order;
     fetchOrderTrades(id: string, symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     fetchDepositAddress(code: string, params?: {}): Promise<{

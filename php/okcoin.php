@@ -1724,7 +1724,7 @@ class okcoin extends Exchange {
         return $this->parse_orders($ordersData, $market, null, null, $params);
     }
 
-    public function parse_order_status($status) {
+    public function parse_order_status(?string $status) {
         $statuses = array(
             'canceled' => 'canceled',
             'live' => 'open',

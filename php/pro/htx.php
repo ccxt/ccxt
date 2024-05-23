@@ -1909,7 +1909,7 @@ class htx extends \ccxt\async\htx {
         //        "data" => array( "user-id" => "35930539" )
         //    }
         //
-        $promise = $client->futures['authenticated'];
+        $promise = $client->futures['auth'];
         $promise->resolve ($message);
     }
 
@@ -1938,6 +1938,12 @@ class htx extends \ccxt\async\htx {
         //         'err-msg' => "Non - single account user is not available, please check through the cross and isolated account asset interface",
         //         "ts" => 1698419490189
         //     }
+        //     {
+        //         "action":"req",
+        //         "code":2002,
+        //         "ch":"auth",
+        //         "message":"auth.fail"
+        //     }
         //
         $status = $this->safe_string($message, 'status');
         if ($status === 'error') {
@@ -1948,6 +1954,7 @@ class htx extends \ccxt\async\htx {
                 $errorCode = $this->safe_string($message, 'err-code');
                 try {
                     $this->throw_exactly_matched_exception($this->exceptions['ws']['exact'], $errorCode, $this->json($message));
+                    throw new ExchangeError($this->json($message));
                 } catch (Exception $e) {
                     $messageHash = $this->safe_string($subscription, 'messageHash');
                     $client->reject ($e, $messageHash);
@@ -1959,11 +1966,12 @@ class htx extends \ccxt\async\htx {
             }
             return false;
         }
-        $code = $this->safe_integer_2($message, 'code', 'err-code');
-        if ($code !== null && (($code !== 200) && ($code !== 0))) {
+        $code = $this->safe_string_2($message, 'code', 'err-code');
+        if ($code !== null && (($code !== '200') && ($code !== '0'))) {
             $feedback = $this->id . ' ' . $this->json($message);
             try {
                 $this->throw_exactly_matched_exception($this->exceptions['ws']['exact'], $code, $feedback);
+                throw new ExchangeError($feedback);
             } catch (Exception $e) {
                 if ($e instanceof AuthenticationError) {
                     $client->reject ($e, 'auth');
@@ -2318,9 +2326,6 @@ class htx extends \ccxt\async\htx {
                 'url' => $url,
                 'hostname' => $hostname,
             );
-            if ($type === 'spot') {
-                $this->options['ws']['gunzip'] = false;
-            }
             Async\await($this->authenticate($authParams));
             return Async\await($this->watch($url, $messageHash, $this->extend($request, $params), $channel, $extendedSubsription));
         }) ();
@@ -2335,7 +2340,7 @@ class htx extends \ccxt\async\htx {
                 throw new ArgumentsRequired($this->id . ' authenticate requires a $url, $hostname and $type argument');
             }
             $this->check_required_credentials();
-            $messageHash = 'authenticated';
+            $messageHash = 'auth';
             $relativePath = str_replace('wss://' . $hostname, '', $url);
             $client = $this->client($url);
             $future = $client->future ($messageHash);

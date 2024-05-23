@@ -25,7 +25,7 @@ export default class lbank extends Exchange {
     fetchTradingFees(params?: {}): Promise<TradingFees>;
     createMarketBuyOrderWithCost(symbol: string, cost: number, params?: {}): Promise<Order>;
     createOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): Promise<Order>;
-    parseOrderStatus(status: any): string;
+    parseOrderStatus(status: Str): string;
     parseOrder(order: any, market?: Market): Order;
     fetchOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
     fetchOrderSupplement(id: string, symbol?: Str, params?: {}): Promise<Order>;
@@ -58,19 +58,19 @@ export default class lbank extends Exchange {
     fetchWithdrawals(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
     fetchTransactionFees(codes?: string[], params?: {}): Promise<any>;
     fetchPrivateTransactionFees(params?: {}): Promise<{
-        withdraw: {};
+        withdraw: Dict;
         deposit: {};
         info: any;
     }>;
     fetchPublicTransactionFees(params?: {}): Promise<{
-        withdraw: {};
+        withdraw: Dict;
         deposit: {};
         info: any;
     }>;
     fetchDepositWithdrawFees(codes?: Strings, params?: {}): Promise<any>;
     fetchPrivateDepositWithdrawFees(codes?: any, params?: {}): Promise<any>;
-    fetchPublicDepositWithdrawFees(codes?: any, params?: {}): Promise<{}>;
-    parsePublicDepositWithdrawFees(response: any, codes?: any): {};
+    fetchPublicDepositWithdrawFees(codes?: any, params?: {}): Promise<Dict>;
+    parsePublicDepositWithdrawFees(response: any, codes?: any): Dict;
     parseDepositWithdrawFee(fee: any, currency?: Currency): any;
     sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {
         url: string;

@@ -296,6 +296,21 @@ public partial class okx : Exchange
         return await this.callAsync ("publicGetSprdPublicTrades",parameters);
     }
 
+    public async Task<object> publicGetMarketSprdTicker (object parameters = null)
+    {
+        return await this.callAsync ("publicGetMarketSprdTicker",parameters);
+    }
+
+    public async Task<object> publicGetMarketSprdCandles (object parameters = null)
+    {
+        return await this.callAsync ("publicGetMarketSprdCandles",parameters);
+    }
+
+    public async Task<object> publicGetMarketSprdHistoryCandles (object parameters = null)
+    {
+        return await this.callAsync ("publicGetMarketSprdHistoryCandles",parameters);
+    }
+
     public async Task<object> publicGetTradingBotGridAiParam (object parameters = null)
     {
         return await this.callAsync ("publicGetTradingBotGridAiParam",parameters);

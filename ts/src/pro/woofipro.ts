@@ -6,7 +6,7 @@ import { ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCache, ArrayCacheBy
 import { Precise } from '../base/Precise.js';
 import { eddsa } from '../base/functions/crypto.js';
 import { ed25519 } from '../static_dependencies/noble-curves/ed25519.js';
-import type { Int, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Balances, Position } from '../base/types.js';
+import type { Int, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Balances, Position, Dict } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 // ----------------------------------------------------------------------------
@@ -84,7 +84,7 @@ export default class woofipro extends woofiproRest {
         }
         const url = this.urls['api']['ws']['public'] + '/' + id;
         const requestId = this.requestId (url);
-        const subscribe = {
+        const subscribe: Dict = {
             'id': requestId,
         };
         const request = this.extend (subscribe, message);
@@ -106,7 +106,7 @@ export default class woofipro extends woofiproRest {
         const name = 'orderbook';
         const market = this.market (symbol);
         const topic = market['id'] + '@' + name;
-        const request = {
+        const request: Dict = {
             'event': 'subscribe',
             'topic': topic,
         };
@@ -167,7 +167,7 @@ export default class woofipro extends woofiproRest {
         const market = this.market (symbol);
         symbol = market['symbol'];
         const topic = market['id'] + '@' + name;
-        const request = {
+        const request: Dict = {
             'event': 'subscribe',
             'topic': topic,
         };
@@ -256,7 +256,7 @@ export default class woofipro extends woofiproRest {
         symbols = this.marketSymbols (symbols);
         const name = 'tickers';
         const topic = name;
-        const request = {
+        const request: Dict = {
             'event': 'subscribe',
             'topic': topic,
         };
@@ -320,7 +320,7 @@ export default class woofipro extends woofiproRest {
         const interval = this.safeString (this.timeframes, timeframe, timeframe);
         const name = 'kline';
         const topic = market['id'] + '@' + name + '_' + interval;
-        const request = {
+        const request: Dict = {
             'event': 'subscribe',
             'topic': topic,
         };
@@ -394,7 +394,7 @@ export default class woofipro extends woofiproRest {
         const market = this.market (symbol);
         symbol = market['symbol'];
         const topic = market['id'] + '@trade';
-        const request = {
+        const request: Dict = {
             'event': 'subscribe',
             'topic': topic,
         };
@@ -553,7 +553,7 @@ export default class woofipro extends woofiproRest {
                 secret = parts[1];
             }
             const signature = eddsa (this.encode (auth), this.base58ToBinary (secret), ed25519);
-            const request = {
+            const request: Dict = {
                 'event': event,
                 'params': {
                     'orderly_key': this.apiKey,
@@ -571,7 +571,7 @@ export default class woofipro extends woofiproRest {
         await this.authenticate (params);
         const url = this.urls['api']['ws']['private'] + '/' + this.accountId;
         const requestId = this.requestId (url);
-        const subscribe = {
+        const subscribe: Dict = {
             'id': requestId,
         };
         const request = this.extend (subscribe, message);
@@ -582,7 +582,7 @@ export default class woofipro extends woofiproRest {
         await this.authenticate (params);
         const url = this.urls['api']['ws']['private'] + '/' + this.accountId;
         const requestId = this.requestId (url);
-        const subscribe = {
+        const subscribe: Dict = {
             'id': requestId,
         };
         const request = this.extend (subscribe, message);
@@ -613,7 +613,7 @@ export default class woofipro extends woofiproRest {
             symbol = market['symbol'];
             messageHash += ':' + symbol;
         }
-        const request = {
+        const request: Dict = {
             'event': 'subscribe',
             'topic': topic,
         };
@@ -649,7 +649,7 @@ export default class woofipro extends woofiproRest {
             symbol = market['symbol'];
             messageHash += ':' + symbol;
         }
-        const request = {
+        const request: Dict = {
             'event': 'subscribe',
             'topic': topic,
         };
@@ -940,7 +940,7 @@ export default class woofipro extends woofiproRest {
             const snapshot = await client.future ('fetchPositionsSnapshot');
             return this.filterBySymbolsSinceLimit (snapshot, symbols, since, limit, true);
         }
-        const request = {
+        const request: Dict = {
             'event': 'subscribe',
             'topic': 'position',
         };
@@ -1119,7 +1119,7 @@ export default class woofipro extends woofiproRest {
         await this.loadMarkets ();
         const topic = 'balance';
         const messageHash = topic;
-        const request = {
+        const request: Dict = {
             'event': 'subscribe',
             'topic': topic,
         };
@@ -1214,7 +1214,7 @@ export default class woofipro extends woofiproRest {
         if (this.handleErrorMessage (client, message)) {
             return;
         }
-        const methods = {
+        const methods: Dict = {
             'ping': this.handlePing,
             'pong': this.handlePong,
             'subscribe': this.handleSubscribe,

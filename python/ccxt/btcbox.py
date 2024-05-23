@@ -137,7 +137,7 @@ class btcbox(Exchange, ImplicitAPI):
         })
 
     def parse_balance(self, response) -> Balances:
-        result = {'info': response}
+        result: dict = {'info': response}
         codes = list(self.currencies.keys())
         for i in range(0, len(codes)):
             code = codes[i]
@@ -174,7 +174,7 @@ class btcbox(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = self.market(symbol)
-        request = {}
+        request: dict = {}
         numSymbols = len(self.symbols)
         if numSymbols > 1:
             request['coin'] = market['baseId']
@@ -217,7 +217,7 @@ class btcbox(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = self.market(symbol)
-        request = {}
+        request: dict = {}
         numSymbols = len(self.symbols)
         if numSymbols > 1:
             request['coin'] = market['baseId']
@@ -271,7 +271,7 @@ class btcbox(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = self.market(symbol)
-        request = {}
+        request: dict = {}
         numSymbols = len(self.symbols)
         if numSymbols > 1:
             request['coin'] = market['baseId']
@@ -303,7 +303,7 @@ class btcbox(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'amount': amount,
             'price': price,
             'type': side,
@@ -332,7 +332,7 @@ class btcbox(Exchange, ImplicitAPI):
         if symbol is None:
             symbol = 'BTC/JPY'
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'id': id,
             'coin': market['baseId'],
         }
@@ -342,8 +342,8 @@ class btcbox(Exchange, ImplicitAPI):
         #
         return self.parse_order(response, market)
 
-    def parse_order_status(self, status):
-        statuses = {
+    def parse_order_status(self, status: Str):
+        statuses: dict = {
             # TODO: complete list
             'part': 'open',  # partially or not at all executed
             'all': 'closed',  # fully executed
@@ -446,7 +446,7 @@ class btcbox(Exchange, ImplicitAPI):
         if symbol is None:
             symbol = 'BTC/JPY'
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'type': type,  # 'open' or 'all'
             'coin': market['baseId'],
         }

@@ -599,6 +599,19 @@ public partial class woo : ccxt.woo
         return await this.watch(url, messageHash, request, messageHash, subscribe);
     }
 
+    public async virtual Task<object> watchPrivateMultiple(object messageHashes, object message, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.authenticate(parameters);
+        object url = add(add(getValue(getValue(getValue(this.urls, "api"), "ws"), "private"), "/"), this.uid);
+        object requestId = this.requestId(url);
+        object subscribe = new Dictionary<string, object>() {
+            { "id", requestId },
+        };
+        object request = this.extend(subscribe, message);
+        return await this.watchMultiple(url, messageHashes, request, messageHashes, subscribe);
+    }
+
     public async override Task<object> watchOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         /**
@@ -611,11 +624,14 @@ public partial class woo : ccxt.woo
         * @param {int} [since] the earliest time in ms to fetch orders for
         * @param {int} [limit] the maximum number of order structures to retrieve
         * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @param {bool} [params.trigger] true if trigger order
         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
         */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        object topic = "executionreport";
+        object trigger = this.safeBool2(parameters, "stop", "trigger", false);
+        object topic = ((bool) isTrue((trigger))) ? "algoexecutionreportv2" : "executionreport";
+        parameters = this.omit(parameters, new List<object>() {"stop", "trigger"});
         object messageHash = topic;
         if (isTrue(!isEqual(symbol, null)))
         {
@@ -642,16 +658,20 @@ public partial class woo : ccxt.woo
         * @method
         * @name woo#watchOrders
         * @see https://docs.woo.org/#executionreport
+        * @see https://docs.woo.org/#algoexecutionreportv2
         * @description watches information on multiple trades made by the user
         * @param {string} symbol unified market symbol of the market orders were made in
         * @param {int} [since] the earliest time in ms to fetch orders for
         * @param {int} [limit] the maximum number of order structures to retrieve
         * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @param {bool} [params.trigger] true if trigger order
         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
         */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        object topic = "executionreport";
+        object trigger = this.safeBool2(parameters, "stop", "trigger", false);
+        object topic = ((bool) isTrue((trigger))) ? "algoexecutionreportv2" : "executionreport";
+        parameters = this.omit(parameters, new List<object>() {"stop", "trigger"});
         object messageHash = "myTrades";
         if (isTrue(!isEqual(symbol, null)))
         {
@@ -785,18 +805,35 @@ public partial class woo : ccxt.woo
         //         }
         //     }
         //
-        object order = this.safeDict(message, "data");
-        object tradeId = this.safeString(order, "tradeId");
-        if (isTrue(isTrue((!isEqual(tradeId, null))) && isTrue((!isEqual(tradeId, "0")))))
+        object topic = this.safeString(message, "topic");
+        object data = this.safeValue(message, "data");
+        if (isTrue(((data is IList<object>) || (data.GetType().IsGenericType && data.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
         {
-            this.handleMyTrade(client as WebSocketClient, order);
+            // algoexecutionreportv2
+            for (object i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
+            {
+                object order = getValue(data, i);
+                object tradeId = this.omitZero(this.safeString(data, "tradeId"));
+                if (isTrue(!isEqual(tradeId, null)))
+                {
+                    this.handleMyTrade(client as WebSocketClient, order);
+                }
+                this.handleOrder(client as WebSocketClient, order, topic);
+            }
+        } else
+        {
+            // executionreport
+            object tradeId = this.omitZero(this.safeString(data, "tradeId"));
+            if (isTrue(!isEqual(tradeId, null)))
+            {
+                this.handleMyTrade(client as WebSocketClient, data);
+            }
+            this.handleOrder(client as WebSocketClient, data, topic);
         }
-        this.handleOrder(client as WebSocketClient, order);
     }
 
-    public virtual void handleOrder(WebSocketClient client, object message)
+    public virtual void handleOrder(WebSocketClient client, object message, object topic)
     {
-        object topic = "executionreport";
         object parsed = this.parseWsOrder(message);
         object symbol = this.safeString(parsed, "symbol");
         object orderId = this.safeString(parsed, "id");
@@ -892,13 +929,19 @@ public partial class woo : ccxt.woo
         */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        object messageHash = "";
+        object messageHashes = new List<object>() {};
         symbols = this.marketSymbols(symbols);
         if (!isTrue(this.isEmpty(symbols)))
         {
-            messageHash = add("::", String.Join(",", ((IList<object>)symbols).ToArray()));
+            for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
+            {
+                object symbol = getValue(symbols, i);
+                ((IList<object>)messageHashes).Add(add("positions::", symbol));
+            }
+        } else
+        {
+            ((IList<object>)messageHashes).Add("positions");
         }
-        messageHash = add("positions", messageHash);
         object url = add(add(getValue(getValue(getValue(this.urls, "api"), "ws"), "private"), "/"), this.uid);
         var client = this.client(url);
         this.setPositionsCache(client as WebSocketClient, symbols);
@@ -913,7 +956,7 @@ public partial class woo : ccxt.woo
             { "event", "subscribe" },
             { "topic", "position" },
         };
-        object newPositions = await this.watchPrivate(messageHash, request, parameters);
+        object newPositions = await this.watchPrivateMultiple(messageHashes, request, parameters);
         if (isTrue(this.newUpdates))
         {
             return newPositions;
@@ -1002,19 +1045,8 @@ public partial class woo : ccxt.woo
             object position = this.parsePosition(rawPosition, market);
             ((IList<object>)newPositions).Add(position);
             callDynamically(cache, "append", new object[] {position});
-        }
-        object messageHashes = this.findMessageHashes(client as WebSocketClient, "positions::");
-        for (object i = 0; isLessThan(i, getArrayLength(messageHashes)); postFixIncrement(ref i))
-        {
-            object messageHash = getValue(messageHashes, i);
-            object parts = ((string)messageHash).Split(new [] {((string)"::")}, StringSplitOptions.None).ToList<object>();
-            object symbolsString = getValue(parts, 1);
-            object symbols = ((string)symbolsString).Split(new [] {((string)",")}, StringSplitOptions.None).ToList<object>();
-            object positions = this.filterByArray(newPositions, "symbol", symbols, false);
-            if (!isTrue(this.isEmpty(positions)))
-            {
-                callDynamically(client as WebSocketClient, "resolve", new object[] {positions, messageHash});
-            }
+            object messageHash = add("positions::", getValue(market, "symbol"));
+            callDynamically(client as WebSocketClient, "resolve", new object[] {position, messageHash});
         }
         callDynamically(client as WebSocketClient, "resolve", new object[] {newPositions, "positions"});
     }
@@ -1152,6 +1184,7 @@ public partial class woo : ccxt.woo
             { "kline", this.handleOHLCV },
             { "auth", this.handleAuth },
             { "executionreport", this.handleOrderUpdate },
+            { "algoexecutionreportv2", this.handleOrderUpdate },
             { "trade", this.handleTrade },
             { "balance", this.handleBalance },
             { "position", this.handlePositions },

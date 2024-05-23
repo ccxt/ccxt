@@ -303,7 +303,7 @@ class bitbank(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'pair': market['id'],
         }
         response = await self.publicGetPairTicker(self.extend(request, params))
@@ -321,7 +321,7 @@ class bitbank(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'pair': market['id'],
         }
         response = await self.publicGetPairDepth(self.extend(request, params))
@@ -385,7 +385,7 @@ class bitbank(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'pair': market['id'],
         }
         response = await self.publicGetPairTransactions(self.extend(request, params))
@@ -432,7 +432,7 @@ class bitbank(Exchange, ImplicitAPI):
         #
         data = self.safe_value(response, 'data', {})
         pairs = self.safe_value(data, 'pairs', [])
-        result = {}
+        result: dict = {}
         for i in range(0, len(pairs)):
             pair = pairs[i]
             marketId = self.safe_string(pair, 'name')
@@ -486,7 +486,7 @@ class bitbank(Exchange, ImplicitAPI):
             since = self.milliseconds() - duration * 1000 * limit
         await self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'pair': market['id'],
             'candletype': self.safe_string(self.timeframes, timeframe, timeframe),
             'yyyymmdd': self.yyyymmdd(since, ''),
@@ -517,7 +517,7 @@ class bitbank(Exchange, ImplicitAPI):
         return self.parse_ohlcvs(ohlcv, market, timeframe, since, limit)
 
     def parse_balance(self, response) -> Balances:
-        result = {
+        result: dict = {
             'info': response,
             'timestamp': None,
             'datetime': None,
@@ -579,8 +579,8 @@ class bitbank(Exchange, ImplicitAPI):
         #
         return self.parse_balance(response)
 
-    def parse_order_status(self, status):
-        statuses = {
+    def parse_order_status(self, status: Str):
+        statuses: dict = {
             'UNFILLED': 'open',
             'PARTIALLY_FILLED': 'open',
             'FULLY_FILLED': 'closed',
@@ -641,7 +641,7 @@ class bitbank(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'pair': market['id'],
             'amount': self.amount_to_precision(symbol, amount),
             'side': side,
@@ -664,7 +664,7 @@ class bitbank(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'order_id': id,
             'pair': market['id'],
         }
@@ -682,7 +682,7 @@ class bitbank(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'order_id': id,
             'pair': market['id'],
         }
@@ -702,7 +702,7 @@ class bitbank(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'pair': market['id'],
         }
         if limit is not None:
@@ -725,7 +725,7 @@ class bitbank(Exchange, ImplicitAPI):
         :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
         """
         await self.load_markets()
-        request = {}
+        request: dict = {}
         market = None
         if symbol is not None:
             market = self.market(symbol)
@@ -749,7 +749,7 @@ class bitbank(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         currency = self.currency(code)
-        request = {
+        request: dict = {
             'asset': currency['id'],
         }
         response = await self.privateGetUserWithdrawalAccount(self.extend(request, params))
@@ -782,7 +782,7 @@ class bitbank(Exchange, ImplicitAPI):
             raise ExchangeError(self.id + ' uuid is required for withdrawal')
         await self.load_markets()
         currency = self.currency(code)
-        request = {
+        request: dict = {
             'asset': currency['id'],
             'amount': amount,
         }
@@ -887,7 +887,7 @@ class bitbank(Exchange, ImplicitAPI):
         success = self.safe_integer(response, 'success')
         data = self.safe_value(response, 'data')
         if not success or not data:
-            errorMessages = {
+            errorMessages: dict = {
                 '10000': 'URL does not exist',
                 '10001': 'A system error occurred. Please contact support',
                 '10002': 'Invalid JSON format. Please check the contents of transmission',

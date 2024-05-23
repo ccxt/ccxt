@@ -433,7 +433,7 @@ export default class poloniex extends Exchange {
             return await this.fetchPaginatedCallDeterministic ('fetchOHLCV', symbol, since, limit, timeframe, params, 500) as OHLCV[];
         }
         const market = this.market (symbol);
-        let request = {
+        let request: Dict = {
             'symbol': market['id'],
             'interval': this.safeString (this.timeframes, timeframe, timeframe),
         };
@@ -715,7 +715,7 @@ export default class poloniex extends Exchange {
         //         }
         //     ]
         //
-        const result = {};
+        const result: Dict = {};
         for (let i = 0; i < response.length; i++) {
             const item = this.safeValue (response, i);
             const ids = Object.keys (item);
@@ -803,7 +803,7 @@ export default class poloniex extends Exchange {
             }
             result[code]['networks'] = networks;
             const info = this.safeValue (result[code], 'info', []);
-            const rawInfo = {};
+            const rawInfo: Dict = {};
             rawInfo[id] = currency;
             info.push (rawInfo);
             result[code]['info'] = info;
@@ -831,7 +831,7 @@ export default class poloniex extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'symbol': market['id'],
         };
         const response = await this.publicGetMarketsSymbolTicker24h (this.extend (request, params));
@@ -966,7 +966,7 @@ export default class poloniex extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'symbol': market['id'],
         };
         if (limit !== undefined) {
@@ -1013,7 +1013,7 @@ export default class poloniex extends Exchange {
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        let request = {
+        let request: Dict = {
             // 'from': 12345678, // A 'trade Id'. The query begins at ‘from'.
             // 'direction': 'PRE', // PRE, NEXT The direction before or after ‘from'.
         };
@@ -1050,8 +1050,8 @@ export default class poloniex extends Exchange {
         return result;
     }
 
-    parseOrderStatus (status) {
-        const statuses = {
+    parseOrderStatus (status: Str) {
+        const statuses: Dict = {
             'NEW': 'open',
             'PARTIALLY_FILLED': 'open',
             'FILLED': 'closed',
@@ -1181,7 +1181,7 @@ export default class poloniex extends Exchange {
     }
 
     parseOrderType (status) {
-        const statuses = {
+        const statuses: Dict = {
             'MARKET': 'market',
             'LIMIT': 'limit',
             'STOP-LIMIT': 'limit',
@@ -1220,7 +1220,7 @@ export default class poloniex extends Exchange {
          */
         await this.loadMarkets ();
         let market: Market = undefined;
-        const request = {};
+        const request: Dict = {};
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['symbol'] = market['id'];
@@ -1259,7 +1259,7 @@ export default class poloniex extends Exchange {
         //         }
         //     ]
         //
-        const extension = { 'status': 'open' };
+        const extension: Dict = { 'status': 'open' };
         return this.parseOrders (response, market, since, limit, extension);
     }
 
@@ -1285,7 +1285,7 @@ export default class poloniex extends Exchange {
         if (!market['spot']) {
             throw new NotSupported (this.id + ' createOrder() does not support ' + market['type'] + ' orders, only spot orders are accepted');
         }
-        let request = {
+        let request: Dict = {
             'symbol': market['id'],
             'side': side,
             // 'timeInForce': timeInForce,
@@ -1385,7 +1385,7 @@ export default class poloniex extends Exchange {
         if (!market['spot']) {
             throw new NotSupported (this.id + ' editOrder() does not support ' + market['type'] + ' orders, only spot orders are accepted');
         }
-        let request = {
+        let request: Dict = {
             'id': id,
             // 'timeInForce': timeInForce,
         };
@@ -1423,7 +1423,7 @@ export default class poloniex extends Exchange {
         // @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
         //
         await this.loadMarkets ();
-        const request = {};
+        const request: Dict = {};
         const clientOrderId = this.safeValue (params, 'clientOrderId');
         if (clientOrderId !== undefined) {
             id = clientOrderId;
@@ -1462,7 +1462,7 @@ export default class poloniex extends Exchange {
          * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
-        const request = {
+        const request: Dict = {
             // 'accountTypes': 'SPOT',
             'symbols': [ ],
         };
@@ -1516,7 +1516,7 @@ export default class poloniex extends Exchange {
          */
         await this.loadMarkets ();
         id = id.toString ();
-        const request = {
+        const request: Dict = {
             'id': id,
         };
         const isTrigger = this.safeValue2 (params, 'trigger', 'stop');
@@ -1575,7 +1575,7 @@ export default class poloniex extends Exchange {
          * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
          */
         await this.loadMarkets ();
-        const request = {
+        const request: Dict = {
             'id': id,
         };
         const trades = await this.privateGetOrdersIdTrades (this.extend (request, params));
@@ -1604,7 +1604,7 @@ export default class poloniex extends Exchange {
     }
 
     parseBalance (response): Balances {
-        const result = {
+        const result: Dict = {
             'info': response,
             'timestamp': undefined,
             'datetime': undefined,
@@ -1635,7 +1635,7 @@ export default class poloniex extends Exchange {
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
          */
         await this.loadMarkets ();
-        const request = {
+        const request: Dict = {
             'accountType': 'SPOT',
         };
         const response = await this.privateGetAccountsBalances (this.extend (request, params));
@@ -1677,7 +1677,7 @@ export default class poloniex extends Exchange {
         //         "volume30D" : "0.00"
         //     }
         //
-        const result = {};
+        const result: Dict = {};
         for (let i = 0; i < this.symbols.length; i++) {
             const symbol = this.symbols[i];
             result[symbol] = {
@@ -1705,7 +1705,7 @@ export default class poloniex extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'symbol': market['id'],
         };
         if (limit !== undefined) {
@@ -1762,7 +1762,7 @@ export default class poloniex extends Exchange {
          */
         await this.loadMarkets ();
         const currency = this.currency (code);
-        const request = {
+        const request: Dict = {
             'currency': currency['id'],
         };
         const networks = this.safeValue (this.options, 'networks', {});
@@ -1813,7 +1813,7 @@ export default class poloniex extends Exchange {
          */
         await this.loadMarkets ();
         const currency = this.currency (code);
-        const request = {
+        const request: Dict = {
             'currency': currency['id'],
         };
         const networks = this.safeValue (this.options, 'networks', {});
@@ -1870,7 +1870,7 @@ export default class poloniex extends Exchange {
         const accountsByType = this.safeValue (this.options, 'accountsByType', {});
         const fromId = this.safeString (accountsByType, fromAccount, fromAccount);
         const toId = this.safeString (accountsByType, toAccount, fromAccount);
-        const request = {
+        const request: Dict = {
             'amount': this.currencyToPrecision (code, amount),
             'currency': currency['id'],
             'fromAccount': fromId,
@@ -1921,7 +1921,7 @@ export default class poloniex extends Exchange {
         this.checkAddress (address);
         await this.loadMarkets ();
         const currency = this.currency (code);
-        const request = {
+        const request: Dict = {
             'currency': currency['id'],
             'amount': amount,
             'address': address,
@@ -1952,7 +1952,7 @@ export default class poloniex extends Exchange {
         const year = 31104000; // 60 * 60 * 24 * 30 * 12 = one year of history, why not
         const now = this.seconds ();
         const start = (since !== undefined) ? this.parseToInt (since / 1000) : now - 10 * year;
-        const request = {
+        const request: Dict = {
             'start': start, // UNIX timestamp, required
             'end': now, // UNIX timestamp, required
         };
@@ -2114,7 +2114,7 @@ export default class poloniex extends Exchange {
         //         }
         //     ]
         //
-        const data = {};
+        const data: Dict = {};
         for (let i = 0; i < response.length; i++) {
             const entry = response[i];
             const currencies = Object.keys (entry);
@@ -2146,7 +2146,7 @@ export default class poloniex extends Exchange {
         //             },
         //         }
         //
-        const depositWithdrawFees = {};
+        const depositWithdrawFees: Dict = {};
         codes = this.marketCodes (codes);
         const responseKeys = Object.keys (response);
         for (let i = 0; i < responseKeys.length; i++) {
@@ -2164,7 +2164,7 @@ export default class poloniex extends Exchange {
                         networkId = networkId.replace (code, '');
                         const networkCode = this.networkIdToCode (networkId);
                         const networkInfo = this.safeValue (response, networkId);
-                        const networkObject = {};
+                        const networkObject: Dict = {};
                         const withdrawFee = this.safeNumber (networkInfo, 'withdrawalFee');
                         networkObject[networkCode] = {
                             'withdraw': {
@@ -2189,11 +2189,11 @@ export default class poloniex extends Exchange {
         depositWithdrawFee['info'][currency['code']] = fee;
         const networkId = this.safeString (fee, 'blockchain');
         const withdrawFee = this.safeNumber (fee, 'withdrawalFee');
-        const withdrawResult = {
+        const withdrawResult: Dict = {
             'fee': withdrawFee,
             'percentage': (withdrawFee !== undefined) ? false : undefined,
         };
-        const depositResult = {
+        const depositResult: Dict = {
             'fee': undefined,
             'percentage': undefined,
         };
@@ -2230,7 +2230,7 @@ export default class poloniex extends Exchange {
     }
 
     parseTransactionStatus (status) {
-        const statuses = {
+        const statuses: Dict = {
             'COMPLETE': 'ok',
             'COMPLETED': 'ok',
             'AWAITING APPROVAL': 'pending',

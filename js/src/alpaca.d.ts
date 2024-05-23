@@ -21,7 +21,7 @@ export default class alpaca extends Exchange {
     fetchOpenOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     fetchClosedOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     parseOrder(order: any, market?: Market): Order;
-    parseOrderStatus(status: any): string;
+    parseOrderStatus(status: Str): string;
     parseTimeInForce(timeInForce: any): string;
     parseTrade(trade: any, market?: Market): Trade;
     sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {

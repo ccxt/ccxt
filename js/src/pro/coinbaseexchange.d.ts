@@ -1,7 +1,7 @@
-import coinbaseproRest from '../coinbasepro.js';
+import coinbaseexchangeRest from '../coinbaseexchange.js';
 import type { Tickers, Int, Ticker, Str, Strings, OrderBook, Trade, Order } from '../base/types.js';
 import Client from '../base/ws/Client.js';
-export default class coinbasepro extends coinbaseproRest {
+export default class coinbaseexchange extends coinbaseexchangeRest {
     describe(): any;
     authenticate(): {
         timestamp: number;

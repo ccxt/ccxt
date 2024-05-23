@@ -2,7 +2,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.3.19'
+__version__ = '4.3.30'
 
 # -----------------------------------------------------------------------------
 
@@ -839,7 +839,7 @@ class Exchange(BaseExchange):
         await self.cancelOrder(id, symbol)
         return await self.create_order(symbol, type, side, amount, price, params)
 
-    async def edit_order_ws(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
+    async def edit_order_ws(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: Num = None, price: Num = None, params={}):
         await self.cancelOrderWs(id, symbol)
         return await self.createOrderWs(symbol, type, side, amount, price, params)
 
@@ -1648,7 +1648,7 @@ class Exchange(BaseExchange):
         :returns float[][]: A list of candles ordered, open, high, low, close, None
         """
         if self.has['fetchMarkOHLCV']:
-            request = {
+            request: dict = {
                 'price': 'mark',
             }
             return await self.fetch_ohlcv(symbol, timeframe, since, limit, self.extend(request, params))
@@ -1666,7 +1666,7 @@ class Exchange(BaseExchange):
          * @returns {} A list of candles ordered, open, high, low, close, None
         """
         if self.has['fetchIndexOHLCV']:
-            request = {
+            request: dict = {
                 'price': 'index',
             }
             return await self.fetch_ohlcv(symbol, timeframe, since, limit, self.extend(request, params))
@@ -1684,7 +1684,7 @@ class Exchange(BaseExchange):
         :returns float[][]: A list of candles ordered, open, high, low, close, None
         """
         if self.has['fetchPremiumIndexOHLCV']:
-            request = {
+            request: dict = {
                 'price': 'premiumIndex',
             }
             return await self.fetch_ohlcv(symbol, timeframe, since, limit, self.extend(request, params))
@@ -1848,8 +1848,9 @@ class Exchange(BaseExchange):
                 errors = 0
                 responseLength = len(response)
                 if self.verbose:
-                    iteration = (i + str(1))
-                    cursorMessage = 'Cursor pagination call ' + iteration + ' method ' + method + ' response length ' + str(responseLength) + ' cursor ' + cursorValue
+                    cursorString = '' if (cursorValue is None) else cursorValue
+                    iteration = (i + 1)
+                    cursorMessage = 'Cursor pagination call ' + str(iteration) + ' method ' + method + ' response length ' + str(responseLength) + ' cursor ' + cursorString
                     self.log(cursorMessage)
                 if responseLength == 0:
                     break

@@ -1240,7 +1240,7 @@ class ndax extends Exchange {
         }) ();
     }
 
-    public function parse_order_status($status) {
+    public function parse_order_status(?string $status) {
         $statuses = array(
             'Accepted' => 'open',
             'Rejected' => 'rejected',

@@ -596,7 +596,7 @@ class whitebit(ccxt.async_support.whitebit):
         }, market)
 
     def parse_ws_order_type(self, status):
-        statuses = {
+        statuses: dict = {
             '1': 'limit',
             '2': 'market',
             '202': 'market',
@@ -668,7 +668,7 @@ class whitebit(ccxt.async_support.whitebit):
     async def watch_public(self, messageHash, method, reqParams=[], params={}):
         url = self.urls['api']['ws']
         id = self.nonce()
-        request = {
+        request: dict = {
             'id': id,
             'method': method,
             'params': reqParams,
@@ -684,7 +684,7 @@ class whitebit(ccxt.async_support.whitebit):
         request = None
         marketIds = []
         if client is None:
-            subscription = {}
+            subscription: dict = {}
             market = self.market(symbol)
             marketId = market['id']
             subscription[marketId] = True
@@ -716,7 +716,7 @@ class whitebit(ccxt.async_support.whitebit):
                 marketIdsNew = list(subscription.keys())
                 if isNested:
                     marketIdsNew = [marketIdsNew]
-                resubRequest = {
+                resubRequest: dict = {
                     'id': id,
                     'method': method,
                     'params': marketIdsNew,
@@ -730,7 +730,7 @@ class whitebit(ccxt.async_support.whitebit):
         await self.authenticate()
         url = self.urls['api']['ws']
         id = self.nonce()
-        request = {
+        request: dict = {
             'id': id,
             'method': method,
             'params': reqParams,
@@ -754,7 +754,7 @@ class whitebit(ccxt.async_support.whitebit):
             #
             token = self.safe_string(authToken, 'websocket_token')
             id = self.nonce()
-            request = {
+            request: dict = {
                 'id': id,
                 'method': 'authorize',
                 'params': [
@@ -762,7 +762,7 @@ class whitebit(ccxt.async_support.whitebit):
                     'public',
                 ],
             }
-            subscription = {
+            subscription: dict = {
                 'id': id,
                 'method': self.handle_authenticate,
             }
@@ -821,7 +821,7 @@ class whitebit(ccxt.async_support.whitebit):
         if id is not None:
             self.handle_subscription_status(client, message, id)
             return
-        methods = {
+        methods: dict = {
             'market_update': self.handle_ticker,
             'trades_update': self.handle_trades,
             'depth_update': self.handle_order_book,

@@ -140,11 +140,17 @@ public partial class woo
         var res = await this.watchTrades(symbol, since, limit, parameters);
         return ((IList<object>)res).Select(item => new Trade(item)).ToList<Trade>();
     }
+    public async Task<Dictionary<string, object>> WatchPrivateMultiple(object messageHashes, object message, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.watchPrivateMultiple(messageHashes, message, parameters);
+        return ((Dictionary<string, object>)res);
+    }
     /// <summary>
     /// watches information on multiple trades made by the user
     /// </summary>
     /// <remarks>
     /// See <see href="https://docs.woo.org/#executionreport"/>  <br/>
+    /// See <see href="https://docs.woo.org/#algoexecutionreportv2"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -162,6 +168,12 @@ public partial class woo
     /// <term>params</term>
     /// <description>
     /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.trigger</term>
+    /// <description>
+    /// bool : true if trigger order
     /// </description>
     /// </item>
     /// </list>

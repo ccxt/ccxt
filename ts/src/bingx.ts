@@ -20,8 +20,7 @@ export default class bingx extends Exchange {
             'id': 'bingx',
             'name': 'BingX',
             'countries': [ 'US' ], // North America, Canada, the EU, Hong Kong and Taiwan
-            // cheapest is 60 requests a minute = 1 requests per second on average => ( 1000ms / 1) = 1000 ms between requests on average
-            'rateLimit': 1000,
+            'rateLimit': 100,
             'version': 'v1',
             'certified': true,
             'pro': true,
@@ -134,44 +133,54 @@ export default class bingx extends Exchange {
                     'v1': {
                         'public': {
                             'get': {
-                                'server/time': 3,
-                                'common/symbols': 3,
-                                'market/trades': 3,
-                                'market/depth': 3,
-                                'market/kline': 3,
+                                'server/time': 1,
+                                'common/symbols': 1,
+                                'market/trades': 1,
+                                'market/depth': 1,
+                                'market/kline': 1,
                                 'ticker/24hr': 1,
+                                'ticker/price': 1,
+                                'ticker/bookTicker': 1,
                             },
                         },
                         'private': {
                             'get': {
-                                'trade/query': 3,
-                                'trade/openOrders': 3,
-                                'trade/historyOrders': 3,
-                                'trade/myTrades': 3,
-                                'user/commissionRate': 3,
-                                'account/balance': 3,
+                                'trade/query': 1,
+                                'trade/openOrders': 1,
+                                'trade/historyOrders': 1,
+                                'trade/myTrades': 2,
+                                'user/commissionRate': 5,
+                                'account/balance': 2,
                             },
                             'post': {
-                                'trade/order': 3,
-                                'trade/cancel': 3,
-                                'trade/batchOrders': 3,
-                                'trade/order/cancelReplace': 3,
-                                'trade/cancelOrders': 3,
-                                'trade/cancelOpenOrders': 3,
-                                'trade/cancelAllAfter': 1,
+                                'trade/order': 2,
+                                'trade/cancel': 2,
+                                'trade/batchOrders': 5,
+                                'trade/order/cancelReplace': 5,
+                                'trade/cancelOrders': 5,
+                                'trade/cancelOpenOrders': 5,
+                                'trade/cancelAllAfter': 5,
+                            },
+                        },
+                    },
+                    'v2': {
+                        'public': {
+                            'get': {
+                                'market/depth': 1,
+                                'market/kline': 1,
                             },
                         },
                     },
                     'v3': {
                         'private': {
                             'get': {
-                                'get/asset/transfer': 3,
-                                'asset/transfer': 3,
-                                'capital/deposit/hisrec': 3,
-                                'capital/withdraw/history': 3,
+                                'get/asset/transfer': 1,
+                                'asset/transfer': 1,
+                                'capital/deposit/hisrec': 1,
+                                'capital/withdraw/history': 1,
                             },
                             'post': {
-                                'post/asset/transfer': 3,
+                                'post/asset/transfer': 5,
                             },
                         },
                     },
@@ -181,26 +190,27 @@ export default class bingx extends Exchange {
                         'public': {
                             'get': {
                                 'ticker/price': 1,
+                                'market/historicalTrades': 1,
                             },
                         },
                         'private': {
                             'get': {
-                                'positionSide/dual': 1,
+                                'positionSide/dual': 5,
                                 'market/markPriceKlines': 1,
-                                'trade/batchCancelReplace': 1,
-                                'trade/fullOrder': 1,
+                                'trade/batchCancelReplace': 5,
+                                'trade/fullOrder': 2,
                             },
                             'post': {
-                                'trade/cancelReplace': 1,
-                                'positionSide/dual': 1,
-                                'trade/closePosition': 1,
+                                'trade/cancelReplace': 2,
+                                'positionSide/dual': 5,
+                                'trade/closePosition': 2,
                             },
                         },
                     },
                     'v2': {
                         'public': {
                             'get': {
-                                'server/time': 3,
+                                'server/time': 1,
                                 'quote/contracts': 1,
                                 'quote/price': 1,
                                 'quote/depth': 1,
@@ -215,35 +225,35 @@ export default class bingx extends Exchange {
                         },
                         'private': {
                             'get': {
-                                'user/balance': 3,
-                                'user/positions': 3,
-                                'user/income': 3,
-                                'trade/openOrders': 3,
-                                'trade/openOrder': 3,
-                                'trade/order': 3,
-                                'trade/marginType': 3,
-                                'trade/leverage': 3,
-                                'trade/forceOrders': 3,
-                                'trade/allOrders': 3,
-                                'trade/allFillOrders': 3,
-                                'user/income/export': 3,
-                                'user/commissionRate': 3,
-                                'quote/bookTicker': 3,
+                                'user/balance': 2,
+                                'user/positions': 2,
+                                'user/income': 2,
+                                'trade/openOrders': 2,
+                                'trade/openOrder': 2,
+                                'trade/order': 2,
+                                'trade/marginType': 5,
+                                'trade/leverage': 2,
+                                'trade/forceOrders': 1,
+                                'trade/allOrders': 2,
+                                'trade/allFillOrders': 2,
+                                'user/income/export': 2,
+                                'user/commissionRate': 2,
+                                'quote/bookTicker': 1,
                             },
                             'post': {
-                                'trade/order': 3,
-                                'trade/batchOrders': 3,
-                                'trade/closeAllPositions': 3,
-                                'trade/cancelAllAfter': 3,
-                                'trade/marginType': 3,
-                                'trade/leverage': 3,
-                                'trade/positionMargin': 3,
-                                'trade/order/test': 3,
+                                'trade/order': 2,
+                                'trade/batchOrders': 2,
+                                'trade/closeAllPositions': 2,
+                                'trade/cancelAllAfter': 5,
+                                'trade/marginType': 5,
+                                'trade/leverage': 5,
+                                'trade/positionMargin': 5,
+                                'trade/order/test': 2,
                             },
                             'delete': {
-                                'trade/order': 3,
-                                'trade/batchOrders': 3,
-                                'trade/allOpenOrders': 3,
+                                'trade/order': 2,
+                                'trade/batchOrders': 2,
+                                'trade/allOpenOrders': 2,
                             },
                         },
                     },
@@ -259,9 +269,9 @@ export default class bingx extends Exchange {
                     'v1': {
                         'private': {
                             'get': {
-                                'allPosition': 3,
-                                'allOrders': 3,
-                                'balance': 3,
+                                'allPosition': 2,
+                                'allOrders': 2,
+                                'balance': 2,
                             },
                         },
                     },
@@ -270,18 +280,19 @@ export default class bingx extends Exchange {
                     'v1': {
                         'private': {
                             'get': {
-                                'capital/config/getall': 3,
-                                'capital/deposit/address': 1,
+                                'capital/config/getall': 5,
+                                'capital/deposit/address': 5,
                                 'capital/innerTransfer/records': 1,
-                                'capital/subAccount/deposit/address': 1,
-                                'capital/deposit/subHisrec': 1,
+                                'capital/subAccount/deposit/address': 5,
+                                'capital/deposit/subHisrec': 2,
                                 'capital/subAccount/innerTransfer/records': 1,
+                                'capital/deposit/riskRecords': 5,
                             },
                             'post': {
-                                'capital/withdraw/apply': 3,
-                                'capital/innerTransfer/apply': 3,
-                                'capital/subAccountInnerTransfer/apply': 3,
-                                'capital/deposit/createSubAddress': 1,
+                                'capital/withdraw/apply': 5,
+                                'capital/innerTransfer/apply': 5,
+                                'capital/subAccountInnerTransfer/apply': 2,
+                                'capital/deposit/createSubAddress': 2,
                             },
                         },
                     },
@@ -290,15 +301,15 @@ export default class bingx extends Exchange {
                     'v1': {
                         'private': {
                             'get': {
-                                'list': 3,
-                                'assets': 3,
+                                'list': 10,
+                                'assets': 2,
                             },
                             'post': {
-                                'create': 3,
-                                'apiKey/create': 3,
-                                'apiKey/edit': 3,
-                                'apiKey/del': 3,
-                                'updateStatus': 3,
+                                'create': 10,
+                                'apiKey/create': 2,
+                                'apiKey/edit': 2,
+                                'apiKey/del': 2,
+                                'updateStatus': 10,
                             },
                         },
                     },
@@ -308,10 +319,10 @@ export default class bingx extends Exchange {
                         'private': {
                             'get': {
                                 'uid': 1,
-                                'apiKey/query': 1,
+                                'apiKey/query': 2,
                             },
                             'post': {
-                                'innerTransfer/authorizeSubAccount': 3,
+                                'innerTransfer/authorizeSubAccount': 1,
                             },
                         },
                     },
@@ -320,10 +331,13 @@ export default class bingx extends Exchange {
                     'auth': {
                         'private': {
                             'post': {
-                                'userDataStream': 1,
+                                'userDataStream': 2,
                             },
                             'put': {
-                                'userDataStream': 1,
+                                'userDataStream': 2,
+                            },
+                            'delete': {
+                                'userDataStream': 2,
                             },
                         },
                     },
@@ -332,12 +346,12 @@ export default class bingx extends Exchange {
                     'v1': {
                         'private': {
                             'get': {
-                                'swap/trace/currentTrack': 1,
+                                'swap/trace/currentTrack': 2,
                             },
                             'post': {
-                                'swap/trace/closeTrackOrder': 1,
-                                'swap/trace/setTPSL': 1,
-                                'spot/trader/sellOrder': 1,
+                                'swap/trace/closeTrackOrder': 2,
+                                'swap/trace/setTPSL': 2,
+                                'spot/trader/sellOrder': 10,
                             },
                         },
                     },
@@ -510,25 +524,25 @@ export default class bingx extends Exchange {
         //    }
         //
         const data = this.safeList (response, 'data', []);
-        const result = {};
+        const result: Dict = {};
         for (let i = 0; i < data.length; i++) {
             const entry = data[i];
             const currencyId = this.safeString (entry, 'coin');
             const code = this.safeCurrencyCode (currencyId);
             const name = this.safeString (entry, 'name');
             const networkList = this.safeList (entry, 'networkList');
-            const networks = {};
+            const networks: Dict = {};
             let fee = undefined;
             let active = undefined;
             let withdrawEnabled = undefined;
-            let defaultLimits = {};
+            let defaultLimits: Dict = {};
             for (let j = 0; j < networkList.length; j++) {
                 const rawNetwork = networkList[j];
                 const network = this.safeString (rawNetwork, 'network');
                 const networkCode = this.networkIdToCode (network);
                 const isDefault = this.safeBool (rawNetwork, 'isDefault');
                 withdrawEnabled = this.safeBool (rawNetwork, 'withdrawEnable');
-                const limits = {
+                const limits: Dict = {
                     'amounts': { 'min': this.safeNumber (rawNetwork, 'withdrawMin'), 'max': this.safeNumber (rawNetwork, 'withdrawMax') },
                 };
                 if (isDefault) {
@@ -1641,7 +1655,7 @@ export default class bingx extends Exchange {
     parseBalance (response): Balances {
         const data = this.safeValue (response, 'data');
         const balances = this.safeValue2 (data, 'balance', 'balances', data);
-        const result = { 'info': response };
+        const result: Dict = { 'info': response };
         if (Array.isArray (balances)) {
             for (let i = 0; i < balances.length; i++) {
                 const balance = balances[i];
@@ -2203,7 +2217,7 @@ export default class bingx extends Exchange {
     }
 
     parseOrderSide (side) {
-        const sides = {
+        const sides: Dict = {
             'BUY': 'buy',
             'SELL': 'sell',
             'SHORT': 'sell',
@@ -2214,10 +2228,14 @@ export default class bingx extends Exchange {
         return this.safeString (sides, side, side);
     }
 
-    parseOrderType (type) {
-        const types = {
+    parseOrderType (type: Str) {
+        const types: Dict = {
             'trigger_market': 'market',
             'trigger_limit': 'limit',
+            'stop_limit': 'limit',
+            'stop_market': 'market',
+            'take_profit_market': 'market',
+            'stop': 'limit',
         };
         return this.safeString (types, type, type);
     }
@@ -2422,6 +2440,25 @@ export default class bingx extends Exchange {
         //            side: 'SELL'
         //        }
         //    }
+        // stop loss order
+        //    {
+        //        "symbol": "ETH-USDT",
+        //        "orderId": "1792461744476422144",
+        //        "price": "2775.65",
+        //        "StopPrice": "2778.42",
+        //        "origQty": "0.032359",
+        //        "executedQty": "0",
+        //        "cummulativeQuoteQty": "0",
+        //        "status": "NEW",
+        //        "type": "TAKE_STOP_LIMIT",
+        //        "side": "SELL",
+        //        "time": "1716191156868",
+        //        "updateTime": "1716191156868",
+        //        "origQuoteOrderQty": "0",
+        //        "fee": "0",
+        //        "feeAsset": "USDT",
+        //        "clientOrderID": ""
+        //    }
         //
         const info = order;
         const newOrder = this.safeDict2 (order, 'newOrderResponse', 'orderOpenResponse');
@@ -2454,26 +2491,39 @@ export default class bingx extends Exchange {
         let stopLoss = this.safeValue (order, 'stopLoss');
         let stopLossPrice = undefined;
         if ((stopLoss !== undefined) && (stopLoss !== '')) {
-            stopLossPrice = this.safeNumber (stopLoss, 'stopLoss');
+            stopLossPrice = this.omitZero (this.safeString (stopLoss, 'stopLoss'));
         }
         if ((stopLoss !== undefined) && (typeof stopLoss !== 'number') && (stopLoss !== '')) {
             //  stopLoss: '{"stopPrice":50,"workingType":"MARK_PRICE","type":"STOP_MARKET","quantity":1}',
             if (typeof stopLoss === 'string') {
                 stopLoss = this.parseJson (stopLoss);
             }
-            stopLossPrice = this.safeNumber (stopLoss, 'stopPrice');
+            stopLossPrice = this.omitZero (this.safeString (stopLoss, 'stopPrice'));
         }
         let takeProfit = this.safeValue (order, 'takeProfit');
         let takeProfitPrice = undefined;
         if (takeProfit !== undefined && (takeProfit !== '')) {
-            takeProfitPrice = this.safeNumber (takeProfit, 'takeProfit');
+            takeProfitPrice = this.omitZero (this.safeString (takeProfit, 'takeProfit'));
         }
         if ((takeProfit !== undefined) && (typeof takeProfit !== 'number') && (takeProfit !== '')) {
             //  takeProfit: '{"stopPrice":150,"workingType":"MARK_PRICE","type":"TAKE_PROFIT_MARKET","quantity":1}',
             if (typeof takeProfit === 'string') {
                 takeProfit = this.parseJson (takeProfit);
             }
-            takeProfitPrice = this.safeNumber (takeProfit, 'stopPrice');
+            takeProfitPrice = this.omitZero (this.safeString (takeProfit, 'stopPrice'));
+        }
+        const rawType = this.safeStringLower2 (order, 'type', 'o');
+        const stopPrice = this.omitZero (this.safeString2 (order, 'StopPrice', 'stopPrice'));
+        let triggerPrice = stopPrice;
+        if (stopPrice !== undefined) {
+            if ((rawType.indexOf ('stop') > -1) && (stopLossPrice === undefined)) {
+                stopLossPrice = stopPrice;
+                triggerPrice = undefined;
+            }
+            if ((rawType.indexOf ('take') > -1) && (takeProfitPrice === undefined)) {
+                takeProfitPrice = stopPrice;
+                triggerPrice = undefined;
+            }
         }
         return this.safeOrder ({
             'info': info,
@@ -2484,17 +2534,17 @@ export default class bingx extends Exchange {
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,
             'lastUpdateTimestamp': this.safeInteger (order, 'updateTime'),
-            'type': this.parseOrderType (this.safeStringLower2 (order, 'type', 'o')),
+            'type': this.parseOrderType (rawType),
             'timeInForce': this.safeString (order, 'timeInForce'),
             'postOnly': undefined,
             'side': this.parseOrderSide (side),
             'price': this.safeString2 (order, 'price', 'p'),
-            'stopPrice': this.safeNumber (order, 'stopPrice'),
-            'triggerPrice': this.safeNumber (order, 'stopPrice'),
+            'stopPrice': triggerPrice,
+            'triggerPrice': triggerPrice,
             'stopLossPrice': stopLossPrice,
             'takeProfitPrice': takeProfitPrice,
             'average': this.safeString2 (order, 'avgPrice', 'ap'),
-            'cost': undefined,
+            'cost': this.safeString (order, 'cummulativeQuoteQty'),
             'amount': this.safeStringN (order, [ 'origQty', 'q', 'quantity' ]),
             'filled': this.safeString2 (order, 'executedQty', 'z'),
             'remaining': undefined,
@@ -2508,8 +2558,8 @@ export default class bingx extends Exchange {
         }, market);
     }
 
-    parseOrderStatus (status) {
-        const statuses = {
+    parseOrderStatus (status: Str) {
+        const statuses: Dict = {
             'NEW': 'open',
             'PENDING': 'open',
             'PARTIALLY_FILLED': 'open',
@@ -2907,7 +2957,7 @@ export default class bingx extends Exchange {
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
-        const request = {};
+        const request: Dict = {};
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
@@ -3584,7 +3634,7 @@ export default class bingx extends Exchange {
     }
 
     parseTransactionStatus (status: string) {
-        const statuses = {
+        const statuses: Dict = {
             '0': 'pending',
             '1': 'ok',
             '10': 'pending',
@@ -3637,14 +3687,14 @@ export default class bingx extends Exchange {
     }
 
     async addMargin (symbol: string, amount: number, params = {}): Promise<MarginModification> {
-        const request = {
+        const request: Dict = {
             'type': 1,
         };
         return await this.setMargin (symbol, amount, this.extend (request, params));
     }
 
     async reduceMargin (symbol: string, amount: number, params = {}): Promise<MarginModification> {
-        const request = {
+        const request: Dict = {
             'type': 2,
         };
         return await this.setMargin (symbol, amount, this.extend (request, params));
@@ -3687,7 +3737,7 @@ export default class bingx extends Exchange {
         return this.parseMarginModification (response, market);
     }
 
-    parseMarginModification (data, market: Market = undefined): MarginModification {
+    parseMarginModification (data: Dict, market: Market = undefined): MarginModification {
         //
         //    {
         //        "code": 0,
@@ -3919,7 +3969,7 @@ export default class bingx extends Exchange {
         //
         const networkList = this.safeList (fee, 'networkList', []);
         const networkListLength = networkList.length;
-        const result = {
+        const result: Dict = {
             'info': fee,
             'withdraw': {
                 'fee': undefined,
@@ -4049,7 +4099,7 @@ export default class bingx extends Exchange {
          * @returns {object} an array of [liquidation structures]{@link https://docs.ccxt.com/#/?id=liquidation-structure}
          */
         await this.loadMarkets ();
-        let request = {
+        let request: Dict = {
             'autoCloseType': 'LIQUIDATION',
         };
         [ request, params ] = this.handleUntilOption ('endTime', request, params);

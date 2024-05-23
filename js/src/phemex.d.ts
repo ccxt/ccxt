@@ -31,8 +31,8 @@ export default class phemex extends Exchange {
     parseSpotBalance(response: any): Balances;
     parseSwapBalance(response: any): Balances;
     fetchBalance(params?: {}): Promise<Balances>;
-    parseOrderStatus(status: any): string;
-    parseOrderType(type: any): string;
+    parseOrderStatus(status: Str): string;
+    parseOrderType(type: Str): string;
     parseTimeInForce(timeInForce: any): string;
     parseSpotOrder(order: any, market?: Market): Order;
     parseOrderSide(side: any): string;
@@ -61,6 +61,7 @@ export default class phemex extends Exchange {
     fetchPositions(symbols?: Strings, params?: {}): Promise<import("./base/types.js").Position[]>;
     parsePosition(position: any, market?: Market): import("./base/types.js").Position;
     fetchFundingHistory(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<FundingHistory[]>;
+    parseFundingFeeToPrecision(value: any, market?: Market, currencyCode?: Str): any;
     fetchFundingRate(symbol: string, params?: {}): Promise<{
         info: any;
         symbol: string;
@@ -101,7 +102,7 @@ export default class phemex extends Exchange {
     };
     setMargin(symbol: string, amount: number, params?: {}): Promise<MarginModification>;
     parseMarginStatus(status: any): string;
-    parseMarginModification(data: any, market?: Market): MarginModification;
+    parseMarginModification(data: Dict, market?: Market): MarginModification;
     setMarginMode(marginMode: string, symbol?: Str, params?: {}): Promise<any>;
     setPositionMode(hedged: boolean, symbol?: Str, params?: {}): Promise<any>;
     fetchLeverageTiers(symbols?: Strings, params?: {}): Promise<{}>;

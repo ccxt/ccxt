@@ -845,7 +845,9 @@ export default class Exchange {
     marketId(symbol: string): string;
     symbol(symbol: string): string;
     handleParamString(params: object, paramName: string, defaultValue?: Str): [string, object];
+    handleParamString2(params: object, paramName1: string, paramName2: string, defaultValue?: Str): [string, object];
     handleParamInteger(params: object, paramName: string, defaultValue?: Int): [Int, object];
+    handleParamInteger2(params: object, paramName1: string, paramName2: string, defaultValue?: Int): [Int, object];
     resolvePath(path: any, params: any): any[];
     getListFromObjectValues(objects: any, key: IndexType): any[];
     getSymbolsForMarketType(marketType?: Str, subType?: Str, symbolWithActiveStatus?: boolean, symbolWithUnknownStatus?: boolean): any[];
@@ -859,7 +861,7 @@ export default class Exchange {
     editLimitSellOrder(id: string, symbol: string, amount: number, price?: Num, params?: {}): Promise<Order>;
     editLimitOrder(id: string, symbol: string, side: OrderSide, amount: number, price?: Num, params?: {}): Promise<Order>;
     editOrder(id: string, symbol: string, type: OrderType, side: OrderSide, amount?: Num, price?: Num, params?: {}): Promise<Order>;
-    editOrderWs(id: string, symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): Promise<Order>;
+    editOrderWs(id: string, symbol: string, type: OrderType, side: OrderSide, amount?: Num, price?: Num, params?: {}): Promise<Order>;
     fetchPermissions(params?: {}): Promise<{}>;
     fetchPosition(symbol: string, params?: {}): Promise<Position>;
     fetchPositionWs(symbol: string, params?: {}): Promise<Position[]>;
@@ -897,7 +899,7 @@ export default class Exchange {
     fetchCrossBorrowRate(code: string, params?: {}): Promise<CrossBorrowRate>;
     fetchIsolatedBorrowRate(symbol: string, params?: {}): Promise<IsolatedBorrowRate>;
     handleOptionAndParams(params: object, methodName: string, optionName: string, defaultValue?: any): any[];
-    handleOptionAndParams2(params: object, methodName: string, methodName2: string, optionName: string, defaultValue?: any): any[];
+    handleOptionAndParams2(params: object, methodName1: string, optionName1: string, optionName2: string, defaultValue?: any): any[];
     handleOption(methodName: string, optionName: string, defaultValue?: any): any;
     handleMarketTypeAndParams(methodName: string, market?: Market, params?: {}, defaultValue?: any): any;
     handleSubTypeAndParams(methodName: string, market?: any, params?: {}, defaultValue?: any): any[];
@@ -1091,7 +1093,7 @@ export default class Exchange {
     convertMarketIdExpireDate(date: string): string;
     fetchPositionHistory(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Position>;
     fetchPositionsHistory(symbols?: Strings, since?: Int, limit?: Int, params?: {}): Promise<Position[]>;
-    parseMarginModification(data: any, market?: Market): MarginModification;
+    parseMarginModification(data: Dict, market?: Market): MarginModification;
     parseMarginModifications(response: object[], symbols?: string[], symbolKey?: Str, marketType?: MarketType): MarginModification[];
     fetchTransfer(id: string, code?: Str, params?: {}): Promise<TransferEntry>;
     fetchTransfers(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<TransferEntries>;

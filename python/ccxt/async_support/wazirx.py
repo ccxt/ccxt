@@ -322,7 +322,7 @@ class wazirx(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'symbol': market['id'],
             'interval': self.safe_string(self.timeframes, timeframe, timeframe),
         }
@@ -367,7 +367,7 @@ class wazirx(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'symbol': market['id'],
         }
         if limit is not None:
@@ -399,7 +399,7 @@ class wazirx(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'symbol': market['id'],
         }
         ticker = await self.publicGetTicker24hr(self.extend(request, params))
@@ -447,7 +447,7 @@ class wazirx(Exchange, ImplicitAPI):
         #     ...
         # ]
         #
-        result = {}
+        result: dict = {}
         for i in range(0, len(tickers)):
             ticker = tickers[i]
             parsedTicker = self.parse_ticker(ticker)
@@ -467,7 +467,7 @@ class wazirx(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'symbol': market['id'],
         }
         if limit is not None:
@@ -615,7 +615,7 @@ class wazirx(Exchange, ImplicitAPI):
         }, market)
 
     def parse_balance(self, response) -> Balances:
-        result = {'info': response}
+        result: dict = {'info': response}
         for i in range(0, len(response)):
             balance = response[i]
             id = self.safe_string(balance, 'asset')
@@ -660,7 +660,7 @@ class wazirx(Exchange, ImplicitAPI):
             raise ArgumentsRequired(self.id + ' fetchOrders() requires a symbol argument')
         await self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'symbol': market['id'],
         }
         if since is not None:
@@ -712,7 +712,7 @@ class wazirx(Exchange, ImplicitAPI):
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
-        request = {}
+        request: dict = {}
         market: Market = None
         if symbol is not None:
             market = self.market(symbol)
@@ -760,7 +760,7 @@ class wazirx(Exchange, ImplicitAPI):
             raise ArgumentsRequired(self.id + ' cancelAllOrders() requires a symbol argument')
         await self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'symbol': market['id'],
         }
         return await self.privateDeleteOpenOrders(self.extend(request, params))
@@ -778,7 +778,7 @@ class wazirx(Exchange, ImplicitAPI):
             raise ArgumentsRequired(self.id + ' cancelOrder() requires a symbol argument')
         await self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'symbol': market['id'],
             'orderId': id,
         }
@@ -804,7 +804,7 @@ class wazirx(Exchange, ImplicitAPI):
             raise ExchangeError(self.id + ' createOrder() requires a price argument')
         await self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'symbol': market['id'],
             'side': side,
             'quantity': amount,
@@ -877,8 +877,8 @@ class wazirx(Exchange, ImplicitAPI):
             'trades': [],
         }, market)
 
-    def parse_order_status(self, status):
-        statuses = {
+    def parse_order_status(self, status: Str):
+        statuses: dict = {
             'wait': 'open',
             'done': 'closed',
             'cancel': 'canceled',
@@ -941,14 +941,14 @@ class wazirx(Exchange, ImplicitAPI):
         #         }
         #     ]
         #
-        result = {}
+        result: dict = {}
         for i in range(0, len(response)):
             currency = response[i]
             currencyId = self.safe_string(currency, 'currency')
             code = self.safe_currency_code(currencyId)
             name = self.safe_string(currency, 'name')
             chains = self.safe_list(currency, 'networkList', [])
-            networks = {}
+            networks: dict = {}
             minPrecision = None
             minWithdrawFeeString = None
             minWithdrawString = None
@@ -1041,7 +1041,7 @@ class wazirx(Exchange, ImplicitAPI):
         params = self.omit(params, 'network')
         if networkCode is None:
             raise ArgumentsRequired(self.id + ' fetchDepositAddress() requires a network parameter')
-        request = {
+        request: dict = {
             'coin': currency['id'],
             'network': self.network_code_to_id(networkCode, code),
         }
@@ -1073,7 +1073,7 @@ class wazirx(Exchange, ImplicitAPI):
         :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/#/?id=transaction-structure>`
         """
         await self.load_markets()
-        request = {}
+        request: dict = {}
         currency = None
         if code is not None:
             currency = self.currency(code)
@@ -1108,7 +1108,7 @@ class wazirx(Exchange, ImplicitAPI):
         return self.parse_transactions(response, currency, since, limit)
 
     def parse_transaction_status(self, status):
-        statuses = {
+        statuses: dict = {
             '0': 'ok',
             '1': 'fail',
             '2': 'pending',

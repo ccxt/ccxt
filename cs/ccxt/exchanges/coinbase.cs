@@ -1823,6 +1823,14 @@ public partial class coinbase : Exchange
         {
             ((IDictionary<string,object>)request)["product_ids"] = this.marketIds(symbols);
         }
+        object marketType = null;
+        var marketTypeparametersVariable = this.handleMarketTypeAndParams("fetchTickers", this.getMarketFromSymbols(symbols), parameters, "default");
+        marketType = ((IList<object>)marketTypeparametersVariable)[0];
+        parameters = ((IList<object>)marketTypeparametersVariable)[1];
+        if (isTrue(isTrue(!isEqual(marketType, null)) && isTrue(!isEqual(marketType, "default"))))
+        {
+            ((IDictionary<string,object>)request)["product_type"] = ((bool) isTrue((isEqual(marketType, "swap")))) ? "FUTURE" : "SPOT";
+        }
         object response = await this.v3PublicGetBrokerageMarketProducts(this.extend(request, parameters));
         //
         //     {
@@ -3086,7 +3094,7 @@ public partial class coinbase : Exchange
         object symbol = this.safeSymbol(marketId, market, "-");
         if (isTrue(!isEqual(symbol, null)))
         {
-            market = this.market(symbol);
+            market = this.safeMarket(symbol, market);
         }
         object orderConfiguration = this.safeDict(order, "order_configuration", new Dictionary<string, object>() {});
         object limitGTC = this.safeDict(orderConfiguration, "limit_limit_gtc");
@@ -4866,7 +4874,7 @@ public partial class coinbase : Exchange
                     //     uri = uri.slice (0, quesPos);
                     // }
                     // const nonce = this.randomBytes (16);
-                    // const request = {
+                    // const request: Dict = {
                     //     'aud': [ 'retail_rest_api_proxy' ],
                     //     'iss': 'coinbase-cloud',
                     //     'nbf': seconds,

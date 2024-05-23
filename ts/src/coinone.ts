@@ -234,7 +234,7 @@ export default class coinone extends Exchange {
         //         ]
         //     }
         //
-        const result = {};
+        const result: Dict = {};
         const currencies = this.safeValue (response, 'currencies', []);
         for (let i = 0; i < currencies.length; i++) {
             const entry = currencies[i];
@@ -280,7 +280,7 @@ export default class coinone extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} an array of objects representing market data
          */
-        const request = {
+        const request: Dict = {
             'quote_currency': 'KRW',
         };
         const response = await this.v2PublicGetTickerNewQuoteCurrency (request);
@@ -381,7 +381,7 @@ export default class coinone extends Exchange {
     }
 
     parseBalance (response): Balances {
-        const result = { 'info': response };
+        const result: Dict = { 'info': response };
         const balances = this.omit (response, [
             'errorCode',
             'result',
@@ -427,7 +427,7 @@ export default class coinone extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'quote_currency': market['quote'],
             'target_currency': market['base'],
         };
@@ -475,7 +475,7 @@ export default class coinone extends Exchange {
          */
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
-        const request = {
+        const request: Dict = {
             'quote_currency': 'KRW',
         };
         let market = undefined;
@@ -538,7 +538,7 @@ export default class coinone extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'quote_currency': market['quote'],
             'target_currency': market['base'],
         };
@@ -718,7 +718,7 @@ export default class coinone extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'quote_currency': market['quote'],
             'target_currency': market['base'],
         };
@@ -768,7 +768,7 @@ export default class coinone extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'price': price,
             'currency': market['id'],
             'qty': amount,
@@ -799,7 +799,7 @@ export default class coinone extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'order_id': id,
             'currency': market['id'],
         };
@@ -828,8 +828,8 @@ export default class coinone extends Exchange {
         return this.parseOrder (response, market);
     }
 
-    parseOrderStatus (status) {
-        const statuses = {
+    parseOrderStatus (status: Str) {
+        const statuses: Dict = {
             'live': 'open',
             'partially_filled': 'open',
             'partially_canceled': 'open',
@@ -973,7 +973,7 @@ export default class coinone extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'currency': market['id'],
         };
         const response = await this.privatePostOrderLimitOrders (this.extend (request, params));
@@ -1014,7 +1014,7 @@ export default class coinone extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'currency': market['id'],
         };
         const response = await this.v2PrivatePostOrderCompleteOrders (this.extend (request, params));
@@ -1064,7 +1064,7 @@ export default class coinone extends Exchange {
             throw new ArgumentsRequired (this.id + " cancelOrder() requires {'price': 12345, 'qty': 1.2345, 'is_ask': 0} in the params argument.");
         }
         await this.loadMarkets ();
-        const request = {
+        const request: Dict = {
             'order_id': id,
             'price': price,
             'qty': qty,
@@ -1108,7 +1108,7 @@ export default class coinone extends Exchange {
         //
         const walletAddress = this.safeValue (response, 'walletAddress', {});
         const keys = Object.keys (walletAddress);
-        const result = {};
+        const result: Dict = {};
         for (let i = 0; i < keys.length; i++) {
             const key = keys[i];
             const value = walletAddress[key];

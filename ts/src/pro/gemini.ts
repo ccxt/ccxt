@@ -4,7 +4,7 @@ import geminiRest from '../gemini.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 import { ExchangeError, NotSupported } from '../base/errors.js';
 import { sha384 } from '../static_dependencies/noble-hashes/sha512.js';
-import type { Int, Str, Strings, OrderBook, Order, Trade, OHLCV, Tickers } from '../base/types.js';
+import type { Int, Str, Strings, OrderBook, Order, Trade, OHLCV, Tickers, Dict } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -53,7 +53,7 @@ export default class gemini extends geminiRest {
         const market = this.market (symbol);
         const messageHash = 'trades:' + market['symbol'];
         const marketId = market['id'];
-        const request = {
+        const request: Dict = {
             'type': 'subscribe',
             'subscriptions': [
                 {
@@ -237,7 +237,7 @@ export default class gemini extends geminiRest {
     handleTradesForMultidata (client: Client, trades, timestamp: Int) {
         if (trades !== undefined) {
             const tradesLimit = this.safeInteger (this.options, 'tradesLimit', 1000);
-            const storesForSymbols = {};
+            const storesForSymbols: Dict = {};
             for (let i = 0; i < trades.length; i++) {
                 const marketId = trades[i]['symbol'];
                 const market = this.safeMarket (marketId.toLowerCase ());
@@ -279,7 +279,7 @@ export default class gemini extends geminiRest {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const timeframeId = this.safeString (this.timeframes, timeframe, timeframe);
-        const request = {
+        const request: Dict = {
             'type': 'subscribe',
             'subscriptions': [
                 {
@@ -371,7 +371,7 @@ export default class gemini extends geminiRest {
         const market = this.market (symbol);
         const messageHash = 'orderbook:' + market['symbol'];
         const marketId = market['id'];
-        const request = {
+        const request: Dict = {
             'type': 'subscribe',
             'subscriptions': [
                 {
@@ -633,7 +633,7 @@ export default class gemini extends geminiRest {
          */
         const url = this.urls['api']['ws'] + '/v1/order/events?eventTypeFilter=initial&eventTypeFilter=accepted&eventTypeFilter=rejected&eventTypeFilter=fill&eventTypeFilter=cancelled&eventTypeFilter=booked';
         await this.loadMarkets ();
-        const authParams = {
+        const authParams: Dict = {
             'url': url,
         };
         await this.authenticate (authParams);
@@ -777,7 +777,7 @@ export default class gemini extends geminiRest {
     }
 
     parseWsOrderStatus (status) {
-        const statuses = {
+        const statuses: Dict = {
             'accepted': 'open',
             'booked': 'open',
             'fill': 'closed',
@@ -789,7 +789,7 @@ export default class gemini extends geminiRest {
     }
 
     parseWsOrderType (type) {
-        const types = {
+        const types: Dict = {
             'exchange limit': 'limit',
             'market buy': 'market',
             'market sell': 'market',
@@ -852,7 +852,7 @@ export default class gemini extends geminiRest {
         if (reason === 'error') {
             this.handleError (client, message);
         }
-        const methods = {
+        const methods: Dict = {
             'l2_updates': this.handleL2Updates,
             'trade': this.handleTrade,
             'subscription_ack': this.handleSubscription,
@@ -916,13 +916,13 @@ export default class gemini extends geminiRest {
         const urlLength = url.length;
         const endIndex = (urlParamsIndex >= 0) ? urlParamsIndex : urlLength;
         const request = url.slice (startIndex, endIndex);
-        const payload = {
+        const payload: Dict = {
             'request': request,
             'nonce': this.nonce (),
         };
         const b64 = this.stringToBase64 (this.json (payload));
         const signature = this.hmac (this.encode (b64), this.encode (this.secret), sha384, 'hex');
-        const defaultOptions = {
+        const defaultOptions: Dict = {
             'ws': {
                 'options': {
                     'headers': {},
@@ -932,7 +932,7 @@ export default class gemini extends geminiRest {
         // this.options = this.extend (defaultOptions, this.options);
         this.extendExchangeOptions (defaultOptions);
         const originalHeaders = this.options['ws']['options']['headers'];
-        const headers = {
+        const headers: Dict = {
             'X-GEMINI-APIKEY': this.apiKey,
             'X-GEMINI-PAYLOAD': b64,
             'X-GEMINI-SIGNATURE': signature,

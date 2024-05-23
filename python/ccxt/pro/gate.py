@@ -122,7 +122,7 @@ class gate(ccxt.async_support.gate):
         if market['contract']:
             stringLimit = str(limit)
             payload.append(stringLimit)
-        subscription = {
+        subscription: dict = {
             'symbol': symbol,
             'limit': limit,
         }
@@ -357,7 +357,7 @@ class gate(ccxt.async_support.gate):
             messageHashes.append(prefix + ':' + symbol)
         tickerOrBidAsk = await self.subscribe_public_multiple(url, messageHashes, marketIds, channel, params)
         if self.newUpdates:
-            items = {}
+            items: dict = {}
             items[tickerOrBidAsk['symbol']] = tickerOrBidAsk
             return items
         result = self.tickers if isWatchTickers else self.bidsasks
@@ -509,7 +509,7 @@ class gate(ccxt.async_support.gate):
         result = self.safe_value(message, 'result')
         if not isinstance(result, list):
             result = [result]
-        marketIds = {}
+        marketIds: dict = {}
         for i in range(0, len(result)):
             ohlcv = result[i]
             subscription = self.safe_string(ohlcv, 'n', '')
@@ -608,7 +608,7 @@ class gate(ccxt.async_support.gate):
             cachedTrades = ArrayCacheBySymbolById(limit)
             self.myTrades = cachedTrades
         parsed = self.parse_trades(result)
-        marketIds = {}
+        marketIds: dict = {}
         for i in range(0, len(parsed)):
             trade = parsed[i]
             cachedTrades.append(trade)
@@ -939,7 +939,7 @@ class gate(ccxt.async_support.gate):
         if self.orders is None:
             self.orders = ArrayCacheBySymbolById(limit)
         stored = self.orders
-        marketIds = {}
+        marketIds: dict = {}
         parsedOrders = self.parse_orders(orders)
         for i in range(0, len(parsedOrders)):
             parsed = parsedOrders[i]
@@ -1003,7 +1003,7 @@ class gate(ccxt.async_support.gate):
 
     def handle_subscription_status(self, client: Client, message):
         channel = self.safe_string(message, 'channel')
-        methods = {
+        methods: dict = {
             'balance': self.handle_balance_subscription,
             'spot.order_book_update': self.handle_order_book_subscription,
             'futures.order_book_update': self.handle_order_book_subscription,
@@ -1116,7 +1116,7 @@ class gate(ccxt.async_support.gate):
         channel = self.safe_string(message, 'channel', '')
         channelParts = channel.split('.')
         channelType = self.safe_value(channelParts, 1)
-        v4Methods = {
+        v4Methods: dict = {
             'usertrades': self.handle_my_trades,
             'candlesticks': self.handle_ohlcv,
             'orders': self.handle_order,
@@ -1155,7 +1155,7 @@ class gate(ccxt.async_support.gate):
             return url
 
     def get_market_type_by_url(self, url: str):
-        findBy = {
+        findBy: dict = {
             'op-': 'option',
             'delivery': 'future',
             'fx': 'swap',
@@ -1177,7 +1177,7 @@ class gate(ccxt.async_support.gate):
     async def subscribe_public(self, url, messageHash, payload, channel, params={}, subscription=None):
         requestId = self.request_id()
         time = self.seconds()
-        request = {
+        request: dict = {
             'id': requestId,
             'time': time,
             'channel': channel,
@@ -1195,7 +1195,7 @@ class gate(ccxt.async_support.gate):
     async def subscribe_public_multiple(self, url, messageHashes, payload, channel, params={}):
         requestId = self.request_id()
         time = self.seconds()
-        request = {
+        request: dict = {
             'id': requestId,
             'time': time,
             'channel': channel,
@@ -1220,13 +1220,13 @@ class gate(ccxt.async_support.gate):
         event = 'subscribe'
         signaturePayload = 'channel=' + channel + '&' + 'event=' + event + '&' + 'time=' + str(time)
         signature = self.hmac(self.encode(signaturePayload), self.encode(self.secret), hashlib.sha512, 'hex')
-        auth = {
+        auth: dict = {
             'method': 'api_key',
             'KEY': self.apiKey,
             'SIGN': signature,
         }
         requestId = self.request_id()
-        request = {
+        request: dict = {
             'id': requestId,
             'time': time,
             'channel': channel,

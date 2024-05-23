@@ -119,7 +119,7 @@ public partial class binance : Exchange
                 { "fetchPositions", true },
                 { "fetchPositionsHistory", false },
                 { "fetchPositionsRisk", true },
-                { "fetchPremiumIndexOHLCV", false },
+                { "fetchPremiumIndexOHLCV", true },
                 { "fetchSettlementHistory", true },
                 { "fetchStatus", true },
                 { "fetchTicker", true },
@@ -788,6 +788,10 @@ public partial class binance : Exchange
                             { "byLimit", new List<object>() {new List<object>() {99, 1}, new List<object>() {499, 2}, new List<object>() {1000, 5}, new List<object>() {10000, 10}} },
                         } },
                         { "indexPriceKlines", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                            { "byLimit", new List<object>() {new List<object>() {99, 1}, new List<object>() {499, 2}, new List<object>() {1000, 5}, new List<object>() {10000, 10}} },
+                        } },
+                        { "premiumIndexKlines", new Dictionary<string, object>() {
                             { "cost", 1 },
                             { "byLimit", new List<object>() {new List<object>() {99, 1}, new List<object>() {499, 2}, new List<object>() {1000, 5}, new List<object>() {10000, 10}} },
                         } },
@@ -4312,6 +4316,15 @@ public partial class binance : Exchange
             {
                 response = await this.fapiPublicGetIndexPriceKlines(this.extend(request, parameters));
             }
+        } else if (isTrue(isEqual(price, "premiumIndex")))
+        {
+            if (isTrue(getValue(market, "inverse")))
+            {
+                response = await this.dapiPublicGetPremiumIndexKlines(this.extend(request, parameters));
+            } else
+            {
+                response = await this.fapiPublicGetPremiumIndexKlines(this.extend(request, parameters));
+            }
         } else if (isTrue(getValue(market, "linear")))
         {
             response = await this.fapiPublicGetKlines(this.extend(request, parameters));
@@ -6115,6 +6128,19 @@ public partial class binance : Exchange
                     ((IDictionary<string,object>)request)["isIsolated"] = true;
                 }
             }
+        } else
+        {
+            postOnly = this.isPostOnly(isMarketOrder, isEqual(initialUppercaseType, "LIMIT_MAKER"), parameters);
+            if (isTrue(postOnly))
+            {
+                if (!isTrue(getValue(market, "contract")))
+                {
+                    uppercaseType = "LIMIT_MAKER"; // only this endpoint accepts GTXhttps://binance-docs.github.io/apidocs/pm/en/#new-margin-order-trade
+                } else
+                {
+                    ((IDictionary<string,object>)request)["timeInForce"] = "GTX";
+                }
+            }
         }
         // handle newOrderRespType response type
         if (isTrue(isTrue((isTrue((isEqual(marketType, "spot"))) || isTrue((isEqual(marketType, "margin"))))) && !isTrue(isPortfolioMargin)))
@@ -6266,7 +6292,7 @@ public partial class binance : Exchange
                 ((IDictionary<string,object>)request)["stopPrice"] = this.priceToPrecision(symbol, stopPrice);
             }
         }
-        if (isTrue(isTrue(timeInForceIsRequired) && isTrue((isEqual(this.safeString(parameters, "timeInForce"), null)))))
+        if (isTrue(isTrue(isTrue(timeInForceIsRequired) && isTrue((isEqual(this.safeString(parameters, "timeInForce"), null)))) && isTrue((isEqual(this.safeString(request, "timeInForce"), null)))))
         {
             ((IDictionary<string,object>)request)["timeInForce"] = getValue(this.options, "defaultTimeInForce"); // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
         }
@@ -10108,7 +10134,7 @@ public partial class binance : Exchange
         await this.loadMarkets();
         // by default cache the leverage bracket
         // it contains useful stuff like the maintenance margin and initial margin for positions
-        object leverageBrackets = this.safeDict(this.options, "leverageBrackets", new Dictionary<string, object>() {});
+        object leverageBrackets = this.safeDict(this.options, "leverageBrackets");
         if (isTrue(isTrue((isEqual(leverageBrackets, null))) || isTrue((reload))))
         {
             object defaultType = this.safeString(this.options, "defaultType", "future");

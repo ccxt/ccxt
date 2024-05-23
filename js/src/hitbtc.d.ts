@@ -56,8 +56,8 @@ export default class hitbtc extends Exchange {
     cancelOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
     editOrder(id: string, symbol: string, type: OrderType, side: OrderSide, amount?: Num, price?: Num, params?: {}): Promise<Order>;
     createOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): Promise<Order>;
-    createOrderRequest(market: object, marketType: string, type: OrderType, side: OrderSide, amount: number, price?: Num, marginMode?: Str, params?: {}): {}[];
-    parseOrderStatus(status: any): string;
+    createOrderRequest(market: object, marketType: string, type: OrderType, side: OrderSide, amount: number, price?: Num, marginMode?: Str, params?: {}): Dict[];
+    parseOrderStatus(status: Str): string;
     parseOrder(order: any, market?: Market): Order;
     fetchMarginModes(symbols?: Str[], params?: {}): Promise<MarginModes>;
     parseMarginMode(marginMode: any, market?: any): MarginMode;
@@ -113,7 +113,7 @@ export default class hitbtc extends Exchange {
         previousFundingDatetime: any;
     };
     modifyMarginHelper(symbol: string, amount: any, type: any, params?: {}): Promise<MarginModification>;
-    parseMarginModification(data: any, market?: Market): MarginModification;
+    parseMarginModification(data: Dict, market?: Market): MarginModification;
     reduceMargin(symbol: string, amount: number, params?: {}): Promise<MarginModification>;
     addMargin(symbol: string, amount: number, params?: {}): Promise<MarginModification>;
     fetchLeverage(symbol: string, params?: {}): Promise<Leverage>;

@@ -121,7 +121,7 @@ class coinbase(ccxt.async_support.coinbase):
         return await self.watch_multiple(url, messageHashes, subscribe, messageHashes)
 
     def create_ws_auth(self, name: str, productIds: List[str]):
-        subscribe = {}
+        subscribe: dict = {}
         timestamp = self.number_to_string(self.seconds())
         self.check_required_credentials()
         isCloudAPiKey = (self.apiKey.find('organizations/') >= 0) or (self.secret.startswith('-----BEGIN'))
@@ -235,13 +235,17 @@ class coinbase(ccxt.async_support.coinbase):
         #
         channel = self.safe_string(message, 'channel')
         events = self.safe_value(message, 'events', [])
+        datetime = self.safe_string(message, 'timestamp')
+        timestamp = self.parse8601(datetime)
         newTickers = []
         for i in range(0, len(events)):
             tickersObj = events[i]
-            tickers = self.safe_value(tickersObj, 'tickers', [])
+            tickers = self.safe_list(tickersObj, 'tickers', [])
             for j in range(0, len(tickers)):
                 ticker = tickers[j]
                 result = self.parse_ws_ticker(ticker)
+                result['timestamp'] = timestamp
+                result['datetime'] = datetime
                 symbol = result['symbol']
                 self.tickers[symbol] = result
                 wsMarketId = self.safe_string(ticker, 'product_id')
@@ -628,7 +632,7 @@ class coinbase(ccxt.async_support.coinbase):
 
     def handle_message(self, client, message):
         channel = self.safe_string(message, 'channel')
-        methods = {
+        methods: dict = {
             'subscriptions': self.handle_subscription_status,
             'ticker': self.handle_tickers,
             'ticker_batch': self.handle_tickers,

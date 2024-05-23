@@ -2496,13 +2496,13 @@ class bybit extends Exchange {
                 throw new ArgumentsRequired($this->id . ' fetchFundingRateHistory() requires a $symbol argument');
             }
             Async\await($this->load_markets());
-            if ($limit === null) {
-                $limit = 200;
-            }
             $paginate = false;
             list($paginate, $params) = $this->handle_option_and_params($params, 'fetchFundingRateHistory', 'paginate');
             if ($paginate) {
                 return Async\await($this->fetch_paginated_call_deterministic('fetchFundingRateHistory', $symbol, $since, $limit, '8h', $params, 200));
+            }
+            if ($limit === null) {
+                $limit = 200;
             }
             $request = array(
                 // 'category' => '', // Product $type-> linear,inverse
@@ -3194,7 +3194,7 @@ class bybit extends Exchange {
         }) ();
     }
 
-    public function parse_order_status($status) {
+    public function parse_order_status(?string $status) {
         $statuses = array(
             // v3 spot
             'NEW' => 'open',

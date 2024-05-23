@@ -776,7 +776,7 @@ class btcturk extends Exchange {
         return $this->parse_orders($data, $market, $since, $limit);
     }
 
-    public function parse_order_status($status) {
+    public function parse_order_status(?string $status) {
         $statuses = array(
             'Untouched' => 'open',
             'Partial' => 'open',

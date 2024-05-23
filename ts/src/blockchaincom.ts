@@ -379,7 +379,7 @@ export default class blockchaincom extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'symbol': market['id'],
         };
         if (limit !== undefined) {
@@ -392,7 +392,7 @@ export default class blockchaincom extends Exchange {
     async fetchL2OrderBook (symbol: string, limit: Int = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'symbol': market['id'],
         };
         if (limit !== undefined) {
@@ -452,7 +452,7 @@ export default class blockchaincom extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'symbol': market['id'],
         };
         const response = await this.publicGetTickersSymbol (this.extend (request, params));
@@ -475,7 +475,7 @@ export default class blockchaincom extends Exchange {
     }
 
     parseOrderState (state) {
-        const states = {
+        const states: Dict = {
             'OPEN': 'open',
             'REJECTED': 'rejected',
             'FILLED': 'closed',
@@ -563,7 +563,7 @@ export default class blockchaincom extends Exchange {
         const uppercaseOrderType = orderType.toUpperCase ();
         const clientOrderId = this.safeString2 (params, 'clientOrderId', 'clOrdId', this.uuid16 ());
         params = this.omit (params, [ 'ordType', 'clientOrderId', 'clOrdId' ]);
-        const request = {
+        const request: Dict = {
             // 'stopPx' : limit price
             // 'timeInForce' : "GTC" for Good Till Cancel, "IOC" for Immediate or Cancel, "FOK" for Fill or Kill, "GTD" Good Till Date
             // 'expireDate' : expiry date in the format YYYYMMDD
@@ -617,7 +617,7 @@ export default class blockchaincom extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
-        const request = {
+        const request: Dict = {
             'orderId': id,
         };
         const response = await this.privateDeleteOrdersOrderId (this.extend (request, params));
@@ -640,7 +640,7 @@ export default class blockchaincom extends Exchange {
         // cancels all open orders if no symbol specified
         // cancels all open orders of specified symbol, if symbol is specified
         await this.loadMarkets ();
-        const request = {
+        const request: Dict = {
             // 'symbol': marketId,
         };
         if (symbol !== undefined) {
@@ -674,7 +674,7 @@ export default class blockchaincom extends Exchange {
         //
         const makerFee = this.safeNumber (response, 'makerRate');
         const takerFee = this.safeNumber (response, 'takerRate');
-        const result = {};
+        const result: Dict = {};
         for (let i = 0; i < this.symbols.length; i++) {
             const symbol = this.symbols[i];
             result[symbol] = {
@@ -737,7 +737,7 @@ export default class blockchaincom extends Exchange {
 
     async fetchOrdersByState (state, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         await this.loadMarkets ();
-        const request = {
+        const request: Dict = {
             // 'to': unix epoch ms
             // 'from': unix epoch ms
             'status': state,
@@ -812,7 +812,7 @@ export default class blockchaincom extends Exchange {
          * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
          */
         await this.loadMarkets ();
-        const request = {};
+        const request: Dict = {};
         if (limit !== undefined) {
             request['limit'] = limit;
         }
@@ -837,7 +837,7 @@ export default class blockchaincom extends Exchange {
          */
         await this.loadMarkets ();
         const currency = this.currency (code);
-        const request = {
+        const request: Dict = {
             'currency': currency['id'],
         };
         const response = await this.privatePostDepositsCurrency (this.extend (request, params));
@@ -850,7 +850,7 @@ export default class blockchaincom extends Exchange {
             tag = this.safeString (addressParts, 0);
             address = this.safeString (addressParts, 1);
         }
-        const result = { 'info': response };
+        const result: Dict = { 'info': response };
         result['currency'] = currency['code'];
         result['address'] = address;
         if (tag !== undefined) {
@@ -860,7 +860,7 @@ export default class blockchaincom extends Exchange {
     }
 
     parseTransactionState (state) {
-        const states = {
+        const states: Dict = {
             'COMPLETED': 'ok', //
             'REJECTED': 'failed',
             'PENDING': 'pending',
@@ -956,7 +956,7 @@ export default class blockchaincom extends Exchange {
          */
         await this.loadMarkets ();
         const currency = this.currency (code);
-        const request = {
+        const request: Dict = {
             'amount': amount,
             'currency': currency['id'],
             'beneficiary': address,
@@ -990,7 +990,7 @@ export default class blockchaincom extends Exchange {
          * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         await this.loadMarkets ();
-        const request = {
+        const request: Dict = {
             // 'from' : integer timestamp in ms
             // 'to' : integer timestamp in ms
         };
@@ -1017,7 +1017,7 @@ export default class blockchaincom extends Exchange {
          * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         await this.loadMarkets ();
-        const request = {
+        const request: Dict = {
             'withdrawalId': id,
         };
         const response = await this.privateGetWithdrawalsWithdrawalId (this.extend (request, params));
@@ -1037,7 +1037,7 @@ export default class blockchaincom extends Exchange {
          * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         await this.loadMarkets ();
-        const request = {
+        const request: Dict = {
             // 'from' : integer timestamp in ms
             // 'to' : integer timestap in ms
         };
@@ -1065,7 +1065,7 @@ export default class blockchaincom extends Exchange {
          */
         await this.loadMarkets ();
         const depositId = this.safeString (params, 'depositId', id);
-        const request = {
+        const request: Dict = {
             'depositId': depositId,
         };
         const deposit = await this.privateGetDepositsDepositId (this.extend (request, params));
@@ -1084,7 +1084,7 @@ export default class blockchaincom extends Exchange {
         await this.loadMarkets ();
         const accountName = this.safeString (params, 'account', 'primary');
         params = this.omit (params, 'account');
-        const request = {
+        const request: Dict = {
             'account': accountName,
         };
         const response = await this.privateGetAccounts (this.extend (request, params));
@@ -1107,7 +1107,7 @@ export default class blockchaincom extends Exchange {
         if (balances === undefined) {
             throw new ExchangeError (this.id + ' fetchBalance() could not find the "' + accountName + '" account');
         }
-        const result = { 'info': response };
+        const result: Dict = { 'info': response };
         for (let i = 0; i < balances.length; i++) {
             const entry = balances[i];
             const currencyId = this.safeString (entry, 'currency');
@@ -1133,7 +1133,7 @@ export default class blockchaincom extends Exchange {
         // note: only works with exchange-order-id
         // does not work with clientOrderId
         await this.loadMarkets ();
-        const request = {
+        const request: Dict = {
             'orderId': id,
         };
         const response = await this.privateGetOrdersOrderId (this.extend (request, params));

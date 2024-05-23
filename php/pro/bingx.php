@@ -199,7 +199,7 @@ class bingx extends \ccxt\async\bingx {
         //         "b" => "2.5747"
         //     }
         //
-        $timestamp = $this->safe_integer($message, 'ts');
+        $timestamp = $this->safe_integer($message, 'C');
         $marketId = $this->safe_string($message, 's');
         $market = $this->safe_market($marketId, $market);
         $close = $this->safe_string($message, 'c');

@@ -252,6 +252,9 @@ class okx extends Exchange {
                         'sprd/books' => 1 / 2,
                         'sprd/ticker' => 1,
                         'sprd/public-trades' => 1 / 5,
+                        'market/sprd-ticker' => 2,
+                        'market/sprd-candles' => 2,
+                        'market/sprd-history-candles' => 2,
                         'tradingBot/grid/ai-param' => 1,
                         'tradingBot/grid/min-investment' => 1,
                         'tradingBot/public/rsi-back-testing' => 1,
@@ -3427,7 +3430,7 @@ class okx extends Exchange {
         }) ();
     }
 
-    public function parse_order_status($status) {
+    public function parse_order_status(?string $status) {
         $statuses = array(
             'canceled' => 'canceled',
             'order_failed' => 'canceled',
@@ -6688,7 +6691,7 @@ class okx extends Exchange {
         }) ();
     }
 
-    public function parse_margin_modification($data, ?array $market = null): array {
+    public function parse_margin_modification(array $data, ?array $market = null): array {
         //
         // addMargin/reduceMargin
         //

@@ -672,7 +672,7 @@ class btcalpha extends Exchange {
         }) ();
     }
 
-    public function parse_order_status($status) {
+    public function parse_order_status(?string $status) {
         $statuses = array(
             '1' => 'open',
             '2' => 'canceled',

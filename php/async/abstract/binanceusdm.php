@@ -1396,6 +1396,9 @@ abstract class binanceusdm extends \ccxt\async\binance {
     public function fapipublic_get_indexpriceklines($params = array()) {
         return $this->request('indexPriceKlines', 'fapiPublic', 'GET', $params, null, null, array("cost" => 1, "byLimit" => [[99, 1], [499, 2], [1000, 5], [10000, 10]]));
     }
+    public function fapipublic_get_premiumindexklines($params = array()) {
+        return $this->request('premiumIndexKlines', 'fapiPublic', 'GET', $params, null, null, array("cost" => 1, "byLimit" => [[99, 1], [499, 2], [1000, 5], [10000, 10]]));
+    }
     public function fapipublic_get_fundingrate($params = array()) {
         return $this->request('fundingRate', 'fapiPublic', 'GET', $params, null, null, array("cost" => 1));
     }
@@ -3495,6 +3498,9 @@ abstract class binanceusdm extends \ccxt\async\binance {
     }
     public function fapiPublicGetIndexPriceKlines($params = array()) {
         return $this->request('indexPriceKlines', 'fapiPublic', 'GET', $params, null, null, array("cost" => 1, "byLimit" => [[99, 1], [499, 2], [1000, 5], [10000, 10]]));
+    }
+    public function fapiPublicGetPremiumIndexKlines($params = array()) {
+        return $this->request('premiumIndexKlines', 'fapiPublic', 'GET', $params, null, null, array("cost" => 1, "byLimit" => [[99, 1], [499, 2], [1000, 5], [10000, 10]]));
     }
     public function fapiPublicGetFundingRate($params = array()) {
         return $this->request('fundingRate', 'fapiPublic', 'GET', $params, null, null, array("cost" => 1));

@@ -137,7 +137,7 @@ class binance extends Exchange {
                 'fetchPositions' => true,
                 'fetchPositionsHistory' => false,
                 'fetchPositionsRisk' => true,
-                'fetchPremiumIndexOHLCV' => false,
+                'fetchPremiumIndexOHLCV' => true,
                 'fetchSettlementHistory' => true,
                 'fetchStatus' => true,
                 'fetchTicker' => true,
@@ -786,6 +786,7 @@ class binance extends Exchange {
                         'continuousKlines' => array( 'cost' => 1, 'byLimit' => array( array( 99, 1 ), array( 499, 2 ), array( 1000, 5 ), array( 10000, 10 ) ) ),
                         'markPriceKlines' => array( 'cost' => 1, 'byLimit' => array( array( 99, 1 ), array( 499, 2 ), array( 1000, 5 ), array( 10000, 10 ) ) ),
                         'indexPriceKlines' => array( 'cost' => 1, 'byLimit' => array( array( 99, 1 ), array( 499, 2 ), array( 1000, 5 ), array( 10000, 10 ) ) ),
+                        'premiumIndexKlines' => array( 'cost' => 1, 'byLimit' => array( array( 99, 1 ), array( 499, 2 ), array( 1000, 5 ), array( 10000, 10 ) ) ),
                         'fundingRate' => 1,
                         'fundingInfo' => 1,
                         'premiumIndex' => 1,
@@ -4264,6 +4265,12 @@ class binance extends Exchange {
                 } else {
                     $response = Async\await($this->fapiPublicGetIndexPriceKlines ($this->extend($request, $params)));
                 }
+            } elseif ($price === 'premiumIndex') {
+                if ($market['inverse']) {
+                    $response = Async\await($this->dapiPublicGetPremiumIndexKlines ($this->extend($request, $params)));
+                } else {
+                    $response = Async\await($this->fapiPublicGetPremiumIndexKlines ($this->extend($request, $params)));
+                }
             } elseif ($market['linear']) {
                 $response = Async\await($this->fapiPublicGetKlines ($this->extend($request, $params)));
             } elseif ($market['inverse']) {
@@ -5010,7 +5017,7 @@ class binance extends Exchange {
         }) ();
     }
 
-    public function parse_order_status($status) {
+    public function parse_order_status(?string $status) {
         $statuses = array(
             'NEW' => 'open',
             'PARTIALLY_FILLED' => 'open',
@@ -5905,6 +5912,15 @@ class binance extends Exchange {
                     $request['isIsolated'] = true;
                 }
             }
+        } else {
+            $postOnly = $this->is_post_only($isMarketOrder, $initialUppercaseType === 'LIMIT_MAKER', $params);
+            if ($postOnly) {
+                if (!$market['contract']) {
+                    $uppercaseType = 'LIMIT_MAKER'; // only this endpoint accepts GTXhttps://binance-docs.github.io/apidocs/pm/en/#new-margin-order-trade
+                } else {
+                    $request['timeInForce'] = 'GTX';
+                }
+            }
         }
         // handle newOrderRespType response $type
         if ((($marketType === 'spot') || ($marketType === 'margin')) && !$isPortfolioMargin) {
@@ -6025,7 +6041,7 @@ class binance extends Exchange {
                 $request['stopPrice'] = $this->price_to_precision($symbol, $stopPrice);
             }
         }
-        if ($timeInForceIsRequired && ($this->safe_string($params, 'timeInForce') === null)) {
+        if ($timeInForceIsRequired && ($this->safe_string($params, 'timeInForce') === null) && ($this->safe_string($request, 'timeInForce') === null)) {
             $request['timeInForce'] = $this->options['defaultTimeInForce']; // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
         }
         if (!$isPortfolioMargin && $market['contract'] && $postOnly) {
@@ -9543,7 +9559,7 @@ class binance extends Exchange {
             Async\await($this->load_markets());
             // by default cache the leverage $bracket
             // it contains useful stuff like the maintenance margin and initial margin for positions
-            $leverageBrackets = $this->safe_dict($this->options, 'leverageBrackets', array());
+            $leverageBrackets = $this->safe_dict($this->options, 'leverageBrackets');
             if (($leverageBrackets === null) || ($reload)) {
                 $defaultType = $this->safe_string($this->options, 'defaultType', 'future');
                 $type = $this->safe_string($params, 'type', $defaultType);
@@ -11089,7 +11105,7 @@ class binance extends Exchange {
         }) ();
     }
 
-    public function parse_margin_modification($data, ?array $market = null): array {
+    public function parse_margin_modification(array $data, ?array $market = null): array {
         //
         // add/reduce margin
         //

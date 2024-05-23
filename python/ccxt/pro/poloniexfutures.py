@@ -152,7 +152,7 @@ class poloniexfutures(ccxt.async_support.poloniexfutures):
         messageHash = name
         tunnelId = await self.stream(url, messageHash)
         requestId = self.request_id()
-        subscribe = {
+        subscribe: dict = {
             'id': requestId,
             'type': 'subscribe',
             'topic': name,                 # Subscribed topic. Some topics support subscribe to the data of multiple trading pairs through ",".
@@ -160,7 +160,7 @@ class poloniexfutures(ccxt.async_support.poloniexfutures):
             'response': True,              # Whether the server needs to return the receipt information of self subscription or not. Set by default.
             'tunnelId': tunnelId,
         }
-        subscriptionRequest = {
+        subscriptionRequest: dict = {
             'id': requestId,
         }
         if subscription is None:
@@ -187,13 +187,13 @@ class poloniexfutures(ccxt.async_support.poloniexfutures):
             stream = 'stream-' + streamIndexString
             self.options['streamBySubscriptionsHash'][subscriptionHash] = stream
             messageHash = 'tunnel:' + stream
-            request = {
+            request: dict = {
                 'id': messageHash,
                 'type': 'openTunnel',
                 'newTunnelId': stream,
                 'response': True,
             }
-            subscription = {
+            subscription: dict = {
                 'id': messageHash,
                 'method': self.handle_new_stream,
             }
@@ -281,7 +281,7 @@ class poloniexfutures(ccxt.async_support.poloniexfutures):
             if limit != 5 and limit != 50:
                 raise BadRequest(self.id + ' watchOrderBook limit argument must be none, 5 or 50 if using method /contractMarket/level2')
             name += 'Depth' + self.number_to_string(limit)
-        subscription = {
+        subscription: dict = {
             'symbol': symbol,
             'limit': limit,
             'method': self.handle_order_book_subscription,
@@ -517,14 +517,14 @@ class poloniexfutures(ccxt.async_support.poloniexfutures):
         :param str type: "open", "match", "filled", "canceled", "update"
         :returns str:
         """
-        types = {
+        types: dict = {
             'canceled': 'canceled',
             'cancel': 'canceled',
             'filled': 'closed',
         }
         parsedStatus = self.safe_string(types, type)
         if parsedStatus is None:
-            statuses = {
+            statuses: dict = {
                 'open': 'open',
                 'match': 'open',
                 'done': 'closed',
@@ -809,29 +809,33 @@ class poloniexfutures(ccxt.async_support.poloniexfutures):
     def handle_delta(self, orderbook, delta):
         #
         #    {
-        #        "sequence": 18,                   # Sequence number which is used to judge the continuity of pushed messages
-        #        "change": "5000.0,sell,83"        # Price, side, quantity
-        #        "timestamp": 1551770400000
-        #    }
+        #      sequence: 123677914,
+        #      lastSequence: 123677913,
+        #      change: '80.36,buy,4924',
+        #      changes: ['80.19,buy,0',"80.15,buy,10794"],
+        #      timestamp: 1715643483528
+        #    },
         #
         sequence = self.safe_integer(delta, 'sequence')
+        lastSequence = self.safe_integer(delta, 'lastSequence')
         nonce = self.safe_integer(orderbook, 'nonce')
-        if nonce != sequence - 1:
-            checksum = self.safe_bool(self.options, 'checksum', True)
-            if checksum:
-                # todo: client.reject from handleOrderBookMessage properly
-                raise InvalidNonce(self.id + ' watchOrderBook received an out-of-order nonce')
-        change = self.safe_string(delta, 'change')
-        splitChange = change.split(',')
-        price = self.safe_number(splitChange, 0)
-        side = self.safe_string(splitChange, 1)
-        size = self.safe_number(splitChange, 2)
+        if nonce > sequence:
+            return
+        if nonce != lastSequence:
+            raise InvalidNonce(self.id + ' watchOrderBook received an out-of-order nonce')
+        changes = self.safe_list(delta, 'changes')
+        for i in range(0, len(changes)):
+            change = changes[i]
+            splitChange = change.split(',')
+            price = self.safe_number(splitChange, 0)
+            side = self.safe_string(splitChange, 1)
+            size = self.safe_number(splitChange, 2)
+            orderBookSide = orderbook['bids'] if (side == 'buy') else orderbook['asks']
+            orderBookSide.store(price, size)
         timestamp = self.safe_integer(delta, 'timestamp')
         orderbook['timestamp'] = timestamp
         orderbook['datetime'] = self.iso8601(timestamp)
         orderbook['nonce'] = sequence
-        orderBookSide = orderbook['bids'] if (side == 'buy') else orderbook['asks']
-        orderBookSide.store(price, size)
 
     def handle_balance(self, client: Client, message):
         #
@@ -887,7 +891,7 @@ class poloniexfutures(ccxt.async_support.poloniexfutures):
         #    }
         #
         timestamp = self.safe_integer(response, 'timestamp')
-        result = {
+        result: dict = {
             'info': response,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
@@ -910,7 +914,7 @@ class poloniexfutures(ccxt.async_support.poloniexfutures):
 
     def handle_subject(self, client: Client, message):
         subject = self.safe_string(message, 'subject')
-        methods = {
+        methods: dict = {
             'auth': self.handle_authenticate,
             'received': self.handle_l3_order_book,
             'open': self.handle_l3_order_book,
@@ -953,7 +957,7 @@ class poloniexfutures(ccxt.async_support.poloniexfutures):
 
     def handle_message(self, client: Client, message):
         type = self.safe_string(message, 'type')
-        methods = {
+        methods: dict = {
             'welcome': self.handle_system_status,
             'ack': self.handle_subscription_status,
             'message': self.handle_subject,

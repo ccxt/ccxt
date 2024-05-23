@@ -16,10 +16,10 @@ from ccxt.base.errors import BadRequest
 from ccxt.base.errors import BadSymbol
 
 
-class coinbasepro(ccxt.async_support.coinbasepro):
+class coinbaseexchange(ccxt.async_support.coinbaseexchange):
 
     def describe(self):
-        return self.deep_extend(super(coinbasepro, self).describe(), {
+        return self.deep_extend(super(coinbaseexchange, self).describe(), {
             'has': {
                 'ws': True,
                 'watchOHLCV': False,  # missing on the exchange side
@@ -38,7 +38,7 @@ class coinbasepro(ccxt.async_support.coinbasepro):
             },
             'urls': {
                 'api': {
-                    'ws': 'wss://ws-feed.pro.coinbase.com',
+                    'ws': 'wss://ws-feed.exchange.coinbase.com',
                 },
                 'test': {
                     'ws': 'wss://ws-feed-public.sandbox.exchange.coinbase.com',
@@ -77,7 +77,7 @@ class coinbasepro(ccxt.async_support.coinbasepro):
         if 'signature' in params:
             # need to distinguish between public trades and user trades
             url = url + '?'
-        subscribe = {
+        subscribe: dict = {
             'type': 'subscribe',
             'product_ids': productIds,
             'channels': [
@@ -102,7 +102,7 @@ class coinbasepro(ccxt.async_support.coinbasepro):
         if 'signature' in params:
             # need to distinguish between public trades and user trades
             url = url + '?'
-        subscribe = {
+        subscribe: dict = {
             'type': 'subscribe',
             'product_ids': productIds,
             'channels': [
@@ -138,7 +138,7 @@ class coinbasepro(ccxt.async_support.coinbasepro):
         messageHash = 'ticker'
         ticker = await self.subscribe_multiple(channel, symbols, messageHash, params)
         if self.newUpdates:
-            result = {}
+            result: dict = {}
             result[ticker['symbol']] = ticker
             return result
         return self.filter_by_array(self.tickers, 'symbol', symbols)
@@ -286,7 +286,7 @@ class coinbasepro(ccxt.async_support.coinbasepro):
             marketId = marketIds[i]
             messageHashes.append(name + ':' + marketId)
         url = self.urls['api']['ws']
-        subscribe = {
+        subscribe: dict = {
             'type': 'subscribe',
             'product_ids': marketIds,
             'channels': [
@@ -294,7 +294,7 @@ class coinbasepro(ccxt.async_support.coinbasepro):
             ],
         }
         request = self.extend(subscribe, params)
-        subscription = {
+        subscription: dict = {
             'messageHash': name,
             'symbols': symbols,
             'marketIds': marketIds,
@@ -318,7 +318,7 @@ class coinbasepro(ccxt.async_support.coinbasepro):
         symbol = market['symbol']
         messageHash = name + ':' + market['id']
         url = self.urls['api']['ws']
-        subscribe = {
+        subscribe: dict = {
             'type': 'subscribe',
             'product_ids': [
                 market['id'],
@@ -328,7 +328,7 @@ class coinbasepro(ccxt.async_support.coinbasepro):
             ],
         }
         request = self.extend(subscribe, params)
-        subscription = {
+        subscription: dict = {
             'messageHash': messageHash,
             'symbol': symbol,
             'marketId': market['id'],
@@ -437,7 +437,7 @@ class coinbasepro(ccxt.async_support.coinbasepro):
         #     "side": "buy",
         #     "order_type": "limit"
         # }
-        parsed = super(coinbasepro, self).parse_trade(trade)
+        parsed = super(coinbaseexchange, self).parse_trade(trade)
         feeRate = None
         isMaker = False
         if 'maker_fee_rate' in trade:
@@ -470,7 +470,7 @@ class coinbasepro(ccxt.async_support.coinbasepro):
         return parsed
 
     def parse_ws_order_status(self, status):
-        statuses = {
+        statuses: dict = {
             'filled': 'closed',
             'canceled': 'canceled',
         }
@@ -727,7 +727,7 @@ class coinbasepro(ccxt.async_support.coinbasepro):
         #
         type = self.safe_string(ticker, 'type')
         if type is None:
-            return super(coinbasepro, self).parse_ticker(ticker, market)
+            return super(coinbaseexchange, self).parse_ticker(ticker, market)
         marketId = self.safe_string(ticker, 'product_id')
         symbol = self.safe_symbol(marketId, market, '-')
         timestamp = self.parse8601(self.safe_string(ticker, 'time'))
@@ -811,7 +811,7 @@ class coinbasepro(ccxt.async_support.coinbasepro):
             orderbook = self.orderbooks[symbol]
             timestamp = self.parse8601(self.safe_string(message, 'time'))
             changes = self.safe_value(message, 'changes', [])
-            sides = {
+            sides: dict = {
                 'sell': 'asks',
                 'buy': 'bids',
             }
@@ -870,7 +870,7 @@ class coinbasepro(ccxt.async_support.coinbasepro):
 
     def handle_message(self, client: Client, message):
         type = self.safe_string(message, 'type')
-        methods = {
+        methods: dict = {
             'snapshot': self.handle_order_book,
             'l2update': self.handle_order_book,
             'subscribe': self.handle_subscription_status,

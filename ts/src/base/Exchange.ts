@@ -784,7 +784,7 @@ export default class Exchange {
         //         }
         //     }
         //
-        this.options = this.getDefaultOptions(); // exchange-specific options, if any
+        this.options = this.getDefaultOptions(); // exchange-specific options if any
         // fetch implementation options (JS only)
         // http properties
         this.headers = {}
@@ -2878,6 +2878,7 @@ export default class Exchange {
         const shouldParseFees = parseFee || parseFees;
         const fees = this.safeList (order, 'fees', []);
         let trades = [];
+        const isTriggerOrSLTpOrder = ((this.safeString (order, 'triggerPrice') !== undefined || (this.safeString (order, 'stopLossPrice') !== undefined)) || (this.safeString (order, 'takeProfitPrice') !== undefined));
         if (parseFilled || parseCost || shouldParseFees) {
             const rawTrades = this.safeValue (order, 'trades', trades);
             const oldNumber = this.number;
@@ -3071,7 +3072,7 @@ export default class Exchange {
         let postOnly = this.safeValue (order, 'postOnly');
         // timeInForceHandling
         if (timeInForce === undefined) {
-            if (this.safeString (order, 'type') === 'market') {
+            if (!isTriggerOrSLTpOrder && (this.safeString (order, 'type') === 'market')) {
                 timeInForce = 'IOC';
             }
             // allow postOnly override
@@ -4069,10 +4070,26 @@ export default class Exchange {
         return [ value, params ];
     }
 
+    handleParamString2 (params: object, paramName1: string, paramName2: string, defaultValue: Str = undefined): [string, object] {
+        const value = this.safeString2 (params, paramName1, paramName2, defaultValue);
+        if (value !== undefined) {
+            params = this.omit (params, [ paramName1, paramName2 ]);
+        }
+        return [ value, params ];
+    }
+
     handleParamInteger (params: object, paramName: string, defaultValue: Int = undefined): [Int, object] {
         const value = this.safeInteger (params, paramName, defaultValue);
         if (value !== undefined) {
             params = this.omit (params, paramName);
+        }
+        return [ value, params ];
+    }
+
+    handleParamInteger2 (params: object, paramName1: string, paramName2: string, defaultValue: Int = undefined): [Int, object] {
+        const value = this.safeInteger2 (params, paramName1, paramName2, defaultValue);
+        if (value !== undefined) {
+            params = this.omit (params, [ paramName1, paramName2 ]);
         }
         return [ value, params ];
     }
@@ -4230,7 +4247,7 @@ export default class Exchange {
         return await this.createOrder (symbol, type, side, amount, price, params);
     }
 
-    async editOrderWs (id: string, symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}): Promise<Order> {
+    async editOrderWs (id: string, symbol: string, type: OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params = {}): Promise<Order> {
         await this.cancelOrderWs (id, symbol);
         return await this.createOrderWs (symbol, type, side, amount, price, params);
     }
@@ -4536,28 +4553,13 @@ export default class Exchange {
         return [ value, params ];
     }
 
-    handleOptionAndParams2 (params: object, methodName: string, methodName2: string, optionName: string, defaultValue = undefined) {
-        // This method can be used to obtain method specific properties, i.e: this.handleOptionAndParams (params, 'fetchPosition', 'marginMode', 'isolated')
-        const defaultOptionName = 'default' + this.capitalize (optionName); // we also need to check the 'defaultXyzWhatever'
-        // check if params contain the key
-        let value = this.safeValue2 (params, optionName, defaultOptionName);
-        if (value !== undefined) {
-            params = this.omit (params, [ optionName, defaultOptionName ]);
-        } else {
-            // check if exchange has properties for this method
-            const exchangeWideMethodOptions = this.safeValue2 (this.options, methodName, methodName2);
-            if (exchangeWideMethodOptions !== undefined) {
-                // check if the option is defined inside this method's props
-                value = this.safeValue2 (exchangeWideMethodOptions, optionName, defaultOptionName);
-            }
-            if (value === undefined) {
-                // if it's still undefined, check if global exchange-wide option exists
-                value = this.safeValue2 (this.options, optionName, defaultOptionName);
-            }
-            // if it's still undefined, use the default value
-            value = (value !== undefined) ? value : defaultValue;
-        }
-        return [ value, params ];
+    handleOptionAndParams2 (params: object, methodName1: string, optionName1: string, optionName2: string, defaultValue = undefined) {
+        let value = undefined;
+        [ value, params ] = this.handleOptionAndParams (params, methodName1, optionName1, defaultValue);
+        // if still undefined, try optionName2
+        let value2 = undefined;
+        [ value2, params ] = this.handleOptionAndParams (params, methodName1, optionName2, value);
+        return [ value2, params ];
     }
 
     handleOption (methodName: string, optionName: string, defaultValue = undefined) {
@@ -6050,7 +6052,7 @@ export default class Exchange {
          * @returns {float[][]} A list of candles ordered as timestamp, open, high, low, close, undefined
          */
         if (this.has['fetchMarkOHLCV']) {
-            const request = {
+            const request: Dict = {
                 'price': 'mark',
             };
             return await this.fetchOHLCV (symbol, timeframe, since, limit, this.extend (request, params));
@@ -6072,7 +6074,7 @@ export default class Exchange {
          * @returns {} A list of candles ordered as timestamp, open, high, low, close, undefined
          */
         if (this.has['fetchIndexOHLCV']) {
-            const request = {
+            const request: Dict = {
                 'price': 'index',
             };
             return await this.fetchOHLCV (symbol, timeframe, since, limit, this.extend (request, params));
@@ -6094,7 +6096,7 @@ export default class Exchange {
          * @returns {float[][]} A list of candles ordered as timestamp, open, high, low, close, undefined
          */
         if (this.has['fetchPremiumIndexOHLCV']) {
-            const request = {
+            const request: Dict = {
                 'price': 'premiumIndex',
             };
             return await this.fetchOHLCV (symbol, timeframe, since, limit, this.extend (request, params));
@@ -6524,8 +6526,9 @@ export default class Exchange {
                 errors = 0;
                 const responseLength = response.length;
                 if (this.verbose) {
-                    const iteration = (i + 1).toString ();
-                    const cursorMessage = 'Cursor pagination call ' + iteration + ' method ' + method + ' response length ' + responseLength.toString () + ' cursor ' + cursorValue;
+                    const cursorString = (cursorValue === undefined) ? '' : cursorValue;
+                    const iteration = (i + 1);
+                    const cursorMessage = 'Cursor pagination call ' + iteration.toString () + ' method ' + method + ' response length ' + responseLength.toString () + ' cursor ' + cursorString;
                     this.log (cursorMessage);
                 }
                 if (responseLength === 0) {
@@ -6701,6 +6704,9 @@ export default class Exchange {
 
     parseMarginModes (response: object[], symbols: string[] = undefined, symbolKey: Str = undefined, marketType: MarketType = undefined): MarginModes {
         const marginModeStructures = {};
+        if (marketType === undefined) {
+            marketType = 'swap'; // default to swap
+        }
         for (let i = 0; i < response.length; i++) {
             const info = response[i];
             const marketId = this.safeString (info, symbolKey);
@@ -6718,6 +6724,9 @@ export default class Exchange {
 
     parseLeverages (response: object[], symbols: string[] = undefined, symbolKey: Str = undefined, marketType: MarketType = undefined): Leverages {
         const leverageStructures = {};
+        if (marketType === undefined) {
+            marketType = 'swap'; // default to swap
+        }
         for (let i = 0; i < response.length; i++) {
             const info = response[i];
             const marketId = this.safeString (info, symbolKey);
@@ -6875,7 +6884,7 @@ export default class Exchange {
         throw new NotSupported (this.id + ' fetchPositionsHistory () is not supported yet');
     }
 
-    parseMarginModification (data, market: Market = undefined): MarginModification {
+    parseMarginModification (data: Dict, market: Market = undefined): MarginModification {
         throw new NotSupported (this.id + ' parseMarginModification() is not supported yet');
     }
 

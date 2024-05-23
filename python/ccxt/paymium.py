@@ -115,7 +115,7 @@ class paymium(Exchange, ImplicitAPI):
         })
 
     def parse_balance(self, response) -> Balances:
-        result = {'info': response}
+        result: dict = {'info': response}
         currencies = list(self.currencies.keys())
         for i in range(0, len(currencies)):
             code = currencies[i]
@@ -152,7 +152,7 @@ class paymium(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'currency': market['id'],
         }
         response = self.publicGetDataCurrencyDepth(self.extend(request, params))
@@ -216,7 +216,7 @@ class paymium(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'currency': market['id'],
         }
         ticker = self.publicGetDataCurrencyTicker(self.extend(request, params))
@@ -276,7 +276,7 @@ class paymium(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'currency': market['id'],
         }
         response = self.publicGetDataCurrencyTrades(self.extend(request, params))
@@ -311,7 +311,7 @@ class paymium(Exchange, ImplicitAPI):
         :returns dict: an `address structure <https://docs.ccxt.com/#/?id=address-structure>`
         """
         self.load_markets()
-        request = {
+        request: dict = {
             'address': code,
         }
         response = self.privateGetUserAddressesAddress(self.extend(request, params))
@@ -380,7 +380,7 @@ class paymium(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'type': self.capitalize(type) + 'Order',
             'currency': market['id'],
             'direction': side,
@@ -404,7 +404,7 @@ class paymium(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
-        request = {
+        request: dict = {
             'uuid': id,
         }
         return self.privateDeleteUserOrdersUuidCancel(self.extend(request, params))
@@ -426,7 +426,7 @@ class paymium(Exchange, ImplicitAPI):
             raise ExchangeError(self.id + ' transfer() only allows transfers to an email address')
         if code != 'BTC' and code != 'EUR':
             raise ExchangeError(self.id + ' transfer() only allows BTC or EUR')
-        request = {
+        request: dict = {
             'currency': currency['id'],
             'amount': self.currency_to_precision(code, amount),
             'email': toAccount,
@@ -519,7 +519,7 @@ class paymium(Exchange, ImplicitAPI):
         }
 
     def parse_transfer_status(self, status: Str) -> Str:
-        statuses = {
+        statuses: dict = {
             'executed': 'ok',
             # what are the other statuses?
         }

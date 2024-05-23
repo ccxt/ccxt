@@ -2,7 +2,7 @@
 
 import cexRest from '../cex.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
-import type { Int, OrderSide, OrderType, Strings, Str, OrderBook, Trade, Ticker, Tickers, OHLCV, Order, Balances, Num } from '../base/types.js';
+import type { Int, OrderSide, OrderType, Strings, Str, OrderBook, Trade, Ticker, Tickers, OHLCV, Order, Balances, Num, Dict } from '../base/types.js';
 import { ArgumentsRequired, ExchangeError, BadRequest } from '../base/errors.js';
 import { Precise } from '../base/Precise.js';
 import { ArrayCacheBySymbolById, ArrayCacheByTimestamp, ArrayCache } from '../base/ws/Cache.js';
@@ -66,7 +66,7 @@ export default class cex extends cexRest {
         await this.authenticate (params);
         const messageHash = this.requestId ();
         const url = this.urls['api']['ws'];
-        const subscribe = {
+        const subscribe: Dict = {
             'e': 'get-balance',
             'data': {},
             'oid': this.requestId (),
@@ -99,7 +99,7 @@ export default class cex extends cexRest {
         const data = this.safeValue (message, 'data', {});
         const freeBalance = this.safeValue (data, 'balance', {});
         const usedBalance = this.safeValue (data, 'obalance', {});
-        const result = {
+        const result: Dict = {
             'info': data,
         };
         const currencyIds = Object.keys (freeBalance);
@@ -149,7 +149,7 @@ export default class cex extends cexRest {
                 }
             }
         }
-        const message = {
+        const message: Dict = {
             'e': 'subscribe',
             'rooms': [ 'pair-' + market['base'] + '-' + market['quote'] ],
         };
@@ -302,7 +302,7 @@ export default class cex extends cexRest {
         symbols = this.marketSymbols (symbols);
         const url = this.urls['api']['ws'];
         const messageHash = 'tickers';
-        const message = {
+        const message: Dict = {
             'e': 'subscribe',
             'rooms': [
                 'tickers',
@@ -315,7 +315,7 @@ export default class cex extends cexRest {
             return await this.watchTickers (symbols, params);
         }
         if (this.newUpdates) {
-            const result = {};
+            const result: Dict = {};
             result[tickerSymbol] = ticker;
             return result;
         }
@@ -478,7 +478,7 @@ export default class cex extends cexRest {
         const market = this.market (symbol);
         symbol = market['symbol'];
         const messageHash = 'orders:' + symbol;
-        const message = {
+        const message: Dict = {
             'e': 'open-orders',
             'data': {
                 'pair': [
@@ -517,7 +517,7 @@ export default class cex extends cexRest {
         const market = this.market (symbol);
         const messageHash = 'myTrades:' + market['symbol'];
         const subscriptionHash = 'orders:' + market['symbol'];
-        const message = {
+        const message: Dict = {
             'e': 'open-orders',
             'data': {
                 'pair': [
@@ -635,7 +635,7 @@ export default class cex extends cexRest {
             symbol = quote + '/' + base;
             amount = Precise.stringDiv (amount, price); // due to rounding errors amount in not exact to trade
         }
-        const parsedTrade = {
+        const parsedTrade: Dict = {
             'id': this.safeString (trade, 'id'),
             'order': this.safeString (trade, 'order'),
             'info': trade,
@@ -854,7 +854,7 @@ export default class cex extends cexRest {
         } else if (isTransaction) {
             status = 'closed';
         }
-        const parsedOrder = {
+        const parsedOrder: Dict = {
             'id': this.safeString2 (order, 'id', 'order'),
             'clientOrderId': undefined,
             'info': order,
@@ -959,7 +959,7 @@ export default class cex extends cexRest {
         const url = this.urls['api']['ws'];
         const messageHash = 'orderbook:' + symbol;
         const depth = (limit === undefined) ? 0 : limit;
-        const subscribe = {
+        const subscribe: Dict = {
             'e': 'order-book-subscribe',
             'data': {
                 'pair': [
@@ -1091,7 +1091,7 @@ export default class cex extends cexRest {
         symbol = market['symbol'];
         const messageHash = 'ohlcv:' + symbol;
         const url = this.urls['api']['ws'];
-        const request = {
+        const request: Dict = {
             'e': 'init-ohlcv',
             'i': timeframe,
             'rooms': [
@@ -1244,7 +1244,7 @@ export default class cex extends cexRest {
         }, params);
         const url = this.urls['api']['ws'];
         const messageHash = this.requestId ();
-        const request = {
+        const request: Dict = {
             'e': 'get-order',
             'oid': messageHash,
             'data': data,
@@ -1276,7 +1276,7 @@ export default class cex extends cexRest {
         const data = this.extend ({
             'pair': [ market['baseId'], market['quoteId'] ],
         }, params);
-        const request = {
+        const request: Dict = {
             'e': 'open-orders',
             'oid': messageHash,
             'data': data,
@@ -1314,7 +1314,7 @@ export default class cex extends cexRest {
             'price': price,
             'type': side,
         }, params);
-        const request = {
+        const request: Dict = {
             'e': 'place-order',
             'oid': messageHash,
             'data': data,
@@ -1356,7 +1356,7 @@ export default class cex extends cexRest {
         }, params);
         const messageHash = this.requestId ();
         const url = this.urls['api']['ws'];
-        const request = {
+        const request: Dict = {
             'e': 'cancel-replace-order',
             'oid': messageHash,
             'data': data,
@@ -1387,7 +1387,7 @@ export default class cex extends cexRest {
         }, params);
         const messageHash = this.requestId ();
         const url = this.urls['api']['ws'];
-        const request = {
+        const request: Dict = {
             'e': 'cancel-order',
             'oid': messageHash,
             'data': data,
@@ -1417,7 +1417,7 @@ export default class cex extends cexRest {
             'cancel-orders': ids,
         }, params);
         const url = this.urls['api']['ws'];
-        const request = {
+        const request: Dict = {
             'e': 'mass-cancel-place-orders',
             'oid': messageHash,
             'data': data,
@@ -1504,7 +1504,7 @@ export default class cex extends cexRest {
             return;
         }
         const event = this.safeString (message, 'e');
-        const handlers = {
+        const handlers: Dict = {
             'auth': this.handleAuthenticationMessage,
             'connected': this.handleConnected,
             'tick': this.handleTicker,
@@ -1561,7 +1561,7 @@ export default class cex extends cexRest {
             const nonce = this.seconds ().toString ();
             const auth = nonce + this.apiKey;
             const signature = this.hmac (this.encode (auth), this.encode (this.secret), sha256);
-            const request = {
+            const request: Dict = {
                 'e': 'auth',
                 'auth': {
                     'key': this.apiKey,

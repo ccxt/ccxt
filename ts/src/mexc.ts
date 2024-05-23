@@ -1053,7 +1053,7 @@ export default class mexc extends Exchange {
         //     ]
         //   }
         //
-        const result = {};
+        const result: Dict = {};
         for (let i = 0; i < response.length; i++) {
             const currency = response[i];
             const id = this.safeString (currency, 'coin');
@@ -1065,7 +1065,7 @@ export default class mexc extends Exchange {
             let currencyWithdrawMax = undefined;
             let depositEnabled = false;
             let withdrawEnabled = false;
-            const networks = {};
+            const networks: Dict = {};
             const chains = this.safeValue (currency, 'networkList', []);
             for (let j = 0; j < chains.length; j++) {
                 const chain = chains[j];
@@ -1402,7 +1402,7 @@ export default class mexc extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'symbol': market['id'],
         };
         if (limit !== undefined) {
@@ -1483,7 +1483,7 @@ export default class mexc extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'symbol': market['id'],
         };
         if (limit !== undefined) {
@@ -1767,7 +1767,7 @@ export default class mexc extends Exchange {
         const timeframes = this.safeValue (options, market['type'], {});
         const timeframeValue = this.safeString (timeframes, timeframe);
         const duration = this.parseTimeframe (timeframe) * 1000;
-        const request = {
+        const request: Dict = {
             'symbol': market['id'],
             'interval': timeframeValue,
         };
@@ -1869,7 +1869,7 @@ export default class mexc extends Exchange {
          * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets ();
-        const request = {};
+        const request: Dict = {};
         let market = undefined;
         let isSingularMarket = false;
         if (symbols !== undefined) {
@@ -1960,7 +1960,7 @@ export default class mexc extends Exchange {
         const market = this.market (symbol);
         const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchTicker', market, params);
         let ticker = undefined;
-        const request = {
+        const request: Dict = {
             'symbol': market['id'],
         };
         if (marketType === 'spot') {
@@ -2238,7 +2238,7 @@ export default class mexc extends Exchange {
     createSpotOrderRequest (market, type, side, amount, price = undefined, marginMode = undefined, params = {}) {
         const symbol = market['symbol'];
         const orderSide = side.toUpperCase ();
-        const request = {
+        const request: Dict = {
             'symbol': market['id'],
             'side': orderSide,
             'type': type.toUpperCase (),
@@ -2348,7 +2348,7 @@ export default class mexc extends Exchange {
         } else if (type === 'market') {
             type = 6;
         }
-        const request = {
+        const request: Dict = {
             'symbol': market['id'],
             // 'price': parseFloat (this.priceToPrecision (symbol, price)),
             'vol': parseFloat (this.amountToPrecision (symbol, amount)),
@@ -2454,7 +2454,7 @@ export default class mexc extends Exchange {
             const orderRequest = this.createSpotOrderRequest (market, type, side, amount, price, marginMode, orderParams);
             ordersRequests.push (orderRequest);
         }
-        const request = {
+        const request: Dict = {
             'batchOrders': this.json (ordersRequests),
         };
         const response = await this.spotPrivatePostBatchOrders (request);
@@ -2496,7 +2496,7 @@ export default class mexc extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'symbol': market['id'],
         };
         let data = undefined;
@@ -2614,7 +2614,7 @@ export default class mexc extends Exchange {
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
-        const request = {};
+        const request: Dict = {};
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
@@ -2780,7 +2780,7 @@ export default class mexc extends Exchange {
 
     async fetchOrdersByIds (ids, symbol: Str = undefined, params = {}) {
         await this.loadMarkets ();
-        const request = {};
+        const request: Dict = {};
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
@@ -2844,7 +2844,7 @@ export default class mexc extends Exchange {
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
-        const request = {};
+        const request: Dict = {};
         let market = undefined;
         let marketType = undefined;
         if (symbol !== undefined) {
@@ -2951,7 +2951,7 @@ export default class mexc extends Exchange {
 
     async fetchOrdersByState (state, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         await this.loadMarkets ();
-        const request = {};
+        const request: Dict = {};
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
@@ -2977,7 +2977,7 @@ export default class mexc extends Exchange {
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
-        const request = {};
+        const request: Dict = {};
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
@@ -2991,7 +2991,7 @@ export default class mexc extends Exchange {
             if (symbol === undefined) {
                 throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument');
             }
-            const requestInner = {
+            const requestInner: Dict = {
                 'symbol': market['id'],
             };
             const clientOrderId = this.safeString (params, 'clientOrderId');
@@ -3125,7 +3125,7 @@ export default class mexc extends Exchange {
          */
         await this.loadMarkets ();
         const market = (symbol !== undefined) ? this.market (symbol) : undefined;
-        const request = {};
+        const request: Dict = {};
         let marketType = undefined;
         [ marketType, params ] = this.handleMarketTypeAndParams ('cancelAllOrders', market, params);
         const [ marginMode, query ] = this.handleMarginModeAndParams ('cancelAllOrders', params);
@@ -3417,7 +3417,7 @@ export default class mexc extends Exchange {
     }
 
     parseOrderSide (status) {
-        const statuses = {
+        const statuses: Dict = {
             'BUY': 'buy',
             'SELL': 'sell',
             '1': 'buy',
@@ -3428,7 +3428,7 @@ export default class mexc extends Exchange {
     }
 
     parseOrderType (status) {
-        const statuses = {
+        const statuses: Dict = {
             'MARKET': 'market',
             'LIMIT': 'limit',
             'LIMIT_MAKER': 'limit',
@@ -3436,8 +3436,8 @@ export default class mexc extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseOrderStatus (status) {
-        const statuses = {
+    parseOrderStatus (status: Str) {
+        const statuses: Dict = {
             'NEW': 'open',
             'FILLED': 'closed',
             'CANCELED': 'canceled',
@@ -3454,7 +3454,7 @@ export default class mexc extends Exchange {
     }
 
     parseOrderTimeInForce (status) {
-        const statuses = {
+        const statuses: Dict = {
             'GTC': 'GTC',
             'FOK': 'FOK',
             'IOC': 'IOC',
@@ -3560,7 +3560,7 @@ export default class mexc extends Exchange {
         let takerFee = this.safeString (response, 'takerCommission');
         makerFee = Precise.stringDiv (makerFee, '1000');
         takerFee = Precise.stringDiv (takerFee, '1000');
-        const result = {};
+        const result: Dict = {};
         for (let i = 0; i < this.symbols.length; i++) {
             const symbol = this.symbols[i];
             result[symbol] = {
@@ -3654,7 +3654,7 @@ export default class mexc extends Exchange {
                 const quote = this.safeValue (entry, 'quoteAsset', {});
                 const baseCode = this.safeCurrencyCode (this.safeString (base, 'asset'));
                 const quoteCode = this.safeCurrencyCode (this.safeString (quote, 'asset'));
-                const subResult = {};
+                const subResult: Dict = {};
                 subResult[baseCode] = this.parseBalanceHelper (base);
                 subResult[quoteCode] = this.parseBalanceHelper (quote);
                 result[symbol] = this.safeBalance (subResult);
@@ -3710,7 +3710,7 @@ export default class mexc extends Exchange {
          */
         await this.loadMarkets ();
         let marketType = undefined;
-        const request = {};
+        const request: Dict = {};
         [ marketType, params ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params);
         const marginMode = this.safeString (params, 'marginMode');
         const isMargin = this.safeBool (params, 'margin', false);
@@ -3844,7 +3844,7 @@ export default class mexc extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchMyTrades', market, params);
-        const request = {
+        const request: Dict = {
             'symbol': market['id'],
         };
         let trades = undefined;
@@ -3930,7 +3930,7 @@ export default class mexc extends Exchange {
          * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
          */
         await this.loadMarkets ();
-        const request = {};
+        const request: Dict = {};
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
@@ -4002,7 +4002,7 @@ export default class mexc extends Exchange {
             throw new ArgumentsRequired (this.id + ' modifyMarginHelper() requires a positionId parameter');
         }
         await this.loadMarkets ();
-        const request = {
+        const request: Dict = {
             'positionId': positionId,
             'amount': amount,
             'type': addOrReduce,
@@ -4053,7 +4053,7 @@ export default class mexc extends Exchange {
          * @returns {object} response from the exchange
          */
         await this.loadMarkets ();
-        const request = {
+        const request: Dict = {
             'leverage': leverage,
         };
         const positionId = this.safeInteger (params, 'positionId');
@@ -4087,7 +4087,7 @@ export default class mexc extends Exchange {
          */
         await this.loadMarkets ();
         let market = undefined;
-        const request = {
+        const request: Dict = {
             // 'symbol': market['id'],
             // 'position_id': positionId,
             // 'page_num': 1,
@@ -4202,7 +4202,7 @@ export default class mexc extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'symbol': market['id'],
         };
         const response = await this.contractPublicGetFundingRateSymbol (this.extend (request, params));
@@ -4241,7 +4241,7 @@ export default class mexc extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'symbol': market['id'],
             // 'page_size': limit, // optional
             // 'page_num': 1, // optional, current page number, default is 1
@@ -4469,7 +4469,7 @@ export default class mexc extends Exchange {
          */
         await this.loadMarkets ();
         const currency = this.currency (code);
-        const request = {
+        const request: Dict = {
             'coin': currency['id'],
         };
         const networkCode = this.safeString (params, 'network');
@@ -4510,7 +4510,7 @@ export default class mexc extends Exchange {
          */
         await this.loadMarkets ();
         const currency = this.currency (code);
-        const request = {
+        const request: Dict = {
             'coin': currency['id'],
         };
         const networkCode = this.safeString (params, 'network');
@@ -4579,7 +4579,7 @@ export default class mexc extends Exchange {
          * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         await this.loadMarkets ();
-        const request = {
+        const request: Dict = {
             // 'coin': currency['id'] + network example: USDT-TRX,
             // 'status': 'status',
             // 'startTime': since, // default 90 days
@@ -4640,7 +4640,7 @@ export default class mexc extends Exchange {
          * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         await this.loadMarkets ();
-        const request = {
+        const request: Dict = {
             // 'coin': currency['id'],
             // 'status': 'status',
             // 'startTime': since, // default 90 days
@@ -4780,7 +4780,7 @@ export default class mexc extends Exchange {
     }
 
     parseTransactionStatusByType (status, type = undefined) {
-        const statusesByType = {
+        const statusesByType: Dict = {
             'deposit': {
                 '1': 'failed', // SMALL
                 '2': 'pending', // TIME_DELAY
@@ -4818,7 +4818,7 @@ export default class mexc extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'symbol': market['id'],
         };
         const response = await this.fetchPositions (undefined, this.extend (request, params));
@@ -4978,7 +4978,7 @@ export default class mexc extends Exchange {
         const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchTransfer', undefined, params);
         await this.loadMarkets ();
         if (marketType === 'spot') {
-            const request = {
+            const request: Dict = {
                 'transact_id': id,
             };
             const response = await this.spot2PrivateGetAssetInternalTransferInfo (this.extend (request, query));
@@ -5016,7 +5016,7 @@ export default class mexc extends Exchange {
          */
         const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchTransfers', undefined, params);
         await this.loadMarkets ();
-        const request = {};
+        const request: Dict = {};
         let currency = undefined;
         let resultList = undefined;
         if (code !== undefined) {
@@ -5106,7 +5106,7 @@ export default class mexc extends Exchange {
          */
         await this.loadMarkets ();
         const currency = this.currency (code);
-        const accounts = {
+        const accounts: Dict = {
             'spot': 'SPOT',
             'swap': 'FUTURES',
             'margin': 'ISOLATED_MARGIN',
@@ -5121,7 +5121,7 @@ export default class mexc extends Exchange {
             const keys = Object.keys (accounts);
             throw new ExchangeError (this.id + ' toAccount must be one of ' + keys.join (', '));
         }
-        const request = {
+        const request: Dict = {
             'asset': currency['id'],
             'amount': amount,
             'fromAccountType': fromId,
@@ -5210,7 +5210,7 @@ export default class mexc extends Exchange {
     }
 
     parseAccountId (status) {
-        const statuses = {
+        const statuses: Dict = {
             'MAIN': 'spot',
             'CONTRACT': 'swap',
         };
@@ -5218,7 +5218,7 @@ export default class mexc extends Exchange {
     }
 
     parseTransferStatus (status: Str): Str {
-        const statuses = {
+        const statuses: Dict = {
             'SUCCESS': 'ok',
             'FAILED': 'failed',
             'WAIT': 'pending',
@@ -5246,7 +5246,7 @@ export default class mexc extends Exchange {
         this.checkAddress (address);
         await this.loadMarkets ();
         const currency = this.currency (code);
-        const request = {
+        const request: Dict = {
             'coin': currency['id'],
             'address': address,
             'amount': amount,
@@ -5268,7 +5268,7 @@ export default class mexc extends Exchange {
     }
 
     async setPositionMode (hedged: boolean, symbol: Str = undefined, params = {}) {
-        const request = {
+        const request: Dict = {
             'positionMode': hedged ? 1 : 2, // 1 Hedge, 2 One-way, before changing position mode make sure that there are no active orders, planned orders, or open positions, the risk limit level will be reset to 1
         };
         const response = await this.contractPrivatePostPositionChangePositionMode (this.extend (request, params));
@@ -5342,7 +5342,7 @@ export default class mexc extends Exchange {
     }
 
     parseTransactionFees (response, codes = undefined) {
-        const withdrawFees = {};
+        const withdrawFees: Dict = {};
         for (let i = 0; i < response.length; i++) {
             const entry = response[i];
             const currencyId = this.safeString (entry, 'coin');
@@ -5387,7 +5387,7 @@ export default class mexc extends Exchange {
         //    }
         //
         const networkList = this.safeValue (transaction, 'networkList', []);
-        const result = {};
+        const result: Dict = {};
         for (let j = 0; j < networkList.length; j++) {
             const networkEntry = networkList[j];
             const networkId = this.safeString (networkEntry, 'network');
@@ -5501,7 +5501,7 @@ export default class mexc extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'symbol': market['id'],
         };
         const response = await this.contractPrivateGetPositionLeverage (this.extend (request, params));
@@ -5599,7 +5599,7 @@ export default class mexc extends Exchange {
          * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
          */
         await this.loadMarkets ();
-        const request = {};
+        const request: Dict = {};
         if (symbols !== undefined) {
             const symbolsLength = symbols.length;
             if (symbolsLength === 1) {

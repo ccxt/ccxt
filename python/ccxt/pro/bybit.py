@@ -209,7 +209,7 @@ class bybit(ccxt.async_support.bybit):
         url = self.urls['api']['ws']['private']['trade']
         await self.authenticate(url)
         requestId = str(self.request_id())
-        request = {
+        request: dict = {
             'op': 'order.create',
             'reqId': requestId,
             'args': [
@@ -251,7 +251,7 @@ class bybit(ccxt.async_support.bybit):
         url = self.urls['api']['ws']['private']['trade']
         await self.authenticate(url)
         requestId = str(self.request_id())
-        request = {
+        request: dict = {
             'op': 'order.amend',
             'reqId': requestId,
             'args': [
@@ -283,7 +283,7 @@ class bybit(ccxt.async_support.bybit):
         requestId = str(self.request_id())
         if 'orderFilter' in orderRequest:
             del orderRequest['orderFilter']
-        request = {
+        request: dict = {
             'op': 'order.cancel',
             'reqId': requestId,
             'args': [
@@ -343,7 +343,7 @@ class bybit(ccxt.async_support.bybit):
             messageHashes.append('ticker:' + symbols[i])
         ticker = await self.watch_topics(url, messageHashes, topics, params)
         if self.newUpdates:
-            result = {}
+            result: dict = {}
             result[ticker['symbol']] = ticker
             return result
         return self.filter_by_array(self.tickers, 'symbol', symbols)
@@ -885,7 +885,7 @@ class bybit(ccxt.async_support.bybit):
             messageHash += ':' + symbol
         url = self.get_url_by_market_type(symbol, True, method, params)
         await self.authenticate(url)
-        topicByMarket = {
+        topicByMarket: dict = {
             'spot': 'ticketInfo',
             'unified': 'execution',
             'usdc': 'user.openapi.perp.trade',
@@ -968,7 +968,7 @@ class bybit(ccxt.async_support.bybit):
             limit = self.safe_integer(self.options, 'tradesLimit', 1000)
             self.myTrades = ArrayCacheBySymbolById(limit)
         trades = self.myTrades
-        symbols = {}
+        symbols: dict = {}
         for i in range(0, len(data)):
             rawTrade = data[i]
             parsed = None
@@ -1142,7 +1142,7 @@ class bybit(ccxt.async_support.bybit):
             messageHash += ':' + symbol
         url = self.get_url_by_market_type(symbol, True, method, params)
         await self.authenticate(url)
-        topicsByMarket = {
+        topicsByMarket: dict = {
             'spot': ['order', 'stopOrder'],
             'unified': ['order'],
             'usdc': ['user.openapi.perp.order'],
@@ -1273,7 +1273,7 @@ class bybit(ccxt.async_support.bybit):
         isSpot = category == 'spot'
         if not isSpot:
             rawOrders = self.safe_value(rawOrders, 'result', rawOrders)
-        symbols = {}
+        symbols: dict = {}
         for i in range(0, len(rawOrders)):
             parsed = None
             if isSpot:
@@ -1440,7 +1440,7 @@ class bybit(ccxt.async_support.bybit):
         isUnifiedAccount = self.safe_bool(unified, 1, False)
         url = self.get_url_by_market_type(None, True, method, params)
         await self.authenticate(url)
-        topicByMarket = {
+        topicByMarket: dict = {
             'spot': 'outboundAccountInfo',
             'unified': 'wallet',
         }
@@ -1693,7 +1693,7 @@ class bybit(ccxt.async_support.bybit):
             self.balance[code] = account
 
     async def watch_topics(self, url, messageHashes, topics, params={}):
-        request = {
+        request: dict = {
             'op': 'subscribe',
             'req_id': self.request_id(),
             'args': topics,
@@ -1713,7 +1713,7 @@ class bybit(ccxt.async_support.bybit):
             path = 'GET/realtime'
             auth = path + expires
             signature = self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha256, 'hex')
-            request = {
+            request: dict = {
                 'op': 'auth',
                 'args': [
                     self.apiKey, expires, signature,
@@ -1815,7 +1815,7 @@ class bybit(ccxt.async_support.bybit):
             self.handle_subscription_status(client, message)
             return
         topic = self.safe_string_2(message, 'topic', 'op')
-        methods = {
+        methods: dict = {
             'orderbook': self.handle_order_book,
             'kline': self.handle_ohlcv,
             'order': self.handle_order,

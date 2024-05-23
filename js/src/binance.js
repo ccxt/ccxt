@@ -133,7 +133,7 @@ export default class binance extends Exchange {
                 'fetchPositions': true,
                 'fetchPositionsHistory': false,
                 'fetchPositionsRisk': true,
-                'fetchPremiumIndexOHLCV': false,
+                'fetchPremiumIndexOHLCV': true,
                 'fetchSettlementHistory': true,
                 'fetchStatus': true,
                 'fetchTicker': true,
@@ -782,6 +782,7 @@ export default class binance extends Exchange {
                         'continuousKlines': { 'cost': 1, 'byLimit': [[99, 1], [499, 2], [1000, 5], [10000, 10]] },
                         'markPriceKlines': { 'cost': 1, 'byLimit': [[99, 1], [499, 2], [1000, 5], [10000, 10]] },
                         'indexPriceKlines': { 'cost': 1, 'byLimit': [[99, 1], [499, 2], [1000, 5], [10000, 10]] },
+                        'premiumIndexKlines': { 'cost': 1, 'byLimit': [[99, 1], [499, 2], [1000, 5], [10000, 10]] },
                         'fundingRate': 1,
                         'fundingInfo': 1,
                         'premiumIndex': 1,
@@ -4299,6 +4300,14 @@ export default class binance extends Exchange {
                 response = await this.fapiPublicGetIndexPriceKlines(this.extend(request, params));
             }
         }
+        else if (price === 'premiumIndex') {
+            if (market['inverse']) {
+                response = await this.dapiPublicGetPremiumIndexKlines(this.extend(request, params));
+            }
+            else {
+                response = await this.fapiPublicGetPremiumIndexKlines(this.extend(request, params));
+            }
+        }
         else if (market['linear']) {
             response = await this.fapiPublicGetKlines(this.extend(request, params));
         }
@@ -5977,6 +5986,17 @@ export default class binance extends Exchange {
                 }
             }
         }
+        else {
+            postOnly = this.isPostOnly(isMarketOrder, initialUppercaseType === 'LIMIT_MAKER', params);
+            if (postOnly) {
+                if (!market['contract']) {
+                    uppercaseType = 'LIMIT_MAKER'; // only this endpoint accepts GTXhttps://binance-docs.github.io/apidocs/pm/en/#new-margin-order-trade
+                }
+                else {
+                    request['timeInForce'] = 'GTX';
+                }
+            }
+        }
         // handle newOrderRespType response type
         if (((marketType === 'spot') || (marketType === 'margin')) && !isPortfolioMargin) {
             request['newOrderRespType'] = this.safeString(this.options['newOrderRespType'], type, 'FULL'); // 'ACK' for order id, 'RESULT' for full order or 'FULL' for order with fills
@@ -6110,7 +6130,7 @@ export default class binance extends Exchange {
                 request['stopPrice'] = this.priceToPrecision(symbol, stopPrice);
             }
         }
-        if (timeInForceIsRequired && (this.safeString(params, 'timeInForce') === undefined)) {
+        if (timeInForceIsRequired && (this.safeString(params, 'timeInForce') === undefined) && (this.safeString(request, 'timeInForce') === undefined)) {
             request['timeInForce'] = this.options['defaultTimeInForce']; // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
         }
         if (!isPortfolioMargin && market['contract'] && postOnly) {
@@ -9683,7 +9703,7 @@ export default class binance extends Exchange {
         await this.loadMarkets();
         // by default cache the leverage bracket
         // it contains useful stuff like the maintenance margin and initial margin for positions
-        const leverageBrackets = this.safeDict(this.options, 'leverageBrackets', {});
+        const leverageBrackets = this.safeDict(this.options, 'leverageBrackets');
         if ((leverageBrackets === undefined) || (reload)) {
             const defaultType = this.safeString(this.options, 'defaultType', 'future');
             const type = this.safeString(params, 'type', defaultType);

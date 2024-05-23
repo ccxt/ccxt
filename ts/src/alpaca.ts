@@ -3,7 +3,7 @@
 import Exchange from './abstract/alpaca.js';
 import { ExchangeError, BadRequest, PermissionDenied, BadSymbol, NotSupported, InsufficientFunds, InvalidOrder, RateLimitExceeded } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Trade } from './base/types.js';
+import type { Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Trade } from './base/types.js';
 
 //  ---------------------------------------------------------------------------xs
 /**
@@ -307,7 +307,7 @@ export default class alpaca extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange api endpoint
          * @returns {object[]} an array of objects representing market data
          */
-        const request = {
+        const request: Dict = {
             'asset_class': 'crypto',
             'status': 'active',
         };
@@ -447,7 +447,7 @@ export default class alpaca extends Exchange {
         const marketId = market['id'];
         const loc = this.safeString (params, 'loc', 'us');
         const method = this.safeString (params, 'method', 'marketPublicGetV1beta3CryptoLocTrades');
-        const request = {
+        const request: Dict = {
             'symbols': marketId,
             'loc': loc,
         };
@@ -519,7 +519,7 @@ export default class alpaca extends Exchange {
         const market = this.market (symbol);
         const id = market['id'];
         const loc = this.safeString (params, 'loc', 'us');
-        const request = {
+        const request: Dict = {
             'symbols': id,
             'loc': loc,
         };
@@ -588,7 +588,7 @@ export default class alpaca extends Exchange {
         const marketId = market['id'];
         const loc = this.safeString (params, 'loc', 'us');
         const method = this.safeString (params, 'method', 'marketPublicGetV1beta3CryptoLocBars');
-        const request = {
+        const request: Dict = {
             'symbols': marketId,
             'loc': loc,
         };
@@ -704,7 +704,7 @@ export default class alpaca extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const id = market['id'];
-        const request = {
+        const request: Dict = {
             'symbol': id,
             'qty': this.amountToPrecision (symbol, amount),
             'side': side,
@@ -786,7 +786,7 @@ export default class alpaca extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
-        const request = {
+        const request: Dict = {
             'order_id': id,
         };
         const response = await this.traderPrivateDeleteV2OrdersOrderId (this.extend (request, params));
@@ -829,7 +829,7 @@ export default class alpaca extends Exchange {
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
-        const request = {
+        const request: Dict = {
             'order_id': id,
         };
         const order = await this.traderPrivateGetV2OrdersOrderId (this.extend (request, params));
@@ -852,7 +852,7 @@ export default class alpaca extends Exchange {
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
-        const request = {
+        const request: Dict = {
             'status': 'all',
         };
         let market = undefined;
@@ -928,7 +928,7 @@ export default class alpaca extends Exchange {
          * @param {int} [params.until] the latest time in ms to fetch orders for
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
-        const request = {
+        const request: Dict = {
             'status': 'open',
         };
         return await this.fetchOrders (symbol, since, limit, this.extend (request, params));
@@ -947,7 +947,7 @@ export default class alpaca extends Exchange {
          * @param {int} [params.until] the latest time in ms to fetch orders for
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
-        const request = {
+        const request: Dict = {
             'status': 'closed',
         };
         return await this.fetchOrders (symbol, since, limit, this.extend (request, params));
@@ -1040,8 +1040,8 @@ export default class alpaca extends Exchange {
         }, market);
     }
 
-    parseOrderStatus (status) {
-        const statuses = {
+    parseOrderStatus (status: Str) {
+        const statuses: Dict = {
             'pending_new': 'open',
             'accepted': 'open',
             'new': 'open',
@@ -1053,7 +1053,7 @@ export default class alpaca extends Exchange {
     }
 
     parseTimeInForce (timeInForce) {
-        const timeInForces = {
+        const timeInForces: Dict = {
             'day': 'Day',
         };
         return this.safeString (timeInForces, timeInForce, timeInForce);

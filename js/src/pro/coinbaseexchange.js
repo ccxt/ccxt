@@ -5,12 +5,12 @@
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
 //  ---------------------------------------------------------------------------
-import coinbaseproRest from '../coinbasepro.js';
+import coinbaseexchangeRest from '../coinbaseexchange.js';
 import { AuthenticationError, ExchangeError, BadSymbol, BadRequest, ArgumentsRequired } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
 //  ---------------------------------------------------------------------------
-export default class coinbasepro extends coinbaseproRest {
+export default class coinbaseexchange extends coinbaseexchangeRest {
     describe() {
         return this.deepExtend(super.describe(), {
             'has': {
@@ -31,7 +31,7 @@ export default class coinbasepro extends coinbaseproRest {
             },
             'urls': {
                 'api': {
-                    'ws': 'wss://ws-feed.pro.coinbase.com',
+                    'ws': 'wss://ws-feed.exchange.coinbase.com',
                 },
                 'test': {
                     'ws': 'wss://ws-feed-public.sandbox.exchange.coinbase.com',
@@ -112,7 +112,7 @@ export default class coinbasepro extends coinbaseproRest {
     async watchTicker(symbol, params = {}) {
         /**
          * @method
-         * @name coinbasepro#watchTicker
+         * @name coinbaseexchange#watchTicker
          * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
          * @param {string} symbol unified symbol of the market to fetch the ticker for
          * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -124,7 +124,7 @@ export default class coinbasepro extends coinbaseproRest {
     async watchTickers(symbols = undefined, params = {}) {
         /**
          * @method
-         * @name coinbasepro#watchTickers
+         * @name coinbaseexchange#watchTickers
          * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
          * @param {string[]} [symbols] unified symbol of the market to fetch the ticker for
          * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -149,7 +149,7 @@ export default class coinbasepro extends coinbaseproRest {
     async watchTrades(symbol, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
-         * @name coinbasepro#watchTrades
+         * @name coinbaseexchange#watchTrades
          * @description get the list of most recent trades for a particular symbol
          * @param {string} symbol unified symbol of the market to fetch trades for
          * @param {int} [since] timestamp in ms of the earliest trade to fetch
@@ -195,7 +195,7 @@ export default class coinbasepro extends coinbaseproRest {
     async watchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
-         * @name coinbasepro#watchMyTrades
+         * @name coinbaseexchange#watchMyTrades
          * @description watches information on multiple trades made by the user
          * @param {string} symbol unified market symbol of the market trades were made in
          * @param {int} [since] the earliest time in ms to fetch trades for
@@ -220,7 +220,7 @@ export default class coinbasepro extends coinbaseproRest {
     async watchMyTradesForSymbols(symbols = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
-         * @name coinbasepro#watchMyTradesForSymbols
+         * @name coinbaseexchange#watchMyTradesForSymbols
          * @description watches information on multiple trades made by the user
          * @param {string[]} symbols unified symbol of the market to fetch trades for
          * @param {int} [since] the earliest time in ms to fetch trades for
@@ -244,7 +244,7 @@ export default class coinbasepro extends coinbaseproRest {
     async watchOrdersForSymbols(symbols = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
-         * @name coinbasepro#watchOrdersForSymbols
+         * @name coinbaseexchange#watchOrdersForSymbols
          * @description watches information on multiple orders made by the user
          * @param {string[]} symbols unified symbol of the market to fetch orders for
          * @param {int} [since] the earliest time in ms to fetch orders for
@@ -268,7 +268,7 @@ export default class coinbasepro extends coinbaseproRest {
     async watchOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
-         * @name coinbasepro#watchOrders
+         * @name coinbaseexchange#watchOrders
          * @description watches information on multiple orders made by the user
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
@@ -293,7 +293,7 @@ export default class coinbasepro extends coinbaseproRest {
     async watchOrderBookForSymbols(symbols, limit = undefined, params = {}) {
         /**
          * @method
-         * @name coinbasepro#watchOrderBookForSymbols
+         * @name coinbaseexchange#watchOrderBookForSymbols
          * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @param {string[]} symbols unified array of symbols
          * @param {int} [limit] the maximum amount of order book entries to return
@@ -335,7 +335,7 @@ export default class coinbasepro extends coinbaseproRest {
     async watchOrderBook(symbol, limit = undefined, params = {}) {
         /**
          * @method
-         * @name coinbasepro#watchOrderBook
+         * @name coinbaseexchange#watchOrderBook
          * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int} [limit] the maximum amount of order book entries to return

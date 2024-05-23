@@ -4,8 +4,8 @@ namespace ccxt.pro;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 
-public partial class coinbasepro { public coinbasepro(object args = null) : base(args) { } }
-public partial class coinbasepro : ccxt.coinbasepro
+public partial class coinbaseexchange { public coinbaseexchange(object args = null) : base(args) { } }
+public partial class coinbaseexchange : ccxt.coinbaseexchange
 {
     public override object describe()
     {
@@ -28,7 +28,7 @@ public partial class coinbasepro : ccxt.coinbasepro
             } },
             { "urls", new Dictionary<string, object>() {
                 { "api", new Dictionary<string, object>() {
-                    { "ws", "wss://ws-feed.pro.coinbase.com" },
+                    { "ws", "wss://ws-feed.exchange.coinbase.com" },
                 } },
                 { "test", new Dictionary<string, object>() {
                     { "ws", "wss://ws-feed-public.sandbox.exchange.coinbase.com" },
@@ -120,7 +120,7 @@ public partial class coinbasepro : ccxt.coinbasepro
     {
         /**
         * @method
-        * @name coinbasepro#watchTicker
+        * @name coinbaseexchange#watchTicker
         * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         * @param {string} symbol unified symbol of the market to fetch the ticker for
         * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -135,7 +135,7 @@ public partial class coinbasepro : ccxt.coinbasepro
     {
         /**
         * @method
-        * @name coinbasepro#watchTickers
+        * @name coinbaseexchange#watchTickers
         * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
         * @param {string[]} [symbols] unified symbol of the market to fetch the ticker for
         * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -165,7 +165,7 @@ public partial class coinbasepro : ccxt.coinbasepro
     {
         /**
         * @method
-        * @name coinbasepro#watchTrades
+        * @name coinbaseexchange#watchTrades
         * @description get the list of most recent trades for a particular symbol
         * @param {string} symbol unified symbol of the market to fetch trades for
         * @param {int} [since] timestamp in ms of the earliest trade to fetch
@@ -220,7 +220,7 @@ public partial class coinbasepro : ccxt.coinbasepro
     {
         /**
         * @method
-        * @name coinbasepro#watchMyTrades
+        * @name coinbaseexchange#watchMyTrades
         * @description watches information on multiple trades made by the user
         * @param {string} symbol unified market symbol of the market trades were made in
         * @param {int} [since] the earliest time in ms to fetch trades for
@@ -250,7 +250,7 @@ public partial class coinbasepro : ccxt.coinbasepro
     {
         /**
         * @method
-        * @name coinbasepro#watchMyTradesForSymbols
+        * @name coinbaseexchange#watchMyTradesForSymbols
         * @description watches information on multiple trades made by the user
         * @param {string[]} symbols unified symbol of the market to fetch trades for
         * @param {int} [since] the earliest time in ms to fetch trades for
@@ -278,7 +278,7 @@ public partial class coinbasepro : ccxt.coinbasepro
     {
         /**
         * @method
-        * @name coinbasepro#watchOrdersForSymbols
+        * @name coinbaseexchange#watchOrdersForSymbols
         * @description watches information on multiple orders made by the user
         * @param {string[]} symbols unified symbol of the market to fetch orders for
         * @param {int} [since] the earliest time in ms to fetch orders for
@@ -306,7 +306,7 @@ public partial class coinbasepro : ccxt.coinbasepro
     {
         /**
         * @method
-        * @name coinbasepro#watchOrders
+        * @name coinbaseexchange#watchOrders
         * @description watches information on multiple orders made by the user
         * @param {string} symbol unified market symbol of the market orders were made in
         * @param {int} [since] the earliest time in ms to fetch orders for
@@ -336,7 +336,7 @@ public partial class coinbasepro : ccxt.coinbasepro
     {
         /**
         * @method
-        * @name coinbasepro#watchOrderBookForSymbols
+        * @name coinbaseexchange#watchOrderBookForSymbols
         * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
         * @param {string[]} symbols unified array of symbols
         * @param {int} [limit] the maximum amount of order book entries to return
@@ -381,7 +381,7 @@ public partial class coinbasepro : ccxt.coinbasepro
     {
         /**
         * @method
-        * @name coinbasepro#watchOrderBook
+        * @name coinbaseexchange#watchOrderBook
         * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
         * @param {string} symbol unified symbol of the market to fetch the order book for
         * @param {int} [limit] the maximum amount of order book entries to return

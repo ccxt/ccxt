@@ -178,6 +178,15 @@ abstract class okx extends \ccxt\Exchange {
     public function public_get_sprd_public_trades($params = array()) {
         return $this->request('sprd/public-trades', 'public', 'GET', $params, null, null, array("cost" => 0.2));
     }
+    public function public_get_market_sprd_ticker($params = array()) {
+        return $this->request('market/sprd-ticker', 'public', 'GET', $params, null, null, array("cost" => 2));
+    }
+    public function public_get_market_sprd_candles($params = array()) {
+        return $this->request('market/sprd-candles', 'public', 'GET', $params, null, null, array("cost" => 2));
+    }
+    public function public_get_market_sprd_history_candles($params = array()) {
+        return $this->request('market/sprd-history-candles', 'public', 'GET', $params, null, null, array("cost" => 2));
+    }
     public function public_get_tradingbot_grid_ai_param($params = array()) {
         return $this->request('tradingBot/grid/ai-param', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
@@ -1098,6 +1107,15 @@ abstract class okx extends \ccxt\Exchange {
     }
     public function publicGetSprdPublicTrades($params = array()) {
         return $this->request('sprd/public-trades', 'public', 'GET', $params, null, null, array("cost" => 0.2));
+    }
+    public function publicGetMarketSprdTicker($params = array()) {
+        return $this->request('market/sprd-ticker', 'public', 'GET', $params, null, null, array("cost" => 2));
+    }
+    public function publicGetMarketSprdCandles($params = array()) {
+        return $this->request('market/sprd-candles', 'public', 'GET', $params, null, null, array("cost" => 2));
+    }
+    public function publicGetMarketSprdHistoryCandles($params = array()) {
+        return $this->request('market/sprd-history-candles', 'public', 'GET', $params, null, null, array("cost" => 2));
     }
     public function publicGetTradingBotGridAiParam($params = array()) {
         return $this->request('tradingBot/grid/ai-param', 'public', 'GET', $params, null, null, array("cost" => 1));

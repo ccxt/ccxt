@@ -128,7 +128,7 @@ export default class bitflyer extends Exchange {
         const day = expiry.slice (0, 2);
         const monthName = expiry.slice (2, 5);
         const year = expiry.slice (5, 9);
-        const months = {
+        const months: Dict = {
             'JAN': '01',
             'FEB': '02',
             'MAR': '03',
@@ -308,7 +308,7 @@ export default class bitflyer extends Exchange {
     }
 
     parseBalance (response): Balances {
-        const result = { 'info': response };
+        const result: Dict = { 'info': response };
         for (let i = 0; i < response.length; i++) {
             const balance = response[i];
             const currencyId = this.safeString (balance, 'currency_code');
@@ -367,7 +367,7 @@ export default class bitflyer extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'product_code': market['id'],
         };
         const orderbook = await this.publicGetGetboard (this.extend (request, params));
@@ -414,7 +414,7 @@ export default class bitflyer extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'product_code': market['id'],
         };
         const response = await this.publicGetGetticker (this.extend (request, params));
@@ -500,7 +500,7 @@ export default class bitflyer extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'product_code': market['id'],
         };
         if (limit !== undefined) {
@@ -535,7 +535,7 @@ export default class bitflyer extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'product_code': market['id'],
         };
         const response = await this.privateGetGettradingcommission (this.extend (request, params));
@@ -570,7 +570,7 @@ export default class bitflyer extends Exchange {
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
-        const request = {
+        const request: Dict = {
             'product_code': this.marketId (symbol),
             'child_order_type': type.toUpperCase (),
             'side': side.toUpperCase (),
@@ -601,15 +601,15 @@ export default class bitflyer extends Exchange {
             throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument');
         }
         await this.loadMarkets ();
-        const request = {
+        const request: Dict = {
             'product_code': this.marketId (symbol),
             'child_order_acceptance_id': id,
         };
         return await this.privatePostCancelchildorder (this.extend (request, params));
     }
 
-    parseOrderStatus (status) {
-        const statuses = {
+    parseOrderStatus (status: Str) {
+        const statuses: Dict = {
             'ACTIVE': 'open',
             'COMPLETED': 'closed',
             'CANCELED': 'canceled',
@@ -683,7 +683,7 @@ export default class bitflyer extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'product_code': market['id'],
             'count': limit,
         };
@@ -707,7 +707,7 @@ export default class bitflyer extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
-        const request = {
+        const request: Dict = {
             'child_order_state': 'ACTIVE',
         };
         return await this.fetchOrders (symbol, since, limit, this.extend (request, params));
@@ -725,7 +725,7 @@ export default class bitflyer extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
-        const request = {
+        const request: Dict = {
             'child_order_state': 'COMPLETED',
         };
         return await this.fetchOrders (symbol, since, limit, this.extend (request, params));
@@ -769,7 +769,7 @@ export default class bitflyer extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'product_code': market['id'],
         };
         if (limit !== undefined) {
@@ -807,7 +807,7 @@ export default class bitflyer extends Exchange {
             throw new ArgumentsRequired (this.id + ' fetchPositions() requires a `symbols` argument, exactly one symbol in an array');
         }
         await this.loadMarkets ();
-        const request = {
+        const request: Dict = {
             'product_code': this.marketIds (symbols),
         };
         const response = await this.privateGetGetpositions (this.extend (request, params));
@@ -851,7 +851,7 @@ export default class bitflyer extends Exchange {
             throw new ExchangeError (this.id + ' allows withdrawing JPY, USD, EUR only, ' + code + ' is not supported');
         }
         const currency = this.currency (code);
-        const request = {
+        const request: Dict = {
             'currency_code': currency['id'],
             'amount': amount,
             // 'bank_account_id': 1234,
@@ -879,7 +879,7 @@ export default class bitflyer extends Exchange {
          */
         await this.loadMarkets ();
         let currency = undefined;
-        const request = {};
+        const request: Dict = {};
         if (code !== undefined) {
             currency = this.currency (code);
         }
@@ -918,7 +918,7 @@ export default class bitflyer extends Exchange {
          */
         await this.loadMarkets ();
         let currency = undefined;
-        const request = {};
+        const request: Dict = {};
         if (code !== undefined) {
             currency = this.currency (code);
         }
@@ -946,7 +946,7 @@ export default class bitflyer extends Exchange {
     }
 
     parseDepositStatus (status) {
-        const statuses = {
+        const statuses: Dict = {
             'PENDING': 'pending',
             'COMPLETED': 'ok',
         };
@@ -954,7 +954,7 @@ export default class bitflyer extends Exchange {
     }
 
     parseWithdrawalStatus (status) {
-        const statuses = {
+        const statuses: Dict = {
             'PENDING': 'pending',
             'COMPLETED': 'ok',
         };

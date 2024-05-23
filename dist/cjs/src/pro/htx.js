@@ -1897,7 +1897,7 @@ class htx extends htx$1 {
         //        "data": { "user-id": "35930539" }
         //    }
         //
-        const promise = client.futures['authenticated'];
+        const promise = client.futures['auth'];
         promise.resolve(message);
     }
     handleErrorMessage(client, message) {
@@ -1925,6 +1925,12 @@ class htx extends htx$1 {
         //         'err-msg': "Non - single account user is not available, please check through the cross and isolated account asset interface",
         //         "ts": 1698419490189
         //     }
+        //     {
+        //         "action":"req",
+        //         "code":2002,
+        //         "ch":"auth",
+        //         "message":"auth.fail"
+        //     }
         //
         const status = this.safeString(message, 'status');
         if (status === 'error') {
@@ -1935,6 +1941,7 @@ class htx extends htx$1 {
                 const errorCode = this.safeString(message, 'err-code');
                 try {
                     this.throwExactlyMatchedException(this.exceptions['ws']['exact'], errorCode, this.json(message));
+                    throw new errors.ExchangeError(this.json(message));
                 }
                 catch (e) {
                     const messageHash = this.safeString(subscription, 'messageHash');
@@ -1947,11 +1954,12 @@ class htx extends htx$1 {
             }
             return false;
         }
-        const code = this.safeInteger2(message, 'code', 'err-code');
-        if (code !== undefined && ((code !== 200) && (code !== 0))) {
+        const code = this.safeString2(message, 'code', 'err-code');
+        if (code !== undefined && ((code !== '200') && (code !== '0'))) {
             const feedback = this.id + ' ' + this.json(message);
             try {
                 this.throwExactlyMatchedException(this.exceptions['ws']['exact'], code, feedback);
+                throw new errors.ExchangeError(feedback);
             }
             catch (e) {
                 if (e instanceof errors.AuthenticationError) {
@@ -2305,9 +2313,6 @@ class htx extends htx$1 {
             'url': url,
             'hostname': hostname,
         };
-        if (type === 'spot') {
-            this.options['ws']['gunzip'] = false;
-        }
         await this.authenticate(authParams);
         return await this.watch(url, messageHash, this.extend(request, params), channel, extendedSubsription);
     }
@@ -2319,7 +2324,7 @@ class htx extends htx$1 {
             throw new errors.ArgumentsRequired(this.id + ' authenticate requires a url, hostname and type argument');
         }
         this.checkRequiredCredentials();
-        const messageHash = 'authenticated';
+        const messageHash = 'auth';
         const relativePath = url.replace('wss://' + hostname, '');
         const client = this.client(url);
         const future = client.future(messageHash);

@@ -299,7 +299,7 @@ export default class bitbns extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'symbol': market['id'],
         };
         if (limit !== undefined) {
@@ -434,7 +434,7 @@ export default class bitbns extends Exchange {
 
     parseBalance (response): Balances {
         const timestamp = undefined;
-        const result = {
+        const result: Dict = {
             'info': response,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -492,7 +492,7 @@ export default class bitbns extends Exchange {
     }
 
     parseStatus (status) {
-        const statuses = {
+        const statuses: Dict = {
             '-1': 'cancelled',
             '0': 'open',
             '1': 'open',
@@ -612,7 +612,7 @@ export default class bitbns extends Exchange {
         const targetRate = this.safeString (params, 'target_rate');
         const trailRate = this.safeString (params, 'trail_rate');
         params = this.omit (params, [ 'triggerPrice', 'stopPrice', 'trail_rate', 'target_rate', 't_rate' ]);
-        const request = {
+        const request: Dict = {
             'side': side.toUpperCase (),
             'symbol': market['uppercaseId'],
             'quantity': this.amountToPrecision (symbol, amount),
@@ -669,7 +669,7 @@ export default class bitbns extends Exchange {
         const market = this.market (symbol);
         const isTrigger = this.safeValue2 (params, 'trigger', 'stop');
         params = this.omit (params, [ 'trigger', 'stop' ]);
-        const request = {
+        const request: Dict = {
             'entry_id': id,
             'symbol': market['uppercaseId'],
         };
@@ -698,7 +698,7 @@ export default class bitbns extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'symbol': market['id'],
             'entry_id': id,
         };
@@ -759,7 +759,7 @@ export default class bitbns extends Exchange {
         const isTrigger = this.safeValue2 (params, 'trigger', 'stop');
         params = this.omit (params, [ 'trigger', 'stop' ]);
         const quoteSide = (market['quoteId'] === 'USDT') ? 'usdtListOpen' : 'listOpen';
-        const request = {
+        const request: Dict = {
             'symbol': market['uppercaseId'],
             'page': 0,
             'side': isTrigger ? (quoteSide + 'StopOrders') : (quoteSide + 'Orders'),
@@ -886,7 +886,7 @@ export default class bitbns extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'symbol': market['id'],
             'page': 0,
         };
@@ -955,7 +955,7 @@ export default class bitbns extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'coin': market['baseId'],
             'market': market['quoteId'],
         };
@@ -986,7 +986,7 @@ export default class bitbns extends Exchange {
         }
         await this.loadMarkets ();
         const currency = this.currency (code);
-        const request = {
+        const request: Dict = {
             'symbol': currency['id'],
             'page': 0,
         };
@@ -1034,7 +1034,7 @@ export default class bitbns extends Exchange {
         }
         await this.loadMarkets ();
         const currency = this.currency (code);
-        const request = {
+        const request: Dict = {
             'symbol': currency['id'],
             'page': 0,
         };
@@ -1047,7 +1047,7 @@ export default class bitbns extends Exchange {
     }
 
     parseTransactionStatusByType (status, type = undefined) {
-        const statusesByType = {
+        const statusesByType: Dict = {
             'deposit': {
                 '0': 'pending',
                 '1': 'ok',
@@ -1145,7 +1145,7 @@ export default class bitbns extends Exchange {
          */
         await this.loadMarkets ();
         const currency = this.currency (code);
-        const request = {
+        const request: Dict = {
             'symbol': currency['id'],
         };
         const response = await this.v1PostGetCoinAddressSymbol (this.extend (request, params));
@@ -1201,7 +1201,7 @@ export default class bitbns extends Exchange {
             } else {
                 body = '{}';
             }
-            const auth = {
+            const auth: Dict = {
                 'timeStamp_nonce': nonce,
                 'body': body,
             };

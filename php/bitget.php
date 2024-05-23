@@ -307,6 +307,9 @@ class bitget extends Exchange {
                             'v2/spot/account/subaccount-assets' => 2,
                             'v2/spot/account/bills' => 2,
                             'v2/spot/account/transferRecords' => 1,
+                            'v2/account/funding-assets' => 2,
+                            'v2/account/bot-assets' => 2,
+                            'v2/account/all-account-balance' => 20,
                             'v2/spot/wallet/deposit-address' => 2,
                             'v2/spot/wallet/deposit-records' => 2,
                             'v2/spot/wallet/withdrawal-records' => 2,
@@ -751,6 +754,7 @@ class bitget extends Exchange {
                             'v2/earn/loan/borrow-history' => 2,
                             'v2/earn/loan/debts' => 2,
                             'v2/earn/loan/reduces' => 2,
+                            'v2/earn/account/assets' => 2,
                         ),
                         'post' => array(
                             'v2/earn/savings/subscribe' => 2,
@@ -3622,7 +3626,7 @@ class bitget extends Exchange {
         return $this->safe_balance($result);
     }
 
-    public function parse_order_status($status) {
+    public function parse_order_status(?string $status) {
         $statuses = array(
             'new' => 'open',
             'init' => 'open',
@@ -6801,7 +6805,7 @@ class bitget extends Exchange {
         ));
     }
 
-    public function parse_margin_modification($data, ?array $market = null): array {
+    public function parse_margin_modification(array $data, ?array $market = null): array {
         //
         // addMargin/reduceMargin
         //
