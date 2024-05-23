@@ -1120,6 +1120,7 @@ export default class vertex extends Exchange {
             now = this.nonce ();
         }
         // nonce = ((now + expiration) << 20) + 1000
+        // 1 << 20 = 1048576
         return Precise.stringAdd (Precise.stringMul (Precise.stringAdd (this.numberToString (now), this.numberToString (expiration)), '1048576'), '1000');
     }
 
