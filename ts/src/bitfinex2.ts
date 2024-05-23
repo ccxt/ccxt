@@ -1494,7 +1494,7 @@ export default class bitfinex2 extends Exchange {
     }
 
     parseOrder (order: Dict, market: Market = undefined): Order {
-        const orderObject = this.safeDict(order, 'result');
+        const orderObject = this.safeDict (order, 'result');
         const id = this.safeString (orderObject, 0);
         const marketId = this.safeString (orderObject, 3);
         const symbol = this.safeSymbol (marketId);
