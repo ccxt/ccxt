@@ -362,8 +362,8 @@ class coinbase(Exchange, ImplicitAPI):
                 'fetchTicker': 'fetchTickerV3',  # 'fetchTickerV3' or 'fetchTickerV2'
                 'fetchTickers': 'fetchTickersV3',  # 'fetchTickersV3' or 'fetchTickersV2'
                 'fetchAccounts': 'fetchAccountsV3',  # 'fetchAccountsV3' or 'fetchAccountsV2'
-                'fetchBalance': 'v2PrivateGetAccounts',  # 'v2PrivateGetAccounts' or 'v3PrivateGetBrokerageAccounts'
-                'fetchTime': 'v2PublicGetTime',  # 'v2PublicGetTime' or 'v3PublicGetBrokerageTime'
+                'fetchBalance': 'v3PrivateGetBrokerageAccounts',  # 'v2PrivateGetAccounts' or 'v3PrivateGetBrokerageAccounts'
+                'fetchTime': 'v3PublicGetBrokerageTime',  # 'v2PublicGetTime' or 'v3PublicGetBrokerageTime'
                 'user_native_currency': 'USD',  # needed to get fees for v3
             },
         })
