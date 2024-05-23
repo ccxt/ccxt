@@ -494,7 +494,7 @@ export default class zaif extends Exchange {
         return await this.privatePostCancelOrder (this.extend (request, params));
     }
 
-    parseOrder (order, market: Market = undefined): Order {
+    parseOrder (order: Dict, market: Market = undefined): Order {
         //
         //     {
         //         "currency_pair": "btc_jpy",

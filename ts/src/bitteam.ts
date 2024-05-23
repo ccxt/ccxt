@@ -1104,7 +1104,7 @@ export default class bitteam extends Exchange {
         return this.parseOrders (orders, market);
     }
 
-    parseOrder (order, market: Market = undefined): Order {
+    parseOrder (order: Dict, market: Market = undefined): Order {
         //
         // fetchOrders
         //     {

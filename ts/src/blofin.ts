@@ -1054,7 +1054,7 @@ export default class blofin extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseOrder (order, market: Market = undefined): Order {
+    parseOrder (order: Dict, market: Market = undefined): Order {
         //
         // {
         //     "orderId": "2075628533",

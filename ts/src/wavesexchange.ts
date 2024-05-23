@@ -1712,7 +1712,7 @@ export default class wavesexchange extends Exchange {
         return this.safeCurrencyCode (baseId) + '/' + this.safeCurrencyCode (quoteId);
     }
 
-    parseOrder (order, market: Market = undefined): Order {
+    parseOrder (order: Dict, market: Market = undefined): Order {
         //
         // createOrder
         //

@@ -563,7 +563,7 @@ export default class tradeogre extends Exchange {
         return this.parseOrder (response, undefined);
     }
 
-    parseOrder (order, market: Market = undefined): Order {
+    parseOrder (order: Dict, market: Market = undefined): Order {
         //
         //
         // {

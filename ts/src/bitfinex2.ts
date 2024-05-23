@@ -1493,21 +1493,22 @@ export default class bitfinex2 extends Exchange {
         return this.safeString (orderTypes, orderType, 'GTC');
     }
 
-    parseOrder (order, market: Market = undefined): Order {
-        const id = this.safeString (order, 0);
-        const marketId = this.safeString (order, 3);
+    parseOrder (order: Dict, market: Market = undefined): Order {
+        const orderObject = this.safeDict(order, 'result');
+        const id = this.safeString (orderObject, 0);
+        const marketId = this.safeString (orderObject, 3);
         const symbol = this.safeSymbol (marketId);
         // https://github.com/ccxt/ccxt/issues/6686
-        // const timestamp = this.safeTimestamp (order, 5);
-        const timestamp = this.safeInteger (order, 5);
-        const remaining = Precise.stringAbs (this.safeString (order, 6));
-        const signedAmount = this.safeString (order, 7);
+        // const timestamp = this.safeTimestamp (orderObject, 5);
+        const timestamp = this.safeInteger (orderObject, 5);
+        const remaining = Precise.stringAbs (this.safeString (orderObject, 6));
+        const signedAmount = this.safeString (orderObject, 7);
         const amount = Precise.stringAbs (signedAmount);
         const side = Precise.stringLt (signedAmount, '0') ? 'sell' : 'buy';
-        const orderType = this.safeString (order, 8);
+        const orderType = this.safeString (orderObject, 8);
         const type = this.safeString (this.safeValue (this.options, 'exchangeTypes'), orderType);
         const timeInForce = this.parseTimeInForce (orderType);
-        const rawFlags = this.safeString (order, 12);
+        const rawFlags = this.safeString (orderObject, 12);
         const flags = this.parseOrderFlags (rawFlags);
         let postOnly = false;
         if (flags !== undefined) {
@@ -1517,25 +1518,25 @@ export default class bitfinex2 extends Exchange {
                 }
             }
         }
-        let price = this.safeString (order, 16);
+        let price = this.safeString (orderObject, 16);
         let stopPrice = undefined;
         if ((orderType === 'EXCHANGE STOP') || (orderType === 'EXCHANGE STOP LIMIT')) {
             price = undefined;
-            stopPrice = this.safeString (order, 16);
+            stopPrice = this.safeString (orderObject, 16);
             if (orderType === 'EXCHANGE STOP LIMIT') {
-                price = this.safeString (order, 19);
+                price = this.safeString (orderObject, 19);
             }
         }
         let status = undefined;
-        const statusString = this.safeString (order, 13);
+        const statusString = this.safeString (orderObject, 13);
         if (statusString !== undefined) {
             const parts = statusString.split (' @ ');
             status = this.parseOrderStatus (this.safeString (parts, 0));
         }
-        const average = this.safeString (order, 17);
-        const clientOrderId = this.safeString (order, 2);
+        const average = this.safeString (orderObject, 17);
+        const clientOrderId = this.safeString (orderObject, 2);
         return this.safeOrder ({
-            'info': order,
+            'info': orderObject,
             'id': id,
             'clientOrderId': clientOrderId,
             'timestamp': timestamp,

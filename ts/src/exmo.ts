@@ -1821,7 +1821,7 @@ export default class exmo extends Exchange {
         return this.safeString (side, orderType, orderType);
     }
 
-    parseOrder (order, market: Market = undefined): Order {
+    parseOrder (order: Dict, market: Market = undefined): Order {
         //
         // fetchOrders, fetchOpenOrders, fetchClosedOrders, fetchCanceledOrders
         //

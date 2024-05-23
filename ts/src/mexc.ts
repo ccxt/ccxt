@@ -3205,7 +3205,7 @@ export default class mexc extends Exchange {
         }
     }
 
-    parseOrder (order, market: Market = undefined): Order {
+    parseOrder (order: Dict, market: Market = undefined): Order {
         //
         // spot: createOrder
         //
