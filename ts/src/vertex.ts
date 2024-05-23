@@ -1608,9 +1608,6 @@ export default class vertex extends Exchange {
             throw new ArgumentsRequired (this.id + ' cancelOrders() requires a symbol argument');
         }
         await this.loadMarkets ();
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' cancelAllOrders() requires a symbol argument');
-        }
         const market = this.market (symbol);
         const marketId = market['id'];
         const contracts = await this.queryContracts ();
