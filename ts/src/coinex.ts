@@ -78,7 +78,7 @@ export default class coinex extends Exchange {
                 'fetchFundingRates': true,
                 'fetchIndexOHLCV': false,
                 'fetchIsolatedBorrowRate': true,
-                'fetchIsolatedBorrowRates': true,
+                'fetchIsolatedBorrowRates': false,
                 'fetchLeverage': 'emulated',
                 'fetchLeverages': true,
                 'fetchLeverageTiers': true,
@@ -5206,43 +5206,6 @@ export default class coinex extends Exchange {
         //
         const data = this.safeDict (response, 'data', {});
         return this.parseIsolatedBorrowRate (data, market);
-    }
-
-    async fetchIsolatedBorrowRates (params = {}): Promise<IsolatedBorrowRates> {
-        /**
-         * @method
-         * @name coinex#fetchIsolatedBorrowRates
-         * @description fetch the borrow interest rates of all currencies
-         * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot002_account007_margin_account_settings
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a list of [isolated borrow rate structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#isolated-borrow-rate-structure}
-         */
-        await this.loadMarkets ();
-        const response = await this.v1PrivateGetMarginConfig (params);
-        //
-        //     {
-        //         "code": 0,
-        //         "data": [
-        //             {
-        //                 "market": "BTCUSDT",
-        //                 "leverage": 10,
-        //                 "BTC": {
-        //                     "min_amount": "0.002",
-        //                     "max_amount": "200",
-        //                     "day_rate": "0.001"
-        //                 },
-        //                 "USDT": {
-        //                     "min_amount": "60",
-        //                     "max_amount": "5000000",
-        //                     "day_rate": "0.001"
-        //                 }
-        //             },
-        //         ],
-        //         "message": "Success"
-        //     }
-        //
-        const data = this.safeValue (response, 'data', []);
-        return this.parseIsolatedBorrowRates (data);
     }
 
     async fetchBorrowInterest (code: Str = undefined, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
