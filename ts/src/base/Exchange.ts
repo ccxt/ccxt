@@ -367,6 +367,7 @@ export default class Exchange {
     streaming = {}
 
     alias: boolean = false;
+    weights: Dictionary<Num> = {}
 
     deepExtend = deepExtend
     isNode = isNode
@@ -778,6 +779,8 @@ export default class Exchange {
                 'price': { 'min': undefined, 'max': undefined },
                 'cost': { 'min': undefined, 'max': undefined },
             },
+            'weights': {
+            },
         } // return
     } // describe ()
 
@@ -969,7 +972,7 @@ export default class Exchange {
         return this.throttler.throttle (cost)
     }
 
-    defineRestApiEndpoint (methodName, uppercaseMethod, lowercaseMethod, camelcaseMethod, path, paths, config = {}) {
+    defineRestApiEndpoint (methodName, uppercaseMethod, lowercaseMethod, camelcaseMethod, path, paths, weight: Num = undefined, config = {}) {
         const splitPath = path.split (/[^a-zA-Z0-9]/)
         const camelcaseSuffix  = splitPath.map (this.capitalize).join ('')
         const underscoreSuffix = splitPath.map ((x) => x.trim ().toLowerCase ()).filter ((x) => x.length > 0).join ('_')
@@ -983,6 +986,8 @@ export default class Exchange {
         // const partial = async (params) => this[methodName] (path, typeArgument, uppercaseMethod, params || {})
         this[camelcase]  = partial
         this[underscore] = partial
+        this.weights[camelcase] = weight;
+        this.weights[underscore] = weight;
     }
 
     defineRestApi (api, methodName, paths = []) {
@@ -996,7 +1001,8 @@ export default class Exchange {
             if (Array.isArray (value)) {
                 for (let k = 0; k < value.length; k++) {
                     const path = value[k].trim ()
-                    this.defineRestApiEndpoint (methodName, uppercaseMethod, lowercaseMethod, camelcaseMethod, path, paths)
+                    const weight = this.getMethodWeight (api, key, path);
+                    this.defineRestApiEndpoint (methodName, uppercaseMethod, lowercaseMethod, camelcaseMethod, path, paths, weight);
                 }
             // the options HTTP method conflicts with the 'options' API url path
             // } else if (key.match (/^(?:get|post|put|delete|options|head|patch)$/i)) {
@@ -1006,10 +1012,11 @@ export default class Exchange {
                     const endpoint = endpoints[j]
                     const path = endpoint.trim ()
                     const config = value[endpoint]
+                    const weight = this.getMethodWeight (api, key, path);
                     if (typeof config === 'object') {
-                        this.defineRestApiEndpoint (methodName, uppercaseMethod, lowercaseMethod, camelcaseMethod, path, paths, config)
+                        this.defineRestApiEndpoint (methodName, uppercaseMethod, lowercaseMethod, camelcaseMethod, path, paths, weight, config)
                     } else if (typeof config === 'number') {
-                        this.defineRestApiEndpoint (methodName, uppercaseMethod, lowercaseMethod, camelcaseMethod, path, paths, { cost: config })
+                        this.defineRestApiEndpoint (methodName, uppercaseMethod, lowercaseMethod, camelcaseMethod, path, paths, weight, { cost: config })
                     } else {
                         throw new NotSupported (this.id + ' defineRestApi() API format is not supported, API leafs must strings, objects or numbers');
                     }
@@ -1837,6 +1844,24 @@ export default class Exchange {
 
     // ------------------------------------------------------------------------
     // METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
+
+    getMethodWeight (api: object, key: string, path: string): Num {
+        /**
+         * @ignore
+         * @method
+         * @description gets the weight of an endpoint
+         * @param {object} api the api object defined in describe
+         * @param {string} key the second last key in the api endpoint path
+         * @param {string} path the final key in the api endpoint path
+         * @returns {Num} the weight of the api endpoint, or undefined
+         */
+        const tree = api[key];
+        if (Array.isArray (tree)) {
+            return undefined;  // endpoint weights are not set on this exchange
+        } else {
+            return tree[path];  // should be the weight of the endpoint
+        }
+    }
 
     safeBoolN (dictionaryOrList, keys: IndexType[], defaultValue: boolean = undefined): boolean | undefined {
         /**
