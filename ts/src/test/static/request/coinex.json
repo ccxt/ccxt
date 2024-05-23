@@ -1248,6 +1248,19 @@
                   5
                 ]
             }
+        ],
+        "fetchBorrowInterest": [
+            {
+                "description": "Fetch the borrow interest for an isolated spot market",
+                "method": "fetchBorrowInterest",
+                "url": "https://api.coinex.com/v2/assets/margin/borrow-history?limit=3&market=BTCUSDT",
+                "input": [
+                  null,
+                  "BTC/USDT",
+                  null,
+                  3
+                ]
+            }
         ]
     },
     "disabledTests": {}
