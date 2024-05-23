@@ -242,7 +242,7 @@ async def get_test_files(properties, ws=False):
         methodName = finalPropList[i]
         name_snake_case = convert_to_snake_case(methodName)
         prefix = 'async' if not is_synchronous else 'sync'
-        dir_to_test = DIR_NAME + '/' + prefix + '/'
+        dir_to_test = DIR_NAME + '/exchange/' + prefix + '/'
         module_string = 'ccxt.test.exchange.' + prefix + '.test_' + name_snake_case
         if (ws):
             prefix = 'pro'

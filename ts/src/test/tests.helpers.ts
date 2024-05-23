@@ -89,7 +89,8 @@ class baseMainTestClass {
 // const rootDirForSkips = DIR_NAME + '/../../../';
 // const envVars = process.env;
 const LOG_CHARS_LENGTH = 10000;
-const ext = import.meta.url.split ('.')[1];
+const parts = import.meta.url.split ('.');
+const ext = parts[parts.length - 1];
 
 function dump (...args) {
     console.log (...args);
