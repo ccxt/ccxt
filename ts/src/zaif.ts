@@ -648,7 +648,7 @@ export default class zaif extends Exchange {
         return this.parseTransaction (returnData, currency);
     }
 
-    parseTransaction (transaction, currency: Currency = undefined): Transaction {
+    parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {
         //
         //     {
         //         "id": 23634,

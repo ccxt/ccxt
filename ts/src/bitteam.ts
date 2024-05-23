@@ -2175,7 +2175,7 @@ export default class bitteam extends Exchange {
         return this.parseTransactions (transactions, currency, since, limit);
     }
 
-    parseTransaction (transaction, currency: Currency = undefined): Transaction {
+    parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {
         //
         //     {
         //         "id": 1329229,
