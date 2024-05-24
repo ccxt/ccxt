@@ -844,6 +844,7 @@ export default class binance extends Exchange {
                         'order/asyn/id': 10,
                         'trade/asyn': 1000,
                         'trade/asyn/id': 10,
+                        'feeBurn': 1,
                     },
                     'post': {
                         'batchOrders': 5,
@@ -858,6 +859,7 @@ export default class binance extends Exchange {
                         // broker endpoints
                         'apiReferral/customization': 1,
                         'apiReferral/userCustomization': 1,
+                        'feeBurn': 1,
                     },
                     'put': {
                         'listenKey': 1,
