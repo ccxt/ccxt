@@ -1,10 +1,10 @@
 import coinbaseRest from '../coinbase.js';
-import { Strings, Tickers, Ticker, Int, Trade, OrderBook, Order, Str } from '../base/types.js';
+import { Strings, Tickers, Ticker, Int, Trade, OrderBook, Order, Str, Dict } from '../base/types.js';
 export default class coinbase extends coinbaseRest {
     describe(): any;
     subscribe(name: string, isPrivate: boolean, symbol?: any, params?: {}): Promise<any>;
     subscribeMultiple(name: string, isPrivate: boolean, symbols?: Strings, params?: {}): Promise<any>;
-    createWSAuth(name: string, productIds: string[]): {};
+    createWSAuth(name: string, productIds: string[]): Dict;
     watchTicker(symbol: string, params?: {}): Promise<Ticker>;
     watchTickers(symbols?: Strings, params?: {}): Promise<Tickers>;
     handleTickers(client: any, message: any): any;

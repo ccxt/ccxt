@@ -148,7 +148,7 @@ class coinspot(Exchange, ImplicitAPI):
         })
 
     def parse_balance(self, response) -> Balances:
-        result = {'info': response}
+        result: dict = {'info': response}
         balances = self.safe_value_2(response, 'balance', 'balances')
         if isinstance(balances, list):
             for i in range(0, len(balances)):
@@ -210,7 +210,7 @@ class coinspot(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'cointype': market['id'],
         }
         orderbook = self.privatePostOrders(self.extend(request, params))
@@ -307,7 +307,7 @@ class coinspot(Exchange, ImplicitAPI):
         #      }
         #    }
         #
-        result = {}
+        result: dict = {}
         prices = self.safe_value(response, 'prices')
         ids = list(prices.keys())
         for i in range(0, len(ids)):
@@ -331,7 +331,7 @@ class coinspot(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'cointype': market['id'],
         }
         response = self.privatePostOrdersHistory(self.extend(request, params))
@@ -357,7 +357,7 @@ class coinspot(Exchange, ImplicitAPI):
         :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
         """
         self.load_markets()
-        request = {}
+        request: dict = {}
         market = None
         if symbol is not None:
             market = self.market(symbol)
@@ -484,7 +484,7 @@ class coinspot(Exchange, ImplicitAPI):
         if type == 'market':
             raise ExchangeError(self.id + ' createOrder() allows limit orders only')
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'cointype': market['id'],
             'amount': amount,
             'rate': price,
@@ -506,7 +506,7 @@ class coinspot(Exchange, ImplicitAPI):
             raise ArgumentsRequired(self.id + ' cancelOrder() requires a side parameter, "buy" or "sell"')
         params = self.omit(params, 'side')
         method = 'privatePostMy' + self.capitalize(side) + 'Cancel'
-        request = {
+        request: dict = {
             'id': id,
         }
         return getattr(self, method)(self.extend(request, params))

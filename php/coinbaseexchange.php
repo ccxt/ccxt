@@ -984,7 +984,7 @@ class coinbaseexchange extends Exchange {
         return $this->safe_timestamp($response, 'epoch');
     }
 
-    public function parse_order_status($status) {
+    public function parse_order_status(?string $status) {
         $statuses = array(
             'pending' => 'open',
             'active' => 'open',

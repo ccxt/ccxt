@@ -20,22 +20,11 @@ export default class kucoin extends Exchange {
     fetchAccounts(params?: {}): Promise<Account[]>;
     fetchTransactionFee(code: string, params?: {}): Promise<{
         info: any;
-        withdraw: {};
+        withdraw: Dict;
         deposit: {};
     }>;
     fetchDepositWithdrawFee(code: string, params?: {}): Promise<any>;
-    parseDepositWithdrawFee(fee: any, currency?: Currency): {
-        info: any;
-        withdraw: {
-            fee: any;
-            percentage: any;
-        };
-        deposit: {
-            fee: any;
-            percentage: any;
-        };
-        networks: {};
-    };
+    parseDepositWithdrawFee(fee: any, currency?: Currency): Dict;
     isFuturesMethod(methodName: any, params: any): boolean;
     parseTicker(ticker: Dict, market?: Market): Ticker;
     fetchTickers(symbols?: Strings, params?: {}): Promise<Tickers>;
@@ -138,9 +127,9 @@ export default class kucoin extends Exchange {
         datetime: string;
         info: any;
     };
-    fetchBorrowRateHistories(codes?: any, since?: Int, limit?: Int, params?: {}): Promise<{}>;
+    fetchBorrowRateHistories(codes?: any, since?: Int, limit?: Int, params?: {}): Promise<Dict>;
     fetchBorrowRateHistory(code: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
-    parseBorrowRateHistories(response: any, codes: any, since: any, limit: any): {};
+    parseBorrowRateHistories(response: any, codes: any, since: any, limit: any): Dict;
     borrowCrossMargin(code: string, amount: number, params?: {}): Promise<{
         id: string;
         currency: string;

@@ -715,20 +715,15 @@
         ],
         "fetchIsolatedBorrowRate": [
             {
-                "description": "Fetch isolated borrow rate",
+                "description": "Fetch the isolated borrow rate",
                 "method": "fetchIsolatedBorrowRate",
-                "url": "https://api.coinex.com/v1/margin/config?access_id=86AC33D5904F432C9C9DDD4708233F38&market=BTCUSDT&tonce=1700201048704",
+                "url": "https://api.coinex.com/v2/assets/margin/interest-limit?ccy=USDT&market=BTCUSDT",
                 "input": [
-                    "BTC/USDT"
+                  "BTC/USDT",
+                  {
+                    "code": "USDT"
+                  }
                 ]
-            }
-        ],
-        "fetchIsolatedBorrowRates": [
-            {
-                "description": "Fetch isolated borrow rates",
-                "method": "fetchIsolatedBorrowRates",
-                "url": "https://api.coinex.com/v1/margin/config?access_id=86AC33D5904F432C9C9DDD4708233F38&tonce=1700202207814",
-                "input": []
             }
         ],
         "cancelOrders": [
@@ -1248,7 +1243,56 @@
                   5
                 ]
             }
-        ]
+        ],
+        "borrowIsolatedMargin": [
+            {
+                "description": "Borrow isolated margin",
+                "method": "borrowIsolatedMargin",
+                "url": "https://api.coinex.com/v2/assets/margin/borrow",
+                "input": [
+                  "BTC/USDT",
+                  "USDT",
+                  60
+                ],
+                "output": "{\"borrow_amount\":\"60\",\"ccy\":\"USDT\",\"is_auto_renew\":false,\"market\":\"BTCUSDT\"}"
+            }
+        ],
+        "repayIsolatedMargin": [
+            {
+                "description": "Repay isolated margin",
+                "method": "repayIsolatedMargin",
+                "url": "https://api.coinex.com/v2/assets/margin/repay",
+                "input": [
+                  "BTC/USDT",
+                  "USDT",
+                  60.0025
+                ],
+                "output": "{\"amount\":\"60.0025\",\"ccy\":\"USDT\",\"market\":\"BTCUSDT\"}"
+            }
+        ],
+        "fetchBorrowInterest": [
+          {
+              "description": "Fetch the borrow interest for an isolated spot market",
+              "method": "fetchBorrowInterest",
+              "url": "https://api.coinex.com/v2/assets/margin/borrow-history?limit=3&market=BTCUSDT",
+              "input": [
+                null,
+                "BTC/USDT",
+                null,
+                3
+              ]
+          }
+      ],
+      "fetchDepositWithdrawFee": [
+        {
+            "description": "Fetch deposit withdraw fee",
+            "method": "fetchDepositWithdrawFee",
+            "url": "https://api.coinex.com/v2/assets/deposit-withdraw-config?ccy=USDT",
+            "input": [
+              "USDT"
+            ]
+        }
+     ]
     },
     "disabledTests": {}
 }

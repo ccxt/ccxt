@@ -529,25 +529,25 @@ class bingx(Exchange, ImplicitAPI):
         #    }
         #
         data = self.safe_list(response, 'data', [])
-        result = {}
+        result: dict = {}
         for i in range(0, len(data)):
             entry = data[i]
             currencyId = self.safe_string(entry, 'coin')
             code = self.safe_currency_code(currencyId)
             name = self.safe_string(entry, 'name')
             networkList = self.safe_list(entry, 'networkList')
-            networks = {}
+            networks: dict = {}
             fee = None
             active = None
             withdrawEnabled = None
-            defaultLimits = {}
+            defaultLimits: dict = {}
             for j in range(0, len(networkList)):
                 rawNetwork = networkList[j]
                 network = self.safe_string(rawNetwork, 'network')
                 networkCode = self.network_id_to_code(network)
                 isDefault = self.safe_bool(rawNetwork, 'isDefault')
                 withdrawEnabled = self.safe_bool(rawNetwork, 'withdrawEnable')
-                limits = {
+                limits: dict = {
                     'amounts': {'min': self.safe_number(rawNetwork, 'withdrawMin'), 'max': self.safe_number(rawNetwork, 'withdrawMax')},
                 }
                 if isDefault:
@@ -1576,7 +1576,7 @@ class bingx(Exchange, ImplicitAPI):
     def parse_balance(self, response) -> Balances:
         data = self.safe_value(response, 'data')
         balances = self.safe_value_2(data, 'balance', 'balances', data)
-        result = {'info': response}
+        result: dict = {'info': response}
         if isinstance(balances, list):
             for i in range(0, len(balances)):
                 balance = balances[i]
@@ -2079,7 +2079,7 @@ class bingx(Exchange, ImplicitAPI):
         return self.parse_orders(result, market)
 
     def parse_order_side(self, side):
-        sides = {
+        sides: dict = {
             'BUY': 'buy',
             'SELL': 'sell',
             'SHORT': 'sell',
@@ -2089,8 +2089,8 @@ class bingx(Exchange, ImplicitAPI):
         }
         return self.safe_string(sides, side, side)
 
-    def parse_order_type(self, type):
-        types = {
+    def parse_order_type(self, type: Str):
+        types: dict = {
             'trigger_market': 'market',
             'trigger_limit': 'limit',
             'stop_limit': 'limit',
@@ -2403,8 +2403,8 @@ class bingx(Exchange, ImplicitAPI):
             'reduceOnly': self.safe_bool(order, 'reduceOnly'),
         }, market)
 
-    def parse_order_status(self, status):
-        statuses = {
+    def parse_order_status(self, status: Str):
+        statuses: dict = {
             'NEW': 'open',
             'PENDING': 'open',
             'PARTIALLY_FILLED': 'open',
@@ -2771,7 +2771,7 @@ class bingx(Exchange, ImplicitAPI):
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
-        request = {}
+        request: dict = {}
         market = None
         if symbol is not None:
             market = self.market(symbol)
@@ -3396,7 +3396,7 @@ class bingx(Exchange, ImplicitAPI):
         }
 
     def parse_transaction_status(self, status: str):
-        statuses = {
+        statuses: dict = {
             '0': 'pending',
             '1': 'ok',
             '10': 'pending',
@@ -3441,13 +3441,13 @@ class bingx(Exchange, ImplicitAPI):
         return await self.swapV2PrivatePostTradeMarginType(self.extend(request, params))
 
     async def add_margin(self, symbol: str, amount: float, params={}) -> MarginModification:
-        request = {
+        request: dict = {
             'type': 1,
         }
         return await self.set_margin(symbol, amount, self.extend(request, params))
 
     async def reduce_margin(self, symbol: str, amount: float, params={}) -> MarginModification:
-        request = {
+        request: dict = {
             'type': 2,
         }
         return await self.set_margin(symbol, amount, self.extend(request, params))
@@ -3700,7 +3700,7 @@ class bingx(Exchange, ImplicitAPI):
         #
         networkList = self.safe_list(fee, 'networkList', [])
         networkListLength = len(networkList)
-        result = {
+        result: dict = {
             'info': fee,
             'withdraw': {
                 'fee': None,
@@ -3810,7 +3810,7 @@ class bingx(Exchange, ImplicitAPI):
         :returns dict: an array of `liquidation structures <https://docs.ccxt.com/#/?id=liquidation-structure>`
         """
         await self.load_markets()
-        request = {
+        request: dict = {
             'autoCloseType': 'LIQUIDATION',
         }
         request, params = self.handle_until_option('endTime', request, params)

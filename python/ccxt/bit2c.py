@@ -192,7 +192,7 @@ class bit2c(Exchange, ImplicitAPI):
         })
 
     def parse_balance(self, response) -> Balances:
-        result = {
+        result: dict = {
             'info': response,
             'timestamp': None,
             'datetime': None,
@@ -273,7 +273,7 @@ class bit2c(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'pair': market['id'],
         }
         orderbook = self.publicGetExchangesPairOrderbook(self.extend(request, params))
@@ -317,7 +317,7 @@ class bit2c(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'pair': market['id'],
         }
         response = self.publicGetExchangesPairTicker(self.extend(request, params))
@@ -337,7 +337,7 @@ class bit2c(Exchange, ImplicitAPI):
         self.load_markets()
         market = self.market(symbol)
         method = self.options['fetchTradesMethod']  # public_get_exchanges_pair_trades or public_get_exchanges_pair_lasttrades
-        request = {
+        request: dict = {
             'pair': market['id'],
         }
         if since is not None:
@@ -387,7 +387,7 @@ class bit2c(Exchange, ImplicitAPI):
         #
         fees = self.safe_value(response, 'Fees', {})
         keys = list(fees.keys())
-        result = {}
+        result: dict = {}
         for i in range(0, len(keys)):
             marketId = keys[i]
             symbol = self.safe_symbol(marketId)
@@ -421,7 +421,7 @@ class bit2c(Exchange, ImplicitAPI):
         self.load_markets()
         method = 'privatePostOrderAddOrder'
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'Amount': amount,
             'Pair': market['id'],
         }
@@ -445,7 +445,7 @@ class bit2c(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
-        request = {
+        request: dict = {
             'id': id,
         }
         return self.privatePostOrderCancelOrder(self.extend(request, params))
@@ -464,7 +464,7 @@ class bit2c(Exchange, ImplicitAPI):
             raise ArgumentsRequired(self.id + ' fetchOpenOrders() requires a symbol argument')
         self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'pair': market['id'],
         }
         response = self.privateGetOrderMyOrders(self.extend(request, params))
@@ -483,7 +483,7 @@ class bit2c(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'id': id,
         }
         response = self.privateGetOrderGetById(self.extend(request, params))
@@ -622,7 +622,7 @@ class bit2c(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = None
-        request = {}
+        request: dict = {}
         if limit is not None:
             request['take'] = limit
         request['take'] = limit
@@ -789,7 +789,7 @@ class bit2c(Exchange, ImplicitAPI):
         currency = self.currency(code)
         if self.is_fiat(code):
             raise NotSupported(self.id + ' fetchDepositAddress() does not support fiat currencies')
-        request = {
+        request: dict = {
             'Coin': currency['id'],
         }
         response = self.privatePostFundsAddCoinFundsRequest(self.extend(request, params))

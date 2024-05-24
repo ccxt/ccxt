@@ -5,7 +5,7 @@ import { ExchangeError, AuthenticationError } from '../base/errors.js';
 import { ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCache, ArrayCacheBySymbolBySide } from '../base/ws/Cache.js';
 import { Precise } from '../base/Precise.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
-import type { Int, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Balances, Position } from '../base/types.js';
+import type { Int, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Balances, Position, Dict } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 // ----------------------------------------------------------------------------
@@ -78,7 +78,7 @@ export default class woo extends wooRest {
     async watchPublic (messageHash, message) {
         const url = this.urls['api']['ws']['public'] + '/' + this.uid;
         const requestId = this.requestId (url);
-        const subscribe = {
+        const subscribe: Dict = {
             'id': requestId,
         };
         const request = this.extend (subscribe, message);
@@ -100,7 +100,7 @@ export default class woo extends wooRest {
         const name = 'orderbook';
         const market = this.market (symbol);
         const topic = market['id'] + '@' + name;
-        const request = {
+        const request: Dict = {
             'event': 'subscribe',
             'topic': topic,
         };
@@ -160,7 +160,7 @@ export default class woo extends wooRest {
         const market = this.market (symbol);
         symbol = market['symbol'];
         const topic = market['id'] + '@' + name;
-        const request = {
+        const request: Dict = {
             'event': 'subscribe',
             'topic': topic,
         };
@@ -249,7 +249,7 @@ export default class woo extends wooRest {
         symbols = this.marketSymbols (symbols);
         const name = 'tickers';
         const topic = name;
-        const request = {
+        const request: Dict = {
             'event': 'subscribe',
             'topic': topic,
         };
@@ -323,7 +323,7 @@ export default class woo extends wooRest {
         const interval = this.safeString (this.timeframes, timeframe, timeframe);
         const name = 'kline';
         const topic = market['id'] + '@' + name + '_' + interval;
-        const request = {
+        const request: Dict = {
             'event': 'subscribe',
             'topic': topic,
         };
@@ -396,7 +396,7 @@ export default class woo extends wooRest {
         const market = this.market (symbol);
         symbol = market['symbol'];
         const topic = market['id'] + '@trade';
-        const request = {
+        const request: Dict = {
             'event': 'subscribe',
             'topic': topic,
         };
@@ -541,7 +541,7 @@ export default class woo extends wooRest {
             const ts = this.nonce ().toString ();
             const auth = '|' + ts;
             const signature = this.hmac (this.encode (auth), this.encode (this.secret), sha256);
-            const request = {
+            const request: Dict = {
                 'event': event,
                 'params': {
                     'apikey': this.apiKey,
@@ -559,7 +559,7 @@ export default class woo extends wooRest {
         await this.authenticate (params);
         const url = this.urls['api']['ws']['private'] + '/' + this.uid;
         const requestId = this.requestId (url);
-        const subscribe = {
+        const subscribe: Dict = {
             'id': requestId,
         };
         const request = this.extend (subscribe, message);
@@ -570,7 +570,7 @@ export default class woo extends wooRest {
         await this.authenticate (params);
         const url = this.urls['api']['ws']['private'] + '/' + this.uid;
         const requestId = this.requestId (url);
-        const subscribe = {
+        const subscribe: Dict = {
             'id': requestId,
         };
         const request = this.extend (subscribe, message);
@@ -601,7 +601,7 @@ export default class woo extends wooRest {
             symbol = market['symbol'];
             messageHash += ':' + symbol;
         }
-        const request = {
+        const request: Dict = {
             'event': 'subscribe',
             'topic': topic,
         };
@@ -637,7 +637,7 @@ export default class woo extends wooRest {
             symbol = market['symbol'];
             messageHash += ':' + symbol;
         }
-        const request = {
+        const request: Dict = {
             'event': 'subscribe',
             'topic': topic,
         };
@@ -886,7 +886,7 @@ export default class woo extends wooRest {
             const snapshot = await client.future ('fetchPositionsSnapshot');
             return this.filterBySymbolsSinceLimit (snapshot, symbols, since, limit, true);
         }
-        const request = {
+        const request: Dict = {
             'event': 'subscribe',
             'topic': 'position',
         };
@@ -986,7 +986,7 @@ export default class woo extends wooRest {
         await this.loadMarkets ();
         const topic = 'balance';
         const messageHash = topic;
-        const request = {
+        const request: Dict = {
             'event': 'subscribe',
             'topic': topic,
         };
@@ -1082,7 +1082,7 @@ export default class woo extends wooRest {
         if (this.handleErrorMessage (client, message)) {
             return;
         }
-        const methods = {
+        const methods: Dict = {
             'ping': this.handlePing,
             'pong': this.handlePong,
             'subscribe': this.handleSubscribe,

@@ -3,7 +3,7 @@
 import hyperliquidRest from '../hyperliquid.js';
 import { ExchangeError } from '../base/errors.js';
 import Client from '../base/ws/Client.js';
-import { Int, Str, Market, OrderBook, Trade, OHLCV, Order } from '../base/types.js';
+import { Int, Str, Market, OrderBook, Trade, OHLCV, Order, Dict } from '../base/types.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 
 //  ---------------------------------------------------------------------------
@@ -65,7 +65,7 @@ export default class hyperliquid extends hyperliquidRest {
         symbol = market['symbol'];
         const messageHash = 'orderbook:' + symbol;
         const url = this.urls['api']['ws']['public'];
-        const request = {
+        const request: Dict = {
             'method': 'subscribe',
             'subscription': {
                 'type': 'l2Book',
@@ -109,7 +109,7 @@ export default class hyperliquid extends hyperliquidRest {
         const market = this.market (marketId);
         const symbol = market['symbol'];
         const rawData = this.safeList (entry, 'levels', []);
-        const data = {
+        const data: Dict = {
             'bids': this.safeList (rawData, 0, []),
             'asks': this.safeList (rawData, 1, []),
         };
@@ -146,7 +146,7 @@ export default class hyperliquid extends hyperliquidRest {
             messageHash += ':' + symbol;
         }
         const url = this.urls['api']['ws']['public'];
-        const request = {
+        const request: Dict = {
             'method': 'subscribe',
             'subscription': {
                 'type': 'userFills',
@@ -196,7 +196,7 @@ export default class hyperliquid extends hyperliquidRest {
             this.myTrades = new ArrayCacheBySymbolById (limit);
         }
         const trades = this.myTrades;
-        const symbols = {};
+        const symbols: Dict = {};
         const data = this.safeList (entry, 'fills', []);
         const dataLength = data.length;
         if (dataLength === 0) {
@@ -235,7 +235,7 @@ export default class hyperliquid extends hyperliquidRest {
         symbol = market['symbol'];
         const messageHash = 'trade:' + symbol;
         const url = this.urls['api']['ws']['public'];
-        const request = {
+        const request: Dict = {
             'method': 'subscribe',
             'subscription': {
                 'type': 'trades',
@@ -368,7 +368,7 @@ export default class hyperliquid extends hyperliquidRest {
         const market = this.market (symbol);
         symbol = market['symbol'];
         const url = this.urls['api']['ws']['public'];
-        const request = {
+        const request: Dict = {
             'method': 'subscribe',
             'subscription': {
                 'type': 'candle',
@@ -446,7 +446,7 @@ export default class hyperliquid extends hyperliquidRest {
             messageHash = messageHash + ':' + symbol;
         }
         const url = this.urls['api']['ws']['public'];
-        const request = {
+        const request: Dict = {
             'method': 'subscribe',
             'subscription': {
                 'type': 'orderUpdates',
@@ -493,7 +493,7 @@ export default class hyperliquid extends hyperliquidRest {
         }
         const stored = this.orders;
         const messageHash = 'order';
-        const marketSymbols = {};
+        const marketSymbols: Dict = {};
         for (let i = 0; i < data.length; i++) {
             const rawOrder = data[i];
             const order = this.parseOrder (rawOrder);
@@ -531,7 +531,7 @@ export default class hyperliquid extends hyperliquidRest {
             return;
         }
         const topic = this.safeString (message, 'channel', '');
-        const methods = {
+        const methods: Dict = {
             'pong': this.handlePong,
             'trades': this.handleTrades,
             'l2Book': this.handleOrderBook,

@@ -383,9 +383,12 @@ class poloniexfutures(Exchange, ImplicitAPI):
         marketId = self.safe_string(ticker, 'symbol')
         symbol = self.safe_symbol(marketId, market)
         timestampString = self.safe_string(ticker, 'ts')
-        # check timestamp bcz bug: https://app.travis-ci.com/github/ccxt/ccxt/builds/269959181#L4011 and also 17 digits occured
         multiplier = None
-        if len(timestampString) == 17:
+        if len(timestampString) == 16:
+            # 16 digits: https://app.travis-ci.com/github/ccxt/ccxt/builds/270587157#L5454
+            multiplier = 0.001
+        elif len(timestampString) == 17:
+            # 17 digits: https://app.travis-ci.com/github/ccxt/ccxt/builds/269959181#L4011
             multiplier = 0.0001
         elif len(timestampString) == 18:
             multiplier = 0.00001
@@ -428,7 +431,7 @@ class poloniexfutures(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'symbol': market['id'],
         }
         response = self.publicGetTicker(self.extend(request, params))
@@ -462,7 +465,8 @@ class poloniexfutures(Exchange, ImplicitAPI):
         """
         self.load_markets()
         response = self.publicGetTickers(params)
-        return self.parse_tickers(self.safe_value(response, 'data', []), symbols)
+        data = self.safe_list(response, 'data', [])
+        return self.parse_tickers(data, symbols)
 
     def fetch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
@@ -480,7 +484,7 @@ class poloniexfutures(Exchange, ImplicitAPI):
         if level is not None and level != 2 and level != 3:
             raise BadRequest(self.id + ' fetchOrderBook() can only return level 2 & 3')
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'symbol': market['id'],
         }
         response = None
@@ -655,7 +659,7 @@ class poloniexfutures(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'symbol': market['id'],
         }
         response = self.publicGetTradeHistory(self.extend(request, params))
@@ -710,7 +714,7 @@ class poloniexfutures(Exchange, ImplicitAPI):
         market = self.market(symbol)
         marketId = market['id']
         parsedTimeframe = self.safe_integer(self.timeframes, timeframe)
-        request = {
+        request: dict = {
             'symbol': marketId,
         }
         if parsedTimeframe is not None:
@@ -743,7 +747,7 @@ class poloniexfutures(Exchange, ImplicitAPI):
         return self.parse_ohlcvs(data, market, timeframe, since, limit)
 
     def parse_balance(self, response) -> Balances:
-        result = {
+        result: dict = {
             'info': response,
             'timestamp': None,
             'datetime': None,
@@ -766,7 +770,7 @@ class poloniexfutures(Exchange, ImplicitAPI):
         """
         self.load_markets()
         currencyId = self.safe_string(params, 'currency')
-        request = {}
+        request: dict = {}
         if currencyId is not None:
             currency = self.currency(currencyId)
             request = {
@@ -821,7 +825,7 @@ class poloniexfutures(Exchange, ImplicitAPI):
         if amount < 1:
             raise InvalidOrder(self.id + ' createOrder() minimum contract order amount is 1')
         preciseAmount = int(self.amount_to_precision(symbol, amount))
-        request = {
+        request: dict = {
             'clientOid': clientOrderId,
             'side': side,
             'symbol': market['id'],
@@ -897,7 +901,7 @@ class poloniexfutures(Exchange, ImplicitAPI):
         :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
-        request = {
+        request: dict = {
             'order-id': id,
         }
         response = self.privateDeleteOrdersOrderId(self.extend(request, params))
@@ -1088,7 +1092,7 @@ class poloniexfutures(Exchange, ImplicitAPI):
             raise ArgumentsRequired(self.id + ' fetchFundingHistory() requires a symbol argument')
         self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'symbol': market['id'],
         }
         if since is not None:
@@ -1150,7 +1154,7 @@ class poloniexfutures(Exchange, ImplicitAPI):
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
-        request = {}
+        request: dict = {}
         if symbol is not None:
             request['symbol'] = self.market_id(symbol)
         stop = self.safe_value_2(params, 'stop', 'trigger')
@@ -1223,7 +1227,7 @@ class poloniexfutures(Exchange, ImplicitAPI):
         params = self.omit(params, ['trigger', 'stop', 'until'])
         if status == 'closed':
             status = 'done'
-        request = {}
+        request: dict = {}
         if not stop:
             request['status'] = 'active' if (status == 'open') else 'done'
         elif status != 'open':
@@ -1341,7 +1345,7 @@ class poloniexfutures(Exchange, ImplicitAPI):
         :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
-        request = {}
+        request: dict = {}
         response = None
         if id is None:
             clientOrderId = self.safe_string_2(params, 'clientOid', 'clientOrderId')
@@ -1532,7 +1536,7 @@ class poloniexfutures(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'symbol': market['id'],
         }
         response = self.publicGetFundingRateSymbolCurrent(self.extend(request, params))
@@ -1583,7 +1587,7 @@ class poloniexfutures(Exchange, ImplicitAPI):
         :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
         """
         self.load_markets()
-        request = {
+        request: dict = {
         }
         market = None
         if symbol is not None:
@@ -1648,7 +1652,7 @@ class poloniexfutures(Exchange, ImplicitAPI):
         if marginMode == 'cross':
             marginMode = '1'
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'symbol': market['id'],
             'marginType': self.parse_to_int(marginMode),
         }

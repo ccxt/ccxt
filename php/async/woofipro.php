@@ -1216,7 +1216,7 @@ class woofipro extends Exchange {
         return $this->safe_string($timeInForces, $timeInForce, null);
     }
 
-    public function parse_order_status($status) {
+    public function parse_order_status(?string $status) {
         if ($status !== null) {
             $statuses = array(
                 'NEW' => 'open',
@@ -1234,7 +1234,7 @@ class woofipro extends Exchange {
         return $status;
     }
 
-    public function parse_order_type($type) {
+    public function parse_order_type(?string $type) {
         $types = array(
             'LIMIT' => 'limit',
             'MARKET' => 'market',

@@ -262,7 +262,7 @@ class tradeogre(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'market': market['id'],
         }
         response = self.publicGetTickerMarket(self.extend(request, params))
@@ -326,7 +326,7 @@ class tradeogre(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'market': market['id'],
         }
         response = self.publicGetOrdersMarket(self.extend(request, params))
@@ -342,7 +342,7 @@ class tradeogre(Exchange, ImplicitAPI):
         #
         rawBids = self.safe_dict(response, 'buy', {})
         rawAsks = self.safe_dict(response, 'sell', {})
-        rawOrderbook = {
+        rawOrderbook: dict = {
             'bids': rawBids,
             'asks': rawAsks,
         }
@@ -371,7 +371,7 @@ class tradeogre(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'market': market['id'],
         }
         response = self.publicGetHistoryMarket(self.extend(request, params))
@@ -423,7 +423,7 @@ class tradeogre(Exchange, ImplicitAPI):
         #        "USDT": "12"
         #    }
         #
-        result = {
+        result: dict = {
             'info': response,
         }
         keys = list(response.keys())
@@ -431,7 +431,7 @@ class tradeogre(Exchange, ImplicitAPI):
             currencyId = keys[i]
             balance = response[currencyId]
             code = self.safe_currency_code(currencyId)
-            account = {
+            account: dict = {
                 'total': balance,
             }
             result[code] = account
@@ -450,7 +450,7 @@ class tradeogre(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'market': market['id'],
             'quantity': self.parse_to_numeric(self.amount_to_precision(symbol, amount)),
             'price': self.parse_to_numeric(self.price_to_precision(symbol, price)),
@@ -473,7 +473,7 @@ class tradeogre(Exchange, ImplicitAPI):
         :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
-        request = {
+        request: dict = {
             'uuid': id,
         }
         response = self.privatePostOrderCancel(self.extend(request, params))
@@ -502,7 +502,7 @@ class tradeogre(Exchange, ImplicitAPI):
         market = None
         if symbol is not None:
             market = self.market(symbol)
-        request = {}
+        request: dict = {}
         if symbol is not None:
             request['market'] = market['id']
         response = self.privatePostAccountOrders(self.extend(request, params))
@@ -517,7 +517,7 @@ class tradeogre(Exchange, ImplicitAPI):
         :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
-        request = {
+        request: dict = {
             'uuid': id,
         }
         response = self.privateGetAccountOrderUuid(self.extend(request, params))

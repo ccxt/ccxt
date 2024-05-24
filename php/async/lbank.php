@@ -1418,7 +1418,7 @@ class lbank extends Exchange {
         }) ();
     }
 
-    public function parse_order_status($status) {
+    public function parse_order_status(?string $status) {
         $statuses = array(
             '-1' => 'canceled', // canceled
             '0' => 'open', // not traded

@@ -3,7 +3,7 @@
 import poloniexfuturesRest from '../poloniexfutures.js';
 import { AuthenticationError, BadRequest, InvalidNonce } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
-import type { Int, Str, OrderBook, Order, Trade, Ticker, Balances } from '../base/types.js';
+import type { Int, Str, OrderBook, Order, Trade, Ticker, Balances, Dict } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -155,7 +155,7 @@ export default class poloniexfutures extends poloniexfuturesRest {
         const messageHash = name;
         const tunnelId = await this.stream (url, messageHash);
         const requestId = this.requestId ();
-        const subscribe = {
+        const subscribe: Dict = {
             'id': requestId,
             'type': 'subscribe',
             'topic': name,                 // Subscribed topic. Some topics support subscribe to the data of multiple trading pairs through ",".
@@ -163,7 +163,7 @@ export default class poloniexfutures extends poloniexfuturesRest {
             'response': true,              // Whether the server needs to return the receipt information of this subscription or not. Set as false by default.
             'tunnelId': tunnelId,
         };
-        const subscriptionRequest = {
+        const subscriptionRequest: Dict = {
             'id': requestId,
         };
         if (subscription === undefined) {
@@ -193,13 +193,13 @@ export default class poloniexfutures extends poloniexfuturesRest {
             stream = 'stream-' + streamIndexString;
             this.options['streamBySubscriptionsHash'][subscriptionHash] = stream;
             const messageHash = 'tunnel:' + stream;
-            const request = {
+            const request: Dict = {
                 'id': messageHash,
                 'type': 'openTunnel',
                 'newTunnelId': stream,
                 'response': true,
             };
-            const subscription = {
+            const subscription: Dict = {
                 'id': messageHash,
                 'method': this.handleNewStream,
             };
@@ -304,7 +304,7 @@ export default class poloniexfutures extends poloniexfuturesRest {
             }
             name += 'Depth' + this.numberToString (limit);
         }
-        const subscription = {
+        const subscription: Dict = {
             'symbol': symbol,
             'limit': limit,
             'method': this.handleOrderBookSubscription,
@@ -557,14 +557,14 @@ export default class poloniexfutures extends poloniexfuturesRest {
          * @param {string} type "open", "match", "filled", "canceled", "update"
          * @returns {string}
          */
-        const types = {
+        const types: Dict = {
             'canceled': 'canceled',
             'cancel': 'canceled',
             'filled': 'closed',
         };
         let parsedStatus = this.safeString (types, type);
         if (parsedStatus === undefined) {
-            const statuses = {
+            const statuses: Dict = {
                 'open': 'open',
                 'match': 'open',
                 'done': 'closed',
@@ -956,7 +956,7 @@ export default class poloniexfutures extends poloniexfuturesRest {
         //    }
         //
         const timestamp = this.safeInteger (response, 'timestamp');
-        const result = {
+        const result: Dict = {
             'info': response,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -981,7 +981,7 @@ export default class poloniexfutures extends poloniexfuturesRest {
 
     handleSubject (client: Client, message) {
         const subject = this.safeString (message, 'subject');
-        const methods = {
+        const methods: Dict = {
             'auth': this.handleAuthenticate,
             'received': this.handleL3OrderBook,
             'open': this.handleL3OrderBook,
@@ -1029,7 +1029,7 @@ export default class poloniexfutures extends poloniexfuturesRest {
 
     handleMessage (client: Client, message) {
         const type = this.safeString (message, 'type');
-        const methods = {
+        const methods: Dict = {
             'welcome': this.handleSystemStatus,
             'ack': this.handleSubscriptionStatus,
             'message': this.handleSubject,

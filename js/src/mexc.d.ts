@@ -48,7 +48,7 @@ export default class mexc extends Exchange {
     parseOrder(order: any, market?: Market): Order;
     parseOrderSide(status: any): string;
     parseOrderType(status: any): string;
-    parseOrderStatus(status: any): string;
+    parseOrderStatus(status: Str): string;
     parseOrderTimeInForce(status: any): string;
     fetchAccountHelper(type: any, params: any): Promise<any>;
     fetchAccounts(params?: {}): Promise<Account[]>;
@@ -140,16 +140,16 @@ export default class mexc extends Exchange {
         hedged: boolean;
     }>;
     fetchTransactionFees(codes?: string[], params?: {}): Promise<{
-        withdraw: {};
+        withdraw: Dict;
         deposit: {};
         info: any;
     }>;
     parseTransactionFees(response: any, codes?: any): {
-        withdraw: {};
+        withdraw: Dict;
         deposit: {};
         info: any;
     };
-    parseTransactionFee(transaction: any, currency?: Currency): {};
+    parseTransactionFee(transaction: any, currency?: Currency): Dict;
     fetchDepositWithdrawFees(codes?: Strings, params?: {}): Promise<any>;
     parseDepositWithdrawFee(fee: any, currency?: Currency): any;
     fetchLeverage(symbol: string, params?: {}): Promise<Leverage>;

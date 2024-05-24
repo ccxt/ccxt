@@ -77,7 +77,7 @@ export default class wavesexchange extends Exchange {
     fetchOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     fetchOpenOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     fetchClosedOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
-    parseOrderStatus(status: any): string;
+    parseOrderStatus(status: Str): string;
     getSymbolFromAssetPair(assetPair: any): string;
     parseOrder(order: any, market?: Market): Order;
     getWavesAddress(): Promise<any>;

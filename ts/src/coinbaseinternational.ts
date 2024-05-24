@@ -6,7 +6,7 @@ import { ExchangeError, ArgumentsRequired, BadRequest, InvalidOrder, PermissionD
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { Int, OrderSide, OrderType, Order, Trade, Ticker, Str, Transaction, Balances, Tickers, Strings, Market, Currency, TransferEntry, Position, FundingRateHistory, Currencies } from './base/types.js';
+import type { Int, OrderSide, OrderType, Order, Trade, Ticker, Str, Transaction, Balances, Tickers, Strings, Market, Currency, TransferEntry, Position, FundingRateHistory, Currencies, Dict } from './base/types.js';
 
 // ----------------------------------------------------------------------------
 
@@ -384,7 +384,7 @@ export default class coinbaseinternational extends Exchange {
         }
         const market = this.market (symbol);
         const page = this.safeInteger (params, pageKey, 1) - 1;
-        const request = {
+        const request: Dict = {
             'instrument': market['id'],
             'result_offset': this.safeInteger2 (params, 'offset', 'result_offset', page * maxEntriesPerRequest),
         };
@@ -466,7 +466,7 @@ export default class coinbaseinternational extends Exchange {
         [ method, params ] = this.handleOptionAndParams (params, 'createDepositAddress', 'method', 'v1PrivatePostTransfersAddress');
         let portfolio = undefined;
         [ portfolio, params ] = await this.handlePortfolioAndParams ('createDepositAddress', params);
-        const request = {
+        const request: Dict = {
             'portfolio': portfolio,
         };
         if (method === 'v1PrivatePostTransfersAddress') {
@@ -518,7 +518,7 @@ export default class coinbaseinternational extends Exchange {
         if (networks !== undefined) {
             return;
         }
-        const request = {
+        const request: Dict = {
             'asset': currency['id'],
         };
         const rawNetworks = await this.v1PublicGetAssetsAssetNetworks (request);
@@ -544,7 +544,7 @@ export default class coinbaseinternational extends Exchange {
     }
 
     parseNetworks (networks, params = {}) {
-        const result = {};
+        const result: Dict = {};
         for (let i = 0; i < networks.length; i++) {
             const network = this.extend (this.parseNetwork (networks[i]), params);
             result[network['network']] = network;
@@ -610,7 +610,7 @@ export default class coinbaseinternational extends Exchange {
         if (symbol !== undefined) {
             throw new BadRequest (this.id + ' setMargin() only allows setting margin to full portfolio');
         }
-        const request = {
+        const request: Dict = {
             'portfolio': portfolio,
             'margin_override': amount,
         };
@@ -644,7 +644,7 @@ export default class coinbaseinternational extends Exchange {
             return await this.fetchPaginatedCallIncremental ('fetchDepositsWithdrawals', code, since, limit, params, pageKey, maxEntriesPerRequest) as Transaction[];
         }
         const page = this.safeInteger (params, pageKey, 1) - 1;
-        const request = {
+        const request: Dict = {
             'result_offset': this.safeInteger2 (params, 'offset', 'result_offset', page * maxEntriesPerRequest),
         };
         if (since !== undefined) {
@@ -709,7 +709,7 @@ export default class coinbaseinternational extends Exchange {
         symbol = this.symbol (symbol);
         let portfolio = undefined;
         [ portfolio, params ] = await this.handlePortfolioAndParams ('fetchPosition', params);
-        const request = {
+        const request: Dict = {
             'portfolio': portfolio,
             'instrument': this.marketId (symbol),
         };
@@ -797,7 +797,7 @@ export default class coinbaseinternational extends Exchange {
         await this.loadMarkets ();
         let portfolio = undefined;
         [ portfolio, params ] = await this.handlePortfolioAndParams ('fetchPositions', params);
-        const request = {
+        const request: Dict = {
             'portfolio': portfolio,
         };
         const response = await this.v1PrivateGetPortfoliosPortfolioPositions (this.extend (request, params));
@@ -870,7 +870,7 @@ export default class coinbaseinternational extends Exchange {
     }
 
     parseTransactionStatus (status) {
-        const statuses = {
+        const statuses: Dict = {
             'PROCESSED': 'ok',
             'NEW': 'pending',
             'STARTED': 'pending',
@@ -1169,7 +1169,7 @@ export default class coinbaseinternational extends Exchange {
         //        ...
         //    ]
         //
-        const result = {};
+        const result: Dict = {};
         for (let i = 0; i < currencies.length; i++) {
             const currency = this.parseCurrency (currencies[i]);
             result[currency['code']] = currency;
@@ -1220,7 +1220,7 @@ export default class coinbaseinternational extends Exchange {
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
         const instruments = await this.v1PublicGetInstruments (params);
-        const tickers = {};
+        const tickers: Dict = {};
         for (let i = 0; i < instruments.length; i++) {
             const instrument = instruments[i];
             const marketId = this.safeString (instrument, 'symbol');
@@ -1243,7 +1243,7 @@ export default class coinbaseinternational extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'instrument': this.marketId (symbol),
         };
         const ticker = await this.v1PublicGetInstrumentsInstrumentQuote (this.extend (request, params));
@@ -1306,7 +1306,7 @@ export default class coinbaseinternational extends Exchange {
         await this.loadMarkets ();
         let portfolio = undefined;
         [ portfolio, params ] = await this.handlePortfolioAndParams ('fetchBalance', params);
-        const request = {
+        const request: Dict = {
             'portfolio': portfolio,
         };
         const balances = await this.v1PrivateGetPortfoliosPortfolioBalances (this.extend (request, params));
@@ -1346,7 +1346,7 @@ export default class coinbaseinternational extends Exchange {
         //       "loan_collateral_requirement":"0.0"
         //    }
         //
-        const result = {
+        const result: Dict = {
             'info': response,
         };
         for (let i = 0; i < response.length; i++) {
@@ -1376,7 +1376,7 @@ export default class coinbaseinternational extends Exchange {
          */
         await this.loadMarkets ();
         const currency = this.currency (code);
-        const request = {
+        const request: Dict = {
             'asset': currency['id'],
             'ammount': amount,
             'from': fromAccount,
@@ -1425,7 +1425,7 @@ export default class coinbaseinternational extends Exchange {
         const clientOrderIdprefix = this.safeString (this.options, 'brokerId', 'nfqkvdjp');
         let clientOrderId = clientOrderIdprefix + '-' + this.uuid ();
         clientOrderId = clientOrderId.slice (0, 17);
-        const request = {
+        const request: Dict = {
             'client_order_id': clientOrderId,
             'side': side.toUpperCase (),
             'instrument': market['id'],
@@ -1553,8 +1553,8 @@ export default class coinbaseinternational extends Exchange {
         }, market);
     }
 
-    parseOrderStatus (status) {
-        const statuses = {
+    parseOrderStatus (status: Str) {
+        const statuses: Dict = {
             'NEW': 'open',
             'PARTIAL_FILLED': 'open',
             'FILLED': 'closed',
@@ -1569,11 +1569,11 @@ export default class coinbaseinternational extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseOrderType (type) {
+    parseOrderType (type: Str) {
         if (type === 'UNKNOWN_ORDER_TYPE') {
             return undefined;
         }
-        const types = {
+        const types: Dict = {
             'MARKET': 'market',
             'LIMIT': 'limit',
             'STOP': 'limit',
@@ -1596,7 +1596,7 @@ export default class coinbaseinternational extends Exchange {
         await this.loadMarkets ();
         let portfolio = undefined;
         [ portfolio, params ] = await this.handlePortfolioAndParams ('cancelOrder', params);
-        const request = {
+        const request: Dict = {
             'portfolio': portfolio,
             'id': id,
         };
@@ -1643,7 +1643,7 @@ export default class coinbaseinternational extends Exchange {
         await this.loadMarkets ();
         let portfolio = undefined;
         [ portfolio, params ] = await this.handlePortfolioAndParams ('cancelAllOrders', params);
-        const request = {
+        const request: Dict = {
             'portfolio': portfolio,
         };
         let market = undefined;
@@ -1673,7 +1673,7 @@ export default class coinbaseinternational extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'id': id,
         };
         let portfolio = undefined;
@@ -1718,7 +1718,7 @@ export default class coinbaseinternational extends Exchange {
         }
         let portfolio = undefined;
         [ portfolio, params ] = await this.handlePortfolioAndParams ('fetchOrder', params);
-        const request = {
+        const request: Dict = {
             'id': id,
             'portfolio': portfolio,
         };
@@ -1778,7 +1778,7 @@ export default class coinbaseinternational extends Exchange {
             return await this.fetchPaginatedCallIncremental ('fetchOpenOrders', symbol, since, limit, params, pageKey, maxEntriesPerRequest) as Order[];
         }
         const page = this.safeInteger (params, pageKey, 1) - 1;
-        const request = {
+        const request: Dict = {
             'portfolio': portfolio,
             'result_offset': this.safeInteger2 (params, 'offset', 'result_offset', page * maxEntriesPerRequest),
         };
@@ -1863,7 +1863,7 @@ export default class coinbaseinternational extends Exchange {
             market = this.market (symbol);
         }
         const page = this.safeInteger (params, pageKey, 1) - 1;
-        const request = {
+        const request: Dict = {
             'result_offset': this.safeInteger2 (params, 'offset', 'result_offset', page * maxEntriesPerRequest),
         };
         if (limit !== undefined) {
@@ -1952,7 +1952,7 @@ export default class coinbaseinternational extends Exchange {
         [ method, params ] = this.handleOptionAndParams (params, 'withdraw', 'method', 'v1PrivatePostTransfersWithdraw');
         let networkId = undefined;
         [ networkId, params ] = await this.handleNetworkIdAndParams (code, 'withdraw', params);
-        const request = {
+        const request: Dict = {
             'portfolio': portfolio,
             'type': 'send',
             'asset': currency['id'],

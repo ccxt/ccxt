@@ -77,7 +77,7 @@ class coinbaseexchange(ccxt.async_support.coinbaseexchange):
         if 'signature' in params:
             # need to distinguish between public trades and user trades
             url = url + '?'
-        subscribe = {
+        subscribe: dict = {
             'type': 'subscribe',
             'product_ids': productIds,
             'channels': [
@@ -102,7 +102,7 @@ class coinbaseexchange(ccxt.async_support.coinbaseexchange):
         if 'signature' in params:
             # need to distinguish between public trades and user trades
             url = url + '?'
-        subscribe = {
+        subscribe: dict = {
             'type': 'subscribe',
             'product_ids': productIds,
             'channels': [
@@ -138,7 +138,7 @@ class coinbaseexchange(ccxt.async_support.coinbaseexchange):
         messageHash = 'ticker'
         ticker = await self.subscribe_multiple(channel, symbols, messageHash, params)
         if self.newUpdates:
-            result = {}
+            result: dict = {}
             result[ticker['symbol']] = ticker
             return result
         return self.filter_by_array(self.tickers, 'symbol', symbols)
@@ -286,7 +286,7 @@ class coinbaseexchange(ccxt.async_support.coinbaseexchange):
             marketId = marketIds[i]
             messageHashes.append(name + ':' + marketId)
         url = self.urls['api']['ws']
-        subscribe = {
+        subscribe: dict = {
             'type': 'subscribe',
             'product_ids': marketIds,
             'channels': [
@@ -294,7 +294,7 @@ class coinbaseexchange(ccxt.async_support.coinbaseexchange):
             ],
         }
         request = self.extend(subscribe, params)
-        subscription = {
+        subscription: dict = {
             'messageHash': name,
             'symbols': symbols,
             'marketIds': marketIds,
@@ -318,7 +318,7 @@ class coinbaseexchange(ccxt.async_support.coinbaseexchange):
         symbol = market['symbol']
         messageHash = name + ':' + market['id']
         url = self.urls['api']['ws']
-        subscribe = {
+        subscribe: dict = {
             'type': 'subscribe',
             'product_ids': [
                 market['id'],
@@ -328,7 +328,7 @@ class coinbaseexchange(ccxt.async_support.coinbaseexchange):
             ],
         }
         request = self.extend(subscribe, params)
-        subscription = {
+        subscription: dict = {
             'messageHash': messageHash,
             'symbol': symbol,
             'marketId': market['id'],
@@ -470,7 +470,7 @@ class coinbaseexchange(ccxt.async_support.coinbaseexchange):
         return parsed
 
     def parse_ws_order_status(self, status):
-        statuses = {
+        statuses: dict = {
             'filled': 'closed',
             'canceled': 'canceled',
         }
@@ -811,7 +811,7 @@ class coinbaseexchange(ccxt.async_support.coinbaseexchange):
             orderbook = self.orderbooks[symbol]
             timestamp = self.parse8601(self.safe_string(message, 'time'))
             changes = self.safe_value(message, 'changes', [])
-            sides = {
+            sides: dict = {
                 'sell': 'asks',
                 'buy': 'bids',
             }
@@ -870,7 +870,7 @@ class coinbaseexchange(ccxt.async_support.coinbaseexchange):
 
     def handle_message(self, client: Client, message):
         type = self.safe_string(message, 'type')
-        methods = {
+        methods: dict = {
             'snapshot': self.handle_order_book,
             'l2update': self.handle_order_book,
             'subscribe': self.handle_subscription_status,

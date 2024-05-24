@@ -4,7 +4,7 @@ import coinbaseRest from '../coinbase.js';
 import { ArgumentsRequired, ExchangeError } from '../base/errors.js';
 import { ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
-import { Strings, Tickers, Ticker, Int, Trade, OrderBook, Order, Str } from '../base/types.js';
+import { Strings, Tickers, Ticker, Int, Trade, OrderBook, Order, Str, Dict } from '../base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -125,7 +125,7 @@ export default class coinbase extends coinbaseRest {
     }
 
     createWSAuth (name: string, productIds: string[]) {
-        const subscribe = {};
+        const subscribe: Dict = {};
         const timestamp = this.numberToString (this.seconds ());
         this.checkRequiredCredentials ();
         const isCloudAPiKey = (this.apiKey.indexOf ('organizations/') >= 0) || (this.secret.startsWith ('-----BEGIN'));
@@ -695,7 +695,7 @@ export default class coinbase extends coinbaseRest {
 
     handleMessage (client, message) {
         const channel = this.safeString (message, 'channel');
-        const methods = {
+        const methods: Dict = {
             'subscriptions': this.handleSubscriptionStatus,
             'ticker': this.handleTickers,
             'ticker_batch': this.handleTickers,

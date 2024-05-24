@@ -523,7 +523,7 @@ class bitrue(Exchange, ImplicitAPI):
 
     def safe_network(self, networkId):
         uppercaseNetworkId = networkId.upper()
-        networksById = {
+        networksById: dict = {
             'Aeternity': 'Aeternity',
             'AION': 'AION',
             'Algorand': 'Algorand',
@@ -645,7 +645,7 @@ class bitrue(Exchange, ImplicitAPI):
         #         ],
         #     }
         #
-        result = {}
+        result: dict = {}
         coins = self.safe_value(response, 'coins', [])
         for i in range(0, len(coins)):
             currency = coins[i]
@@ -658,7 +658,7 @@ class bitrue(Exchange, ImplicitAPI):
             maxWithdrawString = None
             minWithdrawFeeString = None
             networkDetails = self.safe_value(currency, 'chainDetail', [])
-            networks = {}
+            networks: dict = {}
             for j in range(0, len(networkDetails)):
                 entry = networkDetails[j]
                 networkId = self.safe_string(entry, 'chain')
@@ -955,7 +955,7 @@ class bitrue(Exchange, ImplicitAPI):
         #         ]
         #     }
         #
-        result = {
+        result: dict = {
             'info': response,
         }
         timestamp = self.safe_integer(response, 'updateTime')
@@ -1094,7 +1094,7 @@ class bitrue(Exchange, ImplicitAPI):
         market = self.market(symbol)
         response = None
         if market['swap']:
-            request = {
+            request: dict = {
                 'contractName': market['id'],
             }
             if limit is not None:
@@ -1106,7 +1106,7 @@ class bitrue(Exchange, ImplicitAPI):
             elif market['inverse']:
                 response = self.dapiV1PublicGetDepth(self.extend(request, params))
         elif market['spot']:
-            request = {
+            request: dict = {
                 'symbol': market['id'],
             }
             if limit is not None:
@@ -1228,7 +1228,7 @@ class bitrue(Exchange, ImplicitAPI):
         response = None
         data = None
         if market['swap']:
-            request = {
+            request: dict = {
                 'contractName': market['id'],
             }
             if market['linear']:
@@ -1237,7 +1237,7 @@ class bitrue(Exchange, ImplicitAPI):
                 response = self.dapiV1PublicGetTicker(self.extend(request, params))
             data = response
         elif market['spot']:
-            request = {
+            request: dict = {
                 'symbol': market['id'],
             }
             response = self.spotV1PublicGetTicker24hr(self.extend(request, params))
@@ -1304,7 +1304,7 @@ class bitrue(Exchange, ImplicitAPI):
         data = None
         if market['swap']:
             timeframesFuture = self.safe_value(timeframes, 'future', {})
-            request = {
+            request: dict = {
                 'contractName': market['id'],
                 # 1min / 5min / 15min / 30min / 1h / 1day / 1week / 1month
                 'interval': self.safe_string(timeframesFuture, timeframe, '1min'),
@@ -1318,7 +1318,7 @@ class bitrue(Exchange, ImplicitAPI):
             data = response
         elif market['spot']:
             timeframesSpot = self.safe_value(timeframes, 'spot', {})
-            request = {
+            request: dict = {
                 'symbol': market['id'],
                 # 1m / 5m / 15m / 30m / 1H / 2H / 4H / 12H / 1D / 1W
                 'scale': self.safe_string(timeframesSpot, timeframe, '1m'),
@@ -1418,7 +1418,7 @@ class bitrue(Exchange, ImplicitAPI):
         market = self.market(first)
         response = None
         if market['swap']:
-            request = {
+            request: dict = {
                 'contractName': market['id'],
             }
             if market['linear']:
@@ -1426,7 +1426,7 @@ class bitrue(Exchange, ImplicitAPI):
             elif market['inverse']:
                 response = self.dapiV1PublicGetTicker(self.extend(request, params))
         elif market['spot']:
-            request = {
+            request: dict = {
                 'symbol': market['id'],
             }
             response = self.spotV1PublicGetTickerBookTicker(self.extend(request, params))
@@ -1456,7 +1456,7 @@ class bitrue(Exchange, ImplicitAPI):
         #         "time": 1699348013000
         #     }
         #
-        data = {}
+        data: dict = {}
         data[market['id']] = response
         return self.parse_tickers(data, symbols)
 
@@ -1474,7 +1474,7 @@ class bitrue(Exchange, ImplicitAPI):
         symbols = self.market_symbols(symbols)
         response = None
         data = None
-        request = {}
+        request: dict = {}
         type = None
         if symbols is not None:
             first = self.safe_string(symbols, 0)
@@ -1533,7 +1533,7 @@ class bitrue(Exchange, ImplicitAPI):
         # the exchange returns market ids with an underscore from the tickers endpoint
         # the market ids do not have an underscore, so it has to be removed
         # https://github.com/ccxt/ccxt/issues/13856
-        tickers = {}
+        tickers: dict = {}
         for i in range(0, len(data)):
             ticker = self.safe_value(data, i, {})
             market = self.market(self.safe_value(ticker, 'symbol'))
@@ -1643,7 +1643,7 @@ class bitrue(Exchange, ImplicitAPI):
         market = self.market(symbol)
         response = None
         if market['spot']:
-            request = {
+            request: dict = {
                 'symbol': market['id'],
                 # 'limit': 100,  # default 100, max = 1000
             }
@@ -1668,8 +1668,8 @@ class bitrue(Exchange, ImplicitAPI):
         #
         return self.parse_trades(response, market, since, limit)
 
-    def parse_order_status(self, status):
-        statuses = {
+    def parse_order_status(self, status: Str):
+        statuses: dict = {
             'INIT': 'open',
             'PENDING_CREATE': 'open',
             'NEW': 'open',
@@ -1842,7 +1842,7 @@ class bitrue(Exchange, ImplicitAPI):
         response = None
         data = None
         uppercaseType = type.upper()
-        request = {
+        request: dict = {
             'side': side.upper(),
             'type': uppercaseType,
             # 'timeInForce': '',
@@ -1953,7 +1953,7 @@ class bitrue(Exchange, ImplicitAPI):
         params = self.omit(params, ['origClientOrderId', 'clientOrderId'])
         response = None
         data = None
-        request = {}
+        request: dict = {}
         if origClientOrderId is None:
             request['orderId'] = id
         else:
@@ -2036,7 +2036,7 @@ class bitrue(Exchange, ImplicitAPI):
         market = self.market(symbol)
         if not market['spot']:
             raise NotSupported(self.id + ' fetchClosedOrders only support spot markets')
-        request = {
+        request: dict = {
             'symbol': market['id'],
             # 'orderId': 123445,  # long
             # 'startTime': since,
@@ -2090,7 +2090,7 @@ class bitrue(Exchange, ImplicitAPI):
         market = self.market(symbol)
         response = None
         data = None
-        request = {}
+        request: dict = {}
         if market['swap']:
             request['contractName'] = market['id']
             if market['linear']:
@@ -2171,7 +2171,7 @@ class bitrue(Exchange, ImplicitAPI):
         params = self.omit(params, ['origClientOrderId', 'clientOrderId'])
         response = None
         data = None
-        request = {}
+        request: dict = {}
         if origClientOrderId is None:
             request['orderId'] = id
         else:
@@ -2229,7 +2229,7 @@ class bitrue(Exchange, ImplicitAPI):
         response = None
         data = None
         if market['swap']:
-            request = {
+            request: dict = {
                 'contractName': market['id'],
             }
             if market['linear']:
@@ -2268,7 +2268,7 @@ class bitrue(Exchange, ImplicitAPI):
         market = self.market(symbol)
         response = None
         data = None
-        request = {}
+        request: dict = {}
         if since is not None:
             request['startTime'] = since
         if limit is not None:
@@ -2349,7 +2349,7 @@ class bitrue(Exchange, ImplicitAPI):
             raise ArgumentsRequired(self.id + ' fetchDeposits() requires a code argument')
         self.load_markets()
         currency = self.currency(code)
-        request = {
+        request: dict = {
             'coin': currency['id'],
             'status': 1,  # 0 init, 1 finished, default 0
             # 'offset': 0,
@@ -2416,7 +2416,7 @@ class bitrue(Exchange, ImplicitAPI):
             raise ArgumentsRequired(self.id + ' fetchWithdrawals() requires a code argument')
         self.load_markets()
         currency = self.currency(code)
-        request = {
+        request: dict = {
             'coin': currency['id'],
             'status': 5,  # 0 init, 5 finished, 6 canceled, default 0
             # 'offset': 0,
@@ -2457,7 +2457,7 @@ class bitrue(Exchange, ImplicitAPI):
         return self.parse_transactions(data, currency)
 
     def parse_transaction_status_by_type(self, status, type=None):
-        statusesByType = {
+        statusesByType: dict = {
             'deposit': {
                 '0': 'pending',
                 '1': 'ok',
@@ -2606,7 +2606,7 @@ class bitrue(Exchange, ImplicitAPI):
         self.check_address(address)
         self.load_markets()
         currency = self.currency(code)
-        request = {
+        request: dict = {
             'coin': currency['id'],
             'amount': amount,
             'addressTo': address,
@@ -2651,7 +2651,7 @@ class bitrue(Exchange, ImplicitAPI):
         #
         chainDetails = self.safe_value(fee, 'chainDetail', [])
         chainDetailLength = len(chainDetails)
-        result = {
+        result: dict = {
             'info': fee,
             'withdraw': {
                 'fee': None,
@@ -2742,7 +2742,7 @@ class bitrue(Exchange, ImplicitAPI):
         """
         self.load_markets()
         type = self.safe_string_2(params, 'type', 'transferType')
-        request = {
+        request: dict = {
             'transferType': type,
         }
         currency = None
@@ -2793,7 +2793,7 @@ class bitrue(Exchange, ImplicitAPI):
         accountTypes = self.safe_value(self.options, 'accountsByType', {})
         fromId = self.safe_string(accountTypes, fromAccount, fromAccount)
         toId = self.safe_string(accountTypes, toAccount, toAccount)
-        request = {
+        request: dict = {
             'coinSymbol': currency['id'],
             'amount': self.currency_to_precision(code, amount),
             'transferType': fromId + '_to_' + toId,
@@ -2826,7 +2826,7 @@ class bitrue(Exchange, ImplicitAPI):
         self.load_markets()
         market = self.market(symbol)
         response = None
-        request = {
+        request: dict = {
             'contractName': market['id'],
             'leverage': leverage,
         }
@@ -2876,7 +2876,7 @@ class bitrue(Exchange, ImplicitAPI):
         if not market['swap']:
             raise NotSupported(self.id + ' setMargin only support swap markets')
         response = None
-        request = {
+        request: dict = {
             'contractName': market['id'],
             'amount': self.parse_to_numeric(amount),
         }

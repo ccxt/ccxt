@@ -95,13 +95,13 @@ class bitmex(ccxt.async_support.bitmex):
         else:
             rawSubscriptions.append(name)
             messageHashes.append('alltickers')
-        request = {
+        request: dict = {
             'op': 'subscribe',
             'args': rawSubscriptions,
         }
         ticker = await self.watch_multiple(url, messageHashes, self.extend(request, params), rawSubscriptions)
         if self.newUpdates:
-            result = {}
+            result: dict = {}
             result[ticker['symbol']] = ticker
             return result
         return self.filter_by_array(self.tickers, 'symbol', symbols)
@@ -334,7 +334,7 @@ class bitmex(ccxt.async_support.bitmex):
         #     }
         #
         data = self.safe_list(message, 'data', [])
-        tickers = {}
+        tickers: dict = {}
         for i in range(0, len(data)):
             update = data[i]
             marketId = self.safe_string(update, 'symbol')
@@ -360,7 +360,7 @@ class bitmex(ccxt.async_support.bitmex):
         await self.authenticate()
         messageHash = 'margin'
         url = self.urls['api']['ws']
-        request = {
+        request: dict = {
             'op': 'subscribe',
             'args': [
                 messageHash,
@@ -574,7 +574,7 @@ class bitmex(ccxt.async_support.bitmex):
             timestamp = self.milliseconds()
             payload = 'GET' + '/realtime' + str(timestamp)
             signature = self.hmac(self.encode(payload), self.encode(self.secret), hashlib.sha256)
-            request = {
+            request: dict = {
                 'op': 'authKeyExpires',
                 'args': [
                     self.apiKey,
@@ -614,7 +614,7 @@ class bitmex(ccxt.async_support.bitmex):
         if not self.is_empty(symbols):
             messageHash = '::' + ','.join(symbols)
         url = self.urls['api']['ws']
-        request = {
+        request: dict = {
             'op': 'subscribe',
             'args': [
                 subscriptionHash,
@@ -813,7 +813,7 @@ class bitmex(ccxt.async_support.bitmex):
             symbol = self.symbol(symbol)
             messageHash += ':' + symbol
         url = self.urls['api']['ws']
-        request = {
+        request: dict = {
             'op': 'subscribe',
             'args': [
                 subscriptionHash,
@@ -983,7 +983,7 @@ class bitmex(ccxt.async_support.bitmex):
                 limit = self.safe_integer(self.options, 'ordersLimit', 1000)
                 self.orders = ArrayCacheBySymbolById(limit)
             stored = self.orders
-            symbols = {}
+            symbols: dict = {}
             for i in range(0, dataLength):
                 currentOrder = data[i]
                 orderId = self.safe_string(currentOrder, 'orderID')
@@ -1019,7 +1019,7 @@ class bitmex(ccxt.async_support.bitmex):
             symbol = self.symbol(symbol)
             messageHash += ':' + symbol
         url = self.urls['api']['ws']
-        request = {
+        request: dict = {
             'op': 'subscribe',
             'args': [
                 subscriptionHash,
@@ -1097,7 +1097,7 @@ class bitmex(ccxt.async_support.bitmex):
             limit = self.safe_integer(self.options, 'tradesLimit', 1000)
             self.myTrades = ArrayCacheBySymbolById(limit)
         stored = self.myTrades
-        symbols = {}
+        symbols: dict = {}
         for j in range(0, len(trades)):
             trade = trades[j]
             symbol = trade['symbol']
@@ -1149,7 +1149,7 @@ class bitmex(ccxt.async_support.bitmex):
             messageHash = table + ':' + symbol
             messageHashes.append(messageHash)
         url = self.urls['api']['ws']
-        request = {
+        request: dict = {
             'op': 'subscribe',
             'args': topics,
         }
@@ -1178,7 +1178,7 @@ class bitmex(ccxt.async_support.bitmex):
             messageHash = table + ':' + symbol
             messageHashes.append(messageHash)
         url = self.urls['api']['ws']
-        request = {
+        request: dict = {
             'op': 'subscribe',
             'args': topics,
         }
@@ -1205,7 +1205,7 @@ class bitmex(ccxt.async_support.bitmex):
         table = 'tradeBin' + self.safe_string(self.timeframes, timeframe, timeframe)
         messageHash = table + ':' + market['id']
         url = self.urls['api']['ws']
-        request = {
+        request: dict = {
             'op': 'subscribe',
             'args': [
                 messageHash,
@@ -1287,7 +1287,7 @@ class bitmex(ccxt.async_support.bitmex):
         timeframe = self.find_timeframe(interval)
         duration = self.parse_timeframe(timeframe)
         candles = self.safe_value(message, 'data', [])
-        results = {}
+        results: dict = {}
         for i in range(0, len(candles)):
             candle = candles[i]
             marketId = self.safe_string(candle, 'symbol')
@@ -1402,7 +1402,7 @@ class bitmex(ccxt.async_support.bitmex):
             messageHash = table + ':' + symbol
             client.resolve(orderbook, messageHash)
         else:
-            numUpdatesByMarketId = {}
+            numUpdatesByMarketId: dict = {}
             for i in range(0, len(data)):
                 marketId = self.safe_value(data[i], 'symbol')
                 if not (marketId in numUpdatesByMarketId):
@@ -1528,7 +1528,7 @@ class bitmex(ccxt.async_support.bitmex):
         #
         if self.handle_error_message(client, message):
             table = self.safe_string(message, 'table')
-            methods = {
+            methods: dict = {
                 'orderBookL2': self.handle_order_book,
                 'orderBookL2_25': self.handle_order_book,
                 'orderBook10': self.handle_order_book,

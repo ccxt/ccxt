@@ -371,7 +371,7 @@ class coinlist(Exchange, ImplicitAPI):
         #     }
         #
         currencies = self.safe_value(response, 'assets', [])
-        result = {}
+        result: dict = {}
         for i in range(0, len(currencies)):
             currency = currencies[i]
             id = self.safe_string(currency, 'asset')
@@ -505,7 +505,7 @@ class coinlist(Exchange, ImplicitAPI):
         :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
         await self.load_markets()
-        request = {}
+        request: dict = {}
         tickers = await self.publicGetV1SymbolsSummary(self.extend(request, params))
         #
         #     {
@@ -541,7 +541,7 @@ class coinlist(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'symbol': market['id'],
         }
         ticker = await self.publicGetV1SymbolsSymbolSummary(self.extend(request, params))
@@ -631,7 +631,7 @@ class coinlist(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'symbol': market['id'],
         }
         response = await self.publicGetV1SymbolsSymbolBook(self.extend(request, params))
@@ -672,7 +672,7 @@ class coinlist(Exchange, ImplicitAPI):
         await self.load_markets()
         market = self.market(symbol)
         granularity = self.safe_string(self.timeframes, timeframe)
-        request = {
+        request: dict = {
             'symbol': market['id'],
             'granularity': granularity,
         }
@@ -749,7 +749,7 @@ class coinlist(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'symbol': market['id'],
         }
         if since is not None:
@@ -926,7 +926,7 @@ class coinlist(Exchange, ImplicitAPI):
         #     }
         #
         fees = self.safe_value(response, 'fees_by_symbols', {})
-        result = {}
+        result: dict = {}
         groupsOfSymbols = list(fees.keys())
         for i in range(0, len(groupsOfSymbols)):
             group = groupsOfSymbols[i]
@@ -939,7 +939,7 @@ class coinlist(Exchange, ImplicitAPI):
                 id = ids[j]
                 market = self.safe_market(id)
                 symbol = market['symbol']
-                info = {}
+                info: dict = {}
                 info[group] = feeTiers
                 result[symbol] = {
                     'info': info,
@@ -1096,7 +1096,7 @@ class coinlist(Exchange, ImplicitAPI):
         #         "net_liquidation_value_usd": "string"
         #     }
         #
-        result = {
+        result: dict = {
             'info': response,
             'timestamp': None,
             'datetime': None,
@@ -1125,7 +1125,7 @@ class coinlist(Exchange, ImplicitAPI):
         :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
         """
         await self.load_markets()
-        request = {}
+        request: dict = {}
         market = None
         if symbol is not None:
             market = self.market(symbol)
@@ -1181,7 +1181,7 @@ class coinlist(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
         """
-        request = {
+        request: dict = {
             'order_id': id,
         }
         return await self.fetch_my_trades(symbol, since, limit, self.extend(request, params))
@@ -1202,7 +1202,7 @@ class coinlist(Exchange, ImplicitAPI):
         status = self.safe_string(params, 'status')
         if status is None:
             status = ['accepted', 'done', 'canceled', 'rejected', 'pending']
-        request = {
+        request: dict = {
             'status': status,
         }
         market = None
@@ -1257,7 +1257,7 @@ class coinlist(Exchange, ImplicitAPI):
         :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
-        request = {
+        request: dict = {
             'order_id': id,
         }
         response = await self.privateGetV1OrdersOrderId(self.extend(request, params))
@@ -1299,7 +1299,7 @@ class coinlist(Exchange, ImplicitAPI):
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
-        request = {
+        request: dict = {
             'status': 'accepted',
         }
         return self.fetch_orders(symbol, since, limit, self.extend(request, params))
@@ -1316,7 +1316,7 @@ class coinlist(Exchange, ImplicitAPI):
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
-        request = {
+        request: dict = {
             'status': 'done',
         }
         return self.fetch_orders(symbol, since, limit, self.extend(request, params))
@@ -1333,7 +1333,7 @@ class coinlist(Exchange, ImplicitAPI):
         :returns dict: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
-        request = {
+        request: dict = {
             'status': 'canceled',
         }
         return self.fetch_orders(symbol, since, limit, self.extend(request, params))
@@ -1348,7 +1348,7 @@ class coinlist(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         market = None
-        request = {}
+        request: dict = {}
         if symbol is not None:
             market = self.market(symbol)
             request['symbol'] = market['id']
@@ -1372,7 +1372,7 @@ class coinlist(Exchange, ImplicitAPI):
         :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
-        request = {
+        request: dict = {
             'order_id': id,
         }
         response = await self.privateDeleteV1OrdersOrderId(self.extend(request, params))
@@ -1416,7 +1416,7 @@ class coinlist(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'symbol': market['id'],
             'type': type,
             'side': side,
@@ -1481,7 +1481,7 @@ class coinlist(Exchange, ImplicitAPI):
         if amount is None:
             raise ArgumentsRequired(self.id + ' editOrder() requires an amount argument')
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'order_id': id,
             'type': type,
             'side': side,
@@ -1616,8 +1616,8 @@ class coinlist(Exchange, ImplicitAPI):
             'postOnly': postOnly,
         }, market)
 
-    def parse_order_status(self, status):
-        statuses = {
+    def parse_order_status(self, status: Str):
+        statuses: dict = {
             'pending': 'open',
             'accepted': 'open',
             'rejected': 'rejected',
@@ -1627,7 +1627,7 @@ class coinlist(Exchange, ImplicitAPI):
         return self.safe_string(statuses, status, status)
 
     def parse_order_type(self, status):
-        statuses = {
+        statuses: dict = {
             'market': 'market',
             'limit': 'limit',
             'stop_market': 'market',
@@ -1652,7 +1652,7 @@ class coinlist(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         currency = self.currency(code)
-        request = {
+        request: dict = {
             'asset': currency['id'],
             'amount': self.currency_to_precision(code, amount),
         }
@@ -1700,7 +1700,7 @@ class coinlist(Exchange, ImplicitAPI):
         currency = None
         if code is not None:
             currency = self.currency(code)
-        request = {}
+        request: dict = {}
         if since is not None:
             request['start_time'] = self.iso8601(since)
         if limit is not None:
@@ -1791,7 +1791,7 @@ class coinlist(Exchange, ImplicitAPI):
         }
 
     def parse_transfer_status(self, status: Str) -> Str:
-        statuses = {
+        statuses: dict = {
             'confirmed': 'ok',
         }
         return self.safe_string(statuses, status, status)
@@ -1813,7 +1813,7 @@ class coinlist(Exchange, ImplicitAPI):
             raise ArgumentsRequired(self.id + ' fetchDepositsWithdrawals() requires a traderId argument in the params')
         await self.load_markets()
         currency = self.currency(code)
-        request = {
+        request: dict = {
             'asset': currency['id'],
             'trader_id': traderId,
         }
@@ -1881,7 +1881,7 @@ class coinlist(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         currency = self.currency(code)
-        request = {
+        request: dict = {
             'asset': currency['id'],
             'amount': self.currency_to_precision(code, amount),
             'destination_address': address,
@@ -1955,7 +1955,7 @@ class coinlist(Exchange, ImplicitAPI):
         }
 
     def parse_transaction_type(self, type):
-        types = {
+        types: dict = {
             'CRYPTO_DEPOSIT': 'deposit',
             'CRYPTO_WITHDRAWAL': 'withdrawal',
             'PRO_TRANSFER': 'transfer',
@@ -1977,7 +1977,7 @@ class coinlist(Exchange, ImplicitAPI):
         if traderId is None:
             raise ArgumentsRequired(self.id + ' fetchLedger() requires a traderId argument in the params')
         await self.load_markets()
-        request = {
+        request: dict = {
             'trader_id': traderId,
         }
         currency = None
@@ -2165,7 +2165,7 @@ class coinlist(Exchange, ImplicitAPI):
         }
 
     def parse_ledger_entry_type(self, type):
-        types = {
+        types: dict = {
             'atomic token swap': 'trade',
             'fee': 'fee',
             'deposit': 'transfer',

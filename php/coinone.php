@@ -805,7 +805,7 @@ class coinone extends Exchange {
         return $this->parse_order($response, $market);
     }
 
-    public function parse_order_status($status) {
+    public function parse_order_status(?string $status) {
         $statuses = array(
             'live' => 'open',
             'partially_filled' => 'open',

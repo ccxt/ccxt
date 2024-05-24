@@ -460,7 +460,7 @@ export default class ascendex extends Exchange {
         const cashById = this.indexBy (cashData, 'assetCode');
         const dataById = this.deepExtend (assetsById, marginById, cashById);
         const ids = Object.keys (dataById);
-        const result = {};
+        const result: Dict = {};
         for (let i = 0; i < ids.length; i++) {
             const id = ids[i];
             const currency = dataById[id];
@@ -704,7 +704,7 @@ export default class ascendex extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {int} the current integer timestamp in milliseconds from the ascendex server
          */
-        const request = {
+        const request: Dict = {
             'requestTime': this.milliseconds (),
         };
         const response = await this.v1PublicGetExchangeInfo (this.extend (request, params));
@@ -765,7 +765,7 @@ export default class ascendex extends Exchange {
     }
 
     parseBalance (response): Balances {
-        const result = {
+        const result: Dict = {
             'info': response,
             'timestamp': undefined,
             'datetime': undefined,
@@ -783,7 +783,7 @@ export default class ascendex extends Exchange {
     }
 
     parseMarginBalance (response) {
-        const result = {
+        const result: Dict = {
             'info': response,
             'timestamp': undefined,
             'datetime': undefined,
@@ -804,7 +804,7 @@ export default class ascendex extends Exchange {
     }
 
     parseSwapBalance (response) {
-        const result = {
+        const result: Dict = {
             'info': response,
             'timestamp': undefined,
             'datetime': undefined,
@@ -848,7 +848,7 @@ export default class ascendex extends Exchange {
         const accountCategory = this.safeString (accountsByType, marketType, 'cash');
         const account = this.safeValue (this.accounts, 0, {});
         const accountGroup = this.safeString (account, 'id');
-        const request = {
+        const request: Dict = {
             'account-group': accountGroup,
         };
         if ((marginMode === 'isolated') && (marketType !== 'swap')) {
@@ -929,7 +929,7 @@ export default class ascendex extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'symbol': market['id'],
         };
         const response = await this.v1PublicGetDepth (this.extend (request, params));
@@ -1022,7 +1022,7 @@ export default class ascendex extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'symbol': market['id'],
         };
         const response = await this.v1PublicGetTicker (this.extend (request, params));
@@ -1058,7 +1058,7 @@ export default class ascendex extends Exchange {
          * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets ();
-        const request = {};
+        const request: Dict = {};
         let market = undefined;
         if (symbols !== undefined) {
             const symbol = this.safeValue (symbols, 0);
@@ -1140,7 +1140,7 @@ export default class ascendex extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'symbol': market['id'],
             'interval': this.safeString (this.timeframes, timeframe, timeframe),
         };
@@ -1234,7 +1234,7 @@ export default class ascendex extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'symbol': market['id'],
         };
         if (limit !== undefined) {
@@ -1260,8 +1260,8 @@ export default class ascendex extends Exchange {
         return this.parseTrades (trades, market, since, limit);
     }
 
-    parseOrderStatus (status) {
-        const statuses = {
+    parseOrderStatus (status: Str) {
+        const statuses: Dict = {
             'PendingNew': 'open',
             'New': 'open',
             'PartiallyFilled': 'open',
@@ -1466,7 +1466,7 @@ export default class ascendex extends Exchange {
         await this.loadAccounts ();
         const account = this.safeValue (this.accounts, 0, {});
         const accountGroup = this.safeString (account, 'id');
-        const request = {
+        const request: Dict = {
             'account-group': accountGroup,
         };
         const response = await this.v1PrivateAccountGroupGetSpotFee (this.extend (request, params));
@@ -1488,7 +1488,7 @@ export default class ascendex extends Exchange {
         //
         const data = this.safeValue (response, 'data', {});
         const fees = this.safeValue (data, 'fees', []);
-        const result = {};
+        const result: Dict = {};
         for (let i = 0; i < fees.length; i++) {
             const fee = fees[i];
             const marketId = this.safeString (fee, 'symbol');
@@ -1536,7 +1536,7 @@ export default class ascendex extends Exchange {
         const account = this.safeValue (this.accounts, 0, {});
         const accountGroup = this.safeValue (account, 'id');
         const clientOrderId = this.safeString2 (params, 'clientOrderId', 'id');
-        const request = {
+        const request: Dict = {
             'account-group': accountGroup,
             'account-category': accountCategory,
             'symbol': market['id'],
@@ -1749,7 +1749,7 @@ export default class ascendex extends Exchange {
         }
         const account = this.safeValue (this.accounts, 0, {});
         const accountGroup = this.safeValue (account, 'id');
-        const request = {};
+        const request: Dict = {};
         let response = undefined;
         if (market['swap']) {
             throw new NotSupported (this.id + ' createOrders() is not currently supported for swap markets on ascendex');
@@ -1812,7 +1812,7 @@ export default class ascendex extends Exchange {
         const accountCategory = this.safeString (accountsByType, type, 'cash');
         const account = this.safeValue (this.accounts, 0, {});
         const accountGroup = this.safeValue (account, 'id');
-        const request = {
+        const request: Dict = {
             'account-group': accountGroup,
             'account-category': accountCategory,
             'orderId': id,
@@ -1922,7 +1922,7 @@ export default class ascendex extends Exchange {
         const [ type, query ] = this.handleMarketTypeAndParams ('fetchOpenOrders', market, params);
         const accountsByType = this.safeValue (this.options, 'accountsByType', {});
         const accountCategory = this.safeString (accountsByType, type, 'cash');
-        const request = {
+        const request: Dict = {
             'account-group': accountGroup,
             'account-category': accountCategory,
         };
@@ -2033,7 +2033,7 @@ export default class ascendex extends Exchange {
         await this.loadAccounts ();
         const account = this.safeValue (this.accounts, 0, {});
         const accountGroup = this.safeValue (account, 'id');
-        const request = {
+        const request: Dict = {
             // 'category': accountCategory,
             // 'symbol': market['id'],
             // 'orderType': 'market', // optional, string
@@ -2212,7 +2212,7 @@ export default class ascendex extends Exchange {
         const accountCategory = this.safeString (accountsByType, type, 'cash');
         const account = this.safeValue (this.accounts, 0, {});
         const accountGroup = this.safeValue (account, 'id');
-        const request = {
+        const request: Dict = {
             'account-group': accountGroup,
             'account-category': accountCategory,
             'symbol': market['id'],
@@ -2325,7 +2325,7 @@ export default class ascendex extends Exchange {
         const accountCategory = this.safeString (accountsByType, type, 'cash');
         const account = this.safeValue (this.accounts, 0, {});
         const accountGroup = this.safeValue (account, 'id');
-        const request = {
+        const request: Dict = {
             'account-group': accountGroup,
             'account-category': accountCategory,
             'time': this.milliseconds (),
@@ -2430,7 +2430,7 @@ export default class ascendex extends Exchange {
         const networkCode = this.safeString2 (params, 'network', 'chainName');
         const networkId = this.networkCodeToId (networkCode);
         params = this.omit (params, [ 'chainName' ]);
-        const request = {
+        const request: Dict = {
             'asset': currency['id'],
             'blockchain': networkId,
         };
@@ -2501,7 +2501,7 @@ export default class ascendex extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
-        const request = {
+        const request: Dict = {
             'txType': 'deposit',
         };
         return await this.fetchTransactions (code, since, limit, this.extend (request, params));
@@ -2518,7 +2518,7 @@ export default class ascendex extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
-        const request = {
+        const request: Dict = {
             'txType': 'withdrawal',
         };
         return await this.fetchTransactions (code, since, limit, this.extend (request, params));
@@ -2536,7 +2536,7 @@ export default class ascendex extends Exchange {
          * @returns {object} a list of [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         await this.loadMarkets ();
-        const request = {
+        const request: Dict = {
             // 'asset': currency['id'],
             // 'page': 1,
             // 'pageSize': 20,
@@ -2587,7 +2587,7 @@ export default class ascendex extends Exchange {
     }
 
     parseTransactionStatus (status) {
-        const statuses = {
+        const statuses: Dict = {
             'reviewing': 'pending',
             'pending': 'pending',
             'confirmed': 'ok',
@@ -2665,7 +2665,7 @@ export default class ascendex extends Exchange {
         await this.loadAccounts ();
         const account = this.safeValue (this.accounts, 0, {});
         const accountGroup = this.safeString (account, 'id');
-        const request = {
+        const request: Dict = {
             'account-group': accountGroup,
         };
         const response = await this.v2PrivateAccountGroupGetFuturesPosition (this.extend (request, params));
@@ -2871,7 +2871,7 @@ export default class ascendex extends Exchange {
         const account = this.safeValue (this.accounts, 0, {});
         const accountGroup = this.safeString (account, 'id');
         amount = this.amountToPrecision (symbol, amount);
-        const request = {
+        const request: Dict = {
             'account-group': accountGroup,
             'symbol': market['id'],
             'amount': amount, // positive value for adding margin, negative for reducing
@@ -2968,7 +2968,7 @@ export default class ascendex extends Exchange {
         }
         const account = this.safeValue (this.accounts, 0, {});
         const accountGroup = this.safeString (account, 'id');
-        const request = {
+        const request: Dict = {
             'account-group': accountGroup,
             'symbol': market['id'],
             'leverage': leverage,
@@ -3002,7 +3002,7 @@ export default class ascendex extends Exchange {
         const market = this.market (symbol);
         const account = this.safeValue (this.accounts, 0, {});
         const accountGroup = this.safeString (account, 'id');
-        const request = {
+        const request: Dict = {
             'account-group': accountGroup,
             'symbol': market['id'],
             'marginType': marginMode,
@@ -3127,7 +3127,7 @@ export default class ascendex extends Exchange {
         //
         const blockChains = this.safeValue (fee, 'blockChain', []);
         const blockChainsLength = blockChains.length;
-        const result = {
+        const result: Dict = {
             'info': fee,
             'withdraw': {
                 'fee': undefined,
@@ -3195,7 +3195,7 @@ export default class ascendex extends Exchange {
         if (fromId !== 'cash' && toId !== 'cash') {
             throw new ExchangeError (this.id + ' transfer() only supports direct balance transfer between spot and swap, spot and margin');
         }
-        const request = {
+        const request: Dict = {
             'account-group': accountGroup,
             'amount': this.currencyToPrecision (code, amount),
             'asset': currency['id'],
@@ -3266,7 +3266,7 @@ export default class ascendex extends Exchange {
         }
         const account = this.safeValue (this.accounts, 0, {});
         const accountGroup = this.safeString (account, 'id');
-        const request = {
+        const request: Dict = {
             'account-group': accountGroup,
         };
         let market = undefined;
@@ -3337,7 +3337,7 @@ export default class ascendex extends Exchange {
         await this.loadAccounts ();
         const account = this.safeValue (this.accounts, 0, {});
         const accountGroup = this.safeString (account, 'id');
-        const request = {
+        const request: Dict = {
             'account-group': accountGroup,
         };
         const response = await this.v2PrivateAccountGroupGetFuturesPosition (this.extend (request, params));
@@ -3410,7 +3410,7 @@ export default class ascendex extends Exchange {
         await this.loadAccounts ();
         const account = this.safeValue (this.accounts, 0, {});
         const accountGroup = this.safeString (account, 'id');
-        const request = {
+        const request: Dict = {
             'account-group': accountGroup,
         };
         const response = await this.v2PrivateAccountGroupGetFuturesPosition (this.extend (request, params));

@@ -92,7 +92,7 @@ class hitbtc(ccxt.async_support.hitbtc):
         if authenticated is None:
             timestamp = self.milliseconds()
             signature = self.hmac(self.encode(self.number_to_string(timestamp)), self.encode(self.secret), hashlib.sha256, 'hex')
-            request = {
+            request: dict = {
                 'method': 'login',
                 'params': {
                     'type': 'HS256',
@@ -133,7 +133,7 @@ class hitbtc(ccxt.async_support.hitbtc):
         messageHash = messageHashPrefix
         if symbols is not None:
             messageHash = messageHash + '::' + ','.join(symbols)
-        subscribe = {
+        subscribe: dict = {
             'method': 'subscribe',
             'id': self.nonce(),
             'ch': name,
@@ -155,7 +155,7 @@ class hitbtc(ccxt.async_support.hitbtc):
         messageHash = self.safe_string(splitName, 0)
         if symbol is not None:
             messageHash = messageHash + '::' + symbol
-        subscribe = {
+        subscribe: dict = {
             'method': name,
             'params': params,
             'id': self.nonce(),
@@ -173,7 +173,7 @@ class hitbtc(ccxt.async_support.hitbtc):
         await self.authenticate()
         url = self.urls['api']['ws']['private']
         messageHash = str(self.nonce())
-        subscribe = {
+        subscribe: dict = {
             'method': name,
             'params': params,
             'id': messageHash,
@@ -210,7 +210,7 @@ class hitbtc(ccxt.async_support.hitbtc):
         elif name == 'orderbook/top/{speed}/batch':
             name = 'orderbook/top/' + speed + 'ms/batch'
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'params': {
                 'symbols': [market['id']],
             },
@@ -304,7 +304,7 @@ class hitbtc(ccxt.async_support.hitbtc):
         name = self.implode_params(method, {'speed': speed})
         params = self.omit(params, ['method', 'speed'])
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'params': {
                 'symbols': [market['id']],
             },
@@ -335,7 +335,7 @@ class hitbtc(ccxt.async_support.hitbtc):
             for i in range(0, len(symbols)):
                 marketId = self.market_id(symbols[i])
                 marketIds.append(marketId)
-        request = {
+        request: dict = {
             'params': {
                 'symbols': marketIds,
             },
@@ -386,7 +386,7 @@ class hitbtc(ccxt.async_support.hitbtc):
         #
         data = self.safe_value(message, 'data', {})
         marketIds = list(data.keys())
-        newTickers = {}
+        newTickers: dict = {}
         for i in range(0, len(marketIds)):
             marketId = marketIds[i]
             market = self.safe_market(marketId)
@@ -475,7 +475,7 @@ class hitbtc(ccxt.async_support.hitbtc):
         """
         await self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'params': {
                 'symbols': [market['id']],
             },
@@ -597,7 +597,7 @@ class hitbtc(ccxt.async_support.hitbtc):
         period = self.safe_string(self.timeframes, timeframe, timeframe)
         name = 'candles/' + period
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'params': {
                 'symbols': [market['id']],
             },
@@ -939,7 +939,7 @@ class hitbtc(ccxt.async_support.hitbtc):
         })
         mode = self.safe_string(params, 'mode', 'batches')
         params = self.omit(params, 'mode')
-        request = {
+        request: dict = {
             'mode': mode,
         }
         return await self.subscribe_private(name, None, self.extend(request, params))
@@ -1052,7 +1052,7 @@ class hitbtc(ccxt.async_support.hitbtc):
         """
         await self.load_markets()
         market = None
-        request = {}
+        request: dict = {}
         if symbol is not None:
             market = self.market(symbol)
             request['symbol'] = market['id']
@@ -1142,7 +1142,7 @@ class hitbtc(ccxt.async_support.hitbtc):
         if channel is not None:
             splitChannel = channel.split('/')
             channel = self.safe_string(splitChannel, 0)
-            methods = {
+            methods: dict = {
                 'candles': self.handle_ohlcv,
                 'ticker': self.handle_ticker,
                 'trades': self.handle_trades,

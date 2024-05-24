@@ -238,7 +238,7 @@ export default class zaif extends Exchange {
     parseBalance (response): Balances {
         const balances = this.safeValue (response, 'return', {});
         const deposit = this.safeValue (balances, 'deposit');
-        const result = {
+        const result: Dict = {
             'info': response,
             'timestamp': undefined,
             'datetime': undefined,
@@ -289,7 +289,7 @@ export default class zaif extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'pair': market['id'],
         };
         const response = await this.publicGetDepthPair (this.extend (request, params));
@@ -349,7 +349,7 @@ export default class zaif extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'pair': market['id'],
         };
         const ticker = await this.publicGetTickerPair (this.extend (request, params));
@@ -419,7 +419,7 @@ export default class zaif extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'pair': market['id'],
         };
         let response = await this.publicGetTradesPair (this.extend (request, params));
@@ -464,7 +464,7 @@ export default class zaif extends Exchange {
             throw new ExchangeError (this.id + ' createOrder() allows limit orders only');
         }
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'currency_pair': market['id'],
             'action': (side === 'buy') ? 'bid' : 'ask',
             'amount': amount,
@@ -488,7 +488,7 @@ export default class zaif extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
-        const request = {
+        const request: Dict = {
             'order_id': id,
         };
         return await this.privatePostCancelOrder (this.extend (request, params));
@@ -553,7 +553,7 @@ export default class zaif extends Exchange {
          */
         await this.loadMarkets ();
         let market: Market = undefined;
-        const request = {
+        const request: Dict = {
             // 'is_token': false,
             // 'is_token_both': false,
         };
@@ -579,7 +579,7 @@ export default class zaif extends Exchange {
          */
         await this.loadMarkets ();
         let market: Market = undefined;
-        const request = {
+        const request: Dict = {
             // 'from': 0,
             // 'count': 1000,
             // 'from_id': 0,
@@ -617,7 +617,7 @@ export default class zaif extends Exchange {
         if (code === 'JPY') {
             throw new ExchangeError (this.id + ' withdraw() does not allow ' + code + ' withdrawals');
         }
-        const request = {
+        const request: Dict = {
             'currency': currency['id'],
             'amount': amount,
             'address': address,

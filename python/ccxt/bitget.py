@@ -1862,14 +1862,14 @@ class bitget(Exchange, ImplicitAPI):
         #         "requestTime": "1700120731773"
         #     }
         #
-        result = {}
+        result: dict = {}
         data = self.safe_value(response, 'data', [])
         for i in range(0, len(data)):
             entry = data[i]
             id = self.safe_string(entry, 'coin')  # we don't use 'coinId' has no use. it is 'coin' field that needs to be used in currency related endpoints(deposit, withdraw, etc..)
             code = self.safe_currency_code(id)
             chains = self.safe_value(entry, 'chains', [])
-            networks = {}
+            networks: dict = {}
             deposit = False
             withdraw = False
             minWithdrawString = None
@@ -1965,7 +1965,7 @@ class bitget(Exchange, ImplicitAPI):
             market = self.market(sandboxSymbol)
         else:
             market = self.market(symbol)
-        request = {}
+        request: dict = {}
         response = None
         marginMode = None
         marginMode, params = self.handle_margin_mode_and_params('fetchMarketLeverageTiers', params, 'isolated')
@@ -2130,7 +2130,7 @@ class bitget(Exchange, ImplicitAPI):
         currency = self.currency(code)
         if since is None:
             since = self.milliseconds() - 7776000000  # 90 days
-        request = {
+        request: dict = {
             'coin': currency['id'],
             'startTime': since,
             'endTime': self.milliseconds(),
@@ -2185,7 +2185,7 @@ class bitget(Exchange, ImplicitAPI):
         self.load_markets()
         currency = self.currency(code)
         networkId = self.network_code_to_id(chain)
-        request = {
+        request: dict = {
             'coin': currency['id'],
             'address': address,
             'chain': networkId,
@@ -2207,7 +2207,7 @@ class bitget(Exchange, ImplicitAPI):
         #      }
         #
         data = self.safe_value(response, 'data', {})
-        result = {
+        result: dict = {
             'id': self.safe_string(data, 'orderId'),
             'info': response,
             'txid': None,
@@ -2264,7 +2264,7 @@ class bitget(Exchange, ImplicitAPI):
         currency = self.currency(code)
         if since is None:
             since = self.milliseconds() - 7776000000  # 90 days
-        request = {
+        request: dict = {
             'coin': currency['id'],
             'startTime': since,
             'endTime': self.milliseconds(),
@@ -2378,7 +2378,7 @@ class bitget(Exchange, ImplicitAPI):
         }
 
     def parse_transaction_status(self, status):
-        statuses = {
+        statuses: dict = {
             'success': 'ok',
             'Pending': 'pending',
             'pending_review': 'pending',
@@ -2402,7 +2402,7 @@ class bitget(Exchange, ImplicitAPI):
         if networkCode is not None:
             networkId = self.network_code_to_id(networkCode, code)
         currency = self.currency(code)
-        request = {
+        request: dict = {
             'coin': currency['id'],
         }
         if networkId is not None:
@@ -2467,7 +2467,7 @@ class bitget(Exchange, ImplicitAPI):
             market = self.market(sandboxSymbol)
         else:
             market = self.market(symbol)
-        request = {
+        request: dict = {
             'symbol': market['id'],
         }
         if limit is not None:
@@ -2621,7 +2621,7 @@ class bitget(Exchange, ImplicitAPI):
             market = self.market(sandboxSymbol)
         else:
             market = self.market(symbol)
-        request = {
+        request: dict = {
             'symbol': market['id'],
         }
         response = None
@@ -2720,7 +2720,7 @@ class bitget(Exchange, ImplicitAPI):
             else:
                 market = self.market(symbol)
         response = None
-        request = {}
+        request: dict = {}
         type = None
         type, params = self.handle_market_type_and_params('fetchTickers', market, params)
         # Calls like `.fetch_tickers(None, {subType:'inverse'})` should be supported for self exchange, so
@@ -2939,7 +2939,7 @@ class bitget(Exchange, ImplicitAPI):
             market = self.market(sandboxSymbol)
         else:
             market = self.market(symbol)
-        request = {
+        request: dict = {
             'symbol': market['id'],
         }
         if limit is not None:
@@ -3027,7 +3027,7 @@ class bitget(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'symbol': market['id'],
         }
         marginMode = None
@@ -3157,7 +3157,7 @@ class bitget(Exchange, ImplicitAPI):
         #     }
         #
         data = self.safe_value(response, 'data', [])
-        result = {}
+        result: dict = {}
         for i in range(0, len(data)):
             entry = data[i]
             marketId = self.safe_string(entry, 'symbol')
@@ -3237,7 +3237,7 @@ class bitget(Exchange, ImplicitAPI):
         timeframes = self.options['timeframes'][marketType]
         msInDay = 86400000
         duration = self.parse_timeframe(timeframe) * 1000
-        request = {
+        request: dict = {
             'symbol': market['id'],
             'granularity': self.safe_string(timeframes, timeframe, timeframe),
         }
@@ -3333,7 +3333,7 @@ class bitget(Exchange, ImplicitAPI):
         :returns dict: a `balance structure <https://docs.ccxt.com/#/?id=balance-structure>`
         """
         self.load_markets()
-        request = {}
+        request: dict = {}
         marketType = None
         marginMode = None
         response = None
@@ -3443,7 +3443,7 @@ class bitget(Exchange, ImplicitAPI):
         return self.parse_balance(data)
 
     def parse_balance(self, balance) -> Balances:
-        result = {'info': balance}
+        result: dict = {'info': balance}
         #
         # spot
         #
@@ -3530,8 +3530,8 @@ class bitget(Exchange, ImplicitAPI):
             result[code] = account
         return self.safe_balance(result)
 
-    def parse_order_status(self, status):
-        statuses = {
+    def parse_order_status(self, status: Str):
+        statuses: dict = {
             'new': 'open',
             'init': 'open',
             'not_trigger': 'open',
@@ -4038,7 +4038,7 @@ class bitget(Exchange, ImplicitAPI):
         marginMode = None
         marketType, params = self.handle_market_type_and_params('createOrder', market, params)
         marginMode, params = self.handle_margin_mode_and_params('createOrder', params)
-        request = {
+        request: dict = {
             'symbol': market['id'],
             'orderType': type,
         }
@@ -4245,7 +4245,7 @@ class bitget(Exchange, ImplicitAPI):
             market = self.market(sandboxSymbol)
         else:
             market = self.market(symbol)
-        request = {
+        request: dict = {
             'symbol': market['id'],
             'orderList': ordersRequests,
         }
@@ -4333,7 +4333,7 @@ class bitget(Exchange, ImplicitAPI):
             market = self.market(sandboxSymbol)
         else:
             market = self.market(symbol)
-        request = {
+        request: dict = {
             'orderId': id,
         }
         isMarketOrder = type == 'market'
@@ -4476,7 +4476,7 @@ class bitget(Exchange, ImplicitAPI):
         marginMode = None
         response = None
         marginMode, params = self.handle_margin_mode_and_params('cancelOrder', params)
-        request = {}
+        request: dict = {}
         trailing = self.safe_value(params, 'trailing')
         stop = self.safe_value_2(params, 'stop', 'trigger')
         params = self.omit(params, ['stop', 'trigger', 'trailing'])
@@ -4490,7 +4490,7 @@ class bitget(Exchange, ImplicitAPI):
             request['productType'] = productType
             if stop or trailing:
                 orderIdList = []
-                orderId = {
+                orderId: dict = {
                     'orderId': id,
                 }
                 orderIdList.append(orderId)
@@ -4598,11 +4598,11 @@ class bitget(Exchange, ImplicitAPI):
         orderIdList = []
         for i in range(0, len(ids)):
             individualId = ids[i]
-            orderId = {
+            orderId: dict = {
                 'orderId': individualId,
             }
             orderIdList.append(orderId)
-        request = {
+        request: dict = {
             'symbol': market['id'],
         }
         if market['spot'] and (marginMode is None):
@@ -4672,7 +4672,7 @@ class bitget(Exchange, ImplicitAPI):
             market = self.market(symbol)
         marginMode = None
         marginMode, params = self.handle_margin_mode_and_params('cancelAllOrders', params)
-        request = {
+        request: dict = {
             'symbol': market['id'],
         }
         stop = self.safe_bool_2(params, 'stop', 'trigger')
@@ -4686,7 +4686,7 @@ class bitget(Exchange, ImplicitAPI):
                     response = self.privateMarginPostMarginV1IsolatedOrderBatchCancelOrder(self.extend(request, params))
             else:
                 if stop:
-                    stopRequest = {
+                    stopRequest: dict = {
                         'symbolList': [market['id']],
                     }
                     response = self.privateSpotPostV2SpotTradeBatchCancelPlanOrder(self.extend(stopRequest, params))
@@ -4767,7 +4767,7 @@ class bitget(Exchange, ImplicitAPI):
             market = self.market(sandboxSymbol)
         else:
             market = self.market(symbol)
-        request = {
+        request: dict = {
             'orderId': id,
         }
         response = None
@@ -4884,7 +4884,7 @@ class bitget(Exchange, ImplicitAPI):
         sandboxMode = self.safe_bool(self.options, 'sandboxMode', False)
         market = None
         type = None
-        request = {}
+        request: dict = {}
         marginMode = None
         marginMode, params = self.handle_margin_mode_and_params('fetchOpenOrders', params)
         if symbol is not None:
@@ -5211,7 +5211,7 @@ class bitget(Exchange, ImplicitAPI):
             if symbol is not None:
                 sandboxSymbol = self.convert_symbol_for_sandbox(symbol)
                 symbol = sandboxSymbol
-        request = {}
+        request: dict = {}
         if symbol is not None:
             market = self.market(symbol)
             request['symbol'] = market['id']
@@ -5506,7 +5506,7 @@ class bitget(Exchange, ImplicitAPI):
                 cursorReceived = 'endId'
             return self.fetch_paginated_call_cursor('fetchLedger', symbol, since, limit, params, cursorReceived, 'idLessThan')
         currency = None
-        request = {}
+        request: dict = {}
         if code is not None:
             currency = self.currency(code)
             request['coin'] = currency['id']
@@ -5632,7 +5632,7 @@ class bitget(Exchange, ImplicitAPI):
         }
 
     def parse_ledger_type(self, type):
-        types = {
+        types: dict = {
             'trans_to_cross': 'transfer',
             'trans_from_cross': 'transfer',
             'trans_to_exchange': 'transfer',
@@ -5714,7 +5714,7 @@ class bitget(Exchange, ImplicitAPI):
                 cursorReceived = 'endId'
             return self.fetch_paginated_call_cursor('fetchMyTrades', symbol, since, limit, params, cursorReceived, 'idLessThan')
         response = None
-        request = {
+        request: dict = {
             'symbol': market['id'],
         }
         request, params = self.handle_until_option('endTime', request, params)
@@ -5863,7 +5863,7 @@ class bitget(Exchange, ImplicitAPI):
             market = self.market(symbol)
         productType = None
         productType, params = self.handle_product_type_and_params(market, params)
-        request = {
+        request: dict = {
             'symbol': market['id'],
             'marginCoin': market['settleId'],
             'productType': productType,
@@ -5939,7 +5939,7 @@ class bitget(Exchange, ImplicitAPI):
                 market = self.market(first)
         productType = None
         productType, params = self.handle_product_type_and_params(market, params)
-        request = {
+        request: dict = {
             'productType': productType,
         }
         response = None
@@ -6230,7 +6230,7 @@ class bitget(Exchange, ImplicitAPI):
             market = self.market(symbol)
         productType = None
         productType, params = self.handle_product_type_and_params(market, params)
-        request = {
+        request: dict = {
             'symbol': market['id'],
             'productType': productType,
             # 'pageSize': limit,  # default 20
@@ -6290,7 +6290,7 @@ class bitget(Exchange, ImplicitAPI):
             raise BadSymbol(self.id + ' fetchFundingRate() supports swap contracts only')
         productType = None
         productType, params = self.handle_product_type_and_params(market, params)
-        request = {
+        request: dict = {
             'symbol': market['id'],
             'productType': productType,
         }
@@ -6370,7 +6370,7 @@ class bitget(Exchange, ImplicitAPI):
             raise BadSymbol(self.id + ' fetchFundingHistory() supports swap contracts only')
         productType = None
         productType, params = self.handle_product_type_and_params(market, params)
-        request = {
+        request: dict = {
             'symbol': market['id'],
             'marginCoin': market['settleId'],
             'businessType': 'contract_settle_fee',
@@ -6457,7 +6457,7 @@ class bitget(Exchange, ImplicitAPI):
             market = self.market(symbol)
         productType = None
         productType, params = self.handle_product_type_and_params(market, params)
-        request = {
+        request: dict = {
             'symbol': market['id'],
             'marginCoin': market['settleId'],
             'amount': self.amount_to_precision(symbol, amount),  # positive value for adding margin, negative for reducing
@@ -6553,7 +6553,7 @@ class bitget(Exchange, ImplicitAPI):
             market = self.market(symbol)
         productType = None
         productType, params = self.handle_product_type_and_params(market, params)
-        request = {
+        request: dict = {
             'symbol': market['id'],
             'marginCoin': market['settleId'],
             'productType': productType,
@@ -6621,7 +6621,7 @@ class bitget(Exchange, ImplicitAPI):
             market = self.market(symbol)
         productType = None
         productType, params = self.handle_product_type_and_params(market, params)
-        request = {
+        request: dict = {
             'symbol': market['id'],
             'marginCoin': market['settleId'],
             'leverage': self.number_to_string(leverage),
@@ -6672,7 +6672,7 @@ class bitget(Exchange, ImplicitAPI):
             market = self.market(symbol)
         productType = None
         productType, params = self.handle_product_type_and_params(market, params)
-        request = {
+        request: dict = {
             'symbol': market['id'],
             'marginCoin': market['settleId'],
             'marginMode': marginMode,
@@ -6717,7 +6717,7 @@ class bitget(Exchange, ImplicitAPI):
                 market = self.market(symbol)
         productType = None
         productType, params = self.handle_product_type_and_params(market, params)
-        request = {
+        request: dict = {
             'posMode': posMode,
             'productType': productType,
         }
@@ -6754,7 +6754,7 @@ class bitget(Exchange, ImplicitAPI):
             raise BadRequest(self.id + ' fetchOpenInterest() supports contract markets only')
         productType = None
         productType, params = self.handle_product_type_and_params(market, params)
-        request = {
+        request: dict = {
             'symbol': market['id'],
             'productType': productType,
         }
@@ -6823,7 +6823,7 @@ class bitget(Exchange, ImplicitAPI):
         accountsByType = self.safe_value(self.options, 'accountsByType', {})
         type = self.safe_string(accountsByType, fromAccount)
         currency = self.currency(code)
-        request = {
+        request: dict = {
             'coin': currency['id'],
             'fromType': type,
         }
@@ -6875,7 +6875,7 @@ class bitget(Exchange, ImplicitAPI):
         accountsByType = self.safe_value(self.options, 'accountsByType', {})
         fromType = self.safe_string(accountsByType, fromAccount)
         toType = self.safe_string(accountsByType, toAccount)
-        request = {
+        request: dict = {
             'fromType': fromType,
             'toType': toType,
             'amount': amount,
@@ -6949,7 +6949,7 @@ class bitget(Exchange, ImplicitAPI):
         }
 
     def parse_transfer_status(self, status: Str) -> Str:
-        statuses = {
+        statuses: dict = {
             'successful': 'ok',
         }
         return self.safe_string(statuses, status, status)
@@ -6979,7 +6979,7 @@ class bitget(Exchange, ImplicitAPI):
         #
         chains = self.safe_value(fee, 'chains', [])
         chainsLength = len(chains)
-        result = {
+        result: dict = {
             'info': fee,
             'withdraw': {
                 'fee': None,
@@ -7058,7 +7058,7 @@ class bitget(Exchange, ImplicitAPI):
         """
         self.load_markets()
         currency = self.currency(code)
-        request = {
+        request: dict = {
             'coin': currency['id'],
             'borrowAmount': self.currency_to_precision(code, amount),
         }
@@ -7091,7 +7091,7 @@ class bitget(Exchange, ImplicitAPI):
         self.load_markets()
         currency = self.currency(code)
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'coin': currency['id'],
             'borrowAmount': self.currency_to_precision(code, amount),
             'symbol': market['id'],
@@ -7126,7 +7126,7 @@ class bitget(Exchange, ImplicitAPI):
         self.load_markets()
         currency = self.currency(code)
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'coin': currency['id'],
             'repayAmount': self.currency_to_precision(code, amount),
             'symbol': market['id'],
@@ -7160,7 +7160,7 @@ class bitget(Exchange, ImplicitAPI):
         """
         self.load_markets()
         currency = self.currency(code)
-        request = {
+        request: dict = {
             'coin': currency['id'],
             'repayAmount': self.currency_to_precision(code, amount),
         }
@@ -7260,7 +7260,7 @@ class bitget(Exchange, ImplicitAPI):
         type, params = self.handle_market_type_and_params('fetchMyLiquidations', market, params)
         if type != 'spot':
             raise NotSupported(self.id + ' fetchMyLiquidations() supports spot margin markets only')
-        request = {}
+        request: dict = {}
         request, params = self.handle_until_option('endTime', request, params)
         if since is not None:
             request['startTime'] = since
@@ -7392,7 +7392,7 @@ class bitget(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'symbol': market['id'],
         }
         response = self.privateMarginGetV2MarginIsolatedInterestRateAndLimit(self.extend(request, params))
@@ -7506,7 +7506,7 @@ class bitget(Exchange, ImplicitAPI):
         """
         self.load_markets()
         currency = self.currency(code)
-        request = {
+        request: dict = {
             'coin': currency['id'],
         }
         response = self.privateMarginGetV2MarginCrossedInterestRateAndLimit(self.extend(request, params))
@@ -7594,7 +7594,7 @@ class bitget(Exchange, ImplicitAPI):
         market = None
         if symbol is not None:
             market = self.market(symbol)
-        request = {}
+        request: dict = {}
         currency = None
         if code is not None:
             currency = self.currency(code)
@@ -7734,7 +7734,7 @@ class bitget(Exchange, ImplicitAPI):
             market = self.market(symbol)
         productType = None
         productType, params = self.handle_product_type_and_params(market, params)
-        request = {
+        request: dict = {
             'symbol': market['id'],
             'productType': productType,
         }
@@ -7773,7 +7773,7 @@ class bitget(Exchange, ImplicitAPI):
         self.load_markets()
         productType = None
         productType, params = self.handle_product_type_and_params(None, params)
-        request = {
+        request: dict = {
             'productType': productType,
         }
         response = self.privateMixPostV2MixOrderClosePositions(self.extend(request, params))
@@ -7816,7 +7816,7 @@ class bitget(Exchange, ImplicitAPI):
             market = self.market(symbol)
         productType = None
         productType, params = self.handle_product_type_and_params(market, params)
-        request = {
+        request: dict = {
             'symbol': market['id'],
             'marginCoin': market['settleId'],
             'productType': productType,
@@ -7879,7 +7879,7 @@ class bitget(Exchange, ImplicitAPI):
         self.load_markets()
         until = self.safe_integer(params, 'until')
         params = self.omit(params, 'until')
-        request = {}
+        request: dict = {}
         if symbols is not None:
             symbolsLength = len(symbols)
             if symbolsLength > 0:
@@ -7937,7 +7937,7 @@ class bitget(Exchange, ImplicitAPI):
         :returns dict: a `conversion structure <https://docs.ccxt.com/#/?id=conversion-structure>`
         """
         self.load_markets()
-        request = {
+        request: dict = {
             'fromCoin': fromCode,
             'toCoin': toCode,
             'fromCoinSize': self.number_to_string(amount),
@@ -7987,7 +7987,7 @@ class bitget(Exchange, ImplicitAPI):
         if toAmount is None:
             raise ArgumentsRequired(self.id + ' createConvertTrade() requires a toAmount parameter')
         params = self.omit(params, ['price', 'toAmount'])
-        request = {
+        request: dict = {
             'traceId': id,
             'fromCoin': fromCode,
             'toCoin': toCode,
@@ -8025,7 +8025,7 @@ class bitget(Exchange, ImplicitAPI):
         :returns dict[]: a list of `conversion structures <https://docs.ccxt.com/#/?id=conversion-structure>`
         """
         self.load_markets()
-        request = {}
+        request: dict = {}
         msInDay = 86400000
         now = self.milliseconds()
         if since is not None:
@@ -8145,7 +8145,7 @@ class bitget(Exchange, ImplicitAPI):
         #         ]
         #     }
         #
-        result = {}
+        result: dict = {}
         data = self.safe_list(response, 'data', [])
         for i in range(0, len(data)):
             entry = data[i]

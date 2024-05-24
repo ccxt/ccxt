@@ -127,7 +127,7 @@ class bl3p(Exchange, ImplicitAPI):
     def parse_balance(self, response) -> Balances:
         data = self.safe_value(response, 'data', {})
         wallets = self.safe_value(data, 'wallets', {})
-        result = {'info': data}
+        result: dict = {'info': data}
         codes = list(self.currencies.keys())
         for i in range(0, len(codes)):
             code = codes[i]
@@ -171,7 +171,7 @@ class bl3p(Exchange, ImplicitAPI):
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
         """
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'market': market['id'],
         }
         response = self.publicGetMarketOrderbook(self.extend(request, params))
@@ -230,7 +230,7 @@ class bl3p(Exchange, ImplicitAPI):
         :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'market': market['id'],
         }
         ticker = self.publicGetMarketTicker(self.extend(request, params))
@@ -354,7 +354,7 @@ class bl3p(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'data', {})
         feeString = self.safe_string(data, 'trade_fee')
         fee = self.parse_number(Precise.string_div(feeString, '100'))
-        result = {}
+        result: dict = {}
         for i in range(0, len(self.symbols)):
             symbol = self.symbols[i]
             result[symbol] = {
@@ -386,7 +386,7 @@ class bl3p(Exchange, ImplicitAPI):
         market = self.market(symbol)
         amountString = self.number_to_string(amount)
         priceString = self.number_to_string(price)
-        order = {
+        order: dict = {
             'market': market['id'],
             'amount_int': int(Precise.string_mul(amountString, '100000000')),
             'fee_currency': market['quote'],
@@ -410,7 +410,7 @@ class bl3p(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
-        request = {
+        request: dict = {
             'order_id': id,
         }
         return self.privatePostMarketMoneyOrderCancel(self.extend(request, params))
@@ -425,7 +425,7 @@ class bl3p(Exchange, ImplicitAPI):
         """
         self.load_markets()
         currency = self.currency(code)
-        request = {
+        request: dict = {
             'currency': currency['id'],
         }
         response = self.privatePostGENMKTMoneyNewDepositAddress(self.extend(request, params))

@@ -5,7 +5,7 @@ import bitvavoRest from '../bitvavo.js';
 import { AuthenticationError, ArgumentsRequired, ExchangeError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
-import { Int, Str, OrderSide, OrderType, OrderBook, Ticker, Trade, Order, OHLCV, Balances, Num, TradingFees } from '../base/types.js';
+import { Int, Str, OrderSide, OrderType, OrderBook, Ticker, Trade, Order, OHLCV, Balances, Num, TradingFees, Dict } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -67,7 +67,7 @@ export default class bitvavo extends bitvavoRest {
         const market = this.market (symbol);
         const messageHash = name + '@' + market['id'];
         const url = this.urls['api']['ws'];
-        const request = {
+        const request: Dict = {
             'action': 'subscribe',
             'channels': [
                 {
@@ -199,7 +199,7 @@ export default class bitvavo extends bitvavoRest {
         const interval = this.safeString (this.timeframes, timeframe, timeframe);
         const messageHash = name + '@' + marketId + '_' + interval;
         const url = this.urls['api']['ws'];
-        const request = {
+        const request: Dict = {
             'action': 'subscribe',
             'channels': [
                 {
@@ -292,7 +292,7 @@ export default class bitvavo extends bitvavoRest {
         const name = 'book';
         const messageHash = name + '@' + market['id'];
         const url = this.urls['api']['ws'];
-        const request = {
+        const request: Dict = {
             'action': 'subscribe',
             'channels': [
                 {
@@ -303,7 +303,7 @@ export default class bitvavo extends bitvavoRest {
                 },
             ],
         };
-        const subscription = {
+        const subscription: Dict = {
             'messageHash': messageHash,
             'name': name,
             'symbol': symbol,
@@ -399,7 +399,7 @@ export default class bitvavo extends bitvavoRest {
         const name = 'getBook';
         const messageHash = name + '@' + marketId;
         const url = this.urls['api']['ws'];
-        const request = {
+        const request: Dict = {
             'action': name,
             'market': marketId,
         };
@@ -496,7 +496,7 @@ export default class bitvavo extends bitvavoRest {
         const url = this.urls['api']['ws'];
         const name = 'account';
         const messageHash = 'order:' + symbol;
-        const request = {
+        const request: Dict = {
             'action': 'subscribe',
             'channels': [
                 {
@@ -534,7 +534,7 @@ export default class bitvavo extends bitvavoRest {
         const url = this.urls['api']['ws'];
         const name = 'account';
         const messageHash = 'myTrades:' + symbol;
-        const request = {
+        const request: Dict = {
             'action': 'subscribe',
             'channels': [
                 {
@@ -631,7 +631,7 @@ export default class bitvavo extends bitvavoRest {
          */
         await this.loadMarkets ();
         await this.authenticate ();
-        const request = {};
+        const request: Dict = {};
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
@@ -676,7 +676,7 @@ export default class bitvavo extends bitvavoRest {
         await this.loadMarkets ();
         await this.authenticate ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'orderId': id,
             'market': market['id'],
         };
@@ -726,7 +726,7 @@ export default class bitvavo extends bitvavoRest {
          */
         await this.loadMarkets ();
         await this.authenticate ();
-        const request = {
+        const request: Dict = {
             // 'market': market['id'], // rate limit 25 without a market, 1 with market specified
         };
         let market = undefined;
@@ -1118,7 +1118,7 @@ export default class bitvavo extends bitvavoRest {
     }
 
     buildMessageHash (action, params = {}) {
-        const methods = {
+        const methods: Dict = {
             'privateCreateOrder': this.actionAndMarketMessageHash,
             'privateUpdateOrder': this.actionAndOrderIdMessageHash,
             'privateCancelOrder': this.actionAndOrderIdMessageHash,
@@ -1235,7 +1235,7 @@ export default class bitvavo extends bitvavoRest {
         //     }
         //
         const subscriptions = this.safeValue (message, 'subscriptions', {});
-        const methods = {
+        const methods: Dict = {
             'book': this.handleOrderBookSubscriptions,
         };
         const names = Object.keys (subscriptions);
@@ -1261,7 +1261,7 @@ export default class bitvavo extends bitvavoRest {
             const auth = stringTimestamp + 'GET/' + this.version + '/websocket';
             const signature = this.hmac (this.encode (auth), this.encode (this.secret), sha256);
             const action = 'authenticate';
-            const request = {
+            const request: Dict = {
                 'action': action,
                 'key': this.apiKey,
                 'signature': signature,
@@ -1369,7 +1369,7 @@ export default class bitvavo extends bitvavoRest {
         if (error !== undefined) {
             this.handleErrorMessage (client, message);
         }
-        const methods = {
+        const methods: Dict = {
             'subscribed': this.handleSubscriptionStatus,
             'book': this.handleOrderBook,
             'getBook': this.handleOrderBookSnapshot,

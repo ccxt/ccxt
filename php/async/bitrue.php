@@ -1742,7 +1742,7 @@ class bitrue extends Exchange {
         }) ();
     }
 
-    public function parse_order_status($status) {
+    public function parse_order_status(?string $status) {
         $statuses = array(
             'INIT' => 'open',
             'PENDING_CREATE' => 'open',

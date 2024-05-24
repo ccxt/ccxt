@@ -58,7 +58,7 @@ class wazirx(ccxt.async_support.wazirx):
         token = await self.authenticate(params)
         messageHash = 'balance'
         url = self.urls['api']['ws']
-        subscribe = {
+        subscribe: dict = {
             'event': 'subscribe',
             'streams': ['outboundAccountPosition'],
             'auth_key': token,
@@ -177,7 +177,7 @@ class wazirx(ccxt.async_support.wazirx):
         messageHash = 'ticker:' + market['symbol']
         subscribeHash = 'tickers'
         stream = '!' + 'ticker@arr'
-        subscribe = {
+        subscribe: dict = {
             'event': 'subscribe',
             'streams': [stream],
         }
@@ -197,7 +197,7 @@ class wazirx(ccxt.async_support.wazirx):
         url = self.urls['api']['ws']
         messageHash = 'tickers'
         stream = '!' + 'ticker@arr'
-        subscribe = {
+        subscribe: dict = {
             'event': 'subscribe',
             'streams': [stream],
         }
@@ -294,7 +294,7 @@ class wazirx(ccxt.async_support.wazirx):
         symbol = market['symbol']
         messageHash = market['id'] + '@trades'
         url = self.urls['api']['ws']
-        message = {
+        message: dict = {
             'event': 'subscribe',
             'streams': [messageHash],
         }
@@ -357,7 +357,7 @@ class wazirx(ccxt.async_support.wazirx):
             symbol = market['symbol']
         url = self.urls['api']['ws']
         messageHash = 'myTrades'
-        message = {
+        message: dict = {
             'event': 'subscribe',
             'streams': ['ownTrade'],
             'auth_key': token,
@@ -384,7 +384,7 @@ class wazirx(ccxt.async_support.wazirx):
         url = self.urls['api']['ws']
         messageHash = 'ohlcv:' + symbol + ':' + timeframe
         stream = market['id'] + '@kline_' + timeframe
-        message = {
+        message: dict = {
             'event': 'subscribe',
             'streams': [stream],
         }
@@ -467,7 +467,7 @@ class wazirx(ccxt.async_support.wazirx):
         url = self.urls['api']['ws']
         messageHash = 'orderbook:' + symbol
         stream = market['id'] + '@depth'
-        subscribe = {
+        subscribe: dict = {
             'event': 'subscribe',
             'streams': [stream],
         }
@@ -528,7 +528,7 @@ class wazirx(ccxt.async_support.wazirx):
             symbol = market['symbol']
         token = await self.authenticate(params)
         messageHash = 'orders'
-        message = {
+        message: dict = {
             'event': 'subscribe',
             'streams': ['orderUpdate'],
             'auth_key': token,
@@ -701,7 +701,7 @@ class wazirx(ccxt.async_support.wazirx):
             self.handle_error(client, message)
             return
         event = self.safe_string(message, 'event')
-        eventHandlers = {
+        eventHandlers: dict = {
             'error': self.handle_error,
             'connected': self.handle_connected,
             'subscribed': self.handle_subscribed,
@@ -711,7 +711,7 @@ class wazirx(ccxt.async_support.wazirx):
             eventHandler(client, message)
             return
         stream = self.safe_string(message, 'stream', '')
-        streamHandlers = {
+        streamHandlers: dict = {
             'ticker@arr': self.handle_ticker,
             '@depth': self.handle_order_book,
             '@kline': self.handle_ohlcv,

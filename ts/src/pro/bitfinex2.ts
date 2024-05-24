@@ -6,7 +6,7 @@ import { Precise } from '../base/Precise.js';
 import { ExchangeError, AuthenticationError, InvalidNonce } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 import { sha384 } from '../static_dependencies/noble-hashes/sha512.js';
-import type { Int, Str, OrderBook, Order, Trade, Ticker, OHLCV, Balances } from '../base/types.js';
+import type { Int, Str, OrderBook, Order, Trade, Ticker, OHLCV, Balances, Dict } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -51,7 +51,7 @@ export default class bitfinex2 extends bitfinex2Rest {
         const url = this.urls['api']['ws']['public'];
         const client = this.client (url);
         const messageHash = channel + ':' + marketId;
-        const request = {
+        const request: Dict = {
             'event': 'subscribe',
             'channel': channel,
             'symbol': marketId,
@@ -94,7 +94,7 @@ export default class bitfinex2 extends bitfinex2Rest {
         const channel = 'candles';
         const key = 'trade:' + interval + ':' + market['id'];
         const messageHash = channel + ':' + interval + ':' + market['id'];
-        const request = {
+        const request: Dict = {
             'event': 'subscribe',
             'channel': channel,
             'key': key,
@@ -546,7 +546,7 @@ export default class bitfinex2 extends bitfinex2Rest {
         const options = this.safeValue (this.options, 'watchOrderBook', {});
         const prec = this.safeString (options, 'prec', 'P0');
         const freq = this.safeString (options, 'freq', 'F0');
-        const request = {
+        const request: Dict = {
             'prec': prec, // string, level of price aggregation, 'P0', 'P1', 'P2', 'P3', 'P4', default P0
             'freq': freq, // string, frequency of updates 'F0' = realtime, 'F1' = 2 seconds, default is 'F0'
         };
@@ -785,7 +785,7 @@ export default class bitfinex2 extends bitfinex2Rest {
         } else {
             data = [ this.safeValue (message, 2) ];
         }
-        const updatedTypes = {};
+        const updatedTypes: Dict = {};
         for (let i = 0; i < data.length; i++) {
             const rawBalance = data[i];
             const currencyId = this.safeString (rawBalance, 1);
@@ -869,7 +869,7 @@ export default class bitfinex2 extends bitfinex2Rest {
             const payload = 'AUTH' + nonce.toString ();
             const signature = this.hmac (this.encode (payload), this.encode (this.secret), sha384, 'hex');
             const event = 'auth';
-            const request = {
+            const request: Dict = {
                 'apiKey': this.apiKey,
                 'authSig': signature,
                 'authNonce': nonce,
@@ -971,7 +971,7 @@ export default class bitfinex2 extends bitfinex2Rest {
             this.orders = new ArrayCacheBySymbolById (limit);
         }
         const orders = this.orders;
-        const symbolIds = {};
+        const symbolIds: Dict = {};
         if (messageType === 'os') {
             const snapshotLength = data.length;
             if (snapshotLength === 0) {
@@ -1002,7 +1002,7 @@ export default class bitfinex2 extends bitfinex2Rest {
     }
 
     parseWsOrderStatus (status) {
-        const statuses = {
+        const statuses: Dict = {
             'ACTIVE': 'open',
             'CANCELED': 'canceled',
             'EXECUTED': 'closed',
@@ -1132,14 +1132,14 @@ export default class bitfinex2 extends bitfinex2Rest {
             const subscription = this.safeValue (client.subscriptions, channelId, {});
             const channel = this.safeString (subscription, 'channel');
             const name = this.safeString (message, 1);
-            const publicMethods = {
+            const publicMethods: Dict = {
                 'book': this.handleOrderBook,
                 'cs': this.handleChecksum,
                 'candles': this.handleOHLCV,
                 'ticker': this.handleTicker,
                 'trades': this.handleTrades,
             };
-            const privateMethods = {
+            const privateMethods: Dict = {
                 'os': this.handleOrders,
                 'ou': this.handleOrders,
                 'on': this.handleOrders,
@@ -1160,7 +1160,7 @@ export default class bitfinex2 extends bitfinex2Rest {
         } else {
             const event = this.safeString (message, 'event');
             if (event !== undefined) {
-                const methods = {
+                const methods: Dict = {
                     'info': this.handleSystemStatus,
                     'subscribed': this.handleSubscriptionStatus,
                     'auth': this.handleAuthenticationMessage,

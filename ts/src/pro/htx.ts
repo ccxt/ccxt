@@ -5,7 +5,7 @@ import htxRest from '../htx.js';
 import { ExchangeError, InvalidNonce, ArgumentsRequired, BadRequest, BadSymbol, AuthenticationError, NetworkError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide } from '../base/ws/Cache.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
-import type { Int, Str, Strings, OrderBook, Order, Trade, Ticker, OHLCV, Position, Balances } from '../base/types.js';
+import type { Int, Str, Strings, OrderBook, Order, Trade, Ticker, OHLCV, Position, Balances, Dict } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -456,13 +456,13 @@ export default class htx extends htxRest {
         const market = this.market (symbol);
         const url = this.getUrlByMarketType (market['type'], market['linear'], false, true);
         const requestId = this.requestId ();
-        const request = {
+        const request: Dict = {
             'req': messageHash,
             'id': requestId,
         };
         // this is a temporary subscription by a specific requestId
         // it has a very short lifetime until the snapshot is received over ws
-        const snapshotSubscription = {
+        const snapshotSubscription: Dict = {
             'id': requestId,
             'messageHash': messageHash,
             'symbol': symbol,
@@ -943,7 +943,7 @@ export default class htx extends htxRest {
                 const status = this.parseOrderStatus (this.safeString2 (data, 'orderStatus', 'status', 'closed'));
                 const filled = this.safeString (data, 'execAmt');
                 const remaining = this.safeString (data, 'remainAmt');
-                const order = {
+                const order: Dict = {
                     'id': orderId,
                     'trades': trades,
                     'status': status,
@@ -961,13 +961,13 @@ export default class htx extends htxRest {
             const rawTrades = this.safeValue (message, 'trade', []);
             const tradesLength = rawTrades.length;
             if (tradesLength > 0) {
-                const tradesObject = {
+                const tradesObject: Dict = {
                     'trades': rawTrades,
                     'ch': messageHash,
                     'symbol': marketId,
                 };
                 // inject order params in every trade
-                const extendTradeParams = {
+                const extendTradeParams: Dict = {
                     'order': this.safeString (parsedOrder, 'id'),
                     'type': this.safeString (parsedOrder, 'type'),
                     'side': this.safeString (parsedOrder, 'side'),
@@ -1428,7 +1428,7 @@ export default class htx extends htxRest {
                 }
             }
         }
-        const subscriptionParams = {
+        const subscriptionParams: Dict = {
             'type': type,
             'subType': subType,
             'margin': marginMode,
@@ -1638,7 +1638,7 @@ export default class htx extends htxRest {
                                 const account = this.account ();
                                 account['free'] = this.safeString2 (balance, 'margin_balance', 'margin_available');
                                 account['used'] = this.safeString (balance, 'margin_frozen');
-                                const accountsByCode = {};
+                                const accountsByCode: Dict = {};
                                 accountsByCode[code] = account;
                                 const symbol = market['symbol'];
                                 this.balance[symbol] = this.safeBalance (accountsByCode);
@@ -1798,7 +1798,7 @@ export default class htx extends htxRest {
         const type = this.safeString (parts, 0);
         if (type === 'market') {
             const methodName = this.safeString (parts, 2);
-            const methods = {
+            const methods: Dict = {
                 'depth': this.handleOrderBook,
                 'mbp': this.handleOrderBook,
                 'detail': this.handleTicker,
@@ -2244,7 +2244,7 @@ export default class htx extends htxRest {
 
     getUrlByMarketType (type, isLinear = true, isPrivate = false, isFeed = false) {
         const api = this.safeString (this.options, 'api', 'api');
-        const hostname = { 'hostname': this.hostname };
+        const hostname: Dict = { 'hostname': this.hostname };
         let hostnameURL = undefined;
         let url = undefined;
         if (type === 'spot') {
@@ -2268,11 +2268,11 @@ export default class htx extends htxRest {
 
     async subscribePublic (url, symbol, messageHash, method = undefined, params = {}) {
         const requestId = this.requestId ();
-        const request = {
+        const request: Dict = {
             'sub': messageHash,
             'id': requestId,
         };
-        const subscription = {
+        const subscription: Dict = {
             'id': requestId,
             'messageHash': messageHash,
             'symbol': symbol,
@@ -2286,7 +2286,7 @@ export default class htx extends htxRest {
 
     async subscribePrivate (channel, messageHash, type, subtype, params = {}, subscriptionParams = {}) {
         const requestId = this.requestId ();
-        const subscription = {
+        const subscription: Dict = {
             'id': requestId,
             'messageHash': messageHash,
             'params': params,
@@ -2308,7 +2308,7 @@ export default class htx extends htxRest {
         const isLinear = subtype === 'linear';
         const url = this.getUrlByMarketType (type, isLinear, true);
         const hostname = (type === 'spot') ? this.urls['hostnames']['spot'] : this.urls['hostnames']['contract'];
-        const authParams = {
+        const authParams: Dict = {
             'type': type,
             'url': url,
             'hostname': hostname,
@@ -2354,7 +2354,7 @@ export default class htx extends htxRest {
             const signature = this.hmac (this.encode (payload), this.encode (this.secret), sha256, 'base64');
             let request = undefined;
             if (type === 'spot') {
-                const newParams = {
+                const newParams: Dict = {
                     'authType': 'api',
                     'accessKey': this.apiKey,
                     'signatureMethod': 'HmacSHA256',
@@ -2379,7 +2379,7 @@ export default class htx extends htxRest {
                 };
             }
             const requestId = this.requestId ();
-            const subscription = {
+            const subscription: Dict = {
                 'id': requestId,
                 'messageHash': messageHash,
                 'params': params,

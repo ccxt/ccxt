@@ -568,7 +568,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
         market = self.market(symbol)
         marketId = market['id']
         parsedTimeframe = self.safe_integer(self.timeframes, timeframe)
-        request = {
+        request: dict = {
             'symbol': marketId,
         }
         if parsedTimeframe is not None:
@@ -632,7 +632,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
         self.load_markets()
         currency = self.currency(code)
         currencyId = currency['id']
-        request = {
+        request: dict = {
             'currency': currencyId,  # Currency,including XBT,USDT
         }
         response = self.futuresPrivateGetDepositAddress(self.extend(request, params))
@@ -672,7 +672,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
         if level != 2 and level is not None:
             raise BadRequest(self.id + ' fetchOrderBook() can only return level 2')
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'symbol': market['id'],
         }
         if limit is not None:
@@ -717,7 +717,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
         """
         self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'symbol': market['id'],
         }
         response = self.futuresPublicGetTicker(self.extend(request, params))
@@ -938,7 +938,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
             raise ArgumentsRequired(self.id + ' fetchFundingHistory() requires a symbol argument')
         self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'symbol': market['id'],
         }
         if since is not None:
@@ -1000,7 +1000,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
         """
         self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'symbol': market['id'],
         }
         response = self.futuresPrivateGetPosition(self.extend(request, params))
@@ -1123,7 +1123,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
         self.load_markets()
         if limit is None:
             limit = 200
-        request = {
+        request: dict = {
             'limit': limit,
         }
         if since is not None:
@@ -1403,7 +1403,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
         if amount < 1:
             raise InvalidOrder(self.id + ' createOrder() minimum contract order amount is 1')
         preciseAmount = int(self.amount_to_precision(symbol, amount))
-        request = {
+        request: dict = {
             'clientOid': clientOrderId,
             'side': side,
             'symbol': market['id'],
@@ -1412,7 +1412,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
             'leverage': 1,
         }
         triggerPrice, stopLossPrice, takeProfitPrice = self.handle_trigger_prices(params)
-        triggerPriceTypes = {
+        triggerPriceTypes: dict = {
             'mark': 'MP',
             'last': 'TP',
             'index': 'IP',
@@ -1470,7 +1470,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
         self.load_markets()
         clientOrderId = self.safe_string_2(params, 'clientOid', 'clientOrderId')
         params = self.omit(params, ['clientOrderId'])
-        request = {}
+        request: dict = {}
         response = None
         if clientOrderId is not None:
             if symbol is None:
@@ -1505,7 +1505,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
         :returns: Response from the exchange
         """
         self.load_markets()
-        request = {}
+        request: dict = {}
         if symbol is not None:
             request['symbol'] = self.market_id(symbol)
         stop = self.safe_value_2(params, 'stop', 'trigger')
@@ -1539,7 +1539,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
         self.load_markets()
         market = self.market(symbol)
         uuid = self.uuid()
-        request = {
+        request: dict = {
             'symbol': market['id'],
             'margin': self.amount_to_precision(symbol, amount),
             'bizNo': uuid,
@@ -1695,7 +1695,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
             status = 'done'
         elif status == 'open':
             status = 'active'
-        request = {}
+        request: dict = {}
         if not stop:
             request['status'] = status
         elif status != 'active':
@@ -1821,7 +1821,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
         :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
-        request = {}
+        request: dict = {}
         response = None
         if id is None:
             clientOrderId = self.safe_string_2(params, 'clientOid', 'clientOrderId')
@@ -2021,7 +2021,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
         """
         self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'symbol': market['id'],
         }
         response = self.futuresPublicGetFundingRateSymbolCurrent(self.extend(request, params))
@@ -2061,7 +2061,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
         }
 
     def parse_balance(self, response) -> Balances:
-        result = {
+        result: dict = {
             'info': response,
             'timestamp': None,
             'datetime': None,
@@ -2089,7 +2089,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
         defaultCode = self.safe_string(fetchBalanceOptions, 'code', defaultCode)
         code = self.safe_string(params, 'code', defaultCode)
         currency = self.currency(code)
-        request = {
+        request: dict = {
             'currency': currency['id'],
         }
         response = self.futuresPrivateGetAccountOverview(self.extend(request, params))
@@ -2125,7 +2125,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
         self.load_markets()
         currency = self.currency(code)
         amountToPrecision = self.currency_to_precision(code, amount)
-        request = {
+        request: dict = {
             'currency': self.safe_string(currency, 'id'),  # Currency,including XBT,USDT
             'amount': amountToPrecision,
         }
@@ -2168,7 +2168,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
         }
 
     def parse_transfer_status(self, status: Str) -> Str:
-        statuses = {
+        statuses: dict = {
             'PROCESSING': 'pending',
         }
         return self.safe_string(statuses, status, status)
@@ -2190,7 +2190,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
         paginate, params = self.handle_option_and_params(params, 'fetchMyTrades', 'paginate')
         if paginate:
             return self.fetch_paginated_call_dynamic('fetchMyTrades', symbol, since, limit, params)
-        request = {
+        request: dict = {
             # orderId(str) [optional] Fills for a specific order(other parameters can be ignored if specified)
             # symbol(str) [optional] Symbol of the contract
             # side(str) [optional] buy or sell
@@ -2255,7 +2255,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
         """
         self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'symbol': market['id'],
         }
         response = self.futuresPublicGetTradeHistory(self.extend(request, params))
@@ -2417,7 +2417,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
         :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/#/?id=transaction-structure>`
         """
         self.load_markets()
-        request = {}
+        request: dict = {}
         currency = None
         if code is not None:
             currency = self.currency(code)
@@ -2467,7 +2467,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
         :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/#/?id=transaction-structure>`
         """
         self.load_markets()
-        request = {}
+        request: dict = {}
         currency = None
         if code is not None:
             currency = self.currency(code)
@@ -2519,7 +2519,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
         market = self.market(symbol)
         if not market['contract']:
             raise BadRequest(self.id + ' fetchMarketLeverageTiers() supports contract markets only')
-        request = {
+        request: dict = {
             'symbol': market['id'],
         }
         response = self.futuresPublicGetContractsRiskLimitSymbol(self.extend(request, params))
@@ -2589,7 +2589,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
             raise ArgumentsRequired(self.id + ' fetchFundingRateHistory() requires a symbol argument')
         self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'symbol': market['id'],
             'from': 0,
             'to': self.milliseconds(),
@@ -2648,7 +2648,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
         params = self.omit(params, ['test', 'clientOrderId'])
         if clientOrderId is None:
             clientOrderId = self.number_to_string(self.nonce())
-        request = {
+        request: dict = {
             'symbol': market['id'],
             'closeOrder': True,
             'clientOid': clientOrderId,
@@ -2671,7 +2671,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
         """
         self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'symbols': market['id'],
         }
         response = self.privateGetTradeFees(self.extend(request, params))

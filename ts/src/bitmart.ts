@@ -1014,7 +1014,7 @@ export default class bitmart extends Exchange {
         //
         const data = this.safeValue (response, 'data', {});
         const currencies = this.safeValue (data, 'currencies', []);
-        const result = {};
+        const result: Dict = {};
         for (let i = 0; i < currencies.length; i++) {
             const currency = currencies[i];
             const id = this.safeString (currency, 'id');
@@ -1054,7 +1054,7 @@ export default class bitmart extends Exchange {
          */
         await this.loadMarkets ();
         const currency = this.currency (code);
-        const request = {
+        const request: Dict = {
             'currency': currency['id'],
         };
         const response = await this.privateGetAccountV1WithdrawCharge (this.extend (request, params));
@@ -1072,7 +1072,7 @@ export default class bitmart extends Exchange {
         //     }
         //
         const data = response['data'];
-        const withdrawFees = {};
+        const withdrawFees: Dict = {};
         withdrawFees[code] = this.safeNumber (data, 'withdraw_fee');
         return {
             'info': response,
@@ -1115,7 +1115,7 @@ export default class bitmart extends Exchange {
          */
         await this.loadMarkets ();
         const currency = this.currency (code);
-        const request = {
+        const request: Dict = {
             'currency': currency['id'],
         };
         const response = await this.privateGetAccountV1WithdrawCharge (this.extend (request, params));
@@ -1254,7 +1254,7 @@ export default class bitmart extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {};
+        const request: Dict = {};
         let response = undefined;
         if (market['swap']) {
             request['contract_symbol'] = market['id'];
@@ -1360,7 +1360,7 @@ export default class bitmart extends Exchange {
         }
         const data = this.safeValue (response, 'data', {});
         const tickers = this.safeValue (data, 'tickers', []);
-        const result = {};
+        const result: Dict = {};
         for (let i = 0; i < tickers.length; i++) {
             const ticker = this.parseTicker (tickers[i]);
             const symbol = ticker['symbol'];
@@ -1383,7 +1383,7 @@ export default class bitmart extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'symbol': market['id'],
         };
         let response = undefined;
@@ -1568,7 +1568,7 @@ export default class bitmart extends Exchange {
         if (!market['spot']) {
             throw new NotSupported (this.id + ' fetchTrades() does not support ' + market['type'] + ' orders, only spot orders are accepted');
         }
-        const request = {
+        const request: Dict = {
             'symbol': market['id'],
         };
         const response = await this.publicGetSpotV1SymbolsTrades (this.extend (request, params));
@@ -1686,7 +1686,7 @@ export default class bitmart extends Exchange {
         const market = this.market (symbol);
         const duration = this.parseTimeframe (timeframe);
         const parsedTimeframe = this.safeInteger (this.timeframes, timeframe);
-        let request = {
+        let request: Dict = {
             'symbol': market['id'],
         };
         if (parsedTimeframe !== undefined) {
@@ -1781,7 +1781,7 @@ export default class bitmart extends Exchange {
          */
         await this.loadMarkets ();
         let market = undefined;
-        const request = {};
+        const request: Dict = {};
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['symbol'] = market['id'];
@@ -1893,7 +1893,7 @@ export default class bitmart extends Exchange {
          * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
          */
         await this.loadMarkets ();
-        const request = {
+        const request: Dict = {
             'orderId': id,
         };
         const response = await this.privatePostSpotV4QueryOrderTrades (this.extend (request, params));
@@ -1921,7 +1921,7 @@ export default class bitmart extends Exchange {
                 const quote = this.safeValue (entry, 'quote', {});
                 const baseCode = this.safeCurrencyCode (this.safeString (base, 'currency'));
                 const quoteCode = this.safeCurrencyCode (this.safeString (quote, 'currency'));
-                const subResult = {};
+                const subResult: Dict = {};
                 subResult[baseCode] = this.parseBalanceHelper (base);
                 subResult[quoteCode] = this.parseBalanceHelper (quote);
                 result[symbol] = this.safeBalance (subResult);
@@ -2117,7 +2117,7 @@ export default class bitmart extends Exchange {
         if (!market['spot']) {
             throw new NotSupported (this.id + ' fetchTradingFee() does not support ' + market['type'] + ' orders, only spot orders are accepted');
         }
-        const request = {
+        const request: Dict = {
             'symbol': market['id'],
         };
         const response = await this.privateGetSpotV1TradeFee (this.extend (request, params));
@@ -2268,7 +2268,7 @@ export default class bitmart extends Exchange {
     }
 
     parseOrderSide (side) {
-        const sides = {
+        const sides: Dict = {
             '1': 'buy',
             '2': 'buy',
             '3': 'sell',
@@ -2278,7 +2278,7 @@ export default class bitmart extends Exchange {
     }
 
     parseOrderStatusByType (type, status) {
-        const statusesByType = {
+        const statusesByType: Dict = {
             'spot': {
                 '1': 'rejected', // Order failure
                 '2': 'open', // Placing order
@@ -2434,7 +2434,7 @@ export default class bitmart extends Exchange {
             orderRequest = this.omit (orderRequest, [ 'symbol' ]); // not needed because it goes in the outter object
             ordersRequests.push (orderRequest);
         }
-        const request = {
+        const request: Dict = {
             'symbol': market['id'],
             'orderParams': ordersRequests,
         };
@@ -2494,7 +2494,7 @@ export default class bitmart extends Exchange {
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'symbol': market['id'],
             'type': type,
             'size': parseInt (this.amountToPrecision (symbol, amount)),
@@ -2593,7 +2593,7 @@ export default class bitmart extends Exchange {
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'symbol': market['id'],
             'side': side,
             'type': type,
@@ -2667,7 +2667,7 @@ export default class bitmart extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'symbol': market['id'],
         };
         const clientOrderId = this.safeString2 (params, 'clientOrderId', 'client_order_id');
@@ -2757,7 +2757,7 @@ export default class bitmart extends Exchange {
         }
         const clientOrderIds = this.safeList (params, 'clientOrderIds');
         params = this.omit (params, [ 'clientOrderIds' ]);
-        const request = {
+        const request: Dict = {
             'symbol': market['id'],
         };
         if (clientOrderIds !== undefined) {
@@ -2810,7 +2810,7 @@ export default class bitmart extends Exchange {
          * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
-        const request = {};
+        const request: Dict = {};
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
@@ -2857,7 +2857,7 @@ export default class bitmart extends Exchange {
         if (!market['spot']) {
             throw new NotSupported (this.id + ' fetchOrdersByStatus() does not support ' + market['type'] + ' orders, only spot orders are accepted');
         }
-        const request = {
+        const request: Dict = {
             'symbol': market['id'],
             'offset': 1, // max offset * limit < 500
             'N': 100, // max limit is 100
@@ -2928,7 +2928,7 @@ export default class bitmart extends Exchange {
          */
         await this.loadMarkets ();
         let market = undefined;
-        const request = {};
+        const request: Dict = {};
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['symbol'] = market['id'];
@@ -3049,7 +3049,7 @@ export default class bitmart extends Exchange {
          */
         await this.loadMarkets ();
         let market = undefined;
-        const request = {};
+        const request: Dict = {};
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['symbol'] = market['id'];
@@ -3117,7 +3117,7 @@ export default class bitmart extends Exchange {
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
-        const request = {};
+        const request: Dict = {};
         let type = undefined;
         let market = undefined;
         let response = undefined;
@@ -3218,7 +3218,7 @@ export default class bitmart extends Exchange {
          */
         await this.loadMarkets ();
         const currency = this.currency (code);
-        const request = {
+        const request: Dict = {
             'currency': currency['id'],
         };
         if (code === 'USDT') {
@@ -3305,7 +3305,7 @@ export default class bitmart extends Exchange {
         this.checkAddress (address);
         await this.loadMarkets ();
         const currency = this.currency (code);
-        const request = {
+        const request: Dict = {
             'currency': currency['id'],
             'amount': amount,
             'destination': 'To Digital Address', // To Digital Address, To Binance, To OKEX
@@ -3350,7 +3350,7 @@ export default class bitmart extends Exchange {
         if (limit === undefined) {
             limit = 50; // max 50
         }
-        const request = {
+        const request: Dict = {
             'operation_type': type, // deposit or withdraw
             'offset': 1,
             'N': limit,
@@ -3413,7 +3413,7 @@ export default class bitmart extends Exchange {
          * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         await this.loadMarkets ();
-        const request = {
+        const request: Dict = {
             'id': id,
         };
         const response = await this.privateGetAccountV1DepositWithdrawDetail (this.extend (request, params));
@@ -3469,7 +3469,7 @@ export default class bitmart extends Exchange {
          * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         await this.loadMarkets ();
-        const request = {
+        const request: Dict = {
             'id': id,
         };
         const response = await this.privateGetAccountV1DepositWithdrawDetail (this.extend (request, params));
@@ -3515,7 +3515,7 @@ export default class bitmart extends Exchange {
     }
 
     parseTransactionStatus (status) {
-        const statuses = {
+        const statuses: Dict = {
             '0': 'pending', // Create
             '1': 'pending', // Submitted, waiting for withdrawal
             '2': 'pending', // Processing
@@ -3616,7 +3616,7 @@ export default class bitmart extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const currency = this.currency (code);
-        const request = {
+        const request: Dict = {
             'symbol': market['id'],
             'currency': currency['id'],
             'amount': this.currencyToPrecision (code, amount),
@@ -3655,7 +3655,7 @@ export default class bitmart extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const currency = this.currency (code);
-        const request = {
+        const request: Dict = {
             'symbol': market['id'],
             'currency': currency['id'],
             'amount': this.currencyToPrecision (code, amount),
@@ -3716,7 +3716,7 @@ export default class bitmart extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'symbol': market['id'],
         };
         const response = await this.privateGetSpotV1MarginIsolatedPairs (this.extend (request, params));
@@ -3866,7 +3866,7 @@ export default class bitmart extends Exchange {
         await this.loadMarkets ();
         const currency = this.currency (code);
         const amountToPrecision = this.currencyToPrecision (code, amount);
-        const request = {
+        const request: Dict = {
             'amount': amountToPrecision,
             'currency': currency['id'],
         };
@@ -3926,7 +3926,7 @@ export default class bitmart extends Exchange {
     }
 
     parseTransferStatus (status: Str): Str {
-        const statuses = {
+        const statuses: Dict = {
             '1000': 'ok',
             'OK': 'ok',
             'FINISHED': 'ok',
@@ -3935,7 +3935,7 @@ export default class bitmart extends Exchange {
     }
 
     parseTransferToAccount (type) {
-        const types = {
+        const types: Dict = {
             'contract_to_spot': 'spot',
             'spot_to_contract': 'swap',
         };
@@ -3943,7 +3943,7 @@ export default class bitmart extends Exchange {
     }
 
     parseTransferFromAccount (type) {
-        const types = {
+        const types: Dict = {
             'contract_to_spot': 'swap',
             'spot_to_contract': 'spot',
         };
@@ -4008,7 +4008,7 @@ export default class bitmart extends Exchange {
         if (limit === undefined) {
             limit = 10;
         }
-        const request = {
+        const request: Dict = {
             'page': this.safeInteger (params, 'page', 1), // default is 1, max is 1000
             'limit': limit, // default is 10, max is 100
         };
@@ -4072,7 +4072,7 @@ export default class bitmart extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'symbol': market['id'],
         };
         if (limit !== undefined) {
@@ -4153,7 +4153,7 @@ export default class bitmart extends Exchange {
         if (!market['contract']) {
             throw new BadRequest (this.id + ' fetchOpenInterest() supports contract markets only');
         }
-        const request = {
+        const request: Dict = {
             'symbol': market['id'],
         };
         const response = await this.publicGetContractPublicOpenInterest (this.extend (request, params));
@@ -4218,7 +4218,7 @@ export default class bitmart extends Exchange {
         if (!market['swap']) {
             throw new BadSymbol (this.id + ' setLeverage() supports swap contracts only');
         }
-        const request = {
+        const request: Dict = {
             'symbol': market['id'],
             'leverage': leverage.toString (),
             'open_type': marginMode,
@@ -4241,7 +4241,7 @@ export default class bitmart extends Exchange {
         if (!market['swap']) {
             throw new BadSymbol (this.id + ' fetchFundingRate() supports swap contracts only');
         }
-        const request = {
+        const request: Dict = {
             'symbol': market['id'],
         };
         const response = await this.publicGetContractPublicFundingRate (this.extend (request, params));
@@ -4306,7 +4306,7 @@ export default class bitmart extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'symbol': market['id'],
         };
         const response = await this.privateGetContractPrivatePosition (this.extend (request, params));
@@ -4362,7 +4362,7 @@ export default class bitmart extends Exchange {
             const first = this.safeString (symbols, 0);
             market = this.market (first);
         }
-        const request = {};
+        const request: Dict = {};
         if (symbolsLength === 1) {
             // only supports symbols as undefined or sending one symbol
             request['symbol'] = market['id'];
@@ -4492,7 +4492,7 @@ export default class bitmart extends Exchange {
         if (!market['swap']) {
             throw new NotSupported (this.id + ' fetchMyLiquidations() supports swap markets only');
         }
-        let request = {
+        let request: Dict = {
             'symbol': market['id'],
         };
         if (since !== undefined) {

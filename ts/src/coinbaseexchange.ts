@@ -273,7 +273,7 @@ export default class coinbaseexchange extends Exchange {
         //         }
         //     ]
         //
-        const result = {};
+        const result: Dict = {};
         for (let i = 0; i < response.length; i++) {
             const currency = response[i];
             const id = this.safeString (currency, 'id');
@@ -486,7 +486,7 @@ export default class coinbaseexchange extends Exchange {
     }
 
     parseBalance (response): Balances {
-        const result = { 'info': response };
+        const result: Dict = { 'info': response };
         for (let i = 0; i < response.length; i++) {
             const balance = response[i];
             const currencyId = this.safeString (balance, 'currency');
@@ -529,7 +529,7 @@ export default class coinbaseexchange extends Exchange {
         // level 1 - only the best bid and ask
         // level 2 - top 50 bids and asks (aggregated)
         // level 3 - full order book (non aggregated)
-        const request = {
+        const request: Dict = {
             'id': this.marketId (symbol),
             'level': 2, // 1 best bidask, 2 aggregated, 3 full
         };
@@ -647,7 +647,7 @@ export default class coinbaseexchange extends Exchange {
          */
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
-        const request = {};
+        const request: Dict = {};
         const response = await this.publicGetProductsSparkLines (this.extend (request, params));
         //
         //     {
@@ -669,7 +669,7 @@ export default class coinbaseexchange extends Exchange {
         //         ]
         //     }
         //
-        const result = {};
+        const result: Dict = {};
         const marketIds = Object.keys (response);
         const delimiter = '-';
         for (let i = 0; i < marketIds.length; i++) {
@@ -695,7 +695,7 @@ export default class coinbaseexchange extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'id': market['id'],
         };
         // publicGetProductsIdTicker or publicGetProductsIdStats
@@ -823,7 +823,7 @@ export default class coinbaseexchange extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'product_id': market['id'],
         };
         if (limit !== undefined) {
@@ -855,7 +855,7 @@ export default class coinbaseexchange extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'id': market['id'], // fixes issue #2
         };
         if (limit !== undefined) {
@@ -896,7 +896,7 @@ export default class coinbaseexchange extends Exchange {
         //
         const maker = this.safeNumber (response, 'maker_fee_rate');
         const taker = this.safeNumber (response, 'taker_fee_rate');
-        const result = {};
+        const result: Dict = {};
         for (let i = 0; i < this.symbols.length; i++) {
             const symbol = this.symbols[i];
             result[symbol] = {
@@ -955,7 +955,7 @@ export default class coinbaseexchange extends Exchange {
         }
         const market = this.market (symbol);
         const parsedTimeframe = this.safeInteger (this.timeframes, timeframe);
-        const request = {
+        const request: Dict = {
             'id': market['id'],
         };
         if (parsedTimeframe !== undefined) {
@@ -1013,8 +1013,8 @@ export default class coinbaseexchange extends Exchange {
         return this.safeTimestamp (response, 'epoch');
     }
 
-    parseOrderStatus (status) {
-        const statuses = {
+    parseOrderStatus (status: Str) {
+        const statuses: Dict = {
             'pending': 'open',
             'active': 'open',
             'open': 'open',
@@ -1112,7 +1112,7 @@ export default class coinbaseexchange extends Exchange {
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
-        const request = {};
+        const request: Dict = {};
         const clientOrderId = this.safeString2 (params, 'clientOrderId', 'client_oid');
         let method = undefined;
         if (clientOrderId === undefined) {
@@ -1144,7 +1144,7 @@ export default class coinbaseexchange extends Exchange {
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        const request = {
+        const request: Dict = {
             'order_id': id,
         };
         const response = await this.privateGetFills (this.extend (request, params));
@@ -1164,7 +1164,7 @@ export default class coinbaseexchange extends Exchange {
          * @param {int} [params.until] the latest time in ms to fetch open orders for
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
-        const request = {
+        const request: Dict = {
             'status': 'all',
         };
         return await this.fetchOpenOrders (symbol, since, limit, this.extend (request, params));
@@ -1190,7 +1190,7 @@ export default class coinbaseexchange extends Exchange {
         if (paginate) {
             return await this.fetchPaginatedCallDynamic ('fetchOpenOrders', symbol, since, limit, params, 100) as Order[];
         }
-        const request = {};
+        const request: Dict = {};
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
@@ -1224,7 +1224,7 @@ export default class coinbaseexchange extends Exchange {
          * @param {int} [params.until] the latest time in ms to fetch open orders for
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
-        const request = {
+        const request: Dict = {
             'status': 'done',
         };
         return await this.fetchOpenOrders (symbol, since, limit, this.extend (request, params));
@@ -1246,7 +1246,7 @@ export default class coinbaseexchange extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             // common params --------------------------------------------------
             // 'client_oid': clientOrderId,
             'type': type,
@@ -1336,7 +1336,7 @@ export default class coinbaseexchange extends Exchange {
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
-        const request = {
+        const request: Dict = {
             // 'product_id': market['id'], // the request will be more performant if you include it
         };
         const clientOrderId = this.safeString2 (params, 'clientOrderId', 'client_oid');
@@ -1368,7 +1368,7 @@ export default class coinbaseexchange extends Exchange {
          * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
-        const request = {};
+        const request: Dict = {};
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
@@ -1399,7 +1399,7 @@ export default class coinbaseexchange extends Exchange {
         this.checkAddress (address);
         await this.loadMarkets ();
         const currency = this.currency (code);
-        const request = {
+        const request: Dict = {
             'currency': currency['id'],
             'amount': amount,
         };
@@ -1423,7 +1423,7 @@ export default class coinbaseexchange extends Exchange {
     }
 
     parseLedgerEntryType (type) {
-        const types = {
+        const types: Dict = {
             'transfer': 'transfer', // Funds moved between portfolios
             'match': 'trade',       // Funds moved as a result of a trade
             'fee': 'fee',           // Fee as a result of a trade
@@ -1531,7 +1531,7 @@ export default class coinbaseexchange extends Exchange {
         if (account === undefined) {
             throw new ExchangeError (this.id + ' fetchLedger() could not find account id for ' + code);
         }
-        const request = {
+        const request: Dict = {
             'id': account['id'],
             // 'start_date': this.iso8601 (since),
             // 'end_date': this.iso8601 (this.milliseconds ()),
@@ -1587,7 +1587,7 @@ export default class coinbaseexchange extends Exchange {
                 id = account['id'];
             }
         }
-        const request = {};
+        const request: Dict = {};
         if (id !== undefined) {
             request['id'] = id;
         }
@@ -1819,7 +1819,7 @@ export default class coinbaseexchange extends Exchange {
             // eslint-disable-next-line quotes
             throw new InvalidAddress (this.id + " createDepositAddress() could not find currency code " + code + " with id = " + currencyId + " in this.options['coinbaseAccountsByCurrencyId']");
         }
-        const request = {
+        const request: Dict = {
             'id': account['id'],
         };
         const response = await this.privatePostCoinbaseAccountsIdAddresses (this.extend (request, params));

@@ -66,7 +66,7 @@ class probit(ccxt.async_support.probit):
         await self.authenticate(params)
         messageHash = 'balance'
         url = self.urls['api']['ws']
-        subscribe = {
+        subscribe: dict = {
             'type': 'subscribe',
             'channel': 'balance',
         }
@@ -234,7 +234,7 @@ class probit(ccxt.async_support.probit):
             messageHash = messageHash + ':' + symbol
         url = self.urls['api']['ws']
         channel = 'trade_history'
-        message = {
+        message: dict = {
             'type': 'subscribe',
             'channel': channel,
         }
@@ -276,7 +276,7 @@ class probit(ccxt.async_support.probit):
             stored = ArrayCacheBySymbolById(limit)
             self.myTrades = stored
         trades = self.parse_trades(rawTrades)
-        tradeSymbols = {}
+        tradeSymbols: dict = {}
         for j in range(0, len(trades)):
             trade = trades[j]
             tradeSymbols[trade['symbol']] = True
@@ -308,7 +308,7 @@ class probit(ccxt.async_support.probit):
             messageHash = messageHash + ':' + symbol
         channel = None
         channel, params = self.handle_option_and_params(params, 'watchOrders', 'channel', 'open_order')
-        subscribe = {
+        subscribe: dict = {
             'type': 'subscribe',
             'channel': channel,
         }
@@ -354,7 +354,7 @@ class probit(ccxt.async_support.probit):
             limit = self.safe_integer(self.options, 'ordersLimit', 1000)
             stored = ArrayCacheBySymbolById(limit)
             self.orders = stored
-        orderSymbols = {}
+        orderSymbols: dict = {}
         for i in range(0, len(rawOrders)):
             rawOrder = rawOrders[i]
             order = self.parse_order(rawOrder)
@@ -400,7 +400,7 @@ class probit(ccxt.async_support.probit):
                 del client.subscriptions[subscriptionHash]
         filters[filter] = True
         keys = list(filters.keys())
-        message = {
+        message: dict = {
             'channel': 'marketdata',
             'interval': interval,
             'market_id': market['id'],
@@ -511,7 +511,7 @@ class probit(ccxt.async_support.probit):
         if type == 'authorization':
             self.handle_authenticate(client, message)
             return
-        handlers = {
+        handlers: dict = {
             'marketdata': self.handle_market_data,
             'balance': self.handle_balance,
             'trade_history': self.handle_my_trades,
@@ -542,7 +542,7 @@ class probit(ccxt.async_support.probit):
             #     }
             #
             accessToken = self.safe_string(response, 'access_token')
-            request = {
+            request: dict = {
                 'type': 'authorization',
                 'token': accessToken,
             }

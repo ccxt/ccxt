@@ -201,7 +201,7 @@ public partial class bingx : ccxt.bingx
         //         "b": "2.5747"
         //     }
         //
-        object timestamp = this.safeInteger(message, "ts");
+        object timestamp = this.safeInteger(message, "C");
         object marketId = this.safeString(message, "s");
         market = this.safeMarket(marketId, market);
         object close = this.safeString(message, "c");

@@ -464,7 +464,7 @@ export default class kuna extends Exchange {
 
     parseCurrencies (currencies, params = {}) {
         currencies = this.toArray (currencies);
-        const result = {};
+        const result: Dict = {};
         for (let i = 0; i < currencies.length; i++) {
             const currency = this.parseCurrency (currencies[i]);
             result[currency['code']] = currency;
@@ -629,7 +629,7 @@ export default class kuna extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'pairs': market['id'],
         };
         if (limit !== undefined) {
@@ -721,7 +721,7 @@ export default class kuna extends Exchange {
         }
         symbols = this.marketSymbols (symbols);
         const marketIds = this.marketIds (symbols);
-        const request = {
+        const request: Dict = {
             'pairs': marketIds.join (','),
         };
         const response = await this.v4PublicGetMarketsPublicTickersPairsPairs (this.extend (request, params));
@@ -761,7 +761,7 @@ export default class kuna extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'pairs': market['id'],
         };
         const response = await this.v4PublicGetMarketsPublicTickersPairsPairs (this.extend (request, params));
@@ -818,7 +818,7 @@ export default class kuna extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'pairs': market['id'],
         };
         if (limit !== undefined) {
@@ -914,7 +914,7 @@ export default class kuna extends Exchange {
         //        ...
         //    ]
         //
-        const result = { 'info': response };
+        const result: Dict = { 'info': response };
         for (let i = 0; i < response.length; i++) {
             const balance = response[i];
             const currencyId = this.safeString (balance, 'currency');
@@ -974,7 +974,7 @@ export default class kuna extends Exchange {
         const triggerPrice = this.safeString2 (params, 'triggerPrice', 'stopPrice');
         params = this.omit (params, [ 'triggerPrice', 'stopPrice' ]);
         const capitalizedType = this.capitalize (type);
-        const request = {
+        const request: Dict = {
             'pair': market['id'],
             'orderSide': (side === 'buy') ? 'Bid' : 'Ask',
             'quantity': this.numberToString (amount),
@@ -1023,7 +1023,7 @@ export default class kuna extends Exchange {
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
-        const request = {
+        const request: Dict = {
             'orderId': id,
         };
         const response = await this.v4PrivatePostOrderPrivateCancel (this.extend (request, params));
@@ -1055,7 +1055,7 @@ export default class kuna extends Exchange {
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
-        const request = {
+        const request: Dict = {
             'orderIds': ids,
         };
         const response = await this.v4PrivatePostOrderPrivateCancelMulti (this.extend (request, params));
@@ -1074,8 +1074,8 @@ export default class kuna extends Exchange {
         return this.parseOrders (data);
     }
 
-    parseOrderStatus (status) {
-        const statuses = {
+    parseOrderStatus (status: Str) {
+        const statuses: Dict = {
             'Canceled': 'canceled',
             'Closed': 'filled',
             'Pending': 'open',
@@ -1179,7 +1179,7 @@ export default class kuna extends Exchange {
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
-        const request = {
+        const request: Dict = {
             'id': id,
             'withTrades': true,
         };
@@ -1242,7 +1242,7 @@ export default class kuna extends Exchange {
         const until = this.safeInteger (params, 'until');
         params = this.omit (params, [ 'until' ]);
         let market = undefined;
-        const request = {
+        const request: Dict = {
         };
         if (symbol !== undefined) {
             market = this.market (symbol);
@@ -1326,7 +1326,7 @@ export default class kuna extends Exchange {
         const until = this.safeInteger (params, 'until');
         params = this.omit (params, [ 'until' ]);
         let market = undefined;
-        const request = {
+        const request: Dict = {
             'status': this.capitalize (status),
         };
         if (symbol !== undefined) {
@@ -1387,7 +1387,7 @@ export default class kuna extends Exchange {
          */
         await this.loadMarkets ();
         let market = undefined;
-        const request = {};
+        const request: Dict = {};
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['pair'] = market['id'];
@@ -1447,7 +1447,7 @@ export default class kuna extends Exchange {
             }
         }
         const networkId = this.networkCodeToId (chain);
-        const request = {
+        const request: Dict = {
             'currency': networkId,
             'amount': amount,
             'address': address,
@@ -1496,7 +1496,7 @@ export default class kuna extends Exchange {
         if (code !== undefined) {
             currency = this.currency (code);
         }
-        const request = {};
+        const request: Dict = {};
         if (code !== undefined) {
             request['currency'] = code;
         }
@@ -1550,7 +1550,7 @@ export default class kuna extends Exchange {
          * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         await this.loadMarkets ();
-        const request = {
+        const request: Dict = {
             'withdrawId': id,
         };
         const response = await this.v4PrivateGetWithdrawPrivateDetailsWithdrawId (this.extend (request, params));
@@ -1591,7 +1591,7 @@ export default class kuna extends Exchange {
          */
         await this.loadMarkets ();
         const currency = this.currency (code);
-        const request = {
+        const request: Dict = {
             'source': currency['id'],
         };
         const response = await this.v4PrivatePostDepositPrivateCryptoGenerateAddress (this.extend (request, params));
@@ -1620,7 +1620,7 @@ export default class kuna extends Exchange {
          */
         await this.loadMarkets ();
         const currency = this.currency (code);
-        const request = {
+        const request: Dict = {
             'source': currency['id'].toUpperCase (),
         };
         const response = await this.v4PrivateGetDepositPrivateCryptoAddress (this.extend (request, params));
@@ -1656,7 +1656,7 @@ export default class kuna extends Exchange {
     }
 
     parseTransactionStatus (status) {
-        const statuses = {
+        const statuses: Dict = {
             'Created': 'pending',
             'Canceled': 'canceled',
             'PartiallyProcessed': 'pending',
@@ -1696,7 +1696,7 @@ export default class kuna extends Exchange {
         if (code !== undefined) {
             currency = this.currency (code);
         }
-        const request = {};
+        const request: Dict = {};
         if (code !== undefined) {
             request['currency'] = code;
         }
@@ -1754,7 +1754,7 @@ export default class kuna extends Exchange {
         if (code !== undefined) {
             currency = this.currency (code);
         }
-        const request = {
+        const request: Dict = {
             'depositId': id,
         };
         const response = await this.v4PrivateGetDepositPrivateDetailsDepositId (this.extend (request, params));

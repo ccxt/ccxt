@@ -20,7 +20,7 @@ export default class bitmart extends Exchange {
     fetchCurrencies(params?: {}): Promise<Currencies>;
     fetchTransactionFee(code: string, params?: {}): Promise<{
         info: any;
-        withdraw: {};
+        withdraw: Dict;
         deposit: {};
     }>;
     parseDepositWithdrawFee(fee: any, currency?: Currency): {
