@@ -1545,7 +1545,7 @@ export default class coinmetro extends Exchange {
         return this.parseOrder (response);
     }
 
-    parseOrder (order, market: Market = undefined): Order {
+    parseOrder (order: Dict, market: Market = undefined): Order {
         //
         // createOrder market
         //     {

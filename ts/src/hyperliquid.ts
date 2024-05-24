@@ -1775,7 +1775,7 @@ export default class hyperliquid extends Exchange {
         return this.parseOrder (data, market);
     }
 
-    parseOrder (order, market: Market = undefined): Order {
+    parseOrder (order: Dict, market: Market = undefined): Order {
         //
         //  fetchOpenOrders
         //

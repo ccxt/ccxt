@@ -2414,7 +2414,7 @@ export default class mexc extends Exchange {
         //     {"success":true,"code":0,"data":259208506303929856}
         //
         const data = this.safeString (response, 'data');
-        return this.parseOrder (data, market);
+        return this.safeOrder ({ 'id': data }, market);
     }
 
     async createOrders (orders: OrderRequest[], params = {}) {
@@ -3205,7 +3205,7 @@ export default class mexc extends Exchange {
         }
     }
 
-    parseOrder (order, market: Market = undefined): Order {
+    parseOrder (order: Dict, market: Market = undefined): Order {
         //
         // spot: createOrder
         //
