@@ -7427,12 +7427,15 @@ export default class htx extends Exchange {
          * @description fetch all open positions
          * @param {string[]|undefined} symbols list of unified market symbols
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.subType] 'linear' or 'inverse'
+         * @param {string} [params.type] *inverse only* 'future', or 'swap'
+         * @param {string} [params.marginMode] *linear only* 'cross' or 'isolated'
          * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
          */
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
         let market = undefined;
-        if (symbols !== undefined) {
+        if ((symbols !== undefined) && (symbols.length > 0)) {
             const first = this.safeString (symbols, 0);
             market = this.market (first);
         }
@@ -8977,7 +8980,7 @@ export default class htx extends Exchange {
         /**
          * @method
          * @name htx#closePositions
-         * @description closes open positions for a market, requires "amount" in params, unlike other exchanges
+         * @description closes open positions for a contract market, requires "amount" in params, unlike other exchanges
          * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-place-lightning-close-order  // USDT-M (isolated)
          * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-place-lightning-close-position  // USDT-M (cross)
          * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#place-lightning-close-order  // Coin-M swap
@@ -8986,24 +8989,35 @@ export default class htx extends Exchange {
          * @param {string} side 'buy' or 'sell', the side of the closing order, opposite side as position side
          * @param {object} [params] extra parameters specific to the okx api endpoint
          * @param {string} [params.clientOrderId] client needs to provide unique API and have to maintain the API themselves afterwards. [1, 9223372036854775807]
+         * @param {object} [params.marginMode] "cross" or "isolated", required for linear markets
          *
          * EXCHANGE SPECIFIC PARAMETERS
          * @param {number} [params.amount] order quantity
          * @param {string} [params.order_price_type] "lightning" by default, "lightning_fok": lightning fok type,"lightning_ioc": lightning ioc type "market" by default, "market": market order type," "lightning_fok": lightning
-         * @param {object} [params.marginMode] "cross" or "isolated", required for linear markets
          * @returns {[object]} [a list of position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const clientOrderId = this.safeString (params, 'clientOrderId');
+        if (!market['contract']) {
+            throw new BadRequest (this.id + ' fetchMarketLeverageTiers() symbol supports contract markets only');
+        }
+        this.checkRequiredArgument ('closePosition', side, 'side');
         const request = {
             'contract_code': market['id'],
             'direction': side,
-            // 'volume': amount,
         };
         if (clientOrderId !== undefined) {
             request['client_order_id'] = clientOrderId;
         }
+        if (market['inverse']) {
+            const amount = this.safeString2 (params, 'volume', 'amount');
+            if (amount === undefined) {
+                throw new ArgumentsRequired (this.id + ' closePosition () requires an extra argument params["amount"] for inverse markets');
+            }
+            request['volume'] = this.amountToPrecision (symbol, amount);
+        }
+        params = this.omit (params, [ 'clientOrderId', 'volume', 'amount' ]);
         let response = undefined;
         if (market['inverse']) {  // Coin-M
             if (market['swap']) {
