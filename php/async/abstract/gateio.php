@@ -274,6 +274,9 @@ abstract class gateio extends \ccxt\async\gate {
     public function private_unified_get_estimate_rate($params = array()) {
         return $this->request('estimate_rate', array('private', 'unified'), 'GET', $params, null, null, array("cost" => 1.3333333333333333));
     }
+    public function private_unified_get_currency_discount_tiers($params = array()) {
+        return $this->request('currency_discount_tiers', array('private', 'unified'), 'GET', $params, null, null, array("cost" => 1.3333333333333333));
+    }
     public function private_unified_post_account_mode($params = array()) {
         return $this->request('account_mode', array('private', 'unified'), 'POST', $params, null, null, array("cost" => 1.3333333333333333));
     }
@@ -1053,6 +1056,9 @@ abstract class gateio extends \ccxt\async\gate {
     }
     public function privateUnifiedGetEstimateRate($params = array()) {
         return $this->request('estimate_rate', array('private', 'unified'), 'GET', $params, null, null, array("cost" => 1.3333333333333333));
+    }
+    public function privateUnifiedGetCurrencyDiscountTiers($params = array()) {
+        return $this->request('currency_discount_tiers', array('private', 'unified'), 'GET', $params, null, null, array("cost" => 1.3333333333333333));
     }
     public function privateUnifiedPostAccountMode($params = array()) {
         return $this->request('account_mode', array('private', 'unified'), 'POST', $params, null, null, array("cost" => 1.3333333333333333));

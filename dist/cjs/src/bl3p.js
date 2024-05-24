@@ -59,8 +59,11 @@ class bl3p extends bl3p$1 {
                 'fetchOpenInterestHistory': false,
                 'fetchOrderBook': true,
                 'fetchPosition': false,
+                'fetchPositionHistory': false,
                 'fetchPositionMode': false,
                 'fetchPositions': false,
+                'fetchPositionsForSymbol': false,
+                'fetchPositionsHistory': false,
                 'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchTicker': true,
@@ -175,7 +178,7 @@ class bl3p extends bl3p$1 {
             'market': market['id'],
         };
         const response = await this.publicGetMarketOrderbook(this.extend(request, params));
-        const orderbook = this.safeValue(response, 'data');
+        const orderbook = this.safeDict(response, 'data');
         return this.parseOrderBook(orderbook, market['symbol'], undefined, 'bids', 'asks', 'price_int', 'amount_int');
     }
     parseTicker(ticker, market = undefined) {

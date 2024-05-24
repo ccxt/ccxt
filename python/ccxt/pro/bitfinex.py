@@ -51,7 +51,7 @@ class bitfinex(ccxt.async_support.bitfinex):
         url = self.urls['api']['ws']['public']
         messageHash = channel + ':' + marketId
         # channel = 'trades'
-        request = {
+        request: dict = {
             'event': 'subscribe',
             'channel': channel,
             'symbol': marketId,
@@ -249,7 +249,7 @@ class bitfinex(ccxt.async_support.bitfinex):
         options = self.safe_value(self.options, 'watchOrderBook', {})
         prec = self.safe_string(options, 'prec', 'P0')
         freq = self.safe_string(options, 'freq', 'F0')
-        request = {
+        request: dict = {
             # "event": "subscribe",  # added in subscribe()
             # "channel": channel,  # added in subscribe()
             # "symbol": marketId,  # added in subscribe()
@@ -311,7 +311,7 @@ class bitfinex(ccxt.async_support.bitfinex):
                     size = -delta2Value if (delta2Value < 0) else delta2Value
                     side = 'asks' if (delta2Value < 0) else 'bids'
                     bookside = orderbook[side]
-                    bookside.store(price, size, id)
+                    bookside.storeArray([price, size, id])
             else:
                 deltas = message[1]
                 for i in range(0, len(deltas)):
@@ -320,7 +320,7 @@ class bitfinex(ccxt.async_support.bitfinex):
                     size = -delta2 if (delta2 < 0) else delta2
                     side = 'asks' if (delta2 < 0) else 'bids'
                     countedBookSide = orderbook[side]
-                    countedBookSide.store(delta[0], size, delta[1])
+                    countedBookSide.storeArray([delta[0], size, delta[1]])
             client.resolve(orderbook, messageHash)
         else:
             orderbook = self.orderbooks[symbol]
@@ -333,13 +333,13 @@ class bitfinex(ccxt.async_support.bitfinex):
                 bookside = orderbook[side]
                 # price = 0 means that you have to remove the order from your book
                 amount = size if Precise.string_gt(price, '0') else '0'
-                bookside.store(self.parse_number(price), self.parse_number(amount), id)
+                bookside.storeArray([self.parse_number(price), self.parse_number(amount), id])
             else:
                 message3Value = message[3]
                 size = -message3Value if (message3Value < 0) else message3Value
                 side = 'asks' if (message3Value < 0) else 'bids'
                 countedBookSide = orderbook[side]
-                countedBookSide.store(message[1], size, message[2])
+                countedBookSide.storeArray([message[1], size, message[2]])
             client.resolve(orderbook, messageHash)
 
     def handle_heartbeat(self, client: Client, message):
@@ -393,7 +393,7 @@ class bitfinex(ccxt.async_support.bitfinex):
             nonce = self.milliseconds()
             payload = 'AUTH' + str(nonce)
             signature = self.hmac(self.encode(payload), self.encode(self.secret), hashlib.sha384, 'hex')
-            request = {
+            request: dict = {
                 'apiKey': self.apiKey,
                 'authSig': signature,
                 'authNonce': nonce,
@@ -504,7 +504,7 @@ class bitfinex(ccxt.async_support.bitfinex):
             client.resolve(self.orders, 'os')
 
     def parse_ws_order_status(self, status):
-        statuses = {
+        statuses: dict = {
             'ACTIVE': 'open',
             'CANCELED': 'canceled',
         }
@@ -586,7 +586,7 @@ class bitfinex(ccxt.async_support.bitfinex):
             subscription = self.safe_value(client.subscriptions, channelId, {})
             channel = self.safe_string(subscription, 'channel')
             name = self.safe_string(message, 1)
-            methods = {
+            methods: dict = {
                 'book': self.handle_order_book,
                 # 'ohlc': self.handleOHLCV,
                 'ticker': self.handle_ticker,
@@ -610,7 +610,7 @@ class bitfinex(ccxt.async_support.bitfinex):
             #
             event = self.safe_string(message, 'event')
             if event is not None:
-                methods = {
+                methods: dict = {
                     'info': self.handle_system_status,
                     # 'book': 'handleOrderBook',
                     'subscribed': self.handle_subscription_status,

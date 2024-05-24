@@ -6,11 +6,11 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.coincheck import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Currency, Int, Market, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade, Transaction
+from ccxt.base.types import Balances, Currency, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade, TradingFees, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
-from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import AuthenticationError
+from ccxt.base.errors import BadSymbol
 from ccxt.base.decimal_to_precision import TICK_SIZE
 
 
@@ -56,8 +56,11 @@ class coincheck(Exchange, ImplicitAPI):
                 'fetchOpenOrders': True,
                 'fetchOrderBook': True,
                 'fetchPosition': False,
+                'fetchPositionHistory': False,
                 'fetchPositionMode': False,
                 'fetchPositions': False,
+                'fetchPositionsForSymbol': False,
+                'fetchPositionsHistory': False,
                 'fetchPositionsRisk': False,
                 'fetchPremiumIndexOHLCV': False,
                 'fetchTicker': True,
@@ -172,7 +175,7 @@ class coincheck(Exchange, ImplicitAPI):
         })
 
     def parse_balance(self, response) -> Balances:
-        result = {'info': response}
+        result: dict = {'info': response}
         codes = list(self.currencies.keys())
         for i in range(0, len(codes)):
             code = codes[i]
@@ -220,7 +223,7 @@ class coincheck(Exchange, ImplicitAPI):
             result.append(self.extend(parsedOrders[i], {'status': 'open'}))
         return result
 
-    def parse_order(self, order, market: Market = None) -> Order:
+    def parse_order(self, order: dict, market: Market = None) -> Order:
         #
         # fetchOpenOrders
         #
@@ -280,13 +283,13 @@ class coincheck(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'pair': market['id'],
         }
         response = await self.publicGetOrderBooks(self.extend(request, params))
         return self.parse_order_book(response, market['symbol'])
 
-    def parse_ticker(self, ticker, market: Market = None) -> Ticker:
+    def parse_ticker(self, ticker: dict, market: Market = None) -> Ticker:
         #
         # {
         #     "last":4192632.0,
@@ -336,7 +339,7 @@ class coincheck(Exchange, ImplicitAPI):
             raise BadSymbol(self.id + ' fetchTicker() supports BTC/JPY only')
         await self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'pair': market['id'],
         }
         ticker = await self.publicGetTicker(self.extend(request, params))
@@ -353,7 +356,7 @@ class coincheck(Exchange, ImplicitAPI):
         #
         return self.parse_ticker(ticker, market)
 
-    def parse_trade(self, trade, market: Market = None) -> Trade:
+    def parse_trade(self, trade: dict, market: Market = None) -> Trade:
         #
         # fetchTrades(public)
         #
@@ -443,7 +446,7 @@ class coincheck(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         market = self.market(symbol)
-        request = {}
+        request: dict = {}
         if limit is not None:
             request['limit'] = limit
         response = await self.privateGetExchangeOrdersTransactionsPagination(self.extend(request, params))
@@ -469,7 +472,7 @@ class coincheck(Exchange, ImplicitAPI):
         #                  ]
         #      }
         #
-        transactions = self.safe_value(response, 'data', [])
+        transactions = self.safe_list(response, 'data', [])
         return self.parse_trades(transactions, market, since, limit)
 
     async def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
@@ -484,7 +487,7 @@ class coincheck(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'pair': market['id'],
         }
         if limit is not None:
@@ -500,10 +503,10 @@ class coincheck(Exchange, ImplicitAPI):
         #          "created_at": "2021-12-08T14:10:33.000Z"
         #      }
         #
-        data = self.safe_value(response, 'data', [])
+        data = self.safe_list(response, 'data', [])
         return self.parse_trades(data, market, since, limit)
 
-    async def fetch_trading_fees(self, params={}):
+    async def fetch_trading_fees(self, params={}) -> TradingFees:
         """
         fetch the trading fees for multiple markets
         :see: https://coincheck.com/documents/exchange/api#account-info
@@ -532,7 +535,7 @@ class coincheck(Exchange, ImplicitAPI):
         #     }
         #
         fees = self.safe_value(response, 'exchange_fees', {})
-        result = {}
+        result: dict = {}
         for i in range(0, len(self.symbols)):
             symbol = self.symbols[i]
             market = self.market(symbol)
@@ -547,7 +550,7 @@ class coincheck(Exchange, ImplicitAPI):
             }
         return result
 
-    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: float = None, params={}):
+    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         """
         create a trade order
         :see: https://coincheck.com/documents/exchange/api#order-new
@@ -561,7 +564,7 @@ class coincheck(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'pair': market['id'],
         }
         if type == 'market':
@@ -589,7 +592,7 @@ class coincheck(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
-        request = {
+        request: dict = {
             'id': id,
         }
         return await self.privateDeleteExchangeOrdersId(self.extend(request, params))
@@ -606,7 +609,7 @@ class coincheck(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         currency = None
-        request = {}
+        request: dict = {}
         if code is not None:
             currency = self.currency(code)
             request['currency'] = currency['id']
@@ -636,7 +639,7 @@ class coincheck(Exchange, ImplicitAPI):
         #     }
         #   ]
         # }
-        data = self.safe_value(response, 'deposits', [])
+        data = self.safe_list(response, 'deposits', [])
         return self.parse_transactions(data, currency, since, limit, {'type': 'deposit'})
 
     async def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
@@ -653,7 +656,7 @@ class coincheck(Exchange, ImplicitAPI):
         currency = None
         if code is not None:
             currency = self.currency(code)
-        request = {}
+        request: dict = {}
         if limit is not None:
             request['limit'] = limit
         response = await self.privateGetWithdraws(self.extend(request, params))
@@ -678,11 +681,11 @@ class coincheck(Exchange, ImplicitAPI):
         #     }
         #   ]
         # }
-        data = self.safe_value(response, 'data', [])
+        data = self.safe_list(response, 'data', [])
         return self.parse_transactions(data, currency, since, limit, {'type': 'withdrawal'})
 
     def parse_transaction_status(self, status):
-        statuses = {
+        statuses: dict = {
             # withdrawals
             'pending': 'pending',
             'processing': 'pending',
@@ -694,7 +697,7 @@ class coincheck(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_transaction(self, transaction, currency: Currency = None) -> Transaction:
+    def parse_transaction(self, transaction: dict, currency: Currency = None) -> Transaction:
         #
         # fetchDeposits
         #

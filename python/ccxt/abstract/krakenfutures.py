@@ -33,5 +33,6 @@ class ImplicitAPI:
     history_get_executions = historyGetExecutions = Entry('executions', 'history', 'GET', {})
     history_get_triggers = historyGetTriggers = Entry('triggers', 'history', 'GET', {})
     history_get_accountlogcsv = historyGetAccountlogcsv = Entry('accountlogcsv', 'history', 'GET', {})
+    history_get_account_log = historyGetAccountLog = Entry('account-log', 'history', 'GET', {})
     history_get_market_symbol_orders = historyGetMarketSymbolOrders = Entry('market/{symbol}/orders', 'history', 'GET', {})
     history_get_market_symbol_executions = historyGetMarketSymbolExecutions = Entry('market/{symbol}/executions', 'history', 'GET', {})

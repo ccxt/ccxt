@@ -1,5 +1,5 @@
 import hitbtcRest from '../hitbtc.js';
-import type { Tickers, Int, OHLCV, OrderSide, OrderType, Strings } from '../base/types.js';
+import type { Tickers, Int, OHLCV, OrderSide, OrderType, Strings, Num } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 import { Str, OrderBook, Order, Trade, Ticker, Balances } from '../base/types';
 export default class hitbtc extends hitbtcRest {
@@ -29,7 +29,7 @@ export default class hitbtc extends hitbtcRest {
     parseWsOrderTrade(trade: any, market?: any): Trade;
     parseWsOrder(order: any, market?: any): Order;
     watchBalance(params?: {}): Promise<Balances>;
-    createOrderWs(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: number, params?: {}): Promise<Order>;
+    createOrderWs(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): Promise<Order>;
     cancelOrderWs(id: string, symbol?: Str, params?: {}): Promise<Order>;
     cancelAllOrdersWs(symbol?: Str, params?: {}): Promise<any>;
     fetchOpenOrdersWs(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;

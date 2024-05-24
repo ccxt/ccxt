@@ -70,7 +70,11 @@ class ndax extends ndax$1 {
                 'fetchOrders': true,
                 'fetchOrderTrades': true,
                 'fetchPosition': false,
+                'fetchPositionHistory': false,
+                'fetchPositionMode': false,
                 'fetchPositions': false,
+                'fetchPositionsForSymbol': false,
+                'fetchPositionsHistory': false,
                 'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchTicker': true,
@@ -81,6 +85,7 @@ class ndax extends ndax$1 {
                 'fetchTradingFees': false,
                 'fetchWithdrawals': true,
                 'reduceMargin': false,
+                'sandbox': true,
                 'setLeverage': false,
                 'setMarginMode': false,
                 'setPositionMode': false,
@@ -1939,7 +1944,7 @@ class ndax extends ndax$1 {
         //     ]
         //
         const grouped = this.groupBy(response, 'ChangeReason');
-        const trades = this.safeValue(grouped, 'Trade', []);
+        const trades = this.safeList(grouped, 'Trade', []);
         return this.parseTrades(trades, market, since, limit);
     }
     async fetchDepositAddress(code, params = {}) {

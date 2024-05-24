@@ -54,8 +54,11 @@ public partial class luno : Exchange
                 { "fetchOrderBook", true },
                 { "fetchOrders", true },
                 { "fetchPosition", false },
+                { "fetchPositionHistory", false },
                 { "fetchPositionMode", false },
                 { "fetchPositions", false },
+                { "fetchPositionsForSymbol", false },
+                { "fetchPositionsHistory", false },
                 { "fetchPositionsRisk", false },
                 { "fetchPremiumIndexOHLCV", false },
                 { "fetchTicker", true },
@@ -126,12 +129,14 @@ public partial class luno : Exchange
                         { "withdrawals", 1 },
                         { "send", 1 },
                         { "oauth2/grant", 1 },
+                        { "beneficiaries", 1 },
                     } },
                     { "put", new Dictionary<string, object>() {
                         { "accounts/{id}/name", 1 },
                     } },
                     { "delete", new Dictionary<string, object>() {
                         { "withdrawals/{id}", 1 },
+                        { "beneficiaries/{id}", 1 },
                     } },
                 } },
             } },
@@ -498,7 +503,7 @@ public partial class luno : Exchange
             ((IDictionary<string,object>)request)["pair"] = getValue(market, "id");
         }
         object response = await this.privateGetListorders(this.extend(request, parameters));
-        object orders = this.safeValue(response, "orders", new List<object>() {});
+        object orders = this.safeList(response, "orders", new List<object>() {});
         return this.parseOrders(orders, market, since, limit);
     }
 
@@ -790,7 +795,7 @@ public partial class luno : Exchange
         //          ]
         //      }
         //
-        object trades = this.safeValue(response, "trades", new List<object>() {});
+        object trades = this.safeList(response, "trades", new List<object>() {});
         return this.parseTrades(trades, market, since, limit);
     }
 
@@ -841,7 +846,7 @@ public partial class luno : Exchange
         //          "pair": "XBTEUR"
         //     }
         //
-        object ohlcvs = this.safeValue(response, "candles", new List<object>() {});
+        object ohlcvs = this.safeList(response, "candles", new List<object>() {});
         return this.parseOHLCVs(ohlcvs, market, timeframe, since, limit);
     }
 
@@ -911,7 +916,7 @@ public partial class luno : Exchange
         //          ]
         //      }
         //
-        object trades = this.safeValue(response, "trades", new List<object>() {});
+        object trades = this.safeList(response, "trades", new List<object>() {});
         return this.parseTrades(trades, market, since, limit);
     }
 
@@ -945,6 +950,8 @@ public partial class luno : Exchange
             { "symbol", symbol },
             { "maker", this.safeNumber(response, "maker_fee") },
             { "taker", this.safeNumber(response, "taker_fee") },
+            { "percentage", null },
+            { "tierBased", null },
         };
     }
 

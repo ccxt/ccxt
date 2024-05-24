@@ -6,7 +6,7 @@ import { ExchangeError, InsufficientFunds, InvalidOrder, AuthenticationError, Pe
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { Balances, Int, Market, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade } from './base/types.js';
+import type { Balances, Dict, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -57,8 +57,11 @@ export default class btcbox extends Exchange {
                 'fetchOrderBook': true,
                 'fetchOrders': true,
                 'fetchPosition': false,
+                'fetchPositionHistory': false,
                 'fetchPositionMode': false,
                 'fetchPositions': false,
+                'fetchPositionsForSymbol': false,
+                'fetchPositionsHistory': false,
                 'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchTicker': true,
@@ -127,7 +130,7 @@ export default class btcbox extends Exchange {
     }
 
     parseBalance (response): Balances {
-        const result = { 'info': response };
+        const result: Dict = { 'info': response };
         const codes = Object.keys (this.currencies);
         for (let i = 0; i < codes.length; i++) {
             const code = codes[i];
@@ -172,7 +175,7 @@ export default class btcbox extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {};
+        const request: Dict = {};
         const numSymbols = this.symbols.length;
         if (numSymbols > 1) {
             request['coin'] = market['baseId'];
@@ -181,7 +184,7 @@ export default class btcbox extends Exchange {
         return this.parseOrderBook (response, market['symbol']);
     }
 
-    parseTicker (ticker, market: Market = undefined): Ticker {
+    parseTicker (ticker: Dict, market: Market = undefined): Ticker {
         const symbol = this.safeSymbol (undefined, market);
         const last = this.safeString (ticker, 'last');
         return this.safeTicker ({
@@ -220,7 +223,7 @@ export default class btcbox extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {};
+        const request: Dict = {};
         const numSymbols = this.symbols.length;
         if (numSymbols > 1) {
             request['coin'] = market['baseId'];
@@ -229,7 +232,7 @@ export default class btcbox extends Exchange {
         return this.parseTicker (response, market);
     }
 
-    parseTrade (trade, market: Market = undefined): Trade {
+    parseTrade (trade: Dict, market: Market = undefined): Trade {
         //
         // fetchTrades (public)
         //
@@ -279,7 +282,7 @@ export default class btcbox extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {};
+        const request: Dict = {};
         const numSymbols = this.symbols.length;
         if (numSymbols > 1) {
             request['coin'] = market['baseId'];
@@ -299,7 +302,7 @@ export default class btcbox extends Exchange {
         return this.parseTrades (response, market, since, limit);
     }
 
-    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: number = undefined, params = {}) {
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
         /**
          * @method
          * @name btcbox#createOrder
@@ -315,7 +318,7 @@ export default class btcbox extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'amount': amount,
             'price': price,
             'type': side,
@@ -348,7 +351,7 @@ export default class btcbox extends Exchange {
             symbol = 'BTC/JPY';
         }
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'id': id,
             'coin': market['baseId'],
         };
@@ -359,8 +362,8 @@ export default class btcbox extends Exchange {
         return this.parseOrder (response, market);
     }
 
-    parseOrderStatus (status) {
-        const statuses = {
+    parseOrderStatus (status: Str) {
+        const statuses: Dict = {
             // TODO: complete list
             'part': 'open', // partially or not at all executed
             'all': 'closed', // fully executed
@@ -371,7 +374,7 @@ export default class btcbox extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseOrder (order, market: Market = undefined): Order {
+    parseOrder (order: Dict, market: Market = undefined): Order {
         //
         //     {
         //         "id":11,
@@ -473,7 +476,7 @@ export default class btcbox extends Exchange {
             symbol = 'BTC/JPY';
         }
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'type': type, // 'open' or 'all'
             'coin': market['baseId'],
         };

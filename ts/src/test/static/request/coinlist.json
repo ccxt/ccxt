@@ -95,6 +95,67 @@
                     }
                 ]
             }
+        ],
+        "fetchTime": [
+            {
+                "description": "fetchTime",
+                "method": "fetchTime",
+                "url": "https://trade-api.coinlist.co/v1/time",
+                "input": []
+            }
+        ],
+        "fetchTrades": [
+            {
+                "description": "spot fetchTrades",
+                "method": "fetchTrades",
+                "url": "https://trade-api.coinlist.co/v1/symbols/BTC-USDT/auctions",
+                "input": [
+                    "BTC/USDT"
+                ]
+            }
+        ],
+        "fetchOrderBook": [
+            {
+                "description": "spot orderbook",
+                "method": "fetchOrderBook",
+                "url": "https://trade-api.coinlist.co/v1/symbols/BTC-USDT/book",
+                "input": [
+                    "BTC/USDT"
+                ]
+            }
+        ],
+        "fetchTicker": [
+            {
+                "description": "spot ticker",
+                "method": "fetchTicker",
+                "url": "https://trade-api.coinlist.co/v1/symbols/BTC-USDT/summary",
+                "input": [
+                    "BTC/USDT"
+                ]
+            }
+        ],
+        "fetchTickers": [
+            {
+                "description": "spot tickers",
+                "method": "fetchTickers",
+                "url": "https://trade-api.coinlist.co/v1/symbols/summary",
+                "input": [
+                    [
+                        "BTC/USDT",
+                        "ETH/USDT"
+                    ]
+                ]
+            }
+        ],
+        "fetchOHLCV": [
+            {
+                "description": "spot ohlcv",
+                "method": "fetchOHLCV",
+                "url": "https://trade-api.coinlist.co/v1/symbols/BTC-USDT/candles?granularity=1m",
+                "input": [
+                    "BTC/USDT"
+                ]
+            }
         ]
     }
 }

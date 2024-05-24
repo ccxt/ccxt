@@ -11,9 +11,7 @@ public partial class testMainClass : BaseTest
     {
         object method = "fetchMarketLeverageTiers";
         object tiers = await exchange.fetchMarketLeverageTiers(symbol);
-        assert(((tiers is IList<object>) || (tiers.GetType().IsGenericType && tiers.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))), add(add(add(add(add(add(exchange.id, " "), method), " "), symbol), " must return an array. "), exchange.json(tiers)));
-        object arrayLength = getArrayLength(tiers);
-        assert(isGreaterThanOrEqual(arrayLength, 1), add(add(add(add(add(add(exchange.id, " "), method), " "), symbol), " must return an array with at least one entry. "), exchange.json(tiers)));
+        testSharedMethods.assertNonEmtpyArray(exchange, skippedProperties, method, tiers, symbol);
         for (object j = 0; isLessThan(j, getArrayLength(tiers)); postFixIncrement(ref j))
         {
             testLeverageTier(exchange, skippedProperties, method, getValue(tiers, j));

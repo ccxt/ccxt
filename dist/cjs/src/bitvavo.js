@@ -70,8 +70,11 @@ class bitvavo extends bitvavo$1 {
                 'fetchOrderBook': true,
                 'fetchOrders': true,
                 'fetchPosition': false,
+                'fetchPositionHistory': false,
                 'fetchPositionMode': false,
                 'fetchPositions': false,
+                'fetchPositionsForSymbol': false,
+                'fetchPositionsHistory': false,
                 'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchTicker': true,
@@ -931,6 +934,9 @@ class bitvavo extends bitvavo$1 {
             request['start'] = since;
             if (limit === undefined) {
                 limit = 1440;
+            }
+            else {
+                limit = Math.min(limit, 1440);
             }
             request['end'] = this.sum(since, limit * duration * 1000);
         }

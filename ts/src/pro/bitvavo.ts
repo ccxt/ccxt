@@ -5,7 +5,7 @@ import bitvavoRest from '../bitvavo.js';
 import { AuthenticationError, ArgumentsRequired, ExchangeError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
-import { Int, Str, OrderSide, OrderType, OrderBook, Ticker, Trade, Order, OHLCV, Balances } from '../base/types.js';
+import { Int, Str, OrderSide, OrderType, OrderBook, Ticker, Trade, Order, OHLCV, Balances, Num, TradingFees, Dict } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -67,7 +67,7 @@ export default class bitvavo extends bitvavoRest {
         const market = this.market (symbol);
         const messageHash = name + '@' + market['id'];
         const url = this.urls['api']['ws'];
-        const request = {
+        const request: Dict = {
             'action': 'subscribe',
             'channels': [
                 {
@@ -199,7 +199,7 @@ export default class bitvavo extends bitvavoRest {
         const interval = this.safeString (this.timeframes, timeframe, timeframe);
         const messageHash = name + '@' + marketId + '_' + interval;
         const url = this.urls['api']['ws'];
-        const request = {
+        const request: Dict = {
             'action': 'subscribe',
             'channels': [
                 {
@@ -292,7 +292,7 @@ export default class bitvavo extends bitvavoRest {
         const name = 'book';
         const messageHash = name + '@' + market['id'];
         const url = this.urls['api']['ws'];
-        const request = {
+        const request: Dict = {
             'action': 'subscribe',
             'channels': [
                 {
@@ -303,7 +303,7 @@ export default class bitvavo extends bitvavoRest {
                 },
             ],
         };
-        const subscription = {
+        const subscription: Dict = {
             'messageHash': messageHash,
             'name': name,
             'symbol': symbol,
@@ -399,7 +399,7 @@ export default class bitvavo extends bitvavoRest {
         const name = 'getBook';
         const messageHash = name + '@' + marketId;
         const url = this.urls['api']['ws'];
-        const request = {
+        const request: Dict = {
             'action': name,
             'market': marketId,
         };
@@ -496,7 +496,7 @@ export default class bitvavo extends bitvavoRest {
         const url = this.urls['api']['ws'];
         const name = 'account';
         const messageHash = 'order:' + symbol;
-        const request = {
+        const request: Dict = {
             'action': 'subscribe',
             'channels': [
                 {
@@ -534,7 +534,7 @@ export default class bitvavo extends bitvavoRest {
         const url = this.urls['api']['ws'];
         const name = 'account';
         const messageHash = 'myTrades:' + symbol;
-        const request = {
+        const request: Dict = {
             'action': 'subscribe',
             'channels': [
                 {
@@ -550,7 +550,7 @@ export default class bitvavo extends bitvavoRest {
         return this.filterBySymbolSinceLimit (trades, symbol, since, limit, true);
     }
 
-    async createOrderWs (symbol: string, type: OrderType, side: OrderSide, amount: number, price: number = undefined, params = {}): Promise<Order> {
+    async createOrderWs (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}): Promise<Order> {
         /**
          * @method
          * @name bitvavo#createOrderWs
@@ -581,7 +581,7 @@ export default class bitvavo extends bitvavoRest {
         return await this.watchRequest ('privateCreateOrder', request);
     }
 
-    async editOrderWs (id: string, symbol: string, type: OrderType, side: OrderSide, amount: number = undefined, price: number = undefined, params = {}): Promise<Order> {
+    async editOrderWs (id: string, symbol: string, type: OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params = {}): Promise<Order> {
         /**
          * @method
          * @name bitvavo#editOrderWs
@@ -602,7 +602,7 @@ export default class bitvavo extends bitvavoRest {
         return await this.watchRequest ('privateUpdateOrder', request);
     }
 
-    async cancelOrderWs (id: string, symbol: string = undefined, params = {}) {
+    async cancelOrderWs (id: string, symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name bitvavo#cancelOrderWs
@@ -619,7 +619,7 @@ export default class bitvavo extends bitvavoRest {
         return await this.watchRequest ('privateCancelOrder', request);
     }
 
-    async cancelAllOrdersWs (symbol: string = undefined, params = {}) {
+    async cancelAllOrdersWs (symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name bitvavo#cancelAllOrdersWs
@@ -631,7 +631,7 @@ export default class bitvavo extends bitvavoRest {
          */
         await this.loadMarkets ();
         await this.authenticate ();
-        const request = {};
+        const request: Dict = {};
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
@@ -660,7 +660,7 @@ export default class bitvavo extends bitvavoRest {
         client.resolve (orders, messageHash);
     }
 
-    async fetchOrderWs (id: string, symbol: string = undefined, params = {}): Promise<Order> {
+    async fetchOrderWs (id: string, symbol: Str = undefined, params = {}): Promise<Order> {
         /**
          * @method
          * @name bitvavo#fetchOrderWs
@@ -676,14 +676,14 @@ export default class bitvavo extends bitvavoRest {
         await this.loadMarkets ();
         await this.authenticate ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'orderId': id,
             'market': market['id'],
         };
         return await this.watchRequest ('privateGetOrder', this.extend (request, params));
     }
 
-    async fetchOrdersWs (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    async fetchOrdersWs (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name bitvavo#fetchOrdersWs
@@ -713,7 +713,7 @@ export default class bitvavo extends bitvavoRest {
         return await this.watch (url, messageHash, request, messageHash);
     }
 
-    async fetchOpenOrdersWs (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    async fetchOpenOrdersWs (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name bitvavo#fetchOpenOrdersWs
@@ -726,7 +726,7 @@ export default class bitvavo extends bitvavoRest {
          */
         await this.loadMarkets ();
         await this.authenticate ();
-        const request = {
+        const request: Dict = {
             // 'market': market['id'], // rate limit 25 without a market, 1 with market specified
         };
         let market = undefined;
@@ -738,7 +738,7 @@ export default class bitvavo extends bitvavoRest {
         return this.filterBySymbolSinceLimit (orders, symbol, since, limit);
     }
 
-    async fetchMyTradesWs (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    async fetchMyTradesWs (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         /**
          * @method
          * @name bitvavo#fetchMyTradesWs
@@ -829,7 +829,7 @@ export default class bitvavo extends bitvavoRest {
         client.resolve (withdraw, messageHash);
     }
 
-    async fetchWithdrawalsWs (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchWithdrawalsWs (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bitvavo#fetchWithdrawalsWs
@@ -891,7 +891,7 @@ export default class bitvavo extends bitvavoRest {
         return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
     }
 
-    async fetchDepositsWs (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchDepositsWs (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bitvavo#fetchDepositsWs
@@ -933,7 +933,7 @@ export default class bitvavo extends bitvavoRest {
         client.resolve (deposits, messageHash);
     }
 
-    async fetchTradingFeesWs (params = {}) {
+    async fetchTradingFeesWs (params = {}): Promise<TradingFees> {
         /**
          * @method
          * @name bitvavo#fetchTradingFeesWs
@@ -1118,7 +1118,7 @@ export default class bitvavo extends bitvavoRest {
     }
 
     buildMessageHash (action, params = {}) {
-        const methods = {
+        const methods: Dict = {
             'privateCreateOrder': this.actionAndMarketMessageHash,
             'privateUpdateOrder': this.actionAndOrderIdMessageHash,
             'privateCancelOrder': this.actionAndOrderIdMessageHash,
@@ -1235,7 +1235,7 @@ export default class bitvavo extends bitvavoRest {
         //     }
         //
         const subscriptions = this.safeValue (message, 'subscriptions', {});
-        const methods = {
+        const methods: Dict = {
             'book': this.handleOrderBookSubscriptions,
         };
         const names = Object.keys (subscriptions);
@@ -1261,14 +1261,14 @@ export default class bitvavo extends bitvavoRest {
             const auth = stringTimestamp + 'GET/' + this.version + '/websocket';
             const signature = this.hmac (this.encode (auth), this.encode (this.secret), sha256);
             const action = 'authenticate';
-            const request = {
+            const request: Dict = {
                 'action': action,
                 'key': this.apiKey,
                 'signature': signature,
                 'timestamp': timestamp,
             };
             const message = this.extend (request, params);
-            future = this.watch (url, messageHash, message);
+            future = await this.watch (url, messageHash, message, messageHash);
             client.subscriptions[messageHash] = future;
         }
         return future;
@@ -1369,7 +1369,7 @@ export default class bitvavo extends bitvavoRest {
         if (error !== undefined) {
             this.handleErrorMessage (client, message);
         }
-        const methods = {
+        const methods: Dict = {
             'subscribed': this.handleSubscriptionStatus,
             'book': this.handleOrderBook,
             'getBook': this.handleOrderBookSnapshot,

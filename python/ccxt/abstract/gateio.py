@@ -91,6 +91,7 @@ class ImplicitAPI:
     private_unified_get_loan_records = privateUnifiedGetLoanRecords = Entry('loan_records', ['private', 'unified'], 'GET', {'cost': 1.3333333333333333})
     private_unified_get_interest_records = privateUnifiedGetInterestRecords = Entry('interest_records', ['private', 'unified'], 'GET', {'cost': 1.3333333333333333})
     private_unified_get_estimate_rate = privateUnifiedGetEstimateRate = Entry('estimate_rate', ['private', 'unified'], 'GET', {'cost': 1.3333333333333333})
+    private_unified_get_currency_discount_tiers = privateUnifiedGetCurrencyDiscountTiers = Entry('currency_discount_tiers', ['private', 'unified'], 'GET', {'cost': 1.3333333333333333})
     private_unified_post_account_mode = privateUnifiedPostAccountMode = Entry('account_mode', ['private', 'unified'], 'POST', {'cost': 1.3333333333333333})
     private_unified_post_loans = privateUnifiedPostLoans = Entry('loans', ['private', 'unified'], 'POST', {'cost': 13.333333333333334})
     private_spot_get_fee = privateSpotGetFee = Entry('fee', ['private', 'spot'], 'GET', {'cost': 1})

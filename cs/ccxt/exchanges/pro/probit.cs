@@ -669,7 +669,7 @@ public partial class probit : ccxt.probit
                 { "type", "authorization" },
                 { "token", accessToken },
             };
-            future = this.watch(url, messageHash, this.extend(request, parameters));
+            future = await this.watch(url, messageHash, this.extend(request, parameters), messageHash);
             ((IDictionary<string,object>)((WebSocketClient)client).subscriptions)[(string)messageHash] = future;
         }
         return future;

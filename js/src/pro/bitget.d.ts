@@ -29,7 +29,7 @@ export default class bitget extends bitgetRest {
     handlePositions(client: Client, message: any): void;
     parseWsPosition(position: any, market?: any): Position;
     watchOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
-    handleOrder(client: Client, message: any, subscription?: any): void;
+    handleOrder(client: Client, message: any): void;
     parseWsOrder(order: any, market?: any): Order;
     parseWsOrderStatus(status: any): string;
     watchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;

@@ -114,6 +114,11 @@ class bitflyer extends bitflyer$1 {
                 },
             },
             'precisionMode': number.TICK_SIZE,
+            'exceptions': {
+                'exact': {
+                    '-2': errors.OnMaintenance, // {"status":-2,"error_message":"Under maintenance","data":null}
+                },
+            },
         });
     }
     parseExpiryDate(expiry) {
@@ -535,6 +540,8 @@ class bitflyer extends bitflyer$1 {
             'symbol': market['symbol'],
             'maker': fee,
             'taker': fee,
+            'percentage': undefined,
+            'tierBased': undefined,
         };
     }
     async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
@@ -1040,6 +1047,20 @@ class bitflyer extends bitflyer$1 {
             };
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+    }
+    handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+        if (response === undefined) {
+            return undefined; // fallback to the default error handler
+        }
+        const feedback = this.id + ' ' + body;
+        // i.e. {"status":-2,"error_message":"Under maintenance","data":null}
+        const errorMessage = this.safeString(response, 'error_message');
+        const statusCode = this.safeNumber(response, 'status');
+        if (errorMessage !== undefined) {
+            this.throwExactlyMatchedException(this.exceptions['exact'], statusCode, feedback);
+            this.throwBroadlyMatchedException(this.exceptions['broad'], errorMessage, feedback);
+        }
+        return undefined;
     }
 }
 

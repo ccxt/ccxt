@@ -73,7 +73,11 @@ export default class ndax extends Exchange {
                 'fetchOrders': true,
                 'fetchOrderTrades': true,
                 'fetchPosition': false,
+                'fetchPositionHistory': false,
+                'fetchPositionMode': false,
                 'fetchPositions': false,
+                'fetchPositionsForSymbol': false,
+                'fetchPositionsHistory': false,
                 'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchTicker': true,
@@ -84,6 +88,7 @@ export default class ndax extends Exchange {
                 'fetchTradingFees': false,
                 'fetchWithdrawals': true,
                 'reduceMargin': false,
+                'sandbox': true,
                 'setLeverage': false,
                 'setMarginMode': false,
                 'setPositionMode': false,
@@ -1942,7 +1947,7 @@ export default class ndax extends Exchange {
         //     ]
         //
         const grouped = this.groupBy(response, 'ChangeReason');
-        const trades = this.safeValue(grouped, 'Trade', []);
+        const trades = this.safeList(grouped, 'Trade', []);
         return this.parseTrades(trades, market, since, limit);
     }
     async fetchDepositAddress(code, params = {}) {

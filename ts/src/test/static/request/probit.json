@@ -1,6 +1,6 @@
 {
     "exchange": "probit",
-    "skipKeys": [],
+    "skipKeys": ["start_time", "end_time"],
     "outputType": "json",
     "methods": {
         "createOrder": [
@@ -47,14 +47,14 @@
                 "method": "createOrder",
                 "url": "https://api.probit.com/api/exchange/v1/new_order",
                 "input": [
-                  "BTC/USDT",
-                  "market",
-                  "buy",
-                  10,
-                  null,
-                  {
-                    "createMarketBuyOrderRequiresPrice": false
-                  }
+                    "BTC/USDT",
+                    "market",
+                    "buy",
+                    10,
+                    null,
+                    {
+                        "createMarketBuyOrderRequiresPrice": false
+                    }
                 ],
                 "output": "{\"market_id\":\"BTC-USDT\",\"type\":\"market\",\"side\":\"buy\",\"time_in_force\":\"ioc\",\"cost\":\"10\"}"
             },
@@ -63,14 +63,14 @@
                 "method": "createOrder",
                 "url": "https://api.probit.com/api/exchange/v1/new_order",
                 "input": [
-                  "BTC/USDT",
-                  "market",
-                  "buy",
-                  0,
-                  null,
-                  {
-                    "cost": 10
-                  }
+                    "BTC/USDT",
+                    "market",
+                    "buy",
+                    0,
+                    null,
+                    {
+                        "cost": 10
+                    }
                 ],
                 "output": "{\"market_id\":\"BTC-USDT\",\"type\":\"market\",\"side\":\"buy\",\"time_in_force\":\"ioc\",\"cost\":\"10\"}"
             }
@@ -81,11 +81,72 @@
                 "method": "createMarketBuyOrderWithCost",
                 "url": "https://api.probit.com/api/exchange/v1/new_order",
                 "input": [
-                  "BTC/USDT",
-                  10
+                    "BTC/USDT",
+                    10
                 ],
                 "output": "{\"market_id\":\"BTC-USDT\",\"type\":\"market\",\"side\":\"buy\",\"time_in_force\":\"ioc\",\"cost\":\"10\"}"
-              }
+            }
+        ],
+        "fetchTime": [
+            {
+                "description": "fetchTime",
+                "method": "fetchTime",
+                "url": "https://api.probit.com/api/exchange/v1/time",
+                "input": []
+            }
+        ],
+        "fetchTrades": [
+            {
+                "description": "spot fetchTrades",
+                "method": "fetchTrades",
+                "url": "https://api.probit.com/api/exchange/v1/trade?market_id=BTC-USDT&start_time=1970-01-01T00%3A00%3A00.000Z&end_time=2024-03-09T14%3A03%3A08.588Z&limit=1000",
+                "input": [
+                    "BTC/USDT"
+                ]
+            }
+        ],
+        "fetchOrderBook": [
+            {
+                "description": "spot orderbook",
+                "method": "fetchOrderBook",
+                "url": "https://api.probit.com/api/exchange/v1/order_book?market_id=BTC-USDT",
+                "input": [
+                    "BTC/USDT"
+                ]
+            }
+        ],
+        "fetchTicker": [
+            {
+                "description": "spot ticker",
+                "method": "fetchTicker",
+                "url": "https://api.probit.com/api/exchange/v1/ticker?market_ids=BTC-USDT",
+                "input": [
+                    "BTC/USDT"
+                ]
+            }
+        ],
+        "fetchTickers": [
+            {
+                "description": "spot tickers",
+                "method": "fetchTickers",
+                "url": "https://api.probit.com/api/exchange/v1/ticker?market_ids=BTC-USDT%2CETH-USDT",
+                "input": [
+                    [
+                        "BTC/USDT",
+                        "ETH/USDT"
+                    ]
+                ]
+            }
+        ],
+        "fetchOHLCV": [
+            {
+                "description": "spot ohlcv",
+                "method": "fetchOHLCV",
+                "url": "https://api.probit.com/api/exchange/v1/candle?market_ids=BTC-USDT&interval=1m&sort=asc&limit=101&start_time=2024-03-09T12%3A23%3A00.000Z&end_time=2024-03-09T14%3A04%3A00.000Z",
+                "input": [
+                    "BTC/USDT"
+                ]
+            }
         ]
     }
 }

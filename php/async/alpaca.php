@@ -74,7 +74,13 @@ class alpaca extends Exchange {
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
                 'fetchOrders' => true,
+                'fetchPosition' => false,
+                'fetchPositionHistory' => false,
+                'fetchPositionMode' => false,
                 'fetchPositions' => false,
+                'fetchPositionsForSymbol' => false,
+                'fetchPositionsHistory' => false,
+                'fetchPositionsRisk' => false,
                 'fetchStatus' => false,
                 'fetchTicker' => false,
                 'fetchTickers' => false,
@@ -86,6 +92,7 @@ class alpaca extends Exchange {
                 'fetchTransactions' => false,
                 'fetchTransfers' => false,
                 'fetchWithdrawals' => false,
+                'sandbox' => true,
                 'setLeverage' => false,
                 'setMarginMode' => false,
                 'transfer' => false,
@@ -294,7 +301,7 @@ class alpaca extends Exchange {
         }) ();
     }
 
-    public function fetch_markets($params = array ()) {
+    public function fetch_markets($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * retrieves data on all markets for alpaca
@@ -306,7 +313,7 @@ class alpaca extends Exchange {
                 'asset_class' => 'crypto',
                 'status' => 'active',
             );
-            $assets = Async\await($this->traderPrivateGetV2Assets (array_merge($request, $params)));
+            $assets = Async\await($this->traderPrivateGetV2Assets ($this->extend($request, $params)));
             //
             //     array(
             //         {
@@ -455,7 +462,7 @@ class alpaca extends Exchange {
                 if ($limit !== null) {
                     $request['limit'] = $limit;
                 }
-                $response = Async\await($this->marketPublicGetV1beta3CryptoLocTrades (array_merge($request, $params)));
+                $response = Async\await($this->marketPublicGetV1beta3CryptoLocTrades ($this->extend($request, $params)));
                 //
                 //    {
                 //        "next_page_token" => null,
@@ -475,7 +482,7 @@ class alpaca extends Exchange {
                 $trades = $this->safe_dict($response, 'trades', array());
                 $symbolTrades = $this->safe_list($trades, $marketId, array());
             } elseif ($method === 'marketPublicGetV1beta3CryptoLocLatestTrades') {
-                $response = Async\await($this->marketPublicGetV1beta3CryptoLocLatestTrades (array_merge($request, $params)));
+                $response = Async\await($this->marketPublicGetV1beta3CryptoLocLatestTrades ($this->extend($request, $params)));
                 //
                 //    {
                 //       "trades" => {
@@ -518,7 +525,7 @@ class alpaca extends Exchange {
                 'symbols' => $id,
                 'loc' => $loc,
             );
-            $response = Async\await($this->marketPublicGetV1beta3CryptoLocLatestOrderbooks (array_merge($request, $params)));
+            $response = Async\await($this->marketPublicGetV1beta3CryptoLocLatestOrderbooks ($this->extend($request, $params)));
             //
             //   {
             //       "orderbooks":{
@@ -597,7 +604,7 @@ class alpaca extends Exchange {
                     $request['start'] = $this->yyyymmdd($since);
                 }
                 $request['timeframe'] = $this->safe_string($this->timeframes, $timeframe, $timeframe);
-                $response = Async\await($this->marketPublicGetV1beta3CryptoLocBars (array_merge($request, $params)));
+                $response = Async\await($this->marketPublicGetV1beta3CryptoLocBars ($this->extend($request, $params)));
                 //
                 //    {
                 //        "bars" => {
@@ -630,7 +637,7 @@ class alpaca extends Exchange {
                 $bars = $this->safe_dict($response, 'bars', array());
                 $ohlcvs = $this->safe_list($bars, $marketId, array());
             } elseif ($method === 'marketPublicGetV1beta3CryptoLocLatestBars') {
-                $response = Async\await($this->marketPublicGetV1beta3CryptoLocLatestBars (array_merge($request, $params)));
+                $response = Async\await($this->marketPublicGetV1beta3CryptoLocLatestBars ($this->extend($request, $params)));
                 //
                 //    {
                 //        "bars" => {
@@ -730,7 +737,7 @@ class alpaca extends Exchange {
             $clientOrderId = $this->safe_string($params, 'clientOrderId', $defaultClientId);
             $request['client_order_id'] = $clientOrderId;
             $params = $this->omit($params, array( 'clientOrderId' ));
-            $order = Async\await($this->traderPrivatePostV2Orders (array_merge($request, $params)));
+            $order = Async\await($this->traderPrivatePostV2Orders ($this->extend($request, $params)));
             //
             //   {
             //      "id" => "61e69015-8549-4bfd-b9c3-01e75843f47d",
@@ -784,7 +791,7 @@ class alpaca extends Exchange {
             $request = array(
                 'order_id' => $id,
             );
-            $response = Async\await($this->traderPrivateDeleteV2OrdersOrderId (array_merge($request, $params)));
+            $response = Async\await($this->traderPrivateDeleteV2OrdersOrderId ($this->extend($request, $params)));
             //
             //   {
             //       "code" => 40410000,
@@ -827,7 +834,7 @@ class alpaca extends Exchange {
             $request = array(
                 'order_id' => $id,
             );
-            $order = Async\await($this->traderPrivateGetV2OrdersOrderId (array_merge($request, $params)));
+            $order = Async\await($this->traderPrivateGetV2OrdersOrderId ($this->extend($request, $params)));
             $marketId = $this->safe_string($order, 'symbol');
             $market = $this->safe_market($marketId);
             return $this->parse_order($order, $market);
@@ -866,7 +873,7 @@ class alpaca extends Exchange {
             if ($limit !== null) {
                 $request['limit'] = $limit;
             }
-            $response = Async\await($this->traderPrivateGetV2Orders (array_merge($request, $params)));
+            $response = Async\await($this->traderPrivateGetV2Orders ($this->extend($request, $params)));
             //
             //     array(
             //         {
@@ -926,7 +933,7 @@ class alpaca extends Exchange {
             $request = array(
                 'status' => 'open',
             );
-            return Async\await($this->fetch_orders($symbol, $since, $limit, array_merge($request, $params)));
+            return Async\await($this->fetch_orders($symbol, $since, $limit, $this->extend($request, $params)));
         }) ();
     }
 
@@ -945,11 +952,11 @@ class alpaca extends Exchange {
             $request = array(
                 'status' => 'closed',
             );
-            return Async\await($this->fetch_orders($symbol, $since, $limit, array_merge($request, $params)));
+            return Async\await($this->fetch_orders($symbol, $since, $limit, $this->extend($request, $params)));
         }) ();
     }
 
-    public function parse_order($order, ?array $market = null): array {
+    public function parse_order(array $order, ?array $market = null): array {
         //
         //    {
         //        "id":"6ecfcc34-4bed-4b53-83ba-c564aa832a81",
@@ -1036,7 +1043,7 @@ class alpaca extends Exchange {
         ), $market);
     }
 
-    public function parse_order_status($status) {
+    public function parse_order_status(?string $status) {
         $statuses = array(
             'pending_new' => 'open',
             'accepted' => 'open',
@@ -1048,14 +1055,14 @@ class alpaca extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_time_in_force($timeInForce) {
+    public function parse_time_in_force(?string $timeInForce) {
         $timeInForces = array(
             'day' => 'Day',
         );
         return $this->safe_string($timeInForces, $timeInForce, $timeInForce);
     }
 
-    public function parse_trade($trade, ?array $market = null): array {
+    public function parse_trade(array $trade, ?array $market = null): array {
         //
         //   {
         //       "t":"2022-06-14T05:00:00.027869Z",

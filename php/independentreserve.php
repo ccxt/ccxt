@@ -60,8 +60,11 @@ class independentreserve extends Exchange {
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
                 'fetchPosition' => false,
+                'fetchPositionHistory' => false,
                 'fetchPositionMode' => false,
                 'fetchPositions' => false,
+                'fetchPositionsForSymbol' => false,
+                'fetchPositionsHistory' => false,
                 'fetchPositionsRisk' => false,
                 'fetchPremiumIndexOHLCV' => false,
                 'fetchTicker' => true,
@@ -140,7 +143,7 @@ class independentreserve extends Exchange {
         ));
     }
 
-    public function fetch_markets($params = array ()) {
+    public function fetch_markets($params = array ()): array {
         /**
          * retrieves data on all markets for independentreserve
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -261,12 +264,12 @@ class independentreserve extends Exchange {
             'primaryCurrencyCode' => $market['baseId'],
             'secondaryCurrencyCode' => $market['quoteId'],
         );
-        $response = $this->publicGetGetOrderBook (array_merge($request, $params));
+        $response = $this->publicGetGetOrderBook ($this->extend($request, $params));
         $timestamp = $this->parse8601($this->safe_string($response, 'CreatedTimestampUtc'));
         return $this->parse_order_book($response, $market['symbol'], $timestamp, 'BuyOrders', 'SellOrders', 'Price', 'Volume');
     }
 
-    public function parse_ticker($ticker, ?array $market = null): array {
+    public function parse_ticker(array $ticker, ?array $market = null): array {
         // {
         //     "DayHighestPrice":43489.49,
         //     "DayLowestPrice":41998.32,
@@ -327,7 +330,7 @@ class independentreserve extends Exchange {
             'primaryCurrencyCode' => $market['baseId'],
             'secondaryCurrencyCode' => $market['quoteId'],
         );
-        $response = $this->publicGetGetMarketSummary (array_merge($request, $params));
+        $response = $this->publicGetGetMarketSummary ($this->extend($request, $params));
         // {
         //     "DayHighestPrice":43489.49,
         //     "DayLowestPrice":41998.32,
@@ -344,7 +347,7 @@ class independentreserve extends Exchange {
         return $this->parse_ticker($response, $market);
     }
 
-    public function parse_order($order, ?array $market = null): array {
+    public function parse_order(array $order, ?array $market = null): array {
         //
         // fetchOrder
         //
@@ -444,7 +447,7 @@ class independentreserve extends Exchange {
         ), $market);
     }
 
-    public function parse_order_status($status) {
+    public function parse_order_status(?string $status) {
         $statuses = array(
             'Open' => 'open',
             'PartiallyFilled' => 'open',
@@ -465,7 +468,7 @@ class independentreserve extends Exchange {
          * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
          */
         $this->load_markets();
-        $response = $this->privatePostGetOrderDetails (array_merge(array(
+        $response = $this->privatePostGetOrderDetails ($this->extend(array(
             'orderGuid' => $id,
         ), $params));
         $market = null;
@@ -497,8 +500,8 @@ class independentreserve extends Exchange {
         }
         $request['pageIndex'] = 1;
         $request['pageSize'] = $limit;
-        $response = $this->privatePostGetOpenOrders (array_merge($request, $params));
-        $data = $this->safe_value($response, 'Data', array());
+        $response = $this->privatePostGetOpenOrders ($this->extend($request, $params));
+        $data = $this->safe_list($response, 'Data', array());
         return $this->parse_orders($data, $market, $since, $limit);
     }
 
@@ -524,8 +527,8 @@ class independentreserve extends Exchange {
         }
         $request['pageIndex'] = 1;
         $request['pageSize'] = $limit;
-        $response = $this->privatePostGetClosedOrders (array_merge($request, $params));
-        $data = $this->safe_value($response, 'Data', array());
+        $response = $this->privatePostGetClosedOrders ($this->extend($request, $params));
+        $data = $this->safe_list($response, 'Data', array());
         return $this->parse_orders($data, $market, $since, $limit);
     }
 
@@ -547,7 +550,7 @@ class independentreserve extends Exchange {
             'pageIndex' => $pageIndex,
             'pageSize' => $limit,
         ));
-        $response = $this->privatePostGetTrades (array_merge($request, $params));
+        $response = $this->privatePostGetTrades ($this->extend($request, $params));
         $market = null;
         if ($symbol !== null) {
             $market = $this->market($symbol);
@@ -555,7 +558,7 @@ class independentreserve extends Exchange {
         return $this->parse_trades($response['Data'], $market, $since, $limit);
     }
 
-    public function parse_trade($trade, ?array $market = null): array {
+    public function parse_trade(array $trade, ?array $market = null): array {
         $timestamp = $this->parse8601($trade['TradeTimestampUtc']);
         $id = $this->safe_string($trade, 'TradeGuid');
         $orderId = $this->safe_string($trade, 'OrderGuid');
@@ -612,11 +615,11 @@ class independentreserve extends Exchange {
             'secondaryCurrencyCode' => $market['quoteId'],
             'numberOfRecentTradesToRetrieve' => 50, // max = 50
         );
-        $response = $this->publicGetGetRecentTrades (array_merge($request, $params));
+        $response = $this->publicGetGetRecentTrades ($this->extend($request, $params));
         return $this->parse_trades($response['Trades'], $market, $since, $limit);
     }
 
-    public function fetch_trading_fees($params = array ()) {
+    public function fetch_trading_fees($params = array ()): array {
         /**
          * fetch the trading $fees for multiple markets
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -685,9 +688,9 @@ class independentreserve extends Exchange {
         $request['volume'] = $amount;
         if ($type === 'limit') {
             $request['price'] = $price;
-            $response = $this->privatePostPlaceLimitOrder (array_merge($request, $params));
+            $response = $this->privatePostPlaceLimitOrder ($this->extend($request, $params));
         } else {
-            $response = $this->privatePostPlaceMarketOrder (array_merge($request, $params));
+            $response = $this->privatePostPlaceMarketOrder ($this->extend($request, $params));
         }
         return $this->safe_order(array(
             'info' => $response,
@@ -707,7 +710,7 @@ class independentreserve extends Exchange {
         $request = array(
             'orderGuid' => $id,
         );
-        return $this->privatePostCancelOrder (array_merge($request, $params));
+        return $this->privatePostCancelOrder ($this->extend($request, $params));
     }
 
     public function fetch_deposit_address(string $code, $params = array ()) {
@@ -723,7 +726,7 @@ class independentreserve extends Exchange {
         $request = array(
             'primaryCurrencyCode' => $currency['id'],
         );
-        $response = $this->privatePostGetDigitalCurrencyDepositAddress (array_merge($request, $params));
+        $response = $this->privatePostGetDigitalCurrencyDepositAddress ($this->extend($request, $params));
         //
         //    {
         //        Tag => '3307446684',

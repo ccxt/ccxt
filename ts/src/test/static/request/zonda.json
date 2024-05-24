@@ -1,6 +1,6 @@
 {
     "exchange": "zonda",
-    "skipKeys": [],
+    "skipKeys": ["from", "to"],
     "outputType": "json",
     "methods": {
         "fetchMyTrades": [
@@ -62,6 +62,59 @@
                 "url": "https://api.zondacrypto.exchange/rest/balances/BITBAY/history?query=%7B%22balanceCurrencies%22%3A%5B%22USDT%22%5D%7D",
                 "input": [
                     "USDT"
+                ]
+            }
+        ],
+        "fetchTrades": [
+            {
+                "description": "spot fetchTrades",
+                "method": "fetchTrades",
+                "url": "https://api.zondacrypto.exchange/rest/trading/transactions/BTC-USDT",
+                "input": [
+                    "BTC/USDT"
+                ]
+            }
+        ],
+        "fetchOrderBook": [
+            {
+                "description": "spot orderbook",
+                "method": "fetchOrderBook",
+                "url": "https://api.zondacrypto.exchange/rest/trading/orderbook/BTC-USDT",
+                "input": [
+                    "BTC/USDT"
+                ]
+            }
+        ],
+        "fetchTicker": [
+            {
+                "description": "spot ticker",
+                "method": "fetchTicker",
+                "url": "https://api.zondacrypto.exchange/rest/trading/ticker/BTC-USDT",
+                "input": [
+                    "BTC/USDT"
+                ]
+            }
+        ],
+        "fetchTickers": [
+            {
+                "description": "spot tickers",
+                "method": "fetchTickers",
+                "url": "https://api.zondacrypto.exchange/rest/trading/ticker",
+                "input": [
+                    [
+                        "BTC/USDT",
+                        "ETH/USDT"
+                    ]
+                ]
+            }
+        ],
+        "fetchOHLCV": [
+            {
+                "description": "spot ohlcv",
+                "method": "fetchOHLCV",
+                "url": "https://api.zondacrypto.exchange/rest/trading/candle/history/BTC-USDT/60?to=1709992984698&from=1709986984698",
+                "input": [
+                    "BTC/USDT"
                 ]
             }
         ]

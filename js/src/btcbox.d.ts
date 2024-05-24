@@ -1,5 +1,5 @@
 import Exchange from './abstract/btcbox.js';
-import type { Balances, Int, Market, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade } from './base/types.js';
+import type { Balances, Dict, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade } from './base/types.js';
 /**
  * @class btcbox
  * @augments Exchange
@@ -9,14 +9,14 @@ export default class btcbox extends Exchange {
     parseBalance(response: any): Balances;
     fetchBalance(params?: {}): Promise<Balances>;
     fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
-    parseTicker(ticker: any, market?: Market): Ticker;
+    parseTicker(ticker: Dict, market?: Market): Ticker;
     fetchTicker(symbol: string, params?: {}): Promise<Ticker>;
-    parseTrade(trade: any, market?: Market): Trade;
+    parseTrade(trade: Dict, market?: Market): Trade;
     fetchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
-    createOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: number, params?: {}): Promise<Order>;
+    createOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): Promise<Order>;
     cancelOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
-    parseOrderStatus(status: any): string;
-    parseOrder(order: any, market?: Market): Order;
+    parseOrderStatus(status: Str): string;
+    parseOrder(order: Dict, market?: Market): Order;
     fetchOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
     fetchOrdersByType(type: any, symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     fetchOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;

@@ -68,6 +68,7 @@ public partial class upbit : Exchange
                 { "1m", "minutes" },
                 { "3m", "minutes" },
                 { "5m", "minutes" },
+                { "10m", "minutes" },
                 { "15m", "minutes" },
                 { "30m", "minutes" },
                 { "1h", "minutes" },
@@ -89,7 +90,7 @@ public partial class upbit : Exchange
             } },
             { "api", new Dictionary<string, object>() {
                 { "public", new Dictionary<string, object>() {
-                    { "get", new List<object>() {"market/all", "candles/{timeframe}", "candles/{timeframe}/{unit}", "candles/minutes/{unit}", "candles/minutes/1", "candles/minutes/3", "candles/minutes/5", "candles/minutes/15", "candles/minutes/30", "candles/minutes/60", "candles/minutes/240", "candles/days", "candles/weeks", "candles/months", "trades/ticks", "ticker", "orderbook"} },
+                    { "get", new List<object>() {"market/all", "candles/{timeframe}", "candles/{timeframe}/{unit}", "candles/minutes/{unit}", "candles/minutes/1", "candles/minutes/3", "candles/minutes/5", "candles/minutes/10", "candles/minutes/15", "candles/minutes/30", "candles/minutes/60", "candles/minutes/240", "candles/days", "candles/weeks", "candles/months", "trades/ticks", "ticker", "orderbook"} },
                 } },
                 { "private", new Dictionary<string, object>() {
                     { "get", new List<object>() {"accounts", "orders/chance", "order", "orders", "withdraws", "withdraw", "withdraws/chance", "deposits", "deposit", "deposits/coin_addresses", "deposits/coin_address"} },

@@ -8,11 +8,11 @@ namespace ccxt\async;
 use Exception; // a common import
 use ccxt\async\abstract\wavesexchange as Exchange;
 use ccxt\ExchangeError;
+use ccxt\AuthenticationError;
 use ccxt\ArgumentsRequired;
 use ccxt\BadRequest;
 use ccxt\InsufficientFunds;
 use ccxt\InvalidOrder;
-use ccxt\AuthenticationError;
 use ccxt\Precise;
 use React\Async;
 use React\Promise;
@@ -73,8 +73,11 @@ class wavesexchange extends Exchange {
                 'fetchOrderBook' => true,
                 'fetchOrders' => true,
                 'fetchPosition' => false,
+                'fetchPositionHistory' => false,
                 'fetchPositionMode' => false,
                 'fetchPositions' => false,
+                'fetchPositionsForSymbol' => false,
+                'fetchPositionsHistory' => false,
                 'fetchPositionsRisk' => false,
                 'fetchPremiumIndexOHLCV' => false,
                 'fetchTicker' => true,
@@ -83,6 +86,7 @@ class wavesexchange extends Exchange {
                 'fetchTransfer' => false,
                 'fetchTransfers' => false,
                 'reduceMargin' => false,
+                'sandbox' => true,
                 'setLeverage' => false,
                 'setMarginMode' => false,
                 'setPositionMode' => false,
@@ -384,7 +388,7 @@ class wavesexchange extends Exchange {
             $market = $this->market($symbol);
             $amount = $this->custom_amount_to_precision($symbol, $amount);
             $price = $this->custom_price_to_precision($symbol, $price);
-            $request = array_merge(array(
+            $request = $this->extend(array(
                 'baseId' => $market['baseId'],
                 'quoteId' => $market['quoteId'],
                 'orderType' => $side,
@@ -502,7 +506,7 @@ class wavesexchange extends Exchange {
         }) ();
     }
 
-    public function fetch_markets($params = array ()) {
+    public function fetch_markets($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * retrieves data on all markets for wavesexchange
@@ -614,7 +618,7 @@ class wavesexchange extends Exchange {
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
-            $request = array_merge(array(
+            $request = $this->extend(array(
                 'baseId' => $market['baseId'],
                 'quoteId' => $market['quoteId'],
             ), $params);
@@ -788,7 +792,7 @@ class wavesexchange extends Exchange {
         }) ();
     }
 
-    public function parse_ticker($ticker, ?array $market = null): array {
+    public function parse_ticker(array $ticker, ?array $market = null): array {
         //
         //       {
         //           "symbol" => "WAVES/BTC",
@@ -876,7 +880,7 @@ class wavesexchange extends Exchange {
             $request = array(
                 'pairs' => $market['id'],
             );
-            $response = Async\await($this->publicGetPairs (array_merge($request, $params)));
+            $response = Async\await($this->publicGetPairs ($this->extend($request, $params)));
             //
             //     {
             //         "__type":"list",
@@ -902,7 +906,7 @@ class wavesexchange extends Exchange {
             //
             $data = $this->safe_value($response, 'data', array());
             $ticker = $this->safe_value($data, 0, array());
-            $dataTicker = $this->safe_value($ticker, 'data', array());
+            $dataTicker = $this->safe_dict($ticker, 'data', array());
             return $this->parse_ticker($dataTicker, $market);
         }) ();
     }
@@ -983,7 +987,7 @@ class wavesexchange extends Exchange {
                 $timeEnd = $this->sum($since, $duration * $limit);
                 $request['timeEnd'] = (string) $timeEnd;
             }
-            $response = Async\await($this->publicGetCandlesBaseIdQuoteId (array_merge($request, $params)));
+            $response = Async\await($this->publicGetCandlesBaseIdQuoteId ($this->extend($request, $params)));
             //
             //     {
             //         "__type" => "list",
@@ -1143,7 +1147,7 @@ class wavesexchange extends Exchange {
                 $request = array(
                     'currency' => $code,
                 );
-                $response = Async\await($this->privateGetDepositAddressesCurrency (array_merge($request, $params)));
+                $response = Async\await($this->privateGetDepositAddressesCurrency ($this->extend($request, $params)));
             } else {
                 $supportedNetworks = $networksByCurrency[$code];
                 if (!(is_array($supportedNetworks) && array_key_exists($network, $supportedNetworks))) {
@@ -1154,7 +1158,7 @@ class wavesexchange extends Exchange {
                     $request = array(
                         'publicKey' => $this->apiKey,
                     );
-                    $responseInner = Async\await($this->nodeGetAddressesPublicKeyPublicKey (array_merge($request, $request)));
+                    $responseInner = Async\await($this->nodeGetAddressesPublicKeyPublicKey ($this->extend($request, $request)));
                     $addressInner = $this->safe_string($response, 'address');
                     return array(
                         'address' => $addressInner,
@@ -1169,7 +1173,7 @@ class wavesexchange extends Exchange {
                         'currency' => $code,
                         'platform' => $network,
                     );
-                    $response = Async\await($this->privateGetDepositAddressesCurrencyPlatform (array_merge($request, $params)));
+                    $response = Async\await($this->privateGetDepositAddressesCurrencyPlatform ($this->extend($request, $params)));
                 }
             }
             //
@@ -1258,7 +1262,7 @@ class wavesexchange extends Exchange {
         return $this->parse_to_int(floatval($amountPrecision));
     }
 
-    public function currency_to_precision($code, $amount, $networkCode = null) {
+    public function custom_currency_to_precision($code, $amount, $networkCode = null) {
         $amountPrecision = $this->number_to_string($this->to_precision($amount, $this->currencies[$code]['precision']));
         return $this->parse_to_int(floatval($amountPrecision));
     }
@@ -1486,11 +1490,11 @@ class wavesexchange extends Exchange {
             //
             if ($isMarketOrder) {
                 $response = Async\await($this->matcherPostMatcherOrderbookMarket ($body));
-                $value = $this->safe_value($response, 'message');
+                $value = $this->safe_dict($response, 'message');
                 return $this->parse_order($value, $market);
             } else {
                 $response = Async\await($this->matcherPostMatcherOrderbook ($body));
-                $value = $this->safe_value($response, 'message');
+                $value = $this->safe_dict($response, 'message');
                 return $this->parse_order($value, $market);
             }
         }) ();
@@ -1574,7 +1578,7 @@ class wavesexchange extends Exchange {
                 'publicKey' => $this->apiKey,
                 'orderId' => $id,
             );
-            $response = Async\await($this->matcherGetMatcherOrderbookPublicKeyOrderId (array_merge($request, $params)));
+            $response = Async\await($this->matcherGetMatcherOrderbookPublicKeyOrderId ($this->extend($request, $params)));
             return $this->parse_order($response, $market);
         }) ();
     }
@@ -1612,7 +1616,7 @@ class wavesexchange extends Exchange {
                 'baseId' => $market['baseId'],
                 'quoteId' => $market['quoteId'],
             );
-            $response = Async\await($this->matcherGetMatcherOrderbookBaseIdQuoteIdPublicKeyPublicKey (array_merge($request, $params)));
+            $response = Async\await($this->matcherGetMatcherOrderbookBaseIdQuoteIdPublicKeyPublicKey ($this->extend($request, $params)));
             // array( array( id => "3KicDeWayY2mdrRoYdCkP3gUAoUZUNT1AA6GAtWuPLfa",
             //     "type" => "sell",
             //     "orderType" => "limit",
@@ -1704,7 +1708,7 @@ class wavesexchange extends Exchange {
         }) ();
     }
 
-    public function parse_order_status($status) {
+    public function parse_order_status(?string $status) {
         $statuses = array(
             'Cancelled' => 'canceled',
             'Accepted' => 'open',
@@ -1721,7 +1725,7 @@ class wavesexchange extends Exchange {
         return $this->safe_currency_code($baseId) . '/' . $this->safe_currency_code($quoteId);
     }
 
-    public function parse_order($order, ?array $market = null): array {
+    public function parse_order(array $order, ?array $market = null): array {
         //
         // createOrder
         //
@@ -2206,7 +2210,7 @@ class wavesexchange extends Exchange {
         }) ();
     }
 
-    public function parse_trade($trade, ?array $market = null): array {
+    public function parse_trade(array $trade, ?array $market = null): array {
         //
         // { __type => "transaction",
         //   "data":
@@ -2467,7 +2471,7 @@ class wavesexchange extends Exchange {
         return null;
     }
 
-    public function withdraw(string $code, float $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()) {
         return Async\async(function () use ($code, $amount, $address, $tag, $params) {
             /**
              * make a withdrawal
@@ -2556,7 +2560,7 @@ class wavesexchange extends Exchange {
             $feeAssetId = 'WAVES';
             $type = 4;  // transfer
             $version = 2;
-            $amountInteger = $this->currency_to_precision($code, $amount);
+            $amountInteger = $this->custom_currency_to_precision($code, $amount);
             $currency = $this->currency($code);
             $timestamp = $this->milliseconds();
             $byteArray = [
@@ -2605,7 +2609,7 @@ class wavesexchange extends Exchange {
         }) ();
     }
 
-    public function parse_transaction($transaction, ?array $currency = null): array {
+    public function parse_transaction(array $transaction, ?array $currency = null): array {
         //
         // withdraw
         //

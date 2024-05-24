@@ -6,8 +6,8 @@ namespace ccxt\pro;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
-use ccxt\ArgumentsRequired;
 use ccxt\AuthenticationError;
+use ccxt\ArgumentsRequired;
 use React\Async;
 use React\Promise\PromiseInterface;
 
@@ -473,30 +473,32 @@ class okcoin extends \ccxt\async\okcoin {
     }
 
     public function authenticate($params = array ()) {
-        $this->check_required_credentials();
-        $url = $this->urls['api']['ws'];
-        $messageHash = 'login';
-        $client = $this->client($url);
-        $future = $this->safe_value($client->subscriptions, $messageHash);
-        if ($future === null) {
-            $future = $client->future ('authenticated');
-            $timestamp = (string) $this->seconds();
-            $method = 'GET';
-            $path = '/users/self/verify';
-            $auth = $timestamp . $method . $path;
-            $signature = $this->hmac($this->encode($auth), $this->encode($this->secret), 'sha256', 'base64');
-            $request = array(
-                'op' => $messageHash,
-                'args' => array(
-                    $this->apiKey,
-                    $this->password,
-                    $timestamp,
-                    $signature,
-                ),
-            );
-            $this->spawn(array($this, 'watch'), $url, $messageHash, $request, $messageHash, $future);
-        }
-        return $future;
+        return Async\async(function () use ($params) {
+            $this->check_required_credentials();
+            $url = $this->urls['api']['ws'];
+            $messageHash = 'login';
+            $client = $this->client($url);
+            $future = $this->safe_value($client->subscriptions, $messageHash);
+            if ($future === null) {
+                $future = $client->future ('authenticated');
+                $timestamp = (string) $this->seconds();
+                $method = 'GET';
+                $path = '/users/self/verify';
+                $auth = $timestamp . $method . $path;
+                $signature = $this->hmac($this->encode($auth), $this->encode($this->secret), 'sha256', 'base64');
+                $request = array(
+                    'op' => $messageHash,
+                    'args' => array(
+                        $this->apiKey,
+                        $this->password,
+                        $timestamp,
+                        $signature,
+                    ),
+                );
+                $this->spawn(array($this, 'watch'), $url, $messageHash, $request, $messageHash, $future);
+            }
+            return Async\await($future);
+        }) ();
     }
 
     public function watch_balance($params = array ()): PromiseInterface {

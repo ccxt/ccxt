@@ -385,7 +385,8 @@ class bitopro extends bitopro$1 {
                 },
             },
         };
-        this.options = this.extend(defaultOptions, this.options);
+        // this.options = this.extend (defaultOptions, this.options);
+        this.extendExchangeOptions(defaultOptions);
         const originalHeaders = this.options['ws']['options']['headers'];
         const headers = {
             'X-BITOPRO-API': 'ccxt',

@@ -23,6 +23,9 @@ function test_balance($exchange, $skipped_properties, $method, $entry) {
     $codes_total = is_array($entry['total']) ? array_keys($entry['total']) : array();
     $codes_free = is_array($entry['free']) ? array_keys($entry['free']) : array();
     $codes_used = is_array($entry['used']) ? array_keys($entry['used']) : array();
+    assert_non_emtpy_array($exchange, $skipped_properties, $method, $codes_total, 'total');
+    assert_non_emtpy_array($exchange, $skipped_properties, $method, $codes_free, 'free');
+    assert_non_emtpy_array($exchange, $skipped_properties, $method, $codes_used, 'used');
     $all_codes = $exchange->array_concat($codes_total, $codes_free);
     $all_codes = $exchange->array_concat($all_codes, $codes_used);
     $codes_length = count($codes_total);

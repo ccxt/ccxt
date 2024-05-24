@@ -7,8 +7,8 @@ namespace ccxt\pro;
 
 use Exception; // a common import
 use ccxt\ExchangeError;
-use ccxt\ArgumentsRequired;
 use ccxt\AuthenticationError;
+use ccxt\ArgumentsRequired;
 use React\Async;
 use React\Promise\PromiseInterface;
 
@@ -82,7 +82,7 @@ class bitvavo extends \ccxt\async\bitvavo {
                     ),
                 ],
             );
-            $message = array_merge($request, $params);
+            $message = $this->extend($request, $params);
             return Async\await($this->watch($url, $messageHash, $message, $messageHash));
         }) ();
     }
@@ -213,7 +213,7 @@ class bitvavo extends \ccxt\async\bitvavo {
                     ),
                 ),
             );
-            $message = array_merge($request, $params);
+            $message = $this->extend($request, $params);
             $ohlcv = Async\await($this->watch($url, $messageHash, $message, $messageHash));
             if ($this->newUpdates) {
                 $limit = $ohlcv->getLimit ($symbol, $limit);
@@ -316,7 +316,7 @@ class bitvavo extends \ccxt\async\bitvavo {
                 'limit' => $limit,
                 'params' => $params,
             );
-            $message = array_merge($request, $params);
+            $message = $this->extend($request, $params);
             $orderbook = Async\await($this->watch($url, $messageHash, $message, $messageHash, $subscription));
             return $orderbook->limit ();
         }) ();
@@ -409,7 +409,7 @@ class bitvavo extends \ccxt\async\bitvavo {
                 'action' => $name,
                 'market' => $marketId,
             );
-            $orderbook = Async\await($this->watch($url, $messageHash, array_merge($request, $params), $messageHash, $subscription));
+            $orderbook = Async\await($this->watch($url, $messageHash, $this->extend($request, $params), $messageHash, $subscription));
             return $orderbook->limit ();
         }) ();
     }
@@ -621,7 +621,7 @@ class bitvavo extends \ccxt\async\bitvavo {
              */
             Async\await($this->load_markets());
             Async\await($this->authenticate());
-            $request = $this->cancelOrderRequest ($id, $symbol, $params);
+            $request = $this->cancel_order_request($id, $symbol, $params);
             return Async\await($this->watch_request('privateCancelOrder', $request));
         }) ();
     }
@@ -643,7 +643,7 @@ class bitvavo extends \ccxt\async\bitvavo {
                 $market = $this->market($symbol);
                 $request['market'] = $market['id'];
             }
-            return Async\await($this->watch_request('privateCancelOrders', array_merge($request, $params)));
+            return Async\await($this->watch_request('privateCancelOrders', $this->extend($request, $params)));
         }) ();
     }
 
@@ -686,7 +686,7 @@ class bitvavo extends \ccxt\async\bitvavo {
                 'orderId' => $id,
                 'market' => $market['id'],
             );
-            return Async\await($this->watch_request('privateGetOrder', array_merge($request, $params)));
+            return Async\await($this->watch_request('privateGetOrder', $this->extend($request, $params)));
         }) ();
     }
 
@@ -742,7 +742,7 @@ class bitvavo extends \ccxt\async\bitvavo {
                 $market = $this->market($symbol);
                 $request['market'] = $market['id'];
             }
-            $orders = Async\await($this->watch_request('privateGetOrdersOpen', array_merge($request, $params)));
+            $orders = Async\await($this->watch_request('privateGetOrdersOpen', $this->extend($request, $params)));
             return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit);
         }) ();
     }
@@ -942,7 +942,7 @@ class bitvavo extends \ccxt\async\bitvavo {
         $client->resolve ($deposits, $messageHash);
     }
 
-    public function fetch_trading_fees_ws($params = array ()) {
+    public function fetch_trading_fees_ws($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * @see https://docs.bitvavo.com/#tag/Account/paths/~1account/get
@@ -1260,27 +1260,29 @@ class bitvavo extends \ccxt\async\bitvavo {
     }
 
     public function authenticate($params = array ()) {
-        $url = $this->urls['api']['ws'];
-        $client = $this->client($url);
-        $messageHash = 'authenticated';
-        $future = $this->safe_value($client->subscriptions, $messageHash);
-        if ($future === null) {
-            $timestamp = $this->milliseconds();
-            $stringTimestamp = (string) $timestamp;
-            $auth = $stringTimestamp . 'GET/' . $this->version . '/websocket';
-            $signature = $this->hmac($this->encode($auth), $this->encode($this->secret), 'sha256');
-            $action = 'authenticate';
-            $request = array(
-                'action' => $action,
-                'key' => $this->apiKey,
-                'signature' => $signature,
-                'timestamp' => $timestamp,
-            );
-            $message = array_merge($request, $params);
-            $future = $this->watch($url, $messageHash, $message);
-            $client->subscriptions[$messageHash] = $future;
-        }
-        return $future;
+        return Async\async(function () use ($params) {
+            $url = $this->urls['api']['ws'];
+            $client = $this->client($url);
+            $messageHash = 'authenticated';
+            $future = $this->safe_value($client->subscriptions, $messageHash);
+            if ($future === null) {
+                $timestamp = $this->milliseconds();
+                $stringTimestamp = (string) $timestamp;
+                $auth = $stringTimestamp . 'GET/' . $this->version . '/websocket';
+                $signature = $this->hmac($this->encode($auth), $this->encode($this->secret), 'sha256');
+                $action = 'authenticate';
+                $request = array(
+                    'action' => $action,
+                    'key' => $this->apiKey,
+                    'signature' => $signature,
+                    'timestamp' => $timestamp,
+                );
+                $message = $this->extend($request, $params);
+                $future = Async\await($this->watch($url, $messageHash, $message, $messageHash));
+                $client->subscriptions[$messageHash] = $future;
+            }
+            return $future;
+        }) ();
     }
 
     public function handle_authentication_message(Client $client, $message) {

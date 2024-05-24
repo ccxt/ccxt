@@ -5,8 +5,8 @@
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
 import assert from 'assert';
-import testSharedMethods from './test.sharedMethods.js';
 import Precise from '../../../base/Precise.js';
+import testSharedMethods from './test.sharedMethods.js';
 function testBalance(exchange, skippedProperties, method, entry) {
     const format = {
         'free': {},
@@ -20,6 +20,9 @@ function testBalance(exchange, skippedProperties, method, entry) {
     const codesTotal = Object.keys(entry['total']);
     const codesFree = Object.keys(entry['free']);
     const codesUsed = Object.keys(entry['used']);
+    testSharedMethods.assertNonEmtpyArray(exchange, skippedProperties, method, codesTotal, 'total');
+    testSharedMethods.assertNonEmtpyArray(exchange, skippedProperties, method, codesFree, 'free');
+    testSharedMethods.assertNonEmtpyArray(exchange, skippedProperties, method, codesUsed, 'used');
     let allCodes = exchange.arrayConcat(codesTotal, codesFree);
     allCodes = exchange.arrayConcat(allCodes, codesUsed);
     const codesLength = codesTotal.length;

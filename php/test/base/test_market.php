@@ -63,7 +63,7 @@ function test_market($exchange, $skipped_properties, $method, $market) {
     assert_symbol($exchange, $skipped_properties, $method, $market, 'symbol');
     $log_text = log_template($exchange, $method, $market);
     //
-    $valid_types = ['spot', 'margin', 'swap', 'future', 'option'];
+    $valid_types = ['spot', 'margin', 'swap', 'future', 'option', 'index'];
     assert_in_array($exchange, $skipped_properties, $method, $market, 'type', $valid_types);
     $has_index = (is_array($market) && array_key_exists('index', $market)); // todo: add in all
     // check if string is consistent with 'type'
@@ -88,6 +88,10 @@ function test_market($exchange, $skipped_properties, $method, $market) {
         assert_in_array($exchange, $skipped_properties, $method, $market, 'margin', [false, null]);
     }
     if (!(is_array($skipped_properties) && array_key_exists('contractSize', $skipped_properties))) {
+        if (!$market['spot']) {
+            // if not spot, then contractSize should be defined
+            assert($market['contractSize'] !== null, '\"contractSize\" must be defined when \"spot\" is false' . $log_text);
+        }
         assert_greater($exchange, $skipped_properties, $method, $market, 'contractSize', '0');
     }
     // typical values
@@ -195,7 +199,7 @@ function test_market($exchange, $skipped_properties, $method, $market) {
         }
     }
     // check whether valid currency ID and CODE is used
-    if (!(is_array($skipped_properties) && array_key_exists('currencyIdAndCode', $skipped_properties))) {
+    if (!(is_array($skipped_properties) && array_key_exists('currency', $skipped_properties)) && !(is_array($skipped_properties) && array_key_exists('currencyIdAndCode', $skipped_properties))) {
         assert_valid_currency_id_and_code($exchange, $skipped_properties, $method, $market, $market['baseId'], $market['base']);
         assert_valid_currency_id_and_code($exchange, $skipped_properties, $method, $market, $market['quoteId'], $market['quote']);
         assert_valid_currency_id_and_code($exchange, $skipped_properties, $method, $market, $market['settleId'], $market['settle']);

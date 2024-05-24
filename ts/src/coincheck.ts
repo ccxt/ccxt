@@ -5,7 +5,7 @@ import Exchange from './abstract/coincheck.js';
 import { BadSymbol, ExchangeError, AuthenticationError } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { Balances, Currency, Int, Market, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade, Transaction } from './base/types.js';
+import type { Balances, Currency, Dict, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade, TradingFees, Transaction } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -54,8 +54,11 @@ export default class coincheck extends Exchange {
                 'fetchOpenOrders': true,
                 'fetchOrderBook': true,
                 'fetchPosition': false,
+                'fetchPositionHistory': false,
                 'fetchPositionMode': false,
                 'fetchPositions': false,
+                'fetchPositionsForSymbol': false,
+                'fetchPositionsHistory': false,
                 'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchTicker': true,
@@ -171,7 +174,7 @@ export default class coincheck extends Exchange {
     }
 
     parseBalance (response): Balances {
-        const result = { 'info': response };
+        const result: Dict = { 'info': response };
         const codes = Object.keys (this.currencies);
         for (let i = 0; i < codes.length; i++) {
             const code = codes[i];
@@ -230,7 +233,7 @@ export default class coincheck extends Exchange {
         return result as Order[];
     }
 
-    parseOrder (order, market: Market = undefined): Order {
+    parseOrder (order: Dict, market: Market = undefined): Order {
         //
         // fetchOpenOrders
         //
@@ -293,14 +296,14 @@ export default class coincheck extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'pair': market['id'],
         };
         const response = await this.publicGetOrderBooks (this.extend (request, params));
         return this.parseOrderBook (response, market['symbol']);
     }
 
-    parseTicker (ticker, market: Market = undefined): Ticker {
+    parseTicker (ticker: Dict, market: Market = undefined): Ticker {
         //
         // {
         //     "last":4192632.0,
@@ -354,7 +357,7 @@ export default class coincheck extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'pair': market['id'],
         };
         const ticker = await this.publicGetTicker (this.extend (request, params));
@@ -372,7 +375,7 @@ export default class coincheck extends Exchange {
         return this.parseTicker (ticker, market);
     }
 
-    parseTrade (trade, market: Market = undefined): Trade {
+    parseTrade (trade: Dict, market: Market = undefined): Trade {
         //
         // fetchTrades (public)
         //
@@ -467,7 +470,7 @@ export default class coincheck extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {};
+        const request: Dict = {};
         if (limit !== undefined) {
             request['limit'] = limit;
         }
@@ -494,7 +497,7 @@ export default class coincheck extends Exchange {
         //                  ]
         //      }
         //
-        const transactions = this.safeValue (response, 'data', []);
+        const transactions = this.safeList (response, 'data', []);
         return this.parseTrades (transactions, market, since, limit);
     }
 
@@ -512,7 +515,7 @@ export default class coincheck extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'pair': market['id'],
         };
         if (limit !== undefined) {
@@ -529,11 +532,11 @@ export default class coincheck extends Exchange {
         //          "created_at": "2021-12-08T14:10:33.000Z"
         //      }
         //
-        const data = this.safeValue (response, 'data', []);
+        const data = this.safeList (response, 'data', []);
         return this.parseTrades (data, market, since, limit);
     }
 
-    async fetchTradingFees (params = {}) {
+    async fetchTradingFees (params = {}): Promise<TradingFees> {
         /**
          * @method
          * @name coincheck#fetchTradingFees
@@ -564,7 +567,7 @@ export default class coincheck extends Exchange {
         //     }
         //
         const fees = this.safeValue (response, 'exchange_fees', {});
-        const result = {};
+        const result: Dict = {};
         for (let i = 0; i < this.symbols.length; i++) {
             const symbol = this.symbols[i];
             const market = this.market (symbol);
@@ -581,7 +584,7 @@ export default class coincheck extends Exchange {
         return result;
     }
 
-    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: number = undefined, params = {}) {
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
         /**
          * @method
          * @name coincheck#createOrder
@@ -597,7 +600,7 @@ export default class coincheck extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'pair': market['id'],
         };
         if (type === 'market') {
@@ -629,7 +632,7 @@ export default class coincheck extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
-        const request = {
+        const request: Dict = {
             'id': id,
         };
         return await this.privateDeleteExchangeOrdersId (this.extend (request, params));
@@ -649,7 +652,7 @@ export default class coincheck extends Exchange {
          */
         await this.loadMarkets ();
         let currency = undefined;
-        const request = {};
+        const request: Dict = {};
         if (code !== undefined) {
             currency = this.currency (code);
             request['currency'] = currency['id'];
@@ -681,7 +684,7 @@ export default class coincheck extends Exchange {
         //     }
         //   ]
         // }
-        const data = this.safeValue (response, 'deposits', []);
+        const data = this.safeList (response, 'deposits', []);
         return this.parseTransactions (data, currency, since, limit, { 'type': 'deposit' });
     }
 
@@ -702,7 +705,7 @@ export default class coincheck extends Exchange {
         if (code !== undefined) {
             currency = this.currency (code);
         }
-        const request = {};
+        const request: Dict = {};
         if (limit !== undefined) {
             request['limit'] = limit;
         }
@@ -728,12 +731,12 @@ export default class coincheck extends Exchange {
         //     }
         //   ]
         // }
-        const data = this.safeValue (response, 'data', []);
+        const data = this.safeList (response, 'data', []);
         return this.parseTransactions (data, currency, since, limit, { 'type': 'withdrawal' });
     }
 
     parseTransactionStatus (status) {
-        const statuses = {
+        const statuses: Dict = {
             // withdrawals
             'pending': 'pending',
             'processing': 'pending',
@@ -746,7 +749,7 @@ export default class coincheck extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseTransaction (transaction, currency: Currency = undefined): Transaction {
+    parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {
         //
         // fetchDeposits
         //

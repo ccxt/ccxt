@@ -47,9 +47,11 @@ public partial class ascendex : Exchange
                 { "fetchFundingRateHistory", false },
                 { "fetchFundingRates", true },
                 { "fetchIndexOHLCV", false },
-                { "fetchLeverage", false },
+                { "fetchLeverage", "emulated" },
+                { "fetchLeverages", true },
                 { "fetchLeverageTiers", true },
-                { "fetchMarginMode", false },
+                { "fetchMarginMode", "emulated" },
+                { "fetchMarginModes", true },
                 { "fetchMarketLeverageTiers", "emulated" },
                 { "fetchMarkets", true },
                 { "fetchMarkOHLCV", false },
@@ -79,6 +81,7 @@ public partial class ascendex : Exchange
                 { "fetchWithdrawal", false },
                 { "fetchWithdrawals", true },
                 { "reduceMargin", true },
+                { "sandbox", true },
                 { "setLeverage", true },
                 { "setMarginMode", true },
                 { "setPositionMode", false },
@@ -342,7 +345,7 @@ public partial class ascendex : Exchange
                     { "300013", typeof(InvalidOrder) },
                     { "300014", typeof(InvalidOrder) },
                     { "300020", typeof(InvalidOrder) },
-                    { "300021", typeof(InvalidOrder) },
+                    { "300021", typeof(AccountSuspended) },
                     { "300031", typeof(InvalidOrder) },
                     { "310001", typeof(InsufficientFunds) },
                     { "310002", typeof(InvalidOrder) },
@@ -753,7 +756,7 @@ public partial class ascendex : Exchange
         return new List<object>() {new Dictionary<string, object>() {
     { "id", accountGroup },
     { "type", null },
-    { "currency", null },
+    { "code", null },
     { "info", response },
 }};
     }
@@ -1061,7 +1064,7 @@ public partial class ascendex : Exchange
         //         }
         //     }
         //
-        object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         return this.parseTicker(data, market);
     }
 
@@ -1209,7 +1212,7 @@ public partial class ascendex : Exchange
         //         ]
         //     }
         //
-        object data = this.safeValue(response, "data", new List<object>() {});
+        object data = this.safeList(response, "data", new List<object>() {});
         return this.parseOHLCVs(data, market, timeframe, since, limit);
     }
 
@@ -1288,7 +1291,7 @@ public partial class ascendex : Exchange
         //     }
         //
         object records = this.safeValue(response, "data", new List<object>() {});
-        object trades = this.safeValue(records, "data", new List<object>() {});
+        object trades = this.safeList(records, "data", new List<object>() {});
         return this.parseTrades(trades, market, since, limit);
     }
 
@@ -1458,7 +1461,7 @@ public partial class ascendex : Exchange
                 { "currency", feeCurrencyCode },
             };
         }
-        object stopPrice = this.safeNumber(order, "stopPrice");
+        object stopPrice = this.omitZero(this.safeString(order, "stopPrice"));
         object reduceOnly = null;
         object execInst = this.safeString(order, "execInst");
         if (isTrue(isEqual(execInst, "reduceOnly")))
@@ -1545,6 +1548,8 @@ public partial class ascendex : Exchange
                 { "symbol", symbol },
                 { "maker", this.safeNumber(takerMaker, "maker") },
                 { "taker", this.safeNumber(takerMaker, "taker") },
+                { "percentage", null },
+                { "tierBased", null },
             };
         }
         return result;
@@ -1861,7 +1866,7 @@ public partial class ascendex : Exchange
         //     }
         //
         object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
-        object info = this.safeValue(data, "info", new List<object>() {});
+        object info = this.safeList(data, "info", new List<object>() {});
         return this.parseOrders(info, market);
     }
 
@@ -1976,7 +1981,7 @@ public partial class ascendex : Exchange
         //         }
         //     }
         //
-        object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         return this.parseOrder(data, market);
     }
 
@@ -2708,7 +2713,7 @@ public partial class ascendex : Exchange
         //     }
         //
         object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
-        object transactions = this.safeValue(data, "data", new List<object>() {});
+        object transactions = this.safeList(data, "data", new List<object>() {});
         return this.parseTransactions(transactions, currency, since, limit);
     }
 
@@ -2880,7 +2885,8 @@ public partial class ascendex : Exchange
         {
             notional = this.safeString(position, "sellOpenOrderNotional");
         }
-        object marginMode = this.safeString(position, "marginType");
+        object marginType = this.safeString(position, "marginType");
+        object marginMode = ((bool) isTrue((isEqual(marginType, "crossed")))) ? "cross" : "isolated";
         object collateral = null;
         if (isTrue(isEqual(marginMode, "isolated")))
         {
@@ -3032,17 +3038,28 @@ public partial class ascendex : Exchange
         });
     }
 
-    public virtual object parseMarginModification(object data, object market = null)
+    public override object parseMarginModification(object data, object market = null)
     {
+        //
+        // addMargin/reduceMargin
+        //
+        //     {
+        //          "code": 0
+        //     }
+        //
         object errorCode = this.safeString(data, "code");
         object status = ((bool) isTrue((isEqual(errorCode, "0")))) ? "ok" : "failed";
         return new Dictionary<string, object>() {
             { "info", data },
-            { "type", null },
-            { "amount", null },
-            { "code", getValue(market, "quote") },
             { "symbol", getValue(market, "symbol") },
+            { "type", null },
+            { "marginMode", "isolated" },
+            { "amount", null },
+            { "total", null },
+            { "code", getValue(market, "quote") },
             { "status", status },
+            { "timestamp", null },
+            { "datetime", null },
         };
     }
 
@@ -3327,7 +3344,7 @@ public partial class ascendex : Exchange
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object response = await this.v2PublicGetAssets(parameters);
-        object data = this.safeValue(response, "data");
+        object data = this.safeList(response, "data");
         return this.parseDepositWithdrawFees(data, codes, "assetCode");
     }
 
@@ -3350,7 +3367,6 @@ public partial class ascendex : Exchange
         object account = this.safeValue(this.accounts, 0, new Dictionary<string, object>() {});
         object accountGroup = this.safeString(account, "id");
         object currency = this.currency(code);
-        amount = this.currencyToPrecision(code, amount);
         object accountsByType = this.safeValue(this.options, "accountsByType", new Dictionary<string, object>() {});
         object fromId = this.safeString(accountsByType, fromAccount, fromAccount);
         object toId = this.safeString(accountsByType, toAccount, toAccount);
@@ -3360,7 +3376,7 @@ public partial class ascendex : Exchange
         }
         object request = new Dictionary<string, object>() {
             { "account-group", accountGroup },
-            { "amount", amount },
+            { "amount", this.currencyToPrecision(code, amount) },
             { "asset", getValue(currency, "id") },
             { "fromAccount", fromId },
             { "toAccount", toId },
@@ -3387,7 +3403,7 @@ public partial class ascendex : Exchange
         //
         //    { "code": "0" }
         //
-        object status = this.safeInteger(transfer, "code");
+        object status = this.safeString(transfer, "code");
         object currencyCode = this.safeCurrencyCode(null, currency);
         return new Dictionary<string, object>() {
             { "info", transfer },
@@ -3404,7 +3420,7 @@ public partial class ascendex : Exchange
 
     public virtual object parseTransferStatus(object status)
     {
-        if (isTrue(isEqual(status, 0)))
+        if (isTrue(isEqual(status, "0")))
         {
             return "ok";
         }
@@ -3471,7 +3487,7 @@ public partial class ascendex : Exchange
         //     }
         //
         object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
-        object rows = this.safeValue(data, "data", new List<object>() {});
+        object rows = this.safeList(data, "data", new List<object>() {});
         return this.parseIncomes(rows, market, since, limit);
     }
 
@@ -3495,6 +3511,161 @@ public partial class ascendex : Exchange
             { "datetime", this.iso8601(timestamp) },
             { "id", null },
             { "amount", this.safeNumber(income, "paymentInUSDT") },
+        };
+    }
+
+    public async override Task<object> fetchMarginModes(object symbols = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name ascendex#fetchMarginMode
+        * @description fetches the set margin mode of the user
+        * @see https://ascendex.github.io/ascendex-futures-pro-api-v2/#position
+        * @param {string[]} [symbols] a list of unified market symbols
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {object} a list of [margin mode structures]{@link https://docs.ccxt.com/#/?id=margin-mode-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        await this.loadAccounts();
+        object account = this.safeValue(this.accounts, 0, new Dictionary<string, object>() {});
+        object accountGroup = this.safeString(account, "id");
+        object request = new Dictionary<string, object>() {
+            { "account-group", accountGroup },
+        };
+        object response = await this.v2PrivateAccountGroupGetFuturesPosition(this.extend(request, parameters));
+        //
+        //     {
+        //         "code": 0,
+        //         "data": {
+        //             "accountId": "fut2ODPhGiY71Pl4vtXnOZ00ssgD7QGn",
+        //             "ac": "FUTURES",
+        //             "collaterals": [
+        //                 {
+        //                     "asset": "USDT",
+        //                     "balance": "44.570287262",
+        //                     "referencePrice": "1",
+        //                     "discountFactor": "1"
+        //                 }
+        //             ],
+        //             "contracts": [
+        //                 {
+        //                     "symbol": "BTC-PERP",
+        //                     "side": "LONG",
+        //                     "position": "0.0001",
+        //                     "referenceCost": "-3.12277254",
+        //                     "unrealizedPnl": "-0.001700233",
+        //                     "realizedPnl": "0",
+        //                     "avgOpenPrice": "31209",
+        //                     "marginType": "isolated",
+        //                     "isolatedMargin": "1.654972977",
+        //                     "leverage": "2",
+        //                     "takeProfitPrice": "0",
+        //                     "takeProfitTrigger": "market",
+        //                     "stopLossPrice": "0",
+        //                     "stopLossTrigger": "market",
+        //                     "buyOpenOrderNotional": "0",
+        //                     "sellOpenOrderNotional": "0",
+        //                     "markPrice": "31210.723063672",
+        //                     "indexPrice": "31223.148857925"
+        //                 },
+        //             ]
+        //         }
+        //     }
+        //
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        object marginModes = this.safeList(data, "contracts", new List<object>() {});
+        return this.parseMarginModes(marginModes, symbols, "symbol");
+    }
+
+    public override object parseMarginMode(object marginMode, object market = null)
+    {
+        object marketId = this.safeString(marginMode, "symbol");
+        object marginType = this.safeString(marginMode, "marginType");
+        object margin = ((bool) isTrue((isEqual(marginType, "crossed")))) ? "cross" : "isolated";
+        return new Dictionary<string, object>() {
+            { "info", marginMode },
+            { "symbol", this.safeSymbol(marketId, market) },
+            { "marginMode", margin },
+        };
+    }
+
+    public async override Task<object> fetchLeverages(object symbols = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name ascendex#fetchLeverages
+        * @description fetch the set leverage for all contract markets
+        * @see https://ascendex.github.io/ascendex-futures-pro-api-v2/#position
+        * @param {string[]} [symbols] a list of unified market symbols
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {object} a list of [leverage structures]{@link https://docs.ccxt.com/#/?id=leverage-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        await this.loadAccounts();
+        object account = this.safeValue(this.accounts, 0, new Dictionary<string, object>() {});
+        object accountGroup = this.safeString(account, "id");
+        object request = new Dictionary<string, object>() {
+            { "account-group", accountGroup },
+        };
+        object response = await this.v2PrivateAccountGroupGetFuturesPosition(this.extend(request, parameters));
+        //
+        //     {
+        //         "code": 0,
+        //         "data": {
+        //             "accountId": "fut2ODPhGiY71Pl4vtXnOZ00ssgD7QGn",
+        //             "ac": "FUTURES",
+        //             "collaterals": [
+        //                 {
+        //                     "asset": "USDT",
+        //                     "balance": "44.570287262",
+        //                     "referencePrice": "1",
+        //                     "discountFactor": "1"
+        //                 }
+        //             ],
+        //             "contracts": [
+        //                 {
+        //                     "symbol": "BTC-PERP",
+        //                     "side": "LONG",
+        //                     "position": "0.0001",
+        //                     "referenceCost": "-3.12277254",
+        //                     "unrealizedPnl": "-0.001700233",
+        //                     "realizedPnl": "0",
+        //                     "avgOpenPrice": "31209",
+        //                     "marginType": "isolated",
+        //                     "isolatedMargin": "1.654972977",
+        //                     "leverage": "2",
+        //                     "takeProfitPrice": "0",
+        //                     "takeProfitTrigger": "market",
+        //                     "stopLossPrice": "0",
+        //                     "stopLossTrigger": "market",
+        //                     "buyOpenOrderNotional": "0",
+        //                     "sellOpenOrderNotional": "0",
+        //                     "markPrice": "31210.723063672",
+        //                     "indexPrice": "31223.148857925"
+        //                 },
+        //             ]
+        //         }
+        //     }
+        //
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        object leverages = this.safeList(data, "contracts", new List<object>() {});
+        return this.parseLeverages(leverages, symbols, "symbol");
+    }
+
+    public override object parseLeverage(object leverage, object market = null)
+    {
+        object marketId = this.safeString(leverage, "symbol");
+        object leverageValue = this.safeInteger(leverage, "leverage");
+        object marginType = this.safeString(leverage, "marginType");
+        object marginMode = ((bool) isTrue((isEqual(marginType, "crossed")))) ? "cross" : "isolated";
+        return new Dictionary<string, object>() {
+            { "info", leverage },
+            { "symbol", this.safeSymbol(marketId, market) },
+            { "marginMode", marginMode },
+            { "longLeverage", leverageValue },
+            { "shortLeverage", leverageValue },
         };
     }
 

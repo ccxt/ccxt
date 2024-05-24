@@ -166,6 +166,11 @@ public partial class krakenfutures : Exchange
         return await this.callAsync ("historyGetAccountlogcsv",parameters);
     }
 
+    public async Task<object> historyGetAccountLog (object parameters = null)
+    {
+        return await this.callAsync ("historyGetAccountLog",parameters);
+    }
+
     public async Task<object> historyGetMarketSymbolOrders (object parameters = null)
     {
         return await this.callAsync ("historyGetMarketSymbolOrders",parameters);

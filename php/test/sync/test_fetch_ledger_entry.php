@@ -13,6 +13,7 @@ function test_fetch_ledger_entry($exchange, $skipped_properties, $code) {
     $method = 'fetchLedgerEntry';
     $items = $exchange->fetch_ledger($code);
     $length = count($items);
+    assert_non_emtpy_array($exchange, $skipped_properties, $method, $items, $code);
     if ($length > 0) {
         $first_item = $items[0];
         $id = $first_item['id'];

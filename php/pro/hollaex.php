@@ -434,7 +434,7 @@ class hollaex extends \ccxt\async\hollaex {
                 'op' => 'subscribe',
                 'args' => array( $messageHash ),
             );
-            $message = array_merge($request, $params);
+            $message = $this->extend($request, $params);
             return Async\await($this->watch($url, $messageHash, $message, $messageHash));
         }) ();
     }
@@ -464,7 +464,7 @@ class hollaex extends \ccxt\async\hollaex {
                 'op' => 'subscribe',
                 'args' => array( $messageHash ),
             );
-            $message = array_merge($request, $params);
+            $message = $this->extend($request, $params);
             return Async\await($this->watch($signedUrl, $messageHash, $message, $messageHash));
         }) ();
     }

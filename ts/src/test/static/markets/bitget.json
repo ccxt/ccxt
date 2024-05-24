@@ -389,7 +389,9 @@
             "makerFeeRate": "0.0002",
             "takerFeeRate": "0.0006",
             "openCostUpRatio": "0.01",
-            "supportMarginCoins": ["USDT"],
+            "supportMarginCoins": [
+                "USDT"
+            ],
             "minTradeNum": "0.001",
             "priceEndStep": "1",
             "volumePlace": "3",
@@ -461,7 +463,14 @@
             "makerFeeRate": "0.0002",
             "takerFeeRate": "0.0006",
             "openCostUpRatio": "0.01",
-            "supportMarginCoins": ["BTC","ETH","USDC","XRP","BGB","STETH"],
+            "supportMarginCoins": [
+                "BTC",
+                "ETH",
+                "USDC",
+                "XRP",
+                "BGB",
+                "STETH"
+            ],
             "minTradeNum": "0.001",
             "priceEndStep": "1",
             "volumePlace": "3",
@@ -535,7 +544,9 @@
             "makerFeeRate": "0.0002",
             "takerFeeRate": "0.0006",
             "openCostUpRatio": "0.01",
-            "supportMarginCoins": ["USDT"],
+            "supportMarginCoins": [
+                "USDT"
+            ],
             "minTradeNum": "0.01",
             "priceEndStep": "1",
             "volumePlace": "2",
@@ -609,7 +620,9 @@
             "makerFeeRate": "0.0002",
             "takerFeeRate": "0.0006",
             "openCostUpRatio": "0.01",
-            "supportMarginCoins": ["USDT"],
+            "supportMarginCoins": [
+                "USDT"
+            ],
             "minTradeNum": "0.1",
             "priceEndStep": "1",
             "volumePlace": "1",
@@ -683,7 +696,9 @@
             "makerFeeRate": "0.0002",
             "takerFeeRate": "0.0006",
             "openCostUpRatio": "0.01",
-            "supportMarginCoins": ["USDT"],
+            "supportMarginCoins": [
+                "USDT"
+            ],
             "minTradeNum": "1",
             "priceEndStep": "1",
             "volumePlace": "0",
@@ -757,7 +772,9 @@
             "makerFeeRate": "0.0002",
             "takerFeeRate": "0.0006",
             "openCostUpRatio": "0.01",
-            "supportMarginCoins": ["USDT"],
+            "supportMarginCoins": [
+                "USDT"
+            ],
             "minTradeNum": "1",
             "priceEndStep": "1",
             "volumePlace": "0",
@@ -831,7 +848,9 @@
             "makerFeeRate": "0.0002",
             "takerFeeRate": "0.0006",
             "openCostUpRatio": "0.01",
-            "supportMarginCoins": ["USDT"],
+            "supportMarginCoins": [
+                "USDT"
+            ],
             "minTradeNum": "1",
             "priceEndStep": "1",
             "volumePlace": "0",
@@ -905,7 +924,9 @@
             "makerFeeRate": "0.0002",
             "takerFeeRate": "0.0006",
             "openCostUpRatio": "0.01",
-            "supportMarginCoins": ["USDT"],
+            "supportMarginCoins": [
+                "USDT"
+            ],
             "minTradeNum": "1",
             "priceEndStep": "1",
             "volumePlace": "0",

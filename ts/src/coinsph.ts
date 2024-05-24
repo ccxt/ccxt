@@ -3,7 +3,7 @@ import { ArgumentsRequired, AuthenticationError, BadRequest, BadResponse, BadSym
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
+import type { Balances, Currency, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction } from './base/types.js';
 
 /**
  * @class coinsph
@@ -88,7 +88,11 @@ export default class coinsph extends Exchange {
                 'fetchOrders': false,
                 'fetchOrderTrades': true,
                 'fetchPosition': false,
+                'fetchPositionHistory': false,
+                'fetchPositionMode': false,
                 'fetchPositions': false,
+                'fetchPositionsForSymbol': false,
+                'fetchPositionsHistory': false,
                 'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchStatus': true,
@@ -471,7 +475,7 @@ export default class coinsph extends Exchange {
         return this.safeInteger (response, 'serverTime');
     }
 
-    async fetchMarkets (params = {}) {
+    async fetchMarkets (params = {}): Promise<Market[]> {
         /**
          * @method
          * @name coinsph#fetchMarkets
@@ -622,7 +626,7 @@ export default class coinsph extends Exchange {
          * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets ();
-        const request = {};
+        const request: Dict = {};
         if (symbols !== undefined) {
             const ids = [];
             for (let i = 0; i < symbols.length; i++) {
@@ -660,7 +664,7 @@ export default class coinsph extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'symbol': market['id'],
         };
         const defaultMethod = 'publicGetOpenapiQuoteV1Ticker24hr';
@@ -677,7 +681,7 @@ export default class coinsph extends Exchange {
         return this.parseTicker (ticker, market);
     }
 
-    parseTicker (ticker, market: Market = undefined): Ticker {
+    parseTicker (ticker: Dict, market: Market = undefined): Ticker {
         //
         // publicGetOpenapiQuoteV1Ticker24hr
         //     {
@@ -769,7 +773,7 @@ export default class coinsph extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'symbol': market['id'],
         };
         if (limit !== undefined) {
@@ -810,7 +814,7 @@ export default class coinsph extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const interval = this.safeString (this.timeframes, timeframe);
-        const request = {
+        const request: Dict = {
             'symbol': market['id'],
             'interval': interval,
         };
@@ -875,7 +879,7 @@ export default class coinsph extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'symbol': market['id'],
         };
         if (since !== undefined) {
@@ -920,7 +924,7 @@ export default class coinsph extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'symbol': market['id'],
         };
         if (since !== undefined) {
@@ -950,13 +954,13 @@ export default class coinsph extends Exchange {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOrderTrades() requires a symbol argument');
         }
-        const request = {
+        const request: Dict = {
             'orderId': id,
         };
         return await this.fetchMyTrades (symbol, since, limit, this.extend (request, params));
     }
 
-    parseTrade (trade, market: Market = undefined): Trade {
+    parseTrade (trade: Dict, market: Market = undefined): Trade {
         //
         // fetchTrades
         //     {
@@ -1080,7 +1084,7 @@ export default class coinsph extends Exchange {
 
     parseBalance (response): Balances {
         const balances = this.safeValue (response, 'balances', []);
-        const result = {
+        const result: Dict = {
             'info': response,
             'timestamp': undefined,
             'datetime': undefined,
@@ -1097,7 +1101,7 @@ export default class coinsph extends Exchange {
         return this.safeBalance (result);
     }
 
-    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: number = undefined, params = {}) {
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
         /**
          * @method
          * @name coinsph#createOrder
@@ -1122,7 +1126,7 @@ export default class coinsph extends Exchange {
         orderType = this.encodeOrderType (orderType);
         params = this.omit (params, 'type');
         const orderSide = this.encodeOrderSide (side);
-        const request = {
+        const request: Dict = {
             'symbol': market['id'],
             'type': orderType,
             'side': orderSide,
@@ -1225,7 +1229,7 @@ export default class coinsph extends Exchange {
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
-        const request = {};
+        const request: Dict = {};
         const clientOrderId = this.safeValue2 (params, 'origClientOrderId', 'clientOrderId');
         if (clientOrderId !== undefined) {
             request['origClientOrderId'] = clientOrderId;
@@ -1251,7 +1255,7 @@ export default class coinsph extends Exchange {
          */
         await this.loadMarkets ();
         let market = undefined;
-        const request = {};
+        const request: Dict = {};
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['symbol'] = market['id'];
@@ -1277,7 +1281,7 @@ export default class coinsph extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'symbol': market['id'],
         };
         if (since !== undefined) {
@@ -1303,7 +1307,7 @@ export default class coinsph extends Exchange {
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
-        const request = {};
+        const request: Dict = {};
         const clientOrderId = this.safeValue2 (params, 'origClientOrderId', 'clientOrderId');
         if (clientOrderId !== undefined) {
             request['origClientOrderId'] = clientOrderId;
@@ -1330,7 +1334,7 @@ export default class coinsph extends Exchange {
         }
         await this.loadMarkets ();
         let market = undefined;
-        const request = {};
+        const request: Dict = {};
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['symbol'] = market['id'];
@@ -1339,7 +1343,7 @@ export default class coinsph extends Exchange {
         return this.parseOrders (response, market);
     }
 
-    parseOrder (order, market: Market = undefined): Order {
+    parseOrder (order: Dict, market: Market = undefined): Order {
         //
         // createOrder POST /openapi/v1/order
         //     {
@@ -1444,7 +1448,7 @@ export default class coinsph extends Exchange {
     }
 
     parseOrderSide (status) {
-        const statuses = {
+        const statuses: Dict = {
             'BUY': 'buy',
             'SELL': 'sell',
         };
@@ -1452,7 +1456,7 @@ export default class coinsph extends Exchange {
     }
 
     encodeOrderSide (status) {
-        const statuses = {
+        const statuses: Dict = {
             'buy': 'BUY',
             'sell': 'SELL',
         };
@@ -1460,7 +1464,7 @@ export default class coinsph extends Exchange {
     }
 
     parseOrderType (status) {
-        const statuses = {
+        const statuses: Dict = {
             'MARKET': 'market',
             'LIMIT': 'limit',
             'LIMIT_MAKER': 'limit',
@@ -1473,7 +1477,7 @@ export default class coinsph extends Exchange {
     }
 
     encodeOrderType (status) {
-        const statuses = {
+        const statuses: Dict = {
             'market': 'MARKET',
             'limit': 'LIMIT',
             'limit_maker': 'LIMIT_MAKER',
@@ -1485,8 +1489,8 @@ export default class coinsph extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseOrderStatus (status) {
-        const statuses = {
+    parseOrderStatus (status: Str) {
+        const statuses: Dict = {
             'NEW': 'open',
             'FILLED': 'closed',
             'CANCELED': 'canceled',
@@ -1498,7 +1502,7 @@ export default class coinsph extends Exchange {
     }
 
     parseOrderTimeInForce (status) {
-        const statuses = {
+        const statuses: Dict = {
             'GTC': 'GTC',
             'FOK': 'FOK',
             'IOC': 'IOC',
@@ -1506,7 +1510,7 @@ export default class coinsph extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    async fetchTradingFee (symbol: string, params = {}) {
+    async fetchTradingFee (symbol: string, params = {}): Promise<TradingFeeInterface> {
         /**
          * @method
          * @name coinsph#fetchTradingFee
@@ -1518,7 +1522,7 @@ export default class coinsph extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'symbol': market['id'],
         };
         const response = await this.privateGetOpenapiV1AssetTradeFee (this.extend (request, params));
@@ -1535,7 +1539,7 @@ export default class coinsph extends Exchange {
         return this.parseTradingFee (tradingFee, market);
     }
 
-    async fetchTradingFees (params = {}) {
+    async fetchTradingFees (params = {}): Promise<TradingFees> {
         /**
          * @method
          * @name coinsph#fetchTradingFees
@@ -1560,7 +1564,7 @@ export default class coinsph extends Exchange {
         //         },
         //     ]
         //
-        const result = {};
+        const result: Dict = {};
         for (let i = 0; i < response.length; i++) {
             const fee = this.parseTradingFee (response[i]);
             const symbol = fee['symbol'];
@@ -1569,7 +1573,7 @@ export default class coinsph extends Exchange {
         return result;
     }
 
-    parseTradingFee (fee, market: Market = undefined) {
+    parseTradingFee (fee: Dict, market: Market = undefined): TradingFeeInterface {
         //
         //     {
         //         "symbol": "ETHUSDT",
@@ -1585,10 +1589,12 @@ export default class coinsph extends Exchange {
             'symbol': symbol,
             'maker': this.safeNumber (fee, 'makerCommission'),
             'taker': this.safeNumber (fee, 'takerCommission'),
+            'percentage': undefined,
+            'tierBased': undefined,
         };
     }
 
-    async withdraw (code: string, amount: number, address, tag = undefined, params = {}) {
+    async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}) {
         /**
          * @method
          * @name coinsph#withdraw
@@ -1613,7 +1619,7 @@ export default class coinsph extends Exchange {
         }
         await this.loadMarkets ();
         const currency = this.currency (code);
-        const request = {
+        const request: Dict = {
             'coin': currency['id'],
             'amount': this.numberToString (amount),
             'network': networkId,
@@ -1642,7 +1648,7 @@ export default class coinsph extends Exchange {
         // todo: returns an empty array - find out why
         await this.loadMarkets ();
         let currency = undefined;
-        const request = {};
+        const request: Dict = {};
         if (code !== undefined) {
             currency = this.currency (code);
             request['coin'] = currency['id'];
@@ -1700,7 +1706,7 @@ export default class coinsph extends Exchange {
         // todo: returns an empty array - find out why
         await this.loadMarkets ();
         let currency = undefined;
-        const request = {};
+        const request: Dict = {};
         if (code !== undefined) {
             currency = this.currency (code);
             request['coin'] = currency['id'];
@@ -1749,7 +1755,7 @@ export default class coinsph extends Exchange {
         return this.parseTransactions (response, currency, since, limit);
     }
 
-    parseTransaction (transaction, currency: Currency = undefined): Transaction {
+    parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {
         //
         // fetchDeposits
         //     {
@@ -1842,7 +1848,7 @@ export default class coinsph extends Exchange {
     }
 
     parseTransactionStatus (status) {
-        const statuses = {
+        const statuses: Dict = {
             '0': 'pending',
             '1': 'ok',
             '2': 'failed',
@@ -1869,7 +1875,7 @@ export default class coinsph extends Exchange {
         }
         await this.loadMarkets ();
         const currency = this.currency (code);
-        const request = {
+        const request: Dict = {
             'coin': currency['id'],
             'network': networkId,
         };

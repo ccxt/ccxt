@@ -359,10 +359,11 @@ public partial class bitfinex2 : ccxt.bitfinex2
             // initial snapshot
             object trades = this.safeList(message, 1, new List<object>() {});
             // needs to be reversed to make chronological order
-            trades = trades = (trades as IList<object>).Reverse().ToList();
-            for (object i = 0; isLessThan(i, getArrayLength(trades)); postFixIncrement(ref i))
+            object length = getArrayLength(trades);
+            for (object i = 0; isLessThan(i, length); postFixIncrement(ref i))
             {
-                object parsed = this.parseWsTrade(getValue(trades, i), market);
+                object index = subtract(subtract(length, i), 1);
+                object parsed = this.parseWsTrade(getValue(trades, index), market);
                 callDynamically(stored, "append", new object[] {parsed});
             }
         } else
@@ -693,7 +694,7 @@ public partial class bitfinex2 : ccxt.bitfinex2
                 // price = 0 means that you have to remove the order from your book
                 object amount = ((bool) isTrue(Precise.stringGt(price, "0"))) ? size : "0";
                 object idString = this.safeString(deltas, 0);
-                (bookside as IOrderBookSide).store(this.parseNumber(price), this.parseNumber(amount), idString);
+                (bookside as IOrderBookSide).storeArray(new List<object> {this.parseNumber(price), this.parseNumber(amount), idString});
             } else
             {
                 object amount = this.safeString(deltas, 2);
@@ -702,7 +703,7 @@ public partial class bitfinex2 : ccxt.bitfinex2
                 object size = ((bool) isTrue(Precise.stringLt(amount, "0"))) ? Precise.stringNeg(amount) : amount;
                 object side = ((bool) isTrue(Precise.stringLt(amount, "0"))) ? "asks" : "bids";
                 object bookside = getValue(orderbookItem, side);
-                (bookside as IOrderBookSide).store(this.parseNumber(price), this.parseNumber(size), this.parseNumber(counter));
+                (bookside as IOrderBookSide).storeArray(new List<object> {this.parseNumber(price), this.parseNumber(size), this.parseNumber(counter)});
             }
             callDynamically(client as WebSocketClient, "resolve", new object[] {orderbook, messageHash});
         }
@@ -752,6 +753,8 @@ public partial class bitfinex2 : ccxt.bitfinex2
         if (isTrue(!isEqual(responseChecksum, localChecksum)))
         {
             var error = new InvalidNonce(add(this.id, " invalid checksum"));
+
+
             ((WebSocketClient)client).reject(error, messageHash);
         }
     }
@@ -950,7 +953,7 @@ public partial class bitfinex2 : ccxt.bitfinex2
             object message = this.extend(request, parameters);
             this.watch(url, messageHash, message, messageHash);
         }
-        return future;
+        return await (future as Exchange.Future);
     }
 
     public virtual void handleAuthenticationMessage(WebSocketClient client, object message)

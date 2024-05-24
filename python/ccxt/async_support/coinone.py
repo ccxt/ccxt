@@ -6,7 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.coinone import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Int, Market, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade
+from ccxt.base.types import Balances, Currencies, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
@@ -72,8 +72,11 @@ class coinone(Exchange, ImplicitAPI):
                 'fetchOrder': True,
                 'fetchOrderBook': True,
                 'fetchPosition': False,
+                'fetchPositionHistory': False,
                 'fetchPositionMode': False,
                 'fetchPositions': False,
+                'fetchPositionsForSymbol': False,
+                'fetchPositionsHistory': False,
                 'fetchPositionsRisk': False,
                 'fetchPremiumIndexOHLCV': False,
                 'fetchTicker': True,
@@ -205,7 +208,7 @@ class coinone(Exchange, ImplicitAPI):
             },
         })
 
-    async def fetch_currencies(self, params={}):
+    async def fetch_currencies(self, params={}) -> Currencies:
         """
         fetches all available currencies on an exchange
         :see: https://docs.coinone.co.kr/reference/currencies
@@ -233,7 +236,7 @@ class coinone(Exchange, ImplicitAPI):
         #         ]
         #     }
         #
-        result = {}
+        result: dict = {}
         currencies = self.safe_value(response, 'currencies', [])
         for i in range(0, len(currencies)):
             entry = currencies[i]
@@ -268,14 +271,14 @@ class coinone(Exchange, ImplicitAPI):
             }
         return result
 
-    async def fetch_markets(self, params={}):
+    async def fetch_markets(self, params={}) -> List[Market]:
         """
         retrieves data on all markets for coinone
         :see: https://docs.coinone.co.kr/v1.0/reference/tickers
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: an array of objects representing market data
         """
-        request = {
+        request: dict = {
             'quote_currency': 'KRW',
         }
         response = await self.v2PublicGetTickerNewQuoteCurrency(request)
@@ -374,7 +377,7 @@ class coinone(Exchange, ImplicitAPI):
         return result
 
     def parse_balance(self, response) -> Balances:
-        result = {'info': response}
+        result: dict = {'info': response}
         balances = self.omit(response, [
             'errorCode',
             'result',
@@ -413,7 +416,7 @@ class coinone(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'quote_currency': market['quote'],
             'target_currency': market['base'],
         }
@@ -457,7 +460,7 @@ class coinone(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         symbols = self.market_symbols(symbols)
-        request = {
+        request: dict = {
             'quote_currency': 'KRW',
         }
         market = None
@@ -503,7 +506,7 @@ class coinone(Exchange, ImplicitAPI):
         #         ]
         #     }
         #
-        data = self.safe_value(response, 'tickers', [])
+        data = self.safe_list(response, 'tickers', [])
         return self.parse_tickers(data, symbols)
 
     async def fetch_ticker(self, symbol: str, params={}) -> Ticker:
@@ -516,7 +519,7 @@ class coinone(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'quote_currency': market['quote'],
             'target_currency': market['base'],
         }
@@ -555,10 +558,10 @@ class coinone(Exchange, ImplicitAPI):
         #     }
         #
         data = self.safe_value(response, 'tickers', [])
-        ticker = self.safe_value(data, 0, {})
+        ticker = self.safe_dict(data, 0, {})
         return self.parse_ticker(ticker, market)
 
-    def parse_ticker(self, ticker, market: Market = None) -> Ticker:
+    def parse_ticker(self, ticker: dict, market: Market = None) -> Ticker:
         #
         #     {
         #         "quote_currency": "krw",
@@ -616,7 +619,7 @@ class coinone(Exchange, ImplicitAPI):
             'info': ticker,
         }, market)
 
-    def parse_trade(self, trade, market: Market = None) -> Trade:
+    def parse_trade(self, trade: dict, market: Market = None) -> Trade:
         #
         # fetchTrades(public)
         #
@@ -689,7 +692,7 @@ class coinone(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'quote_currency': market['quote'],
             'target_currency': market['base'],
         }
@@ -714,10 +717,10 @@ class coinone(Exchange, ImplicitAPI):
         #         ]
         #     }
         #
-        data = self.safe_value(response, 'transactions', [])
+        data = self.safe_list(response, 'transactions', [])
         return self.parse_trades(data, market, since, limit)
 
-    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: float = None, params={}):
+    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         """
         create a trade order
         :see: https://doc.coinone.co.kr/#tag/Order-V2/operation/v2_order_limit_buy
@@ -734,7 +737,7 @@ class coinone(Exchange, ImplicitAPI):
             raise ExchangeError(self.id + ' createOrder() allows limit orders only')
         await self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'price': price,
             'currency': market['id'],
             'qty': amount,
@@ -761,7 +764,7 @@ class coinone(Exchange, ImplicitAPI):
             raise ArgumentsRequired(self.id + ' fetchOrder() requires a symbol argument')
         await self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'order_id': id,
             'currency': market['id'],
         }
@@ -789,8 +792,8 @@ class coinone(Exchange, ImplicitAPI):
         #
         return self.parse_order(response, market)
 
-    def parse_order_status(self, status):
-        statuses = {
+    def parse_order_status(self, status: Str):
+        statuses: dict = {
             'live': 'open',
             'partially_filled': 'open',
             'partially_canceled': 'open',
@@ -799,7 +802,7 @@ class coinone(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_order(self, order, market: Market = None) -> Order:
+    def parse_order(self, order: dict, market: Market = None) -> Order:
         #
         # createOrder
         #
@@ -921,7 +924,7 @@ class coinone(Exchange, ImplicitAPI):
             raise ExchangeError(self.id + ' fetchOpenOrders() allows fetching closed orders with a specific symbol')
         await self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'currency': market['id'],
         }
         response = await self.privatePostOrderLimitOrders(self.extend(request, params))
@@ -942,7 +945,7 @@ class coinone(Exchange, ImplicitAPI):
         #         ]
         #     }
         #
-        limitOrders = self.safe_value(response, 'limitOrders', [])
+        limitOrders = self.safe_list(response, 'limitOrders', [])
         return self.parse_orders(limitOrders, market, since, limit)
 
     async def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
@@ -958,7 +961,7 @@ class coinone(Exchange, ImplicitAPI):
             raise ArgumentsRequired(self.id + ' fetchMyTrades() requires a symbol argument')
         await self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'currency': market['id'],
         }
         response = await self.v2PrivatePostOrderCompleteOrders(self.extend(request, params))
@@ -982,7 +985,7 @@ class coinone(Exchange, ImplicitAPI):
         #         ]
         #     }
         #
-        completeOrders = self.safe_value(response, 'completeOrders', [])
+        completeOrders = self.safe_list(response, 'completeOrders', [])
         return self.parse_trades(completeOrders, market, since, limit)
 
     async def cancel_order(self, id: str, symbol: Str = None, params={}):
@@ -1003,7 +1006,7 @@ class coinone(Exchange, ImplicitAPI):
             # eslint-disable-next-line quotes
             raise ArgumentsRequired(self.id + " cancelOrder() requires {'price': 12345, 'qty': 1.2345, 'is_ask': 0} in the params argument.")
         await self.load_markets()
-        request = {
+        request: dict = {
             'order_id': id,
             'price': price,
             'qty': qty,
@@ -1019,7 +1022,7 @@ class coinone(Exchange, ImplicitAPI):
         #
         return response
 
-    async def fetch_deposit_addresses(self, codes: List[str] = None, params={}):
+    async def fetch_deposit_addresses(self, codes: Strings = None, params={}):
         """
         fetch deposit addresses for multiple currencies and chain types
         :param str[]|None codes: list of unified currency codes, default is None
@@ -1044,7 +1047,7 @@ class coinone(Exchange, ImplicitAPI):
         #
         walletAddress = self.safe_value(response, 'walletAddress', {})
         keys = list(walletAddress.keys())
-        result = {}
+        result: dict = {}
         for i in range(0, len(keys)):
             key = keys[i]
             value = walletAddress[key]

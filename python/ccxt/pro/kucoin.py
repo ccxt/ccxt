@@ -25,6 +25,7 @@ class kucoin(ccxt.async_support.kucoin):
                 'cancelOrderWs': False,
                 'cancelOrdersWs': False,
                 'cancelAllOrdersWs': False,
+                'watchBidsAsks': True,
                 'watchOrderBook': True,
                 'watchOrders': True,
                 'watchMyTrades': True,
@@ -121,7 +122,7 @@ class kucoin(ccxt.async_support.kucoin):
 
     async def subscribe(self, url, messageHash, subscriptionHash, params={}, subscription=None):
         requestId = str(self.request_id())
-        request = {
+        request: dict = {
             'id': requestId,
             'type': 'subscribe',
             'topic': subscriptionHash,
@@ -135,7 +136,7 @@ class kucoin(ccxt.async_support.kucoin):
 
     async def subscribe_multiple(self, url, messageHashes, topic, subscriptionHashes, params={}, subscription=None):
         requestId = str(self.request_id())
-        request = {
+        request: dict = {
             'id': requestId,
             'type': 'subscribe',
             'topic': topic,
@@ -167,21 +168,41 @@ class kucoin(ccxt.async_support.kucoin):
 
     async def watch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
         """
+        :see: https://www.kucoin.com/docs/websocket/spot-trading/public-channels/ticker
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
         :param str[] symbols: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.method]: either '/market/snapshot' or '/market/ticker' default is '/market/ticker'
         :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
         await self.load_markets()
         symbols = self.market_symbols(symbols)
         messageHash = 'tickers'
+        method = None
+        method, params = self.handle_option_and_params(params, 'watchTickers', 'method', '/market/ticker')
+        messageHashes = []
+        topics = []
         if symbols is not None:
-            messageHash = 'tickers::' + ','.join(symbols)
+            for i in range(0, len(symbols)):
+                symbol = symbols[i]
+                messageHashes.append('ticker:' + symbol)
+                market = self.market(symbol)
+                topics.append(method + ':' + market['id'])
         url = await self.negotiate(False)
-        topic = '/market/ticker:all'
-        tickers = await self.subscribe(url, messageHash, topic, params)
-        if self.newUpdates:
-            return tickers
+        tickers = None
+        if symbols is None:
+            allTopic = method + ':all'
+            tickers = await self.subscribe(url, messageHash, allTopic, params)
+            if self.newUpdates:
+                return tickers
+        else:
+            marketIds = self.market_ids(symbols)
+            symbolsTopic = method + ':' + ','.join(marketIds)
+            tickers = await self.subscribe_multiple(url, messageHashes, symbolsTopic, topics, params)
+            if self.newUpdates:
+                newDict: dict = {}
+                newDict[tickers['symbol']] = tickers
+                return newDict
         return self.filter_by_array(self.tickers, 'symbol', symbols)
 
     def handle_ticker(self, client: Client, message):
@@ -258,20 +279,90 @@ class kucoin(ccxt.async_support.kucoin):
         messageHash = 'ticker:' + symbol
         client.resolve(ticker, messageHash)
         # watchTickers
-        allTickers = {}
+        allTickers: dict = {}
         allTickers[symbol] = ticker
         client.resolve(allTickers, 'tickers')
-        messageHashes = self.find_message_hashes(client, 'tickers::')
-        for i in range(0, len(messageHashes)):
-            currentMessageHash = messageHashes[i]
-            parts = currentMessageHash.split('::')
-            symbolsString = parts[1]
-            symbols = symbolsString.split(',')
-            tickers = self.filter_by_array(self.tickers, 'symbol', symbols)
-            tickersSymbols = list(tickers.keys())
-            numTickers = len(tickersSymbols)
-            if numTickers > 0:
-                client.resolve(tickers, currentMessageHash)
+
+    async def watch_bids_asks(self, symbols: Strings = None, params={}) -> Tickers:
+        """
+        :see: https://www.kucoin.com/docs/websocket/spot-trading/public-channels/level1-bbo-market-data
+        watches best bid & ask for symbols
+        :param str[] symbols: unified symbol of the market to fetch the ticker for
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
+        """
+        ticker = await self.watch_multi_helper('watchBidsAsks', '/spotMarket/level1:', symbols, params)
+        if self.newUpdates:
+            tickers: dict = {}
+            tickers[ticker['symbol']] = ticker
+            return tickers
+        return self.filter_by_array(self.bidsasks, 'symbol', symbols)
+
+    async def watch_multi_helper(self, methodName, channelName: str, symbols: Strings = None, params={}):
+        await self.load_markets()
+        symbols = self.market_symbols(symbols, None, False, True, False)
+        length = len(symbols)
+        if length > 100:
+            raise ArgumentsRequired(self.id + ' ' + methodName + '() accepts a maximum of 100 symbols')
+        messageHashes = []
+        for i in range(0, len(symbols)):
+            symbol = symbols[i]
+            market = self.market(symbol)
+            messageHashes.append('bidask@' + market['symbol'])
+        url = await self.negotiate(False)
+        marketIds = self.market_ids(symbols)
+        joined = ','.join(marketIds)
+        requestId = str(self.request_id())
+        request: dict = {
+            'id': requestId,
+            'type': 'subscribe',
+            'topic': channelName + joined,
+            'response': True,
+        }
+        message = self.extend(request, params)
+        return await self.watch_multiple(url, messageHashes, message, messageHashes)
+
+    def handle_bid_ask(self, client: Client, message):
+        #
+        # arrives one symbol dict
+        #
+        #     {
+        #         topic: '/spotMarket/level1:ETH-USDT',
+        #         type: 'message',
+        #         data: {
+        #             asks: ['3347.42', '2.0778387'],
+        #             bids: ['3347.41', '6.0411697'],
+        #             timestamp: 1712231142085
+        #         },
+        #         subject: 'level1'
+        #     }
+        #
+        parsedTicker = self.parse_ws_bid_ask(message)
+        symbol = parsedTicker['symbol']
+        self.bidsasks[symbol] = parsedTicker
+        messageHash = 'bidask@' + symbol
+        client.resolve(parsedTicker, messageHash)
+
+    def parse_ws_bid_ask(self, ticker, market=None):
+        topic = self.safe_string(ticker, 'topic')
+        parts = topic.split(':')
+        marketId = parts[1]
+        market = self.safe_market(marketId, market)
+        symbol = self.safe_string(market, 'symbol')
+        data = self.safe_dict(ticker, 'data', {})
+        ask = self.safe_list(data, 'asks', [])
+        bid = self.safe_list(data, 'bids', [])
+        timestamp = self.safe_integer(data, 'timestamp')
+        return self.safe_ticker({
+            'symbol': symbol,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'ask': self.safe_number(ask, 0),
+            'askVolume': self.safe_number(ask, 1),
+            'bid': self.safe_number(bid, 0),
+            'bidVolume': self.safe_number(bid, 1),
+            'info': ticker,
+        }, market)
 
     async def watch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
@@ -464,7 +555,7 @@ class kucoin(ccxt.async_support.kucoin):
         symbols = self.market_symbols(symbols)
         marketIds = self.market_ids(symbols)
         url = await self.negotiate(False)
-        method: str = None
+        method: Str = None
         method, params = self.handle_option_and_params(params, 'watchOrderBook', 'method', '/market/level2')
         if (limit == 5) or (limit == 50):
             method = '/spotMarket/level2Depth' + str(limit)
@@ -536,14 +627,18 @@ class kucoin(ccxt.async_support.kucoin):
         marketId = self.safe_string(data, 'symbol', topicSymbol)
         symbol = self.safe_symbol(marketId, None, '-')
         messageHash = 'orderbook:' + symbol
-        orderbook = self.safe_dict(self.orderbooks, symbol)
+        # orderbook = self.safe_dict(self.orderbooks, symbol)
         if subject == 'level2':
-            if orderbook is None:
-                orderbook = self.order_book()
+            if not (symbol in self.orderbooks):
+                self.orderbooks[symbol] = self.order_book()
             else:
+                orderbook = self.orderbooks[symbol]
                 orderbook.reset()
-            orderbook['symbol'] = symbol
+            self.orderbooks[symbol]['symbol'] = symbol
         else:
+            if not (symbol in self.orderbooks):
+                self.orderbooks[symbol] = self.order_book()
+            orderbook = self.orderbooks[symbol]
             nonce = self.safe_integer(orderbook, 'nonce')
             deltaEnd = self.safe_integer_2(data, 'sequenceEnd', 'timestamp')
             if nonce is None:
@@ -563,8 +658,8 @@ class kucoin(ccxt.async_support.kucoin):
                 return
             elif nonce >= deltaEnd:
                 return
-        self.handle_delta(orderbook, data)
-        client.resolve(orderbook, messageHash)
+        self.handle_delta(self.orderbooks[symbol], data)
+        client.resolve(self.orderbooks[symbol], messageHash)
 
     def get_cache_index(self, orderbook, cache):
         firstDelta = self.safe_value(cache, 0)
@@ -621,6 +716,8 @@ class kucoin(ccxt.async_support.kucoin):
         #     }
         #
         id = self.safe_string(message, 'id')
+        if not (id in client.subscriptions):
+            return
         subscriptionHash = self.safe_string(client.subscriptions, id)
         subscription = self.safe_value(client.subscriptions, subscriptionHash)
         del client.subscriptions[id]
@@ -656,7 +753,7 @@ class kucoin(ccxt.async_support.kucoin):
         params = self.omit(params, ['stop', 'trigger'])
         url = await self.negotiate(True)
         topic = '/spotMarket/advancedOrders' if stop else '/spotMarket/tradeOrders'
-        request = {
+        request: dict = {
             'privateChannel': True,
         }
         messageHash = 'orders'
@@ -670,7 +767,7 @@ class kucoin(ccxt.async_support.kucoin):
         return self.filter_by_symbol_since_limit(orders, symbol, since, limit, True)
 
     def parse_ws_order_status(self, status):
-        statuses = {
+        statuses: dict = {
             'open': 'open',
             'filled': 'closed',
             'match': 'open',
@@ -810,7 +907,7 @@ class kucoin(ccxt.async_support.kucoin):
         await self.load_markets()
         url = await self.negotiate(True)
         topic = '/spot/tradeFills'
-        request = {
+        request: dict = {
             'privateChannel': True,
         }
         messageHash = 'myTrades'
@@ -824,17 +921,16 @@ class kucoin(ccxt.async_support.kucoin):
         return self.filter_by_symbol_since_limit(trades, symbol, since, limit, True)
 
     def handle_my_trade(self, client: Client, message):
-        trades = self.myTrades
-        if trades is None:
+        if self.myTrades is None:
             limit = self.safe_integer(self.options, 'tradesLimit', 1000)
-            trades = ArrayCacheBySymbolById(limit)
-        data = self.safe_value(message, 'data')
+            self.myTrades = ArrayCacheBySymbolById(limit)
+        data = self.safe_dict(message, 'data')
         parsed = self.parse_ws_trade(data)
-        trades.append(parsed)
+        self.myTrades.append(parsed)
         messageHash = 'myTrades'
-        client.resolve(trades, messageHash)
+        client.resolve(self.myTrades, messageHash)
         symbolSpecificMessageHash = messageHash + ':' + parsed['symbol']
-        client.resolve(trades, symbolSpecificMessageHash)
+        client.resolve(self.myTrades, symbolSpecificMessageHash)
 
     def parse_ws_trade(self, trade, market=None):
         #
@@ -895,7 +991,7 @@ class kucoin(ccxt.async_support.kucoin):
         await self.load_markets()
         url = await self.negotiate(True)
         topic = '/account/balance'
-        request = {
+        request: dict = {
             'privateChannel': True,
         }
         messageHash = 'balance'
@@ -974,7 +1070,8 @@ class kucoin(ccxt.async_support.kucoin):
             self.handle_ticker(client, message)
             return
         subject = self.safe_string(message, 'subject')
-        methods = {
+        methods: dict = {
+            'level1': self.handle_bid_ask,
             'level2': self.handle_order_book,
             'trade.l2update': self.handle_order_book,
             'trade.ticker': self.handle_ticker,
@@ -1023,7 +1120,7 @@ class kucoin(ccxt.async_support.kucoin):
 
     def handle_message(self, client: Client, message):
         type = self.safe_string(message, 'type')
-        methods = {
+        methods: dict = {
             # 'heartbeat': self.handleHeartbeat,
             'welcome': self.handle_system_status,
             'ack': self.handle_subscription_status,

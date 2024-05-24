@@ -66,8 +66,11 @@ class wavesexchange extends wavesexchange$1 {
                 'fetchOrderBook': true,
                 'fetchOrders': true,
                 'fetchPosition': false,
+                'fetchPositionHistory': false,
                 'fetchPositionMode': false,
                 'fetchPositions': false,
+                'fetchPositionsForSymbol': false,
+                'fetchPositionsHistory': false,
                 'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchTicker': true,
@@ -76,6 +79,7 @@ class wavesexchange extends wavesexchange$1 {
                 'fetchTransfer': false,
                 'fetchTransfers': false,
                 'reduceMargin': false,
+                'sandbox': true,
                 'setLeverage': false,
                 'setMarginMode': false,
                 'setPositionMode': false,
@@ -887,7 +891,7 @@ class wavesexchange extends wavesexchange$1 {
         //
         const data = this.safeValue(response, 'data', []);
         const ticker = this.safeValue(data, 0, {});
-        const dataTicker = this.safeValue(ticker, 'data', {});
+        const dataTicker = this.safeDict(ticker, 'data', {});
         return this.parseTicker(dataTicker, market);
     }
     async fetchTickers(symbols = undefined, params = {}) {
@@ -1234,7 +1238,7 @@ class wavesexchange extends wavesexchange$1 {
         const amountPrecision = this.numberToString(this.toPrecision(amount, this.numberToString(this.markets[symbol]['precision']['amount'])));
         return this.parseToInt(parseFloat(amountPrecision));
     }
-    currencyToPrecision(code, amount, networkCode = undefined) {
+    customCurrencyToPrecision(code, amount, networkCode = undefined) {
         const amountPrecision = this.numberToString(this.toPrecision(amount, this.currencies[code]['precision']));
         return this.parseToInt(parseFloat(amountPrecision));
     }
@@ -1459,12 +1463,12 @@ class wavesexchange extends wavesexchange$1 {
         //
         if (isMarketOrder) {
             const response = await this.matcherPostMatcherOrderbookMarket(body);
-            const value = this.safeValue(response, 'message');
+            const value = this.safeDict(response, 'message');
             return this.parseOrder(value, market);
         }
         else {
             const response = await this.matcherPostMatcherOrderbook(body);
-            const value = this.safeValue(response, 'message');
+            const value = this.safeDict(response, 'message');
             return this.parseOrder(value, market);
         }
     }
@@ -2519,7 +2523,7 @@ class wavesexchange extends wavesexchange$1 {
         const feeAssetId = 'WAVES';
         const type = 4; // transfer
         const version = 2;
-        const amountInteger = this.currencyToPrecision(code, amount);
+        const amountInteger = this.customCurrencyToPrecision(code, amount);
         const currency = this.currency(code);
         const timestamp = this.milliseconds();
         const byteArray = [

@@ -16,7 +16,7 @@ function test_fetch_funding_rate_history($exchange, $skipped_properties, $symbol
     return Async\async(function () use ($exchange, $skipped_properties, $symbol) {
         $method = 'fetchFundingRateHistory';
         $funding_rates_history = Async\await($exchange->fetch_funding_rate_history($symbol));
-        assert(gettype($funding_rates_history) === 'array' && array_keys($funding_rates_history) === array_keys(array_keys($funding_rates_history)), $exchange->id . ' ' . $method . ' ' . $symbol . ' must return an array, returned ' . $exchange->json($funding_rates_history));
+        assert_non_emtpy_array($exchange, $skipped_properties, $method, $funding_rates_history, $symbol);
         for ($i = 0; $i < count($funding_rates_history); $i++) {
             test_funding_rate_history($exchange, $skipped_properties, $method, $funding_rates_history[$i], $symbol);
         }

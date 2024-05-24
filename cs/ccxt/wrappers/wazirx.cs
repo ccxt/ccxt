@@ -362,4 +362,70 @@ public partial class wazirx
         var res = await this.createOrder(symbol, type, side, amount, price, parameters);
         return new Order(res);
     }
+    /// <summary>
+    /// fetch the deposit address for a currency associated with this account
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://docs.wazirx.com/#deposit-address-supporting-network-user_data"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.network</term>
+    /// <description>
+    /// string : unified network code, you can get network from fetchCurrencies
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}.</returns>
+    public async Task<Dictionary<string, object>> FetchDepositAddress(string code, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchDepositAddress(code, parameters);
+        return ((Dictionary<string, object>)res);
+    }
+    /// <summary>
+    /// fetch all withdrawals made from an account
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://docs.wazirx.com/#withdraw-history-supporting-network-user_data"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>since</term>
+    /// <description>
+    /// int : the earliest time in ms to fetch withdrawals for
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>limit</term>
+    /// <description>
+    /// int : the maximum number of withdrawals structures to retrieve
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.until</term>
+    /// <description>
+    /// int : the latest time in ms to fetch entries for
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object[]</term> a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}.</returns>
+    public async Task<List<Transaction>> FetchWithdrawals(string code = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    {
+        var since = since2 == 0 ? null : (object)since2;
+        var limit = limit2 == 0 ? null : (object)limit2;
+        var res = await this.fetchWithdrawals(code, since, limit, parameters);
+        return ((IList<object>)res).Select(item => new Transaction(item)).ToList<Transaction>();
+    }
 }

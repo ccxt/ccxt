@@ -21,8 +21,9 @@ def test_ohlcv(exchange, skipped_properties, method, entry, symbol, now):
     test_shared_methods.assert_timestamp_and_datetime(exchange, skipped_properties, method, entry, now, 0)
     log_text = test_shared_methods.log_template(exchange, method, entry)
     #
-    length = len(entry)
-    assert length >= 6, 'ohlcv array length should be >= 6;' + log_text
+    assert len(entry) >= 6, 'ohlcv array length should be >= 6;' + log_text
+    if not ('roundTimestamp' in skipped_properties):
+        test_shared_methods.assert_round_minute_timestamp(exchange, skipped_properties, method, entry, 0)
     high = exchange.safe_string(entry, 2)
     low = exchange.safe_string(entry, 3)
     test_shared_methods.assert_less_or_equal(exchange, skipped_properties, method, entry, '1', high)

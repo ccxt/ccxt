@@ -67,8 +67,11 @@ class bitvavo extends Exchange {
                 'fetchOrderBook' => true,
                 'fetchOrders' => true,
                 'fetchPosition' => false,
+                'fetchPositionHistory' => false,
                 'fetchPositionMode' => false,
                 'fetchPositions' => false,
+                'fetchPositionsForSymbol' => false,
+                'fetchPositionsHistory' => false,
                 'fetchPositionsRisk' => false,
                 'fetchPremiumIndexOHLCV' => false,
                 'fetchTicker' => true,
@@ -306,7 +309,7 @@ class bitvavo extends Exchange {
         return $this->safe_integer($response, 'time');
     }
 
-    public function fetch_markets($params = array ()) {
+    public function fetch_markets($params = array ()): array {
         /**
          * @see https://docs.bitvavo.com/#tag/General/paths/~1markets/get
          * retrieves data on all markets for bitvavo
@@ -401,7 +404,7 @@ class bitvavo extends Exchange {
         return $result;
     }
 
-    public function fetch_currencies($params = array ()) {
+    public function fetch_currencies($params = array ()): ?array {
         /**
          * @see https://docs.bitvavo.com/#tag/General/paths/~1assets/get
          * fetches all available currencies on an exchange
@@ -560,7 +563,7 @@ class bitvavo extends Exchange {
         $request = array(
             'market' => $market['id'],
         );
-        $response = $this->publicGetTicker24h (array_merge($request, $params));
+        $response = $this->publicGetTicker24h ($this->extend($request, $params));
         //
         //     {
         //         "market":"ETH-BTC",
@@ -580,7 +583,7 @@ class bitvavo extends Exchange {
         return $this->parse_ticker($response, $market);
     }
 
-    public function parse_ticker($ticker, ?array $market = null): array {
+    public function parse_ticker(array $ticker, ?array $market = null): array {
         //
         // fetchTicker
         //
@@ -694,7 +697,7 @@ class bitvavo extends Exchange {
             $request['start'] = $since;
         }
         list($request, $params) = $this->handle_until_option('end', $request, $params);
-        $response = $this->publicGetMarketTrades (array_merge($request, $params));
+        $response = $this->publicGetMarketTrades ($this->extend($request, $params));
         //
         //     array(
         //         {
@@ -709,7 +712,7 @@ class bitvavo extends Exchange {
         return $this->parse_trades($response, $market, $since, $limit);
     }
 
-    public function parse_trade($trade, ?array $market = null): array {
+    public function parse_trade(array $trade, ?array $market = null): array {
         //
         // fetchTrades (public)
         //
@@ -806,7 +809,7 @@ class bitvavo extends Exchange {
         ), $market);
     }
 
-    public function fetch_trading_fees($params = array ()) {
+    public function fetch_trading_fees($params = array ()): array {
         /**
          * @see https://docs.bitvavo.com/#tag/Account/paths/~1account/get
          * fetch the trading fees for multiple markets
@@ -872,7 +875,7 @@ class bitvavo extends Exchange {
         if ($limit !== null) {
             $request['depth'] = $limit;
         }
-        $response = $this->publicGetMarketBook (array_merge($request, $params));
+        $response = $this->publicGetMarketBook ($this->extend($request, $params));
         //
         //     {
         //         "market":"BTC-EUR",
@@ -930,6 +933,8 @@ class bitvavo extends Exchange {
             $request['start'] = $since;
             if ($limit === null) {
                 $limit = 1440;
+            } else {
+                $limit = min ($limit, 1440);
             }
             $request['end'] = $this->sum($since, $limit * $duration * 1000);
         }
@@ -937,7 +942,7 @@ class bitvavo extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit; // default 1440, max 1440
         }
-        return array_merge($request, $params);
+        return $this->extend($request, $params);
     }
 
     public function fetch_ohlcv(?string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): array {
@@ -1023,7 +1028,7 @@ class bitvavo extends Exchange {
         $request = array(
             'symbol' => $currency['id'],
         );
-        $response = $this->privateGetDeposit (array_merge($request, $params));
+        $response = $this->privateGetDeposit ($this->extend($request, $params));
         //
         //     {
         //         "address" => "0x449889e3234514c45d57f7c5a571feba0c7ad567",
@@ -1102,7 +1107,7 @@ class bitvavo extends Exchange {
         if ($postOnly) {
             $request['postOnly'] = true;
         }
-        return array_merge($request, $params);
+        return $this->extend($request, $params);
     }
 
     public function create_order(?string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
@@ -1193,7 +1198,7 @@ class bitvavo extends Exchange {
         if ($triggerPrice !== null) {
             $request['triggerAmount'] = $this->price_to_precision($symbol, $triggerPrice);
         }
-        $request = array_merge($request, $params);
+        $request = $this->extend($request, $params);
         if ($this->is_empty($request)) {
             throw new ArgumentsRequired($this->id . ' editOrder() requires an $amount argument, or a $price argument, or non-empty params');
         }
@@ -1237,7 +1242,7 @@ class bitvavo extends Exchange {
         if ($clientOrderId === null) {
             $request['orderId'] = $id;
         }
-        return array_merge($request, $params);
+        return $this->extend($request, $params);
     }
 
     public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
@@ -1277,7 +1282,7 @@ class bitvavo extends Exchange {
             $market = $this->market($symbol);
             $request['market'] = $market['id'];
         }
-        $response = $this->privateDeleteOrders (array_merge($request, $params));
+        $response = $this->privateDeleteOrders ($this->extend($request, $params));
         //
         //     array(
         //         {
@@ -1308,7 +1313,7 @@ class bitvavo extends Exchange {
         if ($clientOrderId === null) {
             $request['orderId'] = $id;
         }
-        $response = $this->privateGetOrder (array_merge($request, $params));
+        $response = $this->privateGetOrder ($this->extend($request, $params));
         //
         //     {
         //         "orderId":"af76d6ce-9f7c-4006-b715-bb5d430652d0",
@@ -1363,7 +1368,7 @@ class bitvavo extends Exchange {
             $request['limit'] = $limit; // default 500, max 1000
         }
         list($request, $params) = $this->handle_until_option('end', $request, $params);
-        return array_merge($request, $params);
+        return $this->extend($request, $params);
     }
 
     public function fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
@@ -1447,7 +1452,7 @@ class bitvavo extends Exchange {
             $market = $this->market($symbol);
             $request['market'] = $market['id'];
         }
-        $response = $this->privateGetOrdersOpen (array_merge($request, $params));
+        $response = $this->privateGetOrdersOpen ($this->extend($request, $params));
         //
         //     array(
         //         {
@@ -1487,7 +1492,7 @@ class bitvavo extends Exchange {
         return $this->parse_orders($response, $market, $since, $limit);
     }
 
-    public function parse_order_status($status) {
+    public function parse_order_status(?string $status) {
         $statuses = array(
             'new' => 'open',
             'canceled' => 'canceled',
@@ -1506,7 +1511,7 @@ class bitvavo extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_order($order, ?array $market = null): array {
+    public function parse_order(array $order, ?array $market = null): array {
         //
         // cancelOrder, cancelAllOrders
         //
@@ -1628,7 +1633,7 @@ class bitvavo extends Exchange {
             $request['limit'] = $limit; // default 500, max 1000
         }
         list($request, $params) = $this->handle_until_option('end', $request, $params);
-        return array_merge($request, $params);
+        return $this->extend($request, $params);
     }
 
     public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
@@ -1687,10 +1692,10 @@ class bitvavo extends Exchange {
         if ($tag !== null) {
             $request['paymentId'] = $tag;
         }
-        return array_merge($request, $params);
+        return $this->extend($request, $params);
     }
 
-    public function withdraw(string $code, float $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()) {
         /**
          * make a withdrawal
          * @param {string} $code unified $currency $code
@@ -1734,7 +1739,7 @@ class bitvavo extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit; // default 500, max 1000
         }
-        return array_merge($request, $params);
+        return $this->extend($request, $params);
     }
 
     public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
@@ -1789,7 +1794,7 @@ class bitvavo extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit; // default 500, max 1000
         }
-        return array_merge($request, $params);
+        return $this->extend($request, $params);
     }
 
     public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
@@ -1839,7 +1844,7 @@ class bitvavo extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_transaction($transaction, ?array $currency = null): array {
+    public function parse_transaction(array $transaction, ?array $currency = null): array {
         //
         // withdraw
         //

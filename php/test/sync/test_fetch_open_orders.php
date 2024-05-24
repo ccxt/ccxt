@@ -12,12 +12,12 @@ include_once PATH_TO_CCXT . '/test/base/test_order.php';
 function test_fetch_open_orders($exchange, $skipped_properties, $symbol) {
     $method = 'fetchOpenOrders';
     $orders = $exchange->fetch_open_orders($symbol);
-    assert(gettype($orders) === 'array' && array_keys($orders) === array_keys(array_keys($orders)), $exchange->id . ' ' . $method . ' must return an array, returned ' . $exchange->json($orders));
+    assert_non_emtpy_array($exchange, $skipped_properties, $method, $orders, $symbol);
     $now = $exchange->milliseconds();
     for ($i = 0; $i < count($orders); $i++) {
         $order = $orders[$i];
         test_order($exchange, $skipped_properties, $method, $order, $symbol, $now);
-        assert($order['status'] === 'open', $exchange->id . ' ' . $method . ' ' . $symbol . ' returned an order with status ' . $order['status'] . ' (expected \"open\")');
+        assert_in_array($exchange, $skipped_properties, $method, $order, 'status', ['open']);
     }
     assert_timestamp_order($exchange, $method, $symbol, $orders);
 }

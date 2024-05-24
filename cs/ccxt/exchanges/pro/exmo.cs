@@ -711,7 +711,7 @@ public partial class exmo : ccxt.exmo
                 { "nonce", time },
             };
             object message = this.extend(request, query);
-            future = this.watch(url, messageHash, message);
+            future = await this.watch(url, messageHash, message, messageHash);
             ((IDictionary<string,object>)((WebSocketClient)client).subscriptions)[(string)messageHash] = future;
         }
         return future;

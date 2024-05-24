@@ -104,7 +104,7 @@ class bingx extends \ccxt\async\bingx {
             if ($marketType === 'swap') {
                 $request['reqType'] = 'sub';
             }
-            return Async\await($this->watch($url, $messageHash, array_merge($request, $query), $messageHash));
+            return Async\await($this->watch($url, $messageHash, $this->extend($request, $query), $messageHash));
         }) ();
     }
 
@@ -199,7 +199,7 @@ class bingx extends \ccxt\async\bingx {
         //         "b" => "2.5747"
         //     }
         //
-        $timestamp = $this->safe_integer($message, 'ts');
+        $timestamp = $this->safe_integer($message, 'C');
         $marketId = $this->safe_string($message, 's');
         $market = $this->safe_market($marketId, $market);
         $close = $this->safe_string($message, 'c');
@@ -255,7 +255,7 @@ class bingx extends \ccxt\async\bingx {
             if ($marketType === 'swap') {
                 $request['reqType'] = 'sub';
             }
-            $trades = Async\await($this->watch($url, $messageHash, array_merge($request, $query), $messageHash));
+            $trades = Async\await($this->watch($url, $messageHash, $this->extend($request, $query), $messageHash));
             if ($this->newUpdates) {
                 $limit = $trades->getLimit ($symbol, $limit);
             }
@@ -568,6 +568,7 @@ class bingx extends \ccxt\async\bingx {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {int[][]} A list of candles ordered, open, high, low, close, volume
              */
+            Async\await($this->load_markets());
             $market = $this->market($symbol);
             list($marketType, $query) = $this->handle_market_type_and_params('watchOHLCV', $market, $params);
             $url = $this->safe_value($this->urls['api']['ws'], $marketType);
@@ -586,7 +587,7 @@ class bingx extends \ccxt\async\bingx {
             if ($marketType === 'swap') {
                 $request['reqType'] = 'sub';
             }
-            $ohlcv = Async\await($this->watch($url, $messageHash, array_merge($request, $query), $messageHash));
+            $ohlcv = Async\await($this->watch($url, $messageHash, $this->extend($request, $query), $messageHash));
             if ($this->newUpdates) {
                 $limit = $ohlcv->getLimit ($symbol, $limit);
             }
@@ -751,7 +752,7 @@ class bingx extends \ccxt\async\bingx {
     public function load_balance_snapshot($client, $messageHash, $type) {
         return Async\async(function () use ($client, $messageHash, $type) {
             $response = Async\await($this->fetch_balance(array( 'type' => $type )));
-            $this->balance[$type] = array_merge($response, $this->safe_value($this->balance, $type, array()));
+            $this->balance[$type] = $this->extend($response, $this->safe_value($this->balance, $type, array()));
             // don't remove the $future from the .futures cache
             $future = $client->futures[$messageHash];
             $future->resolve ();
@@ -781,22 +782,47 @@ class bingx extends \ccxt\async\bingx {
         return true;
     }
 
+    public function keep_alive_listen_key($params = array ()) {
+        return Async\async(function () use ($params) {
+            $listenKey = $this->safe_string($this->options, 'listenKey');
+            if ($listenKey === null) {
+                // A network $error happened => we can't renew a listen key that does not exist.
+                return;
+            }
+            try {
+                Async\await($this->userAuthPrivatePutUserDataStream (array( 'listenKey' => $listenKey ))); // extend the expiry
+            } catch (Exception $error) {
+                $types = array( 'spot', 'swap' );
+                for ($i = 0; $i < count($types); $i++) {
+                    $type = $types[$i];
+                    $url = $this->urls['api']['ws'][$type] . '?$listenKey=' . $listenKey;
+                    $client = $this->client($url);
+                    $messageHashes = is_array($client->futures) ? array_keys($client->futures) : array();
+                    for ($j = 0; $j < count($messageHashes); $j++) {
+                        $messageHash = $messageHashes[$j];
+                        $client->reject ($error, $messageHash);
+                    }
+                }
+                $this->options['listenKey'] = null;
+                $this->options['lastAuthenticatedTime'] = 0;
+                return;
+            }
+            // whether or not to schedule another $listenKey keepAlive request
+            $listenKeyRefreshRate = $this->safe_integer($this->options, 'listenKeyRefreshRate', 3600000);
+            $this->delay($listenKeyRefreshRate, array($this, 'keep_alive_listen_key'), $params);
+        }) ();
+    }
+
     public function authenticate($params = array ()) {
         return Async\async(function () use ($params) {
             $time = $this->milliseconds();
-            $listenKey = $this->safe_string($this->options, 'listenKey');
-            if ($listenKey === null) {
-                $response = Async\await($this->userAuthPrivatePostUserDataStream ());
-                $this->options['listenKey'] = $this->safe_string($response, 'listenKey');
-                $this->options['lastAuthenticatedTime'] = $time;
-                return;
-            }
             $lastAuthenticatedTime = $this->safe_integer($this->options, 'lastAuthenticatedTime', 0);
             $listenKeyRefreshRate = $this->safe_integer($this->options, 'listenKeyRefreshRate', 3600000); // 1 hour
             if ($time - $lastAuthenticatedTime > $listenKeyRefreshRate) {
-                $response = Async\await($this->userAuthPrivatePutUserDataStream (array( 'listenKey' => $listenKey ))); // extend the expiry
+                $response = Async\await($this->userAuthPrivatePostUserDataStream ());
                 $this->options['listenKey'] = $this->safe_string($response, 'listenKey');
                 $this->options['lastAuthenticatedTime'] = $time;
+                $this->delay($listenKeyRefreshRate, array($this, 'keep_alive_listen_key'), $params);
             }
         }) ();
     }

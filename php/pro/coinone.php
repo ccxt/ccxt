@@ -72,7 +72,7 @@ class coinone extends \ccxt\async\coinone {
                     'target_currency' => $market['base'],
                 ),
             );
-            $message = array_merge($request, $params);
+            $message = $this->extend($request, $params);
             $orderbook = Async\await($this->watch($url, $messageHash, $message, $messageHash));
             return $orderbook->limit ();
         }) ();
@@ -154,7 +154,7 @@ class coinone extends \ccxt\async\coinone {
                     'target_currency' => $market['base'],
                 ),
             );
-            $message = array_merge($request, $params);
+            $message = $this->extend($request, $params);
             return Async\await($this->watch($url, $messageHash, $message, $messageHash));
         }) ();
     }
@@ -277,7 +277,7 @@ class coinone extends \ccxt\async\coinone {
                     'target_currency' => $market['base'],
                 ),
             );
-            $message = array_merge($request, $params);
+            $message = $this->extend($request, $params);
             $trades = Async\await($this->watch($url, $messageHash, $message, $messageHash));
             if ($this->newUpdates) {
                 $limit = $trades->getLimit ($market['symbol'], $limit);

@@ -22,6 +22,7 @@ function test_fetch_last_prices($exchange, $skipped_properties, $symbol) {
     }
     assert(is_array($response), $exchange->id . ' ' . $method . ' ' . $checked_symbol . ' must return an object. ' . $exchange->json($response));
     $values = is_array($response) ? array_values($response) : array();
+    assert_non_emtpy_array($exchange, $skipped_properties, $method, $values, $checked_symbol);
     for ($i = 0; $i < count($values); $i++) {
         // todo: symbol check here
         test_last_price($exchange, $skipped_properties, $method, $values[$i], $checked_symbol);

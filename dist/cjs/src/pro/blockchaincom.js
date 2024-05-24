@@ -695,8 +695,8 @@ class blockchaincom extends blockchaincom$1 {
             orderbook.reset(snapshot);
         }
         else if (event === 'updated') {
-            const asks = this.safeValue(message, 'asks', []);
-            const bids = this.safeValue(message, 'bids', []);
+            const asks = this.safeList(message, 'asks', []);
+            const bids = this.safeList(message, 'bids', []);
             this.handleDeltas(orderbook['asks'], asks);
             this.handleDeltas(orderbook['bids'], bids);
             orderbook['timestamp'] = timestamp;
@@ -768,7 +768,7 @@ class blockchaincom extends blockchaincom$1 {
             };
             return this.watch(url, messageHash, this.extend(request, params), messageHash);
         }
-        return future;
+        return await future;
     }
 }
 

@@ -160,6 +160,9 @@ async def main():
             credentialEnvName = (argv.exchange_id + '_' + credential).upper()  # example: KRAKEN_APIKEY
             if credentialEnvName in os.environ:
                 credentialValue = os.environ[credentialEnvName]
+                if credentialValue.startswith('-----BEGIN'):
+                    credentialValue = credentialValue.replace('\\n', '\n')
+
                 setattr(exchange, credential, credentialValue)
 
     if argv.cors:

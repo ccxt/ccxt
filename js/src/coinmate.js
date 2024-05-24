@@ -60,8 +60,11 @@ export default class coinmate extends Exchange {
                 'fetchOrderBook': true,
                 'fetchOrders': true,
                 'fetchPosition': false,
+                'fetchPositionHistory': false,
                 'fetchPositionMode': false,
                 'fetchPositions': false,
+                'fetchPositionsForSymbol': false,
+                'fetchPositionsHistory': false,
                 'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchTicker': true,
@@ -400,7 +403,7 @@ export default class coinmate extends Exchange {
         //         }
         //     }
         //
-        const data = this.safeValue(response, 'data');
+        const data = this.safeDict(response, 'data');
         return this.parseTicker(data, market);
     }
     async fetchTickers(symbols = undefined, params = {}) {
@@ -683,7 +686,7 @@ export default class coinmate extends Exchange {
             request['timestampFrom'] = since;
         }
         const response = await this.privatePostTradeHistory(this.extend(request, params));
-        const data = this.safeValue(response, 'data', []);
+        const data = this.safeList(response, 'data', []);
         return this.parseTrades(data, undefined, since, limit);
     }
     parseTrade(trade, market = undefined) {
@@ -784,7 +787,7 @@ export default class coinmate extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeValue(response, 'data', []);
+        const data = this.safeList(response, 'data', []);
         return this.parseTrades(data, market, since, limit);
     }
     async fetchTradingFee(symbol, params = {}) {
@@ -1028,7 +1031,7 @@ export default class coinmate extends Exchange {
             market = this.market(symbol);
         }
         const response = await this.privatePostOrderById(this.extend(request, params));
-        const data = this.safeValue(response, 'data');
+        const data = this.safeDict(response, 'data');
         return this.parseOrder(data, market);
     }
     async cancelOrder(id, symbol = undefined, params = {}) {
