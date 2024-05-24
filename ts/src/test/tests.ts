@@ -335,7 +335,7 @@ class testMainClass extends baseMainTestClass {
         // formatted message "[TEST_FAILURE] ..." and that output is then regex-matched by
         // run-tests.js, so the exceptions are still printed out to console from there.
         const maxRetries = 3;
-        const argsStringified = exchange.json (args); // args.join() breaks when we provide a list of symbols | "args.toString()" breaks bcz of "array to string conversion"
+        const argsStringified = exchange.json (args); // args.join() breaks when we provide a list of symbols or multidimensional array; "args.toString()" breaks bcz of "array to string conversion"
         for (let i = 0; i < maxRetries; i++) {
             try {
                 await this.testMethod (methodName, exchange, args, isPublic);
