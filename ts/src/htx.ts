@@ -8994,7 +8994,7 @@ export default class htx extends Exchange {
          * EXCHANGE SPECIFIC PARAMETERS
          * @param {number} [params.amount] order quantity
          * @param {string} [params.order_price_type] "lightning" by default, "lightning_fok": lightning fok type,"lightning_ioc": lightning ioc type "market" by default, "market": market order type," "lightning_fok": lightning
-         * @returns {[object]} [a list of position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
+         * @returns {object} [an order structure]{@link https://docs.ccxt.com/#/?id=position-structure}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
