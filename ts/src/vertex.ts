@@ -1100,7 +1100,7 @@ export default class vertex extends Exchange {
 
     buildCancelOrdersSig (message, chainId, verifyingContractAddress) {
         const messageTypes = {
-            'CancellationProducts': [
+            'Cancellation': [
                 { 'name': 'sender', 'type': 'bytes32' },
                 { 'name': 'productIds', 'type': 'uint32[]' },
                 { 'name': 'digests', 'type': 'bytes32[]' },
