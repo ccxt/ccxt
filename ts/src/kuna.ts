@@ -472,7 +472,7 @@ export default class kuna extends Exchange {
         return result;
     }
 
-    parseCurrency (currency) {
+    parseCurrency (currency: Dict) {
         //
         //    {
         //        "code": "BTC",

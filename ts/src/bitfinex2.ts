@@ -2729,10 +2729,14 @@ export default class bitfinex2 extends Exchange {
         //         ]
         //     ]
         //
-        return this.parsePositions (response, symbols);
+        const positionsList = [];
+        for (let i = 0; i < response.length; i++) {
+            positionsList.push ({ 'result': response[i] });
+        }
+        return this.parsePositions (positionsList, symbols);
     }
 
-    parsePosition (position, market: Market = undefined) {
+    parsePosition (position: Dict, market: Market = undefined) {
         //
         //    [
         //        "tBTCUSD",                    // SYMBOL
@@ -2765,22 +2769,23 @@ export default class bitfinex2 extends Exchange {
         //        }
         //    ]
         //
-        const marketId = this.safeString (position, 0);
-        const amount = this.safeString (position, 2);
-        const timestamp = this.safeInteger (position, 12);
-        const meta = this.safeString (position, 19);
+        const positionList = this.safeList (position, 'result');
+        const marketId = this.safeString (positionList, 0);
+        const amount = this.safeString (positionList, 2);
+        const timestamp = this.safeInteger (positionList, 12);
+        const meta = this.safeString (positionList, 19);
         const tradePrice = this.safeString (meta, 'trade_price');
         const tradeAmount = this.safeString (meta, 'trade_amount');
         return this.safePosition ({
-            'info': position,
-            'id': this.safeString (position, 11),
+            'info': positionList,
+            'id': this.safeString (positionList, 11),
             'symbol': this.safeSymbol (marketId, market),
             'notional': this.parseNumber (amount),
             'marginMode': 'isolated',  // derivatives use isolated, margin uses cross, https://support.bitfinex.com/hc/en-us/articles/360035475374-Derivatives-Trading-on-Bitfinex
-            'liquidationPrice': this.safeNumber (position, 8),
-            'entryPrice': this.safeNumber (position, 3),
-            'unrealizedPnl': this.safeNumber (position, 6),
-            'percentage': this.safeNumber (position, 7),
+            'liquidationPrice': this.safeNumber (positionList, 8),
+            'entryPrice': this.safeNumber (positionList, 3),
+            'unrealizedPnl': this.safeNumber (positionList, 6),
+            'percentage': this.safeNumber (positionList, 7),
             'contracts': undefined,
             'contractSize': undefined,
             'markPrice': undefined,
@@ -2789,13 +2794,13 @@ export default class bitfinex2 extends Exchange {
             'hedged': undefined,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'lastUpdateTimestamp': this.safeInteger (position, 13),
-            'maintenanceMargin': this.safeNumber (position, 18),
+            'lastUpdateTimestamp': this.safeInteger (positionList, 13),
+            'maintenanceMargin': this.safeNumber (positionList, 18),
             'maintenanceMarginPercentage': undefined,
-            'collateral': this.safeNumber (position, 17),
+            'collateral': this.safeNumber (positionList, 17),
             'initialMargin': this.parseNumber (Precise.stringMul (tradeAmount, tradePrice)),
             'initialMarginPercentage': undefined,
-            'leverage': this.safeNumber (position, 9),
+            'leverage': this.safeNumber (positionList, 9),
             'marginRatio': undefined,
             'stopLossPrice': undefined,
             'takeProfitPrice': undefined,

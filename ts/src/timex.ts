@@ -1168,7 +1168,7 @@ export default class timex extends Exchange {
         return this.parseTrades (trades, market, since, limit);
     }
 
-    parseTradingFee (fee, market: Market = undefined): TradingFeeInterface {
+    parseTradingFee (fee: Dict, market: Market = undefined): TradingFeeInterface {
         //
         //     {
         //         "fee": 0.0075,
@@ -1299,7 +1299,7 @@ export default class timex extends Exchange {
         };
     }
 
-    parseCurrency (currency) {
+    parseCurrency (currency: Dict) {
         //
         //     {
         //         "symbol": "BTC",
