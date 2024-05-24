@@ -2,10 +2,12 @@
 //  ---------------------------------------------------------------------------
 
 import oxfunRest from '../oxfun.js';
-import { ArgumentsRequired } from '../base/errors.js';
-import type { Int, Market, OHLCV, OrderBook, Strings, Ticker, Tickers, Trade } from '../base/types.js';
+import { ArgumentsRequired, AuthenticationError } from '../base/errors.js';
+import type { Balances, Int, Market, OHLCV, OrderBook, Strings, Ticker, Tickers, Trade } from '../base/types.js';
+import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
 import { ArrayCache, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 import Client from '../base/ws/Client.js';
+import { time } from 'console';
 
 //  ---------------------------------------------------------------------------
 
@@ -506,9 +508,73 @@ export default class oxfun extends oxfunRest {
         }
     }
 
+    async watchBalance (params = {}): Promise<Balances> {
+        /**
+         * @method
+         * @name oxfun#watchBalance
+         * @see https://docs.ox.fun/?json#balance-channel
+         * @description watch balance and get the amount of funds available for trading or funds locked in orders
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+         */
+        await this.loadMarkets ();
+        this.authenticate ();
+        const args = 'balance:all';
+        const messageHash = 'balance';
+        const url = this.urls['api']['ws'];
+        const request = {
+            'op': 'subscribe',
+            'args': [ args ],
+        };
+        return await this.watch (url, messageHash, this.extend (request, params), messageHash);
+    }
+
+    handleBalance (client, message) {
+        //
+        //     {
+        //         "table": "balance",
+        //         "accountId": "106464",
+        //         "timestamp": "1716549132780",
+        //         "tradeType": "PORTFOLIO",
+        //         "data": [
+        //             {
+        //                 "instrumentId": "xOX",
+        //                 "total": "23.375591220",
+        //                 "available": "23.375591220",
+        //                 "reserved": "0",
+        //                 "quantityLastUpdated": "1716509744262",
+        //                 "locked": "0"
+        //             },
+        //             ...
+        //         ]
+        //     }
+        //
+        const balances = this.safeList (message, 'data');
+        const timestamp = this.safeInteger (message, 'timestamp');
+        this.balance['info'] = message;
+        this.balance['timestamp'] = time;
+        this.balance['datetime'] = this.iso8601 (timestamp);
+        for (let i = 0; i < balances.length; i++) {
+            const balance = this.safeDict (balances, i, {});
+            const currencyId = this.safeString (balance, 'instrumentId');
+            const code = this.safeCurrencyCode (currencyId);
+            if (!(code in this.balance)) {
+                this.balance[code] = this.account ();
+            }
+            const account = this.balance[code];
+            account['total'] = this.safeString (balance, 'total');
+            account['used'] = this.safeString (balance, 'reserved');
+            account['free'] = this.safeString (balance, 'available');
+            this.balance[code] = account;
+        }
+        this.balance = this.safeBalance (this.balance);
+        client.resolve (this.balance, 'balance');
+    }
+
     handleMessage (client: Client, message) {
         const table = this.safeString (message, 'table');
         const data = this.safeList (message, 'data', []);
+        const event = this.safeString (message, 'event');
         if ((table !== undefined) && (data !== undefined)) {
             if (table === 'trade') {
                 this.handleTrades (client, message);
@@ -521,6 +587,52 @@ export default class oxfun extends oxfunRest {
             }
             if (table.indexOf ('depth') > -1) {
                 this.handleOrderBook (client, message);
+            }
+            if (table.indexOf ('balance') > -1) {
+                this.handleBalance (client, message);
+            }
+        } else if (event === 'login') {
+            this.handleAuthenticationMessage (client, message);
+        }
+    }
+
+    async authenticate (params = {}) {
+        const url = this.urls['api']['ws'];
+        const client = this.client (url);
+        const messageHash = 'authenticated';
+        const future = client.future (messageHash);
+        const authenticated = this.safeDict (client.subscriptions, messageHash);
+        if (authenticated === undefined) {
+            this.checkRequiredCredentials ();
+            const timestamp = this.milliseconds ();
+            const payload = timestamp.toString () + 'GET/auth/self/verify';
+            const signature = this.hmac (this.encode (payload), this.encode (this.secret), sha256, 'base64');
+            const request = {
+                'op': 'login',
+                'data': {
+                    'apiKey': this.apiKey,
+                    'timestamp': timestamp,
+                    'signature': signature,
+                },
+            };
+            const message = this.extend (request, params);
+            this.watch (url, messageHash, message, messageHash);
+        }
+        return await future;
+    }
+
+    handleAuthenticationMessage (client: Client, message) {
+        const authenticated = this.safeBool (message, 'success', false);
+        const messageHash = 'authenticated';
+        if (authenticated) {
+            // we resolve the future here permanently so authentication only happens once
+            const future = this.safeDict (client.futures, messageHash);
+            future.resolve (true);
+        } else {
+            const error = new AuthenticationError (this.json (message));
+            client.reject (error, messageHash);
+            if (messageHash in client.subscriptions) {
+                delete client.subscriptions[messageHash];
             }
         }
     }
