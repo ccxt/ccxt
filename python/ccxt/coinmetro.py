@@ -636,7 +636,7 @@ class coinmetro(Exchange, ImplicitAPI):
         #
         return self.parse_trades(response, market, since, limit)
 
-    def parse_trade(self, trade, market: Market = None) -> Trade:
+    def parse_trade(self, trade: dict, market: Market = None) -> Trade:
         #
         # fetchTrades
         #     {
@@ -1079,7 +1079,7 @@ class coinmetro(Exchange, ImplicitAPI):
                 ledger.append(rawLedgerEntry)
         return self.parse_ledger(ledger, currency, since, limit)
 
-    def parse_ledger_entry(self, item, currency: Currency = None):
+    def parse_ledger_entry(self, item: dict, currency: Currency = None):
         datetime = self.safe_string(item, 'timestamp')
         currencyId = self.safe_string(item, 'currencyId')
         item = self.omit(item, 'currencyId')
@@ -1444,7 +1444,7 @@ class coinmetro(Exchange, ImplicitAPI):
         #
         return self.parse_order(response)
 
-    def parse_order(self, order, market: Market = None) -> Order:
+    def parse_order(self, order: dict, market: Market = None) -> Order:
         #
         # createOrder market
         #     {

@@ -487,7 +487,7 @@ class oceanex(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data')
         return self.parse_trades(data, market, since, limit)
 
-    def parse_trade(self, trade, market: Market = None) -> Trade:
+    def parse_trade(self, trade: dict, market: Market = None) -> Trade:
         #
         # fetchTrades(public)
         #
@@ -755,7 +755,7 @@ class oceanex(Exchange, ImplicitAPI):
         ohlcvs = self.safe_list(response, 'data', [])
         return self.parse_ohlcvs(ohlcvs, market, timeframe, since, limit)
 
-    def parse_order(self, order, market: Market = None) -> Order:
+    def parse_order(self, order: dict, market: Market = None) -> Order:
         #
         #     {
         #         "created_at": "2019-01-18T00:38:18Z",

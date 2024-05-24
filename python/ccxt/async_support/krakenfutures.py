@@ -805,7 +805,7 @@ class krakenfutures(Exchange, ImplicitAPI):
             rawTrades = self.safe_list(response, 'history', [])
         return self.parse_trades(rawTrades, market, since, limit)
 
-    def parse_trade(self, trade, market: Market = None) -> Trade:
+    def parse_trade(self, trade: dict, market: Market = None) -> Trade:
         #
         # fetchTrades(recent trades)
         #
@@ -1396,7 +1396,7 @@ class krakenfutures(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_order(self, order, market: Market = None) -> Order:
+    def parse_order(self, order: dict, market: Market = None) -> Order:
         #
         # LIMIT
         #
@@ -2135,7 +2135,7 @@ class krakenfutures(Exchange, ImplicitAPI):
             result.append(position)
         return result
 
-    def parse_position(self, position, market: Market = None):
+    def parse_position(self, position: dict, market: Market = None):
         # cross
         #    {
         #        "side": "long",
@@ -2428,7 +2428,7 @@ class krakenfutures(Exchange, ImplicitAPI):
         #
         return await self.privatePutLeveragepreferences(self.extend(request, params))
 
-    async def fetch_leverages(self, symbols: List[str] = None, params={}) -> Leverages:
+    async def fetch_leverages(self, symbols: Strings = None, params={}) -> Leverages:
         """
         fetch the set leverage for all contract and margin markets
         :see: https://docs.futures.kraken.com/#http-api-trading-v3-api-multi-collateral-get-the-leverage-setting-for-a-market

@@ -700,7 +700,7 @@ class coinbaseinternational extends Exchange {
         return $this->parse_position($position);
     }
 
-    public function parse_position($position, ?array $market = null) {
+    public function parse_position(array $position, ?array $market = null) {
         //
         //    {
         //       "symbol":"BTC-PERP",
@@ -841,7 +841,7 @@ class coinbaseinternational extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_transaction($transaction, ?array $currency = null): array {
+    public function parse_transaction(array $transaction, ?array $currency = null): array {
         //
         //    {
         //        "idem":"8e471d77-4208-45a8-9e5b-f3bd8a2c1fc3"
@@ -877,7 +877,7 @@ class coinbaseinternational extends Exchange {
         );
     }
 
-    public function parse_trade($trade, ?array $market = null): array {
+    public function parse_trade(array $trade, ?array $market = null): array {
         //
         //    {
         //       "portfolio_id":"1wp37qsc-1-0",
@@ -1135,7 +1135,7 @@ class coinbaseinternational extends Exchange {
         return $result;
     }
 
-    public function parse_currency($currency) {
+    public function parse_currency(array $currency) {
         //
         //    {
         //       "asset_id":"1",
@@ -1442,7 +1442,7 @@ class coinbaseinternational extends Exchange {
         return $this->parse_order($response, $market);
     }
 
-    public function parse_order($order, ?array $market = null): array {
+    public function parse_order(array $order, ?array $market = null): array {
         //
         //    {
         //        "order_id":"1x96skvg-1-0",

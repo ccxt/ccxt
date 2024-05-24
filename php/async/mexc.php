@@ -1577,7 +1577,7 @@ class mexc extends Exchange {
         }) ();
     }
 
-    public function parse_trade($trade, ?array $market = null): array {
+    public function parse_trade(array $trade, ?array $market = null): array {
         $id = null;
         $timestamp = null;
         $orderId = null;
@@ -2425,7 +2425,7 @@ class mexc extends Exchange {
             //     array("success":true,"code":0,"data":259208506303929856)
             //
             $data = $this->safe_string($response, 'data');
-            return $this->parse_order($data, $market);
+            return $this->safe_order(array( 'id' => $data ), $market);
         }) ();
     }
 
@@ -3221,7 +3221,7 @@ class mexc extends Exchange {
         }) ();
     }
 
-    public function parse_order($order, ?array $market = null): array {
+    public function parse_order(array $order, ?array $market = null): array {
         //
         // spot => createOrder
         //
@@ -4704,7 +4704,7 @@ class mexc extends Exchange {
         }) ();
     }
 
-    public function parse_transaction($transaction, ?array $currency = null): array {
+    public function parse_transaction(array $transaction, ?array $currency = null): array {
         //
         // fetchDeposits
         //
@@ -4890,7 +4890,7 @@ class mexc extends Exchange {
         }) ();
     }
 
-    public function parse_position($position, ?array $market = null) {
+    public function parse_position(array $position, ?array $market = null) {
         //
         // fetchPositions
         //

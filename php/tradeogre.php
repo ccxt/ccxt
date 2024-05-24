@@ -380,7 +380,7 @@ class tradeogre extends Exchange {
         return $this->parse_trades($response, $market, $since, $limit);
     }
 
-    public function parse_trade($trade, ?array $market = null) {
+    public function parse_trade(array $trade, ?array $market = null) {
         //
         //  {
         //      "date":1515128233,
@@ -539,7 +539,7 @@ class tradeogre extends Exchange {
         return $this->parse_order($response, null);
     }
 
-    public function parse_order($order, ?array $market = null): array {
+    public function parse_order(array $order, ?array $market = null): array {
         //
         //
         // {

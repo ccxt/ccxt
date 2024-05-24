@@ -810,7 +810,7 @@ class krakenfutures extends Exchange {
         return $this->parse_trades($rawTrades, $market, $since, $limit);
     }
 
-    public function parse_trade($trade, ?array $market = null): array {
+    public function parse_trade(array $trade, ?array $market = null): array {
         //
         // fetchTrades (recent trades)
         //
@@ -1457,7 +1457,7 @@ class krakenfutures extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_order($order, ?array $market = null): array {
+    public function parse_order(array $order, ?array $market = null): array {
         //
         // LIMIT
         //
@@ -2242,7 +2242,7 @@ class krakenfutures extends Exchange {
         return $result;
     }
 
-    public function parse_position($position, ?array $market = null) {
+    public function parse_position(array $position, ?array $market = null) {
         // cross
         //    {
         //        "side" => "long",

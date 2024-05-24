@@ -874,6 +874,7 @@ public partial class binance : Exchange
                         { "order/asyn/id", 10 },
                         { "trade/asyn", 1000 },
                         { "trade/asyn/id", 10 },
+                        { "feeBurn", 1 },
                     } },
                     { "post", new Dictionary<string, object>() {
                         { "batchOrders", 5 },
@@ -887,6 +888,7 @@ public partial class binance : Exchange
                         { "multiAssetsMargin", 1 },
                         { "apiReferral/customization", 1 },
                         { "apiReferral/userCustomization", 1 },
+                        { "feeBurn", 1 },
                     } },
                     { "put", new Dictionary<string, object>() {
                         { "listenKey", 1 },
