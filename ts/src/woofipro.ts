@@ -651,7 +651,7 @@ export default class woofipro extends Exchange {
         return fee;
     }
 
-    parseTrade (trade, market: Market = undefined): Trade {
+    parseTrade (trade: Dict, market: Market = undefined): Trade {
         //
         // public/market_trades
         //

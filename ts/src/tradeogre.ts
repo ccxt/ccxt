@@ -392,7 +392,7 @@ export default class tradeogre extends Exchange {
         return this.parseTrades (response, market, since, limit);
     }
 
-    parseTrade (trade, market: Market = undefined) {
+    parseTrade (trade: Dict, market: Market = undefined) {
         //
         //  {
         //      "date":1515128233,

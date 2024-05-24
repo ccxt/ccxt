@@ -1197,7 +1197,7 @@ export default class digifinex extends Exchange {
         }, market);
     }
 
-    parseTrade (trade, market: Market = undefined): Trade {
+    parseTrade (trade: Dict, market: Market = undefined): Trade {
         //
         // spot: fetchTrades
         //

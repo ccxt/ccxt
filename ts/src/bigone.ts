@@ -1036,7 +1036,7 @@ export default class bigone extends Exchange {
         } as any;
     }
 
-    parseTrade (trade, market: Market = undefined): Trade {
+    parseTrade (trade: Dict, market: Market = undefined): Trade {
         //
         // fetchTrades (public)
         //

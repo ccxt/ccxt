@@ -825,7 +825,7 @@ export default class krakenfutures extends Exchange {
         return this.parseTrades (rawTrades, market, since, limit);
     }
 
-    parseTrade (trade, market: Market = undefined): Trade {
+    parseTrade (trade: Dict, market: Market = undefined): Trade {
         //
         // fetchTrades (recent trades)
         //

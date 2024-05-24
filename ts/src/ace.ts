@@ -769,7 +769,7 @@ export default class ace extends Exchange {
         return this.parseOrders (orders, market, since, limit);
     }
 
-    parseTrade (trade, market: Market = undefined): Trade {
+    parseTrade (trade: Dict, market: Market = undefined): Trade {
         //
         // fetchOrderTrades
         //         {

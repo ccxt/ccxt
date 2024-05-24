@@ -1025,7 +1025,7 @@ export default class whitebit extends Exchange {
         }
     }
 
-    parseTrade (trade, market: Market = undefined): Trade {
+    parseTrade (trade: Dict, market: Market = undefined): Trade {
         //
         // fetchTradesV4
         //
