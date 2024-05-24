@@ -380,8 +380,9 @@ export default class mexc extends mexcRest {
                 if ((limit !== 5) && (limit !== 10) && (limit !== 20)) {
                     throw new BadRequest (this.id + ' watchOrderBook () limit argument can only be 5, 10 or 20');
                 }
-                messageHash += ':' + limit;
-                channel = 'spot@public.limit.depth.v3.api@' + market['id'] + '@' + limit;
+                const limitString = this.numberToString (limit);
+                messageHash += ':' + limitString;
+                channel = 'spot@public.limit.depth.v3.api@' + market['id'] + '@' + limitString;
             }
             orderbook = await this.watchSpotPublic (channel, messageHash, params);
         } else {
@@ -429,8 +430,9 @@ export default class mexc extends mexcRest {
     handleOrderBook (client: Client, message) {
         //
         // spot
+        //
         //    {
-        //        "c": "spot@public.increase.depth.v3.api@BTCUSDT",
+        //        "c": "spot@public.increase.depth.v3.api@BTCUSDT@10",
         //        "d": {
         //            "asks": [{
         //                "p": "20290.89",
@@ -443,9 +445,8 @@ export default class mexc extends mexcRest {
         //        "t": 1661932660144
         //    }
         //
-        //
-        //
         // swap
+        //
         //  {
         //      "channel":"push.depth",
         //      "data":{
@@ -473,7 +474,15 @@ export default class mexc extends mexcRest {
         const data = this.safeValue2 (message, 'd', 'data');
         const marketId = this.safeString2 (message, 's', 'symbol');
         const symbol = this.safeSymbol (marketId);
-        const messageHash = 'orderbook:' + symbol;
+        let messageHash = 'orderbook:' + symbol;
+        const channel = this.safeString (message, 'c');
+        if (channel !== undefined) {
+            const splitChannel = channel.split ('@');
+            const depth = this.safeString (splitChannel, 3);
+            if (depth !== undefined) {
+                messageHash += ':' + depth;
+            }
+        }
         const subscription = this.safeValue (client.subscriptions, messageHash);
         const limit = this.safeInteger (subscription, 'limit');
         if (subscription === true) {
@@ -1169,6 +1178,7 @@ export default class mexc extends mexcRest {
             const channel = this.safeString (parts, 1);
             const methods: Dict = {
                 'public.increase.depth.v3.api': this.handleOrderBookSubscription,
+                'public.limit.depth.v3.api': this.handleOrderBookSubscription,
             };
             const method = this.safeValue (methods, channel);
             if (method !== undefined) {
@@ -1205,6 +1215,7 @@ export default class mexc extends mexcRest {
             'public.bookTicker.v3.api': this.handleTicker,
             'push.ticker': this.handleTicker,
             'public.increase.depth.v3.api': this.handleOrderBook,
+            'public.limit.depth.v3.api': this.handleOrderBook,
             'push.depth': this.handleOrderBook,
             'private.orders.v3.api': this.handleOrder,
             'push.personal.order': this.handleOrder,
