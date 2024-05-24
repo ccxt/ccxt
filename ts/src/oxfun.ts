@@ -6,7 +6,7 @@ import { Precise } from './base/Precise.js';
 import { ArgumentsRequired, AuthenticationError, BadRequest, ExchangeError, NotSupported } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { Account, Balances, Bool, Currencies, Currency, Int, Market, Num, OHLCV, Order, OrderBook, OrderType, OrderSide, OrderRequest, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry } from './base/types.js';
+import type { Account, Balances, Bool, Currencies, Currency, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderType, OrderSide, OrderRequest, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -760,7 +760,7 @@ export default class oxfun extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'marketCode': market['id'],
         };
         const response = await this.publicGetV3Tickers (this.extend (request, params));
@@ -2193,7 +2193,7 @@ export default class oxfun extends Exchange {
         market = this.safeMarket (marketId, market);
         return this.safePosition ({
             'info': position,
-            'id': this.safeString (position, 'positionId'),
+            'id': undefined,
             'symbol': market['symbol'],
             'notional': undefined,
             'marginMode': 'cross', // todo check
