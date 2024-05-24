@@ -21,12 +21,12 @@ export default class gemini extends Exchange {
     fetchTicker(symbol: string, params?: {}): Promise<Ticker>;
     parseTicker(ticker: Dict, market?: Market): Ticker;
     fetchTickers(symbols?: Strings, params?: {}): Promise<Tickers>;
-    parseTrade(trade: any, market?: Market): Trade;
+    parseTrade(trade: Dict, market?: Market): Trade;
     fetchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     parseBalance(response: any): Balances;
     fetchTradingFees(params?: {}): Promise<TradingFees>;
     fetchBalance(params?: {}): Promise<Balances>;
-    parseOrder(order: any, market?: Market): Order;
+    parseOrder(order: Dict, market?: Market): Order;
     fetchOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
     fetchOpenOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     createOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): Promise<Order>;
@@ -35,7 +35,7 @@ export default class gemini extends Exchange {
     withdraw(code: string, amount: number, address: string, tag?: any, params?: {}): Promise<Transaction>;
     nonce(): number;
     fetchDepositsWithdrawals(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
-    parseTransaction(transaction: any, currency?: Currency): Transaction;
+    parseTransaction(transaction: Dict, currency?: Currency): Transaction;
     parseTransactionStatus(status: any): string;
     parseDepositAddress(depositAddress: any, currency?: Currency): {
         currency: string;

@@ -1015,7 +1015,7 @@ export default class currencycom extends Exchange {
         return this.parseOHLCVs (response, market, timeframe, since, limit);
     }
 
-    parseTrade (trade, market: Market = undefined): Trade {
+    parseTrade (trade: Dict, market: Market = undefined): Trade {
         //
         // fetchTrades (public aggregate trades)
         //
@@ -1132,7 +1132,7 @@ export default class currencycom extends Exchange {
         return this.parseTrades (response, market, since, limit);
     }
 
-    parseOrder (order, market: Market = undefined): Order {
+    parseOrder (order: Dict, market: Market = undefined): Order {
         //
         // createOrder
         //
@@ -1648,7 +1648,7 @@ export default class currencycom extends Exchange {
         return this.parseTransactions (response, currency, since, limit, params);
     }
 
-    parseTransaction (transaction, currency: Currency = undefined): Transaction {
+    parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {
         //
         //    {
         //        "id": "616769213",
@@ -1771,7 +1771,7 @@ export default class currencycom extends Exchange {
         return this.parseLedger (response, currency, since, limit);
     }
 
-    parseLedgerEntry (item, currency: Currency = undefined) {
+    parseLedgerEntry (item: Dict, currency: Currency = undefined) {
         const id = this.safeString (item, 'id');
         const amountString = this.safeString (item, 'amount');
         const amount = Precise.stringAbs (amountString);
@@ -1974,7 +1974,7 @@ export default class currencycom extends Exchange {
         return this.parsePositions (data, symbols);
     }
 
-    parsePosition (position, market: Market = undefined) {
+    parsePosition (position: Dict, market: Market = undefined) {
         //
         //    {
         //        "accountId": "109698017416453793",

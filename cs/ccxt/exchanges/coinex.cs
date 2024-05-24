@@ -51,8 +51,8 @@ public partial class coinex : Exchange
                 { "fetchDepositAddressByNetwork", false },
                 { "fetchDepositAddresses", false },
                 { "fetchDeposits", true },
-                { "fetchDepositWithdrawFee", "emulated" },
-                { "fetchDepositWithdrawFees", true },
+                { "fetchDepositWithdrawFee", true },
+                { "fetchDepositWithdrawFees", false },
                 { "fetchFundingHistory", true },
                 { "fetchFundingRate", true },
                 { "fetchFundingRateHistory", true },
@@ -4611,112 +4611,132 @@ public partial class coinex : Exchange
         };
     }
 
-    public async override Task<object> fetchDepositWithdrawFees(object codes = null, object parameters = null)
+    public async override Task<object> fetchDepositWithdrawFee(object code, object parameters = null)
     {
         /**
         * @method
-        * @name coinex#fetchDepositWithdrawFees
-        * @description fetch deposit and withdraw fees
-        * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot001_market010_asset_config
-        * @param {string[]|undefined} codes list of unified currency codes
+        * @name coinex#fetchDepositWithdrawFee
+        * @description fetch the fee for deposits and withdrawals
+        * @see https://docs.coinex.com/api/v2/assets/deposit-withdrawal/http/get-deposit-withdrawal-config
+        * @param {string} code unified currency code
         * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object[]} a list of [fees structures]{@link https://docs.ccxt.com/#/?id=fee-structure}
+        * @returns {object} a [fee structure]{@link https://docs.ccxt.com/#/?id=fee-structure}
         */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        object request = new Dictionary<string, object>() {};
-        if (isTrue(!isEqual(codes, null)))
-        {
-            object codesLength = getArrayLength(codes);
-            if (isTrue(isEqual(codesLength, 1)))
-            {
-                ((IDictionary<string,object>)request)["coin_type"] = this.safeValue(codes, 0);
-            }
-        }
-        object response = await this.v1PublicGetCommonAssetConfig(this.extend(request, parameters));
+        object currency = this.currency(code);
+        object request = new Dictionary<string, object>() {
+            { "ccy", getValue(currency, "id") },
+        };
+        object response = await this.v2PrivateGetAssetsDepositWithdrawConfig(this.extend(request, parameters));
         //
-        //    {
-        //        "code": 0,
-        //        "data": {
-        //            "CET-CSC": {
-        //                "asset": "CET",
-        //                "chain": "CSC",
-        //                "can_deposit": true,
-        //                "can_withdraw ": false,
-        //                "deposit_least_amount": "1",
-        //                "withdraw_least_amount": "1",
-        //                "withdraw_tx_fee": "0.1"
-        //            },
-        //            "CET-ERC20": {
-        //                "asset": "CET",
-        //                "chain": "ERC20",
-        //                "can_deposit": true,
-        //                "can_withdraw": false,
-        //                "deposit_least_amount": "14",
-        //                "withdraw_least_amount": "14",
-        //                "withdraw_tx_fee": "14"
-        //            }
-        //        },
-        //        "message": "Success"
-        //    }
+        //     {
+        //         "code": 0,
+        //         "data": {
+        //             "asset": {
+        //                 "ccy": "USDT",
+        //                 "deposit_enabled": true,
+        //                 "withdraw_enabled": true,
+        //                 "inter_transfer_enabled": true,
+        //                 "is_st": false
+        //             },
+        //             "chains": [
+        //                 {
+        //                     "chain": "TRC20",
+        //                     "min_deposit_amount": "2.4",
+        //                     "min_withdraw_amount": "2.4",
+        //                     "deposit_enabled": true,
+        //                     "withdraw_enabled": true,
+        //                     "deposit_delay_minutes": 0,
+        //                     "safe_confirmations": 10,
+        //                     "irreversible_confirmations": 20,
+        //                     "deflation_rate": "0",
+        //                     "withdrawal_fee": "2.4",
+        //                     "withdrawal_precision": 6,
+        //                     "memo": "",
+        //                     "is_memo_required_for_deposit": false,
+        //                     "explorer_asset_url": "https://tronscan.org/#/token20/TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t"
+        //                 },
+        //             ]
+        //         },
+        //         "message": "OK"
+        //     }
         //
-        return this.parseDepositWithdrawFees(response, codes);
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        return ((object)this.parseDepositWithdrawFee(data, currency));
     }
 
-    public override object parseDepositWithdrawFees(object response, object codes = null, object currencyIdKey = null)
+    public override object parseDepositWithdrawFee(object fee, object currency = null)
     {
-        object depositWithdrawFees = new Dictionary<string, object>() {};
-        codes = this.marketCodes(codes);
-        object data = this.safeValue(response, "data");
-        object currencyIds = new List<object>(((IDictionary<string,object>)data).Keys);
-        for (object i = 0; isLessThan(i, getArrayLength(currencyIds)); postFixIncrement(ref i))
+        //
+        //     {
+        //         "asset": {
+        //             "ccy": "USDT",
+        //             "deposit_enabled": true,
+        //             "withdraw_enabled": true,
+        //             "inter_transfer_enabled": true,
+        //             "is_st": false
+        //         },
+        //         "chains": [
+        //             {
+        //                 "chain": "TRC20",
+        //                 "min_deposit_amount": "2.4",
+        //                 "min_withdraw_amount": "2.4",
+        //                 "deposit_enabled": true,
+        //                 "withdraw_enabled": true,
+        //                 "deposit_delay_minutes": 0,
+        //                 "safe_confirmations": 10,
+        //                 "irreversible_confirmations": 20,
+        //                 "deflation_rate": "0",
+        //                 "withdrawal_fee": "2.4",
+        //                 "withdrawal_precision": 6,
+        //                 "memo": "",
+        //                 "is_memo_required_for_deposit": false,
+        //                 "explorer_asset_url": "https://tronscan.org/#/token20/TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t"
+        //             },
+        //         ]
+        //     }
+        //
+        object result = new Dictionary<string, object>() {
+            { "info", fee },
+            { "withdraw", new Dictionary<string, object>() {
+                { "fee", null },
+                { "percentage", null },
+            } },
+            { "deposit", new Dictionary<string, object>() {
+                { "fee", null },
+                { "percentage", null },
+            } },
+            { "networks", new Dictionary<string, object>() {} },
+        };
+        object chains = this.safeList(fee, "chains", new List<object>() {});
+        object asset = this.safeDict(fee, "asset", new Dictionary<string, object>() {});
+        for (object i = 0; isLessThan(i, getArrayLength(chains)); postFixIncrement(ref i))
         {
-            object entry = getValue(currencyIds, i);
-            object splitEntry = ((string)entry).Split(new [] {((string)"-")}, StringSplitOptions.None).ToList<object>();
-            object feeInfo = getValue(data, getValue(currencyIds, i));
-            object currencyId = this.safeString(feeInfo, "asset");
-            object currency = this.safeCurrency(currencyId);
-            object code = this.safeString(currency, "code");
-            if (isTrue(isTrue((isEqual(codes, null))) || isTrue((this.inArray(code, codes)))))
+            object entry = getValue(chains, i);
+            object isWithdrawEnabled = this.safeBool(entry, "withdraw_enabled");
+            if (isTrue(isWithdrawEnabled))
             {
-                object depositWithdrawFee = this.safeValue(depositWithdrawFees, code);
-                if (isTrue(isEqual(depositWithdrawFee, null)))
+                ((IDictionary<string,object>)getValue(result, "withdraw"))["fee"] = this.safeNumber(entry, "withdrawal_fee");
+                ((IDictionary<string,object>)getValue(result, "withdraw"))["percentage"] = false;
+                object networkId = this.safeString(entry, "chain");
+                if (isTrue(networkId))
                 {
-                    ((IDictionary<string,object>)depositWithdrawFees)[(string)code] = this.depositWithdrawFee(new Dictionary<string, object>() {});
-                }
-                ((IDictionary<string,object>)getValue(getValue(depositWithdrawFees, code), "info"))[(string)entry] = feeInfo;
-                object networkId = this.safeString(splitEntry, 1);
-                object withdrawFee = this.safeValue(feeInfo, "withdraw_tx_fee");
-                object withdrawResult = new Dictionary<string, object>() {
-                    { "fee", withdrawFee },
-                    { "percentage", ((bool) isTrue((!isEqual(withdrawFee, null)))) ? false : null },
-                };
-                object depositResult = new Dictionary<string, object>() {
-                    { "fee", null },
-                    { "percentage", null },
-                };
-                if (isTrue(!isEqual(networkId, null)))
-                {
-                    object networkCode = this.networkIdToCode(networkId);
-                    ((IDictionary<string,object>)getValue(getValue(depositWithdrawFees, code), "networks"))[(string)networkCode] = new Dictionary<string, object>() {
-                        { "withdraw", withdrawResult },
-                        { "deposit", depositResult },
+                    object networkCode = this.networkIdToCode(networkId, this.safeString(asset, "ccy"));
+                    ((IDictionary<string,object>)getValue(result, "networks"))[(string)networkCode] = new Dictionary<string, object>() {
+                        { "withdraw", new Dictionary<string, object>() {
+                            { "fee", this.safeNumber(entry, "withdrawal_fee") },
+                            { "percentage", false },
+                        } },
+                        { "deposit", new Dictionary<string, object>() {
+                            { "fee", null },
+                            { "percentage", null },
+                        } },
                     };
-                } else
-                {
-                    ((IDictionary<string,object>)getValue(depositWithdrawFees, code))["withdraw"] = withdrawResult;
-                    ((IDictionary<string,object>)getValue(depositWithdrawFees, code))["deposit"] = depositResult;
                 }
             }
         }
-        object depositWithdrawCodes = new List<object>(((IDictionary<string,object>)depositWithdrawFees).Keys);
-        for (object i = 0; isLessThan(i, getArrayLength(depositWithdrawCodes)); postFixIncrement(ref i))
-        {
-            object code = getValue(depositWithdrawCodes, i);
-            object currency = this.currency(code);
-            ((IDictionary<string,object>)depositWithdrawFees)[(string)code] = this.assignDefaultDepositWithdrawFees(getValue(depositWithdrawFees, code), currency);
-        }
-        return depositWithdrawFees;
+        return result;
     }
 
     public async override Task<object> fetchLeverages(object symbols = null, object parameters = null)

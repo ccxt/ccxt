@@ -472,7 +472,7 @@ export default class kuna extends Exchange {
         return result;
     }
 
-    parseCurrency (currency) {
+    parseCurrency (currency: Dict) {
         //
         //    {
         //        "code": "BTC",
@@ -845,7 +845,7 @@ export default class kuna extends Exchange {
         return this.parseTrades (data, market, since, limit);
     }
 
-    parseTrade (trade, market: Market = undefined): Trade {
+    parseTrade (trade: Dict, market: Market = undefined): Trade {
         //
         // fetchTrades (public)
         //
@@ -1088,7 +1088,7 @@ export default class kuna extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseOrder (order, market: Market = undefined): Order {
+    parseOrder (order: Dict, market: Market = undefined): Order {
         //
         // createOrder, fetchOrder, fetchOpenOrders, fetchOrdersByStatus
         //
@@ -1784,7 +1784,7 @@ export default class kuna extends Exchange {
         return this.parseTransaction (data, currency);
     }
 
-    parseTransaction (transaction, currency: Currency = undefined): Transaction {
+    parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {
         //
         //    {
         //        "id": "a201cb3c-5830-57ac-ad2c-f6a588dd55eb",                               // Unique ID of deposit

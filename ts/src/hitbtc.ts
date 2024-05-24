@@ -1267,7 +1267,7 @@ export default class hitbtc extends Exchange {
         return this.parseTrades (response, market, since, limit);
     }
 
-    parseTrade (trade, market: Market = undefined): Trade {
+    parseTrade (trade: Dict, market: Market = undefined): Trade {
         //
         // createOrder (market)
         //
@@ -1432,7 +1432,7 @@ export default class hitbtc extends Exchange {
         return this.safeString (types, type, type);
     }
 
-    parseTransaction (transaction, currency: Currency = undefined): Transaction {
+    parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {
         //
         // transaction
         //
@@ -1620,7 +1620,7 @@ export default class hitbtc extends Exchange {
         return this.parseOrderBook (response, symbol, timestamp, 'bid', 'ask') as OrderBook;
     }
 
-    parseTradingFee (fee, market: Market = undefined): TradingFeeInterface {
+    parseTradingFee (fee: Dict, market: Market = undefined): TradingFeeInterface {
         //
         //     {
         //         "symbol":"ARVUSDT", // returned from fetchTradingFees only
@@ -2383,7 +2383,7 @@ export default class hitbtc extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseOrder (order, market: Market = undefined): Order {
+    parseOrder (order: Dict, market: Market = undefined): Order {
         //
         // limit
         //     {
@@ -2569,7 +2569,7 @@ export default class hitbtc extends Exchange {
         return this.parseMarginModes (config, symbols, 'symbol');
     }
 
-    parseMarginMode (marginMode, market = undefined): MarginMode {
+    parseMarginMode (marginMode: Dict, market = undefined): MarginMode {
         const marketId = this.safeString (marginMode, 'symbol');
         return {
             'info': marginMode,
@@ -2997,7 +2997,7 @@ export default class hitbtc extends Exchange {
         return this.parsePosition (response, market);
     }
 
-    parsePosition (position, market: Market = undefined) {
+    parsePosition (position: Dict, market: Market = undefined) {
         //
         //     [
         //         {

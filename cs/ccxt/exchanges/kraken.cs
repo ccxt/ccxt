@@ -1010,9 +1010,7 @@ public partial class kraken : Exchange
         }
         if (isTrue(!isEqual(since, null)))
         {
-            // contrary to kraken's api documentation, the since parameter must be passed in nanoseconds
-            // the adding of '000000' is copied from the fetchTrades function
-            ((IDictionary<string,object>)request)["since"] = add(this.numberToString(since), "000000"); // expected to be in nanoseconds
+            ((IDictionary<string,object>)request)["since"] = this.numberToString(this.parseToInt(divide(since, 1000))); // expected to be in seconds
         }
         object response = await this.publicGetOHLC(this.extend(request, parameters));
         //
@@ -1329,10 +1327,7 @@ public partial class kraken : Exchange
         // https://github.com/ccxt/ccxt/issues/5677
         if (isTrue(!isEqual(since, null)))
         {
-            // php does not format it properly
-            // therefore we use string concatenation here
-            ((IDictionary<string,object>)request)["since"] = multiply(since, 1000000);
-            ((IDictionary<string,object>)request)["since"] = add(((object)since).ToString(), "000000"); // expected to be in nanoseconds
+            ((IDictionary<string,object>)request)["since"] = this.numberToString(this.parseToInt(divide(since, 1000))); // expected to be in seconds
         }
         if (isTrue(!isEqual(limit, null)))
         {

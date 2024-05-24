@@ -362,11 +362,11 @@
             {
                 "description": "spot ohlcv with since",
                 "method": "fetchOHLCV",
-                "url": "https://api.kraken.com/0/public/OHLC?pair=XBTUSDT&interval=60&since=1706628191000000000",
+                "url": "https://api.kraken.com/0/public/OHLC?pair=XBTUSDT&interval=60&since=1716523348",
                 "input": [
-                    "BTC/USDT",
-                    "1h",
-                    1706628191000
+                  "BTC/USDT",
+                  "1h",
+                  1716523348000
                 ]
             },
             {
@@ -393,6 +393,15 @@
                 "url": "https://api.kraken.com/0/public/Trades?pair=XBTUSDT",
                 "input": [
                     "BTC/USDT"
+                ]
+            },
+            {
+                "description": "trades with since",
+                "method": "fetchTrades",
+                "url": "https://api.kraken.com/0/public/Trades?pair=XBTUSDT&since=1716550666",
+                "input": [
+                  "BTC/USDT",
+                  1716550666738
                 ]
             }
         ],

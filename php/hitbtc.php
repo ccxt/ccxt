@@ -1249,7 +1249,7 @@ class hitbtc extends Exchange {
         return $this->parse_trades($response, $market, $since, $limit);
     }
 
-    public function parse_trade($trade, ?array $market = null): array {
+    public function parse_trade(array $trade, ?array $market = null): array {
         //
         // createOrder ($market)
         //
@@ -1414,7 +1414,7 @@ class hitbtc extends Exchange {
         return $this->safe_string($types, $type, $type);
     }
 
-    public function parse_transaction($transaction, ?array $currency = null): array {
+    public function parse_transaction(array $transaction, ?array $currency = null): array {
         //
         // $transaction
         //
@@ -1592,7 +1592,7 @@ class hitbtc extends Exchange {
         return $this->parse_order_book($response, $symbol, $timestamp, 'bid', 'ask');
     }
 
-    public function parse_trading_fee($fee, ?array $market = null): array {
+    public function parse_trading_fee(array $fee, ?array $market = null): array {
         //
         //     {
         //         "symbol":"ARVUSDT", // returned from fetchTradingFees only
@@ -2333,7 +2333,7 @@ class hitbtc extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_order($order, ?array $market = null): array {
+    public function parse_order(array $order, ?array $market = null): array {
         //
         // limit
         //     {
@@ -2517,7 +2517,7 @@ class hitbtc extends Exchange {
         return $this->parse_margin_modes($config, $symbols, 'symbol');
     }
 
-    public function parse_margin_mode($marginMode, $market = null): array {
+    public function parse_margin_mode(array $marginMode, $market = null): array {
         $marketId = $this->safe_string($marginMode, 'symbol');
         return array(
             'info' => $marginMode,
@@ -2933,7 +2933,7 @@ class hitbtc extends Exchange {
         return $this->parse_position($response, $market);
     }
 
-    public function parse_position($position, ?array $market = null) {
+    public function parse_position(array $position, ?array $market = null) {
         //
         //     array(
         //         {

@@ -74,8 +74,8 @@ class coinex extends Exchange {
                 'fetchDepositAddressByNetwork' => false,
                 'fetchDepositAddresses' => false,
                 'fetchDeposits' => true,
-                'fetchDepositWithdrawFee' => 'emulated',
-                'fetchDepositWithdrawFees' => true,
+                'fetchDepositWithdrawFee' => true,
+                'fetchDepositWithdrawFees' => false,
                 'fetchFundingHistory' => true,
                 'fetchFundingRate' => true,
                 'fetchFundingRateHistory' => true,
@@ -1196,7 +1196,7 @@ class coinex extends Exchange {
         }) ();
     }
 
-    public function parse_trade($trade, ?array $market = null): array {
+    public function parse_trade(array $trade, ?array $market = null): array {
         //
         // Spot and Swap fetchTrades (public)
         //
@@ -1445,7 +1445,7 @@ class coinex extends Exchange {
         }) ();
     }
 
-    public function parse_trading_fee($fee, ?array $market = null): array {
+    public function parse_trading_fee(array $fee, ?array $market = null): array {
         $marketId = $this->safe_value($fee, 'market');
         $symbol = $this->safe_symbol($marketId, $market);
         return array(
@@ -1732,7 +1732,7 @@ class coinex extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_order($order, ?array $market = null): array {
+    public function parse_order(array $order, ?array $market = null): array {
         //
         // Spot and Margin createOrder, createOrders, editOrder, cancelOrders, cancelOrder, fetchOpenOrders
         //
@@ -4050,7 +4050,7 @@ class coinex extends Exchange {
         }) ();
     }
 
-    public function parse_position($position, ?array $market = null) {
+    public function parse_position(array $position, ?array $market = null) {
         //
         //     {
         //         "position_id" => 305891033,
@@ -4217,7 +4217,7 @@ class coinex extends Exchange {
         }) ();
     }
 
-    public function fetch_leverage_tiers(?array $symbols = null, $params = array ()) {
+    public function fetch_leverage_tiers(?array $symbols = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbols, $params) {
             /**
              * retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes
@@ -4263,7 +4263,7 @@ class coinex extends Exchange {
         }) ();
     }
 
-    public function parse_market_leverage_tiers($info, ?array $market = null) {
+    public function parse_market_leverage_tiers($info, ?array $market = null): array {
         $tiers = array();
         $brackets = $this->safe_list($info, 'level', array());
         $minNotional = 0;
@@ -4787,7 +4787,7 @@ class coinex extends Exchange {
         }) ();
     }
 
-    public function parse_transaction($transaction, ?array $currency = null): array {
+    public function parse_transaction(array $transaction, ?array $currency = null): array {
         //
         // fetchDeposits
         //
@@ -5281,7 +5281,7 @@ class coinex extends Exchange {
         }) ();
     }
 
-    public function parse_borrow_interest($info, ?array $market = null) {
+    public function parse_borrow_interest(array $info, ?array $market = null) {
         //
         //     {
         //         "borrow_id" => 2642934,
@@ -5427,101 +5427,126 @@ class coinex extends Exchange {
         );
     }
 
-    public function fetch_deposit_withdraw_fees(?array $codes = null, $params = array ()) {
-        return Async\async(function () use ($codes, $params) {
+    public function fetch_deposit_withdraw_fee(string $code, $params = array ()) {
+        return Async\async(function () use ($code, $params) {
             /**
-             * fetch deposit and withdraw fees
-             * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot001_market010_asset_config
-             * @param {string[]|null} $codes list of unified currency $codes
+             * fetch the fee for deposits and withdrawals
+             * @see https://docs.coinex.com/api/v2/assets/deposit-withdrawal/http/get-deposit-withdrawal-config
+             * @param {string} $code unified $currency $code
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=fee-structure fees structures~
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=fee-structure fee structure~
              */
             Async\await($this->load_markets());
-            $request = array();
-            if ($codes !== null) {
-                $codesLength = count($codes);
-                if ($codesLength === 1) {
-                    $request['coin_type'] = $this->safe_value($codes, 0);
-                }
-            }
-            $response = Async\await($this->v1PublicGetCommonAssetConfig ($this->extend($request, $params)));
+            $currency = $this->currency($code);
+            $request = array(
+                'ccy' => $currency['id'],
+            );
+            $response = Async\await($this->v2PrivateGetAssetsDepositWithdrawConfig ($this->extend($request, $params)));
             //
-            //    {
-            //        "code" => 0,
-            //        "data" => {
-            //            "CET-CSC" => array(
-            //                "asset" => "CET",
-            //                "chain" => "CSC",
-            //                "can_deposit" => true,
-            //                "can_withdraw " => false,
-            //                "deposit_least_amount" => "1",
-            //                "withdraw_least_amount" => "1",
-            //                "withdraw_tx_fee" => "0.1"
-            //            ),
-            //            "CET-ERC20" => array(
-            //                "asset" => "CET",
-            //                "chain" => "ERC20",
-            //                "can_deposit" => true,
-            //                "can_withdraw" => false,
-            //                "deposit_least_amount" => "14",
-            //                "withdraw_least_amount" => "14",
-            //                "withdraw_tx_fee" => "14"
-            //            }
-            //        ),
-            //        "message" => "Success"
-            //    }
+            //     {
+            //         "code" => 0,
+            //         "data" => array(
+            //             "asset" => array(
+            //                 "ccy" => "USDT",
+            //                 "deposit_enabled" => true,
+            //                 "withdraw_enabled" => true,
+            //                 "inter_transfer_enabled" => true,
+            //                 "is_st" => false
+            //             ),
+            //             "chains" => array(
+            //                 array(
+            //                     "chain" => "TRC20",
+            //                     "min_deposit_amount" => "2.4",
+            //                     "min_withdraw_amount" => "2.4",
+            //                     "deposit_enabled" => true,
+            //                     "withdraw_enabled" => true,
+            //                     "deposit_delay_minutes" => 0,
+            //                     "safe_confirmations" => 10,
+            //                     "irreversible_confirmations" => 20,
+            //                     "deflation_rate" => "0",
+            //                     "withdrawal_fee" => "2.4",
+            //                     "withdrawal_precision" => 6,
+            //                     "memo" => "",
+            //                     "is_memo_required_for_deposit" => false,
+            //                     "explorer_asset_url" => "https://tronscan.org/#/token20/TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t"
+            //                 ),
+            //             )
+            //         ),
+            //         "message" => "OK"
+            //     }
             //
-            return $this->parse_deposit_withdraw_fees($response, $codes);
+            $data = $this->safe_dict($response, 'data', array());
+            return $this->parse_deposit_withdraw_fee($data, $currency);
         }) ();
     }
 
-    public function parse_deposit_withdraw_fees($response, $codes = null, $currencyIdKey = null) {
-        $depositWithdrawFees = array();
-        $codes = $this->market_codes($codes);
-        $data = $this->safe_value($response, 'data');
-        $currencyIds = is_array($data) ? array_keys($data) : array();
-        for ($i = 0; $i < count($currencyIds); $i++) {
-            $entry = $currencyIds[$i];
-            $splitEntry = explode('-', $entry);
-            $feeInfo = $data[$currencyIds[$i]];
-            $currencyId = $this->safe_string($feeInfo, 'asset');
-            $currency = $this->safe_currency($currencyId);
-            $code = $this->safe_string($currency, 'code');
-            if (($codes === null) || ($this->in_array($code, $codes))) {
-                $depositWithdrawFee = $this->safe_value($depositWithdrawFees, $code);
-                if ($depositWithdrawFee === null) {
-                    $depositWithdrawFees[$code] = $this->deposit_withdraw_fee(array());
-                }
-                $depositWithdrawFees[$code]['info'][$entry] = $feeInfo;
-                $networkId = $this->safe_string($splitEntry, 1);
-                $withdrawFee = $this->safe_value($feeInfo, 'withdraw_tx_fee');
-                $withdrawResult = array(
-                    'fee' => $withdrawFee,
-                    'percentage' => ($withdrawFee !== null) ? false : null,
-                );
-                $depositResult = array(
-                    'fee' => null,
-                    'percentage' => null,
-                );
-                if ($networkId !== null) {
-                    $networkCode = $this->network_id_to_code($networkId);
-                    $depositWithdrawFees[$code]['networks'][$networkCode] = array(
-                        'withdraw' => $withdrawResult,
-                        'deposit' => $depositResult,
+    public function parse_deposit_withdraw_fee($fee, ?array $currency = null) {
+        //
+        //     {
+        //         "asset" => array(
+        //             "ccy" => "USDT",
+        //             "deposit_enabled" => true,
+        //             "withdraw_enabled" => true,
+        //             "inter_transfer_enabled" => true,
+        //             "is_st" => false
+        //         ),
+        //         "chains" => array(
+        //             array(
+        //                 "chain" => "TRC20",
+        //                 "min_deposit_amount" => "2.4",
+        //                 "min_withdraw_amount" => "2.4",
+        //                 "deposit_enabled" => true,
+        //                 "withdraw_enabled" => true,
+        //                 "deposit_delay_minutes" => 0,
+        //                 "safe_confirmations" => 10,
+        //                 "irreversible_confirmations" => 20,
+        //                 "deflation_rate" => "0",
+        //                 "withdrawal_fee" => "2.4",
+        //                 "withdrawal_precision" => 6,
+        //                 "memo" => "",
+        //                 "is_memo_required_for_deposit" => false,
+        //                 "explorer_asset_url" => "https://tronscan.org/#/token20/TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t"
+        //             ),
+        //         )
+        //     }
+        //
+        $result = array(
+            'info' => $fee,
+            'withdraw' => array(
+                'fee' => null,
+                'percentage' => null,
+            ),
+            'deposit' => array(
+                'fee' => null,
+                'percentage' => null,
+            ),
+            'networks' => array(),
+        );
+        $chains = $this->safe_list($fee, 'chains', array());
+        $asset = $this->safe_dict($fee, 'asset', array());
+        for ($i = 0; $i < count($chains); $i++) {
+            $entry = $chains[$i];
+            $isWithdrawEnabled = $this->safe_bool($entry, 'withdraw_enabled');
+            if ($isWithdrawEnabled) {
+                $result['withdraw']['fee'] = $this->safe_number($entry, 'withdrawal_fee');
+                $result['withdraw']['percentage'] = false;
+                $networkId = $this->safe_string($entry, 'chain');
+                if ($networkId) {
+                    $networkCode = $this->network_id_to_code($networkId, $this->safe_string($asset, 'ccy'));
+                    $result['networks'][$networkCode] = array(
+                        'withdraw' => array(
+                            'fee' => $this->safe_number($entry, 'withdrawal_fee'),
+                            'percentage' => false,
+                        ),
+                        'deposit' => array(
+                            'fee' => null,
+                            'percentage' => null,
+                        ),
                     );
-                } else {
-                    $depositWithdrawFees[$code]['withdraw'] = $withdrawResult;
-                    $depositWithdrawFees[$code]['deposit'] = $depositResult;
                 }
             }
         }
-        $depositWithdrawCodes = is_array($depositWithdrawFees) ? array_keys($depositWithdrawFees) : array();
-        for ($i = 0; $i < count($depositWithdrawCodes); $i++) {
-            $code = $depositWithdrawCodes[$i];
-            $currency = $this->currency($code);
-            $depositWithdrawFees[$code] = $this->assign_default_deposit_withdraw_fees($depositWithdrawFees[$code], $currency);
-        }
-        return $depositWithdrawFees;
+        return $result;
     }
 
     public function fetch_leverages(?array $symbols = null, $params = array ()): PromiseInterface {

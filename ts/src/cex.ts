@@ -661,7 +661,7 @@ export default class cex extends Exchange {
         return this.parseTicker (ticker, market);
     }
 
-    parseTrade (trade, market: Market = undefined): Trade {
+    parseTrade (trade: Dict, market: Market = undefined): Trade {
         //
         // fetchTrades (public)
         //
@@ -907,7 +907,7 @@ export default class cex extends Exchange {
         return orders;
     }
 
-    parseOrder (order, market: Market = undefined): Order {
+    parseOrder (order: Dict, market: Market = undefined): Order {
         // Depending on the call, 'time' can be a unix int, unix string or ISO string
         // Yes, really
         let timestamp = this.safeValue (order, 'time');

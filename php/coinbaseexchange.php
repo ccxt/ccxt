@@ -707,7 +707,7 @@ class coinbaseexchange extends Exchange {
         return $this->parse_ticker($response, $market);
     }
 
-    public function parse_trade($trade, ?array $market = null): array {
+    public function parse_trade(array $trade, ?array $market = null): array {
         //
         //     {
         //         "type" => "match",
@@ -996,7 +996,7 @@ class coinbaseexchange extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_order($order, ?array $market = null): array {
+    public function parse_order(array $order, ?array $market = null): array {
         //
         // createOrder
         //
@@ -1386,7 +1386,7 @@ class coinbaseexchange extends Exchange {
         return $this->safe_string($types, $type, $type);
     }
 
-    public function parse_ledger_entry($item, ?array $currency = null) {
+    public function parse_ledger_entry(array $item, ?array $currency = null) {
         //  {
         //      "id" => "12087495079",
         //      "amount" => "-0.0100000000000000",
@@ -1659,7 +1659,7 @@ class coinbaseexchange extends Exchange {
         }
     }
 
-    public function parse_transaction($transaction, ?array $currency = null): array {
+    public function parse_transaction(array $transaction, ?array $currency = null): array {
         //
         // privateGetTransfers
         //

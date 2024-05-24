@@ -975,7 +975,7 @@ class currencycom(Exchange, ImplicitAPI):
         #
         return self.parse_ohlcvs(response, market, timeframe, since, limit)
 
-    def parse_trade(self, trade, market: Market = None) -> Trade:
+    def parse_trade(self, trade: dict, market: Market = None) -> Trade:
         #
         # fetchTrades(public aggregate trades)
         #
@@ -1084,7 +1084,7 @@ class currencycom(Exchange, ImplicitAPI):
         #
         return self.parse_trades(response, market, since, limit)
 
-    def parse_order(self, order, market: Market = None) -> Order:
+    def parse_order(self, order: dict, market: Market = None) -> Order:
         #
         # createOrder
         #
@@ -1555,7 +1555,7 @@ class currencycom(Exchange, ImplicitAPI):
         #
         return self.parse_transactions(response, currency, since, limit, params)
 
-    def parse_transaction(self, transaction, currency: Currency = None) -> Transaction:
+    def parse_transaction(self, transaction: dict, currency: Currency = None) -> Transaction:
         #
         #    {
         #        "id": "616769213",
@@ -1668,7 +1668,7 @@ class currencycom(Exchange, ImplicitAPI):
         #
         return self.parse_ledger(response, currency, since, limit)
 
-    def parse_ledger_entry(self, item, currency: Currency = None):
+    def parse_ledger_entry(self, item: dict, currency: Currency = None):
         id = self.safe_string(item, 'id')
         amountString = self.safe_string(item, 'amount')
         amount = Precise.string_abs(amountString)
@@ -1851,7 +1851,7 @@ class currencycom(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'positions', [])
         return self.parse_positions(data, symbols)
 
-    def parse_position(self, position, market: Market = None):
+    def parse_position(self, position: dict, market: Market = None):
         #
         #    {
         #        "accountId": "109698017416453793",

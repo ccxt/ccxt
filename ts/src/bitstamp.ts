@@ -908,7 +908,7 @@ export default class bitstamp extends Exchange {
         return undefined;
     }
 
-    parseTrade (trade, market: Market = undefined): Trade {
+    parseTrade (trade: Dict, market: Market = undefined): Trade {
         //
         // fetchTrades (public)
         //
@@ -1238,7 +1238,7 @@ export default class bitstamp extends Exchange {
         return this.parseTradingFee (tradingFee, market);
     }
 
-    parseTradingFee (fee, market: Market = undefined): TradingFeeInterface {
+    parseTradingFee (fee: Dict, market: Market = undefined): TradingFeeInterface {
         const marketId = this.safeString (fee, 'market');
         const fees = this.safeDict (fee, 'fees', {});
         return {
@@ -1290,7 +1290,7 @@ export default class bitstamp extends Exchange {
         return this.parseTradingFees (response);
     }
 
-    async fetchTransactionFees (codes: string[] = undefined, params = {}) {
+    async fetchTransactionFees (codes: Strings = undefined, params = {}) {
         /**
          * @method
          * @name bitstamp#fetchTransactionFees
@@ -1685,7 +1685,7 @@ export default class bitstamp extends Exchange {
         return this.parseTransactions (response, undefined, since, limit);
     }
 
-    parseTransaction (transaction, currency: Currency = undefined): Transaction {
+    parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {
         //
         // fetchDepositsWithdrawals
         //
@@ -1823,7 +1823,7 @@ export default class bitstamp extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseOrder (order, market: Market = undefined): Order {
+    parseOrder (order: Dict, market: Market = undefined): Order {
         //
         //   from fetch order:
         //     { status: "Finished",
@@ -1913,7 +1913,7 @@ export default class bitstamp extends Exchange {
         return this.safeString (types, type, type);
     }
 
-    parseLedgerEntry (item, currency: Currency = undefined) {
+    parseLedgerEntry (item: Dict, currency: Currency = undefined) {
         //
         //     [
         //         {

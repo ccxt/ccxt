@@ -705,7 +705,7 @@ class coinbaseexchange(Exchange, ImplicitAPI):
         #
         return self.parse_ticker(response, market)
 
-    def parse_trade(self, trade, market: Market = None) -> Trade:
+    def parse_trade(self, trade: dict, market: Market = None) -> Trade:
         #
         #     {
         #         "type": "match",
@@ -970,7 +970,7 @@ class coinbaseexchange(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_order(self, order, market: Market = None) -> Order:
+    def parse_order(self, order: dict, market: Market = None) -> Order:
         #
         # createOrder
         #
@@ -1325,7 +1325,7 @@ class coinbaseexchange(Exchange, ImplicitAPI):
         }
         return self.safe_string(types, type, type)
 
-    def parse_ledger_entry(self, item, currency: Currency = None):
+    def parse_ledger_entry(self, item: dict, currency: Currency = None):
         #  {
         #      "id": "12087495079",
         #      "amount": "-0.0100000000000000",
@@ -1574,7 +1574,7 @@ class coinbaseexchange(Exchange, ImplicitAPI):
         else:
             return 'pending'
 
-    def parse_transaction(self, transaction, currency: Currency = None) -> Transaction:
+    def parse_transaction(self, transaction: dict, currency: Currency = None) -> Transaction:
         #
         # privateGetTransfers
         #

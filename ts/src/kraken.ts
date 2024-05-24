@@ -1001,9 +1001,7 @@ export default class kraken extends Exchange {
             request['interval'] = timeframe;
         }
         if (since !== undefined) {
-            // contrary to kraken's api documentation, the since parameter must be passed in nanoseconds
-            // the adding of '000000' is copied from the fetchTrades function
-            request['since'] = this.numberToString (since) + '000000'; // expected to be in nanoseconds
+            request['since'] = this.numberToString (this.parseToInt (since / 1000)); // expected to be in seconds
         }
         const response = await this.publicGetOHLC (this.extend (request, params));
         //
@@ -1035,7 +1033,7 @@ export default class kraken extends Exchange {
         return this.safeString (types, type, type);
     }
 
-    parseLedgerEntry (item, currency: Currency = undefined) {
+    parseLedgerEntry (item: Dict, currency: Currency = undefined) {
         //
         //     {
         //         'LTFK7F-N2CUX-PNY4SX': {
@@ -1170,7 +1168,7 @@ export default class kraken extends Exchange {
         return items[0];
     }
 
-    parseTrade (trade, market: Market = undefined): Trade {
+    parseTrade (trade: Dict, market: Market = undefined): Trade {
         //
         // fetchTrades (public)
         //
@@ -1291,10 +1289,7 @@ export default class kraken extends Exchange {
         // https://support.kraken.com/hc/en-us/articles/218198197-How-to-pull-all-trade-data-using-the-Kraken-REST-API
         // https://github.com/ccxt/ccxt/issues/5677
         if (since !== undefined) {
-            // php does not format it properly
-            // therefore we use string concatenation here
-            request['since'] = since * 1e6;
-            request['since'] = since.toString () + '000000'; // expected to be in nanoseconds
+            request['since'] = this.numberToString (this.parseToInt (since / 1000)); // expected to be in seconds
         }
         if (limit !== undefined) {
             request['count'] = limit;
@@ -1520,7 +1515,7 @@ export default class kraken extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseOrder (order, market: Market = undefined): Order {
+    parseOrder (order: Dict, market: Market = undefined): Order {
         //
         // createOrder for regular orders
         //
@@ -2362,7 +2357,7 @@ export default class kraken extends Exchange {
         return this.safeString (withdrawMethods, network, network);
     }
 
-    parseTransaction (transaction, currency: Currency = undefined): Transaction {
+    parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {
         //
         // fetchDeposits
         //
@@ -2886,7 +2881,7 @@ export default class kraken extends Exchange {
         return this.filterByArrayPositions (results, 'symbol', symbols, false);
     }
 
-    parsePosition (position, market: Market = undefined) {
+    parsePosition (position: Dict, market: Market = undefined) {
         //
         //             {
         //                 "pair": "ETHUSDT",

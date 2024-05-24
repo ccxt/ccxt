@@ -1,5 +1,5 @@
 import Exchange from './abstract/krakenfutures.js';
-import type { TransferEntry, Int, OrderSide, OrderType, OHLCV, Trade, FundingRateHistory, OrderRequest, Order, Balances, Str, Dict, Ticker, OrderBook, Tickers, Strings, Market, Currency, Leverage, Leverages, Num } from './base/types.js';
+import type { TransferEntry, Int, OrderSide, OrderType, OHLCV, Trade, FundingRateHistory, OrderRequest, Order, Balances, Str, Dict, Ticker, OrderBook, Tickers, Strings, Market, Currency, Leverage, Leverages, Num, LeverageTier, LeverageTiers } from './base/types.js';
 /**
  * @class krakenfutures
  * @augments Exchange
@@ -13,7 +13,7 @@ export default class krakenfutures extends Exchange {
     fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
     parseOHLCV(ohlcv: any, market?: Market): OHLCV;
     fetchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
-    parseTrade(trade: any, market?: Market): Trade;
+    parseTrade(trade: Dict, market?: Market): Trade;
     createOrderRequest(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): any;
     createOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): Promise<Order>;
     createOrders(orders: OrderRequest[], params?: {}): Promise<Order[]>;
@@ -28,7 +28,7 @@ export default class krakenfutures extends Exchange {
     parseOrderType(orderType: any): string;
     verifyOrderActionSuccess(status: any, method: any, omit?: any[]): void;
     parseOrderStatus(status: Str): string;
-    parseOrder(order: any, market?: Market): Order;
+    parseOrder(order: Dict, market?: Market): Order;
     fetchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     fetchBalance(params?: {}): Promise<Balances>;
     parseBalance(response: any): Balances;
@@ -55,8 +55,8 @@ export default class krakenfutures extends Exchange {
     fetchFundingRateHistory(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<FundingRateHistory[]>;
     fetchPositions(symbols?: Strings, params?: {}): Promise<import("./base/types.js").Position[]>;
     parsePositions(response: any, symbols?: Strings, params?: {}): any[];
-    parsePosition(position: any, market?: Market): {
-        info: any;
+    parsePosition(position: Dict, market?: Market): {
+        info: Dict;
         symbol: string;
         timestamp: number;
         datetime: string;
@@ -78,14 +78,14 @@ export default class krakenfutures extends Exchange {
         side: string;
         percentage: any;
     };
-    fetchLeverageTiers(symbols?: Strings, params?: {}): Promise<{}>;
-    parseMarketLeverageTiers(info: any, market?: Market): any[];
+    fetchLeverageTiers(symbols?: Strings, params?: {}): Promise<LeverageTiers>;
+    parseMarketLeverageTiers(info: any, market?: Market): LeverageTier[];
     parseTransfer(transfer: Dict, currency?: Currency): TransferEntry;
     parseAccount(account: any): any;
     transferOut(code: string, amount: any, params?: {}): Promise<TransferEntry>;
     transfer(code: string, amount: number, fromAccount: string, toAccount: string, params?: {}): Promise<TransferEntry>;
     setLeverage(leverage: Int, symbol?: Str, params?: {}): Promise<any>;
-    fetchLeverages(symbols?: string[], params?: {}): Promise<Leverages>;
+    fetchLeverages(symbols?: Strings, params?: {}): Promise<Leverages>;
     fetchLeverage(symbol: string, params?: {}): Promise<Leverage>;
     parseLeverage(leverage: Dict, market?: Market): Leverage;
     handleErrors(code: any, reason: any, url: any, method: any, headers: any, body: any, response: any, requestHeaders: any, requestBody: any): any;

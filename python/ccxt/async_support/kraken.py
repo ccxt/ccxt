@@ -970,9 +970,7 @@ class kraken(Exchange, ImplicitAPI):
         else:
             request['interval'] = timeframe
         if since is not None:
-            # contrary to kraken's api documentation, the since parameter must be passed in nanoseconds
-            # the adding of '000000' is copied from the fetchTrades function
-            request['since'] = self.number_to_string(since) + '000000'  # expected to be in nanoseconds
+            request['since'] = self.number_to_string(self.parse_to_int(since / 1000))  # expected to be in seconds
         response = await self.publicGetOHLC(self.extend(request, params))
         #
         #     {
@@ -1001,7 +999,7 @@ class kraken(Exchange, ImplicitAPI):
         }
         return self.safe_string(types, type, type)
 
-    def parse_ledger_entry(self, item, currency: Currency = None):
+    def parse_ledger_entry(self, item: dict, currency: Currency = None):
         #
         #     {
         #         'LTFK7F-N2CUX-PNY4SX': {
@@ -1125,7 +1123,7 @@ class kraken(Exchange, ImplicitAPI):
         items = await self.fetch_ledger_entries_by_ids([id], code, params)
         return items[0]
 
-    def parse_trade(self, trade, market: Market = None) -> Trade:
+    def parse_trade(self, trade: dict, market: Market = None) -> Trade:
         #
         # fetchTrades(public)
         #
@@ -1237,10 +1235,7 @@ class kraken(Exchange, ImplicitAPI):
         # https://support.kraken.com/hc/en-us/articles/218198197-How-to-pull-all-trade-data-using-the-Kraken-REST-API
         # https://github.com/ccxt/ccxt/issues/5677
         if since is not None:
-            # php does not format it properly
-            # therefore we use string concatenation here
-            request['since'] = since * 1e6
-            request['since'] = str(since) + '000000'  # expected to be in nanoseconds
+            request['since'] = self.number_to_string(self.parse_to_int(since / 1000))  # expected to be in seconds
         if limit is not None:
             request['count'] = limit
         response = await self.publicGetTrades(self.extend(request, params))
@@ -1440,7 +1435,7 @@ class kraken(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_order(self, order, market: Market = None) -> Order:
+    def parse_order(self, order: dict, market: Market = None) -> Order:
         #
         # createOrder for regular orders
         #
@@ -2189,7 +2184,7 @@ class kraken(Exchange, ImplicitAPI):
         withdrawMethods = self.safe_value(self.options, 'withdrawMethods', {})
         return self.safe_string(withdrawMethods, network, network)
 
-    def parse_transaction(self, transaction, currency: Currency = None) -> Transaction:
+    def parse_transaction(self, transaction: dict, currency: Currency = None) -> Transaction:
         #
         # fetchDeposits
         #
@@ -2666,7 +2661,7 @@ class kraken(Exchange, ImplicitAPI):
         results = self.parse_positions(result, symbols)
         return self.filter_by_array_positions(results, 'symbol', symbols, False)
 
-    def parse_position(self, position, market: Market = None):
+    def parse_position(self, position: dict, market: Market = None):
         #
         #             {
         #                 "pair": "ETHUSDT",

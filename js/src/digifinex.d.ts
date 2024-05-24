@@ -1,5 +1,5 @@
 import Exchange from './abstract/digifinex.js';
-import type { FundingRateHistory, Int, OHLCV, Order, OrderSide, OrderType, OrderRequest, Trade, Balances, Str, Transaction, Ticker, OrderBook, Tickers, Strings, Market, Currency, TransferEntry, Num, MarginModification, TradingFeeInterface, Currencies, CrossBorrowRate, CrossBorrowRates, Dict, TransferEntries } from './base/types.js';
+import type { FundingRateHistory, Int, OHLCV, Order, OrderSide, OrderType, OrderRequest, Trade, Balances, Str, Transaction, Ticker, OrderBook, Tickers, Strings, Market, Currency, TransferEntry, Num, MarginModification, TradingFeeInterface, Currencies, CrossBorrowRate, CrossBorrowRates, Dict, TransferEntries, LeverageTier, LeverageTiers } from './base/types.js';
 /**
  * @class digifinex
  * @augments Exchange
@@ -16,7 +16,7 @@ export default class digifinex extends Exchange {
     fetchTickers(symbols?: Strings, params?: {}): Promise<Tickers>;
     fetchTicker(symbol: string, params?: {}): Promise<Ticker>;
     parseTicker(ticker: Dict, market?: Market): Ticker;
-    parseTrade(trade: any, market?: Market): Trade;
+    parseTrade(trade: Dict, market?: Market): Trade;
     fetchTime(params?: {}): Promise<number>;
     fetchStatus(params?: {}): Promise<{
         status: string;
@@ -35,14 +35,14 @@ export default class digifinex extends Exchange {
     cancelOrder(id: string, symbol?: Str, params?: {}): Promise<any>;
     cancelOrders(ids: any, symbol?: Str, params?: {}): Promise<any>;
     parseOrderStatus(status: Str): string;
-    parseOrder(order: any, market?: Market): Order;
+    parseOrder(order: Dict, market?: Market): Order;
     fetchOpenOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     fetchOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     fetchOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
     fetchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     parseLedgerEntryType(type: any): string;
-    parseLedgerEntry(item: any, currency?: Currency): {
-        info: any;
+    parseLedgerEntry(item: Dict, currency?: Currency): {
+        info: Dict;
         id: any;
         direction: any;
         account: any;
@@ -71,13 +71,13 @@ export default class digifinex extends Exchange {
     fetchDeposits(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
     fetchWithdrawals(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
     parseTransactionStatus(status: any): string;
-    parseTransaction(transaction: any, currency?: Currency): Transaction;
+    parseTransaction(transaction: Dict, currency?: Currency): Transaction;
     parseTransferStatus(status: Str): Str;
     parseTransfer(transfer: Dict, currency?: Currency): TransferEntry;
     transfer(code: string, amount: number, fromAccount: string, toAccount: string, params?: {}): Promise<TransferEntry>;
     withdraw(code: string, amount: number, address: string, tag?: any, params?: {}): Promise<Transaction>;
     fetchBorrowInterest(code?: Str, symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<any>;
-    parseBorrowInterest(info: any, market?: Market): {
+    parseBorrowInterest(info: Dict, market?: Market): {
         account: string;
         symbol: string;
         currency: string;
@@ -86,7 +86,7 @@ export default class digifinex extends Exchange {
         amountBorrowed: number;
         timestamp: any;
         datetime: any;
-        info: any;
+        info: Dict;
     };
     fetchCrossBorrowRate(code: string, params?: {}): Promise<CrossBorrowRate>;
     fetchCrossBorrowRates(params?: {}): Promise<CrossBorrowRates>;
@@ -121,15 +121,15 @@ export default class digifinex extends Exchange {
     };
     fetchFundingRateHistory(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<FundingRateHistory[]>;
     fetchTradingFee(symbol: string, params?: {}): Promise<TradingFeeInterface>;
-    parseTradingFee(fee: any, market?: Market): TradingFeeInterface;
+    parseTradingFee(fee: Dict, market?: Market): TradingFeeInterface;
     fetchPositions(symbols?: Strings, params?: {}): Promise<import("./base/types.js").Position[]>;
     fetchPosition(symbol: string, params?: {}): Promise<import("./base/types.js").Position>;
-    parsePosition(position: any, market?: Market): import("./base/types.js").Position;
+    parsePosition(position: Dict, market?: Market): import("./base/types.js").Position;
     setLeverage(leverage: Int, symbol?: Str, params?: {}): Promise<any>;
     fetchTransfers(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<TransferEntries>;
-    fetchLeverageTiers(symbols?: Strings, params?: {}): Promise<{}>;
-    fetchMarketLeverageTiers(symbol: string, params?: {}): Promise<any[]>;
-    parseMarketLeverageTiers(info: any, market?: Market): any[];
+    fetchLeverageTiers(symbols?: Strings, params?: {}): Promise<LeverageTiers>;
+    fetchMarketLeverageTiers(symbol: string, params?: {}): Promise<LeverageTier[]>;
+    parseMarketLeverageTiers(info: any, market?: Market): LeverageTier[];
     handleMarginModeAndParams(methodName: any, params?: {}, defaultValue?: any): any[];
     fetchDepositWithdrawFees(codes?: Strings, params?: {}): Promise<Dict>;
     parseDepositWithdrawFees(response: any, codes?: any, currencyIdKey?: any): Dict;

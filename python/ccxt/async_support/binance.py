@@ -8,7 +8,7 @@ from ccxt.abstract.binance import ImplicitAPI
 import asyncio
 import hashlib
 import json
-from ccxt.base.types import Balances, Conversion, CrossBorrowRate, Currencies, Currency, Greeks, Int, IsolatedBorrowRate, IsolatedBorrowRates, Leverage, Leverages, MarginMode, MarginModes, MarginModification, Market, MarketInterface, Num, Option, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry, TransferEntries
+from ccxt.base.types import Balances, Conversion, CrossBorrowRate, Currencies, Currency, Greeks, Int, IsolatedBorrowRate, IsolatedBorrowRates, Leverage, Leverages, LeverageTier, LeverageTiers, MarginMode, MarginModes, MarginModification, Market, MarketInterface, Num, Option, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry, TransferEntries
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -866,6 +866,7 @@ class binance(Exchange, ImplicitAPI):
                         'order/asyn/id': 10,
                         'trade/asyn': 1000,
                         'trade/asyn/id': 10,
+                        'feeBurn': 1,
                     },
                     'post': {
                         'batchOrders': 5,
@@ -880,6 +881,7 @@ class binance(Exchange, ImplicitAPI):
                         # broker endpoints
                         'apiReferral/customization': 1,
                         'apiReferral/userCustomization': 1,
+                        'feeBurn': 1,
                     },
                     'put': {
                         'listenKey': 1,
@@ -4196,7 +4198,7 @@ class binance(Exchange, ImplicitAPI):
         #
         return self.parse_ohlcvs(response, market, timeframe, since, limit)
 
-    def parse_trade(self, trade, market: Market = None) -> Trade:
+    def parse_trade(self, trade: dict, market: Market = None) -> Trade:
         if 'isDustTrade' in trade:
             return self.parse_dust_trade(trade, market)
         #
@@ -4862,7 +4864,7 @@ class binance(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_order(self, order, market: Market = None) -> Order:
+    def parse_order(self, order: dict, market: Market = None) -> Order:
         #
         # spot
         #
@@ -7403,7 +7405,7 @@ class binance(Exchange, ImplicitAPI):
         statuses = self.safe_dict(statusesByType, type, {})
         return self.safe_string(statuses, status, status)
 
-    def parse_transaction(self, transaction, currency: Currency = None) -> Transaction:
+    def parse_transaction(self, transaction: dict, currency: Currency = None) -> Transaction:
         #
         # fetchDeposits
         #
@@ -7822,7 +7824,7 @@ class binance(Exchange, ImplicitAPI):
             'info': response,
         }
 
-    async def fetch_transaction_fees(self, codes: List[str] = None, params={}):
+    async def fetch_transaction_fees(self, codes: Strings = None, params={}):
         """
          * @deprecated
         please use fetchDepositWithdrawFees instead
@@ -8088,7 +8090,7 @@ class binance(Exchange, ImplicitAPI):
         #     {id: '9a67628b16ba4988ae20d329333f16bc'}
         return self.parse_transaction(response, currency)
 
-    def parse_trading_fee(self, fee, market: Market = None) -> TradingFeeInterface:
+    def parse_trading_fee(self, fee: dict, market: Market = None) -> TradingFeeInterface:
         #
         # spot
         #     [
@@ -9048,7 +9050,7 @@ class binance(Exchange, ImplicitAPI):
                 self.options['leverageBrackets'][symbol] = result
         return self.options['leverageBrackets']
 
-    async def fetch_leverage_tiers(self, symbols: Strings = None, params={}):
+    async def fetch_leverage_tiers(self, symbols: Strings = None, params={}) -> LeverageTiers:
         """
         retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes
         :see: https://binance-docs.github.io/apidocs/futures/en/#notional-and-leverage-brackets-user_data
@@ -9121,7 +9123,7 @@ class binance(Exchange, ImplicitAPI):
         #
         return self.parse_leverage_tiers(response, symbols, 'symbol')
 
-    def parse_market_leverage_tiers(self, info, market: Market = None):
+    def parse_market_leverage_tiers(self, info, market: Market = None) -> List[LeverageTier]:
         """
          * @ignore
         :param dict info: Exchange response for 1 market
@@ -9253,7 +9255,7 @@ class binance(Exchange, ImplicitAPI):
             result.append(self.parse_position(response[i], market))
         return self.filter_by_array_positions(result, 'symbol', symbols, False)
 
-    def parse_position(self, position, market: Market = None):
+    def parse_position(self, position: dict, market: Market = None):
         #
         #     {
         #         "entryPrice": "27.70000000",
@@ -9724,7 +9726,7 @@ class binance(Exchange, ImplicitAPI):
         #
         return response
 
-    async def fetch_leverages(self, symbols: List[str] = None, params={}) -> Leverages:
+    async def fetch_leverages(self, symbols: Strings = None, params={}) -> Leverages:
         """
         fetch the set leverage for all markets
         :see: https://binance-docs.github.io/apidocs/futures/en/#account-information-v2-user_data
@@ -10054,7 +10056,7 @@ class binance(Exchange, ImplicitAPI):
         #
         return self.parse_ledger(response, currency, since, limit)
 
-    def parse_ledger_entry(self, item, currency: Currency = None):
+    def parse_ledger_entry(self, item: dict, currency: Currency = None):
         #
         # options(eapi)
         #
@@ -10787,7 +10789,7 @@ class binance(Exchange, ImplicitAPI):
         interest = self.parse_borrow_interests(rows, market)
         return self.filter_by_currency_since_limit(interest, code, since, limit)
 
-    def parse_borrow_interest(self, info, market: Market = None):
+    def parse_borrow_interest(self, info: dict, market: Market = None):
         symbol = self.safe_string(info, 'isolatedSymbol')
         timestamp = self.safe_integer(info, 'interestAccuredTime')
         marginMode = 'cross' if (symbol is None) else 'isolated'
@@ -11436,7 +11438,7 @@ class binance(Exchange, ImplicitAPI):
             'hedged': dualSidePosition,
         }
 
-    async def fetch_margin_modes(self, symbols: List[str] = None, params={}) -> MarginModes:
+    async def fetch_margin_modes(self, symbols: Strings = None, params={}) -> MarginModes:
         """
         fetches margin modes("isolated" or "cross") that the market for the symbol in in, with symbol=None all markets for a subType(linear/inverse) are returned
         :see: https://binance-docs.github.io/apidocs/futures/en/#account-information-v2-user_data
@@ -11574,7 +11576,7 @@ class binance(Exchange, ImplicitAPI):
         assets = self.safe_list(response, 'positions', [])
         return self.parse_margin_modes(assets, symbols, 'symbol', 'swap')
 
-    def parse_margin_mode(self, marginMode, market=None) -> MarginMode:
+    def parse_margin_mode(self, marginMode: dict, market=None) -> MarginMode:
         marketId = self.safe_string(marginMode, 'symbol')
         market = self.safe_market(marketId, market)
         isIsolated = self.safe_bool(marginMode, 'isolated')

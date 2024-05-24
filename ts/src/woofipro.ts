@@ -651,7 +651,7 @@ export default class woofipro extends Exchange {
         return fee;
     }
 
-    parseTrade (trade, market: Market = undefined): Trade {
+    parseTrade (trade: Dict, market: Market = undefined): Trade {
         //
         // public/market_trades
         //
@@ -1091,7 +1091,7 @@ export default class woofipro extends Exchange {
         return this.parseOHLCVs (rows, market, timeframe, since, limit);
     }
 
-    parseOrder (order, market: Market = undefined): Order {
+    parseOrder (order: Dict, market: Market = undefined): Order {
         //
         // Possible input functions:
         // * createOrder
@@ -1208,7 +1208,7 @@ export default class woofipro extends Exchange {
         }, market);
     }
 
-    parseTimeInForce (timeInForce) {
+    parseTimeInForce (timeInForce: Str) {
         const timeInForces: Dict = {
             'ioc': 'IOC',
             'fok': 'FOK',
@@ -2124,7 +2124,7 @@ export default class woofipro extends Exchange {
         return [ currency, this.safeList (data, 'rows', []) ];
     }
 
-    parseLedgerEntry (item, currency: Currency = undefined) {
+    parseLedgerEntry (item: Dict, currency: Currency = undefined) {
         const code = this.safeString (item, 'token');
         const amount = this.safeNumber (item, 'amount');
         const side = this.safeString (item, 'token_side');
@@ -2174,7 +2174,7 @@ export default class woofipro extends Exchange {
         return this.parseLedger (rows, currency, since, limit, params);
     }
 
-    parseTransaction (transaction, currency: Currency = undefined): Transaction {
+    parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {
         // example in fetchLedger
         const code = this.safeString (transaction, 'token');
         let movementDirection = this.safeStringLower (transaction, 'token_side');
@@ -2469,7 +2469,7 @@ export default class woofipro extends Exchange {
         return await this.v1PrivatePostClientLeverage (this.extend (request, params));
     }
 
-    parsePosition (position, market: Market = undefined) {
+    parsePosition (position: Dict, market: Market = undefined) {
         //
         // {
         //     "IMR_withdraw_orders": 0.1,

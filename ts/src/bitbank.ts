@@ -335,7 +335,7 @@ export default class bitbank extends Exchange {
         return this.parseOrderBook (orderbook, market['symbol'], timestamp);
     }
 
-    parseTrade (trade, market: Market = undefined): Trade {
+    parseTrade (trade: Dict, market: Market = undefined): Trade {
         //
         // fetchTrades
         //
@@ -616,7 +616,7 @@ export default class bitbank extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseOrder (order, market: Market = undefined): Order {
+    parseOrder (order: Dict, market: Market = undefined): Order {
         const id = this.safeString (order, 'order_id');
         const marketId = this.safeString (order, 'pair');
         market = this.safeMarket (marketId, market);
@@ -863,7 +863,7 @@ export default class bitbank extends Exchange {
         return this.parseTransaction (data, currency);
     }
 
-    parseTransaction (transaction, currency: Currency = undefined): Transaction {
+    parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {
         //
         // withdraw
         //

@@ -1600,7 +1600,7 @@ class wavesexchange(Exchange, ImplicitAPI):
         quoteId = self.safe_string(assetPair, 'priceAsset', 'WAVES')
         return self.safe_currency_code(baseId) + '/' + self.safe_currency_code(quoteId)
 
-    def parse_order(self, order, market: Market = None) -> Order:
+    def parse_order(self, order: dict, market: Market = None) -> Order:
         #
         # createOrder
         #
@@ -2051,7 +2051,7 @@ class wavesexchange(Exchange, ImplicitAPI):
         #
         return self.parse_trades(data, market, since, limit)
 
-    def parse_trade(self, trade, market: Market = None) -> Trade:
+    def parse_trade(self, trade: dict, market: Market = None) -> Trade:
         #
         # {__type: "transaction",
         #   "data":
@@ -2420,7 +2420,7 @@ class wavesexchange(Exchange, ImplicitAPI):
         #
         return self.parse_transaction(result, currency)
 
-    def parse_transaction(self, transaction, currency: Currency = None) -> Transaction:
+    def parse_transaction(self, transaction: dict, currency: Currency = None) -> Transaction:
         #
         # withdraw
         #

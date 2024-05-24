@@ -1226,7 +1226,7 @@ class hitbtc(Exchange, ImplicitAPI):
                 raise NotSupported(self.id + ' fetchMyTrades() not support self market type')
         return self.parse_trades(response, market, since, limit)
 
-    def parse_trade(self, trade, market: Market = None) -> Trade:
+    def parse_trade(self, trade: dict, market: Market = None) -> Trade:
         #
         # createOrder(market)
         #
@@ -1382,7 +1382,7 @@ class hitbtc(Exchange, ImplicitAPI):
         }
         return self.safe_string(types, type, type)
 
-    def parse_transaction(self, transaction, currency: Currency = None) -> Transaction:
+    def parse_transaction(self, transaction: dict, currency: Currency = None) -> Transaction:
         #
         # transaction
         #
@@ -1549,7 +1549,7 @@ class hitbtc(Exchange, ImplicitAPI):
         timestamp = self.parse8601(self.safe_string(response, 'timestamp'))
         return self.parse_order_book(response, symbol, timestamp, 'bid', 'ask')
 
-    def parse_trading_fee(self, fee, market: Market = None) -> TradingFeeInterface:
+    def parse_trading_fee(self, fee: dict, market: Market = None) -> TradingFeeInterface:
         #
         #     {
         #         "symbol":"ARVUSDT",  # returned from fetchTradingFees only
@@ -2225,7 +2225,7 @@ class hitbtc(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_order(self, order, market: Market = None) -> Order:
+    def parse_order(self, order: dict, market: Market = None) -> Order:
         #
         # limit
         #     {
@@ -2404,7 +2404,7 @@ class hitbtc(Exchange, ImplicitAPI):
         config = self.safe_list(response, 'config', [])
         return self.parse_margin_modes(config, symbols, 'symbol')
 
-    def parse_margin_mode(self, marginMode, market=None) -> MarginMode:
+    def parse_margin_mode(self, marginMode: dict, market=None) -> MarginMode:
         marketId = self.safe_string(marginMode, 'symbol')
         return {
             'info': marginMode,
@@ -2788,7 +2788,7 @@ class hitbtc(Exchange, ImplicitAPI):
         #
         return self.parse_position(response, market)
 
-    def parse_position(self, position, market: Market = None):
+    def parse_position(self, position: dict, market: Market = None):
         #
         #     [
         #         {

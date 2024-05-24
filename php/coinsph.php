@@ -940,7 +940,7 @@ class coinsph extends Exchange {
         return $this->fetch_my_trades($symbol, $since, $limit, $this->extend($request, $params));
     }
 
-    public function parse_trade($trade, ?array $market = null): array {
+    public function parse_trade(array $trade, ?array $market = null): array {
         //
         // fetchTrades
         //     array(
@@ -1309,7 +1309,7 @@ class coinsph extends Exchange {
         return $this->parse_orders($response, $market);
     }
 
-    public function parse_order($order, ?array $market = null): array {
+    public function parse_order(array $order, ?array $market = null): array {
         //
         // createOrder POST /openapi/v1/order
         //     {
@@ -1535,7 +1535,7 @@ class coinsph extends Exchange {
         return $result;
     }
 
-    public function parse_trading_fee($fee, ?array $market = null): array {
+    public function parse_trading_fee(array $fee, ?array $market = null): array {
         //
         //     {
         //         "symbol" => "ETHUSDT",
@@ -1711,7 +1711,7 @@ class coinsph extends Exchange {
         return $this->parse_transactions($response, $currency, $since, $limit);
     }
 
-    public function parse_transaction($transaction, ?array $currency = null): array {
+    public function parse_transaction(array $transaction, ?array $currency = null): array {
         //
         // fetchDeposits
         //     {

@@ -354,7 +354,7 @@ class zaif extends Exchange {
         return $this->parse_ticker($ticker, $market);
     }
 
-    public function parse_trade($trade, ?array $market = null): array {
+    public function parse_trade(array $trade, ?array $market = null): array {
         //
         // fetchTrades (public)
         //
@@ -475,7 +475,7 @@ class zaif extends Exchange {
         return $this->privatePostCancelOrder ($this->extend($request, $params));
     }
 
-    public function parse_order($order, ?array $market = null): array {
+    public function parse_order(array $order, ?array $market = null): array {
         //
         //     {
         //         "currency_pair" => "btc_jpy",
@@ -623,7 +623,7 @@ class zaif extends Exchange {
         return $this->parse_transaction($returnData, $currency);
     }
 
-    public function parse_transaction($transaction, ?array $currency = null): array {
+    public function parse_transaction(array $transaction, ?array $currency = null): array {
         //
         //     {
         //         "id" => 23634,

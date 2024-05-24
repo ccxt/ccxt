@@ -1912,7 +1912,7 @@ class cryptocom extends Exchange {
         ), $market);
     }
 
-    public function parse_trade($trade, ?array $market = null): array {
+    public function parse_trade(array $trade, ?array $market = null): array {
         //
         // fetchTrades
         //
@@ -2004,7 +2004,7 @@ class cryptocom extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_time_in_force($timeInForce) {
+    public function parse_time_in_force(?string $timeInForce) {
         $timeInForces = array(
             'GOOD_TILL_CANCEL' => 'GTC',
             'IMMEDIATE_OR_CANCEL' => 'IOC',
@@ -2013,7 +2013,7 @@ class cryptocom extends Exchange {
         return $this->safe_string($timeInForces, $timeInForce, $timeInForce);
     }
 
-    public function parse_order($order, ?array $market = null): array {
+    public function parse_order(array $order, ?array $market = null): array {
         //
         // createOrder, cancelOrder
         //
@@ -2135,7 +2135,7 @@ class cryptocom extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_transaction($transaction, ?array $currency = null): array {
+    public function parse_transaction(array $transaction, ?array $currency = null): array {
         //
         // fetchDeposits
         //
@@ -2375,7 +2375,7 @@ class cryptocom extends Exchange {
         return $this->parse_ledger($ledger, $currency, $since, $limit);
     }
 
-    public function parse_ledger_entry($item, ?array $currency = null) {
+    public function parse_ledger_entry(array $item, ?array $currency = null) {
         //
         //     {
         //         "account_id" => "ce075cef-1234-4321-bd6e-gf9007351e64",
@@ -2802,7 +2802,7 @@ class cryptocom extends Exchange {
         return $this->filter_by_array_positions($result, 'symbol', null, false);
     }
 
-    public function parse_position($position, ?array $market = null) {
+    public function parse_position(array $position, ?array $market = null) {
         //
         //     {
         //         "account_id" => "ce075bef-b600-4277-bd6e-ff9007251e63",

@@ -2663,7 +2663,7 @@ export default class kucoin extends Exchange {
         return this.parseOrder (responseData, market);
     }
 
-    parseOrder (order, market: Market = undefined): Order {
+    parseOrder (order: Dict, market: Market = undefined): Order {
         //
         // createOrder
         //
@@ -3015,7 +3015,7 @@ export default class kucoin extends Exchange {
         return this.parseTrades (trades, market, since, limit);
     }
 
-    parseTrade (trade, market: Market = undefined): Trade {
+    parseTrade (trade: Dict, market: Market = undefined): Trade {
         //
         // fetchTrades (public)
         //
@@ -3300,7 +3300,7 @@ export default class kucoin extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseTransaction (transaction, currency: Currency = undefined): Transaction {
+    parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {
         //
         // fetchDeposits
         //
@@ -3974,7 +3974,7 @@ export default class kucoin extends Exchange {
         return this.safeString (types, type, type);
     }
 
-    parseLedgerEntry (item, currency: Currency = undefined) {
+    parseLedgerEntry (item: Dict, currency: Currency = undefined) {
         //
         //     {
         //         "id": "611a1e7c6a053300067a88d9", //unique key for each ledger entry
@@ -4317,7 +4317,7 @@ export default class kucoin extends Exchange {
         return this.parseBorrowInterests (assets, undefined);
     }
 
-    parseBorrowInterest (info, market: Market = undefined) {
+    parseBorrowInterest (info: Dict, market: Market = undefined) {
         //
         // Cross
         //

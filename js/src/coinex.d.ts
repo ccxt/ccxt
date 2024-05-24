@@ -1,5 +1,5 @@
 import Exchange from './abstract/coinex.js';
-import type { Balances, Currency, FundingHistory, FundingRateHistory, Int, Market, OHLCV, Order, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, OrderRequest, TransferEntry, Leverage, Leverages, Num, MarginModification, TradingFeeInterface, Currencies, TradingFees, Position, IsolatedBorrowRate, Dict, TransferEntries } from './base/types.js';
+import type { Balances, Currency, FundingHistory, FundingRateHistory, Int, Market, OHLCV, Order, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, OrderRequest, TransferEntry, Leverage, Leverages, Num, MarginModification, TradingFeeInterface, Currencies, TradingFees, Position, IsolatedBorrowRate, Dict, TransferEntries, LeverageTiers, LeverageTier } from './base/types.js';
 /**
  * @class coinex
  * @augments Exchange
@@ -15,11 +15,11 @@ export default class coinex extends Exchange {
     fetchTickers(symbols?: Strings, params?: {}): Promise<Tickers>;
     fetchTime(params?: {}): Promise<number>;
     fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<import("./base/types.js").OrderBook>;
-    parseTrade(trade: any, market?: Market): Trade;
+    parseTrade(trade: Dict, market?: Market): Trade;
     fetchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     fetchTradingFee(symbol: string, params?: {}): Promise<TradingFeeInterface>;
     fetchTradingFees(params?: {}): Promise<TradingFees>;
-    parseTradingFee(fee: any, market?: Market): TradingFeeInterface;
+    parseTradingFee(fee: Dict, market?: Market): TradingFeeInterface;
     parseOHLCV(ohlcv: any, market?: Market): OHLCV;
     fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
     fetchMarginBalance(params?: {}): Promise<Balances>;
@@ -28,7 +28,7 @@ export default class coinex extends Exchange {
     fetchFinancialBalance(params?: {}): Promise<Balances>;
     fetchBalance(params?: {}): Promise<Balances>;
     parseOrderStatus(status: Str): string;
-    parseOrder(order: any, market?: Market): Order;
+    parseOrder(order: Dict, market?: Market): Order;
     createMarketBuyOrderWithCost(symbol: string, cost: number, params?: {}): Promise<Order>;
     createOrderRequest(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): any;
     createOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): Promise<Order>;
@@ -67,11 +67,11 @@ export default class coinex extends Exchange {
     fetchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     fetchPositions(symbols?: Strings, params?: {}): Promise<Position[]>;
     fetchPosition(symbol: string, params?: {}): Promise<Position>;
-    parsePosition(position: any, market?: Market): Position;
+    parsePosition(position: Dict, market?: Market): Position;
     setMarginMode(marginMode: string, symbol?: Str, params?: {}): Promise<any>;
     setLeverage(leverage: Int, symbol?: Str, params?: {}): Promise<any>;
-    fetchLeverageTiers(symbols?: Strings, params?: {}): Promise<{}>;
-    parseMarketLeverageTiers(info: any, market?: Market): any[];
+    fetchLeverageTiers(symbols?: Strings, params?: {}): Promise<LeverageTiers>;
+    parseMarketLeverageTiers(info: any, market?: Market): LeverageTier[];
     modifyMarginHelper(symbol: string, amount: any, addOrReduce: any, params?: {}): Promise<any>;
     parseMarginModification(data: Dict, market?: Market): MarginModification;
     addMargin(symbol: string, amount: number, params?: {}): Promise<MarginModification>;
@@ -119,7 +119,7 @@ export default class coinex extends Exchange {
     withdraw(code: string, amount: number, address: string, tag?: any, params?: {}): Promise<Transaction>;
     parseTransactionStatus(status: any): string;
     fetchFundingRateHistory(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<FundingRateHistory[]>;
-    parseTransaction(transaction: any, currency?: Currency): Transaction;
+    parseTransaction(transaction: Dict, currency?: Currency): Transaction;
     transfer(code: string, amount: number, fromAccount: string, toAccount: string, params?: {}): Promise<TransferEntry>;
     parseTransferStatus(status: any): string;
     parseTransfer(transfer: Dict, currency?: Currency): TransferEntry;
@@ -129,7 +129,7 @@ export default class coinex extends Exchange {
     parseIsolatedBorrowRate(info: any, market?: Market): IsolatedBorrowRate;
     fetchIsolatedBorrowRate(symbol: string, params?: {}): Promise<IsolatedBorrowRate>;
     fetchBorrowInterest(code?: Str, symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<any>;
-    parseBorrowInterest(info: any, market?: Market): {
+    parseBorrowInterest(info: Dict, market?: Market): {
         account: any;
         symbol: string;
         marginMode: string;
@@ -140,7 +140,7 @@ export default class coinex extends Exchange {
         amountBorrowed: number;
         timestamp: number;
         datetime: string;
-        info: any;
+        info: Dict;
     };
     borrowIsolatedMargin(symbol: string, code: string, amount: number, params?: {}): Promise<any>;
     repayIsolatedMargin(symbol: string, code: string, amount: any, params?: {}): Promise<any>;
@@ -153,9 +153,9 @@ export default class coinex extends Exchange {
         datetime: string;
         info: any;
     };
-    fetchDepositWithdrawFees(codes?: Strings, params?: {}): Promise<Dict>;
-    parseDepositWithdrawFees(response: any, codes?: any, currencyIdKey?: any): Dict;
-    fetchLeverages(symbols?: string[], params?: {}): Promise<Leverages>;
+    fetchDepositWithdrawFee(code: string, params?: {}): Promise<any>;
+    parseDepositWithdrawFee(fee: any, currency?: Currency): Dict;
+    fetchLeverages(symbols?: Strings, params?: {}): Promise<Leverages>;
     parseLeverage(leverage: Dict, market?: Market): Leverage;
     fetchPositionHistory(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Position>;
     handleMarginModeAndParams(methodName: any, params?: {}, defaultValue?: any): any[];

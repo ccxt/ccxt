@@ -999,7 +999,7 @@ class whitebit extends Exchange {
         }
     }
 
-    public function parse_trade($trade, ?array $market = null): array {
+    public function parse_trade(array $trade, ?array $market = null): array {
         //
         // fetchTradesV4
         //
@@ -1655,7 +1655,7 @@ class whitebit extends Exchange {
         return $this->safe_string($types, $type, $type);
     }
 
-    public function parse_order($order, ?array $market = null): array {
+    public function parse_order(array $order, ?array $market = null): array {
         //
         // createOrder, fetchOpenOrders
         //
@@ -1989,7 +1989,7 @@ class whitebit extends Exchange {
         return $this->extend(array( 'id' => $uniqueId ), $this->parse_transaction($response, $currency));
     }
 
-    public function parse_transaction($transaction, ?array $currency = null): array {
+    public function parse_transaction(array $transaction, ?array $currency = null): array {
         //
         //     {
         //         "address" => "3ApEASLcrQtZpg1TsssFgYF5V5YQJAKvuE",                                              // deposit $address
@@ -2250,7 +2250,7 @@ class whitebit extends Exchange {
         return $this->filter_by_currency_since_limit($interest, $code, $since, $limit);
     }
 
-    public function parse_borrow_interest($info, ?array $market = null) {
+    public function parse_borrow_interest(array $info, ?array $market = null) {
         //
         //     {
         //         "positionId" => 191823,

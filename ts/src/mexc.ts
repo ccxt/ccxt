@@ -6,7 +6,7 @@ import { BadRequest, InvalidNonce, BadSymbol, InvalidOrder, InvalidAddress, Exch
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { TransferEntry, IndexType, Int, OrderSide, Balances, OrderType, OHLCV, FundingRateHistory, Position, OrderBook, OrderRequest, FundingHistory, Order, Str, Trade, Transaction, Ticker, Tickers, Strings, Market, Currency, Leverage, Num, Account, MarginModification, Currencies, TradingFees, Dict, TransferEntries } from './base/types.js';
+import type { TransferEntry, IndexType, Int, OrderSide, Balances, OrderType, OHLCV, FundingRateHistory, Position, OrderBook, OrderRequest, FundingHistory, Order, Str, Trade, Transaction, Ticker, Tickers, Strings, Market, Currency, Leverage, Num, Account, MarginModification, Currencies, TradingFees, Dict, TransferEntries, LeverageTier, LeverageTiers } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -1569,7 +1569,7 @@ export default class mexc extends Exchange {
         return this.parseTrades (trades, market, since, limit);
     }
 
-    parseTrade (trade, market: Market = undefined): Trade {
+    parseTrade (trade: Dict, market: Market = undefined): Trade {
         let id = undefined;
         let timestamp = undefined;
         let orderId = undefined;
@@ -2414,7 +2414,7 @@ export default class mexc extends Exchange {
         //     {"success":true,"code":0,"data":259208506303929856}
         //
         const data = this.safeString (response, 'data');
-        return this.parseOrder (data, market);
+        return this.safeOrder ({ 'id': data }, market);
     }
 
     async createOrders (orders: OrderRequest[], params = {}) {
@@ -3205,7 +3205,7 @@ export default class mexc extends Exchange {
         }
     }
 
-    parseOrder (order, market: Market = undefined): Order {
+    parseOrder (order: Dict, market: Market = undefined): Order {
         //
         // spot: createOrder
         //
@@ -4294,7 +4294,7 @@ export default class mexc extends Exchange {
         return this.filterBySymbolSinceLimit (sorted, market['symbol'], since, limit) as FundingRateHistory[];
     }
 
-    async fetchLeverageTiers (symbols: Strings = undefined, params = {}) {
+    async fetchLeverageTiers (symbols: Strings = undefined, params = {}): Promise<LeverageTiers> {
         /**
          * @method
          * @name mexc#fetchLeverageTiers
@@ -4356,7 +4356,7 @@ export default class mexc extends Exchange {
         return this.parseLeverageTiers (data, symbols, 'symbol');
     }
 
-    parseMarketLeverageTiers (info, market: Market = undefined) {
+    parseMarketLeverageTiers (info, market: Market = undefined): LeverageTier[] {
         //
         //    {
         //        "symbol": "BTC_USDT",
@@ -4409,8 +4409,8 @@ export default class mexc extends Exchange {
                 {
                     'tier': 0,
                     'currency': this.safeCurrencyCode (quoteId),
-                    'notionalFloor': undefined,
-                    'notionalCap': undefined,
+                    'minNotional': undefined,
+                    'maxNotional': undefined,
                     'maintenanceMarginRate': undefined,
                     'maxLeverage': this.safeNumber (info, 'maxLeverage'),
                     'info': info,
@@ -4422,8 +4422,8 @@ export default class mexc extends Exchange {
             tiers.push ({
                 'tier': this.parseNumber (Precise.stringDiv (cap, riskIncrVol)),
                 'currency': this.safeCurrencyCode (quoteId),
-                'notionalFloor': this.parseNumber (floor),
-                'notionalCap': this.parseNumber (cap),
+                'minNotional': this.parseNumber (floor),
+                'maxNotional': this.parseNumber (cap),
                 'maintenanceMarginRate': this.parseNumber (maintenanceMarginRate),
                 'maxLeverage': this.parseNumber (Precise.stringDiv ('1', initialMarginRate)),
                 'info': info,
@@ -4684,7 +4684,7 @@ export default class mexc extends Exchange {
         return this.parseTransactions (response, currency, since, limit);
     }
 
-    parseTransaction (transaction, currency: Currency = undefined): Transaction {
+    parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {
         //
         // fetchDeposits
         //
@@ -4870,7 +4870,7 @@ export default class mexc extends Exchange {
         return this.parsePositions (data, symbols);
     }
 
-    parsePosition (position, market: Market = undefined) {
+    parsePosition (position: Dict, market: Market = undefined) {
         //
         // fetchPositions
         //
@@ -5297,7 +5297,7 @@ export default class mexc extends Exchange {
         };
     }
 
-    async fetchTransactionFees (codes: string[] = undefined, params = {}) {
+    async fetchTransactionFees (codes: Strings = undefined, params = {}) {
         /**
          * @method
          * @name mexc#fetchTransactionFees

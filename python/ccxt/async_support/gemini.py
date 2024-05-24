@@ -958,7 +958,7 @@ class gemini(Exchange, ImplicitAPI):
         #
         return self.parse_tickers(response, symbols)
 
-    def parse_trade(self, trade, market: Market = None) -> Trade:
+    def parse_trade(self, trade: dict, market: Market = None) -> Trade:
         #
         # public fetchTrades
         #
@@ -1135,7 +1135,7 @@ class gemini(Exchange, ImplicitAPI):
         response = await self.privatePostV1Balances(params)
         return self.parse_balance(response)
 
-    def parse_order(self, order, market: Market = None) -> Order:
+    def parse_order(self, order: dict, market: Market = None) -> Order:
         #
         # createOrder(private)
         #
@@ -1598,7 +1598,7 @@ class gemini(Exchange, ImplicitAPI):
         response = await self.privatePostV1Transfers(self.extend(request, params))
         return self.parse_transactions(response)
 
-    def parse_transaction(self, transaction, currency: Currency = None) -> Transaction:
+    def parse_transaction(self, transaction: dict, currency: Currency = None) -> Transaction:
         #
         # withdraw
         #

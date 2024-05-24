@@ -468,7 +468,7 @@ class kuna(Exchange, ImplicitAPI):
             result[currency['code']] = currency
         return result
 
-    def parse_currency(self, currency):
+    def parse_currency(self, currency: dict):
         #
         #    {
         #        "code": "BTC",
@@ -817,7 +817,7 @@ class kuna(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data', [])
         return self.parse_trades(data, market, since, limit)
 
-    def parse_trade(self, trade, market: Market = None) -> Trade:
+    def parse_trade(self, trade: dict, market: Market = None) -> Trade:
         #
         # fetchTrades(public)
         #
@@ -1038,7 +1038,7 @@ class kuna(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_order(self, order, market: Market = None) -> Order:
+    def parse_order(self, order: dict, market: Market = None) -> Order:
         #
         # createOrder, fetchOrder, fetchOpenOrders, fetchOrdersByStatus
         #
@@ -1670,7 +1670,7 @@ class kuna(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 'data', {})
         return self.parse_transaction(data, currency)
 
-    def parse_transaction(self, transaction, currency: Currency = None) -> Transaction:
+    def parse_transaction(self, transaction: dict, currency: Currency = None) -> Transaction:
         #
         #    {
         #        "id": "a201cb3c-5830-57ac-ad2c-f6a588dd55eb",                               # Unique ID of deposit
