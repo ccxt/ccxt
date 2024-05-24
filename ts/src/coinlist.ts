@@ -2199,7 +2199,7 @@ export default class coinlist extends Exchange {
         return this.parseLedger (ledger, currency, since, limit);
     }
 
-    parseLedgerEntry (item, currency: Currency = undefined) {
+    parseLedgerEntry (item: Dict, currency: Currency = undefined) {
         //
         // deposit transaction from wallet (funding) to pro (trading)
         //     {

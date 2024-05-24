@@ -241,7 +241,7 @@ export default class bitso extends Exchange {
         return this.safeString (types, type, type);
     }
 
-    parseLedgerEntry (item, currency: Currency = undefined) {
+    parseLedgerEntry (item: Dict, currency: Currency = undefined) {
         //
         //     {
         //         "eid": "2510b3e2bc1c87f584500a18084f35ed",

@@ -1133,7 +1133,7 @@ export default class coinmetro extends Exchange {
         return this.parseLedger (ledger, currency, since, limit);
     }
 
-    parseLedgerEntry (item, currency: Currency = undefined) {
+    parseLedgerEntry (item: Dict, currency: Currency = undefined) {
         const datetime = this.safeString (item, 'timestamp');
         const currencyId = this.safeString (item, 'currencyId');
         item = this.omit (item, 'currencyId');

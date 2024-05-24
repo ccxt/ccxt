@@ -2124,7 +2124,7 @@ export default class woofipro extends Exchange {
         return [ currency, this.safeList (data, 'rows', []) ];
     }
 
-    parseLedgerEntry (item, currency: Currency = undefined) {
+    parseLedgerEntry (item: Dict, currency: Currency = undefined) {
         const code = this.safeString (item, 'token');
         const amount = this.safeNumber (item, 'amount');
         const side = this.safeString (item, 'token_side');

@@ -1644,7 +1644,7 @@ export default class blofin extends Exchange {
         return this.safeString (types, type, type);
     }
 
-    parseLedgerEntry (item, currency: Currency = undefined) {
+    parseLedgerEntry (item: Dict, currency: Currency = undefined) {
         const id = this.safeString (item, 'transferId');
         const referenceId = this.safeString (item, 'clientId');
         const fromAccount = this.safeString (item, 'fromAccount');
