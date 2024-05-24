@@ -8980,7 +8980,7 @@ export default class htx extends Exchange {
         /**
          * @method
          * @name htx#closePositions
-         * @description closes open positions for a contract market, requires "amount" in params, unlike other exchanges
+         * @description closes open positions for a contract market, requires 'amount' in params, unlike other exchanges
          * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-place-lightning-close-order  // USDT-M (isolated)
          * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-place-lightning-close-position  // USDT-M (cross)
          * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#place-lightning-close-order  // Coin-M swap
@@ -8989,11 +8989,11 @@ export default class htx extends Exchange {
          * @param {string} side 'buy' or 'sell', the side of the closing order, opposite side as position side
          * @param {object} [params] extra parameters specific to the okx api endpoint
          * @param {string} [params.clientOrderId] client needs to provide unique API and have to maintain the API themselves afterwards. [1, 9223372036854775807]
-         * @param {object} [params.marginMode] "cross" or "isolated", required for linear markets
+         * @param {object} [params.marginMode] 'cross' or 'isolated', required for linear markets
          *
          * EXCHANGE SPECIFIC PARAMETERS
          * @param {number} [params.amount] order quantity
-         * @param {string} [params.order_price_type] "lightning" by default, "lightning_fok": lightning fok type,"lightning_ioc": lightning ioc type "market" by default, "market": market order type," "lightning_fok": lightning
+         * @param {string} [params.order_price_type] 'lightning' by default, 'lightning_fok': lightning fok type, 'lightning_ioc': lightning ioc type 'market' by default, 'market': market order type, 'lightning_fok': lightning
          * @returns {object} [an order structure]{@link https://docs.ccxt.com/#/?id=position-structure}
          */
         await this.loadMarkets ();
