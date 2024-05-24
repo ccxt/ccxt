@@ -5,7 +5,7 @@ import gateRest from '../gate.js';
 import { AuthenticationError, BadRequest, ArgumentsRequired, InvalidNonce } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide } from '../base/ws/Cache.js';
 import { sha512 } from '../static_dependencies/noble-hashes/sha512.js';
-import type { Int, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Position, Balances, Dict } from '../base/types.js';
+import type { Int, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Position, Balances, Dict, Liquidation } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 import Precise from '../base/Precise.js';
 
@@ -1065,7 +1065,7 @@ export default class gate extends gateRest {
         client.resolve (this.orders, 'orders');
     }
 
-    async watchMyLiquidations (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async watchMyLiquidations (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Liquidation[]> {
         /**
          * @method
          * @name gate#watchMyLiquidations
@@ -1109,7 +1109,7 @@ export default class gate extends gateRest {
         return this.filterBySymbolsSinceLimit (this.liquidations, [ symbol ], since, limit, true);
     }
 
-    async watchMyLiquidationsForSymbols (symbols: string[] = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async watchMyLiquidationsForSymbols (symbols: string[] = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Liquidation[]> {
         /**
          * @method
          * @name gate#watchMyLiquidationsForSymbols
@@ -1210,7 +1210,7 @@ export default class gate extends gateRest {
             }
             liquidations.append (liquidation);
             this.liquidations[symbol] = liquidations;
-            this.resolvePromiseIfMessagehashMatches (client, 'myLiquidations::', symbol, [ liquidation ]);
+            client.resolve (liquidations, 'myLiquidations::' + symbol);
         }
         client.resolve (newLiquidations, 'myLiquidations');
     }

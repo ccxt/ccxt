@@ -5,7 +5,7 @@ import okxRest from '../okx.js';
 import { ArgumentsRequired, BadRequest, ExchangeError, InvalidNonce, AuthenticationError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide } from '../base/ws/Cache.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
-import type { Int, OrderSide, OrderType, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Position, Balances, Num, FundingRate, FundingRates, Dict } from '../base/types.js';
+import type { Int, OrderSide, OrderType, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Position, Balances, Num, FundingRate, FundingRates, Dict, Liquidation } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -438,7 +438,7 @@ export default class okx extends okxRest {
         return message;
     }
 
-    async watchLiquidationsForSymbols (symbols: string[] = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async watchLiquidationsForSymbols (symbols: string[] = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Liquidation[]> {
         /**
          * @method
          * @name okx#watchLiquidationsForSymbols
@@ -517,11 +517,11 @@ export default class okx extends okxRest {
             liquidations.append (liquidation);
             this.liquidations[symbol] = liquidations;
             client.resolve ([ liquidation ], 'liquidations');
-            this.resolvePromiseIfMessagehashMatches (client, 'liquidations::', symbol, [ liquidation ]);
+            client.resolve ([ liquidation ], 'liquidations::' + symbol);
         }
     }
 
-    async watchMyLiquidationsForSymbols (symbols: string[] = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async watchMyLiquidationsForSymbols (symbols: string[] = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Liquidation[]> {
         /**
          * @method
          * @name okx#watchMyLiquidationsForSymbols
@@ -602,7 +602,7 @@ export default class okx extends okxRest {
             liquidations.append (liquidation);
             this.liquidations[symbol] = liquidations;
             client.resolve ([ liquidation ], 'myLiquidations');
-            this.resolvePromiseIfMessagehashMatches (client, 'myLiquidations::', symbol, [ liquidation ]);
+            client.resolve ([ liquidation ], 'myLiquidations::' + symbol);
         }
     }
 

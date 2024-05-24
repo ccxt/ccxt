@@ -5,7 +5,7 @@ import binanceRest from '../binance.js';
 import { Precise } from '../base/Precise.js';
 import { InvalidNonce, ArgumentsRequired, BadRequest, NotSupported } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide } from '../base/ws/Cache.js';
-import type { Int, OrderSide, OrderType, Str, Strings, Trade, OrderBook, Order, Ticker, Tickers, OHLCV, Position, Balances, Num, Dict } from '../base/types.js';
+import type { Int, OrderSide, OrderType, Str, Strings, Trade, OrderBook, Order, Ticker, Tickers, OHLCV, Position, Balances, Num, Dict, Liquidation } from '../base/types.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
 import { rsa } from '../base/functions/rsa.js';
 import { eddsa } from '../base/functions/crypto.js';
@@ -191,14 +191,13 @@ export default class binance extends binanceRest {
         return stream;
     }
 
-    async watchLiquidations (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async watchLiquidations (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Liquidation[]> {
         /**
          * @method
          * @name binance#watchLiquidations
          * @description watch the public liquidations of a trading pair
          * @see https://binance-docs.github.io/apidocs/futures/en/#liquidation-order-streams
          * @see https://binance-docs.github.io/apidocs/delivery/en/#liquidation-order-streams
-         * @see
          * @param {string} symbol unified CCXT market symbol
          * @param {int} [since] the earliest time in ms to fetch liquidations for
          * @param {int} [limit] the maximum number of liquidation structures to retrieve
@@ -239,7 +238,7 @@ export default class binance extends binanceRest {
         return this.filterBySymbolsSinceLimit (this.liquidations, [ symbol ], since, limit, true);
     }
 
-    async watchLiquidationsForSymbols (symbols: string[] = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async watchLiquidationsForSymbols (symbols: string[] = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Liquidation[]> {
         /**
          * @method
          * @name binance#watchLiquidationsForSymbols
@@ -339,7 +338,6 @@ export default class binance extends binanceRest {
         liquidations.append (liquidation);
         this.liquidations[symbol] = liquidations;
         client.resolve ([ liquidation ], 'liquidations');
-        this.resolvePromiseIfMessagehashMatches (client, 'liquidations::', symbol, [ liquidation ]);
     }
 
     parseWsLiquidation (liquidation, market = undefined) {
@@ -433,7 +431,7 @@ export default class binance extends binanceRest {
         });
     }
 
-    async watchMyLiquidations (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async watchMyLiquidations (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Liquidation[]> {
         /**
          * @method
          * @name binance#watchMyLiquidations
@@ -449,7 +447,7 @@ export default class binance extends binanceRest {
         return this.watchMyLiquidationsForSymbols ([ symbol ], since, limit, params);
     }
 
-    async watchMyLiquidationsForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params = {}) {
+    async watchMyLiquidationsForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params = {}): Promise<Liquidation[]> {
         /**
          * @method
          * @name binance#watchMyLiquidationsForSymbols
@@ -549,7 +547,7 @@ export default class binance extends binanceRest {
         myLiquidations.append (liquidation);
         this.myLiquidations[symbol] = myLiquidations;
         client.resolve ([ liquidation ], 'myLiquidations');
-        this.resolvePromiseIfMessagehashMatches (client, 'myLiquidations::', symbol, [ liquidation ]);
+        client.resolve ([ liquidation ], 'myLiquidations::' + symbol);
     }
 
     async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {

@@ -5,7 +5,7 @@ import bitmexRest from '../bitmex.js';
 import { AuthenticationError, ExchangeError, RateLimitExceeded } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide } from '../base/ws/Cache.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
-import type { Int, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Position, Balances, Dict } from '../base/types.js';
+import type { Int, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Position, Balances, Dict, Liquidation } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -362,7 +362,7 @@ export default class bitmex extends bitmexRest {
         return message;
     }
 
-    async watchLiquidations (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async watchLiquidations (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Liquidation[]> {
         /**
          * @method
          * @name bitmex#watchLiquidations
@@ -392,7 +392,7 @@ export default class bitmex extends bitmexRest {
         return this.filterBySymbolsSinceLimit (this.liquidations, [ symbol ], since, limit, true);
     }
 
-    async watchLiquidationsForSymbols (symbols: string[] = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async watchLiquidationsForSymbols (symbols: string[] = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Liquidation[]> {
         /**
          * @method
          * @name bitmex#watchLiquidationsForSymbols
@@ -472,7 +472,7 @@ export default class bitmex extends bitmexRest {
         const symbols = Object.keys (liquidationsBySymbol);
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];
-            this.resolvePromiseIfMessagehashMatches (client, 'liquidations::', symbol, liquidationsBySymbol[symbol]);
+            client.resolve (liquidationsBySymbol[symbol], 'liquidations::' + symbol);
         }
     }
 

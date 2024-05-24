@@ -5,7 +5,7 @@ import bybitRest from '../bybit.js';
 import { ArgumentsRequired, AuthenticationError, ExchangeError, BadRequest } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
-import type { Int, OHLCV, Str, Strings, Ticker, OrderBook, Order, Trade, Tickers, Position, Balances, OrderType, OrderSide, Num, Dict } from '../base/types.js';
+import type { Int, OHLCV, Str, Strings, Ticker, OrderBook, Order, Trade, Tickers, Position, Balances, OrderType, OrderSide, Num, Dict, Liquidation } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -1222,7 +1222,7 @@ export default class bybit extends bybitRest {
         client.resolve (newPositions, 'positions');
     }
 
-    async watchLiquidations (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async watchLiquidations (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Liquidation[]> {
         /**
          * @method
          * @name bybit#watchLiquidations
@@ -1237,7 +1237,7 @@ export default class bybit extends bybitRest {
         await this.loadMarkets ();
         const market = this.market (symbol);
         symbol = market['symbol'];
-        const url = this.getUrlByMarketType (symbol, false, params);
+        const url = this.getUrlByMarketType (symbol, false, 'watchLiquidations', params);
         params = this.cleanParams (params);
         const messageHash = 'liquidations::' + symbol;
         const topic = 'liquidation.' + market['id'];
@@ -1276,7 +1276,7 @@ export default class bybit extends bybitRest {
         liquidations.append (liquidation);
         this.liquidations[symbol] = liquidations;
         client.resolve ([ liquidation ], 'liquidations');
-        this.resolvePromiseIfMessagehashMatches (client, 'liquidations::', symbol, [ liquidation ]);
+        client.resolve ([ liquidation ], 'liquidations::' + symbol);
     }
 
     parseWsLiquidation (liquidation, market = undefined) {
