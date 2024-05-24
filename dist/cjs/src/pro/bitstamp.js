@@ -106,7 +106,7 @@ class bitstamp extends bitstamp$1 {
             // usually it takes at least 4-5 deltas to resolve
             const snapshotDelay = this.handleOption('watchOrderBook', 'snapshotDelay', 6);
             if (cacheLength === snapshotDelay) {
-                this.spawn(this.loadOrderBook, client, messageHash, symbol);
+                this.spawn(this.loadOrderBook, client, messageHash, symbol, null, {});
             }
             storedOrderBook.cache.push(delta);
             return;
@@ -498,10 +498,10 @@ class bitstamp extends bitstamp$1 {
         //
         const event = this.safeString(message, 'event');
         if (event === 'bts:subscription_succeeded') {
-            return this.handleSubscriptionStatus(client, message);
+            this.handleSubscriptionStatus(client, message);
         }
         else {
-            return this.handleSubject(client, message);
+            this.handleSubject(client, message);
         }
     }
     async authenticate(params = {}) {
@@ -524,7 +524,6 @@ class bitstamp extends bitstamp$1 {
                 this.options['expiresIn'] = this.sum(time, validity);
                 this.options['userId'] = userId;
                 this.options['wsSessionToken'] = sessionToken;
-                return response;
             }
         }
     }

@@ -32,6 +32,7 @@ interface Exchange {
     spotPrivateGetCapitalConfigGetall (params?: {}): Promise<implicitReturnType>;
     spotPrivateGetCapitalDepositHisrec (params?: {}): Promise<implicitReturnType>;
     spotPrivateGetCapitalWithdrawHistory (params?: {}): Promise<implicitReturnType>;
+    spotPrivateGetCapitalWithdrawAddress (params?: {}): Promise<implicitReturnType>;
     spotPrivateGetCapitalDepositAddress (params?: {}): Promise<implicitReturnType>;
     spotPrivateGetCapitalTransfer (params?: {}): Promise<implicitReturnType>;
     spotPrivateGetCapitalTransferTranId (params?: {}): Promise<implicitReturnType>;

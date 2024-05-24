@@ -1,0 +1,538 @@
+{
+    "exchange": "bitfinex2",
+    "skipKeys": [],
+    "options": {},
+    "methods": {
+        "fetchClosedOrders": [
+            {
+                "description": "fetch spot closed orders",
+                "method": "fetchClosedOrders",
+                "input": [
+                    "LTC/USDT",
+                    null,
+                    1
+                ],
+                "httpResponse": [
+                    [
+                        130065885881,
+                        null,
+                        1699460636451,
+                        "tLTCUST",
+                        1699460636451,
+                        1706684397495,
+                        0.1,
+                        0.1,
+                        "EXCHANGE LIMIT",
+                        null,
+                        null,
+                        null,
+                        0,
+                        "CANCELED",
+                        null,
+                        null,
+                        50,
+                        0,
+                        0,
+                        0,
+                        null,
+                        null,
+                        null,
+                        0,
+                        0,
+                        null,
+                        null,
+                        null,
+                        "API>BFX",
+                        null,
+                        null,
+                        {}
+                    ]
+                ],
+                "parsedResponse": [
+                    {
+                        "info": [
+                            130065885881,
+                            null,
+                            1699460636451,
+                            "tLTCUST",
+                            1699460636451,
+                            1706684397495,
+                            0.1,
+                            0.1,
+                            "EXCHANGE LIMIT",
+                            null,
+                            null,
+                            null,
+                            0,
+                            "CANCELED",
+                            null,
+                            null,
+                            50,
+                            0,
+                            0,
+                            0,
+                            null,
+                            null,
+                            null,
+                            0,
+                            0,
+                            null,
+                            null,
+                            null,
+                            "API>BFX",
+                            null,
+                            null,
+                            {}
+                        ],
+                        "id": "130065885881",
+                        "clientOrderId": "1699460636451",
+                        "timestamp": 1706684397495,
+                        "datetime": "2024-01-31T06:59:57.495Z",
+                        "lastTradeTimestamp": null,
+                        "symbol": "LTC/USDT",
+                        "type": "limit",
+                        "timeInForce": "GTC",
+                        "postOnly": false,
+                        "side": "buy",
+                        "price": 50,
+                        "stopPrice": null,
+                        "triggerPrice": null,
+                        "amount": 0.1,
+                        "cost": 0,
+                        "average": null,
+                        "filled": 0,
+                        "remaining": 0.1,
+                        "status": "canceled",
+                        "fee": null,
+                        "trades": [],
+                        "fees": [],
+                        "lastUpdateTimestamp": null,
+                        "reduceOnly": null,
+                        "takeProfitPrice": null,
+                        "stopLossPrice": null
+                    }
+                ]
+            }
+        ],
+        "fetchOpenOrders": [
+            {
+                "description": "spot open orders",
+                "method": "fetchOpenOrders",
+                "input": [
+                    "LTC/USDT",
+                    null,
+                    1
+                ],
+                "httpResponse": [
+                    [
+                        139472205825,
+                        null,
+                        1003434,
+                        "tLTCUST",
+                        1706699075903,
+                        1706699075904,
+                        0.1,
+                        0.1,
+                        "EXCHANGE LIMIT",
+                        null,
+                        null,
+                        null,
+                        0,
+                        "ACTIVE",
+                        null,
+                        null,
+                        50,
+                        0,
+                        0,
+                        0,
+                        null,
+                        null,
+                        null,
+                        0,
+                        0,
+                        null,
+                        null,
+                        null,
+                        "API>BFX",
+                        null,
+                        null,
+                        {}
+                    ]
+                ],
+                "parsedResponse": [
+                    {
+                        "info": [
+                            139472205825,
+                            null,
+                            1003434,
+                            "tLTCUST",
+                            1706699075903,
+                            1706699075904,
+                            0.1,
+                            0.1,
+                            "EXCHANGE LIMIT",
+                            null,
+                            null,
+                            null,
+                            0,
+                            "ACTIVE",
+                            null,
+                            null,
+                            50,
+                            0,
+                            0,
+                            0,
+                            null,
+                            null,
+                            null,
+                            0,
+                            0,
+                            null,
+                            null,
+                            null,
+                            "API>BFX",
+                            null,
+                            null,
+                            {}
+                        ],
+                        "id": "139472205825",
+                        "clientOrderId": "1003434",
+                        "timestamp": 1706699075904,
+                        "datetime": "2024-01-31T11:04:35.904Z",
+                        "lastTradeTimestamp": null,
+                        "symbol": "LTC/USDT",
+                        "type": "limit",
+                        "timeInForce": "GTC",
+                        "postOnly": false,
+                        "side": "buy",
+                        "price": 50,
+                        "stopPrice": null,
+                        "triggerPrice": null,
+                        "amount": 0.1,
+                        "cost": 0,
+                        "average": null,
+                        "filled": 0,
+                        "remaining": 0.1,
+                        "status": "open",
+                        "fee": null,
+                        "trades": [],
+                        "fees": [],
+                        "lastUpdateTimestamp": null,
+                        "reduceOnly": null,
+                        "takeProfitPrice": null,
+                        "stopLossPrice": null
+                    }
+                ]
+            }
+        ],
+        "fetchMyTrades": [
+            {
+                "description": "Spot trades",
+                "method": "fetchMyTrades",
+                "input": [
+                    "LTC/USDT",
+                    null,
+                    1
+                ],
+                "httpResponse": [
+                    [
+                        1284511023,
+                        "tLTCUST",
+                        1673709416939,
+                        111473031270,
+                        -0.1,
+                        87.583,
+                        "EXCHANGE MARKET",
+                        87.583,
+                        -1,
+                        -0.0175166,
+                        "UST",
+                        1673709416937
+                    ]
+                ],
+                "parsedResponse": [
+                    {
+                        "id": "1284511023",
+                        "timestamp": 1673709416939,
+                        "datetime": "2023-01-14T15:16:56.939Z",
+                        "symbol": "LTC/USDT",
+                        "order": "111473031270",
+                        "side": "sell",
+                        "type": "market",
+                        "takerOrMaker": "taker",
+                        "price": 87.583,
+                        "amount": 0.1,
+                        "cost": 8.7583,
+                        "fee": {
+                            "cost": 0.0175166,
+                            "currency": "USDT"
+                        },
+                        "info": [
+                            1284511023,
+                            "tLTCUST",
+                            1673709416939,
+                            111473031270,
+                            -0.1,
+                            87.583,
+                            "EXCHANGE MARKET",
+                            87.583,
+                            -1,
+                            -0.0175166,
+                            "UST",
+                            1673709416937
+                        ],
+                        "fees": [
+                            {
+                                "cost": 0.0175166,
+                                "currency": "USDT"
+                            }
+                        ]
+                    }
+                ]
+            }
+        ],
+        "cancelOrder": [
+            {
+                "description": "cancel spot order",
+                "method": "cancelOrder",
+                "input": [
+                    139472205825,
+                    "LTC/USDT"
+                ],
+                "httpResponse": [
+                    1706700316188,
+                    "oc-req",
+                    null,
+                    null,
+                    [
+                        139472205825,
+                        null,
+                        1003434,
+                        "tLTCUST",
+                        1706699075903,
+                        1706699075904,
+                        0.1,
+                        0.1,
+                        "EXCHANGE LIMIT",
+                        null,
+                        null,
+                        null,
+                        0,
+                        "ACTIVE",
+                        null,
+                        null,
+                        50,
+                        0,
+                        0,
+                        0,
+                        null,
+                        null,
+                        null,
+                        0,
+                        0,
+                        null,
+                        null,
+                        null,
+                        "API>BFX",
+                        null,
+                        null,
+                        {}
+                    ],
+                    null,
+                    "SUCCESS",
+                    "Submitted for cancellation; waiting for confirmation (ID: 139472205825)."
+                ],
+                "parsedResponse": {
+                    "info": [
+                        139472205825,
+                        null,
+                        1003434,
+                        "tLTCUST",
+                        1706699075903,
+                        1706699075904,
+                        0.1,
+                        0.1,
+                        "EXCHANGE LIMIT",
+                        null,
+                        null,
+                        null,
+                        0,
+                        "ACTIVE",
+                        null,
+                        null,
+                        50,
+                        0,
+                        0,
+                        0,
+                        null,
+                        null,
+                        null,
+                        0,
+                        0,
+                        null,
+                        null,
+                        null,
+                        "API>BFX",
+                        null,
+                        null,
+                        {}
+                    ],
+                    "id": "139472205825",
+                    "clientOrderId": "1003434",
+                    "timestamp": 1706699075904,
+                    "datetime": "2024-01-31T11:04:35.904Z",
+                    "lastTradeTimestamp": null,
+                    "symbol": "LTC/USDT",
+                    "type": "limit",
+                    "timeInForce": "GTC",
+                    "postOnly": false,
+                    "side": "buy",
+                    "price": 50,
+                    "stopPrice": null,
+                    "triggerPrice": null,
+                    "amount": 0.1,
+                    "cost": 0,
+                    "average": null,
+                    "filled": 0,
+                    "remaining": 0.1,
+                    "status": "open",
+                    "fee": null,
+                    "trades": [],
+                    "fees": [],
+                    "lastUpdateTimestamp": null,
+                    "reduceOnly": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null
+                }
+            }
+        ],
+        "fetchTrades": [
+            {
+                "description": "public spot trades",
+                "method": "fetchTrades",
+                "input": [
+                    "BTC/USDT",
+                    null,
+                    1
+                ],
+                "httpResponse": [
+                    [
+                        1560452102,
+                        1710327651446,
+                        0.00019983,
+                        73218
+                    ]
+                ],
+                "parsedResponse": [
+                    {
+                        "id": "1560452102",
+                        "timestamp": 1710327651446,
+                        "datetime": "2024-03-13T11:00:51.446Z",
+                        "symbol": "BTC/USDT",
+                        "order": null,
+                        "side": "buy",
+                        "type": null,
+                        "takerOrMaker": null,
+                        "price": 73218,
+                        "amount": 0.00019983,
+                        "cost": 14.63115294,
+                        "fee": null,
+                        "info": [
+                            1560452102,
+                            1710327651446,
+                            0.00019983,
+                            73218
+                        ],
+                        "fees": []
+                    }
+                ]
+            }
+        ],
+        "fetchTicker": [
+            {
+                "description": "public spot ticker",
+                "method": "fetchTicker",
+                "input": [
+                    "BTC/USDT"
+                ],
+                "httpResponse": [
+                    73350,
+                    2.55279457,
+                    73351,
+                    6.36068263,
+                    1003,
+                    0.01386374,
+                    73350,
+                    2638.4314844,
+                    73583,
+                    68643
+                ],
+                "parsedResponse": {
+                    "symbol": "BTC/USDT",
+                    "timestamp": null,
+                    "datetime": null,
+                    "high": 73583,
+                    "low": 68643,
+                    "bid": 73350,
+                    "bidVolume": 2.55279457,
+                    "ask": 73351,
+                    "askVolume": 6.36068263,
+                    "vwap": null,
+                    "open": 72347,
+                    "close": 73350,
+                    "last": 73350,
+                    "previousClose": null,
+                    "change": 1003,
+                    "percentage": 1.386374,
+                    "average": null,
+                    "baseVolume": 2638.4314844,
+                    "quoteVolume": null,
+                    "info": [
+                        73350,
+                        2.55279457,
+                        73351,
+                        6.36068263,
+                        1003,
+                        0.01386374,
+                        73350,
+                        2638.4314844,
+                        73583,
+                        68643
+                    ]
+                }
+            }
+        ],
+        "fetchOHLCV": [
+            {
+                "description": "public spot ohlcv",
+                "method": "fetchOHLCV",
+                "input": [
+                    "BTC/USDT",
+                    "1h",
+                    null,
+                    1
+                ],
+                "httpResponse": [
+                    [
+                        1552298400000,
+                        3870.1,
+                        3890,
+                        3890,
+                        3870.1,
+                        0.05
+                    ]
+                ],
+                "parsedResponse": [
+                    [
+                        1552298400000,
+                        3870.1,
+                        3890,
+                        3870.1,
+                        3890,
+                        0.05
+                    ]
+                ]
+            }
+        ]
+    }
+}

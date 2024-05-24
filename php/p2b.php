@@ -17,6 +17,7 @@ class p2b extends Exchange {
             'countries' => array( 'LT' ),
             'rateLimit' => 100,
             'version' => 'v2',
+            'pro' => true,
             'has' => array(
                 'CORS' => null,
                 'spot' => true,
@@ -28,6 +29,8 @@ class p2b extends Exchange {
                 'cancelAllOrders' => false,
                 'cancelOrder' => true,
                 'cancelOrders' => false,
+                'closeAllPositions' => false,
+                'closePosition' => false,
                 'createDepositAddress' => false,
                 'createMarketOrder' => false,
                 'createOrder' => true,
@@ -74,8 +77,11 @@ class p2b extends Exchange {
                 'fetchOrderTrades' => true,
                 'fetchPermissions' => false,
                 'fetchPosition' => false,
+                'fetchPositionHistory' => false,
+                'fetchPositionMode' => false,
                 'fetchPositions' => false,
                 'fetchPositionsForSymbol' => false,
+                'fetchPositionsHistory' => false,
                 'fetchPositionsRisk' => false,
                 'fetchPremiumIndexOHLCV' => false,
                 'fetchTicker' => true,
@@ -226,7 +232,7 @@ class p2b extends Exchange {
         ));
     }
 
-    public function fetch_markets($params = array ()) {
+    public function fetch_markets($params = array ()): array {
         /**
          * retrieves data on all $markets for bigone
          * @see https://github.com/P2B-team/p2b-api-docs/blob/master/api-doc.md#$markets
@@ -379,7 +385,7 @@ class p2b extends Exchange {
         $request = array(
             'market' => $market['id'],
         );
-        $response = $this->publicGetTicker (array_merge($request, $params));
+        $response = $this->publicGetTicker ($this->extend($request, $params));
         //
         //    {
         //        success => true,
@@ -402,7 +408,7 @@ class p2b extends Exchange {
         //
         $result = $this->safe_value($response, 'result', array());
         $timestamp = $this->safe_integer_product($response, 'cache_time', 1000);
-        return array_merge(
+        return $this->extend(
             array( 'timestamp' => $timestamp, 'datetime' => $this->iso8601($timestamp) ),
             $this->parse_ticker($result, $market)
         );
@@ -489,7 +495,7 @@ class p2b extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
-        $response = $this->publicGetDepthResult (array_merge($request, $params));
+        $response = $this->publicGetDepthResult ($this->extend($request, $params));
         //
         //    {
         //        "success" => true,
@@ -528,7 +534,6 @@ class p2b extends Exchange {
          * @param {int} [$since] timestamp in ms of the earliest trade to fetch
          * @param {int} [$limit] 1-100, default=50
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         *
          * @param {int} $params->lastId order id
          * @return {Trade[]} a list of ~@link https://docs.ccxt.com/#/?id=public-trades trade structures~
          */
@@ -545,7 +550,7 @@ class p2b extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
-        $response = $this->publicGetHistory (array_merge($request, $params));
+        $response = $this->publicGetHistory ($this->extend($request, $params));
         //
         //    {
         //        success => true,
@@ -565,7 +570,7 @@ class p2b extends Exchange {
         //        current_time => '1699255571.413828'
         //    }
         //
-        $result = $this->safe_value($response, 'result', array());
+        $result = $this->safe_list($response, 'result', array());
         return $this->parse_trades($result, $market, $since, $limit);
     }
 
@@ -646,7 +651,6 @@ class p2b extends Exchange {
          * @param {int} [$since] timestamp in ms of the earliest candle to fetch
          * @param {int} [$limit] 1-500, default=50
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         *
          * @param {int} [$params->offset] default=0, with this value the last candles are returned
          * @return {int[][]} A list of candles ordered, open, high, low, close, volume
          */
@@ -659,7 +663,7 @@ class p2b extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
-        $response = $this->publicGetMarketKline (array_merge($request, $params));
+        $response = $this->publicGetMarketKline ($this->extend($request, $params));
         //
         //    {
         //        success => true,
@@ -682,7 +686,7 @@ class p2b extends Exchange {
         //        current_time => '1699256375.030494'
         //    }
         //
-        $result = $this->safe_value($response, 'result', array());
+        $result = $this->safe_list($response, 'result', array());
         return $this->parse_ohlcvs($result, $market, $timeframe, $since, $limit);
     }
 
@@ -771,7 +775,7 @@ class p2b extends Exchange {
         return $this->safe_balance($result);
     }
 
-    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
         /**
          * create a trade order
          * @see https://github.com/P2B-team/p2b-api-docs/blob/master/api-doc.md#create-order
@@ -794,7 +798,7 @@ class p2b extends Exchange {
             'amount' => $this->amount_to_precision($symbol, $amount),
             'price' => $this->price_to_precision($symbol, $price),
         );
-        $response = $this->privatePostOrderNew (array_merge($request, $params));
+        $response = $this->privatePostOrderNew ($this->extend($request, $params));
         //
         //    {
         //        "success" => true,
@@ -817,7 +821,7 @@ class p2b extends Exchange {
         //        }
         //    }
         //
-        $result = $this->safe_value($response, 'result');
+        $result = $this->safe_dict($response, 'result');
         return $this->parse_order($result, $market);
     }
 
@@ -839,7 +843,7 @@ class p2b extends Exchange {
             'market' => $market['id'],
             'orderId' => $id,
         );
-        $response = $this->privatePostOrderCancel (array_merge($request, $params));
+        $response = $this->privatePostOrderCancel ($this->extend($request, $params));
         //
         //    {
         //        "success" => true,
@@ -862,7 +866,7 @@ class p2b extends Exchange {
         //        }
         //    }
         //
-        $result = $this->safe_value($response, 'result');
+        $result = $this->safe_dict($response, 'result');
         return $this->parse_order($result);
     }
 
@@ -890,7 +894,7 @@ class p2b extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
-        $response = $this->privatePostOrders (array_merge($request, $params));
+        $response = $this->privatePostOrders ($this->extend($request, $params));
         //
         //    {
         //        "success" => true,
@@ -916,7 +920,7 @@ class p2b extends Exchange {
         //        )
         //    }
         //
-        $result = $this->safe_value($response, 'result', array());
+        $result = $this->safe_list($response, 'result', array());
         return $this->parse_orders($result, $market, $since, $limit);
     }
 
@@ -942,7 +946,7 @@ class p2b extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
-        $response = $this->privatePostAccountOrder (array_merge($request, $params));
+        $response = $this->privatePostAccountOrder ($this->extend($request, $params));
         //
         //    {
         //        "success" => true,
@@ -967,7 +971,7 @@ class p2b extends Exchange {
         //    }
         //
         $result = $this->safe_value($response, 'result', array());
-        $records = $this->safe_value($result, 'records', array());
+        $records = $this->safe_list($result, 'records', array());
         return $this->parse_trades($records, $market, $since, $limit);
     }
 
@@ -1013,7 +1017,7 @@ class p2b extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
-        $response = $this->privatePostAccountMarketDealHistory (array_merge($request, $params));
+        $response = $this->privatePostAccountMarketDealHistory ($this->extend($request, $params));
         //
         //    {
         //        "success" => true,
@@ -1041,7 +1045,7 @@ class p2b extends Exchange {
         //    }
         //
         $result = $this->safe_value($response, 'result', array());
-        $deals = $this->safe_value($result, 'deals', array());
+        $deals = $this->safe_list($result, 'deals', array());
         return $this->parse_trades($deals, $market, $since, $limit);
     }
 
@@ -1089,7 +1093,7 @@ class p2b extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
-        $response = $this->privatePostAccountOrderHistory (array_merge($request, $params));
+        $response = $this->privatePostAccountOrderHistory ($this->extend($request, $params));
         //
         //    {
         //        "success" => true,

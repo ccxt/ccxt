@@ -12,15 +12,17 @@ sys.path.append(root)
 # ----------------------------------------------------------------------------
 # -*- coding: utf-8 -*-
 
-
 from ccxt.test.base import test_ledger_entry  # noqa E402
-
+from ccxt.test.base import test_shared_methods  # noqa E402
 
 def test_fetch_ledger_entry(exchange, skipped_properties, code):
     method = 'fetchLedgerEntry'
     items = exchange.fetch_ledger(code)
     length = len(items)
+    test_shared_methods.assert_non_emtpy_array(exchange, skipped_properties, method, items, code)
     if length > 0:
-        item = exchange.fetch_ledger_entry(items[0].id)
+        first_item = items[0]
+        id = first_item['id']
+        item = exchange.fetch_ledger_entry(id)
         now = exchange.milliseconds()
         test_ledger_entry(exchange, skipped_properties, method, item, code, now)

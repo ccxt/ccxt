@@ -7,9 +7,10 @@ from ccxt.base.exchange import Exchange
 from ccxt.abstract.coinlist import ImplicitAPI
 import hashlib
 import math
-from ccxt.base.types import Balances, Currency, Int, Market, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
+from ccxt.base.types import Account, Balances, Currencies, Currency, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction, TransferEntry, TransferEntries
 from typing import List
 from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
@@ -20,7 +21,6 @@ from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import NotSupported
 from ccxt.base.errors import OnMaintenance
-from ccxt.base.errors import AuthenticationError
 from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
@@ -44,10 +44,11 @@ class coinlist(Exchange, ImplicitAPI):
                 'future': False,
                 'option': False,
                 'addMargin': False,
-                'borrowMargin': False,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
                 'cancelOrders': True,
+                'closeAllPositions': False,
+                'closePosition': False,
                 'createDepositAddress': False,
                 'createOrder': True,
                 'createPostOnlyOrder': True,
@@ -102,7 +103,11 @@ class coinlist(Exchange, ImplicitAPI):
                 'fetchOrders': True,
                 'fetchOrderTrades': True,
                 'fetchPosition': False,
+                'fetchPositionHistory': False,
+                'fetchPositionMode': False,
                 'fetchPositions': False,
+                'fetchPositionsForSymbol': False,
+                'fetchPositionsHistory': False,
                 'fetchPositionsRisk': False,
                 'fetchPremiumIndexOHLCV': False,
                 'fetchStatus': False,
@@ -121,7 +126,8 @@ class coinlist(Exchange, ImplicitAPI):
                 'fetchWithdrawals': False,
                 'fetchWithdrawalWhitelist': False,
                 'reduceMargin': False,
-                'repayMargin': False,
+                'repayCrossMargin': False,
+                'repayIsolatedMargin': False,
                 'setLeverage': False,
                 'setMargin': False,
                 'setMarginMode': False,
@@ -162,6 +168,9 @@ class coinlist(Exchange, ImplicitAPI):
                         'v1/symbols/{symbol}/auctions/{auction_code}': 1,  # not unified
                         'v1/time': 1,
                         'v1/assets': 1,
+                        'v1/leaderboard': 1,
+                        'v1/affiliate/{competition_code}': 1,
+                        'v1/competition/{competition_id}': 1,
                     },
                 },
                 'private': {
@@ -169,6 +178,7 @@ class coinlist(Exchange, ImplicitAPI):
                         'v1/fees': 1,
                         'v1/accounts': 1,
                         'v1/accounts/{trader_id}': 1,  # not unified
+                        'v1/accounts/{trader_id}/alias': 1,
                         'v1/accounts/{trader_id}/ledger': 1,
                         'v1/accounts/{trader_id}/wallets': 1,  # not unified
                         'v1/accounts/{trader_id}/wallet-ledger': 1,
@@ -182,6 +192,8 @@ class coinlist(Exchange, ImplicitAPI):
                         'v1/transfers': 1,
                         'v1/user': 1,  # not unified
                         'v1/credits': 1,  # not unified
+                        'v1/positions': 1,
+                        'v1/accounts/{trader_id}/competitions': 1,
                     },
                     'post': {
                         'v1/keys': 1,  # not unified
@@ -193,6 +205,8 @@ class coinlist(Exchange, ImplicitAPI):
                         'v1/transfers/internal-transfer': 1,
                         'v1/transfers/withdrawal-request': 1,
                         'v1/orders/bulk': 1,  # not unified
+                        'v1/accounts/{trader_id}/competitions': 1,
+                        'v1/accounts/{trader_id}/create-competition': 1,
                     },
                     'patch': {
                         'v1/orders/{order_id}': 1,
@@ -326,7 +340,7 @@ class coinlist(Exchange, ImplicitAPI):
         string = self.safe_string(response, 'iso')
         return self.parse8601(string)
 
-    def fetch_currencies(self, params={}):
+    def fetch_currencies(self, params={}) -> Currencies:
         """
         fetches all available currencies on an exchange
         :see: https://trade-docs.coinlist.co/?javascript--nodejs#list-supported-assets
@@ -357,12 +371,12 @@ class coinlist(Exchange, ImplicitAPI):
         #     }
         #
         currencies = self.safe_value(response, 'assets', [])
-        result = {}
+        result: dict = {}
         for i in range(0, len(currencies)):
             currency = currencies[i]
             id = self.safe_string(currency, 'asset')
             code = self.safe_currency_code(id)
-            isTransferable = self.safe_value(currency, 'is_transferable', False)
+            isTransferable = self.safe_bool(currency, 'is_transferable', False)
             withdrawEnabled = isTransferable
             depositEnabled = isTransferable
             active = isTransferable
@@ -387,7 +401,7 @@ class coinlist(Exchange, ImplicitAPI):
             }
         return result
 
-    def fetch_markets(self, params={}):
+    def fetch_markets(self, params={}) -> List[Market]:
         """
         retrieves data on all markets for coinlist
         :see: https://trade-docs.coinlist.co/?javascript--nodejs#list-symbols
@@ -491,7 +505,7 @@ class coinlist(Exchange, ImplicitAPI):
         :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
         self.load_markets()
-        request = {}
+        request: dict = {}
         tickers = self.publicGetV1SymbolsSummary(self.extend(request, params))
         #
         #     {
@@ -527,7 +541,7 @@ class coinlist(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'symbol': market['id'],
         }
         ticker = self.publicGetV1SymbolsSymbolSummary(self.extend(request, params))
@@ -553,7 +567,7 @@ class coinlist(Exchange, ImplicitAPI):
         #
         return self.parse_ticker(ticker, market)
 
-    def parse_ticker(self, ticker, market: Market = None) -> Ticker:
+    def parse_ticker(self, ticker: dict, market: Market = None) -> Ticker:
         #
         #     {
         #         "type":"spot",
@@ -617,7 +631,7 @@ class coinlist(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'symbol': market['id'],
         }
         response = self.publicGetV1SymbolsSymbolBook(self.extend(request, params))
@@ -658,7 +672,7 @@ class coinlist(Exchange, ImplicitAPI):
         self.load_markets()
         market = self.market(symbol)
         granularity = self.safe_string(self.timeframes, timeframe)
-        request = {
+        request: dict = {
             'symbol': market['id'],
             'granularity': granularity,
         }
@@ -669,9 +683,9 @@ class coinlist(Exchange, ImplicitAPI):
                 request['end_time'] = self.iso8601(self.sum(since, duration * (limit)))
             else:
                 request['end_time'] = self.iso8601(self.milliseconds())
-        until = self.safe_integer_2(params, 'till', 'until')
+        until = self.safe_integer(params, 'until')
         if until is not None:
-            params = self.omit(params, ['till', 'until'])
+            params = self.omit(params, ['until'])
             request['end_time'] = self.iso8601(until)
         response = self.publicGetV1SymbolsSymbolCandles(self.extend(request, params))
         #
@@ -698,7 +712,7 @@ class coinlist(Exchange, ImplicitAPI):
         #         ]
         #     }
         #
-        candles = self.safe_value(response, 'candles', [])
+        candles = self.safe_list(response, 'candles', [])
         return self.parse_ohlcvs(candles, market, timeframe, since, limit)
 
     def parse_ohlcv(self, ohlcv, market: Market = None) -> list:
@@ -735,16 +749,16 @@ class coinlist(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'symbol': market['id'],
         }
         if since is not None:
             request['start_time'] = self.iso8601(since)
         if limit is not None:
-            request['count'] = limit
-        until = self.safe_integer_2(params, 'till', 'until')
+            request['count'] = min(limit, 500)
+        until = self.safe_integer(params, 'until')
         if until is not None:
-            params = self.omit(params, ['till', 'until'])
+            params = self.omit(params, ['until'])
             request['end_time'] = self.iso8601(until)
         response = self.publicGetV1SymbolsSymbolAuctions(self.extend(request, params))
         #
@@ -771,7 +785,7 @@ class coinlist(Exchange, ImplicitAPI):
         #         ]
         #     }
         #
-        auctions = self.safe_value(response, 'auctions', [])
+        auctions = self.safe_list(response, 'auctions', [])
         return self.parse_trades(auctions, market, since, limit)
 
     def parse_trade(self, trade, market: Market = None) -> Trade:
@@ -846,7 +860,7 @@ class coinlist(Exchange, ImplicitAPI):
             'info': trade,
         }, market)
 
-    def fetch_trading_fees(self, params={}):
+    def fetch_trading_fees(self, params={}) -> TradingFees:
         """
         fetch the trading fees for multiple markets
         :see: https://trade-docs.coinlist.co/?javascript--nodejs#list-fees
@@ -912,7 +926,7 @@ class coinlist(Exchange, ImplicitAPI):
         #     }
         #
         fees = self.safe_value(response, 'fees_by_symbols', {})
-        result = {}
+        result: dict = {}
         groupsOfSymbols = list(fees.keys())
         for i in range(0, len(groupsOfSymbols)):
             group = groupsOfSymbols[i]
@@ -925,7 +939,7 @@ class coinlist(Exchange, ImplicitAPI):
                 id = ids[j]
                 market = self.safe_market(id)
                 symbol = market['symbol']
-                info = {}
+                info: dict = {}
                 info[group] = feeTiers
                 result[symbol] = {
                     'info': info,
@@ -1004,13 +1018,15 @@ class coinlist(Exchange, ImplicitAPI):
                 takerFees.append([None, self.parse_number(taker)])
             takerFees = self.sort_by(takerFees, 1, True)
             makerFees = self.sort_by(makerFees, 1, True)
-            firstTier = self.safe_value(takerFees, 0, [])
-            exchangeFees = self.safe_value(self, 'fees', {})
-            exchangeFeesTrading = self.safe_value(exchangeFees, 'trading', {})
-            exchangeFeesTradingTiers = self.safe_value(exchangeFeesTrading, 'tiers', {})
-            exchangeFeesTradingTiersTaker = self.safe_value(exchangeFeesTradingTiers, 'taker', [])
-            exchangeFeesTradingTiersMaker = self.safe_value(exchangeFeesTradingTiers, 'maker', [])
-            if (keysLength == len(exchangeFeesTradingTiersTaker)) and (len(firstTier) > 0):
+            firstTier = self.safe_dict(takerFees, 0, [])
+            exchangeFees = self.safe_dict(self, 'fees', {})
+            exchangeFeesTrading = self.safe_dict(exchangeFees, 'trading', {})
+            exchangeFeesTradingTiers = self.safe_dict(exchangeFeesTrading, 'tiers', {})
+            exchangeFeesTradingTiersTaker = self.safe_list(exchangeFeesTradingTiers, 'taker', [])
+            exchangeFeesTradingTiersMaker = self.safe_list(exchangeFeesTradingTiers, 'maker', [])
+            exchangeFeesTradingTiersTakerLength = len(exchangeFeesTradingTiersTaker)
+            firstTierLength = len(firstTier)
+            if (keysLength == exchangeFeesTradingTiersTakerLength) and (firstTierLength > 0):
                 for i in range(0, keysLength):
                     takerFees[i][0] = exchangeFeesTradingTiersTaker[i][0]
                     makerFees[i][0] = exchangeFeesTradingTiersMaker[i][0]
@@ -1019,7 +1035,7 @@ class coinlist(Exchange, ImplicitAPI):
             'taker': takerFees,
         }
 
-    def fetch_accounts(self, params={}):
+    def fetch_accounts(self, params={}) -> List[Account]:
         """
         fetch all the accounts associated with a profile
         :see: https://trade-docs.coinlist.co/?javascript--nodejs#list-accounts
@@ -1080,11 +1096,10 @@ class coinlist(Exchange, ImplicitAPI):
         #         "net_liquidation_value_usd": "string"
         #     }
         #
-        timestamp = self.milliseconds()
-        result = {
+        result: dict = {
             'info': response,
-            'timestamp': timestamp,
-            'datetime': self.iso8601(timestamp),
+            'timestamp': None,
+            'datetime': None,
         }
         totalBalances = self.safe_value(response, 'asset_balances', {})
         usedBalances = self.safe_value(response, 'asset_holds', {})
@@ -1110,7 +1125,7 @@ class coinlist(Exchange, ImplicitAPI):
         :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
         """
         self.load_markets()
-        request = {}
+        request: dict = {}
         market = None
         if symbol is not None:
             market = self.market(symbol)
@@ -1119,9 +1134,9 @@ class coinlist(Exchange, ImplicitAPI):
             request['start_time'] = self.iso8601(since)
         if limit is not None:
             request['count'] = limit
-        until = self.safe_integer_2(params, 'till', 'until')
+        until = self.safe_integer(params, 'until')
         if until is not None:
-            params = self.omit(params, ['till', 'until'])
+            params = self.omit(params, ['until'])
             request['end_time'] = self.iso8601(until)
         response = self.privateGetV1Fills(self.extend(request, params))
         #
@@ -1152,7 +1167,7 @@ class coinlist(Exchange, ImplicitAPI):
         #         ]
         #     }
         #
-        fills = self.safe_value(response, 'fills', [])
+        fills = self.safe_list(response, 'fills', [])
         return self.parse_trades(fills, market, since, limit)
 
     def fetch_order_trades(self, id: str, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
@@ -1166,7 +1181,7 @@ class coinlist(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
         """
-        request = {
+        request: dict = {
             'order_id': id,
         }
         return self.fetch_my_trades(symbol, since, limit, self.extend(request, params))
@@ -1177,7 +1192,7 @@ class coinlist(Exchange, ImplicitAPI):
         :see: https://trade-docs.coinlist.co/?javascript--nodejs#list-orders
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
-        :param int [limit]: the maximum number of  orde structures to retrieve(default 200, max 500)
+        :param int [limit]: the maximum number of order structures to retrieve(default 200, max 500)
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: the latest time in ms to fetch entries for
         :param string|str[] [params.status]: the status of the order - 'accepted', 'done', 'canceled', 'rejected', 'pending'(default ['accepted', 'done', 'canceled', 'rejected', 'pending'])
@@ -1187,7 +1202,7 @@ class coinlist(Exchange, ImplicitAPI):
         status = self.safe_string(params, 'status')
         if status is None:
             status = ['accepted', 'done', 'canceled', 'rejected', 'pending']
-        request = {
+        request: dict = {
             'status': status,
         }
         market = None
@@ -1198,9 +1213,9 @@ class coinlist(Exchange, ImplicitAPI):
             request['start_time'] = self.iso8601(since)
         if limit is not None:
             request['count'] = limit
-        until = self.safe_integer_2(params, 'till', 'until')
+        until = self.safe_integer(params, 'until')
         if until is not None:
-            params = self.omit(params, ['till', 'until'])
+            params = self.omit(params, ['until'])
             request['end_time'] = self.iso8601(until)
         response = self.privateGetV1Orders(self.extend(request, params))
         #
@@ -1229,7 +1244,7 @@ class coinlist(Exchange, ImplicitAPI):
         #         ]
         #     }
         #
-        orders = self.safe_value(response, 'orders', [])
+        orders = self.safe_list(response, 'orders', [])
         return self.parse_orders(orders, market, since, limit)
 
     def fetch_order(self, id: str, symbol: Str = None, params={}):
@@ -1242,7 +1257,7 @@ class coinlist(Exchange, ImplicitAPI):
         :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
-        request = {
+        request: dict = {
             'order_id': id,
         }
         response = self.privateGetV1OrdersOrderId(self.extend(request, params))
@@ -1284,7 +1299,7 @@ class coinlist(Exchange, ImplicitAPI):
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
-        request = {
+        request: dict = {
             'status': 'accepted',
         }
         return self.fetch_orders(symbol, since, limit, self.extend(request, params))
@@ -1301,7 +1316,7 @@ class coinlist(Exchange, ImplicitAPI):
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
-        request = {
+        request: dict = {
             'status': 'done',
         }
         return self.fetch_orders(symbol, since, limit, self.extend(request, params))
@@ -1318,7 +1333,7 @@ class coinlist(Exchange, ImplicitAPI):
         :returns dict: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
-        request = {
+        request: dict = {
             'status': 'canceled',
         }
         return self.fetch_orders(symbol, since, limit, self.extend(request, params))
@@ -1333,7 +1348,7 @@ class coinlist(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = None
-        request = {}
+        request: dict = {}
         if symbol is not None:
             market = self.market(symbol)
             request['symbol'] = market['id']
@@ -1357,7 +1372,7 @@ class coinlist(Exchange, ImplicitAPI):
         :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
-        request = {
+        request: dict = {
             'order_id': id,
         }
         response = self.privateDeleteV1OrdersOrderId(self.extend(request, params))
@@ -1384,7 +1399,7 @@ class coinlist(Exchange, ImplicitAPI):
         response = self.privateDeleteV1OrdersBulk(params)
         return response
 
-    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
+    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         """
         create a trade order
         :see: https://trade-docs.coinlist.co/?javascript--nodejs#create-new-order
@@ -1401,7 +1416,7 @@ class coinlist(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'symbol': market['id'],
             'type': type,
             'side': side,
@@ -1447,10 +1462,10 @@ class coinlist(Exchange, ImplicitAPI):
         #         "timestamp": "2023-10-26T11:30:55.376Z"
         #     }
         #
-        order = self.safe_value(response, 'order', {})
+        order = self.safe_dict(response, 'order', {})
         return self.parse_order(order, market)
 
-    def edit_order(self, id: str, symbol, type, side, amount=None, price=None, params={}):
+    def edit_order(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: Num = None, price: Num = None, params={}):
         """
         create a trade order
         :see: https://trade-docs.coinlist.co/?javascript--nodejs#modify-existing-order
@@ -1466,7 +1481,7 @@ class coinlist(Exchange, ImplicitAPI):
         if amount is None:
             raise ArgumentsRequired(self.id + ' editOrder() requires an amount argument')
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'order_id': id,
             'type': type,
             'side': side,
@@ -1601,8 +1616,8 @@ class coinlist(Exchange, ImplicitAPI):
             'postOnly': postOnly,
         }, market)
 
-    def parse_order_status(self, status):
-        statuses = {
+    def parse_order_status(self, status: Str):
+        statuses: dict = {
             'pending': 'open',
             'accepted': 'open',
             'rejected': 'rejected',
@@ -1612,7 +1627,7 @@ class coinlist(Exchange, ImplicitAPI):
         return self.safe_string(statuses, status, status)
 
     def parse_order_type(self, status):
-        statuses = {
+        statuses: dict = {
             'market': 'market',
             'limit': 'limit',
             'stop_market': 'market',
@@ -1622,7 +1637,7 @@ class coinlist(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def transfer(self, code: str, amount, fromAccount, toAccount, params={}):
+    def transfer(self, code: str, amount: float, fromAccount: str, toAccount: str, params={}) -> TransferEntry:
         """
         transfer currency internally between wallets on the same account
         :see: https://trade-docs.coinlist.co/?javascript--nodejs#transfer-funds-between-entities
@@ -1637,10 +1652,9 @@ class coinlist(Exchange, ImplicitAPI):
         """
         self.load_markets()
         currency = self.currency(code)
-        amount = self.currency_to_precision(code, amount)
-        request = {
+        request: dict = {
             'asset': currency['id'],
-            'amount': amount,
+            'amount': self.currency_to_precision(code, amount),
         }
         accountsByType = self.safe_value(self.options, 'accountsByType', {})
         fromAcc = self.safe_string(accountsByType, fromAccount, fromAccount)
@@ -1671,7 +1685,7 @@ class coinlist(Exchange, ImplicitAPI):
         transfer = self.parse_transfer(response, currency)
         return transfer
 
-    def fetch_transfers(self, code: Str = None, since: Int = None, limit: Int = None, params={}):
+    def fetch_transfers(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> TransferEntries:
         """
         fetch a history of internal transfers between CoinList.co and CoinList Pro. It does not return external deposits or withdrawals
         :see: https://trade-docs.coinlist.co/?javascript--nodejs#list-transfers
@@ -1686,14 +1700,14 @@ class coinlist(Exchange, ImplicitAPI):
         currency = None
         if code is not None:
             currency = self.currency(code)
-        request = {}
+        request: dict = {}
         if since is not None:
             request['start_time'] = self.iso8601(since)
         if limit is not None:
             request['count'] = limit
-        until = self.safe_integer_2(params, 'till', 'until')
+        until = self.safe_integer(params, 'until')
         if until is not None:
-            params = self.omit(params, ['till', 'until'])
+            params = self.omit(params, ['until'])
             request['end_time'] = self.iso8601(until)
         response = self.privateGetV1Transfers(self.extend(request, params))
         #
@@ -1718,10 +1732,10 @@ class coinlist(Exchange, ImplicitAPI):
         #         ]
         #     }
         #
-        transfers = self.safe_value(response, 'transfers', [])
+        transfers = self.safe_list(response, 'transfers', [])
         return self.parse_transfers(transfers, currency, since, limit)
 
-    def parse_transfer(self, transfer, currency: Currency = None):
+    def parse_transfer(self, transfer: dict, currency: Currency = None) -> TransferEntry:
         #
         # fetchTransfers
         #     {
@@ -1776,8 +1790,8 @@ class coinlist(Exchange, ImplicitAPI):
             'status': self.parse_transfer_status(status),
         }
 
-    def parse_transfer_status(self, status):
-        statuses = {
+    def parse_transfer_status(self, status: Str) -> Str:
+        statuses: dict = {
             'confirmed': 'ok',
         }
         return self.safe_string(statuses, status, status)
@@ -1799,7 +1813,7 @@ class coinlist(Exchange, ImplicitAPI):
             raise ArgumentsRequired(self.id + ' fetchDepositsWithdrawals() requires a traderId argument in the params')
         self.load_markets()
         currency = self.currency(code)
-        request = {
+        request: dict = {
             'asset': currency['id'],
             'trader_id': traderId,
         }
@@ -1854,7 +1868,7 @@ class coinlist(Exchange, ImplicitAPI):
         # coinlist returns both internal transfers and blockchain transactions
         return self.parse_transactions(response, currency, since, limit)
 
-    def withdraw(self, code: str, amount, address, tag=None, params={}):
+    def withdraw(self, code: str, amount: float, address: str, tag=None, params={}):
         """
         request a withdrawal from CoinList wallet.(Disabled by default. Contact CoinList to apply for an exception.)
         :see: https://trade-docs.coinlist.co/?javascript--nodejs#request-withdrawal-from-wallet
@@ -1867,7 +1881,7 @@ class coinlist(Exchange, ImplicitAPI):
         """
         self.load_markets()
         currency = self.currency(code)
-        request = {
+        request: dict = {
             'asset': currency['id'],
             'amount': self.currency_to_precision(code, amount),
             'destination_address': address,
@@ -1878,7 +1892,7 @@ class coinlist(Exchange, ImplicitAPI):
         #         "transfer_id": "d4a2d8dd-7def-4545-a062-761683b9aa05"
         #     }
         #
-        data = self.safe_value(response, 'data', {})
+        data = self.safe_dict(response, 'data', {})
         return self.parse_transaction(data, currency)
 
     def parse_transaction(self, transaction, currency: Currency = None) -> Transaction:
@@ -1941,7 +1955,7 @@ class coinlist(Exchange, ImplicitAPI):
         }
 
     def parse_transaction_type(self, type):
-        types = {
+        types: dict = {
             'CRYPTO_DEPOSIT': 'deposit',
             'CRYPTO_WITHDRAWAL': 'withdrawal',
             'PRO_TRANSFER': 'transfer',
@@ -1963,7 +1977,7 @@ class coinlist(Exchange, ImplicitAPI):
         if traderId is None:
             raise ArgumentsRequired(self.id + ' fetchLedger() requires a traderId argument in the params')
         self.load_markets()
-        request = {
+        request: dict = {
             'trader_id': traderId,
         }
         currency = None
@@ -1973,9 +1987,9 @@ class coinlist(Exchange, ImplicitAPI):
             request['start_time'] = self.iso8601(since)
         if limit is not None:
             request['count'] = limit
-        until = self.safe_integer_2(params, 'till', 'until')
+        until = self.safe_integer(params, 'until')
         if until is not None:
-            params = self.omit(params, ['till', 'until'])
+            params = self.omit(params, ['until'])
             request['end_time'] = self.iso8601(until)
         params = self.omit(params, ['trader_id', 'traderId'])
         response = self.privateGetV1AccountsTraderIdLedger(self.extend(request, params))
@@ -2151,7 +2165,7 @@ class coinlist(Exchange, ImplicitAPI):
         }
 
     def parse_ledger_entry_type(self, type):
-        types = {
+        types: dict = {
             'atomic token swap': 'trade',
             'fee': 'fee',
             'deposit': 'transfer',

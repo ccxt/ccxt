@@ -28,6 +28,8 @@ class ace extends Exchange {
                 'cancelAllOrders' => false,
                 'cancelOrder' => true,
                 'cancelOrders' => false,
+                'closeAllPositions' => false,
+                'closePosition' => false,
                 'createOrder' => true,
                 'editOrder' => false,
                 'fetchBalance' => true,
@@ -57,8 +59,13 @@ class ace extends Exchange {
                 'fetchOrderBook' => true,
                 'fetchOrders' => false,
                 'fetchOrderTrades' => true,
+                'fetchPosition' => false,
+                'fetchPositionHistory' => false,
                 'fetchPositionMode' => false,
                 'fetchPositions' => false,
+                'fetchPositionsForSymbol' => false,
+                'fetchPositionsHistory' => false,
+                'fetchPositionsRisk' => false,
                 'fetchPremiumIndexOHLCV' => false,
                 'fetchTicker' => true,
                 'fetchTickers' => true,
@@ -164,7 +171,7 @@ class ace extends Exchange {
         ));
     }
 
-    public function fetch_markets($params = array ()) {
+    public function fetch_markets($params = array ()): array {
         /**
          * retrieves data on all markets for ace
          * @see https://github.com/ace-exchange/ace-official-api-docs/blob/master/api_v2.md#oapi-api---market-pair
@@ -247,7 +254,7 @@ class ace extends Exchange {
         );
     }
 
-    public function parse_ticker($ticker, ?array $market = null): array {
+    public function parse_ticker(array $ticker, ?array $market = null): array {
         //
         //     {
         //         "base_volume":229196.34035399999,
@@ -355,7 +362,7 @@ class ace extends Exchange {
         if ($limit !== null) {
             $request['depth'] = $limit;
         }
-        $response = $this->publicGetOpenV2PublicGetOrderBook (array_merge($request, $params));
+        $response = $this->publicGetOpenV2PublicGetOrderBook ($this->extend($request, $params));
         //
         //     {
         //         "attachment" => array(
@@ -393,7 +400,7 @@ class ace extends Exchange {
         //         "status" => 200
         //     }
         //
-        $orderBook = $this->safe_value($response, 'attachment');
+        $orderBook = $this->safe_dict($response, 'attachment');
         return $this->parse_order_book($orderBook, $market['symbol'], null, 'bids', 'asks');
     }
 
@@ -451,7 +458,7 @@ class ace extends Exchange {
         if ($since !== null) {
             $request['startTime'] = $since;
         }
-        $response = $this->privatePostV2KlineGetKline (array_merge($request, $params));
+        $response = $this->privatePostV2KlineGetKline ($this->extend($request, $params));
         $data = $this->safe_value($response, 'attachment', array());
         //
         //     {
@@ -474,7 +481,7 @@ class ace extends Exchange {
         return $this->parse_ohlcvs($data, $market, $timeframe, $since, $limit);
     }
 
-    public function parse_order_status($status) {
+    public function parse_order_status(?string $status) {
         $statuses = array(
             '0' => 'open',
             '1' => 'open',
@@ -579,7 +586,7 @@ class ace extends Exchange {
         ), $market);
     }
 
-    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
         /**
          * create a trade order
          * @see https://github.com/ace-exchange/ace-official-api-docs/blob/master/api_v2.md#open-api---new-order
@@ -605,7 +612,7 @@ class ace extends Exchange {
         if ($type === 'limit') {
             $request['price'] = $this->price_to_precision($symbol, $price);
         }
-        $response = $this->privatePostV2OrderOrder (array_merge($request, $params));
+        $response = $this->privatePostV2OrderOrder ($this->extend($request, $params));
         //
         //     {
         //         "attachment" => "15697850529570392100421100482693",
@@ -614,7 +621,7 @@ class ace extends Exchange {
         //         "status" => 200
         //     }
         //
-        $data = $this->safe_value($response, 'attachment');
+        $data = $this->safe_dict($response, 'attachment');
         return $this->parse_order($data, $market);
     }
 
@@ -631,7 +638,7 @@ class ace extends Exchange {
         $request = array(
             'orderNo' => $id,
         );
-        $response = $this->privatePostV2OrderCancel (array_merge($request, $params));
+        $response = $this->privatePostV2OrderCancel ($this->extend($request, $params));
         //
         //     {
         //         "attachment" => 200,
@@ -655,7 +662,7 @@ class ace extends Exchange {
         $request = array(
             'orderNo' => $id,
         );
-        $response = $this->privatePostV2OrderShowOrderStatus (array_merge($request, $params));
+        $response = $this->privatePostV2OrderShowOrderStatus ($this->extend($request, $params));
         //
         //     {
         //         "attachment" => array(
@@ -678,7 +685,7 @@ class ace extends Exchange {
         //         "status" => 200
         //     }
         //
-        $data = $this->safe_value($response, 'attachment');
+        $data = $this->safe_dict($response, 'attachment');
         return $this->parse_order($data, null);
     }
 
@@ -688,7 +695,7 @@ class ace extends Exchange {
          * @see https://github.com/ace-exchange/ace-official-api-docs/blob/master/api_v2.md#open-api---order-list
          * @param {string} $symbol unified $market $symbol of the $market $orders were made in
          * @param {int} [$since] the earliest time in ms to fetch $orders for
-         * @param {int} [$limit] the maximum number of  orde structures to retrieve
+         * @param {int} [$limit] the maximum number of order structures to retrieve
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
          */
@@ -705,7 +712,7 @@ class ace extends Exchange {
         if ($limit !== null) {
             $request['size'] = $limit;
         }
-        $response = $this->privatePostV2OrderGetOrderList (array_merge($request, $params));
+        $response = $this->privatePostV2OrderGetOrderList ($this->extend($request, $params));
         $orders = $this->safe_value($response, 'attachment');
         //
         //     {
@@ -835,7 +842,7 @@ class ace extends Exchange {
         $request = array(
             'orderNo' => $id,
         );
-        $response = $this->privatePostV2OrderShowOrderHistory (array_merge($request, $params));
+        $response = $this->privatePostV2OrderShowOrderHistory ($this->extend($request, $params));
         //
         //     {
         //         "attachment" => {
@@ -870,7 +877,7 @@ class ace extends Exchange {
         //     }
         //
         $data = $this->safe_value($response, 'attachment');
-        $trades = $this->safe_value($data, 'trades', array());
+        $trades = $this->safe_list($data, 'trades', array());
         return $this->parse_trades($trades, $market, $since, $limit);
     }
 
@@ -897,7 +904,7 @@ class ace extends Exchange {
         if ($limit !== null) {
             $request['size'] = $limit; // default 10, max 500
         }
-        $response = $this->privatePostV2OrderGetTradeList (array_merge($request, $params));
+        $response = $this->privatePostV2OrderGetTradeList ($this->extend($request, $params));
         //
         //     {
         //         "attachment" => array(
@@ -928,7 +935,7 @@ class ace extends Exchange {
         //         "status" => 200
         //     }
         //
-        $trades = $this->safe_value($response, 'attachment', array());
+        $trades = $this->safe_list($response, 'attachment', array());
         return $this->parse_trades($trades, $market, $since, $limit);
     }
 
@@ -1001,7 +1008,7 @@ class ace extends Exchange {
             $this->check_required_credentials();
             $nonce = $this->milliseconds();
             $auth = 'ACE_SIGN' . $this->secret;
-            $data = array_merge(array(
+            $data = $this->extend(array(
                 'apiKey' => $this->apiKey,
                 'timeStamp' => $nonce,
             ), $params);
@@ -1039,8 +1046,9 @@ class ace extends Exchange {
         $feedback = $this->id . ' ' . $body;
         $status = $this->safe_number($response, 'status', 200);
         if ($status > 200) {
-            $this->throw_exactly_matched_exception($this->exceptions['exact'], $status, $feedback);
-            $this->throw_broadly_matched_exception($this->exceptions['broad'], $status, $feedback);
+            $statusStr = (string) $status;
+            $this->throw_exactly_matched_exception($this->exceptions['exact'], $statusStr, $feedback);
+            $this->throw_broadly_matched_exception($this->exceptions['broad'], $statusStr, $feedback);
         }
         return null;
     }

@@ -1,7 +1,7 @@
-
+import { Exchange } from "../../../../ccxt";
 import testSharedMethods from './test.sharedMethods.js';
 
-function testBorrowInterest (exchange, skippedProperties, method, entry, requestedCode, requestedSymbol) {
+function testBorrowInterest (exchange: Exchange, skippedProperties: object, method: string, entry: object, requestedCode: string, requestedSymbol: string) {
     const format = {
         'info': {},
         'account': 'BTC/USDT',

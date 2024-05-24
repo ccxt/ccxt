@@ -5,6 +5,7 @@ var errors = require('../base/errors.js');
 var Cache = require('../base/ws/Cache.js');
 
 //  ---------------------------------------------------------------------------
+//  ---------------------------------------------------------------------------
 class probit extends probit$1 {
     describe() {
         return this.deepExtend(super.describe(), {
@@ -95,7 +96,7 @@ class probit extends probit$1 {
         //         }
         //     }
         //
-        const reset = this.safeValue(message, 'reset', false);
+        const reset = this.safeBool(message, 'reset', false);
         const data = this.safeValue(message, 'data', {});
         const currencyIds = Object.keys(data);
         if (reset) {
@@ -201,7 +202,7 @@ class probit extends probit$1 {
         const symbol = this.safeSymbol(marketId);
         const market = this.safeMarket(marketId);
         const trades = this.safeValue(message, 'recent_trades', []);
-        const reset = this.safeValue(message, 'reset', false);
+        const reset = this.safeBool(message, 'reset', false);
         const messageHash = 'trades:' + symbol;
         let stored = this.safeValue(this.trades, symbol);
         if (stored === undefined || reset) {
@@ -274,7 +275,7 @@ class probit extends probit$1 {
         if (length === 0) {
             return;
         }
-        const reset = this.safeValue(message, 'reset', false);
+        const reset = this.safeBool(message, 'reset', false);
         const messageHash = 'myTrades';
         let stored = this.myTrades;
         if ((stored === undefined) || reset) {
@@ -362,7 +363,7 @@ class probit extends probit$1 {
             return;
         }
         const messageHash = 'orders';
-        const reset = this.safeValue(message, 'reset', false);
+        const reset = this.safeBool(message, 'reset', false);
         let stored = this.orders;
         if (stored === undefined || reset) {
             const limit = this.safeInteger(this.options, 'ordersLimit', 1000);
@@ -449,20 +450,20 @@ class probit extends probit$1 {
         const symbol = this.safeSymbol(marketId);
         const dataBySide = this.groupBy(orderBook, 'side');
         const messageHash = 'orderbook:' + symbol;
-        let storedOrderBook = this.safeValue(this.orderbooks, symbol);
-        if (storedOrderBook === undefined) {
-            storedOrderBook = this.orderBook({});
-            this.orderbooks[symbol] = storedOrderBook;
+        let orderbook = this.safeValue(this.orderbooks, symbol);
+        if (orderbook === undefined) {
+            orderbook = this.orderBook({});
+            this.orderbooks[symbol] = orderbook;
         }
-        const reset = this.safeValue(message, 'reset', false);
+        const reset = this.safeBool(message, 'reset', false);
         if (reset) {
             const snapshot = this.parseOrderBook(dataBySide, symbol, undefined, 'buy', 'sell', 'price', 'quantity');
-            storedOrderBook.reset(snapshot);
+            orderbook.reset(snapshot);
         }
         else {
-            this.handleDelta(storedOrderBook, dataBySide);
+            this.handleDelta(orderbook, dataBySide);
         }
-        client.resolve(storedOrderBook, messageHash);
+        client.resolve(orderbook, messageHash);
     }
     handleBidAsks(bookSide, bidAsks) {
         for (let i = 0; i < bidAsks.length; i++) {
@@ -535,11 +536,13 @@ class probit extends probit$1 {
         //
         const errorCode = this.safeString(message, 'errorCode');
         if (errorCode !== undefined) {
-            return this.handleErrorMessage(client, message);
+            this.handleErrorMessage(client, message);
+            return;
         }
         const type = this.safeString(message, 'type');
         if (type === 'authorization') {
-            return this.handleAuthenticate(client, message);
+            this.handleAuthenticate(client, message);
+            return;
         }
         const handlers = {
             'marketdata': this.handleMarketData,
@@ -551,7 +554,8 @@ class probit extends probit$1 {
         const channel = this.safeString(message, 'channel');
         const handler = this.safeValue(handlers, channel);
         if (handler !== undefined) {
-            return handler.call(this, client, message);
+            handler.call(this, client, message);
+            return;
         }
         const error = new errors.NotSupported(this.id + ' handleMessage: unknown message: ' + this.json(message));
         client.reject(error);
@@ -576,10 +580,10 @@ class probit extends probit$1 {
                 'type': 'authorization',
                 'token': accessToken,
             };
-            future = this.watch(url, messageHash, this.extend(request, params));
+            future = await this.watch(url, messageHash, this.extend(request, params), messageHash);
             client.subscriptions[messageHash] = future;
         }
-        return await future;
+        return future;
     }
 }
 

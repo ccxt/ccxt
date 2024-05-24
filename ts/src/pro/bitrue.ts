@@ -2,7 +2,7 @@
 
 import bitrueRest from '../bitrue.js';
 import { ArrayCacheBySymbolById } from '../base/ws/Cache.js';
-import { Int, Str } from '../base/types.js';
+import type { Int, Str, OrderBook, Order, Balances, Dict } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -54,7 +54,7 @@ export default class bitrue extends bitrueRest {
         });
     }
 
-    async watchBalance (params = {}) {
+    async watchBalance (params = {}): Promise<Balances> {
         /**
          * @method
          * @name bitrue#watchBalance
@@ -65,7 +65,7 @@ export default class bitrue extends bitrueRest {
          */
         const url = await this.authenticate ();
         const messageHash = 'balance';
-        const message = {
+        const message: Dict = {
             'event': 'sub',
             'params': {
                 'channel': 'user_balance_update',
@@ -169,7 +169,7 @@ export default class bitrue extends bitrueRest {
         this.balance = this.safeBalance (this.balance);
     }
 
-    async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name bitrue#watchOrders
@@ -188,7 +188,7 @@ export default class bitrue extends bitrueRest {
         }
         const url = await this.authenticate ();
         const messageHash = 'orders';
-        const message = {
+        const message: Dict = {
             'event': 'sub',
             'params': {
                 'channel': 'user_order_update',
@@ -297,7 +297,7 @@ export default class bitrue extends bitrueRest {
         }, market);
     }
 
-    async watchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
+    async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         await this.loadMarkets ();
         const market = this.market (symbol);
         symbol = market['symbol'];
@@ -305,7 +305,7 @@ export default class bitrue extends bitrueRest {
         const marketIdLowercase = market['id'].toLowerCase ();
         const channel = 'market_' + marketIdLowercase + '_simple_depth_step0';
         const url = this.urls['api']['ws']['public'];
-        const message = {
+        const message: Dict = {
             'event': 'sub',
             'params': {
                 'cb_id': marketIdLowercase,
@@ -356,14 +356,19 @@ export default class bitrue extends bitrueRest {
         const symbol = market['symbol'];
         const timestamp = this.safeInteger (message, 'ts');
         const tick = this.safeValue (message, 'tick', {});
-        const orderbook = this.parseOrderBook (tick, symbol, timestamp, 'buys', 'asks');
+        let orderbook = this.safeValue (this.orderbooks, symbol);
+        if (orderbook === undefined) {
+            orderbook = this.orderBook ();
+        }
+        const snapshot = this.parseOrderBook (tick, symbol, timestamp, 'buys', 'asks');
+        orderbook.reset (snapshot);
         this.orderbooks[symbol] = orderbook;
         const messageHash = 'orderbook:' + symbol;
         client.resolve (orderbook, messageHash);
     }
 
     parseWsOrderType (typeId) {
-        const types = {
+        const types: Dict = {
             '1': 'limit',
             '2': 'market',
             '3': 'limit',
@@ -372,7 +377,7 @@ export default class bitrue extends bitrueRest {
     }
 
     parseWsOrderStatus (status) {
-        const statuses = {
+        const statuses: Dict = {
             '0': 'open', // The order has not been accepted by the engine.
             '1': 'open', // The order has been accepted by the engine.
             '2': 'closed', // The order has been completed.
@@ -394,7 +399,7 @@ export default class bitrue extends bitrueRest {
         //     }
         //
         const time = this.safeInteger (message, 'ping');
-        const pong = {
+        const pong: Dict = {
             'pong': time,
         };
         await client.send (pong);
@@ -407,7 +412,7 @@ export default class bitrue extends bitrueRest {
             this.handlePing (client, message);
         } else {
             const event = this.safeString (message, 'e');
-            const handlers = {
+            const handlers: Dict = {
                 'BALANCE': this.handleBalance,
                 'ORDER': this.handleOrder,
             };
@@ -427,7 +432,7 @@ export default class bitrue extends bitrueRest {
             } catch (error) {
                 this.options['listenKey'] = undefined;
                 this.options['listenKeyUrl'] = undefined;
-                return;
+                return undefined;
             }
             //
             //     {
@@ -450,7 +455,7 @@ export default class bitrue extends bitrueRest {
 
     async keepAliveListenKey (params = {}) {
         const listenKey = this.safeString (this.options, 'listenKey');
-        const request = {
+        const request: Dict = {
             'listenKey': listenKey,
         };
         try {

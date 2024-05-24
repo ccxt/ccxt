@@ -6,9 +6,10 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.yobit import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Int, Market, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade
+from ccxt.base.types import Balances, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees
 from typing import List
 from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
@@ -17,7 +18,6 @@ from ccxt.base.errors import DDoSProtection
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import InvalidNonce
-from ccxt.base.errors import AuthenticationError
 from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
@@ -41,6 +41,8 @@ class yobit(Exchange, ImplicitAPI):
                 'option': False,
                 'addMargin': False,
                 'cancelOrder': True,
+                'closeAllPositions': False,
+                'closePosition': False,
                 'createDepositAddress': True,
                 'createMarketOrder': False,
                 'createOrder': True,
@@ -74,8 +76,11 @@ class yobit(Exchange, ImplicitAPI):
                 'fetchOrderBook': True,
                 'fetchOrderBooks': True,
                 'fetchPosition': False,
+                'fetchPositionHistory': False,
                 'fetchPositionMode': False,
                 'fetchPositions': False,
+                'fetchPositionsForSymbol': False,
+                'fetchPositionsHistory': False,
                 'fetchPositionsRisk': False,
                 'fetchPremiumIndexOHLCV': False,
                 'fetchTicker': True,
@@ -290,15 +295,15 @@ class yobit(Exchange, ImplicitAPI):
         })
 
     def parse_balance(self, response) -> Balances:
-        balances = self.safe_value(response, 'return', {})
+        balances = self.safe_dict(response, 'return', {})
         timestamp = self.safe_integer(balances, 'server_time')
-        result = {
+        result: dict = {
             'info': response,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
         }
-        free = self.safe_value(balances, 'funds', {})
-        total = self.safe_value(balances, 'funds_incl_orders', {})
+        free = self.safe_dict(balances, 'funds', {})
+        total = self.safe_dict(balances, 'funds_incl_orders', {})
         currencyIds = list(self.extend(free, total).keys())
         for i in range(0, len(currencyIds)):
             currencyId = currencyIds[i]
@@ -345,7 +350,7 @@ class yobit(Exchange, ImplicitAPI):
         #
         return self.parse_balance(response)
 
-    def fetch_markets(self, params={}):
+    def fetch_markets(self, params={}) -> List[Market]:
         """
         :see: https://yobit.net/en/api
         retrieves data on all markets for yobit
@@ -371,7 +376,7 @@ class yobit(Exchange, ImplicitAPI):
         #         },
         #     }
         #
-        markets = self.safe_value(response, 'pairs', {})
+        markets = self.safe_dict(response, 'pairs', {})
         keys = list(markets.keys())
         result = []
         for i in range(0, len(keys)):
@@ -450,7 +455,7 @@ class yobit(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'pair': market['id'],
         }
         if limit is not None:
@@ -482,14 +487,14 @@ class yobit(Exchange, ImplicitAPI):
         else:
             ids = self.market_ids(symbols)
             ids = '-'.join(ids)
-        request = {
+        request: dict = {
             'pair': ids,
             # 'ignore_invalid': True,
         }
         if limit is not None:
             request['limit'] = limit
         response = self.publicGetDepthPair(self.extend(request, params))
-        result = {}
+        result: dict = {}
         ids = list(response.keys())
         for i in range(0, len(ids)):
             id = ids[i]
@@ -497,7 +502,7 @@ class yobit(Exchange, ImplicitAPI):
             result[symbol] = self.parse_order_book(response[id], symbol)
         return result
 
-    def parse_ticker(self, ticker, market: Market = None) -> Ticker:
+    def parse_ticker(self, ticker: dict, market: Market = None) -> Ticker:
         #
         #     {
         #         "high": 0.03497582,
@@ -561,11 +566,11 @@ class yobit(Exchange, ImplicitAPI):
         actualLength = len(idsString) + lenghtOfBaseUrl
         if actualLength > maxLength:
             raise ArgumentsRequired(self.id + ' fetchTickers() is being requested for ' + str(idsLength) + ' markets(which has an URL length of ' + str(actualLength) + ' characters), but it exceedes max URL length(' + str(maxLength) + '), please pass limisted symbols array to fetchTickers to fit in one request')
-        request = {
+        request: dict = {
             'pair': idsString,
         }
         tickers = self.publicGetTickerPair(self.extend(request, params))
-        result = {}
+        result: dict = {}
         keys = list(tickers.keys())
         for k in range(0, len(keys)):
             id = keys[k]
@@ -635,7 +640,7 @@ class yobit(Exchange, ImplicitAPI):
                 'cost': feeCostString,
                 'currency': feeCurrencyCode,
             }
-        isYourOrder = self.safe_value(trade, 'is_your_order')
+        isYourOrder = self.safe_string(trade, 'is_your_order')
         if isYourOrder is not None:
             if fee is None:
                 feeInNumbers = self.calculate_fee(symbol, type, side, amount, price, 'taker')
@@ -672,7 +677,7 @@ class yobit(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'pair': market['id'],
         }
         if limit is not None:
@@ -695,10 +700,10 @@ class yobit(Exchange, ImplicitAPI):
             numElements = len(response)
             if numElements == 0:
                 return []
-        result = self.safe_value(response, market['id'], [])
+        result = self.safe_list(response, market['id'], [])
         return self.parse_trades(result, market, since, limit)
 
-    def fetch_trading_fees(self, params={}):
+    def fetch_trading_fees(self, params={}) -> TradingFees:
         """
         :see: https://yobit.net/en/api
         fetch the trading fees for multiple markets
@@ -726,12 +731,12 @@ class yobit(Exchange, ImplicitAPI):
         #         },
         #     }
         #
-        pairs = self.safe_value(response, 'pairs', {})
+        pairs = self.safe_dict(response, 'pairs', {})
         marketIds = list(pairs.keys())
-        result = {}
+        result: dict = {}
         for i in range(0, len(marketIds)):
             marketId = marketIds[i]
-            pair = self.safe_value(pairs, marketId, {})
+            pair = self.safe_dict(pairs, marketId, {})
             symbol = self.safe_symbol(marketId, None, '_')
             takerString = self.safe_string(pair, 'fee_buyer')
             makerString = self.safe_string(pair, 'fee_seller')
@@ -747,7 +752,7 @@ class yobit(Exchange, ImplicitAPI):
             }
         return result
 
-    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
+    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         """
         :see: https://yobit.net/en/api
         create a trade order
@@ -763,7 +768,7 @@ class yobit(Exchange, ImplicitAPI):
             raise ExchangeError(self.id + ' createOrder() allows limit orders only')
         self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'pair': market['id'],
             'type': side,
             'amount': self.amount_to_precision(symbol, amount),
@@ -791,7 +796,7 @@ class yobit(Exchange, ImplicitAPI):
         #           }
         #       }
         #
-        result = self.safe_value(response, 'return')
+        result = self.safe_dict(response, 'return')
         return self.parse_order(result, market)
 
     def cancel_order(self, id: str, symbol: Str = None, params={}):
@@ -804,7 +809,7 @@ class yobit(Exchange, ImplicitAPI):
         :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
-        request = {
+        request: dict = {
             'order_id': int(id),
         }
         response = self.privatePostCancelOrder(self.extend(request, params))
@@ -827,11 +832,11 @@ class yobit(Exchange, ImplicitAPI):
         #          }
         #      }
         #
-        result = self.safe_value(response, 'return', {})
+        result = self.safe_dict(response, 'return', {})
         return self.parse_order(result)
 
-    def parse_order_status(self, status):
-        statuses = {
+    def parse_order_status(self, status: Str):
+        statuses: dict = {
             '0': 'open',
             '1': 'closed',
             '2': 'canceled',
@@ -950,12 +955,12 @@ class yobit(Exchange, ImplicitAPI):
         :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
-        request = {
+        request: dict = {
             'order_id': int(id),
         }
         response = self.privatePostOrderInfo(self.extend(request, params))
         id = str(id)
-        orders = self.safe_value(response, 'return', {})
+        orders = self.safe_dict(response, 'return', {})
         #
         #      {
         #          "success":1,
@@ -987,7 +992,7 @@ class yobit(Exchange, ImplicitAPI):
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchOpenOrders() requires a symbol argument')
         self.load_markets()
-        request = {}
+        request: dict = {}
         market = None
         if symbol is not None:
             marketInner = self.market(symbol)
@@ -1016,7 +1021,7 @@ class yobit(Exchange, ImplicitAPI):
         #          }
         #      }
         #
-        result = self.safe_value(response, 'return', {})
+        result = self.safe_dict(response, 'return', {})
         return self.parse_orders(result, market, since, limit)
 
     def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
@@ -1034,7 +1039,7 @@ class yobit(Exchange, ImplicitAPI):
         self.load_markets()
         market = self.market(symbol)
         # some derived classes use camelcase notation for request fields
-        request = {
+        request: dict = {
             # 'from': 123456789,  # trade ID, from which the display starts numerical 0(test result: liqui ignores self field)
             # 'count': 1000,  # the number of trades for display numerical, default = 1000
             # 'from_id': trade ID, from which the display starts numerical 0
@@ -1065,7 +1070,7 @@ class yobit(Exchange, ImplicitAPI):
         #          }
         #      }
         #
-        trades = self.safe_value(response, 'return', {})
+        trades = self.safe_dict(response, 'return', {})
         ids = list(trades.keys())
         result = []
         for i in range(0, len(ids)):
@@ -1084,7 +1089,7 @@ class yobit(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `address structure <https://docs.ccxt.com/#/?id=address-structure>`
         """
-        request = {
+        request: dict = {
             'need_new': 1,
         }
         response = self.fetch_deposit_address(code, self.extend(request, params))
@@ -1108,14 +1113,14 @@ class yobit(Exchange, ImplicitAPI):
         self.load_markets()
         currency = self.currency(code)
         currencyId = currency['id']
-        networks = self.safe_value(self.options, 'networks', {})
+        networks = self.safe_dict(self.options, 'networks', {})
         network = self.safe_string_upper(params, 'network')  # self line allows the user to specify either ERC20 or ETH
         network = self.safe_string(networks, network, network)  # handle ERC20>ETH alias
         if network is not None:
             if network != 'ERC20':
                 currencyId = currencyId + network.lower()
             params = self.omit(params, 'network')
-        request = {
+        request: dict = {
             'coinName': currencyId,
             'need_new': 0,
         }
@@ -1123,14 +1128,32 @@ class yobit(Exchange, ImplicitAPI):
         address = self.safe_string(response['return'], 'address')
         self.check_address(address)
         return {
+            'id': None,
             'currency': code,
             'address': address,
             'tag': None,
             'network': None,
             'info': response,
+            'txid': None,
+            'type': None,
+            'amount': None,
+            'status': None,
+            'timestamp': None,
+            'datetime': None,
+            'addressFrom': None,
+            'addressTo': None,
+            'tagFrom': None,
+            'tagTo': None,
+            'updated': None,
+            'comment': None,
+            'fee': {
+                'currency': None,
+                'cost': None,
+                'rate': None,
+            },
         }
 
-    def withdraw(self, code: str, amount, address, tag=None, params={}):
+    def withdraw(self, code: str, amount: float, address: str, tag=None, params={}):
         """
         :see: https://yobit.net/en/api
         make a withdrawal
@@ -1145,7 +1168,7 @@ class yobit(Exchange, ImplicitAPI):
         self.check_address(address)
         self.load_markets()
         currency = self.currency(code)
-        request = {
+        request: dict = {
             'coinName': currency['id'],
             'amount': amount,
             'address': address,
@@ -1157,6 +1180,27 @@ class yobit(Exchange, ImplicitAPI):
         return {
             'info': response,
             'id': None,
+            'txid': None,
+            'type': None,
+            'currency': None,
+            'network': None,
+            'amount': None,
+            'status': None,
+            'timestamp': None,
+            'datetime': None,
+            'address': None,
+            'addressFrom': None,
+            'addressTo': None,
+            'tag': None,
+            'tagFrom': None,
+            'tagTo': None,
+            'updated': None,
+            'comment': None,
+            'fee': {
+                'currency': None,
+                'cost': None,
+                'rate': None,
+            },
         }
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
@@ -1222,7 +1266,7 @@ class yobit(Exchange, ImplicitAPI):
             #
             # To cover points 1, 2, 3 and 4 combined self handler should work like self:
             #
-            success = self.safe_value(response, 'success', False)
+            success = self.safe_value(response, 'success')  # don't replace with safeBool here
             if isinstance(success, str):
                 if (success == 'true') or (success == '1'):
                     success = True

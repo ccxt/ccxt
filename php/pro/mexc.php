@@ -6,9 +6,9 @@ namespace ccxt\pro;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
-use ccxt\ExchangeError;
 use ccxt\AuthenticationError;
 use React\Async;
+use React\Promise\PromiseInterface;
 
 class mexc extends \ccxt\async\mexc {
 
@@ -72,7 +72,7 @@ class mexc extends \ccxt\async\mexc {
         ));
     }
 
-    public function watch_ticker(string $symbol, $params = array ()) {
+    public function watch_ticker(string $symbol, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
@@ -168,7 +168,7 @@ class mexc extends \ccxt\async\mexc {
                 'method' => 'SUBSCRIPTION',
                 'params' => array( $channel ),
             );
-            return Async\await($this->watch($url, $messageHash, array_merge($request, $params), $channel));
+            return Async\await($this->watch($url, $messageHash, $this->extend($request, $params), $channel));
         }) ();
     }
 
@@ -181,7 +181,7 @@ class mexc extends \ccxt\async\mexc {
                 'method' => 'SUBSCRIPTION',
                 'params' => array( $channel ),
             );
-            return Async\await($this->watch($url, $messageHash, array_merge($request, $params), $channel));
+            return Async\await($this->watch($url, $messageHash, $this->extend($request, $params), $channel));
         }) ();
     }
 
@@ -192,7 +192,7 @@ class mexc extends \ccxt\async\mexc {
                 'method' => $channel,
                 'param' => $requestParams,
             );
-            $message = array_merge($request, $params);
+            $message = $this->extend($request, $params);
             return Async\await($this->watch($url, $messageHash, $message, $messageHash));
         }) ();
     }
@@ -213,12 +213,12 @@ class mexc extends \ccxt\async\mexc {
                     'reqTime' => $timestamp,
                 ),
             );
-            $message = array_merge($request, $params);
+            $message = $this->extend($request, $params);
             return Async\await($this->watch($url, $messageHash, $message, $channel));
         }) ();
     }
 
-    public function watch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function watch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * @see https://mxcdevelop.github.io/apidocs/spot_v3_en/#kline-streams
@@ -263,7 +263,7 @@ class mexc extends \ccxt\async\mexc {
         //        "d" => {
         //            "e" => "spot@public.kline.v3.api",
         //            "k" => array(
-        //                "t" => 1678642260,
+        //                "t" => 1678642261,
         //                "o" => 20626.94,
         //                "c" => 20599.69,
         //                "h" => 20626.94,
@@ -366,7 +366,7 @@ class mexc extends \ccxt\async\mexc {
         );
     }
 
-    public function watch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
+    public function watch_order_book(string $symbol, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * @see https://mxcdevelop.github.io/apidocs/spot_v3_en/#diff-depth-stream
@@ -473,26 +473,27 @@ class mexc extends \ccxt\async\mexc {
         $symbol = $this->safe_symbol($marketId);
         $messageHash = 'orderbook:' . $symbol;
         $subscription = $this->safe_value($client->subscriptions, $messageHash);
+        $limit = $this->safe_integer($subscription, 'limit');
         if ($subscription === true) {
             // we set $client->subscriptions[$messageHash] to 1
             // once we have received the first delta and initialized the orderbook
             $client->subscriptions[$messageHash] = 1;
             $this->orderbooks[$symbol] = $this->counted_order_book(array());
         }
-        $storedOrderBook = $this->safe_value($this->orderbooks, $symbol);
+        $storedOrderBook = $this->orderbooks[$symbol];
         $nonce = $this->safe_integer($storedOrderBook, 'nonce');
         if ($nonce === null) {
             $cacheLength = count($storedOrderBook->cache);
             $snapshotDelay = $this->handle_option('watchOrderBook', 'snapshotDelay', 25);
             if ($cacheLength === $snapshotDelay) {
-                $this->spawn(array($this, 'load_order_book'), $client, $messageHash, $symbol);
+                $this->spawn(array($this, 'load_order_book'), $client, $messageHash, $symbol, $limit, array());
             }
             $storedOrderBook->cache[] = $data;
             return;
         }
         try {
             $this->handle_delta($storedOrderBook, $data);
-            $timestamp = $this->safe_integer($message, 't');
+            $timestamp = $this->safe_integer_2($message, 't', 'ts');
             $storedOrderBook['timestamp'] = $timestamp;
             $storedOrderBook['datetime'] = $this->iso8601($timestamp);
         } catch (Exception $e) {
@@ -522,21 +523,23 @@ class mexc extends \ccxt\async\mexc {
     }
 
     public function handle_delta($orderbook, $delta) {
-        $nonce = $this->safe_integer($orderbook, 'nonce');
+        $existingNonce = $this->safe_integer($orderbook, 'nonce');
         $deltaNonce = $this->safe_integer_2($delta, 'r', 'version');
-        if ($deltaNonce !== $nonce && $deltaNonce !== $nonce + 1) {
-            throw new ExchangeError($this->id . ' handleOrderBook received an out-of-order nonce');
+        if ($deltaNonce < $existingNonce) {
+            // even when doing < comparison, this happens => https://app.travis-ci.com/github/ccxt/ccxt/builds/269234741#L1809
+            // so, we just skip old updates
+            return;
         }
         $orderbook['nonce'] = $deltaNonce;
-        $asks = $this->safe_value($delta, 'asks', array());
-        $bids = $this->safe_value($delta, 'bids', array());
+        $asks = $this->safe_list($delta, 'asks', array());
+        $bids = $this->safe_list($delta, 'bids', array());
         $asksOrderSide = $orderbook['asks'];
         $bidsOrderSide = $orderbook['bids'];
         $this->handle_bookside_delta($asksOrderSide, $asks);
         $this->handle_bookside_delta($bidsOrderSide, $bids);
     }
 
-    public function watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * @see https://mxcdevelop.github.io/apidocs/spot_v3_en/#trade-streams
@@ -625,7 +628,7 @@ class mexc extends \ccxt\async\mexc {
         $client->resolve ($stored, $messageHash);
     }
 
-    public function watch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function watch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * @see https://mxcdevelop.github.io/apidocs/spot_v3_en/#spot-account-deals
@@ -725,6 +728,21 @@ class mexc extends \ccxt\async\mexc {
         //        "v" => "5"
         //    }
         //
+        //
+        //   d => {
+        //       p => '1.0005',
+        //       v => '5.71',
+        //       a => '5.712855',
+        //       S => 1,
+        //       T => 1714325698237,
+        //       t => 'edafcd9fdc2f426e82443d114691f724',
+        //       c => '',
+        //       i => 'C02__413321238354677760043',
+        //       m => 0,
+        //       st => 0,
+        //       n => '0.005712855',
+        //       N => 'USDT'
+        //   }
         $timestamp = $this->safe_integer($trade, 'T');
         $tradeId = $this->safe_string($trade, 't');
         if ($timestamp === null) {
@@ -736,6 +754,8 @@ class mexc extends \ccxt\async\mexc {
         $rawSide = $this->safe_string($trade, 'S');
         $side = ($rawSide === '1') ? 'buy' : 'sell';
         $isMaker = $this->safe_integer($trade, 'm');
+        $feeAmount = $this->safe_number($trade, 'n');
+        $feeCurrencyId = $this->safe_string($trade, 'N');
         return $this->safe_trade(array(
             'info' => $trade,
             'id' => $tradeId,
@@ -749,11 +769,14 @@ class mexc extends \ccxt\async\mexc {
             'price' => $priceString,
             'amount' => $amountString,
             'cost' => null,
-            'fee' => null,
+            'fee' => array(
+                'cost' => $feeAmount,
+                'currency' => $this->safe_currency_code($feeCurrencyId),
+            ),
         ), $market);
     }
 
-    public function watch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function watch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * @see https://mxcdevelop.github.io/apidocs/spot_v3_en/#spot-account-$orders
@@ -761,9 +784,9 @@ class mexc extends \ccxt\async\mexc {
              * watches information on multiple $orders made by the user
              * @param {string} $symbol unified $market $symbol of the $market $orders were made in
              * @param {int} [$since] the earliest time in ms to fetch $orders for
-             * @param {int} [$limit] the maximum number of  orde structures to retrieve
+             * @param {int} [$limit] the maximum number of order structures to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @$params {string|null} $params->type the $type of $orders to retrieve, can be 'spot' or 'margin'
+             * @param {string|null} $params->type the $type of $orders to retrieve, can be 'spot' or 'margin'
              * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             Async\await($this->load_markets());
@@ -1009,7 +1032,7 @@ class mexc extends \ccxt\async\mexc {
         return $this->safe_string($timeInForceIds, $timeInForce);
     }
 
-    public function watch_balance($params = array ()) {
+    public function watch_balance($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * @see https://mxcdevelop.github.io/apidocs/spot_v3_en/#spot-account-upadte
@@ -1114,7 +1137,7 @@ class mexc extends \ccxt\async\mexc {
                 'listenKey' => $listenKey,
             );
             try {
-                Async\await($this->spotPrivatePutUserDataStream (array_merge($request, $params)));
+                Async\await($this->spotPrivatePutUserDataStream ($this->extend($request, $params)));
                 $listenKeyRefreshRate = $this->safe_integer($this->options, 'listenKeyRefreshRate', 1200000);
                 $this->delay($listenKeyRefreshRate, array($this, 'keep_alive_listen_key'), $listenKey, $params);
             } catch (Exception $error) {
@@ -1142,7 +1165,7 @@ class mexc extends \ccxt\async\mexc {
         //
         $msg = $this->safe_string($message, 'msg');
         if ($msg === 'PONG') {
-            return $this->handle_pong($client, $message);
+            $this->handle_pong($client, $message);
         } elseif (mb_strpos($msg, '@') > -1) {
             $parts = explode('@', $msg);
             $channel = $this->safe_string($parts, 1);
@@ -1165,7 +1188,8 @@ class mexc extends \ccxt\async\mexc {
             return;
         }
         if (is_array($message) && array_key_exists('msg', $message)) {
-            return $this->handle_subscription_status($client, $message);
+            $this->handle_subscription_status($client, $message);
+            return;
         }
         $c = $this->safe_string($message, 'c');
         $channel = null;

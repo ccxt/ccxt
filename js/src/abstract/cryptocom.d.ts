@@ -52,6 +52,9 @@ interface Exchange {
     v2PrivatePostPrivateGetCurrencyNetworks(params?: {}): Promise<implicitReturnType>;
     v2PrivatePostPrivateGetDepositHistory(params?: {}): Promise<implicitReturnType>;
     v2PrivatePostPrivateGetDepositAddress(params?: {}): Promise<implicitReturnType>;
+    v2PrivatePostPrivateExportCreateExportRequest(params?: {}): Promise<implicitReturnType>;
+    v2PrivatePostPrivateExportGetExportRequests(params?: {}): Promise<implicitReturnType>;
+    v2PrivatePostPrivateExportDownloadExportOutput(params?: {}): Promise<implicitReturnType>;
     v2PrivatePostPrivateGetAccountSummary(params?: {}): Promise<implicitReturnType>;
     v2PrivatePostPrivateCreateOrder(params?: {}): Promise<implicitReturnType>;
     v2PrivatePostPrivateCancelOrder(params?: {}): Promise<implicitReturnType>;
@@ -70,6 +73,7 @@ interface Exchange {
     v2PrivatePostPrivateOtcAcceptQuote(params?: {}): Promise<implicitReturnType>;
     v2PrivatePostPrivateOtcGetQuoteHistory(params?: {}): Promise<implicitReturnType>;
     v2PrivatePostPrivateOtcGetTradeHistory(params?: {}): Promise<implicitReturnType>;
+    v2PrivatePostPrivateOtcCreateOrder(params?: {}): Promise<implicitReturnType>;
     derivativesPublicGetPublicAuth(params?: {}): Promise<implicitReturnType>;
     derivativesPublicGetPublicGetInstruments(params?: {}): Promise<implicitReturnType>;
     derivativesPublicGetPublicGetBook(params?: {}): Promise<implicitReturnType>;

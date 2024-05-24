@@ -10,7 +10,7 @@ var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 //  ---------------------------------------------------------------------------
 /**
  * @class poloniexfutures
- * @extends Exchange
+ * @augments Exchange
  */
 class poloniexfutures extends poloniexfutures$1 {
     describe() {
@@ -34,7 +34,11 @@ class poloniexfutures extends poloniexfutures$1 {
                 'fetchBalance': true,
                 'fetchClosedOrders': true,
                 'fetchCurrencies': false,
+                'fetchDepositAddress': false,
+                'fetchDepositAddresses': false,
+                'fetchDepositAddressesByNetwork': false,
                 'fetchFundingRate': true,
+                'fetchFundingRateHistory': false,
                 'fetchL3OrderBook': true,
                 'fetchMarkets': true,
                 'fetchMyTrades': true,
@@ -368,7 +372,24 @@ class poloniexfutures extends poloniexfutures$1 {
         //
         const marketId = this.safeString(ticker, 'symbol');
         const symbol = this.safeSymbol(marketId, market);
-        const timestamp = this.safeIntegerProduct(ticker, 'ts', 0.000001);
+        const timestampString = this.safeString(ticker, 'ts');
+        let multiplier = undefined;
+        if (timestampString.length === 16) {
+            // 16 digits: https://app.travis-ci.com/github/ccxt/ccxt/builds/270587157#L5454
+            multiplier = 0.001;
+        }
+        else if (timestampString.length === 17) {
+            // 17 digits: https://app.travis-ci.com/github/ccxt/ccxt/builds/269959181#L4011
+            multiplier = 0.0001;
+        }
+        else if (timestampString.length === 18) {
+            multiplier = 0.00001;
+        }
+        else {
+            // 19 length default
+            multiplier = 0.000001;
+        }
+        const timestamp = this.safeIntegerProduct(ticker, 'ts', multiplier);
         const last = this.safeString2(ticker, 'price', 'lastPrice');
         const percentage = Precise["default"].stringMul(this.safeString(ticker, 'priceChgPct'), '100');
         return this.safeTicker({
@@ -442,7 +463,8 @@ class poloniexfutures extends poloniexfutures$1 {
          */
         await this.loadMarkets();
         const response = await this.publicGetTickers(params);
-        return this.parseTickers(this.safeValue(response, 'data', []), symbols);
+        const data = this.safeList(response, 'data', []);
+        return this.parseTickers(data, symbols);
     }
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
         /**
@@ -672,7 +694,7 @@ class poloniexfutures extends poloniexfutures$1 {
         //        },
         //    }
         //
-        const trades = this.safeValue(response, 'data', []);
+        const trades = this.safeList(response, 'data', []);
         return this.parseTrades(trades, market, since, limit);
     }
     async fetchTime(params = {}) {
@@ -745,7 +767,7 @@ class poloniexfutures extends poloniexfutures$1 {
         //        ]
         //    }
         //
-        const data = this.safeValue(response, 'data', []);
+        const data = this.safeList(response, 'data', []);
         return this.parseOHLCVs(data, market, timeframe, since, limit);
     }
     parseBalance(response) {
@@ -860,7 +882,7 @@ class poloniexfutures extends poloniexfutures$1 {
                 request['timeInForce'] = timeInForce;
             }
         }
-        const postOnly = this.safeValue(params, 'postOnly', false);
+        const postOnly = this.safeBool(params, 'postOnly', false);
         const hidden = this.safeValue(params, 'hidden');
         if (postOnly && (hidden !== undefined)) {
             throw new errors.BadRequest(this.id + ' createOrder() does not support the postOnly parameter together with a hidden parameter');
@@ -1005,7 +1027,7 @@ class poloniexfutures extends poloniexfutures$1 {
         //        ]
         //    }
         //
-        const data = this.safeValue(response, 'data');
+        const data = this.safeList(response, 'data');
         return this.parsePositions(data, symbols);
     }
     parsePosition(position, market = undefined) {
@@ -1189,9 +1211,15 @@ class poloniexfutures extends poloniexfutures$1 {
         if (symbol !== undefined) {
             request['symbol'] = this.marketId(symbol);
         }
-        const stop = this.safeValue(params, 'stop');
-        const method = stop ? 'privateDeleteStopOrders' : 'privateDeleteOrders';
-        const response = await this[method](this.extend(request, params));
+        const stop = this.safeValue2(params, 'stop', 'trigger');
+        params = this.omit(params, ['stop', 'trigger']);
+        let response = undefined;
+        if (stop) {
+            response = await this.privateDeleteStopOrders(this.extend(request, params));
+        }
+        else {
+            response = await this.privateDeleteOrders(this.extend(request, params));
+        }
         //
         //   {
         //       "code": "200000",
@@ -1253,9 +1281,9 @@ class poloniexfutures extends poloniexfutures$1 {
          * @returns An [array of order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
-        const stop = this.safeValue(params, 'stop');
-        const until = this.safeInteger2(params, 'until', 'till');
-        params = this.omit(params, ['stop', 'until', 'till']);
+        const stop = this.safeValue2(params, 'stop', 'trigger');
+        const until = this.safeInteger(params, 'until');
+        params = this.omit(params, ['trigger', 'stop', 'until']);
         if (status === 'closed') {
             status = 'done';
         }
@@ -1277,8 +1305,13 @@ class poloniexfutures extends poloniexfutures$1 {
         if (until !== undefined) {
             request['endAt'] = until;
         }
-        const method = stop ? 'privateGetStopOrders' : 'privateGetOrders';
-        const response = await this[method](this.extend(request, params));
+        let response = undefined;
+        if (stop) {
+            response = await this.privateGetStopOrders(this.extend(request, params));
+        }
+        else {
+            response = await this.privateGetOrders(this.extend(request, params));
+        }
         //
         //    {
         //        "code": "200000",
@@ -1350,7 +1383,7 @@ class poloniexfutures extends poloniexfutures$1 {
          * @param {int} [since] the earliest time in ms to fetch open orders for
          * @param {int} [limit] the maximum number of  open orders structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {int} [params.till] end time in ms
+         * @param {int} [params.until] end time in ms
          * @param {string} [params.side] buy or sell
          * @param {string} [params.type] limit, or market
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -1366,9 +1399,9 @@ class poloniexfutures extends poloniexfutures$1 {
          * @see https://futures-docs.poloniex.com/#get-untriggered-stop-order-list
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
-         * @param {int} [limit] the maximum number of  orde structures to retrieve
+         * @param {int} [limit] the maximum number of order structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {int} [params.till] end time in ms
+         * @param {int} [params.until] end time in ms
          * @param {string} [params.side] buy or sell
          * @param {string} [params.type] limit, or market
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -1388,20 +1421,20 @@ class poloniexfutures extends poloniexfutures$1 {
          */
         await this.loadMarkets();
         const request = {};
-        let method = 'privateGetOrdersOrderId';
+        let response = undefined;
         if (id === undefined) {
             const clientOrderId = this.safeString2(params, 'clientOid', 'clientOrderId');
             if (clientOrderId === undefined) {
                 throw new errors.InvalidOrder(this.id + ' fetchOrder() requires parameter id or params.clientOid');
             }
             request['clientOid'] = clientOrderId;
-            method = 'privateGetOrdersByClientOid';
             params = this.omit(params, ['clientOid', 'clientOrderId']);
+            response = await this.privateGetClientOrderIdClientOid(this.extend(request, params));
         }
         else {
             request['order-id'] = id;
+            response = await this.privateGetOrdersOrderId(this.extend(request, params));
         }
-        const response = await this[method](this.extend(request, params));
         //
         //    {
         //        "code": "200000",
@@ -1448,7 +1481,7 @@ class poloniexfutures extends poloniexfutures$1 {
         //    }
         //
         const market = (symbol !== undefined) ? this.market(symbol) : undefined;
-        const responseData = this.safeValue(response, 'data');
+        const responseData = this.safeDict(response, 'data');
         return this.parseOrder(responseData, market);
     }
     parseOrder(order, market = undefined) {
@@ -1540,8 +1573,8 @@ class poloniexfutures extends poloniexfutures$1 {
         // precision reported by their api is 8 d.p.
         // const average = Precise.stringDiv (rawCost, Precise.stringMul (filled, market['contractSize']));
         // bool
-        const isActive = this.safeValue(order, 'isActive', false);
-        const cancelExist = this.safeValue(order, 'cancelExist', false);
+        const isActive = this.safeBool(order, 'isActive', false);
+        const cancelExist = this.safeBool(order, 'cancelExist', false);
         const status = isActive ? 'open' : 'closed';
         let id = this.safeString(order, 'id');
         if ('cancelledOrderIds' in order) {
@@ -1684,16 +1717,16 @@ class poloniexfutures extends poloniexfutures$1 {
         //    }
         //
         const data = this.safeValue(response, 'data', {});
-        const trades = this.safeValue(data, 'items', {});
+        const trades = this.safeList(data, 'items', []);
         return this.parseTrades(trades, market, since, limit);
     }
-    async setMarginMode(marginMode, symbol, params = {}) {
+    async setMarginMode(marginMode, symbol = undefined, params = {}) {
         /**
          * @method
          * @name poloniexfutures#setMarginMode
          * @description set margin mode to 'cross' or 'isolated'
          * @see https://futures-docs.poloniex.com/#change-margin-mode
-         * @param {int} marginMode 0 (isolated) or 1 (cross)
+         * @param {string} marginMode "0" (isolated) or "1" (cross)
          * @param {string} symbol unified market symbol
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} response from the exchange
@@ -1701,14 +1734,20 @@ class poloniexfutures extends poloniexfutures$1 {
         if (symbol === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' setMarginMode() requires a symbol argument');
         }
-        if ((marginMode !== 0) && (marginMode !== 1)) {
-            throw new errors.ArgumentsRequired(this.id + ' setMarginMode() marginMode must be 0 (isolated) or 1 (cross)');
+        if ((marginMode !== '0') && (marginMode !== '1') && (marginMode !== 'isolated') && (marginMode !== 'cross')) {
+            throw new errors.ArgumentsRequired(this.id + ' setMarginMode() marginMode must be 0/isolated or 1/cross');
         }
         await this.loadMarkets();
+        if (marginMode === 'isolated') {
+            marginMode = '0';
+        }
+        if (marginMode === 'cross') {
+            marginMode = '1';
+        }
         const market = this.market(symbol);
         const request = {
             'symbol': market['id'],
-            'marginType': marginMode,
+            'marginType': this.parseToInt(marginMode),
         };
         return await this.privatePostMarginTypeChange(request);
     }
@@ -1721,7 +1760,7 @@ class poloniexfutures extends poloniexfutures$1 {
         const version = this.safeString(params, 'version', defaultVersion);
         const tail = '/api/' + version + '/' + this.implodeParams(path, params);
         url += tail;
-        const query = this.omit(params, path);
+        const query = this.omit(params, this.extractParams(path));
         const queryLength = Object.keys(query).length;
         if (api === 'public') {
             if (queryLength) {

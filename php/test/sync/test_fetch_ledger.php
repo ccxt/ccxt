@@ -1,6 +1,5 @@
 <?php
 namespace ccxt;
-use \ccxt\Precise;
 
 // ----------------------------------------------------------------------------
 
@@ -8,12 +7,12 @@ use \ccxt\Precise;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 // -----------------------------------------------------------------------------
-include_once __DIR__ . '/../base/test_ledger_entry.php';
+include_once PATH_TO_CCXT . '/test/base/test_ledger_entry.php';
 
 function test_fetch_ledger($exchange, $skipped_properties, $code) {
     $method = 'fetchLedger';
     $items = $exchange->fetch_ledger($code);
-    assert(gettype($items) === 'array' && array_keys($items) === array_keys(array_keys($items)), $exchange->id . ' ' . $method . ' ' . $code . ' must return an array. ' . $exchange->json($items));
+    assert_non_emtpy_array($exchange, $skipped_properties, $method, $items, $code);
     $now = $exchange->milliseconds();
     for ($i = 0; $i < count($items); $i++) {
         test_ledger_entry($exchange, $skipped_properties, $method, $items[$i], $code, $now);

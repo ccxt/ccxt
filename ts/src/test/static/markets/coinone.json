@@ -1,0 +1,52 @@
+{
+    "BTC/KRW": {
+        "id": "1701311981643001",
+        "symbol": "BTC/KRW",
+        "base": "BTC",
+        "quote": "KRW",
+        "baseId": "btc",
+        "quoteId": "krw",
+        "type": "spot",
+        "spot": true,
+        "margin": false,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "contract": false,
+        "precision": {
+            "amount": 0.0001,
+            "price": 0.0001,
+            "cost": 1e-8
+        },
+        "limits": {
+            "leverage": {},
+            "amount": {},
+            "price": {},
+            "cost": {}
+        },
+        "info": {
+            "quote_currency": "krw",
+            "target_currency": "btc",
+            "timestamp": "1701311981643",
+            "high": "51200000.0",
+            "low": "50398000.0",
+            "first": "50545000.0",
+            "last": "50616000.0",
+            "quote_volume": "11776072588.403",
+            "target_volume": "231.99992781",
+            "best_asks": [
+                {
+                    "price": "50621000.0",
+                    "qty": "0.3946"
+                }
+            ],
+            "best_bids": [
+                {
+                    "price": "50616000.0",
+                    "qty": "0.26926803"
+                }
+            ],
+            "id": "1701311981643001"
+        }
+    }
+}

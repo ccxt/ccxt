@@ -1,0 +1,244 @@
+{
+    "exchange": "blockchaincom",
+    "skipKeys": [],
+    "options": {},
+    "methods": {
+        "fetchDepositAddress": [
+            {
+                "description": "fetch btc address",
+                "method": "fetchDepositAddress",
+                "input": [
+                    "BTC"
+                ],
+                "httpResponse": {
+                    "type": "crypto",
+                    "address": "btcaddress"
+                },
+                "parsedResponse": {
+                    "info": {
+                        "type": "crypto",
+                        "address": "btcaddress"
+                    },
+                    "currency": "BTC",
+                    "address": null,
+                    "tag": "btcaddress"
+                }
+            }
+        ],
+        "fetchMyTrades": [
+            {
+                "description": "spot trade",
+                "method": "fetchMyTrades",
+                "input": [
+                    null,
+                    1
+                ],
+                "httpResponse": [
+                    {
+                        "exOrdId": "844439434710384",
+                        "tradeId": "844437824527517",
+                        "execId": "27873346815",
+                        "side": "BUY",
+                        "symbol": "BTC-USD",
+                        "price": "28798.23",
+                        "qty": "5.4044E-4",
+                        "fee": "0.070036719",
+                        "timestamp": "1683409168135"
+                    },
+                    {
+                        "exOrdId": "562965361006079",
+                        "tradeId": "1",
+                        "execId": "21454650299",
+                        "side": "SELL",
+                        "symbol": "BTC-USD",
+                        "price": "0.0",
+                        "qty": "9.0E-4",
+                        "fee": "0.083705652",
+                        "timestamp": "1660084490551"
+                    }
+                ],
+                "parsedResponse": [
+                    {
+                        "id": "1",
+                        "timestamp": 1660084490551,
+                        "datetime": "2022-08-09T22:34:50.551Z",
+                        "symbol": "BTC/USD",
+                        "order": "562965361006079",
+                        "type": null,
+                        "side": "sell",
+                        "takerOrMaker": null,
+                        "price": 0,
+                        "amount": 0.0009,
+                        "cost": 0,
+                        "fee": {
+                            "cost": 0.083705652,
+                            "currency": "USD"
+                        },
+                        "info": {
+                            "exOrdId": "562965361006079",
+                            "tradeId": "1",
+                            "execId": "21454650299",
+                            "side": "SELL",
+                            "symbol": "BTC-USD",
+                            "price": "0.0",
+                            "qty": "9.0E-4",
+                            "fee": "0.083705652",
+                            "timestamp": "1660084490551"
+                        },
+                        "fees": [
+                            {
+                                "cost": 0.083705652,
+                                "currency": "USD"
+                            }
+                        ]
+                    },
+                    {
+                        "id": "844437824527517",
+                        "timestamp": 1683409168135,
+                        "datetime": "2023-05-06T21:39:28.135Z",
+                        "symbol": "BTC/USD",
+                        "order": "844439434710384",
+                        "type": null,
+                        "side": "buy",
+                        "takerOrMaker": null,
+                        "price": 28798.23,
+                        "amount": 0.00054044,
+                        "cost": 15.5637154212,
+                        "fee": {
+                            "cost": 0.070036719,
+                            "currency": "USD"
+                        },
+                        "info": {
+                            "exOrdId": "844439434710384",
+                            "tradeId": "844437824527517",
+                            "execId": "27873346815",
+                            "side": "BUY",
+                            "symbol": "BTC-USD",
+                            "price": "28798.23",
+                            "qty": "5.4044E-4",
+                            "fee": "0.070036719",
+                            "timestamp": "1683409168135"
+                        },
+                        "fees": [
+                            {
+                                "cost": 0.070036719,
+                                "currency": "USD"
+                            }
+                        ]
+                    }
+                ]
+            }
+        ],
+        "fetchOrder": [
+            {
+                "description": "spot order",
+                "method": "fetchOrder",
+                "input": [
+                    844439434710384
+                ],
+                "httpResponse": {
+                    "clOrdId": "65a52ec30e1f44c9webd",
+                    "ordType": "MARKET",
+                    "ordStatus": "FILLED",
+                    "side": "BUY",
+                    "symbol": "BTC-USD",
+                    "exOrdId": "844439434710384",
+                    "price": "0.0",
+                    "text": "",
+                    "lastShares": "5.4044E-4",
+                    "lastPx": "0.0",
+                    "leavesQty": "0.0",
+                    "cumQty": "5.4044E-4",
+                    "avgPx": "28798.23",
+                    "timestamp": "1683409168135"
+                },
+                "parsedResponse": {
+                    "id": "844439434710384",
+                    "clientOrderId": "65a52ec30e1f44c9webd",
+                    "datetime": "2023-05-06T21:39:28.135Z",
+                    "timestamp": 1683409168135,
+                    "lastTradeTimestamp": null,
+                    "status": "closed",
+                    "symbol": "BTC/USD",
+                    "type": "market",
+                    "timeInForce": "IOC",
+                    "side": "buy",
+                    "price": 28798.23,
+                    "average": 28798.23,
+                    "amount": 0.00054044,
+                    "filled": 0.00054044,
+                    "remaining": 0,
+                    "cost": 15.5637154212,
+                    "trades": [],
+                    "fees": [],
+                    "info": {
+                        "clOrdId": "65a52ec30e1f44c9webd",
+                        "ordType": "MARKET",
+                        "ordStatus": "FILLED",
+                        "side": "BUY",
+                        "symbol": "BTC-USD",
+                        "exOrdId": "844439434710384",
+                        "price": "0.0",
+                        "text": "",
+                        "lastShares": "5.4044E-4",
+                        "lastPx": "0.0",
+                        "leavesQty": "0.0",
+                        "cumQty": "5.4044E-4",
+                        "avgPx": "28798.23",
+                        "timestamp": "1683409168135"
+                    },
+                    "lastUpdateTimestamp": null,
+                    "postOnly": null,
+                    "reduceOnly": null,
+                    "stopPrice": null,
+                    "triggerPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null,
+                    "fee": null
+                }
+            }
+        ],
+        "fetchTicker": [
+            {
+                "description": "public spot ticker",
+                "method": "fetchTicker",
+                "input": [
+                    "BTC/USDT"
+                ],
+                "httpResponse": {
+                    "symbol": "BTC-USDT",
+                    "price_24h": "71400.89",
+                    "volume_24h": "0.71952468",
+                    "last_trade_price": "73193.79"
+                },
+                "parsedResponse": {
+                    "symbol": "BTC/USDT",
+                    "timestamp": null,
+                    "datetime": null,
+                    "high": null,
+                    "low": null,
+                    "bid": null,
+                    "bidVolume": null,
+                    "ask": null,
+                    "askVolume": null,
+                    "vwap": null,
+                    "open": 71400.89,
+                    "close": 73193.79,
+                    "last": 73193.79,
+                    "previousClose": null,
+                    "change": 1792.9,
+                    "percentage": 2.5110331257775638,
+                    "average": 72297.34,
+                    "baseVolume": 0.71952468,
+                    "quoteVolume": null,
+                    "info": {
+                        "symbol": "BTC-USDT",
+                        "price_24h": "71400.89",
+                        "volume_24h": "0.71952468",
+                        "last_trade_price": "73193.79"
+                    }
+                }
+            }
+        ]
+    }
+}

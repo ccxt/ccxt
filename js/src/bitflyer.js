@@ -6,14 +6,14 @@
 
 //  ---------------------------------------------------------------------------
 import Exchange from './abstract/bitflyer.js';
-import { ExchangeError, ArgumentsRequired, OrderNotFound } from './base/errors.js';
+import { ExchangeError, ArgumentsRequired, OrderNotFound, OnMaintenance } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { Precise } from './base/Precise.js';
 //  ---------------------------------------------------------------------------
 /**
  * @class bitflyer
- * @extends Exchange
+ * @augments Exchange
  */
 export default class bitflyer extends Exchange {
     describe() {
@@ -31,6 +31,7 @@ export default class bitflyer extends Exchange {
                 'swap': undefined,
                 'future': undefined,
                 'option': false,
+                'cancelAllOrders': undefined,
                 'cancelOrder': true,
                 'createOrder': true,
                 'fetchBalance': true,
@@ -116,6 +117,11 @@ export default class bitflyer extends Exchange {
                 },
             },
             'precisionMode': TICK_SIZE,
+            'exceptions': {
+                'exact': {
+                    '-2': OnMaintenance, // {"status":-2,"error_message":"Under maintenance","data":null}
+                },
+            },
         });
     }
     parseExpiryDate(expiry) {
@@ -537,6 +543,8 @@ export default class bitflyer extends Exchange {
             'symbol': market['symbol'],
             'maker': fee,
             'taker': fee,
+            'percentage': undefined,
+            'tierBased': undefined,
         };
     }
     async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
@@ -654,7 +662,7 @@ export default class bitflyer extends Exchange {
          * @see https://lightning.bitflyer.com/docs?lang=en#list-orders
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
-         * @param {int} [limit] the maximum number of  orde structures to retrieve
+         * @param {int} [limit] the maximum number of order structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
@@ -699,7 +707,7 @@ export default class bitflyer extends Exchange {
          * @see https://lightning.bitflyer.com/docs?lang=en#list-orders
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
-         * @param {int} [limit] the maximum number of  orde structures to retrieve
+         * @param {int} [limit] the maximum number of order structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
@@ -1042,5 +1050,19 @@ export default class bitflyer extends Exchange {
             };
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+    }
+    handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+        if (response === undefined) {
+            return undefined; // fallback to the default error handler
+        }
+        const feedback = this.id + ' ' + body;
+        // i.e. {"status":-2,"error_message":"Under maintenance","data":null}
+        const errorMessage = this.safeString(response, 'error_message');
+        const statusCode = this.safeNumber(response, 'status');
+        if (errorMessage !== undefined) {
+            this.throwExactlyMatchedException(this.exceptions['exact'], statusCode, feedback);
+            this.throwBroadlyMatchedException(this.exceptions['broad'], errorMessage, feedback);
+        }
+        return undefined;
     }
 }

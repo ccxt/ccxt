@@ -10,7 +10,7 @@ var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 //  ---------------------------------------------------------------------------
 /**
  * @class paymium
- * @extends Exchange
+ * @augments Exchange
  */
 class paymium extends paymium$1 {
     describe() {

@@ -155,11 +155,11 @@ class paymium extends Exchange {
         $request = array(
             'currency' => $market['id'],
         );
-        $response = $this->publicGetDataCurrencyDepth (array_merge($request, $params));
+        $response = $this->publicGetDataCurrencyDepth ($this->extend($request, $params));
         return $this->parse_order_book($response, $market['symbol'], null, 'bids', 'asks', 'price', 'amount');
     }
 
-    public function parse_ticker($ticker, ?array $market = null): array {
+    public function parse_ticker(array $ticker, ?array $market = null): array {
         //
         // {
         //     "high":"33740.82",
@@ -221,7 +221,7 @@ class paymium extends Exchange {
         $request = array(
             'currency' => $market['id'],
         );
-        $ticker = $this->publicGetDataCurrencyTicker (array_merge($request, $params));
+        $ticker = $this->publicGetDataCurrencyTicker ($this->extend($request, $params));
         //
         // {
         //     "high":"33740.82",
@@ -283,7 +283,7 @@ class paymium extends Exchange {
         $request = array(
             'currency' => $market['id'],
         );
-        $response = $this->publicGetDataCurrencyTrades (array_merge($request, $params));
+        $response = $this->publicGetDataCurrencyTrades ($this->extend($request, $params));
         return $this->parse_trades($response, $market, $since, $limit);
     }
 
@@ -320,7 +320,7 @@ class paymium extends Exchange {
         $request = array(
             'address' => $code,
         );
-        $response = $this->privateGetUserAddressesAddress (array_merge($request, $params));
+        $response = $this->privateGetUserAddressesAddress ($this->extend($request, $params));
         //
         //     {
         //         "address" => "1HdjGr6WCTcnmW1tNNsHX7fh4Jr5C2PeKe",
@@ -332,7 +332,7 @@ class paymium extends Exchange {
         return $this->parse_deposit_address($response);
     }
 
-    public function fetch_deposit_addresses($codes = null, $params = array ()) {
+    public function fetch_deposit_addresses(?array $codes = null, $params = array ()) {
         /**
          * fetch deposit addresses for multiple currencies and chain types
          * @see https://paymium.github.io/api-documentation/#tag/User/paths/{1user}1addresses/get
@@ -375,7 +375,7 @@ class paymium extends Exchange {
         );
     }
 
-    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
         /**
          * create a trade order
          * @see https://paymium.github.io/api-documentation/#tag/Order/paths/{1user}1orders/post
@@ -398,7 +398,7 @@ class paymium extends Exchange {
         if ($type !== 'market') {
             $request['price'] = $price;
         }
-        $response = $this->privatePostUserOrders (array_merge($request, $params));
+        $response = $this->privatePostUserOrders ($this->extend($request, $params));
         return $this->safe_order(array(
             'info' => $response,
             'id' => $response['uuid'],
@@ -418,10 +418,10 @@ class paymium extends Exchange {
         $request = array(
             'uuid' => $id,
         );
-        return $this->privateDeleteUserOrdersUuidCancel (array_merge($request, $params));
+        return $this->privateDeleteUserOrdersUuidCancel ($this->extend($request, $params));
     }
 
-    public function transfer(string $code, $amount, $fromAccount, $toAccount, $params = array ()) {
+    public function transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array ()): array {
         /**
          * transfer $currency internally between wallets on the same account
          * @see https://paymium.github.io/api-documentation/#tag/Transfer/paths/{1user}1email_transfers/post
@@ -446,7 +446,7 @@ class paymium extends Exchange {
             'email' => $toAccount,
             // 'comment' => 'a small note explaining the transfer'
         );
-        $response = $this->privatePostUserEmailTransfers (array_merge($request, $params));
+        $response = $this->privatePostUserEmailTransfers ($this->extend($request, $params));
         //
         //     {
         //         "uuid" => "968f4580-e26c-4ad8-8bcd-874d23d55296",
@@ -482,7 +482,7 @@ class paymium extends Exchange {
         return $this->parse_transfer($response, $currency);
     }
 
-    public function parse_transfer($transfer, ?array $currency = null) {
+    public function parse_transfer(array $transfer, ?array $currency = null): array {
         //
         //     {
         //         "uuid" => "968f4580-e26c-4ad8-8bcd-874d23d55296",
@@ -534,7 +534,7 @@ class paymium extends Exchange {
         );
     }
 
-    public function parse_transfer_status($status) {
+    public function parse_transfer_status(?string $status): ?string {
         $statuses = array(
             'executed' => 'ok',
             // what are the other $statuses?

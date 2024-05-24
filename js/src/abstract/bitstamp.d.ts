@@ -40,7 +40,7 @@ interface Exchange {
     privatePostTransferFromMain(params?: {}): Promise<implicitReturnType>;
     privatePostMyTradingPairs(params?: {}): Promise<implicitReturnType>;
     privatePostFeesTrading(params?: {}): Promise<implicitReturnType>;
-    privatePostFeesTradingPair(params?: {}): Promise<implicitReturnType>;
+    privatePostFeesTradingMarketSymbol(params?: {}): Promise<implicitReturnType>;
     privatePostFeesWithdrawal(params?: {}): Promise<implicitReturnType>;
     privatePostFeesWithdrawalCurrency(params?: {}): Promise<implicitReturnType>;
     privatePostWithdrawalRequests(params?: {}): Promise<implicitReturnType>;
@@ -217,6 +217,28 @@ interface Exchange {
     privatePostEarnSubscribe(params?: {}): Promise<implicitReturnType>;
     privatePostEarnSubscriptionsSetting(params?: {}): Promise<implicitReturnType>;
     privatePostEarnUnsubscribe(params?: {}): Promise<implicitReturnType>;
+    privatePostWecanWithdrawal(params?: {}): Promise<implicitReturnType>;
+    privatePostWecanAddress(params?: {}): Promise<implicitReturnType>;
+    privatePostTracWithdrawal(params?: {}): Promise<implicitReturnType>;
+    privatePostTracAddress(params?: {}): Promise<implicitReturnType>;
+    privatePostEurcvWithdrawal(params?: {}): Promise<implicitReturnType>;
+    privatePostEurcvAddress(params?: {}): Promise<implicitReturnType>;
+    privatePostPyusdWithdrawal(params?: {}): Promise<implicitReturnType>;
+    privatePostPyusdAddress(params?: {}): Promise<implicitReturnType>;
+    privatePostLmwrWithdrawal(params?: {}): Promise<implicitReturnType>;
+    privatePostLmwrAddress(params?: {}): Promise<implicitReturnType>;
+    privatePostPepeWithdrawal(params?: {}): Promise<implicitReturnType>;
+    privatePostPepeAddress(params?: {}): Promise<implicitReturnType>;
+    privatePostBlurWithdrawal(params?: {}): Promise<implicitReturnType>;
+    privatePostBlurAddress(params?: {}): Promise<implicitReturnType>;
+    privatePostVextWithdrawal(params?: {}): Promise<implicitReturnType>;
+    privatePostVextAddress(params?: {}): Promise<implicitReturnType>;
+    privatePostCsprWithdrawal(params?: {}): Promise<implicitReturnType>;
+    privatePostCsprAddress(params?: {}): Promise<implicitReturnType>;
+    privatePostVchfWithdrawal(params?: {}): Promise<implicitReturnType>;
+    privatePostVchfAddress(params?: {}): Promise<implicitReturnType>;
+    privatePostVeurWithdrawal(params?: {}): Promise<implicitReturnType>;
+    privatePostVeurAddress(params?: {}): Promise<implicitReturnType>;
 }
 declare abstract class Exchange extends _Exchange {
 }

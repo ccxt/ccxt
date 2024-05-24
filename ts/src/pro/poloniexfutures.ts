@@ -1,11 +1,9 @@
-'use strict';
-
 //  ---------------------------------------------------------------------------
 
 import poloniexfuturesRest from '../poloniexfutures.js';
-import { AuthenticationError, BadRequest, ExchangeError } from '../base/errors.js';
+import { AuthenticationError, BadRequest, InvalidNonce } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
-import { Int, Str } from '../base/types.js';
+import type { Int, Str, OrderBook, Order, Trade, Ticker, Balances, Dict } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -65,59 +63,69 @@ export default class poloniexfutures extends poloniexfuturesRest {
         });
     }
 
-    negotiate (privateChannel, params = {}) {
+    async negotiate (privateChannel, params = {}) {
         const connectId = privateChannel ? 'private' : 'public';
         const urls = this.safeValue (this.options, 'urls', {});
         if (connectId in urls) {
-            return urls[connectId];
+            // return urls[connectId];
+            const storedFuture = urls[connectId];
+            return await storedFuture;
         }
         // we store an awaitable to the url
         // so that multiple calls don't asynchronously
         // fetch different urls and overwrite each other
         urls[connectId] = this.spawn (this.negotiateHelper, privateChannel, params);
         this.options['urls'] = urls;
-        return urls[connectId];
+        const future = urls[connectId];
+        return await future;
     }
 
     async negotiateHelper (privateChannel, params = {}) {
         let response = undefined;
         const connectId = privateChannel ? 'private' : 'public';
-        if (privateChannel) {
-            response = await this.privatePostBulletPrivate (params);
-            //
-            //     {
-            //         "code": "200000",
-            //         "data": {
-            //             "instanceServers": [
-            //                 {
-            //                     "pingInterval":  50000,
-            //                     "endpoint": "wss://push-private.kucoin.com/endpoint",
-            //                     "protocol": "websocket",
-            //                     "encrypt": true,
-            //                     "pingTimeout": 10000
-            //                 }
-            //             ],
-            //             "token": "2neAiuYvAU61ZDXANAGAsiL4-iAExhsBXZxftpOeh_55i3Ysy2q2LEsEWU64mdzUOPusi34M_wGoSf7iNyEWJ1UQy47YbpY4zVdzilNP-Bj3iXzrjjGlWtiYB9J6i9GjsxUuhPw3BlrzazF6ghq4Lzf7scStOz3KkxjwpsOBCH4=.WNQmhZQeUKIkh97KYgU0Lg=="
-            //         }
-            //     }
-            //
-        } else {
-            response = await this.publicPostBulletPublic (params);
+        try {
+            if (privateChannel) {
+                response = await this.privatePostBulletPrivate (params);
+                //
+                //     {
+                //         "code": "200000",
+                //         "data": {
+                //             "instanceServers": [
+                //                 {
+                //                     "pingInterval":  50000,
+                //                     "endpoint": "wss://push-private.kucoin.com/endpoint",
+                //                     "protocol": "websocket",
+                //                     "encrypt": true,
+                //                     "pingTimeout": 10000
+                //                 }
+                //             ],
+                //             "token": "2neAiuYvAU61ZDXANAGAsiL4-iAExhsBXZxftpOeh_55i3Ysy2q2LEsEWU64mdzUOPusi34M_wGoSf7iNyEWJ1UQy47YbpY4zVdzilNP-Bj3iXzrjjGlWtiYB9J6i9GjsxUuhPw3BlrzazF6ghq4Lzf7scStOz3KkxjwpsOBCH4=.WNQmhZQeUKIkh97KYgU0Lg=="
+                //         }
+                //     }
+                //
+            } else {
+                response = await this.publicPostBulletPublic (params);
+            }
+            const data = this.safeValue (response, 'data', {});
+            const instanceServers = this.safeValue (data, 'instanceServers', []);
+            const firstInstanceServer = this.safeValue (instanceServers, 0);
+            const pingInterval = this.safeInteger (firstInstanceServer, 'pingInterval');
+            const endpoint = this.safeString (firstInstanceServer, 'endpoint');
+            const token = this.safeString (data, 'token');
+            const result = endpoint + '?' + this.urlencode ({
+                'token': token,
+                'privateChannel': privateChannel,
+                'connectId': connectId,
+            });
+            const client = this.client (result);
+            client.keepAlive = pingInterval;
+            return result;
+        } catch (e) {
+            const future = this.safeValue (this.options['urls'], connectId);
+            future.reject (e);
+            delete this.options['urls'][connectId];
         }
-        const data = this.safeValue (response, 'data', {});
-        const instanceServers = this.safeValue (data, 'instanceServers', []);
-        const firstInstanceServer = this.safeValue (instanceServers, 0);
-        const pingInterval = this.safeInteger (firstInstanceServer, 'pingInterval');
-        const endpoint = this.safeString (firstInstanceServer, 'endpoint');
-        const token = this.safeString (data, 'token');
-        const result = endpoint + '?' + this.urlencode ({
-            'token': token,
-            'privateChannel': privateChannel,
-            'connectId': connectId,
-        });
-        const client = this.client (result);
-        client.keepAlive = pingInterval;
-        return result;
+        return undefined;
     }
 
     requestId () {
@@ -134,9 +142,9 @@ export default class poloniexfutures extends poloniexfuturesRest {
          * @param {string} name name of the channel and suscriptionHash
          * @param {bool} isPrivate true for the authenticated url, false for the public url
          * @param {string} symbol is required for all public channels, not required for private channels (except position)
-         * @param {Object} subscription subscription parameters
-         * @param {Object} [params] extra parameters specific to the poloniex api
-         * @returns {Object} data from the websocket stream
+         * @param {object} subscription subscription parameters
+         * @param {object} [params] extra parameters specific to the poloniex api
+         * @returns {object} data from the websocket stream
          */
         const url = await this.negotiate (isPrivate);
         if (symbol !== undefined) {
@@ -147,7 +155,7 @@ export default class poloniexfutures extends poloniexfuturesRest {
         const messageHash = name;
         const tunnelId = await this.stream (url, messageHash);
         const requestId = this.requestId ();
-        const subscribe = {
+        const subscribe: Dict = {
             'id': requestId,
             'type': 'subscribe',
             'topic': name,                 // Subscribed topic. Some topics support subscribe to the data of multiple trading pairs through ",".
@@ -155,7 +163,7 @@ export default class poloniexfutures extends poloniexfuturesRest {
             'response': true,              // Whether the server needs to return the receipt information of this subscription or not. Set as false by default.
             'tunnelId': tunnelId,
         };
-        const subscriptionRequest = {
+        const subscriptionRequest: Dict = {
             'id': requestId,
         };
         if (subscription === undefined) {
@@ -185,13 +193,13 @@ export default class poloniexfutures extends poloniexfuturesRest {
             stream = 'stream-' + streamIndexString;
             this.options['streamBySubscriptionsHash'][subscriptionHash] = stream;
             const messageHash = 'tunnel:' + stream;
-            const request = {
+            const request: Dict = {
                 'id': messageHash,
                 'type': 'openTunnel',
                 'newTunnelId': stream,
                 'response': true,
             };
-            const subscription = {
+            const subscription: Dict = {
                 'id': messageHash,
                 'method': this.handleNewStream,
             };
@@ -234,7 +242,7 @@ export default class poloniexfutures extends poloniexfuturesRest {
         client.resolve (message, messageHash);
     }
 
-    async watchTicker (symbol: string, params = {}) {
+    async watchTicker (symbol: string, params = {}): Promise<Ticker> {
         /**
          * @method
          * @name poloniexfutures#watchTicker
@@ -250,7 +258,7 @@ export default class poloniexfutures extends poloniexfuturesRest {
         return await this.subscribe (name, false, symbol, undefined, params);
     }
 
-    async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         /**
          * @method
          * @name poloniexfutures#watchTrades
@@ -274,7 +282,7 @@ export default class poloniexfutures extends poloniexfuturesRest {
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
-    async watchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
+    async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         /**
          * @method
          * @name poloniexfutures#watchOrderBook
@@ -296,7 +304,7 @@ export default class poloniexfutures extends poloniexfuturesRest {
             }
             name += 'Depth' + this.numberToString (limit);
         }
-        const subscription = {
+        const subscription: Dict = {
             'symbol': symbol,
             'limit': limit,
             'method': this.handleOrderBookSubscription,
@@ -305,7 +313,7 @@ export default class poloniexfutures extends poloniexfuturesRest {
         return orderbook.limit ();
     }
 
-    async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name poloniexfutures#watchOrders
@@ -313,7 +321,7 @@ export default class poloniexfutures extends poloniexfuturesRest {
          * @see https://futures-docs.poloniex.com/#private-messages
          * @param {string} symbol filter by unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
-         * @param {int} [limit] the maximum number of  orde structures to retrieve
+         * @param {int} [limit] the maximum number of order structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {string} [params.method] the method to use will default to /contractMarket/tradeOrders. Set to /contractMarket/advancedOrders to watch stop orders
          * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -333,7 +341,7 @@ export default class poloniexfutures extends poloniexfuturesRest {
         return orders;
     }
 
-    async watchBalance (params = {}) {
+    async watchBalance (params = {}): Promise<Balances> {
         /**
          * @method
          * @name poloniexfutures#watchBalance
@@ -549,14 +557,14 @@ export default class poloniexfutures extends poloniexfuturesRest {
          * @param {string} type "open", "match", "filled", "canceled", "update"
          * @returns {string}
          */
-        const types = {
+        const types: Dict = {
             'canceled': 'canceled',
             'cancel': 'canceled',
             'filled': 'closed',
         };
         let parsedStatus = this.safeString (types, type);
         if (parsedStatus === undefined) {
-            const statuses = {
+            const statuses: Dict = {
                 'open': 'open',
                 'match': 'open',
                 'done': 'closed',
@@ -725,7 +733,7 @@ export default class poloniexfutures extends poloniexfuturesRest {
         const messageHash = this.safeString (message, 'topic');
         const subject = this.safeString (message, 'subject');
         if (subject === 'received') {
-            return message;
+            return;
         }
         // At the time of writting this, there is no implementation to easily convert each order into the orderbook so raw messages are returned
         client.resolve (message, messageHash);
@@ -745,9 +753,10 @@ export default class poloniexfutures extends poloniexfuturesRest {
         const topic = this.safeString (message, 'topic');
         const isSnapshot = topic.indexOf ('Depth') >= 0;
         if (isSnapshot) {
-            return this.handeL2Snapshot (client, message);
+            this.handeL2Snapshot (client, message);
+            return;
         }
-        return this.handleL2OrderBook (client, message);
+        this.handleL2OrderBook (client, message);
     }
 
     handleL2OrderBook (client: Client, message) {
@@ -785,7 +794,7 @@ export default class poloniexfutures extends poloniexfuturesRest {
             const snapshotDelay = this.handleOption ('watchOrderBook', 'snapshotDelay', 5);
             if (cacheLength === snapshotDelay) {
                 const limit = 0;
-                this.spawn (this.loadOrderBook, client, messageHash, symbol, limit);
+                this.spawn (this.loadOrderBook, client, messageHash, symbol, limit, {});
             }
             orderBook.cache.push (data);
             return;
@@ -860,27 +869,36 @@ export default class poloniexfutures extends poloniexfuturesRest {
     handleDelta (orderbook, delta) {
         //
         //    {
-        //        "sequence": 18,                   // Sequence number which is used to judge the continuity of pushed messages
-        //        "change": "5000.0,sell,83"        // Price, side, quantity
-        //        "timestamp": 1551770400000
-        //    }
+        //      sequence: 123677914,
+        //      lastSequence: 123677913,
+        //      change: '80.36,buy,4924',
+        //      changes: [ '80.19,buy,0',"80.15,buy,10794" ],
+        //      timestamp: 1715643483528
+        //    },
         //
         const sequence = this.safeInteger (delta, 'sequence');
+        const lastSequence = this.safeInteger (delta, 'lastSequence');
         const nonce = this.safeInteger (orderbook, 'nonce');
-        if (nonce !== sequence - 1) {
-            throw new ExchangeError (this.id + ' watchOrderBook received an out-of-order nonce');
+        if (nonce > sequence) {
+            return;
         }
-        const change = this.safeString (delta, 'change');
-        const splitChange = change.split (',');
-        const price = this.safeNumber (splitChange, 0);
-        const side = this.safeString (splitChange, 1);
-        const size = this.safeNumber (splitChange, 2);
+        if (nonce !== lastSequence) {
+            throw new InvalidNonce (this.id + ' watchOrderBook received an out-of-order nonce');
+        }
+        const changes = this.safeList (delta, 'changes');
+        for (let i = 0; i < changes.length; i++) {
+            const change = changes[i];
+            const splitChange = change.split (',');
+            const price = this.safeNumber (splitChange, 0);
+            const side = this.safeString (splitChange, 1);
+            const size = this.safeNumber (splitChange, 2);
+            const orderBookSide = (side === 'buy') ? orderbook['bids'] : orderbook['asks'];
+            orderBookSide.store (price, size);
+        }
         const timestamp = this.safeInteger (delta, 'timestamp');
         orderbook['timestamp'] = timestamp;
         orderbook['datetime'] = this.iso8601 (timestamp);
         orderbook['nonce'] = sequence;
-        const orderBookSide = (side === 'buy') ? orderbook['bids'] : orderbook['asks'];
-        orderBookSide.store (price, size);
     }
 
     handleBalance (client: Client, message) {
@@ -938,7 +956,7 @@ export default class poloniexfutures extends poloniexfuturesRest {
         //    }
         //
         const timestamp = this.safeInteger (response, 'timestamp');
-        const result = {
+        const result: Dict = {
             'info': response,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -963,7 +981,7 @@ export default class poloniexfutures extends poloniexfuturesRest {
 
     handleSubject (client: Client, message) {
         const subject = this.safeString (message, 'subject');
-        const methods = {
+        const methods: Dict = {
             'auth': this.handleAuthenticate,
             'received': this.handleL3OrderBook,
             'open': this.handleL3OrderBook,
@@ -980,7 +998,7 @@ export default class poloniexfutures extends poloniexfuturesRest {
         };
         const method = this.safeValue (methods, subject);
         if (method !== undefined) {
-            return method.call (this, client, message);
+            method.call (this, client, message);
         }
     }
 
@@ -1011,7 +1029,7 @@ export default class poloniexfutures extends poloniexfuturesRest {
 
     handleMessage (client: Client, message) {
         const type = this.safeString (message, 'type');
-        const methods = {
+        const methods: Dict = {
             'welcome': this.handleSystemStatus,
             'ack': this.handleSubscriptionStatus,
             'message': this.handleSubject,
@@ -1020,7 +1038,7 @@ export default class poloniexfutures extends poloniexfuturesRest {
         };
         const method = this.safeValue (methods, type);
         if (method !== undefined) {
-            return method.call (this, client, message);
+            method.call (this, client, message);
         }
     }
 

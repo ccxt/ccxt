@@ -70,6 +70,9 @@ abstract class phemex extends \ccxt\Exchange {
     public function v1_get_api_data_public_data_funding_rate_history($params = array()) {
         return $this->request('api-data/public/data/funding-rate-history', 'v1', 'GET', $params, null, null, array("cost" => 5));
     }
+    public function v2_get_public_products($params = array()) {
+        return $this->request('public/products', 'v2', 'GET', $params, null, null, array("cost" => 5));
+    }
     public function v2_get_md_v2_orderbook($params = array()) {
         return $this->request('md/v2/orderbook', 'v2', 'GET', $params, null, null, array("cost" => 5));
     }
@@ -144,6 +147,9 @@ abstract class phemex extends \ccxt\Exchange {
     }
     public function private_get_api_data_g_futures_trading_fees($params = array()) {
         return $this->request('api-data/g-futures/trading-fees', 'private', 'GET', $params, null, null, array("cost" => 5));
+    }
+    public function private_get_api_data_futures_v2_tradeaccountdetail($params = array()) {
+        return $this->request('api-data/futures/v2/tradeAccountDetail', 'private', 'GET', $params, null, null, array("cost" => 5));
     }
     public function private_get_g_orders_activelist($params = array()) {
         return $this->request('g-orders/activeList', 'private', 'GET', $params, null, null, array("cost" => 1));
@@ -397,6 +403,9 @@ abstract class phemex extends \ccxt\Exchange {
     public function v1GetApiDataPublicDataFundingRateHistory($params = array()) {
         return $this->request('api-data/public/data/funding-rate-history', 'v1', 'GET', $params, null, null, array("cost" => 5));
     }
+    public function v2GetPublicProducts($params = array()) {
+        return $this->request('public/products', 'v2', 'GET', $params, null, null, array("cost" => 5));
+    }
     public function v2GetMdV2Orderbook($params = array()) {
         return $this->request('md/v2/orderbook', 'v2', 'GET', $params, null, null, array("cost" => 5));
     }
@@ -471,6 +480,9 @@ abstract class phemex extends \ccxt\Exchange {
     }
     public function privateGetApiDataGFuturesTradingFees($params = array()) {
         return $this->request('api-data/g-futures/trading-fees', 'private', 'GET', $params, null, null, array("cost" => 5));
+    }
+    public function privateGetApiDataFuturesV2TradeAccountDetail($params = array()) {
+        return $this->request('api-data/futures/v2/tradeAccountDetail', 'private', 'GET', $params, null, null, array("cost" => 5));
     }
     public function privateGetGOrdersActiveList($params = array()) {
         return $this->request('g-orders/activeList', 'private', 'GET', $params, null, null, array("cost" => 1));

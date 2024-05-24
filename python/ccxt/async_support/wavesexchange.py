@@ -7,10 +7,11 @@ from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.wavesexchange import ImplicitAPI
 import asyncio
 import json
-from ccxt.base.types import Balances, Currency, Int, Market, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
+from ccxt.base.types import Balances, Currency, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
 from typing import List
 from typing import Any
 from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import AccountSuspended
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
@@ -20,7 +21,6 @@ from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import DuplicateOrderId
 from ccxt.base.errors import ExchangeNotAvailable
-from ccxt.base.errors import AuthenticationError
 from ccxt.base.decimal_to_precision import DECIMAL_PLACES
 from ccxt.base.precise import Precise
 
@@ -43,6 +43,8 @@ class wavesexchange(Exchange, ImplicitAPI):
                 'option': False,
                 'addMargin': False,
                 'cancelOrder': True,
+                'closeAllPositions': False,
+                'closePosition': False,
                 'createMarketOrder': True,
                 'createOrder': True,
                 'createReduceOnlyOrder': False,
@@ -78,8 +80,11 @@ class wavesexchange(Exchange, ImplicitAPI):
                 'fetchOrderBook': True,
                 'fetchOrders': True,
                 'fetchPosition': False,
+                'fetchPositionHistory': False,
                 'fetchPositionMode': False,
                 'fetchPositions': False,
+                'fetchPositionsForSymbol': False,
+                'fetchPositionsHistory': False,
                 'fetchPositionsRisk': False,
                 'fetchPremiumIndexOHLCV': False,
                 'fetchTicker': True,
@@ -88,6 +93,7 @@ class wavesexchange(Exchange, ImplicitAPI):
                 'fetchTransfer': False,
                 'fetchTransfers': False,
                 'reduceMargin': False,
+                'sandbox': True,
                 'setLeverage': False,
                 'setMarginMode': False,
                 'setPositionMode': False,
@@ -323,7 +329,7 @@ class wavesexchange(Exchange, ImplicitAPI):
                 },
             },
             'currencies': {
-                'WX': self.safe_currency_structure({'id': 'EMAMLxDnv3xiz8RXg8Btj33jcEw3wLczL3JKYYmuubpc', 'numericId': None, 'code': 'WX', 'precision': self.parse_number('8')}),
+                'WX': self.safe_currency_structure({'id': 'EMAMLxDnv3xiz8RXg8Btj33jcEw3wLczL3JKYYmuubpc', 'numericId': None, 'code': 'WX', 'precision': self.parse_to_int('8')}),
             },
             'precisionMode': DECIMAL_PLACES,
             'options': {
@@ -407,7 +413,7 @@ class wavesexchange(Exchange, ImplicitAPI):
         #        "matcherFee":"4077612"
         #     }
         #  }
-        isDiscountFee = self.safe_value(params, 'isDiscountFee', False)
+        isDiscountFee = self.safe_bool(params, 'isDiscountFee', False)
         mode = None
         if isDiscountFee:
             mode = self.safe_value(response, 'discount')
@@ -493,7 +499,7 @@ class wavesexchange(Exchange, ImplicitAPI):
             self.options['quotes'] = quotes
             return quotes
 
-    async def fetch_markets(self, params={}):
+    async def fetch_markets(self, params={}) -> List[Market]:
         """
         retrieves data on all markets for wavesexchange
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -730,7 +736,7 @@ class wavesexchange(Exchange, ImplicitAPI):
             payload = prefix + messageHex
             hexKey = self.binary_to_base16(self.base58_to_binary(self.secret))
             signature = self.axolotl(payload, hexKey, 'ed25519')
-            request = {
+            request: dict = {
                 'grant_type': 'password',
                 'scope': 'general',
                 'username': self.apiKey,
@@ -747,7 +753,7 @@ class wavesexchange(Exchange, ImplicitAPI):
             return self.options['accessToken']
         return None
 
-    def parse_ticker(self, ticker, market: Market = None) -> Ticker:
+    def parse_ticker(self, ticker: dict, market: Market = None) -> Ticker:
         #
         #       {
         #           "symbol": "WAVES/BTC",
@@ -830,7 +836,7 @@ class wavesexchange(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'pairs': market['id'],
         }
         response = await self.publicGetPairs(self.extend(request, params))
@@ -859,7 +865,7 @@ class wavesexchange(Exchange, ImplicitAPI):
         #
         data = self.safe_value(response, 'data', [])
         ticker = self.safe_value(data, 0, {})
-        dataTicker = self.safe_value(ticker, 'data', {})
+        dataTicker = self.safe_dict(ticker, 'data', {})
         return self.parse_ticker(dataTicker, market)
 
     async def fetch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
@@ -913,7 +919,7 @@ class wavesexchange(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'baseId': market['baseId'],
             'quoteId': market['quoteId'],
             'interval': self.safe_string(self.timeframes, timeframe, timeframe),
@@ -1058,8 +1064,8 @@ class wavesexchange(Exchange, ImplicitAPI):
         #       ]
         #     }
         #
-        currencies = {}
-        networksByCurrency = {}
+        currencies: dict = {}
+        networksByCurrency: dict = {}
         items = self.safe_value(supportedCurrencies, 'items', [])
         for i in range(0, len(items)):
             entry = items[i]
@@ -1076,7 +1082,7 @@ class wavesexchange(Exchange, ImplicitAPI):
             raise ExchangeError(self.id + ' fetchDepositAddress() ' + code + ' not supported. Currency code must be one of ' + ', '.join(codes))
         response = None
         if network is None:
-            request = {
+            request: dict = {
                 'currency': code,
             }
             response = await self.privateGetDepositAddressesCurrency(self.extend(request, params))
@@ -1086,7 +1092,7 @@ class wavesexchange(Exchange, ImplicitAPI):
                 supportedNetworkKeys = list(supportedNetworks.keys())
                 raise ExchangeError(self.id + ' ' + network + ' network ' + code + ' deposit address not supported. Network must be one of ' + ', '.join(supportedNetworkKeys))
             if network == 'WAVES':
-                request = {
+                request: dict = {
                     'publicKey': self.apiKey,
                 }
                 responseInner = await self.nodeGetAddressesPublicKeyPublicKey(self.extend(request, request))
@@ -1100,7 +1106,7 @@ class wavesexchange(Exchange, ImplicitAPI):
                     'info': responseInner,
                 }
             else:
-                request = {
+                request: dict = {
                     'currency': code,
                     'platform': network,
                 }
@@ -1179,7 +1185,7 @@ class wavesexchange(Exchange, ImplicitAPI):
         amountPrecision = self.number_to_string(self.to_precision(amount, self.number_to_string(self.markets[symbol]['precision']['amount'])))
         return self.parse_to_int(float(amountPrecision))
 
-    def currency_to_precision(self, code, amount, networkCode=None):
+    def custom_currency_to_precision(self, code, amount, networkCode=None):
         amountPrecision = self.number_to_string(self.to_precision(amount, self.currencies[code]['precision']))
         return self.parse_to_int(float(amountPrecision))
 
@@ -1197,7 +1203,8 @@ class wavesexchange(Exchange, ImplicitAPI):
         # precise.decimals should be integer
         precise.decimals = self.parse_to_int(Precise.string_sub(self.number_to_string(precise.decimals), self.number_to_string(scale)))
         precise.reduce()
-        return precise
+        stringValue = str(precise)
+        return stringValue
 
     def currency_from_precision(self, currency, amount):
         scale = self.currencies[currency]['precision']
@@ -1222,7 +1229,7 @@ class wavesexchange(Exchange, ImplicitAPI):
             return {'WAVES': 1}
         return rates
 
-    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
+    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         """
         create a trade order
         :param str symbol: unified symbol of the market to create an order in
@@ -1301,13 +1308,13 @@ class wavesexchange(Exchange, ImplicitAPI):
             raise InsufficientFunds(self.id + ' not enough funds on none of the eligible asset fees')
         amount = self.custom_amount_to_precision(symbol, amount)
         price = self.custom_price_to_precision(symbol, price)
-        assetPair = {
+        assetPair: dict = {
             'amountAsset': amountAsset,
             'priceAsset': priceAsset,
         }
-        sandboxMode = self.safe_value(self.options, 'sandboxMode', False)
+        sandboxMode = self.safe_bool(self.options, 'sandboxMode', False)
         chainId = 84 if (sandboxMode) else 87
-        body = {
+        body: dict = {
             'senderPublicKey': self.apiKey,
             'matcherPublicKey': matcherPublicKey,
             'assetPair': assetPair,
@@ -1333,7 +1340,7 @@ class wavesexchange(Exchange, ImplicitAPI):
             #     },
             # }
             #
-            attachment = {
+            attachment: dict = {
                 'v': 1,
                 'c': {
                     't': 'sp',
@@ -1383,11 +1390,11 @@ class wavesexchange(Exchange, ImplicitAPI):
         #
         if isMarketOrder:
             response = await self.matcherPostMatcherOrderbookMarket(body)
-            value = self.safe_value(response, 'message')
+            value = self.safe_dict(response, 'message')
             return self.parse_order(value, market)
         else:
             response = await self.matcherPostMatcherOrderbook(body)
-            value = self.safe_value(response, 'message')
+            value = self.safe_dict(response, 'message')
             return self.parse_order(value, market)
 
     async def cancel_order(self, id: str, symbol: Str = None, params={}):
@@ -1457,7 +1464,7 @@ class wavesexchange(Exchange, ImplicitAPI):
         binary = self.binary_concat_array(byteArray)
         hexSecret = self.binary_to_base16(self.base58_to_binary(self.secret))
         signature = self.axolotl(self.binary_to_base16(binary), hexSecret, 'ed25519')
-        request = {
+        request: dict = {
             'Timestamp': str(timestamp),
             'Signature': signature,
             'publicKey': self.apiKey,
@@ -1489,7 +1496,7 @@ class wavesexchange(Exchange, ImplicitAPI):
         binary = self.binary_concat_array(byteArray)
         hexSecret = self.binary_to_base16(self.base58_to_binary(self.secret))
         signature = self.axolotl(self.binary_to_base16(binary), hexSecret, 'ed25519')
-        request = {
+        request: dict = {
             'Accept': 'application/json',
             'Timestamp': str(timestamp),
             'Signature': signature,
@@ -1530,7 +1537,7 @@ class wavesexchange(Exchange, ImplicitAPI):
         if symbol is not None:
             market = self.market(symbol)
         address = await self.get_waves_address()
-        request = {
+        request: dict = {
             'address': address,
             'activeOnly': True,
         }
@@ -1542,7 +1549,7 @@ class wavesexchange(Exchange, ImplicitAPI):
         fetches information on multiple closed orders made by the user
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
-        :param int [limit]: the maximum number of  orde structures to retrieve
+        :param int [limit]: the maximum number of order structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
@@ -1552,7 +1559,7 @@ class wavesexchange(Exchange, ImplicitAPI):
         if symbol is not None:
             market = self.market(symbol)
         address = await self.get_waves_address()
-        request = {
+        request: dict = {
             'address': address,
             'closedOnly': True,
         }
@@ -1579,8 +1586,8 @@ class wavesexchange(Exchange, ImplicitAPI):
         # ]
         return self.parse_orders(response, market, since, limit)
 
-    def parse_order_status(self, status):
-        statuses = {
+    def parse_order_status(self, status: Str):
+        statuses: dict = {
             'Cancelled': 'canceled',
             'Accepted': 'open',
             'Filled': 'closed',
@@ -1720,7 +1727,7 @@ class wavesexchange(Exchange, ImplicitAPI):
     async def get_waves_address(self):
         cachedAddreess = self.safe_string(self.options, 'wavesAddress')
         if cachedAddreess is None:
-            request = {
+            request: dict = {
                 'publicKey': self.apiKey,
             }
             response = await self.nodeGetAddressesPublicKeyPublicKey(request)
@@ -1745,7 +1752,7 @@ class wavesexchange(Exchange, ImplicitAPI):
         self.check_required_keys()
         await self.load_markets()
         wavesAddress = await self.get_waves_address()
-        request = {
+        request: dict = {
             'address': wavesAddress,
         }
         totalBalance = await self.nodeGetAssetsBalanceAddress(request)
@@ -1784,7 +1791,7 @@ class wavesexchange(Exchange, ImplicitAPI):
         #   ]
         # }
         balances = self.safe_value(totalBalance, 'balances', [])
-        result = {}
+        result: dict = {}
         timestamp = None
         assetIds = []
         nonStandardBalances = []
@@ -1807,7 +1814,7 @@ class wavesexchange(Exchange, ImplicitAPI):
                 result[code]['total'] = self.from_precision(balance, decimals)
         nonStandardAssets = len(assetIds)
         if nonStandardAssets:
-            requestInner = {
+            requestInner: dict = {
                 'ids': assetIds,
             }
             response = await self.publicGetAssets(requestInner)
@@ -1829,7 +1836,7 @@ class wavesexchange(Exchange, ImplicitAPI):
         binary = self.binary_concat_array(byteArray)
         hexSecret = self.binary_to_base16(self.base58_to_binary(self.secret))
         signature = self.axolotl(self.binary_to_base16(binary), hexSecret, 'ed25519')
-        matcherRequest = {
+        matcherRequest: dict = {
             'publicKey': self.apiKey,
             'signature': signature,
             'timestamp': str(currentTimestamp),
@@ -1847,7 +1854,7 @@ class wavesexchange(Exchange, ImplicitAPI):
                 result[code]['used'] = self.currency_from_precision(code, amount)
             else:
                 result[code]['used'] = amount
-        wavesRequest = {
+        wavesRequest: dict = {
             'address': wavesAddress,
         }
         wavesTotal = await self.nodeGetAddressesBalanceAddress(wavesRequest)
@@ -1878,7 +1885,7 @@ class wavesexchange(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         address = await self.get_waves_address()
-        request = {
+        request: dict = {
             'sender': address,
         }
         market = None
@@ -1967,12 +1974,12 @@ class wavesexchange(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'amountAsset': market['baseId'],
             'priceAsset': market['quoteId'],
         }
         if limit is not None:
-            request['limit'] = limit
+            request['limit'] = min(limit, 100)
         if since is not None:
             request['timeStart'] = since
         response = await self.publicGetTransactionsExchange(request)
@@ -2135,7 +2142,7 @@ class wavesexchange(Exchange, ImplicitAPI):
         }, market)
 
     def parse_deposit_withdraw_fees(self, response, codes: Strings = None, currencyIdKey=None) -> Any:
-        depositWithdrawFees = {}
+        depositWithdrawFees: dict = {}
         codes = self.market_codes(codes)
         for i in range(0, len(response)):
             entry = response[i]
@@ -2275,7 +2282,7 @@ class wavesexchange(Exchange, ImplicitAPI):
 
     def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
         errorCode = self.safe_string(response, 'error')
-        success = self.safe_value(response, 'success', True)
+        success = self.safe_bool(response, 'success', True)
         Exception = self.safe_value(self.exceptions, errorCode)
         if Exception is not None:
             messageInner = self.safe_string(response, 'message')
@@ -2287,7 +2294,7 @@ class wavesexchange(Exchange, ImplicitAPI):
             raise ExchangeError(self.id + ' ' + body)
         return None
 
-    async def withdraw(self, code: str, amount, address, tag=None, params={}):
+    async def withdraw(self, code: str, amount: float, address: str, tag=None, params={}):
         """
         make a withdrawal
         :param str code: unified currency code
@@ -2301,7 +2308,7 @@ class wavesexchange(Exchange, ImplicitAPI):
         # currently only works for BTC and WAVES
         if code != 'WAVES':
             supportedCurrencies = await self.privateGetWithdrawCurrencies()
-            currencies = {}
+            currencies: dict = {}
             items = self.safe_value(supportedCurrencies, 'items', [])
             for i in range(0, len(items)):
                 entry = items[i]
@@ -2312,7 +2319,7 @@ class wavesexchange(Exchange, ImplicitAPI):
                 raise ExchangeError(self.id + ' withdraw() ' + code + ' not supported. Currency code must be one of ' + str(codes))
         await self.load_markets()
         hexChars = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f']
-        set = {}
+        set: dict = {}
         for i in range(0, len(hexChars)):
             key = hexChars[i]
             set[key] = True
@@ -2330,7 +2337,7 @@ class wavesexchange(Exchange, ImplicitAPI):
         if code == 'WAVES' and not isErc20:
             proxyAddress = address
         else:
-            withdrawAddressRequest = {
+            withdrawAddressRequest: dict = {
                 'address': address,
                 'currency': code,
             }
@@ -2367,7 +2374,7 @@ class wavesexchange(Exchange, ImplicitAPI):
         feeAssetId = 'WAVES'
         type = 4  # transfer
         version = 2
-        amountInteger = self.currency_to_precision(code, amount)
+        amountInteger = self.custom_currency_to_precision(code, amount)
         currency = self.currency(code)
         timestamp = self.milliseconds()
         byteArray = [
@@ -2385,7 +2392,7 @@ class wavesexchange(Exchange, ImplicitAPI):
         binary = self.binary_concat_array(byteArray)
         hexSecret = self.binary_to_base16(self.base58_to_binary(self.secret))
         signature = self.axolotl(self.binary_to_base16(binary), hexSecret, 'ed25519')
-        request = {
+        request: dict = {
             'senderPublicKey': self.apiKey,
             'amount': amountInteger,
             'fee': fee,

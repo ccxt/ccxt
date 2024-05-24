@@ -1,6 +1,787 @@
 {
     "exchange": "deribit",
-    "skipKeys": [],
+    "skipKeys": [
+        "start_timestamp",
+        "end_timestamp"
+    ],
     "outputType": "json",
-    "methods": {}
+    "methods": {
+        "fetchTrades": [
+            {
+                "description": "Spot fetch trades",
+                "method": "fetchTrades",
+                "url": "https://www.deribit.com/api/v2/public/get_last_trades_by_instrument?instrument_name=BTC_USDT&include_old=true",
+                "input": [
+                    "BTC/USDT"
+                ]
+            },
+            {
+                "description": "Spot fetch trades with a since argument",
+                "method": "fetchTrades",
+                "url": "https://www.deribit.com/api/v2/public/get_last_trades_by_instrument_and_time?instrument_name=BTC_USDT&include_old=true&start_timestamp=1703665611074",
+                "input": [
+                    "BTC/USDT",
+                    1703665611074
+                ]
+            },
+            {
+                "description": "Swap fetch trades",
+                "method": "fetchTrades",
+                "url": "https://test.deribit.com/api/v2/public/get_last_trades_by_instrument?instrument_name=BTC_USDT-PERPETUAL&include_old=true",
+                "input": [
+                    "BTC/USDT:USDT"
+                ]
+            },
+            {
+                "description": "Option fetch trades",
+                "method": "fetchTrades",
+                "url": "https://test.deribit.com/api/v2/public/get_last_trades_by_instrument?instrument_name=BTC-26JAN24-39000-C&include_old=true",
+                "input": [
+                    "BTC/USD:BTC-240126-39000-C"
+                ]
+            },
+            {
+                "description": "spot fetchTrades",
+                "method": "fetchTrades",
+                "url": "https://www.deribit.com/api/v2/public/get_last_trades_by_instrument?instrument_name=BTC_USDT&include_old=true",
+                "input": [
+                    "BTC/USDT"
+                ]
+            },
+            {
+                "description": "swap fetchTrades",
+                "method": "fetchTrades",
+                "url": "https://www.deribit.com/api/v2/public/get_last_trades_by_instrument?instrument_name=BTC_USDT-PERPETUAL&include_old=true",
+                "input": [
+                    "BTC/USDT:USDT"
+                ]
+            }
+        ],
+        "createOrder": [
+            {
+                "description": "Spot limit buy order",
+                "method": "createOrder",
+                "url": "https://www.deribit.com/api/v2/private/buy?instrument_name=BTC_USDT&amount=0.0002&type=limit&price=25000",
+                "input": [
+                    "BTC/USDT",
+                    "limit",
+                    "buy",
+                    0.0002,
+                    25000
+                ]
+            },
+            {
+                "description": "Spot limit sell order",
+                "method": "createOrder",
+                "url": "https://www.deribit.com/api/v2/private/sell?instrument_name=BTC_USDT&amount=0.0002&type=limit&price=25000",
+                "input": [
+                    "BTC/USDT",
+                    "limit",
+                    "sell",
+                    0.0002,
+                    25000
+                ]
+            },
+            {
+                "description": "Spot market buy order",
+                "method": "createOrder",
+                "url": "https://test.deribit.com/api/v2/private/buy?instrument_name=BTC_USDT&amount=0.0001&type=market",
+                "input": [
+                    "BTC/USDT",
+                    "market",
+                    "buy",
+                    0.0001
+                ]
+            },
+            {
+                "description": "Spot market sell order",
+                "method": "createOrder",
+                "url": "https://test.deribit.com/api/v2/private/sell?instrument_name=BTC_USDT&amount=0.0001&type=market",
+                "input": [
+                    "BTC/USDT",
+                    "market",
+                    "sell",
+                    0.0001
+                ]
+            },
+            {
+                "description": "Swap market buy order",
+                "method": "createOrder",
+                "url": "https://test.deribit.com/api/v2/private/buy?instrument_name=BTC_USDT-PERPETUAL&amount=0.001&type=market",
+                "input": [
+                    "BTC/USDT:USDT",
+                    "market",
+                    "buy",
+                    0.001
+                ]
+            },
+            {
+                "description": "Swap market sell order with a reduceOnly param",
+                "method": "createOrder",
+                "url": "https://test.deribit.com/api/v2/private/sell?instrument_name=BTC_USDT-PERPETUAL&amount=0.001&type=market&reduce_only=true",
+                "input": [
+                    "BTC/USDT:USDT",
+                    "market",
+                    "sell",
+                    0.001,
+                    null,
+                    {
+                        "reduceOnly": true
+                    }
+                ]
+            },
+            {
+                "description": "Swap limit buy order",
+                "method": "createOrder",
+                "url": "https://test.deribit.com/api/v2/private/buy?instrument_name=BTC_USDT-PERPETUAL&amount=0.001&type=limit&price=35000",
+                "input": [
+                    "BTC/USDT:USDT",
+                    "limit",
+                    "buy",
+                    0.001,
+                    35000
+                ]
+            },
+            {
+                "description": "Swap trailingAmount order",
+                "method": "createOrder",
+                "url": "https://test.deribit.com/api/v2/private/sell?instrument_name=BTC_USDT-PERPETUAL&amount=0.001&type=trailing_stop&trigger=last_price&trigger_offset=1000",
+                "input": [
+                    "BTC/USDT:USDT",
+                    "market",
+                    "sell",
+                    0.001,
+                    null,
+                    {
+                        "trailingAmount": 1000
+                    }
+                ]
+            },
+            {
+                "description": "Option limit buy order with the price as the option value in USD",
+                "method": "createOrder",
+                "url": "https://test.deribit.com/api/v2/private/buy?instrument_name=BTC-26JAN24-39000-C&amount=1&type=limit&price=0.15",
+                "input": [
+                    "BTC/USD:BTC-240126-39000-C",
+                    "limit",
+                    "buy",
+                    1,
+                    0.15
+                ]
+            },
+            {
+                "description": "Option market buy order",
+                "method": "createOrder",
+                "url": "https://test.deribit.com/api/v2/private/buy?instrument_name=BTC-26JAN24-39000-C&amount=1&type=market",
+                "input": [
+                    "BTC/USD:BTC-240126-39000-C",
+                    "market",
+                    "buy",
+                    1
+                ]
+            }
+        ],
+        "cancelAllOrders": [
+            {
+                "description": "cancel all orders",
+                "method": "cancelAllOrders",
+                "url": "https://www.deribit.com/api/v2/private/cancel_all",
+                "input": []
+            },
+            {
+                "description": "Spot cancel all orders",
+                "method": "cancelAllOrders",
+                "url": "https://www.deribit.com/api/v2/private/cancel_all_by_instrument?instrument_name=BTC_USDT",
+                "input": [
+                    "BTC/USDT"
+                ]
+            },
+            {
+                "description": "Swap cancel all orders",
+                "method": "cancelAllOrders",
+                "url": "https://test.deribit.com/api/v2/private/cancel_all_by_instrument?instrument_name=BTC_USDT-PERPETUAL",
+                "input": [
+                    "BTC/USDT:USDT"
+                ]
+            },
+            {
+                "description": "Option cancel all orders",
+                "method": "cancelAllOrders",
+                "url": "https://test.deribit.com/api/v2/private/cancel_all_by_instrument?instrument_name=BTC-26JAN24-39000-C",
+                "input": [
+                    "BTC/USD:BTC-240126-39000-C"
+                ]
+            }
+        ],
+        "cancelOrder": [
+            {
+                "description": "Spot cancel order",
+                "method": "cancelOrder",
+                "url": "https://test.deribit.com/api/v2/private/cancel?order_id=BTC_USDT-6799763",
+                "input": [
+                    "BTC_USDT-6799763",
+                    "BTC/USDT"
+                ]
+            },
+            {
+                "description": "Swap cancel order",
+                "method": "cancelOrder",
+                "url": "https://test.deribit.com/api/v2/private/cancel?order_id=USDT-17726949",
+                "input": [
+                    "USDT-17726949",
+                    "BTC/USDT:USDT"
+                ]
+            },
+            {
+                "description": "Option cancel order",
+                "method": "cancelOrder",
+                "url": "https://test.deribit.com/api/v2/private/cancel?order_id=20906817839",
+                "input": [
+                    "20906817839",
+                    "BTC/USD:BTC-240126-39000-C"
+                ]
+            }
+        ],
+        "fetchOpenOrders": [
+            {
+                "description": "fetch all open orders",
+                "method": "fetchOpenOrders",
+                "url": "https://www.deribit.com/api/v2/private/get_open_orders_by_currency?currency=BTC",
+                "input": []
+            },
+            {
+                "description": "Spot fetch open orders",
+                "method": "fetchOpenOrders",
+                "url": "https://www.deribit.com/api/v2/private/get_open_orders_by_instrument?instrument_name=BTC_USDT",
+                "input": [
+                    "BTC/USDT"
+                ]
+            },
+            {
+                "description": "Swap fetch open orders",
+                "method": "fetchOpenOrders",
+                "url": "https://test.deribit.com/api/v2/private/get_open_orders_by_instrument?instrument_name=BTC_USDT-PERPETUAL",
+                "input": [
+                    "BTC/USDT:USDT"
+                ]
+            },
+            {
+                "description": "Option fetch open orders",
+                "method": "fetchOpenOrders",
+                "url": "https://test.deribit.com/api/v2/private/get_open_orders_by_instrument?instrument_name=BTC-26JAN24-39000-C",
+                "input": [
+                    "BTC/USD:BTC-240126-39000-C"
+                ]
+            }
+        ],
+        "fetchClosedOrders": [
+            {
+                "description": "fetch all closed orders",
+                "method": "fetchClosedOrders",
+                "url": "https://www.deribit.com/api/v2/private/get_order_history_by_currency?currency=BTC",
+                "input": []
+            },
+            {
+                "description": "Spot fetch closed orders",
+                "method": "fetchClosedOrders",
+                "url": "https://www.deribit.com/api/v2/private/get_order_history_by_instrument?instrument_name=BTC_USDT",
+                "input": [
+                    "BTC/USDT"
+                ]
+            },
+            {
+                "description": "Swap fetch closed orders",
+                "method": "fetchClosedOrders",
+                "url": "https://test.deribit.com/api/v2/private/get_order_history_by_instrument?instrument_name=BTC_USDT-PERPETUAL",
+                "input": [
+                    "BTC/USDT:USDT"
+                ]
+            },
+            {
+                "description": "Option fetch closed orders",
+                "method": "fetchClosedOrders",
+                "url": "https://test.deribit.com/api/v2/private/get_order_history_by_instrument?instrument_name=BTC-26JAN24-39000-C",
+                "input": [
+                    "BTC/USD:BTC-240126-39000-C"
+                ]
+            }
+        ],
+        "fetchMyTrades": [
+            {
+                "description": "fetch all of my trades",
+                "method": "fetchMyTrades",
+                "url": "https://www.deribit.com/api/v2/private/get_user_trades_by_currency?include_old=true&currency=BTC",
+                "input": []
+            },
+            {
+                "description": "Spot fetch my trades",
+                "method": "fetchMyTrades",
+                "url": "https://www.deribit.com/api/v2/private/get_user_trades_by_instrument?include_old=true&instrument_name=BTC_USDT",
+                "input": [
+                    "BTC/USDT"
+                ]
+            },
+            {
+                "description": "fetch all of my trades with a since argument",
+                "method": "fetchMyTrades",
+                "url": "https://www.deribit.com/api/v2/private/get_user_trades_by_currency_and_time?include_old=true&currency=BTC&start_timestamp=1703665611074",
+                "input": [
+                    null,
+                    1703665611074
+                ]
+            },
+            {
+                "description": "Spot fetch my trades with a since argument",
+                "method": "fetchMyTrades",
+                "url": "https://www.deribit.com/api/v2/private/get_user_trades_by_instrument_and_time?include_old=true&instrument_name=BTC_USDT&start_timestamp=1703665611074",
+                "input": [
+                    "BTC/USDT",
+                    1703665611074
+                ]
+            },
+            {
+                "description": "Swap fetch my trades",
+                "method": "fetchMyTrades",
+                "url": "https://test.deribit.com/api/v2/private/get_user_trades_by_instrument?include_old=true&instrument_name=BTC_USDT-PERPETUAL",
+                "input": [
+                    "BTC/USDT:USDT"
+                ]
+            },
+            {
+                "description": "Option fetch my trades",
+                "method": "fetchMyTrades",
+                "url": "https://test.deribit.com/api/v2/private/get_user_trades_by_instrument?include_old=true&instrument_name=BTC-26JAN24-39000-C",
+                "input": [
+                    "BTC/USD:BTC-240126-39000-C"
+                ]
+            }
+        ],
+        "transfer": [
+            {
+                "description": "transfer",
+                "method": "transfer",
+                "url": "https://www.deribit.com/api/v2/private/submit_transfer_to_subaccount?amount=1&currency=USDT&destination=toAccount",
+                "input": [
+                    "USDT",
+                    1,
+                    "",
+                    "toAccount"
+                ]
+            }
+        ],
+        "editOrder": [
+            {
+                "description": "Spot edit a limit sell order",
+                "method": "editOrder",
+                "url": "https://test.deribit.com/api/v2/private/edit?order_id=BTC_USDT-6799763&amount=0.0001&price=22000",
+                "input": [
+                    "BTC_USDT-6799763",
+                    "BTC/USDT",
+                    "limit",
+                    "sell",
+                    0.0001,
+                    22000
+                ]
+            },
+            {
+                "description": "Swap edit a limit buy order",
+                "method": "editOrder",
+                "url": "https://test.deribit.com/api/v2/private/edit?order_id=USDT-17726949&amount=0.001&price=34000",
+                "input": [
+                    "USDT-17726949",
+                    "BTC/USDT:USDT",
+                    "limit",
+                    "buy",
+                    0.001,
+                    34000
+                ]
+            },
+            {
+                "description": "Swap edit a trailingAmount order",
+                "method": "editOrder",
+                "url": "https://test.deribit.com/api/v2/private/edit?order_id=USDT-TSTS-32&amount=0.001&trigger_offset=2500&trailingAmount=2500",
+                "input": [
+                    "USDT-TSTS-32",
+                    "BTC/USDT:USDT",
+                    "market",
+                    "sell",
+                    0.001,
+                    null,
+                    {
+                        "trailingAmount": 2500
+                    }
+                ]
+            },
+            {
+                "description": "Option edit a limit buy order",
+                "method": "editOrder",
+                "url": "https://test.deribit.com/api/v2/private/edit?order_id=20906817839&amount=1&price=0.14",
+                "input": [
+                    "20906817839",
+                    "BTC/USD:BTC-240126-39000-C",
+                    "limit",
+                    "buy",
+                    1,
+                    0.14
+                ]
+            }
+        ],
+        "createDepositAddress": [
+            {
+                "description": "create a BTC deposit address",
+                "method": "createDepositAddress",
+                "url": "https://test.deribit.com/api/v2/private/create_deposit_address?currency=BTC",
+                "input": [
+                    "BTC"
+                ]
+            }
+        ],
+        "fetchDepositAddress": [
+            {
+                "description": "fetch a BTC deposit address",
+                "method": "fetchDepositAddress",
+                "url": "https://test.deribit.com/api/v2/private/get_current_deposit_address?currency=BTC",
+                "input": [
+                    "BTC"
+                ]
+            }
+        ],
+        "fetchTicker": [
+            {
+                "description": "Spot fetch ticker",
+                "method": "fetchTicker",
+                "url": "https://test.deribit.com/api/v2/public/ticker?instrument_name=BTC_USDT",
+                "input": [
+                    "BTC/USDT"
+                ]
+            },
+            {
+                "description": "Swap fetch ticker",
+                "method": "fetchTicker",
+                "url": "https://test.deribit.com/api/v2/public/ticker?instrument_name=BTC_USDT-PERPETUAL",
+                "input": [
+                    "BTC/USDT:USDT"
+                ]
+            },
+            {
+                "description": "Option fetch ticker",
+                "method": "fetchTicker",
+                "url": "https://test.deribit.com/api/v2/public/ticker?instrument_name=BTC-26JAN24-39000-C",
+                "input": [
+                    "BTC/USD:BTC-240126-39000-C"
+                ]
+            },
+            {
+                "description": "Swap ticker",
+                "method": "fetchTicker",
+                "url": "https://www.deribit.com/api/v2/public/ticker?instrument_name=BTC_USDT-PERPETUAL",
+                "input": [
+                    "BTC/USDT:USDT"
+                ]
+            },
+            {
+                "description": "spot ticker",
+                "method": "fetchTicker",
+                "url": "https://www.deribit.com/api/v2/public/ticker?instrument_name=BTC_USDT",
+                "input": [
+                    "BTC/USDT"
+                ]
+            }
+        ],
+        "fetchOHLCV": [
+            {
+                "description": "Spot fetch OHLCV",
+                "method": "fetchOHLCV",
+                "url": "https://test.deribit.com/api/v2/public/get_tradingview_chart_data?instrument_name=BTC_USDT&resolution=1&start_timestamp=1705497510518&end_timestamp=1705557450518",
+                "input": [
+                    "BTC/USDT"
+                ]
+            },
+            {
+                "description": "Swap fetch OHLCV",
+                "method": "fetchOHLCV",
+                "url": "https://test.deribit.com/api/v2/public/get_tradingview_chart_data?instrument_name=BTC_USDT-PERPETUAL&resolution=1&start_timestamp=1705497597822&end_timestamp=1705557537822",
+                "input": [
+                    "BTC/USDT:USDT"
+                ]
+            },
+            {
+                "description": "Option fetch OHLCV",
+                "method": "fetchOHLCV",
+                "url": "https://test.deribit.com/api/v2/public/get_tradingview_chart_data?instrument_name=BTC-26JAN24-39000-C&resolution=1&start_timestamp=1705497642549&end_timestamp=1705557582549",
+                "input": [
+                    "BTC/USD:BTC-240126-39000-C"
+                ]
+            },
+            {
+                "description": "swap ohlcv with since and limit",
+                "method": "fetchOHLCV",
+                "url": "https://www.deribit.com/api/v2/public/get_tradingview_chart_data?instrument_name=BTC_USDT-PERPETUAL&resolution=60&start_timestamp=1689335159999&end_timestamp=1689371159999",
+                "input": [
+                    "BTC/USDT:USDT",
+                    "1h",
+                    1689335160000,
+                    10
+                ]
+            },
+            {
+                "description": "spot ohlcv",
+                "method": "fetchOHLCV",
+                "url": "https://www.deribit.com/api/v2/public/get_tradingview_chart_data?instrument_name=BTC_USDT&resolution=1&start_timestamp=1709933045065&end_timestamp=1709992985065",
+                "input": [
+                    "BTC/USDT"
+                ]
+            },
+            {
+                "description": "swap ohlcv",
+                "method": "fetchOHLCV",
+                "url": "https://www.deribit.com/api/v2/public/get_tradingview_chart_data?instrument_name=BTC_USDT-PERPETUAL&resolution=1&start_timestamp=1709933045130&end_timestamp=1709992985130",
+                "input": [
+                    "BTC/USDT:USDT"
+                ]
+            }
+        ],
+        "fetchOrderBook": [
+            {
+                "description": "Spot fetch order book",
+                "method": "fetchOrderBook",
+                "url": "https://test.deribit.com/api/v2/public/get_order_book?instrument_name=BTC_USDT",
+                "input": [
+                    "BTC/USDT"
+                ]
+            },
+            {
+                "description": "Swap fetch order book",
+                "method": "fetchOrderBook",
+                "url": "https://test.deribit.com/api/v2/public/get_order_book?instrument_name=BTC_USDT-PERPETUAL",
+                "input": [
+                    "BTC/USDT:USDT"
+                ]
+            },
+            {
+                "description": "Option fetch order book",
+                "method": "fetchOrderBook",
+                "url": "https://test.deribit.com/api/v2/public/get_order_book?instrument_name=BTC-26JAN24-39000-C",
+                "input": [
+                    "BTC/USD:BTC-240126-39000-C"
+                ]
+            },
+            {
+                "description": "spot orderbook",
+                "method": "fetchOrderBook",
+                "url": "https://www.deribit.com/api/v2/public/get_order_book?instrument_name=BTC_USDT",
+                "input": [
+                    "BTC/USDT"
+                ]
+            },
+            {
+                "description": "swap orderbook",
+                "method": "fetchOrderBook",
+                "url": "https://www.deribit.com/api/v2/public/get_order_book?instrument_name=BTC_USDT-PERPETUAL",
+                "input": [
+                    "BTC/USDT:USDT"
+                ]
+            }
+        ],
+        "fetchOrder": [
+            {
+                "description": "Spot fetch order",
+                "method": "fetchOrder",
+                "url": "https://test.deribit.com/api/v2/private/get_order_state?order_id=BTC_USDT-6799763",
+                "input": [
+                    "BTC_USDT-6799763",
+                    "BTC/USDT"
+                ]
+            },
+            {
+                "description": "Swap fetch order",
+                "method": "fetchOrder",
+                "url": "https://test.deribit.com/api/v2/private/get_order_state?order_id=USDT-17726949",
+                "input": [
+                    "USDT-17726949",
+                    "BTC/USDT:USDT"
+                ]
+            },
+            {
+                "description": "Option fetch order",
+                "method": "fetchOrder",
+                "url": "https://test.deribit.com/api/v2/private/get_order_state?order_id=20906817839",
+                "input": [
+                    "20906817839",
+                    "BTC/USD:BTC-240126-39000-C"
+                ]
+            }
+        ],
+        "fetchDeposits": [
+            {
+                "description": "BTC fetch deposits",
+                "method": "fetchDeposits",
+                "url": "https://test.deribit.com/api/v2/private/get_deposits?currency=BTC",
+                "input": [
+                    "BTC"
+                ]
+            }
+        ],
+        "fetchWithdrawals": [
+            {
+                "description": "USDT fetch withdrawals",
+                "method": "fetchWithdrawals",
+                "url": "https://test.deribit.com/api/v2/private/get_withdrawals?currency=USDT",
+                "input": [
+                    "USDT"
+                ]
+            }
+        ],
+        "fetchVolatilityHistory": [
+            {
+                "description": "BTC fetch volatility history",
+                "method": "fetchVolatilityHistory",
+                "url": "https://test.deribit.com/api/v2/public/get_historical_volatility?currency=BTC",
+                "input": [
+                    "BTC"
+                ]
+            }
+        ],
+        "fetchFundingRate": [
+            {
+                "description": "Swap fetch the funding rate",
+                "method": "fetchFundingRate",
+                "url": "https://test.deribit.com/api/v2/public/get_funding_rate_value?instrument_name=BTC_USDT-PERPETUAL&start_timestamp=1705533267483&end_timestamp=1705562067483",
+                "input": [
+                    "BTC/USDT:USDT"
+                ]
+            },
+            {
+                "description": "fundingRate",
+                "method": "fetchFundingRate",
+                "url": "https://www.deribit.com/api/v2/public/get_funding_rate_value?instrument_name=BTC_USDT-PERPETUAL&start_timestamp=1709964185510&end_timestamp=1709992985510",
+                "input": [
+                    "BTC/USDT:USDT"
+                ]
+            }
+        ],
+        "fetchGreeks": [
+            {
+                "description": "fetch the greeks of an options contract",
+                "method": "fetchGreeks",
+                "url": "https://test.deribit.com/api/v2/public/ticker?instrument_name=BTC-26JAN24-39000-C",
+                "input": [
+                    "BTC/USD:BTC-240126-39000-C"
+                ]
+            }
+        ],
+        "fetchPositions": [
+            {
+                "description": "Swap fetch positions",
+                "method": "fetchPositions",
+                "url": "https://test.deribit.com/api/v2/private/get_positions?currency=USDT&kind=future",
+                "input": [
+                    [
+                        "BTC/USDT:USDT"
+                    ]
+                ]
+            },
+            {
+                "description": "Option fetch positions",
+                "method": "fetchPositions",
+                "url": "https://test.deribit.com/api/v2/private/get_positions?currency=BTC&kind=option",
+                "input": [
+                    [
+                        "BTC/USD:BTC-240126-39000-C"
+                    ]
+                ]
+            }
+        ],
+        "fetchPosition": [
+            {
+                "description": "Swap fetch position",
+                "method": "fetchPosition",
+                "url": "https://test.deribit.com/api/v2/private/get_position?instrument_name=BTC_USDT-PERPETUAL",
+                "input": [
+                    "BTC/USDT:USDT"
+                ]
+            },
+            {
+                "description": "Option fetch position",
+                "method": "fetchPosition",
+                "url": "https://test.deribit.com/api/v2/private/get_position?instrument_name=BTC-26JAN24-39000-C",
+                "input": [
+                    "BTC/USD:BTC-240126-39000-C"
+                ]
+            }
+        ],
+        "fetchFundingRateHistory": [
+            {
+                "description": "Fetch funding rate history with a since argument",
+                "method": "fetchFundingRateHistory",
+                "url": "https://test.deribit.com/api/v2/public/get_funding_rate_history?instrument_name=BTC_USDT-PERPETUAL&start_timestamp=1705622399999&end_timestamp=1705631426030",
+                "input": [
+                    "BTC/USDT:USDT",
+                    1705622400000
+                ]
+            },
+            {
+                "description": "fundingRateHistory",
+                "method": "fetchFundingRateHistory",
+                "url": "https://www.deribit.com/api/v2/public/get_funding_rate_history?instrument_name=BTC_USDT-PERPETUAL&start_timestamp=1707400985192&end_timestamp=1709992985193",
+                "input": [
+                    "BTC/USDT:USDT"
+                ]
+            }
+        ],
+        "fetchTime": [
+            {
+                "description": "fetchTime",
+                "method": "fetchTime",
+                "url": "https://www.deribit.com/api/v2/public/get_time",
+                "input": []
+            }
+        ],
+        "fetchTickers": [
+            {
+                "description": "spot tickers",
+                "method": "fetchTickers",
+                "url": "https://www.deribit.com/api/v2/public/get_book_summary_by_currency?currency=BTC",
+                "input": [
+                    [
+                        "BTC/USDT",
+                        "ETH/USDT"
+                    ],
+                    {"code": "BTC"}
+                ]
+            },
+            {
+                "description": "swap tickers",
+                "method": "fetchTickers",
+                "url": "https://www.deribit.com/api/v2/public/get_book_summary_by_currency?currency=BTC",
+                "input": [
+                    [
+                        "BTC/USDT:USDT",
+                        "ETH/USDT:USDT"
+                    ],
+                    {"code": "BTC"}
+                ]
+            }
+        ],
+        "fetchOption": [
+            {
+                "description": "Fetch an option contract",
+                "method": "fetchOption",
+                "url": "https://www.deribit.com/api/v2/public/get_book_summary_by_instrument?instrument_name=BTC-27DEC24-240000-C",
+                "input": [
+                  "BTC/USD:BTC-241227-240000-C"
+                ]
+            }
+        ],
+        "fetchOptionChain": [
+            {
+                "description": "Fetch an option chain",
+                "method": "fetchOptionChain",
+                "url": "https://www.deribit.com/api/v2/public/get_book_summary_by_currency?currency=BTC&kind=option",
+                "input": [
+                  "BTC"
+                ]
+            }
+        ]
+    }
 }

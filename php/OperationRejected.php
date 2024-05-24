@@ -2,6 +2,6 @@
 
 namespace ccxt;
 
-require_once PATH_TO_CCXT . 'BadRequest.php';
+require_once PATH_TO_CCXT . 'ExchangeError.php';
 
-class OperationRejected extends BadRequest {};
+class OperationRejected extends ExchangeError {};

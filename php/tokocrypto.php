@@ -32,6 +32,9 @@ class tokocrypto extends Exchange {
                 'cancelOrder' => true,
                 'cancelOrders' => null,
                 'createDepositAddress' => false,
+                'createMarketBuyOrderWithCost' => true,
+                'createMarketOrderWithCost' => false,
+                'createMarketSellOrderWithCost' => false,
                 'createOrder' => true,
                 'createReduceOnlyOrder' => null,
                 'createStopLimitOrder' => true,
@@ -99,7 +102,8 @@ class tokocrypto extends Exchange {
                 'fetchWithdrawals' => true,
                 'fetchWithdrawalWhitelist' => false,
                 'reduceMargin' => false,
-                'repayMargin' => false,
+                'repayCrossMargin' => false,
+                'repayIsolatedMargin' => false,
                 'setLeverage' => false,
                 'setMargin' => false,
                 'setMarginMode' => false,
@@ -609,7 +613,7 @@ class tokocrypto extends Exchange {
         return $this->safe_integer($response, 'serverTime');
     }
 
-    public function fetch_markets($params = array ()) {
+    public function fetch_markets($params = array ()): array {
         /**
          * @see https://www.tokocrypto.com/apidocs/#get-all-supported-trading-$symbol
          * retrieves $data on all markets for tokocrypto
@@ -681,7 +685,7 @@ class tokocrypto extends Exchange {
                     break;
                 }
             }
-            $isMarginTradingAllowed = $this->safe_value($market, 'isMarginTradingAllowed', false);
+            $isMarginTradingAllowed = $this->safe_bool($market, 'isMarginTradingAllowed', false);
             $entry = array(
                 'id' => $id,
                 'lowercaseId' => $lowercaseId,
@@ -792,10 +796,10 @@ class tokocrypto extends Exchange {
         $response = null;
         if ($market['quote'] === 'USDT') {
             $request['symbol'] = $market['baseId'] . $market['quoteId'];
-            $response = $this->binanceGetDepth (array_merge($request, $params));
+            $response = $this->binanceGetDepth ($this->extend($request, $params));
         } else {
             $request['symbol'] = $market['id'];
-            $response = $this->publicGetOpenV1MarketDepth (array_merge($request, $params));
+            $response = $this->publicGetOpenV1MarketDepth ($this->extend($request, $params));
         }
         //
         // future
@@ -981,14 +985,14 @@ class tokocrypto extends Exchange {
 
     public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
-         * @see https://www.tokocrypto.com/apidocs/#recent-trades-list
-         * @see https://www.tokocrypto.com/apidocs/#compressedaggregate-trades-list
-         * get the list of most recent trades for a particular $symbol
+         * @see https://www.tokocrypto.com/apidocs/#recent-trades-$list
+         * @see https://www.tokocrypto.com/apidocs/#compressedaggregate-trades-$list
+         * get the $list of most recent trades for a particular $symbol
          * @param {string} $symbol unified $symbol of the $market to fetch trades for
          * @param {int} [$since] timestamp in ms of the earliest trade to fetch
          * @param {int} [$limit] the maximum amount of trades to fetch
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {Trade[]} a list of ~@link https://docs.ccxt.com/#/?id=public-trades trade structures~
+         * @return {Trade[]} a $list of ~@link https://docs.ccxt.com/#/?id=public-trades trade structures~
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -1003,20 +1007,44 @@ class tokocrypto extends Exchange {
             if ($limit !== null) {
                 $request['limit'] = $limit;
             }
-            $responseInner = $this->publicGetOpenV1MarketTrades (array_merge($request, $params));
-            $data = $this->safe_value($responseInner, 'data', array());
-            return $this->parse_trades($data, $market, $since, $limit);
-        }
-        $defaultMethod = 'binanceGetTrades';
-        $method = $this->safe_string($this->options, 'fetchTradesMethod', $defaultMethod);
-        if (($method === 'binanceGetAggTrades') && ($since !== null)) {
-            $request['startTime'] = $since;
-            // https://github.com/ccxt/ccxt/issues/6400
-            // https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md#compressedaggregate-trades-list
-            $request['endTime'] = $this->sum($since, 3600000);
+            $responseInner = $this->publicGetOpenV1MarketTrades ($this->extend($request, $params));
+            //
+            //    {
+            //       "code" => 0,
+            //       "msg" => "success",
+            //       "data" => {
+            //           "list" => array(
+            //                array(
+            //                    "id" => 28457,
+            //                    "price" => "4.00000100",
+            //                    "qty" => "12.00000000",
+            //                    "time" => 1499865549590,
+            //                    "isBuyerMaker" => true,
+            //                    "isBestMatch" => true
+            //                }
+            //            )
+            //        ),
+            //        "timestamp" => 1571921637091
+            //    }
+            //
+            $data = $this->safe_dict($responseInner, 'data', array());
+            $list = $this->safe_list($data, 'list', array());
+            return $this->parse_trades($list, $market, $since, $limit);
         }
         if ($limit !== null) {
             $request['limit'] = $limit; // default = 500, maximum = 1000
+        }
+        $defaultMethod = 'binanceGetTrades';
+        $method = $this->safe_string($this->options, 'fetchTradesMethod', $defaultMethod);
+        $response = null;
+        if (($method === 'binanceGetAggTrades') && ($since !== null)) {
+            $request['startTime'] = $since;
+            // https://github.com/ccxt/ccxt/issues/6400
+            // https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md#compressedaggregate-trades-$list
+            $request['endTime'] = $this->sum($since, 3600000);
+            $response = $this->binanceGetAggTrades ($this->extend($request, $params));
+        } else {
+            $response = $this->binanceGetTrades ($this->extend($request, $params));
         }
         //
         // Caveats:
@@ -1027,7 +1055,6 @@ class tokocrypto extends Exchange {
         // - 'tradeId' accepted and returned by this $method is "aggregate" trade id
         //   which is different from actual trade id
         // - setting both fromId and time window results in error
-        $response = $this->$method (array_merge($request, $params));
         //
         // aggregate trades
         //
@@ -1060,7 +1087,7 @@ class tokocrypto extends Exchange {
         return $this->parse_trades($response, $market, $since, $limit);
     }
 
-    public function parse_ticker($ticker, ?array $market = null): array {
+    public function parse_ticker(array $ticker, ?array $market = null): array {
         //
         //     {
         //         "symbol" => "ETHBTC",
@@ -1178,9 +1205,9 @@ class tokocrypto extends Exchange {
         $request = array(
             'symbol' => $market['baseId'] . $market['quoteId'],
         );
-        $response = $this->binanceGetTicker24hr (array_merge($request, $params));
+        $response = $this->binanceGetTicker24hr ($this->extend($request, $params));
         if (gettype($response) === 'array' && array_keys($response) === array_keys(array_keys($response))) {
-            $firstTicker = $this->safe_value($response, 0, array());
+            $firstTicker = $this->safe_dict($response, 0, array());
             return $this->parse_ticker($firstTicker, $market);
         }
         return $this->parse_ticker($response, $market);
@@ -1285,9 +1312,9 @@ class tokocrypto extends Exchange {
         }
         $response = null;
         if ($market['quote'] === 'USDT') {
-            $response = $this->binanceGetKlines (array_merge($request, $params));
+            $response = $this->binanceGetKlines ($this->extend($request, $params));
         } else {
-            $response = $this->publicGetOpenV1MarketKlines (array_merge($request, $params));
+            $response = $this->publicGetOpenV1MarketKlines ($this->extend($request, $params));
         }
         //
         //     [
@@ -1296,7 +1323,7 @@ class tokocrypto extends Exchange {
         //         [1591478640000,"0.02500800","0.02501100","0.02500300","0.02500800","154.14200000",1591478699999,"3.85405839",97,"5.32300000","0.13312641","0"],
         //     ]
         //
-        $data = $this->safe_value($response, 'data', $response);
+        $data = $this->safe_list($response, 'data', $response);
         return $this->parse_ohlcvs($data, $market, $timeframe, $since, $limit);
     }
 
@@ -1316,7 +1343,7 @@ class tokocrypto extends Exchange {
         $defaultMarginMode = $this->safe_string_2($this->options, 'marginMode', 'defaultMarginMode');
         $marginMode = $this->safe_string_lower($params, 'marginMode', $defaultMarginMode);
         $request = array();
-        $response = $this->privateGetOpenV1AccountSpot (array_merge($request, $params));
+        $response = $this->privateGetOpenV1AccountSpot ($this->extend($request, $params));
         //
         // spot
         //
@@ -1341,10 +1368,10 @@ class tokocrypto extends Exchange {
         //         "timestamp":1659666786943
         //     }
         //
-        return $this->parse_balance($response, $type, $marginMode);
+        return $this->parse_balance_custom($response, $type, $marginMode);
     }
 
-    public function parse_balance($response, $type = null, $marginMode = null) {
+    public function parse_balance_custom($response, $type = null, $marginMode = null) {
         $timestamp = $this->safe_integer($response, 'updateTime');
         $result = array(
             'info' => $response,
@@ -1365,7 +1392,7 @@ class tokocrypto extends Exchange {
         return $this->safe_balance($result);
     }
 
-    public function parse_order_status($status) {
+    public function parse_order_status(?string $status) {
         $statuses = array(
             '-2' => 'open',
             '0' => 'open', // NEW
@@ -1551,7 +1578,7 @@ class tokocrypto extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
         /**
          * create a trade order
          * @see https://www.tokocrypto.com/apidocs/#new-order--signed
@@ -1563,12 +1590,13 @@ class tokocrypto extends Exchange {
          * @param {float} [$price] the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {float} [$params->triggerPrice] the $price at which a trigger order would be triggered
+         * @param {float} [$params->cost] for spot $market buy orders, the quote quantity that can be used alternative for the $amount
          * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
          */
         $this->load_markets();
         $market = $this->market($symbol);
         $clientOrderId = $this->safe_string_2($params, 'clientOrderId', 'clientId');
-        $postOnly = $this->safe_value($params, 'postOnly', false);
+        $postOnly = $this->safe_bool($params, 'postOnly', false);
         // only supported for spot/margin api
         if ($postOnly) {
             $type = 'LIMIT_MAKER';
@@ -1630,7 +1658,7 @@ class tokocrypto extends Exchange {
         // spot/margin
         //
         //     LIMIT                timeInForce, quantity, $price
-        //     MARKET               quantity or $quoteOrderQty
+        //     MARKET               quantity or quoteOrderQty
         //     STOP_LOSS            quantity, $stopPrice
         //     STOP_LOSS_LIMIT      timeInForce, quantity, $price, $stopPrice
         //     TAKE_PROFIT          quantity, $stopPrice
@@ -1638,19 +1666,27 @@ class tokocrypto extends Exchange {
         //     LIMIT_MAKER          quantity, $price
         //
         if ($uppercaseType === 'MARKET') {
-            $quoteOrderQtyInner = $this->safe_value_2($params, 'quoteOrderQty', 'cost');
-            if ($this->options['createMarketBuyOrderRequiresPrice'] && ($side === 'buy') && ($price === null) && ($quoteOrderQtyInner === null)) {
-                throw new InvalidOrder($this->id . ' createOrder() requires $price argument for $market buy orders on spot markets to calculate the total $amount to spend ($amount * $price), alternatively set the createMarketBuyOrderRequiresPrice option to false and pass in the cost to spend into the $amount parameter');
-            }
-            $precision = $market['precision']['price'];
-            if ($quoteOrderQtyInner !== null) {
-                $request['quoteOrderQty'] = $this->decimal_to_precision($quoteOrderQtyInner, TRUNCATE, $precision, $this->precisionMode);
-                $params = $this->omit($params, array( 'quoteOrderQty', 'cost' ));
-            } elseif ($price !== null) {
-                $amountString = $this->number_to_string($amount);
-                $priceString = $this->number_to_string($price);
-                $quoteOrderQty = Precise::string_mul($amountString, $priceString);
-                $request['quoteOrderQty'] = $this->decimal_to_precision($quoteOrderQty, TRUNCATE, $precision, $this->precisionMode);
+            if ($side === 'buy') {
+                $precision = $market['precision']['price'];
+                $quoteAmount = null;
+                $createMarketBuyOrderRequiresPrice = true;
+                list($createMarketBuyOrderRequiresPrice, $params) = $this->handle_option_and_params($params, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
+                $cost = $this->safe_number_2($params, 'cost', 'quoteOrderQty');
+                $params = $this->omit($params, array( 'cost', 'quoteOrderQty' ));
+                if ($cost !== null) {
+                    $quoteAmount = $cost;
+                } elseif ($createMarketBuyOrderRequiresPrice) {
+                    if ($price === null) {
+                        throw new InvalidOrder($this->id . ' createOrder() requires the $price argument for $market buy orders to calculate the total $cost to spend ($amount * $price), alternatively set the $createMarketBuyOrderRequiresPrice option or param to false and pass the $cost to spend (quote quantity) in the $amount argument');
+                    } else {
+                        $amountString = $this->number_to_string($amount);
+                        $priceString = $this->number_to_string($price);
+                        $quoteAmount = Precise::string_mul($amountString, $priceString);
+                    }
+                } else {
+                    $quoteAmount = $amount;
+                }
+                $request['quoteOrderQty'] = $this->decimal_to_precision($quoteAmount, TRUNCATE, $precision, $this->precisionMode);
             } else {
                 $quantityIsRequired = true;
             }
@@ -1687,7 +1723,7 @@ class tokocrypto extends Exchange {
                 $request['stopPrice'] = $this->price_to_precision($symbol, $stopPrice);
             }
         }
-        $response = $this->privatePostOpenV1Orders (array_merge($request, $params));
+        $response = $this->privatePostOpenV1Orders ($this->extend($request, $params));
         //
         //     {
         //         "code" => 0,
@@ -1716,7 +1752,7 @@ class tokocrypto extends Exchange {
         //         "timestamp" => 1662710994975
         //     }
         //
-        $rawOrder = $this->safe_value($response, 'data', array());
+        $rawOrder = $this->safe_dict($response, 'data', array());
         return $this->parse_order($rawOrder, $market);
     }
 
@@ -1731,7 +1767,7 @@ class tokocrypto extends Exchange {
         $request = array(
             'orderId' => $id,
         );
-        $response = $this->privateGetOpenV1Orders (array_merge($request, $params));
+        $response = $this->privateGetOpenV1Orders ($this->extend($request, $params));
         //
         //     {
         //         "code" => 0,
@@ -1764,7 +1800,7 @@ class tokocrypto extends Exchange {
         //
         $data = $this->safe_value($response, 'data', array());
         $list = $this->safe_value($data, 'list', array());
-        $rawOrder = $this->safe_value($list, 0, array());
+        $rawOrder = $this->safe_dict($list, 0, array());
         return $this->parse_order($rawOrder);
     }
 
@@ -1799,7 +1835,7 @@ class tokocrypto extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
-        $response = $this->privateGetOpenV1Orders (array_merge($request, $params));
+        $response = $this->privateGetOpenV1Orders ($this->extend($request, $params));
         //
         //     {
         //         "code" => 0,
@@ -1834,7 +1870,7 @@ class tokocrypto extends Exchange {
         //     }
         //
         $data = $this->safe_value($response, 'data', array());
-        $orders = $this->safe_value($data, 'list', array());
+        $orders = $this->safe_list($data, 'list', array());
         return $this->parse_orders($orders, $market, $since, $limit);
     }
 
@@ -1849,7 +1885,7 @@ class tokocrypto extends Exchange {
          * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
          */
         $request = array( 'type' => 1 ); // -1 = all, 1 = open, 2 = closed
-        return $this->fetch_orders($symbol, $since, $limit, array_merge($request, $params));
+        return $this->fetch_orders($symbol, $since, $limit, $this->extend($request, $params));
     }
 
     public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
@@ -1858,12 +1894,12 @@ class tokocrypto extends Exchange {
          * fetches information on multiple closed orders made by the user
          * @param {string} $symbol unified market $symbol of the market orders were made in
          * @param {int} [$since] the earliest time in ms to fetch orders for
-         * @param {int} [$limit] the maximum number of  orde structures to retrieve
+         * @param {int} [$limit] the maximum number of order structures to retrieve
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
          */
         $request = array( 'type' => 2 ); // -1 = all, 1 = open, 2 = closed
-        return $this->fetch_orders($symbol, $since, $limit, array_merge($request, $params));
+        return $this->fetch_orders($symbol, $since, $limit, $this->extend($request, $params));
     }
 
     public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
@@ -1878,7 +1914,7 @@ class tokocrypto extends Exchange {
         $request = array(
             'orderId' => $id,
         );
-        $response = $this->privatePostOpenV1OrdersCancel (array_merge($request, $params));
+        $response = $this->privatePostOpenV1OrdersCancel ($this->extend($request, $params));
         //
         //     {
         //         "code" => 0,
@@ -1906,7 +1942,7 @@ class tokocrypto extends Exchange {
         //         "timestamp" => 1662710683634
         //     }
         //
-        $rawOrder = $this->safe_value($response, 'data', array());
+        $rawOrder = $this->safe_dict($response, 'data', array());
         return $this->parse_order($rawOrder);
     }
 
@@ -1939,7 +1975,7 @@ class tokocrypto extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
-        $response = $this->privateGetOpenV1OrdersTrades (array_merge($request, $params));
+        $response = $this->privateGetOpenV1OrdersTrades ($this->extend($request, $params));
         //
         //     {
         //         "code" => 0,
@@ -1966,7 +2002,7 @@ class tokocrypto extends Exchange {
         //     }
         //
         $data = $this->safe_value($response, 'data', array());
-        $trades = $this->safe_value($data, 'list', array());
+        $trades = $this->safe_list($data, 'list', array());
         return $this->parse_trades($trades, $market, $since, $limit);
     }
 
@@ -1993,7 +2029,7 @@ class tokocrypto extends Exchange {
         }
         // has support for the 'network' parameter
         // https://binance-docs.github.io/apidocs/spot/en/#deposit-$address-supporting-$network-user_data
-        $response = $this->privateGetOpenV1DepositsAddress (array_merge($request, $params));
+        $response = $this->privateGetOpenV1DepositsAddress ($this->extend($request, $params));
         //
         //     {
         //         "code":0,
@@ -2056,7 +2092,7 @@ class tokocrypto extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
-        $response = $this->privateGetOpenV1Deposits (array_merge($request, $params));
+        $response = $this->privateGetOpenV1Deposits ($this->extend($request, $params));
         //
         //     {
         //         "code":0,
@@ -2081,7 +2117,7 @@ class tokocrypto extends Exchange {
         //     }
         //
         $data = $this->safe_value($response, 'data', array());
-        $deposits = $this->safe_value($data, 'list', array());
+        $deposits = $this->safe_list($data, 'list', array());
         return $this->parse_transactions($deposits, $currency, $since, $limit);
     }
 
@@ -2110,7 +2146,7 @@ class tokocrypto extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
-        $response = $this->privateGetOpenV1Withdraws (array_merge($request, $params));
+        $response = $this->privateGetOpenV1Withdraws ($this->extend($request, $params));
         //
         //     {
         //         "code":0,
@@ -2137,7 +2173,7 @@ class tokocrypto extends Exchange {
         //     }
         //
         $data = $this->safe_value($response, 'data', array());
-        $withdrawals = $this->safe_value($data, 'list', array());
+        $withdrawals = $this->safe_list($data, 'list', array());
         return $this->parse_transactions($withdrawals, $currency, $since, $limit);
     }
 
@@ -2277,7 +2313,7 @@ class tokocrypto extends Exchange {
         );
     }
 
-    public function withdraw(string $code, $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()) {
         /**
          * @see https://www.tokocrypto.com/apidocs/#withdraw-signed
          * make a withdrawal
@@ -2308,7 +2344,7 @@ class tokocrypto extends Exchange {
         if ($networkId !== null) {
             $request['network'] = strtoupper($networkId);
         }
-        $response = $this->privatePostOpenV1Withdraws (array_merge($request, $query));
+        $response = $this->privatePostOpenV1Withdraws ($this->extend($request, $query));
         //
         //     {
         //         "code" => 0,
@@ -2349,7 +2385,7 @@ class tokocrypto extends Exchange {
             $this->check_required_credentials();
             $query = null;
             $defaultRecvWindow = $this->safe_integer($this->options, 'recvWindow');
-            $extendedParams = array_merge(array(
+            $extendedParams = $this->extend(array(
                 'timestamp' => $this->nonce(),
             ), $params);
             if ($defaultRecvWindow !== null) {
@@ -2408,7 +2444,7 @@ class tokocrypto extends Exchange {
         }
         // check $success value for wapi endpoints
         // $response in format array('msg' => 'The coin does not exist.', 'success' => true/false)
-        $success = $this->safe_value($response, 'success', true);
+        $success = $this->safe_bool($response, 'success', true);
         if (!$success) {
             $messageInner = $this->safe_string($response, 'msg');
             $parsedMessage = null;

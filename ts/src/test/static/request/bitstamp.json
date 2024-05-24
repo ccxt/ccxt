@@ -5,26 +5,60 @@
     "methods": {
         "fetchBalance": [
             {
-                "description": "Fetch spot Balance",
+                "description": "Fetch main balance",
                 "method": "fetchBalance",
-                "url": "https://www.bitstamp.net/api/v2/balance/",
-                "input": [
-                    {
-                        "type": "spot"
-                    }
-                ],
-                "output": "type=spot"
-            },
+                "url": "https://www.bitstamp.net/api/v2/account_balances/",
+                "input": [],
+                "output": "foo=bar"
+            }
+        ],
+        "fetchTradingFee": [
             {
-                "description": "Fetch swap Balance",
-                "method": "fetchBalance",
-                "url": "https://www.bitstamp.net/api/v2/balance/",
+                "description": "Fetch trading fee",
+                "method": "fetchTradingFee",
+                "url": "https://www.bitstamp.net/api/v2/fees/trading/",
                 "input": [
-                    {
-                        "type": "swap"
-                    }
+                    "BTC/USDT"
                 ],
-                "output": "type=swap"
+                "output": "market_symbol=btcusdt"
+            }
+        ],
+        "fetchTradingFees": [
+            {
+                "description": "Fetch trading fees",
+                "method": "fetchTradingFees",
+                "url": "https://www.bitstamp.net/api/v2/fees/trading/",
+                "input": [],
+                "output": "foo=bar"
+            }
+        ],
+        "fetchTransactionFees": [
+            {
+                "description": "Fetch transaction fees",
+                "method": "fetchTransactionFees",
+                "url": "https://www.bitstamp.net/api/v2/fees/withdrawal/",
+                "input": [],
+                "output": "foo=bar"
+            }
+        ],
+        "fetchDepositWithdrawFees": [
+            {
+                "description": "Fetch deposit withdraw fees",
+                "method": "fetchDepositWithdrawFees",
+                "url": "https://www.bitstamp.net/api/v2/fees/withdrawal/",
+                "input": [],
+                "output": "foo=bar"
+            }
+        ],
+        "fetchDepositWithdrawFee": [
+            {
+                "description": "Fetch deposit withdraw fee",
+                "method": "fetchDepositWithdrawFee",
+                "url": "https://www.bitstamp.net/api/v2/fees/withdrawal/",
+                "input": [
+                    "USDC"
+                ],
+                "output": "foo=bar"
             }
         ],
         "fetchLedger": [
@@ -47,6 +81,167 @@
                     "USDT"
                 ],
                 "output": "foo=bar"
+            }
+        ],
+        "createOrder": [
+            {
+                "description": "create Order limit buy",
+                "method": "createOrder",
+                "url": "https://www.bitstamp.net/api/v2/buy/btcusdt/",
+                "input": [
+                    "BTC/USDT",
+                    "limit",
+                    "buy",
+                    1,
+                    38000
+                ],
+                "output": "amount=1&price=38000"
+            },
+            {
+                "description": "create Order limit sell",
+                "method": "createOrder",
+                "url": "https://www.bitstamp.net/api/v2/sell/btcusdt/",
+                "input": [
+                    "BTC/USDT",
+                    "limit",
+                    "sell",
+                    1,
+                    48000
+                ],
+                "output": "amount=1&price=48000"
+            },
+            {
+                "description": "create Order market buy",
+                "method": "createOrder",
+                "url": "https://www.bitstamp.net/api/v2/buy/market/btcusdt/",
+                "input": [
+                    "BTC/USDT",
+                    "market",
+                    "buy",
+                    1
+                ],
+                "output": "amount=1"
+            },
+            {
+                "description": "create Order market sell",
+                "method": "createOrder",
+                "url": "https://www.bitstamp.net/api/v2/sell/market/btcusdt/",
+                "input": [
+                    "BTC/USDT",
+                    "market",
+                    "sell",
+                    1
+                ],
+                "output": "amount=1"
+            },
+            {
+                "description": "create Order instant buy",
+                "method": "createOrder",
+                "url": "https://www.bitstamp.net/api/v2/buy/instant/btcusdt/",
+                "input": [
+                    "BTC/USDT",
+                    "instant",
+                    "buy",
+                    1
+                ],
+                "output": "amount=1"
+            },
+            {
+                "description": "create Order instant sell",
+                "method": "createOrder",
+                "url": "https://www.bitstamp.net/api/v2/sell/instant/btcusdt/",
+                "input": [
+                    "BTC/USDT",
+                    "instant",
+                    "sell",
+                    1
+                ],
+                "output": "amount=1"
+            }
+        ],
+        "cancelAllOrders": [
+            {
+                "description": "cancel All Orders",
+                "method": "cancelAllOrders",
+                "url": "https://www.bitstamp.net/api/v2/cancel_all_orders/btcusdt/",
+                "input": [
+                    "BTC/USDT"
+                ],
+                "output": "foo=bar"
+            },
+            {
+                "description": "cancel All Orders",
+                "method": "cancelAllOrders",
+                "url": "https://www.bitstamp.net/api/v2/cancel_all_orders/",
+                "input": [],
+                "output": "foo=bar"
+            }
+        ],
+        "fetchTrades": [
+            {
+                "description": "spot fetchTrades",
+                "method": "fetchTrades",
+                "url": "https://www.bitstamp.net/api/v2/transactions/btcusdt/?time=hour",
+                "input": [
+                    "BTC/USDT"
+                ]
+            }
+        ],
+        "fetchOrderBook": [
+            {
+                "description": "spot orderbook",
+                "method": "fetchOrderBook",
+                "url": "https://www.bitstamp.net/api/v2/order_book/btcusdt/",
+                "input": [
+                    "BTC/USDT"
+                ]
+            }
+        ],
+        "fetchTicker": [
+            {
+                "description": "spot ticker",
+                "method": "fetchTicker",
+                "url": "https://www.bitstamp.net/api/v2/ticker/btcusdt/",
+                "input": [
+                    "BTC/USDT"
+                ]
+            }
+        ],
+        "fetchTickers": [
+            {
+                "description": "spot tickers",
+                "method": "fetchTickers",
+                "url": "https://www.bitstamp.net/api/v2/ticker/",
+                "input": [
+                    [
+                        "BTC/USDT",
+                        "ETH/USDT"
+                    ]
+                ]
+            }
+        ],
+        "fetchOHLCV": [
+            {
+                "description": "spot ohlcv",
+                "method": "fetchOHLCV",
+                "url": "https://www.bitstamp.net/api/v2/ohlc/btcusdt/?step=60&limit=1000",
+                "input": [
+                    "BTC/USDT"
+                ]
+            }
+        ],
+        "transfer": [
+            {
+                "description": "transfer from main to subAccount or from subAccount to main",
+                "method": "transfer",
+                "url": "https://www.bitstamp.net/api/v2/transfer-from-main/",
+                "input": [
+                    "USDT",
+                    1,
+                    "main",
+                    93482781
+                ],
+                "output": "amount=1&currency=USDT&subAccount=93482781"
             }
         ]
     }

@@ -10,7 +10,11 @@ use Exception; // a common import
 class binanceus extends \ccxt\pro\binance {
 
     public function describe() {
-        return $this->deep_extend(parent::describe(), array(
+        // eslint-disable-next-line new-cap
+        $restInstance = new \ccxt\async\binanceus ();
+        $restDescribe = $restInstance->describe ();
+        $extended = $this->deep_extend($restDescribe, parent::describe());
+        return $this->deep_extend($extended, array(
             'id' => 'binanceus',
             'name' => 'Binance US',
             'countries' => array( 'US' ), // US
@@ -22,6 +26,7 @@ class binanceus extends \ccxt\pro\binance {
                         'spot' => 'wss://stream.binance.us:9443/ws',
                     ),
                     'web' => 'https://www.binance.us',
+                    'sapi' => 'https://api.binance.us/sapi/v1',
                     'wapi' => 'https://api.binance.us/wapi/v3',
                     'public' => 'https://api.binance.us/api/v1',
                     'private' => 'https://api.binance.us/api/v3',

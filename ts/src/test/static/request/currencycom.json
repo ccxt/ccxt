@@ -1,0 +1,49 @@
+{
+    "exchange": "currencycom",
+    "skipKeys": [
+        "timestamp",
+        "recvWindow",
+        "signature"
+    ],
+    "outputType": "json",
+    "methods": {
+        "fetchDeposits": [
+            {
+                "description": "Fetch Deposits",
+                "method": "fetchDeposits",
+                "url": "https://api-adapter.backend.currency.com/api/v2/deposits?timestamp=1701936470637&recvWindow=5000&signature=419b05d1b0222adde016073f690ccf6fa247bf4addb92ddf186a65a7080adea3",
+                "input": [
+                    "USD"
+                ]
+            }
+        ],
+        "fetchWithdrawals": [
+            {
+                "description": "Fetch Withdrawals",
+                "method": "fetchWithdrawals",
+                "url": "https://api-adapter.backend.currency.com/api/v2/withdrawals?timestamp=1701936470637&recvWindow=5000&signature=419b05d1b0222adde016073f690ccf6fa247bf4addb92ddf186a65a7080adea3",
+                "input": [
+                    "USD"
+                ]
+            }
+        ],
+        "fetchDepositsWithdrawals": [
+            {
+                "description": "Fetch Deposits Withdrawals",
+                "method": "fetchDepositsWithdrawals",
+                "url": "https://api-adapter.backend.currency.com/api/v2/transactions?timestamp=1701936470637&recvWindow=5000&signature=419b05d1b0222adde016073f690ccf6fa247bf4addb92ddf186a65a7080adea3",
+                "input": [
+                    "USD"
+                ]
+            }
+        ],
+        "fetchTime": [
+            {
+                "description": "fetchTime",
+                "method": "fetchTime",
+                "url": "https://api-adapter.backend.currency.com/api/v2/time",
+                "input": []
+            }
+        ]
+    }
+}

@@ -6,9 +6,10 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.zonda import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Currency, Int, Market, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
+from ccxt.base.types import Balances, Currency, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import AccountSuspended
 from ccxt.base.errors import BadRequest
@@ -20,7 +21,6 @@ from ccxt.base.errors import OrderImmediatelyFillable
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import OnMaintenance
 from ccxt.base.errors import InvalidNonce
-from ccxt.base.errors import AuthenticationError
 from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
@@ -44,6 +44,8 @@ class zonda(Exchange, ImplicitAPI):
                 'cancelAllOrders': False,
                 'cancelOrder': True,
                 'cancelOrders': False,
+                'closeAllPositions': False,
+                'closePosition': False,
                 'createDepositAddress': False,
                 'createOrder': True,
                 'createReduceOnlyOrder': False,
@@ -309,7 +311,7 @@ class zonda(Exchange, ImplicitAPI):
             },
         })
 
-    async def fetch_markets(self, params={}):
+    async def fetch_markets(self, params={}) -> List[Market]:
         """
         :see: https://docs.zondacrypto.exchange/reference/ticker-1
         retrieves data on all markets for zonda
@@ -417,9 +419,9 @@ class zonda(Exchange, ImplicitAPI):
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
-        request = {}
+        request: dict = {}
         response = await self.v1_01PrivateGetTradingOffer(self.extend(request, params))
-        items = self.safe_value(response, 'items', [])
+        items = self.safe_list(response, 'items', [])
         return self.parse_orders(items, None, since, limit, {'status': 'open'})
 
     def parse_order(self, order, market: Market = None) -> Order:
@@ -483,12 +485,12 @@ class zonda(Exchange, ImplicitAPI):
         :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
         """
         await self.load_markets()
-        request = {}
+        request: dict = {}
         if symbol:
             markets = [self.market_id(symbol)]
             symbol = self.symbol(symbol)
             request['markets'] = markets
-        query = {'query': self.json(self.extend(request, params))}
+        query: dict = {'query': self.json(self.extend(request, params))}
         response = await self.v1_01PrivateGetTradingHistoryTransactions(query)
         #
         #     {
@@ -520,7 +522,7 @@ class zonda(Exchange, ImplicitAPI):
         balances = self.safe_value(response, 'balances')
         if balances is None:
             raise ExchangeError(self.id + ' empty balance response ' + self.json(response))
-        result = {'info': response}
+        result: dict = {'info': response}
         for i in range(0, len(balances)):
             balance = balances[i]
             currencyId = self.safe_string(balance, 'currency')
@@ -553,7 +555,7 @@ class zonda(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'symbol': market['id'],
         }
         response = await self.v1_01PublicGetTradingOrderbookSymbol(self.extend(request, params))
@@ -586,7 +588,7 @@ class zonda(Exchange, ImplicitAPI):
             'nonce': self.safe_integer(response, 'seqNo'),
         }
 
-    def parse_ticker(self, ticker, market: Market = None) -> Ticker:
+    def parse_ticker(self, ticker: dict, market: Market = None) -> Ticker:
         #
         # version 1
         #
@@ -652,7 +654,7 @@ class zonda(Exchange, ImplicitAPI):
             'info': ticker,
         }, market)
 
-    async def fetch_ticker(self, symbol, params={}):
+    async def fetch_ticker(self, symbol: str, params={}):
         """
         v1_01PublicGetTradingTickerSymbol retrieves timestamp, datetime, bid, ask, close, last, previousClose, v1_01PublicGetTradingStatsSymbol retrieves high, low, volume and opening price of an asset
         :see: https://docs.zondacrypto.exchange/reference/market-statistics
@@ -663,7 +665,7 @@ class zonda(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'symbol': market['id'],
         }
         method = 'v1_01PublicGetTradingTickerSymbol'
@@ -786,7 +788,7 @@ class zonda(Exchange, ImplicitAPI):
             #
         else:
             raise BadRequest(self.id + ' fetchTickers params["method"] must be "v1_01PublicGetTradingTicker" or "v1_01PublicGetTradingStats"')
-        items = self.safe_value(response, 'items')
+        items = self.safe_dict(response, 'items')
         return self.parse_tickers(items, symbols)
 
     async def fetch_ledger(self, code: Str = None, since: Int = None, limit: Int = None, params={}):
@@ -803,7 +805,7 @@ class zonda(Exchange, ImplicitAPI):
         if code is not None:
             currency = self.currency(code)
             balanceCurrencies.append(currency['id'])
-        request = {
+        request: dict = {
             'balanceCurrencies': balanceCurrencies,
         }
         if since is not None:
@@ -1115,7 +1117,7 @@ class zonda(Exchange, ImplicitAPI):
         }
 
     def parse_ledger_entry_type(self, type):
-        types = {
+        types: dict = {
             'ADD_FUNDS': 'transaction',
             'BITCOIN_GOLD_FORK': 'transaction',
             'CREATE_BALANCE': 'transaction',
@@ -1171,7 +1173,7 @@ class zonda(Exchange, ImplicitAPI):
         await self.load_markets()
         market = self.market(symbol)
         tradingSymbol = market['baseId'] + '-' + market['quoteId']
-        request = {
+        request: dict = {
             'symbol': tradingSymbol,
             'resolution': self.safe_string(self.timeframes, timeframe, timeframe),
             # 'from': 1574709092000,  # unix timestamp in milliseconds, required
@@ -1179,6 +1181,8 @@ class zonda(Exchange, ImplicitAPI):
         }
         if limit is None:
             limit = 100
+        else:
+            limit = min(limit, 11000)  # supports up to 11k candles diapason
         duration = self.parse_timeframe(timeframe)
         timerange = limit * duration * 1000
         if since is None:
@@ -1198,7 +1202,7 @@ class zonda(Exchange, ImplicitAPI):
         #         ]
         #     }
         #
-        items = self.safe_value(response, 'items', [])
+        items = self.safe_list(response, 'items', [])
         return self.parse_ohlcvs(items, market, timeframe, since, limit)
 
     def parse_trade(self, trade, market: Market = None) -> Trade:
@@ -1288,7 +1292,7 @@ class zonda(Exchange, ImplicitAPI):
         await self.load_markets()
         market = self.market(symbol)
         tradingSymbol = market['baseId'] + '-' + market['quoteId']
-        request = {
+        request: dict = {
             'symbol': tradingSymbol,
         }
         if since is not None:
@@ -1296,10 +1300,10 @@ class zonda(Exchange, ImplicitAPI):
         if limit is not None:
             request['limit'] = limit  # default - 10, max - 300
         response = await self.v1_01PublicGetTradingTransactionsSymbol(self.extend(request, params))
-        items = self.safe_value(response, 'items')
+        items = self.safe_list(response, 'items')
         return self.parse_trades(items, market, since, limit)
 
-    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
+    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         """
         create a trade order
         :param str symbol: unified symbol of the market to create an order in
@@ -1314,7 +1318,7 @@ class zonda(Exchange, ImplicitAPI):
         market = self.market(symbol)
         tradingSymbol = market['baseId'] + '-' + market['quoteId']
         amount = float(self.amount_to_precision(symbol, amount))
-        request = {
+        request: dict = {
             'symbol': tradingSymbol,
             'offerType': side.upper(),
             'amount': amount,
@@ -1397,7 +1401,7 @@ class zonda(Exchange, ImplicitAPI):
         #     }
         #
         id = self.safe_string_2(response, 'offerId', 'stopOfferId')
-        completed = self.safe_value(response, 'completed', False)
+        completed = self.safe_bool(response, 'completed', False)
         status = 'closed' if completed else 'open'
         transactions = self.safe_value(response, 'transactions')
         return self.safe_order({
@@ -1439,7 +1443,7 @@ class zonda(Exchange, ImplicitAPI):
         await self.load_markets()
         market = self.market(symbol)
         tradingSymbol = market['baseId'] + '-' + market['quoteId']
-        request = {
+        request: dict = {
             'symbol': tradingSymbol,
             'id': id,
             'side': side,
@@ -1450,12 +1454,12 @@ class zonda(Exchange, ImplicitAPI):
         return await self.v1_01PrivateDeleteTradingOfferSymbolIdSidePrice(self.extend(request, params))
 
     def is_fiat(self, currency):
-        fiatCurrencies = {
+        fiatCurrencies: dict = {
             'USD': True,
             'EUR': True,
             'PLN': True,
         }
-        return self.safe_value(fiatCurrencies, currency, False)
+        return self.safe_bool(fiatCurrencies, currency, False)
 
     def parse_deposit_address(self, depositAddress, currency: Currency = None):
         #
@@ -1489,7 +1493,7 @@ class zonda(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         currency = self.currency(code)
-        request = {
+        request: dict = {
             'currency': currency['id'],
         }
         response = await self.v1_01PrivateGetApiPaymentsDepositsCryptoAddresses(self.extend(request, params))
@@ -1507,10 +1511,10 @@ class zonda(Exchange, ImplicitAPI):
         #     }
         #
         data = self.safe_value(response, 'data')
-        first = self.safe_value(data, 0)
+        first = self.safe_dict(data, 0)
         return self.parse_deposit_address(first, currency)
 
-    async def fetch_deposit_addresses(self, codes=None, params={}):
+    async def fetch_deposit_addresses(self, codes: List[str] = None, params={}):
         """
         :see: https://docs.zondacrypto.exchange/reference/deposit-addresses-for-crypto
         fetch deposit addresses for multiple currencies and chain types
@@ -1533,10 +1537,10 @@ class zonda(Exchange, ImplicitAPI):
         #         ]
         #     }
         #
-        data = self.safe_value(response, 'data')
+        data = self.safe_list(response, 'data')
         return self.parse_deposit_addresses(data, codes)
 
-    async def transfer(self, code: str, amount, fromAccount, toAccount, params={}):
+    async def transfer(self, code: str, amount: float, fromAccount: str, toAccount: str, params={}) -> TransferEntry:
         """
         :see: https://docs.zondacrypto.exchange/reference/internal-transfer
         transfer currency internally between wallets on the same account
@@ -1549,7 +1553,7 @@ class zonda(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         currency = self.currency(code)
-        request = {
+        request: dict = {
             'source': fromAccount,
             'destination': toAccount,
             'currency': code,
@@ -1586,12 +1590,12 @@ class zonda(Exchange, ImplicitAPI):
         #
         transfer = self.parse_transfer(response, currency)
         transferOptions = self.safe_value(self.options, 'transfer', {})
-        fillResponseFromRequest = self.safe_value(transferOptions, 'fillResponseFromRequest', True)
+        fillResponseFromRequest = self.safe_bool(transferOptions, 'fillResponseFromRequest', True)
         if fillResponseFromRequest:
             transfer['amount'] = amount
         return transfer
 
-    def parse_transfer(self, transfer, currency: Currency = None):
+    def parse_transfer(self, transfer: dict, currency: Currency = None) -> TransferEntry:
         #
         #     {
         #         "status": "Ok",
@@ -1638,14 +1642,14 @@ class zonda(Exchange, ImplicitAPI):
             'status': self.parse_transfer_status(status),
         }
 
-    def parse_transfer_status(self, status):
-        statuses = {
+    def parse_transfer_status(self, status: Str) -> Str:
+        statuses: dict = {
             'Ok': 'ok',
             'Fail': 'failed',
         }
         return self.safe_string(statuses, status, status)
 
-    async def withdraw(self, code: str, amount, address, tag=None, params={}):
+    async def withdraw(self, code: str, amount: float, address: str, tag=None, params={}):
         """
         :see: https://docs.zondacrypto.exchange/reference/crypto-withdrawal-1
         make a withdrawal
@@ -1661,7 +1665,7 @@ class zonda(Exchange, ImplicitAPI):
         await self.load_markets()
         response = None
         currency = self.currency(code)
-        request = {
+        request: dict = {
             'currency': currency['id'],
             'amount': amount,
             'address': address,
@@ -1682,7 +1686,7 @@ class zonda(Exchange, ImplicitAPI):
         #         }
         #     }
         #
-        data = self.safe_value(response, 'data')
+        data = self.safe_dict(response, 'data')
         return self.parse_transaction(data, currency)
 
     def parse_transaction(self, transaction, currency: Currency = None) -> Transaction:

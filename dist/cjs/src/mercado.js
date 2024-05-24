@@ -9,7 +9,7 @@ var sha512 = require('./static_dependencies/noble-hashes/sha512.js');
 //  ---------------------------------------------------------------------------
 /**
  * @class mercado
- * @extends Exchange
+ * @augments Exchange
  */
 class mercado extends mercado$1 {
     describe() {
@@ -28,6 +28,8 @@ class mercado extends mercado$1 {
                 'option': false,
                 'addMargin': false,
                 'cancelOrder': true,
+                'closeAllPositions': false,
+                'closePosition': false,
                 'createMarketOrder': true,
                 'createOrder': true,
                 'createReduceOnlyOrder': false,
@@ -38,6 +40,9 @@ class mercado extends mercado$1 {
                 'fetchBorrowRateHistory': false,
                 'fetchCrossBorrowRate': false,
                 'fetchCrossBorrowRates': false,
+                'fetchDepositAddress': false,
+                'fetchDepositAddresses': false,
+                'fetchDepositAddressesByNetwork': false,
                 'fetchFundingHistory': false,
                 'fetchFundingRate': false,
                 'fetchFundingRateHistory': false,
@@ -58,8 +63,11 @@ class mercado extends mercado$1 {
                 'fetchOrderBook': true,
                 'fetchOrders': true,
                 'fetchPosition': false,
+                'fetchPositionHistory': false,
                 'fetchPositionMode': false,
                 'fetchPositions': false,
+                'fetchPositionsForSymbol': false,
+                'fetchPositionsHistory': false,
                 'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchTicker': true,
@@ -509,7 +517,7 @@ class mercado extends mercado$1 {
         //     }
         //
         const responseData = this.safeValue(response, 'response_data', {});
-        const order = this.safeValue(responseData, 'order', {});
+        const order = this.safeDict(responseData, 'order', {});
         return this.parseOrder(order, market);
     }
     parseOrderStatus(status) {
@@ -612,7 +620,7 @@ class mercado extends mercado$1 {
         };
         const response = await this.privatePostGetOrder(this.extend(request, params));
         const responseData = this.safeValue(response, 'response_data', {});
-        const order = this.safeValue(responseData, 'order');
+        const order = this.safeDict(responseData, 'order');
         return this.parseOrder(order, market);
     }
     async withdraw(code, amount, address, tag = undefined, params = {}) {
@@ -679,7 +687,7 @@ class mercado extends mercado$1 {
         //     }
         //
         const responseData = this.safeValue(response, 'response_data', {});
-        const withdrawal = this.safeValue(responseData, 'withdrawal');
+        const withdrawal = this.safeDict(responseData, 'withdrawal');
         return this.parseTransaction(withdrawal, currency);
     }
     parseTransaction(transaction, currency = undefined) {
@@ -784,7 +792,7 @@ class mercado extends mercado$1 {
         };
         const response = await this.privatePostListOrders(this.extend(request, params));
         const responseData = this.safeValue(response, 'response_data', {});
-        const orders = this.safeValue(responseData, 'orders', []);
+        const orders = this.safeList(responseData, 'orders', []);
         return this.parseOrders(orders, market, since, limit);
     }
     async fetchOpenOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -809,7 +817,7 @@ class mercado extends mercado$1 {
         };
         const response = await this.privatePostListOrders(this.extend(request, params));
         const responseData = this.safeValue(response, 'response_data', {});
-        const orders = this.safeValue(responseData, 'orders', []);
+        const orders = this.safeList(responseData, 'orders', []);
         return this.parseOrders(orders, market, since, limit);
     }
     async fetchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {

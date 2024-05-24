@@ -8,6 +8,7 @@ namespace ccxt\pro;
 use Exception; // a common import
 use ccxt\ExchangeError;
 use React\Async;
+use React\Promise\PromiseInterface;
 
 class huobijp extends \ccxt\async\huobijp {
 
@@ -49,7 +50,7 @@ class huobijp extends \ccxt\async\huobijp {
         return (string) $requestId;
     }
 
-    public function watch_ticker(string $symbol, $params = array ()) {
+    public function watch_ticker(string $symbol, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
@@ -76,7 +77,7 @@ class huobijp extends \ccxt\async\huobijp {
                 'symbol' => $symbol,
                 'params' => $params,
             );
-            return Async\await($this->watch($url, $messageHash, array_merge($request, $params), $messageHash, $subscription));
+            return Async\await($this->watch($url, $messageHash, $this->extend($request, $params), $messageHash, $subscription));
         }) ();
     }
 
@@ -113,7 +114,7 @@ class huobijp extends \ccxt\async\huobijp {
         return $message;
     }
 
-    public function watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * get the list of most recent $trades for a particular $symbol
@@ -142,7 +143,7 @@ class huobijp extends \ccxt\async\huobijp {
                 'symbol' => $symbol,
                 'params' => $params,
             );
-            $trades = Async\await($this->watch($url, $messageHash, array_merge($request, $params), $messageHash, $subscription));
+            $trades = Async\await($this->watch($url, $messageHash, $this->extend($request, $params), $messageHash, $subscription));
             if ($this->newUpdates) {
                 $limit = $trades->getLimit ($symbol, $limit);
             }
@@ -192,7 +193,7 @@ class huobijp extends \ccxt\async\huobijp {
         return $message;
     }
 
-    public function watch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function watch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * watches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
@@ -223,7 +224,7 @@ class huobijp extends \ccxt\async\huobijp {
                 'timeframe' => $timeframe,
                 'params' => $params,
             );
-            $ohlcv = Async\await($this->watch($url, $messageHash, array_merge($request, $params), $messageHash, $subscription));
+            $ohlcv = Async\await($this->watch($url, $messageHash, $this->extend($request, $params), $messageHash, $subscription));
             if ($this->newUpdates) {
                 $limit = $ohlcv->getLimit ($symbol, $limit);
             }
@@ -268,7 +269,7 @@ class huobijp extends \ccxt\async\huobijp {
         $client->resolve ($stored, $ch);
     }
 
-    public function watch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
+    public function watch_order_book(string $symbol, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
@@ -302,7 +303,7 @@ class huobijp extends \ccxt\async\huobijp {
                 'params' => $params,
                 'method' => array($this, 'handle_order_book_subscription'),
             );
-            $orderbook = Async\await($this->watch($url, $messageHash, array_merge($request, $params), $messageHash, $subscription));
+            $orderbook = Async\await($this->watch($url, $messageHash, $this->extend($request, $params), $messageHash, $subscription));
             return $orderbook->limit ();
         }) ();
     }
@@ -375,6 +376,7 @@ class huobijp extends \ccxt\async\huobijp {
                 unset($client->subscriptions[$messageHash]);
                 $client->reject ($e, $messageHash);
             }
+            return null;
         }) ();
     }
 
@@ -548,10 +550,8 @@ class huobijp extends \ccxt\async\huobijp {
                 // ...
             );
             $method = $this->safe_value($methods, $methodName);
-            if ($method === null) {
-                return $message;
-            } else {
-                return $method($client, $message);
+            if ($method !== null) {
+                $method($client, $message);
             }
         }
     }

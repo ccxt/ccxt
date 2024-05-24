@@ -6,13 +6,13 @@ import { ExchangeError, ArgumentsRequired, AuthenticationError, InvalidOrder, In
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha384 } from './static_dependencies/noble-hashes/sha512.js';
-import { Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
+import type { Balances, Currencies, Currency, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
 /**
  * @class bitopro
- * @extends Exchange
+ * @augments Exchange
  */
 export default class bitopro extends Exchange {
     describe () {
@@ -33,6 +33,8 @@ export default class bitopro extends Exchange {
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'cancelOrders': true,
+                'closeAllPositions': false,
+                'closePosition': false,
                 'createOrder': true,
                 'editOrder': false,
                 'fetchBalance': true,
@@ -65,8 +67,13 @@ export default class bitopro extends Exchange {
                 'fetchOrderBook': true,
                 'fetchOrders': false,
                 'fetchOrderTrades': false,
+                'fetchPosition': false,
+                'fetchPositionHistory': false,
                 'fetchPositionMode': false,
                 'fetchPositions': false,
+                'fetchPositionsForSymbol': false,
+                'fetchPositionsHistory': false,
+                'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchTicker': true,
                 'fetchTickers': true,
@@ -213,7 +220,7 @@ export default class bitopro extends Exchange {
         });
     }
 
-    async fetchCurrencies (params = {}) {
+    async fetchCurrencies (params = {}): Promise<Currencies> {
         /**
          * @method
          * @name bitopro#fetchCurrencies
@@ -240,7 +247,7 @@ export default class bitopro extends Exchange {
         //         ]
         //     }
         //
-        const result = {};
+        const result: Dict = {};
         for (let i = 0; i < currencies.length; i++) {
             const currency = currencies[i];
             const currencyId = this.safeString (currency, 'currency');
@@ -250,7 +257,7 @@ export default class bitopro extends Exchange {
             const fee = this.safeNumber (currency, 'withdrawFee');
             const withdrawMin = this.safeNumber (currency, 'minWithdraw');
             const withdrawMax = this.safeNumber (currency, 'maxWithdraw');
-            const limits = {
+            const limits: Dict = {
                 'withdraw': {
                     'min': withdrawMin,
                     'max': withdrawMax,
@@ -277,7 +284,7 @@ export default class bitopro extends Exchange {
         return result;
     }
 
-    async fetchMarkets (params = {}) {
+    async fetchMarkets (params = {}): Promise<Market[]> {
         /**
          * @method
          * @name bitopro#fetchMarkets
@@ -320,7 +327,7 @@ export default class bitopro extends Exchange {
         const base = this.safeCurrencyCode (baseId);
         const quote = this.safeCurrencyCode (quoteId);
         const symbol = base + '/' + quote;
-        const limits = {
+        const limits: Dict = {
             'amount': {
                 'min': this.safeNumber (market, 'minLimitBaseAmount'),
                 'max': this.safeNumber (market, 'maxLimitBaseAmount'),
@@ -373,7 +380,7 @@ export default class bitopro extends Exchange {
         };
     }
 
-    parseTicker (ticker, market: Market = undefined): Ticker {
+    parseTicker (ticker: Dict, market: Market = undefined): Ticker {
         //
         //     {
         //         "pair":"btc_twd",
@@ -424,7 +431,7 @@ export default class bitopro extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'pair': market['id'],
         };
         const response = await this.publicGetTickersPair (this.extend (request, params));
@@ -489,7 +496,7 @@ export default class bitopro extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'pair': market['id'],
         };
         if (limit !== undefined) {
@@ -620,7 +627,7 @@ export default class bitopro extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'pair': market['id'],
         };
         const response = await this.publicGetTradesPair (this.extend (request, params));
@@ -640,7 +647,7 @@ export default class bitopro extends Exchange {
         return this.parseTrades (trades, market, since, limit);
     }
 
-    async fetchTradingFees (params = {}) {
+    async fetchTradingFees (params = {}): Promise<TradingFees> {
         /**
          * @method
          * @name bitopro#fetchTradingFees
@@ -714,7 +721,7 @@ export default class bitopro extends Exchange {
         //         ]
         //     }
         //
-        const result = {};
+        const result: Dict = {};
         const maker = this.safeNumber (first, 'makerFee');
         const taker = this.safeNumber (first, 'takerFee');
         for (let i = 0; i < this.symbols.length; i++) {
@@ -758,13 +765,15 @@ export default class bitopro extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const resolution = this.safeString (this.timeframes, timeframe, timeframe);
-        const request = {
+        const request: Dict = {
             'pair': market['id'],
             'resolution': resolution,
         };
         // we need to have a limit argument because "to" and "from" are required
         if (limit === undefined) {
             limit = 500;
+        } else {
+            limit = Math.min (limit, 75000); // supports slightly more than 75k candles atm, but limit here to avoid errors
         }
         const timeframeInSeconds = this.parseTimeframe (timeframe);
         let alignedSince = undefined;
@@ -847,7 +856,7 @@ export default class bitopro extends Exchange {
         //         "tradable":true
         //     }]
         //
-        const result = {
+        const result: Dict = {
             'info': response,
         };
         for (let i = 0; i < response.length; i++) {
@@ -856,7 +865,7 @@ export default class bitopro extends Exchange {
             const code = this.safeCurrencyCode (currencyId);
             const amount = this.safeString (balance, 'amount');
             const available = this.safeString (balance, 'available');
-            const account = {
+            const account: Dict = {
                 'free': available,
                 'total': amount,
             };
@@ -893,8 +902,8 @@ export default class bitopro extends Exchange {
         return this.parseBalance (balances);
     }
 
-    parseOrderStatus (status) {
-        const statuses = {
+    parseOrderStatus (status: Str) {
+        const statuses: Dict = {
             '-1': 'open',
             '0': 'open',
             '1': 'open',
@@ -996,7 +1005,7 @@ export default class bitopro extends Exchange {
         }, market);
     }
 
-    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
         /**
          * @method
          * @name bitopro#createOrder
@@ -1012,7 +1021,7 @@ export default class bitopro extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'type': type,
             'pair': market['id'],
             'action': side,
@@ -1073,7 +1082,7 @@ export default class bitopro extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'id': id,
             'pair': market['id'],
         };
@@ -1107,7 +1116,7 @@ export default class bitopro extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const id = market['uppercaseId'];
-        const request = {};
+        const request: Dict = {};
         request[id] = ids;
         const response = await this.privatePutOrders (this.extend (request, params));
         //
@@ -1134,7 +1143,7 @@ export default class bitopro extends Exchange {
          * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
-        const request = {
+        const request: Dict = {
             // 'pair': market['id'], // optional
         };
         let response = undefined;
@@ -1174,7 +1183,7 @@ export default class bitopro extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'orderId': id,
             'pair': market['id'],
         };
@@ -1222,7 +1231,7 @@ export default class bitopro extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'pair': market['id'],
             // 'startTimestamp': 0,
             // 'endTimestamp': 0,
@@ -1269,11 +1278,11 @@ export default class bitopro extends Exchange {
         return this.parseOrders (orders, market, since, limit);
     }
 
-    fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
-        const request = {
+    async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+        const request: Dict = {
             'statusKind': 'OPEN',
         };
-        return this.fetchOrders (symbol, since, limit, this.extend (request, params));
+        return await this.fetchOrders (symbol, since, limit, this.extend (request, params));
     }
 
     async fetchClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
@@ -1284,11 +1293,11 @@ export default class bitopro extends Exchange {
          * @see https://github.com/bitoex/bitopro-offical-api-docs/blob/master/api/v3/private/get_orders_data.md
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
-         * @param {int} [limit] the maximum number of  orde structures to retrieve
+         * @param {int} [limit] the maximum number of order structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
-        const request = {
+        const request: Dict = {
             'statusKind': 'DONE',
         };
         return this.fetchOrders (symbol, since, limit, this.extend (request, params));
@@ -1311,7 +1320,7 @@ export default class bitopro extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'pair': market['id'],
         };
         const response = await this.privateGetOrdersTradesPair (this.extend (request, params));
@@ -1339,7 +1348,7 @@ export default class bitopro extends Exchange {
     }
 
     parseTransactionStatus (status) {
-        const states = {
+        const states: Dict = {
             'COMPLETE': 'ok',
             'INVALID': 'failed',
             'PROCESSING': 'pending',
@@ -1453,7 +1462,7 @@ export default class bitopro extends Exchange {
         }
         await this.loadMarkets ();
         const currency = this.safeCurrency (code);
-        const request = {
+        const request: Dict = {
             'currency': currency['id'],
             // 'endTimestamp': 0,
             // 'id': '',
@@ -1506,7 +1515,7 @@ export default class bitopro extends Exchange {
         }
         await this.loadMarkets ();
         const currency = this.safeCurrency (code);
-        const request = {
+        const request: Dict = {
             'currency': currency['id'],
             // 'endTimestamp': 0,
             // 'id': '',
@@ -1557,7 +1566,7 @@ export default class bitopro extends Exchange {
         }
         await this.loadMarkets ();
         const currency = this.safeCurrency (code);
-        const request = {
+        const request: Dict = {
             'serial': id,
             'currency': currency['id'],
         };
@@ -1582,7 +1591,7 @@ export default class bitopro extends Exchange {
         return this.parseTransaction (result, currency);
     }
 
-    async withdraw (code: string, amount, address, tag = undefined, params = {}) {
+    async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}) {
         /**
          * @method
          * @name bitopro#withdraw
@@ -1599,7 +1608,7 @@ export default class bitopro extends Exchange {
         await this.loadMarkets ();
         this.checkAddress (address);
         const currency = this.currency (code);
-        const request = {
+        const request: Dict = {
             'currency': currency['id'],
             'amount': this.numberToString (amount),
             'address': address,
@@ -1688,7 +1697,7 @@ export default class bitopro extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeValue (response, 'data', []);
+        const data = this.safeList (response, 'data', []);
         return this.parseDepositWithdrawFees (data, codes, 'currency');
     }
 
@@ -1713,7 +1722,7 @@ export default class bitopro extends Exchange {
                     url += '?' + this.urlencode (query);
                 }
                 const nonce = this.milliseconds ();
-                const rawData = {
+                const rawData: Dict = {
                     'nonce': nonce,
                 };
                 const data = this.json (rawData);

@@ -1,0 +1,49 @@
+{
+    "exchange": "independentreserve",
+    "skipKeys": [
+        "apiKey",
+        "nonce",
+        "signature"
+    ],
+    "outputType": "json",
+    "methods": {
+        "createOrder": [
+            {
+                "description": "market buy",
+                "method": "createOrder",
+                "url": "https://api.independentreserve.com/Private/PlaceMarketOrder",
+                "input": [
+                    "BTC/USD",
+                    "market",
+                    "buy",
+                    0.1
+                ],
+                "output": "{\"apiKey\":\"key\",\"nonce\":1704966791,\"signature\":\"4125F18EEBC077BDB02DA1FB95D3499842183986F9A20927F3125F611A1ACA61\",\"primaryCurrencyCode\":\"Xbt\",\"secondaryCurrencyCode\":\"Usd\",\"orderType\":\"MarketBid\",\"volume\":0.1}"
+            },
+            {
+                "description": "limit buy",
+                "method": "createOrder",
+                "url": "https://api.independentreserve.com/Private/PlaceLimitOrder",
+                "input": [
+                    "BTC/USD",
+                    "limit",
+                    "buy",
+                    0.1,
+                    44000
+                ],
+                "output": "{\"apiKey\":\"key\",\"nonce\":1704966791,\"signature\":\"4125F18EEBC077BDB02DA1FB95D3499842183986F9A20927F3125F611A1ACA61\",\"primaryCurrencyCode\":\"Xbt\",\"secondaryCurrencyCode\":\"Usd\",\"orderType\":\"LimitBid\",\"volume\":0.1,\"price\":44000}"
+            }
+        ],
+        "fetchDepositAddress": [
+            {
+                "description": "Fetch Deposit Address",
+                "method": "fetchDepositAddress",
+                "url": "https://api.independentreserve.com/Private/GetDigitalCurrencyDepositAddress",
+                "input": [
+                  "BTC"
+                ],
+                "output": "{\"apiKey\":\"key\",\"nonce\":1708428106,\"signature\":\"4125F18EEBC077BDB02DA1FB95D3499842183986F9A20927F3125F611A1ACA61\",\"primaryCurrencyCode\":\"Xbt\"}"
+            }
+        ]
+    }
+}

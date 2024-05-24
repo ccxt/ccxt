@@ -1,6 +1,5 @@
 <?php
 namespace ccxt;
-use \ccxt\Precise;
 
 // ----------------------------------------------------------------------------
 
@@ -22,7 +21,7 @@ function test_proxy_url($exchange, $skipped_properties) {
     $method = 'proxyUrl';
     $proxy_server_ip = '5.75.153.75';
     [$proxy_url, $http_proxy, $https_proxy, $socks_proxy] = remove_proxy_options($exchange, $skipped_properties);
-    $exchange->proxy_url = 'http://' . $proxy_server_ip . ':8090/proxy.php?url=';
+    $exchange->proxy_url = 'http://' . $proxy_server_ip . ':8090/proxy_url.php?caller=https://ccxt.com&url=';
     $encoded_colon = '%3A';
     $encoded_slash = '%2F';
     $ip_check_url = 'https' . $encoded_colon . $encoded_slash . $encoded_slash . 'api.ipify.org';
@@ -61,7 +60,7 @@ function test_proxy_for_exceptions($exchange, $skipped_properties) {
                 $exception_caught = false;
                 try {
                     $exchange->fetch('http://example.com'); // url does not matter, it will not be called
-                } catch(Exception $e) {
+                } catch(\Throwable $e) {
                     $exception_caught = true;
                 }
                 assert($exception_caught, $exchange->id . ' ' . $method . ' test failed. No exception was thrown, while ' . $proxy_first . ' and ' . $proxy_second . ' were set together');

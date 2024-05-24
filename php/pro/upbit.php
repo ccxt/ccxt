@@ -7,6 +7,7 @@ namespace ccxt\pro;
 
 use Exception; // a common import
 use React\Async;
+use React\Promise\PromiseInterface;
 
 class upbit extends \ccxt\async\upbit {
 
@@ -56,7 +57,7 @@ class upbit extends \ccxt\async\upbit {
         }) ();
     }
 
-    public function watch_ticker(string $symbol, $params = array ()) {
+    public function watch_ticker(string $symbol, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
@@ -68,7 +69,7 @@ class upbit extends \ccxt\async\upbit {
         }) ();
     }
 
-    public function watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * get the list of most recent $trades for a particular $symbol
@@ -88,7 +89,7 @@ class upbit extends \ccxt\async\upbit {
         }) ();
     }
 
-    public function watch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
+    public function watch_order_book(string $symbol, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
@@ -175,15 +176,15 @@ class upbit extends \ccxt\async\upbit {
         if ($type === 'SNAPSHOT') {
             $this->orderbooks[$symbol] = $this->order_book(array(), $limit);
         }
-        $orderBook = $this->orderbooks[$symbol];
+        $orderbook = $this->orderbooks[$symbol];
         // upbit always returns a snapshot of 15 topmost entries
         // the "REALTIME" deltas are not incremental
-        // therefore we reset the orderbook on each update
+        // therefore we reset the $orderbook on each update
         // and reinitialize it again with new bidasks
-        $orderBook->reset (array());
-        $orderBook['symbol'] = $symbol;
-        $bids = $orderBook['bids'];
-        $asks = $orderBook['asks'];
+        $orderbook->reset (array());
+        $orderbook['symbol'] = $symbol;
+        $bids = $orderbook['bids'];
+        $asks = $orderbook['asks'];
         $data = $this->safe_value($message, 'orderbook_units', array());
         for ($i = 0; $i < count($data); $i++) {
             $entry = $data[$i];
@@ -196,10 +197,10 @@ class upbit extends \ccxt\async\upbit {
         }
         $timestamp = $this->safe_integer($message, 'timestamp');
         $datetime = $this->iso8601($timestamp);
-        $orderBook['timestamp'] = $timestamp;
-        $orderBook['datetime'] = $datetime;
+        $orderbook['timestamp'] = $timestamp;
+        $orderbook['datetime'] = $datetime;
         $messageHash = 'orderbook:' . $marketId;
-        $client->resolve ($orderBook, $messageHash);
+        $client->resolve ($orderbook, $messageHash);
     }
 
     public function handle_trades(Client $client, $message) {

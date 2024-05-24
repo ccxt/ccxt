@@ -3,7 +3,6 @@
 import asyncio
 import socket
 import collections
-from ccxt import NetworkError
 from ccxt.async_support.base.ws.aiohttp_client import AiohttpClient
 
 
@@ -36,7 +35,10 @@ class FastClient(AiohttpClient):
             self.stack.append(message)
 
         def feed_eof():
-            self.on_error(NetworkError(1006))
+            if self._close_code == 1000:  # OK close
+                self.on_close(1000)
+            else:
+                self.on_error(1006)  # ABNORMAL_CLOSURE
 
         def wrapper(func):
             def parse_frame(buf):
@@ -56,6 +58,7 @@ class FastClient(AiohttpClient):
                 try:
                     await _self._writer.close(code, message)
                     _self._response.close()
+                    self._close_code = 1000
                 except asyncio.CancelledError:
                     _self._response.close()
                     _self._close_code = 1006

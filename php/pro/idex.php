@@ -9,6 +9,7 @@ use Exception; // a common import
 use ccxt\InvalidNonce;
 use ccxt\Precise;
 use React\Async;
+use React\Promise\PromiseInterface;
 
 class idex extends \ccxt\async\idex {
 
@@ -74,7 +75,7 @@ class idex extends \ccxt\async\idex {
         }) ();
     }
 
-    public function watch_ticker(string $symbol, $params = array ()) {
+    public function watch_ticker(string $symbol, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
@@ -90,7 +91,7 @@ class idex extends \ccxt\async\idex {
                 'markets' => [ $market['id'] ],
             );
             $messageHash = $name . ':' . $market['id'];
-            return Async\await($this->subscribe(array_merge($subscribeObject, $params), $messageHash));
+            return Async\await($this->subscribe($this->extend($subscribeObject, $params), $messageHash));
         }) ();
     }
 
@@ -148,7 +149,7 @@ class idex extends \ccxt\async\idex {
         $client->resolve ($ticker, $messageHash);
     }
 
-    public function watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * get the list of most recent $trades for a particular $symbol
@@ -245,7 +246,7 @@ class idex extends \ccxt\async\idex {
         ));
     }
 
-    public function watch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function watch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * watches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
@@ -342,7 +343,7 @@ class idex extends \ccxt\async\idex {
                         $symbol = $this->safe_symbol($marketId);
                         if (!(is_array($this->orderbooks) && array_key_exists($symbol, $this->orderbooks))) {
                             $orderbook = $this->counted_order_book(array());
-                            $orderbook->cache = array();
+                            // $orderbook->cache = array(); // cache is never used?
                             $this->orderbooks[$symbol] = $orderbook;
                         }
                         $this->spawn(array($this, 'fetch_order_book_snapshot'), $client, $symbol);
@@ -418,7 +419,7 @@ class idex extends \ccxt\async\idex {
         }) ();
     }
 
-    public function watch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
+    public function watch_order_book(string $symbol, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
@@ -501,7 +502,7 @@ class idex extends \ccxt\async\idex {
         $price = $this->safe_float($delta, 0);
         $amount = $this->safe_float($delta, 1);
         $count = $this->safe_integer($delta, 2);
-        $bookside->store ($price, $amount, $count);
+        $bookside->storeArray (array( $price, $amount, $count ));
     }
 
     public function handle_deltas($bookside, $deltas) {
@@ -519,7 +520,7 @@ class idex extends \ccxt\async\idex {
                     'wallet' => $this->walletAddress,
                     'nonce' => $this->uuidv1(),
                 );
-                $response = Async\await($this->privateGetWsToken (array_merge($request, $params)));
+                $response = Async\await($this->privateGetWsToken ($this->extend($request, $params)));
                 $this->options['lastAuthenticatedTime'] = $time;
                 $this->options['token'] = $this->safe_string($response, 'token');
             }
@@ -527,13 +528,13 @@ class idex extends \ccxt\async\idex {
         }) ();
     }
 
-    public function watch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function watch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * watches information on multiple $orders made by the user
              * @param {string} $symbol unified market $symbol of the market $orders were made in
              * @param {int} [$since] the earliest time in ms to fetch $orders for
-             * @param {int} [$limit] the maximum number of  orde structures to retrieve
+             * @param {int} [$limit] the maximum number of order structures to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */

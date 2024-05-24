@@ -1,4 +1,15 @@
 {
+    "LBK": {
+        "id": "lbk",
+        "code": "LBK",
+        "precision": 1,
+        "fees": {},
+        "networks": {},
+        "limits": {
+            "deposit": {},
+            "withdraw": {}
+        }
+    },
     "BTC": {
         "id": "btc",
         "code": "BTC",

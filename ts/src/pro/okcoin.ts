@@ -5,7 +5,7 @@ import okcoinRest from '../okcoin.js';
 import { ArgumentsRequired, AuthenticationError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
-import { Int, Str } from '../base/types.js';
+import type { Int, Str, OrderBook, Order, Trade, Ticker, OHLCV, Balances, Dict } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -60,14 +60,14 @@ export default class okcoin extends okcoinRest {
         const market = this.market (symbol);
         const url = this.urls['api']['ws'];
         const messageHash = market['type'] + '/' + channel + ':' + market['id'];
-        const request = {
+        const request: Dict = {
             'op': 'subscribe',
             'args': [ messageHash ],
         };
         return await this.watch (url, messageHash, this.deepExtend (request, params), messageHash);
     }
 
-    async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         /**
          * @method
          * @name okcoin#watchTrades
@@ -87,14 +87,14 @@ export default class okcoin extends okcoinRest {
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
-    async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name okcoin#watchOrders
          * @description watches information on multiple orders made by the user
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
-         * @param {int} [limit] the maximum number of  orde structures to retrieve
+         * @param {int} [limit] the maximum number of order structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
@@ -158,7 +158,7 @@ export default class okcoin extends okcoinRest {
                 this.orders = new ArrayCacheBySymbolById (limit);
             }
             const stored = this.orders;
-            const marketIds = {};
+            const marketIds: Dict = {};
             const parsed = this.parseOrders (orders);
             for (let i = 0; i < parsed.length; i++) {
                 const order = parsed[i];
@@ -175,7 +175,7 @@ export default class okcoin extends okcoinRest {
         }
     }
 
-    async watchTicker (symbol: string, params = {}) {
+    async watchTicker (symbol: string, params = {}): Promise<Ticker> {
         /**
          * @method
          * @name okcoin#watchTicker
@@ -258,7 +258,7 @@ export default class okcoin extends okcoinRest {
         return message;
     }
 
-    async watchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}) {
+    async watchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         /**
          * @method
          * @name okcoin#watchOHLCV
@@ -327,7 +327,7 @@ export default class okcoin extends okcoinRest {
         }
     }
 
-    async watchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
+    async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         /**
          * @method
          * @name okcoin#watchOrderBook
@@ -481,7 +481,7 @@ export default class okcoin extends okcoinRest {
             const path = '/users/self/verify';
             const auth = timestamp + method + path;
             const signature = this.hmac (this.encode (auth), this.encode (this.secret), sha256, 'base64');
-            const request = {
+            const request: Dict = {
                 'op': messageHash,
                 'args': [
                     this.apiKey,
@@ -495,7 +495,7 @@ export default class okcoin extends okcoinRest {
         return await future;
     }
 
-    async watchBalance (params = {}) {
+    async watchBalance (params = {}): Promise<Balances> {
         /**
          * @method
          * @name okcoin#watchBalance
@@ -554,7 +554,7 @@ export default class okcoin extends okcoinRest {
         const messageHash = accountType + '/' + account;
         const subscriptionHash = messageHash + ':' + suffix;
         const url = this.urls['api']['ws'];
-        const request = {
+        const request: Dict = {
             'op': 'subscribe',
             'args': [ subscriptionHash ],
         };
@@ -730,29 +730,28 @@ export default class okcoin extends okcoinRest {
         // }
         //
         if (message === 'pong') {
-            return this.handlePong (client, message);
+            this.handlePong (client, message);
+            return;
         }
         const table = this.safeString (message, 'table');
         if (table === undefined) {
             const event = this.safeString (message, 'event');
             if (event !== undefined) {
-                const methods = {
+                const methods: Dict = {
                     // 'info': this.handleSystemStatus,
                     // 'book': 'handleOrderBook',
                     'login': this.handleAuthenticate,
                     'subscribe': this.handleSubscriptionStatus,
                 };
                 const method = this.safeValue (methods, event);
-                if (method === undefined) {
-                    return message;
-                } else {
-                    return method.call (this, client, message);
+                if (method !== undefined) {
+                    method.call (this, client, message);
                 }
             }
         } else {
             const parts = table.split ('/');
             const name = this.safeString (parts, 1);
-            const methods = {
+            const methods: Dict = {
                 'depth': this.handleOrderBook,
                 'depth5': this.handleOrderBook,
                 'depth_l2_tbt': this.handleOrderBook,
@@ -767,10 +766,8 @@ export default class okcoin extends okcoinRest {
             if (name.indexOf ('candle') >= 0) {
                 method = this.handleOHLCV;
             }
-            if (method === undefined) {
-                return message;
-            } else {
-                return method.call (this, client, message);
+            if (method !== undefined) {
+                method.call (this, client, message);
             }
         }
     }

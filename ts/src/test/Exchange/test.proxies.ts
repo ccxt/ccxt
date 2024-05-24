@@ -1,8 +1,8 @@
-
 import assert from 'assert';
+import { Exchange } from "../../../ccxt";
 import testSharedMethods from './base/test.sharedMethods.js';
 
-async function testProxies (exchange, skippedProperties) {
+async function testProxies (exchange: Exchange, skippedProperties: object) {
     await testProxyUrl (exchange, skippedProperties);
     await testHttpProxy (exchange, skippedProperties);
     // 'httpsProxy', 'socksProxy'
@@ -10,11 +10,11 @@ async function testProxies (exchange, skippedProperties) {
 }
 
 
-async function testProxyUrl (exchange, skippedProperties) {
+async function testProxyUrl (exchange: Exchange, skippedProperties: object) {
     const method = 'proxyUrl';
     const proxyServerIp = '5.75.153.75';
     const [ proxyUrl, httpProxy, httpsProxy, socksProxy ] = testSharedMethods.removeProxyOptions (exchange, skippedProperties);
-    exchange.proxyUrl = 'http://' + proxyServerIp + ':8090/proxy.php?url=';
+    exchange.proxyUrl = 'http://' + proxyServerIp + ':8090/proxy_url.php?caller=https://ccxt.com&url=';
     const encodedColon = '%3A';
     const encodedSlash = '%2F';
     const ipCheckUrl = 'https' + encodedColon + encodedSlash + encodedSlash + 'api.ipify.org';
@@ -25,7 +25,7 @@ async function testProxyUrl (exchange, skippedProperties) {
 }
 
 
-async function testHttpProxy (exchange, skippedProperties) {
+async function testHttpProxy (exchange: Exchange, skippedProperties: object) {
     const method = 'httpProxy';
     const proxyServerIp = '5.75.153.75';
     const [ proxyUrl, httpProxy, httpsProxy, socksProxy ] = testSharedMethods.removeProxyOptions (exchange, skippedProperties);
@@ -39,7 +39,7 @@ async function testHttpProxy (exchange, skippedProperties) {
 
 
 // with the below method we test out all variations of possible proxy options, so at least 2 of them should be set together, and such cases must throw exception
-async function testProxyForExceptions (exchange, skippedProperties) {
+async function testProxyForExceptions (exchange: Exchange, skippedProperties: object) {
     const method = 'testProxyForExceptions';
     const [ proxyUrl, httpProxy, httpsProxy, socksProxy ] = testSharedMethods.removeProxyOptions (exchange, skippedProperties);
     const possibleOptionsArray = [

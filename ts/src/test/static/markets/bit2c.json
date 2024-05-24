@@ -1,0 +1,12 @@
+{
+    "BTC/NIS": {
+        "id": "BtcNis",
+        "symbol": "BTC/NIS",
+        "base": "BTC",
+        "quote": "NIS",
+        "baseId": "Btc",
+        "quoteId": "Nis",
+        "type": "spot",
+        "spot": true
+    }
+}

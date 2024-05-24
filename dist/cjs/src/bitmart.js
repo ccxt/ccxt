@@ -10,7 +10,7 @@ var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 //  ---------------------------------------------------------------------------
 /**
  * @class bitmart
- * @extends Exchange
+ * @augments Exchange
  */
 class bitmart extends bitmart$1 {
     describe() {
@@ -35,12 +35,17 @@ class bitmart extends bitmart$1 {
                 'borrowIsolatedMargin': true,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
-                'cancelOrders': false,
+                'cancelOrders': true,
+                'createMarketBuyOrderWithCost': true,
+                'createMarketOrderWithCost': false,
+                'createMarketSellOrderWithCost': false,
                 'createOrder': true,
+                'createOrders': true,
                 'createPostOnlyOrder': true,
                 'createStopLimitOrder': false,
                 'createStopMarketOrder': false,
                 'createStopOrder': false,
+                'createTrailingPercentOrder': true,
                 'fetchBalance': true,
                 'fetchBorrowInterest': true,
                 'fetchBorrowRateHistories': false,
@@ -175,7 +180,7 @@ class bitmart extends bitmart$1 {
                         'spot/v2/orders': 5,
                         'spot/v1/trades': 5,
                         // newer order endpoint
-                        'spot/v2/trades': 5,
+                        'spot/v2/trades': 4,
                         'spot/v3/orders': 5,
                         'spot/v2/order_detail': 1,
                         // margin
@@ -193,6 +198,7 @@ class bitmart extends bitmart$1 {
                         'contract/private/order-history': 10,
                         'contract/private/position': 10,
                         'contract/private/get-open-orders': 1.2,
+                        'contract/private/current-plan-order': 1.2,
                         'contract/private/trades': 10,
                     },
                     'post': {
@@ -218,6 +224,8 @@ class bitmart extends bitmart$1 {
                         'spot/v4/query/history-orders': 5,
                         'spot/v4/query/trades': 5,
                         'spot/v4/query/order-trades': 5,
+                        'spot/v4/cancel_orders': 3,
+                        'spot/v4/batch_orders': 3,
                         // newer endpoint
                         'spot/v3/cancel_order': 1,
                         'spot/v2/batch_orders': 1,
@@ -258,8 +266,8 @@ class bitmart extends bitmart$1 {
                 'trading': {
                     'tierBased': true,
                     'percentage': true,
-                    'taker': this.parseNumber('0.0025'),
-                    'maker': this.parseNumber('0.0025'),
+                    'taker': this.parseNumber('0.0040'),
+                    'maker': this.parseNumber('0.0035'),
                     'tiers': {
                         'taker': [
                             [this.parseNumber('0'), this.parseNumber('0.0020')],
@@ -302,7 +310,11 @@ class bitmart extends bitmart$1 {
                     '30012': errors.AuthenticationError,
                     '30013': errors.RateLimitExceeded,
                     '30014': errors.ExchangeNotAvailable,
-                    // funding account errors
+                    '30016': errors.OnMaintenance,
+                    '30017': errors.RateLimitExceeded,
+                    '30018': errors.BadRequest,
+                    '30019': errors.PermissionDenied,
+                    // funding account & sub account errors
                     '60000': errors.BadRequest,
                     '60001': errors.BadRequest,
                     '60002': errors.BadRequest,
@@ -319,13 +331,32 @@ class bitmart extends bitmart$1 {
                     '60020': errors.PermissionDenied,
                     '60021': errors.PermissionDenied,
                     '60022': errors.PermissionDenied,
+                    '60026': errors.PermissionDenied,
+                    '60027': errors.PermissionDenied,
+                    '60028': errors.AccountSuspended,
+                    '60029': errors.AccountSuspended,
                     '60030': errors.BadRequest,
                     '60031': errors.BadRequest,
                     '60050': errors.ExchangeError,
                     '60051': errors.ExchangeError,
                     '61001': errors.InsufficientFunds,
                     '61003': errors.BadRequest,
-                    // spot errors
+                    '61004': errors.BadRequest,
+                    '61005': errors.BadRequest,
+                    '61006': errors.NotSupported,
+                    '61007': errors.ExchangeError,
+                    '61008': errors.ExchangeError,
+                    // spot public errors
+                    '70000': errors.ExchangeError,
+                    '70001': errors.BadRequest,
+                    '70002': errors.BadSymbol,
+                    '70003': errors.NetworkError,
+                    '71001': errors.BadRequest,
+                    '71002': errors.BadRequest,
+                    '71003': errors.BadRequest,
+                    '71004': errors.BadRequest,
+                    '71005': errors.BadRequest,
+                    // spot & margin errors
                     '50000': errors.BadRequest,
                     '50001': errors.BadSymbol,
                     '50002': errors.BadRequest,
@@ -345,26 +376,75 @@ class bitmart extends bitmart$1 {
                     '50016': errors.BadRequest,
                     '50017': errors.BadRequest,
                     '50018': errors.BadRequest,
-                    '50019': errors.BadRequest,
-                    '51004': errors.InsufficientFunds,
-                    // '50019': ExchangeError, // 400, Invalid status. validate status is [1=Failed, 2=Success, 3=Frozen Failed, 4=Frozen Success, 5=Partially Filled, 6=Fully Fulled, 7=Canceling, 8=Canceled
+                    '50019': errors.ExchangeError,
                     '50020': errors.InsufficientFunds,
                     '50021': errors.BadRequest,
                     '50022': errors.ExchangeNotAvailable,
                     '50023': errors.BadSymbol,
+                    '50024': errors.BadRequest,
+                    '50025': errors.BadRequest,
+                    '50026': errors.BadRequest,
+                    '50027': errors.BadRequest,
+                    '50028': errors.BadRequest,
                     '50029': errors.InvalidOrder,
-                    '50030': errors.InvalidOrder,
+                    '50030': errors.OrderNotFound,
+                    '50031': errors.OrderNotFound,
                     '50032': errors.OrderNotFound,
+                    '50033': errors.InvalidOrder,
                     // below Error codes used interchangeably for both failed postOnly and IOC orders depending on market price and order side
-                    '50035': errors.InvalidOrder,
                     '50034': errors.InvalidOrder,
+                    '50035': errors.InvalidOrder,
+                    '50036': errors.ExchangeError,
+                    '50037': errors.BadRequest,
+                    '50038': errors.BadRequest,
+                    '50039': errors.BadRequest,
+                    '50040': errors.BadSymbol,
+                    '50041': errors.ExchangeError,
+                    '50042': errors.BadRequest,
+                    '51000': errors.BadSymbol,
+                    '51001': errors.ExchangeError,
+                    '51002': errors.ExchangeError,
+                    '51003': errors.ExchangeError,
+                    '51004': errors.InsufficientFunds,
+                    '51005': errors.InvalidOrder,
+                    '51006': errors.InvalidOrder,
+                    '51007': errors.BadRequest,
+                    '51008': errors.ExchangeError,
+                    '51009': errors.InvalidOrder,
+                    '51010': errors.InvalidOrder,
                     '51011': errors.InvalidOrder,
+                    '51012': errors.InvalidOrder,
+                    '51013': errors.InvalidOrder,
+                    '51014': errors.InvalidOrder,
+                    '51015': errors.InvalidOrder,
+                    '52000': errors.BadRequest,
+                    '52001': errors.BadRequest,
+                    '52002': errors.BadRequest,
+                    '52003': errors.BadRequest,
+                    '52004': errors.BadRequest,
                     '53000': errors.AccountSuspended,
                     '53001': errors.AccountSuspended,
+                    '53002': errors.PermissionDenied,
+                    '53003': errors.PermissionDenied,
+                    '53005': errors.PermissionDenied,
+                    '53006': errors.PermissionDenied,
+                    '53007': errors.PermissionDenied,
+                    '53008': errors.PermissionDenied,
+                    '53009': errors.PermissionDenied,
+                    '53010': errors.PermissionDenied,
                     '57001': errors.BadRequest,
                     '58001': errors.BadRequest,
                     '59001': errors.ExchangeError,
                     '59002': errors.ExchangeError,
+                    '59003': errors.ExchangeError,
+                    '59004': errors.ExchangeError,
+                    '59005': errors.PermissionDenied,
+                    '59006': errors.ExchangeError,
+                    '59007': errors.ExchangeError,
+                    '59008': errors.ExchangeError,
+                    '59009': errors.ExchangeError,
+                    '59010': errors.InsufficientFunds,
+                    '59011': errors.ExchangeError,
                     // contract errors
                     '40001': errors.ExchangeError,
                     '40002': errors.ExchangeError,
@@ -400,14 +480,22 @@ class bitmart extends bitmart$1 {
                     '40032': errors.InvalidOrder,
                     '40033': errors.InvalidOrder,
                     '40034': errors.BadSymbol,
-                    '53002': errors.PermissionDenied,
-                    '53003': errors.PermissionDenied,
-                    '53005': errors.PermissionDenied,
-                    '53006': errors.PermissionDenied,
-                    '53007': errors.PermissionDenied,
-                    '53008': errors.PermissionDenied,
-                    '53009': errors.PermissionDenied,
-                    '53010': errors.PermissionDenied, // 403 This account is restricted from borrowing
+                    '40035': errors.OrderNotFound,
+                    '40036': errors.InvalidOrder,
+                    '40037': errors.OrderNotFound,
+                    '40038': errors.BadRequest,
+                    '40039': errors.BadRequest,
+                    '40040': errors.InvalidOrder,
+                    '40041': errors.InvalidOrder,
+                    '40042': errors.InvalidOrder,
+                    '40043': errors.InvalidOrder,
+                    '40044': errors.InvalidOrder,
+                    '40045': errors.InvalidOrder,
+                    '40046': errors.PermissionDenied,
+                    '40047': errors.PermissionDenied,
+                    '40048': errors.BadRequest,
+                    '40049': errors.BadRequest,
+                    '40050': errors.InvalidOrder, // 403, Client OrderId duplicated with existing orders
                 },
                 'broad': {},
             },
@@ -428,6 +516,7 @@ class bitmart extends bitmart$1 {
                 },
                 'networks': {
                     'ERC20': 'ERC20',
+                    'SOL': 'SOL',
                     'BTC': 'BTC',
                     'TRC20': 'TRC20',
                     // todo: should be TRX after unification
@@ -450,7 +539,6 @@ class bitmart extends bitmart$1 {
                     'FIO': 'FIO',
                     'SCRT': 'SCRT',
                     'IOTX': 'IOTX',
-                    'SOL': 'SOL',
                     'ALGO': 'ALGO',
                     'ATOM': 'ATOM',
                     'DOT': 'DOT',
@@ -1039,7 +1127,7 @@ class bitmart extends bitmart$1 {
     }
     parseTicker(ticker, market = undefined) {
         //
-        // spot
+        // spot (REST)
         //
         //      {
         //          "symbol": "SOLAR_USDT",
@@ -1059,6 +1147,17 @@ class bitmart extends bitmart$1 {
         //          "timestamp": 1667403439367
         //      }
         //
+        // spot (WS)
+        //      {
+        //          "symbol":"BTC_USDT",
+        //          "last_price":"146.24",
+        //          "open_24h":"147.17",
+        //          "high_24h":"147.48",
+        //          "low_24h":"143.88",
+        //          "base_volume_24h":"117387.58", // NOT base, but quote currency!!!
+        //          "s_t": 1610936002
+        //      }
+        //
         // swap
         //
         //      {
@@ -1074,7 +1173,11 @@ class bitmart extends bitmart$1 {
         //          "legal_coin_price":"0.1302699"
         //      }
         //
-        const timestamp = this.safeInteger(ticker, 'timestamp', this.milliseconds());
+        let timestamp = this.safeInteger(ticker, 'timestamp');
+        if (timestamp === undefined) {
+            // ticker from WS has a different field (in seconds)
+            timestamp = this.safeIntegerProduct(ticker, 's_t', 1000);
+        }
         const marketId = this.safeString2(ticker, 'symbol', 'contract_symbol');
         market = this.safeMarket(marketId, market);
         const symbol = market['symbol'];
@@ -1090,9 +1193,20 @@ class bitmart extends bitmart$1 {
                 percentage = '0';
             }
         }
-        const baseVolume = this.safeString(ticker, 'base_volume_24h');
+        let baseVolume = this.safeString(ticker, 'base_volume_24h');
         let quoteVolume = this.safeString(ticker, 'quote_volume_24h');
-        quoteVolume = this.safeString(ticker, 'volume_24h', quoteVolume);
+        if (quoteVolume === undefined) {
+            if (baseVolume === undefined) {
+                // this is swap
+                quoteVolume = this.safeString(ticker, 'volume_24h', quoteVolume);
+            }
+            else {
+                // this is a ticker from websockets
+                // contrary to name and documentation, base_volume_24h is actually the quote volume
+                quoteVolume = baseVolume;
+                baseVolume = undefined;
+            }
+        }
         const average = this.safeString2(ticker, 'avg_price', 'index_price');
         const high = this.safeString2(ticker, 'high_24h', 'high_price');
         const low = this.safeString2(ticker, 'low_24h', 'low_price');
@@ -1206,7 +1320,7 @@ class bitmart extends bitmart$1 {
         else if (market['swap']) {
             tickersById = this.indexBy(tickers, 'contract_symbol');
         }
-        const ticker = this.safeValue(tickersById, market['id']);
+        const ticker = this.safeDict(tickersById, market['id']);
         return this.parseTicker(ticker, market);
     }
     async fetchTickers(symbols = undefined, params = {}) {
@@ -1331,48 +1445,58 @@ class bitmart extends bitmart$1 {
         //
         // public fetchTrades spot ( amount = count * price )
         //
-        //     {
-        //          "amount": "818.94",
-        //          "order_time": "1637601839035",    // ETH/USDT
-        //          "price": "4221.99",
-        //          "count": "0.19397",
-        //          "type": "buy"
-        //      }
+        //    {
+        //        "amount": "818.94",
+        //        "order_time": "1637601839035",    // ETH/USDT
+        //        "price": "4221.99",
+        //        "count": "0.19397",
+        //        "type": "buy"
+        //    }
         //
         // spot: fetchMyTrades
         //
-        //     {
-        //         "tradeId":"182342999769370687",
-        //         "orderId":"183270218784142990",
-        //         "clientOrderId":"183270218784142990",
-        //         "symbol":"ADA_USDT",
-        //         "side":"buy",
-        //         "orderMode":"spot",
-        //         "type":"market",
-        //         "price":"0.245948",
-        //         "size":"20.71",
-        //         "notional":"5.09358308",
-        //         "fee":"0.00509358",
-        //         "feeCoinName":"USDT",
-        //         "tradeRole":"taker",
-        //         "createTime":1695658457836,
-        //     }
+        //    {
+        //        "tradeId":"182342999769370687",
+        //        "orderId":"183270218784142990",
+        //        "clientOrderId":"183270218784142990",
+        //        "symbol":"ADA_USDT",
+        //        "side":"buy",
+        //        "orderMode":"spot",
+        //        "type":"market",
+        //        "price":"0.245948",
+        //        "size":"20.71",
+        //        "notional":"5.09358308",
+        //        "fee":"0.00509358",
+        //        "feeCoinName":"USDT",
+        //        "tradeRole":"taker",
+        //        "createTime":1695658457836,
+        //    }
         //
         // swap: fetchMyTrades
         //
-        //     {
-        //         "order_id": "230930336848609",
-        //         "trade_id": "6212604014",
-        //         "symbol": "BTCUSDT",
-        //         "side": 3,
-        //         "price": "26910.4",
-        //         "vol": "1",
-        //         "exec_type": "Taker",
-        //         "profit": false,
-        //         "create_time": 1695961596692,
-        //         "realised_profit": "-0.0003",
-        //         "paid_fees": "0.01614624"
-        //     }
+        //    {
+        //        "order_id": "230930336848609",
+        //        "trade_id": "6212604014",
+        //        "symbol": "BTCUSDT",
+        //        "side": 3,
+        //        "price": "26910.4",
+        //        "vol": "1",
+        //        "exec_type": "Taker",
+        //        "profit": false,
+        //        "create_time": 1695961596692,
+        //        "realised_profit": "-0.0003",
+        //        "paid_fees": "0.01614624"
+        //    }
+        //
+        // ws swap
+        //
+        //    {
+        //        'fee': '-0.000044502',
+        //        'feeCcy': 'USDT',
+        //        'fillPrice': '74.17',
+        //        'fillQty': '1',
+        //        'lastTradeID': 6802340762
+        //    }
         //
         const timestamp = this.safeIntegerN(trade, ['order_time', 'createTime', 'create_time']);
         const isPublicTrade = ('order_time' in trade);
@@ -1386,7 +1510,7 @@ class bitmart extends bitmart$1 {
             side = this.safeString(trade, 'type');
         }
         else {
-            amount = this.safeString2(trade, 'size', 'vol');
+            amount = this.safeStringN(trade, ['size', 'vol', 'fillQty']);
             cost = this.safeString(trade, 'notional');
             type = this.safeString(trade, 'type');
             side = this.parseOrderSide(this.safeString(trade, 'side'));
@@ -1408,14 +1532,14 @@ class bitmart extends bitmart$1 {
         }
         return this.safeTrade({
             'info': trade,
-            'id': this.safeString2(trade, 'tradeId', 'trade_id'),
+            'id': this.safeStringN(trade, ['tradeId', 'trade_id', 'lastTradeID']),
             'order': this.safeString2(trade, 'orderId', 'order_id'),
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
             'symbol': market['symbol'],
             'type': type,
             'side': side,
-            'price': this.safeString(trade, 'price'),
+            'price': this.safeString2(trade, 'price', 'fillPrice'),
             'amount': amount,
             'cost': cost,
             'takerOrMaker': this.safeStringLower2(trade, 'tradeRole', 'exec_type'),
@@ -1463,44 +1587,51 @@ class bitmart extends bitmart$1 {
         //     }
         //
         const data = this.safeValue(response, 'data', {});
-        const trades = this.safeValue(data, 'trades', []);
+        const trades = this.safeList(data, 'trades', []);
         return this.parseTrades(trades, market, since, limit);
     }
     parseOHLCV(ohlcv, market = undefined) {
         //
         // spot
-        //
-        //     [
-        //         "1699512060", // timestamp
-        //         "36746.49", // open
-        //         "36758.71", // high
-        //         "36736.13", // low
-        //         "36755.99", // close
-        //         "2.83965", // base volume
-        //         "104353.57" // quote volume
-        //     ]
+        //    [
+        //        "1699512060", // timestamp
+        //        "36746.49", // open
+        //        "36758.71", // high
+        //        "36736.13", // low
+        //        "36755.99", // close
+        //        "2.83965", // base volume
+        //        "104353.57" // quote volume
+        //    ]
         //
         // swap
-        //
-        //     {
-        //         "low_price": "20090.3",
-        //         "high_price": "20095.5",
-        //         "open_price": "20092.6",
-        //         "close_price": "20091.4",
-        //         "volume": "8748",
-        //         "timestamp": 1665002281
-        //     }
+        //    {
+        //        "low_price": "20090.3",
+        //        "high_price": "20095.5",
+        //        "open_price": "20092.6",
+        //        "close_price": "20091.4",
+        //        "volume": "8748",
+        //        "timestamp": 1665002281
+        //    }
         //
         // ws
+        //    [
+        //        1631056350, // timestamp
+        //        "46532.83", // open
+        //        "46555.71", // high
+        //        "46511.41", // low
+        //        "46555.71", // close
+        //        "0.25", // volume
+        //    ]
         //
-        //     [
-        //         1631056350, // timestamp
-        //         "46532.83", // open
-        //         "46555.71", // high
-        //         "46511.41", // low
-        //         "46555.71", // close
-        //         "0.25", // volume
-        //     ]
+        // ws swap
+        //    {
+        //        "symbol":"BTCUSDT",
+        //        "o":"146.24",
+        //        "h":"146.24",
+        //        "l":"146.24",
+        //        "c":"146.24",
+        //        "v":"146"
+        //    }
         //
         if (Array.isArray(ohlcv)) {
             return [
@@ -1514,12 +1645,12 @@ class bitmart extends bitmart$1 {
         }
         else {
             return [
-                this.safeTimestamp(ohlcv, 'timestamp'),
-                this.safeNumber(ohlcv, 'open_price'),
-                this.safeNumber(ohlcv, 'high_price'),
-                this.safeNumber(ohlcv, 'low_price'),
-                this.safeNumber(ohlcv, 'close_price'),
-                this.safeNumber(ohlcv, 'volume'),
+                this.safeTimestamp2(ohlcv, 'timestamp', 'ts'),
+                this.safeNumber2(ohlcv, 'open_price', 'o'),
+                this.safeNumber2(ohlcv, 'high_price', 'h'),
+                this.safeNumber2(ohlcv, 'low_price', 'l'),
+                this.safeNumber2(ohlcv, 'close_price', 'c'),
+                this.safeNumber2(ohlcv, 'volume', 'v'),
             ];
         }
     }
@@ -1626,7 +1757,7 @@ class bitmart extends bitmart$1 {
         //         "trace": "96c989db-e0f5-46f5-bba6-60cfcbde699b"
         //     }
         //
-        const ohlcv = this.safeValue(response, 'data', []);
+        const ohlcv = this.safeList(response, 'data', []);
         return this.parseOHLCVs(ohlcv, market, timeframe, since, limit);
     }
     async fetchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -1742,7 +1873,7 @@ class bitmart extends bitmart$1 {
         //         "trace": "4cad855074634097ac6ba5257c47305d.62.16959616054873723"
         //     }
         //
-        const data = this.safeValue(response, 'data', []);
+        const data = this.safeList(response, 'data', []);
         return this.parseTrades(data, market, since, limit);
     }
     async fetchOrderTrades(id, symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -1763,7 +1894,7 @@ class bitmart extends bitmart$1 {
             'orderId': id,
         };
         const response = await this.privatePostSpotV4QueryOrderTrades(this.extend(request, params));
-        const data = this.safeValue(response, 'data', {});
+        const data = this.safeList(response, 'data', []);
         return this.parseTrades(data, undefined, since, limit);
     }
     customParseBalance(response, marketType) {
@@ -1835,7 +1966,7 @@ class bitmart extends bitmart$1 {
         let marketType = undefined;
         [marketType, params] = this.handleMarketTypeAndParams('fetchBalance', undefined, params);
         const marginMode = this.safeString(params, 'marginMode');
-        const isMargin = this.safeValue(params, 'margin', false);
+        const isMargin = this.safeBool(params, 'margin', false);
         params = this.omit(params, ['margin', 'marginMode']);
         if (marginMode !== undefined || isMargin) {
             marketType = 'margin';
@@ -1967,6 +2098,8 @@ class bitmart extends bitmart$1 {
             'symbol': symbol,
             'maker': this.safeNumber(fee, 'maker_fee_rate'),
             'taker': this.safeNumber(fee, 'taker_fee_rate'),
+            'percentage': undefined,
+            'tierBased': undefined,
         };
     }
     async fetchTradingFee(symbol, params = {}) {
@@ -2056,7 +2189,7 @@ class bitmart extends bitmart$1 {
         //        "updateTime" : 1681701559408
         //    }
         //
-        // swap: fetchOrder, fetchOpenOrders
+        // swap: fetchOrder, fetchOpenOrders, fetchClosedOrders
         //
         //     {
         //         "order_id": "230935812485489",
@@ -2072,7 +2205,10 @@ class bitmart extends bitmart$1 {
         //         "deal_avg_price": "0",
         //         "deal_size": "0",
         //         "create_time": 1695702258629,
-        //         "update_time": 1695702258642
+        //         "update_time": 1695702258642,
+        //         "activation_price_type": 0,
+        //         "activation_price": "",
+        //         "callback_rate": ""
         //     }
         //
         let id = undefined;
@@ -2102,6 +2238,7 @@ class bitmart extends bitmart$1 {
         if (priceString === 'market price') {
             priceString = undefined;
         }
+        const trailingActivationPrice = this.safeNumber(order, 'activation_price');
         return this.safeOrder({
             'id': id,
             'clientOrderId': this.safeString(order, 'client_order_id'),
@@ -2115,8 +2252,8 @@ class bitmart extends bitmart$1 {
             'postOnly': postOnly,
             'side': this.parseOrderSide(this.safeString(order, 'side')),
             'price': this.omitZero(priceString),
-            'stopPrice': undefined,
-            'triggerPrice': undefined,
+            'stopPrice': trailingActivationPrice,
+            'triggerPrice': trailingActivationPrice,
             'amount': this.omitZero(this.safeString(order, 'size')),
             'cost': this.safeString2(order, 'filled_notional', 'filledNotional'),
             'average': this.safeStringN(order, ['price_avg', 'priceAvg', 'deal_avg_price']),
@@ -2161,16 +2298,36 @@ class bitmart extends bitmart$1 {
         const statuses = this.safeValue(statusesByType, type, {});
         return this.safeString(statuses, status, status);
     }
+    async createMarketBuyOrderWithCost(symbol, cost, params = {}) {
+        /**
+         * @method
+         * @name bitmart#createMarketBuyOrderWithCost
+         * @description create a market buy order by providing the symbol and cost
+         * @see https://developer-pro.bitmart.com/en/spot/#new-order-v2-signed
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {float} cost how much you want to trade in units of the quote currency
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        await this.loadMarkets();
+        const market = this.market(symbol);
+        if (!market['spot']) {
+            throw new errors.NotSupported(this.id + ' createMarketBuyOrderWithCost() supports spot orders only');
+        }
+        params['createMarketBuyOrderRequiresPrice'] = false;
+        return await this.createOrder(symbol, 'market', 'buy', cost, undefined, params);
+    }
     async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
         /**
          * @method
          * @name bitmart#createOrder
          * @description create a trade order
-         * @see https://developer-pro.bitmart.com/en/spot/#place-spot-order
+         * @see https://developer-pro.bitmart.com/en/spot/#new-order-v2-signed
          * @see https://developer-pro.bitmart.com/en/spot/#place-margin-order
          * @see https://developer-pro.bitmart.com/en/futures/#submit-order-signed
+         * @see https://developer-pro.bitmart.com/en/futures/#submit-plan-order-signed
          * @param {string} symbol unified symbol of the market to create an order in
-         * @param {string} type 'market' or 'limit'
+         * @param {string} type 'market', 'limit' or 'trailing' for swap markets only
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
          * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
@@ -2180,12 +2337,20 @@ class bitmart extends bitmart$1 {
          * @param {string} [params.clientOrderId] client order id of the order
          * @param {boolean} [params.reduceOnly] *swap only* reduce only
          * @param {boolean} [params.postOnly] make sure the order is posted to the order book and not matched immediately
+         * @param {string} [params.triggerPrice] *swap only* the price to trigger a stop order
+         * @param {int} [params.price_type] *swap only* 1: last price, 2: fair price, default is 1
+         * @param {int} [params.price_way] *swap only* 1: price way long, 2: price way short
+         * @param {int} [params.activation_price_type] *swap trailing order only* 1: last price, 2: fair price, default is 1
+         * @param {string} [params.trailingPercent] *swap only* the percent to trail away from the current market price, min 0.1 max 5
+         * @param {string} [params.trailingTriggerPrice] *swap only* the price to trigger a trailing order, default uses the price argument
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
         const market = this.market(symbol);
         const result = this.handleMarginModeAndParams('createOrder', params);
         const marginMode = this.safeString(result, 0);
+        const triggerPrice = this.safeStringN(params, ['triggerPrice', 'stopPrice', 'trigger_price']);
+        const isTriggerOrder = triggerPrice !== undefined;
         let response = undefined;
         if (market['spot']) {
             const spotRequest = this.createSpotOrderRequest(symbol, type, side, amount, price, params);
@@ -2198,7 +2363,12 @@ class bitmart extends bitmart$1 {
         }
         else {
             const swapRequest = this.createSwapOrderRequest(symbol, type, side, amount, price, params);
-            response = await this.privatePostContractPrivateSubmitOrder(swapRequest);
+            if (isTriggerOrder) {
+                response = await this.privatePostContractPrivateSubmitPlanOrder(swapRequest);
+            }
+            else {
+                response = await this.privatePostContractPrivateSubmitOrder(swapRequest);
+            }
         }
         //
         // spot and margin
@@ -2223,14 +2393,86 @@ class bitmart extends bitmart$1 {
         order['price'] = price;
         return order;
     }
+    async createOrders(orders, params = {}) {
+        /**
+         * @method
+         * @name bitmart#createOrders
+         * @description create a list of trade orders
+         * @see https://developer-pro.bitmart.com/en/spot/#new-batch-order-v4-signed
+         * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
+         * @param {object} [params]  extra parameters specific to the exchange API endpoint
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        await this.loadMarkets();
+        const ordersRequests = [];
+        let symbol = undefined;
+        let market = undefined;
+        for (let i = 0; i < orders.length; i++) {
+            const rawOrder = orders[i];
+            const marketId = this.safeString(rawOrder, 'symbol');
+            market = this.market(marketId);
+            if (!market['spot']) {
+                throw new errors.NotSupported(this.id + ' createOrders() supports spot orders only');
+            }
+            if (symbol === undefined) {
+                symbol = marketId;
+            }
+            else {
+                if (symbol !== marketId) {
+                    throw new errors.BadRequest(this.id + ' createOrders() requires all orders to have the same symbol');
+                }
+            }
+            const type = this.safeString(rawOrder, 'type');
+            const side = this.safeString(rawOrder, 'side');
+            const amount = this.safeValue(rawOrder, 'amount');
+            const price = this.safeValue(rawOrder, 'price');
+            const orderParams = this.safeDict(rawOrder, 'params', {});
+            let orderRequest = this.createSpotOrderRequest(marketId, type, side, amount, price, orderParams);
+            orderRequest = this.omit(orderRequest, ['symbol']); // not needed because it goes in the outter object
+            ordersRequests.push(orderRequest);
+        }
+        const request = {
+            'symbol': market['id'],
+            'orderParams': ordersRequests,
+        };
+        const response = await this.privatePostSpotV4BatchOrders(request);
+        //
+        // {
+        //     "message": "OK",
+        //     "code": 1000,
+        //     "trace": "5fc697fb817a4b5396284786a9b2609a.263.17022620476480263",
+        //     "data": {
+        //       "code": 0,
+        //       "msg": "success",
+        //       "data": {
+        //         "orderIds": [
+        //           "212751308355553320"
+        //         ]
+        //       }
+        //     }
+        // }
+        //
+        const data = this.safeDict(response, 'data', {});
+        const innderData = this.safeDict(data, 'data', {});
+        const orderIds = this.safeList(innderData, 'orderIds', []);
+        const parsedOrders = [];
+        for (let i = 0; i < orderIds.length; i++) {
+            const orderId = orderIds[i];
+            const order = this.safeOrder({ 'id': orderId }, market);
+            parsedOrders.push(order);
+        }
+        return parsedOrders;
+    }
     createSwapOrderRequest(symbol, type, side, amount, price = undefined, params = {}) {
         /**
          * @method
          * @name bitmart#createSwapOrderRequest
+         * @ignore
          * @description create a trade order
          * @see https://developer-pro.bitmart.com/en/futures/#submit-order-signed
+         * @see https://developer-pro.bitmart.com/en/futures/#submit-plan-order-signed
          * @param {string} symbol unified symbol of the market to create an order in
-         * @param {string} type 'market' or 'limit'
+         * @param {string} type 'market', 'limit' or 'trailing'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
          * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
@@ -2238,7 +2480,13 @@ class bitmart extends bitmart$1 {
          * @param {int} [params.leverage] leverage level
          * @param {boolean} [params.reduceOnly] *swap only* reduce only
          * @param {string} [params.marginMode] 'cross' or 'isolated', default is 'cross'
-         *  @param {string} [params.clientOrderId] client order id of the order
+         * @param {string} [params.clientOrderId] client order id of the order
+         * @param {string} [params.triggerPrice] *swap only* the price to trigger a stop order
+         * @param {int} [params.price_type] *swap only* 1: last price, 2: fair price, default is 1
+         * @param {int} [params.price_way] *swap only* 1: price way long, 2: price way short
+         * @param {int} [params.activation_price_type] *swap trailing order only* 1: last price, 2: fair price, default is 1
+         * @param {string} [params.trailingPercent] *swap only* the percent to trail away from the current market price, min 0.1 max 5
+         * @param {string} [params.trailingTriggerPrice] *swap only* the price to trigger a trailing order, default uses the price argument
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         const market = this.market(symbol);
@@ -2254,7 +2502,6 @@ class bitmart extends bitmart$1 {
         const reduceOnly = this.safeValue(params, 'reduceOnly');
         const isExchangeSpecificPo = (mode === 4);
         [postOnly, params] = this.handlePostOnly(isMarketOrder, isExchangeSpecificPo, params);
-        params = this.omit(params, ['timeInForce', 'postOnly', 'reduceOnly']);
         const ioc = ((timeInForce === 'IOC') || (mode === 3));
         const isLimitOrder = (type === 'limit') || postOnly || ioc;
         if (timeInForce === 'GTC') {
@@ -2269,12 +2516,43 @@ class bitmart extends bitmart$1 {
         if (postOnly) {
             request['mode'] = 4;
         }
+        const triggerPrice = this.safeStringN(params, ['triggerPrice', 'stopPrice', 'trigger_price']);
+        const isTriggerOrder = triggerPrice !== undefined;
+        const trailingTriggerPrice = this.safeString2(params, 'trailingTriggerPrice', 'activation_price', this.numberToString(price));
+        const trailingPercent = this.safeString2(params, 'trailingPercent', 'callback_rate');
+        const isTrailingPercentOrder = trailingPercent !== undefined;
         if (isLimitOrder) {
             request['price'] = this.priceToPrecision(symbol, price);
         }
+        else if (type === 'trailing' || isTrailingPercentOrder) {
+            request['callback_rate'] = trailingPercent;
+            request['activation_price'] = this.priceToPrecision(symbol, trailingTriggerPrice);
+            request['activation_price_type'] = this.safeInteger(params, 'activation_price_type', 1);
+        }
+        if (isTriggerOrder) {
+            request['executive_price'] = this.priceToPrecision(symbol, price);
+            request['trigger_price'] = this.priceToPrecision(symbol, triggerPrice);
+            request['price_type'] = this.safeInteger(params, 'price_type', 1);
+            if (side === 'buy') {
+                if (reduceOnly) {
+                    request['price_way'] = 2;
+                }
+                else {
+                    request['price_way'] = 1;
+                }
+            }
+            else if (side === 'sell') {
+                if (reduceOnly) {
+                    request['price_way'] = 1;
+                }
+                else {
+                    request['price_way'] = 2;
+                }
+            }
+        }
         if (side === 'buy') {
             if (reduceOnly) {
-                request['side'] = 2; // sell close long
+                request['side'] = 2; // buy close short
             }
             else {
                 request['side'] = 1; // buy open long
@@ -2297,7 +2575,7 @@ class bitmart extends bitmart$1 {
             request['client_order_id'] = clientOrderId;
         }
         const leverage = this.safeInteger(params, 'leverage', 1);
-        params = this.omit(params, 'leverage');
+        params = this.omit(params, ['timeInForce', 'postOnly', 'reduceOnly', 'leverage', 'trailingTriggerPrice', 'trailingPercent', 'triggerPrice', 'stopPrice']);
         request['leverage'] = this.numberToString(leverage);
         return this.extend(request, params);
     }
@@ -2305,6 +2583,7 @@ class bitmart extends bitmart$1 {
         /**
          * @method
          * @name bitmart#createSpotOrderRequest
+         * @ignore
          * @description create a spot order request
          * @see https://developer-pro.bitmart.com/en/spot/#place-spot-order
          * @see https://developer-pro.bitmart.com/en/spot/#place-margin-order
@@ -2343,22 +2622,22 @@ class bitmart extends bitmart$1 {
         else if (isMarketOrder) {
             // for market buy it requires the amount of quote currency to spend
             if (side === 'buy') {
-                let notional = this.safeNumber(params, 'notional');
-                const createMarketBuyOrderRequiresPrice = this.safeValue(this.options, 'createMarketBuyOrderRequiresPrice', true);
+                let notional = this.safeString2(params, 'cost', 'notional');
+                params = this.omit(params, 'cost');
+                let createMarketBuyOrderRequiresPrice = true;
+                [createMarketBuyOrderRequiresPrice, params] = this.handleOptionAndParams(params, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
                 if (createMarketBuyOrderRequiresPrice) {
-                    if (price !== undefined) {
-                        if (notional === undefined) {
-                            const amountString = this.numberToString(amount);
-                            const priceString = this.numberToString(price);
-                            notional = this.parseNumber(Precise["default"].stringMul(amountString, priceString));
-                        }
+                    if ((price === undefined) && (notional === undefined)) {
+                        throw new errors.InvalidOrder(this.id + ' createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument or in the "notional" extra parameter (the exchange-specific behaviour)');
                     }
-                    else if (notional === undefined) {
-                        throw new errors.InvalidOrder(this.id + " createOrder () requires the price argument with market buy orders to calculate total order cost (amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = false and supply the total cost value in the 'amount' argument or in the 'notional' extra parameter (the exchange-specific behaviour)");
+                    else {
+                        const amountString = this.numberToString(amount);
+                        const priceString = this.numberToString(price);
+                        notional = Precise["default"].stringMul(amountString, priceString);
                     }
                 }
                 else {
-                    notional = (notional === undefined) ? amount : notional;
+                    notional = (notional === undefined) ? this.numberToString(amount) : notional;
                 }
                 request['notional'] = this.decimalToPrecision(notional, number.TRUNCATE, market['precision']['price'], this.precisionMode);
             }
@@ -2378,10 +2657,11 @@ class bitmart extends bitmart$1 {
         /**
          * @method
          * @name bitmart#cancelOrder
+         * @description cancels an open order
          * @see https://developer-pro.bitmart.com/en/futures/#cancel-order-signed
          * @see https://developer-pro.bitmart.com/en/spot/#cancel-order-v3-signed
          * @see https://developer-pro.bitmart.com/en/futures/#cancel-plan-order-signed
-         * @description cancels an open order
+         * @see https://developer-pro.bitmart.com/en/futures/#cancel-plan-order-signed
          * @param {string} id order id
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -2410,8 +2690,8 @@ class bitmart extends bitmart$1 {
             response = await this.privatePostSpotV3CancelOrder(this.extend(request, params));
         }
         else {
-            const stop = this.safeValue(params, 'stop');
-            params = this.omit(params, ['stop']);
+            const stop = this.safeValue2(params, 'stop', 'trigger');
+            params = this.omit(params, ['stop', 'trigger']);
             if (!stop) {
                 response = await this.privatePostContractPrivateCancelOrder(this.extend(request, params));
             }
@@ -2464,6 +2744,68 @@ class bitmart extends bitmart$1 {
         }
         const order = this.parseOrder(id, market);
         return this.extend(order, { 'id': id });
+    }
+    async cancelOrders(ids, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name bitmart#cancelOrders
+         * @description cancel multiple orders
+         * @see https://developer-pro.bitmart.com/en/spot/#cancel-batch-order-v4-signed
+         * @param {string[]} ids order ids
+         * @param {string} symbol unified symbol of the market the order was made in
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string[]} [params.clientOrderIds] client order ids
+         * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        if (symbol === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' cancelOrders() requires a symbol argument');
+        }
+        await this.loadMarkets();
+        const market = this.market(symbol);
+        if (!market['spot']) {
+            throw new errors.NotSupported(this.id + ' cancelOrders() does not support ' + market['type'] + ' orders, only spot orders are accepted');
+        }
+        const clientOrderIds = this.safeList(params, 'clientOrderIds');
+        params = this.omit(params, ['clientOrderIds']);
+        const request = {
+            'symbol': market['id'],
+        };
+        if (clientOrderIds !== undefined) {
+            request['clientOrderIds'] = clientOrderIds;
+        }
+        else {
+            request['orderIds'] = ids;
+        }
+        const response = await this.privatePostSpotV4CancelOrders(this.extend(request, params));
+        //
+        //  {
+        //      "message": "OK",
+        //      "code": 1000,
+        //      "trace": "c4edbce860164203954f7c3c81d60fc6.309.17022669632770001",
+        //      "data": {
+        //        "successIds": [
+        //          "213055379155243012"
+        //        ],
+        //        "failIds": [],
+        //        "totalCount": 1,
+        //        "successCount": 1,
+        //        "failedCount": 0
+        //      }
+        //  }
+        //
+        const data = this.safeDict(response, 'data', {});
+        const allOrders = [];
+        const successIds = this.safeList(data, 'successIds', []);
+        for (let i = 0; i < successIds.length; i++) {
+            const id = successIds[i];
+            allOrders.push(this.safeOrder({ 'id': id, 'status': 'canceled' }, market));
+        }
+        const failIds = this.safeList(data, 'failIds', []);
+        for (let i = 0; i < failIds.length; i++) {
+            const id = failIds[i];
+            allOrders.push(this.safeOrder({ 'id': id, 'status': 'failed' }, market));
+        }
+        return allOrders;
     }
     async cancelAllOrders(symbol = undefined, params = {}) {
         /**
@@ -2572,7 +2914,7 @@ class bitmart extends bitmart$1 {
         //     }
         //
         const data = this.safeValue(response, 'data', {});
-        const orders = this.safeValue(data, 'orders', []);
+        const orders = this.safeList(data, 'orders', []);
         return this.parseOrders(orders, market, since, limit);
     }
     async fetchOpenOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -2581,6 +2923,7 @@ class bitmart extends bitmart$1 {
          * @name bitmart#fetchOpenOrders
          * @see https://developer-pro.bitmart.com/en/spot/#current-open-orders-v4-signed
          * @see https://developer-pro.bitmart.com/en/futures/#get-all-open-orders-keyed
+         * @see https://developer-pro.bitmart.com/en/futures/#get-all-current-plan-orders-keyed
          * @description fetch all unfilled currently open orders
          * @param {string} symbol unified market symbol
          * @param {int} [since] the earliest time in ms to fetch open orders for
@@ -2590,6 +2933,9 @@ class bitmart extends bitmart$1 {
          * @param {int} [params.until] *spot* the latest time in ms to fetch orders for
          * @param {string} [params.type] *swap* order type, 'limit' or 'market'
          * @param {string} [params.order_state] *swap* the order state, 'all' or 'partially_filled', default is 'all'
+         * @param {string} [params.orderType] *swap only* 'limit', 'market', or 'trailing'
+         * @param {boolean} [params.trailing] *swap only* set to true if you want to fetch trailing orders
+         * @param {boolean} [params.trigger] *swap only* set to true if you want to fetch trigger orders
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
@@ -2622,7 +2968,23 @@ class bitmart extends bitmart$1 {
             response = await this.privatePostSpotV4QueryOpenOrders(this.extend(request, params));
         }
         else if (type === 'swap') {
-            response = await this.privateGetContractPrivateGetOpenOrders(this.extend(request, params));
+            const isStop = this.safeValue2(params, 'stop', 'trigger');
+            params = this.omit(params, ['stop', 'trigger']);
+            if (isStop) {
+                response = await this.privateGetContractPrivateCurrentPlanOrder(this.extend(request, params));
+            }
+            else {
+                const trailing = this.safeBool(params, 'trailing', false);
+                let orderType = this.safeString(params, 'orderType');
+                params = this.omit(params, ['orderType', 'trailing']);
+                if (trailing) {
+                    orderType = 'trailing';
+                }
+                if (orderType !== undefined) {
+                    request['type'] = orderType;
+                }
+                response = await this.privateGetContractPrivateGetOpenOrders(this.extend(request, params));
+            }
         }
         else {
             throw new errors.NotSupported(this.id + ' fetchOpenOrders() does not support ' + type + ' orders, only spot and swap orders are accepted');
@@ -2681,7 +3043,7 @@ class bitmart extends bitmart$1 {
         //         "trace": "7f9d94g10f9d4513bc08a7rfc3a5559a.71.16957022303515933"
         //     }
         //
-        const data = this.safeValue(response, 'data', []);
+        const data = this.safeList(response, 'data', []);
         return this.parseOrders(data, market, since, limit);
     }
     async fetchClosedOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -2693,7 +3055,7 @@ class bitmart extends bitmart$1 {
          * @description fetches information on multiple closed orders made by the user
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
-         * @param {int} [limit] the maximum number of  orde structures to retrieve
+         * @param {int} [limit] the maximum number of order structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {int} [params.until] timestamp in ms of the latest entry
          * @param {string} [params.marginMode] *spot only* 'cross' or 'isolated', for margin trading
@@ -2735,7 +3097,7 @@ class bitmart extends bitmart$1 {
         else {
             response = await this.privateGetContractPrivateOrderHistory(this.extend(request, params));
         }
-        const data = this.safeValue(response, 'data', []);
+        const data = this.safeList(response, 'data', []);
         return this.parseOrders(data, market, since, limit);
     }
     async fetchCanceledOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -2763,6 +3125,8 @@ class bitmart extends bitmart$1 {
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {string} [params.clientOrderId] *spot* fetch the order by client order id instead of order id
+         * @param {string} [params.orderType] *swap only* 'limit', 'market', 'liquidate', 'bankruptcy', 'adl' or 'trailing'
+         * @param {boolean} [params.trailing] *swap only* set to true if you want to fetch a trailing order
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
@@ -2789,6 +3153,15 @@ class bitmart extends bitmart$1 {
         else if (type === 'swap') {
             if (symbol === undefined) {
                 throw new errors.ArgumentsRequired(this.id + ' fetchOrder() requires a symbol argument');
+            }
+            const trailing = this.safeBool(params, 'trailing', false);
+            let orderType = this.safeString(params, 'orderType');
+            params = this.omit(params, ['orderType', 'trailing']);
+            if (trailing) {
+                orderType = 'trailing';
+            }
+            if (orderType !== undefined) {
+                request['type'] = orderType;
             }
             request['symbol'] = market['id'];
             request['order_id'] = id;
@@ -2844,7 +3217,7 @@ class bitmart extends bitmart$1 {
         //         "trace": "4cad855075664097af6ba5257c47605d.63.14957831547451715"
         //     }
         //
-        const data = this.safeValue(response, 'data', {});
+        const data = this.safeDict(response, 'data', {});
         return this.parseOrder(data, market);
     }
     async fetchDepositAddress(code, params = {}) {
@@ -2852,6 +3225,7 @@ class bitmart extends bitmart$1 {
          * @method
          * @name bitmart#fetchDepositAddress
          * @description fetch the deposit address for a currency associated with this account
+         * @see https://developer-pro.bitmart.com/en/spot/#deposit-address-keyed
          * @param {string} code unified currency code
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
@@ -2874,40 +3248,57 @@ class bitmart extends bitmart$1 {
         }
         const response = await this.privateGetAccountV1DepositAddress(this.extend(request, params));
         //
-        //     {
-        //         "message":"OK",
-        //         "code":1000,
-        //         "trace":"0e6edd79-f77f-4251-abe5-83ba75d06c1a",
-        //         "data":{
-        //             "currency":"USDT-TRC20",
-        //             "chain":"USDT-TRC20",
-        //             "address":"TGR3ghy2b5VLbyAYrmiE15jasR6aPHTvC5",
-        //             "address_memo":""
-        //         }
-        //     }
+        //    {
+        //        "message": "OK",
+        //        "code": 1000,
+        //        "trace": "0e6edd79-f77f-4251-abe5-83ba75d06c1a",
+        //        "data": {
+        //            currency: 'ETH',
+        //            chain: 'Ethereum',
+        //            address: '0x99B5EEc2C520f86F0F62F05820d28D05D36EccCf',
+        //            address_memo: ''
+        //        }
+        //    }
         //
-        const data = this.safeValue(response, 'data', {});
-        const address = this.safeString(data, 'address');
-        const tag = this.safeString(data, 'address_memo');
-        const chain = this.safeString(data, 'chain');
+        const data = this.safeDict(response, 'data', {});
+        return this.parseDepositAddress(data, currency);
+    }
+    parseDepositAddress(depositAddress, currency = undefined) {
+        //
+        //    {
+        //        currency: 'ETH',
+        //        chain: 'Ethereum',
+        //        address: '0x99B5EEc2C520f86F0F62F05820d28D05D36EccCf',
+        //        address_memo: ''
+        //    }
+        //
+        const currencyId = this.safeString(depositAddress, 'currency');
+        const address = this.safeString(depositAddress, 'address');
+        const chain = this.safeString(depositAddress, 'chain');
         let network = undefined;
+        currency = this.safeCurrency(currencyId, currency);
         if (chain !== undefined) {
             const parts = chain.split('-');
-            const networkId = this.safeString(parts, 1);
-            network = this.safeNetwork(networkId);
+            const partsLength = parts.length;
+            const networkId = this.safeString(parts, partsLength - 1);
+            network = this.safeNetworkCode(networkId, currency);
         }
         this.checkAddress(address);
         return {
-            'currency': code,
+            'info': depositAddress,
+            'currency': this.safeString(currency, 'code'),
             'address': address,
-            'tag': tag,
+            'tag': this.safeString(depositAddress, 'address_memo'),
             'network': network,
-            'info': response,
         };
     }
-    safeNetwork(networkId) {
-        // TODO: parse
-        return networkId;
+    safeNetworkCode(networkId, currency = undefined) {
+        const name = this.safeString(currency, 'name');
+        if (networkId === name) {
+            const code = this.safeString(currency, 'code');
+            return code;
+        }
+        return this.networkIdToCode(networkId);
     }
     async withdraw(code, amount, address, tag = undefined, params = {}) {
         /**
@@ -3017,7 +3408,7 @@ class bitmart extends bitmart$1 {
         //     }
         //
         const data = this.safeValue(response, 'data', {});
-        const records = this.safeValue(data, 'records', []);
+        const records = this.safeList(data, 'records', []);
         return this.parseTransactions(records, currency, since, limit);
     }
     async fetchDeposit(id, code = undefined, params = {}) {
@@ -3058,7 +3449,7 @@ class bitmart extends bitmart$1 {
         //     }
         //
         const data = this.safeValue(response, 'data', {});
-        const record = this.safeValue(data, 'record', {});
+        const record = this.safeDict(data, 'record', {});
         return this.parseTransaction(record);
     }
     async fetchDeposits(code = undefined, since = undefined, limit = undefined, params = {}) {
@@ -3112,7 +3503,7 @@ class bitmart extends bitmart$1 {
         //     }
         //
         const data = this.safeValue(response, 'data', {});
-        const record = this.safeValue(data, 'record', {});
+        const record = this.safeDict(data, 'record', {});
         return this.parseTransaction(record);
     }
     async fetchWithdrawals(code = undefined, since = undefined, limit = undefined, params = {}) {
@@ -3304,31 +3695,26 @@ class bitmart extends bitmart$1 {
         //         "repay_id": "2afcc16d99bd4707818c5a355dc89bed",
         //     }
         //
-        const timestamp = this.milliseconds();
         return {
             'id': this.safeString2(info, 'borrow_id', 'repay_id'),
             'currency': this.safeCurrencyCode(undefined, currency),
             'amount': undefined,
             'symbol': undefined,
-            'timestamp': timestamp,
-            'datetime': this.iso8601(timestamp),
+            'timestamp': undefined,
+            'datetime': undefined,
             'info': info,
         };
     }
     async fetchIsolatedBorrowRate(symbol, params = {}) {
-        //
-        // @method
-        // @name bitmart#fetchIsolatedBorrowRate
-        // @description fetch the rate of interest to borrow a currency for margin trading
-        // @see https://developer-pro.bitmart.com/en/spot/#get-trading-pair-borrowing-rate-and-amount-keyed
-        // @param {string} symbol unified symbol of the market to fetch the borrow rate for
-        // @param {object} [params] extra parameters specific to the exchange API endpoint
-        // <<<<<<< HEAD
-        // @returns {object} a [borrow rate structure]{@link https://docs.ccxt.com/#/?id=borrow-rate-structure}
-        // =======
-        // @returns {object} an [isolated borrow rate structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#isolated-borrow-rate-structure}
-        // >>>>>>> 3215552206edf1cda1ae63d2063535e19973dbe5
-        //
+        /**
+         * @method
+         * @name bitmart#fetchIsolatedBorrowRate
+         * @description fetch the rate of interest to borrow a currency for margin trading
+         * @see https://developer-pro.bitmart.com/en/spot/#get-trading-pair-borrowing-rate-and-amount-keyed
+         * @param {string} symbol unified symbol of the market to fetch the borrow rate for
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} an [isolated borrow rate structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#isolated-borrow-rate-structure}
+         */
         await this.loadMarkets();
         const market = this.market(symbol);
         const request = {
@@ -3459,12 +3845,7 @@ class bitmart extends bitmart$1 {
         //
         const data = this.safeValue(response, 'data', {});
         const symbols = this.safeValue(data, 'symbols', []);
-        const result = [];
-        for (let i = 0; i < symbols.length; i++) {
-            const symbol = this.safeValue(symbols, i);
-            result.push(this.parseIsolatedBorrowRate(symbol));
-        }
-        return result;
+        return this.parseIsolatedBorrowRates(symbols);
     }
     async transfer(code, amount, fromAccount, toAccount, params = {}) {
         /**
@@ -3640,9 +4021,9 @@ class bitmart extends bitmart$1 {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const until = this.safeInteger2(params, 'until', 'till'); // unified in milliseconds
+        const until = this.safeInteger(params, 'until'); // unified in milliseconds
         const endTime = this.safeInteger(params, 'time_end', until); // exchange-specific in milliseconds
-        params = this.omit(params, ['till', 'until']);
+        params = this.omit(params, ['until']);
         if (endTime !== undefined) {
             request['time_end'] = endTime;
         }
@@ -3667,7 +4048,7 @@ class bitmart extends bitmart$1 {
         //     }
         //
         const data = this.safeValue(response, 'data', {});
-        const records = this.safeValue(data, 'records', []);
+        const records = this.safeList(data, 'records', []);
         return this.parseTransfers(records, currency, since, limit);
     }
     async fetchBorrowInterest(code = undefined, symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -3784,7 +4165,7 @@ class bitmart extends bitmart$1 {
         //         "trace": "7f9c94e10f9d4513bc08a7bfc2a5559a.72.16946575108274991"
         //     }
         //
-        const data = this.safeValue(response, 'data', {});
+        const data = this.safeDict(response, 'data', {});
         return this.parseOpenInterest(data, market);
     }
     parseOpenInterest(interest, market = undefined) {
@@ -3949,7 +4330,7 @@ class bitmart extends bitmart$1 {
         //     }
         //
         const data = this.safeValue(response, 'data', []);
-        const first = this.safeValue(data, 0, {});
+        const first = this.safeDict(data, 0, {});
         return this.parsePosition(first, market);
     }
     async fetchPositions(symbols = undefined, params = {}) {

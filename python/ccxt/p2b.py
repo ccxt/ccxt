@@ -6,13 +6,13 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.p2b import ImplicitAPI
 import hashlib
-from ccxt.base.types import Int, Market, Order, OrderSide, OrderType, Str, Strings, Ticker, Tickers
+from ccxt.base.types import Int, Market, Num, Order, OrderSide, OrderType, Str, Strings, Ticker, Tickers
 from typing import List
+from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import ExchangeNotAvailable
-from ccxt.base.errors import AuthenticationError
 from ccxt.base.decimal_to_precision import TICK_SIZE
 
 
@@ -25,6 +25,7 @@ class p2b(Exchange, ImplicitAPI):
             'countries': ['LT'],
             'rateLimit': 100,
             'version': 'v2',
+            'pro': True,
             'has': {
                 'CORS': None,
                 'spot': True,
@@ -36,6 +37,8 @@ class p2b(Exchange, ImplicitAPI):
                 'cancelAllOrders': False,
                 'cancelOrder': True,
                 'cancelOrders': False,
+                'closeAllPositions': False,
+                'closePosition': False,
                 'createDepositAddress': False,
                 'createMarketOrder': False,
                 'createOrder': True,
@@ -82,8 +85,11 @@ class p2b(Exchange, ImplicitAPI):
                 'fetchOrderTrades': True,
                 'fetchPermissions': False,
                 'fetchPosition': False,
+                'fetchPositionHistory': False,
+                'fetchPositionMode': False,
                 'fetchPositions': False,
                 'fetchPositionsForSymbol': False,
+                'fetchPositionsHistory': False,
                 'fetchPositionsRisk': False,
                 'fetchPremiumIndexOHLCV': False,
                 'fetchTicker': True,
@@ -233,7 +239,7 @@ class p2b(Exchange, ImplicitAPI):
             },
         })
 
-    def fetch_markets(self, params={}):
+    def fetch_markets(self, params={}) -> List[Market]:
         """
         retrieves data on all markets for bigone
         :see: https://github.com/P2B-team/p2b-api-docs/blob/master/api-doc.md#markets
@@ -380,7 +386,7 @@ class p2b(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'market': market['id'],
         }
         response = self.publicGetTicker(self.extend(request, params))
@@ -484,7 +490,7 @@ class p2b(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'market': market['id'],
         }
         if limit is not None:
@@ -527,7 +533,6 @@ class p2b(Exchange, ImplicitAPI):
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: 1-100, default=50
         :param dict [params]: extra parameters specific to the exchange API endpoint
-         *
         :param int params['lastId']: order id
         :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/#/?id=public-trades>`
         """
@@ -536,7 +541,7 @@ class p2b(Exchange, ImplicitAPI):
         if lastId is None:
             raise ArgumentsRequired(self.id + ' fetchTrades() requires an extra parameter params["lastId"]')
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'market': market['id'],
             'lastId': lastId,
         }
@@ -562,7 +567,7 @@ class p2b(Exchange, ImplicitAPI):
         #        current_time: '1699255571.413828'
         #    }
         #
-        result = self.safe_value(response, 'result', [])
+        result = self.safe_list(response, 'result', [])
         return self.parse_trades(result, market, since, limit)
 
     def parse_trade(self, trade, market: Market = None):
@@ -640,13 +645,12 @@ class p2b(Exchange, ImplicitAPI):
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: 1-500, default=50
         :param dict [params]: extra parameters specific to the exchange API endpoint
-         *
         :param int [params.offset]: default=0, with self value the last candles are returned
         :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
         self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'market': market['id'],
             'interval': timeframe,
         }
@@ -675,7 +679,7 @@ class p2b(Exchange, ImplicitAPI):
         #        current_time: '1699256375.030494'
         #    }
         #
-        result = self.safe_value(response, 'result', [])
+        result = self.safe_list(response, 'result', [])
         return self.parse_ohlcvs(result, market, timeframe, since, limit)
 
     def parse_ohlcv(self, ohlcv, market: Market = None) -> list:
@@ -742,7 +746,7 @@ class p2b(Exchange, ImplicitAPI):
         #        }
         #    }
         #
-        result = {
+        result: dict = {
             'info': response,
         }
         keys = list(response.keys())
@@ -752,14 +756,14 @@ class p2b(Exchange, ImplicitAPI):
             code = self.safe_currency_code(currencyId)
             used = self.safe_string(balance, 'freeze')
             available = self.safe_string(balance, 'available')
-            account = {
+            account: dict = {
                 'free': available,
                 'used': used,
             }
             result[code] = account
         return self.safe_balance(result)
 
-    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
+    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         """
         create a trade order
         :see: https://github.com/P2B-team/p2b-api-docs/blob/master/api-doc.md#create-order
@@ -775,7 +779,7 @@ class p2b(Exchange, ImplicitAPI):
         if type == 'market':
             raise BadRequest(self.id + ' createOrder() can only accept orders with type "limit"')
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'market': market['id'],
             'side': side,
             'amount': self.amount_to_precision(symbol, amount),
@@ -804,7 +808,7 @@ class p2b(Exchange, ImplicitAPI):
         #        }
         #    }
         #
-        result = self.safe_value(response, 'result')
+        result = self.safe_dict(response, 'result')
         return self.parse_order(result, market)
 
     def cancel_order(self, id: str, symbol: Str = None, params={}):
@@ -820,7 +824,7 @@ class p2b(Exchange, ImplicitAPI):
             raise ArgumentsRequired(self.id + ' cancelOrder() requires a symbol argument')
         self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'market': market['id'],
             'orderId': id,
         }
@@ -847,7 +851,7 @@ class p2b(Exchange, ImplicitAPI):
         #        }
         #    }
         #
-        result = self.safe_value(response, 'result')
+        result = self.safe_dict(response, 'result')
         return self.parse_order(result)
 
     def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
@@ -867,7 +871,7 @@ class p2b(Exchange, ImplicitAPI):
             raise ArgumentsRequired(self.id + ' fetchOpenOrders() requires the symbol argument')
         self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'market': market['id'],
         }
         if limit is not None:
@@ -898,7 +902,7 @@ class p2b(Exchange, ImplicitAPI):
         #        ]
         #    }
         #
-        result = self.safe_value(response, 'result', [])
+        result = self.safe_list(response, 'result', [])
         return self.parse_orders(result, market, since, limit)
 
     def fetch_order_trades(self, id: str, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
@@ -917,7 +921,7 @@ class p2b(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = self.safe_market(symbol)
-        request = {
+        request: dict = {
             'orderId': id,
         }
         if limit is not None:
@@ -947,7 +951,7 @@ class p2b(Exchange, ImplicitAPI):
         #    }
         #
         result = self.safe_value(response, 'result', {})
-        records = self.safe_value(result, 'records', [])
+        records = self.safe_list(result, 'records', [])
         return self.parse_trades(records, market, since, limit)
 
     def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
@@ -979,7 +983,7 @@ class p2b(Exchange, ImplicitAPI):
         if (until - since) > 86400000:
             raise BadRequest(self.id + ' fetchMyTrades() the time between since and params["until"] cannot be greater than 24 hours')
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'market': market['id'],
             'startTime': self.parse_to_int(since / 1000),
             'endTime': self.parse_to_int(until / 1000),
@@ -1014,7 +1018,7 @@ class p2b(Exchange, ImplicitAPI):
         #    }
         #
         result = self.safe_value(response, 'result', {})
-        deals = self.safe_value(result, 'deals', [])
+        deals = self.safe_list(result, 'deals', [])
         return self.parse_trades(deals, market, since, limit)
 
     def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
@@ -1046,7 +1050,7 @@ class p2b(Exchange, ImplicitAPI):
             since = until - 86400000
         if (until - since) > 86400000:
             raise BadRequest(self.id + ' fetchClosedOrders() the time between since and params["until"] cannot be greater than 24 hours')
-        request = {
+        request: dict = {
             'startTime': self.parse_to_int(since / 1000),
             'endTime': self.parse_to_int(until / 1000),
         }

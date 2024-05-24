@@ -8,7 +8,7 @@ var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 
 /**
  * @class coinlist
- * @extends Exchange
+ * @augments Exchange
  */
 class coinlist extends coinlist$1 {
     describe() {
@@ -28,10 +28,11 @@ class coinlist extends coinlist$1 {
                 'future': false,
                 'option': false,
                 'addMargin': false,
-                'borrowMargin': false,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'cancelOrders': true,
+                'closeAllPositions': false,
+                'closePosition': false,
                 'createDepositAddress': false,
                 'createOrder': true,
                 'createPostOnlyOrder': true,
@@ -86,7 +87,11 @@ class coinlist extends coinlist$1 {
                 'fetchOrders': true,
                 'fetchOrderTrades': true,
                 'fetchPosition': false,
+                'fetchPositionHistory': false,
+                'fetchPositionMode': false,
                 'fetchPositions': false,
+                'fetchPositionsForSymbol': false,
+                'fetchPositionsHistory': false,
                 'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchStatus': false,
@@ -105,7 +110,8 @@ class coinlist extends coinlist$1 {
                 'fetchWithdrawals': false,
                 'fetchWithdrawalWhitelist': false,
                 'reduceMargin': false,
-                'repayMargin': false,
+                'repayCrossMargin': false,
+                'repayIsolatedMargin': false,
                 'setLeverage': false,
                 'setMargin': false,
                 'setMarginMode': false,
@@ -146,6 +152,9 @@ class coinlist extends coinlist$1 {
                         'v1/symbols/{symbol}/auctions/{auction_code}': 1,
                         'v1/time': 1,
                         'v1/assets': 1,
+                        'v1/leaderboard': 1,
+                        'v1/affiliate/{competition_code}': 1,
+                        'v1/competition/{competition_id}': 1,
                     },
                 },
                 'private': {
@@ -153,6 +162,7 @@ class coinlist extends coinlist$1 {
                         'v1/fees': 1,
                         'v1/accounts': 1,
                         'v1/accounts/{trader_id}': 1,
+                        'v1/accounts/{trader_id}/alias': 1,
                         'v1/accounts/{trader_id}/ledger': 1,
                         'v1/accounts/{trader_id}/wallets': 1,
                         'v1/accounts/{trader_id}/wallet-ledger': 1,
@@ -165,7 +175,9 @@ class coinlist extends coinlist$1 {
                         'v1/balances': 1,
                         'v1/transfers': 1,
                         'v1/user': 1,
-                        'v1/credits': 1, // not unified
+                        'v1/credits': 1,
+                        'v1/positions': 1,
+                        'v1/accounts/{trader_id}/competitions': 1,
                     },
                     'post': {
                         'v1/keys': 1,
@@ -176,7 +188,9 @@ class coinlist extends coinlist$1 {
                         'v1/transfers/from-wallet': 1,
                         'v1/transfers/internal-transfer': 1,
                         'v1/transfers/withdrawal-request': 1,
-                        'v1/orders/bulk': 1, // not unified
+                        'v1/orders/bulk': 1,
+                        'v1/accounts/{trader_id}/competitions': 1,
+                        'v1/accounts/{trader_id}/create-competition': 1,
                     },
                     'patch': {
                         'v1/orders/{order_id}': 1,
@@ -351,7 +365,7 @@ class coinlist extends coinlist$1 {
             const currency = currencies[i];
             const id = this.safeString(currency, 'asset');
             const code = this.safeCurrencyCode(id);
-            const isTransferable = this.safeValue(currency, 'is_transferable', false);
+            const isTransferable = this.safeBool(currency, 'is_transferable', false);
             const withdrawEnabled = isTransferable;
             const depositEnabled = isTransferable;
             const active = isTransferable;
@@ -672,9 +686,9 @@ class coinlist extends coinlist$1 {
                 request['end_time'] = this.iso8601(this.milliseconds());
             }
         }
-        const until = this.safeInteger2(params, 'till', 'until');
+        const until = this.safeInteger(params, 'until');
         if (until !== undefined) {
-            params = this.omit(params, ['till', 'until']);
+            params = this.omit(params, ['until']);
             request['end_time'] = this.iso8601(until);
         }
         const response = await this.publicGetV1SymbolsSymbolCandles(this.extend(request, params));
@@ -702,7 +716,7 @@ class coinlist extends coinlist$1 {
         //         ]
         //     }
         //
-        const candles = this.safeValue(response, 'candles', []);
+        const candles = this.safeList(response, 'candles', []);
         return this.parseOHLCVs(candles, market, timeframe, since, limit);
     }
     parseOHLCV(ohlcv, market = undefined) {
@@ -748,11 +762,11 @@ class coinlist extends coinlist$1 {
             request['start_time'] = this.iso8601(since);
         }
         if (limit !== undefined) {
-            request['count'] = limit;
+            request['count'] = Math.min(limit, 500);
         }
-        const until = this.safeInteger2(params, 'till', 'until');
+        const until = this.safeInteger(params, 'until');
         if (until !== undefined) {
-            params = this.omit(params, ['till', 'until']);
+            params = this.omit(params, ['until']);
             request['end_time'] = this.iso8601(until);
         }
         const response = await this.publicGetV1SymbolsSymbolAuctions(this.extend(request, params));
@@ -780,7 +794,7 @@ class coinlist extends coinlist$1 {
         //         ]
         //     }
         //
-        const auctions = this.safeValue(response, 'auctions', []);
+        const auctions = this.safeList(response, 'auctions', []);
         return this.parseTrades(auctions, market, since, limit);
     }
     parseTrade(trade, market = undefined) {
@@ -1024,13 +1038,15 @@ class coinlist extends coinlist$1 {
             }
             takerFees = this.sortBy(takerFees, 1, true);
             makerFees = this.sortBy(makerFees, 1, true);
-            const firstTier = this.safeValue(takerFees, 0, []);
-            const exchangeFees = this.safeValue(this, 'fees', {});
-            const exchangeFeesTrading = this.safeValue(exchangeFees, 'trading', {});
-            const exchangeFeesTradingTiers = this.safeValue(exchangeFeesTrading, 'tiers', {});
-            const exchangeFeesTradingTiersTaker = this.safeValue(exchangeFeesTradingTiers, 'taker', []);
-            const exchangeFeesTradingTiersMaker = this.safeValue(exchangeFeesTradingTiers, 'maker', []);
-            if ((keysLength === exchangeFeesTradingTiersTaker.length) && (firstTier.length > 0)) {
+            const firstTier = this.safeDict(takerFees, 0, []);
+            const exchangeFees = this.safeDict(this, 'fees', {});
+            const exchangeFeesTrading = this.safeDict(exchangeFees, 'trading', {});
+            const exchangeFeesTradingTiers = this.safeDict(exchangeFeesTrading, 'tiers', {});
+            const exchangeFeesTradingTiersTaker = this.safeList(exchangeFeesTradingTiers, 'taker', []);
+            const exchangeFeesTradingTiersMaker = this.safeList(exchangeFeesTradingTiers, 'maker', []);
+            const exchangeFeesTradingTiersTakerLength = exchangeFeesTradingTiersTaker.length;
+            const firstTierLength = firstTier.length;
+            if ((keysLength === exchangeFeesTradingTiersTakerLength) && (firstTierLength > 0)) {
                 for (let i = 0; i < keysLength; i++) {
                     takerFees[i][0] = exchangeFeesTradingTiersTaker[i][0];
                     makerFees[i][0] = exchangeFeesTradingTiersMaker[i][0];
@@ -1107,11 +1123,10 @@ class coinlist extends coinlist$1 {
         //         "net_liquidation_value_usd": "string"
         //     }
         //
-        const timestamp = this.milliseconds();
         const result = {
             'info': response,
-            'timestamp': timestamp,
-            'datetime': this.iso8601(timestamp),
+            'timestamp': undefined,
+            'datetime': undefined,
         };
         const totalBalances = this.safeValue(response, 'asset_balances', {});
         const usedBalances = this.safeValue(response, 'asset_holds', {});
@@ -1152,9 +1167,9 @@ class coinlist extends coinlist$1 {
         if (limit !== undefined) {
             request['count'] = limit;
         }
-        const until = this.safeInteger2(params, 'till', 'until');
+        const until = this.safeInteger(params, 'until');
         if (until !== undefined) {
-            params = this.omit(params, ['till', 'until']);
+            params = this.omit(params, ['until']);
             request['end_time'] = this.iso8601(until);
         }
         const response = await this.privateGetV1Fills(this.extend(request, params));
@@ -1186,7 +1201,7 @@ class coinlist extends coinlist$1 {
         //         ]
         //     }
         //
-        const fills = this.safeValue(response, 'fills', []);
+        const fills = this.safeList(response, 'fills', []);
         return this.parseTrades(fills, market, since, limit);
     }
     async fetchOrderTrades(id, symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -1215,7 +1230,7 @@ class coinlist extends coinlist$1 {
          * @see https://trade-docs.coinlist.co/?javascript--nodejs#list-orders
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
-         * @param {int} [limit] the maximum number of  orde structures to retrieve (default 200, max 500)
+         * @param {int} [limit] the maximum number of order structures to retrieve (default 200, max 500)
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {int} [params.until] the latest time in ms to fetch entries for
          * @param {string|string[]} [params.status] the status of the order - 'accepted', 'done', 'canceled', 'rejected', 'pending' (default [ 'accepted', 'done', 'canceled', 'rejected', 'pending' ])
@@ -1240,9 +1255,9 @@ class coinlist extends coinlist$1 {
         if (limit !== undefined) {
             request['count'] = limit;
         }
-        const until = this.safeInteger2(params, 'till', 'until');
+        const until = this.safeInteger(params, 'until');
         if (until !== undefined) {
-            params = this.omit(params, ['till', 'until']);
+            params = this.omit(params, ['until']);
             request['end_time'] = this.iso8601(until);
         }
         const response = await this.privateGetV1Orders(this.extend(request, params));
@@ -1272,7 +1287,7 @@ class coinlist extends coinlist$1 {
         //         ]
         //     }
         //
-        const orders = this.safeValue(response, 'orders', []);
+        const orders = this.safeList(response, 'orders', []);
         return this.parseOrders(orders, market, since, limit);
     }
     async fetchOrder(id, symbol = undefined, params = {}) {
@@ -1516,7 +1531,7 @@ class coinlist extends coinlist$1 {
         //         "timestamp": "2023-10-26T11:30:55.376Z"
         //     }
         //
-        const order = this.safeValue(response, 'order', {});
+        const order = this.safeDict(response, 'order', {});
         return this.parseOrder(order, market);
     }
     async editOrder(id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
@@ -1714,10 +1729,9 @@ class coinlist extends coinlist$1 {
          */
         await this.loadMarkets();
         const currency = this.currency(code);
-        amount = this.currencyToPrecision(code, amount);
         const request = {
             'asset': currency['id'],
-            'amount': amount,
+            'amount': this.currencyToPrecision(code, amount),
         };
         const accountsByType = this.safeValue(this.options, 'accountsByType', {});
         const fromAcc = this.safeString(accountsByType, fromAccount, fromAccount);
@@ -1776,9 +1790,9 @@ class coinlist extends coinlist$1 {
         if (limit !== undefined) {
             request['count'] = limit;
         }
-        const until = this.safeInteger2(params, 'till', 'until');
+        const until = this.safeInteger(params, 'until');
         if (until !== undefined) {
-            params = this.omit(params, ['till', 'until']);
+            params = this.omit(params, ['until']);
             request['end_time'] = this.iso8601(until);
         }
         const response = await this.privateGetV1Transfers(this.extend(request, params));
@@ -1804,7 +1818,7 @@ class coinlist extends coinlist$1 {
         //         ]
         //     }
         //
-        const transfers = this.safeValue(response, 'transfers', []);
+        const transfers = this.safeList(response, 'transfers', []);
         return this.parseTransfers(transfers, currency, since, limit);
     }
     parseTransfer(transfer, currency = undefined) {
@@ -1974,7 +1988,7 @@ class coinlist extends coinlist$1 {
         //         "transfer_id": "d4a2d8dd-7def-4545-a062-761683b9aa05"
         //     }
         //
-        const data = this.safeValue(response, 'data', {});
+        const data = this.safeDict(response, 'data', {});
         return this.parseTransaction(data, currency);
     }
     parseTransaction(transaction, currency = undefined) {
@@ -2078,9 +2092,9 @@ class coinlist extends coinlist$1 {
         if (limit !== undefined) {
             request['count'] = limit;
         }
-        const until = this.safeInteger2(params, 'till', 'until');
+        const until = this.safeInteger(params, 'until');
         if (until !== undefined) {
-            params = this.omit(params, ['till', 'until']);
+            params = this.omit(params, ['until']);
             request['end_time'] = this.iso8601(until);
         }
         params = this.omit(params, ['trader_id', 'traderId']);

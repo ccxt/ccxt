@@ -221,7 +221,7 @@ export default class hollaex extends hollaexRest {
         // when the user does not have any trades yet
         const dataLength = rawTrades.length;
         if (dataLength === 0) {
-            return 0;
+            return;
         }
         if (this.myTrades === undefined) {
             const limit = this.safeInteger(this.options, 'tradesLimit', 1000);
@@ -254,7 +254,7 @@ export default class hollaex extends hollaexRest {
          * @description watches information on multiple orders made by the user
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
-         * @param {int} [limit] the maximum number of  orde structures to retrieve
+         * @param {int} [limit] the maximum number of order structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
@@ -335,7 +335,7 @@ export default class hollaex extends hollaexRest {
         // usually the first message is an empty array
         const dataLength = data.length;
         if (dataLength === 0) {
-            return 0;
+            return;
         }
         if (this.orders === undefined) {
             const limit = this.safeInteger(this.options, 'ordersLimit', 1000);

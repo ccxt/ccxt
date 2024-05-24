@@ -5,13 +5,13 @@
 
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.ace import ImplicitAPI
-from ccxt.base.types import Balances, Int, Market, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade
+from ccxt.base.types import Balances, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade
 from typing import List
+from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
-from ccxt.base.errors import AuthenticationError
 from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
@@ -36,6 +36,8 @@ class ace(Exchange, ImplicitAPI):
                 'cancelAllOrders': False,
                 'cancelOrder': True,
                 'cancelOrders': False,
+                'closeAllPositions': False,
+                'closePosition': False,
                 'createOrder': True,
                 'editOrder': False,
                 'fetchBalance': True,
@@ -65,8 +67,13 @@ class ace(Exchange, ImplicitAPI):
                 'fetchOrderBook': True,
                 'fetchOrders': False,
                 'fetchOrderTrades': True,
+                'fetchPosition': False,
+                'fetchPositionHistory': False,
                 'fetchPositionMode': False,
                 'fetchPositions': False,
+                'fetchPositionsForSymbol': False,
+                'fetchPositionsHistory': False,
+                'fetchPositionsRisk': False,
                 'fetchPremiumIndexOHLCV': False,
                 'fetchTicker': True,
                 'fetchTickers': True,
@@ -171,7 +178,7 @@ class ace(Exchange, ImplicitAPI):
             },
         })
 
-    def fetch_markets(self, params={}):
+    def fetch_markets(self, params={}) -> List[Market]:
         """
         retrieves data on all markets for ace
         :see: https://github.com/ace-exchange/ace-official-api-docs/blob/master/api_v2.md#oapi-api---market-pair
@@ -252,7 +259,7 @@ class ace(Exchange, ImplicitAPI):
             'info': market,
         }
 
-    def parse_ticker(self, ticker, market: Market = None) -> Ticker:
+    def parse_ticker(self, ticker: dict, market: Market = None) -> Ticker:
         #
         #     {
         #         "base_volume":229196.34035399999,
@@ -349,7 +356,7 @@ class ace(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'quoteCurrencyId': market['quoteId'],
             'baseCurrencyId': market['baseId'],
         }
@@ -393,7 +400,7 @@ class ace(Exchange, ImplicitAPI):
         #         "status": 200
         #     }
         #
-        orderBook = self.safe_value(response, 'attachment')
+        orderBook = self.safe_dict(response, 'attachment')
         return self.parse_order_book(orderBook, market['symbol'], None, 'bids', 'asks')
 
     def parse_ohlcv(self, ohlcv, market: Market = None) -> list:
@@ -437,7 +444,7 @@ class ace(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'duration': self.timeframes[timeframe],
             'quoteCurrencyId': market['quoteId'],
             'baseCurrencyId': market['baseId'],
@@ -468,8 +475,8 @@ class ace(Exchange, ImplicitAPI):
         #
         return self.parse_ohlcvs(data, market, timeframe, since, limit)
 
-    def parse_order_status(self, status):
-        statuses = {
+    def parse_order_status(self, status: Str):
+        statuses: dict = {
             '0': 'open',
             '1': 'open',
             '2': 'closed',
@@ -566,7 +573,7 @@ class ace(Exchange, ImplicitAPI):
             'info': order,
         }, market)
 
-    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
+    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         """
         create a trade order
         :see: https://github.com/ace-exchange/ace-official-api-docs/blob/master/api_v2.md#open-api---new-order
@@ -582,7 +589,7 @@ class ace(Exchange, ImplicitAPI):
         market = self.market(symbol)
         orderType = type.upper()
         orderSide = side.upper()
-        request = {
+        request: dict = {
             'baseCurrencyId': market['baseId'],
             'quoteCurrencyId': market['quoteId'],
             'type': 1 if (orderType == 'LIMIT') else 2,
@@ -600,7 +607,7 @@ class ace(Exchange, ImplicitAPI):
         #         "status": 200
         #     }
         #
-        data = self.safe_value(response, 'attachment')
+        data = self.safe_dict(response, 'attachment')
         return self.parse_order(data, market)
 
     def cancel_order(self, id: str, symbol: Str = None, params={}):
@@ -613,7 +620,7 @@ class ace(Exchange, ImplicitAPI):
         :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
-        request = {
+        request: dict = {
             'orderNo': id,
         }
         response = self.privatePostV2OrderCancel(self.extend(request, params))
@@ -636,7 +643,7 @@ class ace(Exchange, ImplicitAPI):
         :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
-        request = {
+        request: dict = {
             'orderNo': id,
         }
         response = self.privatePostV2OrderShowOrderStatus(self.extend(request, params))
@@ -662,7 +669,7 @@ class ace(Exchange, ImplicitAPI):
         #         "status": 200
         #     }
         #
-        data = self.safe_value(response, 'attachment')
+        data = self.safe_dict(response, 'attachment')
         return self.parse_order(data, None)
 
     def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
@@ -671,7 +678,7 @@ class ace(Exchange, ImplicitAPI):
         :see: https://github.com/ace-exchange/ace-official-api-docs/blob/master/api_v2.md#open-api---order-list
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
-        :param int [limit]: the maximum number of  orde structures to retrieve
+        :param int [limit]: the maximum number of order structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
@@ -679,7 +686,7 @@ class ace(Exchange, ImplicitAPI):
             raise ArgumentsRequired(self.id + ' fetchOpenOrders() requires a symbol argument')
         self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'quoteCurrencyId': market['quoteId'],
             'baseCurrencyId': market['baseId'],
             # 'start': 0,
@@ -807,7 +814,7 @@ class ace(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = self.safe_market(symbol)
-        request = {
+        request: dict = {
             'orderNo': id,
         }
         response = self.privatePostV2OrderShowOrderHistory(self.extend(request, params))
@@ -845,7 +852,7 @@ class ace(Exchange, ImplicitAPI):
         #     }
         #
         data = self.safe_value(response, 'attachment')
-        trades = self.safe_value(data, 'trades', [])
+        trades = self.safe_list(data, 'trades', [])
         return self.parse_trades(trades, market, since, limit)
 
     def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
@@ -860,7 +867,7 @@ class ace(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = self.safe_market(symbol)
-        request = {
+        request: dict = {
             # 'buyOrSell': 1,
             # 'start': 0,
         }
@@ -900,7 +907,7 @@ class ace(Exchange, ImplicitAPI):
         #         "status": 200
         #     }
         #
-        trades = self.safe_value(response, 'attachment', [])
+        trades = self.safe_list(response, 'attachment', [])
         return self.parse_trades(trades, market, since, limit)
 
     def parse_balance(self, response) -> Balances:
@@ -915,7 +922,7 @@ class ace(Exchange, ImplicitAPI):
         #         }
         #     ]
         #
-        result = {
+        result: dict = {
             'info': response,
         }
         for i in range(0, len(response)):
@@ -924,7 +931,7 @@ class ace(Exchange, ImplicitAPI):
             code = self.safe_currency_code(currencyId)
             amount = self.safe_string(balance, 'amount')
             available = self.safe_string(balance, 'cashAmount')
-            account = {
+            account: dict = {
                 'free': available,
                 'total': amount,
             }
@@ -999,6 +1006,7 @@ class ace(Exchange, ImplicitAPI):
         feedback = self.id + ' ' + body
         status = self.safe_number(response, 'status', 200)
         if status > 200:
-            self.throw_exactly_matched_exception(self.exceptions['exact'], status, feedback)
-            self.throw_broadly_matched_exception(self.exceptions['broad'], status, feedback)
+            statusStr = str(status)
+            self.throw_exactly_matched_exception(self.exceptions['exact'], statusStr, feedback)
+            self.throw_broadly_matched_exception(self.exceptions['broad'], statusStr, feedback)
         return None

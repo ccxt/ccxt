@@ -4,7 +4,7 @@
 import huobijpRest from '../huobijp.js';
 import { ExchangeError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
-import { Int } from '../base/types.js';
+import type { Int, OrderBook, Trade, Ticker, OHLCV, Dict } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 // ----------------------------------------------------------------------------
@@ -48,7 +48,7 @@ export default class huobijp extends huobijpRest {
         return requestId.toString ();
     }
 
-    async watchTicker (symbol: string, params = {}) {
+    async watchTicker (symbol: string, params = {}): Promise<Ticker> {
         /**
          * @method
          * @name huobijp#watchTicker
@@ -63,14 +63,14 @@ export default class huobijp extends huobijpRest {
         // only supports a limit of 150 at this time
         const messageHash = 'market.' + market['id'] + '.detail';
         const api = this.safeString (this.options, 'api', 'api');
-        const hostname = { 'hostname': this.hostname };
+        const hostname: Dict = { 'hostname': this.hostname };
         const url = this.implodeParams (this.urls['api']['ws'][api]['public'], hostname);
         const requestId = this.requestId ();
-        const request = {
+        const request: Dict = {
             'sub': messageHash,
             'id': requestId,
         };
-        const subscription = {
+        const subscription: Dict = {
             'id': requestId,
             'messageHash': messageHash,
             'symbol': symbol,
@@ -112,7 +112,7 @@ export default class huobijp extends huobijpRest {
         return message;
     }
 
-    async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         /**
          * @method
          * @name huobijp#watchTrades
@@ -129,14 +129,14 @@ export default class huobijp extends huobijpRest {
         // only supports a limit of 150 at this time
         const messageHash = 'market.' + market['id'] + '.trade.detail';
         const api = this.safeString (this.options, 'api', 'api');
-        const hostname = { 'hostname': this.hostname };
+        const hostname: Dict = { 'hostname': this.hostname };
         const url = this.implodeParams (this.urls['api']['ws'][api]['public'], hostname);
         const requestId = this.requestId ();
-        const request = {
+        const request: Dict = {
             'sub': messageHash,
             'id': requestId,
         };
-        const subscription = {
+        const subscription: Dict = {
             'id': requestId,
             'messageHash': messageHash,
             'symbol': symbol,
@@ -191,7 +191,7 @@ export default class huobijp extends huobijpRest {
         return message;
     }
 
-    async watchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}) {
+    async watchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         /**
          * @method
          * @name huobijp#watchOHLCV
@@ -209,14 +209,14 @@ export default class huobijp extends huobijpRest {
         const interval = this.safeString (this.timeframes, timeframe, timeframe);
         const messageHash = 'market.' + market['id'] + '.kline.' + interval;
         const api = this.safeString (this.options, 'api', 'api');
-        const hostname = { 'hostname': this.hostname };
+        const hostname: Dict = { 'hostname': this.hostname };
         const url = this.implodeParams (this.urls['api']['ws'][api]['public'], hostname);
         const requestId = this.requestId ();
-        const request = {
+        const request: Dict = {
             'sub': messageHash,
             'id': requestId,
         };
-        const subscription = {
+        const subscription: Dict = {
             'id': requestId,
             'messageHash': messageHash,
             'symbol': symbol,
@@ -267,7 +267,7 @@ export default class huobijp extends huobijpRest {
         client.resolve (stored, ch);
     }
 
-    async watchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
+    async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         /**
          * @method
          * @name huobijp#watchOrderBook
@@ -287,14 +287,14 @@ export default class huobijp extends huobijpRest {
         limit = (limit === undefined) ? 150 : limit;
         const messageHash = 'market.' + market['id'] + '.mbp.' + limit.toString ();
         const api = this.safeString (this.options, 'api', 'api');
-        const hostname = { 'hostname': this.hostname };
+        const hostname: Dict = { 'hostname': this.hostname };
         const url = this.implodeParams (this.urls['api']['ws'][api]['public'], hostname);
         const requestId = this.requestId ();
-        const request = {
+        const request: Dict = {
             'sub': messageHash,
             'id': requestId,
         };
-        const subscription = {
+        const subscription: Dict = {
             'id': requestId,
             'messageHash': messageHash,
             'symbol': symbol,
@@ -350,16 +350,16 @@ export default class huobijp extends huobijpRest {
             const limit = this.safeInteger (subscription, 'limit');
             const params = this.safeValue (subscription, 'params');
             const api = this.safeString (this.options, 'api', 'api');
-            const hostname = { 'hostname': this.hostname };
+            const hostname: Dict = { 'hostname': this.hostname };
             const url = this.implodeParams (this.urls['api']['ws'][api]['public'], hostname);
             const requestId = this.requestId ();
-            const request = {
+            const request: Dict = {
                 'req': messageHash,
                 'id': requestId,
             };
             // this is a temporary subscription by a specific requestId
             // it has a very short lifetime until the snapshot is received over ws
-            const snapshotSubscription = {
+            const snapshotSubscription: Dict = {
                 'id': requestId,
                 'messageHash': messageHash,
                 'symbol': symbol,
@@ -373,6 +373,7 @@ export default class huobijp extends huobijpRest {
             delete client.subscriptions[messageHash];
             client.reject (e, messageHash);
         }
+        return undefined;
     }
 
     handleDelta (bookside, delta) {
@@ -537,7 +538,7 @@ export default class huobijp extends huobijpRest {
         const type = this.safeString (parts, 0);
         if (type === 'market') {
             const methodName = this.safeString (parts, 2);
-            const methods = {
+            const methods: Dict = {
                 'mbp': this.handleOrderBook,
                 'detail': this.handleTicker,
                 'trade': this.handleTrades,
@@ -545,10 +546,8 @@ export default class huobijp extends huobijpRest {
                 // ...
             };
             const method = this.safeValue (methods, methodName);
-            if (method === undefined) {
-                return message;
-            } else {
-                return method.call (this, client, message);
+            if (method !== undefined) {
+                method.call (this, client, message);
             }
         }
     }

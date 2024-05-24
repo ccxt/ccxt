@@ -70,6 +70,96 @@
                 "input": [
                     "BTC/USDT"
                 ]
+            },
+            {
+                "description": "spot fetchTrades",
+                "method": "fetchTrades",
+                "url": "https://api.wazirx.com/sapi/v1/trades?symbol=btcusdt",
+                "input": [
+                    "BTC/USDT"
+                ]
+            }
+        ],
+        "fetchCurrencies": [
+            {
+                "description": "fetchCurrencies",
+                "method": "fetchCurrencies",
+                "url": "https://api.wazirx.com/sapi/v1/coins?recvWindow=10000&timestamp=1709695287062&signature=284094fb8c4816b0ab1ee041f3705061419e37986080259b8a72a03b1aeae3c1",
+                "input": []
+            }
+        ],
+        "fetchDepositAddress": [
+            {
+                "description": "fetchDepositAddress",
+                "method": "fetchDepositAddress",
+                "url": "https://api.wazirx.com/sapi/v1/crypto/deposits/address?coin=btc&network=btc&recvWindow=10000&timestamp=1709695287062&signature=284094fb8c4816b0ab1ee041f3705061419e37986080259b8a72a03b1aeae3c1",
+                "input": [
+                    "BTC",
+                    {
+                        "network": "btc"
+                    }
+                ]
+            }
+        ],
+        "fetchWithdrawals": [
+            {
+                "description": "fetchWithdrawals",
+                "method": "fetchWithdrawals",
+                "url": "https://api.wazirx.com/sapi/v1/crypto/withdraws?coin=btc&recvWindow=10000&timestamp=1709695287062&signature=284094fb8c4816b0ab1ee041f3705061419e37986080259b8a72a03b1aeae3c1",
+                "input": [
+                    "BTC"
+                ]
+            }
+        ],
+        "fetchTime": [
+            {
+                "description": "fetchTime",
+                "method": "fetchTime",
+                "url": "https://api.wazirx.com/sapi/v1/time",
+                "input": []
+            }
+        ],
+        "fetchOrderBook": [
+            {
+                "description": "spot orderbook",
+                "method": "fetchOrderBook",
+                "url": "https://api.wazirx.com/sapi/v1/depth?symbol=btcusdt",
+                "input": [
+                    "BTC/USDT"
+                ]
+            }
+        ],
+        "fetchTicker": [
+            {
+                "description": "spot ticker",
+                "method": "fetchTicker",
+                "url": "https://api.wazirx.com/sapi/v1/ticker/24hr?symbol=btcusdt",
+                "input": [
+                    "BTC/USDT"
+                ]
+            }
+        ],
+        "fetchTickers": [
+            {
+                "description": "spot tickers",
+                "method": "fetchTickers",
+                "url": "https://api.wazirx.com/sapi/v1/tickers/24hr",
+                "input": [
+                    [
+                        "BTC/USDT",
+                        "ETH/USDT"
+                    ]
+                ]
+            }
+        ],
+        "fetchOHLCV": [
+            {
+                "description": "spot ohlcv",
+                "method": "fetchOHLCV",
+                "url": "https://api.wazirx.com/sapi/v1/klines?symbol=btcusdt&interval=1m",
+                "input": [
+                    "BTC/USDT"
+                ]
             }
         ]
     }

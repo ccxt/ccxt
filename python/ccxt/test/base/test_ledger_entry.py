@@ -12,9 +12,7 @@ sys.path.append(root)
 # ----------------------------------------------------------------------------
 # -*- coding: utf-8 -*-
 
-
 from ccxt.test.base import test_shared_methods  # noqa E402
-
 
 def test_ledger_entry(exchange, skipped_properties, method, entry, requested_code, now):
     format = {
@@ -22,8 +20,8 @@ def test_ledger_entry(exchange, skipped_properties, method, entry, requested_cod
         'id': 'x1234',
         'currency': 'BTC',
         'account': 'spot',
-        'referenceId': '',
-        'referenceAccount': '',
+        'referenceId': 'foo',
+        'referenceAccount': 'bar',
         'status': 'ok',
         'amount': exchange.parse_number('22'),
         'before': exchange.parse_number('111'),

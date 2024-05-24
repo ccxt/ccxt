@@ -7,10 +7,11 @@ namespace ccxt\pro;
 
 use Exception; // a common import
 use ccxt\ExchangeError;
-use ccxt\InvalidNonce;
 use ccxt\AuthenticationError;
+use ccxt\InvalidNonce;
 use ccxt\Precise;
 use React\Async;
+use React\Promise\PromiseInterface;
 
 class bitfinex2 extends \ccxt\async\bitfinex2 {
 
@@ -60,7 +61,7 @@ class bitfinex2 extends \ccxt\async\bitfinex2 {
                 'symbol' => $marketId,
             );
             $result = Async\await($this->watch($url, $messageHash, $this->deep_extend($request, $params), $messageHash, array( 'checksum' => false )));
-            $checksum = $this->safe_value($this->options, 'checksum', true);
+            $checksum = $this->safe_bool($this->options, 'checksum', true);
             if ($checksum && !$client->subscriptions[$messageHash]['checksum'] && ($channel === 'book')) {
                 $client->subscriptions[$messageHash]['checksum'] = true;
                 Async\await($client->send (array(
@@ -81,7 +82,7 @@ class bitfinex2 extends \ccxt\async\bitfinex2 {
         }) ();
     }
 
-    public function watch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function watch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * watches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
@@ -197,7 +198,7 @@ class bitfinex2 extends \ccxt\async\bitfinex2 {
         $client->resolve ($stored, $messageHash);
     }
 
-    public function watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * get the list of most recent $trades for a particular $symbol
@@ -215,7 +216,7 @@ class bitfinex2 extends \ccxt\async\bitfinex2 {
         }) ();
     }
 
-    public function watch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function watch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * watches information on multiple $trades made by the user
@@ -239,7 +240,7 @@ class bitfinex2 extends \ccxt\async\bitfinex2 {
         }) ();
     }
 
-    public function watch_ticker(string $symbol, $params = array ()) {
+    public function watch_ticker(string $symbol, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
@@ -337,9 +338,12 @@ class bitfinex2 extends \ccxt\async\bitfinex2 {
         $messageLength = count($message);
         if ($messageLength === 2) {
             // initial snapshot
-            $trades = $this->safe_value($message, 1, array());
-            for ($i = 0; $i < count($trades); $i++) {
-                $parsed = $this->parse_ws_trade($trades[$i], $market);
+            $trades = $this->safe_list($message, 1, array());
+            // needs to be reversed to make chronological order
+            $length = count($trades);
+            for ($i = 0; $i < $length; $i++) {
+                $index = $length - $i - 1;
+                $parsed = $this->parse_ws_trade($trades[$index], $market);
                 $stored->append ($parsed);
             }
         } else {
@@ -355,7 +359,6 @@ class bitfinex2 extends \ccxt\async\bitfinex2 {
             $stored->append ($parsed);
         }
         $client->resolve ($stored, $messageHash);
-        return $message;
     }
 
     public function parse_ws_trade($trade, $market = null) {
@@ -532,7 +535,7 @@ class bitfinex2 extends \ccxt\async\bitfinex2 {
         ), $market);
     }
 
-    public function watch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
+    public function watch_order_book(string $symbol, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
@@ -610,8 +613,9 @@ class bitfinex2 extends \ccxt\async\bitfinex2 {
                 $deltas = $message[1];
                 for ($i = 0; $i < count($deltas); $i++) {
                     $delta = $deltas[$i];
-                    $size = ($delta[2] < 0) ? -$delta[2] : $delta[2];
-                    $side = ($delta[2] < 0) ? 'asks' : 'bids';
+                    $delta2 = $delta[2];
+                    $size = ($delta2 < 0) ? -$delta2 : $delta2;
+                    $side = ($delta2 < 0) ? 'asks' : 'bids';
                     $bookside = $orderbook[$side];
                     $idString = $this->safe_string($delta, 0);
                     $price = $this->safe_float($delta, 1);
@@ -637,13 +641,14 @@ class bitfinex2 extends \ccxt\async\bitfinex2 {
             $orderbookItem = $this->orderbooks[$symbol];
             if ($isRaw) {
                 $price = $this->safe_string($deltas, 1);
-                $size = ($deltas[2] < 0) ? -$deltas[2] : $deltas[2];
-                $side = ($deltas[2] < 0) ? 'asks' : 'bids';
+                $deltas2 = $deltas[2];
+                $size = ($deltas2 < 0) ? -$deltas2 : $deltas2;
+                $side = ($deltas2 < 0) ? 'asks' : 'bids';
                 $bookside = $orderbookItem[$side];
                 // $price = 0 means that you have to remove the order from your book
                 $amount = Precise::string_gt($price, '0') ? $size : '0';
                 $idString = $this->safe_string($deltas, 0);
-                $bookside->store ($this->parse_number($price), $this->parse_number($amount), $idString);
+                $bookside->storeArray (array( $this->parse_number($price), $this->parse_number($amount), $idString ));
             } else {
                 $amount = $this->safe_string($deltas, 2);
                 $counter = $this->safe_string($deltas, 1);
@@ -651,7 +656,7 @@ class bitfinex2 extends \ccxt\async\bitfinex2 {
                 $size = Precise::string_lt($amount, '0') ? Precise::string_neg($amount) : $amount;
                 $side = Precise::string_lt($amount, '0') ? 'asks' : 'bids';
                 $bookside = $orderbookItem[$side];
-                $bookside->store ($this->parse_number($price), $this->parse_number($size), $this->parse_number($counter));
+                $bookside->storeArray (array( $this->parse_number($price), $this->parse_number($size), $this->parse_number($counter) ));
             }
             $client->resolve ($orderbook, $messageHash);
         }
@@ -686,7 +691,8 @@ class bitfinex2 extends \ccxt\async\bitfinex2 {
             }
             if ($ask !== null) {
                 $stringArray[] = $this->number_to_string($asks[$i][$idToCheck]);
-                $stringArray[] = $this->number_to_string(-$asks[$i][1]);
+                $aski1 = $asks[$i][1];
+                $stringArray[] = $this->number_to_string(-$aski1);
             }
         }
         $payload = implode(':', $stringArray);
@@ -694,11 +700,13 @@ class bitfinex2 extends \ccxt\async\bitfinex2 {
         $responseChecksum = $this->safe_integer($message, 2);
         if ($responseChecksum !== $localChecksum) {
             $error = new InvalidNonce ($this->id . ' invalid checksum');
+            unset($client->subscriptions[$messageHash]);
+            unset($this->orderbooks[$symbol]);
             $client->reject ($error, $messageHash);
         }
     }
 
-    public function watch_balance($params = array ()) {
+    public function watch_balance($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * watch balance and get the amount of funds available for trading or funds locked in orders
@@ -858,27 +866,29 @@ class bitfinex2 extends \ccxt\async\bitfinex2 {
     }
 
     public function authenticate($params = array ()) {
-        $url = $this->urls['api']['ws']['private'];
-        $client = $this->client($url);
-        $messageHash = 'authenticated';
-        $future = $client->future ($messageHash);
-        $authenticated = $this->safe_value($client->subscriptions, $messageHash);
-        if ($authenticated === null) {
-            $nonce = $this->milliseconds();
-            $payload = 'AUTH' . (string) $nonce;
-            $signature = $this->hmac($this->encode($payload), $this->encode($this->secret), 'sha384', 'hex');
-            $event = 'auth';
-            $request = array(
-                'apiKey' => $this->apiKey,
-                'authSig' => $signature,
-                'authNonce' => $nonce,
-                'authPayload' => $payload,
-                'event' => $event,
-            );
-            $message = array_merge($request, $params);
-            $this->watch($url, $messageHash, $message, $messageHash);
-        }
-        return $future;
+        return Async\async(function () use ($params) {
+            $url = $this->urls['api']['ws']['private'];
+            $client = $this->client($url);
+            $messageHash = 'authenticated';
+            $future = $client->future ($messageHash);
+            $authenticated = $this->safe_value($client->subscriptions, $messageHash);
+            if ($authenticated === null) {
+                $nonce = $this->milliseconds();
+                $payload = 'AUTH' . (string) $nonce;
+                $signature = $this->hmac($this->encode($payload), $this->encode($this->secret), 'sha384', 'hex');
+                $event = 'auth';
+                $request = array(
+                    'apiKey' => $this->apiKey,
+                    'authSig' => $signature,
+                    'authNonce' => $nonce,
+                    'authPayload' => $payload,
+                    'event' => $event,
+                );
+                $message = $this->extend($request, $params);
+                $this->watch($url, $messageHash, $message, $messageHash);
+            }
+            return Async\await($future);
+        }) ();
     }
 
     public function handle_authentication_message(Client $client, $message) {
@@ -898,13 +908,13 @@ class bitfinex2 extends \ccxt\async\bitfinex2 {
         }
     }
 
-    public function watch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function watch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * watches information on multiple $orders made by the user
              * @param {string} $symbol unified $market $symbol of the $market $orders were made in
              * @param {int} [$since] the earliest time in ms to fetch $orders for
-             * @param {int} [$limit] the maximum number of  orde structures to retrieve
+             * @param {int} [$limit] the maximum number of order structures to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
              */
@@ -1126,7 +1136,7 @@ class bitfinex2 extends \ccxt\async\bitfinex2 {
         //
         if (gettype($message) === 'array' && array_keys($message) === array_keys(array_keys($message))) {
             if ($message[1] === 'hb') {
-                return $message; // skip heartbeats within $subscription channels for now
+                return; // skip heartbeats within $subscription channels for now
             }
             $subscription = $this->safe_value($client->subscriptions, $channelId, array());
             $channel = $this->safe_string($subscription, 'channel');
@@ -1153,10 +1163,8 @@ class bitfinex2 extends \ccxt\async\bitfinex2 {
             } else {
                 $method = $this->safe_value_2($publicMethods, $name, $channel);
             }
-            if ($method === null) {
-                return $message;
-            } else {
-                return $method($client, $message, $subscription);
+            if ($method !== null) {
+                $method($client, $message, $subscription);
             }
         } else {
             $event = $this->safe_string($message, 'event');
@@ -1167,10 +1175,8 @@ class bitfinex2 extends \ccxt\async\bitfinex2 {
                     'auth' => array($this, 'handle_authentication_message'),
                 );
                 $method = $this->safe_value($methods, $event);
-                if ($method === null) {
-                    return $message;
-                } else {
-                    return $method($client, $message);
+                if ($method !== null) {
+                    $method($client, $message);
                 }
             }
         }

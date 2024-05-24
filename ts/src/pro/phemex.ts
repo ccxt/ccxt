@@ -5,7 +5,7 @@ import phemexRest from '../phemex.js';
 import { Precise } from '../base/Precise.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
-import { Int, Str } from '../base/types.js';
+import type { Int, Str, OrderBook, Order, Trade, Ticker, OHLCV, Balances, Dict } from '../base/types.js';
 import { AuthenticationError } from '../base/errors.js';
 import Client from '../base/ws/Client.js';
 
@@ -24,6 +24,10 @@ export default class phemex extends phemexRest {
                 'watchOrderBook': true,
                 'watchOHLCV': true,
                 'watchPositions': undefined, // TODO
+                // mutli-endpoints are not supported: https://github.com/ccxt/ccxt/pull/21490
+                'watchOrderBookForSymbols': false,
+                'watchTradesForSymbols': false,
+                'watchOHLCVForSymbols': false,
             },
             'urls': {
                 'test': {
@@ -115,7 +119,7 @@ export default class phemex extends phemexRest {
             average = this.parseNumber (Precise.stringDiv (Precise.stringAdd (lastString, openString), '2'));
             percentage = this.parseNumber (Precise.stringMul (Precise.stringSub (Precise.stringDiv (lastString, openString), '1'), '100'));
         }
-        const result = {
+        const result: Dict = {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -174,7 +178,7 @@ export default class phemex extends phemexRest {
             average = this.parseNumber (Precise.stringDiv (Precise.stringAdd (lastString, openString), '2'));
             percentage = this.parseNumber (Precise.stringMul (Precise.stringSub (Precise.stringDiv (lastString, openString), '1'), '100'));
         }
-        const result = {
+        const result: Dict = {
             'symbol': symbol,
             'timestamp': undefined,
             'datetime': undefined,
@@ -300,7 +304,7 @@ export default class phemex extends phemexRest {
         }
     }
 
-    async watchBalance (params = {}) {
+    async watchBalance (params = {}): Promise<Balances> {
         /**
          * @method
          * @name phemex#watchBalance
@@ -499,7 +503,7 @@ export default class phemex extends phemexRest {
         }
     }
 
-    async watchTicker (symbol: string, params = {}) {
+    async watchTicker (symbol: string, params = {}): Promise<Ticker> {
         /**
          * @method
          * @name phemex#watchTicker
@@ -524,7 +528,7 @@ export default class phemex extends phemexRest {
         const requestId = this.requestId ();
         const subscriptionHash = name + '.subscribe';
         const messageHash = 'ticker:' + symbol;
-        const subscribe = {
+        const subscribe: Dict = {
             'method': subscriptionHash,
             'id': requestId,
             'params': [],
@@ -533,7 +537,7 @@ export default class phemex extends phemexRest {
         return await this.watch (url, messageHash, request, subscriptionHash);
     }
 
-    async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         /**
          * @method
          * @name phemex#watchTrades
@@ -557,7 +561,7 @@ export default class phemex extends phemexRest {
         const name = (isSwap && settleIsUSDT) ? 'trade_p' : 'trade';
         const messageHash = 'trade:' + symbol;
         const method = name + '.subscribe';
-        const subscribe = {
+        const subscribe: Dict = {
             'method': method,
             'id': requestId,
             'params': [
@@ -572,13 +576,14 @@ export default class phemex extends phemexRest {
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
-    async watchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
+    async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         /**
          * @method
          * @name phemex#watchOrderBook
+         * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Spot-API-en.md#subscribe-orderbook
          * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#subscribe-orderbook-for-new-model
          * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Contract-API-en.md#subscribe-30-levels-orderbook
-         * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Spot-API-en.md#subscribe-orderbook
+         * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Contract-API-en.md#subscribe-full-orderbook
          * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int} [limit] the maximum amount of order book entries to return
@@ -595,7 +600,7 @@ export default class phemex extends phemexRest {
         const name = (isSwap && settleIsUSDT) ? 'orderbook_p' : 'orderbook';
         const messageHash = 'orderbook:' + symbol;
         const method = name + '.subscribe';
-        const subscribe = {
+        const subscribe: Dict = {
             'method': method,
             'id': requestId,
             'params': [
@@ -607,7 +612,7 @@ export default class phemex extends phemexRest {
         return orderbook.limit ();
     }
 
-    async watchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}) {
+    async watchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         /**
          * @method
          * @name phemex#watchOHLCV
@@ -632,7 +637,7 @@ export default class phemex extends phemexRest {
         const name = (isSwap && settleIsUSDT) ? 'kline_p' : 'kline';
         const messageHash = 'kline:' + timeframe + ':' + symbol;
         const method = name + '.subscribe';
-        const subscribe = {
+        const subscribe: Dict = {
             'method': method,
             'id': requestId,
             'params': [
@@ -648,14 +653,14 @@ export default class phemex extends phemexRest {
         return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
     }
 
-    handleDelta (bookside, delta, market = undefined) {
+    customHandleDelta (bookside, delta, market = undefined) {
         const bidAsk = this.customParseBidAsk (delta, 0, 1, market);
         bookside.storeArray (bidAsk);
     }
 
-    handleDeltas (bookside, deltas, market = undefined) {
+    customHandleDeltas (bookside, deltas, market = undefined) {
         for (let i = 0; i < deltas.length; i++) {
-            this.handleDelta (bookside, deltas[i], market);
+            this.customHandleDelta (bookside, deltas[i], market);
         }
     }
 
@@ -725,8 +730,8 @@ export default class phemex extends phemexRest {
                 const changes = this.safeValue2 (message, 'book', 'orderbook_p', {});
                 const asks = this.safeValue (changes, 'asks', []);
                 const bids = this.safeValue (changes, 'bids', []);
-                this.handleDeltas (orderbook['asks'], asks, market);
-                this.handleDeltas (orderbook['bids'], bids, market);
+                this.customHandleDeltas (orderbook['asks'], asks, market);
+                this.customHandleDeltas (orderbook['bids'], bids, market);
                 orderbook['nonce'] = nonce;
                 orderbook['timestamp'] = timestamp;
                 orderbook['datetime'] = this.iso8601 (timestamp);
@@ -736,7 +741,7 @@ export default class phemex extends phemexRest {
         }
     }
 
-    async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         /**
          * @method
          * @name phemex#watchMyTrades
@@ -876,7 +881,7 @@ export default class phemex extends phemexRest {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
             cachedTrades = new ArrayCacheBySymbolById (limit);
         }
-        const marketIds = {};
+        const marketIds: Dict = {};
         let type = undefined;
         for (let i = 0; i < message.length; i++) {
             const rawTrade = message[i];
@@ -901,14 +906,14 @@ export default class phemex extends phemexRest {
         client.resolve (cachedTrades, messageHash);
     }
 
-    async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name phemex#watchOrders
          * @description watches information on multiple orders made by the user
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
-         * @param {int} [limit] the maximum number of  orde structures to retrieve
+         * @param {int} [limit] the maximum number of order structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
@@ -1126,7 +1131,7 @@ export default class phemex extends phemexRest {
         }
         this.handleMyTrades (client, trades);
         const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
-        const marketIds = {};
+        const marketIds: Dict = {};
         if (this.orders === undefined) {
             this.orders = new ArrayCacheBySymbolById (limit);
         }
@@ -1427,18 +1432,23 @@ export default class phemex extends phemexRest {
             const method = client.subscriptions[id];
             delete client.subscriptions[id];
             if (method !== true) {
-                return method.call (this, client, message);
+                method.call (this, client, message);
+                return;
             }
         }
         const methodName = this.safeString (message, 'method', '');
         if (('market24h' in message) || ('spot_market24h' in message) || (methodName.indexOf ('perp_market24h_pack_p') >= 0)) {
-            return this.handleTicker (client, message);
+            this.handleTicker (client, message);
+            return;
         } else if (('trades' in message) || ('trades_p' in message)) {
-            return this.handleTrades (client, message);
+            this.handleTrades (client, message);
+            return;
         } else if (('kline' in message) || ('kline_p' in message)) {
-            return this.handleOHLCV (client, message);
+            this.handleOHLCV (client, message);
+            return;
         } else if (('book' in message) || ('orderbook_p' in message)) {
-            return this.handleOrderBook (client, message);
+            this.handleOrderBook (client, message);
+            return;
         }
         if (('orders' in message) || ('orders_p' in message)) {
             const orders = this.safeValue2 (message, 'orders', 'orders_p', {});
@@ -1514,7 +1524,7 @@ export default class phemex extends phemexRest {
             const payload = this.apiKey + expiration.toString ();
             const signature = this.hmac (this.encode (payload), this.encode (this.secret), sha256);
             const method = 'user.auth';
-            const request = {
+            const request: Dict = {
                 'method': method,
                 'params': [ 'API', this.apiKey, signature, expiration ],
                 'id': requestId,
@@ -1524,9 +1534,9 @@ export default class phemex extends phemexRest {
             if (!(messageHash in client.subscriptions)) {
                 client.subscriptions[subscriptionHash] = this.handleAuthenticate;
             }
-            future = this.watch (url, messageHash, message);
+            future = await this.watch (url, messageHash, message, messageHash);
             client.subscriptions[messageHash] = future;
         }
-        return await future;
+        return future;
     }
 }

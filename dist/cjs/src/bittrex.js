@@ -9,7 +9,7 @@ var sha512 = require('./static_dependencies/noble-hashes/sha512.js');
 //  ---------------------------------------------------------------------------
 /**
  * @class bittrex
- * @extends Exchange
+ * @augments Exchange
  */
 class bittrex extends bittrex$1 {
     describe() {
@@ -32,6 +32,8 @@ class bittrex extends bittrex$1 {
                 'addMargin': false,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
+                'closeAllPositions': false,
+                'closePosition': false,
                 'createDepositAddress': true,
                 'createMarketOrder': true,
                 'createOrder': true,

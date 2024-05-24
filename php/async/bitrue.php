@@ -39,6 +39,9 @@ class bitrue extends Exchange {
                 'option' => false,
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
+                'createMarketBuyOrderWithCost' => true,
+                'createMarketOrderWithCost' => false,
+                'createMarketSellOrderWithCost' => false,
                 'createOrder' => true,
                 'createStopLimitOrder' => true,
                 'createStopMarketOrder' => true,
@@ -56,6 +59,7 @@ class bitrue extends Exchange {
                 'fetchDepositsWithdrawals' => false,
                 'fetchDepositWithdrawFee' => 'emulated',
                 'fetchDepositWithdrawFees' => true,
+                'fetchFundingRate' => false,
                 'fetchIsolatedBorrowRate' => false,
                 'fetchIsolatedBorrowRates' => false,
                 'fetchMarginMode' => false,
@@ -404,7 +408,7 @@ class bitrue extends Exchange {
                     '-1022' => '\\ccxt\\AuthenticationError', // array("code":-1022,"msg":"Signature for this request is not valid.")
                     '-1100' => '\\ccxt\\BadRequest', // createOrder(symbol, 1, asdf) -> 'Illegal characters found in parameter 'price'
                     '-1101' => '\\ccxt\\BadRequest', // Too many parameters; expected %s and received %s.
-                    '-1102' => '\\ccxt\\BadRequest', // Param %s or %s must be sent, but both were empty
+                    '-1102' => '\\ccxt\\BadRequest', // Param %s or %s must be sent, but both were empty // array("code":-1102,"msg":"timestamp IllegalArgumentException.","data":null)
                     '-1103' => '\\ccxt\\BadRequest', // An unknown parameter was sent.
                     '-1104' => '\\ccxt\\BadRequest', // Not all sent parameters were read, read 8 parameters but was sent 9
                     '-1105' => '\\ccxt\\BadRequest', // Parameter %s was empty.
@@ -586,7 +590,7 @@ class bitrue extends Exchange {
         return $this->safe_string_2($networksById, $networkId, $uppercaseNetworkId, $networkId);
     }
 
-    public function fetch_currencies($params = array ()) {
+    public function fetch_currencies($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * fetches all available currencies on an exchange
@@ -715,7 +719,7 @@ class bitrue extends Exchange {
         }) ();
     }
 
-    public function fetch_markets($params = array ()) {
+    public function fetch_markets($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * retrieves data on all $markets for bitrue
@@ -1127,9 +1131,9 @@ class bitrue extends Exchange {
                     $request['limit'] = $limit; // default 100, max 100, see https://www.bitrue.com/api-docs#order-book
                 }
                 if ($market['linear']) {
-                    $response = Async\await($this->fapiV1PublicGetDepth (array_merge($request, $params)));
+                    $response = Async\await($this->fapiV1PublicGetDepth ($this->extend($request, $params)));
                 } elseif ($market['inverse']) {
-                    $response = Async\await($this->dapiV1PublicGetDepth (array_merge($request, $params)));
+                    $response = Async\await($this->dapiV1PublicGetDepth ($this->extend($request, $params)));
                 }
             } elseif ($market['spot']) {
                 $request = array(
@@ -1141,7 +1145,7 @@ class bitrue extends Exchange {
                     }
                     $request['limit'] = $limit; // default 100, max 1000, see https://github.com/Bitrue-exchange/bitrue-official-api-docs#order-book
                 }
-                $response = Async\await($this->spotV1PublicGetDepth (array_merge($request, $params)));
+                $response = Async\await($this->spotV1PublicGetDepth ($this->extend($request, $params)));
             } else {
                 throw new NotSupported($this->id . ' fetchOrderBook only support spot & swap markets');
             }
@@ -1177,7 +1181,7 @@ class bitrue extends Exchange {
         }) ();
     }
 
-    public function parse_ticker($ticker, ?array $market = null): array {
+    public function parse_ticker(array $ticker, ?array $market = null): array {
         //
         // fetchBidsAsks
         //
@@ -1266,16 +1270,16 @@ class bitrue extends Exchange {
                     'contractName' => $market['id'],
                 );
                 if ($market['linear']) {
-                    $response = Async\await($this->fapiV1PublicGetTicker (array_merge($request, $params)));
+                    $response = Async\await($this->fapiV1PublicGetTicker ($this->extend($request, $params)));
                 } elseif ($market['inverse']) {
-                    $response = Async\await($this->dapiV1PublicGetTicker (array_merge($request, $params)));
+                    $response = Async\await($this->dapiV1PublicGetTicker ($this->extend($request, $params)));
                 }
                 $data = $response;
             } elseif ($market['spot']) {
                 $request = array(
                     'symbol' => $market['id'],
                 );
-                $response = Async\await($this->spotV1PublicGetTicker24hr (array_merge($request, $params)));
+                $response = Async\await($this->spotV1PublicGetTicker24hr ($this->extend($request, $params)));
                 $data = $this->safe_value($response, 0, array());
             } else {
                 throw new NotSupported($this->id . ' fetchTicker only support spot & swap markets');
@@ -1349,15 +1353,12 @@ class bitrue extends Exchange {
                     'interval' => $this->safe_string($timeframesFuture, $timeframe, '1min'),
                 );
                 if ($limit !== null) {
-                    if ($limit > 300) {
-                        $limit = 300;
-                    }
                     $request['limit'] = $limit;
                 }
                 if ($market['linear']) {
-                    $response = Async\await($this->fapiV1PublicGetKlines (array_merge($request, $params)));
+                    $response = Async\await($this->fapiV1PublicGetKlines ($this->extend($request, $params)));
                 } elseif ($market['inverse']) {
-                    $response = Async\await($this->dapiV1PublicGetKlines (array_merge($request, $params)));
+                    $response = Async\await($this->dapiV1PublicGetKlines ($this->extend($request, $params)));
                 }
                 $data = $response;
             } elseif ($market['spot']) {
@@ -1368,15 +1369,12 @@ class bitrue extends Exchange {
                     'scale' => $this->safe_string($timeframesSpot, $timeframe, '1m'),
                 );
                 if ($limit !== null) {
-                    if ($limit > 1440) {
-                        $limit = 1440;
-                    }
                     $request['limit'] = $limit;
                 }
                 if ($since !== null) {
                     $request['fromIdx'] = $since;
                 }
-                $response = Async\await($this->spotV1PublicGetMarketKline (array_merge($request, $params)));
+                $response = Async\await($this->spotV1PublicGetMarketKline ($this->extend($request, $params)));
                 $data = $this->safe_value($response, 'data', array());
             } else {
                 throw new NotSupported($this->id . ' fetchOHLCV only support spot & swap markets');
@@ -1477,15 +1475,15 @@ class bitrue extends Exchange {
                     'contractName' => $market['id'],
                 );
                 if ($market['linear']) {
-                    $response = Async\await($this->fapiV1PublicGetTicker (array_merge($request, $params)));
+                    $response = Async\await($this->fapiV1PublicGetTicker ($this->extend($request, $params)));
                 } elseif ($market['inverse']) {
-                    $response = Async\await($this->dapiV1PublicGetTicker (array_merge($request, $params)));
+                    $response = Async\await($this->dapiV1PublicGetTicker ($this->extend($request, $params)));
                 }
             } elseif ($market['spot']) {
                 $request = array(
                     'symbol' => $market['id'],
                 );
-                $response = Async\await($this->spotV1PublicGetTickerBookTicker (array_merge($request, $params)));
+                $response = Async\await($this->spotV1PublicGetTickerBookTicker ($this->extend($request, $params)));
             } else {
                 throw new NotSupported($this->id . ' fetchBidsAsks only support spot & swap markets');
             }
@@ -1540,17 +1538,9 @@ class bitrue extends Exchange {
                 $first = $this->safe_string($symbols, 0);
                 $market = $this->market($first);
                 if ($market['swap']) {
-                    $request['contractName'] = $market['id'];
-                    if ($market['linear']) {
-                        $response = Async\await($this->fapiV1PublicGetTicker (array_merge($request, $params)));
-                    } elseif ($market['inverse']) {
-                        $response = Async\await($this->dapiV1PublicGetTicker (array_merge($request, $params)));
-                    }
-                    $response['symbol'] = $market['id'];
-                    $data = array( $response );
+                    throw new NotSupported($this->id . ' fetchTickers does not support swap markets, please use fetchTicker instead');
                 } elseif ($market['spot']) {
-                    $request['symbol'] = $market['id'];
-                    $response = Async\await($this->spotV1PublicGetTicker24hr (array_merge($request, $params)));
+                    $response = Async\await($this->spotV1PublicGetTicker24hr ($this->extend($request, $params)));
                     $data = $response;
                 } else {
                     throw new NotSupported($this->id . ' fetchTickers only support spot & swap markets');
@@ -1558,9 +1548,9 @@ class bitrue extends Exchange {
             } else {
                 list($type, $params) = $this->handle_market_type_and_params('fetchTickers', null, $params);
                 if ($type !== 'spot') {
-                    throw new NotSupported($this->id . ' fetchTickers only support spot when $symbols is not set');
+                    throw new NotSupported($this->id . ' fetchTickers only support spot when $symbols are not proved');
                 }
-                $response = Async\await($this->spotV1PublicGetTicker24hr (array_merge($request, $params)));
+                $response = Async\await($this->spotV1PublicGetTicker24hr ($this->extend($request, $params)));
                 $data = $response;
             }
             //
@@ -1730,7 +1720,7 @@ class bitrue extends Exchange {
                 if ($limit !== null) {
                     $request['limit'] = $limit; // default 100, max 1000
                 }
-                $response = Async\await($this->spotV1PublicGetTrades (array_merge($request, $params)));
+                $response = Async\await($this->spotV1PublicGetTrades ($this->extend($request, $params)));
             } else {
                 throw new NotSupported($this->id . ' fetchTrades only support spot markets');
             }
@@ -1752,7 +1742,7 @@ class bitrue extends Exchange {
         }) ();
     }
 
-    public function parse_order_status($status) {
+    public function parse_order_status(?string $status) {
         $statuses = array(
             'INIT' => 'open',
             'PENDING_CREATE' => 'open',
@@ -1886,7 +1876,28 @@ class bitrue extends Exchange {
         ), $market);
     }
 
-    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
+    public function create_market_buy_order_with_cost(string $symbol, float $cost, $params = array ()) {
+        return Async\async(function () use ($symbol, $cost, $params) {
+            /**
+             * create a $market buy order by providing the $symbol and $cost
+             * @see https://www.bitrue.com/api-docs#new-order-trade-hmac-sha256
+             * @see https://www.bitrue.com/api_docs_includes_file/delivery.html#new-order-trade-hmac-sha256
+             * @param {string} $symbol unified $symbol of the $market to create an order in
+             * @param {float} $cost how much you want to trade in units of the quote currency
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
+             */
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            if (!$market['swap']) {
+                throw new NotSupported($this->id . ' createMarketBuyOrderWithCost() supports swap orders only');
+            }
+            $params['createMarketBuyOrderRequiresPrice'] = false;
+            return Async\await($this->create_order($symbol, 'market', 'buy', $cost, null, $params));
+        }) ();
+    }
+
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
              * create a trade order
@@ -1908,6 +1919,7 @@ class bitrue extends Exchange {
              * EXCHANGE SPECIFIC PARAMETERS
              * @param {decimal} [$params->icebergQty]
              * @param {long} [$params->recvWindow]
+             * @param {float} [$params->cost] *swap $market buy only* the quote quantity that can be used alternative for the $amount
              * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
              */
             Async\await($this->load_markets());
@@ -1942,7 +1954,9 @@ class bitrue extends Exchange {
                     $request['type'] = 'IOC';
                 }
                 $request['contractName'] = $market['id'];
-                if ($isMarket && ($side === 'buy') && ($this->options['createMarketBuyOrderRequiresPrice'])) {
+                $createMarketBuyOrderRequiresPrice = true;
+                list($createMarketBuyOrderRequiresPrice, $params) = $this->handle_option_and_params($params, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
+                if ($isMarket && ($side === 'buy') && $createMarketBuyOrderRequiresPrice) {
                     $cost = $this->safe_string($params, 'cost');
                     $params = $this->omit($params, 'cost');
                     if ($price === null && $cost === null) {
@@ -1951,9 +1965,9 @@ class bitrue extends Exchange {
                         $amountString = $this->number_to_string($amount);
                         $priceString = $this->number_to_string($price);
                         $quoteAmount = Precise::string_mul($amountString, $priceString);
-                        $amount = ($cost !== null) ? $cost : $quoteAmount;
-                        $request['amount'] = $this->cost_to_precision($symbol, $amount);
-                        $request['volume'] = $this->cost_to_precision($symbol, $amount);
+                        $requestAmount = ($cost !== null) ? $cost : $quoteAmount;
+                        $request['amount'] = $this->cost_to_precision($symbol, $requestAmount);
+                        $request['volume'] = $this->cost_to_precision($symbol, $requestAmount);
                     }
                 } else {
                     $request['amount'] = $this->parse_to_numeric($amount);
@@ -1966,9 +1980,9 @@ class bitrue extends Exchange {
                 $request['leverage'] = $this->parse_to_numeric($leverage);
                 $params = $this->omit($params, array( 'leverage', 'reduceOnly', 'reduce_only', 'timeInForce' ));
                 if ($market['linear']) {
-                    $response = Async\await($this->fapiV2PrivatePostOrder (array_merge($request, $params)));
+                    $response = Async\await($this->fapiV2PrivatePostOrder ($this->extend($request, $params)));
                 } elseif ($market['inverse']) {
-                    $response = Async\await($this->dapiV2PrivatePostOrder (array_merge($request, $params)));
+                    $response = Async\await($this->dapiV2PrivatePostOrder ($this->extend($request, $params)));
                 }
                 $data = $this->safe_value($response, 'data', array());
             } elseif ($market['spot']) {
@@ -1988,7 +2002,7 @@ class bitrue extends Exchange {
                     $params = $this->omit($params, array( 'triggerPrice', 'stopPrice' ));
                     $request['stopPrice'] = $this->price_to_precision($symbol, $stopPrice);
                 }
-                $response = Async\await($this->spotV1PrivatePostOrder (array_merge($request, $params)));
+                $response = Async\await($this->spotV1PrivatePostOrder ($this->extend($request, $params)));
                 $data = $response;
             } else {
                 throw new NotSupported($this->id . ' createOrder only support spot & swap markets');
@@ -2051,15 +2065,15 @@ class bitrue extends Exchange {
             if ($market['swap']) {
                 $request['contractName'] = $market['id'];
                 if ($market['linear']) {
-                    $response = Async\await($this->fapiV2PrivateGetOrder (array_merge($request, $params)));
+                    $response = Async\await($this->fapiV2PrivateGetOrder ($this->extend($request, $params)));
                 } elseif ($market['inverse']) {
-                    $response = Async\await($this->dapiV2PrivateGetOrder (array_merge($request, $params)));
+                    $response = Async\await($this->dapiV2PrivateGetOrder ($this->extend($request, $params)));
                 }
                 $data = $this->safe_value($response, 'data', array());
             } elseif ($market['spot']) {
                 $request['orderId'] = $id; // spot $market $id is mandatory
                 $request['symbol'] = $market['id'];
-                $response = Async\await($this->spotV1PrivateGetOrder (array_merge($request, $params)));
+                $response = Async\await($this->spotV1PrivateGetOrder ($this->extend($request, $params)));
                 $data = $response;
             } else {
                 throw new NotSupported($this->id . ' fetchOrder only support spot & swap markets');
@@ -2143,7 +2157,7 @@ class bitrue extends Exchange {
             if ($limit !== null) {
                 $request['limit'] = $limit; // default 100, max 1000
             }
-            $response = Async\await($this->spotV1PrivateGetAllOrders (array_merge($request, $params)));
+            $response = Async\await($this->spotV1PrivateGetAllOrders ($this->extend($request, $params)));
             //
             //     array(
             //         {
@@ -2194,14 +2208,14 @@ class bitrue extends Exchange {
             if ($market['swap']) {
                 $request['contractName'] = $market['id'];
                 if ($market['linear']) {
-                    $response = Async\await($this->fapiV2PrivateGetOpenOrders (array_merge($request, $params)));
+                    $response = Async\await($this->fapiV2PrivateGetOpenOrders ($this->extend($request, $params)));
                 } elseif ($market['inverse']) {
-                    $response = Async\await($this->dapiV2PrivateGetOpenOrders (array_merge($request, $params)));
+                    $response = Async\await($this->dapiV2PrivateGetOpenOrders ($this->extend($request, $params)));
                 }
                 $data = $this->safe_value($response, 'data', array());
             } elseif ($market['spot']) {
                 $request['symbol'] = $market['id'];
-                $response = Async\await($this->spotV1PrivateGetOpenOrders (array_merge($request, $params)));
+                $response = Async\await($this->spotV1PrivateGetOpenOrders ($this->extend($request, $params)));
                 $data = $response;
             } else {
                 throw new NotSupported($this->id . ' fetchOpenOrders only support spot & swap markets');
@@ -2290,14 +2304,14 @@ class bitrue extends Exchange {
             if ($market['swap']) {
                 $request['contractName'] = $market['id'];
                 if ($market['linear']) {
-                    $response = Async\await($this->fapiV2PrivatePostCancel (array_merge($request, $params)));
+                    $response = Async\await($this->fapiV2PrivatePostCancel ($this->extend($request, $params)));
                 } elseif ($market['inverse']) {
-                    $response = Async\await($this->dapiV2PrivatePostCancel (array_merge($request, $params)));
+                    $response = Async\await($this->dapiV2PrivatePostCancel ($this->extend($request, $params)));
                 }
                 $data = $this->safe_value($response, 'data', array());
             } elseif ($market['spot']) {
                 $request['symbol'] = $market['id'];
-                $response = Async\await($this->spotV1PrivateDeleteOrder (array_merge($request, $params)));
+                $response = Async\await($this->spotV1PrivateDeleteOrder ($this->extend($request, $params)));
                 $data = $response;
             } else {
                 throw new NotSupported($this->id . ' cancelOrder only support spot & swap markets');
@@ -2346,9 +2360,9 @@ class bitrue extends Exchange {
                     'contractName' => $market['id'],
                 );
                 if ($market['linear']) {
-                    $response = Async\await($this->fapiV2PrivatePostAllOpenOrders (array_merge($request, $params)));
+                    $response = Async\await($this->fapiV2PrivatePostAllOpenOrders ($this->extend($request, $params)));
                 } elseif ($market['inverse']) {
-                    $response = Async\await($this->dapiV2PrivatePostAllOpenOrders (array_merge($request, $params)));
+                    $response = Async\await($this->dapiV2PrivatePostAllOpenOrders ($this->extend($request, $params)));
                 }
                 $data = $this->safe_value($response, 'data', array());
             } else {
@@ -2400,14 +2414,14 @@ class bitrue extends Exchange {
             if ($market['swap']) {
                 $request['contractName'] = $market['id'];
                 if ($market['linear']) {
-                    $response = Async\await($this->fapiV2PrivateGetMyTrades (array_merge($request, $params)));
+                    $response = Async\await($this->fapiV2PrivateGetMyTrades ($this->extend($request, $params)));
                 } elseif ($market['inverse']) {
-                    $response = Async\await($this->dapiV2PrivateGetMyTrades (array_merge($request, $params)));
+                    $response = Async\await($this->dapiV2PrivateGetMyTrades ($this->extend($request, $params)));
                 }
                 $data = $this->safe_value($response, 'data', array());
             } elseif ($market['spot']) {
                 $request['symbol'] = $market['id'];
-                $response = Async\await($this->spotV2PrivateGetMyTrades (array_merge($request, $params)));
+                $response = Async\await($this->spotV2PrivateGetMyTrades ($this->extend($request, $params)));
                 $data = $response;
             } else {
                 throw new NotSupported($this->id . ' fetchMyTrades only support spot & swap markets');
@@ -2492,7 +2506,7 @@ class bitrue extends Exchange {
             if ($limit !== null) {
                 $request['limit'] = $limit;
             }
-            $response = Async\await($this->spotV1PrivateGetDepositHistory (array_merge($request, $params)));
+            $response = Async\await($this->spotV1PrivateGetDepositHistory ($this->extend($request, $params)));
             //
             //     {
             //         "code":200,
@@ -2529,7 +2543,7 @@ class bitrue extends Exchange {
             //         )
             //     }
             //
-            $data = $this->safe_value($response, 'data', array());
+            $data = $this->safe_list($response, 'data', array());
             return $this->parse_transactions($data, $currency, $since, $limit);
         }) ();
     }
@@ -2565,22 +2579,31 @@ class bitrue extends Exchange {
             if ($limit !== null) {
                 $request['limit'] = $limit;
             }
-            $response = Async\await($this->spotV1PrivateGetWithdrawHistory (array_merge($request, $params)));
+            $response = Async\await($this->spotV1PrivateGetWithdrawHistory ($this->extend($request, $params)));
             //
-            //     {
-            //         "code" => 200,
-            //         "msg" => "succ",
-            //         "data" => {
-            //             "msg" => null,
-            //             "amount" => 1000,
-            //             "fee" => 1,
-            //             "ctime" => null,
-            //             "coin" => "usdt_erc20",
-            //             "addressTo" => "0x2edfae3878d7b6db70ce4abed177ab2636f60c83"
-            //         }
-            //     }
+            //    {
+            //        "code" => 200,
+            //        "msg" => "succ",
+            //        "data" => array(
+            //            {
+            //                "id" => 183745,
+            //                "symbol" => "usdt_erc20",
+            //                "amount" => "8.4000000000000000",
+            //                "fee" => "1.6000000000000000",
+            //                "payAmount" => "0.0000000000000000",
+            //                "createdAt" => 1595336441000,
+            //                "updatedAt" => 1595336576000,
+            //                "addressFrom" => "",
+            //                "addressTo" => "0x2edfae3878d7b6db70ce4abed177ab2636f60c83",
+            //                "txid" => "",
+            //                "confirmations" => 0,
+            //                "status" => 6,
+            //                "tagType" => null
+            //            }
+            //        )
+            //    }
             //
-            $data = $this->safe_value($response, 'data', array());
+            $data = $this->safe_list($response, 'data', array());
             return $this->parse_transactions($data, $currency);
         }) ();
     }
@@ -2728,7 +2751,7 @@ class bitrue extends Exchange {
         );
     }
 
-    public function withdraw(string $code, $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()) {
         return Async\async(function () use ($code, $amount, $address, $tag, $params) {
             /**
              * make a withdrawal
@@ -2744,32 +2767,24 @@ class bitrue extends Exchange {
             $this->check_address($address);
             Async\await($this->load_markets());
             $currency = $this->currency($code);
-            $chainName = $this->safe_string_2($params, 'network', 'chainName');
-            if ($chainName === null) {
-                $networks = $this->safe_value($currency, 'networks', array());
-                $optionsNetworks = $this->safe_value($this->options, 'networks', array());
-                $network = $this->safe_string_upper($params, 'network'); // this line allows the user to specify either ERC20 or ETH
-                $network = $this->safe_string($optionsNetworks, $network, $network);
-                $networkEntry = $this->safe_value($networks, $network, array());
-                $chainName = $this->safe_string($networkEntry, 'id'); // handle ERC20>ETH alias
-                if ($chainName === null) {
-                    throw new ArgumentsRequired($this->id . ' withdraw() requires a $network parameter or a $chainName parameter');
-                }
-                $params = $this->omit($params, 'network');
-            }
             $request = array(
-                'coin' => strtoupper($currency['id']),
+                'coin' => $currency['id'],
                 'amount' => $amount,
                 'addressTo' => $address,
-                'chainName' => $chainName, // 'ERC20', 'TRC20', 'SOL'
+                // 'chainName' => chainName, // 'ERC20', 'TRC20', 'SOL'
                 // 'addressMark' => '', // mark of $address
                 // 'addrType' => '', // type of $address
                 // 'tag' => $tag,
             );
+            $networkCode = null;
+            list($networkCode, $params) = $this->handle_network_code_and_params($params);
+            if ($networkCode !== null) {
+                $request['chainName'] = $this->network_code_to_id($networkCode);
+            }
             if ($tag !== null) {
                 $request['tag'] = $tag;
             }
-            $response = Async\await($this->spotV1PrivatePostWithdrawCommit (array_merge($request, $params)));
+            $response = Async\await($this->spotV1PrivatePostWithdrawCommit ($this->extend($request, $params)));
             //
             //     {
             //         "code" => 200,
@@ -2785,7 +2800,7 @@ class bitrue extends Exchange {
             //         }
             //     }
             //
-            $data = $this->safe_value($response, 'data', array());
+            $data = $this->safe_dict($response, 'data', array());
             return $this->parse_transaction($data, $currency);
         }) ();
     }
@@ -2843,7 +2858,7 @@ class bitrue extends Exchange {
              */
             Async\await($this->load_markets());
             $response = Async\await($this->spotV1PublicGetExchangeInfo ($params));
-            $coins = $this->safe_value($response, 'coins');
+            $coins = $this->safe_list($response, 'coins');
             return $this->parse_deposit_withdraw_fees($coins, $codes, 'coin');
         }) ();
     }
@@ -2886,7 +2901,7 @@ class bitrue extends Exchange {
         );
     }
 
-    public function fetch_transfers(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_transfers(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch a history of internal transfers made on an account
@@ -2924,7 +2939,7 @@ class bitrue extends Exchange {
                 $params = $this->omit($params, 'until');
                 $request['endTime'] = $until;
             }
-            $response = Async\await($this->fapiV2PrivateGetFuturesTransferHistory (array_merge($request, $params)));
+            $response = Async\await($this->fapiV2PrivateGetFuturesTransferHistory ($this->extend($request, $params)));
             //
             //     {
             //         'code' => '0',
@@ -2938,12 +2953,12 @@ class bitrue extends Exchange {
             //         )]
             //     }
             //
-            $data = $this->safe_value($response, 'data', array());
+            $data = $this->safe_list($response, 'data', array());
             return $this->parse_transfers($data, $currency, $since, $limit);
         }) ();
     }
 
-    public function transfer(string $code, $amount, $fromAccount, $toAccount, $params = array ()) {
+    public function transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $amount, $fromAccount, $toAccount, $params) {
             /**
              * transfer $currency internally between wallets on the same account
@@ -2966,7 +2981,7 @@ class bitrue extends Exchange {
                 'amount' => $this->currency_to_precision($code, $amount),
                 'transferType' => $fromId . '_to_' . $toId,
             );
-            $response = Async\await($this->fapiV2PrivatePostFuturesTransfer (array_merge($request, $params)));
+            $response = Async\await($this->fapiV2PrivatePostFuturesTransfer ($this->extend($request, $params)));
             //
             //     {
             //         'code' => '0',
@@ -2974,12 +2989,12 @@ class bitrue extends Exchange {
             //         'data' => null
             //     }
             //
-            $data = $this->safe_value($response, 'data', array());
+            $data = $this->safe_dict($response, 'data', array());
             return $this->parse_transfer($data, $currency);
         }) ();
     }
 
-    public function set_leverage($leverage, ?string $symbol = null, $params = array ()) {
+    public function set_leverage(?int $leverage, ?string $symbol = null, $params = array ()) {
         return Async\async(function () use ($leverage, $symbol, $params) {
             /**
              * set the level of $leverage for a $market
@@ -3007,26 +3022,39 @@ class bitrue extends Exchange {
                 throw new NotSupported($this->id . ' setLeverage only support swap markets');
             }
             if ($market['linear']) {
-                $response = Async\await($this->fapiV2PrivatePostLevelEdit (array_merge($request, $params)));
+                $response = Async\await($this->fapiV2PrivatePostLevelEdit ($this->extend($request, $params)));
             } elseif ($market['inverse']) {
-                $response = Async\await($this->dapiV2PrivatePostLevelEdit (array_merge($request, $params)));
+                $response = Async\await($this->dapiV2PrivatePostLevelEdit ($this->extend($request, $params)));
             }
             return $response;
         }) ();
     }
 
-    public function parse_margin_modification($data, $market = null) {
+    public function parse_margin_modification($data, $market = null): array {
+        //
+        // setMargin
+        //
+        //     {
+        //         "code" => 0,
+        //         "msg" => "success"
+        //         "data" => null
+        //     }
+        //
         return array(
             'info' => $data,
-            'type' => null,
-            'amount' => null,
-            'code' => null,
             'symbol' => $market['symbol'],
+            'type' => null,
+            'marginMode' => 'isolated',
+            'amount' => null,
+            'total' => null,
+            'code' => null,
             'status' => null,
+            'timestamp' => null,
+            'datetime' => null,
         );
     }
 
-    public function set_margin(string $symbol, $amount, $params = array ()) {
+    public function set_margin(string $symbol, float $amount, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $amount, $params) {
             /**
              * Either adds or reduces margin in an isolated position in order to set the margin to a specific value
@@ -3048,9 +3076,9 @@ class bitrue extends Exchange {
                 'amount' => $this->parse_to_numeric($amount),
             );
             if ($market['linear']) {
-                $response = Async\await($this->fapiV2PrivatePostPositionMargin (array_merge($request, $params)));
+                $response = Async\await($this->fapiV2PrivatePostPositionMargin ($this->extend($request, $params)));
             } elseif ($market['inverse']) {
-                $response = Async\await($this->dapiV2PrivatePostPositionMargin (array_merge($request, $params)));
+                $response = Async\await($this->dapiV2PrivatePostPositionMargin ($this->extend($request, $params)));
             }
             //
             //     {
@@ -3079,7 +3107,7 @@ class bitrue extends Exchange {
             $this->check_required_credentials();
             $recvWindow = $this->safe_integer($this->options, 'recvWindow', 5000);
             if ($type === 'spot') {
-                $query = $this->urlencode(array_merge(array(
+                $query = $this->urlencode($this->extend(array(
                     'timestamp' => $this->nonce(),
                     'recvWindow' => $recvWindow,
                 ), $params));
@@ -3105,6 +3133,11 @@ class bitrue extends Exchange {
                 $signPath = $signPath . '/' . $version . '/' . $path;
                 $signMessage = $timestamp . $method . $signPath;
                 if ($method === 'GET') {
+                    $keys = is_array($params) ? array_keys($params) : array();
+                    $keysLength = count($keys);
+                    if ($keysLength > 0) {
+                        $signMessage .= '?' . $this->urlencode($params);
+                    }
                     $signature = $this->hmac($this->encode($signMessage), $this->encode($this->secret), 'sha256');
                     $headers = array(
                         'X-CH-APIKEY' => $this->apiKey,
@@ -3113,11 +3146,11 @@ class bitrue extends Exchange {
                     );
                     $url .= '?' . $this->urlencode($params);
                 } else {
-                    $query = array_merge(array(
+                    $query = $this->extend(array(
                         'recvWindow' => $recvWindow,
                     ), $params);
                     $body = $this->json($query);
-                    $signMessage = $signMessage . json_encode ($body);
+                    $signMessage .= $body;
                     $signature = $this->hmac($this->encode($signMessage), $this->encode($this->secret), 'sha256');
                     $headers = array(
                         'Content-Type' => 'application/json',
@@ -3158,7 +3191,7 @@ class bitrue extends Exchange {
         }
         // check $success value for wapi endpoints
         // $response in format array('msg' => 'The coin does not exist.', 'success' => true/false)
-        $success = $this->safe_value($response, 'success', true);
+        $success = $this->safe_bool($response, 'success', true);
         if (!$success) {
             $messageInner = $this->safe_string($response, 'msg');
             $parsedMessage = null;

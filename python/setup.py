@@ -39,7 +39,6 @@ setup(
 
     name=package['name'],
     version=package['version'],
-
     description=package['description'],
     long_description=long_description,
     long_description_content_type='text/markdown',

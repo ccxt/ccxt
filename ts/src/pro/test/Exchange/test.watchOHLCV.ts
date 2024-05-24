@@ -1,98 +1,39 @@
-'use strict';
-
-// ----------------------------------------------------------------------------
 
 import assert from 'assert';
 import testOHLCV from '../../../test/Exchange/base/test.ohlcv.js';
-import errors from '../../../base/errors.js';
+import testSharedMethods from '../../../test/Exchange/base/test.sharedMethods.js';
 
-/*  ------------------------------------------------------------------------ */
-
-export default async (exchange, symbol) => {
-
-    // log (symbol.green, 'watching ohlcv...')
-
+async function testWatchOHLCV (exchange, skippedProperties, symbol) {
     const method = 'watchOHLCV';
-    const skippedProperties = {};
-
-    const skippedExchanges = [
-        'dsx',
-        'idex2', // rinkeby testnet, trades too rare
-        'bitvavo',
-        'zb', // supports watchOHLCV for contracts only
-        'woo',
-        'bitget',  // timeframes structure differs from rest
-    ];
-
-    if (skippedExchanges.includes (exchange.id)) {
-        console.log (exchange.id, method + '() test skipped');
-        return;
+    let now = exchange.milliseconds ();
+    const ends = now + 15000;
+    const timeframeKeys = Object.keys (exchange.timeframes);
+    assert (timeframeKeys.length, exchange.id + ' ' + method + ' - no timeframes found');
+    // prefer 1m timeframe if available, otherwise return the first one
+    let chosenTimeframeKey = '1m';
+    if (!exchange.inArray (chosenTimeframeKey, timeframeKeys)) {
+        chosenTimeframeKey = timeframeKeys[0];
     }
-
-    if (!exchange.has[method]) {
-        console.log (exchange.id, 'does not support', method + '() method');
-        return;
-    }
-
-    const timeframe = (exchange.timeframes && ('1m' in exchange.timeframes)) ? '1m' : Object.keys (exchange.timeframes)[0];
-
-    let response = undefined;
-
-    let now = Date.now ();
-    const ends = now + 10000;
-
+    const limit = 10;
+    const duration = exchange.parseTimeframe (chosenTimeframeKey);
+    const since = exchange.milliseconds () - duration * limit * 1000 - 1000;
     while (now < ends) {
-
+        let response = undefined;
         try {
-
-            response = await exchange[method] (symbol, timeframe);
-
-            now = Date.now ();
-
-            assert (response instanceof Array);
-
-            // log (symbol.green, method, 'returned', Object.values (response).length.toString ().green, 'ohlcvs')
-            for (let i = 0; i < response.length; i++) {
-                const current = response[i];
-                testOHLCV (exchange, skippedProperties, method, current, symbol, now);
-                if (i > 0) {
-                    const previous = response[i - 1];
-                    if (current[0] && previous[0]) {
-                        assert (
-                            current[0] >= previous[0],
-                            'OHLCV timestamp ordering is wrong at candle ' + i.toString () + ' ' + current[0].toString () + ' < ' + previous[0].toString ()
-                        );
-                    }
-                }
-            }
-
-            response = response.map ((ohlcv) => [
-                exchange.iso8601 (ohlcv[0]),
-                ohlcv[1],
-                ohlcv[2],
-                ohlcv[3],
-                ohlcv[4],
-                ohlcv[5],
-            ]);
-
-            if (response.length) {
-                console.log (exchange.iso8601 (now), exchange.id, timeframe, symbol, response.length, 'candles', JSON.stringify (response[response.length - 1]));
-            }
-
+            response = await exchange.watchOHLCV (symbol, chosenTimeframeKey, since, limit);
         } catch (e) {
-
-            console.log (e);
-
-            if (!(e instanceof errors.NetworkError)) {
+            if (!testSharedMethods.isTemporaryFailure (e)) {
                 throw e;
             }
-
-            now = Date.now ();
+            now = exchange.milliseconds ();
+            continue;
         }
-
-        // console.log ('--------------------------------------------------------')
-        // log.noLocate (asTable (response))
+        testSharedMethods.assertNonEmtpyArray (exchange, skippedProperties, method, response, symbol);
+        now = exchange.milliseconds ();
+        for (let i = 0; i < response.length; i++) {
+            testOHLCV (exchange, skippedProperties, method, response[i], symbol, now);
+        }
     }
+}
 
-    return response;
-};
+export default testWatchOHLCV;

@@ -10,7 +10,7 @@ var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 //  ---------------------------------------------------------------------------
 /**
  * @class ace
- * @extends Exchange
+ * @augments Exchange
  */
 class ace extends ace$1 {
     describe() {
@@ -31,6 +31,8 @@ class ace extends ace$1 {
                 'cancelAllOrders': false,
                 'cancelOrder': true,
                 'cancelOrders': false,
+                'closeAllPositions': false,
+                'closePosition': false,
                 'createOrder': true,
                 'editOrder': false,
                 'fetchBalance': true,
@@ -60,8 +62,13 @@ class ace extends ace$1 {
                 'fetchOrderBook': true,
                 'fetchOrders': false,
                 'fetchOrderTrades': true,
+                'fetchPosition': false,
+                'fetchPositionHistory': false,
                 'fetchPositionMode': false,
                 'fetchPositions': false,
+                'fetchPositionsForSymbol': false,
+                'fetchPositionsHistory': false,
+                'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchTicker': true,
                 'fetchTickers': true,
@@ -396,7 +403,7 @@ class ace extends ace$1 {
         //         "status": 200
         //     }
         //
-        const orderBook = this.safeValue(response, 'attachment');
+        const orderBook = this.safeDict(response, 'attachment');
         return this.parseOrderBook(orderBook, market['symbol'], undefined, 'bids', 'asks');
     }
     parseOHLCV(ohlcv, market = undefined) {
@@ -618,7 +625,7 @@ class ace extends ace$1 {
         //         "status": 200
         //     }
         //
-        const data = this.safeValue(response, 'attachment');
+        const data = this.safeDict(response, 'attachment');
         return this.parseOrder(data, market);
     }
     async cancelOrder(id, symbol = undefined, params = {}) {
@@ -684,7 +691,7 @@ class ace extends ace$1 {
         //         "status": 200
         //     }
         //
-        const data = this.safeValue(response, 'attachment');
+        const data = this.safeDict(response, 'attachment');
         return this.parseOrder(data, undefined);
     }
     async fetchOpenOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -695,7 +702,7 @@ class ace extends ace$1 {
          * @see https://github.com/ace-exchange/ace-official-api-docs/blob/master/api_v2.md#open-api---order-list
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
-         * @param {int} [limit] the maximum number of  orde structures to retrieve
+         * @param {int} [limit] the maximum number of order structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
@@ -877,7 +884,7 @@ class ace extends ace$1 {
         //     }
         //
         const data = this.safeValue(response, 'attachment');
-        const trades = this.safeValue(data, 'trades', []);
+        const trades = this.safeList(data, 'trades', []);
         return this.parseTrades(trades, market, since, limit);
     }
     async fetchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -936,7 +943,7 @@ class ace extends ace$1 {
         //         "status": 200
         //     }
         //
-        const trades = this.safeValue(response, 'attachment', []);
+        const trades = this.safeList(response, 'attachment', []);
         return this.parseTrades(trades, market, since, limit);
     }
     parseBalance(response) {
@@ -1046,8 +1053,9 @@ class ace extends ace$1 {
         const feedback = this.id + ' ' + body;
         const status = this.safeNumber(response, 'status', 200);
         if (status > 200) {
-            this.throwExactlyMatchedException(this.exceptions['exact'], status, feedback);
-            this.throwBroadlyMatchedException(this.exceptions['broad'], status, feedback);
+            const statusStr = status.toString();
+            this.throwExactlyMatchedException(this.exceptions['exact'], statusStr, feedback);
+            this.throwBroadlyMatchedException(this.exceptions['broad'], statusStr, feedback);
         }
         return undefined;
     }
