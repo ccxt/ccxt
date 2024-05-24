@@ -5674,7 +5674,7 @@ class Exchange(object):
     def parse_liquidation(self, liquidation, market: Market = None):
         raise NotSupported(self.id + ' parseLiquidation() is not supported yet')
 
-    def parse_liquidations(self, liquidations, market=None, since: Int = None, limit: Int = None):
+    def parse_liquidations(self, liquidations: List[dict], market: Market = None, since: Int = None, limit: Int = None):
         """
          * @ignore
         parses liquidation info from the exchange response

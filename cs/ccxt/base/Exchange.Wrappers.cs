@@ -138,10 +138,10 @@ public partial class Exchange
         var res = await this.fetchIsolatedBorrowRates(parameters);
         return new IsolatedBorrowRates(res);
     }
-    public async Task<Dictionary<string, LeverageTier[]>> FetchLeverageTiers(List<String> symbols = null, Dictionary<string, object> parameters = null)
+    public async Task<LeverageTiers> FetchLeverageTiers(List<String> symbols = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchLeverageTiers(symbols, parameters);
-        return ((Dictionary<string, LeverageTier[]>)res);
+        return new LeverageTiers(res);
     }
     public async Task<Dictionary<string, object>> FetchFundingRates(List<String> symbols = null, Dictionary<string, object> parameters = null)
     {
@@ -935,10 +935,10 @@ public partial class Exchange
         var res = await this.createMarketSellOrderWs(symbol, amount, parameters);
         return new Order(res);
     }
-    public async Task<Dictionary<string, object>> FetchMarketLeverageTiers(string symbol, Dictionary<string, object> parameters = null)
+    public async Task<List<LeverageTier>> FetchMarketLeverageTiers(string symbol, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchMarketLeverageTiers(symbol, parameters);
-        return ((Dictionary<string, object>)res);
+        return ((IList<object>)res).Select(item => new LeverageTier(item)).ToList<LeverageTier>();
     }
     public async Task<Order> CreatePostOnlyOrder(string symbol, string type, string side, double amount, double? price2 = 0, Dictionary<string, object> parameters = null)
     {

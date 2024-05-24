@@ -4137,7 +4137,7 @@ class coinex extends Exchange {
         //
     }
 
-    public function fetch_leverage_tiers(?array $symbols = null, $params = array ()) {
+    public function fetch_leverage_tiers(?array $symbols = null, $params = array ()): array {
         /**
          * retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes
          * @see https://docs.coinex.com/api/v2/futures/market/http/list-market-position-level
@@ -4181,7 +4181,7 @@ class coinex extends Exchange {
         return $this->parse_leverage_tiers($data, $symbols, 'market');
     }
 
-    public function parse_market_leverage_tiers($info, ?array $market = null) {
+    public function parse_market_leverage_tiers($info, ?array $market = null): array {
         $tiers = array();
         $brackets = $this->safe_list($info, 'level', array());
         $minNotional = 0;

@@ -1,5 +1,5 @@
 import Exchange from './abstract/krakenfutures.js';
-import type { TransferEntry, Int, OrderSide, OrderType, OHLCV, Trade, FundingRateHistory, OrderRequest, Order, Balances, Str, Dict, Ticker, OrderBook, Tickers, Strings, Market, Currency, Leverage, Leverages, Num } from './base/types.js';
+import type { TransferEntry, Int, OrderSide, OrderType, OHLCV, Trade, FundingRateHistory, OrderRequest, Order, Balances, Str, Dict, Ticker, OrderBook, Tickers, Strings, Market, Currency, Leverage, Leverages, Num, LeverageTier, LeverageTiers } from './base/types.js';
 /**
  * @class krakenfutures
  * @augments Exchange
@@ -78,8 +78,8 @@ export default class krakenfutures extends Exchange {
         side: string;
         percentage: any;
     };
-    fetchLeverageTiers(symbols?: Strings, params?: {}): Promise<{}>;
-    parseMarketLeverageTiers(info: any, market?: Market): any[];
+    fetchLeverageTiers(symbols?: Strings, params?: {}): Promise<LeverageTiers>;
+    parseMarketLeverageTiers(info: any, market?: Market): LeverageTier[];
     parseTransfer(transfer: Dict, currency?: Currency): TransferEntry;
     parseAccount(account: any): any;
     transferOut(code: string, amount: any, params?: {}): Promise<TransferEntry>;

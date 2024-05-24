@@ -5257,7 +5257,7 @@ class Exchange extends \ccxt\Exchange {
         throw new NotSupported($this->id . ' parseLiquidation () is not supported yet');
     }
 
-    public function parse_liquidations($liquidations, $market = null, ?int $since = null, ?int $limit = null) {
+    public function parse_liquidations(array $liquidations, ?array $market = null, ?int $since = null, ?int $limit = null) {
         /**
          * @ignore
          * parses liquidation info from the exchange response

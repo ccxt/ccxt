@@ -1955,7 +1955,7 @@ class bitget extends Exchange {
         return $result;
     }
 
-    public function fetch_market_leverage_tiers(string $symbol, $params = array ()) {
+    public function fetch_market_leverage_tiers(string $symbol, $params = array ()): array {
         /**
          * retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes for a single $market
          * @see https://www.bitget.com/api-doc/contract/position/Get-Query-Position-Lever
@@ -2063,7 +2063,7 @@ class bitget extends Exchange {
         return $this->parse_market_leverage_tiers($result, $market);
     }
 
-    public function parse_market_leverage_tiers($info, ?array $market = null) {
+    public function parse_market_leverage_tiers($info, ?array $market = null): array {
         //
         // swap and future
         //

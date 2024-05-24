@@ -7300,7 +7300,7 @@ class bybit extends Exchange {
         return $this->parse_market_leverage_tiers($tiers, $market);
     }
 
-    public function fetch_market_leverage_tiers(string $symbol, $params = array ()) {
+    public function fetch_market_leverage_tiers(string $symbol, $params = array ()): array {
         /**
          * retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes for a single $market
          * @see https://bybit-exchange.github.io/docs/v5/market/risk-limit
@@ -8051,7 +8051,7 @@ class bybit extends Exchange {
         return $result;
     }
 
-    public function fetch_leverage_tiers(?array $symbols = null, $params = array ()) {
+    public function fetch_leverage_tiers(?array $symbols = null, $params = array ()): array {
         /**
          * @see https://bybit-exchange.github.io/docs/v5/market/risk-limit
          * retrieve information on the maximum leverage, for different trade sizes
@@ -8109,7 +8109,7 @@ class bybit extends Exchange {
         return $tiers;
     }
 
-    public function parse_market_leverage_tiers($info, ?array $market = null) {
+    public function parse_market_leverage_tiers($info, ?array $market = null): array {
         //
         //  array(
         //      {

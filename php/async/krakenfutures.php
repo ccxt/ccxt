@@ -2345,7 +2345,7 @@ class krakenfutures extends Exchange {
         );
     }
 
-    public function fetch_leverage_tiers(?array $symbols = null, $params = array ()) {
+    public function fetch_leverage_tiers(?array $symbols = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbols, $params) {
             /**
              * @see https://docs.futures.kraken.com/#http-api-trading-v3-api-instrument-details-get-instruments
@@ -2405,7 +2405,7 @@ class krakenfutures extends Exchange {
         }) ();
     }
 
-    public function parse_market_leverage_tiers($info, ?array $market = null) {
+    public function parse_market_leverage_tiers($info, ?array $market = null): array {
         /**
          * @ignore
          * @param $info Exchange $market response for 1 $market

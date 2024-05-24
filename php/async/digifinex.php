@@ -3753,7 +3753,7 @@ class digifinex extends Exchange {
         }) ();
     }
 
-    public function fetch_leverage_tiers(?array $symbols = null, $params = array ()) {
+    public function fetch_leverage_tiers(?array $symbols = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbols, $params) {
             /**
              * @see https://docs.digifinex.com/en-ww/swap/v2/rest.html#instruments
@@ -3799,7 +3799,7 @@ class digifinex extends Exchange {
         }) ();
     }
 
-    public function fetch_market_leverage_tiers(string $symbol, $params = array ()) {
+    public function fetch_market_leverage_tiers(string $symbol, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * @see https://docs.digifinex.com/en-ww/swap/v2/rest.html#instrument
@@ -3849,7 +3849,7 @@ class digifinex extends Exchange {
         }) ();
     }
 
-    public function parse_market_leverage_tiers($info, ?array $market = null) {
+    public function parse_market_leverage_tiers($info, ?array $market = null): array {
         //
         //     {
         //         "instrument_id" => "BTCUSDTPERP",

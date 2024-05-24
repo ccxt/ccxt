@@ -1,5 +1,5 @@
 import Exchange from './abstract/gate.js';
-import type { Int, OrderSide, OrderType, OHLCV, Trade, FundingRateHistory, OpenInterest, Order, Balances, OrderRequest, FundingHistory, Str, Transaction, Ticker, OrderBook, Tickers, Greeks, Strings, Market, Currency, MarketInterface, TransferEntry, Leverage, Leverages, Num, OptionChain, Option, MarginModification, TradingFeeInterface, Currencies, TradingFees, Position, Dict } from './base/types.js';
+import type { Int, OrderSide, OrderType, OHLCV, Trade, FundingRateHistory, OpenInterest, Order, Balances, OrderRequest, FundingHistory, Str, Transaction, Ticker, OrderBook, Tickers, Greeks, Strings, Market, Currency, MarketInterface, TransferEntry, Leverage, Leverages, Num, OptionChain, Option, MarginModification, TradingFeeInterface, Currencies, TradingFees, Position, Dict, LeverageTier, LeverageTiers } from './base/types.js';
 /**
  * @class gate
  * @augments Exchange
@@ -183,10 +183,10 @@ export default class gate extends Exchange {
     parsePosition(position: Dict, market?: Market): Position;
     fetchPosition(symbol: string, params?: {}): Promise<Position>;
     fetchPositions(symbols?: Strings, params?: {}): Promise<Position[]>;
-    fetchLeverageTiers(symbols?: Strings, params?: {}): Promise<{}>;
-    fetchMarketLeverageTiers(symbol: string, params?: {}): Promise<any[]>;
+    fetchLeverageTiers(symbols?: Strings, params?: {}): Promise<LeverageTiers>;
+    fetchMarketLeverageTiers(symbol: string, params?: {}): Promise<LeverageTier[]>;
     parseEmulatedLeverageTiers(info: any, market?: any): any[];
-    parseMarketLeverageTiers(info: any, market?: Market): any[];
+    parseMarketLeverageTiers(info: any, market?: Market): LeverageTier[];
     repayIsolatedMargin(symbol: string, code: string, amount: any, params?: {}): Promise<{
         id: number;
         currency: string;

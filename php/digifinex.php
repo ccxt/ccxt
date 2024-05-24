@@ -3665,7 +3665,7 @@ class digifinex extends Exchange {
         return $this->parse_transfers($transfers, $currency, $since, $limit);
     }
 
-    public function fetch_leverage_tiers(?array $symbols = null, $params = array ()) {
+    public function fetch_leverage_tiers(?array $symbols = null, $params = array ()): array {
         /**
          * @see https://docs.digifinex.com/en-ww/swap/v2/rest.html#instruments
          * retrieve information on the maximum leverage, for different trade sizes
@@ -3709,7 +3709,7 @@ class digifinex extends Exchange {
         return $this->parse_leverage_tiers($data, $symbols, 'instrument_id');
     }
 
-    public function fetch_market_leverage_tiers(string $symbol, $params = array ()) {
+    public function fetch_market_leverage_tiers(string $symbol, $params = array ()): array {
         /**
          * @see https://docs.digifinex.com/en-ww/swap/v2/rest.html#instrument
          * retrieve information on the maximum leverage, for different trade sizes for a single $market
@@ -3757,7 +3757,7 @@ class digifinex extends Exchange {
         return $this->parse_market_leverage_tiers($data, $market);
     }
 
-    public function parse_market_leverage_tiers($info, ?array $market = null) {
+    public function parse_market_leverage_tiers($info, ?array $market = null): array {
         //
         //     {
         //         "instrument_id" => "BTCUSDTPERP",
