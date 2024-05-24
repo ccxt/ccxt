@@ -5964,12 +5964,12 @@ class Exchange {
         return $this->precisionMode === SIGNIFICANT_DIGITS;
     }
 
-    public function safe_number(array $obj, int|string $key, ?float $defaultNumber = null) {
+    public function safe_number(?array $obj, int|string $key, ?float $defaultNumber = null) {
         $value = $this->safe_string($obj, $key);
         return $this->parse_number($value, $defaultNumber);
     }
 
-    public function safe_number_n(array $obj, array $arr, ?float $defaultNumber = null) {
+    public function safe_number_n(?array $obj, array $arr, ?float $defaultNumber = null) {
         $value = $this->safe_string_n($obj, $arr);
         return $this->parse_number($value, $defaultNumber);
     }
