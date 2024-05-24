@@ -1423,7 +1423,7 @@ export default class vertex extends Exchange {
         if (stop) {
             this.checkRequiredArgument ('fetchOrders', symbol, 'symbol');
             const contracts = await this.queryContracts ();
-            const chainId = this.safeNumber (contracts, 'chain_id');
+            const chainId = this.safeString (contracts, 'chain_id');
             const verifyingContractAddress = this.safeString (contracts, 'endpoint_addr');
             const tx = {
                 'sender': this.convertAddressToSender (this.walletAddress),
@@ -1524,7 +1524,7 @@ export default class vertex extends Exchange {
         const market = this.market (symbol);
         const marketId = market['id'];
         const contracts = await this.queryContracts ();
-        const chainId = this.safeNumber (contracts, 'chain_id');
+        const chainId = this.safeString (contracts, 'chain_id');
         const verifyingContractAddress = this.safeString (contracts, 'endpoint_addr');
         const now = this.nonce ();
         const nonce = this.getNonce(now, 90000);
@@ -1622,7 +1622,7 @@ export default class vertex extends Exchange {
         const market = this.market (symbol);
         const marketId = market['id'];
         const contracts = await this.queryContracts ();
-        const chainId = this.safeNumber (contracts, 'chain_id');
+        const chainId = this.safeString (contracts, 'chain_id');
         const verifyingContractAddress = this.safeString (contracts, 'endpoint_addr');
         const now = this.nonce ();
         const nonce = this.getNonce(now, 90000);

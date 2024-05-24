@@ -444,6 +444,7 @@ class Transpiler {
             [ /Precise\.stringGe\s/g, 'Precise.string_ge' ],
             [ /Precise\.stringLt\s/g, 'Precise.string_lt' ],
             [ /Precise\.stringLe\s/g, 'Precise.string_le' ],
+            [ /Precise\.stringOr\s/g, 'Precise.string_or' ],
             [ /\.padEnd\s/g, '.ljust'],
             [ /\.padStart\s/g, '.rjust' ],
 
@@ -676,6 +677,7 @@ class Transpiler {
             [ /Precise\.stringGe\s/g, 'Precise::string_ge' ],
             [ /Precise\.stringLt\s/g, 'Precise::string_lt' ],
             [ /Precise\.stringLe\s/g, 'Precise::string_le' ],
+            [ /Precise\.stringOr\s/g, 'Precise::string_or' ],
             [ /(\w+)\.padEnd\s*\(([^,]+),\s*([^)]+)\)/g, 'str_pad($1, $2, $3, STR_PAD_RIGHT)' ],
             [ /(\w+)\.padStart\s*\(([^,]+),\s*([^)]+)\)/g, 'str_pad($1, $2, $3, STR_PAD_LEFT)' ],
 
