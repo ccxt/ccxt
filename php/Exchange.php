@@ -2769,7 +2769,7 @@ class Exchange {
         throw new NotSupported($this->id . ' parseTrade() is not supported yet');
     }
 
-    public function parse_transaction($transaction, ?array $currency = null) {
+    public function parse_transaction(array $transaction, ?array $currency = null) {
         throw new NotSupported($this->id . ' parseTransaction() is not supported yet');
     }
 
@@ -2781,11 +2781,11 @@ class Exchange {
         throw new NotSupported($this->id . ' parseAccount() is not supported yet');
     }
 
-    public function parse_ledger_entry($item, ?array $currency = null) {
+    public function parse_ledger_entry(array $item, ?array $currency = null) {
         throw new NotSupported($this->id . ' parseLedgerEntry() is not supported yet');
     }
 
-    public function parse_order($order, ?array $market = null) {
+    public function parse_order(array $order, ?array $market = null) {
         throw new NotSupported($this->id . ' parseOrder() is not supported yet');
     }
 
@@ -2805,7 +2805,7 @@ class Exchange {
         throw new NotSupported($this->id . ' fetchLeverageTiers() is not supported yet');
     }
 
-    public function parse_position($position, ?array $market = null) {
+    public function parse_position(array $position, ?array $market = null) {
         throw new NotSupported($this->id . ' parsePosition() is not supported yet');
     }
 
@@ -2813,7 +2813,7 @@ class Exchange {
         throw new NotSupported($this->id . ' parseFundingRateHistory() is not supported yet');
     }
 
-    public function parse_borrow_interest($info, ?array $market = null) {
+    public function parse_borrow_interest(array $info, ?array $market = null) {
         throw new NotSupported($this->id . ' parseBorrowInterest() is not supported yet');
     }
 
@@ -5964,7 +5964,11 @@ class Exchange {
         return $this->precisionMode === SIGNIFICANT_DIGITS;
     }
 
+<<<<<<< HEAD
     public function safe_number(?array $obj, int|string $key, ?float $defaultNumber = null) {
+=======
+    public function safe_number($obj, int|string $key, ?float $defaultNumber = null) {
+>>>>>>> dfc656d22c57e0c1d3755f200a474b1771260097
         $value = $this->safe_string($obj, $key);
         return $this->parse_number($value, $defaultNumber);
     }
@@ -7024,7 +7028,7 @@ class Exchange {
         throw new NotSupported($this->id . ' parseLiquidation () is not supported yet');
     }
 
-    public function parse_liquidations($liquidations, $market = null, ?int $since = null, ?int $limit = null) {
+    public function parse_liquidations(array $liquidations, ?array $market = null, ?int $since = null, ?int $limit = null) {
         /**
          * @ignore
          * parses liquidation info from the exchange response
@@ -7082,7 +7086,7 @@ class Exchange {
         return $marginModeStructures;
     }
 
-    public function parse_margin_mode($marginMode, ?array $market = null) {
+    public function parse_margin_mode(array $marginMode, ?array $market = null) {
         throw new NotSupported($this->id . ' parseMarginMode () is not supported yet');
     }
 

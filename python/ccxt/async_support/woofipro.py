@@ -635,7 +635,7 @@ class woofipro(Exchange, ImplicitAPI):
             }
         return fee
 
-    def parse_trade(self, trade, market: Market = None) -> Trade:
+    def parse_trade(self, trade: dict, market: Market = None) -> Trade:
         #
         # public/market_trades
         #
@@ -1042,7 +1042,7 @@ class woofipro(Exchange, ImplicitAPI):
         rows = self.safe_list(data, 'rows', [])
         return self.parse_ohlcvs(rows, market, timeframe, since, limit)
 
-    def parse_order(self, order, market: Market = None) -> Order:
+    def parse_order(self, order: dict, market: Market = None) -> Order:
         #
         # Possible input functions:
         # * createOrder
@@ -1155,7 +1155,7 @@ class woofipro(Exchange, ImplicitAPI):
             'info': order,
         }, market)
 
-    def parse_time_in_force(self, timeInForce):
+    def parse_time_in_force(self, timeInForce: Str):
         timeInForces: dict = {
             'ioc': 'IOC',
             'fok': 'FOK',
@@ -1976,7 +1976,7 @@ class woofipro(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 'data', {})
         return [currency, self.safe_list(data, 'rows', [])]
 
-    def parse_ledger_entry(self, item, currency: Currency = None):
+    def parse_ledger_entry(self, item: dict, currency: Currency = None):
         code = self.safe_string(item, 'token')
         amount = self.safe_number(item, 'amount')
         side = self.safe_string(item, 'token_side')
@@ -2021,7 +2021,7 @@ class woofipro(Exchange, ImplicitAPI):
         currency, rows = await self.get_asset_history_rows(code, since, limit, params)
         return self.parse_ledger(rows, currency, since, limit, params)
 
-    def parse_transaction(self, transaction, currency: Currency = None) -> Transaction:
+    def parse_transaction(self, transaction: dict, currency: Currency = None) -> Transaction:
         # example in fetchLedger
         code = self.safe_string(transaction, 'token')
         movementDirection = self.safe_string_lower(transaction, 'token_side')
@@ -2286,7 +2286,7 @@ class woofipro(Exchange, ImplicitAPI):
         }
         return await self.v1PrivatePostClientLeverage(self.extend(request, params))
 
-    def parse_position(self, position, market: Market = None):
+    def parse_position(self, position: dict, market: Market = None):
         #
         # {
         #     "IMR_withdraw_orders": 0.1,

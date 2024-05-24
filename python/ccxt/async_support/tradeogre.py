@@ -377,7 +377,7 @@ class tradeogre(Exchange, ImplicitAPI):
         response = await self.publicGetHistoryMarket(self.extend(request, params))
         return self.parse_trades(response, market, since, limit)
 
-    def parse_trade(self, trade, market: Market = None):
+    def parse_trade(self, trade: dict, market: Market = None):
         #
         #  {
         #      "date":1515128233,
@@ -523,7 +523,7 @@ class tradeogre(Exchange, ImplicitAPI):
         response = await self.privateGetAccountOrderUuid(self.extend(request, params))
         return self.parse_order(response, None)
 
-    def parse_order(self, order, market: Market = None) -> Order:
+    def parse_order(self, order: dict, market: Market = None) -> Order:
         #
         #
         # {

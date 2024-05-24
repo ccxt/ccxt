@@ -69,22 +69,22 @@ export default class coinbaseinternational extends Exchange {
     setMargin(symbol: string, amount: number, params?: {}): Promise<any>;
     fetchDepositsWithdrawals(code?: string, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
     fetchPosition(symbol: string, params?: {}): Promise<Position>;
-    parsePosition(position: any, market?: Market): Position;
+    parsePosition(position: Dict, market?: Market): Position;
     fetchPositions(symbols?: Strings, params?: {}): Promise<Position[]>;
     fetchWithdrawals(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
     fetchDeposits(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
     parseTransactionStatus(status: any): string;
-    parseTransaction(transaction: any, currency?: Currency): Transaction;
-    parseTrade(trade: any, market?: Market): Trade;
+    parseTransaction(transaction: Dict, currency?: Currency): Transaction;
+    parseTrade(trade: Dict, market?: Market): Trade;
     fetchMarkets(params?: {}): Promise<Market[]>;
     parseMarket(market: any): Market;
     fetchCurrencies(params?: {}): Promise<Currencies>;
-    parseCurrency(currency: any): {
+    parseCurrency(currency: Dict): {
         id: string;
         name: string;
         code: string;
         precision: any;
-        info: any;
+        info: Dict;
         active: boolean;
         deposit: any;
         withdraw: any;
@@ -105,7 +105,7 @@ export default class coinbaseinternational extends Exchange {
     parseBalance(response: any): Balances;
     transfer(code: string, amount: number, fromAccount: string, toAccount: string, params?: {}): Promise<TransferEntry>;
     createOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: number, params?: {}): Promise<Order>;
-    parseOrder(order: any, market?: Market): Order;
+    parseOrder(order: Dict, market?: Market): Order;
     parseOrderStatus(status: Str): string;
     parseOrderType(type: Str): string;
     cancelOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;

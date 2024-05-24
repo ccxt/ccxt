@@ -455,7 +455,7 @@ class timex extends Exchange {
         return null;
     }
 
-    public function parse_transaction($transaction, ?array $currency = null): array {
+    public function parse_transaction(array $transaction, ?array $currency = null): array {
         //
         //     {
         //         "from" => "0x1134cc86b45039cc211c6d1d2e4b3c77f60207ed",
@@ -1177,7 +1177,7 @@ class timex extends Exchange {
         }) ();
     }
 
-    public function parse_trading_fee($fee, ?array $market = null): array {
+    public function parse_trading_fee(array $fee, ?array $market = null): array {
         //
         //     {
         //         "fee" => 0.0075,
@@ -1308,7 +1308,7 @@ class timex extends Exchange {
         );
     }
 
-    public function parse_currency($currency) {
+    public function parse_currency(array $currency) {
         //
         //     {
         //         "symbol" => "BTC",
@@ -1436,7 +1436,7 @@ class timex extends Exchange {
         ), $market);
     }
 
-    public function parse_trade($trade, ?array $market = null): array {
+    public function parse_trade(array $trade, ?array $market = null): array {
         //
         // fetchTrades (public)
         //
@@ -1527,7 +1527,7 @@ class timex extends Exchange {
         );
     }
 
-    public function parse_order($order, ?array $market = null): array {
+    public function parse_order(array $order, ?array $market = null): array {
         //
         // fetchOrder, createOrder, cancelOrder, cancelOrders, fetchOpenOrders, fetchClosedOrders
         //

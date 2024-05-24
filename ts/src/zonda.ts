@@ -421,7 +421,7 @@ export default class zonda extends Exchange {
         return this.parseOrders (items, undefined, since, limit, { 'status': 'open' });
     }
 
-    parseOrder (order, market: Market = undefined): Order {
+    parseOrder (order: Dict, market: Market = undefined): Order {
         //
         //     {
         //         "market": "ETH-EUR",
@@ -1241,7 +1241,7 @@ export default class zonda extends Exchange {
         return this.parseOHLCVs (items, market, timeframe, since, limit);
     }
 
-    parseTrade (trade, market: Market = undefined): Trade {
+    parseTrade (trade: Dict, market: Market = undefined): Trade {
         //
         // createOrder trades
         //
