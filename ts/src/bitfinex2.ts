@@ -1854,7 +1854,8 @@ export default class bitfinex2 extends Exchange {
         }
         const response = await this.privatePostAuthWOrderCancel (this.extend (request, params));
         const order = this.safeValue (response, 4);
-        return this.parseOrder (order);
+        const orderObject = { 'result': order };
+        return this.parseOrder (orderObject);
     }
 
     async cancelOrders (ids, symbol: Str = undefined, params = {}) {

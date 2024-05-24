@@ -2731,8 +2731,8 @@ export default class bitmart extends Exchange {
                 throw new InvalidOrder (this.id + ' cancelOrder() ' + symbol + ' order id ' + id + ' is filled or canceled');
             }
         }
-        const order = this.safeOrder ({ 'id': id }, market);
-        return this.extend (order, { 'id': id });
+        const order = this.safeOrder ({ 'id': id, 'symbol': market['symbol'], 'info': {}}, market);
+        return order;
     }
 
     async cancelOrders (ids: string[], symbol: Str = undefined, params = {}) {
