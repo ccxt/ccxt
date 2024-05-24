@@ -5296,7 +5296,7 @@ export default class htx extends Exchange {
          * @param {float} [params.stopLossPrice] *contract only* the price a stop-loss order is triggered at
          * @param {float} [params.takeProfitPrice] *contract only* the price a take-profit order is triggered at
          * @param {string} [params.operator] *spot and margin only* gte or lte, trigger price condition
-         * @param {string} [params.offset] *contract only* 'open', 'close', or 'both', required in hedge mode
+         * @param {string} [params.offset] *contract only* 'both' (linear only), 'open', or 'close', required in hedge mode and for inverse markets
          * @param {bool} [params.postOnly] *contract only* true or false
          * @param {int} [params.leverRate] *contract only* required for all contract orders except tpsl, leverage greater than 20x requires prior approval of high-leverage agreement
          * @param {string} [params.timeInForce] supports 'IOC' and 'FOK'
@@ -5350,6 +5350,10 @@ export default class htx extends Exchange {
                     }
                 }
             } else if (market['inverse']) {
+                const offset = this.safeString (params, 'offset');
+                if (offset === undefined) {
+                    throw new ArgumentsRequired (this.id + ' createOrder () requires an extra parameter params["offset"] to be set to "open" or "close" when placing orders in inverse markets');
+                }
                 if (market['swap']) {
                     if (isStop) {
                         response = await this.contractPrivatePostSwapApiV1SwapTriggerOrder (contractRequest);
