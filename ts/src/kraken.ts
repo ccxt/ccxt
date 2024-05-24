@@ -2362,7 +2362,7 @@ export default class kraken extends Exchange {
         return this.safeString (withdrawMethods, network, network);
     }
 
-    parseTransaction (transaction, currency: Currency = undefined): Transaction {
+    parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {
         //
         // fetchDeposits
         //

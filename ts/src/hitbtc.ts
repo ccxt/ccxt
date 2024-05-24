@@ -1432,7 +1432,7 @@ export default class hitbtc extends Exchange {
         return this.safeString (types, type, type);
     }
 
-    parseTransaction (transaction, currency: Currency = undefined): Transaction {
+    parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {
         //
         // transaction
         //

@@ -2174,7 +2174,7 @@ export default class woofipro extends Exchange {
         return this.parseLedger (rows, currency, since, limit, params);
     }
 
-    parseTransaction (transaction, currency: Currency = undefined): Transaction {
+    parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {
         // example in fetchLedger
         const code = this.safeString (transaction, 'token');
         let movementDirection = this.safeStringLower (transaction, 'token_side');

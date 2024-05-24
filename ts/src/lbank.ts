@@ -2115,7 +2115,7 @@ export default class lbank extends Exchange {
         return this.safeString (this.safeValue (statuses, type, {}), status, status);
     }
 
-    parseTransaction (transaction, currency: Currency = undefined): Transaction {
+    parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {
         //
         // fetchDeposits (private)
         //

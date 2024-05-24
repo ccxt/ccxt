@@ -1164,7 +1164,7 @@ export default class lykke extends Exchange {
         };
     }
 
-    parseTransaction (transaction, currency: Currency = undefined): Transaction {
+    parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {
         //
         // withdraw
         //     "3035b1ad-2005-4587-a986-1f7966be78e0"

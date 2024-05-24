@@ -1714,7 +1714,7 @@ export default class coinbaseexchange extends Exchange {
         }
     }
 
-    parseTransaction (transaction, currency: Currency = undefined): Transaction {
+    parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {
         //
         // privateGetTransfers
         //

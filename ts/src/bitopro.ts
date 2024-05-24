@@ -1362,7 +1362,7 @@ export default class bitopro extends Exchange {
         return this.safeString (states, status, status);
     }
 
-    parseTransaction (transaction, currency: Currency = undefined): Transaction {
+    parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {
         //
         // fetchDeposits
         //

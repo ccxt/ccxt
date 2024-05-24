@@ -1531,7 +1531,7 @@ export default class blofin extends Exchange {
         return this.parseLedger (data, currency, since, limit);
     }
 
-    parseTransaction (transaction, currency: Currency = undefined): Transaction {
+    parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {
         //
         //
         // fetchDeposits
