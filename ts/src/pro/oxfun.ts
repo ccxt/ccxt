@@ -3,11 +3,10 @@
 
 import oxfunRest from '../oxfun.js';
 import { ArgumentsRequired, AuthenticationError } from '../base/errors.js';
-import type { Balances, Int, Market, OHLCV, OrderBook, Strings, Ticker, Tickers, Trade } from '../base/types.js';
+import type { Balances, Int, Market, OHLCV, OrderBook, Position, Strings, Ticker, Tickers, Trade } from '../base/types.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
-import { ArrayCache, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
+import { ArrayCache, ArrayCacheBySymbolBySide, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 import Client from '../base/ws/Client.js';
-import { time } from 'console';
 
 //  ---------------------------------------------------------------------------
 
@@ -552,7 +551,7 @@ export default class oxfun extends oxfunRest {
         const balances = this.safeList (message, 'data');
         const timestamp = this.safeInteger (message, 'timestamp');
         this.balance['info'] = message;
-        this.balance['timestamp'] = time;
+        this.balance['timestamp'] = timestamp;
         this.balance['datetime'] = this.iso8601 (timestamp);
         for (let i = 0; i < balances.length; i++) {
             const balance = this.safeDict (balances, i, {});
@@ -571,29 +570,124 @@ export default class oxfun extends oxfunRest {
         client.resolve (this.balance, 'balance');
     }
 
-    handleMessage (client: Client, message) {
-        const table = this.safeString (message, 'table');
-        const data = this.safeList (message, 'data', []);
-        const event = this.safeString (message, 'event');
-        if ((table !== undefined) && (data !== undefined)) {
-            if (table === 'trade') {
-                this.handleTrades (client, message);
-            }
-            if (table === 'ticker') {
-                this.handleTicker (client, message);
-            }
-            if (table.indexOf ('candles') > -1) {
-                this.handleOHLCV (client, message);
-            }
-            if (table.indexOf ('depth') > -1) {
-                this.handleOrderBook (client, message);
-            }
-            if (table.indexOf ('balance') > -1) {
-                this.handleBalance (client, message);
-            }
-        } else if (event === 'login') {
-            this.handleAuthenticationMessage (client, message);
+    async watchPositions (symbols: Strings = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Position[]> {
+        /**
+         * @method
+         * @name oxfun#watchPositions
+         * @see https://docs.ox.fun/?json#position-channel
+         * @description watch all open positions
+         * @param {string[]|undefined} symbols list of unified market symbols
+         * @param {object} params extra parameters specific to the exchange API endpoint
+         * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
+         */
+        await this.loadMarkets ();
+        await this.authenticate ();
+        const allSymbols = (symbols === undefined);
+        let sym = symbols;
+        const args = [];
+        if (allSymbols) {
+            sym = this.symbols;
+            args.push ('position:all');
         }
+        const messageHashes = [];
+        for (let i = 0; i < sym.length; i++) {
+            const symbol = sym[i];
+            const messageHash = 'positions' + ':' + symbol;
+            messageHashes.push (messageHash);
+            const marketId = this.marketId (symbol);
+            if (!allSymbols) {
+                args.push ('position:' + marketId);
+            }
+        }
+        const newPositions = await this.subscribeMultiple (messageHashes, args, params);
+        if (this.newUpdates) {
+            return newPositions;
+        }
+        return this.filterBySymbolsSinceLimit (this.positions, symbols, since, limit, true);
+    }
+
+    handlePositions (client: Client, message) {
+        //
+        //     {
+        //         "table": "position",
+        //         "accountId": "106464",
+        //         "timestamp": "1716550771582",
+        //         "data": [
+        //             {
+        //                 "instrumentId": "ETH-USD-SWAP-LIN",
+        //                 "quantity": "0.01",
+        //                 "lastUpdated": "1716550757299",
+        //                 "contractValCurrency": "ETH",
+        //                 "entryPrice": "3709.6",
+        //                 "positionPnl": "-5.000",
+        //                 "estLiquidationPrice": "743.4",
+        //                 "margin": "0",
+        //                 "leverage": "0"
+        //             }
+        //         ]
+        //     }
+        //
+        if (this.positions === undefined) {
+            this.positions = new ArrayCacheBySymbolBySide ();
+        }
+        const cache = this.positions;
+        const data = this.safeList (message, 'data', []);
+        for (let i = 0; i < data.length; i++) {
+            const rawPosition = this.safeDict (data, i, {});
+            const position = this.parseWsPosition (rawPosition);
+            const symbol = position['symbol'];
+            const messageHash = 'positions:' + symbol;
+            cache.append (position);
+            client.resolve (position, messageHash);
+        }
+    }
+
+    parseWsPosition (position, market: Market = undefined) {
+        //
+        //     {
+        //         "instrumentId": "ETH-USD-SWAP-LIN",
+        //         "quantity": "0.01",
+        //         "lastUpdated": "1716550757299",
+        //         "contractValCurrency": "ETH",
+        //         "entryPrice": "3709.6",
+        //         "positionPnl": "-5.000",
+        //         "estLiquidationPrice": "743.4",
+        //         "margin": "0", // Currently always reports 0
+        //         "leverage": "0" // Currently always reports 0
+        //     }
+        //
+        const marketId = this.safeString (position, 'instrumentId');
+        market = this.safeMarket (marketId, market);
+        return this.safePosition ({
+            'info': position,
+            'id': undefined,
+            'symbol': market['symbol'],
+            'notional': undefined,
+            'marginMode': 'cross', // todo check
+            'liquidationPrice': this.safeNumber (position, 'estLiquidationPrice'),
+            'entryPrice': this.safeNumber (position, 'entryPrice'),
+            'unrealizedPnl': this.safeNumber (position, 'positionPnl'),
+            'realizedPnl': undefined, // todo check
+            'percentage': undefined,
+            'contracts': this.safeNumber (position, 'quantity'),
+            'contractSize': undefined,
+            'markPrice': undefined,
+            'lastPrice': undefined,
+            'side': undefined,
+            'hedged': undefined,
+            'timestamp': undefined,
+            'datetime': undefined,
+            'lastUpdateTimestamp': this.safeInteger (position, 'lastUpdated'),
+            'maintenanceMargin': undefined,
+            'maintenanceMarginPercentage': undefined,
+            'collateral': undefined,
+            'initialMargin': undefined,
+            'initialMarginPercentage': undefined,
+            'leverage': undefined,
+            'marginRatio': undefined,
+            'stopLossPrice': undefined,
+            'takeProfitPrice': undefined,
+        });
     }
 
     async authenticate (params = {}) {
@@ -634,6 +728,34 @@ export default class oxfun extends oxfunRest {
             if (messageHash in client.subscriptions) {
                 delete client.subscriptions[messageHash];
             }
+        }
+    }
+
+    handleMessage (client: Client, message) {
+        const table = this.safeString (message, 'table');
+        const data = this.safeList (message, 'data', []);
+        const event = this.safeString (message, 'event');
+        if ((table !== undefined) && (data !== undefined)) {
+            if (table === 'trade') {
+                this.handleTrades (client, message);
+            }
+            if (table === 'ticker') {
+                this.handleTicker (client, message);
+            }
+            if (table.indexOf ('candles') > -1) {
+                this.handleOHLCV (client, message);
+            }
+            if (table.indexOf ('depth') > -1) {
+                this.handleOrderBook (client, message);
+            }
+            if (table.indexOf ('balance') > -1) {
+                this.handleBalance (client, message);
+            }
+            if (table.indexOf ('position') > -1) {
+                this.handlePositions (client, message);
+            }
+        } else if (event === 'login') {
+            this.handleAuthenticationMessage (client, message);
         }
     }
 }
