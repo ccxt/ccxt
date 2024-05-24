@@ -792,7 +792,7 @@ class coinlist extends Exchange {
         return $this->parse_trades($auctions, $market, $since, $limit);
     }
 
-    public function parse_trade($trade, ?array $market = null): array {
+    public function parse_trade(array $trade, ?array $market = null): array {
         //
         // fetchTrades
         //     {
@@ -1543,7 +1543,7 @@ class coinlist extends Exchange {
         return $this->parse_order($response, $market);
     }
 
-    public function parse_order($order, ?array $market = null): array {
+    public function parse_order(array $order, ?array $market = null): array {
         //
         // fetchOrder
         //     {
@@ -1967,7 +1967,7 @@ class coinlist extends Exchange {
         return $this->parse_transaction($data, $currency);
     }
 
-    public function parse_transaction($transaction, ?array $currency = null): array {
+    public function parse_transaction(array $transaction, ?array $currency = null): array {
         // withdraw
         //
         //     {
@@ -2143,7 +2143,7 @@ class coinlist extends Exchange {
         return $this->parse_ledger($ledger, $currency, $since, $limit);
     }
 
-    public function parse_ledger_entry($item, ?array $currency = null) {
+    public function parse_ledger_entry(array $item, ?array $currency = null) {
         //
         // deposit transaction from wallet (funding) to pro (trading)
         //     {

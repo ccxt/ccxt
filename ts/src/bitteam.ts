@@ -1104,7 +1104,7 @@ export default class bitteam extends Exchange {
         return this.parseOrders (orders, market);
     }
 
-    parseOrder (order, market: Market = undefined): Order {
+    parseOrder (order: Dict, market: Market = undefined): Order {
         //
         // fetchOrders
         //     {
@@ -1870,7 +1870,7 @@ export default class bitteam extends Exchange {
         return this.parseTrades (trades, market, since, limit);
     }
 
-    parseTrade (trade, market: Market = undefined): Trade {
+    parseTrade (trade: Dict, market: Market = undefined): Trade {
         //
         // fetchTrades
         //     {
@@ -2175,7 +2175,7 @@ export default class bitteam extends Exchange {
         return this.parseTransactions (transactions, currency, since, limit);
     }
 
-    parseTransaction (transaction, currency: Currency = undefined): Transaction {
+    parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {
         //
         //     {
         //         "id": 1329229,

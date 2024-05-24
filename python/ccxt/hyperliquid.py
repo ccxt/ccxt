@@ -1656,7 +1656,7 @@ class hyperliquid(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 'order')
         return self.parse_order(data, market)
 
-    def parse_order(self, order, market: Market = None) -> Order:
+    def parse_order(self, order: dict, market: Market = None) -> Order:
         #
         #  fetchOpenOrders
         #
@@ -1859,7 +1859,7 @@ class hyperliquid(Exchange, ImplicitAPI):
         #
         return self.parse_trades(response, market, since, limit)
 
-    def parse_trade(self, trade, market: Market = None) -> Trade:
+    def parse_trade(self, trade: dict, market: Market = None) -> Trade:
         #
         #     {
         #         "closedPnl": "0.19343",
@@ -1987,7 +1987,7 @@ class hyperliquid(Exchange, ImplicitAPI):
             result.append(self.parse_position(data[i], None))
         return self.filter_by_array_positions(result, 'symbol', symbols, False)
 
-    def parse_position(self, position, market: Market = None):
+    def parse_position(self, position: dict, market: Market = None):
         #
         #     {
         #         "position": {

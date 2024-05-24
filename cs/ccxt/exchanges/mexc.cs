@@ -2337,7 +2337,9 @@ public partial class mexc : Exchange
         //     {"success":true,"code":0,"data":259208506303929856}
         //
         object data = this.safeString(response, "data");
-        return this.parseOrder(data, market);
+        return this.safeOrder(new Dictionary<string, object>() {
+            { "id", data },
+        }, market);
     }
 
     public async override Task<object> createOrders(object orders, object parameters = null)

@@ -586,7 +586,7 @@ class Exchange(BaseExchange):
     async def watch_order_book_for_symbols(self, symbols: List[str], limit: Int = None, params={}):
         raise NotSupported(self.id + ' watchOrderBookForSymbols() is not supported yet')
 
-    async def fetch_deposit_addresses(self, codes: List[str] = None, params={}):
+    async def fetch_deposit_addresses(self, codes: Strings = None, params={}):
         raise NotSupported(self.id + ' fetchDepositAddresses() is not supported yet')
 
     async def fetch_order_book(self, symbol: str, limit: Int = None, params={}):
@@ -599,7 +599,7 @@ class Exchange(BaseExchange):
         else:
             raise NotSupported(self.id + ' fetchMarginMode() is not supported yet')
 
-    async def fetch_margin_modes(self, symbols: List[str] = None, params={}):
+    async def fetch_margin_modes(self, symbols: Strings = None, params={}):
         raise NotSupported(self.id + ' fetchMarginModes() is not supported yet')
 
     async def fetch_rest_order_book_safe(self, symbol, limit=None, params={}):
@@ -619,7 +619,7 @@ class Exchange(BaseExchange):
     async def fetch_time(self, params={}):
         raise NotSupported(self.id + ' fetchTime() is not supported yet')
 
-    async def fetch_trading_limits(self, symbols: List[str] = None, params={}):
+    async def fetch_trading_limits(self, symbols: Strings = None, params={}):
         raise NotSupported(self.id + ' fetchTradingLimits() is not supported yet')
 
     async def fetch_cross_borrow_rates(self, params={}):
@@ -628,10 +628,10 @@ class Exchange(BaseExchange):
     async def fetch_isolated_borrow_rates(self, params={}):
         raise NotSupported(self.id + ' fetchIsolatedBorrowRates() is not supported yet')
 
-    async def fetch_leverage_tiers(self, symbols: List[str] = None, params={}):
+    async def fetch_leverage_tiers(self, symbols: Strings = None, params={}):
         raise NotSupported(self.id + ' fetchLeverageTiers() is not supported yet')
 
-    async def fetch_funding_rates(self, symbols: List[str] = None, params={}):
+    async def fetch_funding_rates(self, symbols: Strings = None, params={}):
         raise NotSupported(self.id + ' fetchFundingRates() is not supported yet')
 
     async def watch_funding_rate(self, symbol: str, params={}):
@@ -662,7 +662,7 @@ class Exchange(BaseExchange):
         else:
             raise NotSupported(self.id + ' fetchLeverage() is not supported yet')
 
-    async def fetch_leverages(self, symbols: List[str] = None, params={}):
+    async def fetch_leverages(self, symbols: Strings = None, params={}):
         raise NotSupported(self.id + ' fetchLeverages() is not supported yet')
 
     async def set_position_mode(self, hedged: bool, symbol: Str = None, params={}):
@@ -791,7 +791,7 @@ class Exchange(BaseExchange):
             'bids': self.sort_by(self.aggregate(orderbook['bids']), 0, True),
         })
 
-    async def load_trading_limits(self, symbols: List[str] = None, reload=False, params={}):
+    async def load_trading_limits(self, symbols: Strings = None, reload=False, params={}):
         if self.has['fetchTradingLimits']:
             if reload or not ('limitsLoaded' in self.options):
                 response = await self.fetch_trading_limits(symbols)
@@ -855,10 +855,10 @@ class Exchange(BaseExchange):
     async def watch_position(self, symbol: Str = None, params={}):
         raise NotSupported(self.id + ' watchPosition() is not supported yet')
 
-    async def watch_positions(self, symbols: List[str] = None, since: Int = None, limit: Int = None, params={}):
+    async def watch_positions(self, symbols: Strings = None, since: Int = None, limit: Int = None, params={}):
         raise NotSupported(self.id + ' watchPositions() is not supported yet')
 
-    async def watch_position_for_symbols(self, symbols: List[str] = None, since: Int = None, limit: Int = None, params={}):
+    async def watch_position_for_symbols(self, symbols: Strings = None, since: Int = None, limit: Int = None, params={}):
         return await self.watchPositions(symbols, since, limit, params)
 
     async def fetch_positions_for_symbol(self, symbol: str, params={}):
@@ -879,13 +879,13 @@ class Exchange(BaseExchange):
         """
         raise NotSupported(self.id + ' fetchPositionsForSymbol() is not supported yet')
 
-    async def fetch_positions(self, symbols: List[str] = None, params={}):
+    async def fetch_positions(self, symbols: Strings = None, params={}):
         raise NotSupported(self.id + ' fetchPositions() is not supported yet')
 
-    async def fetch_positions_ws(self, symbols: List[str] = None, params={}):
+    async def fetch_positions_ws(self, symbols: Strings = None, params={}):
         raise NotSupported(self.id + ' fetchPositions() is not supported yet')
 
-    async def fetch_positions_risk(self, symbols: List[str] = None, params={}):
+    async def fetch_positions_risk(self, symbols: Strings = None, params={}):
         raise NotSupported(self.id + ' fetchPositionsRisk() is not supported yet')
 
     async def fetch_bids_asks(self, symbols: Strings = None, params={}):
@@ -930,10 +930,10 @@ class Exchange(BaseExchange):
             raise NotSupported(self.id + ' fetchTransactionFee() is not supported yet')
         return await self.fetch_transaction_fees([code], params)
 
-    async def fetch_transaction_fees(self, codes: List[str] = None, params={}):
+    async def fetch_transaction_fees(self, codes: Strings = None, params={}):
         raise NotSupported(self.id + ' fetchTransactionFees() is not supported yet')
 
-    async def fetch_deposit_withdraw_fees(self, codes: List[str] = None, params={}):
+    async def fetch_deposit_withdraw_fees(self, codes: Strings = None, params={}):
         raise NotSupported(self.id + ' fetchDepositWithdrawFees() is not supported yet')
 
     async def fetch_deposit_withdraw_fee(self, code: str, params={}):
@@ -993,19 +993,19 @@ class Exchange(BaseExchange):
     async def watch_ticker(self, symbol: str, params={}):
         raise NotSupported(self.id + ' watchTicker() is not supported yet')
 
-    async def fetch_tickers(self, symbols: List[str] = None, params={}):
+    async def fetch_tickers(self, symbols: Strings = None, params={}):
         raise NotSupported(self.id + ' fetchTickers() is not supported yet')
 
-    async def fetch_tickers_ws(self, symbols: List[str] = None, params={}):
+    async def fetch_tickers_ws(self, symbols: Strings = None, params={}):
         raise NotSupported(self.id + ' fetchTickers() is not supported yet')
 
-    async def fetch_order_books(self, symbols: List[str] = None, limit: Int = None, params={}):
+    async def fetch_order_books(self, symbols: Strings = None, limit: Int = None, params={}):
         raise NotSupported(self.id + ' fetchOrderBooks() is not supported yet')
 
     async def watch_bids_asks(self, symbols: Strings = None, params={}):
         raise NotSupported(self.id + ' watchBidsAsks() is not supported yet')
 
-    async def watch_tickers(self, symbols: List[str] = None, params={}):
+    async def watch_tickers(self, symbols: Strings = None, params={}):
         raise NotSupported(self.id + ' watchTickers() is not supported yet')
 
     async def fetch_order(self, id: str, symbol: Str = None, params={}):
@@ -1603,7 +1603,7 @@ class Exchange(BaseExchange):
         query = self.extend(params, {'stopPrice': stopPrice})
         return await self.createOrderWs(symbol, 'market', side, amount, None, query)
 
-    async def fetch_last_prices(self, symbols: List[str] = None, params={}):
+    async def fetch_last_prices(self, symbols: Strings = None, params={}):
         raise NotSupported(self.id + ' fetchLastPrices() is not supported yet')
 
     async def fetch_trading_fees(self, params={}):

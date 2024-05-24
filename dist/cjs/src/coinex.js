@@ -68,8 +68,8 @@ class coinex extends coinex$1 {
                 'fetchDepositAddressByNetwork': false,
                 'fetchDepositAddresses': false,
                 'fetchDeposits': true,
-                'fetchDepositWithdrawFee': 'emulated',
-                'fetchDepositWithdrawFees': true,
+                'fetchDepositWithdrawFee': true,
+                'fetchDepositWithdrawFees': false,
                 'fetchFundingHistory': true,
                 'fetchFundingRate': true,
                 'fetchFundingRateHistory': true,
@@ -5403,101 +5403,125 @@ class coinex extends coinex$1 {
             'info': info,
         };
     }
-    async fetchDepositWithdrawFees(codes = undefined, params = {}) {
+    async fetchDepositWithdrawFee(code, params = {}) {
         /**
          * @method
-         * @name coinex#fetchDepositWithdrawFees
-         * @description fetch deposit and withdraw fees
-         * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot001_market010_asset_config
-         * @param {string[]|undefined} codes list of unified currency codes
+         * @name coinex#fetchDepositWithdrawFee
+         * @description fetch the fee for deposits and withdrawals
+         * @see https://docs.coinex.com/api/v2/assets/deposit-withdrawal/http/get-deposit-withdrawal-config
+         * @param {string} code unified currency code
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object[]} a list of [fees structures]{@link https://docs.ccxt.com/#/?id=fee-structure}
+         * @returns {object} a [fee structure]{@link https://docs.ccxt.com/#/?id=fee-structure}
          */
         await this.loadMarkets();
-        const request = {};
-        if (codes !== undefined) {
-            const codesLength = codes.length;
-            if (codesLength === 1) {
-                request['coin_type'] = this.safeValue(codes, 0);
-            }
-        }
-        const response = await this.v1PublicGetCommonAssetConfig(this.extend(request, params));
+        const currency = this.currency(code);
+        const request = {
+            'ccy': currency['id'],
+        };
+        const response = await this.v2PrivateGetAssetsDepositWithdrawConfig(this.extend(request, params));
         //
-        //    {
-        //        "code": 0,
-        //        "data": {
-        //            "CET-CSC": {
-        //                "asset": "CET",
-        //                "chain": "CSC",
-        //                "can_deposit": true,
-        //                "can_withdraw ": false,
-        //                "deposit_least_amount": "1",
-        //                "withdraw_least_amount": "1",
-        //                "withdraw_tx_fee": "0.1"
-        //            },
-        //            "CET-ERC20": {
-        //                "asset": "CET",
-        //                "chain": "ERC20",
-        //                "can_deposit": true,
-        //                "can_withdraw": false,
-        //                "deposit_least_amount": "14",
-        //                "withdraw_least_amount": "14",
-        //                "withdraw_tx_fee": "14"
-        //            }
-        //        },
-        //        "message": "Success"
-        //    }
+        //     {
+        //         "code": 0,
+        //         "data": {
+        //             "asset": {
+        //                 "ccy": "USDT",
+        //                 "deposit_enabled": true,
+        //                 "withdraw_enabled": true,
+        //                 "inter_transfer_enabled": true,
+        //                 "is_st": false
+        //             },
+        //             "chains": [
+        //                 {
+        //                     "chain": "TRC20",
+        //                     "min_deposit_amount": "2.4",
+        //                     "min_withdraw_amount": "2.4",
+        //                     "deposit_enabled": true,
+        //                     "withdraw_enabled": true,
+        //                     "deposit_delay_minutes": 0,
+        //                     "safe_confirmations": 10,
+        //                     "irreversible_confirmations": 20,
+        //                     "deflation_rate": "0",
+        //                     "withdrawal_fee": "2.4",
+        //                     "withdrawal_precision": 6,
+        //                     "memo": "",
+        //                     "is_memo_required_for_deposit": false,
+        //                     "explorer_asset_url": "https://tronscan.org/#/token20/TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t"
+        //                 },
+        //             ]
+        //         },
+        //         "message": "OK"
+        //     }
         //
-        return this.parseDepositWithdrawFees(response, codes);
+        const data = this.safeDict(response, 'data', {});
+        return this.parseDepositWithdrawFee(data, currency);
     }
-    parseDepositWithdrawFees(response, codes = undefined, currencyIdKey = undefined) {
-        const depositWithdrawFees = {};
-        codes = this.marketCodes(codes);
-        const data = this.safeValue(response, 'data');
-        const currencyIds = Object.keys(data);
-        for (let i = 0; i < currencyIds.length; i++) {
-            const entry = currencyIds[i];
-            const splitEntry = entry.split('-');
-            const feeInfo = data[currencyIds[i]];
-            const currencyId = this.safeString(feeInfo, 'asset');
-            const currency = this.safeCurrency(currencyId);
-            const code = this.safeString(currency, 'code');
-            if ((codes === undefined) || (this.inArray(code, codes))) {
-                const depositWithdrawFee = this.safeValue(depositWithdrawFees, code);
-                if (depositWithdrawFee === undefined) {
-                    depositWithdrawFees[code] = this.depositWithdrawFee({});
-                }
-                depositWithdrawFees[code]['info'][entry] = feeInfo;
-                const networkId = this.safeString(splitEntry, 1);
-                const withdrawFee = this.safeValue(feeInfo, 'withdraw_tx_fee');
-                const withdrawResult = {
-                    'fee': withdrawFee,
-                    'percentage': (withdrawFee !== undefined) ? false : undefined,
-                };
-                const depositResult = {
-                    'fee': undefined,
-                    'percentage': undefined,
-                };
-                if (networkId !== undefined) {
-                    const networkCode = this.networkIdToCode(networkId);
-                    depositWithdrawFees[code]['networks'][networkCode] = {
-                        'withdraw': withdrawResult,
-                        'deposit': depositResult,
+    parseDepositWithdrawFee(fee, currency = undefined) {
+        //
+        //     {
+        //         "asset": {
+        //             "ccy": "USDT",
+        //             "deposit_enabled": true,
+        //             "withdraw_enabled": true,
+        //             "inter_transfer_enabled": true,
+        //             "is_st": false
+        //         },
+        //         "chains": [
+        //             {
+        //                 "chain": "TRC20",
+        //                 "min_deposit_amount": "2.4",
+        //                 "min_withdraw_amount": "2.4",
+        //                 "deposit_enabled": true,
+        //                 "withdraw_enabled": true,
+        //                 "deposit_delay_minutes": 0,
+        //                 "safe_confirmations": 10,
+        //                 "irreversible_confirmations": 20,
+        //                 "deflation_rate": "0",
+        //                 "withdrawal_fee": "2.4",
+        //                 "withdrawal_precision": 6,
+        //                 "memo": "",
+        //                 "is_memo_required_for_deposit": false,
+        //                 "explorer_asset_url": "https://tronscan.org/#/token20/TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t"
+        //             },
+        //         ]
+        //     }
+        //
+        const result = {
+            'info': fee,
+            'withdraw': {
+                'fee': undefined,
+                'percentage': undefined,
+            },
+            'deposit': {
+                'fee': undefined,
+                'percentage': undefined,
+            },
+            'networks': {},
+        };
+        const chains = this.safeList(fee, 'chains', []);
+        const asset = this.safeDict(fee, 'asset', {});
+        for (let i = 0; i < chains.length; i++) {
+            const entry = chains[i];
+            const isWithdrawEnabled = this.safeBool(entry, 'withdraw_enabled');
+            if (isWithdrawEnabled) {
+                result['withdraw']['fee'] = this.safeNumber(entry, 'withdrawal_fee');
+                result['withdraw']['percentage'] = false;
+                const networkId = this.safeString(entry, 'chain');
+                if (networkId) {
+                    const networkCode = this.networkIdToCode(networkId, this.safeString(asset, 'ccy'));
+                    result['networks'][networkCode] = {
+                        'withdraw': {
+                            'fee': this.safeNumber(entry, 'withdrawal_fee'),
+                            'percentage': false,
+                        },
+                        'deposit': {
+                            'fee': undefined,
+                            'percentage': undefined,
+                        },
                     };
                 }
-                else {
-                    depositWithdrawFees[code]['withdraw'] = withdrawResult;
-                    depositWithdrawFees[code]['deposit'] = depositResult;
-                }
             }
         }
-        const depositWithdrawCodes = Object.keys(depositWithdrawFees);
-        for (let i = 0; i < depositWithdrawCodes.length; i++) {
-            const code = depositWithdrawCodes[i];
-            const currency = this.currency(code);
-            depositWithdrawFees[code] = this.assignDefaultDepositWithdrawFees(depositWithdrawFees[code], currency);
-        }
-        return depositWithdrawFees;
+        return result;
     }
     async fetchLeverages(symbols = undefined, params = {}) {
         /**

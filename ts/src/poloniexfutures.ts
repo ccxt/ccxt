@@ -573,7 +573,7 @@ export default class poloniexfutures extends Exchange {
         return this.fetchOrderBook (market['id'], undefined, { 'level': 3 });
     }
 
-    parseTrade (trade, market: Market = undefined): Trade {
+    parseTrade (trade: Dict, market: Market = undefined): Trade {
         //
         // fetchTrades (public)
         //
@@ -1040,7 +1040,7 @@ export default class poloniexfutures extends Exchange {
         return this.parsePositions (data, symbols);
     }
 
-    parsePosition (position, market: Market = undefined) {
+    parsePosition (position: Dict, market: Market = undefined) {
         //
         //    {
         //        "code": "200000",
@@ -1496,7 +1496,7 @@ export default class poloniexfutures extends Exchange {
         return this.parseOrder (responseData, market);
     }
 
-    parseOrder (order, market: Market = undefined): Order {
+    parseOrder (order: Dict, market: Market = undefined): Order {
         //
         // createOrder
         //

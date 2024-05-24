@@ -21,10 +21,10 @@ export default class ascendex extends Exchange {
     fetchTickers(symbols?: Strings, params?: {}): Promise<Tickers>;
     parseOHLCV(ohlcv: any, market?: Market): OHLCV;
     fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
-    parseTrade(trade: any, market?: Market): Trade;
+    parseTrade(trade: Dict, market?: Market): Trade;
     fetchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     parseOrderStatus(status: Str): string;
-    parseOrder(order: any, market?: Market): Order;
+    parseOrder(order: Dict, market?: Market): Order;
     fetchTradingFees(params?: {}): Promise<TradingFees>;
     createOrderRequest(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): any;
     createOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): Promise<Order>;
@@ -47,9 +47,9 @@ export default class ascendex extends Exchange {
     fetchWithdrawals(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
     fetchDepositsWithdrawals(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
     parseTransactionStatus(status: any): string;
-    parseTransaction(transaction: any, currency?: Currency): Transaction;
+    parseTransaction(transaction: Dict, currency?: Currency): Transaction;
     fetchPositions(symbols?: Strings, params?: {}): Promise<import("./base/types.js").Position[]>;
-    parsePosition(position: any, market?: Market): import("./base/types.js").Position;
+    parsePosition(position: Dict, market?: Market): import("./base/types.js").Position;
     parseFundingRate(contract: any, market?: Market): {
         info: any;
         symbol: string;
@@ -93,9 +93,9 @@ export default class ascendex extends Exchange {
         id: any;
         amount: number;
     };
-    fetchMarginModes(symbols?: string[], params?: {}): Promise<MarginModes>;
-    parseMarginMode(marginMode: any, market?: any): MarginMode;
-    fetchLeverages(symbols?: string[], params?: {}): Promise<Leverages>;
+    fetchMarginModes(symbols?: Strings, params?: {}): Promise<MarginModes>;
+    parseMarginMode(marginMode: Dict, market?: any): MarginMode;
+    fetchLeverages(symbols?: Strings, params?: {}): Promise<Leverages>;
     parseLeverage(leverage: Dict, market?: Market): Leverage;
     sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {
         url: string;

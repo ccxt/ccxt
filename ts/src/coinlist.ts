@@ -808,7 +808,7 @@ export default class coinlist extends Exchange {
         return this.parseTrades (auctions, market, since, limit);
     }
 
-    parseTrade (trade, market: Market = undefined): Trade {
+    parseTrade (trade: Dict, market: Market = undefined): Trade {
         //
         // fetchTrades
         //     {
@@ -1589,7 +1589,7 @@ export default class coinlist extends Exchange {
         return this.parseOrder (response, market);
     }
 
-    parseOrder (order, market: Market = undefined): Order {
+    parseOrder (order: Dict, market: Market = undefined): Order {
         //
         // fetchOrder
         //     {
@@ -2021,7 +2021,7 @@ export default class coinlist extends Exchange {
         return this.parseTransaction (data, currency);
     }
 
-    parseTransaction (transaction, currency: Currency = undefined): Transaction {
+    parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {
         // withdraw
         //
         //     {
@@ -2199,7 +2199,7 @@ export default class coinlist extends Exchange {
         return this.parseLedger (ledger, currency, since, limit);
     }
 
-    parseLedgerEntry (item, currency: Currency = undefined) {
+    parseLedgerEntry (item: Dict, currency: Currency = undefined) {
         //
         // deposit transaction from wallet (funding) to pro (trading)
         //     {

@@ -1143,7 +1143,7 @@ class ascendex(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data', [])
         return self.parse_ohlcvs(data, market, timeframe, since, limit)
 
-    def parse_trade(self, trade, market: Market = None) -> Trade:
+    def parse_trade(self, trade: dict, market: Market = None) -> Trade:
         #
         # public fetchTrades
         #
@@ -1224,7 +1224,7 @@ class ascendex(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_order(self, order, market: Market = None) -> Order:
+    def parse_order(self, order: dict, market: Market = None) -> Order:
         #
         # createOrder
         #
@@ -2449,7 +2449,7 @@ class ascendex(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_transaction(self, transaction, currency: Currency = None) -> Transaction:
+    def parse_transaction(self, transaction: dict, currency: Currency = None) -> Transaction:
         #
         #     {
         #         "requestId": "wuzd1Ojsqtz4bCA3UXwtUnnJDmU8PiyB",
@@ -2566,7 +2566,7 @@ class ascendex(Exchange, ImplicitAPI):
         symbols = self.market_symbols(symbols)
         return self.filter_by_array_positions(result, 'symbol', symbols, False)
 
-    def parse_position(self, position, market: Market = None):
+    def parse_position(self, position: dict, market: Market = None):
         #
         #     {
         #         "symbol": "BTC-PERP",
@@ -3116,7 +3116,7 @@ class ascendex(Exchange, ImplicitAPI):
             'amount': self.safe_number(income, 'paymentInUSDT'),
         }
 
-    async def fetch_margin_modes(self, symbols: List[str] = None, params={}) -> MarginModes:
+    async def fetch_margin_modes(self, symbols: Strings = None, params={}) -> MarginModes:
         """
         fetches the set margin mode of the user
         :see: https://ascendex.github.io/ascendex-futures-pro-api-v2/#position
@@ -3175,7 +3175,7 @@ class ascendex(Exchange, ImplicitAPI):
         marginModes = self.safe_list(data, 'contracts', [])
         return self.parse_margin_modes(marginModes, symbols, 'symbol')
 
-    def parse_margin_mode(self, marginMode, market=None) -> MarginMode:
+    def parse_margin_mode(self, marginMode: dict, market=None) -> MarginMode:
         marketId = self.safe_string(marginMode, 'symbol')
         marginType = self.safe_string(marginMode, 'marginType')
         margin = 'cross' if (marginType == 'crossed') else 'isolated'
@@ -3185,7 +3185,7 @@ class ascendex(Exchange, ImplicitAPI):
             'marginMode': margin,
         }
 
-    async def fetch_leverages(self, symbols: List[str] = None, params={}) -> Leverages:
+    async def fetch_leverages(self, symbols: Strings = None, params={}) -> Leverages:
         """
         fetch the set leverage for all contract markets
         :see: https://ascendex.github.io/ascendex-futures-pro-api-v2/#position

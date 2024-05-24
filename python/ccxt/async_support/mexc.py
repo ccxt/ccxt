@@ -1535,7 +1535,7 @@ class mexc(Exchange, ImplicitAPI):
             trades = self.safe_value(response, 'data')
         return self.parse_trades(trades, market, since, limit)
 
-    def parse_trade(self, trade, market: Market = None) -> Trade:
+    def parse_trade(self, trade: dict, market: Market = None) -> Trade:
         id = None
         timestamp = None
         orderId = None
@@ -2302,7 +2302,7 @@ class mexc(Exchange, ImplicitAPI):
         #     {"success":true,"code":0,"data":259208506303929856}
         #
         data = self.safe_string(response, 'data')
-        return self.parse_order(data, market)
+        return self.safe_order({'id': data}, market)
 
     async def create_orders(self, orders: List[OrderRequest], params={}):
         """
@@ -3019,7 +3019,7 @@ class mexc(Exchange, ImplicitAPI):
             data = self.safe_list(response, 'data', [])
             return self.parse_orders(data, market)
 
-    def parse_order(self, order, market: Market = None) -> Order:
+    def parse_order(self, order: dict, market: Market = None) -> Order:
         #
         # spot: createOrder
         #
@@ -4384,7 +4384,7 @@ class mexc(Exchange, ImplicitAPI):
         #
         return self.parse_transactions(response, currency, since, limit)
 
-    def parse_transaction(self, transaction, currency: Currency = None) -> Transaction:
+    def parse_transaction(self, transaction: dict, currency: Currency = None) -> Transaction:
         #
         # fetchDeposits
         #
@@ -4558,7 +4558,7 @@ class mexc(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data', [])
         return self.parse_positions(data, symbols)
 
-    def parse_position(self, position, market: Market = None):
+    def parse_position(self, position: dict, market: Market = None):
         #
         # fetchPositions
         #
@@ -4955,7 +4955,7 @@ class mexc(Exchange, ImplicitAPI):
             'hedged': (positionMode == 1),
         }
 
-    async def fetch_transaction_fees(self, codes: List[str] = None, params={}):
+    async def fetch_transaction_fees(self, codes: Strings = None, params={}):
         """
         fetch deposit and withdrawal fees
         :see: https://mexcdevelop.github.io/apidocs/spot_v3_en/#query-the-currency-information

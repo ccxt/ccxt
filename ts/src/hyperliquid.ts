@@ -1775,7 +1775,7 @@ export default class hyperliquid extends Exchange {
         return this.parseOrder (data, market);
     }
 
-    parseOrder (order, market: Market = undefined): Order {
+    parseOrder (order: Dict, market: Market = undefined): Order {
         //
         //  fetchOpenOrders
         //
@@ -1991,7 +1991,7 @@ export default class hyperliquid extends Exchange {
         return this.parseTrades (response, market, since, limit);
     }
 
-    parseTrade (trade, market: Market = undefined): Trade {
+    parseTrade (trade: Dict, market: Market = undefined): Trade {
         //
         //     {
         //         "closedPnl": "0.19343",
@@ -2128,7 +2128,7 @@ export default class hyperliquid extends Exchange {
         return this.filterByArrayPositions (result, 'symbol', symbols, false);
     }
 
-    parsePosition (position, market: Market = undefined) {
+    parsePosition (position: Dict, market: Market = undefined) {
         //
         //     {
         //         "position": {
