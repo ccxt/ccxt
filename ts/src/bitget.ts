@@ -4313,11 +4313,17 @@ export default class bitget extends Exchange {
                 }
                 const marginModeRequest = (marginMode === 'cross') ? 'crossed' : 'isolated';
                 request['marginMode'] = marginModeRequest;
-                const oneWayMode = this.safeBool (params, 'oneWayMode', false);
-                params = this.omit (params, 'oneWayMode');
+                let hedged = undefined;
+                [ hedged, params ] = this.handleParamBool (params, 'hedged', false);
+                // backward compatibility for `oneWayMode`
+                let oneWayMode = undefined;
+                [ oneWayMode, params ] = this.handleParamBool (params, 'oneWayMode');
+                if (oneWayMode !== undefined) {
+                    hedged = !oneWayMode;
+                }
                 let requestSide = side;
                 if (reduceOnly) {
-                    if (oneWayMode) {
+                    if (!hedged) {
                         request['reduceOnly'] = 'YES';
                     } else {
                         // on bitget hedge mode if the position is long the side is always buy, and if the position is short the side is always sell
@@ -4325,7 +4331,7 @@ export default class bitget extends Exchange {
                         request['tradeSide'] = 'Close';
                     }
                 } else {
-                    if (!oneWayMode) {
+                    if (hedged) {
                         request['tradeSide'] = 'Open';
                     }
                 }
