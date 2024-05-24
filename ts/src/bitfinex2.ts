@@ -1327,7 +1327,7 @@ export default class bitfinex2 extends Exchange {
             'amount': amountString,
             'cost': undefined,
             'fee': fee,
-            'info': trade,
+            'info': tradeList,
         }, market);
     }
 
