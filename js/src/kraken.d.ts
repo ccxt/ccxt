@@ -29,8 +29,8 @@ export default class kraken extends Exchange {
     parseOHLCV(ohlcv: any, market?: Market): OHLCV;
     fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
     parseLedgerEntryType(type: any): string;
-    parseLedgerEntry(item: any, currency?: Currency): {
-        info: any;
+    parseLedgerEntry(item: Dict, currency?: Currency): {
+        info: Dict;
         id: string;
         direction: any;
         account: any;
@@ -52,7 +52,7 @@ export default class kraken extends Exchange {
     fetchLedger(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<any>;
     fetchLedgerEntriesByIds(ids: any, code?: Str, params?: {}): Promise<any>;
     fetchLedgerEntry(id: string, code?: Str, params?: {}): Promise<any>;
-    parseTrade(trade: any, market?: Market): Trade;
+    parseTrade(trade: Dict, market?: Market): Trade;
     fetchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     parseBalance(response: any): Balances;
     fetchBalance(params?: {}): Promise<Balances>;
@@ -63,7 +63,7 @@ export default class kraken extends Exchange {
     getDelistedMarketById(id: any): any;
     parseOrderStatus(status: Str): string;
     parseOrderType(status: any): string;
-    parseOrder(order: any, market?: Market): Order;
+    parseOrder(order: Dict, market?: Market): Order;
     orderRequest(method: string, symbol: string, type: string, request: Dict, amount: Num, price?: Num, params?: {}): Dict[];
     editOrder(id: string, symbol: string, type: OrderType, side: OrderSide, amount?: Num, price?: Num, params?: {}): Promise<Order>;
     fetchOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
@@ -78,7 +78,7 @@ export default class kraken extends Exchange {
     fetchClosedOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     parseTransactionStatus(status: any): string;
     parseNetwork(network: any): string;
-    parseTransaction(transaction: any, currency?: Currency): Transaction;
+    parseTransaction(transaction: Dict, currency?: Currency): Transaction;
     parseTransactionsByType(type: any, transactions: any, code?: Str, since?: Int, limit?: Int): any;
     fetchDeposits(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
     fetchTime(params?: {}): Promise<number>;
@@ -108,7 +108,7 @@ export default class kraken extends Exchange {
     };
     withdraw(code: string, amount: number, address: string, tag?: any, params?: {}): Promise<Transaction>;
     fetchPositions(symbols?: Strings, params?: {}): Promise<import("./base/types.js").Position[]>;
-    parsePosition(position: any, market?: Market): import("./base/types.js").Position;
+    parsePosition(position: Dict, market?: Market): import("./base/types.js").Position;
     parseAccountType(account: any): string;
     transferOut(code: string, amount: any, params?: {}): Promise<TransferEntry>;
     transfer(code: string, amount: number, fromAccount: string, toAccount: string, params?: {}): Promise<TransferEntry>;

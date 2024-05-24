@@ -20,7 +20,7 @@ export default class bitteam extends Exchange {
     createOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): Promise<Order>;
     cancelOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
     cancelAllOrders(symbol?: Str, params?: {}): Promise<Order[]>;
-    parseOrder(order: any, market?: Market): Order;
+    parseOrder(order: Dict, market?: Market): Order;
     parseOrderStatus(status: Str): string;
     parseOrderType(status: any): string;
     parseValueToPricision(valueObject: any, valueKey: any, preciseObject: any, precisionKey: any): string;
@@ -29,11 +29,11 @@ export default class bitteam extends Exchange {
     parseTicker(ticker: Dict, market?: Market): Ticker;
     fetchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     fetchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
-    parseTrade(trade: any, market?: Market): Trade;
+    parseTrade(trade: Dict, market?: Market): Trade;
     fetchBalance(params?: {}): Promise<Balances>;
     parseBalance(response: any): Balances;
     fetchDepositsWithdrawals(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
-    parseTransaction(transaction: any, currency?: Currency): Transaction;
+    parseTransaction(transaction: Dict, currency?: Currency): Transaction;
     parseTransactionType(type: any): string;
     parseTransactionStatus(status: any): string;
     sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {

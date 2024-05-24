@@ -980,9 +980,7 @@ class kraken extends Exchange {
             $request['interval'] = $timeframe;
         }
         if ($since !== null) {
-            // contrary to kraken's api documentation, the $since parameter must be passed in nanoseconds
-            // the adding of '000000' is copied from the fetchTrades function
-            $request['since'] = $this->number_to_string($since) . '000000'; // expected to be in nanoseconds
+            $request['since'] = $this->number_to_string($this->parse_to_int($since / 1000)); // expected to be in seconds
         }
         $response = $this->publicGetOHLC ($this->extend($request, $params));
         //
@@ -1014,7 +1012,7 @@ class kraken extends Exchange {
         return $this->safe_string($types, $type, $type);
     }
 
-    public function parse_ledger_entry($item, ?array $currency = null) {
+    public function parse_ledger_entry(array $item, ?array $currency = null) {
         //
         //     {
         //         'LTFK7F-N2CUX-PNY4SX' => array(
@@ -1147,7 +1145,7 @@ class kraken extends Exchange {
         return $items[0];
     }
 
-    public function parse_trade($trade, ?array $market = null): array {
+    public function parse_trade(array $trade, ?array $market = null): array {
         //
         // fetchTrades (public)
         //
@@ -1266,10 +1264,7 @@ class kraken extends Exchange {
         // https://support.kraken.com/hc/en-us/articles/218198197-How-to-pull-all-trade-data-using-the-Kraken-REST-API
         // https://github.com/ccxt/ccxt/issues/5677
         if ($since !== null) {
-            // php does not format it properly
-            // therefore we use string concatenation here
-            $request['since'] = $since * 1e6;
-            $request['since'] = (string) $since . '000000'; // expected to be in nanoseconds
+            $request['since'] = $this->number_to_string($this->parse_to_int($since / 1000)); // expected to be in seconds
         }
         if ($limit !== null) {
             $request['count'] = $limit;
@@ -1487,7 +1482,7 @@ class kraken extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_order($order, ?array $market = null): array {
+    public function parse_order(array $order, ?array $market = null): array {
         //
         // createOrder for regular orders
         //
@@ -2307,7 +2302,7 @@ class kraken extends Exchange {
         return $this->safe_string($withdrawMethods, $network, $network);
     }
 
-    public function parse_transaction($transaction, ?array $currency = null): array {
+    public function parse_transaction(array $transaction, ?array $currency = null): array {
         //
         // fetchDeposits
         //
@@ -2815,7 +2810,7 @@ class kraken extends Exchange {
         return $this->filter_by_array_positions($results, 'symbol', $symbols, false);
     }
 
-    public function parse_position($position, ?array $market = null) {
+    public function parse_position(array $position, ?array $market = null) {
         //
         //             {
         //                 "pair" => "ETHUSDT",

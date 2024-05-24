@@ -901,10 +901,10 @@ public partial class coinex
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/#/?id=leverage-tiers-structure}, indexed by market symbols.</returns>
-    public async Task<Dictionary<string, object>> FetchLeverageTiers(List<String> symbols = null, Dictionary<string, object> parameters = null)
+    public async Task<LeverageTiers> FetchLeverageTiers(List<String> symbols = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchLeverageTiers(symbols, parameters);
-        return ((Dictionary<string, object>)res);
+        return new LeverageTiers(res);
     }
     /// <summary>
     /// fetch the history of funding fee payments paid and received on this account
@@ -1265,10 +1265,10 @@ public partial class coinex
         return ((Dictionary<string, object>)res);
     }
     /// <summary>
-    /// fetch deposit and withdraw fees
+    /// fetch the fee for deposits and withdrawals
     /// </summary>
     /// <remarks>
-    /// See <see href="https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot001_market010_asset_config"/>  <br/>
+    /// See <see href="https://docs.coinex.com/api/v2/assets/deposit-withdrawal/http/get-deposit-withdrawal-config"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -1278,10 +1278,10 @@ public partial class coinex
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object[]</term> a list of [fees structures]{@link https://docs.ccxt.com/#/?id=fee-structure}.</returns>
-    public async Task<Dictionary<string, object>> FetchDepositWithdrawFees(List<String> codes = null, Dictionary<string, object> parameters = null)
+    /// <returns> <term>object</term> a [fee structure]{@link https://docs.ccxt.com/#/?id=fee-structure}.</returns>
+    public async Task<Dictionary<string, object>> FetchDepositWithdrawFee(string code, Dictionary<string, object> parameters = null)
     {
-        var res = await this.fetchDepositWithdrawFees(codes, parameters);
+        var res = await this.fetchDepositWithdrawFee(code, parameters);
         return ((Dictionary<string, object>)res);
     }
     /// <summary>
@@ -1299,7 +1299,7 @@ public partial class coinex
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a list of [leverage structures]{@link https://docs.ccxt.com/#/?id=leverage-structure}.</returns>
-    public async Task<Leverages> FetchLeverages(List<string> symbols = null, Dictionary<string, object> parameters = null)
+    public async Task<Leverages> FetchLeverages(List<String> symbols = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchLeverages(symbols, parameters);
         return new Leverages(res);

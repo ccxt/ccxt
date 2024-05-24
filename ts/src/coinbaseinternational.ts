@@ -732,7 +732,7 @@ export default class coinbaseinternational extends Exchange {
         return this.parsePosition (position);
     }
 
-    parsePosition (position, market: Market = undefined) {
+    parsePosition (position: Dict, market: Market = undefined) {
         //
         //    {
         //       "symbol":"BTC-PERP",
@@ -879,7 +879,7 @@ export default class coinbaseinternational extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseTransaction (transaction, currency: Currency = undefined): Transaction {
+    parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {
         //
         //    {
         //        "idem":"8e471d77-4208-45a8-9e5b-f3bd8a2c1fc3"
@@ -915,7 +915,7 @@ export default class coinbaseinternational extends Exchange {
         } as Transaction;
     }
 
-    parseTrade (trade, market: Market = undefined): Trade {
+    parseTrade (trade: Dict, market: Market = undefined): Trade {
         //
         //    {
         //       "portfolio_id":"1wp37qsc-1-0",
@@ -1177,7 +1177,7 @@ export default class coinbaseinternational extends Exchange {
         return result;
     }
 
-    parseCurrency (currency) {
+    parseCurrency (currency: Dict) {
         //
         //    {
         //       "asset_id":"1",
@@ -1494,7 +1494,7 @@ export default class coinbaseinternational extends Exchange {
         return this.parseOrder (response, market);
     }
 
-    parseOrder (order, market: Market = undefined): Order {
+    parseOrder (order: Dict, market: Market = undefined): Order {
         //
         //    {
         //        "order_id":"1x96skvg-1-0",

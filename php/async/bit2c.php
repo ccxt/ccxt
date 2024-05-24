@@ -537,7 +537,7 @@ class bit2c extends Exchange {
         }) ();
     }
 
-    public function parse_order($order, ?array $market = null): array {
+    public function parse_order(array $order, ?array $market = null): array {
         //
         //      createOrder
         //      {
@@ -730,7 +730,7 @@ class bit2c extends Exchange {
         return $newString;
     }
 
-    public function parse_trade($trade, ?array $market = null): array {
+    public function parse_trade(array $trade, ?array $market = null): array {
         //
         // public fetchTrades
         //

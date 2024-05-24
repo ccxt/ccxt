@@ -588,7 +588,7 @@ class p2b extends Exchange {
         }) ();
     }
 
-    public function parse_trade($trade, ?array $market = null) {
+    public function parse_trade(array $trade, ?array $market = null) {
         //
         // fetchTrades
         //
@@ -1162,7 +1162,7 @@ class p2b extends Exchange {
         }) ();
     }
 
-    public function parse_order($order, ?array $market = null): array {
+    public function parse_order(array $order, ?array $market = null): array {
         //
         // cancelOrder, fetchOpenOrders, createOrder
         //

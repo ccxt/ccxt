@@ -991,7 +991,7 @@ class gemini extends Exchange {
         return $this->parse_tickers($response, $symbols);
     }
 
-    public function parse_trade($trade, ?array $market = null): array {
+    public function parse_trade(array $trade, ?array $market = null): array {
         //
         // public fetchTrades
         //
@@ -1177,7 +1177,7 @@ class gemini extends Exchange {
         return $this->parse_balance($response);
     }
 
-    public function parse_order($order, ?array $market = null): array {
+    public function parse_order(array $order, ?array $market = null): array {
         //
         // createOrder (private)
         //
@@ -1670,7 +1670,7 @@ class gemini extends Exchange {
         return $this->parse_transactions($response);
     }
 
-    public function parse_transaction($transaction, ?array $currency = null): array {
+    public function parse_transaction(array $transaction, ?array $currency = null): array {
         //
         // withdraw
         //

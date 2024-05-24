@@ -555,7 +555,7 @@ class blofin extends Exchange {
         return $this->parse_tickers($tickers, $symbols);
     }
 
-    public function parse_trade($trade, ?array $market = null): array {
+    public function parse_trade(array $trade, ?array $market = null): array {
         //
         // fetch trades
         //   {
@@ -932,7 +932,7 @@ class blofin extends Exchange {
         return $this->safe_balance($result);
     }
 
-    public function parse_trading_fee($fee, ?array $market = null): array {
+    public function parse_trading_fee(array $fee, ?array $market = null): array {
         return array(
             'info' => $fee,
             'symbol' => $this->safe_symbol(null, $market),
@@ -1031,7 +1031,7 @@ class blofin extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_order($order, ?array $market = null): array {
+    public function parse_order(array $order, ?array $market = null): array {
         //
         // {
         //     "orderId" => "2075628533",
@@ -1492,7 +1492,7 @@ class blofin extends Exchange {
         return $this->parse_ledger($data, $currency, $since, $limit);
     }
 
-    public function parse_transaction($transaction, ?array $currency = null): array {
+    public function parse_transaction(array $transaction, ?array $currency = null): array {
         //
         //
         // fetchDeposits
@@ -1605,7 +1605,7 @@ class blofin extends Exchange {
         return $this->safe_string($types, $type, $type);
     }
 
-    public function parse_ledger_entry($item, ?array $currency = null) {
+    public function parse_ledger_entry(array $item, ?array $currency = null) {
         $id = $this->safe_string($item, 'transferId');
         $referenceId = $this->safe_string($item, 'clientId');
         $fromAccount = $this->safe_string($item, 'fromAccount');
@@ -1793,7 +1793,7 @@ class blofin extends Exchange {
         return $this->filter_by_array_positions($result, 'symbol', $symbols, false);
     }
 
-    public function parse_position($position, ?array $market = null) {
+    public function parse_position(array $position, ?array $market = null) {
         $marketId = $this->safe_string($position, 'instId');
         $market = $this->safe_market($marketId, $market);
         $symbol = $market['symbol'];
@@ -2122,7 +2122,7 @@ class blofin extends Exchange {
         return $this->parse_margin_mode($data, $market);
     }
 
-    public function parse_margin_mode($marginMode, $market = null): array {
+    public function parse_margin_mode(array $marginMode, $market = null): array {
         return array(
             'info' => $marginMode,
             'symbol' => $market['symbol'],

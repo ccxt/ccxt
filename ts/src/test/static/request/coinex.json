@@ -1282,7 +1282,17 @@
                 3
               ]
           }
-      ]
+      ],
+      "fetchDepositWithdrawFee": [
+        {
+            "description": "Fetch deposit withdraw fee",
+            "method": "fetchDepositWithdrawFee",
+            "url": "https://api.coinex.com/v2/assets/deposit-withdraw-config?ccy=USDT",
+            "input": [
+              "USDT"
+            ]
+        }
+     ]
     },
     "disabledTests": {}
 }

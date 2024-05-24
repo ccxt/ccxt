@@ -372,9 +372,12 @@ class poloniexfutures extends Exchange {
         $marketId = $this->safe_string($ticker, 'symbol');
         $symbol = $this->safe_symbol($marketId, $market);
         $timestampString = $this->safe_string($ticker, 'ts');
-        // check $timestamp bcz bug => https://app.travis-ci.com/github/ccxt/ccxt/builds/269959181#L4011 and also 17 digits occured
         $multiplier = null;
-        if (strlen($timestampString) === 17) {
+        if (strlen($timestampString) === 16) {
+            // 16 digits => https://app.travis-ci.com/github/ccxt/ccxt/builds/270587157#L5454
+            $multiplier = 0.001;
+        } elseif (strlen($timestampString) === 17) {
+            // 17 digits => https://app.travis-ci.com/github/ccxt/ccxt/builds/269959181#L4011
             $multiplier = 0.0001;
         } elseif (strlen($timestampString) === 18) {
             $multiplier = 0.00001;
@@ -454,7 +457,8 @@ class poloniexfutures extends Exchange {
          */
         $this->load_markets();
         $response = $this->publicGetTickers ($params);
-        return $this->parse_tickers($this->safe_value($response, 'data', array()), $symbols);
+        $data = $this->safe_list($response, 'data', array());
+        return $this->parse_tickers($data, $symbols);
     }
 
     public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()): array {
@@ -555,7 +559,7 @@ class poloniexfutures extends Exchange {
         return $this->fetch_order_book($market['id'], null, array( 'level' => 3 ));
     }
 
-    public function parse_trade($trade, ?array $market = null): array {
+    public function parse_trade(array $trade, ?array $market = null): array {
         //
         // fetchTrades (public)
         //
@@ -1008,7 +1012,7 @@ class poloniexfutures extends Exchange {
         return $this->parse_positions($data, $symbols);
     }
 
-    public function parse_position($position, ?array $market = null) {
+    public function parse_position(array $position, ?array $market = null) {
         //
         //    {
         //        "code" => "200000",
@@ -1451,7 +1455,7 @@ class poloniexfutures extends Exchange {
         return $this->parse_order($responseData, $market);
     }
 
-    public function parse_order($order, ?array $market = null): array {
+    public function parse_order(array $order, ?array $market = null): array {
         //
         // createOrder
         //

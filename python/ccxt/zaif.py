@@ -349,7 +349,7 @@ class zaif(Exchange, ImplicitAPI):
         #
         return self.parse_ticker(ticker, market)
 
-    def parse_trade(self, trade, market: Market = None) -> Trade:
+    def parse_trade(self, trade: dict, market: Market = None) -> Trade:
         #
         # fetchTrades(public)
         #
@@ -463,7 +463,7 @@ class zaif(Exchange, ImplicitAPI):
         }
         return self.privatePostCancelOrder(self.extend(request, params))
 
-    def parse_order(self, order, market: Market = None) -> Order:
+    def parse_order(self, order: dict, market: Market = None) -> Order:
         #
         #     {
         #         "currency_pair": "btc_jpy",
@@ -603,7 +603,7 @@ class zaif(Exchange, ImplicitAPI):
         returnData = self.safe_dict(result, 'return')
         return self.parse_transaction(returnData, currency)
 
-    def parse_transaction(self, transaction, currency: Currency = None) -> Transaction:
+    def parse_transaction(self, transaction: dict, currency: Currency = None) -> Transaction:
         #
         #     {
         #         "id": 23634,

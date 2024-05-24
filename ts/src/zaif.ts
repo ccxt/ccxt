@@ -367,7 +367,7 @@ export default class zaif extends Exchange {
         return this.parseTicker (ticker, market);
     }
 
-    parseTrade (trade, market: Market = undefined): Trade {
+    parseTrade (trade: Dict, market: Market = undefined): Trade {
         //
         // fetchTrades (public)
         //
@@ -494,7 +494,7 @@ export default class zaif extends Exchange {
         return await this.privatePostCancelOrder (this.extend (request, params));
     }
 
-    parseOrder (order, market: Market = undefined): Order {
+    parseOrder (order: Dict, market: Market = undefined): Order {
         //
         //     {
         //         "currency_pair": "btc_jpy",
@@ -648,7 +648,7 @@ export default class zaif extends Exchange {
         return this.parseTransaction (returnData, currency);
     }
 
-    parseTransaction (transaction, currency: Currency = undefined): Transaction {
+    parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {
         //
         //     {
         //         "id": 23634,

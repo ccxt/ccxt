@@ -929,7 +929,7 @@ class bitfinex extends Exchange {
         ), $market);
     }
 
-    public function parse_trade($trade, ?array $market = null): array {
+    public function parse_trade(array $trade, ?array $market = null): array {
         //
         // fetchTrades (public) v1
         //
@@ -1157,7 +1157,7 @@ class bitfinex extends Exchange {
         return $this->privatePostOrderCancelAll ($params);
     }
 
-    public function parse_order($order, ?array $market = null): array {
+    public function parse_order(array $order, ?array $market = null): array {
         //
         //     {
         //           "id" => 57334010955,
@@ -1458,7 +1458,7 @@ class bitfinex extends Exchange {
         return $this->parse_transactions($response, $currency, $since, $limit);
     }
 
-    public function parse_transaction($transaction, ?array $currency = null): array {
+    public function parse_transaction(array $transaction, ?array $currency = null): array {
         //
         // crypto
         //

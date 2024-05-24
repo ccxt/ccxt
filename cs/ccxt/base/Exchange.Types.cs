@@ -1174,6 +1174,51 @@ public struct LeverageTier
     }
 }
 
+public struct LeverageTiers
+{
+    public object info;
+    public Dictionary<string, List<LeverageTier>> tiers;
+
+    public LeverageTiers(object leverageTiersDict2)
+    {
+        var leverageTiersDict = (Dictionary<string, object>)leverageTiersDict2;
+
+        info = leverageTiersDict2;
+        this.tiers = new Dictionary<string, List<LeverageTier>>();
+        foreach (var leverageTier in leverageTiersDict)
+        {
+            if (leverageTier.Key != "info")
+            {
+                var leverageTiers = (List<object>)leverageTier.Value;
+                var leverageTiersList = leverageTiers.Select(x => new LeverageTier(x)).ToList();
+                this.tiers.Add(leverageTier.Key, leverageTiersList);
+            }
+        }
+    }
+
+    // Indexer
+    public List<LeverageTier> this[string key]
+    {
+        get
+        {
+            if (tiers.ContainsKey(key))
+            {
+                return tiers[key];
+            }
+            else
+            {
+                throw new KeyNotFoundException($"The key '{key}' was not found in the tickers.");
+            }
+        }
+        set
+        {
+            tiers[key] = value;
+        }
+    }
+}
+
+
+
 public struct LedgerEntry
 {
     public string? id;

@@ -2820,7 +2820,9 @@ public partial class bitmart : Exchange
         object data = this.safeValue(response, "data");
         if (isTrue(isEqual(data, true)))
         {
-            return this.parseOrder(id, market);
+            return this.safeOrder(new Dictionary<string, object>() {
+                { "id", id },
+            }, market);
         }
         object succeeded = this.safeValue(data, "succeed");
         if (isTrue(!isEqual(succeeded, null)))
@@ -2838,10 +2840,12 @@ public partial class bitmart : Exchange
                 throw new InvalidOrder ((string)add(add(add(add(add(this.id, " cancelOrder() "), symbol), " order id "), id), " is filled or canceled")) ;
             }
         }
-        object order = this.parseOrder(id, market);
-        return this.extend(order, new Dictionary<string, object>() {
+        object order = this.safeOrder(new Dictionary<string, object>() {
             { "id", id },
-        });
+            { "symbol", getValue(market, "symbol") },
+            { "info", new Dictionary<string, object>() {} },
+        }, market);
+        return order;
     }
 
     public async virtual Task<object> cancelOrders(object ids, object symbol = null, object parameters = null)
