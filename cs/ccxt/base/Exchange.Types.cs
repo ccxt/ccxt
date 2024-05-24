@@ -1176,14 +1176,14 @@ public struct LeverageTier
 
 public struct LeverageTiers
 {
-    public Dictionary<string, object> info;
+    public object info;
     public Dictionary<string, List<LeverageTier>> tiers;
 
     public LeverageTiers(object leverageTiersDict2)
     {
         var leverageTiersDict = (Dictionary<string, object>)leverageTiersDict2;
 
-        info = leverageTiersDict.ContainsKey("info") ? (Dictionary<string, object>)leverageTiersDict["info"] : null;
+        info = leverageTiersDict2;
         this.tiers = new Dictionary<string, List<LeverageTier>>();
         foreach (var leverageTier in leverageTiersDict)
         {
