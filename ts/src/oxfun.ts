@@ -606,12 +606,12 @@ export default class oxfun extends Exchange {
         //     }
         //
         const data = this.safeList (response, 'data', []);
-        const result = {};
+        const result: Dict = {};
         for (let i = 0; i < data.length; i++) {
             const currency = data[i];
             const id = this.safeString (currency, 'asset', ''); // todo check specific names like USDT.ARB
             const code = this.safeCurrencyCode (id);
-            const networks = {};
+            const networks: Dict = {};
             const chains = this.safeList (currency, 'networkList', []);
             let currencyMaxPrecision = undefined;
             let currencyDepositEnabled: Bool = undefined;
@@ -851,7 +851,7 @@ export default class oxfun extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         timeframe = this.safeString (this.timeframes, timeframe, timeframe);
-        const request = {
+        const request: Dict = {
             'marketCode': market['id'],
             'timeframe': timeframe,
         };
@@ -937,7 +937,7 @@ export default class oxfun extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'marketCode': market['id'],
         };
         if (limit !== undefined) {
@@ -1057,7 +1057,7 @@ export default class oxfun extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'marketCode': market['id'],
         };
         if (since !== undefined) {
@@ -1139,7 +1139,7 @@ export default class oxfun extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'marketCode': market['id'],
         };
         if (since !== undefined) {
@@ -1323,7 +1323,7 @@ export default class oxfun extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'marketCode': market['id'],
         };
         if (since !== undefined) {
@@ -1376,7 +1376,7 @@ export default class oxfun extends Exchange {
          * @returns {Trade[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure}
          */
         await this.loadMarkets ();
-        const request = {};
+        const request: Dict = {};
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
@@ -1639,7 +1639,7 @@ export default class oxfun extends Exchange {
         // transferring funds between sub-accounts is restricted to API keys linked to the parent account.
         await this.loadMarkets ();
         const currency = this.currency (code);
-        const request = {
+        const request: Dict = {
             'asset': currency['id'],
             'quantity': this.currencyToPrecision (code, amount),
             'fromAccount': fromAccount,
@@ -1682,7 +1682,7 @@ export default class oxfun extends Exchange {
          */
         // API keys linked to the parent account can get all account transfers, while API keys linked to a sub-account can only see transfers where the sub-account is either the "fromAccount" or "toAccount"
         await this.loadMarkets ();
-        const request = {};
+        const request: Dict = {};
         let currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
@@ -1779,7 +1779,7 @@ export default class oxfun extends Exchange {
         }
         await this.loadMarkets ();
         const currency = this.currency (code);
-        const request = {
+        const request: Dict = {
             'asset': currency['id'],
             'network': networkId,
         };
@@ -1821,7 +1821,7 @@ export default class oxfun extends Exchange {
          * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/#/?id=transfer-structure}
          */
         await this.loadMarkets ();
-        const request = {};
+        const request: Dict = {};
         let currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
@@ -1877,7 +1877,7 @@ export default class oxfun extends Exchange {
          * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         await this.loadMarkets ();
-        const request = {};
+        const request: Dict = {};
         let currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
@@ -2027,14 +2027,14 @@ export default class oxfun extends Exchange {
     }
 
     parseDepositStatus (status) {
-        const statuses = {
+        const statuses: Dict = {
             'COMPLETED': 'ok',
         };
         return this.safeString (statuses, status, status);
     }
 
     parseWithdrawalStatus (status) {
-        const statuses = {
+        const statuses: Dict = {
             'COMPLETED': 'ok',
             'PROCESSING': 'pending',
             'IN SWEEPING': 'pending',
@@ -2069,7 +2069,7 @@ export default class oxfun extends Exchange {
         await this.loadMarkets ();
         const currency = this.currency (code);
         const stringAmount = this.currencyToPrecision (code, amount);
-        const request = {
+        const request: Dict = {
             'asset': currency['id'],
             'address': address,
             'quantity': stringAmount,
@@ -2250,7 +2250,7 @@ export default class oxfun extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'responseType': this.safeString (params, 'responseType', 'FULL'),
             'timestamp': this.safeInteger (params, 'timestamp', this.milliseconds ()),
         };
@@ -2411,7 +2411,7 @@ export default class oxfun extends Exchange {
             const orderRequest = this.createOrderRequest (market, type, side, amount, price, orderParams);
             ordersRequests.push (orderRequest);
         }
-        const request = {
+        const request: Dict = {
             'responseType': 'FULL',
             'timestamp': this.milliseconds (),
             'orders': ordersRequests,
@@ -2439,7 +2439,7 @@ export default class oxfun extends Exchange {
          * @param {string} [params.displayQuantity] for an iceberg order, pass both quantity and displayQuantity fields in the order request
          */
         // const symbol = market['symbol'];
-        const request = {
+        const request: Dict = {
             'marketCode': market['id'],
             'side': side.toUpperCase (),
         };
@@ -2495,7 +2495,7 @@ export default class oxfun extends Exchange {
         if (!market['spot']) {
             throw new NotSupported (this.id + ' createMarketBuyOrderWithCost() supports spot orders only');
         }
-        const request = {
+        const request: Dict = {
             'cost': cost,
         };
         return await this.createOrder (symbol, 'market', 'buy', undefined, undefined, this.extend (request, params));
@@ -2514,7 +2514,7 @@ export default class oxfun extends Exchange {
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
-        const request = {
+        const request: Dict = {
             'orderId': id,
         };
         const response = await this.privateGetV3OrdersStatus (this.extend (request, params));
@@ -2560,7 +2560,7 @@ export default class oxfun extends Exchange {
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
-        const request = {};
+        const request: Dict = {};
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
@@ -2590,7 +2590,7 @@ export default class oxfun extends Exchange {
         }
         const market = this.market (symbol);
         const marketId = market['id'];
-        const request = {
+        const request: Dict = {
             'timestamp': this.milliseconds (),
             'responseType': 'FULL',
         };
@@ -2619,7 +2619,7 @@ export default class oxfun extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} response from exchange
          */
-        const request = {};
+        const request: Dict = {};
         if (symbol !== undefined) {
             const market = this.market (symbol);
             request['marketCode'] = market['id'];
@@ -2658,7 +2658,7 @@ export default class oxfun extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const marketId = market['id'];
-        const request = {
+        const request: Dict = {
             'timestamp': this.milliseconds (),
             'responseType': 'FULL',
         };
@@ -2723,7 +2723,7 @@ export default class oxfun extends Exchange {
     }
 
     parseOrderStatus (status) {
-        const statuses = {
+        const statuses: Dict = {
             'OPEN': 'open',
             'PARTIALLY_FILLED': 'open',
             'PARTIAL_FILL': 'open',
@@ -2740,7 +2740,7 @@ export default class oxfun extends Exchange {
     }
 
     parseOrderType (type) {
-        const types = {
+        const types: Dict = {
             'LIMIT': 'limit',
             'STOP_LIMIT': 'limit',
             'MARKET': 'market',
@@ -2750,7 +2750,7 @@ export default class oxfun extends Exchange {
     }
 
     parseOrderTimeInForce (type) {
-        const types = {
+        const types: Dict = {
             'GTC': 'GTC',
             'IOC': 'IOC',
             'FOK': 'FOK',
