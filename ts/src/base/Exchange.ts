@@ -5578,7 +5578,7 @@ export default class Exchange {
         return this.precisionMode === SIGNIFICANT_DIGITS;
     }
 
-    safeNumber (obj = undefined, key: IndexType, defaultNumber: Num = undefined): Num {
+    safeNumber (obj, key: IndexType, defaultNumber: Num = undefined): Num {
         const value = this.safeString (obj, key);
         return this.parseNumber (value, defaultNumber);
     }

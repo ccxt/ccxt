@@ -1690,7 +1690,7 @@ class Transpiler {
                 'OrderType': 'string',
                 'OrderSide': 'string',
                 'Dictionary<any>': 'array',
-                'Dict': 'array',
+                'Dict': '?array',
             }
             const phpArrayRegex = /^(?:Market|Currency|Account|AccountStructure|BalanceAccount|object|OHLCV|Order|OrderBook|Tickers?|Trade|Transaction|Balances?|MarketInterface|TransferEntry|TransferEntries|Leverages|Leverage|Greeks|MarginModes|MarginMode|MarginModification|LastPrice|LastPrices|TradingFeeInterface|Currencies|TradingFees|CrossBorrowRate|IsolatedBorrowRate|FundingRates|FundingRate)( \| undefined)?$|\w+\[\]/
             let phpArgs = args.map (x => {
