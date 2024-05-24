@@ -729,7 +729,7 @@ export default class bit2c extends Exchange {
         return newString;
     }
 
-    parseTrade (trade, market: Market = undefined): Trade {
+    parseTrade (trade: Dict, market: Market = undefined): Trade {
         //
         // public fetchTrades
         //
