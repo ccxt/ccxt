@@ -1433,7 +1433,7 @@ export default class coinbaseexchange extends Exchange {
         return this.safeString (types, type, type);
     }
 
-    parseLedgerEntry (item, currency: Currency = undefined) {
+    parseLedgerEntry (item: Dict, currency: Currency = undefined) {
         //  {
         //      "id": "12087495079",
         //      "amount": "-0.0100000000000000",
@@ -1714,7 +1714,7 @@ export default class coinbaseexchange extends Exchange {
         }
     }
 
-    parseTransaction (transaction, currency: Currency = undefined): Transaction {
+    parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {
         //
         // privateGetTransfers
         //

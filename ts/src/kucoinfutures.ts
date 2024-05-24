@@ -1223,7 +1223,7 @@ export default class kucoinfutures extends kucoin {
         return this.parsePositions (items, symbols);
     }
 
-    parsePosition (position, market: Market = undefined) {
+    parsePosition (position: Dict, market: Market = undefined) {
         //
         //    {
         //        "code": "200000",

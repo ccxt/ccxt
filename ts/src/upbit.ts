@@ -1355,7 +1355,7 @@ export default class upbit extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseTransaction (transaction, currency: Currency = undefined): Transaction {
+    parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {
         //
         // fetchDeposits, fetchDeposit
         //
@@ -1706,7 +1706,7 @@ export default class upbit extends Exchange {
         return this.parseOrder (response);
     }
 
-    async fetchDepositAddresses (codes: string[] = undefined, params = {}) {
+    async fetchDepositAddresses (codes: Strings = undefined, params = {}) {
         /**
          * @method
          * @name upbit#fetchDepositAddresses

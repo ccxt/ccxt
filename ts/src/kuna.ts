@@ -472,7 +472,7 @@ export default class kuna extends Exchange {
         return result;
     }
 
-    parseCurrency (currency) {
+    parseCurrency (currency: Dict) {
         //
         //    {
         //        "code": "BTC",
@@ -1783,7 +1783,7 @@ export default class kuna extends Exchange {
         return this.parseTransaction (data, currency);
     }
 
-    parseTransaction (transaction, currency: Currency = undefined): Transaction {
+    parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {
         //
         //    {
         //        "id": "a201cb3c-5830-57ac-ad2c-f6a588dd55eb",                               // Unique ID of deposit

@@ -1643,7 +1643,7 @@ export default class delta extends Exchange {
         return this.parsePositions (result, symbols);
     }
 
-    parsePosition (position, market: Market = undefined) {
+    parsePosition (position: Dict, market: Market = undefined) {
         //
         // fetchPosition
         //
@@ -2274,7 +2274,7 @@ export default class delta extends Exchange {
         return this.safeString (types, type, type);
     }
 
-    parseLedgerEntry (item, currency: Currency = undefined) {
+    parseLedgerEntry (item: Dict, currency: Currency = undefined) {
         //
         //     {
         //         "amount":"29.889184",
@@ -3345,7 +3345,7 @@ export default class delta extends Exchange {
         return this.parseMarginMode (result, market);
     }
 
-    parseMarginMode (marginMode, market = undefined): MarginMode {
+    parseMarginMode (marginMode: Dict, market = undefined): MarginMode {
         let symbol = undefined;
         if (market !== undefined) {
             symbol = market['symbol'];

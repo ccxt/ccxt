@@ -2094,7 +2094,7 @@ export default class gate extends Exchange {
         };
     }
 
-    async fetchTransactionFees (codes: string[] = undefined, params = {}) {
+    async fetchTransactionFees (codes: Strings = undefined, params = {}) {
         /**
          * @method
          * @name gate#fetchTransactionFees
@@ -3656,7 +3656,7 @@ export default class gate extends Exchange {
         return this.safeString (types, type, type);
     }
 
-    parseTransaction (transaction, currency: Currency = undefined): Transaction {
+    parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {
         //
         // deposits
         //
@@ -5225,7 +5225,7 @@ export default class gate extends Exchange {
         return response;
     }
 
-    parsePosition (position, market: Market = undefined) {
+    parsePosition (position: Dict, market: Market = undefined) {
         //
         // swap and future
         //
@@ -6537,7 +6537,7 @@ export default class gate extends Exchange {
         return this.parseLedger (response, currency, since, limit);
     }
 
-    parseLedgerEntry (item, currency: Currency = undefined) {
+    parseLedgerEntry (item: Dict, currency: Currency = undefined) {
         //
         // spot
         //
@@ -7138,7 +7138,7 @@ export default class gate extends Exchange {
         return this.parseLeverage (response, market);
     }
 
-    async fetchLeverages (symbols: string[] = undefined, params = {}): Promise<Leverages> {
+    async fetchLeverages (symbols: Strings = undefined, params = {}): Promise<Leverages> {
         /**
          * @method
          * @name gate#fetchLeverages

@@ -448,7 +448,7 @@ export default class timex extends Exchange {
         return undefined;
     }
 
-    parseTransaction (transaction, currency: Currency = undefined): Transaction {
+    parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {
         //
         //     {
         //         "from": "0x1134cc86b45039cc211c6d1d2e4b3c77f60207ed",
@@ -1168,7 +1168,7 @@ export default class timex extends Exchange {
         return this.parseTrades (trades, market, since, limit);
     }
 
-    parseTradingFee (fee, market: Market = undefined): TradingFeeInterface {
+    parseTradingFee (fee: Dict, market: Market = undefined): TradingFeeInterface {
         //
         //     {
         //         "fee": 0.0075,
@@ -1299,7 +1299,7 @@ export default class timex extends Exchange {
         };
     }
 
-    parseCurrency (currency) {
+    parseCurrency (currency: Dict) {
         //
         //     {
         //         "symbol": "BTC",

@@ -815,7 +815,7 @@ export default class coinbase extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseTransaction (transaction, currency: Currency = undefined): Transaction {
+    parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {
         //
         // fiat deposit
         //
@@ -2311,7 +2311,7 @@ export default class coinbase extends Exchange {
         return this.safeString (types, type, type);
     }
 
-    parseLedgerEntry (item, currency: Currency = undefined) {
+    parseLedgerEntry (item: Dict, currency: Currency = undefined) {
         //
         // crypto deposit transaction
         //
@@ -3089,7 +3089,7 @@ export default class coinbase extends Exchange {
         return this.safeString (types, type, type);
     }
 
-    parseTimeInForce (timeInForce) {
+    parseTimeInForce (timeInForce: Str) {
         const timeInForces: Dict = {
             'GOOD_UNTIL_CANCELLED': 'GTC',
             'GOOD_UNTIL_DATE_TIME': 'GTD',
@@ -4384,7 +4384,7 @@ export default class coinbase extends Exchange {
         return this.parsePosition (position, market);
     }
 
-    parsePosition (position, market: Market = undefined) {
+    parsePosition (position: Dict, market: Market = undefined) {
         //
         // {
         //     "product_id": "1r4njf84-0-0",

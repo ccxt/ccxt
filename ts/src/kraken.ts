@@ -1035,7 +1035,7 @@ export default class kraken extends Exchange {
         return this.safeString (types, type, type);
     }
 
-    parseLedgerEntry (item, currency: Currency = undefined) {
+    parseLedgerEntry (item: Dict, currency: Currency = undefined) {
         //
         //     {
         //         'LTFK7F-N2CUX-PNY4SX': {
@@ -2362,7 +2362,7 @@ export default class kraken extends Exchange {
         return this.safeString (withdrawMethods, network, network);
     }
 
-    parseTransaction (transaction, currency: Currency = undefined): Transaction {
+    parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {
         //
         // fetchDeposits
         //
@@ -2886,7 +2886,7 @@ export default class kraken extends Exchange {
         return this.filterByArrayPositions (results, 'symbol', symbols, false);
     }
 
-    parsePosition (position, market: Market = undefined) {
+    parsePosition (position: Dict, market: Market = undefined) {
         //
         //             {
         //                 "pair": "ETHUSDT",

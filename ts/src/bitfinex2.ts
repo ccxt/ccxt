@@ -2278,7 +2278,7 @@ export default class bitfinex2 extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseTransaction (transaction, currency: Currency = undefined): Transaction {
+    parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {
         //
         // withdraw
         //
@@ -2729,10 +2729,14 @@ export default class bitfinex2 extends Exchange {
         //         ]
         //     ]
         //
-        return this.parsePositions (response, symbols);
+        const positionsList = [];
+        for (let i = 0; i < response.length; i++) {
+            positionsList.push ({ 'result': response[i] });
+        }
+        return this.parsePositions (positionsList, symbols);
     }
 
-    parsePosition (position, market: Market = undefined) {
+    parsePosition (position: Dict, market: Market = undefined) {
         //
         //    [
         //        "tBTCUSD",                    // SYMBOL
@@ -2765,22 +2769,23 @@ export default class bitfinex2 extends Exchange {
         //        }
         //    ]
         //
-        const marketId = this.safeString (position, 0);
-        const amount = this.safeString (position, 2);
-        const timestamp = this.safeInteger (position, 12);
-        const meta = this.safeString (position, 19);
+        const positionList = this.safeList (position, 'result');
+        const marketId = this.safeString (positionList, 0);
+        const amount = this.safeString (positionList, 2);
+        const timestamp = this.safeInteger (positionList, 12);
+        const meta = this.safeString (positionList, 19);
         const tradePrice = this.safeString (meta, 'trade_price');
         const tradeAmount = this.safeString (meta, 'trade_amount');
         return this.safePosition ({
-            'info': position,
-            'id': this.safeString (position, 11),
+            'info': positionList,
+            'id': this.safeString (positionList, 11),
             'symbol': this.safeSymbol (marketId, market),
             'notional': this.parseNumber (amount),
             'marginMode': 'isolated',  // derivatives use isolated, margin uses cross, https://support.bitfinex.com/hc/en-us/articles/360035475374-Derivatives-Trading-on-Bitfinex
-            'liquidationPrice': this.safeNumber (position, 8),
-            'entryPrice': this.safeNumber (position, 3),
-            'unrealizedPnl': this.safeNumber (position, 6),
-            'percentage': this.safeNumber (position, 7),
+            'liquidationPrice': this.safeNumber (positionList, 8),
+            'entryPrice': this.safeNumber (positionList, 3),
+            'unrealizedPnl': this.safeNumber (positionList, 6),
+            'percentage': this.safeNumber (positionList, 7),
             'contracts': undefined,
             'contractSize': undefined,
             'markPrice': undefined,
@@ -2789,13 +2794,13 @@ export default class bitfinex2 extends Exchange {
             'hedged': undefined,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'lastUpdateTimestamp': this.safeInteger (position, 13),
-            'maintenanceMargin': this.safeNumber (position, 18),
+            'lastUpdateTimestamp': this.safeInteger (positionList, 13),
+            'maintenanceMargin': this.safeNumber (positionList, 18),
             'maintenanceMarginPercentage': undefined,
-            'collateral': this.safeNumber (position, 17),
+            'collateral': this.safeNumber (positionList, 17),
             'initialMargin': this.parseNumber (Precise.stringMul (tradeAmount, tradePrice)),
             'initialMarginPercentage': undefined,
-            'leverage': this.safeNumber (position, 9),
+            'leverage': this.safeNumber (positionList, 9),
             'marginRatio': undefined,
             'stopLossPrice': undefined,
             'takeProfitPrice': undefined,
@@ -2865,7 +2870,7 @@ export default class bitfinex2 extends Exchange {
         return response;
     }
 
-    parseLedgerEntryType (type) {
+    parseLedgerEntryType (type: Str) {
         if (type === undefined) {
             return undefined;
         } else if (type.indexOf ('fee') >= 0 || type.indexOf ('charged') >= 0) {
@@ -2885,7 +2890,7 @@ export default class bitfinex2 extends Exchange {
         }
     }
 
-    parseLedgerEntry (item, currency: Currency = undefined) {
+    parseLedgerEntry (item: Dict, currency: Currency = undefined) {
         //
         //     [
         //         [
@@ -2901,14 +2906,15 @@ export default class bitfinex2 extends Exchange {
         //         ]
         //     ]
         //
+        const itemList = this.safeList (item, 'result', []);
         let type = undefined;
-        const id = this.safeString (item, 0);
-        const currencyId = this.safeString (item, 1);
+        const id = this.safeString (itemList, 0);
+        const currencyId = this.safeString (itemList, 1);
         const code = this.safeCurrencyCode (currencyId, currency);
-        const timestamp = this.safeInteger (item, 3);
-        const amount = this.safeNumber (item, 5);
-        const after = this.safeNumber (item, 6);
-        const description = this.safeString (item, 8);
+        const timestamp = this.safeInteger (itemList, 3);
+        const amount = this.safeNumber (itemList, 5);
+        const after = this.safeNumber (itemList, 6);
+        const description = this.safeString (itemList, 8);
         if (description !== undefined) {
             const parts = description.split (' @ ');
             const first = this.safeStringLower (parts, 0);
@@ -2985,7 +2991,12 @@ export default class bitfinex2 extends Exchange {
         //         ]
         //     ]
         //
-        return this.parseLedger (response, currency, since, limit);
+        const ledgerObjects = [];
+        for (let i = 0; i < response.length; i++) {
+            const item = response[i];
+            ledgerObjects.push ({ 'result': item });
+        }
+        return this.parseLedger (ledgerObjects, currency, since, limit);
     }
 
     async fetchFundingRate (symbol: string, params = {}) {

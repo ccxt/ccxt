@@ -1707,7 +1707,7 @@ export default class gemini extends Exchange {
         return this.parseTransactions (response);
     }
 
-    parseTransaction (transaction, currency: Currency = undefined): Transaction {
+    parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {
         //
         // withdraw
         //

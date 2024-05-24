@@ -1105,7 +1105,7 @@ export default class bitmex extends Exchange {
         return this.safeString (types, type, type);
     }
 
-    parseLedgerEntry (item, currency: Currency = undefined) {
+    parseLedgerEntry (item: Dict, currency: Currency = undefined) {
         //
         //     {
         //         "transactID": "69573da3-7744-5467-3207-89fd6efe7a47",
@@ -1301,7 +1301,7 @@ export default class bitmex extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseTransaction (transaction, currency: Currency = undefined): Transaction {
+    parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {
         //
         //    {
         //        "transactID": "ffe699c2-95ee-4c13-91f9-0faf41daec25",
@@ -1696,7 +1696,7 @@ export default class bitmex extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseTimeInForce (timeInForce) {
+    parseTimeInForce (timeInForce: Str) {
         const timeInForces: Dict = {
             'Day': 'Day',
             'GoodTillCancel': 'GTC',
@@ -2161,7 +2161,7 @@ export default class bitmex extends Exchange {
         return response;
     }
 
-    async fetchLeverages (symbols: string[] = undefined, params = {}): Promise<Leverages> {
+    async fetchLeverages (symbols: Strings = undefined, params = {}): Promise<Leverages> {
         /**
          * @method
          * @name bitmex#fetchLeverages
@@ -2300,7 +2300,7 @@ export default class bitmex extends Exchange {
         return this.filterByArrayPositions (results, 'symbol', symbols, false);
     }
 
-    parsePosition (position, market: Market = undefined) {
+    parsePosition (position: Dict, market: Market = undefined) {
         //
         //     {
         //         "account": 9371654,

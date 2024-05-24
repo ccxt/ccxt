@@ -703,7 +703,7 @@ export default class mercado extends Exchange {
         return this.parseTransaction (withdrawal, currency);
     }
 
-    parseTransaction (transaction, currency: Currency = undefined): Transaction {
+    parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {
         //
         //     {
         //         "id": 1,

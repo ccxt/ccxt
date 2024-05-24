@@ -491,7 +491,7 @@ export default class whitebit extends Exchange {
         return result;
     }
 
-    async fetchTransactionFees (codes: string[] = undefined, params = {}) {
+    async fetchTransactionFees (codes: Strings = undefined, params = {}) {
         /**
          * @method
          * @name whitebit#fetchTransactionFees
@@ -2051,7 +2051,7 @@ export default class whitebit extends Exchange {
         return this.extend ({ 'id': uniqueId }, this.parseTransaction (response, currency));
     }
 
-    parseTransaction (transaction, currency: Currency = undefined): Transaction {
+    parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {
         //
         //     {
         //         "address": "3ApEASLcrQtZpg1TsssFgYF5V5YQJAKvuE",                                              // deposit address
@@ -2318,7 +2318,7 @@ export default class whitebit extends Exchange {
         return this.filterByCurrencySinceLimit (interest, code, since, limit);
     }
 
-    parseBorrowInterest (info, market: Market = undefined) {
+    parseBorrowInterest (info: Dict, market: Market = undefined) {
         //
         //     {
         //         "positionId": 191823,

@@ -264,7 +264,7 @@ export default class btcmarkets extends Exchange {
         return this.safeString (statuses, type, type);
     }
 
-    parseTransaction (transaction, currency: Currency = undefined): Transaction {
+    parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {
         //
         //    {
         //         "id": "6500230339",

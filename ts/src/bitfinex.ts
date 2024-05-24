@@ -396,7 +396,7 @@ export default class bitfinex extends Exchange {
         });
     }
 
-    async fetchTransactionFees (codes: string[] = undefined, params = {}) {
+    async fetchTransactionFees (codes: Strings = undefined, params = {}) {
         /**
          * @method
          * @name bitfinex#fetchTransactionFees
@@ -1505,7 +1505,7 @@ export default class bitfinex extends Exchange {
         return this.parseTransactions (response, currency, since, limit);
     }
 
-    parseTransaction (transaction, currency: Currency = undefined): Transaction {
+    parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {
         //
         // crypto
         //

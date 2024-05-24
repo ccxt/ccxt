@@ -2517,7 +2517,7 @@ export default class digifinex extends Exchange {
         return this.safeString (types, type, type);
     }
 
-    parseLedgerEntry (item, currency: Currency = undefined) {
+    parseLedgerEntry (item: Dict, currency: Currency = undefined) {
         //
         // spot and margin
         //
@@ -2801,7 +2801,7 @@ export default class digifinex extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseTransaction (transaction, currency: Currency = undefined): Transaction {
+    parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {
         //
         // withdraw
         //
@@ -3017,7 +3017,7 @@ export default class digifinex extends Exchange {
         return this.filterByCurrencySinceLimit (interest, code, since, limit);
     }
 
-    parseBorrowInterest (info, market: Market = undefined) {
+    parseBorrowInterest (info: Dict, market: Market = undefined) {
         //
         //     {
         //         "amount": 0.0006103,
@@ -3332,7 +3332,7 @@ export default class digifinex extends Exchange {
         return this.parseTradingFee (data, market);
     }
 
-    parseTradingFee (fee, market: Market = undefined): TradingFeeInterface {
+    parseTradingFee (fee: Dict, market: Market = undefined): TradingFeeInterface {
         //
         //     {
         //         "instrument_id": "BTCUSDTPERP",
@@ -3553,7 +3553,7 @@ export default class digifinex extends Exchange {
         }
     }
 
-    parsePosition (position, market: Market = undefined) {
+    parsePosition (position: Dict, market: Market = undefined) {
         //
         // swap
         //
