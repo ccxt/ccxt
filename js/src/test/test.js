@@ -405,7 +405,7 @@ export default class testMainClass extends baseMainTestClass {
             return;
         }
         if (this.info) {
-            const argsStringified = '(' + args.join(',') + ')';
+            const argsStringified = '(' + exchange.json(args) + ')'; // args.join() breaks when we provide a list of symbols or multidimensional array; "args.toString()" breaks bcz of "array to string conversion"
             dump(this.addPadding('[INFO] TESTING', 25), this.exchangeHint(exchange), methodName, argsStringified);
         }
         await callMethod(this.testFiles, methodName, exchange, skippedPropertiesForMethod, args);

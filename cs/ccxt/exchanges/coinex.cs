@@ -60,8 +60,8 @@ public partial class coinex : Exchange
                 { "fetchIndexOHLCV", false },
                 { "fetchIsolatedBorrowRate", true },
                 { "fetchIsolatedBorrowRates", false },
-                { "fetchLeverage", "emulated" },
-                { "fetchLeverages", true },
+                { "fetchLeverage", true },
+                { "fetchLeverages", false },
                 { "fetchLeverageTiers", true },
                 { "fetchMarginAdjustmentHistory", true },
                 { "fetchMarketLeverageTiers", "emulated" },
@@ -4739,69 +4739,69 @@ public partial class coinex : Exchange
         return result;
     }
 
-    public async override Task<object> fetchLeverages(object symbols = null, object parameters = null)
+    public async override Task<object> fetchLeverage(object symbol, object parameters = null)
     {
         /**
         * @method
-        * @name coinex#fetchLeverages
-        * @description fetch the set leverage for all contract and margin markets
-        * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot002_account007_margin_account_settings
-        * @param {string[]} [symbols] a list of unified market symbols
+        * @name coinex#fetchLeverage
+        * @description fetch the set leverage for a market
+        * @see https://docs.coinex.com/api/v2/assets/loan-flat/http/list-margin-interest-limit
+        * @param {string} symbol unified market symbol
         * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a list of [leverage structures]{@link https://docs.ccxt.com/#/?id=leverage-structure}
+        * @param {string} params.code unified currency code
+        * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/#/?id=leverage-structure}
         */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        symbols = this.marketSymbols(symbols);
-        object market = null;
-        if (isTrue(!isEqual(symbols, null)))
+        object code = this.safeString(parameters, "code");
+        if (isTrue(isEqual(code, null)))
         {
-            object symbol = this.safeValue(symbols, 0);
-            market = this.market(symbol);
+            throw new ArgumentsRequired ((string)add(this.id, " fetchLeverage() requires a code parameter")) ;
         }
-        object marketType = null;
-        var marketTypeparametersVariable = this.handleMarketTypeAndParams("fetchLeverages", market, parameters);
-        marketType = ((IList<object>)marketTypeparametersVariable)[0];
-        parameters = ((IList<object>)marketTypeparametersVariable)[1];
-        if (isTrue(!isEqual(marketType, "spot")))
-        {
-            throw new NotSupported ((string)add(this.id, " fetchLeverages() supports spot margin markets only")) ;
-        }
-        object response = await this.v1PrivateGetMarginConfig(parameters);
+        parameters = this.omit(parameters, "code");
+        object currency = this.currency(code);
+        object market = this.market(symbol);
+        object request = new Dictionary<string, object>() {
+            { "market", getValue(market, "id") },
+            { "ccy", getValue(currency, "id") },
+        };
+        object response = await this.v2PrivateGetAssetsMarginInterestLimit(this.extend(request, parameters));
         //
         //     {
         //         "code": 0,
-        //         "data": [
-        //             {
-        //                 "market": "BTCUSDT",
-        //                 "leverage": 10,
-        //                 "BTC": {
-        //                     "min_amount": "0.0008",
-        //                     "max_amount": "200",
-        //                     "day_rate": "0.0015"
-        //                 },
-        //                 "USDT": {
-        //                     "min_amount": "50",
-        //                     "max_amount": "500000",
-        //                     "day_rate": "0.001"
-        //                 }
-        //             },
-        //         ],
-        //         "message": "Success"
+        //         "data": {
+        //             "market": "BTCUSDT",
+        //             "ccy": "USDT",
+        //             "leverage": 10,
+        //             "min_amount": "50",
+        //             "max_amount": "500000",
+        //             "daily_interest_rate": "0.001"
+        //         },
+        //         "message": "OK"
         //     }
         //
-        object leverages = this.safeList(response, "data", new List<object>() {});
-        return this.parseLeverages(leverages, symbols, "market", marketType);
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        return this.parseLeverage(data, market);
     }
 
     public override object parseLeverage(object leverage, object market = null)
     {
+        //
+        //     {
+        //         "market": "BTCUSDT",
+        //         "ccy": "USDT",
+        //         "leverage": 10,
+        //         "min_amount": "50",
+        //         "max_amount": "500000",
+        //         "daily_interest_rate": "0.001"
+        //     }
+        //
         object marketId = this.safeString(leverage, "market");
         object leverageValue = this.safeInteger(leverage, "leverage");
         return new Dictionary<string, object>() {
             { "info", leverage },
             { "symbol", this.safeSymbol(marketId, market, null, "spot") },
-            { "marginMode", null },
+            { "marginMode", "isolated" },
             { "longLeverage", leverageValue },
             { "shortLeverage", leverageValue },
         };
