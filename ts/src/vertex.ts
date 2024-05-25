@@ -56,7 +56,7 @@ export default class vertex extends Exchange {
                 'fetchBorrowRateHistories': false,
                 'fetchBorrowRateHistory': false,
                 'fetchCanceledOrders': false,
-                'fetchClosedOrders': true,
+                'fetchClosedOrders': false,
                 'fetchCrossBorrowRate': false,
                 'fetchCrossBorrowRates': false,
                 'fetchCurrencies': true,
@@ -88,7 +88,7 @@ export default class vertex extends Exchange {
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
-                'fetchOrders': true,
+                'fetchOrders': false,
                 'fetchOrderTrades': false,
                 'fetchPosition': true,
                 'fetchPositionMode': false,
@@ -1170,7 +1170,7 @@ export default class vertex extends Exchange {
             // 3 << 62 = 13835058055282163712
             expiration = Precise.stringOr (expiration, '13835058055282163712');
             if (reduceOnly) {
-                throw new NotSupported (this.id + ' reduceOnly not supported when postOnly is enabled' );
+                throw new NotSupported (this.id + ' reduceOnly not supported when postOnly is enabled');
             }
         }
         if (isTrigger) {
@@ -1245,10 +1245,20 @@ export default class vertex extends Exchange {
         if (status !== undefined) {
             const statuses = {
                 'pending': 'open',
-                'triggered': 'closed',
-                'cancelled': 'canceled',
             };
-            return this.safeString (statuses, status, status);
+            if (typeof status === 'string') {
+                return this.safeString (statuses, status, status);
+            }
+            const statusCancelled = this.safeDict (status, 'cancelled');
+            if (statusCancelled !== undefined) {
+                return 'canceled';
+            }
+            const statusTriggered = this.safeDict (status, 'triggered', {});
+            const triggeredStatus = this.safeString (statusTriggered, 'status', 'failure');
+            if (triggeredStatus === 'success') {
+                return 'closed';
+            }
+            return 'canceled';
         }
         return status;
     }
@@ -1295,7 +1305,7 @@ export default class vertex extends Exchange {
         let price = this.safeString (order, 'price_X18');
         let remaining = this.safeString (order, 'unfilled_amount');
         let triggerPriceNum = undefined;
-        const status = this.safeString (order, 'status');
+        const status = this.safeValue (order, 'status');
         if (status !== undefined) {
             // trigger order
             const outerOrder = this.safeDict (order, 'order', {});
@@ -1395,19 +1405,18 @@ export default class vertex extends Exchange {
         return this.parseOrder (data, market);
     }
 
-    async fetchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
-         * @name vertex#fetchOrders
-         * @description fetches information on multiple orders made by the user
+         * @name vertex#fetchOpenOrders
+         * @description fetch all unfilled currently open orders
          * @see https://docs.vertexprotocol.com/developer-resources/api/gateway/queries/orders
          * @see https://docs.vertexprotocol.com/developer-resources/api/trigger/queries/list-trigger-orders
-         * @param {string} symbol unified market symbol of the market orders were made in
-         * @param {int} [since] the earliest time in ms to fetch orders for
-         * @param {int} [limit] the maximum number of order structures to retrieve
+         * @param {string} symbol unified market symbol
+         * @param {int} [since] the earliest time in ms to fetch open orders for
+         * @param {int} [limit] the maximum number of open orders structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {boolean} [params.stop] whether the order is a stop/algo order
-         * @param {boolean} [params.isTriggered] whether the order has been triggered (false by default)
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
@@ -1421,7 +1430,6 @@ export default class vertex extends Exchange {
         }
         let response = undefined;
         if (stop) {
-            this.checkRequiredArgument ('fetchOrders', symbol, 'symbol');
             const contracts = await this.queryContracts ();
             const chainId = this.safeString (contracts, 'chain_id');
             const verifyingContractAddress = this.safeString (contracts, 'endpoint_addr');
@@ -1436,6 +1444,11 @@ export default class vertex extends Exchange {
             };
             request['type'] = 'list_trigger_orders';
             request['pending'] = true;
+            const until = this.safeInteger (params, 'until');
+            params = this.omit (params, 'until');
+            if (until !== undefined) {
+                request['max_update_time'] = until;
+            }
             if (limit !== undefined) {
                 request['limit'] = limit;
             }
@@ -1471,6 +1484,7 @@ export default class vertex extends Exchange {
             // }
             //
         } else {
+            this.checkRequiredArgument ('fetchOpenOrders', symbol, 'symbol');
             request['type'] = 'subaccount_orders';
             request['sender'] = this.convertAddressToSender (this.walletAddress);
             response = await this.v1GatewayPostQuery (this.extend (request, params));
@@ -1500,6 +1514,90 @@ export default class vertex extends Exchange {
             // }
             //
         }
+        const data = this.safeDict (response, 'data', {});
+        const orders = this.safeList (data, 'orders');
+        return this.parseOrders (orders, market, since, limit);
+    }
+
+    async fetchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+        /**
+         * @method
+         * @name vertex#fetchOrders
+         * @description fetches information on multiple orders made by the user
+         * @see https://docs.vertexprotocol.com/developer-resources/api/trigger/queries/list-trigger-orders
+         * @param {string} symbol unified market symbol
+         * @param {int} [since] the earliest time in ms to fetch open orders for
+         * @param {int} [limit] the maximum number of open orders structures to retrieve
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {boolean} [params.stop] whether the order is a stop/algo order
+         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        const stop = this.safeBool2 (params, 'stop', 'trigger');
+        params = this.omit (params, [ 'stop', 'trigger' ]);
+        if (!stop) {
+            throw new NotSupported (this.id + ' fetchOrders only support trigger orders');
+        }
+        await this.loadMarkets ();
+        let market: Market = undefined;
+        const request = {
+            'type': 'list_trigger_orders',
+            'pending': false,
+        };
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['product_id'] = this.parseToNumeric (market['id']);
+        }
+        const contracts = await this.queryContracts ();
+        const chainId = this.safeString (contracts, 'chain_id');
+        const verifyingContractAddress = this.safeString (contracts, 'endpoint_addr');
+        const tx = {
+            'sender': this.convertAddressToSender (this.walletAddress),
+            'recvTime': this.nonce () + 90000,
+        };
+        request['signature'] = this.buildListTriggerTxSig (tx, chainId, verifyingContractAddress);
+        request['tx'] = {
+            'sender': tx['sender'],
+            'recvTime': this.numberToString (tx['recvTime']),
+        };
+        const until = this.safeInteger (params, 'until');
+        params = this.omit (params, 'until');
+        if (until !== undefined) {
+            request['max_update_time'] = until;
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const response = await this.v1TriggerPostQuery (this.extend (request, params));
+        //
+        // {
+        //     "status": "success",
+        //     "data": {
+        //       "orders": [
+        //         {
+        //           "order": {
+        //             "order": {
+        //               "sender": "0x7a5ec2748e9065794491a8d29dcf3f9edb8d7c43000000000000000000000000",
+        //               "priceX18": "1000000000000000000",
+        //               "amount": "1000000000000000000",
+        //               "expiration": "2000000000",
+        //               "nonce": "1",
+        //             },
+        //             "signature": "0x...",
+        //             "product_id": 1,
+        //             "spot_leverage": true,
+        //             "trigger": {
+        //               "price_above": "1000000000000000000"
+        //             },
+        //             "digest": "0x..."
+        //           },
+        //           "status": "pending",
+        //           "updated_at": 1688768157050
+        //         }
+        //       ]
+        //     },
+        //     "request_type": "query_list_trigger_orders"
+        // }
+        //
         const data = this.safeDict (response, 'data', {});
         const orders = this.safeList (data, 'orders');
         return this.parseOrders (orders, market, since, limit);
