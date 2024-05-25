@@ -1625,7 +1625,7 @@ export default class probit extends Exchange {
         };
     }
 
-    parseTransactionStatus (status) {
+    parseTransactionStatus (status: Str) {
         const statuses: Dict = {
             'requested': 'pending',
             'pending': 'pending',

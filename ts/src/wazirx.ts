@@ -1185,7 +1185,7 @@ export default class wazirx extends Exchange {
         return this.parseTransactions (response, currency, since, limit);
     }
 
-    parseTransactionStatus (status) {
+    parseTransactionStatus (status: Str) {
         const statuses: Dict = {
             '0': 'ok',
             '1': 'fail',

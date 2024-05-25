@@ -2586,7 +2586,7 @@ export default class ascendex extends Exchange {
         return this.parseTransactions (transactions, currency, since, limit);
     }
 
-    parseTransactionStatus (status) {
+    parseTransactionStatus (status: Str) {
         const statuses: Dict = {
             'reviewing': 'pending',
             'pending': 'pending',

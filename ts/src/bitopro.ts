@@ -1347,7 +1347,7 @@ export default class bitopro extends Exchange {
         return this.parseTrades (trades, market, since, limit);
     }
 
-    parseTransactionStatus (status) {
+    parseTransactionStatus (status: Str) {
         const states: Dict = {
             'COMPLETE': 'ok',
             'INVALID': 'failed',

@@ -1415,7 +1415,7 @@ export default class hitbtc extends Exchange {
         return this.parseTransactions (response, currency, since, limit, params);
     }
 
-    parseTransactionStatus (status) {
+    parseTransactionStatus (status: Str) {
         const statuses: Dict = {
             'PENDING': 'pending',
             'FAILED': 'failed',

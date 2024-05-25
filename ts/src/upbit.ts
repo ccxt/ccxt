@@ -1341,7 +1341,7 @@ export default class upbit extends Exchange {
         return this.parseTransaction (response, currency);
     }
 
-    parseTransactionStatus (status) {
+    parseTransactionStatus (status: Str) {
         const statuses: Dict = {
             'submitting': 'pending', // 처리 중
             'submitted': 'pending', // 처리 완료

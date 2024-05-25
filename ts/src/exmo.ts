@@ -2189,7 +2189,7 @@ export default class exmo extends Exchange {
         return this.parseTransaction (response, currency);
     }
 
-    parseTransactionStatus (status) {
+    parseTransactionStatus (status: Str) {
         const statuses: Dict = {
             'transferred': 'ok',
             'paid': 'ok',

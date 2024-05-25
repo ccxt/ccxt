@@ -2116,7 +2116,7 @@ export default class whitebit extends Exchange {
         };
     }
 
-    parseTransactionStatus (status) {
+    parseTransactionStatus (status: Str) {
         const statuses: Dict = {
             '1': 'pending',
             '2': 'pending',

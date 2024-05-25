@@ -1153,7 +1153,7 @@ export default class indodax extends Exchange {
         };
     }
 
-    parseTransactionStatus (status) {
+    parseTransactionStatus (status: Str) {
         const statuses: Dict = {
             'success': 'ok',
         };

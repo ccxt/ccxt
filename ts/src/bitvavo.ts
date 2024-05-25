@@ -1878,7 +1878,7 @@ export default class bitvavo extends Exchange {
         return this.parseTransactions (response, currency, since, limit, { 'type': 'deposit' });
     }
 
-    parseTransactionStatus (status) {
+    parseTransactionStatus (status: Str) {
         const statuses: Dict = {
             'awaiting_processing': 'pending',
             'awaiting_email_confirmation': 'pending',

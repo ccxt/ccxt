@@ -2274,7 +2274,7 @@ export default class bitteam extends Exchange {
         return this.safeString (types, type, type);
     }
 
-    parseTransactionStatus (status) {
+    parseTransactionStatus (status: Str) {
         const statuses: Dict = {
             'approving': 'pending',
             'success': 'ok',

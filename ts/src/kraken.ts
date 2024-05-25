@@ -2339,7 +2339,7 @@ export default class kraken extends Exchange {
         return this.parseOrders (orders, market, since, limit);
     }
 
-    parseTransactionStatus (status) {
+    parseTransactionStatus (status: Str) {
         // IFEX transaction states
         const statuses: Dict = {
             'Initial': 'pending',

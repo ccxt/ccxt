@@ -1725,7 +1725,7 @@ export default class bitso extends Exchange {
         };
     }
 
-    parseTransactionStatus (status) {
+    parseTransactionStatus (status: Str) {
         const statuses: Dict = {
             'pending': 'pending',
             'in_progress': 'pending',

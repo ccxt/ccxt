@@ -869,7 +869,7 @@ export default class coinbaseinternational extends Exchange {
         return await this.fetchDepositsWithdrawals (code, since, limit, params);
     }
 
-    parseTransactionStatus (status) {
+    parseTransactionStatus (status: Str) {
         const statuses: Dict = {
             'PROCESSED': 'ok',
             'NEW': 'pending',

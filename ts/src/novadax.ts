@@ -1389,7 +1389,7 @@ export default class novadax extends Exchange {
         return this.parseTransactions (data, currency, since, limit);
     }
 
-    parseTransactionStatus (status) {
+    parseTransactionStatus (status: Str) {
         // Pending the record is wait broadcast to chain
         // x/M confirming the comfirming state of tx, the M is total confirmings needed
         // SUCCESS the record is success full

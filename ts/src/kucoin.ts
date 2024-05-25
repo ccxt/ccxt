@@ -3290,7 +3290,7 @@ export default class kucoin extends Exchange {
         }
     }
 
-    parseTransactionStatus (status) {
+    parseTransactionStatus (status: Str) {
         const statuses: Dict = {
             'SUCCESS': 'ok',
             'PROCESSING': 'pending',

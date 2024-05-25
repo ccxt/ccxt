@@ -2430,7 +2430,7 @@ export default class bitget extends Exchange {
         };
     }
 
-    parseTransactionStatus (status) {
+    parseTransactionStatus (status: Str) {
         const statuses: Dict = {
             'success': 'ok',
             'Pending': 'pending',

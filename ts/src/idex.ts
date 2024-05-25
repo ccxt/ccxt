@@ -1680,7 +1680,7 @@ export default class idex extends Exchange {
         return this.parseTransactions (response, currency, since, limit);
     }
 
-    parseTransactionStatus (status) {
+    parseTransactionStatus (status: Str) {
         const statuses: Dict = {
             'mined': 'ok',
         };

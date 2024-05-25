@@ -1847,7 +1847,7 @@ export default class coinsph extends Exchange {
         };
     }
 
-    parseTransactionStatus (status) {
+    parseTransactionStatus (status: Str) {
         const statuses: Dict = {
             '0': 'pending',
             '1': 'ok',

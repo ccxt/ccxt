@@ -1291,7 +1291,7 @@ export default class bitmex extends Exchange {
         return this.parseTransactions (transactions, currency, since, limit);
     }
 
-    parseTransactionStatus (status) {
+    parseTransactionStatus (status: Str) {
         const statuses: Dict = {
             'Confirmed': 'pending',
             'Canceled': 'canceled',

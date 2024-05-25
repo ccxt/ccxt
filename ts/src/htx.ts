@@ -6351,7 +6351,7 @@ export default class htx extends Exchange {
         };
     }
 
-    parseTransactionStatus (status) {
+    parseTransactionStatus (status: Str) {
         const statuses: Dict = {
             // deposit statuses
             'unknown': 'failed',

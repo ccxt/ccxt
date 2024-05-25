@@ -574,7 +574,7 @@ export default class btcalpha extends Exchange {
         };
     }
 
-    parseTransactionStatus (status) {
+    parseTransactionStatus (status: Str) {
         const statuses: Dict = {
             '10': 'pending',  // New
             '20': 'pending',  // Verified, waiting for approving

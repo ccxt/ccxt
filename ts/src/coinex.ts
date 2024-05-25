@@ -4682,7 +4682,7 @@ export default class coinex extends Exchange {
         return this.parseTransaction (transaction, currency);
     }
 
-    parseTransactionStatus (status) {
+    parseTransactionStatus (status: Str) {
         const statuses: Dict = {
             'audit': 'pending',
             'pass': 'pending',

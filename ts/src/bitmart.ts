@@ -3514,7 +3514,7 @@ export default class bitmart extends Exchange {
         return await this.fetchTransactionsByType ('withdraw', code, since, limit, params);
     }
 
-    parseTransactionStatus (status) {
+    parseTransactionStatus (status: Str) {
         const statuses: Dict = {
             '0': 'pending', // Create
             '1': 'pending', // Submitted, waiting for withdrawal

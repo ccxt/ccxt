@@ -1895,7 +1895,7 @@ export default class bigone extends Exchange {
         };
     }
 
-    parseTransactionStatus (status) {
+    parseTransactionStatus (status: Str) {
         const statuses: Dict = {
             // what are other statuses here?
             'WITHHOLD': 'ok', // deposits

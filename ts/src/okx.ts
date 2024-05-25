@@ -5119,7 +5119,7 @@ export default class okx extends Exchange {
         return this.parseTransaction (withdrawal);
     }
 
-    parseTransactionStatus (status) {
+    parseTransactionStatus (status: Str) {
         //
         // deposit statuses
         //

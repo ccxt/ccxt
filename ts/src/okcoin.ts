@@ -2656,7 +2656,7 @@ export default class okcoin extends Exchange {
         return this.parseTransactions (data, currency, since, limit, params);
     }
 
-    parseTransactionStatus (status) {
+    parseTransactionStatus (status: Str) {
         //
         // deposit statuses
         //

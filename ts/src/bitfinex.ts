@@ -1584,7 +1584,7 @@ export default class bitfinex extends Exchange {
         };
     }
 
-    parseTransactionStatus (status) {
+    parseTransactionStatus (status: Str) {
         const statuses: Dict = {
             'SENDING': 'pending',
             'CANCELED': 'canceled',

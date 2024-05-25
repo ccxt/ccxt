@@ -3629,7 +3629,7 @@ export default class gate extends Exchange {
         return this.parseTransaction (response, currency);
     }
 
-    parseTransactionStatus (status) {
+    parseTransactionStatus (status: Str) {
         const statuses: Dict = {
             'PEND': 'pending',
             'REQUEST': 'pending',

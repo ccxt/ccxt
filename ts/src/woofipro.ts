@@ -2209,7 +2209,7 @@ export default class woofipro extends Exchange {
         };
     }
 
-    parseTransactionStatus (status) {
+    parseTransactionStatus (status: Str) {
         const statuses: Dict = {
             'NEW': 'pending',
             'CONFIRMING': 'pending',

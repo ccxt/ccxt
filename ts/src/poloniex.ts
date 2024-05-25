@@ -2229,7 +2229,7 @@ export default class poloniex extends Exchange {
         return this.filterByCurrencySinceLimit (transactions, code, since, limit);
     }
 
-    parseTransactionStatus (status) {
+    parseTransactionStatus (status: Str) {
         const statuses: Dict = {
             'COMPLETE': 'ok',
             'COMPLETED': 'ok',

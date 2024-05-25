@@ -1700,7 +1700,7 @@ export default class currencycom extends Exchange {
         };
     }
 
-    parseTransactionStatus (status) {
+    parseTransactionStatus (status: Str) {
         const statuses: Dict = {
             'APPROVAL': 'pending',
             'PROCESSED': 'ok',
