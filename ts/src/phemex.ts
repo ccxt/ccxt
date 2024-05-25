@@ -500,7 +500,7 @@ export default class phemex extends Exchange {
         return this.safeNumber (parts, 0);
     }
 
-    parseSwapMarket (market) {
+    parseSwapMarket (market: Dict) {
         //
         //     {
         //         "symbol":"BTCUSD",
@@ -638,7 +638,7 @@ export default class phemex extends Exchange {
         });
     }
 
-    parseSpotMarket (market) {
+    parseSpotMarket (market: Dict) {
         //
         //     {
         //         "symbol":"sBTCUSDT",
