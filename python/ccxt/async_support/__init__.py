@@ -156,6 +156,7 @@ from ccxt.async_support.phemex import phemex                                    
 from ccxt.async_support.poloniex import poloniex                                # noqa: F401
 from ccxt.async_support.poloniexfutures import poloniexfutures                  # noqa: F401
 from ccxt.async_support.probit import probit                                    # noqa: F401
+from ccxt.async_support.ramzinex import ramzinex                                # noqa: F401
 from ccxt.async_support.timex import timex                                      # noqa: F401
 from ccxt.async_support.tokocrypto import tokocrypto                            # noqa: F401
 from ccxt.async_support.tradeogre import tradeogre                              # noqa: F401
@@ -267,6 +268,7 @@ exchanges = [
     'poloniex',
     'poloniexfutures',
     'probit',
+    'ramzinex',
     'timex',
     'tokocrypto',
     'tradeogre',
