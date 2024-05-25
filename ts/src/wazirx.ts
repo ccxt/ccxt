@@ -228,7 +228,7 @@ export default class wazirx extends Exchange {
         return this.parseMarkets (markets);
     }
 
-    parseMarket (market): Market {
+    parseMarket (market: Dict): Market {
         const id = this.safeString (market, 'symbol');
         const baseId = this.safeString (market, 'baseAsset');
         const quoteId = this.safeString (market, 'quoteAsset');

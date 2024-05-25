@@ -388,7 +388,7 @@ export default class onetrading extends Exchange {
         return this.parseMarkets (response);
     }
 
-    parseMarket (market): Market {
+    parseMarket (market: Dict): Market {
         const baseAsset = this.safeValue (market, 'base', {});
         const quoteAsset = this.safeValue (market, 'quote', {});
         const baseId = this.safeString (baseAsset, 'code');

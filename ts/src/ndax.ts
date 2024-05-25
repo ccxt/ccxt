@@ -471,7 +471,7 @@ export default class ndax extends Exchange {
         return this.parseMarkets (response);
     }
 
-    parseMarket (market): Market {
+    parseMarket (market: Dict): Market {
         const id = this.safeString (market, 'InstrumentId');
         // const lowercaseId = this.safeStringLower (market, 'symbol');
         const baseId = this.safeString (market, 'Product1');

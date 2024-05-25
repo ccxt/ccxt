@@ -186,7 +186,7 @@ export default class btcalpha extends Exchange {
         return this.parseMarkets (response);
     }
 
-    parseMarket (market): Market {
+    parseMarket (market: Dict): Market {
         const id = this.safeString (market, 'name');
         const baseId = this.safeString (market, 'currency1');
         const quoteId = this.safeString (market, 'currency2');

@@ -180,7 +180,7 @@ export default class oceanex extends Exchange {
         return this.parseMarkets (markets);
     }
 
-    parseMarket (market): Market {
+    parseMarket (market: Dict): Market {
         const id = this.safeValue (market, 'id');
         const name = this.safeValue (market, 'name');
         let [ baseId, quoteId ] = name.split ('/');

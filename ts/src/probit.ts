@@ -267,7 +267,7 @@ export default class probit extends Exchange {
         return this.parseMarkets (markets);
     }
 
-    parseMarket (market): Market {
+    parseMarket (market: Dict): Market {
         const id = this.safeString (market, 'id');
         const baseId = this.safeString (market, 'base_currency_id');
         const quoteId = this.safeString (market, 'quote_currency_id');

@@ -202,7 +202,7 @@ export default class ace extends Exchange {
         return this.parseMarkets (response);
     }
 
-    parseMarket (market): Market {
+    parseMarket (market: Dict): Market {
         const baseId = this.safeString (market, 'base');
         const base = this.safeCurrencyCode (baseId);
         const quoteId = this.safeString (market, 'quote');

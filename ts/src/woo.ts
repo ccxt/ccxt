@@ -434,7 +434,7 @@ export default class woo extends Exchange {
         return this.parseMarkets (data);
     }
 
-    parseMarket (market): Market {
+    parseMarket (market: Dict): Market {
         const marketId = this.safeString (market, 'symbol');
         const parts = marketId.split ('_');
         const first = this.safeString (parts, 0);

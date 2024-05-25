@@ -318,7 +318,7 @@ export default class bitopro extends Exchange {
         return this.parseMarkets (markets);
     }
 
-    parseMarket (market): Market {
+    parseMarket (market: Dict): Market {
         const active = !this.safeValue (market, 'maintain');
         const id = this.safeString (market, 'pair');
         const uppercaseId = id.toUpperCase ();

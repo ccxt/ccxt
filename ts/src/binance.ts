@@ -3070,7 +3070,7 @@ export default class binance extends Exchange {
         return result;
     }
 
-    parseMarket (market): Market {
+    parseMarket (market: Dict): Market {
         let swap = false;
         let future = false;
         let option = false;

@@ -177,7 +177,7 @@ export default class zaif extends Exchange {
         return this.parseMarkets (markets);
     }
 
-    parseMarket (market): Market {
+    parseMarket (market: Dict): Market {
         const id = this.safeString (market, 'currency_pair');
         const name = this.safeString (market, 'name');
         const [ baseId, quoteId ] = name.split ('/');

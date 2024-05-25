@@ -631,7 +631,7 @@ export default class okcoin extends Exchange {
         return this.parseMarkets (markets);
     }
 
-    parseMarket (market): Market {
+    parseMarket (market: Dict): Market {
         //
         // spot markets
         //

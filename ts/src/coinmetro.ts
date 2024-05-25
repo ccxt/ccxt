@@ -375,7 +375,7 @@ export default class coinmetro extends Exchange {
         return this.parseMarkets (response);
     }
 
-    parseMarket (market): Market {
+    parseMarket (market: Dict): Market {
         const id = this.safeString (market, 'pair');
         const parsedMarketId = this.parseMarketId (id);
         const baseId = this.safeString (parsedMarketId, 'baseId');

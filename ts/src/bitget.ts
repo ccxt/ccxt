@@ -1564,7 +1564,7 @@ export default class bitget extends Exchange {
         return result;
     }
 
-    parseMarket (market): Market {
+    parseMarket (market: Dict): Market {
         //
         // spot
         //

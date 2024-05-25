@@ -401,7 +401,7 @@ export default class woofipro extends Exchange {
         return this.safeInteger (response, 'timestamp');
     }
 
-    parseMarket (market): Market {
+    parseMarket (market: Dict): Market {
         //
         //   {
         //     "symbol": "PERP_BTC_USDC",

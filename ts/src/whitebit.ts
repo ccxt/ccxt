@@ -342,7 +342,7 @@ export default class whitebit extends Exchange {
         return this.parseMarkets (markets);
     }
 
-    parseMarket (market): Market {
+    parseMarket (market: Dict): Market {
         const id = this.safeString (market, 'name');
         const baseId = this.safeString (market, 'stock');
         let quoteId = this.safeString (market, 'money');

@@ -394,7 +394,7 @@ export default class btcmarkets extends Exchange {
         return this.parseMarkets (response);
     }
 
-    parseMarket (market): Market {
+    parseMarket (market: Dict): Market {
         const baseId = this.safeString (market, 'baseAssetName');
         const quoteId = this.safeString (market, 'quoteAssetName');
         const id = this.safeString (market, 'marketId');

@@ -1032,7 +1032,7 @@ export default class coinbaseinternational extends Exchange {
         return this.parseMarkets (response);
     }
 
-    parseMarket (market): Market {
+    parseMarket (market: Dict): Market {
         //
         //   {
         //       "instrument_id":"149264164756389888",

@@ -1375,7 +1375,7 @@ export default class okx extends Exchange {
         return result;
     }
 
-    parseMarket (market): Market {
+    parseMarket (market: Dict): Market {
         //
         //     {
         //         "alias": "", // this_week, next_week, quarter, next_quarter

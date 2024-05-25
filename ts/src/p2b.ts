@@ -280,7 +280,7 @@ export default class p2b extends Exchange {
         return this.parseMarkets (markets);
     }
 
-    parseMarket (market): Market {
+    parseMarket (market: Dict): Market {
         const marketId = this.safeString (market, 'name');
         const baseId = this.safeString (market, 'stock');
         const quoteId = this.safeString (market, 'money');

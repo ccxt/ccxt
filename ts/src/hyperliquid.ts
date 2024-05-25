@@ -532,7 +532,7 @@ export default class hyperliquid extends Exchange {
         return markets;
     }
 
-    parseMarket (market): Market {
+    parseMarket (market: Dict): Market {
         //
         //     {
         //         "maxLeverage": "50",

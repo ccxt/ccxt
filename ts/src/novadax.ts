@@ -267,7 +267,7 @@ export default class novadax extends Exchange {
         return this.parseMarkets (data);
     }
 
-    parseMarket (market): Market {
+    parseMarket (market: Dict): Market {
         const baseId = this.safeString (market, 'baseCurrency');
         const quoteId = this.safeString (market, 'quoteCurrency');
         const id = this.safeString (market, 'symbol');

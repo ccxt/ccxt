@@ -282,7 +282,7 @@ export default class poloniexfutures extends Exchange {
         return this.parseMarkets (data);
     }
 
-    parseMarket (market): Market {
+    parseMarket (market: Dict): Market {
         const id = this.safeString (market, 'symbol');
         const baseId = this.safeString (market, 'baseCurrency');
         const quoteId = this.safeString (market, 'quoteCurrency');

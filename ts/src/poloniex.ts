@@ -514,7 +514,7 @@ export default class poloniex extends Exchange {
         return this.parseMarkets (markets);
     }
 
-    parseMarket (market): Market {
+    parseMarket (market: Dict): Market {
         const id = this.safeString (market, 'symbol');
         const baseId = this.safeString (market, 'baseCurrencyName');
         const quoteId = this.safeString (market, 'quoteCurrencyName');

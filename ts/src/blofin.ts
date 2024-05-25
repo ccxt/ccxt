@@ -365,7 +365,7 @@ export default class blofin extends Exchange {
         return this.parseMarkets (data);
     }
 
-    parseMarket (market): Market {
+    parseMarket (market: Dict): Market {
         const id = this.safeString (market, 'instId');
         const type = this.safeStringLower (market, 'instType');
         const spot = (type === 'spot');

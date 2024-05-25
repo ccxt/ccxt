@@ -433,7 +433,7 @@ export default class coinlist extends Exchange {
         return this.parseMarkets (markets);
     }
 
-    parseMarket (market): Market {
+    parseMarket (market: Dict): Market {
         const id = this.safeString (market, 'symbol');
         const baseId = this.safeString (market, 'base_currency');
         const quoteId = this.safeString (market, 'quote_currency');

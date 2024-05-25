@@ -591,7 +591,7 @@ export default class bitmex extends Exchange {
         return this.parseMarkets (response);
     }
 
-    parseMarket (market): Market {
+    parseMarket (market: Dict): Market {
         const id = this.safeString (market, 'symbol');
         let baseId = this.safeString (market, 'underlying');
         let quoteId = this.safeString (market, 'quoteCurrency');

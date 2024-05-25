@@ -1215,7 +1215,7 @@ export default class timex extends Exchange {
         return this.parseTradingFee (result, market);
     }
 
-    parseMarket (market): Market {
+    parseMarket (market: Dict): Market {
         //
         //     {
         //         "symbol": "ETHBTC",

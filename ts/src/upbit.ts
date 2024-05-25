@@ -428,7 +428,7 @@ export default class upbit extends Exchange {
         return this.parseMarkets (response);
     }
 
-    parseMarket (market): Market {
+    parseMarket (market: Dict): Market {
         const id = this.safeString (market, 'market');
         const [ quoteId, baseId ] = id.split ('-');
         const base = this.safeCurrencyCode (baseId);
