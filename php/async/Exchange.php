@@ -2601,6 +2601,22 @@ class Exchange extends \ccxt\Exchange {
         return array( $value, $params );
     }
 
+    public function handle_param_bool(array $params, string $paramName, ?Bool $defaultValue = null) {
+        $value = $this->safe_bool($params, $paramName, $defaultValue);
+        if ($value !== null) {
+            $params = $this->omit ($params, $paramName);
+        }
+        return array( $value, $params );
+    }
+
+    public function handle_param_bool_2(array $params, string $paramName1, string $paramName2, ?Bool $defaultValue = null) {
+        $value = $this->safe_bool_2($params, $paramName1, $paramName2, $defaultValue);
+        if ($value !== null) {
+            $params = $this->omit ($params, array( $paramName1, $paramName2 ));
+        }
+        return array( $value, $params );
+    }
+
     public function resolve_path($path, $params) {
         return array(
             $this->implode_params($path, $params),
