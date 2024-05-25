@@ -46,6 +46,7 @@ import type {
     Balance,
     BalanceAccount,
     Balances,
+    Bool,
     BorrowInterest,
     CancellationRequest,
     Conversion,
@@ -232,6 +233,7 @@ export type {
     Balance,
     BalanceAccount,
     Balances,
+    Bool,
     BorrowInterest,
     Conversion,
     CrossBorrowRate,
@@ -4183,6 +4185,22 @@ export default class Exchange {
 
     handleParamInteger2 (params: object, paramName1: string, paramName2: string, defaultValue: Int = undefined): [Int, object] {
         const value = this.safeInteger2 (params, paramName1, paramName2, defaultValue);
+        if (value !== undefined) {
+            params = this.omit (params, [ paramName1, paramName2 ]);
+        }
+        return [ value, params ];
+    }
+
+    handleParamBool (params: object, paramName: string, defaultValue: Bool = undefined): [Bool, object] {
+        const value = this.safeBool (params, paramName, defaultValue);
+        if (value !== undefined) {
+            params = this.omit (params, paramName);
+        }
+        return [ value, params ];
+    }
+
+    handleParamBool2 (params: object, paramName1: string, paramName2: string, defaultValue: Bool = undefined): [Bool, object] {
+        const value = this.safeBool2 (params, paramName1, paramName2, defaultValue);
         if (value !== undefined) {
             params = this.omit (params, [ paramName1, paramName2 ]);
         }

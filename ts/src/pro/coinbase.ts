@@ -249,6 +249,34 @@ export default class coinbase extends coinbaseRest {
         //        ]
         //    }
         //
+        // note! seems coinbase might also send empty data like:
+        //
+        //    {
+        //        "channel": "ticker_batch",
+        //        "client_id": "",
+        //        "timestamp": "2024-05-24T18:22:24.546809523Z",
+        //        "sequence_num": 1,
+        //        "events": [
+        //            {
+        //                "type": "snapshot",
+        //                "tickers": [
+        //                    {
+        //                        "type": "ticker",
+        //                        "product_id": "",
+        //                        "price": "",
+        //                        "volume_24_h": "",
+        //                        "low_24_h": "",
+        //                        "high_24_h": "",
+        //                        "low_52_w": "",
+        //                        "high_52_w": "",
+        //                        "price_percent_chg_24_h": ""
+        //                    }
+        //                ]
+        //            }
+        //        ]
+        //    }
+        //
+        //
         const channel = this.safeString (message, 'channel');
         const events = this.safeValue (message, 'events', []);
         const datetime = this.safeString (message, 'timestamp');
@@ -265,6 +293,9 @@ export default class coinbase extends coinbaseRest {
                 const symbol = result['symbol'];
                 this.tickers[symbol] = result;
                 const wsMarketId = this.safeString (ticker, 'product_id');
+                if (wsMarketId === undefined) {
+                    continue;
+                }
                 const messageHash = channel + '::' + wsMarketId;
                 newTickers.push (result);
                 client.resolve (result, messageHash);

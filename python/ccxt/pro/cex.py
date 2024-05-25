@@ -925,7 +925,7 @@ class cex(ccxt.async_support.cex):
         symbol = self.pair_to_symbol(pair)
         messageHash = 'orderbook:' + symbol
         timestamp = self.safe_integer_2(data, 'timestamp_ms', 'timestamp')
-        incrementalId = self.safe_number(data, 'id')
+        incrementalId = self.safe_integer(data, 'id')
         orderbook = self.order_book({})
         snapshot = self.parse_order_book(data, symbol, timestamp, 'bids', 'asks')
         snapshot['nonce'] = incrementalId
