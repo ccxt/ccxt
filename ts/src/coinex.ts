@@ -79,8 +79,8 @@ export default class coinex extends Exchange {
                 'fetchIndexOHLCV': false,
                 'fetchIsolatedBorrowRate': true,
                 'fetchIsolatedBorrowRates': false,
-                'fetchLeverage': 'emulated',
-                'fetchLeverages': true,
+                'fetchLeverage': true,
+                'fetchLeverages': false,
                 'fetchLeverageTiers': true,
                 'fetchMarginAdjustmentHistory': true,
                 'fetchMarketLeverageTiers': 'emulated',
@@ -5578,13 +5578,65 @@ export default class coinex extends Exchange {
         return this.parseLeverages (leverages, symbols, 'market', marketType);
     }
 
+    async fetchLeverage (symbol: string, params = {}): Promise<Leverage> {
+        /**
+         * @method
+         * @name coinex#fetchLeverage
+         * @description fetch the set leverage for a market
+         * @see https://docs.coinex.com/api/v2/assets/loan-flat/http/list-margin-interest-limit
+         * @param {string} symbol unified market symbol
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} params.code unified currency code
+         * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/#/?id=leverage-structure}
+         */
+        await this.loadMarkets ();
+        const code = this.safeString (params, 'code');
+        if (code === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchLeverage() requires a code parameter');
+        }
+        params = this.omit (params, 'code');
+        const currency = this.currency (code);
+        const market = this.market (symbol);
+        const request: Dict = {
+            'market': market['id'],
+            'ccy': currency['id'],
+        };
+        const response = await this.v2PrivateGetAssetsMarginInterestLimit (this.extend (request, params));
+        //
+        //     {
+        //         "code": 0,
+        //         "data": {
+        //             "market": "BTCUSDT",
+        //             "ccy": "USDT",
+        //             "leverage": 10,
+        //             "min_amount": "50",
+        //             "max_amount": "500000",
+        //             "daily_interest_rate": "0.001"
+        //         },
+        //         "message": "OK"
+        //     }
+        //
+        const data = this.safeDict (response, 'data', {});
+        return this.parseLeverage (data, market);
+    }
+
     parseLeverage (leverage: Dict, market: Market = undefined): Leverage {
+        //
+        //     {
+        //         "market": "BTCUSDT",
+        //         "ccy": "USDT",
+        //         "leverage": 10,
+        //         "min_amount": "50",
+        //         "max_amount": "500000",
+        //         "daily_interest_rate": "0.001"
+        //     }
+        //
         const marketId = this.safeString (leverage, 'market');
         const leverageValue = this.safeInteger (leverage, 'leverage');
         return {
             'info': leverage,
             'symbol': this.safeSymbol (marketId, market, undefined, 'spot'),
-            'marginMode': undefined,
+            'marginMode': 'isolated',
             'longLeverage': leverageValue,
             'shortLeverage': leverageValue,
         } as Leverage;
