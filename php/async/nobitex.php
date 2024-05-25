@@ -295,6 +295,7 @@ class nobitex extends Exchange {
         $marketType = 'spot';
         $symbol = $this->safe_string_upper($ticker, 'symbol');
         $marketId = str_replace('-', '', $symbol);
+        $marketinfo = $this->market($marketId);
         $symbol = $this->safe_symbol($marketId, $market, null, $marketType);
         $high = $this->safe_float($ticker, 'dayHigh');
         $low = $this->safe_float($ticker, 'dayLow');
@@ -306,6 +307,16 @@ class nobitex extends Exchange {
         $last = $this->safe_float($ticker, 'latest');
         $quoteVolume = $this->safe_float($ticker, 'volumeDst');
         $baseVolume = $this->safe_float($ticker, 'volumeSrc');
+        if ($marketinfo['quote'] === 'IRT') {
+            $high /= 10;
+            $low /= 10;
+            $bid /= 10;
+            $ask /= 10;
+            $open /= 10;
+            $close /= 10;
+            $last /= 10;
+            $quoteVolume /= 10;
+        }
         return $this->safe_ticker(array(
             'symbol' => str_replace('-', '/', $symbol),
             'timestamp' => null,
@@ -369,6 +380,13 @@ class nobitex extends Exchange {
             $timestampList = $this->safe_list($response, 't', array());
             $ohlcvs = array();
             for ($i = 0; $i < count($openList); $i++) {
+                if ($market['quote'] === 'IRT') {
+                    $openList[$i] /= 10;
+                    $highList[$i] /= 10;
+                    $lastList[$i] /= 10;
+                    $closeList[$i] /= 10;
+                    $volumeList[$i] /= 10;
+                }
                 $ohlcvs[] = [
                     $timestampList[$i],
                     $openList[$i],
@@ -395,9 +413,21 @@ class nobitex extends Exchange {
             Async\await($this->load_markets());
             $market = $this->market($symbol);
             $request = array(
-                'symbol' => $market['id'],
+                'symbol' => str_replace('/', '', $symbol),
             );
             $response = Async\await($this->publicGetV2Orderbook ($request));
+            if ($market['quote'] === 'IRT') {
+                $bids = $this->safe_list($response, 'bids');
+                $asks = $this->safe_list($response, 'asks');
+                for ($i = 0; $i < count($bids); $i++) {
+                    $bids[$i][0] /= 10;
+                }
+                for ($i = 0; $i < count($asks); $i++) {
+                    $asks[$i][0] /= 10;
+                }
+                $response['bids'] = $bids;
+                $response['asks'] = $asks;
+            }
             $timestamp = $this->safe_integer($response, 'lastUpdate');
             return $this->parse_order_book($response, $symbol, $timestamp);
         }) ();
