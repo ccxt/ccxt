@@ -8,7 +8,7 @@ import { TICK_SIZE, ROUND, SIGNIFICANT_DIGITS, DECIMAL_PLACES } from './base/fun
 import { keccak_256 as keccak } from './static_dependencies/noble-hashes/sha3.js';
 import { secp256k1 } from './static_dependencies/noble-curves/secp256k1.js';
 import { ecdsa } from './base/functions/crypto.js';
-import type { Market, Ticker, Tickers, TransferEntry, Balances, Int, OrderBook, OHLCV, Str, FundingRateHistory, Order, OrderType, OrderSide, Trade, Strings, Position, OrderRequest, Dict, Num, MarginModification, Currencies, CancellationRequest } from './base/types.js';
+import type { Market, Ticker, Tickers, TradingFees, TransferEntry, Balances, Int, OrderBook, OHLCV, Str, FundingRateHistory, Order, OrderType, OrderSide, Trade, Strings, Position, OrderRequest, Dict, Num, MarginModification, Currencies, CancellationRequest } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -101,7 +101,7 @@ export default class vertex extends Exchange {
                 'fetchTime': false,
                 'fetchTrades': true,
                 'fetchTradingFee': false,
-                'fetchTradingFees': false,
+                'fetchTradingFees': true,
                 'fetchTransfer': false,
                 'fetchTransfers': false,
                 'fetchWithdrawal': false,
@@ -641,6 +641,75 @@ export default class vertex extends Exchange {
         //
         const timestamp = this.safeInteger (response, 'timestamp');
         return this.parseOrderBook (response, symbol, timestamp, 'bids', 'asks');
+    }
+
+    async fetchTradingFees (params = {}): Promise<TradingFees> {
+        /**
+         * @method
+         * @name vertex#fetchTradingFees
+         * @description fetch the trading fees for multiple markets
+         * @see https://docs.vertexprotocol.com/developer-resources/api/gateway/queries/fee-rates
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols
+         */
+        await this.loadMarkets ();
+        const request = {
+            'type': 'fee_rates',
+            'sender': this.convertAddressToSender (this.walletAddress),
+        }
+        const response = await this.v1GatewayGetQuery (this.extend (request, params));
+        //
+        // {
+        //     "status": "success",
+        //     "data": {
+        //       "taker_fee_rates_x18": [
+        //         "0",
+        //         "300000000000000",
+        //         "200000000000000",
+        //         "300000000000000",
+        //         "200000000000000"
+        //       ],
+        //       "maker_fee_rates_x18": [
+        //         "0",
+        //         "0",
+        //         "0",
+        //         "0",
+        //         "0"
+        //       ],
+        //       "liquidation_sequencer_fee": "250000000000000000",
+        //       "health_check_sequencer_fee": "100000000000000000",
+        //       "taker_sequencer_fee": "25000000000000000",
+        //       "withdraw_sequencer_fees": [
+        //         "10000000000000000",
+        //         "40000000000000",
+        //         "0",
+        //         "600000000000000",
+        //         "0"
+        //       ]
+        //     },
+        //     "request_type": "query_fee_rates",
+        // }
+        //
+        const data = this.safeDict (response, 'data', {});
+        const maker = this.safeList (data, 'maker_fee_rates_x18', []);
+        const taker = this.safeList (data, 'taker_fee_rates_x18', []);
+        const result = {};
+        for (let i = 0; i < taker.length; i++) {
+            const market = this.safeMarket (this.numberToString (i));
+            if (market['id'] === undefined) {
+                continue;
+            }
+            const symbol = market['symbol'];
+            result[symbol] = {
+                'info': response,
+                'symbol': symbol,
+                'maker': this.parseNumber (this.convertFromX18 (maker[i])),
+                'taker': this.parseNumber (this.convertFromX18 (taker[i])),
+                'percentage': true,
+                'tierBased': false,
+            };
+        }
+        return result;
     }
 
     parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
