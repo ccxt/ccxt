@@ -5086,7 +5086,7 @@ class Exchange {
         return null;
     }
 
-    public function handle_errors($statusCode, $statusText, $url, $method, $responseHeaders, $responseBody, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $statusCode, string $statusText, string $url, string $method, array $responseHeaders, string $responseBody, $response, $requestHeaders, $requestBody) {
         // it is a stub $method that must be overrided in the derived exchange classes
         // throw new NotSupported($this->id . ' handleErrors() not implemented yet');
         return null;
