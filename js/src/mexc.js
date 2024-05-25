@@ -2421,7 +2421,7 @@ export default class mexc extends Exchange {
         //     {"success":true,"code":0,"data":259208506303929856}
         //
         const data = this.safeString(response, 'data');
-        return this.parseOrder(data, market);
+        return this.safeOrder({ 'id': data }, market);
     }
     async createOrders(orders, params = {}) {
         /**
@@ -4416,8 +4416,8 @@ export default class mexc extends Exchange {
                 {
                     'tier': 0,
                     'currency': this.safeCurrencyCode(quoteId),
-                    'notionalFloor': undefined,
-                    'notionalCap': undefined,
+                    'minNotional': undefined,
+                    'maxNotional': undefined,
                     'maintenanceMarginRate': undefined,
                     'maxLeverage': this.safeNumber(info, 'maxLeverage'),
                     'info': info,
@@ -4429,8 +4429,8 @@ export default class mexc extends Exchange {
             tiers.push({
                 'tier': this.parseNumber(Precise.stringDiv(cap, riskIncrVol)),
                 'currency': this.safeCurrencyCode(quoteId),
-                'notionalFloor': this.parseNumber(floor),
-                'notionalCap': this.parseNumber(cap),
+                'minNotional': this.parseNumber(floor),
+                'maxNotional': this.parseNumber(cap),
                 'maintenanceMarginRate': this.parseNumber(maintenanceMarginRate),
                 'maxLeverage': this.parseNumber(Precise.stringDiv('1', initialMarginRate)),
                 'info': info,

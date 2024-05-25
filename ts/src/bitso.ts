@@ -241,7 +241,7 @@ export default class bitso extends Exchange {
         return this.safeString (types, type, type);
     }
 
-    parseLedgerEntry (item, currency: Currency = undefined) {
+    parseLedgerEntry (item: Dict, currency: Currency = undefined) {
         //
         //     {
         //         "eid": "2510b3e2bc1c87f584500a18084f35ed",
@@ -727,7 +727,7 @@ export default class bitso extends Exchange {
         ];
     }
 
-    parseTrade (trade, market: Market = undefined): Trade {
+    parseTrade (trade: Dict, market: Market = undefined): Trade {
         //
         // fetchTrades (public)
         //
@@ -1094,7 +1094,7 @@ export default class bitso extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseOrder (order, market: Market = undefined): Order {
+    parseOrder (order: Dict, market: Market = undefined): Order {
         //
         //
         // canceledOrder
@@ -1349,7 +1349,7 @@ export default class bitso extends Exchange {
         };
     }
 
-    async fetchTransactionFees (codes: string[] = undefined, params = {}) {
+    async fetchTransactionFees (codes: Strings = undefined, params = {}) {
         /**
          * @method
          * @name bitso#fetchTransactionFees
@@ -1655,7 +1655,7 @@ export default class bitso extends Exchange {
         return this.safeString (networksById, networkId, networkId);
     }
 
-    parseTransaction (transaction, currency: Currency = undefined): Transaction {
+    parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {
         //
         // deposit
         //     {

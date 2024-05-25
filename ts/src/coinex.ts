@@ -7,7 +7,7 @@ import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { md5 } from './static_dependencies/noble-hashes/md5.js';
-import type { Balances, Currency, FundingHistory, FundingRateHistory, Int, Market, OHLCV, Order, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, OrderRequest, TransferEntry, Leverage, Leverages, Num, MarginModification, TradingFeeInterface, Currencies, TradingFees, Position, IsolatedBorrowRate, Dict, TransferEntries } from './base/types.js';
+import type { Balances, Currency, FundingHistory, FundingRateHistory, Int, Market, OHLCV, Order, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, OrderRequest, TransferEntry, Leverage, Num, MarginModification, TradingFeeInterface, Currencies, TradingFees, Position, IsolatedBorrowRate, Dict, TransferEntries, LeverageTiers, LeverageTier } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -79,8 +79,8 @@ export default class coinex extends Exchange {
                 'fetchIndexOHLCV': false,
                 'fetchIsolatedBorrowRate': true,
                 'fetchIsolatedBorrowRates': false,
-                'fetchLeverage': 'emulated',
-                'fetchLeverages': true,
+                'fetchLeverage': true,
+                'fetchLeverages': false,
                 'fetchLeverageTiers': true,
                 'fetchMarginAdjustmentHistory': true,
                 'fetchMarketLeverageTiers': 'emulated',
@@ -1186,7 +1186,7 @@ export default class coinex extends Exchange {
         return this.parseOrderBook (depth, symbol, timestamp);
     }
 
-    parseTrade (trade, market: Market = undefined): Trade {
+    parseTrade (trade: Dict, market: Market = undefined): Trade {
         //
         // Spot and Swap fetchTrades (public)
         //
@@ -1435,7 +1435,7 @@ export default class coinex extends Exchange {
         return result;
     }
 
-    parseTradingFee (fee, market: Market = undefined): TradingFeeInterface {
+    parseTradingFee (fee: Dict, market: Market = undefined): TradingFeeInterface {
         const marketId = this.safeValue (fee, 'market');
         const symbol = this.safeSymbol (marketId, market);
         return {
@@ -1714,7 +1714,7 @@ export default class coinex extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseOrder (order, market: Market = undefined): Order {
+    parseOrder (order: Dict, market: Market = undefined): Order {
         //
         // Spot and Margin createOrder, createOrders, editOrder, cancelOrders, cancelOrder, fetchOpenOrders
         //
@@ -4032,7 +4032,7 @@ export default class coinex extends Exchange {
         return this.parsePosition (data[0], market);
     }
 
-    parsePosition (position, market: Market = undefined) {
+    parsePosition (position: Dict, market: Market = undefined) {
         //
         //     {
         //         "position_id": 305891033,
@@ -4199,7 +4199,7 @@ export default class coinex extends Exchange {
         //
     }
 
-    async fetchLeverageTiers (symbols: Strings = undefined, params = {}) {
+    async fetchLeverageTiers (symbols: Strings = undefined, params = {}): Promise<LeverageTiers> {
         /**
          * @method
          * @name coinex#fetchLeverageTiers
@@ -4245,7 +4245,7 @@ export default class coinex extends Exchange {
         return this.parseLeverageTiers (data, symbols, 'market');
     }
 
-    parseMarketLeverageTiers (info, market: Market = undefined) {
+    parseMarketLeverageTiers (info, market: Market = undefined): LeverageTier[] {
         const tiers = [];
         const brackets = this.safeList (info, 'level', []);
         let minNotional = 0;
@@ -4767,7 +4767,7 @@ export default class coinex extends Exchange {
         return this.filterBySymbolSinceLimit (sorted, market['symbol'], since, limit) as FundingRateHistory[];
     }
 
-    parseTransaction (transaction, currency: Currency = undefined): Transaction {
+    parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {
         //
         // fetchDeposits
         //
@@ -5261,7 +5261,7 @@ export default class coinex extends Exchange {
         return this.filterByCurrencySinceLimit (interest, code, since, limit);
     }
 
-    parseBorrowInterest (info, market: Market = undefined) {
+    parseBorrowInterest (info: Dict, market: Market = undefined) {
         //
         //     {
         //         "borrow_id": 2642934,
@@ -5529,62 +5529,65 @@ export default class coinex extends Exchange {
         return result;
     }
 
-    async fetchLeverages (symbols: string[] = undefined, params = {}): Promise<Leverages> {
+    async fetchLeverage (symbol: string, params = {}): Promise<Leverage> {
         /**
          * @method
-         * @name coinex#fetchLeverages
-         * @description fetch the set leverage for all contract and margin markets
-         * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot002_account007_margin_account_settings
-         * @param {string[]} [symbols] a list of unified market symbols
+         * @name coinex#fetchLeverage
+         * @description fetch the set leverage for a market
+         * @see https://docs.coinex.com/api/v2/assets/loan-flat/http/list-margin-interest-limit
+         * @param {string} symbol unified market symbol
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a list of [leverage structures]{@link https://docs.ccxt.com/#/?id=leverage-structure}
+         * @param {string} params.code unified currency code
+         * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/#/?id=leverage-structure}
          */
         await this.loadMarkets ();
-        symbols = this.marketSymbols (symbols);
-        let market = undefined;
-        if (symbols !== undefined) {
-            const symbol = this.safeValue (symbols, 0);
-            market = this.market (symbol);
+        const code = this.safeString (params, 'code');
+        if (code === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchLeverage() requires a code parameter');
         }
-        let marketType = undefined;
-        [ marketType, params ] = this.handleMarketTypeAndParams ('fetchLeverages', market, params);
-        if (marketType !== 'spot') {
-            throw new NotSupported (this.id + ' fetchLeverages() supports spot margin markets only');
-        }
-        const response = await this.v1PrivateGetMarginConfig (params);
+        params = this.omit (params, 'code');
+        const currency = this.currency (code);
+        const market = this.market (symbol);
+        const request: Dict = {
+            'market': market['id'],
+            'ccy': currency['id'],
+        };
+        const response = await this.v2PrivateGetAssetsMarginInterestLimit (this.extend (request, params));
         //
         //     {
         //         "code": 0,
-        //         "data": [
-        //             {
-        //                 "market": "BTCUSDT",
-        //                 "leverage": 10,
-        //                 "BTC": {
-        //                     "min_amount": "0.0008",
-        //                     "max_amount": "200",
-        //                     "day_rate": "0.0015"
-        //                 },
-        //                 "USDT": {
-        //                     "min_amount": "50",
-        //                     "max_amount": "500000",
-        //                     "day_rate": "0.001"
-        //                 }
-        //             },
-        //         ],
-        //         "message": "Success"
+        //         "data": {
+        //             "market": "BTCUSDT",
+        //             "ccy": "USDT",
+        //             "leverage": 10,
+        //             "min_amount": "50",
+        //             "max_amount": "500000",
+        //             "daily_interest_rate": "0.001"
+        //         },
+        //         "message": "OK"
         //     }
         //
-        const leverages = this.safeList (response, 'data', []);
-        return this.parseLeverages (leverages, symbols, 'market', marketType);
+        const data = this.safeDict (response, 'data', {});
+        return this.parseLeverage (data, market);
     }
 
     parseLeverage (leverage: Dict, market: Market = undefined): Leverage {
+        //
+        //     {
+        //         "market": "BTCUSDT",
+        //         "ccy": "USDT",
+        //         "leverage": 10,
+        //         "min_amount": "50",
+        //         "max_amount": "500000",
+        //         "daily_interest_rate": "0.001"
+        //     }
+        //
         const marketId = this.safeString (leverage, 'market');
         const leverageValue = this.safeInteger (leverage, 'leverage');
         return {
             'info': leverage,
             'symbol': this.safeSymbol (marketId, market, undefined, 'spot'),
-            'marginMode': undefined,
+            'marginMode': 'isolated',
             'longLeverage': leverageValue,
             'shortLeverage': leverageValue,
         } as Leverage;

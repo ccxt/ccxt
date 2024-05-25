@@ -950,20 +950,15 @@
         ],
         "fetchLeverage": [
             {
-                "description": "Fetch the leverage of a spot margin market",
+                "description": "Fetch the set leverage for a spot margin pair with a symbol argument and a code parameter",
                 "method": "fetchLeverage",
-                "url": "https://api.coinex.com/v1/margin/config?access_id=36280D3BC1284980A37DDAE67EBABE74&tonce=1709711145773",
+                "url": "https://api.coinex.com/v2/assets/margin/interest-limit?ccy=USDT&market=BTCUSDT",
                 "input": [
-                    "BTC/USDT"
+                  "BTC/USDT",
+                  {
+                    "code": "USDT"
+                  }
                 ]
-            }
-        ],
-        "fetchLeverages": [
-            {
-                "description": "Fetch the leverage of all spot margin markets",
-                "method": "fetchLeverages",
-                "url": "https://api.coinex.com/v1/margin/config?access_id=36280D3BC1284980A37DDAE67EBABE74&tonce=1709711478774",
-                "input": []
             }
         ],
         "fetchTime": [

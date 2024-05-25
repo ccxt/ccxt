@@ -558,7 +558,7 @@ class blofin(Exchange, ImplicitAPI):
         tickers = self.safe_list(response, 'data', [])
         return self.parse_tickers(tickers, symbols)
 
-    def parse_trade(self, trade, market: Market = None) -> Trade:
+    def parse_trade(self, trade: dict, market: Market = None) -> Trade:
         #
         # fetch trades
         #   {
@@ -908,7 +908,7 @@ class blofin(Exchange, ImplicitAPI):
             result[code] = account
         return self.safe_balance(result)
 
-    def parse_trading_fee(self, fee, market: Market = None) -> TradingFeeInterface:
+    def parse_trading_fee(self, fee: dict, market: Market = None) -> TradingFeeInterface:
         return {
             'info': fee,
             'symbol': self.safe_symbol(None, market),
@@ -997,7 +997,7 @@ class blofin(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_order(self, order, market: Market = None) -> Order:
+    def parse_order(self, order: dict, market: Market = None) -> Order:
         #
         # {
         #     "orderId": "2075628533",
@@ -1415,7 +1415,7 @@ class blofin(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data', [])
         return self.parse_ledger(data, currency, since, limit)
 
-    def parse_transaction(self, transaction, currency: Currency = None) -> Transaction:
+    def parse_transaction(self, transaction: dict, currency: Currency = None) -> Transaction:
         #
         #
         # fetchDeposits
@@ -1524,7 +1524,7 @@ class blofin(Exchange, ImplicitAPI):
         }
         return self.safe_string(types, type, type)
 
-    def parse_ledger_entry(self, item, currency: Currency = None):
+    def parse_ledger_entry(self, item: dict, currency: Currency = None):
         id = self.safe_string(item, 'transferId')
         referenceId = self.safe_string(item, 'clientId')
         fromAccount = self.safe_string(item, 'fromAccount')
@@ -1678,7 +1678,7 @@ class blofin(Exchange, ImplicitAPI):
             return None
         return self.parse_position(position, market)
 
-    def fetch_positions(self, symbols: List[str] = None, params={}) -> List[Position]:
+    def fetch_positions(self, symbols: Strings = None, params={}) -> List[Position]:
         """
         fetch data on a single open contract trade position
         :see: https://blofin.com/docs#get-positions
@@ -1694,7 +1694,7 @@ class blofin(Exchange, ImplicitAPI):
         result = self.parse_positions(data)
         return self.filter_by_array_positions(result, 'symbol', symbols, False)
 
-    def parse_position(self, position, market: Market = None):
+    def parse_position(self, position: dict, market: Market = None):
         marketId = self.safe_string(position, 'instId')
         market = self.safe_market(marketId, market)
         symbol = market['symbol']
@@ -1775,7 +1775,7 @@ class blofin(Exchange, ImplicitAPI):
             'takeProfitPrice': None,
         })
 
-    def fetch_leverages(self, symbols: List[str] = None, params={}) -> Leverages:
+    def fetch_leverages(self, symbols: Strings = None, params={}) -> Leverages:
         """
         fetch the set leverage for all contract markets
         :see: https://docs.blofin.com/index.html#get-multiple-leverage
@@ -1993,7 +1993,7 @@ class blofin(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 'data', {})
         return self.parse_margin_mode(data, market)
 
-    def parse_margin_mode(self, marginMode, market=None) -> MarginMode:
+    def parse_margin_mode(self, marginMode: dict, market=None) -> MarginMode:
         return {
             'info': marginMode,
             'symbol': market['symbol'],

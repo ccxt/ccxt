@@ -635,7 +635,7 @@ class woofipro extends Exchange {
         return $fee;
     }
 
-    public function parse_trade($trade, ?array $market = null): array {
+    public function parse_trade(array $trade, ?array $market = null): array {
         //
         // public/market_trades
         //
@@ -1061,7 +1061,7 @@ class woofipro extends Exchange {
         return $this->parse_ohlcvs($rows, $market, $timeframe, $since, $limit);
     }
 
-    public function parse_order($order, ?array $market = null): array {
+    public function parse_order(array $order, ?array $market = null): array {
         //
         // Possible input functions:
         // * createOrder
@@ -1178,7 +1178,7 @@ class woofipro extends Exchange {
         ), $market);
     }
 
-    public function parse_time_in_force($timeInForce) {
+    public function parse_time_in_force(?string $timeInForce) {
         $timeInForces = array(
             'ioc' => 'IOC',
             'fok' => 'FOK',
@@ -2066,7 +2066,7 @@ class woofipro extends Exchange {
         return array( $currency, $this->safe_list($data, 'rows', array()) );
     }
 
-    public function parse_ledger_entry($item, ?array $currency = null) {
+    public function parse_ledger_entry(array $item, ?array $currency = null) {
         $code = $this->safe_string($item, 'token');
         $amount = $this->safe_number($item, 'amount');
         $side = $this->safe_string($item, 'token_side');
@@ -2114,7 +2114,7 @@ class woofipro extends Exchange {
         return $this->parse_ledger($rows, $currency, $since, $limit, $params);
     }
 
-    public function parse_transaction($transaction, ?array $currency = null): array {
+    public function parse_transaction(array $transaction, ?array $currency = null): array {
         // example in fetchLedger
         $code = $this->safe_string($transaction, 'token');
         $movementDirection = $this->safe_string_lower($transaction, 'token_side');
@@ -2397,7 +2397,7 @@ class woofipro extends Exchange {
         return $this->v1PrivatePostClientLeverage ($this->extend($request, $params));
     }
 
-    public function parse_position($position, ?array $market = null) {
+    public function parse_position(array $position, ?array $market = null) {
         //
         // {
         //     "IMR_withdraw_orders" => 0.1,

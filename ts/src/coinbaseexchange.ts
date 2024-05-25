@@ -726,7 +726,7 @@ export default class coinbaseexchange extends Exchange {
         return this.parseTicker (response, market);
     }
 
-    parseTrade (trade, market: Market = undefined): Trade {
+    parseTrade (trade: Dict, market: Market = undefined): Trade {
         //
         //     {
         //         "type": "match",
@@ -1025,7 +1025,7 @@ export default class coinbaseexchange extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseOrder (order, market: Market = undefined): Order {
+    parseOrder (order: Dict, market: Market = undefined): Order {
         //
         // createOrder
         //
@@ -1433,7 +1433,7 @@ export default class coinbaseexchange extends Exchange {
         return this.safeString (types, type, type);
     }
 
-    parseLedgerEntry (item, currency: Currency = undefined) {
+    parseLedgerEntry (item: Dict, currency: Currency = undefined) {
         //  {
         //      "id": "12087495079",
         //      "amount": "-0.0100000000000000",
@@ -1714,7 +1714,7 @@ export default class coinbaseexchange extends Exchange {
         }
     }
 
-    parseTransaction (transaction, currency: Currency = undefined): Transaction {
+    parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {
         //
         // privateGetTransfers
         //

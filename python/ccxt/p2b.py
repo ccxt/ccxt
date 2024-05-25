@@ -570,7 +570,7 @@ class p2b(Exchange, ImplicitAPI):
         result = self.safe_list(response, 'result', [])
         return self.parse_trades(result, market, since, limit)
 
-    def parse_trade(self, trade, market: Market = None):
+    def parse_trade(self, trade: dict, market: Market = None):
         #
         # fetchTrades
         #
@@ -1095,7 +1095,7 @@ class p2b(Exchange, ImplicitAPI):
             orders = self.array_concat(orders, parsedOrders)
         return orders
 
-    def parse_order(self, order, market: Market = None) -> Order:
+    def parse_order(self, order: dict, market: Market = None) -> Order:
         #
         # cancelOrder, fetchOpenOrders, createOrder
         #

@@ -399,7 +399,7 @@ class coinspot(Exchange, ImplicitAPI):
         trades = self.array_concat(buyTrades, sellTrades)
         return self.parse_trades(trades, market, since, limit)
 
-    def parse_trade(self, trade, market: Market = None) -> Trade:
+    def parse_trade(self, trade: dict, market: Market = None) -> Trade:
         #
         # public fetchTrades
         #

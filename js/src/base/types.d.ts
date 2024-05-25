@@ -524,6 +524,8 @@ export interface CrossBorrowRates extends Dictionary<CrossBorrowRates> {
 }
 export interface TransferEntries extends Dictionary<TransferEntry> {
 }
+export interface LeverageTiers extends Dictionary<LeverageTier[]> {
+}
 /** [ timestamp, open, high, low, close, volume ] */
 export declare type OHLCV = [Num, Num, Num, Num, Num, Num];
 /** [ timestamp, open, high, low, close, volume, count ] */

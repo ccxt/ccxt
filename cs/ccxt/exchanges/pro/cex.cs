@@ -1061,7 +1061,7 @@ public partial class cex : ccxt.cex
         object symbol = this.pairToSymbol(pair);
         object messageHash = add("orderbook:", symbol);
         object timestamp = this.safeInteger2(data, "timestamp_ms", "timestamp");
-        object incrementalId = this.safeNumber(data, "id");
+        object incrementalId = this.safeInteger(data, "id");
         object orderbook = this.orderBook(new Dictionary<string, object>() {});
         object snapshot = this.parseOrderBook(data, symbol, timestamp, "bids", "asks");
         ((IDictionary<string,object>)snapshot)["nonce"] = incrementalId;

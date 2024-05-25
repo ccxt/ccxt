@@ -1712,7 +1712,7 @@ export default class wavesexchange extends Exchange {
         return this.safeCurrencyCode (baseId) + '/' + this.safeCurrencyCode (quoteId);
     }
 
-    parseOrder (order, market: Market = undefined): Order {
+    parseOrder (order: Dict, market: Market = undefined): Order {
         //
         // createOrder
         //
@@ -2195,7 +2195,7 @@ export default class wavesexchange extends Exchange {
         return this.parseTrades (data, market, since, limit);
     }
 
-    parseTrade (trade, market: Market = undefined): Trade {
+    parseTrade (trade: Dict, market: Market = undefined): Trade {
         //
         // { __type: "transaction",
         //   "data":
@@ -2594,7 +2594,7 @@ export default class wavesexchange extends Exchange {
         return this.parseTransaction (result, currency);
     }
 
-    parseTransaction (transaction, currency: Currency = undefined): Transaction {
+    parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {
         //
         // withdraw
         //
