@@ -291,17 +291,28 @@ export default class nobitex extends Exchange {
         const marketType = 'spot';
         let symbol = this.safeStringUpper(ticker, 'symbol');
         const marketId = symbol.replace('-', '');
+        const marketinfo = this.market(marketId);
         symbol = this.safeSymbol(marketId, market, undefined, marketType);
-        const high = this.safeFloat(ticker, 'dayHigh');
-        const low = this.safeFloat(ticker, 'dayLow');
-        const bid = this.safeFloat(ticker, 'bestBuy');
-        const ask = this.safeFloat(ticker, 'bestSell');
-        const open = this.safeFloat(ticker, 'dayOpen');
-        const close = this.safeFloat(ticker, 'dayClose');
+        let high = this.safeFloat(ticker, 'dayHigh');
+        let low = this.safeFloat(ticker, 'dayLow');
+        let bid = this.safeFloat(ticker, 'bestBuy');
+        let ask = this.safeFloat(ticker, 'bestSell');
+        let open = this.safeFloat(ticker, 'dayOpen');
+        let close = this.safeFloat(ticker, 'dayClose');
         const change = this.safeFloat(ticker, 'dayChange');
-        const last = this.safeFloat(ticker, 'latest');
-        const quoteVolume = this.safeFloat(ticker, 'volumeDst');
+        let last = this.safeFloat(ticker, 'latest');
+        let quoteVolume = this.safeFloat(ticker, 'volumeDst');
         const baseVolume = this.safeFloat(ticker, 'volumeSrc');
+        if (marketinfo['quote'] === 'IRT') {
+            high /= 10;
+            low /= 10;
+            bid /= 10;
+            ask /= 10;
+            open /= 10;
+            close /= 10;
+            last /= 10;
+            quoteVolume /= 10;
+        }
         return this.safeTicker({
             'symbol': symbol.replace('-', '/'),
             'timestamp': undefined,
@@ -365,6 +376,13 @@ export default class nobitex extends Exchange {
         const timestampList = this.safeList(response, 't', []);
         const ohlcvs = [];
         for (let i = 0; i < openList.length; i++) {
+            if (market['quote'] === 'IRT') {
+                openList[i] /= 10;
+                highList[i] /= 10;
+                lastList[i] /= 10;
+                closeList[i] /= 10;
+                volumeList[i] /= 10;
+            }
             ohlcvs.push([
                 timestampList[i],
                 openList[i],
@@ -390,9 +408,21 @@ export default class nobitex extends Exchange {
         await this.loadMarkets();
         const market = this.market(symbol);
         const request = {
-            'symbol': market['id'],
+            'symbol': symbol.replace('/', ''),
         };
         const response = await this.publicGetV2Orderbook(request);
+        if (market['quote'] === 'IRT') {
+            const bids = this.safeList(response, 'bids');
+            const asks = this.safeList(response, 'asks');
+            for (let i = 0; i < bids.length; i++) {
+                bids[i][0] /= 10;
+            }
+            for (let i = 0; i < asks.length; i++) {
+                asks[i][0] /= 10;
+            }
+            response['bids'] = bids;
+            response['asks'] = asks;
+        }
         const timestamp = this.safeInteger(response, 'lastUpdate');
         return this.parseOrderBook(response, symbol, timestamp);
     }

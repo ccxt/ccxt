@@ -280,6 +280,7 @@ class nobitex(Exchange, ImplicitAPI):
         marketType = 'spot'
         symbol = self.safe_string_upper(ticker, 'symbol')
         marketId = symbol.replace('-', '')
+        marketinfo = self.market(marketId)
         symbol = self.safe_symbol(marketId, market, None, marketType)
         high = self.safe_float(ticker, 'dayHigh')
         low = self.safe_float(ticker, 'dayLow')
@@ -291,6 +292,15 @@ class nobitex(Exchange, ImplicitAPI):
         last = self.safe_float(ticker, 'latest')
         quoteVolume = self.safe_float(ticker, 'volumeDst')
         baseVolume = self.safe_float(ticker, 'volumeSrc')
+        if marketinfo['quote'] == 'IRT':
+            high /= 10
+            low /= 10
+            bid /= 10
+            ask /= 10
+            open /= 10
+            close /= 10
+            last /= 10
+            quoteVolume /= 10
         return self.safe_ticker({
             'symbol': symbol.replace('-', '/'),
             'timestamp': None,
@@ -350,6 +360,12 @@ class nobitex(Exchange, ImplicitAPI):
         timestampList = self.safe_list(response, 't', [])
         ohlcvs = []
         for i in range(0, len(openList)):
+            if market['quote'] == 'IRT':
+                openList[i] /= 10
+                highList[i] /= 10
+                lastList[i] /= 10
+                closeList[i] /= 10
+                volumeList[i] /= 10
             ohlcvs.append([
                 timestampList[i],
                 openList[i],
@@ -372,9 +388,18 @@ class nobitex(Exchange, ImplicitAPI):
         await self.load_markets()
         market = self.market(symbol)
         request = {
-            'symbol': market['id'],
+            'symbol': symbol.replace('/', ''),
         }
         response = await self.publicGetV2Orderbook(request)
+        if market['quote'] == 'IRT':
+            bids = self.safe_list(response, 'bids')
+            asks = self.safe_list(response, 'asks')
+            for i in range(0, len(bids)):
+                bids[i][0] /= 10
+            for i in range(0, len(asks)):
+                asks[i][0] /= 10
+            response['bids'] = bids
+            response['asks'] = asks
         timestamp = self.safe_integer(response, 'lastUpdate')
         return self.parse_order_book(response, symbol, timestamp)
 
