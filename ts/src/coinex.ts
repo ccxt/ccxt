@@ -5529,55 +5529,6 @@ export default class coinex extends Exchange {
         return result;
     }
 
-    async fetchLeverages (symbols: Strings = undefined, params = {}): Promise<Leverages> {
-        /**
-         * @method
-         * @name coinex#fetchLeverages
-         * @description fetch the set leverage for all contract and margin markets
-         * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot002_account007_margin_account_settings
-         * @param {string[]} [symbols] a list of unified market symbols
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a list of [leverage structures]{@link https://docs.ccxt.com/#/?id=leverage-structure}
-         */
-        await this.loadMarkets ();
-        symbols = this.marketSymbols (symbols);
-        let market = undefined;
-        if (symbols !== undefined) {
-            const symbol = this.safeValue (symbols, 0);
-            market = this.market (symbol);
-        }
-        let marketType = undefined;
-        [ marketType, params ] = this.handleMarketTypeAndParams ('fetchLeverages', market, params);
-        if (marketType !== 'spot') {
-            throw new NotSupported (this.id + ' fetchLeverages() supports spot margin markets only');
-        }
-        const response = await this.v1PrivateGetMarginConfig (params);
-        //
-        //     {
-        //         "code": 0,
-        //         "data": [
-        //             {
-        //                 "market": "BTCUSDT",
-        //                 "leverage": 10,
-        //                 "BTC": {
-        //                     "min_amount": "0.0008",
-        //                     "max_amount": "200",
-        //                     "day_rate": "0.0015"
-        //                 },
-        //                 "USDT": {
-        //                     "min_amount": "50",
-        //                     "max_amount": "500000",
-        //                     "day_rate": "0.001"
-        //                 }
-        //             },
-        //         ],
-        //         "message": "Success"
-        //     }
-        //
-        const leverages = this.safeList (response, 'data', []);
-        return this.parseLeverages (leverages, symbols, 'market', marketType);
-    }
-
     async fetchLeverage (symbol: string, params = {}): Promise<Leverage> {
         /**
          * @method

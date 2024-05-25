@@ -961,14 +961,6 @@
                 ]
             }
         ],
-        "fetchLeverages": [
-            {
-                "description": "Fetch the leverage of all spot margin markets",
-                "method": "fetchLeverages",
-                "url": "https://api.coinex.com/v1/margin/config?access_id=36280D3BC1284980A37DDAE67EBABE74&tonce=1709711478774",
-                "input": []
-            }
-        ],
         "fetchTime": [
             {
                 "description": "Fetch the time",
