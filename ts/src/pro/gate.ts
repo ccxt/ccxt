@@ -25,6 +25,8 @@ export default class gate extends gateRest {
                 'watchOHLCV': true,
                 'watchBalance': true,
                 'watchOrders': true,
+                'watchLiquidations': false,
+                'watchLiquidationsForSymbols': false,
                 'watchMyLiquidations': true,
                 'watchMyLiquidationsForSymbols': true,
                 'watchPositions': true,
@@ -1079,34 +1081,7 @@ export default class gate extends gateRest {
          * @param {object} [params] exchange specific parameters for the bitmex api endpoint
          * @returns {object} an array of [liquidation structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure}
          */
-        await this.loadMarkets ();
-        let market = undefined;
-        if (symbol !== undefined) {
-            market = this.market (symbol);
-            symbol = market['symbol'];
-        }
-        let type = undefined;
-        let query = undefined;
-        [ type, query ] = this.handleMarketTypeAndParams ('watchMyLiquidations', market, params);
-        const typeId = this.getSupportedMapping (type, {
-            'future': 'futures',
-            'swap': 'futures',
-            'option': 'options',
-        });
-        const channel = typeId + '.liquidates';
-        const messageHash = 'myLiquidations::' + symbol;
-        const payload = [ market['id'] ];
-        let subType = undefined;
-        [ subType, query ] = this.handleSubTypeAndParams ('watchMyLiquidations', market, query);
-        const isInverse = (subType === 'inverse');
-        const url = this.getUrlByMarketType (type, isInverse);
-        // uid required for non spot markets
-        const requiresUid = (type !== 'spot');
-        const newLiquidations = await this.subscribePrivate (url, messageHash, payload, channel, query, requiresUid);
-        if (this.newUpdates) {
-            return newLiquidations;
-        }
-        return this.filterBySymbolsSinceLimit (this.liquidations, [ symbol ], since, limit, true);
+        return this.watchMyLiquidationsForSymbols ([ symbol ], since, limit, params);
     }
 
     async watchMyLiquidationsForSymbols (symbols: string[] = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Liquidation[]> {
@@ -1124,11 +1099,7 @@ export default class gate extends gateRest {
          * @returns {object} an array of [liquidation structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure}
          */
         await this.loadMarkets ();
-        let messageHash = 'myLiquidations';
         symbols = this.marketSymbols (symbols, undefined, true, true);
-        if (symbols !== undefined) {
-            messageHash += '::' + symbols.join (',');
-        }
         const market = this.getMarketFromSymbols (symbols);
         let type = undefined;
         let query = undefined;
@@ -1138,15 +1109,28 @@ export default class gate extends gateRest {
             'swap': 'futures',
             'option': 'options',
         });
-        const channel = typeId + '.liquidates';
-        const payload = [ '!all' ];
         let subType = undefined;
         [ subType, query ] = this.handleSubTypeAndParams ('watchMyLiquidationsForSymbols', market, query);
         const isInverse = (subType === 'inverse');
         const url = this.getUrlByMarketType (type, isInverse);
-        // uid required for non spot markets
-        const requiresUid = (type !== 'spot');
-        const newLiquidations = await this.subscribePrivate (url, messageHash, payload, channel, query, requiresUid);
+        const payload = [];
+        let messageHash = '';
+        if (this.isEmpty (symbols)) {
+            if (typeId !== 'futures' && !isInverse) {
+                throw new BadRequest (this.id + ' watchMyLiquidationsForSymbols() does not support listening to all symbols, you must call watchMyLiquidations() instead for each symbol you wish to watch.');
+            }
+            messageHash = 'myLiquidations';
+            payload.push ('!all');
+        } else {
+            const symbolsLength = symbols.length;
+            if (symbolsLength !== 1) {
+                throw new BadRequest (this.id + ' watchMyLiquidationsForSymbols() only allows one symbol at a time. To listen to several symbols call watchMyLiquidationsForSymbols() several times.');
+            }
+            messageHash = 'myLiquidations::' + symbols[0];
+            payload.push (market['id']);
+        }
+        const channel = typeId + '.liquidates';
+        const newLiquidations = await this.subscribePrivate (url, messageHash, payload, channel, query, true);
         if (this.newUpdates) {
             return newLiquidations;
         }

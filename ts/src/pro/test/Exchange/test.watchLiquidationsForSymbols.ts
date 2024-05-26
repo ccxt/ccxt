@@ -8,10 +8,9 @@ import testLiquidation from '../../../test/Exchange/base/test.liquidation.js';
 
 /*  ------------------------------------------------------------------------ */
 
-export default async (exchange, symbol) => {
+export default async (exchange, skippedProperties, symbol) => {
 
     const method = 'watchLiquidationsForSymbols';
-    const skippedProperties = {};
 
     // we have to skip some exchanges here due to the frequency of trading
     const skippedExchanges = [];

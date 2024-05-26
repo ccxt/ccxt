@@ -204,38 +204,7 @@ export default class binance extends binanceRest {
          * @param {object} [params] exchange specific parameters for the bitmex api endpoint
          * @returns {object} an array of [liquidation structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure}
          */
-        await this.loadMarkets ();
-        symbol = this.symbol (symbol);
-        const market = this.market (symbol);
-        let type = undefined;
-        [ type, params ] = this.handleMarketTypeAndParams ('watchLiquidations', market, params);
-        let subType = undefined;
-        [ subType, params ] = this.handleSubTypeAndParams ('watchLiquidations', market, params);
-        if (this.isLinear (type, subType)) {
-            type = 'future';
-        } else if (this.isInverse (type, subType)) {
-            type = 'delivery';
-        }
-        const subParams = [];
-        const subscriptionHash = market['lowercaseId'] + '@forceOrder';
-        subParams.push (subscriptionHash);
-        const messageHash = 'liquidations::' + symbol;
-        const query = this.omit (params, 'type');
-        const url = this.urls['api']['ws'][type] + '/' + this.stream (type, subscriptionHash);
-        const requestId = this.requestId (url);
-        const request = {
-            'method': 'SUBSCRIBE',
-            'params': subParams,
-            'id': requestId,
-        };
-        const subscribe = {
-            'id': requestId,
-        };
-        const newLiquidation = await this.watch (url, messageHash, this.extend (request, query), subscriptionHash, subscribe);
-        if (this.newUpdates) {
-            return [ newLiquidation ];
-        }
-        return this.filterBySymbolsSinceLimit (this.liquidations, [ symbol ], since, limit, true);
+        return this.watchLiquidationsForSymbols ([ symbol ], since, limit, params);
     }
 
     async watchLiquidationsForSymbols (symbols: string[] = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Liquidation[]> {
@@ -252,11 +221,18 @@ export default class binance extends binanceRest {
          * @returns {object} an array of [liquidation structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure}
          */
         await this.loadMarkets ();
-        const subscriptionHash = '!' + 'forceOrder@arr';
-        let messageHash = 'liquidations';
+        const subscriptionHashes = [];
+        const messageHashes = [];
         symbols = this.marketSymbols (symbols, undefined, true, true);
-        if (symbols !== undefined) {
-            messageHash += '::' + symbols.join (',');
+        if (this.isEmpty (symbols)) {
+            subscriptionHashes.push ('!' + 'forceOrder@arr');
+            messageHashes.push ('liquidations');
+        } else {
+            for (let i = 0; i < symbols.length; i++) {
+                const market = this.market (symbols[i]);
+                subscriptionHashes.push (market['id'] + '@forceOrder');
+                messageHashes.push ('liquidations::' + symbols[i]);
+            }
         }
         const firstMarket = this.getMarketFromSymbols (symbols);
         let type = undefined;
@@ -268,17 +244,17 @@ export default class binance extends binanceRest {
         } else if (this.isInverse (type, subType)) {
             type = 'delivery';
         }
-        const url = this.urls['api']['ws'][type] + '/' + this.stream (type, subscriptionHash);
+        const url = this.urls['api']['ws'][type] + '/' + this.stream (type, subscriptionHashes);
         const requestId = this.requestId (url);
         const request = {
             'method': 'SUBSCRIBE',
-            'params': [ subscriptionHash ],
+            'params': subscriptionHashes,
             'id': requestId,
         };
         const subscribe = {
             'id': requestId,
         };
-        const newLiquidations = await this.watch (url, messageHash, this.extend (request, params), subscriptionHash, subscribe);
+        const newLiquidations = await this.watchMultiple (url, messageHashes, this.extend (request, params), subscriptionHashes, subscribe);
         if (this.newUpdates) {
             return newLiquidations;
         }
@@ -327,8 +303,8 @@ export default class binance extends binanceRest {
         //
         const rawLiquidation = this.safeValue (message, 'o', {});
         const marketId = this.safeString (rawLiquidation, 's');
-        const market = this.safeMarket (marketId);
-        const symbol = this.safeSymbol (marketId);
+        const market = this.safeMarket (marketId, undefined, '', 'contract');
+        const symbol = market['symbol'];
         const liquidation = this.parseWsLiquidation (rawLiquidation, market);
         let liquidations = this.safeValue (this.liquidations, symbol);
         if (liquidations === undefined) {
@@ -338,6 +314,7 @@ export default class binance extends binanceRest {
         liquidations.append (liquidation);
         this.liquidations[symbol] = liquidations;
         client.resolve ([ liquidation ], 'liquidations');
+        client.resolve ([ liquidation ], 'liquidations::' + symbol);
     }
 
     parseWsLiquidation (liquidation, market = undefined) {
@@ -463,9 +440,12 @@ export default class binance extends binanceRest {
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols, undefined, true, true, true);
         const market = this.getMarketFromSymbols (symbols);
-        let messageHash = 'myLiquidations';
-        if (this.isEmpty (symbols)) {
-            messageHash += '::' + symbols.join (',');
+        const messageHashes = [ 'myLiquidations' ];
+        if (!this.isEmpty (symbols)) {
+            for (let i = 0; i < symbols.length; i++) {
+                const symbol = symbols[i];
+                messageHashes.push ('myLiquidations::' + symbol);
+            }
         }
         let type = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('watchMyLiquidationsForSymbols', market, params);
@@ -479,7 +459,7 @@ export default class binance extends binanceRest {
         await this.authenticate (params);
         const url = this.urls['api']['ws'][type] + '/' + this.options[type]['listenKey'];
         const message = undefined;
-        const newLiquidations = await this.watch (url, messageHash, message, type);
+        const newLiquidations = await this.watchMultiple (url, messageHashes, message, [ type ]);
         if (this.newUpdates) {
             return newLiquidations;
         }

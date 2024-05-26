@@ -374,22 +374,7 @@ export default class bitmex extends bitmexRest {
          * @param {object} [params] exchange specific parameters for the bitmex api endpoint
          * @returns {object} an array of [liquidation structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure}
          */
-        await this.loadMarkets ();
-        const market = this.market (symbol);
-        const messageHash = 'liquidations::' + market['symbol'];
-        const subscriptionHash = 'liquidation:' + market['id'];
-        const url = this.urls['api']['ws'];
-        const request = {
-            'op': 'subscribe',
-            'args': [
-                subscriptionHash,
-            ],
-        };
-        const newLiquidations = await this.watch (url, messageHash, this.deepExtend (request, params), subscriptionHash);
-        if (this.newUpdates) {
-            return newLiquidations;
-        }
-        return this.filterBySymbolsSinceLimit (this.liquidations, [ symbol ], since, limit, true);
+        return this.watchLiquidationsForSymbols ([ symbol ], since, limit, params);
     }
 
     async watchLiquidationsForSymbols (symbols: string[] = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Liquidation[]> {
@@ -405,20 +390,25 @@ export default class bitmex extends bitmexRest {
          * @returns {object} an array of [liquidation structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure}
          */
         await this.loadMarkets ();
-        let messageHash = 'liquidations';
         symbols = this.marketSymbols (symbols, undefined, true, true);
-        if (symbols !== undefined) {
-            messageHash += '::' + symbols.join (',');
+        const messageHashes = [];
+        const subscriptionHashes = [];
+        if (this.isEmpty (symbols)) {
+            subscriptionHashes.push ('liquidation');
+        } else {
+            for (let i = 0; i < symbols.length; i++) {
+                const symbol = symbols[i];
+                const market = this.market (symbol);
+                subscriptionHashes.push ('liquidation:' + market['id']);
+                messageHashes.push ('liquidations::' + symbol);
+            }
         }
-        const subscriptionHash = 'liquidation';
         const url = this.urls['api']['ws'];
         const request = {
             'op': 'subscribe',
-            'args': [
-                subscriptionHash,
-            ],
+            'args': subscriptionHashes,
         };
-        const newLiquidations = await this.watch (url, messageHash, this.deepExtend (request, params), subscriptionHash);
+        const newLiquidations = await this.watchMultiple (url, messageHashes, this.deepExtend (request, params), subscriptionHashes);
         if (this.newUpdates) {
             return newLiquidations;
         }
