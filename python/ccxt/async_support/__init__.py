@@ -149,6 +149,7 @@ from ccxt.async_support.oceanex import oceanex                                  
 from ccxt.async_support.okcoin import okcoin                                    # noqa: F401
 from ccxt.async_support.okexchange import okexchange                            # noqa: F401
 from ccxt.async_support.okx import okx                                          # noqa: F401
+from ccxt.async_support.ompfinex import ompfinex                                # noqa: F401
 from ccxt.async_support.onetrading import onetrading                            # noqa: F401
 from ccxt.async_support.p2b import p2b                                          # noqa: F401
 from ccxt.async_support.paymium import paymium                                  # noqa: F401
@@ -261,6 +262,7 @@ exchanges = [
     'okcoin',
     'okexchange',
     'okx',
+    'ompfinex',
     'onetrading',
     'p2b',
     'paymium',

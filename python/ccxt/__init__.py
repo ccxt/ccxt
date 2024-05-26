@@ -169,6 +169,7 @@ from ccxt.oceanex import oceanex                                      # noqa: F4
 from ccxt.okcoin import okcoin                                        # noqa: F401
 from ccxt.okexchange import okexchange                                # noqa: F401
 from ccxt.okx import okx                                              # noqa: F401
+from ccxt.ompfinex import ompfinex                                    # noqa: F401
 from ccxt.onetrading import onetrading                                # noqa: F401
 from ccxt.p2b import p2b                                              # noqa: F401
 from ccxt.paymium import paymium                                      # noqa: F401
@@ -281,6 +282,7 @@ exchanges = [
     'okcoin',
     'okexchange',
     'okx',
+    'ompfinex',
     'onetrading',
     'p2b',
     'paymium',
