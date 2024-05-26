@@ -3,9 +3,9 @@
 
 import oxfunRest from '../oxfun.js';
 import { ArgumentsRequired, AuthenticationError } from '../base/errors.js';
-import type { Balances, Int, Market, OHLCV, OrderBook, Position, Strings, Ticker, Tickers, Trade } from '../base/types.js';
+import type { Balances, Dict, Int, Market, OHLCV, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, Trade } from '../base/types.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
-import { ArrayCache, ArrayCacheBySymbolBySide, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
+import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -21,11 +21,11 @@ export default class oxfun extends oxfunRest {
                 'watchOrderBookForSymbols': true,
                 'watchOHLCV': true,
                 'watchOHLCVForSymbols': true,
-                'watchOrders': false,
+                'watchOrders': true,
                 'watchMyTrades': false,
                 'watchTicker': true,
                 'watchTickers': true,
-                'watchBalance': false,
+                'watchBalance': true,
             },
             'urls': {
                 'api': {
@@ -59,7 +59,7 @@ export default class oxfun extends oxfunRest {
 
     async subscribeMultiple (messageHashes, argsArray, params = {}) {
         const url = this.urls['api']['ws'];
-        const request = {
+        const request: Dict = {
             'op': 'subscribe',
             'args': argsArray,
         };
@@ -202,7 +202,7 @@ export default class oxfun extends oxfunRest {
         const args = 'candles' + interval + ':' + market['id'];
         const messageHash = 'ohlcv:' + symbol + ':' + timeframe;
         const url = this.urls['api']['ws'];
-        const request = {
+        const request: Dict = {
             'op': 'subscribe',
             'args': [ args ],
         };
@@ -521,7 +521,7 @@ export default class oxfun extends oxfunRest {
         const args = 'balance:all';
         const messageHash = 'balance';
         const url = this.urls['api']['ws'];
-        const request = {
+        const request: Dict = {
             'op': 'subscribe',
             'args': [ args ],
         };
@@ -690,6 +690,83 @@ export default class oxfun extends oxfunRest {
         });
     }
 
+    async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+        /**
+         * @method
+         * @name oxfun#watchOrders
+         * @description watches information on multiple orders made by the user
+         * @param {string} symbol unified market symbol of the market orders were made in
+         * @param {int} [since] the earliest time in ms to fetch orders for
+         * @param {int} [limit] the maximum number of order structures to retrieve
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        await this.loadMarkets ();
+        await this.authenticate ();
+        const subscriptionHash = 'order';
+        let messageHash = 'order';
+        if (symbol === undefined) {
+            messageHash += ':all';
+        } else {
+            symbol = this.symbol (symbol);
+            messageHash += ':' + symbol;
+        }
+        const url = this.urls['api']['ws'];
+        const request: Dict = {
+            'op': 'subscribe',
+            'args': [
+                messageHash,
+            ],
+        };
+        const orders = await this.watch (url, messageHash, request, subscriptionHash);
+        if (this.newUpdates) {
+            limit = orders.getLimit (symbol, limit);
+        }
+        return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
+    }
+
+    handleOrders (client: Client, message) {
+        //
+        //     {
+        //         "table": "order",
+        //         "data": [
+        //             {
+        //                 "accountId": "106464",
+        //                 "clientOrderId": "1716713676233",
+        //                 "orderId": "1000116921319",
+        //                 "price": "1000.0",
+        //                 "quantity": "0.01",
+        //                 "amount": "0.0",
+        //                 "side": "BUY",
+        //                 "status": "OPEN",
+        //                 "marketCode": "ETH-USD-SWAP-LIN",
+        //                 "timeInForce": "MAKER_ONLY",
+        //                 "timestamp": "1716713677834",
+        //                 "remainQuantity": "0.01",
+        //                 "limitPrice": "1000.0",
+        //                 "notice": "OrderOpened",
+        //                 "orderType": "LIMIT",
+        //                 "isTriggered": "false",
+        //                 "displayQuantity": "0.01"
+        //             }
+        //         ]
+        //     }
+        //
+        const data = this.safeList (message, 'data', []);
+        const order = this.safeDict (data, 0, {});
+        const parsedOrder = this.parseOrder (order);
+        if (this.orders === undefined) {
+            const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
+            this.orders = new ArrayCacheBySymbolById (limit);
+        }
+        const orders = this.orders;
+        orders.append (parsedOrder);
+        let messageHash = 'orders';
+        client.resolve (this.orders, messageHash);
+        messageHash += ':' + parsedOrder['symbol'];
+        client.resolve (this.orders, messageHash);
+    }
+
     async authenticate (params = {}) {
         const url = this.urls['api']['ws'];
         const client = this.client (url);
@@ -701,7 +778,7 @@ export default class oxfun extends oxfunRest {
             const timestamp = this.milliseconds ();
             const payload = timestamp.toString () + 'GET/auth/self/verify';
             const signature = this.hmac (this.encode (payload), this.encode (this.secret), sha256, 'base64');
-            const request = {
+            const request: Dict = {
                 'op': 'login',
                 'data': {
                     'apiKey': this.apiKey,
@@ -753,6 +830,9 @@ export default class oxfun extends oxfunRest {
             }
             if (table.indexOf ('position') > -1) {
                 this.handlePositions (client, message);
+            }
+            if (table.indexOf ('order') > -1) {
+                this.handleOrders (client, message);
             }
         } else if (event === 'login') {
             this.handleAuthenticationMessage (client, message);
