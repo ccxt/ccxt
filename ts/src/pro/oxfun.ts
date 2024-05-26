@@ -695,6 +695,7 @@ export default class oxfun extends oxfunRest {
          * @method
          * @name oxfun#watchOrders
          * @description watches information on multiple orders made by the user
+         * @see https://docs.ox.fun/?json#order-channel
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
          * @param {int} [limit] the maximum number of order structures to retrieve
@@ -703,22 +704,23 @@ export default class oxfun extends oxfunRest {
          */
         await this.loadMarkets ();
         await this.authenticate ();
-        const subscriptionHash = 'order';
-        let messageHash = 'order';
+        let messageHash = 'orders';
+        let args = 'order:';
+        const market = this.safeMarket (symbol);
         if (symbol === undefined) {
-            messageHash += ':all';
+            args += 'all';
         } else {
-            symbol = this.symbol (symbol);
             messageHash += ':' + symbol;
+            args += ':' + market['id'];
         }
-        const url = this.urls['api']['ws'];
         const request: Dict = {
             'op': 'subscribe',
             'args': [
-                messageHash,
+                args,
             ],
         };
-        const orders = await this.watch (url, messageHash, request, subscriptionHash);
+        const url = this.urls['api']['ws'];
+        const orders = await this.watch (url, messageHash, request, messageHash);
         if (this.newUpdates) {
             limit = orders.getLimit (symbol, limit);
         }
@@ -753,18 +755,19 @@ export default class oxfun extends oxfunRest {
         //     }
         //
         const data = this.safeList (message, 'data', []);
-        const order = this.safeDict (data, 0, {});
-        const parsedOrder = this.parseOrder (order);
+        let messageHash = 'orders';
         if (this.orders === undefined) {
             const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
             this.orders = new ArrayCacheBySymbolById (limit);
         }
         const orders = this.orders;
-        orders.append (parsedOrder);
-        let messageHash = 'orders';
-        client.resolve (this.orders, messageHash);
-        messageHash += ':' + parsedOrder['symbol'];
-        client.resolve (this.orders, messageHash);
+        for (let i = 0; i < data.length; i++) {
+            const order = this.safeDict (data, i, {});
+            const parsedOrder = this.parseOrder (order);
+            orders.append (parsedOrder);
+            messageHash += ':' + parsedOrder['symbol'];
+            client.resolve (this.orders, messageHash);
+        }
     }
 
     async authenticate (params = {}) {
