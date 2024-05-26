@@ -101,6 +101,7 @@ var oceanex = require('./src/oceanex.js');
 var okcoin = require('./src/okcoin.js');
 var okexchange = require('./src/okexchange.js');
 var okx = require('./src/okx.js');
+var ompfinex = require('./src/ompfinex.js');
 var onetrading = require('./src/onetrading.js');
 var p2b = require('./src/p2b.js');
 var paymium = require('./src/paymium.js');
@@ -282,6 +283,7 @@ const exchanges = {
     'okcoin': okcoin,
     'okexchange': okexchange,
     'okx': okx,
+    'ompfinex': ompfinex,
     'onetrading': onetrading,
     'p2b': p2b,
     'paymium': paymium,
@@ -507,6 +509,7 @@ exports.oceanex = oceanex;
 exports.okcoin = okcoin;
 exports.okexchange = okexchange;
 exports.okx = okx;
+exports.ompfinex = ompfinex;
 exports.onetrading = onetrading;
 exports.p2b = p2b;
 exports.paymium = paymium;

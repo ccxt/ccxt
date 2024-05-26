@@ -135,6 +135,7 @@ import oceanex from  './src/oceanex.js'
 import okcoin from  './src/okcoin.js'
 import okexchange from  './src/okexchange.js'
 import okx from  './src/okx.js'
+import ompfinex from  './src/ompfinex.js'
 import onetrading from  './src/onetrading.js'
 import p2b from  './src/p2b.js'
 import paymium from  './src/paymium.js'
@@ -315,6 +316,7 @@ const exchanges = {
     'okcoin':                 okcoin,
     'okexchange':             okexchange,
     'okx':                    okx,
+    'ompfinex':               ompfinex,
     'onetrading':             onetrading,
     'p2b':                    p2b,
     'paymium':                paymium,
@@ -584,6 +586,7 @@ export {
     okcoin,
     okexchange,
     okx,
+    ompfinex,
     onetrading,
     p2b,
     paymium,
