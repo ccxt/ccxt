@@ -1263,7 +1263,7 @@ export default class bybit extends bybitRest {
         //       "type": "snapshot"
         //   }
         //
-        const rawLiquidation = this.safeValue (message, 'data', {});
+        const rawLiquidation = this.safeDict (message, 'data', {});
         const marketId = this.safeString (rawLiquidation, 'symbol');
         const market = this.safeMarket (marketId, undefined, '', 'contract');
         const symbol = this.safeSymbol (marketId);

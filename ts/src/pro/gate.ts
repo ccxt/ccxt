@@ -1181,7 +1181,7 @@ export default class gate extends gateRest {
         //        ]
         //    }
         //
-        const rawLiquidations = this.safeValue (message, 'result', []);
+        const rawLiquidations = this.safeList (message, 'result', []);
         const newLiquidations = [];
         for (let i = 0; i < rawLiquidations.length; i++) {
             const rawLiquidation = rawLiquidations[i];

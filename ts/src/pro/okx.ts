@@ -504,7 +504,7 @@ export default class okx extends okxRest {
         //        ]
         //    }
         //
-        const rawLiquidations = this.safeValue (message, 'data', []);
+        const rawLiquidations = this.safeList (message, 'data', []);
         for (let i = 0; i < rawLiquidations.length; i++) {
             const rawLiquidation = rawLiquidations[i];
             const liquidation = this.parseWsLiquidation (rawLiquidation);
@@ -585,7 +585,7 @@ export default class okx extends okxRest {
         //        }]
         //    }
         //
-        const rawLiquidations = this.safeValue (message, 'data', []);
+        const rawLiquidations = this.safeList (message, 'data', []);
         for (let i = 0; i < rawLiquidations.length; i++) {
             const rawLiquidation = rawLiquidations[i];
             const eventType = this.safeString (rawLiquidation, 'eventType');
@@ -635,8 +635,8 @@ export default class okx extends okxRest {
         //        }]
         //    }
         //
-        const posData = this.safeValue (liquidation, 'posData', []);
-        const firstPosData = this.safeValue (posData, 0, {});
+        const posData = this.safeList (liquidation, 'posData', []);
+        const firstPosData = this.safeDict (posData, 0, {});
         const marketId = this.safeString (firstPosData, 'instId');
         market = this.safeMarket (marketId, market);
         const timestamp = this.safeInteger (firstPosData, 'uTIme');
@@ -675,7 +675,7 @@ export default class okx extends okxRest {
         //    }
         //
         const details = this.safeList (liquidation, 'details', []);
-        const liquidationDetails = this.safeValue (details, 0, {});
+        const liquidationDetails = this.safeDict (details, 0, {});
         const marketId = this.safeString (liquidation, 'instId');
         market = this.safeMarket (marketId, market);
         const timestamp = this.safeInteger (liquidationDetails, 'ts');

@@ -226,6 +226,7 @@ export default class binance extends binanceRest {
         await this.loadMarkets ();
         const subscriptionHashes = [];
         const messageHashes = [];
+        let streamHash = 'liquidations';
         symbols = this.marketSymbols (symbols, undefined, true, true);
         if (this.isEmpty (symbols)) {
             subscriptionHashes.push ('!' + 'forceOrder@arr');
@@ -236,6 +237,7 @@ export default class binance extends binanceRest {
                 subscriptionHashes.push (market['id'] + '@forceOrder');
                 messageHashes.push ('liquidations::' + symbols[i]);
             }
+            streamHash += '::' + symbols.join (',');
         }
         const firstMarket = this.getMarketFromSymbols (symbols);
         let type = undefined;
@@ -250,7 +252,6 @@ export default class binance extends binanceRest {
         } else if (this.isInverse (type, subType)) {
             type = 'delivery';
         }
-        const streamHash = 'multipleLiquidations';
         const numSubscriptions = subscriptionHashes.length;
         const url = this.urls['api']['ws'][type] + '/' + this.stream (type, streamHash, numSubscriptions);
         const requestId = this.requestId (url);
