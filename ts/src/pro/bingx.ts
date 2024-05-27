@@ -273,12 +273,22 @@ export default class bingx extends bingxRest {
         const result = await this.watchMultiple (url, messageHashes, this.deepExtend (request, params), subscriptionHashes);
         // for efficiency, we have two type of returned structure here - if symbols array was provided, then individual
         // ticker dict comes in, otherwise all-tickers dict comes in
-        if (!symbolsDefined) {
-            return result;
-        } else {
+        if (this.newUpdates) {
             const newDict: Dict = {};
             newDict[result['symbol']] = result;
             return newDict;
+        }
+        return this.tickers;
+    }
+
+    getMessageHash (exchangeChannel: string, unifiedChannel: String, symbol: Str) {
+        // sometimes exchangeChannel & unifiedChannel names might coincide
+        if (symbol !== undefined) {
+            // bidask:bookTicker@BTC/USDT
+            return unifiedChannel + ':' + exchangeChannel + '@' + symbol;
+        } else {
+            // bidasks@bookTicker
+            return unifiedChannel + 's' + ':' + exchangeChannel;
         }
     }
 
