@@ -45,6 +45,34 @@ public partial class Exchange
         var res = await this.fetchTradesWs(symbol, since, limit, parameters);
         return ((IList<object>)res).Select(item => new Trade(item)).ToList<Trade>();
     }
+    public async Task<List<Liquidation>> WatchLiquidations(string symbol, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    {
+        var since = since2 == 0 ? null : (object)since2;
+        var limit = limit2 == 0 ? null : (object)limit2;
+        var res = await this.watchLiquidations(symbol, since, limit, parameters);
+        return ((IList<object>)res).Select(item => new Liquidation(item)).ToList<Liquidation>();
+    }
+    public async Task<List<Liquidation>> WatchLiquidationsForSymbols(List<string> symbols, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    {
+        var since = since2 == 0 ? null : (object)since2;
+        var limit = limit2 == 0 ? null : (object)limit2;
+        var res = await this.watchLiquidationsForSymbols(symbols, since, limit, parameters);
+        return ((IList<object>)res).Select(item => new Liquidation(item)).ToList<Liquidation>();
+    }
+    public async Task<List<Liquidation>> WatchMyLiquidations(string symbol, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    {
+        var since = since2 == 0 ? null : (object)since2;
+        var limit = limit2 == 0 ? null : (object)limit2;
+        var res = await this.watchMyLiquidations(symbol, since, limit, parameters);
+        return ((IList<object>)res).Select(item => new Liquidation(item)).ToList<Liquidation>();
+    }
+    public async Task<List<Liquidation>> WatchMyLiquidationsForSymbols(List<string> symbols, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    {
+        var since = since2 == 0 ? null : (object)since2;
+        var limit = limit2 == 0 ? null : (object)limit2;
+        var res = await this.watchMyLiquidationsForSymbols(symbols, since, limit, parameters);
+        return ((IList<object>)res).Select(item => new Liquidation(item)).ToList<Liquidation>();
+    }
     public async Task<List<Trade>> WatchTrades(string symbol, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;

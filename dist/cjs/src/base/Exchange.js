@@ -81,6 +81,7 @@ class Exchange {
         this.verbose = false;
         this.twofa = undefined; // two-factor authentication (2FA)
         this.balance = {};
+        this.liquidations = {};
         this.orderbooks = {};
         this.tickers = {};
         this.fundingRates = {};
@@ -88,6 +89,7 @@ class Exchange {
         this.orders = undefined;
         this.triggerOrders = undefined;
         this.transactions = {};
+        this.myLiquidations = {};
         this.requiresWeb3 = false;
         this.requiresEddsa = false;
         this.enableLastJsonResponse = true;
@@ -285,10 +287,12 @@ class Exchange {
         this.balance = {};
         this.orderbooks = {};
         this.tickers = {};
+        this.liquidations = {};
         this.orders = undefined;
         this.trades = {};
         this.transactions = {};
         this.ohlcvs = {};
+        this.myLiquidations = {};
         this.myTrades = undefined;
         this.positions = undefined;
         // web3 and cryptography flags
@@ -573,6 +577,10 @@ class Exchange {
                 'watchTickers': undefined,
                 'watchTrades': undefined,
                 'watchTradesForSymbols': undefined,
+                'watchLiquidations': undefined,
+                'watchLiquidationsForSymbols': undefined,
+                'watchMyLiquidations': undefined,
+                'watchMyLiquidationsForSymbols': undefined,
                 'withdraw': undefined,
                 'ws': undefined,
             },
@@ -1927,6 +1935,24 @@ class Exchange {
     async fetchTradesWs(symbol, since = undefined, limit = undefined, params = {}) {
         throw new errors.NotSupported(this.id + ' fetchTradesWs() is not supported yet');
     }
+    async watchLiquidations(symbol, since = undefined, limit = undefined, params = {}) {
+        if (this.has['watchLiquidationsForSymbols']) {
+            return this.watchLiquidationsForSymbols([symbol], since, limit, params);
+        }
+        throw new errors.NotSupported(this.id + ' watchLiquidations() is not supported yet');
+    }
+    async watchLiquidationsForSymbols(symbols, since = undefined, limit = undefined, params = {}) {
+        throw new errors.NotSupported(this.id + ' watchLiquidationsForSymbols() is not supported yet');
+    }
+    async watchMyLiquidations(symbol, since = undefined, limit = undefined, params = {}) {
+        if (this.has['watchMyLiquidationsForSymbols']) {
+            return this.watchMyLiquidationsForSymbols([symbol], since, limit, params);
+        }
+        throw new errors.NotSupported(this.id + ' watchMyLiquidations() is not supported yet');
+    }
+    async watchMyLiquidationsForSymbols(symbols, since = undefined, limit = undefined, params = {}) {
+        throw new errors.NotSupported(this.id + ' watchMyLiquidationsForSymbols() is not supported yet');
+    }
     async watchTrades(symbol, since = undefined, limit = undefined, params = {}) {
         throw new errors.NotSupported(this.id + ' watchTrades() is not supported yet');
     }
@@ -2936,6 +2962,17 @@ class Exchange {
         trade['cost'] = this.parseNumber(cost);
         return trade;
     }
+    findNearestCeiling(arr, providedValue) {
+        //  i.e. findNearestCeiling ([ 10, 30, 50],  23) returns 30
+        const length = arr.length;
+        for (let i = 0; i < length; i++) {
+            const current = arr[i];
+            if (providedValue <= current) {
+                return current;
+            }
+        }
+        return arr[length - 1];
+    }
     invertFlatStringDictionary(dict) {
         const reversed = {};
         const keys = Object.keys(dict);
@@ -3691,6 +3728,20 @@ class Exchange {
     }
     handleParamInteger2(params, paramName1, paramName2, defaultValue = undefined) {
         const value = this.safeInteger2(params, paramName1, paramName2, defaultValue);
+        if (value !== undefined) {
+            params = this.omit(params, [paramName1, paramName2]);
+        }
+        return [value, params];
+    }
+    handleParamBool(params, paramName, defaultValue = undefined) {
+        const value = this.safeBool(params, paramName, defaultValue);
+        if (value !== undefined) {
+            params = this.omit(params, paramName);
+        }
+        return [value, params];
+    }
+    handleParamBool2(params, paramName1, paramName2, defaultValue = undefined) {
+        const value = this.safeBool2(params, paramName1, paramName2, defaultValue);
         if (value !== undefined) {
             params = this.omit(params, [paramName1, paramName2]);
         }

@@ -6,7 +6,7 @@ import { ExchangeError, ExchangeNotAvailable, InsufficientFunds, OrderNotFound, 
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE, TRUNCATE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { TransferEntry, Int, OrderSide, OrderType, Order, OHLCV, Trade, Balances, OrderRequest, Str, Transaction, Ticker, OrderBook, Tickers, Strings, Currency, Market, Num, Account, TradingFeeInterface, Currencies, Dict } from './base/types.js';
+import type { TransferEntry, Int, OrderSide, OrderType, Order, OHLCV, Trade, Balances, OrderRequest, Str, Transaction, Ticker, OrderBook, Tickers, Strings, Currency, Market, Num, Account, TradingFeeInterface, Currencies, Dict, int } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -3290,7 +3290,7 @@ export default class kucoin extends Exchange {
         }
     }
 
-    parseTransactionStatus (status) {
+    parseTransactionStatus (status: Str) {
         const statuses: Dict = {
             'SUCCESS': 'ok',
             'PROCESSING': 'pending',
@@ -4808,7 +4808,7 @@ export default class kucoin extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+    handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response, requestHeaders, requestBody) {
         if (!response) {
             this.throwBroadlyMatchedException (this.exceptions['broad'], body, body);
             return undefined;

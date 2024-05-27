@@ -2168,7 +2168,7 @@ class kraken(Exchange, ImplicitAPI):
         orders = self.safe_dict(result, 'closed', {})
         return self.parse_orders(orders, market, since, limit)
 
-    def parse_transaction_status(self, status):
+    def parse_transaction_status(self, status: Str):
         # IFEX transaction states
         statuses: dict = {
             'Initial': 'pending',
@@ -2832,7 +2832,7 @@ class kraken(Exchange, ImplicitAPI):
     def nonce(self):
         return self.milliseconds()
 
-    def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response, requestHeaders, requestBody):
         if code == 520:
             raise ExchangeNotAvailable(self.id + ' ' + str(code) + ' ' + reason)
         # todo: rewrite self for "broad" exceptions matching

@@ -1,5 +1,5 @@
 import Exchange from './abstract/btcalpha.js';
-import type { IndexType, Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, Num, Dict } from './base/types.js';
+import type { IndexType, Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, Num, Dict, int } from './base/types.js';
 /**
  * @class btcalpha
  * @augments Exchange
@@ -7,7 +7,7 @@ import type { IndexType, Balances, Currency, Int, Market, OHLCV, Order, OrderBoo
 export default class btcalpha extends Exchange {
     describe(): any;
     fetchMarkets(params?: {}): Promise<Market[]>;
-    parseMarket(market: any): Market;
+    parseMarket(market: Dict): Market;
     fetchTickers(symbols?: Strings, params?: {}): Promise<Tickers>;
     fetchTicker(symbol: string, params?: {}): Promise<Ticker>;
     parseTicker(ticker: Dict, market?: Market): Ticker;
@@ -18,7 +18,7 @@ export default class btcalpha extends Exchange {
     fetchDeposits(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
     fetchWithdrawals(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
     parseTransaction(transaction: Dict, currency?: Currency): Transaction;
-    parseTransactionStatus(status: any): string;
+    parseTransactionStatus(status: Str): string;
     parseOHLCV(ohlcv: any, market?: Market): OHLCV;
     fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
     parseBalance(response: any): Balances;
@@ -39,5 +39,5 @@ export default class btcalpha extends Exchange {
         body: any;
         headers: any;
     };
-    handleErrors(code: any, reason: any, url: any, method: any, headers: any, body: any, response: any, requestHeaders: any, requestBody: any): any;
+    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): any;
 }

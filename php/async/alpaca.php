@@ -1123,7 +1123,7 @@ class alpaca extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
         if ($response === null) {
             return null; // default error handler
         }

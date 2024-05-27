@@ -5,7 +5,7 @@ import Exchange from './abstract/lykke.js';
 import { NotSupported, ExchangeError, BadRequest, InsufficientFunds, InvalidOrder, DuplicateOrderId } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { IndexType, Balances, Currency, Int, Market, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, Num, Currencies, Dict } from './base/types.js';
+import type { IndexType, Balances, Currency, Int, Market, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, Num, Currencies, Dict, int } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -1332,7 +1332,7 @@ export default class lykke extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+    handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response, requestHeaders, requestBody) {
         if (response === undefined) {
             return undefined;
         }

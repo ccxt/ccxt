@@ -643,7 +643,7 @@ class okcoin(Exchange, ImplicitAPI):
         markets = self.safe_value(response, 'data', [])
         return self.parse_markets(markets)
 
-    def parse_market(self, market) -> Market:
+    def parse_market(self, market: dict) -> Market:
         #
         # spot markets
         #
@@ -2493,7 +2493,7 @@ class okcoin(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data', [])
         return self.parse_transactions(data, currency, since, limit, params)
 
-    def parse_transaction_status(self, status):
+    def parse_transaction_status(self, status: Str):
         #
         # deposit statuses
         #
@@ -2898,7 +2898,7 @@ class okcoin(Exchange, ImplicitAPI):
         else:
             return self.parse_trading_balance(response)
 
-    def handle_errors(self, httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody):
+    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response, requestHeaders, requestBody):
         if not response:
             return None  # fallback to default error handler
         #

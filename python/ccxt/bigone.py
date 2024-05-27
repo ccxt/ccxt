@@ -1780,7 +1780,7 @@ class bigone(Exchange, ImplicitAPI):
             'info': response,
         }
 
-    def parse_transaction_status(self, status):
+    def parse_transaction_status(self, status: Str):
         statuses: dict = {
             # what are other statuses here?
             'WITHHOLD': 'ok',  # deposits
@@ -2094,7 +2094,7 @@ class bigone(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 'data', {})
         return self.parse_transaction(data, currency)
 
-    def handle_errors(self, httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody):
+    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response, requestHeaders, requestBody):
         if response is None:
             return None  # fallback to default error handler
         #

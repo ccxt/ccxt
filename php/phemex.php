@@ -495,7 +495,7 @@ class phemex extends Exchange {
         return $this->safe_number($parts, 0);
     }
 
-    public function parse_swap_market($market) {
+    public function parse_swap_market(array $market) {
         //
         //     {
         //         "symbol":"BTCUSD",
@@ -633,7 +633,7 @@ class phemex extends Exchange {
         ));
     }
 
-    public function parse_spot_market($market) {
+    public function parse_spot_market(array $market) {
         //
         //     array(
         //         "symbol":"sBTCUSDT",
@@ -3396,7 +3396,7 @@ class phemex extends Exchange {
         return $this->parse_transactions($data, $currency, $since, $limit);
     }
 
-    public function parse_transaction_status($status) {
+    public function parse_transaction_status(?string $status) {
         $statuses = array(
             'Success' => 'ok',
             'Succeed' => 'ok',
@@ -4711,7 +4711,7 @@ class phemex extends Exchange {
         return $this->parse_transaction($data, $currency);
     }
 
-    public function handle_errors($httpCode, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
         if ($response === null) {
             return null; // fallback to default $error handler
         }

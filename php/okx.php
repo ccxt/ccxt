@@ -1363,7 +1363,7 @@ class okx extends Exchange {
         return $result;
     }
 
-    public function parse_market($market): array {
+    public function parse_market(array $market): array {
         //
         //     {
         //         "alias" => "", // this_week, next_week, quarter, next_quarter
@@ -5041,7 +5041,7 @@ class okx extends Exchange {
         return $this->parse_transaction($withdrawal);
     }
 
-    public function parse_transaction_status($status) {
+    public function parse_transaction_status(?string $status) {
         //
         // deposit $statuses
         //
@@ -8023,7 +8023,7 @@ class okx extends Exchange {
         return $result;
     }
 
-    public function handle_errors($httpCode, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
         if (!$response) {
             return null; // fallback to default $error handler
         }

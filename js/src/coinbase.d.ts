@@ -1,5 +1,5 @@
 import Exchange from './abstract/coinbase.js';
-import type { Int, OrderSide, OrderType, Order, Trade, OHLCV, Ticker, OrderBook, Str, Transaction, Balances, Tickers, Strings, Market, Currency, Num, Account, Currencies, MarketInterface, Conversion, Dict } from './base/types.js';
+import type { Int, OrderSide, OrderType, Order, Trade, OHLCV, Ticker, OrderBook, Str, Transaction, Balances, Tickers, Strings, Market, Currency, Num, Account, Currencies, MarketInterface, Conversion, Dict, int } from './base/types.js';
 /**
  * @class coinbase
  * @augments Exchange
@@ -28,7 +28,7 @@ export default class coinbase extends Exchange {
     fetchTransactionsWithMethod(method: any, code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
     fetchWithdrawals(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
     fetchDeposits(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
-    parseTransactionStatus(status: any): string;
+    parseTransactionStatus(status: Str): string;
     parseTransaction(transaction: Dict, currency?: Currency): Transaction;
     parseTrade(trade: Dict, market?: Market): Trade;
     fetchMarkets(params?: {}): Promise<Market[]>;
@@ -117,5 +117,5 @@ export default class coinbase extends Exchange {
         body: any;
         headers: any;
     };
-    handleErrors(code: any, reason: any, url: any, method: any, headers: any, body: any, response: any, requestHeaders: any, requestBody: any): any;
+    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): any;
 }

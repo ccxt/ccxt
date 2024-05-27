@@ -2296,7 +2296,7 @@ class bitfinex2 extends Exchange {
         }) ();
     }
 
-    public function parse_transaction_status($status) {
+    public function parse_transaction_status(?string $status) {
         $statuses = array(
             'SUCCESS' => 'ok',
             'COMPLETED' => 'ok',

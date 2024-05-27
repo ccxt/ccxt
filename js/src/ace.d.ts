@@ -1,5 +1,5 @@
 import Exchange from './abstract/ace.js';
-import type { Balances, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade } from './base/types.js';
+import type { Balances, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, int } from './base/types.js';
 /**
  * @class ace
  * @augments Exchange
@@ -7,7 +7,7 @@ import type { Balances, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSi
 export default class ace extends Exchange {
     describe(): any;
     fetchMarkets(params?: {}): Promise<Market[]>;
-    parseMarket(market: any): Market;
+    parseMarket(market: Dict): Market;
     parseTicker(ticker: Dict, market?: Market): Ticker;
     fetchTicker(symbol: string, params?: {}): Promise<Ticker>;
     fetchTickers(symbols?: Strings, params?: {}): Promise<Tickers>;
@@ -31,5 +31,5 @@ export default class ace extends Exchange {
         body: any;
         headers: any;
     };
-    handleErrors(code: any, reason: any, url: any, method: any, headers: any, body: any, response: any, requestHeaders: any, requestBody: any): any;
+    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): any;
 }

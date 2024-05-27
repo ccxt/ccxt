@@ -6,7 +6,7 @@ import { ArgumentsRequired, AuthenticationError, BadRequest, ContractUnavailable
 import { Precise } from './base/Precise.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
-import type { TransferEntry, Int, OrderSide, OrderType, OHLCV, Trade, FundingRateHistory, OrderRequest, Order, Balances, Str, Dict, Ticker, OrderBook, Tickers, Strings, Market, Currency, Leverage, Leverages, Num, LeverageTier, LeverageTiers } from './base/types.js';
+import type { TransferEntry, Int, OrderSide, OrderType, OHLCV, Trade, FundingRateHistory, OrderRequest, Order, Balances, Str, Dict, Ticker, OrderBook, Tickers, Strings, Market, Currency, Leverage, Leverages, Num, LeverageTier, LeverageTiers, int } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -2675,7 +2675,7 @@ export default class krakenfutures extends Exchange {
         } as Leverage;
     }
 
-    handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+    handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response, requestHeaders, requestBody) {
         if (response === undefined) {
             return undefined;
         }

@@ -1,5 +1,5 @@
 import Exchange from './abstract/poloniex.js';
-import type { TransferEntry, Int, OrderSide, OrderType, OHLCV, Trade, OrderBook, Order, Balances, Str, Transaction, Ticker, Tickers, Market, Strings, Currency, Num, Currencies, TradingFees, Dict } from './base/types.js';
+import type { TransferEntry, Int, OrderSide, OrderType, OHLCV, Trade, OrderBook, Order, Balances, Str, Transaction, Ticker, Tickers, Market, Strings, Currency, Num, Currencies, TradingFees, Dict, int } from './base/types.js';
 /**
  * @class poloniex
  * @augments Exchange
@@ -10,7 +10,7 @@ export default class poloniex extends Exchange {
     fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
     loadMarkets(reload?: boolean, params?: {}): Promise<import("./base/types.js").Dictionary<import("./base/types.js").MarketInterface>>;
     fetchMarkets(params?: {}): Promise<Market[]>;
-    parseMarket(market: any): Market;
+    parseMarket(market: Dict): Market;
     fetchTime(params?: {}): Promise<number>;
     parseTicker(ticker: Dict, market?: Market): Ticker;
     fetchTickers(symbols?: Strings, params?: {}): Promise<Tickers>;
@@ -60,7 +60,7 @@ export default class poloniex extends Exchange {
     parseDepositWithdrawFees(response: any, codes?: any, currencyIdKey?: any): Dict;
     parseDepositWithdrawFee(fee: any, currency?: Currency): any;
     fetchDeposits(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
-    parseTransactionStatus(status: any): string;
+    parseTransactionStatus(status: Str): string;
     parseTransaction(transaction: Dict, currency?: Currency): Transaction;
     nonce(): number;
     sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {
@@ -69,5 +69,5 @@ export default class poloniex extends Exchange {
         body: any;
         headers: any;
     };
-    handleErrors(code: any, reason: any, url: any, method: any, headers: any, body: any, response: any, requestHeaders: any, requestBody: any): any;
+    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): any;
 }

@@ -810,7 +810,7 @@ class bitrue(Exchange, ImplicitAPI):
             await self.load_time_difference()
         return self.parse_markets(markets)
 
-    def parse_market(self, market) -> Market:
+    def parse_market(self, market: dict) -> Market:
         id = self.safe_string(market, 'symbol')
         lowercaseId = self.safe_string_lower(market, 'symbol')
         side = self.safe_integer(market, 'side')  # 1 linear, 0 inverse, None spot
@@ -2962,7 +2962,7 @@ class bitrue(Exchange, ImplicitAPI):
                 url += '?' + self.urlencode(params)
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response, requestHeaders, requestBody):
         if (code == 418) or (code == 429):
             raise DDoSProtection(self.id + ' ' + str(code) + ' ' + reason + ' ' + body)
         # error response in a form: {"code": -1013, "msg": "Invalid quantity."}

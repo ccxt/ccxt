@@ -17,6 +17,10 @@ class binance extends binance$1 {
             'has': {
                 'ws': true,
                 'watchBalance': true,
+                'watchLiquidations': true,
+                'watchLiquidationsForSymbols': true,
+                'watchMyLiquidations': true,
+                'watchMyLiquidationsForSymbols': true,
                 'watchBidsAsks': true,
                 'watchMyTrades': true,
                 'watchOHLCV': true,
@@ -101,6 +105,8 @@ class binance extends binance$1 {
                 // get updates every 1000ms or 100ms
                 // or every 0ms in real-time for futures
                 'watchOrderBookRate': 100,
+                'liquidationsLimit': 1000,
+                'myLiquidationsLimit': 1000,
                 'tradesLimit': 1000,
                 'ordersLimit': 1000,
                 'OHLCVLimit': 1000,
@@ -124,6 +130,9 @@ class binance extends binance$1 {
                 'watchBalance': {
                     'fetchBalanceSnapshot': false,
                     'awaitBalanceSnapshot': true, // whether to wait for the balance snapshot before providing updates
+                },
+                'watchLiquidationsForSymbols': {
+                    'defaultType': 'swap',
                 },
                 'watchPositions': {
                     'fetchPositionsSnapshot': true,
@@ -178,6 +187,347 @@ class binance extends binance$1 {
             this.options['numSubscriptionsByStream'][stream] = subscriptionsByStream + numSubscriptions;
         }
         return stream;
+    }
+    async watchLiquidations(symbol, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name binance#watchLiquidations
+         * @description watch the public liquidations of a trading pair
+         * @see https://binance-docs.github.io/apidocs/futures/en/#liquidation-order-streams
+         * @see https://binance-docs.github.io/apidocs/delivery/en/#liquidation-order-streams
+         * @param {string} symbol unified CCXT market symbol
+         * @param {int} [since] the earliest time in ms to fetch liquidations for
+         * @param {int} [limit] the maximum number of liquidation structures to retrieve
+         * @param {object} [params] exchange specific parameters for the bitmex api endpoint
+         * @returns {object} an array of [liquidation structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure}
+         */
+        return this.watchLiquidationsForSymbols([symbol], since, limit, params);
+    }
+    async watchLiquidationsForSymbols(symbols = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name binance#watchLiquidationsForSymbols
+         * @description watch the public liquidations of a trading pair
+         * @see https://binance-docs.github.io/apidocs/futures/en/#all-market-liquidation-order-streams
+         * @see https://binance-docs.github.io/apidocs/delivery/en/#all-market-liquidation-order-streams
+         * @param {string} symbol unified CCXT market symbol
+         * @param {int} [since] the earliest time in ms to fetch liquidations for
+         * @param {int} [limit] the maximum number of liquidation structures to retrieve
+         * @param {object} [params] exchange specific parameters for the bitmex api endpoint
+         * @returns {object} an array of [liquidation structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure}
+         */
+        await this.loadMarkets();
+        const subscriptionHashes = [];
+        const messageHashes = [];
+        let streamHash = 'liquidations';
+        symbols = this.marketSymbols(symbols, undefined, true, true);
+        if (this.isEmpty(symbols)) {
+            subscriptionHashes.push('!' + 'forceOrder@arr');
+            messageHashes.push('liquidations');
+        }
+        else {
+            for (let i = 0; i < symbols.length; i++) {
+                const market = this.market(symbols[i]);
+                subscriptionHashes.push(market['id'] + '@forceOrder');
+                messageHashes.push('liquidations::' + symbols[i]);
+            }
+            streamHash += '::' + symbols.join(',');
+        }
+        const firstMarket = this.getMarketFromSymbols(symbols);
+        let type = undefined;
+        [type, params] = this.handleMarketTypeAndParams('watchLiquidationsForSymbols', firstMarket, params);
+        if (type === 'spot') {
+            throw new errors.BadRequest(this.id + 'watchLiquidationsForSymbols is not supported for swap symbols');
+        }
+        let subType = undefined;
+        [subType, params] = this.handleSubTypeAndParams('watchLiquidationsForSymbols', firstMarket, params);
+        if (this.isLinear(type, subType)) {
+            type = 'future';
+        }
+        else if (this.isInverse(type, subType)) {
+            type = 'delivery';
+        }
+        const numSubscriptions = subscriptionHashes.length;
+        const url = this.urls['api']['ws'][type] + '/' + this.stream(type, streamHash, numSubscriptions);
+        const requestId = this.requestId(url);
+        const request = {
+            'method': 'SUBSCRIBE',
+            'params': subscriptionHashes,
+            'id': requestId,
+        };
+        const subscribe = {
+            'id': requestId,
+        };
+        const newLiquidations = await this.watchMultiple(url, messageHashes, this.extend(request, params), subscriptionHashes, subscribe);
+        if (this.newUpdates) {
+            return newLiquidations;
+        }
+        return this.filterBySymbolsSinceLimit(this.liquidations, symbols, since, limit, true);
+    }
+    handleLiquidation(client, message) {
+        //
+        // future
+        //    {
+        //        "e":"forceOrder",
+        //        "E":1698871323061,
+        //        "o":{
+        //           "s":"BTCUSDT",
+        //           "S":"BUY",
+        //           "o":"LIMIT",
+        //           "f":"IOC",
+        //           "q":"1.437",
+        //           "p":"35100.81",
+        //           "ap":"34959.70",
+        //           "X":"FILLED",
+        //           "l":"1.437",
+        //           "z":"1.437",
+        //           "T":1698871323059
+        //        }
+        //    }
+        // delivery
+        //    {
+        //        "e":"forceOrder",              // Event Type
+        //        "E": 1591154240950,            // Event Time
+        //        "o":{
+        //            "s":"BTCUSD_200925",       // Symbol
+        //            "ps": "BTCUSD",            // Pair
+        //            "S":"SELL",                // Side
+        //            "o":"LIMIT",               // Order Type
+        //            "f":"IOC",                 // Time in Force
+        //            "q":"1",                   // Original Quantity
+        //            "p":"9425.5",              // Price
+        //            "ap":"9496.5",             // Average Price
+        //            "X":"FILLED",              // Order Status
+        //            "l":"1",                   // Order Last Filled Quantity
+        //            "z":"1",                   // Order Filled Accumulated Quantity
+        //            "T": 1591154240949,        // Order Trade Time
+        //        }
+        //    }
+        //
+        const rawLiquidation = this.safeValue(message, 'o', {});
+        const marketId = this.safeString(rawLiquidation, 's');
+        const market = this.safeMarket(marketId, undefined, '', 'contract');
+        const symbol = market['symbol'];
+        const liquidation = this.parseWsLiquidation(rawLiquidation, market);
+        let liquidations = this.safeValue(this.liquidations, symbol);
+        if (liquidations === undefined) {
+            const limit = this.safeInteger(this.options, 'liquidationsLimit', 1000);
+            liquidations = new Cache.ArrayCache(limit);
+        }
+        liquidations.append(liquidation);
+        this.liquidations[symbol] = liquidations;
+        client.resolve([liquidation], 'liquidations');
+        client.resolve([liquidation], 'liquidations::' + symbol);
+    }
+    parseWsLiquidation(liquidation, market = undefined) {
+        //
+        // future
+        //    {
+        //        "s":"BTCUSDT",
+        //        "S":"BUY",
+        //        "o":"LIMIT",
+        //        "f":"IOC",
+        //        "q":"1.437",
+        //        "p":"35100.81",
+        //        "ap":"34959.70",
+        //        "X":"FILLED",
+        //        "l":"1.437",
+        //        "z":"1.437",
+        //        "T":1698871323059
+        //    }
+        // delivery
+        //    {
+        //        "s":"BTCUSD_200925",       // Symbol
+        //        "ps": "BTCUSD",            // Pair
+        //        "S":"SELL",                // Side
+        //        "o":"LIMIT",               // Order Type
+        //        "f":"IOC",                 // Time in Force
+        //        "q":"1",                   // Original Quantity
+        //        "p":"9425.5",              // Price
+        //        "ap":"9496.5",             // Average Price
+        //        "X":"FILLED",              // Order Status
+        //        "l":"1",                   // Order Last Filled Quantity
+        //        "z":"1",                   // Order Filled Accumulated Quantity
+        //        "T": 1591154240949,        // Order Trade Time
+        //    }
+        // myLiquidation
+        //    {
+        //        "s":"BTCUSDT",              // Symbol
+        //        "c":"TEST",                 // Client Order Id
+        //          // special client order id:
+        //          // starts with "autoclose-": liquidation order
+        //          // "adl_autoclose": ADL auto close order
+        //          // "settlement_autoclose-": settlement order for delisting or delivery
+        //        "S":"SELL",                 // Side
+        //        "o":"TRAILING_STOP_MARKET", // Order Type
+        //        "f":"GTC",                  // Time in Force
+        //        "q":"0.001",                // Original Quantity
+        //        "p":"0",                    // Original Price
+        //        "ap":"0",                   // Average Price
+        //        "sp":"7103.04",             // Stop Price. Please ignore with TRAILING_STOP_MARKET order
+        //        "x":"NEW",                  // Execution Type
+        //        "X":"NEW",                  // Order Status
+        //        "i":8886774,                // Order Id
+        //        "l":"0",                    // Order Last Filled Quantity
+        //        "z":"0",                    // Order Filled Accumulated Quantity
+        //        "L":"0",                    // Last Filled Price
+        //        "N":"USDT",                 // Commission Asset, will not push if no commission
+        //        "n":"0",                    // Commission, will not push if no commission
+        //        "T":1568879465650,          // Order Trade Time
+        //        "t":0,                      // Trade Id
+        //        "b":"0",                    // Bids Notional
+        //        "a":"9.91",                 // Ask Notional
+        //        "m":false,                  // Is this trade the maker side?
+        //        "R":false,                  // Is this reduce only
+        //        "wt":"CONTRACT_PRICE",      // Stop Price Working Type
+        //        "ot":"TRAILING_STOP_MARKET",// Original Order Type
+        //        "ps":"LONG",                // Position Side
+        //        "cp":false,                 // If Close-All, pushed with conditional order
+        //        "AP":"7476.89",             // Activation Price, only puhed with TRAILING_STOP_MARKET order
+        //        "cr":"5.0",                 // Callback Rate, only puhed with TRAILING_STOP_MARKET order
+        //        "pP": false,                // If price protection is turned on
+        //        "si": 0,                    // ignore
+        //        "ss": 0,                    // ignore
+        //        "rp":"0",                   // Realized Profit of the trade
+        //        "V":"EXPIRE_TAKER",         // STP mode
+        //        "pm":"OPPONENT",            // Price match mode
+        //        "gtd":0                     // TIF GTD order auto cancel time
+        //    }
+        //
+        const marketId = this.safeString(liquidation, 's');
+        market = this.safeMarket(marketId, market);
+        const timestamp = this.safeInteger(liquidation, 'T');
+        return this.safeLiquidation({
+            'info': liquidation,
+            'symbol': this.safeSymbol(marketId, market),
+            'contracts': this.safeNumber(liquidation, 'l'),
+            'contractSize': this.safeNumber(market, 'contractSize'),
+            'price': this.safeNumber(liquidation, 'ap'),
+            'baseValue': undefined,
+            'quoteValue': undefined,
+            'timestamp': timestamp,
+            'datetime': this.iso8601(timestamp),
+        });
+    }
+    async watchMyLiquidations(symbol, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name binance#watchMyLiquidations
+         * @description watch the private liquidations of a trading pair
+         * @see https://binance-docs.github.io/apidocs/futures/en/#event-order-update
+         * @see https://binance-docs.github.io/apidocs/delivery/en/#event-order-update
+         * @param {string} symbol unified CCXT market symbol
+         * @param {int} [since] the earliest time in ms to fetch liquidations for
+         * @param {int} [limit] the maximum number of liquidation structures to retrieve
+         * @param {object} [params] exchange specific parameters for the bitmex api endpoint
+         * @returns {object} an array of [liquidation structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure}
+         */
+        return this.watchMyLiquidationsForSymbols([symbol], since, limit, params);
+    }
+    async watchMyLiquidationsForSymbols(symbols, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name binance#watchMyLiquidationsForSymbols
+         * @description watch the private liquidations of a trading pair
+         * @see https://binance-docs.github.io/apidocs/futures/en/#event-order-update
+         * @see https://binance-docs.github.io/apidocs/delivery/en/#event-order-update
+         * @param {string} symbol unified CCXT market symbol
+         * @param {int} [since] the earliest time in ms to fetch liquidations for
+         * @param {int} [limit] the maximum number of liquidation structures to retrieve
+         * @param {object} [params] exchange specific parameters for the bitmex api endpoint
+         * @returns {object} an array of [liquidation structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure}
+         */
+        await this.loadMarkets();
+        symbols = this.marketSymbols(symbols, undefined, true, true, true);
+        const market = this.getMarketFromSymbols(symbols);
+        const messageHashes = ['myLiquidations'];
+        if (!this.isEmpty(symbols)) {
+            for (let i = 0; i < symbols.length; i++) {
+                const symbol = symbols[i];
+                messageHashes.push('myLiquidations::' + symbol);
+            }
+        }
+        let type = undefined;
+        [type, params] = this.handleMarketTypeAndParams('watchMyLiquidationsForSymbols', market, params);
+        let subType = undefined;
+        [subType, params] = this.handleSubTypeAndParams('watchMyLiquidationsForSymbols', market, params);
+        if (this.isLinear(type, subType)) {
+            type = 'future';
+        }
+        else if (this.isInverse(type, subType)) {
+            type = 'delivery';
+        }
+        await this.authenticate(params);
+        const url = this.urls['api']['ws'][type] + '/' + this.options[type]['listenKey'];
+        const message = undefined;
+        const newLiquidations = await this.watchMultiple(url, messageHashes, message, [type]);
+        if (this.newUpdates) {
+            return newLiquidations;
+        }
+        return this.filterBySymbolsSinceLimit(this.liquidations, symbols, since, limit);
+    }
+    handleMyLiquidation(client, message) {
+        //
+        //    {
+        //        "s":"BTCUSDT",              // Symbol
+        //        "c":"TEST",                 // Client Order Id
+        //          // special client order id:
+        //          // starts with "autoclose-": liquidation order
+        //          // "adl_autoclose": ADL auto close order
+        //          // "settlement_autoclose-": settlement order for delisting or delivery
+        //        "S":"SELL",                 // Side
+        //        "o":"TRAILING_STOP_MARKET", // Order Type
+        //        "f":"GTC",                  // Time in Force
+        //        "q":"0.001",                // Original Quantity
+        //        "p":"0",                    // Original Price
+        //        "ap":"0",                   // Average Price
+        //        "sp":"7103.04",             // Stop Price. Please ignore with TRAILING_STOP_MARKET order
+        //        "x":"NEW",                  // Execution Type
+        //        "X":"NEW",                  // Order Status
+        //        "i":8886774,                // Order Id
+        //        "l":"0",                    // Order Last Filled Quantity
+        //        "z":"0",                    // Order Filled Accumulated Quantity
+        //        "L":"0",                    // Last Filled Price
+        //        "N":"USDT",                 // Commission Asset, will not push if no commission
+        //        "n":"0",                    // Commission, will not push if no commission
+        //        "T":1568879465650,          // Order Trade Time
+        //        "t":0,                      // Trade Id
+        //        "b":"0",                    // Bids Notional
+        //        "a":"9.91",                 // Ask Notional
+        //        "m":false,                  // Is this trade the maker side?
+        //        "R":false,                  // Is this reduce only
+        //        "wt":"CONTRACT_PRICE",      // Stop Price Working Type
+        //        "ot":"TRAILING_STOP_MARKET",// Original Order Type
+        //        "ps":"LONG",                // Position Side
+        //        "cp":false,                 // If Close-All, pushed with conditional order
+        //        "AP":"7476.89",             // Activation Price, only puhed with TRAILING_STOP_MARKET order
+        //        "cr":"5.0",                 // Callback Rate, only puhed with TRAILING_STOP_MARKET order
+        //        "pP": false,                // If price protection is turned on
+        //        "si": 0,                    // ignore
+        //        "ss": 0,                    // ignore
+        //        "rp":"0",                   // Realized Profit of the trade
+        //        "V":"EXPIRE_TAKER",         // STP mode
+        //        "pm":"OPPONENT",            // Price match mode
+        //        "gtd":0                     // TIF GTD order auto cancel time
+        //    }
+        //
+        const orderType = this.safeString(message, 'o');
+        if (orderType !== 'LIQUIDATION') {
+            return;
+        }
+        const marketId = this.safeString(message, 's');
+        const market = this.safeMarket(marketId);
+        const symbol = this.safeSymbol(marketId);
+        const liquidation = this.parseWsLiquidation(message, market);
+        let myLiquidations = this.safeValue(this.myLiquidations, symbol);
+        if (myLiquidations === undefined) {
+            const limit = this.safeInteger(this.options, 'myLiquidationsLimit', 1000);
+            myLiquidations = new Cache.ArrayCache(limit);
+        }
+        myLiquidations.append(liquidation);
+        this.myLiquidations[symbol] = myLiquidations;
+        client.resolve([liquidation], 'myLiquidations');
+        client.resolve([liquidation], 'myLiquidations::' + symbol);
     }
     async watchOrderBook(symbol, limit = undefined, params = {}) {
         /**
@@ -2818,6 +3168,7 @@ class binance extends binance$1 {
         }
         this.handleMyTrade(client, message);
         this.handleOrder(client, message);
+        this.handleMyLiquidation(client, message);
     }
     async watchPositions(symbols = undefined, since = undefined, limit = undefined, params = {}) {
         /**
@@ -3436,6 +3787,7 @@ class binance extends binance$1 {
             'ACCOUNT_UPDATE': this.handleAcountUpdate,
             'executionReport': this.handleOrderUpdate,
             'ORDER_TRADE_UPDATE': this.handleOrderUpdate,
+            'forceOrder': this.handleLiquidation,
         };
         let event = this.safeString(message, 'e');
         if (Array.isArray(message)) {

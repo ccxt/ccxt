@@ -6,7 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.coinex import ImplicitAPI
 import asyncio
-from ccxt.base.types import Balances, Currencies, Currency, Int, IsolatedBorrowRate, Leverage, Leverages, LeverageTier, LeverageTiers, MarginModification, Market, Num, Order, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry, TransferEntries
+from ccxt.base.types import Balances, Currencies, Currency, Int, IsolatedBorrowRate, Leverage, LeverageTier, LeverageTiers, MarginModification, Market, Num, Order, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry, TransferEntries
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -91,8 +91,8 @@ class coinex(Exchange, ImplicitAPI):
                 'fetchIndexOHLCV': False,
                 'fetchIsolatedBorrowRate': True,
                 'fetchIsolatedBorrowRates': False,
-                'fetchLeverage': 'emulated',
-                'fetchLeverages': True,
+                'fetchLeverage': True,
+                'fetchLeverages': False,
                 'fetchLeverageTiers': True,
                 'fetchMarginAdjustmentHistory': True,
                 'fetchMarketLeverageTiers': 'emulated',
@@ -4422,7 +4422,7 @@ class coinex(Exchange, ImplicitAPI):
         transaction = self.safe_dict(response, 'data', {})
         return self.parse_transaction(transaction, currency)
 
-    def parse_transaction_status(self, status):
+    def parse_transaction_status(self, status: Str):
         statuses: dict = {
             'audit': 'pending',
             'pass': 'pending',
@@ -5200,57 +5200,61 @@ class coinex(Exchange, ImplicitAPI):
                     }
         return result
 
-    async def fetch_leverages(self, symbols: Strings = None, params={}) -> Leverages:
+    async def fetch_leverage(self, symbol: str, params={}) -> Leverage:
         """
-        fetch the set leverage for all contract and margin markets
-        :see: https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot002_account007_margin_account_settings
-        :param str[] [symbols]: a list of unified market symbols
+        fetch the set leverage for a market
+        :see: https://docs.coinex.com/api/v2/assets/loan-flat/http/list-margin-interest-limit
+        :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a list of `leverage structures <https://docs.ccxt.com/#/?id=leverage-structure>`
+        :param str params['code']: unified currency code
+        :returns dict: a `leverage structure <https://docs.ccxt.com/#/?id=leverage-structure>`
         """
         await self.load_markets()
-        symbols = self.market_symbols(symbols)
-        market = None
-        if symbols is not None:
-            symbol = self.safe_value(symbols, 0)
-            market = self.market(symbol)
-        marketType = None
-        marketType, params = self.handle_market_type_and_params('fetchLeverages', market, params)
-        if marketType != 'spot':
-            raise NotSupported(self.id + ' fetchLeverages() supports spot margin markets only')
-        response = await self.v1PrivateGetMarginConfig(params)
+        code = self.safe_string(params, 'code')
+        if code is None:
+            raise ArgumentsRequired(self.id + ' fetchLeverage() requires a code parameter')
+        params = self.omit(params, 'code')
+        currency = self.currency(code)
+        market = self.market(symbol)
+        request: dict = {
+            'market': market['id'],
+            'ccy': currency['id'],
+        }
+        response = await self.v2PrivateGetAssetsMarginInterestLimit(self.extend(request, params))
         #
         #     {
         #         "code": 0,
-        #         "data": [
-        #             {
-        #                 "market": "BTCUSDT",
-        #                 "leverage": 10,
-        #                 "BTC": {
-        #                     "min_amount": "0.0008",
-        #                     "max_amount": "200",
-        #                     "day_rate": "0.0015"
-        #                 },
-        #                 "USDT": {
-        #                     "min_amount": "50",
-        #                     "max_amount": "500000",
-        #                     "day_rate": "0.001"
-        #                 }
-        #             },
-        #         ],
-        #         "message": "Success"
+        #         "data": {
+        #             "market": "BTCUSDT",
+        #             "ccy": "USDT",
+        #             "leverage": 10,
+        #             "min_amount": "50",
+        #             "max_amount": "500000",
+        #             "daily_interest_rate": "0.001"
+        #         },
+        #         "message": "OK"
         #     }
         #
-        leverages = self.safe_list(response, 'data', [])
-        return self.parse_leverages(leverages, symbols, 'market', marketType)
+        data = self.safe_dict(response, 'data', {})
+        return self.parse_leverage(data, market)
 
     def parse_leverage(self, leverage: dict, market: Market = None) -> Leverage:
+        #
+        #     {
+        #         "market": "BTCUSDT",
+        #         "ccy": "USDT",
+        #         "leverage": 10,
+        #         "min_amount": "50",
+        #         "max_amount": "500000",
+        #         "daily_interest_rate": "0.001"
+        #     }
+        #
         marketId = self.safe_string(leverage, 'market')
         leverageValue = self.safe_integer(leverage, 'leverage')
         return {
             'info': leverage,
             'symbol': self.safe_symbol(marketId, market, None, 'spot'),
-            'marginMode': None,
+            'marginMode': 'isolated',
             'longLeverage': leverageValue,
             'shortLeverage': leverageValue,
         }
@@ -5437,7 +5441,7 @@ class coinex(Exchange, ImplicitAPI):
                         url += '?' + urlencoded
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody):
+    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response, requestHeaders, requestBody):
         if response is None:
             return None
         code = self.safe_string(response, 'code')

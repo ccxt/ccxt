@@ -1611,7 +1611,7 @@ class bitso(Exchange, ImplicitAPI):
             'info': transaction,
         }
 
-    def parse_transaction_status(self, status):
+    def parse_transaction_status(self, status: Str):
         statuses: dict = {
             'pending': 'pending',
             'in_progress': 'pending',
@@ -1646,7 +1646,7 @@ class bitso(Exchange, ImplicitAPI):
             }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody):
+    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response, requestHeaders, requestBody):
         if response is None:
             return None  # fallback to default error handler
         if 'success' in response:

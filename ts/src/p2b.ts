@@ -5,7 +5,7 @@ import { Market } from '../ccxt.js';
 import Exchange from './abstract/p2b.js';
 import { InsufficientFunds, AuthenticationError, BadRequest, ExchangeNotAvailable, ArgumentsRequired } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Dict, Int, Num, OHLCV, Order, OrderSide, OrderType, Str, Strings, Ticker, Tickers } from './base/types.js';
+import type { Dict, Int, Num, OHLCV, Order, OrderSide, OrderType, Str, Strings, Ticker, Tickers, int } from './base/types.js';
 import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
 
 // ---------------------------------------------------------------------------
@@ -280,7 +280,7 @@ export default class p2b extends Exchange {
         return this.parseMarkets (markets);
     }
 
-    parseMarket (market): Market {
+    parseMarket (market: Dict): Market {
         const marketId = this.safeString (market, 'name');
         const baseId = this.safeString (market, 'stock');
         const quoteId = this.safeString (market, 'money');
@@ -1255,7 +1255,7 @@ export default class p2b extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+    handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response, requestHeaders, requestBody) {
         if (response === undefined) {
             return undefined;
         }

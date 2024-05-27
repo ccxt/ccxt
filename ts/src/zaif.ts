@@ -6,7 +6,7 @@ import { ExchangeError, BadRequest } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
-import type { Balances, Currency, Dict, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade, Transaction } from './base/types.js';
+import type { Balances, Currency, Dict, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade, Transaction, int } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -177,7 +177,7 @@ export default class zaif extends Exchange {
         return this.parseMarkets (markets);
     }
 
-    parseMarket (market): Market {
+    parseMarket (market: Dict): Market {
         const id = this.safeString (market, 'currency_pair');
         const name = this.safeString (market, 'name');
         const [ baseId, quoteId ] = name.split ('/');
@@ -730,7 +730,7 @@ export default class zaif extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    handleErrors (httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+    handleErrors (httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response, requestHeaders, requestBody) {
         if (response === undefined) {
             return undefined;
         }

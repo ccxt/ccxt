@@ -1,5 +1,5 @@
 import Exchange from './abstract/cex.js';
-import type { Balances, Currencies, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees } from './base/types.js';
+import type { Balances, Currencies, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, int } from './base/types.js';
 /**
  * @class cex
  * @augments Exchange
@@ -44,5 +44,5 @@ export default class cex extends Exchange {
         body: any;
         headers: any;
     };
-    handleErrors(code: any, reason: any, url: any, method: any, headers: any, body: any, response: any, requestHeaders: any, requestBody: any): any[];
+    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): any[];
 }

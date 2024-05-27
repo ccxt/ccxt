@@ -262,6 +262,7 @@ class binance(Exchange, ImplicitAPI):
                         'system/status': 0.1,
                         # these endpoints require self.apiKey
                         'accountSnapshot': 240,  # Weight(IP): 2400 => cost = 0.1 * 2400 = 240
+                        'account/info': 0.1,
                         'margin/asset': 1,  # Weight(IP): 10 => cost = 0.1 * 10 = 1
                         'margin/pair': 1,
                         'margin/allAssets': 0.1,
@@ -3042,7 +3043,7 @@ class binance(Exchange, ImplicitAPI):
             result.append(self.parse_market(markets[i]))
         return result
 
-    def parse_market(self, market) -> Market:
+    def parse_market(self, market: dict) -> Market:
         swap = False
         future = False
         option = False
@@ -4749,7 +4750,7 @@ class binance(Exchange, ImplicitAPI):
         cancelId = self.safe_string_2(params, 'cancelNewClientOrderId', 'cancelOrigClientOrderId')
         if cancelId is None:
             request['cancelOrderId'] = id  # user can provide either cancelOrderId, cancelOrigClientOrderId or cancelOrigClientOrderId
-        # remove timeInForce from params because PO is only used by self.is_post_onlyand it's not a valid value for Binance
+        # remove timeInForce from params because PO is only used by self.is_post_only and it's not a valid value for Binance
         if self.safe_string(params, 'timeInForce') == 'PO':
             params = self.omit(params, ['timeInForce'])
         params = self.omit(params, ['quoteOrderQty', 'cost', 'stopPrice', 'newClientOrderId', 'clientOrderId', 'postOnly'])
@@ -5809,7 +5810,7 @@ class binance(Exchange, ImplicitAPI):
             request['timeInForce'] = self.options['defaultTimeInForce']  # 'GTC' = Good To Cancel(default), 'IOC' = Immediate Or Cancel
         if not isPortfolioMargin and market['contract'] and postOnly:
             request['timeInForce'] = 'GTX'
-        # remove timeInForce from params because PO is only used by self.is_post_onlyand it's not a valid value for Binance
+        # remove timeInForce from params because PO is only used by self.is_post_only and it's not a valid value for Binance
         if self.safe_string(params, 'timeInForce') == 'PO':
             params = self.omit(params, 'timeInForce')
         requestParams = self.omit(params, ['type', 'newClientOrderId', 'clientOrderId', 'postOnly', 'stopLossPrice', 'takeProfitPrice', 'stopPrice', 'triggerPrice', 'trailingTriggerPrice', 'trailingPercent', 'quoteOrderQty', 'cost', 'test'])
@@ -10224,7 +10225,7 @@ class binance(Exchange, ImplicitAPI):
                 url += '?' + self.urlencode(params)
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def get_exceptions_by_url(self, url, exactOrBroad):
+    def get_exceptions_by_url(self, url: str, exactOrBroad: str):
         marketType = None
         hostname = self.hostname if (self.hostname is not None) else 'binance.com'
         if url.startswith('https://api.' + hostname + '/'):
@@ -10242,7 +10243,7 @@ class binance(Exchange, ImplicitAPI):
             return self.safe_dict(exceptionsForMarketType, exactOrBroad, {})
         return {}
 
-    def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response, requestHeaders, requestBody):
         if (code == 418) or (code == 429):
             raise DDoSProtection(self.id + ' ' + str(code) + ' ' + reason + ' ' + body)
         # error response in a form: {"code": -1013, "msg": "Invalid quantity."}

@@ -1285,10 +1285,10 @@ public partial class coinex
         return ((Dictionary<string, object>)res);
     }
     /// <summary>
-    /// fetch the set leverage for all contract and margin markets
+    /// fetch the set leverage for a market
     /// </summary>
     /// <remarks>
-    /// See <see href="https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot002_account007_margin_account_settings"/>  <br/>
+    /// See <see href="https://docs.coinex.com/api/v2/assets/loan-flat/http/list-margin-interest-limit"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -1298,11 +1298,11 @@ public partial class coinex
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> a list of [leverage structures]{@link https://docs.ccxt.com/#/?id=leverage-structure}.</returns>
-    public async Task<Leverages> FetchLeverages(List<String> symbols = null, Dictionary<string, object> parameters = null)
+    /// <returns> <term>object</term> a [leverage structure]{@link https://docs.ccxt.com/#/?id=leverage-structure}.</returns>
+    public async Task<Leverage> FetchLeverage(string symbol, Dictionary<string, object> parameters = null)
     {
-        var res = await this.fetchLeverages(symbols, parameters);
-        return new Leverages(res);
+        var res = await this.fetchLeverage(symbol, parameters);
+        return new Leverage(res);
     }
     /// <summary>
     /// fetches historical positions

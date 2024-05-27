@@ -6,7 +6,7 @@ import { AccountNotEnabled, ArgumentsRequired, AuthenticationError, ExchangeErro
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE, TRUNCATE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { TransferEntry, Int, OrderSide, OrderType, Order, OHLCV, Trade, FundingRateHistory, Balances, Str, Dict, Transaction, Ticker, OrderBook, Tickers, OrderRequest, Strings, Market, Currency, Num, Account, TradingFeeInterface, Currencies, IsolatedBorrowRates, IsolatedBorrowRate, LeverageTiers, LeverageTier } from './base/types.js';
+import type { TransferEntry, Int, OrderSide, OrderType, Order, OHLCV, Trade, FundingRateHistory, Balances, Str, Dict, Transaction, Ticker, OrderBook, Tickers, OrderRequest, Strings, Market, Currency, Num, Account, TradingFeeInterface, Currencies, IsolatedBorrowRates, IsolatedBorrowRate, LeverageTiers, LeverageTier, int } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -6351,7 +6351,7 @@ export default class htx extends Exchange {
         };
     }
 
-    parseTransactionStatus (status) {
+    parseTransactionStatus (status: Str) {
         const statuses: Dict = {
             // deposit statuses
             'unknown': 'failed',
@@ -7101,7 +7101,7 @@ export default class htx extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    handleErrors (httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+    handleErrors (httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response, requestHeaders, requestBody) {
         if (response === undefined) {
             return undefined; // fallback to default error handler
         }

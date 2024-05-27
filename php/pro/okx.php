@@ -27,6 +27,10 @@ class okx extends \ccxt\async\okx {
                 'watchTradesForSymbols' => true,
                 'watchOrderBookForSymbols' => true,
                 'watchBalance' => true,
+                'watchLiquidations' => 'emulated',
+                'watchLiquidationsForSymbols' => true,
+                'watchMyLiquidations' => 'emulated',
+                'watchMyLiquidationsForSymbols' => true,
                 'watchOHLCV' => true,
                 'watchOHLCVForSymbols' => true,
                 'watchOrders' => true,
@@ -168,7 +172,7 @@ class okx extends \ccxt\async\okx {
                     $this->deep_extend($firstArgument, $params),
                 ),
             );
-            return Async\await($this->watch($url, $messageHash, $request, $messageHash));
+            return $this->watch($url, $messageHash, $request, $messageHash);
         }) ();
     }
 
@@ -441,6 +445,260 @@ class okx extends \ccxt\async\okx {
             }
         }
         return $message;
+    }
+
+    public function watch_liquidations_for_symbols(?array $symbols = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbols, $since, $limit, $params) {
+            /**
+             * watch the public liquidations of a trading pair
+             * @see https://www.okx.com/docs-v5/en/#public-data-websocket-liquidation-orders-$channel
+             * @param {string} symbol unified CCXT $market symbol
+             * @param {int} [$since] the earliest time in ms to fetch liquidations for
+             * @param {int} [$limit] the maximum number of liquidation structures to retrieve
+             * @param {array} [$params] exchange specific parameters for the okx api endpoint
+             * @return {array} an array of {@link https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure liquidation structures}
+             */
+            Async\await($this->load_markets());
+            $symbols = $this->market_symbols($symbols, null, true, true);
+            $messageHash = 'liquidations';
+            if ($symbols !== null) {
+                $messageHash .= '::' . implode(',', $symbols);
+            }
+            $market = $this->get_market_from_symbols($symbols);
+            $type = null;
+            list($type, $params) = $this->handle_market_type_and_params('watchliquidationsForSymbols', $market, $params);
+            $channel = 'liquidation-orders';
+            if ($type === 'spot') {
+                $type = 'SWAP';
+            } elseif ($type === 'future') {
+                $type = 'futures';
+            }
+            $uppercaseType = strtoupper($type);
+            $request = array(
+                'instType' => $uppercaseType,
+            );
+            $newLiquidations = Async\await($this->subscribe('public', $messageHash, $channel, null, $this->extend($request, $params)));
+            if ($this->newUpdates) {
+                return $newLiquidations;
+            }
+            return $this->filter_by_symbols_since_limit($this->liquidations, $symbols, $since, $limit, true);
+        }) ();
+    }
+
+    public function handle_liquidation(Client $client, $message) {
+        //
+        //    {
+        //        "arg" => array(
+        //            "channel" => "liquidation-orders",
+        //            "instType" => "SWAP"
+        //        ),
+        //        "data" => array(
+        //            {
+        //                "details" => array(
+        //                    {
+        //                        "bkLoss" => "0",
+        //                        "bkPx" => "0.007831",
+        //                        "ccy" => "",
+        //                        "posSide" => "short",
+        //                        "side" => "buy",
+        //                        "sz" => "13",
+        //                        "ts" => "1692266434010"
+        //                    }
+        //                ),
+        //                "instFamily" => "IOST-USDT",
+        //                "instId" => "IOST-USDT-SWAP",
+        //                "instType" => "SWAP",
+        //                "uly" => "IOST-USDT"
+        //            }
+        //        )
+        //    }
+        //
+        $rawLiquidations = $this->safe_list($message, 'data', array());
+        for ($i = 0; $i < count($rawLiquidations); $i++) {
+            $rawLiquidation = $rawLiquidations[$i];
+            $liquidation = $this->parse_ws_liquidation($rawLiquidation);
+            $symbol = $this->safe_string($liquidation, 'symbol');
+            $liquidations = $this->safe_value($this->liquidations, $symbol);
+            if ($liquidations === null) {
+                $limit = $this->safe_integer($this->options, 'liquidationsLimit', 1000);
+                $liquidations = new ArrayCache ($limit);
+            }
+            $liquidations->append ($liquidation);
+            $this->liquidations[$symbol] = $liquidations;
+            $client->resolve (array( $liquidation ), 'liquidations');
+            $client->resolve (array( $liquidation ), 'liquidations::' . $symbol);
+        }
+    }
+
+    public function watch_my_liquidations_for_symbols(?array $symbols = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbols, $since, $limit, $params) {
+            /**
+             * watch the private liquidations of a trading pair
+             * @see https://www.okx.com/docs-v5/en/#trading-account-websocket-balance-and-position-$channel
+             * @param {string} symbol unified CCXT market symbol
+             * @param {int} [$since] the earliest time in ms to fetch liquidations for
+             * @param {int} [$limit] the maximum number of liquidation structures to retrieve
+             * @param {array} [$params] exchange specific parameters for the okx api endpoint
+             * @return {array} an array of {@link https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure liquidation structures}
+             */
+            Async\await($this->load_markets());
+            $isStop = $this->safe_value_2($params, 'stop', 'trigger', false);
+            $params = $this->omit($params, array( 'stop', 'trigger' ));
+            Async\await($this->authenticate(array( 'access' => $isStop ? 'business' : 'private' )));
+            $symbols = $this->market_symbols($symbols, null, true, true);
+            $messageHash = 'myLiquidations';
+            if ($symbols !== null) {
+                $messageHash .= '::' . implode(',', $symbols);
+            }
+            $channel = 'balance_and_position';
+            $newLiquidations = Async\await($this->subscribe('private', $messageHash, $channel, null, $params));
+            if ($this->newUpdates) {
+                return $newLiquidations;
+            }
+            return $this->filter_by_symbols_since_limit($this->liquidations, $symbols, $since, $limit, true);
+        }) ();
+    }
+
+    public function handle_my_liquidation(Client $client, $message) {
+        //
+        //    {
+        //        "arg" => array(
+        //            "channel" => "balance_and_position",
+        //            "uid" => "77982378738415879"
+        //        ),
+        //        "data" => [array(
+        //            "pTime" => "1597026383085",
+        //            "eventType" => "snapshot",
+        //            "balData" => [array(
+        //                "ccy" => "BTC",
+        //                "cashBal" => "1",
+        //                "uTime" => "1597026383085"
+        //            )],
+        //            "posData" => [array(
+        //                "posId" => "1111111111",
+        //                "tradeId" => "2",
+        //                "instId" => "BTC-USD-191018",
+        //                "instType" => "FUTURES",
+        //                "mgnMode" => "cross",
+        //                "posSide" => "long",
+        //                "pos" => "10",
+        //                "ccy" => "BTC",
+        //                "posCcy" => "",
+        //                "avgPx" => "3320",
+        //                "uTIme" => "1597026383085"
+        //            )],
+        //            "trades" => [array(
+        //                "instId" => "BTC-USD-191018",
+        //                "tradeId" => "2",
+        //            )]
+        //        )]
+        //    }
+        //
+        $rawLiquidations = $this->safe_list($message, 'data', array());
+        for ($i = 0; $i < count($rawLiquidations); $i++) {
+            $rawLiquidation = $rawLiquidations[$i];
+            $eventType = $this->safe_string($rawLiquidation, 'eventType');
+            if ($eventType !== 'liquidation') {
+                return;
+            }
+            $liquidation = $this->parse_ws_my_liquidation($rawLiquidation);
+            $symbol = $this->safe_string($liquidation, 'symbol');
+            $liquidations = $this->safe_value($this->liquidations, $symbol);
+            if ($liquidations === null) {
+                $limit = $this->safe_integer($this->options, 'myLiquidationsLimit', 1000);
+                $liquidations = new ArrayCache ($limit);
+            }
+            $liquidations->append ($liquidation);
+            $this->liquidations[$symbol] = $liquidations;
+            $client->resolve (array( $liquidation ), 'myLiquidations');
+            $client->resolve (array( $liquidation ), 'myLiquidations::' . $symbol);
+        }
+    }
+
+    public function parse_ws_my_liquidation($liquidation, $market = null) {
+        //
+        //    {
+        //        "pTime" => "1597026383085",
+        //        "eventType" => "snapshot",
+        //        "balData" => [array(
+        //            "ccy" => "BTC",
+        //            "cashBal" => "1",
+        //            "uTime" => "1597026383085"
+        //        )],
+        //        "posData" => [array(
+        //            "posId" => "1111111111",
+        //            "tradeId" => "2",
+        //            "instId" => "BTC-USD-191018",
+        //            "instType" => "FUTURES",
+        //            "mgnMode" => "cross",
+        //            "posSide" => "long",
+        //            "pos" => "10",
+        //            "ccy" => "BTC",
+        //            "posCcy" => "",
+        //            "avgPx" => "3320",
+        //            "uTIme" => "1597026383085"
+        //        )],
+        //        "trades" => [array(
+        //            "instId" => "BTC-USD-191018",
+        //            "tradeId" => "2",
+        //        )]
+        //    }
+        //
+        $posData = $this->safe_list($liquidation, 'posData', array());
+        $firstPosData = $this->safe_dict($posData, 0, array());
+        $marketId = $this->safe_string($firstPosData, 'instId');
+        $market = $this->safe_market($marketId, $market);
+        $timestamp = $this->safe_integer($firstPosData, 'uTIme');
+        return $this->safe_liquidation(array(
+            'info' => $liquidation,
+            'symbol' => $this->safe_symbol($marketId, $market),
+            'contracts' => $this->safe_number($firstPosData, 'pos'),
+            'contractSize' => $this->safe_number($market, 'contractSize'),
+            'price' => $this->safe_number($liquidation, 'avgPx'),
+            'baseValue' => null,
+            'quoteValue' => null,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+        ));
+    }
+
+    public function parse_ws_liquidation($liquidation, $market = null) {
+        //
+        // public $liquidation
+        //    {
+        //        "details" => array(
+        //            {
+        //                "bkLoss" => "0",
+        //                "bkPx" => "0.007831",
+        //                "ccy" => "",
+        //                "posSide" => "short",
+        //                "side" => "buy",
+        //                "sz" => "13",
+        //                "ts" => "1692266434010"
+        //            }
+        //        ),
+        //        "instFamily" => "IOST-USDT",
+        //        "instId" => "IOST-USDT-SWAP",
+        //        "instType" => "SWAP",
+        //        "uly" => "IOST-USDT"
+        //    }
+        //
+        $details = $this->safe_list($liquidation, 'details', array());
+        $liquidationDetails = $this->safe_dict($details, 0, array());
+        $marketId = $this->safe_string($liquidation, 'instId');
+        $market = $this->safe_market($marketId, $market);
+        $timestamp = $this->safe_integer($liquidationDetails, 'ts');
+        return $this->safe_liquidation(array(
+            'info' => $liquidation,
+            'symbol' => $this->safe_symbol($marketId, $market),
+            'contracts' => $this->safe_number($liquidationDetails, 'sz'),
+            'contractSize' => $this->safe_number($market, 'contractSize'),
+            'price' => $this->safe_number($liquidationDetails, 'bkPx'),
+            'baseValue' => null,
+            'quoteValue' => null,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+        ));
     }
 
     public function watch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
@@ -908,6 +1166,10 @@ class okx extends \ccxt\async\okx {
             Async\await($this->authenticate());
             return Async\await($this->subscribe('private', 'account', 'account', null, $params));
         }) ();
+    }
+
+    public function handle_balance_and_position(Client $client, $message) {
+        $this->handle_my_liquidation($client, $message);
     }
 
     public function handle_balance(Client $client, $message) {
@@ -1769,6 +2031,8 @@ class okx extends \ccxt\async\okx {
                 // 'margin_account' => array($this, 'handle_balance'),
                 'orders' => array($this, 'handle_orders'),
                 'orders-algo' => array($this, 'handle_orders'),
+                'liquidation-orders' => array($this, 'handle_liquidation'),
+                'balance_and_position' => array($this, 'handle_balance_and_position'),
             );
             $method = $this->safe_value($methods, $channel);
             if ($method === null) {

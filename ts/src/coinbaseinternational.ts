@@ -6,7 +6,7 @@ import { ExchangeError, ArgumentsRequired, BadRequest, InvalidOrder, PermissionD
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { Int, OrderSide, OrderType, Order, Trade, Ticker, Str, Transaction, Balances, Tickers, Strings, Market, Currency, TransferEntry, Position, FundingRateHistory, Currencies, Dict } from './base/types.js';
+import type { Int, OrderSide, OrderType, Order, Trade, Ticker, Str, Transaction, Balances, Tickers, Strings, Market, Currency, TransferEntry, Position, FundingRateHistory, Currencies, Dict, int } from './base/types.js';
 
 // ----------------------------------------------------------------------------
 
@@ -869,7 +869,7 @@ export default class coinbaseinternational extends Exchange {
         return await this.fetchDepositsWithdrawals (code, since, limit, params);
     }
 
-    parseTransactionStatus (status) {
+    parseTransactionStatus (status: Str) {
         const statuses: Dict = {
             'PROCESSED': 'ok',
             'NEW': 'pending',
@@ -1032,7 +1032,7 @@ export default class coinbaseinternational extends Exchange {
         return this.parseMarkets (response);
     }
 
-    parseMarket (market): Market {
+    parseMarket (market: Dict): Market {
         //
         //   {
         //       "instrument_id":"149264164756389888",
@@ -2044,7 +2044,7 @@ export default class coinbaseinternational extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+    handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response, requestHeaders, requestBody) {
         //
         //    {
         //        "title":"io.javalin.http.BadRequestResponse: Order rejected (DUPLICATE_CLIENT_ORDER_ID - duplicate client order id detected)",

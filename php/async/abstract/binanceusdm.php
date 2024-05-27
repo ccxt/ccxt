@@ -13,6 +13,9 @@ abstract class binanceusdm extends \ccxt\async\binance {
     public function sapi_get_accountsnapshot($params = array()) {
         return $this->request('accountSnapshot', 'sapi', 'GET', $params, null, null, array("cost" => 240));
     }
+    public function sapi_get_account_info($params = array()) {
+        return $this->request('account/info', 'sapi', 'GET', $params, null, null, array("cost" => 0.1));
+    }
     public function sapi_get_margin_asset($params = array()) {
         return $this->request('margin/asset', 'sapi', 'GET', $params, null, null, array("cost" => 1));
     }
@@ -2121,6 +2124,9 @@ abstract class binanceusdm extends \ccxt\async\binance {
     }
     public function sapiGetAccountSnapshot($params = array()) {
         return $this->request('accountSnapshot', 'sapi', 'GET', $params, null, null, array("cost" => 240));
+    }
+    public function sapiGetAccountInfo($params = array()) {
+        return $this->request('account/info', 'sapi', 'GET', $params, null, null, array("cost" => 0.1));
     }
     public function sapiGetMarginAsset($params = array()) {
         return $this->request('margin/asset', 'sapi', 'GET', $params, null, null, array("cost" => 1));

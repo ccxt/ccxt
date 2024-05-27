@@ -1,5 +1,5 @@
 import Exchange from './abstract/paymium.js';
-import type { TransferEntry, Balances, Currency, Int, Market, OrderBook, OrderSide, OrderType, Str, Ticker, Trade, Num, Dict, Strings } from './base/types.js';
+import type { TransferEntry, Balances, Currency, Int, Market, OrderBook, OrderSide, OrderType, Str, Ticker, Trade, Num, Dict, Strings, int } from './base/types.js';
 /**
  * @class paymium
  * @augments Exchange
@@ -46,5 +46,5 @@ export default class paymium extends Exchange {
         body: any;
         headers: any;
     };
-    handleErrors(httpCode: any, reason: any, url: any, method: any, headers: any, body: any, response: any, requestHeaders: any, requestBody: any): any;
+    handleErrors(httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): any;
 }
