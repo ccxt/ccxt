@@ -395,6 +395,7 @@ export default class bitmex extends bitmexRest {
         const subscriptionHashes = [];
         if (this.isEmpty (symbols)) {
             subscriptionHashes.push ('liquidation');
+            messageHashes.push ('liquidations');
         } else {
             for (let i = 0; i < symbols.length; i++) {
                 const symbol = symbols[i];
