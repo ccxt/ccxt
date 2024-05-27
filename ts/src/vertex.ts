@@ -656,7 +656,7 @@ export default class vertex extends Exchange {
         const request = {
             'type': 'fee_rates',
             'sender': this.convertAddressToSender (this.walletAddress),
-        }
+        };
         const response = await this.v1GatewayGetQuery (this.extend (request, params));
         //
         // {
@@ -911,7 +911,7 @@ export default class vertex extends Exchange {
         //     }
         // }
         //
-        let keys = Object.keys (response);
+        const keys = Object.keys (response);
         const fundingRates = {};
         for (let i = 0; i < keys.length; i++) {
             const tickerId = keys[i];
@@ -971,7 +971,7 @@ export default class vertex extends Exchange {
          * @returns {object} an open interest structure{@link https://docs.ccxt.com/#/?id=open-interest-structure}
          */
         await this.loadMarkets ();
-        let market = this.market (symbol);
+        const market = this.market (symbol);
         if (!market['contract']) {
             throw new BadRequest (this.id + ' fetchOpenInterest() supports contract markets only');
         }
@@ -1096,7 +1096,7 @@ export default class vertex extends Exchange {
         }
         const request = {
             'type': 'contracts',
-        }; 
+        };
         const response = await this.v1GatewayGetQuery (this.extend (request, params));
         const data = this.safeDict (response, 'data', {});
         this.options['v1contracts'] = data;
@@ -1231,10 +1231,10 @@ export default class vertex extends Exchange {
         const chainId = this.safeString (contracts, 'chain_id');
         const bookAddresses = this.safeList (contracts, 'book_addrs', []);
         const verifyingContractAddress = this.safeString (bookAddresses, marketId);
-        let timeInForce = this.safeStringLower (params, 'timeInForce');
+        const timeInForce = this.safeStringLower (params, 'timeInForce');
         const postOnly = this.safeBool (params, 'postOnly', false);
         const reduceOnly = this.safeBool (params, 'reduceOnly', false);
-        let triggerPrice = this.safeString2 (params, 'triggerPrice', 'stopPrice');
+        const triggerPrice = this.safeString2 (params, 'triggerPrice', 'stopPrice');
         const stopLossPrice = this.safeString (params, 'stopLossPrice', triggerPrice);
         const takeProfitPrice = this.safeString (params, 'takeProfitPrice');
         const isTrigger = (stopLossPrice || takeProfitPrice);
@@ -1309,8 +1309,8 @@ export default class vertex extends Exchange {
         // {
         //     "status": "success",
         //     "signature": {signature},
-        //     "data": { 
-        //       "digest": {order digest} 
+        //     "data": {
+        //       "digest": {order digest}
         //     },
         //     "request_type": "execute_place_order"
         //     "id": 100
@@ -1384,7 +1384,7 @@ export default class vertex extends Exchange {
         let timestamp = this.safeTimestamp (order, 'placed_at');
         let amount = this.safeString (order, 'amount');
         let price = this.safeString (order, 'price_X18');
-        let remaining = this.safeString (order, 'unfilled_amount');
+        const remaining = this.safeString (order, 'unfilled_amount');
         let triggerPriceNum = undefined;
         const status = this.safeValue (order, 'status');
         if (status !== undefined) {
@@ -1394,7 +1394,7 @@ export default class vertex extends Exchange {
             marketId = this.safeString (outerOrder, 'product_id');
             amount = this.safeString (innerOrder, 'amount');
             price = this.safeString (innerOrder, 'priceX18');
-            timestamp = this.safeTimestamp(order, 'updated_at');
+            timestamp = this.safeTimestamp (order, 'updated_at');
             const trigger = this.safeDict (outerOrder, 'trigger', {});
             const triggerPrice = this.safeStringN (trigger, [ 'price_above', 'price_below', 'last_price_above', 'last_price_below' ]);
             if (triggerPrice !== undefined) {
@@ -1706,7 +1706,7 @@ export default class vertex extends Exchange {
         const chainId = this.safeString (contracts, 'chain_id');
         const verifyingContractAddress = this.safeString (contracts, 'endpoint_addr');
         const now = this.nonce ();
-        const nonce = this.getNonce(now, 90000);
+        const nonce = this.getNonce (now, 90000);
         const cancels = {
             'sender': this.convertAddressToSender (this.walletAddress),
             'nonce': nonce,
@@ -1803,7 +1803,7 @@ export default class vertex extends Exchange {
         const chainId = this.safeString (contracts, 'chain_id');
         const verifyingContractAddress = this.safeString (contracts, 'endpoint_addr');
         const now = this.nonce ();
-        const nonce = this.getNonce(now, 90000);
+        const nonce = this.getNonce (now, 90000);
         const cancels = {
             'sender': this.convertAddressToSender (this.walletAddress),
             'nonce': nonce,
@@ -2213,7 +2213,7 @@ export default class vertex extends Exchange {
         const request = {
             'type': 'nonces',
             'address': this.walletAddress,
-        }
+        };
         const response = await this.v1GatewayGetQuery (request);
         //
         // {
