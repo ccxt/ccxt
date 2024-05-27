@@ -316,8 +316,8 @@ export default class bingx extends bingxRest {
         let interval = undefined;
         [ interval, params ] = this.handleOptionAndParams (params, 'watchOrderBookForSymbols', 'interval', 500);
         this.checkRequiredArgument ('watchOrderBookForSymbols', interval, 'interval', [ 100, 200, 500, 1000 ]);
-        const channelName = 'depth' + limit.toString ();
-        const subscriptionHash = 'all@' + channelName + '@' + interval.toString () + 'ms';
+        const channelName = 'depth' + limit.toString () + '@' + interval.toString () + 'ms';
+        const subscriptionHash = 'all@' + channelName;
         const messageHashes = [];
         if (symbolsDefined) {
             for (let i = 0; i < symbols.length; i++) {
@@ -572,7 +572,7 @@ export default class bingx extends bingxRest {
         //
         //    {
         //        "code": 0,
-        //        "dataType": "BTC-USDT@depth20",
+        //        "dataType": "BTC-USDT@depth20@100ms", //or "all@depth20@100ms"
         //        "data": {
         //          "bids": [
         //            [ '28852.9', "34.2621" ],
@@ -581,20 +581,22 @@ export default class bingx extends bingxRest {
         //          "asks": [
         //            [ '28864.9', "23.4079" ],
         //            ...
-        //          ]
+        //          ],
+        //          "symbol": "BTC-USDT", // this key exists only in "all" subscription
         //        }
         //    }
         //
         const data = this.safeDict (message, 'data', {});
         const dataType = this.safeString (message, 'dataType');
         const parts = dataType.split ('@');
-        const marketId = parts[0];
-        const channelName = dataType.replace (marketId + '@', '');
+        const firstPart = parts[0];
+        const isAllEndpoint = (firstPart === 'all');
+        const marketId = this.safeString (data, 'symbol', firstPart);
+        const channelName = dataType.replace (firstPart + '@', '');
         const isSwap = client.url.indexOf ('swap') >= 0;
         const marketType = isSwap ? 'swap' : 'spot';
         const market = this.safeMarket (marketId, undefined, undefined, marketType);
         const symbol = market['symbol'];
-        const messageHash = this.getMessageHash ('orderbook', channelName, symbol);
         if (this.safeValue (this.orderbooks, symbol) === undefined) {
             // const limit = [ 5, 10, 20, 50, 100 ]
             const subscriptionHash = dataType;
@@ -606,7 +608,13 @@ export default class bingx extends bingxRest {
         const snapshot = this.parseOrderBook (data, symbol, undefined, 'bids', 'asks', 0, 1);
         orderbook.reset (snapshot);
         this.orderbooks[symbol] = orderbook;
+        const messageHash = this.getMessageHash ('orderbook', channelName, symbol);
         client.resolve (orderbook, messageHash);
+        // resolve for "all"
+        if (isAllEndpoint) {
+            const messageHashForAll = this.getMessageHash ('orderbook', channelName, undefined);
+            client.resolve (orderbook, messageHashForAll);
+        }
     }
 
     parseWsOHLCV (ohlcv, market = undefined): OHLCV {
