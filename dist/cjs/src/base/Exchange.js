@@ -2962,6 +2962,17 @@ class Exchange {
         trade['cost'] = this.parseNumber(cost);
         return trade;
     }
+    findNearestCeiling(arr, providedValue) {
+        //  i.e. findNearestCeiling ([ 10, 30, 50],  23) returns 30
+        const length = arr.length;
+        for (let i = 0; i < length; i++) {
+            const current = arr[i];
+            if (providedValue <= current) {
+                return current;
+            }
+        }
+        return arr[length - 1];
+    }
     invertFlatStringDictionary(dict) {
         const reversed = {};
         const keys = Object.keys(dict);

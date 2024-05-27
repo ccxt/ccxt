@@ -1826,6 +1826,18 @@ class Exchange extends \ccxt\Exchange {
         return $trade;
     }
 
+    public function find_nearest_ceiling(array $arr, float $providedValue) {
+        //  $i->e. findNearestCeiling ([ 10, 30, 50],  23) returns 30
+        $length = count($arr);
+        for ($i = 0; $i < $length; $i++) {
+            $current = $arr[$i];
+            if ($providedValue <= $current) {
+                return $current;
+            }
+        }
+        return $arr[$length - 1];
+    }
+
     public function invert_flat_string_dictionary($dict) {
         $reversed = array();
         $keys = is_array($dict) ? array_keys($dict) : array();

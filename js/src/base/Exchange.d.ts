@@ -807,6 +807,7 @@ export default class Exchange {
     };
     safeLiquidation(liquidation: object, market?: Market): Liquidation;
     safeTrade(trade: object, market?: Market): Trade;
+    findNearestCeiling(arr: number[], providedValue: number): number;
     invertFlatStringDictionary(dict: any): {};
     reduceFeesByCurrency(fees: any): any[];
     safeTicker(ticker: object, market?: Market): Ticker;

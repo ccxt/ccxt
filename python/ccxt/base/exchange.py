@@ -3023,6 +3023,15 @@ class Exchange(object):
         trade['cost'] = self.parse_number(cost)
         return trade
 
+    def find_nearest_ceiling(self, arr: List[float], providedValue: float):
+        #  i.e. findNearestCeiling([10, 30, 50],  23) returns 30
+        length = len(arr)
+        for i in range(0, length):
+            current = arr[i]
+            if providedValue <= current:
+                return current
+        return arr[length - 1]
+
     def invert_flat_string_dictionary(self, dict):
         reversed = {}
         keys = list(dict.keys())
