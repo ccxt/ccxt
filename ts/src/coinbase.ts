@@ -344,7 +344,7 @@ export default class coinbase extends Exchange {
                 'CGLD': 'CELO',
             },
             'options': {
-                'usePrivateEndpointsIfApikeysPresent': false,
+                'usePrivate': false,
                 'brokerId': 'ccxt',
                 'stablePairs': [ 'BUSD-USD', 'CBETH-ETH', 'DAI-USD', 'GUSD-USD', 'GYEN-USD', 'PAX-USD', 'PAX-USDT', 'USDC-EUR', 'USDC-GBP', 'USDT-EUR', 'USDT-GBP', 'USDT-USD', 'USDT-USDC', 'WBTC-BTC' ],
                 'fetchCurrencies': {
@@ -1119,6 +1119,7 @@ export default class coinbase extends Exchange {
          * @see https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-exchange-rates#get-exchange-rates
          * @description retrieves data on all markets for coinbase
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {boolean} [params.usePrivate] use private endpoint for fetching markets
          * @returns {object[]} an array of objects representing market data
          */
         const method = this.safeString (this.options, 'fetchMarkets', 'fetchMarketsV3');
@@ -1201,13 +1202,11 @@ export default class coinbase extends Exchange {
         return result;
     }
 
-    usePrivate (methodName) {
-        return this.checkRequiredCredentials (false) && this.handleOption (methodName, 'usePrivateEndpointsIfApikeysPresent', false);
-    }
-
     async fetchMarketsV3 (params = {}) {
+        let usePrivate = false;
+        [ usePrivate, params ] = this.handleOptionAndParams (params, 'fetchMarkets', 'usePrivate', false);
         const spotUnresolvedPromises = [];
-        if (this.usePrivate ('fetchMarkets')) {
+        if (usePrivate) {
             spotUnresolvedPromises.push (this.v3PrivateGetBrokerageProducts (params));
         } else {
             spotUnresolvedPromises.push (this.v3PublicGetBrokerageMarketProducts (params));
@@ -1786,6 +1785,7 @@ export default class coinbase extends Exchange {
          * @see https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-exchange-rates#get-exchange-rates
          * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {boolean} [params.usePrivate] use private endpoint for fetching tickers
          * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         const method = this.safeString (this.options, 'fetchTickers', 'fetchTickersV3');
@@ -1843,7 +1843,9 @@ export default class coinbase extends Exchange {
             request['product_type'] = (marketType === 'swap') ? 'FUTURE' : 'SPOT';
         }
         let response = undefined;
-        if (this.usePrivate ('fetchTickers')) {
+        let usePrivate = false;
+        [ usePrivate, params ] = this.handleOptionAndParams (params, 'fetchTickers', 'usePrivate', false);
+        if (usePrivate) {
             response = await this.v3PrivateGetBrokerageProducts (this.extend (request, params));
         } else {
             response = await this.v3PublicGetBrokerageMarketProducts (this.extend (request, params));
@@ -1908,6 +1910,7 @@ export default class coinbase extends Exchange {
          * @see https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-prices#get-sell-price
          * @param {string} symbol unified symbol of the market to fetch the ticker for
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {boolean} [params.usePrivate] whether to use the private endpoint for fetching the ticker
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         const method = this.safeString (this.options, 'fetchTicker', 'fetchTickerV3');
@@ -1953,8 +1956,10 @@ export default class coinbase extends Exchange {
             'product_id': market['id'],
             'limit': 1,
         };
+        let usePrivate = false;
+        [ usePrivate, params ] = this.handleOptionAndParams (params, 'fetchTicker', 'usePrivate', false);
         let response = undefined;
-        if (this.usePrivate ('fetchTicker')) {
+        if (usePrivate) {
             response = await this.v3PrivateGetBrokerageProductsProductIdTicker (this.extend (request, params));
         } else {
             response = await this.v3PublicGetBrokerageMarketProductsProductIdTicker (this.extend (request, params));
@@ -3528,6 +3533,7 @@ export default class coinbase extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {int} [params.until] the latest time in ms to fetch trades for
          * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+         * @param {boolean} [params.usePrivate] default false, when true will use the private endpoint to fetch the candles
          * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         await this.loadMarkets ();
@@ -3562,7 +3568,9 @@ export default class coinbase extends Exchange {
             request['end'] = Precise.stringAdd (sinceString, requestedDuration.toString ());
         }
         let response = undefined;
-        if (this.usePrivate ('fetchTicker')) {
+        let usePrivate = false;
+        [ usePrivate, params ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'usePrivate', false);
+        if (usePrivate) {
             response = await this.v3PrivateGetBrokerageProductsProductIdCandles (this.extend (request, params));
         } else {
             response = await this.v3PublicGetBrokerageMarketProductsProductIdCandles (this.extend (request, params));
@@ -3618,6 +3626,7 @@ export default class coinbase extends Exchange {
          * @param {int} [since] not used by coinbase fetchTrades
          * @param {int} [limit] the maximum number of trade structures to fetch
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {boolean} [params.usePrivate] default false, when true will use the private endpoint to fetch the trades
          * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
          */
         await this.loadMarkets ();
@@ -3639,7 +3648,9 @@ export default class coinbase extends Exchange {
             throw new ArgumentsRequired (this.id + ' fetchTrades() requires a `until` parameter when you use `since` argument');
         }
         let response = undefined;
-        if (this.usePrivate ('fetchTicker')) {
+        let usePrivate = false;
+        [ usePrivate, params ] = this.handleOptionAndParams (params, 'fetchTrades', 'usePrivate', false);
+        if (usePrivate) {
             response = await this.v3PrivateGetBrokerageProductsProductIdTicker (this.extend (request, params));
         } else {
             response = await this.v3PublicGetBrokerageMarketProductsProductIdTicker (this.extend (request, params));
@@ -3746,6 +3757,7 @@ export default class coinbase extends Exchange {
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int} [limit] the maximum amount of order book entries to return
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {boolean} [params.usePrivate] default false, when true will use the private endpoint to fetch the order book
          * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
          */
         await this.loadMarkets ();
@@ -3757,7 +3769,9 @@ export default class coinbase extends Exchange {
             request['limit'] = limit;
         }
         let response = undefined;
-        if (this.usePrivate ('fetchTicker')) {
+        let usePrivate = false;
+        [ usePrivate, params ] = this.handleOptionAndParams (params, 'fetchOrderBook', 'usePrivate', false);
+        if (usePrivate) {
             response = await this.v3PrivateGetBrokerageProductBook (this.extend (request, params));
         } else {
             response = await this.v3PublicGetBrokerageMarketProductBook (this.extend (request, params));
