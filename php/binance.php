@@ -4867,7 +4867,7 @@ class binance extends Exchange {
         if ($cancelId === null) {
             $request['cancelOrderId'] = $id; // user can provide either cancelOrderId, cancelOrigClientOrderId or cancelOrigClientOrderId
         }
-        // remove timeInForce from $params because PO is only used by $this->is_post_onlyand it's not a valid value for Binance
+        // remove timeInForce from $params because PO is only used by array($this, 'is_post_only') and it's not a valid value for Binance
         if ($this->safe_string($params, 'timeInForce') === 'PO') {
             $params = $this->omit($params, array( 'timeInForce' ));
         }
@@ -6003,7 +6003,7 @@ class binance extends Exchange {
         if (!$isPortfolioMargin && $market['contract'] && $postOnly) {
             $request['timeInForce'] = 'GTX';
         }
-        // remove timeInForce from $params because PO is only used by $this->is_post_onlyand it's not a valid value for Binance
+        // remove timeInForce from $params because PO is only used by array($this, 'is_post_only') and it's not a valid value for Binance
         if ($this->safe_string($params, 'timeInForce') === 'PO') {
             $params = $this->omit($params, 'timeInForce');
         }

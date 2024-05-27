@@ -560,7 +560,7 @@ class bitmart extends \ccxt\async\bitmart {
             $amount = $this->safe_string($order, 'size');
             $type = $this->safe_string($order, 'type');
             $rawState = $this->safe_string($order, 'state');
-            $status = $this->parseOrderStatusByType ($market['type'], $rawState);
+            $status = $this->parse_order_status_by_type($market['type'], $rawState);
             $timestamp = $this->safe_integer($order, 'ms_t');
             $symbol = $market['symbol'];
             $side = $this->safe_string_lower($order, 'side');
