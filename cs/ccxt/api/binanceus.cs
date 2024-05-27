@@ -21,6 +21,11 @@ public partial class binanceus : binance
         return await this.callAsync ("sapiGetAccountSnapshot",parameters);
     }
 
+    public async Task<object> sapiGetAccountInfo (object parameters = null)
+    {
+        return await this.callAsync ("sapiGetAccountInfo",parameters);
+    }
+
     public async Task<object> sapiGetMarginAsset (object parameters = null)
     {
         return await this.callAsync ("sapiGetMarginAsset",parameters);
