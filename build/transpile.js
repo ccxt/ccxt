@@ -991,7 +991,6 @@ class Transpiler {
         }
         const matchObject = {
             'Account': /-> (?:List\[)?Account/,
-            'Any': /: (?:List\[)?Any/,
             'BalanceAccount': /-> BalanceAccount:/,
             'Balances': /-> Balances:/,
             'Bool': /: (?:List\[)?Bool =/,
@@ -1063,7 +1062,7 @@ class Transpiler {
             libraries.push ('from typing import List')
         }
 
-        if (bodyAsString.match (/-> Any/)) {
+        if (bodyAsString.match ((/-> Any/)|(/: (?:List\[)?Any/))) {
             libraries.push ('from typing import Any')
         }
 
