@@ -39,7 +39,7 @@ use BN\BN;
 use Sop\ASN1\Type\UnspecifiedType;
 use Exception;
 
-$version = '4.3.33';
+$version = '4.3.34';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -58,7 +58,7 @@ const PAD_WITH_ZERO = 6;
 
 class Exchange {
 
-    const VERSION = '4.3.33';
+    const VERSION = '4.3.34';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -2191,11 +2191,11 @@ class Exchange {
         return str_split($value);
     }
 
-    function valueIsDefined($value){
+    function value_is_defined($value){
         return isset($value) && !is_null($value);
     }
 
-    function arraySlice($array, $first, $second = null){
+    function array_slice($array, $first, $second = null){
         if ($second === null) {
             return array_slice($array, $first);
         } else {
@@ -3753,6 +3753,18 @@ class Exchange {
         $trade['price'] = $this->parse_number($price);
         $trade['cost'] = $this->parse_number($cost);
         return $trade;
+    }
+
+    public function find_nearest_ceiling(array $arr, float $providedValue) {
+        //  $i->e. findNearestCeiling ([ 10, 30, 50],  23) returns 30
+        $length = count($arr);
+        for ($i = 0; $i < $length; $i++) {
+            $current = $arr[$i];
+            if ($providedValue <= $current) {
+                return $current;
+            }
+        }
+        return $arr[$length - 1];
     }
 
     public function invert_flat_string_dictionary($dict) {

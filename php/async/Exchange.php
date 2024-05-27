@@ -42,11 +42,11 @@ use React\EventLoop\Loop;
 
 use Exception;
 
-$version = '4.3.33';
+$version = '4.3.34';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '4.3.33';
+    const VERSION = '4.3.34';
 
     public $browser;
     public $marketsLoading = null;
@@ -1824,6 +1824,18 @@ class Exchange extends \ccxt\Exchange {
         $trade['price'] = $this->parse_number($price);
         $trade['cost'] = $this->parse_number($cost);
         return $trade;
+    }
+
+    public function find_nearest_ceiling(array $arr, float $providedValue) {
+        //  $i->e. findNearestCeiling ([ 10, 30, 50],  23) returns 30
+        $length = count($arr);
+        for ($i = 0; $i < $length; $i++) {
+            $current = $arr[$i];
+            if ($providedValue <= $current) {
+                return $current;
+            }
+        }
+        return $arr[$length - 1];
     }
 
     public function invert_flat_string_dictionary($dict) {

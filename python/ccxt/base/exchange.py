@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.3.33'
+__version__ = '4.3.34'
 
 # -----------------------------------------------------------------------------
 
@@ -1742,10 +1742,10 @@ class Exchange(object):
     def string_to_chars_array(self, value):
         return list(value)
 
-    def valueIsDefined(self, value):
+    def value_is_defined(self, value):
         return value is not None
 
-    def arraySlice(self, array, first, second=None):
+    def array_slice(self, array, first, second=None):
         return array[first:second] if second else array[first:]
 
     def get_property(self, obj, property, defaultValue=None):
@@ -3022,6 +3022,15 @@ class Exchange(object):
         trade['price'] = self.parse_number(price)
         trade['cost'] = self.parse_number(cost)
         return trade
+
+    def find_nearest_ceiling(self, arr: List[float], providedValue: float):
+        #  i.e. findNearestCeiling([10, 30, 50],  23) returns 30
+        length = len(arr)
+        for i in range(0, length):
+            current = arr[i]
+            if providedValue <= current:
+                return current
+        return arr[length - 1]
 
     def invert_flat_string_dictionary(self, dict):
         reversed = {}
