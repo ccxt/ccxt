@@ -1433,28 +1433,29 @@
             {
                 "description": "closePosition for an inverse future",
                 "method": "closePosition",
-                "url": "https://api.hbdm.com/api/v1/lightning_close_position?AccessKeyId=bgbfh5tv3f-83da6485-1bbb64ae-3231b&SignatureMethod=HmacSHA256&SignatureVersion=2&Timestamp=2024-05-24T04%3A45%3A37&Signature=WM%2BuDMWNbvY5hl6IGgbiVdW849DKRwtHxbqI6dpH0Ew%3D",
+                "url": "https://api.hbdm.com/api/v1/lightning_close_position?AccessKeyId=bgbfh5tv3f-83da6485-1bbb64ae-3231b&SignatureMethod=HmacSHA256&SignatureVersion=2&Timestamp=2024-05-27T23%3A12%3A28&Signature=Ku0JINwbbWJOQSKRLn%2BzzMXYyFKMO8m%2FCPgbJtJXjS0%3D",
                 "input": [
-                  "ETH/USD:ETH-240524",
-                  "sell",
-                  {
-                    "amount": 1
-                  }
+                    "BTC/USD:BTC-240628",
+                    "sell",
+                    {
+                        "amount": 1
+                    }
                 ],
-                "output": "{\"contract_code\":\"ETH240524\",\"direction\":\"sell\",\"volume\":\"1\"}"
+                "output": "{\"contract_code\":\"BTC240628\",\"direction\":\"sell\",\"volume\":\"1\"}"
             },
             {
-                "description": "Close position for a linear future with cross marginMode",
+                "description": "Fill this with a description of the method call",
                 "method": "closePosition",
-                "url": "https://api.hbdm.com/linear-swap-api/v1/swap_cross_lightning_close_position?AccessKeyId=bgbfh5tv3f-83da6485-1bbb64ae-3231b&SignatureMethod=HmacSHA256&SignatureVersion=2&Timestamp=2024-05-24T04%3A47%3A26&Signature=OUikL4ViMuhVmjGI79eGWzKIExmyUGhjuYpGoKte10c%3D",
+                "url": "https://api.hbdm.com/linear-swap-api/v1/swap_cross_lightning_close_position?AccessKeyId=bgbfh5tv3f-83da6485-1bbb64ae-3231b&SignatureMethod=HmacSHA256&SignatureVersion=2&Timestamp=2024-05-27T23%3A24%3A01&Signature=cDskzuI6HjGPNLBDQKWkUKmidBYM7ukoso%2BJKecAdiw%3D",
                 "input": [
-                  "ETH/USDT:USDT-240524",
+                  "ETH/USDT:USDT-240607",
                   "sell",
                   {
+                    "amount": 1,
                     "marginMode": "cross"
                   }
                 ],
-                "output": "{\"contract_code\":\"ETH-USDT-240524\",\"direction\":\"sell\"}"
+                "output": "{\"contract_code\":\"ETH-USDT-240607\",\"direction\":\"sell\"}"
             },
             {
                 "description": "Close position for an inverse swap",
