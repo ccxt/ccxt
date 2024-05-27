@@ -2292,7 +2292,7 @@ export default class bitfinex2 extends Exchange {
         };
     }
 
-    parseTransactionStatus (status) {
+    parseTransactionStatus (status: Str) {
         const statuses: Dict = {
             'SUCCESS': 'ok',
             'COMPLETED': 'ok',
