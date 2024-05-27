@@ -223,6 +223,27 @@ public partial class Exchange
                                              .ToArray();
                 member.Value = byteArray;
             }
+            else if (type == "bytes32[]")
+            {
+                var hexStrings = value as IList<object>;
+                var byteArray = new List<byte[]> { };
+                foreach (var hex2 in hexStrings)
+                {
+                    var hex = hex2 as string;
+                    if (hex.StartsWith("0x"))
+                    {
+                        hex = hex.Substring(2);
+                    }
+
+                    // Convert the hex string to a byte array
+                    var byteArrayElem = Enumerable.Range(0, hex.Length)
+                                                 .Where(x => x % 2 == 0)
+                                                 .Select(x => Convert.ToByte(hex.Substring(x, 2), 16))
+                                                 .ToArray();
+                    byteArray.Add(byteArrayElem);
+                }
+                member.Value = byteArray.ToArray();
+            }
             else
             {
                 member.Value = value;
