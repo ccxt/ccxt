@@ -674,7 +674,7 @@ export default class okx extends okxRest {
         //        "uly": "IOST-USDT"
         //    }
         //
-        const details = this.safeValue (liquidation, 'details', []);
+        const details = this.safeList (liquidation, 'details', []);
         const liquidationDetails = this.safeValue (details, 0, {});
         const marketId = this.safeString (liquidation, 'instId');
         market = this.safeMarket (marketId, market);
@@ -684,7 +684,7 @@ export default class okx extends okxRest {
             'symbol': this.safeSymbol (marketId, market),
             'contracts': this.safeNumber (liquidationDetails, 'sz'),
             'contractSize': this.safeNumber (market, 'contractSize'),
-            'price': this.safeNumber (liquidation, 'bkPx'),
+            'price': this.safeNumber (liquidationDetails, 'bkPx'),
             'baseValue': undefined,
             'quoteValue': undefined,
             'timestamp': timestamp,

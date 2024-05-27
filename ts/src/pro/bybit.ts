@@ -1265,7 +1265,7 @@ export default class bybit extends bybitRest {
         //
         const rawLiquidation = this.safeValue (message, 'data', {});
         const marketId = this.safeString (rawLiquidation, 'symbol');
-        const market = this.safeMarket (marketId);
+        const market = this.safeMarket (marketId, undefined, '', 'contract');
         const symbol = this.safeSymbol (marketId);
         const liquidation = this.parseWsLiquidation (rawLiquidation, market);
         let liquidations = this.safeValue (this.liquidations, symbol);
@@ -1290,7 +1290,7 @@ export default class bybit extends bybitRest {
         //    }
         //
         const marketId = this.safeString (liquidation, 'symbol');
-        market = this.safeMarket (marketId, market);
+        market = this.safeMarket (marketId, market, '', 'contract');
         const timestamp = this.safeInteger (liquidation, 'updatedTime');
         return this.safeLiquidation ({
             'info': liquidation,
