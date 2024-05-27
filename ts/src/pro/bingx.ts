@@ -17,6 +17,7 @@ export default class bingx extends bingxRest {
                 'ws': true,
                 'watchTrades': true,
                 'watchOrderBook': true,
+                'watchOrderBookForSymbols': true,
                 'watchOHLCV': true,
                 'watchOrders': true,
                 'watchMyTrades': true,
@@ -281,7 +282,69 @@ export default class bingx extends bingxRest {
         return this.tickers;
     }
 
-    getMessageHash (exchangeChannel: string, unifiedChannel: String, symbol: Str) {
+    async watchOrderBookForSymbols (symbols: string[], limit: Int = undefined, params = {}): Promise<OrderBook> {
+        /**
+         * @method
+         * @name bingx#watchOrderBookForSymbols
+         * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @see https://bingx-api.github.io/docs/#/en-us/swapV2/socket/market.html#Subscribe%20Market%20Depth%20Data%20of%20all%20trading%20pairs
+         * @param {string[]} symbols unified array of symbols
+         * @param {int} [limit] the maximum amount of order book entries to return
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+         */
+        symbols = this.marketSymbols (symbols, undefined, true, true, false);
+        let firstMarket = undefined;
+        let marketType = undefined;
+        const symbolsDefined = (symbols !== undefined);
+        if (symbolsDefined) {
+            firstMarket = this.market (symbols[0]);
+        }
+        [ marketType, params ] = this.handleMarketTypeAndParams ('watchTickers', firstMarket, params);
+        if (marketType === 'spot') {
+            throw new NotSupported (this.id + ' watchTickers is not supported for spot markets yet');
+        }
+        if (limit === undefined) {
+            limit = 100;
+        } else {
+            if (marketType === 'swap') {
+                limit = this.findNearestCeiling ([ 5, 10, 20, 50, 100 ], limit);
+            } else if (marketType === 'spot') {
+                limit = this.findNearestCeiling ([ 20, 100 ], limit);
+            }
+        }
+        const channelName = 'depth';
+        const messageHashes = [];
+        const subscriptionHashes = [ 'all@ticker' ];
+        if (symbolsDefined) {
+            for (let i = 0; i < symbols.length; i++) {
+                const symbol = symbols[i];
+                const market = this.market (symbol);
+                messageHashes.push (this.getMessageHash (channelName, 'ticker', market['symbol']));
+            }
+        } else {
+            messageHashes.push (this.getMessageHash (channelName, 'ticker', undefined));
+        }
+        const url = this.safeString (this.urls['api']['ws'], marketType);
+        const uuid = this.uuid ();
+        const request: Dict = {
+            'id': uuid,
+            'dataType': 'all@ticker',
+        };
+        if (marketType === 'swap') {
+            request['reqType'] = 'sub';
+        }
+        const subscriptionArgs: Dict = {
+            'symbols': symbols,
+            'limit': limit,
+            'interval': interval,
+            'params': params,
+        };
+        const orderbook = await this.watchMultiple (url, messageHashes, this.deepExtend (request, params), subscriptionHashes, subscriptionArgs);
+        return orderbook.limit ();
+    }
+
+    getMessageHash (exchangeChannel: string, unifiedChannel: string, symbol: Str) {
         // sometimes exchangeChannel & unifiedChannel names might coincide
         if (symbol !== undefined) {
             // bidask:bookTicker@BTC/USDT
