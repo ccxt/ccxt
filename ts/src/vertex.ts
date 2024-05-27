@@ -1419,6 +1419,8 @@ export default class vertex extends Exchange {
         if (amountNum !== undefined && remainingNum !== undefined) {
             side = (amountNum < 0 || remainingNum < 0) ? 'sell' : 'buy';
         }
+        const tif = this.parseTimeInForce (this.safeString (order, 'order_type'));
+        const isPostOnly = (tif === 'PO');
         return this.safeOrder ({
             'info': order,
             'id': this.safeString (order, 'digest'),
@@ -1429,8 +1431,8 @@ export default class vertex extends Exchange {
             'lastUpdateTimestamp': undefined,
             'symbol': symbol,
             'type': undefined,
-            'timeInForce': this.safeStringUpper (order, 'order_type'),
-            'postOnly': undefined,
+            'timeInForce': tif,
+            'postOnly': isPostOnly,
             'reduceOnly': undefined,
             'side': side,
             'price': priceNum,
@@ -1444,6 +1446,13 @@ export default class vertex extends Exchange {
             'fee': undefined,
             'trades': undefined,
         }, market);
+    }
+
+    parseTimeInForce (timeInForce) {
+        const timeInForces = {
+            'POST_ONLY': 'PO',
+        };
+        return this.safeStringUpper (timeInForces, timeInForce, timeInForce);
     }
 
     async fetchOrder (id: string, symbol: Str = undefined, params = {}) {
