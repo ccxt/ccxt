@@ -1742,10 +1742,10 @@ class Exchange(object):
     def string_to_chars_array(self, value):
         return list(value)
 
-    def valueIsDefined(self, value):
+    def value_is_defined(self, value):
         return value is not None
 
-    def arraySlice(self, array, first, second=None):
+    def array_slice(self, array, first, second=None):
         return array[first:second] if second else array[first:]
 
     def get_property(self, obj, property, defaultValue=None):
