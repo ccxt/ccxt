@@ -31,7 +31,7 @@ export default async (exchange: Exchange, skippedProperties: object, symbol: str
 
         try {
 
-            response = await exchange[method] (symbol);
+            response = await exchange[method] ([ symbol ]);
 
             now = Date.now ();
 
