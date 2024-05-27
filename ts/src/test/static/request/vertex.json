@@ -61,6 +61,17 @@
                   "SOL/USDC:USDC"
                 ]
             }
+        ],
+        "cancelAllOrders": [
+            {
+                "description": "cancelAllOrders",
+                "method": "cancelAllOrders",
+                "url": "https://gateway.prod.vertexprotocol.com/v1/execute",
+                "input": [
+                  "SOL/USDC:USDC"
+                ],
+                "output": "{\"cancel_product_orders\":{\"tx\":{\"sender\":\"0xc950889d14a3717f541ec246bc253d7a9e98c78f64656661756c740000000000\",\"nonce\":\"1800219871512888296\",\"productIds\":[12]},\"signature\":\"0x5037f0d52e7cb9823fe87db92ff84bb4444d3e5d41e3b95676e8818232dddcb362c3be7bb308a36fe49e42022557572dcdc84a4804388556afce27a0d211a2581b\"}}"
+            }
         ]
     }
 }
