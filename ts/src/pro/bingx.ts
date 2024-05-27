@@ -2,9 +2,9 @@
 //  ---------------------------------------------------------------------------
 
 import bingxRest from '../bingx.js';
-import { BadRequest, NetworkError } from '../base/errors.js';
+import { BadRequest, NetworkError, NotSupported } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
-import type { Int, OHLCV, Str, OrderBook, Order, Trade, Balances, Ticker, Dict } from '../base/types.js';
+import type { Int, OHLCV, Str, Strings, OrderBook, Order, Trade, Balances, Ticker, Tickers, Dict } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 import { Precise } from '../base/Precise.js';
 
@@ -21,7 +21,7 @@ export default class bingx extends bingxRest {
                 'watchOrders': true,
                 'watchMyTrades': true,
                 'watchTicker': true,
-                'watchTickers': false,
+                'watchTickers': true,
                 'watchBalance': true,
             },
             'urls': {
@@ -169,8 +169,10 @@ export default class bingx extends bingxRest {
         const symbol = market['symbol'];
         const ticker = this.parseWsTicker (data, market);
         this.tickers[symbol] = ticker;
-        const messageHash = market['id'] + '@ticker';
-        client.resolve (ticker, messageHash);
+        client.resolve (ticker, this.getMessageHash ('ticker', 'ticker', symbol));
+        if (this.safeString (message, 'dataType') === 'all@ticker') {
+            client.resolve (ticker, this.getMessageHash ('ticker', 'ticker', undefined));
+        }
     }
 
     parseWsTicker (message, market = undefined) {
@@ -222,6 +224,61 @@ export default class bingx extends bingxRest {
             'quoteVolume': this.safeString (message, 'q'),
             'info': message,
         }, market);
+    }
+
+    async watchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+        /**
+         * @method
+         * @name bingx#watchTickers
+         * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+         * @see https://bingx-api.github.io/docs/#/en-us/swapV2/socket/market.html#Subscribe%20to%2024-hour%20price%20changes%20of%20all%20trading%20pairs
+         * @param {string[]} symbols unified symbol of the market to watch the tickers for
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+         */
+        await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols, undefined, true, true, false);
+        let firstMarket = undefined;
+        let marketType = undefined;
+        const symbolsDefined = (symbols !== undefined);
+        if (symbolsDefined) {
+            firstMarket = this.market (symbols[0]);
+        }
+        [ marketType, params ] = this.handleMarketTypeAndParams ('watchTickers', firstMarket, params);
+        if (marketType === 'spot') {
+            throw new NotSupported (this.id + ' watchTickers is not supported for spot markets yet');
+        }
+        const channelName = 'ticker';
+        const messageHashes = [];
+        const subscriptionHashes = [ 'all@ticker' ];
+        if (symbolsDefined) {
+            for (let i = 0; i < symbols.length; i++) {
+                const symbol = symbols[i];
+                const market = this.market (symbol);
+                messageHashes.push (this.getMessageHash (channelName, 'ticker', market['symbol']));
+            }
+        } else {
+            messageHashes.push (this.getMessageHash (channelName, 'ticker', undefined));
+        }
+        const url = this.safeString (this.urls['api']['ws'], marketType);
+        const uuid = this.uuid ();
+        const request: Dict = {
+            'id': uuid,
+            'dataType': 'all@ticker',
+        };
+        if (marketType === 'swap') {
+            request['reqType'] = 'sub';
+        }
+        const result = await this.watchMultiple (url, messageHashes, this.deepExtend (request, params), subscriptionHashes);
+        // for efficiency, we have two type of returned structure here - if symbols array was provided, then individual
+        // ticker dict comes in, otherwise all-tickers dict comes in
+        if (!symbolsDefined) {
+            return result;
+        } else {
+            const newDict: Dict = {};
+            newDict[result['symbol']] = result;
+            return newDict;
+        }
     }
 
     async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
