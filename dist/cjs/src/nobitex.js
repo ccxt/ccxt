@@ -367,7 +367,7 @@ class nobitex extends nobitex$1 {
         const response = await this.publicGetMarketUdfHistory(request);
         const openList = this.safeValue(response, 'o', []);
         const highList = this.safeList(response, 'h', []);
-        const lastList = this.safeList(response, 'l', []);
+        const lowList = this.safeList(response, 'l', []);
         const closeList = this.safeList(response, 'c', []);
         const volumeList = this.safeList(response, 'v', []);
         const timestampList = this.safeList(response, 't', []);
@@ -376,7 +376,7 @@ class nobitex extends nobitex$1 {
             if (market['quote'] === 'IRT') {
                 openList[i] /= 10;
                 highList[i] /= 10;
-                lastList[i] /= 10;
+                lowList[i] /= 10;
                 closeList[i] /= 10;
                 volumeList[i] /= 10;
             }
@@ -384,7 +384,7 @@ class nobitex extends nobitex$1 {
                 timestampList[i],
                 openList[i],
                 highList[i],
-                lastList[i],
+                lowList[i],
                 closeList[i],
                 volumeList[i],
             ]);
