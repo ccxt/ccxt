@@ -298,7 +298,7 @@ export default class vertex extends Exchange {
             if ((tickerId !== undefined) && (tickerId.indexOf ('PERP') > 0)) {
                 continue;
             }
-            const id = i;
+            const id = this.safeString (data, 'product_id');
             const name = this.safeString (data, 'symbol');
             const code = this.safeCurrencyCode (name);
             result[code] = {
