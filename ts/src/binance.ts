@@ -241,6 +241,7 @@ export default class binance extends Exchange {
                         'system/status': 0.1,
                         // these endpoints require this.apiKey
                         'accountSnapshot': 240, // Weight(IP): 2400 => cost = 0.1 * 2400 = 240
+                        'account/info': 0.1,
                         'margin/asset': 1, // Weight(IP): 10 => cost = 0.1 * 10 = 1
                         'margin/pair': 1,
                         'margin/allAssets': 0.1,
