@@ -257,6 +257,7 @@ export default class Exchange {
     ohlcvs: Dictionary<Dictionary<ArrayCacheByTimestamp>>
     myTrades: ArrayCache;
     positions: any;
+    futuresOldSymbolsMap = {}
     urls: {
         logo?: string;
         api?: string | Dictionary<string>;
@@ -824,6 +825,7 @@ export default class Exchange {
         this.ohlcvs       = {}
         this.myTrades     = undefined
         this.positions    = undefined
+        this.futuresOldSymbolsMap = {}
         // web3 and cryptography flags
         this.requiresWeb3 = false
         this.requiresEddsa = false
@@ -5458,6 +5460,10 @@ export default class Exchange {
                 if (market[defaultType]) {
                     return market;
                 }
+            }
+            if (symbol in this.futuresOldSymbolsMap) {
+                const newSymbol = this.futuresOldSymbolsMap[symbol];
+                return this.markets[newSymbol];
             }
             return markets[0];
         } else if ((symbol.endsWith ('-C')) || (symbol.endsWith ('-P')) || (symbol.startsWith ('C-')) || (symbol.startsWith ('P-'))) {

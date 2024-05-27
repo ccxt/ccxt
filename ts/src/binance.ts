@@ -3113,7 +3113,15 @@ export default class binance extends Exchange {
             if (swap) {
                 symbol = symbol + ':' + settle;
             } else if (future) {
-                symbol = symbol + ':' + settle + '-' + this.yymmdd (expiry);
+                let deliveryPrefix = '';
+                if (contractType === 'CURRENT_QUARTER' || contractType === 'NEXT_QUARTER') {
+                    deliveryPrefix = 'Q';
+                } else if (contractType === 'CURRENT_MONTH' || contractType === 'NEXT_MONTH') {
+                    deliveryPrefix = 'M';
+                }
+                const oldSymbol = symbol + ':' + settle + '-' + this.yymmdd (expiry);
+                symbol = symbol + ':' + settle + '-' + deliveryPrefix + this.yymmdd (expiry);
+                this.futuresOldSymbolsMap[oldSymbol] = symbol;
             } else if (option) {
                 symbol = symbol + ':' + settle + '-' + this.yymmdd (expiry) + '-' + strike + '-' + this.safeString (optionParts, 3);
             }
