@@ -261,7 +261,7 @@ export default class ompfinex extends Exchange {
          * @method
          * @name ompfinex#fetchTickers
          * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
-         * @see https://api-doc.ompfinex.com/#get-5
+         * @see https://docs.ompfinex.com/?shell#5f1cfe9299
          * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
@@ -285,7 +285,7 @@ export default class ompfinex extends Exchange {
          * @method
          * @name ompfinex#fetchTicker
          * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-         * @see https://api-doc.ompfinex.com/#get-5
+         * @see https://docs.ompfinex.com/?shell#5f1cfe9299
          * @param {string} symbol unified symbol of the market to fetch the ticker for
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
@@ -391,12 +391,12 @@ export default class ompfinex extends Exchange {
             'info': ticker,
         }, market);
     }
-    async fetchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+    async fetchOHLCV(symbol, timeframe = '1h', since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name ompfinex#fetchOHLCV
          * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-         * @see https://api-doc.ompfinex.com/
+         * @see https://docs.ompfinex.com/?shell#ohlc
          * @param {string} symbol unified symbol of the market to fetch OHLCV data for
          * @param {string} timeframe the length of time each candle represents
          * @param {int} [since] timestamp in ms of the earliest candle to fetch
@@ -457,7 +457,7 @@ export default class ompfinex extends Exchange {
          * @method
          * @name ompfinex#fetchOrderBooks
          * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data for multiple markets
-         * @see https://api-doc.ompfinex.com/#get
+         * @see https://docs.ompfinex.com/?shell#f2150d7710
          * @param {string[]|undefined} symbols list of unified market symbols, all symbols fetched if undefined, default is undefined
          * @param {int} [limit] max number of entries per orderbook to return, default is undefined
          * @param {object} [params] extra parameters specific to the exchange API endpoint
