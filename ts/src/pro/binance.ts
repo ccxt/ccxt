@@ -167,7 +167,7 @@ export default class binance extends binanceRest {
         return newValue;
     }
 
-    stream (type, subscriptionHash, numSubscriptions = 1) {
+    stream (type: Str, subscriptionHash: Str, numSubscriptions = 1) {
         const streamBySubscriptionsHash = this.safeDict (this.options, 'streamBySubscriptionsHash', this.createSafeDictionary ());
         let stream = this.safeString (streamBySubscriptionsHash, subscriptionHash);
         if (stream === undefined) {
@@ -250,7 +250,9 @@ export default class binance extends binanceRest {
         } else if (this.isInverse (type, subType)) {
             type = 'delivery';
         }
-        const url = this.urls['api']['ws'][type] + '/' + this.stream (type, subscriptionHashes);
+        const streamHash = 'multipleLiquidations';
+        const numSubscriptions = subscriptionHashes.length;
+        const url = this.urls['api']['ws'][type] + '/' + this.stream (type, streamHash, numSubscriptions);
         const requestId = this.requestId (url);
         const request = {
             'method': 'SUBSCRIBE',
