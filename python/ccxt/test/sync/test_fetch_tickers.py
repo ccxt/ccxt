@@ -16,9 +16,9 @@ from ccxt.test.base import test_ticker  # noqa E402
 from ccxt.test.base import test_shared_methods  # noqa E402
 
 def test_fetch_tickers(exchange, skipped_properties, symbol):
-    without_symbol = test_fetch_tickers_helper(exchange, skipped_properties, None)
-    with_symbol = test_fetch_tickers_helper(exchange, skipped_properties, [symbol])
-    asyncio.gather(*[with_symbol, without_symbol])
+    # const withoutSymbol = testFetchTickersHelper (exchange, skippedProperties, undefined);
+    # const withSymbol = testFetchTickersHelper (exchange, skippedProperties, [ symbol ]);
+    [test_fetch_tickers_helper(exchange, skipped_properties, None), test_fetch_tickers_helper(exchange, skipped_properties, [symbol])]
 
 
 def test_fetch_tickers_helper(exchange, skipped_properties, arg_symbols, arg_params={}):

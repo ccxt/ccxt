@@ -104,6 +104,7 @@ export default class currencycom extends Exchange {
                 'fetchWithdrawal': undefined,
                 'fetchWithdrawals': true,
                 'reduceMargin': undefined,
+                'sandbox': true,
                 'setLeverage': undefined,
                 'setMarginMode': undefined,
                 'setPositionMode': undefined,

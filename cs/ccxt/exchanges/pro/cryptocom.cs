@@ -111,20 +111,25 @@ public partial class cryptocom : ccxt.cryptocom
             ((IDictionary<string,object>)parameters)["params"] = new Dictionary<string, object>() {};
         }
         object bookSubscriptionType = null;
-        var bookSubscriptionTypeparametersVariable = this.handleOptionAndParams2(parameters, "watchOrderBook", "watchOrderBookForSymbols", "bookSubscriptionType", "SNAPSHOT_AND_UPDATE");
+        object bookSubscriptionType2 = null;
+        var bookSubscriptionTypeparametersVariable = this.handleOptionAndParams(parameters, "watchOrderBook", "bookSubscriptionType", "SNAPSHOT_AND_UPDATE");
         bookSubscriptionType = ((IList<object>)bookSubscriptionTypeparametersVariable)[0];
         parameters = ((IList<object>)bookSubscriptionTypeparametersVariable)[1];
-        if (isTrue(!isEqual(bookSubscriptionType, null)))
-        {
-            ((IDictionary<string,object>)getValue(parameters, "params"))["bookSubscriptionType"] = bookSubscriptionType;
-        }
+        var bookSubscriptionType2parametersVariable = this.handleOptionAndParams(parameters, "watchOrderBookForSymbols", "bookSubscriptionType", bookSubscriptionType);
+        bookSubscriptionType2 = ((IList<object>)bookSubscriptionType2parametersVariable)[0];
+        parameters = ((IList<object>)bookSubscriptionType2parametersVariable)[1];
+        ((IDictionary<string,object>)getValue(parameters, "params"))["bookSubscriptionType"] = bookSubscriptionType2;
         object bookUpdateFrequency = null;
-        var bookUpdateFrequencyparametersVariable = this.handleOptionAndParams2(parameters, "watchOrderBook", "watchOrderBookForSymbols", "bookUpdateFrequency");
+        object bookUpdateFrequency2 = null;
+        var bookUpdateFrequencyparametersVariable = this.handleOptionAndParams(parameters, "watchOrderBook", "bookUpdateFrequency");
         bookUpdateFrequency = ((IList<object>)bookUpdateFrequencyparametersVariable)[0];
         parameters = ((IList<object>)bookUpdateFrequencyparametersVariable)[1];
-        if (isTrue(!isEqual(bookUpdateFrequency, null)))
+        var bookUpdateFrequency2parametersVariable = this.handleOptionAndParams(parameters, "watchOrderBookForSymbols", "bookUpdateFrequency", bookUpdateFrequency);
+        bookUpdateFrequency2 = ((IList<object>)bookUpdateFrequency2parametersVariable)[0];
+        parameters = ((IList<object>)bookUpdateFrequency2parametersVariable)[1];
+        if (isTrue(!isEqual(bookUpdateFrequency2, null)))
         {
-            ((IDictionary<string,object>)getValue(parameters, "params"))["bookSubscriptionType"] = bookSubscriptionType;
+            ((IDictionary<string,object>)getValue(parameters, "params"))["bookSubscriptionType"] = bookUpdateFrequency2;
         }
         for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
         {
@@ -144,7 +149,7 @@ public partial class cryptocom : ccxt.cryptocom
         object price = this.safeFloat(delta, 0);
         object amount = this.safeFloat(delta, 1);
         object count = this.safeInteger(delta, 2);
-        (bookside as IOrderBookSide).store(price, amount, count);
+        (bookside as IOrderBookSide).storeArray(new List<object>() {price, amount, count});
     }
 
     public override void handleDeltas(object bookside, object deltas)
@@ -218,12 +223,12 @@ public partial class cryptocom : ccxt.cryptocom
         object data = this.safeValue(message, "data");
         data = this.safeValue(data, 0);
         object timestamp = this.safeInteger(data, "t");
-        object orderbook = this.safeValue(this.orderbooks, symbol);
-        if (isTrue(isEqual(orderbook, null)))
+        if (!isTrue((inOp(this.orderbooks, symbol))))
         {
             object limit = this.safeInteger(message, "depth");
-            orderbook = this.countedOrderBook(new Dictionary<string, object>() {}, limit);
+            ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.countedOrderBook(new Dictionary<string, object>() {}, limit);
         }
+        object orderbook = getValue(this.orderbooks, symbol);
         object channel = this.safeString(message, "channel");
         object nonce = this.safeInteger2(data, "u", "s");
         object books = data;

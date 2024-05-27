@@ -59,7 +59,7 @@ class exmo(ccxt.async_support.exmo):
         type, query = self.handle_market_type_and_params('watchBalance', None, params)
         messageHash = 'balance:' + type
         url = self.urls['api']['ws'][type]
-        subscribe = {
+        subscribe: dict = {
             'method': 'subscribe',
             'topics': [type + '/wallet'],
             'id': self.request_id(),
@@ -208,7 +208,7 @@ class exmo(ccxt.async_support.exmo):
         symbol = market['symbol']
         url = self.urls['api']['ws']['public']
         messageHash = 'ticker:' + symbol
-        message = {
+        message: dict = {
             'method': 'subscribe',
             'topics': [
                 'spot/ticker:' + market['id'],
@@ -263,7 +263,7 @@ class exmo(ccxt.async_support.exmo):
         symbol = market['symbol']
         url = self.urls['api']['ws']['public']
         messageHash = 'trades:' + symbol
-        message = {
+        message: dict = {
             'method': 'subscribe',
             'topics': [
                 'spot/trades:' + market['id'],
@@ -329,7 +329,7 @@ class exmo(ccxt.async_support.exmo):
             market = self.market(symbol)
             symbol = market['symbol']
             messageHash = 'myTrades:' + market['symbol']
-        message = {
+        message: dict = {
             'method': 'subscribe',
             'topics': [
                 type + '/user_trades',
@@ -417,7 +417,7 @@ class exmo(ccxt.async_support.exmo):
             rawTrade = self.safe_value(message, 'data', {})
             rawTrades = [rawTrade]
         trades = self.parse_trades(rawTrades)
-        symbols = {}
+        symbols: dict = {}
         for j in range(0, len(trades)):
             trade = trades[j]
             myTrades.append(trade)
@@ -443,7 +443,7 @@ class exmo(ccxt.async_support.exmo):
         url = self.urls['api']['ws']['public']
         messageHash = 'orderbook:' + symbol
         params = self.omit(params, 'aggregation')
-        subscribe = {
+        subscribe: dict = {
             'method': 'subscribe',
             'id': self.request_id(),
             'topics': [
@@ -537,7 +537,7 @@ class exmo(ccxt.async_support.exmo):
         #     "topic": "spot/ticker:BTC_USDT"
         # }
         event = self.safe_string(message, 'event')
-        events = {
+        events: dict = {
             'logged_in': self.handle_authentication_message,
             'info': self.handle_info,
             'subscribed': self.handle_subscribed,
@@ -551,7 +551,7 @@ class exmo(ccxt.async_support.exmo):
             if topic is not None:
                 parts = topic.split(':')
                 channel = self.safe_string(parts, 0)
-                handlers = {
+                handlers: dict = {
                     'spot/ticker': self.handle_ticker,
                     'spot/wallet': self.handle_balance,
                     'margin/wallet': self.handle_balance,
@@ -617,7 +617,7 @@ class exmo(ccxt.async_support.exmo):
             requestId = self.request_id()
             signData = self.apiKey + str(time)
             sign = self.hmac(self.encode(signData), self.encode(self.secret), hashlib.sha512, 'base64')
-            request = {
+            request: dict = {
                 'method': 'login',
                 'id': requestId,
                 'api_key': self.apiKey,

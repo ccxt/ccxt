@@ -1,5 +1,5 @@
 import Exchange from './abstract/alpaca.js';
-import type { Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Trade } from './base/types.js';
+import type { Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Trade, int } from './base/types.js';
 /**
  * @class alpaca
  * @augments Exchange
@@ -20,15 +20,15 @@ export default class alpaca extends Exchange {
     fetchOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     fetchOpenOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     fetchClosedOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
-    parseOrder(order: any, market?: Market): Order;
-    parseOrderStatus(status: any): string;
-    parseTimeInForce(timeInForce: any): string;
-    parseTrade(trade: any, market?: Market): Trade;
+    parseOrder(order: Dict, market?: Market): Order;
+    parseOrderStatus(status: Str): string;
+    parseTimeInForce(timeInForce: Str): string;
+    parseTrade(trade: Dict, market?: Market): Trade;
     sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {
-        url: any;
+        url: string;
         method: string;
         body: any;
         headers: any;
     };
-    handleErrors(code: any, reason: any, url: any, method: any, headers: any, body: any, response: any, requestHeaders: any, requestBody: any): any;
+    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): any;
 }

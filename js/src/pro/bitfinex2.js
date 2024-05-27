@@ -633,7 +633,7 @@ export default class bitfinex2 extends bitfinex2Rest {
                 // price = 0 means that you have to remove the order from your book
                 const amount = Precise.stringGt(price, '0') ? size : '0';
                 const idString = this.safeString(deltas, 0);
-                bookside.store(this.parseNumber(price), this.parseNumber(amount), idString);
+                bookside.storeArray([this.parseNumber(price), this.parseNumber(amount), idString]);
             }
             else {
                 const amount = this.safeString(deltas, 2);
@@ -642,7 +642,7 @@ export default class bitfinex2 extends bitfinex2Rest {
                 const size = Precise.stringLt(amount, '0') ? Precise.stringNeg(amount) : amount;
                 const side = Precise.stringLt(amount, '0') ? 'asks' : 'bids';
                 const bookside = orderbookItem[side];
-                bookside.store(this.parseNumber(price), this.parseNumber(size), this.parseNumber(counter));
+                bookside.storeArray([this.parseNumber(price), this.parseNumber(size), this.parseNumber(counter)]);
             }
             client.resolve(orderbook, messageHash);
         }
@@ -685,6 +685,8 @@ export default class bitfinex2 extends bitfinex2Rest {
         const responseChecksum = this.safeInteger(message, 2);
         if (responseChecksum !== localChecksum) {
             const error = new InvalidNonce(this.id + ' invalid checksum');
+            delete client.subscriptions[messageHash];
+            delete this.orderbooks[symbol];
             client.reject(error, messageHash);
         }
     }

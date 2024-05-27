@@ -74,6 +74,7 @@ export default class krakenfutures extends Exchange {
                 'fetchPremiumIndexOHLCV': false,
                 'fetchTickers': true,
                 'fetchTrades': true,
+                'sandbox': true,
                 'setLeverage': true,
                 'setMarginMode': false,
                 'transfer': true,
@@ -2239,7 +2240,7 @@ export default class krakenfutures extends Exchange {
         /**
          * @method
          * @name krakenfutures#fetchPositions
-         * @see https://docs.futures.kraken.com/#websocket-api-private-feeds-open-positions
+         * @see https://docs.futures.kraken.com/#http-api-trading-v3-api-account-information-get-open-positions
          * @description Fetches current contract trading positions
          * @param {string[]} symbols List of unified symbols
          * @param {object} [params] Not used by krakenfutures

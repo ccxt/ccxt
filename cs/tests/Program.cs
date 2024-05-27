@@ -62,9 +62,12 @@ public class Tests
         {
             string value = argsWithoutOptions[1];
             // similar to PYTHON version arguments, we check method & symbol though same argument
-            if (value.Contains("/")) {
+            if (value.Contains("/"))
+            {
                 symbol = value;
-            } else {
+            }
+            else
+            {
                 methodName = value;
             }
         }
@@ -132,7 +135,7 @@ public class Tests
         tests.PrecisionTests();
         Helper.Green(" [C#] Precision tests passed");
         tests.DateTimeTests();
-        Helper.Green(" [C#] Precision tests passed");
+        Helper.Green(" [C#] Datetime tests passed");
         tests.CryptoTests();
         Helper.Green(" [C#] Crypto tests passed");
     }

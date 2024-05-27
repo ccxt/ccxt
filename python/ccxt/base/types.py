@@ -139,7 +139,6 @@ class Position(TypedDict):
     stopLossPrice: Num
     takeProfitPrice: Num
 
-
 class OrderRequest(TypedDict):
     symbol: Str
     type: Str
@@ -460,11 +459,44 @@ class IsolatedBorrowRate(TypedDict):
     datetime: Str
 
 
+class FundingRate(TypedDict):
+    symbol: Str
+    timestamp: Int
+    fundingRate: Num
+    datetime: Str
+    markPrice: Num
+    indexPrice: Num
+    interestRate: Num
+    estimatedSettlePrice: Num
+    fundingTimestamp: Int
+    fundingDatetime: Str
+    nextFundingTimestamp: Int
+    nextFundingDatetime: Str
+    nextFundingRate: Num
+    previousFundingTimestamp: Int
+    previousFundingDatetime: Str
+    previousFundingRate: Num
+    info: Dict[str, Any]
+
+
+class LeverageTier:
+    tier: Num
+    currency: Str
+    minNotional: Num
+    maxNotional: Num
+    maintenanceMarginRate: Num
+    maxLeverage: Num
+    info: Dict[str, Any]
+
+
+FundingRates = Dict[Str, FundingRate]
 LastPrices = Dict[Str, LastPrice]
 Currencies = Dict[Str, CurrencyInterface]
 TradingFees = Dict[Str, TradingFeeInterface]
 IsolatedBorrowRates = Dict[Str, IsolatedBorrowRate]
 CrossBorrowRates = Dict[Str, CrossBorrowRate]
+TransferEntries = Dict[Str, TransferEntry]
+LeverageTiers = Dict[Str, List[LeverageTier]]
 
 Market = Optional[MarketInterface]
 Currency = Optional[CurrencyInterface]

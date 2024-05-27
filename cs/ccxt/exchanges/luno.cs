@@ -129,12 +129,14 @@ public partial class luno : Exchange
                         { "withdrawals", 1 },
                         { "send", 1 },
                         { "oauth2/grant", 1 },
+                        { "beneficiaries", 1 },
                     } },
                     { "put", new Dictionary<string, object>() {
                         { "accounts/{id}/name", 1 },
                     } },
                     { "delete", new Dictionary<string, object>() {
                         { "withdrawals/{id}", 1 },
+                        { "beneficiaries/{id}", 1 },
                     } },
                 } },
             } },

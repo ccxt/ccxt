@@ -102,6 +102,7 @@ class cryptocom extends cryptocom$1 {
                 'reduceMargin': false,
                 'repayCrossMargin': false,
                 'repayIsolatedMargin': false,
+                'sandbox': true,
                 'setLeverage': false,
                 'setMarginMode': false,
                 'setPositionMode': false,
@@ -496,7 +497,8 @@ class cryptocom extends cryptocom$1 {
             const strike = this.safeString(market, 'strike');
             const marginBuyEnabled = this.safeValue(market, 'margin_buy_enabled');
             const marginSellEnabled = this.safeValue(market, 'margin_sell_enabled');
-            const expiry = this.omitZero(this.safeInteger(market, 'expiry_timestamp_ms'));
+            const expiryString = this.omitZero(this.safeString(market, 'expiry_timestamp_ms'));
+            const expiry = (expiryString !== undefined) ? parseInt(expiryString) : undefined;
             let symbol = base + '/' + quote;
             let type = undefined;
             let contract = undefined;

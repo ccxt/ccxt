@@ -3307,7 +3307,7 @@ public partial class htx : Exchange
         return result;
     }
 
-    public override object networkIdToCode(object networkId, object currencyCode = null)
+    public override object networkIdToCode(object networkId = null, object currencyCode = null)
     {
         // here network-id is provided as a pair of currency & chain (i.e. trc20usdt)
         object keys = new List<object>(((IDictionary<string,object>)getValue(this.options, "networkNamesByChainIds")).Keys);

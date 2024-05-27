@@ -21,6 +21,7 @@ const errorHierarchy = {
                 'NoChange': {
                     'MarginModeAlreadySet': {},
                 },
+                'MarketClosed': {},
             },
             'BadResponse': {
                 'NullResponse': {},

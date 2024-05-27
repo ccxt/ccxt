@@ -46,7 +46,7 @@ class bithumb(ccxt.async_support.bithumb):
         await self.load_markets()
         market = self.market(symbol)
         messageHash = 'ticker:' + market['symbol']
-        request = {
+        request: dict = {
             'type': 'ticker',
             'symbols': [market['base'] + '_' + market['quote']],
             'tickTypes': [self.safe_string(params, 'tickTypes', '24H')],
@@ -70,7 +70,7 @@ class bithumb(ccxt.async_support.bithumb):
             market = self.market(symbol)
             marketIds.append(market['base'] + '_' + market['quote'])
             messageHashes.append('ticker:' + market['symbol'])
-        request = {
+        request: dict = {
             'type': 'ticker',
             'symbols': marketIds,
             'tickTypes': [self.safe_string(params, 'tickTypes', '24H')],
@@ -78,7 +78,7 @@ class bithumb(ccxt.async_support.bithumb):
         message = self.extend(request, params)
         newTicker = await self.watch_multiple(url, messageHashes, message, messageHashes)
         if self.newUpdates:
-            result = {}
+            result: dict = {}
             result[newTicker['symbol']] = newTicker
             return result
         return self.filter_by_array(self.tickers, 'symbol', symbols)
@@ -176,7 +176,7 @@ class bithumb(ccxt.async_support.bithumb):
         market = self.market(symbol)
         symbol = market['symbol']
         messageHash = 'orderbook' + ':' + symbol
-        request = {
+        request: dict = {
             'type': 'orderbookdepth',
             'symbols': [market['base'] + '_' + market['quote']],
         }
@@ -259,7 +259,7 @@ class bithumb(ccxt.async_support.bithumb):
         market = self.market(symbol)
         symbol = market['symbol']
         messageHash = 'trade:' + symbol
-        request = {
+        request: dict = {
             'type': 'transaction',
             'symbols': [market['base'] + '_' + market['quote']],
         }
@@ -358,7 +358,7 @@ class bithumb(ccxt.async_support.bithumb):
             return
         topic = self.safe_string(message, 'type')
         if topic is not None:
-            methods = {
+            methods: dict = {
                 'ticker': self.handle_ticker,
                 'orderbookdepth': self.handle_order_book,
                 'transaction': self.handle_trades,

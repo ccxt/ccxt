@@ -515,7 +515,7 @@ public partial class indodax : Exchange
         // }
         //
         object response = await this.publicGetApiTickerAll(parameters);
-        object tickers = this.safeList(response, "tickers");
+        object tickers = this.safeDict(response, "tickers", new Dictionary<string, object>() {});
         return this.parseTickers(tickers, symbols);
     }
 

@@ -19,11 +19,17 @@ public partial class okx : ccxt.okx
                 { "watchTradesForSymbols", true },
                 { "watchOrderBookForSymbols", true },
                 { "watchBalance", true },
+                { "watchLiquidations", "emulated" },
+                { "watchLiquidationsForSymbols", true },
+                { "watchMyLiquidations", "emulated" },
+                { "watchMyLiquidationsForSymbols", true },
                 { "watchOHLCV", true },
                 { "watchOHLCVForSymbols", true },
                 { "watchOrders", true },
                 { "watchMyTrades", true },
                 { "watchPositions", true },
+                { "watchFundingRate", true },
+                { "watchFundingRates", true },
                 { "createOrderWs", true },
                 { "editOrderWs", true },
                 { "cancelOrderWs", true },
@@ -137,7 +143,7 @@ public partial class okx : ccxt.okx
             { "op", "subscribe" },
             { "args", new List<object> {this.deepExtend(firstArgument, parameters)} },
         };
-        return await this.watch(url, messageHash, request, messageHash);
+        return this.watch(url, messageHash, request, messageHash);
     }
 
     public async override Task<object> watchTrades(object symbol, object since = null, object limit = null, object parameters = null)
@@ -240,6 +246,99 @@ public partial class okx : ccxt.okx
             }
             callDynamically(stored, "append", new object[] {trade});
             callDynamically(client as WebSocketClient, "resolve", new object[] {stored, messageHash});
+        }
+    }
+
+    public async override Task<object> watchFundingRate(object symbol, object parameters = null)
+    {
+        /**
+        * @method
+        * @name okx#watchFundingRate
+        * @description watch the current funding rate
+        * @see https://www.okx.com/docs-v5/en/#public-data-websocket-funding-rate-channel
+        * @param {string} symbol unified market symbol
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        symbol = this.symbol(symbol);
+        object fr = await this.watchFundingRates(new List<object>() {symbol}, parameters);
+        return getValue(fr, symbol);
+    }
+
+    public async override Task<object> watchFundingRates(object symbols, object parameters = null)
+    {
+        /**
+        * @method
+        * @name coinbaseinternational#watchFundingRates
+        * @description watch the funding rate for multiple markets
+        * @see https://www.okx.com/docs-v5/en/#public-data-websocket-funding-rate-channel
+        * @param {string[]} symbols list of unified market symbols
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {object} a dictionary of [funding rates structures]{@link https://docs.ccxt.com/#/?id=funding-rates-structure}, indexe by market symbols
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        symbols = this.marketSymbols(symbols);
+        object channel = "funding-rate";
+        object topics = new List<object>() {};
+        object messageHashes = new List<object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
+        {
+            object symbol = getValue(symbols, i);
+            ((IList<object>)messageHashes).Add(add(add(channel, ":"), symbol));
+            object marketId = this.marketId(symbol);
+            object topic = new Dictionary<string, object>() {
+                { "channel", channel },
+                { "instId", marketId },
+            };
+            ((IList<object>)topics).Add(topic);
+        }
+        object request = new Dictionary<string, object>() {
+            { "op", "subscribe" },
+            { "args", topics },
+        };
+        object url = this.getUrl(channel, "public");
+        object fundingRate = await this.watchMultiple(url, messageHashes, request, messageHashes);
+        if (isTrue(this.newUpdates))
+        {
+            object symbol = this.safeString(fundingRate, "symbol");
+            object result = new Dictionary<string, object>() {};
+            ((IDictionary<string,object>)result)[(string)symbol] = fundingRate;
+            return result;
+        }
+        return this.filterByArray(this.fundingRates, "symbol", symbols);
+    }
+
+    public virtual void handleFundingRate(WebSocketClient client, object message)
+    {
+        //
+        // "data":[
+        //     {
+        //        "fundingRate":"0.0001875391284828",
+        //        "fundingTime":"1700726400000",
+        //        "instId":"BTC-USD-SWAP",
+        //        "instType":"SWAP",
+        //        "method": "next_period",
+        //        "maxFundingRate":"0.00375",
+        //        "minFundingRate":"-0.00375",
+        //        "nextFundingRate":"0.0002608059239328",
+        //        "nextFundingTime":"1700755200000",
+        //        "premium": "0.0001233824646391",
+        //        "settFundingRate":"0.0001699799259033",
+        //        "settState":"settled",
+        //        "ts":"1700724675402"
+        //     }
+        // ]
+        //
+        object data = this.safeList(message, "data", new List<object>() {});
+        for (object i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
+        {
+            object rawfr = getValue(data, i);
+            object fundingRate = this.parseFundingRate(rawfr);
+            object symbol = getValue(fundingRate, "symbol");
+            ((IDictionary<string,object>)this.fundingRates)[(string)symbol] = fundingRate;
+            callDynamically(client as WebSocketClient, "resolve", new object[] {fundingRate, add(add("funding-rate", ":"), getValue(fundingRate, "symbol"))});
         }
     }
 
@@ -348,6 +447,283 @@ public partial class okx : ccxt.okx
             }
         }
         return message;
+    }
+
+    public async override Task<object> watchLiquidationsForSymbols(object symbols, object since = null, object limit = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name okx#watchLiquidationsForSymbols
+        * @description watch the public liquidations of a trading pair
+        * @see https://www.okx.com/docs-v5/en/#public-data-websocket-liquidation-orders-channel
+        * @param {string} symbol unified CCXT market symbol
+        * @param {int} [since] the earliest time in ms to fetch liquidations for
+        * @param {int} [limit] the maximum number of liquidation structures to retrieve
+        * @param {object} [params] exchange specific parameters for the okx api endpoint
+        * @returns {object} an array of [liquidation structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        symbols = this.marketSymbols(symbols, null, true, true);
+        object messageHash = "liquidations";
+        if (isTrue(!isEqual(symbols, null)))
+        {
+            messageHash = add(messageHash, add("::", String.Join(",", ((IList<object>)symbols).ToArray())));
+        }
+        object market = this.getMarketFromSymbols(symbols);
+        object type = null;
+        var typeparametersVariable = this.handleMarketTypeAndParams("watchliquidationsForSymbols", market, parameters);
+        type = ((IList<object>)typeparametersVariable)[0];
+        parameters = ((IList<object>)typeparametersVariable)[1];
+        object channel = "liquidation-orders";
+        if (isTrue(isEqual(type, "spot")))
+        {
+            type = "SWAP";
+        } else if (isTrue(isEqual(type, "future")))
+        {
+            type = "futures";
+        }
+        object uppercaseType = ((string)type).ToUpper();
+        object request = new Dictionary<string, object>() {
+            { "instType", uppercaseType },
+        };
+        object newLiquidations = await this.subscribe("public", messageHash, channel, null, this.extend(request, parameters));
+        if (isTrue(this.newUpdates))
+        {
+            return newLiquidations;
+        }
+        return this.filterBySymbolsSinceLimit(this.liquidations, symbols, since, limit, true);
+    }
+
+    public virtual void handleLiquidation(WebSocketClient client, object message)
+    {
+        //
+        //    {
+        //        "arg": {
+        //            "channel": "liquidation-orders",
+        //            "instType": "SWAP"
+        //        },
+        //        "data": [
+        //            {
+        //                "details": [
+        //                    {
+        //                        "bkLoss": "0",
+        //                        "bkPx": "0.007831",
+        //                        "ccy": "",
+        //                        "posSide": "short",
+        //                        "side": "buy",
+        //                        "sz": "13",
+        //                        "ts": "1692266434010"
+        //                    }
+        //                ],
+        //                "instFamily": "IOST-USDT",
+        //                "instId": "IOST-USDT-SWAP",
+        //                "instType": "SWAP",
+        //                "uly": "IOST-USDT"
+        //            }
+        //        ]
+        //    }
+        //
+        object rawLiquidations = this.safeList(message, "data", new List<object>() {});
+        for (object i = 0; isLessThan(i, getArrayLength(rawLiquidations)); postFixIncrement(ref i))
+        {
+            object rawLiquidation = getValue(rawLiquidations, i);
+            object liquidation = this.parseWsLiquidation(rawLiquidation);
+            object symbol = this.safeString(liquidation, "symbol");
+            object liquidations = this.safeValue(this.liquidations, symbol);
+            if (isTrue(isEqual(liquidations, null)))
+            {
+                object limit = this.safeInteger(this.options, "liquidationsLimit", 1000);
+                liquidations = new ArrayCache(limit);
+            }
+            callDynamically(liquidations, "append", new object[] {liquidation});
+            ((IDictionary<string,object>)this.liquidations)[(string)symbol] = liquidations;
+            callDynamically(client as WebSocketClient, "resolve", new object[] {new List<object>() {liquidation}, "liquidations"});
+            callDynamically(client as WebSocketClient, "resolve", new object[] {new List<object>() {liquidation}, add("liquidations::", symbol)});
+        }
+    }
+
+    public async override Task<object> watchMyLiquidationsForSymbols(object symbols, object since = null, object limit = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name okx#watchMyLiquidationsForSymbols
+        * @description watch the private liquidations of a trading pair
+        * @see https://www.okx.com/docs-v5/en/#trading-account-websocket-balance-and-position-channel
+        * @param {string} symbol unified CCXT market symbol
+        * @param {int} [since] the earliest time in ms to fetch liquidations for
+        * @param {int} [limit] the maximum number of liquidation structures to retrieve
+        * @param {object} [params] exchange specific parameters for the okx api endpoint
+        * @returns {object} an array of [liquidation structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object isStop = this.safeValue2(parameters, "stop", "trigger", false);
+        parameters = this.omit(parameters, new List<object>() {"stop", "trigger"});
+        await this.authenticate(new Dictionary<string, object>() {
+            { "access", ((bool) isTrue(isStop)) ? "business" : "private" },
+        });
+        symbols = this.marketSymbols(symbols, null, true, true);
+        object messageHash = "myLiquidations";
+        if (isTrue(!isEqual(symbols, null)))
+        {
+            messageHash = add(messageHash, add("::", String.Join(",", ((IList<object>)symbols).ToArray())));
+        }
+        object channel = "balance_and_position";
+        object newLiquidations = await this.subscribe("private", messageHash, channel, null, parameters);
+        if (isTrue(this.newUpdates))
+        {
+            return newLiquidations;
+        }
+        return this.filterBySymbolsSinceLimit(this.liquidations, symbols, since, limit, true);
+    }
+
+    public virtual void handleMyLiquidation(WebSocketClient client, object message)
+    {
+        //
+        //    {
+        //        "arg": {
+        //            "channel": "balance_and_position",
+        //            "uid": "77982378738415879"
+        //        },
+        //        "data": [{
+        //            "pTime": "1597026383085",
+        //            "eventType": "snapshot",
+        //            "balData": [{
+        //                "ccy": "BTC",
+        //                "cashBal": "1",
+        //                "uTime": "1597026383085"
+        //            }],
+        //            "posData": [{
+        //                "posId": "1111111111",
+        //                "tradeId": "2",
+        //                "instId": "BTC-USD-191018",
+        //                "instType": "FUTURES",
+        //                "mgnMode": "cross",
+        //                "posSide": "long",
+        //                "pos": "10",
+        //                "ccy": "BTC",
+        //                "posCcy": "",
+        //                "avgPx": "3320",
+        //                "uTIme": "1597026383085"
+        //            }],
+        //            "trades": [{
+        //                "instId": "BTC-USD-191018",
+        //                "tradeId": "2",
+        //            }]
+        //        }]
+        //    }
+        //
+        object rawLiquidations = this.safeList(message, "data", new List<object>() {});
+        for (object i = 0; isLessThan(i, getArrayLength(rawLiquidations)); postFixIncrement(ref i))
+        {
+            object rawLiquidation = getValue(rawLiquidations, i);
+            object eventType = this.safeString(rawLiquidation, "eventType");
+            if (isTrue(!isEqual(eventType, "liquidation")))
+            {
+                return;
+            }
+            object liquidation = this.parseWsMyLiquidation(rawLiquidation);
+            object symbol = this.safeString(liquidation, "symbol");
+            object liquidations = this.safeValue(this.liquidations, symbol);
+            if (isTrue(isEqual(liquidations, null)))
+            {
+                object limit = this.safeInteger(this.options, "myLiquidationsLimit", 1000);
+                liquidations = new ArrayCache(limit);
+            }
+            callDynamically(liquidations, "append", new object[] {liquidation});
+            ((IDictionary<string,object>)this.liquidations)[(string)symbol] = liquidations;
+            callDynamically(client as WebSocketClient, "resolve", new object[] {new List<object>() {liquidation}, "myLiquidations"});
+            callDynamically(client as WebSocketClient, "resolve", new object[] {new List<object>() {liquidation}, add("myLiquidations::", symbol)});
+        }
+    }
+
+    public virtual object parseWsMyLiquidation(object liquidation, object market = null)
+    {
+        //
+        //    {
+        //        "pTime": "1597026383085",
+        //        "eventType": "snapshot",
+        //        "balData": [{
+        //            "ccy": "BTC",
+        //            "cashBal": "1",
+        //            "uTime": "1597026383085"
+        //        }],
+        //        "posData": [{
+        //            "posId": "1111111111",
+        //            "tradeId": "2",
+        //            "instId": "BTC-USD-191018",
+        //            "instType": "FUTURES",
+        //            "mgnMode": "cross",
+        //            "posSide": "long",
+        //            "pos": "10",
+        //            "ccy": "BTC",
+        //            "posCcy": "",
+        //            "avgPx": "3320",
+        //            "uTIme": "1597026383085"
+        //        }],
+        //        "trades": [{
+        //            "instId": "BTC-USD-191018",
+        //            "tradeId": "2",
+        //        }]
+        //    }
+        //
+        object posData = this.safeList(liquidation, "posData", new List<object>() {});
+        object firstPosData = this.safeDict(posData, 0, new Dictionary<string, object>() {});
+        object marketId = this.safeString(firstPosData, "instId");
+        market = this.safeMarket(marketId, market);
+        object timestamp = this.safeInteger(firstPosData, "uTIme");
+        return this.safeLiquidation(new Dictionary<string, object>() {
+            { "info", liquidation },
+            { "symbol", this.safeSymbol(marketId, market) },
+            { "contracts", this.safeNumber(firstPosData, "pos") },
+            { "contractSize", this.safeNumber(market, "contractSize") },
+            { "price", this.safeNumber(liquidation, "avgPx") },
+            { "baseValue", null },
+            { "quoteValue", null },
+            { "timestamp", timestamp },
+            { "datetime", this.iso8601(timestamp) },
+        });
+    }
+
+    public virtual object parseWsLiquidation(object liquidation, object market = null)
+    {
+        //
+        // public liquidation
+        //    {
+        //        "details": [
+        //            {
+        //                "bkLoss": "0",
+        //                "bkPx": "0.007831",
+        //                "ccy": "",
+        //                "posSide": "short",
+        //                "side": "buy",
+        //                "sz": "13",
+        //                "ts": "1692266434010"
+        //            }
+        //        ],
+        //        "instFamily": "IOST-USDT",
+        //        "instId": "IOST-USDT-SWAP",
+        //        "instType": "SWAP",
+        //        "uly": "IOST-USDT"
+        //    }
+        //
+        object details = this.safeList(liquidation, "details", new List<object>() {});
+        object liquidationDetails = this.safeDict(details, 0, new Dictionary<string, object>() {});
+        object marketId = this.safeString(liquidation, "instId");
+        market = this.safeMarket(marketId, market);
+        object timestamp = this.safeInteger(liquidationDetails, "ts");
+        return this.safeLiquidation(new Dictionary<string, object>() {
+            { "info", liquidation },
+            { "symbol", this.safeSymbol(marketId, market) },
+            { "contracts", this.safeNumber(liquidationDetails, "sz") },
+            { "contractSize", this.safeNumber(market, "contractSize") },
+            { "price", this.safeNumber(liquidationDetails, "bkPx") },
+            { "baseValue", null },
+            { "quoteValue", null },
+            { "timestamp", timestamp },
+            { "datetime", this.iso8601(timestamp) },
+        });
     }
 
     public async override Task<object> watchOHLCV(object symbol, object timeframe = null, object since = null, object limit = null, object parameters = null)
@@ -484,10 +860,12 @@ public partial class okx : ccxt.okx
         /**
         * @method
         * @name okx#watchOrderBook
+        * @see https://www.okx.com/docs-v5/en/#order-book-trading-market-data-ws-order-book-channel
         * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
         * @param {string} symbol unified symbol of the market to fetch the order book for
         * @param {int} [limit] the maximum amount of order book entries to return
         * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @param {string} [params.depth] okx order book depth, can be books, books5, books-l2-tbt, books50-l2-tbt, bbo-tbt
         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
         */
         //
@@ -522,17 +900,21 @@ public partial class okx : ccxt.okx
         /**
         * @method
         * @name okx#watchOrderBookForSymbols
+        * @see https://www.okx.com/docs-v5/en/#order-book-trading-market-data-ws-order-book-channel
         * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
         * @param {string[]} symbols unified array of symbols
         * @param {int} [limit] 1,5, 400, 50 (l2-tbt, vip4+) or 40000 (vip5+) the maximum amount of order book entries to return
         * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @param {string} [params.depth] okx order book depth, can be books, books5, books-l2-tbt, books50-l2-tbt, bbo-tbt
         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
         */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         symbols = this.marketSymbols(symbols);
-        object options = this.safeValue(this.options, "watchOrderBook", new Dictionary<string, object>() {});
-        object depth = this.safeString(options, "depth", "books");
+        object depth = null;
+        var depthparametersVariable = this.handleOptionAndParams(parameters, "watchOrderBook", "depth", "books");
+        depth = ((IList<object>)depthparametersVariable)[0];
+        parameters = ((IList<object>)depthparametersVariable)[1];
         if (isTrue(!isEqual(limit, null)))
         {
             if (isTrue(isEqual(limit, 1)))
@@ -541,19 +923,20 @@ public partial class okx : ccxt.okx
             } else if (isTrue(isTrue(isGreaterThan(limit, 1)) && isTrue(isLessThanOrEqual(limit, 5))))
             {
                 depth = "books5";
-            } else if (isTrue(isEqual(limit, 400)))
-            {
-                depth = "books";
             } else if (isTrue(isEqual(limit, 50)))
             {
                 depth = "books50-l2-tbt"; // Make sure you have VIP4 and above
-            } else if (isTrue(isEqual(limit, 4000)))
+            } else if (isTrue(isEqual(limit, 400)))
             {
-                depth = "books-l2-tbt"; // Make sure you have VIP5 and above
+                depth = "books";
             }
         }
         if (isTrue(isTrue((isEqual(depth, "books-l2-tbt"))) || isTrue((isEqual(depth, "books50-l2-tbt")))))
         {
+            if (!isTrue(this.checkRequiredCredentials(false)))
+            {
+                throw new AuthenticationError ((string)add(this.id, " watchOrderBook/watchOrderBookForSymbols requires authentication for this depth. Add credentials or change the depth option to books or books5")) ;
+            }
             await this.authenticate(new Dictionary<string, object>() {
                 { "access", "public" },
             });
@@ -627,6 +1010,8 @@ public partial class okx : ccxt.okx
         object storedBids = getValue(orderbook, "bids");
         this.handleDeltas(storedAsks, asks);
         this.handleDeltas(storedBids, bids);
+        object marketId = this.safeString(message, "instId");
+        object symbol = this.safeSymbol(marketId);
         object checksum = this.safeBool(this.options, "checksum", true);
         if (isTrue(checksum))
         {
@@ -652,6 +1037,8 @@ public partial class okx : ccxt.okx
             if (isTrue(!isEqual(responseChecksum, localChecksum)))
             {
                 var error = new InvalidNonce(add(this.id, " invalid checksum"));
+
+
                 ((WebSocketClient)client).reject(error, messageHash);
             }
         }
@@ -748,10 +1135,10 @@ public partial class okx : ccxt.okx
         //         ]
         //     }
         //
-        object arg = this.safeValue(message, "arg", new Dictionary<string, object>() {});
+        object arg = this.safeDict(message, "arg", new Dictionary<string, object>() {});
         object channel = this.safeString(arg, "channel");
         object action = this.safeString(message, "action");
-        object data = this.safeValue(message, "data", new List<object>() {});
+        object data = this.safeList(message, "data", new List<object>() {});
         object marketId = this.safeString(arg, "instId");
         object market = this.safeMarket(marketId);
         object symbol = getValue(market, "symbol");
@@ -854,6 +1241,11 @@ public partial class okx : ccxt.okx
         await this.loadMarkets();
         await this.authenticate();
         return await this.subscribe("private", "account", "account", null, parameters);
+    }
+
+    public virtual void handleBalanceAndPosition(WebSocketClient client, object message)
+    {
+        this.handleMyLiquidation(client as WebSocketClient, message);
     }
 
     public virtual void handleBalance(WebSocketClient client, object message)
@@ -1478,7 +1870,7 @@ public partial class okx : ccxt.okx
         callDynamically(client as WebSocketClient, "resolve", new object[] {first, messageHash});
     }
 
-    public async override Task<object> editOrderWs(object id, object symbol, object type, object side, object amount, object price = null, object parameters = null)
+    public async override Task<object> editOrderWs(object id, object symbol, object type, object side, object amount = null, object price = null, object parameters = null)
     {
         /**
         * @method
@@ -1692,10 +2084,10 @@ public partial class okx : ccxt.okx
         //     { event: 'error', msg: "Illegal request: {"op":"subscribe","args":["spot/ticker:BTC-USDT"]}", code: "60012" }
         //     { event: 'error", msg: "channel:ticker,instId:BTC-USDT doesn"t exist", code: "60018" }
         //
-        object errorCode = this.safeInteger(message, "code");
+        object errorCode = this.safeString(message, "code");
         try
         {
-            if (isTrue(errorCode))
+            if (isTrue(isTrue(errorCode) && isTrue(!isEqual(errorCode, "0"))))
             {
                 object feedback = add(add(this.id, " "), this.json(message));
                 this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), errorCode, feedback);
@@ -1704,22 +2096,12 @@ public partial class okx : ccxt.okx
                 {
                     this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), messageString, feedback);
                 }
+                throw new ExchangeError ((string)feedback) ;
             }
         } catch(Exception e)
         {
-            if (isTrue(e is AuthenticationError))
-            {
-                object messageHash = "authenticated";
-                ((WebSocketClient)client).reject(e, messageHash);
-                if (isTrue(inOp(((WebSocketClient)client).subscriptions, messageHash)))
-                {
-
-                }
-                return false;
-            } else
-            {
-                ((WebSocketClient)client).reject(e);
-            }
+            ((WebSocketClient)client).reject(e);
+            return false;
         }
         return message;
     }
@@ -1811,8 +2193,11 @@ public partial class okx : ccxt.okx
                 { "block-tickers", this.handleTicker },
                 { "trades", this.handleTrades },
                 { "account", this.handleBalance },
+                { "funding-rate", this.handleFundingRate },
                 { "orders", this.handleOrders },
                 { "orders-algo", this.handleOrders },
+                { "liquidation-orders", this.handleLiquidation },
+                { "balance_and_position", this.handleBalanceAndPosition },
             };
             object method = this.safeValue(methods, channel);
             if (isTrue(isEqual(method, null)))

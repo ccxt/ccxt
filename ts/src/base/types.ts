@@ -1,6 +1,7 @@
 export type Bool = boolean | undefined;
 // must be an integer in other langs
 export type IndexType = number | string;
+export type int = number;
 export type Int = number | undefined;
 export type MarketType = 'future' | 'margin' | 'option' | 'spot' | 'swap' | 'delivery' | 'index';
 export type Num = number | undefined;
@@ -289,8 +290,9 @@ export interface FundingRate {
     previousFundingDatetime?: string;
     previousFundingRate?: number;
     previousFundingTimestamp?: number;
-    symbol: string;
-    timestamp?: number;
+}
+
+export interface FundingRates extends Dictionary<FundingRate> {
 }
 
 export interface Position {
@@ -575,6 +577,12 @@ export interface IsolatedBorrowRates extends Dictionary<IsolatedBorrowRates> {
 }
 
 export interface CrossBorrowRates extends Dictionary<CrossBorrowRates> {
+}
+
+export interface TransferEntries extends Dictionary<TransferEntry> {
+}
+
+export interface LeverageTiers extends Dictionary<LeverageTier[]> {
 }
 
 /** [ timestamp, open, high, low, close, volume ] */

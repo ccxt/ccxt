@@ -9,5 +9,16 @@
             "deposit": {},
             "withdraw": {}
         }
+    },
+    "WAVES": {
+        "id": "WAVES",
+        "code": "WAVES",
+        "precision": 8,
+        "fees": {},
+        "networks": {},
+        "limits": {
+            "deposit": {},
+            "withdraw": {}
+        }
     }
 }

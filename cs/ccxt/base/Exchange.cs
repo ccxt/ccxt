@@ -25,6 +25,13 @@ public partial class Exchange
             this.setMarkets(this.markets);
         }
         this.afterConstruct();
+
+        var isSandbox2 = this.safeBool2(this.options, "sandbox", "testnet", false);
+        var isSandbox = (isSandbox2 != null) ? (bool)isSandbox2 : false;
+        if (isSandbox)
+        {
+            this.setSandboxMode(isSandbox);
+        }
     }
 
     private void initHttpClient()

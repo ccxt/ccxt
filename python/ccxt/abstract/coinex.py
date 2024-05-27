@@ -125,7 +125,7 @@ class ImplicitAPI:
     v1_perpetualprivate_post_order_cancel_by_client_id = v1PerpetualPrivatePostOrderCancelByClientId = Entry('order/cancel/by_client_id', ['v1', 'perpetualPrivate'], 'POST', {'cost': 20})
     v1_perpetualprivate_post_order_cancel_stop_by_client_id = v1PerpetualPrivatePostOrderCancelStopByClientId = Entry('order/cancel_stop/by_client_id', ['v1', 'perpetualPrivate'], 'POST', {'cost': 20})
     v1_perpetualprivate_post_market_preference = v1PerpetualPrivatePostMarketPreference = Entry('market/preference', ['v1', 'perpetualPrivate'], 'POST', {'cost': 20})
-    v2_public_get_maintain_info = v2PublicGetMaintainInfo = Entry('maintain-info', ['v2', 'public'], 'GET', {'cost': 1})
+    v2_public_get_maintain_info = v2PublicGetMaintainInfo = Entry('maintain/info', ['v2', 'public'], 'GET', {'cost': 1})
     v2_public_get_ping = v2PublicGetPing = Entry('ping', ['v2', 'public'], 'GET', {'cost': 1})
     v2_public_get_time = v2PublicGetTime = Entry('time', ['v2', 'public'], 'GET', {'cost': 1})
     v2_public_get_spot_market = v2PublicGetSpotMarket = Entry('spot/market', ['v2', 'public'], 'GET', {'cost': 1})

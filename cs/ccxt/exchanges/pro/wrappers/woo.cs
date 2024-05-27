@@ -10,6 +10,7 @@ public partial class woo
     /// watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
     /// </summary>
     /// <remarks>
+    /// See <see href="https://docs.woo.org/#orderbook"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>limit</term>
@@ -55,6 +56,7 @@ public partial class woo
     /// watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
     /// </summary>
     /// <remarks>
+    /// See <see href="https://docs.woo.org/#24h-tickers"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -70,6 +72,33 @@ public partial class woo
         var res = await this.watchTickers(symbols, parameters);
         return new Tickers(res);
     }
+    /// <summary>
+    /// watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://docs.woo.org/#k-line"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>since</term>
+    /// <description>
+    /// int : timestamp in ms of the earliest candle to fetch
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>limit</term>
+    /// <description>
+    /// int : the maximum amount of candles to fetch
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>int[][]</term> A list of candles ordered as timestamp, open, high, low, close, volume.</returns>
     public async Task<List<OHLCV>> WatchOHLCV(string symbol, string timeframe = "1m", Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;
@@ -81,6 +110,7 @@ public partial class woo
     /// watches information on multiple trades made in a market
     /// </summary>
     /// <remarks>
+    /// See <see href="https://docs.woo.org/#trade"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -110,10 +140,17 @@ public partial class woo
         var res = await this.watchTrades(symbol, since, limit, parameters);
         return ((IList<object>)res).Select(item => new Trade(item)).ToList<Trade>();
     }
+    public async Task<Dictionary<string, object>> WatchPrivateMultiple(object messageHashes, object message, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.watchPrivateMultiple(messageHashes, message, parameters);
+        return ((Dictionary<string, object>)res);
+    }
     /// <summary>
-    /// watches information on multiple orders made by the user
+    /// watches information on multiple trades made by the user
     /// </summary>
     /// <remarks>
+    /// See <see href="https://docs.woo.org/#executionreport"/>  <br/>
+    /// See <see href="https://docs.woo.org/#algoexecutionreportv2"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -133,6 +170,12 @@ public partial class woo
     /// object : extra parameters specific to the exchange API endpoint
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>params.trigger</term>
+    /// <description>
+    /// bool : true if trigger order
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
     /// <returns> <term>object[]</term> a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
@@ -142,6 +185,13 @@ public partial class woo
         var limit = limit2 == 0 ? null : (object)limit2;
         var res = await this.watchOrders(symbol, since, limit, parameters);
         return ((IList<object>)res).Select(item => new Order(item)).ToList<Order>();
+    }
+    public async Task<List<Trade>> WatchMyTrades(string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    {
+        var since = since2 == 0 ? null : (object)since2;
+        var limit = limit2 == 0 ? null : (object)limit2;
+        var res = await this.watchMyTrades(symbol, since, limit, parameters);
+        return ((IList<object>)res).Select(item => new Trade(item)).ToList<Trade>();
     }
     /// <summary>
     /// watch all open positions

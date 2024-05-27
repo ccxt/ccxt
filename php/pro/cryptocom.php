@@ -112,14 +112,16 @@ class cryptocom extends \ccxt\async\cryptocom {
                 $params['params'] = array();
             }
             $bookSubscriptionType = null;
-            list($bookSubscriptionType, $params) = $this->handle_option_and_params_2($params, 'watchOrderBook', 'watchOrderBookForSymbols', 'bookSubscriptionType', 'SNAPSHOT_AND_UPDATE');
-            if ($bookSubscriptionType !== null) {
-                $params['params']['bookSubscriptionType'] = $bookSubscriptionType;
-            }
+            $bookSubscriptionType2 = null;
+            list($bookSubscriptionType, $params) = $this->handle_option_and_params($params, 'watchOrderBook', 'bookSubscriptionType', 'SNAPSHOT_AND_UPDATE');
+            list($bookSubscriptionType2, $params) = $this->handle_option_and_params($params, 'watchOrderBookForSymbols', 'bookSubscriptionType', $bookSubscriptionType);
+            $params['params']['bookSubscriptionType'] = $bookSubscriptionType2;
             $bookUpdateFrequency = null;
-            list($bookUpdateFrequency, $params) = $this->handle_option_and_params_2($params, 'watchOrderBook', 'watchOrderBookForSymbols', 'bookUpdateFrequency');
-            if ($bookUpdateFrequency !== null) {
-                $params['params']['bookSubscriptionType'] = $bookSubscriptionType;
+            $bookUpdateFrequency2 = null;
+            list($bookUpdateFrequency, $params) = $this->handle_option_and_params($params, 'watchOrderBook', 'bookUpdateFrequency');
+            list($bookUpdateFrequency2, $params) = $this->handle_option_and_params($params, 'watchOrderBookForSymbols', 'bookUpdateFrequency', $bookUpdateFrequency);
+            if ($bookUpdateFrequency2 !== null) {
+                $params['params']['bookSubscriptionType'] = $bookUpdateFrequency2;
             }
             for ($i = 0; $i < count($symbols); $i++) {
                 $symbol = $symbols[$i];
@@ -138,7 +140,7 @@ class cryptocom extends \ccxt\async\cryptocom {
         $price = $this->safe_float($delta, 0);
         $amount = $this->safe_float($delta, 1);
         $count = $this->safe_integer($delta, 2);
-        $bookside->store ($price, $amount, $count);
+        $bookside->storeArray (array( $price, $amount, $count ));
     }
 
     public function handle_deltas($bookside, $deltas) {
@@ -209,11 +211,11 @@ class cryptocom extends \ccxt\async\cryptocom {
         $data = $this->safe_value($message, 'data');
         $data = $this->safe_value($data, 0);
         $timestamp = $this->safe_integer($data, 't');
-        $orderbook = $this->safe_value($this->orderbooks, $symbol);
-        if ($orderbook === null) {
+        if (!(is_array($this->orderbooks) && array_key_exists($symbol, $this->orderbooks))) {
             $limit = $this->safe_integer($message, 'depth');
-            $orderbook = $this->counted_order_book(array(), $limit);
+            $this->orderbooks[$symbol] = $this->counted_order_book(array(), $limit);
         }
+        $orderbook = $this->orderbooks[$symbol];
         $channel = $this->safe_string($message, 'channel');
         $nonce = $this->safe_integer_2($data, 'u', 's');
         $books = $data;
@@ -581,7 +583,7 @@ class cryptocom extends \ccxt\async\cryptocom {
                 $snapshot = Async\await($client->future ('fetchPositionsSnapshot'));
                 return $this->filter_by_symbols_since_limit($snapshot, $symbols, $since, $limit, true);
             }
-            $newPositions = Async\await($this->watch($url, $messageHash, array_merge($request, $params)));
+            $newPositions = Async\await($this->watch($url, $messageHash, $this->extend($request, $params)));
             if ($this->newUpdates) {
                 return $newPositions;
             }
@@ -807,7 +809,7 @@ class cryptocom extends \ccxt\async\cryptocom {
              * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
              */
             Async\await($this->load_markets());
-            $params = array_merge(array(
+            $params = $this->extend(array(
                 'order_id' => $id,
             ), $params);
             $request = array(
@@ -832,7 +834,7 @@ class cryptocom extends \ccxt\async\cryptocom {
             $market = null;
             $request = array(
                 'method' => 'private/cancel-all-orders',
-                'params' => array_merge(array(), $params),
+                'params' => $this->extend(array(), $params),
             );
             if ($symbol !== null) {
                 $market = $this->market($symbol);
@@ -866,7 +868,7 @@ class cryptocom extends \ccxt\async\cryptocom {
                 ),
                 'nonce' => $id,
             );
-            $message = array_merge($request, $params);
+            $message = $this->extend($request, $params);
             return Async\await($this->watch($url, $messageHash, $message, $messageHash));
         }) ();
     }
@@ -895,7 +897,7 @@ class cryptocom extends \ccxt\async\cryptocom {
                 'id' => $nonce,
                 'nonce' => $nonce,
             );
-            $message = array_merge($request, $params);
+            $message = $this->extend($request, $params);
             return Async\await($this->watch($url, (string) $nonce, $message, true));
         }) ();
     }
@@ -912,7 +914,7 @@ class cryptocom extends \ccxt\async\cryptocom {
                 ),
                 'nonce' => $id,
             );
-            $message = array_merge($request, $params);
+            $message = $this->extend($request, $params);
             return Async\await($this->watch($url, $messageHash, $message, $messageHash));
         }) ();
     }
@@ -1050,7 +1052,7 @@ class cryptocom extends \ccxt\async\cryptocom {
                     'api_key' => $this->apiKey,
                     'sig' => $signature,
                 );
-                $message = array_merge($request, $params);
+                $message = $this->extend($request, $params);
                 $this->watch($url, $messageHash, $message, $messageHash);
             }
             return Async\await($future);

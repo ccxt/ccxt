@@ -112,6 +112,7 @@ class coinmetro extends coinmetro$1 {
                 'reduceMargin': false,
                 'repayCrossMargin': false,
                 'repayIsolatedMargin': false,
+                'sandbox': true,
                 'setLeverage': false,
                 'setMargin': false,
                 'setMarginMode': false,

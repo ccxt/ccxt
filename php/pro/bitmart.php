@@ -202,7 +202,7 @@ class bitmart extends \ccxt\async\bitmart {
     public function load_balance_snapshot($client, $messageHash, $type) {
         return Async\async(function () use ($client, $messageHash, $type) {
             $response = Async\await($this->fetch_balance(array( 'type' => $type )));
-            $this->balance[$type] = array_merge($response, $this->safe_value($this->balance, $type, array()));
+            $this->balance[$type] = $this->extend($response, $this->safe_value($this->balance, $type, array()));
             // don't remove the $future from the .futures cache
             $future = $client->futures[$messageHash];
             $future->resolve ();
@@ -560,7 +560,7 @@ class bitmart extends \ccxt\async\bitmart {
             $amount = $this->safe_string($order, 'size');
             $type = $this->safe_string($order, 'type');
             $rawState = $this->safe_string($order, 'state');
-            $status = $this->parseOrderStatusByType ($market['type'], $rawState);
+            $status = $this->parse_order_status_by_type($market['type'], $rawState);
             $timestamp = $this->safe_integer($order, 'ms_t');
             $symbol = $market['symbol'];
             $side = $this->safe_string_lower($order, 'side');
@@ -1436,7 +1436,7 @@ class bitmart extends \ccxt\async\bitmart {
                         ),
                     );
                 }
-                $message = array_merge($request, $params);
+                $message = $this->extend($request, $params);
                 $this->watch($url, $messageHash, $message, $messageHash);
             }
             return Async\await($future);

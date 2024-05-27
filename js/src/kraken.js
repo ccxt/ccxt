@@ -43,6 +43,9 @@ export default class kraken extends Exchange {
                 'cancelOrder': true,
                 'cancelOrders': true,
                 'createDepositAddress': true,
+                'createMarketBuyOrderWithCost': true,
+                'createMarketOrderWithCost': false,
+                'createMarketSellOrderWithCost': false,
                 'createOrder': true,
                 'createStopLimitOrder': true,
                 'createStopMarketOrder': true,
@@ -537,6 +540,8 @@ export default class kraken extends Exchange {
             const leverageBuy = this.safeValue(market, 'leverage_buy', []);
             const leverageBuyLength = leverageBuy.length;
             const precisionPrice = this.parseNumber(this.parsePrecision(this.safeString(market, 'pair_decimals')));
+            const status = this.safeString(market, 'status');
+            const isActive = status === 'online';
             result.push({
                 'id': id,
                 'wsId': this.safeString(market, 'wsname'),
@@ -555,7 +560,7 @@ export default class kraken extends Exchange {
                 'swap': false,
                 'future': false,
                 'option': false,
-                'active': true,
+                'active': isActive,
                 'contract': false,
                 'linear': undefined,
                 'inverse': undefined,
@@ -984,9 +989,7 @@ export default class kraken extends Exchange {
             request['interval'] = timeframe;
         }
         if (since !== undefined) {
-            // contrary to kraken's api documentation, the since parameter must be passed in nanoseconds
-            // the adding of '000000' is copied from the fetchTrades function
-            request['since'] = this.numberToString(since) + '000000'; // expected to be in nanoseconds
+            request['since'] = this.numberToString(this.parseToInt(since / 1000)); // expected to be in seconds
         }
         const response = await this.publicGetOHLC(this.extend(request, params));
         //
@@ -1271,10 +1274,7 @@ export default class kraken extends Exchange {
         // https://support.kraken.com/hc/en-us/articles/218198197-How-to-pull-all-trade-data-using-the-Kraken-REST-API
         // https://github.com/ccxt/ccxt/issues/5677
         if (since !== undefined) {
-            // php does not format it properly
-            // therefore we use string concatenation here
-            request['since'] = since * 1e6;
-            request['since'] = since.toString() + '000000'; // expected to be in nanoseconds
+            request['since'] = this.numberToString(this.parseToInt(since / 1000)); // expected to be in seconds
         }
         if (limit !== undefined) {
             request['count'] = limit;
@@ -1351,6 +1351,37 @@ export default class kraken extends Exchange {
         //
         return this.parseBalance(response);
     }
+    async createMarketOrderWithCost(symbol, side, cost, params = {}) {
+        /**
+         * @method
+         * @name kraken#createMarketOrderWithCost
+         * @description create a market order by providing the symbol, side and cost
+         * @see https://docs.kraken.com/rest/#tag/Trading/operation/addOrder
+         * @param {string} symbol unified symbol of the market to create an order in (only USD markets are supported)
+         * @param {string} side 'buy' or 'sell'
+         * @param {float} cost how much you want to trade in units of the quote currency
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        await this.loadMarkets();
+        // only buy orders are supported by the endpoint
+        params['cost'] = cost;
+        return await this.createOrder(symbol, 'market', side, cost, undefined, params);
+    }
+    async createMarketBuyOrderWithCost(symbol, cost, params = {}) {
+        /**
+         * @method
+         * @name kraken#createMarketBuyOrderWithCost
+         * @description create a market buy order by providing the symbol, side and cost
+         * @see https://docs.kraken.com/rest/#tag/Trading/operation/addOrder
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {float} cost how much you want to trade in units of the quote currency
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        await this.loadMarkets();
+        return await this.createMarketOrderWithCost(symbol, 'buy', cost, params);
+    }
     async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
         /**
          * @method
@@ -1381,7 +1412,7 @@ export default class kraken extends Exchange {
             'ordertype': type,
             'volume': this.amountToPrecision(symbol, amount),
         };
-        const orderRequest = this.orderRequest('createOrder', symbol, type, request, price, params);
+        const orderRequest = this.orderRequest('createOrder', symbol, type, request, amount, price, params);
         const response = await this.privatePostAddOrder(this.extend(orderRequest[0], orderRequest[1]));
         //
         //     {
@@ -1687,7 +1718,7 @@ export default class kraken extends Exchange {
             'trades': trades,
         }, market);
     }
-    orderRequest(method, symbol, type, request, price = undefined, params = {}) {
+    orderRequest(method, symbol, type, request, amount, price = undefined, params = {}) {
         const clientOrderId = this.safeString2(params, 'userref', 'clientOrderId');
         params = this.omit(params, ['userref', 'clientOrderId']);
         if (clientOrderId !== undefined) {
@@ -1702,10 +1733,25 @@ export default class kraken extends Exchange {
         const trailingLimitAmount = this.safeString(params, 'trailingLimitAmount');
         const isTrailingAmountOrder = trailingAmount !== undefined;
         const isLimitOrder = type.endsWith('limit'); // supporting limit, stop-loss-limit, take-profit-limit, etc
-        if (isLimitOrder && !isTrailingAmountOrder) {
+        const isMarketOrder = type === 'market';
+        const cost = this.safeString(params, 'cost');
+        const flags = this.safeString(params, 'oflags');
+        params = this.omit(params, ['cost', 'oflags']);
+        const isViqcOrder = (flags !== undefined) && (flags.indexOf('viqc') > -1); // volume in quote currency
+        if (isMarketOrder && (cost !== undefined || isViqcOrder)) {
+            if (cost === undefined && (amount !== undefined)) {
+                request['volume'] = this.costToPrecision(symbol, this.numberToString(amount));
+            }
+            else {
+                request['volume'] = this.costToPrecision(symbol, cost);
+            }
+            const extendedOflags = (flags !== undefined) ? flags + ',viqc' : 'viqc';
+            request['oflags'] = extendedOflags;
+        }
+        else if (isLimitOrder && !isTrailingAmountOrder) {
             request['price'] = this.priceToPrecision(symbol, price);
         }
-        const reduceOnly = this.safeValue2(params, 'reduceOnly', 'reduce_only');
+        const reduceOnly = this.safeBool2(params, 'reduceOnly', 'reduce_only');
         if (isStopLossOrTakeProfitTrigger) {
             if (isStopLossTriggerOrder) {
                 request['price'] = this.priceToPrecision(symbol, stopLossTriggerPrice);
@@ -1753,7 +1799,7 @@ export default class kraken extends Exchange {
                 request['reduce_only'] = 'true'; // not using boolean in this case, because the urlencodedNested transforms it into 'True' string
             }
         }
-        let close = this.safeValue(params, 'close');
+        let close = this.safeDict(params, 'close');
         if (close !== undefined) {
             close = this.extend({}, close);
             const closePrice = this.safeValue(close, 'price');
@@ -1774,7 +1820,8 @@ export default class kraken extends Exchange {
         let postOnly = undefined;
         [postOnly, params] = this.handlePostOnly(isMarket, false, params);
         if (postOnly) {
-            request['oflags'] = 'post';
+            const extendedPostFlags = (flags !== undefined) ? flags + ',post' : 'post';
+            request['oflags'] = extendedPostFlags;
         }
         params = this.omit(params, ['timeInForce', 'reduceOnly', 'stopLossPrice', 'takeProfitPrice', 'trailingAmount', 'trailingLimitAmount', 'offset']);
         return [request, params];
@@ -1812,7 +1859,7 @@ export default class kraken extends Exchange {
         if (amount !== undefined) {
             request['volume'] = this.amountToPrecision(symbol, amount);
         }
-        const orderRequest = this.orderRequest('editOrder', symbol, type, request, price, params);
+        const orderRequest = this.orderRequest('editOrder', symbol, type, request, amount, price, params);
         const response = await this.privatePostEditOrder(this.extend(orderRequest[0], orderRequest[1]));
         //
         //     {
@@ -3003,6 +3050,9 @@ export default class kraken extends Exchange {
             throw new CancelPending(this.id + ' ' + body);
         }
         if (body.indexOf('Invalid arguments:volume') >= 0) {
+            throw new InvalidOrder(this.id + ' ' + body);
+        }
+        if (body.indexOf('Invalid arguments:viqc') >= 0) {
             throw new InvalidOrder(this.id + ' ' + body);
         }
         if (body.indexOf('Rate limit exceeded') >= 0) {

@@ -1829,10 +1829,9 @@ public partial class coinlist : Exchange
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object currency = this.currency(code);
-        amount = this.currencyToPrecision(code, amount);
         object request = new Dictionary<string, object>() {
             { "asset", getValue(currency, "id") },
-            { "amount", amount },
+            { "amount", this.currencyToPrecision(code, amount) },
         };
         object accountsByType = this.safeValue(this.options, "accountsByType", new Dictionary<string, object>() {});
         object fromAcc = this.safeString(accountsByType, fromAccount, fromAccount);
@@ -1868,7 +1867,7 @@ public partial class coinlist : Exchange
         return transfer;
     }
 
-    public async virtual Task<object> fetchTransfers(object code = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<object> fetchTransfers(object code = null, object since = null, object limit = null, object parameters = null)
     {
         /**
         * @method

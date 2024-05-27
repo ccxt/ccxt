@@ -73,7 +73,7 @@ public partial class Exchange
                 break;
         }
 
-        return digest == "hex" ? binaryToHex(signature) : binaryToBase64(signature);
+        return digest == "hex" ? binaryToHex(signature) : Exchange.BinaryToBase64(signature);
     }
 
     public string hmac(object request2, object secret2, Delegate algorithm2 = null, string digest = "hex") => Hmac(request2, secret2, algorithm2, digest);
@@ -115,7 +115,7 @@ public partial class Exchange
         {
             return signature;
         }
-        return digest == "hex" ? binaryToHex(signature) : binaryToBase64(signature);
+        return digest == "hex" ? binaryToHex(signature) : Exchange.BinaryToBase64(signature);
     }
 
     private static byte[] HashBytes(object request2, Delegate hash = null)
@@ -167,25 +167,25 @@ public partial class Exchange
             header.Remove("iat");
         }
         var stringHeader = Exchange.Json(header);
-        var encodedHeader = Exchange.Base64urlEncode(Exchange.StringToBase64(stringHeader));
-        var encodedData = Exchange.Base64urlEncode(Exchange.StringToBase64(Exchange.Json(data)));
+        var encodedHeader = Exchange.Base64urlEncode(stringHeader);
+        var encodedData = Exchange.Base64urlEncode(Exchange.Json(data));
         var token = encodedHeader + "." + encodedData;
         string signature = null;
         var algoType = alg.Substring(0, 2);
         if (isRsa)
         {
-            signature = Exchange.Base64urlEncode(Exchange.Rsa(token, secret, hash));
+            signature = Exchange.Base64urlEncode(Exchange.Base64ToBinary(Exchange.Rsa(token, secret, hash) as object));
         }
         else if (algoType == "ES")
         {
             var ec = Ecdsa(token, secret, p256, hash) as Dictionary<string, object>;
             var r = ec["r"] as string;
             var s = ec["s"] as string;
-            signature = Exchange.Base64urlEncode(Exchange.binaryToBase64(Exchange.ConvertHexStringToByteArray(r + s)));
+            signature = Exchange.Base64urlEncode(Exchange.ConvertHexStringToByteArray(r + s));
         }
         else
         {
-            signature = Exchange.Base64urlEncode(Exchange.Hmac(token, secret, hash, "binary"));
+            signature = Exchange.Base64urlEncode(Exchange.Base64ToBinary(Exchange.Hmac(token, secret, hash, "binary") as object));
         }
         var res = token + "." + signature;
         return res;
@@ -461,9 +461,9 @@ public partial class Exchange
     public object eddsa(object request, object secret, object alg = null)
     {
         alg ??= "ed25519";
-        var msg = Hex.HexToBytes((string)request);
+        var msg = Encoding.UTF8.GetBytes((string)request);
         var signer = new Ed25519Signer();
-        var privateKey = ReadEDDSAPrivateKeyFromPem(secret as string);
+        var privateKey = (secret is string) ? ReadEDDSAPrivateKeyFromPem(secret as string) : new Ed25519PrivateKeyParameters(secret as byte[]);
         signer.Init(true, privateKey);
         signer.BlockUpdate(msg, 0, msg.Length);
         byte[] signature = signer.GenerateSignature();

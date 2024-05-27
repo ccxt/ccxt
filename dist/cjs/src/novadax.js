@@ -1189,7 +1189,6 @@ class novadax extends novadax$1 {
             'info': transfer,
             'id': id,
             'amount': undefined,
-            'code': currencyCode,
             'currency': currencyCode,
             'fromAccount': undefined,
             'toAccount': undefined,

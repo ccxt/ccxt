@@ -193,7 +193,7 @@ export default class bingx extends bingxRest {
         //         "b": "2.5747"
         //     }
         //
-        const timestamp = this.safeInteger(message, 'ts');
+        const timestamp = this.safeInteger(message, 'C');
         const marketId = this.safeString(message, 's');
         market = this.safeMarket(marketId, market);
         const close = this.safeString(message, 'c');

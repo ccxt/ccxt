@@ -188,7 +188,7 @@ class btcalpha extends Exchange {
         }) ();
     }
 
-    public function parse_market($market): array {
+    public function parse_market(array $market): array {
         $id = $this->safe_string($market, 'name');
         $baseId = $this->safe_string($market, 'currency1');
         $quoteId = $this->safe_string($market, 'currency2');
@@ -293,7 +293,7 @@ class btcalpha extends Exchange {
             $request = array(
                 'pair' => $market['id'],
             );
-            $response = Async\await($this->publicGetTicker (array_merge($request, $params)));
+            $response = Async\await($this->publicGetTicker ($this->extend($request, $params)));
             //
             //    {
             //        "timestamp" => "1674658.445272",
@@ -311,7 +311,7 @@ class btcalpha extends Exchange {
         }) ();
     }
 
-    public function parse_ticker($ticker, ?array $market = null): array {
+    public function parse_ticker(array $ticker, ?array $market = null): array {
         //
         //    {
         //        "timestamp" => "1674658.445272",
@@ -373,7 +373,7 @@ class btcalpha extends Exchange {
                 $request['limit_sell'] = $limit;
                 $request['limit_buy'] = $limit;
             }
-            $response = Async\await($this->publicGetOrderbookPairName (array_merge($request, $params)));
+            $response = Async\await($this->publicGetOrderbookPairName ($this->extend($request, $params)));
             return $this->parse_order_book($response, $market['symbol'], null, 'buy', 'sell', 'price', 'amount');
         }) ();
     }
@@ -389,7 +389,7 @@ class btcalpha extends Exchange {
         return $result;
     }
 
-    public function parse_trade($trade, ?array $market = null): array {
+    public function parse_trade(array $trade, ?array $market = null): array {
         //
         // fetchTrades (public)
         //
@@ -460,7 +460,7 @@ class btcalpha extends Exchange {
             if ($limit !== null) {
                 $request['limit'] = $limit;
             }
-            $trades = Async\await($this->publicGetExchanges (array_merge($request, $params)));
+            $trades = Async\await($this->publicGetExchanges ($this->extend($request, $params)));
             return $this->parse_trades($trades, $market, $since, $limit);
         }) ();
     }
@@ -514,7 +514,7 @@ class btcalpha extends Exchange {
                 $currency = $this->currency($code);
                 $request['currency_id'] = $currency['id'];
             }
-            $response = Async\await($this->privateGetWithdraws (array_merge($request, $params)));
+            $response = Async\await($this->privateGetWithdraws ($this->extend($request, $params)));
             //
             //     array(
             //         {
@@ -530,7 +530,7 @@ class btcalpha extends Exchange {
         }) ();
     }
 
-    public function parse_transaction($transaction, ?array $currency = null): array {
+    public function parse_transaction(array $transaction, ?array $currency = null): array {
         //
         //  deposit
         //      {
@@ -576,7 +576,7 @@ class btcalpha extends Exchange {
         );
     }
 
-    public function parse_transaction_status($status) {
+    public function parse_transaction_status(?string $status) {
         $statuses = array(
             '10' => 'pending',  // New
             '20' => 'pending',  // Verified, waiting for approving
@@ -632,7 +632,7 @@ class btcalpha extends Exchange {
             if ($since !== null) {
                 $request['since'] = $this->parse_to_int($since / 1000);
             }
-            $response = Async\await($this->publicGetChartsPairTypeChart (array_merge($request, $params)));
+            $response = Async\await($this->publicGetChartsPairTypeChart ($this->extend($request, $params)));
             //
             //     array(
             //         array("time":1591296000,"open":0.024746,"close":0.024728,"low":0.024728,"high":0.024753,"volume":16.624),
@@ -672,7 +672,7 @@ class btcalpha extends Exchange {
         }) ();
     }
 
-    public function parse_order_status($status) {
+    public function parse_order_status(?string $status) {
         $statuses = array(
             '1' => 'open',
             '2' => 'canceled',
@@ -681,7 +681,7 @@ class btcalpha extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_order($order, ?array $market = null): array {
+    public function parse_order(array $order, ?array $market = null): array {
         //
         // fetchClosedOrders / fetchOrder
         //     {
@@ -778,7 +778,7 @@ class btcalpha extends Exchange {
                 'amount' => $amount,
                 'price' => $this->price_to_precision($symbol, $price),
             );
-            $response = Async\await($this->privatePostOrder (array_merge($request, $params)));
+            $response = Async\await($this->privatePostOrder ($this->extend($request, $params)));
             if (!$response['success']) {
                 throw new InvalidOrder($this->id . ' ' . $this->json($response));
             }
@@ -803,7 +803,7 @@ class btcalpha extends Exchange {
             $request = array(
                 'order' => $id,
             );
-            $response = Async\await($this->privatePostOrderCancel (array_merge($request, $params)));
+            $response = Async\await($this->privatePostOrderCancel ($this->extend($request, $params)));
             return $response;
         }) ();
     }
@@ -821,7 +821,7 @@ class btcalpha extends Exchange {
             $request = array(
                 'id' => $id,
             );
-            $order = Async\await($this->privateGetOrderId (array_merge($request, $params)));
+            $order = Async\await($this->privateGetOrderId ($this->extend($request, $params)));
             return $this->parse_order($order);
         }) ();
     }
@@ -847,7 +847,7 @@ class btcalpha extends Exchange {
             if ($limit !== null) {
                 $request['limit'] = $limit;
             }
-            $orders = Async\await($this->privateGetOrdersOwn (array_merge($request, $params)));
+            $orders = Async\await($this->privateGetOrdersOwn ($this->extend($request, $params)));
             return $this->parse_orders($orders, $market, $since, $limit);
         }) ();
     }
@@ -866,7 +866,7 @@ class btcalpha extends Exchange {
             $request = array(
                 'status' => '1',
             );
-            return Async\await($this->fetch_orders($symbol, $since, $limit, array_merge($request, $params)));
+            return Async\await($this->fetch_orders($symbol, $since, $limit, $this->extend($request, $params)));
         }) ();
     }
 
@@ -884,7 +884,7 @@ class btcalpha extends Exchange {
             $request = array(
                 'status' => '3',
             );
-            return Async\await($this->fetch_orders($symbol, $since, $limit, array_merge($request, $params)));
+            return Async\await($this->fetch_orders($symbol, $since, $limit, $this->extend($request, $params)));
         }) ();
     }
 
@@ -908,7 +908,7 @@ class btcalpha extends Exchange {
             if ($limit !== null) {
                 $request['limit'] = $limit;
             }
-            $trades = Async\await($this->privateGetExchangesOwn (array_merge($request, $params)));
+            $trades = Async\await($this->privateGetExchangesOwn ($this->extend($request, $params)));
             return $this->parse_trades($trades, null, $since, $limit);
         }) ();
     }
@@ -946,7 +946,7 @@ class btcalpha extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
         if ($response === null) {
             return null; // fallback to default $error handler
         }
