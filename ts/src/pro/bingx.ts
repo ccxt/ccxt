@@ -93,16 +93,17 @@ export default class bingx extends bingxRest {
         if (url === undefined) {
             throw new BadRequest (this.id + ' watchTrades is not supported for ' + marketType + ' markets.');
         }
-        const messageHash = market['id'] + '@ticker';
+        const subscriptionHash = market['id'] + '@ticker';
+        const messageHash = this.getMessageHash ('ticker', 'ticker', market['symbol']);
         const uuid = this.uuid ();
         const request: Dict = {
             'id': uuid,
-            'dataType': messageHash,
+            'dataType': subscriptionHash,
         };
         if (marketType === 'swap') {
             request['reqType'] = 'sub';
         }
-        return await this.watch (url, messageHash, this.extend (request, query), messageHash);
+        return await this.watch (url, messageHash, this.extend (request, query), subscriptionHash);
     }
 
     handleTicker (client: Client, message) {
