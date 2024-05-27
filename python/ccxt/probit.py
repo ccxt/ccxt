@@ -276,7 +276,7 @@ class probit(Exchange, ImplicitAPI):
         markets = self.safe_value(response, 'data', [])
         return self.parse_markets(markets)
 
-    def parse_market(self, market) -> Market:
+    def parse_market(self, market: dict) -> Market:
         id = self.safe_string(market, 'id')
         baseId = self.safe_string(market, 'base_currency_id')
         quoteId = self.safe_string(market, 'quote_currency_id')
@@ -1511,7 +1511,7 @@ class probit(Exchange, ImplicitAPI):
             'info': transaction,
         }
 
-    def parse_transaction_status(self, status):
+    def parse_transaction_status(self, status: Str):
         statuses: dict = {
             'requested': 'pending',
             'pending': 'pending',
@@ -1720,7 +1720,7 @@ class probit(Exchange, ImplicitAPI):
         self.options['expires'] = self.sum(self.milliseconds(), expiresIn * 1000)
         return response
 
-    def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response, requestHeaders, requestBody):
         if response is None:
             return None  # fallback to default error handler
         if 'errorCode' in response:

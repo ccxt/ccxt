@@ -1416,7 +1416,7 @@ class idex(Exchange, ImplicitAPI):
         canceledOrder = self.safe_dict(response, 0)
         return self.parse_order(canceledOrder, market)
 
-    def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response, requestHeaders, requestBody):
         errorCode = self.safe_string(response, 'code')
         message = self.safe_string(response, 'message')
         if errorCode is not None:
@@ -1557,7 +1557,7 @@ class idex(Exchange, ImplicitAPI):
             raise NotSupported(self.id + ' fetchTransactionsHelper() not support self method')
         return self.parse_transactions(response, currency, since, limit)
 
-    def parse_transaction_status(self, status):
+    def parse_transaction_status(self, status: Str):
         statuses: dict = {
             'mined': 'ok',
         }

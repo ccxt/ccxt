@@ -2131,26 +2131,20 @@ class Exchange(object):
     def fetch_trades_ws(self, symbol: str, since: Int = None, limit: Int = None, params={}):
         raise NotSupported(self.id + ' fetchTradesWs() is not supported yet')
 
-    def watch_liquidations(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def watch_liquidations(self, symbol: str, since: Int = None, limit: Int = None, params={}):
+        if self.has['watchLiquidationsForSymbols']:
+            return self.watchLiquidationsForSymbols([symbol], since, limit, params)
         raise NotSupported(self.id + ' watchLiquidations() is not supported yet')
 
-    def watch_all_liquidations(self, symbols: List[str], since: Optional[int] = None, limit: Optional[int] = None, params={}):
-        raise NotSupported(self.id + ' watchAllLiquidations() is not supported yet')
-
-    def watch_liquidations_for_symbols(self, symbols: List[str], since: Optional[int] = None, limit: Optional[int] = None, params={}):
-        if self.has['watchAllLiquidations']:
-            return self.watchAllLiquidations(symbols, since, limit, params)
+    def watch_liquidations_for_symbols(self, symbols: List[str], since: Int = None, limit: Int = None, params={}):
         raise NotSupported(self.id + ' watchLiquidationsForSymbols() is not supported yet')
 
-    def watch_my_liquidations(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def watch_my_liquidations(self, symbol: str, since: Int = None, limit: Int = None, params={}):
+        if self.has['watchMyLiquidationsForSymbols']:
+            return self.watchMyLiquidationsForSymbols([symbol], since, limit, params)
         raise NotSupported(self.id + ' watchMyLiquidations() is not supported yet')
 
-    def watch_all_my_liquidations(self, symbols: List[str], since: Optional[int] = None, limit: Optional[int] = None, params={}):
-        raise NotSupported(self.id + ' watchAllMyLiquidations() is not supported yet')
-
-    def watch_my_liquidations_for_symbols(self, symbols: List[str], since: Optional[int] = None, limit: Optional[int] = None, params={}):
-        if self.has['watchAllMyLiquidations']:
-            return self.watchAllMyLiquidations(symbols, since, limit, params)
+    def watch_my_liquidations_for_symbols(self, symbols: List[str], since: Int = None, limit: Int = None, params={}):
         raise NotSupported(self.id + ' watchMyLiquidationsForSymbols() is not supported yet')
 
     def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}):
@@ -2207,7 +2201,7 @@ class Exchange(object):
     def fetch_trading_limits(self, symbols: Strings = None, params={}):
         raise NotSupported(self.id + ' fetchTradingLimits() is not supported yet')
 
-    def parse_market(self, market):
+    def parse_market(self, market: dict):
         raise NotSupported(self.id + ' parseMarket() is not supported yet')
 
     def parse_markets(self, markets):
@@ -4133,7 +4127,7 @@ class Exchange(object):
                     return key
         return None
 
-    def handle_errors(self, statusCode: int, statusText: str, url: str, method: str, responseHeaders: dict, responseBody, response, requestHeaders, requestBody):
+    def handle_errors(self, statusCode: int, statusText: str, url: str, method: str, responseHeaders: dict, responseBody: str, response, requestHeaders, requestBody):
         # it is a stub method that must be overrided in the derived exchange classes
         # raise NotSupported(self.id + ' handleErrors() not implemented yet')
         return None

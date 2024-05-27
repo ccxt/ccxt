@@ -6,7 +6,7 @@
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCacheByTimestamp
 import hashlib
-from ccxt.base.types import Balances, Int, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, Trade
+from ccxt.base.types import Balances, Int, Liquidation, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, Trade
 from ccxt.async_support.base.ws.client import Client
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -21,6 +21,10 @@ class bitmex(ccxt.async_support.bitmex):
             'has': {
                 'ws': True,
                 'watchBalance': True,
+                'watchLiquidations': True,
+                'watchLiquidationsForSymbols': True,
+                'watchMyLiquidations': None,
+                'watchMyLiquidationsForSymbols': None,
                 'watchMyTrades': True,
                 'watchOHLCV': True,
                 'watchOrderBook': True,
@@ -349,6 +353,98 @@ class bitmex(ccxt.async_support.bitmex):
             client.resolve(fullParsedTicker, messageHash)
             client.resolve(fullParsedTicker, 'alltickers')
         return message
+
+    async def watch_liquidations(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Liquidation]:
+        """
+        watch the public liquidations of a trading pair
+        :see: https://www.bitmex.com/app/wsAPI#Liquidation
+        :param str symbol: unified CCXT market symbol
+        :param int [since]: the earliest time in ms to fetch liquidations for
+        :param int [limit]: the maximum number of liquidation structures to retrieve
+        :param dict [params]: exchange specific parameters for the bitmex api endpoint
+        :returns dict: an array of `liquidation structures <https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure>`
+        """
+        return self.watch_liquidations_for_symbols([symbol], since, limit, params)
+
+    async def watch_liquidations_for_symbols(self, symbols: List[str] = None, since: Int = None, limit: Int = None, params={}) -> List[Liquidation]:
+        """
+        watch the public liquidations of a trading pair
+        :see: https://www.bitmex.com/app/wsAPI#Liquidation
+        :param str symbol: unified CCXT market symbol
+        :param int [since]: the earliest time in ms to fetch liquidations for
+        :param int [limit]: the maximum number of liquidation structures to retrieve
+        :param dict [params]: exchange specific parameters for the bitmex api endpoint
+        :returns dict: an array of `liquidation structures <https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure>`
+        """
+        await self.load_markets()
+        symbols = self.market_symbols(symbols, None, True, True)
+        messageHashes = []
+        subscriptionHashes = []
+        if self.is_empty(symbols):
+            subscriptionHashes.append('liquidation')
+            messageHashes.append('liquidations')
+        else:
+            for i in range(0, len(symbols)):
+                symbol = symbols[i]
+                market = self.market(symbol)
+                subscriptionHashes.append('liquidation:' + market['id'])
+                messageHashes.append('liquidations::' + symbol)
+        url = self.urls['api']['ws']
+        request = {
+            'op': 'subscribe',
+            'args': subscriptionHashes,
+        }
+        newLiquidations = await self.watch_multiple(url, messageHashes, self.deep_extend(request, params), subscriptionHashes)
+        if self.newUpdates:
+            return newLiquidations
+        return self.filter_by_symbols_since_limit(self.liquidations, symbols, since, limit, True)
+
+    def handle_liquidation(self, client: Client, message):
+        #
+        #    {
+        #        "table":"liquidation",
+        #        "action":"partial",
+        #        "keys":[
+        #           "orderID"
+        #        ],
+        #        "types":{
+        #           "orderID":"guid",
+        #           "symbol":"symbol",
+        #           "side":"symbol",
+        #           "price":"float",
+        #           "leavesQty":"long"
+        #        },
+        #        "filter":{},
+        #        "data":[
+        #           {
+        #              "orderID":"e0a568ee-7830-4428-92c3-73e82b9576ce",
+        #              "symbol":"XPLAUSDT",
+        #              "side":"Sell",
+        #              "price":0.206,
+        #              "leavesQty":340
+        #           }
+        #        ]
+        #    }
+        #
+        rawLiquidations = self.safe_value(message, 'data', [])
+        newLiquidations = []
+        for i in range(0, len(rawLiquidations)):
+            rawLiquidation = rawLiquidations[i]
+            liquidation = self.parse_liquidation(rawLiquidation)
+            symbol = liquidation['symbol']
+            liquidations = self.safe_value(self.liquidations, symbol)
+            if liquidations is None:
+                limit = self.safe_integer(self.options, 'liquidationsLimit', 1000)
+                liquidations = ArrayCache(limit)
+            liquidations.append(liquidation)
+            self.liquidations[symbol] = liquidations
+            newLiquidations.append(liquidation)
+        client.resolve(newLiquidations, 'liquidations')
+        liquidationsBySymbol = self.index_by(newLiquidations, 'symbol')
+        symbols = list(liquidationsBySymbol.keys())
+        for i in range(0, len(symbols)):
+            symbol = symbols[i]
+            client.resolve(liquidationsBySymbol[symbol], 'liquidations::' + symbol)
 
     async def watch_balance(self, params={}) -> Balances:
         """
@@ -1541,6 +1637,7 @@ class bitmex(ccxt.async_support.bitmex):
                 'order': self.handle_orders,
                 'execution': self.handle_my_trades,
                 'margin': self.handle_balance,
+                'liquidation': self.handle_liquidation,
                 'position': self.handle_positions,
             }
             method = self.safe_value(methods, table)

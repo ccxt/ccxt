@@ -247,7 +247,7 @@ class btcmarkets extends Exchange {
         }) ();
     }
 
-    public function parse_transaction_status($status) {
+    public function parse_transaction_status(?string $status) {
         $statuses = array(
             'Accepted' => 'pending',
             'Pending Authorization' => 'pending',
@@ -396,7 +396,7 @@ class btcmarkets extends Exchange {
         }) ();
     }
 
-    public function parse_market($market): array {
+    public function parse_market(array $market): array {
         $baseId = $this->safe_string($market, 'baseAssetName');
         $quoteId = $this->safe_string($market, 'quoteAssetName');
         $id = $this->safe_string($market, 'marketId');
@@ -1275,7 +1275,7 @@ class btcmarkets extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
         if ($response === null) {
             return null; // fallback to default $error handler
         }

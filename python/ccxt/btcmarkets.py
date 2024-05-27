@@ -237,7 +237,7 @@ class btcmarkets(Exchange, ImplicitAPI):
         """
         return self.fetch_transactions_with_method('privateGetWithdrawals', code, since, limit, params)
 
-    def parse_transaction_status(self, status):
+    def parse_transaction_status(self, status: Str):
         statuses: dict = {
             'Accepted': 'pending',
             'Pending Authorization': 'pending',
@@ -376,7 +376,7 @@ class btcmarkets(Exchange, ImplicitAPI):
         #
         return self.parse_markets(response)
 
-    def parse_market(self, market) -> Market:
+    def parse_market(self, market: dict) -> Market:
         baseId = self.safe_string(market, 'baseAssetName')
         quoteId = self.safe_string(market, 'quoteAssetName')
         id = self.safe_string(market, 'marketId')
@@ -1170,7 +1170,7 @@ class btcmarkets(Exchange, ImplicitAPI):
         url = self.urls['api'][api] + request
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response, requestHeaders, requestBody):
         if response is None:
             return None  # fallback to default error handler
         if 'success' in response:

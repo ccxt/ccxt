@@ -2676,32 +2676,24 @@ class Exchange {
     }
 
     public function watch_liquidations(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
+        if ($this->has['watchLiquidationsForSymbols']) {
+            return $this->watchLiquidationsForSymbols (array( $symbol ), $since, $limit, $params);
+        }
         throw new NotSupported($this->id . ' watchLiquidations() is not supported yet');
     }
 
-    public function watch_all_liquidations(array $symbols, ?int $since = null, ?int $limit = null, $params = array ()) {
-        throw new NotSupported($this->id . ' watchAllLiquidations() is not supported yet');
-    }
-
     public function watch_liquidations_for_symbols(array $symbols, ?int $since = null, ?int $limit = null, $params = array ()) {
-        if ($this->has['watchAllLiquidations']) {
-            return $this->watchAllLiquidations ($symbols, $since, $limit, $params);
-        }
         throw new NotSupported($this->id . ' watchLiquidationsForSymbols() is not supported yet');
     }
 
     public function watch_my_liquidations(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
+        if ($this->has['watchMyLiquidationsForSymbols']) {
+            return $this->watchMyLiquidationsForSymbols (array( $symbol ), $since, $limit, $params);
+        }
         throw new NotSupported($this->id . ' watchMyLiquidations() is not supported yet');
     }
 
-    public function watch_all_my_liquidations(array $symbols, ?int $since = null, ?int $limit = null, $params = array ()) {
-        throw new NotSupported($this->id . ' watchAllMyLiquidations() is not supported yet');
-    }
-
     public function watch_my_liquidations_for_symbols(array $symbols, ?int $since = null, ?int $limit = null, $params = array ()) {
-        if ($this->has['watchAllMyLiquidations']) {
-            return $this->watchAllMyLiquidations ($symbols, $since, $limit, $params);
-        }
         throw new NotSupported($this->id . ' watchMyLiquidationsForSymbols() is not supported yet');
     }
 

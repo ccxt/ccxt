@@ -738,6 +738,28 @@ class Exchange extends \ccxt\Exchange {
         throw new NotSupported($this->id . ' fetchTradesWs() is not supported yet');
     }
 
+    public function watch_liquidations(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
+        if ($this->has['watchLiquidationsForSymbols']) {
+            return $this->watchLiquidationsForSymbols (array( $symbol ), $since, $limit, $params);
+        }
+        throw new NotSupported($this->id . ' watchLiquidations() is not supported yet');
+    }
+
+    public function watch_liquidations_for_symbols(array $symbols, ?int $since = null, ?int $limit = null, $params = array ()) {
+        throw new NotSupported($this->id . ' watchLiquidationsForSymbols() is not supported yet');
+    }
+
+    public function watch_my_liquidations(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
+        if ($this->has['watchMyLiquidationsForSymbols']) {
+            return $this->watchMyLiquidationsForSymbols (array( $symbol ), $since, $limit, $params);
+        }
+        throw new NotSupported($this->id . ' watchMyLiquidations() is not supported yet');
+    }
+
+    public function watch_my_liquidations_for_symbols(array $symbols, ?int $since = null, ?int $limit = null, $params = array ()) {
+        throw new NotSupported($this->id . ' watchMyLiquidationsForSymbols() is not supported yet');
+    }
+
     public function watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
         throw new NotSupported($this->id . ' watchTrades() is not supported yet');
     }

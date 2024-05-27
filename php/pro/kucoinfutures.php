@@ -17,6 +17,10 @@ class kucoinfutures extends \ccxt\async\kucoinfutures {
         return $this->deep_extend(parent::describe(), array(
             'has' => array(
                 'ws' => true,
+                'watchLiquidations' => false,
+                'watchLiquidatinsForSymbols' => false,
+                'watchMyLiquidations' => null,
+                'watchMyLiquidationsForSymbols' => null,
                 'watchTicker' => true,
                 'watchTickers' => true,
                 'watchBidsAsks' => true,

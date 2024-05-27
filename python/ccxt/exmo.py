@@ -2015,7 +2015,7 @@ class exmo(Exchange, ImplicitAPI):
         response = self.privatePostWithdrawCrypt(self.extend(request, params))
         return self.parse_transaction(response, currency)
 
-    def parse_transaction_status(self, status):
+    def parse_transaction_status(self, status: Str):
         statuses: dict = {
             'transferred': 'ok',
             'paid': 'ok',
@@ -2419,7 +2419,7 @@ class exmo(Exchange, ImplicitAPI):
     def nonce(self):
         return self.milliseconds()
 
-    def handle_errors(self, httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody):
+    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response, requestHeaders, requestBody):
         if response is None:
             return None  # fallback to default error handler
         if ('error' in response) and not ('result' in response):

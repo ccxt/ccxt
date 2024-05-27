@@ -519,7 +519,7 @@ class hyperliquid(Exchange, ImplicitAPI):
             }))
         return markets
 
-    def parse_market(self, market) -> Market:
+    def parse_market(self, market: dict) -> Market:
         #
         #     {
         #         "maxLeverage": "50",
@@ -2356,7 +2356,7 @@ class hyperliquid(Exchange, ImplicitAPI):
             return coin  # spot
         return coin + '/USDC:USDC'
 
-    def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response, requestHeaders, requestBody):
         if not response:
             return None  # fallback to default error handler
         # {"status":"err","response":"User or API Wallet 0xb8a6f8b26223de27c31938d56e470a5b832703a5 does not exist."}

@@ -2453,7 +2453,7 @@ class wavesexchange extends Exchange {
         }) ();
     }
 
-    public function handle_errors($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
         $errorCode = $this->safe_string($response, 'error');
         $success = $this->safe_bool($response, 'success', true);
         $Exception = $this->safe_value($this->exceptions, $errorCode);

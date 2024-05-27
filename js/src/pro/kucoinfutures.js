@@ -14,6 +14,10 @@ export default class kucoinfutures extends kucoinfuturesRest {
         return this.deepExtend(super.describe(), {
             'has': {
                 'ws': true,
+                'watchLiquidations': false,
+                'watchLiquidatinsForSymbols': false,
+                'watchMyLiquidations': undefined,
+                'watchMyLiquidationsForSymbols': undefined,
                 'watchTicker': true,
                 'watchTickers': true,
                 'watchBidsAsks': true,

@@ -460,7 +460,7 @@ class ndax(Exchange, ImplicitAPI):
         #
         return self.parse_markets(response)
 
-    def parse_market(self, market) -> Market:
+    def parse_market(self, market: dict) -> Market:
         id = self.safe_string(market, 'InstrumentId')
         # lowercaseId = self.safe_string_lower(market, 'symbol')
         baseId = self.safe_string(market, 'Product1')
@@ -2332,7 +2332,7 @@ class ndax(Exchange, ImplicitAPI):
                     url += '?' + self.urlencode(query)
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response, requestHeaders, requestBody):
         if code == 404:
             raise AuthenticationError(self.id + ' ' + body)
         if response is None:

@@ -6,7 +6,7 @@
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCacheByTimestamp
 import hashlib
-from ccxt.base.types import Balances, Int, Num, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade
+from ccxt.base.types import Balances, Int, Liquidation, Num, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade
 from ccxt.async_support.base.ws.client import Client
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -29,6 +29,10 @@ class okx(ccxt.async_support.okx):
                 'watchTradesForSymbols': True,
                 'watchOrderBookForSymbols': True,
                 'watchBalance': True,
+                'watchLiquidations': 'emulated',
+                'watchLiquidationsForSymbols': True,
+                'watchMyLiquidations': 'emulated',
+                'watchMyLiquidationsForSymbols': True,
                 'watchOHLCV': True,
                 'watchOHLCVForSymbols': True,
                 'watchOrders': True,
@@ -160,7 +164,7 @@ class okx(ccxt.async_support.okx):
                 self.deep_extend(firstArgument, params),
             ],
         }
-        return await self.watch(url, messageHash, request, messageHash)
+        return self.watch(url, messageHash, request, messageHash)
 
     async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
@@ -398,6 +402,240 @@ class okx(ccxt.async_support.okx):
             if numTickers > 0:
                 client.resolve(tickers, messageHash)
         return message
+
+    async def watch_liquidations_for_symbols(self, symbols: List[str] = None, since: Int = None, limit: Int = None, params={}) -> List[Liquidation]:
+        """
+        watch the public liquidations of a trading pair
+        :see: https://www.okx.com/docs-v5/en/#public-data-websocket-liquidation-orders-channel
+        :param str symbol: unified CCXT market symbol
+        :param int [since]: the earliest time in ms to fetch liquidations for
+        :param int [limit]: the maximum number of liquidation structures to retrieve
+        :param dict [params]: exchange specific parameters for the okx api endpoint
+        :returns dict: an array of `liquidation structures <https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure>`
+        """
+        await self.load_markets()
+        symbols = self.market_symbols(symbols, None, True, True)
+        messageHash = 'liquidations'
+        if symbols is not None:
+            messageHash += '::' + ','.join(symbols)
+        market = self.get_market_from_symbols(symbols)
+        type = None
+        type, params = self.handle_market_type_and_params('watchliquidationsForSymbols', market, params)
+        channel = 'liquidation-orders'
+        if type == 'spot':
+            type = 'SWAP'
+        elif type == 'future':
+            type = 'futures'
+        uppercaseType = type.upper()
+        request = {
+            'instType': uppercaseType,
+        }
+        newLiquidations = await self.subscribe('public', messageHash, channel, None, self.extend(request, params))
+        if self.newUpdates:
+            return newLiquidations
+        return self.filter_by_symbols_since_limit(self.liquidations, symbols, since, limit, True)
+
+    def handle_liquidation(self, client: Client, message):
+        #
+        #    {
+        #        "arg": {
+        #            "channel": "liquidation-orders",
+        #            "instType": "SWAP"
+        #        },
+        #        "data": [
+        #            {
+        #                "details": [
+        #                    {
+        #                        "bkLoss": "0",
+        #                        "bkPx": "0.007831",
+        #                        "ccy": "",
+        #                        "posSide": "short",
+        #                        "side": "buy",
+        #                        "sz": "13",
+        #                        "ts": "1692266434010"
+        #                    }
+        #                ],
+        #                "instFamily": "IOST-USDT",
+        #                "instId": "IOST-USDT-SWAP",
+        #                "instType": "SWAP",
+        #                "uly": "IOST-USDT"
+        #            }
+        #        ]
+        #    }
+        #
+        rawLiquidations = self.safe_list(message, 'data', [])
+        for i in range(0, len(rawLiquidations)):
+            rawLiquidation = rawLiquidations[i]
+            liquidation = self.parse_ws_liquidation(rawLiquidation)
+            symbol = self.safe_string(liquidation, 'symbol')
+            liquidations = self.safe_value(self.liquidations, symbol)
+            if liquidations is None:
+                limit = self.safe_integer(self.options, 'liquidationsLimit', 1000)
+                liquidations = ArrayCache(limit)
+            liquidations.append(liquidation)
+            self.liquidations[symbol] = liquidations
+            client.resolve([liquidation], 'liquidations')
+            client.resolve([liquidation], 'liquidations::' + symbol)
+
+    async def watch_my_liquidations_for_symbols(self, symbols: List[str] = None, since: Int = None, limit: Int = None, params={}) -> List[Liquidation]:
+        """
+        watch the private liquidations of a trading pair
+        :see: https://www.okx.com/docs-v5/en/#trading-account-websocket-balance-and-position-channel
+        :param str symbol: unified CCXT market symbol
+        :param int [since]: the earliest time in ms to fetch liquidations for
+        :param int [limit]: the maximum number of liquidation structures to retrieve
+        :param dict [params]: exchange specific parameters for the okx api endpoint
+        :returns dict: an array of `liquidation structures <https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure>`
+        """
+        await self.load_markets()
+        isStop = self.safe_value_2(params, 'stop', 'trigger', False)
+        params = self.omit(params, ['stop', 'trigger'])
+        await self.authenticate({'access': 'business' if isStop else 'private'})
+        symbols = self.market_symbols(symbols, None, True, True)
+        messageHash = 'myLiquidations'
+        if symbols is not None:
+            messageHash += '::' + ','.join(symbols)
+        channel = 'balance_and_position'
+        newLiquidations = await self.subscribe('private', messageHash, channel, None, params)
+        if self.newUpdates:
+            return newLiquidations
+        return self.filter_by_symbols_since_limit(self.liquidations, symbols, since, limit, True)
+
+    def handle_my_liquidation(self, client: Client, message):
+        #
+        #    {
+        #        "arg": {
+        #            "channel": "balance_and_position",
+        #            "uid": "77982378738415879"
+        #        },
+        #        "data": [{
+        #            "pTime": "1597026383085",
+        #            "eventType": "snapshot",
+        #            "balData": [{
+        #                "ccy": "BTC",
+        #                "cashBal": "1",
+        #                "uTime": "1597026383085"
+        #            }],
+        #            "posData": [{
+        #                "posId": "1111111111",
+        #                "tradeId": "2",
+        #                "instId": "BTC-USD-191018",
+        #                "instType": "FUTURES",
+        #                "mgnMode": "cross",
+        #                "posSide": "long",
+        #                "pos": "10",
+        #                "ccy": "BTC",
+        #                "posCcy": "",
+        #                "avgPx": "3320",
+        #                "uTIme": "1597026383085"
+        #            }],
+        #            "trades": [{
+        #                "instId": "BTC-USD-191018",
+        #                "tradeId": "2",
+        #            }]
+        #        }]
+        #    }
+        #
+        rawLiquidations = self.safe_list(message, 'data', [])
+        for i in range(0, len(rawLiquidations)):
+            rawLiquidation = rawLiquidations[i]
+            eventType = self.safe_string(rawLiquidation, 'eventType')
+            if eventType != 'liquidation':
+                return
+            liquidation = self.parse_ws_my_liquidation(rawLiquidation)
+            symbol = self.safe_string(liquidation, 'symbol')
+            liquidations = self.safe_value(self.liquidations, symbol)
+            if liquidations is None:
+                limit = self.safe_integer(self.options, 'myLiquidationsLimit', 1000)
+                liquidations = ArrayCache(limit)
+            liquidations.append(liquidation)
+            self.liquidations[symbol] = liquidations
+            client.resolve([liquidation], 'myLiquidations')
+            client.resolve([liquidation], 'myLiquidations::' + symbol)
+
+    def parse_ws_my_liquidation(self, liquidation, market=None):
+        #
+        #    {
+        #        "pTime": "1597026383085",
+        #        "eventType": "snapshot",
+        #        "balData": [{
+        #            "ccy": "BTC",
+        #            "cashBal": "1",
+        #            "uTime": "1597026383085"
+        #        }],
+        #        "posData": [{
+        #            "posId": "1111111111",
+        #            "tradeId": "2",
+        #            "instId": "BTC-USD-191018",
+        #            "instType": "FUTURES",
+        #            "mgnMode": "cross",
+        #            "posSide": "long",
+        #            "pos": "10",
+        #            "ccy": "BTC",
+        #            "posCcy": "",
+        #            "avgPx": "3320",
+        #            "uTIme": "1597026383085"
+        #        }],
+        #        "trades": [{
+        #            "instId": "BTC-USD-191018",
+        #            "tradeId": "2",
+        #        }]
+        #    }
+        #
+        posData = self.safe_list(liquidation, 'posData', [])
+        firstPosData = self.safe_dict(posData, 0, {})
+        marketId = self.safe_string(firstPosData, 'instId')
+        market = self.safe_market(marketId, market)
+        timestamp = self.safe_integer(firstPosData, 'uTIme')
+        return self.safe_liquidation({
+            'info': liquidation,
+            'symbol': self.safe_symbol(marketId, market),
+            'contracts': self.safe_number(firstPosData, 'pos'),
+            'contractSize': self.safe_number(market, 'contractSize'),
+            'price': self.safe_number(liquidation, 'avgPx'),
+            'baseValue': None,
+            'quoteValue': None,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+        })
+
+    def parse_ws_liquidation(self, liquidation, market=None):
+        #
+        # public liquidation
+        #    {
+        #        "details": [
+        #            {
+        #                "bkLoss": "0",
+        #                "bkPx": "0.007831",
+        #                "ccy": "",
+        #                "posSide": "short",
+        #                "side": "buy",
+        #                "sz": "13",
+        #                "ts": "1692266434010"
+        #            }
+        #        ],
+        #        "instFamily": "IOST-USDT",
+        #        "instId": "IOST-USDT-SWAP",
+        #        "instType": "SWAP",
+        #        "uly": "IOST-USDT"
+        #    }
+        #
+        details = self.safe_list(liquidation, 'details', [])
+        liquidationDetails = self.safe_dict(details, 0, {})
+        marketId = self.safe_string(liquidation, 'instId')
+        market = self.safe_market(marketId, market)
+        timestamp = self.safe_integer(liquidationDetails, 'ts')
+        return self.safe_liquidation({
+            'info': liquidation,
+            'symbol': self.safe_symbol(marketId, market),
+            'contracts': self.safe_number(liquidationDetails, 'sz'),
+            'contractSize': self.safe_number(market, 'contractSize'),
+            'price': self.safe_number(liquidationDetails, 'bkPx'),
+            'baseValue': None,
+            'quoteValue': None,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+        })
 
     async def watch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
@@ -818,6 +1056,9 @@ class okx(ccxt.async_support.okx):
         await self.load_markets()
         await self.authenticate()
         return await self.subscribe('private', 'account', 'account', None, params)
+
+    def handle_balance_and_position(self, client: Client, message):
+        self.handle_my_liquidation(client, message)
 
     def handle_balance(self, client: Client, message):
         #
@@ -1600,6 +1841,8 @@ class okx(ccxt.async_support.okx):
                 # 'margin_account': self.handle_balance,
                 'orders': self.handle_orders,
                 'orders-algo': self.handle_orders,
+                'liquidation-orders': self.handle_liquidation,
+                'balance_and_position': self.handle_balance_and_position,
             }
             method = self.safe_value(methods, channel)
             if method is None:

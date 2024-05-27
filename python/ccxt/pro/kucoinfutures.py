@@ -18,6 +18,10 @@ class kucoinfutures(ccxt.async_support.kucoinfutures):
         return self.deep_extend(super(kucoinfutures, self).describe(), {
             'has': {
                 'ws': True,
+                'watchLiquidations': False,
+                'watchLiquidatinsForSymbols': False,
+                'watchMyLiquidations': None,
+                'watchMyLiquidationsForSymbols': None,
                 'watchTicker': True,
                 'watchTickers': True,
                 'watchBidsAsks': True,

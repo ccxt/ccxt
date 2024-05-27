@@ -373,7 +373,7 @@ class coinmetro(Exchange, ImplicitAPI):
         #
         return self.parse_markets(response)
 
-    def parse_market(self, market) -> Market:
+    def parse_market(self, market: dict) -> Market:
         id = self.safe_string(market, 'pair')
         parsedMarketId = self.parse_market_id(id)
         baseId = self.safe_string(parsedMarketId, 'baseId')
@@ -1794,7 +1794,7 @@ class coinmetro(Exchange, ImplicitAPI):
             url = url[0:len(url) - 1]
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response, requestHeaders, requestBody):
         if response is None:
             return None
         if (code != 200) and (code != 201) and (code != 202):
