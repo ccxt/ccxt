@@ -1268,16 +1268,19 @@ export default class vertex extends Exchange {
             'expiration': expiration,
             'priceX18': this.convertToX18 (this.priceToPrecision (symbol, price)),
         };
+        let amountString = this.numberToString (amount);
         if (side === 'sell') {
             if (amount > 0) {
-                amount *= -1;
+                // amount *= -1;
+                amountString = Precise.stringMul (amountString, '-1');
             }
         } else {
             if (amount < 0) {
-                amount *= -1;
+                // amount *= -1;
+                amountString = Precise.stringMul (amountString, '-1');
             }
         }
-        order['amount'] = this.convertToX18 (this.amountToPrecision (symbol, amount));
+        order['amount'] = this.convertToX18 (this.amountToPrecision (symbol, amountString));
         const request = {
             'place_order': {
                 'product_id': marketId,
