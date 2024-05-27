@@ -307,29 +307,33 @@ export default class bingx extends bingxRest {
         if (limit === undefined) {
             limit = 100;
         } else {
-            if (marketType === 'swap') {
+            if (marketType === 'swap' || marketType === 'future') {
                 limit = this.findNearestCeiling ([ 5, 10, 20, 50, 100 ], limit);
             } else if (marketType === 'spot') {
                 limit = this.findNearestCeiling ([ 20, 100 ], limit);
             }
         }
+        let interval = undefined;
+        [ interval, params ] = this.handleOptionAndParams (params, 'watchOrderBookForSymbols', 'interval', 500);
+        this.checkRequiredArgument ('watchOrderBookForSymbols', interval, 'interval', [ 100, 200, 500, 1000 ]);
         const channelName = 'depth';
         const messageHashes = [];
-        const subscriptionHashes = [ 'all@ticker' ];
         if (symbolsDefined) {
             for (let i = 0; i < symbols.length; i++) {
                 const symbol = symbols[i];
                 const market = this.market (symbol);
-                messageHashes.push (this.getMessageHash (channelName, 'ticker', market['symbol']));
+                messageHashes.push (this.getMessageHash (channelName, 'orderbook', market['symbol']));
             }
         } else {
-            messageHashes.push (this.getMessageHash (channelName, 'ticker', undefined));
+            messageHashes.push (this.getMessageHash (channelName, 'orderbook', undefined));
         }
+        const subscriptionMessage = 'all@depth' + limit.toString () + '@' + interval.toString () + 'ms';
+        const subscriptionHashes = [ subscriptionMessage ];
         const url = this.safeString (this.urls['api']['ws'], marketType);
         const uuid = this.uuid ();
         const request: Dict = {
             'id': uuid,
-            'dataType': 'all@ticker',
+            'dataType': subscriptionMessage,
         };
         if (marketType === 'swap') {
             request['reqType'] = 'sub';
@@ -567,17 +571,17 @@ export default class bingx extends bingxRest {
         //        }
         //    }
         //
-        const data = this.safeValue (message, 'data', []);
+        const data = this.safeList (message, 'data', []);
         const messageHash = this.safeString (message, 'dataType');
         const marketId = messageHash.split ('@')[0];
         const isSwap = client.url.indexOf ('swap') >= 0;
         const marketType = isSwap ? 'swap' : 'spot';
         const market = this.safeMarket (marketId, undefined, undefined, marketType);
         const symbol = market['symbol'];
-        let orderbook = this.safeValue (this.orderbooks, symbol);
-        if (orderbook === undefined) {
-            orderbook = this.orderBook ();
+        if (this.safeValue (this.orderbooks, symbol) === undefined) {
+            this.orderbooks[symbol] = this.orderBook ();
         }
+        const orderbook = this.orderbooks[symbol];
         const snapshot = this.parseOrderBook (data, symbol, undefined, 'bids', 'asks', 0, 1);
         orderbook.reset (snapshot);
         this.orderbooks[symbol] = orderbook;
