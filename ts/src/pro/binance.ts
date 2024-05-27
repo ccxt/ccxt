@@ -134,6 +134,9 @@ export default class binance extends binanceRest {
                     'fetchBalanceSnapshot': false, // or true
                     'awaitBalanceSnapshot': true, // whether to wait for the balance snapshot before providing updates
                 },
+                'watchLiquidationsForSymbols': {
+                    'defaultType': 'swap',
+                },
                 'watchPositions': {
                     'fetchPositionsSnapshot': true, // or false
                     'awaitPositionsSnapshot': true, // whether to wait for the positions snapshot before providing updates
@@ -237,6 +240,9 @@ export default class binance extends binanceRest {
         const firstMarket = this.getMarketFromSymbols (symbols);
         let type = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('watchLiquidationsForSymbols', firstMarket, params);
+        if (type === 'spot') {
+            throw new BadRequest (this.id + 'watchLiquidationsForSymbols is not supported for swap symbols');
+        }
         let subType = undefined;
         [ subType, params ] = this.handleSubTypeAndParams ('watchLiquidationsForSymbols', firstMarket, params);
         if (this.isLinear (type, subType)) {
