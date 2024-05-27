@@ -1857,6 +1857,348 @@ export default class vertex extends Exchange {
         return response;
     }
 
+    async fetchBalance (params = {}): Promise<Balances> {
+        /**
+         * @method
+         * @name vertex#fetchBalance
+         * @description query for balance and get the amount of funds available for trading or funds locked in orders
+         * @see https://docs.vertexprotocol.com/developer-resources/api/gateway/queries/subaccount-info
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+         */
+        const request = {
+            'type': 'subaccount_info',
+            'subaccount': this.convertAddressToSender (this.walletAddress),
+        };
+        const response = await this.v1GatewayGetQuery (this.extend (request, params));
+        //
+        // {
+        //     "status": "success",
+        //     "data": {
+        //       "subaccount": "0x265167ddfac55365d6ff07fc5943276319aa6b9f64656661756c740000000000",
+        //       "exists": true,
+        //       "healths": [
+        //         {
+        //           "assets": "75323297691833342306",
+        //           "liabilities": "46329556869051092241",
+        //           "health": "28993740822782250065"
+        //         },
+        //         {
+        //           "assets": "75323297691833342306",
+        //           "liabilities": "35968911700887320741",
+        //           "health": "39354385990946021565"
+        //         },
+        //         {
+        //           "assets": "80796966663601107565",
+        //           "liabilities": "0",
+        //           "health": "80796966663601107565"
+        //         }
+        //       ],
+        //       "health_contributions": [
+        //         [
+        //           "75323297691833340000",
+        //           "75323297691833340000",
+        //           "75323297691833340000"
+        //         ],
+        //         [
+        //           "0",
+        //           "0",
+        //           "0"
+        //         ],
+        //         [
+        //           "0",
+        //           "0",
+        //           "0"
+        //         ],
+        //         [
+        //           "0",
+        //           "0",
+        //           "0"
+        //         ],
+        //         [
+        //           "-46329556869051090000",
+        //           "-35968911700887323000",
+        //           "5473668971767765000"
+        //         ]
+        //       ],
+        //       "spot_count": 3,
+        //       "perp_count": 2,
+        //       "spot_balances": [
+        //         {
+        //           "product_id": 1,
+        //           "lp_balance": {
+        //             "amount": "0"
+        //           },
+        //           "balance": {
+        //             "amount": "0",
+        //             "last_cumulative_multiplier_x18": "1003419811982007193"
+        //           }
+        //         },
+        //         {
+        //           "product_id": 3,
+        //           "lp_balance": {
+        //             "amount": "0"
+        //           },
+        //           "balance": {
+        //             "amount": "0",
+        //             "last_cumulative_multiplier_x18": "1007584195035969404"
+        //           }
+        //         },
+        //         {
+        //           "product_id": 0,
+        //           "lp_balance": {
+        //             "amount": "0"
+        //           },
+        //           "balance": {
+        //             "amount": "75323297691833342306",
+        //             "last_cumulative_multiplier_x18": "1000000002391497578"
+        //           }
+        //         }
+        //       ],
+        //       "perp_balances": [
+        //         {
+        //           "product_id": 2,
+        //           "lp_balance": {
+        //             "amount": "0",
+        //             "last_cumulative_funding_x18": "-284321955122859921"
+        //           },
+        //           "balance": {
+        //             "amount": "0",
+        //             "v_quote_balance": "0",
+        //             "last_cumulative_funding_x18": "6363466629611946777168"
+        //           }
+        //         },
+        //         {
+        //           "product_id": 4,
+        //           "lp_balance": {
+        //             "amount": "0",
+        //             "last_cumulative_funding_x18": "-90979748449893411"
+        //           },
+        //           "balance": {
+        //             "amount": "-200000000000000000",
+        //             "v_quote_balance": "419899475698318625259",
+        //             "last_cumulative_funding_x18": "141182516563970577208"
+        //           }
+        //         }
+        //       ],
+        //       "spot_products": [
+        //         {
+        //           "product_id": 1,
+        //           "oracle_price_x18": "30217830336443750750000",
+        //           "risk": {
+        //             "long_weight_initial_x18": "750000000000000000",
+        //             "short_weight_initial_x18": "1250000000000000000",
+        //             "long_weight_maintenance_x18": "800000000000000000",
+        //             "short_weight_maintenance_x18": "1200000000000000000",
+        //             "large_position_penalty_x18": "0"
+        //           },
+        //           "config": {
+        //             "token": "0x5cc7c91690b2cbaee19a513473d73403e13fb431",
+        //             "interest_inflection_util_x18": "800000000000000000",
+        //             "interest_floor_x18": "10000000000000000",
+        //             "interest_small_cap_x18": "40000000000000000",
+        //             "interest_large_cap_x18": "1000000000000000000"
+        //           },
+        //           "state": {
+        //             "cumulative_deposits_multiplier_x18": "1001304691727847318",
+        //             "cumulative_borrows_multiplier_x18": "1003419811982007193",
+        //             "total_deposits_normalized": "213107447159798397806318",
+        //             "total_borrows_normalized": "4907820740150097483532"
+        //           },
+        //           "lp_state": {
+        //             "supply": "1304981417419495030893348",
+        //             "quote": {
+        //               "amount": "2048495687410669565222259",
+        //               "last_cumulative_multiplier_x18": "1000000002391497578"
+        //             },
+        //             "base": {
+        //               "amount": "67623029247538886515",
+        //               "last_cumulative_multiplier_x18": "1001304691727847318"
+        //             }
+        //           },
+        //           "book_info": {
+        //             "size_increment": "1000000000000000",
+        //             "price_increment_x18": "1000000000000000000",
+        //             "min_size": "10000000000000000",
+        //             "collected_fees": "8865582805773573662738183",
+        //             "lp_spread_x18": "3000000000000000"
+        //           }
+        //         },
+        //         {
+        //           "product_id": 3,
+        //           "oracle_price_x18": "2075217009708333333333",
+        //           "risk": {
+        //             "long_weight_initial_x18": "750000000000000000",
+        //             "short_weight_initial_x18": "1250000000000000000",
+        //             "long_weight_maintenance_x18": "800000000000000000",
+        //             "short_weight_maintenance_x18": "1200000000000000000",
+        //             "large_position_penalty_x18": "0"
+        //           },
+        //           "config": {
+        //             "token": "0xcc59686e3a32fb104c8ff84dd895676265efb8a6",
+        //             "interest_inflection_util_x18": "800000000000000000",
+        //             "interest_floor_x18": "10000000000000000",
+        //             "interest_small_cap_x18": "40000000000000000",
+        //             "interest_large_cap_x18": "1000000000000000000"
+        //           },
+        //           "state": {
+        //             "cumulative_deposits_multiplier_x18": "1003722507760089346",
+        //             "cumulative_borrows_multiplier_x18": "1007584195035969404",
+        //             "total_deposits_normalized": "232750303205807326418622",
+        //             "total_borrows_normalized": "110730726549469855171025"
+        //           },
+        //           "lp_state": {
+        //             "supply": "902924999999999999774268",
+        //             "quote": {
+        //               "amount": "1165328092090344104989049",
+        //               "last_cumulative_multiplier_x18": "1000000002391497578"
+        //             },
+        //             "base": {
+        //               "amount": "563265647183403990588",
+        //               "last_cumulative_multiplier_x18": "1003722507760089346"
+        //             }
+        //           },
+        //           "book_info": {
+        //             "size_increment": "10000000000000000",
+        //             "price_increment_x18": "100000000000000000",
+        //             "min_size": "100000000000000000",
+        //             "collected_fees": "1801521329724633001446457",
+        //             "lp_spread_x18": "3000000000000000"
+        //           }
+        //         },
+        //         {
+        //           "product_id": 0,
+        //           "oracle_price_x18": "1000000000000000000",
+        //           "risk": {
+        //             "long_weight_initial_x18": "1000000000000000000",
+        //             "short_weight_initial_x18": "1000000000000000000",
+        //             "long_weight_maintenance_x18": "1000000000000000000",
+        //             "short_weight_maintenance_x18": "1000000000000000000",
+        //             "large_position_penalty_x18": "0"
+        //           },
+        //           "config": {
+        //             "token": "0x179522635726710dd7d2035a81d856de4aa7836c",
+        //             "interest_inflection_util_x18": "800000000000000000",
+        //             "interest_floor_x18": "10000000000000000",
+        //             "interest_small_cap_x18": "40000000000000000",
+        //             "interest_large_cap_x18": "1000000000000000000"
+        //           },
+        //           "state": {
+        //             "cumulative_deposits_multiplier_x18": "1000000002391497578",
+        //             "cumulative_borrows_multiplier_x18": "1001593395547514024",
+        //             "total_deposits_normalized": "60000256267437588885818752247843",
+        //             "total_borrows_normalized": "391445043137305055810336885"
+        //           },
+        //           "lp_state": {
+        //             "supply": "0",
+        //             "quote": {
+        //               "amount": "0",
+        //               "last_cumulative_multiplier_x18": "0"
+        //             },
+        //             "base": {
+        //               "amount": "0",
+        //               "last_cumulative_multiplier_x18": "0"
+        //             }
+        //           },
+        //           "book_info": {
+        //             "size_increment": "0",
+        //             "price_increment_x18": "0",
+        //             "min_size": "0",
+        //             "collected_fees": "0",
+        //             "lp_spread_x18": "0"
+        //           }
+        //         }
+        //       ],
+        //       "perp_products": [
+        //         {
+        //           "product_id": 2,
+        //           "oracle_price_x18": "30219079716463070000000",
+        //           "risk": {
+        //             "long_weight_initial_x18": "875000000000000000",
+        //             "short_weight_initial_x18": "1125000000000000000",
+        //             "long_weight_maintenance_x18": "900000000000000000",
+        //             "short_weight_maintenance_x18": "1100000000000000000",
+        //             "large_position_penalty_x18": "0"
+        //           },
+        //           "state": {
+        //             "cumulative_funding_long_x18": "6363466629611946777168",
+        //             "cumulative_funding_short_x18": "6363466629611946777168",
+        //             "available_settle": "100612314098927536086702448",
+        //             "open_interest": "57975708279961875623240"
+        //           },
+        //           "lp_state": {
+        //             "supply": "783207415944433511804197",
+        //             "last_cumulative_funding_x18": "6363466629611946777168",
+        //             "cumulative_funding_per_lp_x18": "-284321955122859921",
+        //             "base": "37321000000000000000",
+        //             "quote": "1150991638943862165224593"
+        //           },
+        //           "book_info": {
+        //             "size_increment": "1000000000000000",
+        //             "price_increment_x18": "1000000000000000000",
+        //             "min_size": "10000000000000000",
+        //             "collected_fees": "7738341933653651206856235",
+        //             "lp_spread_x18": "3000000000000000"
+        //           }
+        //         },
+        //         {
+        //           "product_id": 4,
+        //           "oracle_price_x18": "2072129033632754300000",
+        //           "risk": {
+        //             "long_weight_initial_x18": "875000000000000000",
+        //             "short_weight_initial_x18": "1125000000000000000",
+        //             "long_weight_maintenance_x18": "900000000000000000",
+        //             "short_weight_maintenance_x18": "1100000000000000000",
+        //             "large_position_penalty_x18": "0"
+        //           },
+        //           "state": {
+        //             "cumulative_funding_long_x18": "141182516563970577208",
+        //             "cumulative_funding_short_x18": "141182516563970577208",
+        //             "available_settle": "33807443862986950288685582",
+        //             "open_interest": "316343836992291503987611"
+        //           },
+        //           "lp_state": {
+        //             "supply": "541756546038144467864559",
+        //             "last_cumulative_funding_x18": "141182516563970577208",
+        //             "cumulative_funding_per_lp_x18": "-90979748449893411",
+        //             "base": "362320000000000000000",
+        //             "quote": "750080187685127907834038"
+        //           },
+        //           "book_info": {
+        //             "size_increment": "10000000000000000",
+        //             "price_increment_x18": "100000000000000000",
+        //             "min_size": "100000000000000000",
+        //             "collected_fees": "1893278317732551619694831",
+        //             "lp_spread_x18": "3000000000000000"
+        //           }
+        //         }
+        //       ]
+        //     },
+        //     "request_type": "query_subaccount_info"
+        // }
+        //
+        const data = this.safeDict (response, 'data', {});
+        const balances = this.safeList (data, 'spot_balances', []);
+        const result = { 'info': response };
+        for (let i = 0; i < balances.length; i++) {
+            const balance = balances[i];
+            const marketId = this.safeString (balance, 'product_id');
+            const market = this.safeMarket (marketId);
+            const isUsdcMarketId = marketId === '0';
+            if (market['id'] === undefined && !isUsdcMarketId) {
+                continue;
+            }
+            const baseId = (isUsdcMarketId) ? 'USDC' : this.safeString (market, 'baseId');
+            const code = this.safeCurrencyCode (baseId);
+            const account = this.account ();
+            const tokenBalance = this.safeDict (balance, 'balance', {});
+            const total = this.convertFromX18 (this.safeString (tokenBalance, 'amount'));
+            account['total'] = total;
+            result[code] = account;
+        }
+        return this.safeBalance (result);
+    }
+
     handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (!response) {
             return undefined; // fallback to default error handler
