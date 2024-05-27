@@ -42,11 +42,11 @@ use React\EventLoop\Loop;
 
 use Exception;
 
-$version = '4.3.31';
+$version = '4.3.33';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '4.3.31';
+    const VERSION = '4.3.33';
 
     public $browser;
     public $marketsLoading = null;
@@ -814,7 +814,7 @@ class Exchange extends \ccxt\Exchange {
         throw new NotSupported($this->id . ' fetchTradingLimits() is not supported yet');
     }
 
-    public function parse_market($market) {
+    public function parse_market(array $market) {
         throw new NotSupported($this->id . ' parseMarket() is not supported yet');
     }
 
@@ -2601,6 +2601,22 @@ class Exchange extends \ccxt\Exchange {
         return array( $value, $params );
     }
 
+    public function handle_param_bool(array $params, string $paramName, ?Bool $defaultValue = null) {
+        $value = $this->safe_bool($params, $paramName, $defaultValue);
+        if ($value !== null) {
+            $params = $this->omit ($params, $paramName);
+        }
+        return array( $value, $params );
+    }
+
+    public function handle_param_bool_2(array $params, string $paramName1, string $paramName2, ?Bool $defaultValue = null) {
+        $value = $this->safe_bool_2($params, $paramName1, $paramName2, $defaultValue);
+        if ($value !== null) {
+            $params = $this->omit ($params, array( $paramName1, $paramName2 ));
+        }
+        return array( $value, $params );
+    }
+
     public function resolve_path($path, $params) {
         return array(
             $this->implode_params($path, $params),
@@ -3199,7 +3215,7 @@ class Exchange extends \ccxt\Exchange {
         return null;
     }
 
-    public function handle_errors($statusCode, $statusText, $url, $method, $responseHeaders, $responseBody, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $statusCode, string $statusText, string $url, string $method, array $responseHeaders, string $responseBody, $response, $requestHeaders, $requestBody) {
         // it is a stub $method that must be overrided in the derived exchange classes
         // throw new NotSupported($this->id . ' handleErrors() not implemented yet');
         return null;

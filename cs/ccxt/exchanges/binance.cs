@@ -219,6 +219,7 @@ public partial class binance : Exchange
                     { "get", new Dictionary<string, object>() {
                         { "system/status", 0.1 },
                         { "accountSnapshot", 240 },
+                        { "account/info", 0.1 },
                         { "margin/asset", 1 },
                         { "margin/pair", 1 },
                         { "margin/allAssets", 0.1 },

@@ -255,6 +255,34 @@ class coinbase extends \ccxt\async\coinbase {
         //        )
         //    }
         //
+        // note! seems coinbase might also send empty data like:
+        //
+        //    {
+        //        "channel" => "ticker_batch",
+        //        "client_id" => "",
+        //        "timestamp" => "2024-05-24T18:22:24.546809523Z",
+        //        "sequence_num" => 1,
+        //        "events" => array(
+        //            {
+        //                "type" => "snapshot",
+        //                "tickers" => array(
+        //                    {
+        //                        "type" => "ticker",
+        //                        "product_id" => "",
+        //                        "price" => "",
+        //                        "volume_24_h" => "",
+        //                        "low_24_h" => "",
+        //                        "high_24_h" => "",
+        //                        "low_52_w" => "",
+        //                        "high_52_w" => "",
+        //                        "price_percent_chg_24_h" => ""
+        //                    }
+        //                )
+        //            }
+        //        )
+        //    }
+        //
+        //
         $channel = $this->safe_string($message, 'channel');
         $events = $this->safe_value($message, 'events', array());
         $datetime = $this->safe_string($message, 'timestamp');
@@ -271,6 +299,9 @@ class coinbase extends \ccxt\async\coinbase {
                 $symbol = $result['symbol'];
                 $this->tickers[$symbol] = $result;
                 $wsMarketId = $this->safe_string($ticker, 'product_id');
+                if ($wsMarketId === null) {
+                    continue;
+                }
                 $messageHash = $channel . '::' . $wsMarketId;
                 $newTickers[] = $result;
                 $client->resolve ($result, $messageHash);

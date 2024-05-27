@@ -4,6 +4,7 @@ from ccxt.base.types import Entry
 class ImplicitAPI:
     sapi_get_system_status = sapiGetSystemStatus = Entry('system/status', 'sapi', 'GET', {'cost': 0.1})
     sapi_get_accountsnapshot = sapiGetAccountSnapshot = Entry('accountSnapshot', 'sapi', 'GET', {'cost': 240})
+    sapi_get_account_info = sapiGetAccountInfo = Entry('account/info', 'sapi', 'GET', {'cost': 0.1})
     sapi_get_margin_asset = sapiGetMarginAsset = Entry('margin/asset', 'sapi', 'GET', {'cost': 1})
     sapi_get_margin_pair = sapiGetMarginPair = Entry('margin/pair', 'sapi', 'GET', {'cost': 1})
     sapi_get_margin_allassets = sapiGetMarginAllAssets = Entry('margin/allAssets', 'sapi', 'GET', {'cost': 0.1})

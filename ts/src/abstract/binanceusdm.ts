@@ -11,6 +11,7 @@ import _binance from '../binance.js';
 interface binance {
     sapiGetSystemStatus (params?: {}): Promise<implicitReturnType>;
     sapiGetAccountSnapshot (params?: {}): Promise<implicitReturnType>;
+    sapiGetAccountInfo (params?: {}): Promise<implicitReturnType>;
     sapiGetMarginAsset (params?: {}): Promise<implicitReturnType>;
     sapiGetMarginPair (params?: {}): Promise<implicitReturnType>;
     sapiGetMarginAllAssets (params?: {}): Promise<implicitReturnType>;

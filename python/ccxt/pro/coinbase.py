@@ -233,6 +233,34 @@ class coinbase(ccxt.async_support.coinbase):
         #        ]
         #    }
         #
+        # note! seems coinbase might also send empty data like:
+        #
+        #    {
+        #        "channel": "ticker_batch",
+        #        "client_id": "",
+        #        "timestamp": "2024-05-24T18:22:24.546809523Z",
+        #        "sequence_num": 1,
+        #        "events": [
+        #            {
+        #                "type": "snapshot",
+        #                "tickers": [
+        #                    {
+        #                        "type": "ticker",
+        #                        "product_id": "",
+        #                        "price": "",
+        #                        "volume_24_h": "",
+        #                        "low_24_h": "",
+        #                        "high_24_h": "",
+        #                        "low_52_w": "",
+        #                        "high_52_w": "",
+        #                        "price_percent_chg_24_h": ""
+        #                    }
+        #                ]
+        #            }
+        #        ]
+        #    }
+        #
+        #
         channel = self.safe_string(message, 'channel')
         events = self.safe_value(message, 'events', [])
         datetime = self.safe_string(message, 'timestamp')
@@ -249,6 +277,8 @@ class coinbase(ccxt.async_support.coinbase):
                 symbol = result['symbol']
                 self.tickers[symbol] = result
                 wsMarketId = self.safe_string(ticker, 'product_id')
+                if wsMarketId is None:
+                    continue
                 messageHash = channel + '::' + wsMarketId
                 newTickers.append(result)
                 client.resolve(result, messageHash)

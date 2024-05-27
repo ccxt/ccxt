@@ -39,7 +39,7 @@ use BN\BN;
 use Sop\ASN1\Type\UnspecifiedType;
 use Exception;
 
-$version = '4.3.31';
+$version = '4.3.33';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -58,7 +58,7 @@ const PAD_WITH_ZERO = 6;
 
 class Exchange {
 
-    const VERSION = '4.3.31';
+    const VERSION = '4.3.33';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -151,8 +151,10 @@ class Exchange {
     public $bidsasks = array();
     public $fees = array('trading' => array(), 'funding' => array());
     public $precision = array();
+    public $liquidations = array();
     public $orders = null;
     public $triggerOrders = null;
+    public $myLiquidations = array();
     public $myTrades = null;
     public $trades = array();
     public $transactions = array();
@@ -2673,6 +2675,36 @@ class Exchange {
         throw new NotSupported($this->id . ' fetchTradesWs() is not supported yet');
     }
 
+    public function watch_liquidations(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
+        throw new NotSupported($this->id . ' watchLiquidations() is not supported yet');
+    }
+
+    public function watch_all_liquidations(array $symbols, ?int $since = null, ?int $limit = null, $params = array ()) {
+        throw new NotSupported($this->id . ' watchAllLiquidations() is not supported yet');
+    }
+
+    public function watch_liquidations_for_symbols(array $symbols, ?int $since = null, ?int $limit = null, $params = array ()) {
+        if ($this->has['watchAllLiquidations']) {
+            return $this->watchAllLiquidations ($symbols, $since, $limit, $params);
+        }
+        throw new NotSupported($this->id . ' watchLiquidationsForSymbols() is not supported yet');
+    }
+
+    public function watch_my_liquidations(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
+        throw new NotSupported($this->id . ' watchMyLiquidations() is not supported yet');
+    }
+
+    public function watch_all_my_liquidations(array $symbols, ?int $since = null, ?int $limit = null, $params = array ()) {
+        throw new NotSupported($this->id . ' watchAllMyLiquidations() is not supported yet');
+    }
+
+    public function watch_my_liquidations_for_symbols(array $symbols, ?int $since = null, ?int $limit = null, $params = array ()) {
+        if ($this->has['watchAllMyLiquidations']) {
+            return $this->watchAllMyLiquidations ($symbols, $since, $limit, $params);
+        }
+        throw new NotSupported($this->id . ' watchMyLiquidationsForSymbols() is not supported yet');
+    }
+
     public function watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
         throw new NotSupported($this->id . ' watchTrades() is not supported yet');
     }
@@ -2745,7 +2777,7 @@ class Exchange {
         throw new NotSupported($this->id . ' fetchTradingLimits() is not supported yet');
     }
 
-    public function parse_market($market) {
+    public function parse_market(array $market) {
         throw new NotSupported($this->id . ' parseMarket() is not supported yet');
     }
 
@@ -4522,6 +4554,22 @@ class Exchange {
         return array( $value, $params );
     }
 
+    public function handle_param_bool(array $params, string $paramName, ?Bool $defaultValue = null) {
+        $value = $this->safe_bool($params, $paramName, $defaultValue);
+        if ($value !== null) {
+            $params = $this->omit ($params, $paramName);
+        }
+        return array( $value, $params );
+    }
+
+    public function handle_param_bool_2(array $params, string $paramName1, string $paramName2, ?Bool $defaultValue = null) {
+        $value = $this->safe_bool_2($params, $paramName1, $paramName2, $defaultValue);
+        if ($value !== null) {
+            $params = $this->omit ($params, array( $paramName1, $paramName2 ));
+        }
+        return array( $value, $params );
+    }
+
     public function resolve_path($path, $params) {
         return array(
             $this->implode_params($path, $params),
@@ -5086,7 +5134,7 @@ class Exchange {
         return null;
     }
 
-    public function handle_errors($statusCode, $statusText, $url, $method, $responseHeaders, $responseBody, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $statusCode, string $statusText, string $url, string $method, array $responseHeaders, string $responseBody, $response, $requestHeaders, $requestBody) {
         // it is a stub $method that must be overrided in the derived exchange classes
         // throw new NotSupported($this->id . ' handleErrors() not implemented yet');
         return null;

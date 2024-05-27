@@ -147,10 +147,10 @@ import { OrderBook as WsOrderBook, IndexedOrderBook, CountedOrderBook } from './
 //
 import { axolotl } from './functions/crypto.js';
 // import types
-import type { Market, Trade, Fee, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, DepositAddressResponse, Currency, MinMax, IndexType, Int, OrderType, OrderSide, Position, FundingRate, DepositWithdrawFeeNetwork, LedgerEntry, BorrowInterest, OpenInterest, LeverageTier, TransferEntry, FundingRateHistory, Liquidation, FundingHistory, OrderRequest, MarginMode, Tickers, Greeks, Option, OptionChain, Str, Num, MarketInterface, CurrencyInterface, BalanceAccount, MarginModes, MarketType, Leverage, Leverages, LastPrice, LastPrices, Account, Strings, MarginModification, TradingFeeInterface, Currencies, TradingFees, Conversion, CancellationRequest, IsolatedBorrowRate, IsolatedBorrowRates, CrossBorrowRates, CrossBorrowRate, Dict, TransferEntries, FundingRates, LeverageTiers } from './types.js';
+import type { Market, Trade, Fee, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, DepositAddressResponse, Currency, MinMax, IndexType, Int, OrderType, OrderSide, Position, FundingRate, DepositWithdrawFeeNetwork, LedgerEntry, BorrowInterest, OpenInterest, LeverageTier, TransferEntry, FundingRateHistory, Liquidation, FundingHistory, OrderRequest, MarginMode, Tickers, Greeks, Option, OptionChain, Str, Num, MarketInterface, CurrencyInterface, BalanceAccount, MarginModes, MarketType, Leverage, Leverages, LastPrice, LastPrices, Account, Strings, MarginModification, TradingFeeInterface, Currencies, TradingFees, Conversion, CancellationRequest, IsolatedBorrowRate, IsolatedBorrowRates, CrossBorrowRates, CrossBorrowRate, Dict, TransferEntries, FundingRates, LeverageTiers, Bool, int}  from './types.js';
 // export {Market, Trade, Fee, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, DepositAddressResponse, Currency, MinMax, IndexType, Int, OrderType, OrderSide, Position, FundingRateHistory, Liquidation, FundingHistory} from './types.js'
 // import { Market, Trade, Fee, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, DepositAddressResponse, Currency, MinMax, IndexType, Int, OrderType, OrderSide, Position, FundingRateHistory, OpenInterest, Liquidation, OrderRequest, FundingHistory, MarginMode, Tickers, Greeks, Str, Num, MarketInterface, CurrencyInterface, Account } from './types.js';
-export type { Market, Trade, Fee, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, DepositAddressResponse, Currency, MinMax, IndexType, Int, OrderType, OrderSide, Position, LedgerEntry, BorrowInterest, OpenInterest, LeverageTier, TransferEntry, CrossBorrowRate, FundingRateHistory, Liquidation, FundingHistory, OrderRequest, MarginMode, Tickers, Greeks, Option, OptionChain, Str, Num, MarketInterface, CurrencyInterface, BalanceAccount, MarginModes, MarketType, Leverage, Leverages, LastPrice, LastPrices, Account, Strings, Conversion } from './types.js'
+export type { Market, Trade, Fee, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, DepositAddressResponse, Currency, MinMax, IndexType, Int, Bool, OrderType, OrderSide, Position, LedgerEntry, BorrowInterest, OpenInterest, LeverageTier, TransferEntry, CrossBorrowRate, FundingRateHistory, Liquidation, FundingHistory, OrderRequest, MarginMode, Tickers, Greeks, Option, OptionChain, Str, Num, MarketInterface, CurrencyInterface, BalanceAccount, MarginModes, MarketType, Leverage, Leverages, LastPrice, LastPrices, Account, Strings, Conversion } from './types.js'
 
 // ----------------------------------------------------------------------------
 // move this elsewhere.
@@ -246,6 +246,7 @@ export default class Exchange {
     token: string; // reserved for HTTP auth in some cases
 
     balance      = {}
+    liquidations: Dictionary<Liquidation> = {}
     orderbooks: Dictionary<Ob>   = {}
     tickers: Dictionary<Ticker>  = {}
     fundingRates: Dictionary<FundingRate> = {}
@@ -255,6 +256,7 @@ export default class Exchange {
     trades: Dictionary<ArrayCache>
     transactions = {}
     ohlcvs: Dictionary<Dictionary<ArrayCacheByTimestamp>>
+    myLiquidations: Dictionary<Liquidation> = {}
     myTrades: ArrayCache;
     positions: any;
     urls: {
@@ -682,6 +684,10 @@ export default class Exchange {
                 'watchTickers': undefined,
                 'watchTrades': undefined,
                 'watchTradesForSymbols': undefined,
+                'watchLiquidations': undefined,
+                'watchLiquidationsForSymbols': undefined,
+                'watchMyLiquidations': undefined,
+                'watchMyLiquidationsForSymbols': undefined,
                 'withdraw': undefined,
                 'ws': undefined,
             },
@@ -818,10 +824,12 @@ export default class Exchange {
         this.balance      = {}
         this.orderbooks   = {}
         this.tickers      = {}
+        this.liquidations = {}
         this.orders       = undefined
         this.trades       = {}
         this.transactions = {}
         this.ohlcvs       = {}
+        this.myLiquidations = {}
         this.myTrades     = undefined
         this.positions    = undefined
         // web3 and cryptography flags
@@ -2238,6 +2246,28 @@ export default class Exchange {
         throw new NotSupported (this.id + ' fetchTradesWs() is not supported yet');
     }
 
+    async watchLiquidations (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Liquidation[]> {
+        if (this.has['watchLiquidationsForSymbols']) {
+            return this.watchLiquidationsForSymbols ([ symbol ], since, limit, params);
+        }
+        throw new NotSupported (this.id + ' watchLiquidations() is not supported yet');
+    }
+
+    async watchLiquidationsForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params = {}): Promise<Liquidation[]> {
+        throw new NotSupported (this.id + ' watchLiquidationsForSymbols() is not supported yet');
+    }
+
+    async watchMyLiquidations (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Liquidation[]> {
+        if (this.has['watchMyLiquidationsForSymbols']) {
+            return this.watchMyLiquidationsForSymbols ([ symbol ], since, limit, params);
+        }
+        throw new NotSupported (this.id + ' watchMyLiquidations() is not supported yet');
+    }
+
+    async watchMyLiquidationsForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params = {}): Promise<Liquidation[]> {
+        throw new NotSupported (this.id + ' watchMyLiquidationsForSymbols() is not supported yet');
+    }
+
     async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         throw new NotSupported (this.id + ' watchTrades() is not supported yet');
     }
@@ -2310,7 +2340,7 @@ export default class Exchange {
         throw new NotSupported (this.id + ' fetchTradingLimits() is not supported yet');
     }
 
-    parseMarket (market): Market {
+    parseMarket (market: Dict): Market {
         throw new NotSupported (this.id + ' parseMarket() is not supported yet');
     }
 
@@ -4094,6 +4124,22 @@ export default class Exchange {
         return [ value, params ];
     }
 
+    handleParamBool (params: object, paramName: string, defaultValue: Bool = undefined): [Bool, object] {
+        const value = this.safeBool (params, paramName, defaultValue);
+        if (value !== undefined) {
+            params = this.omit (params, paramName);
+        }
+        return [ value, params ];
+    }
+
+    handleParamBool2 (params: object, paramName1: string, paramName2: string, defaultValue: Bool = undefined): [Bool, object] {
+        const value = this.safeBool2 (params, paramName1, paramName2, defaultValue);
+        if (value !== undefined) {
+            params = this.omit (params, [ paramName1, paramName2 ]);
+        }
+        return [ value, params ];
+    }
+
     resolvePath (path, params) {
         return [
             this.implodeParams (path, params),
@@ -4666,7 +4712,7 @@ export default class Exchange {
         return undefined;
     }
 
-    handleErrors (statusCode, statusText, url, method, responseHeaders, responseBody, response, requestHeaders, requestBody) {
+    handleErrors (statusCode: int, statusText: string, url: string, method: string, responseHeaders: Dict, responseBody: string, response, requestHeaders, requestBody) {
         // it is a stub method that must be overrided in the derived exchange classes
         // throw new NotSupported (this.id + ' handleErrors() not implemented yet');
         return undefined;
