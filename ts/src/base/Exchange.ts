@@ -3341,6 +3341,19 @@ export default class Exchange {
         return arr[length - 1];
     }
 
+    findNearestFloor (arr: number[], providedValue: number) {
+        //  i.e. findNearestFloor ([ 10, 30, 50],  23) returns 10
+        const length = arr.length;
+        for (let i = 0; i < length; i++) {
+            const idx = length - 1 - i;
+            const current = arr[idx];
+            if (providedValue >= current) {
+                return current;
+            }
+        }
+        return arr[0];
+    }
+
     invertFlatStringDictionary (dict) {
         const reversed = {};
         const keys = Object.keys (dict);
