@@ -66,6 +66,7 @@ import type {
     FundingRates,
     Greeks,
     IndexType,
+    int,
     Int,
     IsolatedBorrowRate,
     IsolatedBorrowRates,
@@ -399,10 +400,12 @@ export default class Exchange {
         leverage?: MinMax,
         price?: MinMax,
     };
+    liquidations: Dictionary<Liquidation> = {}
     markets: Dictionary<any> = undefined;
     markets_by_id: Dictionary<any> = undefined;
     marketsByAltname: Dictionary<any> = undefined;
     marketsLoading: Promise<Dictionary<any>> = undefined;
+    myLiquidations: Dictionary<Liquidation> = {}
     myTrades: ArrayCache;
     name: Str = undefined;
     ohlcvs: Dictionary<Dictionary<ArrayCacheByTimestamp>>;
@@ -796,6 +799,10 @@ export default class Exchange {
                 'watchTickers': undefined,
                 'watchTrades': undefined,
                 'watchTradesForSymbols': undefined,
+                'watchLiquidations': undefined,
+                'watchLiquidationsForSymbols': undefined,
+                'watchMyLiquidations': undefined,
+                'watchMyLiquidationsForSymbols': undefined,
                 'withdraw': undefined,
                 'ws': undefined,
             },
@@ -912,6 +919,8 @@ export default class Exchange {
         this.walletAddress = undefined; // a wallet address "0x"-prefixed hexstring
         // placeholders for cached data
         this.balance = {};
+        this.liquidations = {}
+        this.myLiquidations = {}
         this.myTrades = undefined;
         this.ohlcvs = {};
         this.orderbooks = {};
@@ -2335,6 +2344,28 @@ export default class Exchange {
         throw new NotSupported (this.id + ' fetchTradesWs() is not supported yet');
     }
 
+    async watchLiquidations (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Liquidation[]> {
+        if (this.has['watchLiquidationsForSymbols']) {
+            return this.watchLiquidationsForSymbols ([ symbol ], since, limit, params);
+        }
+        throw new NotSupported (this.id + ' watchLiquidations() is not supported yet');
+    }
+
+    async watchLiquidationsForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params = {}): Promise<Liquidation[]> {
+        throw new NotSupported (this.id + ' watchLiquidationsForSymbols() is not supported yet');
+    }
+
+    async watchMyLiquidations (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Liquidation[]> {
+        if (this.has['watchMyLiquidationsForSymbols']) {
+            return this.watchMyLiquidationsForSymbols ([ symbol ], since, limit, params);
+        }
+        throw new NotSupported (this.id + ' watchMyLiquidations() is not supported yet');
+    }
+
+    async watchMyLiquidationsForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params = {}): Promise<Liquidation[]> {
+        throw new NotSupported (this.id + ' watchMyLiquidationsForSymbols() is not supported yet');
+    }
+
     async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         throw new NotSupported (this.id + ' watchTrades() is not supported yet');
     }
@@ -2407,7 +2438,7 @@ export default class Exchange {
         throw new NotSupported (this.id + ' fetchTradingLimits() is not supported yet');
     }
 
-    parseMarket (market): Market {
+    parseMarket (market: Dict): Market {
         throw new NotSupported (this.id + ' parseMarket() is not supported yet');
     }
 
@@ -3394,6 +3425,18 @@ export default class Exchange {
         trade['cost'] = this.parseNumber (cost);
         trade['price'] = this.parseNumber (price);
         return trade as Trade;
+    }
+
+    findNearestCeiling (arr: number[], providedValue: number) {
+        //  i.e. findNearestCeiling ([ 10, 30, 50],  23) returns 30
+        const length = arr.length;
+        for (let i = 0; i < length; i++) {
+            const current = arr[i];
+            if (providedValue <= current) {
+                return current;
+            }
+        }
+        return arr[length - 1];
     }
 
     invertFlatStringDictionary (dict) {
@@ -4779,7 +4822,7 @@ export default class Exchange {
         return undefined;
     }
 
-    handleErrors (statusCode, statusText, url, method, responseHeaders, responseBody, response, requestHeaders, requestBody) {
+    handleErrors (statusCode: int, statusText: string, url: string, method: string, responseHeaders: Dict, responseBody: string, response, requestHeaders, requestBody) {
         // it is a stub method that must be overrided in the derived exchange classes
         // throw new NotSupported (this.id + ' handleErrors() not implemented yet');
         return undefined;

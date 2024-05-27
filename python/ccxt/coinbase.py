@@ -352,6 +352,7 @@ class coinbase(Exchange, ImplicitAPI):
                 'CGLD': 'CELO',
             },
             'options': {
+                'usePrivate': False,
                 'brokerId': 'ccxt',
                 'stablePairs': ['BUSD-USD', 'CBETH-ETH', 'DAI-USD', 'GUSD-USD', 'GYEN-USD', 'PAX-USD', 'PAX-USDT', 'USDC-EUR', 'USDC-GBP', 'USDT-EUR', 'USDT-GBP', 'USDT-USD', 'USDT-USDC', 'WBTC-BTC'],
                 'fetchCurrencies': {
@@ -774,7 +775,7 @@ class coinbase(Exchange, ImplicitAPI):
         # fiat only, for crypto transactions use fetchLedger
         return self.fetch_transactions_with_method('v2PrivateGetAccountsAccountIdDeposits', code, since, limit, params)
 
-    def parse_transaction_status(self, status):
+    def parse_transaction_status(self, status: Str):
         statuses: dict = {
             'created': 'pending',
             'completed': 'ok',
@@ -1073,6 +1074,7 @@ class coinbase(Exchange, ImplicitAPI):
         :see: https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-exchange-rates#get-exchange-rates
         retrieves data on all markets for coinbase
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param boolean [params.usePrivate]: use private endpoint for fetching markets
         :returns dict[]: an array of objects representing market data
         """
         method = self.safe_string(self.options, 'fetchMarkets', 'fetchMarketsV3')
@@ -1150,54 +1152,58 @@ class coinbase(Exchange, ImplicitAPI):
         return result
 
     def fetch_markets_v3(self, params={}):
-        spotUnresolvedPromises = [
-            self.v3PublicGetBrokerageMarketProducts(params),
-            #
-            #    {
-            #        products: [
-            #            {
-            #                product_id: 'BTC-USD',
-            #                price: '67060',
-            #                price_percentage_change_24h: '3.30054960636883',
-            #                volume_24h: '10967.87426597',
-            #                volume_percentage_change_24h: '141.73048325503036',
-            #                base_increment: '0.00000001',
-            #                quote_increment: '0.01',
-            #                quote_min_size: '1',
-            #                quote_max_size: '150000000',
-            #                base_min_size: '0.00000001',
-            #                base_max_size: '3400',
-            #                base_name: 'Bitcoin',
-            #                quote_name: 'US Dollar',
-            #                watched: False,
-            #                is_disabled: False,
-            #                new: False,
-            #                status: 'online',
-            #                cancel_only: False,
-            #                limit_only: False,
-            #                post_only: False,
-            #                trading_disabled: False,
-            #                auction_mode: False,
-            #                product_type: 'SPOT',
-            #                quote_currency_id: 'USD',
-            #                base_currency_id: 'BTC',
-            #                fcm_trading_session_details: null,
-            #                mid_market_price: '',
-            #                alias: '',
-            #                alias_to: ['BTC-USDC'],
-            #                base_display_symbol: 'BTC',
-            #                quote_display_symbol: 'USD',
-            #                view_only: False,
-            #                price_increment: '0.01',
-            #                display_name: 'BTC-USD',
-            #                product_venue: 'CBE'
-            #            },
-            #            ...
-            #        ],
-            #        num_products: '646'
-            #    }
-            #
-        ]
+        usePrivate = False
+        usePrivate, params = self.handle_option_and_params(params, 'fetchMarkets', 'usePrivate', False)
+        spotUnresolvedPromises = []
+        if usePrivate:
+            spotUnresolvedPromises.append(self.v3PrivateGetBrokerageProducts(params))
+        else:
+            spotUnresolvedPromises.append(self.v3PublicGetBrokerageMarketProducts(params))
+        #
+        #    {
+        #        products: [
+        #            {
+        #                product_id: 'BTC-USD',
+        #                price: '67060',
+        #                price_percentage_change_24h: '3.30054960636883',
+        #                volume_24h: '10967.87426597',
+        #                volume_percentage_change_24h: '141.73048325503036',
+        #                base_increment: '0.00000001',
+        #                quote_increment: '0.01',
+        #                quote_min_size: '1',
+        #                quote_max_size: '150000000',
+        #                base_min_size: '0.00000001',
+        #                base_max_size: '3400',
+        #                base_name: 'Bitcoin',
+        #                quote_name: 'US Dollar',
+        #                watched: False,
+        #                is_disabled: False,
+        #                new: False,
+        #                status: 'online',
+        #                cancel_only: False,
+        #                limit_only: False,
+        #                post_only: False,
+        #                trading_disabled: False,
+        #                auction_mode: False,
+        #                product_type: 'SPOT',
+        #                quote_currency_id: 'USD',
+        #                base_currency_id: 'BTC',
+        #                fcm_trading_session_details: null,
+        #                mid_market_price: '',
+        #                alias: '',
+        #                alias_to: ['BTC-USDC'],
+        #                base_display_symbol: 'BTC',
+        #                quote_display_symbol: 'USD',
+        #                view_only: False,
+        #                price_increment: '0.01',
+        #                display_name: 'BTC-USD',
+        #                product_venue: 'CBE'
+        #            },
+        #            ...
+        #        ],
+        #        num_products: '646'
+        #    }
+        #
         if self.check_required_credentials(False):
             spotUnresolvedPromises.append(self.v3PrivateGetBrokerageTransactionSummary(params))
         #
@@ -1707,6 +1713,7 @@ class coinbase(Exchange, ImplicitAPI):
         :see: https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-exchange-rates#get-exchange-rates
         :param str[]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param boolean [params.usePrivate]: use private endpoint for fetching tickers
         :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
         method = self.safe_string(self.options, 'fetchTickers', 'fetchTickersV3')
@@ -1757,7 +1764,13 @@ class coinbase(Exchange, ImplicitAPI):
         marketType, params = self.handle_market_type_and_params('fetchTickers', self.get_market_from_symbols(symbols), params, 'default')
         if marketType is not None and marketType != 'default':
             request['product_type'] = 'FUTURE' if (marketType == 'swap') else 'SPOT'
-        response = self.v3PublicGetBrokerageMarketProducts(self.extend(request, params))
+        response = None
+        usePrivate = False
+        usePrivate, params = self.handle_option_and_params(params, 'fetchTickers', 'usePrivate', False)
+        if usePrivate:
+            response = self.v3PrivateGetBrokerageProducts(self.extend(request, params))
+        else:
+            response = self.v3PublicGetBrokerageMarketProducts(self.extend(request, params))
         #
         #     {
         #         "products": [
@@ -1814,6 +1827,7 @@ class coinbase(Exchange, ImplicitAPI):
         :see: https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-prices#get-sell-price
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param boolean [params.usePrivate]: whether to use the private endpoint for fetching the ticker
         :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
         method = self.safe_string(self.options, 'fetchTicker', 'fetchTickerV3')
@@ -1856,7 +1870,13 @@ class coinbase(Exchange, ImplicitAPI):
             'product_id': market['id'],
             'limit': 1,
         }
-        response = self.v3PublicGetBrokerageMarketProductsProductIdTicker(self.extend(request, params))
+        usePrivate = False
+        usePrivate, params = self.handle_option_and_params(params, 'fetchTicker', 'usePrivate', False)
+        response = None
+        if usePrivate:
+            response = self.v3PrivateGetBrokerageProductsProductIdTicker(self.extend(request, params))
+        else:
+            response = self.v3PublicGetBrokerageMarketProductsProductIdTicker(self.extend(request, params))
         #
         #     {
         #         "trades": [
@@ -3303,6 +3323,7 @@ class coinbase(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: the latest time in ms to fetch trades for
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+        :param boolean [params.usePrivate]: default False, when True will use the private endpoint to fetch the candles
         :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
         self.load_markets()
@@ -3333,7 +3354,13 @@ class coinbase(Exchange, ImplicitAPI):
         else:
             # 300 candles max
             request['end'] = Precise.string_add(sinceString, str(requestedDuration))
-        response = self.v3PublicGetBrokerageMarketProductsProductIdCandles(self.extend(request, params))
+        response = None
+        usePrivate = False
+        usePrivate, params = self.handle_option_and_params(params, 'fetchOHLCV', 'usePrivate', False)
+        if usePrivate:
+            response = self.v3PrivateGetBrokerageProductsProductIdCandles(self.extend(request, params))
+        else:
+            response = self.v3PublicGetBrokerageMarketProductsProductIdCandles(self.extend(request, params))
         #
         #     {
         #         "candles": [
@@ -3381,6 +3408,7 @@ class coinbase(Exchange, ImplicitAPI):
         :param int [since]: not used by coinbase fetchTrades
         :param int [limit]: the maximum number of trade structures to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param boolean [params.usePrivate]: default False, when True will use the private endpoint to fetch the trades
         :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/#/?id=public-trades>`
         """
         self.load_markets()
@@ -3398,7 +3426,13 @@ class coinbase(Exchange, ImplicitAPI):
             request['end'] = self.number_to_string(self.parse_to_int(until / 1000))
         elif since is not None:
             raise ArgumentsRequired(self.id + ' fetchTrades() requires a `until` parameter when you use `since` argument')
-        response = self.v3PublicGetBrokerageMarketProductsProductIdTicker(self.extend(request, params))
+        response = None
+        usePrivate = False
+        usePrivate, params = self.handle_option_and_params(params, 'fetchTrades', 'usePrivate', False)
+        if usePrivate:
+            response = self.v3PrivateGetBrokerageProductsProductIdTicker(self.extend(request, params))
+        else:
+            response = self.v3PublicGetBrokerageMarketProductsProductIdTicker(self.extend(request, params))
         #
         #     {
         #         "trades": [
@@ -3488,6 +3522,7 @@ class coinbase(Exchange, ImplicitAPI):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param boolean [params.usePrivate]: default False, when True will use the private endpoint to fetch the order book
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
         """
         self.load_markets()
@@ -3497,7 +3532,13 @@ class coinbase(Exchange, ImplicitAPI):
         }
         if limit is not None:
             request['limit'] = limit
-        response = self.v3PublicGetBrokerageMarketProductBook(self.extend(request, params))
+        response = None
+        usePrivate = False
+        usePrivate, params = self.handle_option_and_params(params, 'fetchOrderBook', 'usePrivate', False)
+        if usePrivate:
+            response = self.v3PrivateGetBrokerageProductBook(self.extend(request, params))
+        else:
+            response = self.v3PublicGetBrokerageMarketProductBook(self.extend(request, params))
         #
         #     {
         #         "pricebook": {
@@ -4335,7 +4376,7 @@ class coinbase(Exchange, ImplicitAPI):
                         body = self.json(query)
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response, requestHeaders, requestBody):
         if response is None:
             return None  # fallback to default error handler
         feedback = self.id + ' ' + body

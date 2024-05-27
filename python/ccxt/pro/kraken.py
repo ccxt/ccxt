@@ -1230,7 +1230,7 @@ class kraken(ccxt.async_support.kraken):
         messageHashes = []
         for i in range(0, len(symbols)):
             messageHashes.append(self.get_message_hash(unifiedName, None, self.symbol(symbols[i])))
-        # for WS subscriptions, we can't use .market_ids(symbols), instead a custom is field needed
+        # for WS subscriptions, we can't use .marketIds(symbols), instead a custom is field needed
         markets = self.markets_for_symbols(symbols)
         wsMarketIds = []
         for i in range(0, len(markets)):

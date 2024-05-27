@@ -387,7 +387,7 @@ class onetrading(Exchange, ImplicitAPI):
         #
         return self.parse_markets(response)
 
-    def parse_market(self, market) -> Market:
+    def parse_market(self, market: dict) -> Market:
         baseAsset = self.safe_value(market, 'base', {})
         quoteAsset = self.safe_value(market, 'quote', {})
         baseId = self.safe_string(baseAsset, 'code')
@@ -1894,7 +1894,7 @@ class onetrading(Exchange, ImplicitAPI):
                     url += '?' + self.urlencode(query)
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response, requestHeaders, requestBody):
         if response is None:
             return None
         #

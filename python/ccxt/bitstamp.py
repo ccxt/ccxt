@@ -1689,7 +1689,7 @@ class bitstamp(Exchange, ImplicitAPI):
             'fee': fee,
         }
 
-    def parse_transaction_status(self, status):
+    def parse_transaction_status(self, status: Str):
         #
         #   withdrawals:
         #   0(open), 1(in process), 2(finished), 3(canceled) or 4(failed).
@@ -2109,7 +2109,7 @@ class bitstamp(Exchange, ImplicitAPI):
             headers['X-Auth-Signature'] = signature
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody):
+    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response, requestHeaders, requestBody):
         if response is None:
             return None
         #

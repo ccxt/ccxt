@@ -13,6 +13,10 @@ public partial class bitmex : ccxt.bitmex
             { "has", new Dictionary<string, object>() {
                 { "ws", true },
                 { "watchBalance", true },
+                { "watchLiquidations", true },
+                { "watchLiquidationsForSymbols", true },
+                { "watchMyLiquidations", null },
+                { "watchMyLiquidationsForSymbols", null },
                 { "watchMyTrades", true },
                 { "watchOHLCV", true },
                 { "watchOrderBook", true },
@@ -360,6 +364,123 @@ public partial class bitmex : ccxt.bitmex
             callDynamically(client as WebSocketClient, "resolve", new object[] {fullParsedTicker, "alltickers"});
         }
         return message;
+    }
+
+    public async override Task<object> watchLiquidations(object symbol, object since = null, object limit = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name bitmex#watchLiquidations
+        * @description watch the public liquidations of a trading pair
+        * @see https://www.bitmex.com/app/wsAPI#Liquidation
+        * @param {string} symbol unified CCXT market symbol
+        * @param {int} [since] the earliest time in ms to fetch liquidations for
+        * @param {int} [limit] the maximum number of liquidation structures to retrieve
+        * @param {object} [params] exchange specific parameters for the bitmex api endpoint
+        * @returns {object} an array of [liquidation structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        return this.watchLiquidationsForSymbols(new List<object>() {symbol}, since, limit, parameters);
+    }
+
+    public async override Task<object> watchLiquidationsForSymbols(object symbols, object since = null, object limit = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name bitmex#watchLiquidationsForSymbols
+        * @description watch the public liquidations of a trading pair
+        * @see https://www.bitmex.com/app/wsAPI#Liquidation
+        * @param {string} symbol unified CCXT market symbol
+        * @param {int} [since] the earliest time in ms to fetch liquidations for
+        * @param {int} [limit] the maximum number of liquidation structures to retrieve
+        * @param {object} [params] exchange specific parameters for the bitmex api endpoint
+        * @returns {object} an array of [liquidation structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        symbols = this.marketSymbols(symbols, null, true, true);
+        object messageHashes = new List<object>() {};
+        object subscriptionHashes = new List<object>() {};
+        if (isTrue(this.isEmpty(symbols)))
+        {
+            ((IList<object>)subscriptionHashes).Add("liquidation");
+            ((IList<object>)messageHashes).Add("liquidations");
+        } else
+        {
+            for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
+            {
+                object symbol = getValue(symbols, i);
+                object market = this.market(symbol);
+                ((IList<object>)subscriptionHashes).Add(add("liquidation:", getValue(market, "id")));
+                ((IList<object>)messageHashes).Add(add("liquidations::", symbol));
+            }
+        }
+        object url = getValue(getValue(this.urls, "api"), "ws");
+        object request = new Dictionary<string, object>() {
+            { "op", "subscribe" },
+            { "args", subscriptionHashes },
+        };
+        object newLiquidations = await this.watchMultiple(url, messageHashes, this.deepExtend(request, parameters), subscriptionHashes);
+        if (isTrue(this.newUpdates))
+        {
+            return newLiquidations;
+        }
+        return this.filterBySymbolsSinceLimit(this.liquidations, symbols, since, limit, true);
+    }
+
+    public virtual void handleLiquidation(WebSocketClient client, object message)
+    {
+        //
+        //    {
+        //        "table":"liquidation",
+        //        "action":"partial",
+        //        "keys":[
+        //           "orderID"
+        //        ],
+        //        "types":{
+        //           "orderID":"guid",
+        //           "symbol":"symbol",
+        //           "side":"symbol",
+        //           "price":"float",
+        //           "leavesQty":"long"
+        //        },
+        //        "filter":{},
+        //        "data":[
+        //           {
+        //              "orderID":"e0a568ee-7830-4428-92c3-73e82b9576ce",
+        //              "symbol":"XPLAUSDT",
+        //              "side":"Sell",
+        //              "price":0.206,
+        //              "leavesQty":340
+        //           }
+        //        ]
+        //    }
+        //
+        object rawLiquidations = this.safeValue(message, "data", new List<object>() {});
+        object newLiquidations = new List<object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(rawLiquidations)); postFixIncrement(ref i))
+        {
+            object rawLiquidation = getValue(rawLiquidations, i);
+            object liquidation = this.parseLiquidation(rawLiquidation);
+            object symbol = getValue(liquidation, "symbol");
+            object liquidations = this.safeValue(this.liquidations, symbol);
+            if (isTrue(isEqual(liquidations, null)))
+            {
+                object limit = this.safeInteger(this.options, "liquidationsLimit", 1000);
+                liquidations = new ArrayCache(limit);
+            }
+            callDynamically(liquidations, "append", new object[] {liquidation});
+            ((IDictionary<string,object>)this.liquidations)[(string)symbol] = liquidations;
+            ((IList<object>)newLiquidations).Add(liquidation);
+        }
+        callDynamically(client as WebSocketClient, "resolve", new object[] {newLiquidations, "liquidations"});
+        object liquidationsBySymbol = this.indexBy(newLiquidations, "symbol");
+        object symbols = new List<object>(((IDictionary<string,object>)liquidationsBySymbol).Keys);
+        for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
+        {
+            object symbol = getValue(symbols, i);
+            callDynamically(client as WebSocketClient, "resolve", new object[] {getValue(liquidationsBySymbol, symbol), add("liquidations::", symbol)});
+        }
     }
 
     public async override Task<object> watchBalance(object parameters = null)
@@ -1700,6 +1821,7 @@ public partial class bitmex : ccxt.bitmex
                 { "order", this.handleOrders },
                 { "execution", this.handleMyTrades },
                 { "margin", this.handleBalance },
+                { "liquidation", this.handleLiquidation },
                 { "position", this.handlePositions },
             };
             object method = this.safeValue(methods, table);

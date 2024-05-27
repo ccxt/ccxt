@@ -272,7 +272,7 @@ class novadax(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'data', [])
         return self.parse_markets(data)
 
-    def parse_market(self, market) -> Market:
+    def parse_market(self, market: dict) -> Market:
         baseId = self.safe_string(market, 'baseCurrency')
         quoteId = self.safe_string(market, 'quoteCurrency')
         id = self.safe_string(market, 'symbol')
@@ -1303,7 +1303,7 @@ class novadax(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data', [])
         return self.parse_transactions(data, currency, since, limit)
 
-    def parse_transaction_status(self, status):
+    def parse_transaction_status(self, status: Str):
         # Pending the record is wait broadcast to chain
         # x/M confirming the comfirming state of tx, the M is total confirmings needed
         # SUCCESS the record is success full
@@ -1468,7 +1468,7 @@ class novadax(Exchange, ImplicitAPI):
             headers['X-Nova-Signature'] = self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha256)
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response, requestHeaders, requestBody):
         if response is None:
             return None
         #

@@ -11,6 +11,7 @@ import { Exchange as _Exchange } from '../base/Exchange.js';
 interface Exchange {
     sapiGetSystemStatus (params?: {}): Promise<implicitReturnType>;
     sapiGetAccountSnapshot (params?: {}): Promise<implicitReturnType>;
+    sapiGetAccountInfo (params?: {}): Promise<implicitReturnType>;
     sapiGetMarginAsset (params?: {}): Promise<implicitReturnType>;
     sapiGetMarginPair (params?: {}): Promise<implicitReturnType>;
     sapiGetMarginAllAssets (params?: {}): Promise<implicitReturnType>;

@@ -1142,7 +1142,7 @@ class timex(Exchange, ImplicitAPI):
         result = self.safe_value(response, 0, {})
         return self.parse_trading_fee(result, market)
 
-    def parse_market(self, market) -> Market:
+    def parse_market(self, market: dict) -> Market:
         #
         #     {
         #         "symbol": "ETHBTC",
@@ -1572,7 +1572,7 @@ class timex(Exchange, ImplicitAPI):
             headers = {'authorization': secret}
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, statusCode, statusText, url, method, responseHeaders, responseBody, response, requestHeaders, requestBody):
+    def handle_errors(self, statusCode: int, statusText: str, url: str, method: str, responseHeaders: dict, responseBody, response, requestHeaders, requestBody):
         if response is None:
             return None
         if statusCode >= 400:

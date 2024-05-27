@@ -1508,7 +1508,7 @@ class latoken extends Exchange {
         );
     }
 
-    public function parse_transaction_status($status) {
+    public function parse_transaction_status(?string $status) {
         $statuses = array(
             'TRANSACTION_STATUS_CONFIRMED' => 'ok',
             'TRANSACTION_STATUS_EXECUTED' => 'ok',
@@ -1704,7 +1704,7 @@ class latoken extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
         if (!$response) {
             return null;
         }

@@ -2146,7 +2146,7 @@ class bitfinex2(Exchange, ImplicitAPI):
             'info': response,
         }
 
-    def parse_transaction_status(self, status):
+    def parse_transaction_status(self, status: Str):
         statuses: dict = {
             'SUCCESS': 'ok',
             'COMPLETED': 'ok',

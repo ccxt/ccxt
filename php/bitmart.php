@@ -3443,7 +3443,7 @@ class bitmart extends Exchange {
         return $this->fetch_transactions_by_type('withdraw', $code, $since, $limit, $params);
     }
 
-    public function parse_transaction_status($status) {
+    public function parse_transaction_status(?string $status) {
         $statuses = array(
             '0' => 'pending', // Create
             '1' => 'pending', // Submitted, waiting for withdrawal
@@ -4516,7 +4516,7 @@ class bitmart extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
         if ($response === null) {
             return null;
         }

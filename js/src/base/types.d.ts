@@ -1,4 +1,5 @@
 export declare type Int = number | undefined;
+export declare type int = number;
 export declare type Str = string | undefined;
 export declare type Strings = string[] | undefined;
 export declare type Num = number | undefined;

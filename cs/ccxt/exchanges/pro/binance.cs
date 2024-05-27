@@ -13,6 +13,10 @@ public partial class binance : ccxt.binance
             { "has", new Dictionary<string, object>() {
                 { "ws", true },
                 { "watchBalance", true },
+                { "watchLiquidations", true },
+                { "watchLiquidationsForSymbols", true },
+                { "watchMyLiquidations", true },
+                { "watchMyLiquidationsForSymbols", true },
                 { "watchBidsAsks", true },
                 { "watchMyTrades", true },
                 { "watchOHLCV", true },
@@ -95,6 +99,8 @@ public partial class binance : ccxt.binance
                 { "streamBySubscriptionsHash", this.createSafeDictionary() },
                 { "streamIndex", -1 },
                 { "watchOrderBookRate", 100 },
+                { "liquidationsLimit", 1000 },
+                { "myLiquidationsLimit", 1000 },
                 { "tradesLimit", 1000 },
                 { "ordersLimit", 1000 },
                 { "OHLCVLimit", 1000 },
@@ -118,6 +124,9 @@ public partial class binance : ccxt.binance
                 { "watchBalance", new Dictionary<string, object>() {
                     { "fetchBalanceSnapshot", false },
                     { "awaitBalanceSnapshot", true },
+                } },
+                { "watchLiquidationsForSymbols", new Dictionary<string, object>() {
+                    { "defaultType", "swap" },
                 } },
                 { "watchPositions", new Dictionary<string, object>() {
                     { "fetchPositionsSnapshot", true },
@@ -179,6 +188,385 @@ public partial class binance : ccxt.binance
             ((IDictionary<string,object>)getValue(this.options, "numSubscriptionsByStream"))[(string)stream] = add(subscriptionsByStream, numSubscriptions);
         }
         return stream;
+    }
+
+    public async override Task<object> watchLiquidations(object symbol, object since = null, object limit = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name binance#watchLiquidations
+        * @description watch the public liquidations of a trading pair
+        * @see https://binance-docs.github.io/apidocs/futures/en/#liquidation-order-streams
+        * @see https://binance-docs.github.io/apidocs/delivery/en/#liquidation-order-streams
+        * @param {string} symbol unified CCXT market symbol
+        * @param {int} [since] the earliest time in ms to fetch liquidations for
+        * @param {int} [limit] the maximum number of liquidation structures to retrieve
+        * @param {object} [params] exchange specific parameters for the bitmex api endpoint
+        * @returns {object} an array of [liquidation structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        return this.watchLiquidationsForSymbols(new List<object>() {symbol}, since, limit, parameters);
+    }
+
+    public async override Task<object> watchLiquidationsForSymbols(object symbols, object since = null, object limit = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name binance#watchLiquidationsForSymbols
+        * @description watch the public liquidations of a trading pair
+        * @see https://binance-docs.github.io/apidocs/futures/en/#all-market-liquidation-order-streams
+        * @see https://binance-docs.github.io/apidocs/delivery/en/#all-market-liquidation-order-streams
+        * @param {string} symbol unified CCXT market symbol
+        * @param {int} [since] the earliest time in ms to fetch liquidations for
+        * @param {int} [limit] the maximum number of liquidation structures to retrieve
+        * @param {object} [params] exchange specific parameters for the bitmex api endpoint
+        * @returns {object} an array of [liquidation structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object subscriptionHashes = new List<object>() {};
+        object messageHashes = new List<object>() {};
+        object streamHash = "liquidations";
+        symbols = this.marketSymbols(symbols, null, true, true);
+        if (isTrue(this.isEmpty(symbols)))
+        {
+            ((IList<object>)subscriptionHashes).Add(add("!", "forceOrder@arr"));
+            ((IList<object>)messageHashes).Add("liquidations");
+        } else
+        {
+            for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
+            {
+                object market = this.market(getValue(symbols, i));
+                ((IList<object>)subscriptionHashes).Add(add(getValue(market, "id"), "@forceOrder"));
+                ((IList<object>)messageHashes).Add(add("liquidations::", getValue(symbols, i)));
+            }
+            streamHash = add(streamHash, add("::", String.Join(",", ((IList<object>)symbols).ToArray())));
+        }
+        object firstMarket = this.getMarketFromSymbols(symbols);
+        object type = null;
+        var typeparametersVariable = this.handleMarketTypeAndParams("watchLiquidationsForSymbols", firstMarket, parameters);
+        type = ((IList<object>)typeparametersVariable)[0];
+        parameters = ((IList<object>)typeparametersVariable)[1];
+        if (isTrue(isEqual(type, "spot")))
+        {
+            throw new BadRequest ((string)add(this.id, "watchLiquidationsForSymbols is not supported for swap symbols")) ;
+        }
+        object subType = null;
+        var subTypeparametersVariable = this.handleSubTypeAndParams("watchLiquidationsForSymbols", firstMarket, parameters);
+        subType = ((IList<object>)subTypeparametersVariable)[0];
+        parameters = ((IList<object>)subTypeparametersVariable)[1];
+        if (isTrue(this.isLinear(type, subType)))
+        {
+            type = "future";
+        } else if (isTrue(this.isInverse(type, subType)))
+        {
+            type = "delivery";
+        }
+        object numSubscriptions = getArrayLength(subscriptionHashes);
+        object url = add(add(getValue(getValue(getValue(this.urls, "api"), "ws"), type), "/"), this.stream(type, streamHash, numSubscriptions));
+        object requestId = this.requestId(url);
+        object request = new Dictionary<string, object>() {
+            { "method", "SUBSCRIBE" },
+            { "params", subscriptionHashes },
+            { "id", requestId },
+        };
+        object subscribe = new Dictionary<string, object>() {
+            { "id", requestId },
+        };
+        object newLiquidations = await this.watchMultiple(url, messageHashes, this.extend(request, parameters), subscriptionHashes, subscribe);
+        if (isTrue(this.newUpdates))
+        {
+            return newLiquidations;
+        }
+        return this.filterBySymbolsSinceLimit(this.liquidations, symbols, since, limit, true);
+    }
+
+    public virtual void handleLiquidation(WebSocketClient client, object message)
+    {
+        //
+        // future
+        //    {
+        //        "e":"forceOrder",
+        //        "E":1698871323061,
+        //        "o":{
+        //           "s":"BTCUSDT",
+        //           "S":"BUY",
+        //           "o":"LIMIT",
+        //           "f":"IOC",
+        //           "q":"1.437",
+        //           "p":"35100.81",
+        //           "ap":"34959.70",
+        //           "X":"FILLED",
+        //           "l":"1.437",
+        //           "z":"1.437",
+        //           "T":1698871323059
+        //        }
+        //    }
+        // delivery
+        //    {
+        //        "e":"forceOrder",              // Event Type
+        //        "E": 1591154240950,            // Event Time
+        //        "o":{
+        //            "s":"BTCUSD_200925",       // Symbol
+        //            "ps": "BTCUSD",            // Pair
+        //            "S":"SELL",                // Side
+        //            "o":"LIMIT",               // Order Type
+        //            "f":"IOC",                 // Time in Force
+        //            "q":"1",                   // Original Quantity
+        //            "p":"9425.5",              // Price
+        //            "ap":"9496.5",             // Average Price
+        //            "X":"FILLED",              // Order Status
+        //            "l":"1",                   // Order Last Filled Quantity
+        //            "z":"1",                   // Order Filled Accumulated Quantity
+        //            "T": 1591154240949,        // Order Trade Time
+        //        }
+        //    }
+        //
+        object rawLiquidation = this.safeValue(message, "o", new Dictionary<string, object>() {});
+        object marketId = this.safeString(rawLiquidation, "s");
+        object market = this.safeMarket(marketId, null, "", "contract");
+        object symbol = getValue(market, "symbol");
+        object liquidation = this.parseWsLiquidation(rawLiquidation, market);
+        object liquidations = this.safeValue(this.liquidations, symbol);
+        if (isTrue(isEqual(liquidations, null)))
+        {
+            object limit = this.safeInteger(this.options, "liquidationsLimit", 1000);
+            liquidations = new ArrayCache(limit);
+        }
+        callDynamically(liquidations, "append", new object[] {liquidation});
+        ((IDictionary<string,object>)this.liquidations)[(string)symbol] = liquidations;
+        callDynamically(client as WebSocketClient, "resolve", new object[] {new List<object>() {liquidation}, "liquidations"});
+        callDynamically(client as WebSocketClient, "resolve", new object[] {new List<object>() {liquidation}, add("liquidations::", symbol)});
+    }
+
+    public virtual object parseWsLiquidation(object liquidation, object market = null)
+    {
+        //
+        // future
+        //    {
+        //        "s":"BTCUSDT",
+        //        "S":"BUY",
+        //        "o":"LIMIT",
+        //        "f":"IOC",
+        //        "q":"1.437",
+        //        "p":"35100.81",
+        //        "ap":"34959.70",
+        //        "X":"FILLED",
+        //        "l":"1.437",
+        //        "z":"1.437",
+        //        "T":1698871323059
+        //    }
+        // delivery
+        //    {
+        //        "s":"BTCUSD_200925",       // Symbol
+        //        "ps": "BTCUSD",            // Pair
+        //        "S":"SELL",                // Side
+        //        "o":"LIMIT",               // Order Type
+        //        "f":"IOC",                 // Time in Force
+        //        "q":"1",                   // Original Quantity
+        //        "p":"9425.5",              // Price
+        //        "ap":"9496.5",             // Average Price
+        //        "X":"FILLED",              // Order Status
+        //        "l":"1",                   // Order Last Filled Quantity
+        //        "z":"1",                   // Order Filled Accumulated Quantity
+        //        "T": 1591154240949,        // Order Trade Time
+        //    }
+        // myLiquidation
+        //    {
+        //        "s":"BTCUSDT",              // Symbol
+        //        "c":"TEST",                 // Client Order Id
+        //          // special client order id:
+        //          // starts with "autoclose-": liquidation order
+        //          // "adl_autoclose": ADL auto close order
+        //          // "settlement_autoclose-": settlement order for delisting or delivery
+        //        "S":"SELL",                 // Side
+        //        "o":"TRAILING_STOP_MARKET", // Order Type
+        //        "f":"GTC",                  // Time in Force
+        //        "q":"0.001",                // Original Quantity
+        //        "p":"0",                    // Original Price
+        //        "ap":"0",                   // Average Price
+        //        "sp":"7103.04",             // Stop Price. Please ignore with TRAILING_STOP_MARKET order
+        //        "x":"NEW",                  // Execution Type
+        //        "X":"NEW",                  // Order Status
+        //        "i":8886774,                // Order Id
+        //        "l":"0",                    // Order Last Filled Quantity
+        //        "z":"0",                    // Order Filled Accumulated Quantity
+        //        "L":"0",                    // Last Filled Price
+        //        "N":"USDT",                 // Commission Asset, will not push if no commission
+        //        "n":"0",                    // Commission, will not push if no commission
+        //        "T":1568879465650,          // Order Trade Time
+        //        "t":0,                      // Trade Id
+        //        "b":"0",                    // Bids Notional
+        //        "a":"9.91",                 // Ask Notional
+        //        "m":false,                  // Is this trade the maker side?
+        //        "R":false,                  // Is this reduce only
+        //        "wt":"CONTRACT_PRICE",      // Stop Price Working Type
+        //        "ot":"TRAILING_STOP_MARKET",// Original Order Type
+        //        "ps":"LONG",                // Position Side
+        //        "cp":false,                 // If Close-All, pushed with conditional order
+        //        "AP":"7476.89",             // Activation Price, only puhed with TRAILING_STOP_MARKET order
+        //        "cr":"5.0",                 // Callback Rate, only puhed with TRAILING_STOP_MARKET order
+        //        "pP": false,                // If price protection is turned on
+        //        "si": 0,                    // ignore
+        //        "ss": 0,                    // ignore
+        //        "rp":"0",                   // Realized Profit of the trade
+        //        "V":"EXPIRE_TAKER",         // STP mode
+        //        "pm":"OPPONENT",            // Price match mode
+        //        "gtd":0                     // TIF GTD order auto cancel time
+        //    }
+        //
+        object marketId = this.safeString(liquidation, "s");
+        market = this.safeMarket(marketId, market);
+        object timestamp = this.safeInteger(liquidation, "T");
+        return this.safeLiquidation(new Dictionary<string, object>() {
+            { "info", liquidation },
+            { "symbol", this.safeSymbol(marketId, market) },
+            { "contracts", this.safeNumber(liquidation, "l") },
+            { "contractSize", this.safeNumber(market, "contractSize") },
+            { "price", this.safeNumber(liquidation, "ap") },
+            { "baseValue", null },
+            { "quoteValue", null },
+            { "timestamp", timestamp },
+            { "datetime", this.iso8601(timestamp) },
+        });
+    }
+
+    public async override Task<object> watchMyLiquidations(object symbol, object since = null, object limit = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name binance#watchMyLiquidations
+        * @description watch the private liquidations of a trading pair
+        * @see https://binance-docs.github.io/apidocs/futures/en/#event-order-update
+        * @see https://binance-docs.github.io/apidocs/delivery/en/#event-order-update
+        * @param {string} symbol unified CCXT market symbol
+        * @param {int} [since] the earliest time in ms to fetch liquidations for
+        * @param {int} [limit] the maximum number of liquidation structures to retrieve
+        * @param {object} [params] exchange specific parameters for the bitmex api endpoint
+        * @returns {object} an array of [liquidation structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        return this.watchMyLiquidationsForSymbols(new List<object>() {symbol}, since, limit, parameters);
+    }
+
+    public async override Task<object> watchMyLiquidationsForSymbols(object symbols, object since = null, object limit = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name binance#watchMyLiquidationsForSymbols
+        * @description watch the private liquidations of a trading pair
+        * @see https://binance-docs.github.io/apidocs/futures/en/#event-order-update
+        * @see https://binance-docs.github.io/apidocs/delivery/en/#event-order-update
+        * @param {string} symbol unified CCXT market symbol
+        * @param {int} [since] the earliest time in ms to fetch liquidations for
+        * @param {int} [limit] the maximum number of liquidation structures to retrieve
+        * @param {object} [params] exchange specific parameters for the bitmex api endpoint
+        * @returns {object} an array of [liquidation structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        symbols = this.marketSymbols(symbols, null, true, true, true);
+        object market = this.getMarketFromSymbols(symbols);
+        object messageHashes = new List<object>() {"myLiquidations"};
+        if (!isTrue(this.isEmpty(symbols)))
+        {
+            for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
+            {
+                object symbol = getValue(symbols, i);
+                ((IList<object>)messageHashes).Add(add("myLiquidations::", symbol));
+            }
+        }
+        object type = null;
+        var typeparametersVariable = this.handleMarketTypeAndParams("watchMyLiquidationsForSymbols", market, parameters);
+        type = ((IList<object>)typeparametersVariable)[0];
+        parameters = ((IList<object>)typeparametersVariable)[1];
+        object subType = null;
+        var subTypeparametersVariable = this.handleSubTypeAndParams("watchMyLiquidationsForSymbols", market, parameters);
+        subType = ((IList<object>)subTypeparametersVariable)[0];
+        parameters = ((IList<object>)subTypeparametersVariable)[1];
+        if (isTrue(this.isLinear(type, subType)))
+        {
+            type = "future";
+        } else if (isTrue(this.isInverse(type, subType)))
+        {
+            type = "delivery";
+        }
+        await this.authenticate(parameters);
+        object url = add(add(getValue(getValue(getValue(this.urls, "api"), "ws"), type), "/"), getValue(getValue(this.options, type), "listenKey"));
+        object message = null;
+        object newLiquidations = await this.watchMultiple(url, messageHashes, message, new List<object>() {type});
+        if (isTrue(this.newUpdates))
+        {
+            return newLiquidations;
+        }
+        return this.filterBySymbolsSinceLimit(this.liquidations, symbols, since, limit);
+    }
+
+    public virtual void handleMyLiquidation(WebSocketClient client, object message)
+    {
+        //
+        //    {
+        //        "s":"BTCUSDT",              // Symbol
+        //        "c":"TEST",                 // Client Order Id
+        //          // special client order id:
+        //          // starts with "autoclose-": liquidation order
+        //          // "adl_autoclose": ADL auto close order
+        //          // "settlement_autoclose-": settlement order for delisting or delivery
+        //        "S":"SELL",                 // Side
+        //        "o":"TRAILING_STOP_MARKET", // Order Type
+        //        "f":"GTC",                  // Time in Force
+        //        "q":"0.001",                // Original Quantity
+        //        "p":"0",                    // Original Price
+        //        "ap":"0",                   // Average Price
+        //        "sp":"7103.04",             // Stop Price. Please ignore with TRAILING_STOP_MARKET order
+        //        "x":"NEW",                  // Execution Type
+        //        "X":"NEW",                  // Order Status
+        //        "i":8886774,                // Order Id
+        //        "l":"0",                    // Order Last Filled Quantity
+        //        "z":"0",                    // Order Filled Accumulated Quantity
+        //        "L":"0",                    // Last Filled Price
+        //        "N":"USDT",                 // Commission Asset, will not push if no commission
+        //        "n":"0",                    // Commission, will not push if no commission
+        //        "T":1568879465650,          // Order Trade Time
+        //        "t":0,                      // Trade Id
+        //        "b":"0",                    // Bids Notional
+        //        "a":"9.91",                 // Ask Notional
+        //        "m":false,                  // Is this trade the maker side?
+        //        "R":false,                  // Is this reduce only
+        //        "wt":"CONTRACT_PRICE",      // Stop Price Working Type
+        //        "ot":"TRAILING_STOP_MARKET",// Original Order Type
+        //        "ps":"LONG",                // Position Side
+        //        "cp":false,                 // If Close-All, pushed with conditional order
+        //        "AP":"7476.89",             // Activation Price, only puhed with TRAILING_STOP_MARKET order
+        //        "cr":"5.0",                 // Callback Rate, only puhed with TRAILING_STOP_MARKET order
+        //        "pP": false,                // If price protection is turned on
+        //        "si": 0,                    // ignore
+        //        "ss": 0,                    // ignore
+        //        "rp":"0",                   // Realized Profit of the trade
+        //        "V":"EXPIRE_TAKER",         // STP mode
+        //        "pm":"OPPONENT",            // Price match mode
+        //        "gtd":0                     // TIF GTD order auto cancel time
+        //    }
+        //
+        object orderType = this.safeString(message, "o");
+        if (isTrue(!isEqual(orderType, "LIQUIDATION")))
+        {
+            return;
+        }
+        object marketId = this.safeString(message, "s");
+        object market = this.safeMarket(marketId);
+        object symbol = this.safeSymbol(marketId);
+        object liquidation = this.parseWsLiquidation(message, market);
+        object myLiquidations = this.safeValue(this.myLiquidations, symbol);
+        if (isTrue(isEqual(myLiquidations, null)))
+        {
+            object limit = this.safeInteger(this.options, "myLiquidationsLimit", 1000);
+            myLiquidations = new ArrayCache(limit);
+        }
+        callDynamically(myLiquidations, "append", new object[] {liquidation});
+        ((IDictionary<string,object>)this.myLiquidations)[(string)symbol] = myLiquidations;
+        callDynamically(client as WebSocketClient, "resolve", new object[] {new List<object>() {liquidation}, "myLiquidations"});
+        callDynamically(client as WebSocketClient, "resolve", new object[] {new List<object>() {liquidation}, add("myLiquidations::", symbol)});
     }
 
     public async override Task<object> watchOrderBook(object symbol, object limit = null, object parameters = null)
@@ -3163,6 +3551,7 @@ public partial class binance : ccxt.binance
         }
         this.handleMyTrade(client as WebSocketClient, message);
         this.handleOrder(client as WebSocketClient, message);
+        this.handleMyLiquidation(client as WebSocketClient, message);
     }
 
     public async override Task<object> watchPositions(object symbols = null, object since = null, object limit = null, object parameters = null)
@@ -3891,6 +4280,7 @@ public partial class binance : ccxt.binance
             { "ACCOUNT_UPDATE", this.handleAcountUpdate },
             { "executionReport", this.handleOrderUpdate },
             { "ORDER_TRADE_UPDATE", this.handleOrderUpdate },
+            { "forceOrder", this.handleLiquidation },
         };
         object eventVar = this.safeString(message, "e");
         if (isTrue(((message is IList<object>) || (message.GetType().IsGenericType && message.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
