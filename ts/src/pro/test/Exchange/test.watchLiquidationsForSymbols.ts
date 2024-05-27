@@ -1,14 +1,11 @@
-'use strict';
-
-// ----------------------------------------------------------------------------
-
 import assert from 'assert';
+import { Exchange } from "../../../../ccxt";
 import errors from '../../../base/errors.js';
 import testLiquidation from '../../../test/Exchange/base/test.liquidation.js';
 
 /*  ------------------------------------------------------------------------ */
 
-export default async (exchange, skippedProperties, symbol) => {
+export default async (exchange: Exchange, skippedProperties: object, symbol: string) => {
 
     const method = 'watchLiquidationsForSymbols';
 
