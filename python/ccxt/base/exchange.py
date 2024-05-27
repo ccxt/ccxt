@@ -254,9 +254,11 @@ class Exchange(object):
         '511': AuthenticationError,
     }
     balance = None
+    liquidations = None
     orderbooks = None
     orders = None
     triggerOrders = None
+    myLiquidations = None
     myTrades = None
     trades = None
     transactions = None
@@ -390,6 +392,10 @@ class Exchange(object):
         'watchOrderBookForSymbols': None,
         'watchOHLCVForSymbols': None,
         'watchBalance': None,
+        'watchLiquidations': None,
+        'watchLiquidationsForSymbols': None,
+        'watchMyLiquidations': None,
+        'watchMyLiquidationsForSymbols': None,
         'watchOHLCV': None,
     }
     precisionMode = DECIMAL_PLACES
@@ -2124,6 +2130,28 @@ class Exchange(object):
 
     def fetch_trades_ws(self, symbol: str, since: Int = None, limit: Int = None, params={}):
         raise NotSupported(self.id + ' fetchTradesWs() is not supported yet')
+
+    def watch_liquidations(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+        raise NotSupported(self.id + ' watchLiquidations() is not supported yet')
+
+    def watch_all_liquidations(self, symbols: List[str], since: Optional[int] = None, limit: Optional[int] = None, params={}):
+        raise NotSupported(self.id + ' watchAllLiquidations() is not supported yet')
+
+    def watch_liquidations_for_symbols(self, symbols: List[str], since: Optional[int] = None, limit: Optional[int] = None, params={}):
+        if self.has['watchAllLiquidations']:
+            return self.watchAllLiquidations(symbols, since, limit, params)
+        raise NotSupported(self.id + ' watchLiquidationsForSymbols() is not supported yet')
+
+    def watch_my_liquidations(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+        raise NotSupported(self.id + ' watchMyLiquidations() is not supported yet')
+
+    def watch_all_my_liquidations(self, symbols: List[str], since: Optional[int] = None, limit: Optional[int] = None, params={}):
+        raise NotSupported(self.id + ' watchAllMyLiquidations() is not supported yet')
+
+    def watch_my_liquidations_for_symbols(self, symbols: List[str], since: Optional[int] = None, limit: Optional[int] = None, params={}):
+        if self.has['watchAllMyLiquidations']:
+            return self.watchAllMyLiquidations(symbols, since, limit, params)
+        raise NotSupported(self.id + ' watchMyLiquidationsForSymbols() is not supported yet')
 
     def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}):
         raise NotSupported(self.id + ' watchTrades() is not supported yet')

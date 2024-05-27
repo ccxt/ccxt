@@ -151,8 +151,10 @@ class Exchange {
     public $bidsasks = array();
     public $fees = array('trading' => array(), 'funding' => array());
     public $precision = array();
+    public $liquidations = array();
     public $orders = null;
     public $triggerOrders = null;
+    public $myLiquidations = array();
     public $myTrades = null;
     public $trades = array();
     public $transactions = array();
@@ -2671,6 +2673,36 @@ class Exchange {
 
     public function fetch_trades_ws(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
         throw new NotSupported($this->id . ' fetchTradesWs() is not supported yet');
+    }
+
+    public function watch_liquidations(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
+        throw new NotSupported($this->id . ' watchLiquidations() is not supported yet');
+    }
+
+    public function watch_all_liquidations(array $symbols, ?int $since = null, ?int $limit = null, $params = array ()) {
+        throw new NotSupported($this->id . ' watchAllLiquidations() is not supported yet');
+    }
+
+    public function watch_liquidations_for_symbols(array $symbols, ?int $since = null, ?int $limit = null, $params = array ()) {
+        if ($this->has['watchAllLiquidations']) {
+            return $this->watchAllLiquidations ($symbols, $since, $limit, $params);
+        }
+        throw new NotSupported($this->id . ' watchLiquidationsForSymbols() is not supported yet');
+    }
+
+    public function watch_my_liquidations(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
+        throw new NotSupported($this->id . ' watchMyLiquidations() is not supported yet');
+    }
+
+    public function watch_all_my_liquidations(array $symbols, ?int $since = null, ?int $limit = null, $params = array ()) {
+        throw new NotSupported($this->id . ' watchAllMyLiquidations() is not supported yet');
+    }
+
+    public function watch_my_liquidations_for_symbols(array $symbols, ?int $since = null, ?int $limit = null, $params = array ()) {
+        if ($this->has['watchAllMyLiquidations']) {
+            return $this->watchAllMyLiquidations ($symbols, $since, $limit, $params);
+        }
+        throw new NotSupported($this->id . ' watchMyLiquidationsForSymbols() is not supported yet');
     }
 
     public function watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {

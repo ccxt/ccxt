@@ -5,8 +5,9 @@ import gateRest from '../gate.js';
 import { AuthenticationError, BadRequest, ArgumentsRequired, InvalidNonce } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide } from '../base/ws/Cache.js';
 import { sha512 } from '../static_dependencies/noble-hashes/sha512.js';
-import type { Int, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Position, Balances, Dict } from '../base/types.js';
+import type { Int, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Position, Balances, Dict, Liquidation } from '../base/types.js';
 import Client from '../base/ws/Client.js';
+import Precise from '../base/Precise.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -24,6 +25,10 @@ export default class gate extends gateRest {
                 'watchOHLCV': true,
                 'watchBalance': true,
                 'watchOrders': true,
+                'watchLiquidations': false,
+                'watchLiquidationsForSymbols': false,
+                'watchMyLiquidations': true,
+                'watchMyLiquidationsForSymbols': true,
                 'watchPositions': true,
             },
             'urls': {
@@ -1062,6 +1067,186 @@ export default class gate extends gateRest {
         client.resolve (this.orders, 'orders');
     }
 
+    async watchMyLiquidations (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Liquidation[]> {
+        /**
+         * @method
+         * @name gate#watchMyLiquidations
+         * @description watch the public liquidations of a trading pair
+         * @see https://www.gate.io/docs/developers/futures/ws/en/#liquidates-api
+         * @see https://www.gate.io/docs/developers/delivery/ws/en/#liquidates-api
+         * @see https://www.gate.io/docs/developers/options/ws/en/#liquidates-channel
+         * @param {string} symbol unified CCXT market symbol
+         * @param {int} [since] the earliest time in ms to fetch liquidations for
+         * @param {int} [limit] the maximum number of liquidation structures to retrieve
+         * @param {object} [params] exchange specific parameters for the bitmex api endpoint
+         * @returns {object} an array of [liquidation structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure}
+         */
+        return this.watchMyLiquidationsForSymbols ([ symbol ], since, limit, params);
+    }
+
+    async watchMyLiquidationsForSymbols (symbols: string[] = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Liquidation[]> {
+        /**
+         * @method
+         * @name gate#watchMyLiquidationsForSymbols
+         * @description watch the private liquidations of a trading pair
+         * @see https://www.gate.io/docs/developers/futures/ws/en/#liquidates-api
+         * @see https://www.gate.io/docs/developers/delivery/ws/en/#liquidates-api
+         * @see https://www.gate.io/docs/developers/options/ws/en/#liquidates-channel
+         * @param {string} symbol unified CCXT market symbol
+         * @param {int} [since] the earliest time in ms to fetch liquidations for
+         * @param {int} [limit] the maximum number of liquidation structures to retrieve
+         * @param {object} [params] exchange specific parameters for the gate api endpoint
+         * @returns {object} an array of [liquidation structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure}
+         */
+        await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols, undefined, true, true);
+        const market = this.getMarketFromSymbols (symbols);
+        let type = undefined;
+        let query = undefined;
+        [ type, query ] = this.handleMarketTypeAndParams ('watchMyLiquidationsForSymbols', market, params);
+        const typeId = this.getSupportedMapping (type, {
+            'future': 'futures',
+            'swap': 'futures',
+            'option': 'options',
+        });
+        let subType = undefined;
+        [ subType, query ] = this.handleSubTypeAndParams ('watchMyLiquidationsForSymbols', market, query);
+        const isInverse = (subType === 'inverse');
+        const url = this.getUrlByMarketType (type, isInverse);
+        const payload = [];
+        let messageHash = '';
+        if (this.isEmpty (symbols)) {
+            if (typeId !== 'futures' && !isInverse) {
+                throw new BadRequest (this.id + ' watchMyLiquidationsForSymbols() does not support listening to all symbols, you must call watchMyLiquidations() instead for each symbol you wish to watch.');
+            }
+            messageHash = 'myLiquidations';
+            payload.push ('!all');
+        } else {
+            const symbolsLength = symbols.length;
+            if (symbolsLength !== 1) {
+                throw new BadRequest (this.id + ' watchMyLiquidationsForSymbols() only allows one symbol at a time. To listen to several symbols call watchMyLiquidationsForSymbols() several times.');
+            }
+            messageHash = 'myLiquidations::' + symbols[0];
+            payload.push (market['id']);
+        }
+        const channel = typeId + '.liquidates';
+        const newLiquidations = await this.subscribePrivate (url, messageHash, payload, channel, query, true);
+        if (this.newUpdates) {
+            return newLiquidations;
+        }
+        return this.filterBySymbolsSinceLimit (this.liquidations, symbols, since, limit, true);
+    }
+
+    handleLiquidation (client: Client, message) {
+        //
+        // future / delivery
+        //     {
+        //         "channel":"futures.liquidates",
+        //         "event":"update",
+        //         "time":1541505434,
+        //         "time_ms":1541505434123,
+        //         "result":[
+        //            {
+        //               "entry_price":209,
+        //               "fill_price":215.1,
+        //               "left":0,
+        //               "leverage":0.0,
+        //               "liq_price":213,
+        //               "margin":0.007816722941,
+        //               "mark_price":213,
+        //               "order_id":4093362,
+        //               "order_price":215.1,
+        //               "size":-124,
+        //               "time":1541486601,
+        //               "time_ms":1541486601123,
+        //               "contract":"BTC_USD",
+        //               "user":"1040xxxx"
+        //            }
+        //         ]
+        //     }
+        // option
+        //    {
+        //        "channel":"options.liquidates",
+        //        "event":"update",
+        //        "time":1630654851,
+        //        "result":[
+        //           {
+        //              "user":"1xxxx",
+        //              "init_margin":1190,
+        //              "maint_margin":1042.5,
+        //              "order_margin":0,
+        //              "time":1639051907,
+        //              "time_ms":1639051907000
+        //           }
+        //        ]
+        //    }
+        //
+        const rawLiquidations = this.safeList (message, 'result', []);
+        const newLiquidations = [];
+        for (let i = 0; i < rawLiquidations.length; i++) {
+            const rawLiquidation = rawLiquidations[i];
+            const liquidation = this.parseWsLiquidation (rawLiquidation);
+            const symbol = this.safeString (liquidation, 'symbol');
+            let liquidations = this.safeValue (this.liquidations, symbol);
+            if (liquidations === undefined) {
+                const limit = this.safeInteger (this.options, 'liquidationsLimit', 1000);
+                liquidations = new ArrayCache (limit);
+            }
+            liquidations.append (liquidation);
+            this.liquidations[symbol] = liquidations;
+            client.resolve (liquidations, 'myLiquidations::' + symbol);
+        }
+        client.resolve (newLiquidations, 'myLiquidations');
+    }
+
+    parseWsLiquidation (liquidation, market = undefined) {
+        //
+        // future / delivery
+        //    {
+        //        "entry_price": 209,
+        //        "fill_price": 215.1,
+        //        "left": 0,
+        //        "leverage": 0.0,
+        //        "liq_price": 213,
+        //        "margin": 0.007816722941,
+        //        "mark_price": 213,
+        //        "order_id": 4093362,
+        //        "order_price": 215.1,
+        //        "size": -124,
+        //        "time": 1541486601,
+        //        "time_ms": 1541486601123,
+        //        "contract": "BTC_USD",
+        //        "user": "1040xxxx"
+        //    }
+        // option
+        //    {
+        //        "user": "1xxxx",
+        //        "init_margin": 1190,
+        //        "maint_margin": 1042.5,
+        //        "order_margin": 0,
+        //        "time": 1639051907,
+        //        "time_ms": 1639051907000
+        //    }
+        //
+        const marketId = this.safeString (liquidation, 'contract');
+        market = this.safeMarket (marketId, market);
+        const timestamp = this.safeInteger (liquidation, 'time_ms');
+        const originalSize = this.safeString (liquidation, 'size');
+        const left = this.safeString (liquidation, 'left');
+        const amount = Precise.stringAbs (Precise.stringSub (originalSize, left));
+        return this.safeLiquidation ({
+            'info': liquidation,
+            'symbol': this.safeSymbol (marketId, market),
+            'contracts': this.parseNumber (amount),
+            'contractSize': this.safeNumber (market, 'contractSize'),
+            'price': this.safeNumber (liquidation, 'fill_price'),
+            'baseValue': undefined,
+            'quoteValue': undefined,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+        });
+    }
+
     handleErrorMessage (client: Client, message) {
         // {
         //     "time": 1647274664,
@@ -1237,6 +1422,7 @@ export default class gate extends gateRest {
             'trades': this.handleTrades,
             'order_book_update': this.handleOrderBook,
             'balances': this.handleBalance,
+            'liquidates': this.handleLiquidation,
         };
         const method = this.safeValue (v4Methods, channelType);
         if (method !== undefined) {

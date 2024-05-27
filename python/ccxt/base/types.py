@@ -139,7 +139,6 @@ class Position(TypedDict):
     stopLossPrice: Num
     takeProfitPrice: Num
 
-
 class OrderRequest(TypedDict):
     symbol: Str
     type: Str
