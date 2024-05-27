@@ -374,7 +374,7 @@ class nobitex extends Exchange {
             $response = Async\await($this->publicGetMarketUdfHistory ($request));
             $openList = $this->safe_value($response, 'o', array());
             $highList = $this->safe_list($response, 'h', array());
-            $lastList = $this->safe_list($response, 'l', array());
+            $lowList = $this->safe_list($response, 'l', array());
             $closeList = $this->safe_list($response, 'c', array());
             $volumeList = $this->safe_list($response, 'v', array());
             $timestampList = $this->safe_list($response, 't', array());
@@ -383,7 +383,7 @@ class nobitex extends Exchange {
                 if ($market['quote'] === 'IRT') {
                     $openList[$i] /= 10;
                     $highList[$i] /= 10;
-                    $lastList[$i] /= 10;
+                    $lowList[$i] /= 10;
                     $closeList[$i] /= 10;
                     $volumeList[$i] /= 10;
                 }
@@ -391,7 +391,7 @@ class nobitex extends Exchange {
                     $timestampList[$i],
                     $openList[$i],
                     $highList[$i],
-                    $lastList[$i],
+                    $lowList[$i],
                     $closeList[$i],
                     $volumeList[$i],
                 ];

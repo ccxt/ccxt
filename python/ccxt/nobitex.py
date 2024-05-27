@@ -354,7 +354,7 @@ class nobitex(Exchange, ImplicitAPI):
         response = self.publicGetMarketUdfHistory(request)
         openList = self.safe_value(response, 'o', [])
         highList = self.safe_list(response, 'h', [])
-        lastList = self.safe_list(response, 'l', [])
+        lowList = self.safe_list(response, 'l', [])
         closeList = self.safe_list(response, 'c', [])
         volumeList = self.safe_list(response, 'v', [])
         timestampList = self.safe_list(response, 't', [])
@@ -363,14 +363,14 @@ class nobitex(Exchange, ImplicitAPI):
             if market['quote'] == 'IRT':
                 openList[i] /= 10
                 highList[i] /= 10
-                lastList[i] /= 10
+                lowList[i] /= 10
                 closeList[i] /= 10
                 volumeList[i] /= 10
             ohlcvs.append([
                 timestampList[i],
                 openList[i],
                 highList[i],
-                lastList[i],
+                lowList[i],
                 closeList[i],
                 volumeList[i],
             ])

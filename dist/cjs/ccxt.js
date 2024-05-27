@@ -68,6 +68,7 @@ var currencycom = require('./src/currencycom.js');
 var delta = require('./src/delta.js');
 var deribit = require('./src/deribit.js');
 var digifinex = require('./src/digifinex.js');
+var exir = require('./src/exir.js');
 var exmo = require('./src/exmo.js');
 var fmfwio = require('./src/fmfwio.js');
 var gate = require('./src/gate.js');
@@ -250,6 +251,7 @@ const exchanges = {
     'delta': delta,
     'deribit': deribit,
     'digifinex': digifinex,
+    'exir': exir,
     'exmo': exmo,
     'fmfwio': fmfwio,
     'gate': gate,
@@ -476,6 +478,7 @@ exports.currencycom = currencycom;
 exports.delta = delta;
 exports.deribit = deribit;
 exports.digifinex = digifinex;
+exports.exir = exir;
 exports.exmo = exmo;
 exports.fmfwio = fmfwio;
 exports.gate = gate;
