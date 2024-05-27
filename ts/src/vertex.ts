@@ -33,14 +33,14 @@ export default class vertex extends Exchange {
                 'swap': true,
                 'future': true,
                 'option': false,
-                'addMargin': true,
+                'addMargin': false,
                 'borrowCrossMargin': false,
                 'borrowIsolatedMargin': false,
                 'cancelAllOrders': true,
                 'cancelAllOrdersAfter': false,
                 'cancelOrder': true,
                 'cancelOrders': true,
-                'cancelOrdersForSymbols': true,
+                'cancelOrdersForSymbols': false,
                 'closeAllPositions': false,
                 'closePosition': false,
                 'createMarketBuyOrderWithCost': false,
@@ -49,7 +49,7 @@ export default class vertex extends Exchange {
                 'createOrder': true,
                 'createOrders': true,
                 'createReduceOnlyOrder': true,
-                'editOrder': true,
+                'editOrder': false,
                 'fetchAccounts': false,
                 'fetchBalance': true,
                 'fetchBorrowInterest': false,
@@ -81,7 +81,7 @@ export default class vertex extends Exchange {
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
                 'fetchMyLiquidations': false,
-                'fetchMyTrades': true,
+                'fetchMyTrades': false,
                 'fetchOHLCV': true,
                 'fetchOpenInterest': true,
                 'fetchOpenInterestHistory': false,
@@ -90,9 +90,9 @@ export default class vertex extends Exchange {
                 'fetchOrderBook': true,
                 'fetchOrders': false,
                 'fetchOrderTrades': false,
-                'fetchPosition': true,
+                'fetchPosition': false,
                 'fetchPositionMode': false,
-                'fetchPositions': true,
+                'fetchPositions': false,
                 'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchStatus': true,
@@ -106,14 +106,14 @@ export default class vertex extends Exchange {
                 'fetchTransfers': false,
                 'fetchWithdrawal': false,
                 'fetchWithdrawals': false,
-                'reduceMargin': true,
+                'reduceMargin': false,
                 'repayCrossMargin': false,
                 'repayIsolatedMargin': false,
                 'sandbox': true,
-                'setLeverage': true,
-                'setMarginMode': true,
+                'setLeverage': false,
+                'setMarginMode': false,
                 'setPositionMode': false,
-                'transfer': true,
+                'transfer': false,
                 'withdraw': true,
             },
             'timeframes': {
@@ -1179,6 +1179,18 @@ export default class vertex extends Exchange {
         return this.buildSig (chainId, messageTypes, message, verifyingContractAddress);
     }
 
+    buildWithdrawSig (message, chainId, verifyingContractAddress) {
+        const messageTypes = {
+            'WithdrawCollateral': [
+                { 'name': 'sender', 'type': 'bytes32' },
+                { 'name': 'productId', 'type': 'uint32' },
+                { 'name': 'amount', 'type': 'uint128' },
+                { 'name': 'nonce', 'type': 'uint64' },
+            ],
+        };
+        return this.buildSig (chainId, messageTypes, message, verifyingContractAddress);
+    }
+
     convertAddressToSender (address: string) {
         const sender = address + '64656661756c74';
         return sender.padEnd (66, '0');
@@ -2197,6 +2209,74 @@ export default class vertex extends Exchange {
             result[code] = account;
         }
         return this.safeBalance (result);
+    }
+
+    async queryNonces () {
+        const request = {
+            'type': 'nonces',
+            'address': this.walletAddress,
+        }
+        const response = await this.v1GatewayGetQuery (request);
+        //
+        // {
+        //     "status":"success",
+        //     "data":{
+        //       "tx_nonce": 0,
+        //       "order_nonce": 1753048133299863552
+        //     },
+        //     "request_type": "query_nonces",
+        // }
+        //
+        return this.safeDict (response, 'data', {});
+    }
+
+    async withdraw (code: string, amount, address, tag = undefined, params = {}) {
+        /**
+         * @method
+         * @name vertex#withdraw
+         * @description make a withdrawal
+         * @see https://docs.vertexprotocol.com/developer-resources/api/withdrawing-on-chain
+         * @param {string} code unified currency code
+         * @param {float} amount the amount to withdraw
+         * @param {string} address the address to withdraw to
+         * @param {string} tag
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+         */
+        this.checkRequiredCredentials ();
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const contracts = await this.queryContracts ();
+        const chainId = this.safeString (contracts, 'chain_id');
+        const verifyingContractAddress = this.safeString (contracts, 'endpoint_addr');
+        const nonces = await this.queryNonces ();
+        const nonce = this.safeNumber (nonces, 'tx_nonce');
+        const withdraw = {
+            'sender': this.convertAddressToSender (this.walletAddress),
+            'nonce': nonce,
+            'amount': amount.toString (),
+            'productId': this.parseToNumeric (currency['id']),
+        };
+        const request = {
+            'withdraw_collateral': {
+                'tx': {
+                    'sender': withdraw['sender'],
+                    'nonce': this.numberToString (withdraw['nonce']),
+                    'amount': withdraw['amount'],
+                    'productId': withdraw['productId'],
+                },
+                'signature': this.buildWithdrawSig (withdraw, chainId, verifyingContractAddress),
+            },
+        };
+        const response = await this.v1GatewayPostExecute (this.extend (request, params));
+        //
+        // {
+        //     "status": "success",
+        //     "signature": {signature},
+        //     "request_type": "execute_withdraw_collateral"
+        // }
+        //
+        return response;
     }
 
     handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
