@@ -1707,7 +1707,6 @@ export default class vertex extends Exchange {
         const verifyingContractAddress = this.safeString (contracts, 'endpoint_addr');
         const now = this.nonce ();
         const nonce = this.getNonce(now, 90000);
-        // TODO: make sure signature works
         const cancels = {
             'sender': this.convertAddressToSender (this.walletAddress),
             'nonce': nonce,
@@ -1805,7 +1804,6 @@ export default class vertex extends Exchange {
         const verifyingContractAddress = this.safeString (contracts, 'endpoint_addr');
         const now = this.nonce ();
         const nonce = this.getNonce(now, 90000);
-        // TODO: make sure signature works
         const cancels = {
             'sender': this.convertAddressToSender (this.walletAddress),
             'nonce': nonce,
