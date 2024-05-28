@@ -1045,7 +1045,12 @@ export default class bingx extends Exchange {
             time = undefined;
         }
         const cost = this.safeString (trade, 'quoteQty');
-        const type = (cost === undefined) ? 'spot' : 'swap';
+        let type = undefined;
+        if (market !== undefined) {
+            type = market['type'];
+        } else {
+            type = (cost === undefined) ? 'spot' : 'swap';
+        }
         const currencyId = this.safeStringN (trade, [ 'currency', 'N', 'commissionAsset' ]);
         const currencyCode = this.safeCurrencyCode (currencyId);
         const m = this.safeBool (trade, 'm');
