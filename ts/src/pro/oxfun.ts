@@ -2,7 +2,7 @@
 //  ---------------------------------------------------------------------------
 
 import oxfunRest from '../oxfun.js';
-import { ArgumentsRequired, AuthenticationError } from '../base/errors.js';
+import { ArgumentsRequired, AuthenticationError, BadRequest } from '../base/errors.js';
 import type { Balances, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade } from '../base/types.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
@@ -29,6 +29,7 @@ export default class oxfun extends oxfunRest {
                 'createOrderWs': true,
                 'editOrderWs': true,
                 'cancelOrderWs': true,
+                'cancelOrdersWs': true,
             },
             'urls': {
                 'api': {
@@ -928,6 +929,45 @@ export default class oxfun extends oxfunRest {
         };
         const url = this.urls['api']['ws'];
         return await this.watch (url, messageHash, request, messageHash);
+    }
+
+    async cancelOrdersWs (ids: string[], symbol: Str = undefined, params = {}) {
+        /**
+         * @method
+         * @name okx#cancelOrdersWs
+         * @see https://www.okx.com/docs-v5/en/#order-book-trading-trade-ws-mass-cancel-order
+         * @description cancel multiple orders
+         * @param {string[]} ids order ids
+         * @param {string} symbol unified market symbol, default is undefined
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        const idsLength = ids.length;
+        if (idsLength > 20) {
+            throw new BadRequest (this.id + ' cancelOrdersWs() accepts up to 20 ids at a time');
+        }
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' cancelOrdersWs() requires a symbol argument');
+        }
+        await this.loadMarkets ();
+        await this.authenticate ();
+        const messageHash = this.nonce ().toString ();
+        const marketId = this.marketId (symbol);
+        const dataArray = [];
+        for (let i = 0; i < idsLength; i++) {
+            const data = {
+                'instId': marketId,
+                'ordId': ids[i],
+            };
+            dataArray.push (data);
+        }
+        const request: Dict = {
+            'op': 'cancelorders',
+            'tag': messageHash,
+            'dataArray': dataArray,
+        };
+        const url = this.urls['api']['ws'];
+        return await this.watch (url, messageHash, this.deepExtend (request, params), messageHash);
     }
 
     async authenticate (params = {}) {
