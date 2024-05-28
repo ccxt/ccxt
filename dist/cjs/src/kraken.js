@@ -986,9 +986,9 @@ class kraken extends kraken$1 {
             request['interval'] = timeframe;
         }
         if (since !== undefined) {
-            // contrary to kraken's api documentation, the since parameter must be passed in nanoseconds
-            // the adding of '000000' is copied from the fetchTrades function
-            request['since'] = this.numberToString(since) + '000000'; // expected to be in nanoseconds
+            const scaledSince = this.parseToInt(since / 1000);
+            const timeFrameInSeconds = parsedTimeframe * 60;
+            request['since'] = this.numberToString(scaledSince - timeFrameInSeconds); // expected to be in seconds
         }
         const response = await this.publicGetOHLC(this.extend(request, params));
         //

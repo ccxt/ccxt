@@ -970,9 +970,9 @@ class kraken(Exchange, ImplicitAPI):
         else:
             request['interval'] = timeframe
         if since is not None:
-            # contrary to kraken's api documentation, the since parameter must be passed in nanoseconds
-            # the adding of '000000' is copied from the fetchTrades function
-            request['since'] = self.number_to_string(since) + '000000'  # expected to be in nanoseconds
+            scaledSince = self.parse_to_int(since / 1000)
+            timeFrameInSeconds = parsedTimeframe * 60
+            request['since'] = self.number_to_string(scaledSince - timeFrameInSeconds)  # expected to be in seconds
         response = await self.publicGetOHLC(self.extend(request, params))
         #
         #     {
