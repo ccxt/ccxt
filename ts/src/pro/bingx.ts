@@ -19,6 +19,7 @@ export default class bingx extends bingxRest {
                 'watchOrderBook': true,
                 'watchOrderBookForSymbols': true,
                 'watchOHLCV': true,
+                'watchOHLCVForSymbols': true,
                 'watchOrders': true,
                 'watchMyTrades': true,
                 'watchTicker': true,
@@ -772,11 +773,11 @@ export default class bingx extends bingxRest {
         const marketType = isSwap ? 'swap' : 'spot';
         const market = this.safeMarket (marketId, undefined, undefined, marketType);
         const symbol = market['symbol'];
+        this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
         if (this.safeValue (this.ohlcvs[symbol], rawTimeframe) === undefined) {
             const subscriptionHash = dataType;
             const subscription = client.subscriptions[subscriptionHash];
             const limit = this.safeInteger (subscription, 'limit');
-            this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
             this.ohlcvs[symbol][unifiedTimeframe] = new ArrayCacheByTimestamp (limit);
         }
         const stored = this.ohlcvs[symbol][unifiedTimeframe];
