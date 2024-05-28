@@ -2,7 +2,7 @@
 //  ---------------------------------------------------------------------------
 
 import bingxRest from '../bingx.js';
-import { BadRequest, NetworkError, NotSupported } from '../base/errors.js';
+import { BadRequest, NetworkError, NotSupported, ArgumentsRequired } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 import type { Int, OHLCV, Str, Strings, OrderBook, Order, Trade, Balances, Ticker, Tickers, Dict } from '../base/types.js';
 import Client from '../base/ws/Client.js';
@@ -345,6 +345,72 @@ export default class bingx extends bingxRest {
         };
         const orderbook = await this.watchMultiple (url, messageHashes, this.deepExtend (request, params), [ subscriptionHash ], subscriptionArgs);
         return orderbook.limit ();
+    }
+
+    async watchOHLCVForSymbols (symbolsAndTimeframes: string[][], since: Int = undefined, limit: Int = undefined, params = {}) {
+        /**
+         * @method
+         * @name okx#watchOHLCVForSymbols
+         * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+         * @param {string[][]} symbolsAndTimeframes array of arrays containing unified symbols and timeframes to fetch OHLCV data for, example [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]
+         * @param {int} [since] timestamp in ms of the earliest candle to fetch
+         * @param {int} [limit] the maximum amount of candles to fetch
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+         */
+        const symbolsLength = symbolsAndTimeframes.length;
+        if (symbolsLength !== 0 && !Array.isArray (symbolsAndTimeframes[0])) {
+            throw new ArgumentsRequired (this.id + " watchOHLCVForSymbols() requires a an array of symbols and timeframes, like  [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]");
+        }
+        await this.loadMarkets ();
+        const messageHashes = [];
+        let marketType = undefined;
+        let chosenTimeframe = undefined;
+        if (symbolsLength !== 0) {
+            let symbols = this.getListFromObjectValues (symbolsAndTimeframes, 0);
+            symbols = this.marketSymbols (symbols, undefined, true, true, false);
+            const firstMarket = this.market (symbols[0]);
+            [ marketType, params ] = this.handleMarketTypeAndParams ('watchOrderBookForSymbols', firstMarket, params);
+            if (marketType === 'spot') {
+                throw new NotSupported (this.id + ' watchOrderBookForSymbols is not supported for spot markets yet');
+            }
+        }
+        for (let i = 0; i < symbolsAndTimeframes.length; i++) {
+            const symbolAndTimeframe = symbolsAndTimeframes[i];
+            const sym = symbolAndTimeframe[0];
+            const tf = symbolAndTimeframe[1];
+            const market = this.market (sym);
+            const rawTf = this.safeString (this.timeframes, tf, tf);
+            if (chosenTimeframe === undefined) {
+                chosenTimeframe = rawTf;
+            } else if (chosenTimeframe !== rawTf) {
+                throw new BadRequest (this.id + ' watchOHLCVForSymbols requires all timeframes to be the same');
+            }
+            const channelName = 'kline_' + chosenTimeframe;
+            messageHashes.push (this.getMessageHash ('ohlcv', channelName, market['symbol']));
+        }
+        const subscriptionHash = 'all@kline_' + chosenTimeframe;
+        const url = this.safeString (this.urls['api']['ws'], marketType);
+        const uuid = this.uuid ();
+        const request: Dict = {
+            'id': uuid,
+            'dataType': subscriptionHash,
+        };
+        if (marketType === 'swap') {
+            request['reqType'] = 'sub';
+        }
+        const subscriptionArgs: Dict = {
+            'symbols': symbolsAndTimeframes,
+            'limit': limit,
+            'interval': chosenTimeframe,
+            'params': params,
+        };
+        const [ symbol, timeframe, candles ] = await this.watchMultiple (url, messageHashes, request, [ subscriptionHash ], subscriptionArgs);
+        if (this.newUpdates) {
+            limit = candles.getLimit (symbol, limit);
+        }
+        const filtered = this.filterBySinceLimit (candles, since, limit, 0, true);
+        return this.createOHLCVObject (symbol, timeframe, filtered);
     }
 
     getOrderBookLimitByMarketType (marketType: string, limit: Int = undefined) {
