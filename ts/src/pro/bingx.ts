@@ -376,12 +376,14 @@ export default class bingx extends bingxRest {
                 throw new NotSupported (this.id + ' watchOrderBookForSymbols is not supported for spot markets yet');
             }
         }
+        const marketOptions = this.safeDict (this.options, marketType);
+        const timeframes = this.safeValue (marketOptions, 'timeframes', {});
         for (let i = 0; i < symbolsAndTimeframes.length; i++) {
             const symbolAndTimeframe = symbolsAndTimeframes[i];
             const sym = symbolAndTimeframe[0];
             const tf = symbolAndTimeframe[1];
             const market = this.market (sym);
-            const rawTf = this.safeString (this.timeframes, tf, tf);
+            const rawTf = this.safeString (timeframes, tf, tf);
             if (chosenTimeframe === undefined) {
                 chosenTimeframe = rawTf;
             } else if (chosenTimeframe !== rawTf) {
@@ -762,8 +764,6 @@ export default class bingx extends bingxRest {
             candles = [ this.safeList (data, 'K', []) ];
         }
         const dataType = this.safeString (message, 'dataType');
-        const rawTimeframe = dataType.split ('_')[1];
-        const unifiedTimeframe = this.findTimeframe (rawTimeframe, this.timeframes);
         const isSwap = client.url.indexOf ('swap') >= 0;
         const parts = dataType.split ('@');
         const firstPart = parts[0];
@@ -774,6 +774,10 @@ export default class bingx extends bingxRest {
         const market = this.safeMarket (marketId, undefined, undefined, marketType);
         const symbol = market['symbol'];
         this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
+        const rawTimeframe = dataType.split ('_')[1];
+        const marketOptions = this.safeDict (this.options, marketType);
+        const timeframes = this.safeValue (marketOptions, 'timeframes', {});
+        const unifiedTimeframe = this.findTimeframe (rawTimeframe, timeframes);
         if (this.safeValue (this.ohlcvs[symbol], rawTimeframe) === undefined) {
             const subscriptionHash = dataType;
             const subscription = client.subscriptions[subscriptionHash];
@@ -829,7 +833,13 @@ export default class bingx extends bingxRest {
         if (marketType === 'swap') {
             request['reqType'] = 'sub';
         }
-        const result = await this.watch (url, messageHash, this.extend (request, query), messageHash);
+        const subscriptionArgs: Dict = {
+            'symbol': symbol,
+            'limit': limit,
+            'interval': interval,
+            'params': params,
+        };
+        const result = await this.watch (url, messageHash, this.extend (request, query), messageHash, subscriptionArgs);
         const ohlcv = result[2];
         if (this.newUpdates) {
             limit = ohlcv.getLimit (symbol, limit);
