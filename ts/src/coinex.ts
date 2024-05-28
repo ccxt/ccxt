@@ -20,7 +20,7 @@ export default class coinex extends Exchange {
         return this.deepExtend (super.describe (), {
             'id': 'coinex',
             'name': 'CoinEx',
-            'version': 'v1',
+            'version': 'v2',
             'countries': [ 'CN' ],
             // IP ratelimit is 400 requests per second
             // rateLimit = 1000ms / 400 = 2.5
@@ -534,131 +534,61 @@ export default class coinex extends Exchange {
     }
 
     async fetchCurrencies (params = {}): Promise<Currencies> {
-        const response = await this.v1PublicGetCommonAssetConfig (params);
+        const currenciesFromMarkets = await this.v2PublicGetSpotMarket (params);
+        //
         //     {
         //         "code": 0,
-        //         "data": {
-        //             "USDT-ERC20": {
-        //                  "asset": "USDT",
-        //                  "chain": "ERC20",
-        //                  "withdrawal_precision": 6,
-        //                  "can_deposit": true,
-        //                  "can_withdraw": true,
-        //                  "deposit_least_amount": "4.9",
-        //                  "withdraw_least_amount": "4.9",
-        //                  "withdraw_tx_fee": "4.9",
-        //                  "explorer_asset_url": "https://etherscan.io/token/0xdac17f958d2ee523a2206206994597c13d831ec7"
+        //         "data": [
+        //             {
+        //                 "base_ccy": "SORA",
+        //                 "base_ccy_precision": 8,
+        //                 "is_amm_available": true,
+        //                 "is_margin_available": false,
+        //                 "maker_fee_rate": "0.003",
+        //                 "market": "SORAUSDT",
+        //                 "min_amount": "500",
+        //                 "quote_ccy": "USDT",
+        //                 "quote_ccy_precision": 6,
+        //                 "taker_fee_rate": "0.003"
         //             },
-        //             ...
-        //         },
-        //         "message": "Success",
+        //         ],
+        //         "message": "OK"
         //     }
         //
-        const data = this.safeValue (response, 'data', []);
-        const coins = Object.keys (data);
+        const data = this.safeList (currenciesFromMarkets, 'data', []);
         const result: Dict = {};
-        for (let i = 0; i < coins.length; i++) {
-            const coin = coins[i];
-            const currency = data[coin];
-            const currencyId = this.safeString (currency, 'asset');
-            const networkId = this.safeString (currency, 'chain');
+        for (let i = 0; i < data.length; i++) {
+            const coin = data[i];
+            const currencyId = this.safeString (coin, 'base_ccy');
             const code = this.safeCurrencyCode (currencyId);
-            const precisionString = this.parsePrecision (this.safeString (currency, 'withdrawal_precision'));
+            const precisionString = this.parsePrecision (this.safeString (coin, 'base_ccy_precision'));
             const precision = this.parseNumber (precisionString);
-            const canDeposit = this.safeValue (currency, 'can_deposit');
-            const canWithdraw = this.safeValue (currency, 'can_withdraw');
-            const feeString = this.safeString (currency, 'withdraw_tx_fee');
-            const fee = this.parseNumber (feeString);
-            const minNetworkDepositString = this.safeString (currency, 'deposit_least_amount');
-            const minNetworkDeposit = this.parseNumber (minNetworkDepositString);
-            const minNetworkWithdrawString = this.safeString (currency, 'withdraw_least_amount');
-            const minNetworkWithdraw = this.parseNumber (minNetworkWithdrawString);
-            if (this.safeValue (result, code) === undefined) {
-                result[code] = {
-                    'id': currencyId,
-                    'numericId': undefined,
-                    'code': code,
-                    'info': undefined,
-                    'name': undefined,
-                    'active': canDeposit && canWithdraw,
-                    'deposit': canDeposit,
-                    'withdraw': canWithdraw,
-                    'fee': fee,
-                    'precision': precision,
-                    'limits': {
-                        'amount': {
-                            'min': undefined,
-                            'max': undefined,
-                        },
-                        'deposit': {
-                            'min': minNetworkDeposit,
-                            'max': undefined,
-                        },
-                        'withdraw': {
-                            'min': minNetworkWithdraw,
-                            'max': undefined,
-                        },
-                    },
-                };
-            }
-            let minFeeString = this.safeString (result[code], 'fee');
-            if (feeString !== undefined) {
-                minFeeString = (minFeeString === undefined) ? feeString : Precise.stringMin (feeString, minFeeString);
-            }
-            let depositAvailable = this.safeValue (result[code], 'deposit');
-            depositAvailable = (canDeposit) ? canDeposit : depositAvailable;
-            let withdrawAvailable = this.safeValue (result[code], 'withdraw');
-            withdrawAvailable = (canWithdraw) ? canWithdraw : withdrawAvailable;
-            let minDepositString = this.safeString (result[code]['limits']['deposit'], 'min');
-            if (minNetworkDepositString !== undefined) {
-                minDepositString = (minDepositString === undefined) ? minNetworkDepositString : Precise.stringMin (minNetworkDepositString, minDepositString);
-            }
-            let minWithdrawString = this.safeString (result[code]['limits']['withdraw'], 'min');
-            if (minNetworkWithdrawString !== undefined) {
-                minWithdrawString = (minWithdrawString === undefined) ? minNetworkWithdrawString : Precise.stringMin (minNetworkWithdrawString, minWithdrawString);
-            }
-            let minPrecisionString = this.safeString (result[code], 'precision');
-            if (precisionString !== undefined) {
-                minPrecisionString = (minPrecisionString === undefined) ? precisionString : Precise.stringMin (precisionString, minPrecisionString);
-            }
-            const networks = this.safeValue (result[code], 'networks', {});
-            const network: Dict = {
-                'info': currency,
-                'id': networkId,
-                'network': networkId,
+            result[code] = {
+                'id': currencyId,
+                'numericId': undefined,
+                'code': code,
+                'info': undefined,
                 'name': undefined,
+                'active': undefined,
+                'deposit': undefined,
+                'withdraw': undefined,
+                'fee': undefined,
+                'precision': precision,
                 'limits': {
                     'amount': {
                         'min': undefined,
                         'max': undefined,
                     },
                     'deposit': {
-                        'min': this.safeNumber (currency, 'deposit_least_amount'),
+                        'min': undefined,
                         'max': undefined,
                     },
                     'withdraw': {
-                        'min': this.safeNumber (currency, 'withdraw_least_amount'),
+                        'min': undefined,
                         'max': undefined,
                     },
                 },
-                'active': canDeposit && canWithdraw,
-                'deposit': canDeposit,
-                'withdraw': canWithdraw,
-                'fee': fee,
-                'precision': precision,
             };
-            networks[networkId] = network;
-            result[code]['networks'] = networks;
-            result[code]['active'] = depositAvailable && withdrawAvailable;
-            result[code]['deposit'] = depositAvailable;
-            result[code]['withdraw'] = withdrawAvailable;
-            const info = this.safeValue (result[code], 'info', []);
-            info.push (currency);
-            result[code]['info'] = info;
-            result[code]['fee'] = this.parseNumber (minFeeString);
-            result[code]['precision'] = this.parseNumber (minPrecisionString);
-            result[code]['limits']['deposit']['min'] = this.parseNumber (minDepositString);
-            result[code]['limits']['withdraw']['min'] = this.parseNumber (minWithdrawString);
         }
         return result;
     }
