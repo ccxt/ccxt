@@ -4583,7 +4583,7 @@ export default class coinbase extends Exchange {
         [ type, params ] = this.handleMarketTypeAndParams ('fetchTradingFees', undefined, params);
         const isSpot = (type === 'spot');
         const productType = isSpot ? 'SPOT' : 'FUTURE';
-        const request = {
+        const request: Dict = {
             'product_type': productType,
         };
         const response = await this.v3PrivateGetBrokerageTransactionSummary (this.extend (request, params));
