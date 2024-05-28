@@ -98,8 +98,8 @@ public partial class coinbase : Exchange
                 { "fetchTickers", true },
                 { "fetchTime", true },
                 { "fetchTrades", true },
-                { "fetchTradingFee", false },
-                { "fetchTradingFees", false },
+                { "fetchTradingFee", "emulated" },
+                { "fetchTradingFees", true },
                 { "fetchWithdrawals", true },
                 { "reduceMargin", false },
                 { "setLeverage", false },
@@ -4882,6 +4882,74 @@ public partial class coinbase : Exchange
             { "stopLossPrice", null },
             { "takeProfitPrice", null },
         });
+    }
+
+    public async override Task<object> fetchTradingFees(object parameters = null)
+    {
+        /**
+        * @method
+        * @name coinbase#fetchTradingFees
+        * @see https://docs.cdp.coinbase.com/advanced-trade/reference/retailbrokerageapi_gettransactionsummary/
+        * @description fetch the trading fees for multiple markets
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @param {string} [params.type] 'spot' or 'swap'
+        * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object type = null;
+        var typeparametersVariable = this.handleMarketTypeAndParams("fetchTradingFees", null, parameters);
+        type = ((IList<object>)typeparametersVariable)[0];
+        parameters = ((IList<object>)typeparametersVariable)[1];
+        object isSpot = (isEqual(type, "spot"));
+        object productType = ((bool) isTrue(isSpot)) ? "SPOT" : "FUTURE";
+        object request = new Dictionary<string, object>() {
+            { "product_type", productType },
+        };
+        object response = await this.v3PrivateGetBrokerageTransactionSummary(this.extend(request, parameters));
+        //
+        // {
+        //     total_volume: '0',
+        //     total_fees: '0',
+        //     fee_tier: {
+        //       pricing_tier: 'Advanced 1',
+        //       usd_from: '0',
+        //       usd_to: '1000',
+        //       taker_fee_rate: '0.008',
+        //       maker_fee_rate: '0.006',
+        //       aop_from: '',
+        //       aop_to: ''
+        //     },
+        //     margin_rate: null,
+        //     goods_and_services_tax: null,
+        //     advanced_trade_only_volume: '0',
+        //     advanced_trade_only_fees: '0',
+        //     coinbase_pro_volume: '0',
+        //     coinbase_pro_fees: '0',
+        //     total_balance: '',
+        //     has_promo_fee: false
+        // }
+        //
+        object data = this.safeDict(response, "fee_tier", new Dictionary<string, object>() {});
+        object taker_fee = this.safeNumber(data, "taker_fee_rate");
+        object marker_fee = this.safeNumber(data, "maker_fee_rate");
+        object result = new Dictionary<string, object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(this.symbols)); postFixIncrement(ref i))
+        {
+            object symbol = getValue(this.symbols, i);
+            object market = this.market(symbol);
+            if (isTrue(isTrue((isTrue(isSpot) && isTrue(getValue(market, "spot")))) || isTrue((!isTrue(isSpot) && !isTrue(getValue(market, "spot"))))))
+            {
+                ((IDictionary<string,object>)result)[(string)symbol] = new Dictionary<string, object>() {
+                    { "info", response },
+                    { "symbol", symbol },
+                    { "maker", taker_fee },
+                    { "taker", marker_fee },
+                    { "percentage", true },
+                };
+            }
+        }
+        return result;
     }
 
     public virtual object createAuthToken(object seconds, object method = null, object url = null)
