@@ -92,7 +92,7 @@ export default class vertex extends Exchange {
                 'fetchOrderTrades': false,
                 'fetchPosition': false,
                 'fetchPositionMode': false,
-                'fetchPositions': false,
+                'fetchPositions': true,
                 'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchStatus': true,
@@ -2219,6 +2219,101 @@ export default class vertex extends Exchange {
             result[code] = account;
         }
         return this.safeBalance (result);
+    }
+
+    parsePosition (position, market: Market = undefined) {
+        //
+        // {
+        //     "product_id": 2,
+        //     "lp_balance": {
+        //       "amount": "0",
+        //       "last_cumulative_funding_x18": "-284321955122859921"
+        //     },
+        //     "balance": {
+        //       "amount": "0",
+        //       "v_quote_balance": "0",
+        //       "last_cumulative_funding_x18": "6363466629611946777168"
+        //     }
+        //   },
+        //   {
+        //     "product_id": 4,
+        //     "lp_balance": {
+        //       "amount": "0",
+        //       "last_cumulative_funding_x18": "-90979748449893411"
+        //     },
+        //     "balance": {
+        //       "amount": "-200000000000000000",
+        //       "v_quote_balance": "419899475698318625259",
+        //       "last_cumulative_funding_x18": "141182516563970577208"
+        //     }
+        // }
+        //
+        const marketId = this.safeString (position, 'product_id');
+        market = this.safeMarket (marketId);
+        const balance = this.safeDict (position, 'balance', {});
+        const contractSize = this.convertFromX18 (this.safeString (balance, 'amount'));
+        const side = (Precise.stringLt (contractSize, '1')) ? 'sell' : 'buy';
+        return this.safePosition ({
+            'info': position,
+            'id': undefined,
+            'symbol': this.safeString (market, 'symbol'),
+            'timestamp': undefined,
+            'datetime': undefined,
+            'lastUpdateTimestamp': undefined,
+            'initialMargin': undefined,
+            'initialMarginPercentage': undefined,
+            'maintenanceMargin': undefined,
+            'maintenanceMarginPercentage': undefined,
+            'entryPrice': undefined,
+            'notional': undefined,
+            'leverage': undefined,
+            'unrealizedPnl': undefined,
+            'contracts': undefined,
+            'contractSize': this.parseNumber (contractSize),
+            'marginRatio': undefined,
+            'liquidationPrice': undefined,
+            'markPrice': undefined,
+            'lastPrice': undefined,
+            'collateral': undefined,
+            'marginMode': 'cross',
+            'marginType': undefined,
+            'side': side,
+            'percentage': undefined,
+            'hedged': undefined,
+            'stopLossPrice': undefined,
+            'takeProfitPrice': undefined,
+        });
+    }
+
+    async fetchPositions (symbols: Strings = undefined, params = {}) {
+        /**
+         * @method
+         * @name vertex#fetchPositions
+         * @description fetch all open positions
+         * @see https://docs.vertexprotocol.com/developer-resources/api/gateway/queries/subaccount-info
+         * @param {string[]} [symbols] list of unified market symbols
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [method] method name to call, "positionRisk", "account" or "option", default is "positionRisk"
+         * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+         */
+        const request = {
+            'type': 'subaccount_info',
+            'subaccount': this.convertAddressToSender (this.walletAddress),
+        };
+        const response = await this.v1GatewayGetQuery (this.extend (request, params));
+        // the response is the same as fetchBalance
+        const data = this.safeDict (response, 'data', {});
+        const positions = this.safeList (data, 'perp_balances', []);
+        symbols = this.marketSymbols (symbols);
+        const result = [];
+        for (let i = 0; i < positions.length; i++) {
+            const position = this.extend (this.parsePosition (positions[i], undefined), params);
+            if (position['contractSize'] === 0) {
+                continue;
+            }
+            result.push (position);
+        }
+        return this.filterByArrayPositions (result, 'symbol', symbols, false);
     }
 
     async queryNonces () {
