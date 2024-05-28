@@ -1012,7 +1012,7 @@ export default class bitget extends bitgetRest {
         if ((type === 'spot') && (symbol === undefined)) {
             throw new ArgumentsRequired (this.id + ' watchOrders requires a symbol argument for ' + type + ' markets.');
         }
-        if ((type !== 'spot') && (symbol === undefined)) {
+        if ((productType === undefined) && (type !== 'spot') && (symbol === undefined)) {
             messageHash = messageHash + ':' + subType;
         } else if (productType === 'USDT-FUTURES') {
             messageHash = messageHash + ':linear';
