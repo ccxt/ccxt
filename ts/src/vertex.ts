@@ -2,13 +2,13 @@
 //  ---------------------------------------------------------------------------
 
 import Exchange from './abstract/vertex.js';
-import { ExchangeError, ArgumentsRequired, NotSupported, InvalidOrder, OrderNotFound, BadRequest } from './base/errors.js';
+import { ExchangeError, RateLimitExceeded, PermissionDenied, InsufficientFunds, AuthenticationError, ArgumentsRequired, NotSupported, InvalidOrder, BadRequest } from './base/errors.js';
 import { Precise } from './base/Precise.js';
-import { TICK_SIZE, ROUND, SIGNIFICANT_DIGITS, DECIMAL_PLACES } from './base/functions/number.js';
+import { TICK_SIZE } from './base/functions/number.js';
 import { keccak_256 as keccak } from './static_dependencies/noble-hashes/sha3.js';
 import { secp256k1 } from './static_dependencies/noble-curves/secp256k1.js';
 import { ecdsa } from './base/functions/crypto.js';
-import type { Market, Ticker, Tickers, TradingFees, TransferEntry, Balances, Int, OrderBook, OHLCV, Str, FundingRateHistory, Order, OrderType, OrderSide, Trade, Strings, Position, OrderRequest, Dict, Num, MarginModification, Currencies, CancellationRequest } from './base/types.js';
+import type { Market, Ticker, Tickers, TradingFees, Balances, Int, OrderBook, OHLCV, Str, Order, OrderType, OrderSide, Trade, Strings, Dict, Num, Currencies } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -217,6 +217,96 @@ export default class vertex extends Exchange {
             },
             'exceptions': {
                 'exact': {
+                    '1000': RateLimitExceeded,
+                    '1015': RateLimitExceeded,
+                    '1001': PermissionDenied,
+                    '1002': PermissionDenied,
+                    '1003': PermissionDenied,
+                    '2000': InvalidOrder,
+                    '2001': InvalidOrder,
+                    '2002': InvalidOrder,
+                    '2003': InvalidOrder,
+                    '2004': InvalidOrder,
+                    '2005': InvalidOrder,
+                    '2006': InvalidOrder,
+                    '2007': InvalidOrder,
+                    '2008': InvalidOrder,
+                    '2009': InvalidOrder,
+                    '2010': InvalidOrder,
+                    '2011': BadRequest,
+                    '2012': BadRequest,
+                    '2013': InvalidOrder,
+                    '2014': PermissionDenied,
+                    '2015': InvalidOrder,
+                    '2016': InvalidOrder,
+                    '2017': InvalidOrder,
+                    '2019': InvalidOrder,
+                    '2020': InvalidOrder,
+                    '2021': InvalidOrder,
+                    '2022': InvalidOrder,
+                    '2023': InvalidOrder,
+                    '2024': InsufficientFunds,
+                    '2025': InsufficientFunds,
+                    '2026': BadRequest,
+                    '2027': AuthenticationError,
+                    '2028': AuthenticationError,
+                    '2029': AuthenticationError,
+                    '2030': BadRequest,
+                    '2031': InvalidOrder,
+                    '2033': InvalidOrder,
+                    '2034': InvalidOrder,
+                    '2035': InvalidOrder,
+                    '2036': InvalidOrder,
+                    '2037': InvalidOrder,
+                    '2038': InvalidOrder,
+                    '2039': InvalidOrder,
+                    '2040': InvalidOrder,
+                    '2041': InvalidOrder,
+                    '2042': InvalidOrder,
+                    '2043': InvalidOrder,
+                    '2044': InvalidOrder,
+                    '2045': InvalidOrder,
+                    '2046': InvalidOrder,
+                    '2047': InvalidOrder,
+                    '2048': InvalidOrder,
+                    '2049': ExchangeError,
+                    '2050': PermissionDenied,
+                    '2051': InvalidOrder,
+                    '2052': InvalidOrder,
+                    '2053': InvalidOrder,
+                    '2054': InvalidOrder,
+                    '2055': InvalidOrder,
+                    '2056': InvalidOrder,
+                    '2057': InvalidOrder,
+                    '2058': InvalidOrder,
+                    '2059': InvalidOrder,
+                    '2060': InvalidOrder,
+                    '2061': InvalidOrder,
+                    '2062': InvalidOrder,
+                    '2063': InvalidOrder,
+                    '2064': InvalidOrder,
+                    '2065': InvalidOrder,
+                    '2066': InvalidOrder,
+                    '2067': InvalidOrder,
+                    '2068': InvalidOrder,
+                    '2069': InvalidOrder,
+                    '2070': InvalidOrder,
+                    '2071': InvalidOrder,
+                    '2072': InvalidOrder,
+                    '2073': InvalidOrder,
+                    '2074': InvalidOrder,
+                    '2075': InvalidOrder,
+                    '2076': InvalidOrder,
+                    '3000': BadRequest,
+                    '3001': BadRequest,
+                    '3002': BadRequest,
+                    '3003': BadRequest,
+                    '4000': BadRequest,
+                    '4001': ExchangeError,
+                    '4002': ExchangeError,
+                    '4003': ExchangeError,
+                    '4004': InvalidOrder,
+                    '5000': ExchangeError,
                 },
                 'broad': {
                 },
@@ -684,7 +774,7 @@ export default class vertex extends Exchange {
         }
         const request = {
             'matches': matchesRequest,
-        }
+        };
         const response = await this.v1ArchivePost (this.extend (request, params));
         //
         // {
@@ -2673,24 +2763,13 @@ export default class vertex extends Exchange {
         //
         //
         const status = this.safeString (response, 'status', '');
-        let message = undefined;
         if (status === 'failure') {
-            message = this.safeString (response, 'error');
-        } else {
-            const responsePayload = this.safeDict (response, 'response', {});
-            const data = this.safeDict (responsePayload, 'data', {});
-            const statuses = this.safeList (data, 'statuses', []);
-            const firstStatus = this.safeDict (statuses, 0);
-            message = this.safeString (firstStatus, 'error');
-        }
-        const feedback = this.id + ' ' + body;
-        const nonEmptyMessage = ((message !== undefined) && (message !== ''));
-        if (nonEmptyMessage) {
-            this.throwExactlyMatchedException (this.exceptions['exact'], message, feedback);
+            const message = this.safeString (response, 'error');
+            const feedback = this.id + ' ' + body;
+            const errorCode = this.safeString (response, 'error_code');
+            this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, feedback);
             this.throwBroadlyMatchedException (this.exceptions['broad'], message, feedback);
-        }
-        if (nonEmptyMessage) {
-            throw new ExchangeError (feedback); // unknown message
+            throw new ExchangeError (feedback);
         }
         return undefined;
     }
