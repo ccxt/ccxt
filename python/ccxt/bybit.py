@@ -2079,7 +2079,7 @@ class bybit(Exchange, ImplicitAPI):
         }
         type = None
         type, params = self.handle_market_type_and_params('fetchTickers', market, params)
-        # Calls like `.fetch_tickers(None, {subType:'inverse'})` should be supported for self exchange, so
+        # Calls like `.fetchTickers(None, {subType:'inverse'})` should be supported for self exchange, so
         # as "options.defaultSubType" is also set in exchange options, we should consider `params.subType`
         # with higher priority and only default to spot, if `subType` is not set in params
         passedSubType = self.safe_string(params, 'subType')

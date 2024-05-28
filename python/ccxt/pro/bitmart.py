@@ -506,7 +506,7 @@ class bitmart(ccxt.async_support.bitmart):
             amount = self.safe_string(order, 'size')
             type = self.safe_string(order, 'type')
             rawState = self.safe_string(order, 'state')
-            status = self.parseOrderStatusByType(market['type'], rawState)
+            status = self.parse_order_status_by_type(market['type'], rawState)
             timestamp = self.safe_integer(order, 'ms_t')
             symbol = market['symbol']
             side = self.safe_string_lower(order, 'side')

@@ -4374,7 +4374,7 @@ class coinex(Exchange, ImplicitAPI):
     def withdraw(self, code: str, amount: float, address: str, tag=None, params={}):
         """
         make a withdrawal
-        :see: https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot002_account015_submit_withdraw
+        :see: https://docs.coinex.com/api/v2/assets/deposit-withdrawal/http/withdrawal
         :param str code: unified currency code
         :param float amount: the amount to withdraw
         :param str address: the address to withdraw to
@@ -4387,35 +4387,42 @@ class coinex(Exchange, ImplicitAPI):
         self.check_address(address)
         self.load_markets()
         currency = self.currency(code)
-        networkCode = self.safe_string_upper(params, 'network')
+        networkCode = self.safe_string_upper_2(params, 'network', 'chain')
         params = self.omit(params, 'network')
         if tag:
             address = address + ':' + tag
         request: dict = {
-            'coin_type': currency['id'],
-            'coin_address': address,  # must be authorized, inter-user transfer by a registered mobile phone number or an email address is supported
-            'actual_amount': float(self.number_to_string(amount)),  # the actual amount without fees, https://www.coinex.com/fees
-            'transfer_method': 'onchain',  # onchain, local
+            'ccy': currency['id'],
+            'to_address': address,  # must be authorized, inter-user transfer by a registered mobile phone number or an email address is supported
+            'amount': self.number_to_string(amount),  # the actual amount without fees, https://www.coinex.com/fees
         }
         if networkCode is not None:
-            request['smart_contract_name'] = self.network_code_to_id(networkCode)
-        response = self.v1PrivatePostBalanceCoinWithdraw(self.extend(request, params))
+            request['chain'] = self.network_code_to_id(networkCode)  # required for on-chain, not required for inter-user transfer
+        response = self.v2PrivatePostAssetsWithdraw(self.extend(request, params))
         #
         #     {
         #         "code": 0,
         #         "data": {
-        #             "actual_amount": "1.00000000",
-        #             "amount": "1.00000000",
-        #             "coin_address": "1KAv3pazbTk2JnQ5xTo6fpKK7p1it2RzD4",
-        #             "coin_type": "BCH",
-        #             "coin_withdraw_id": 206,
+        #             "withdraw_id": 31193755,
+        #             "created_at": 1716874165038,
+        #             "withdraw_method": "ON_CHAIN",
+        #             "ccy": "USDT",
+        #             "amount": "17.3",
+        #             "actual_amount": "15",
+        #             "chain": "TRC20",
+        #             "tx_fee": "2.3",
+        #             "fee_asset": "USDT",
+        #             "fee_amount": "2.3",
+        #             "to_address": "TY5vq3MT6b5cQVAHWHtpGyPg1ERcQgi3UN",
+        #             "memo": "",
+        #             "tx_id": "",
         #             "confirmations": 0,
-        #             "create_time": 1524228297,
-        #             "status": "audit",
-        #             "tx_fee": "0",
-        #             "tx_id": ""
+        #             "explorer_address_url": "https://tronscan.org/#/address/TY5vq3MT6b5cQVAHWHtpGyPg1ERcQgi3UN",
+        #             "explorer_tx_url": "https://tronscan.org/#/transaction/",
+        #             "remark": "",
+        #             "status": "audit_required"
         #         },
-        #         "message": "Ok"
+        #         "message": "OK"
         #     }
         #
         transaction = self.safe_dict(response, 'data', {})
@@ -4519,7 +4526,7 @@ class coinex(Exchange, ImplicitAPI):
         #         "remark": ""
         #     }
         #
-        # fetchWithdrawals
+        # fetchWithdrawals and withdraw
         #
         #     {
         #         "withdraw_id": 259364,

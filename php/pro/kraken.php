@@ -1354,7 +1354,7 @@ class kraken extends \ccxt\async\kraken {
             for ($i = 0; $i < count($symbols); $i++) {
                 $messageHashes[] = $this->get_message_hash($unifiedName, null, $this->symbol($symbols[$i]));
             }
-            // for WS subscriptions, we can't use .market_ids($symbols), instead a custom is field needed
+            // for WS subscriptions, we can't use .marketIds ($symbols), instead a custom is field needed
             $markets = $this->markets_for_symbols($symbols);
             $wsMarketIds = array();
             for ($i = 0; $i < count($markets); $i++) {
