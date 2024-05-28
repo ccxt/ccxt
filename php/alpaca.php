@@ -781,7 +781,7 @@ class alpaca extends Exchange {
         //       "message" => "order is not found."
         //   }
         //
-        return $this->safe_value($response, 'message', array());
+        return $this->parse_order($response);
     }
 
     public function cancel_all_orders(?string $symbol = null, $params = array ()) {

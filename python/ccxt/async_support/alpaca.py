@@ -772,7 +772,7 @@ class alpaca(Exchange, ImplicitAPI):
         #       "message": "order is not found."
         #   }
         #
-        return self.safe_value(response, 'message', {})
+        return self.parse_order(response)
 
     async def cancel_all_orders(self, symbol: Str = None, params={}):
         """
