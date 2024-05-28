@@ -1593,7 +1593,8 @@
                 "bid": "multiple bid prices are equal https://app.travis-ci.com/github/ccxt/ccxt/builds/265172859#L2745"
             },
             "watchTrades": {
-                "side": "undefined"
+                "side": "undefined",
+                "timestamp": "sometimes not being sorted"
             },
             "watchOrderBook": {
                 "timestamp": "undefined"
