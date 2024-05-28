@@ -145,6 +145,7 @@ import poloniex from  './src/poloniex.js'
 import poloniexfutures from  './src/poloniexfutures.js'
 import probit from  './src/probit.js'
 import ramzinex from  './src/ramzinex.js'
+import tabdeal from  './src/tabdeal.js'
 import timex from  './src/timex.js'
 import tokocrypto from  './src/tokocrypto.js'
 import tradeogre from  './src/tradeogre.js'
@@ -327,6 +328,7 @@ const exchanges = {
     'poloniexfutures':        poloniexfutures,
     'probit':                 probit,
     'ramzinex':               ramzinex,
+    'tabdeal':                tabdeal,
     'timex':                  timex,
     'tokocrypto':             tokocrypto,
     'tradeogre':              tradeogre,
@@ -598,6 +600,7 @@ export {
     poloniexfutures,
     probit,
     ramzinex,
+    tabdeal,
     timex,
     tokocrypto,
     tradeogre,
