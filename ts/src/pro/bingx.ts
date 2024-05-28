@@ -432,10 +432,10 @@ export default class bingx extends bingxRest {
         // sometimes exchangeChannel & unifiedChannel names might coincide
         if (symbol !== undefined) {
             // bidask:bookTicker@BTC/USDT
-            return unifiedChannel + '|' + exchangeChannel + '^' + symbol;
+            return unifiedChannel + '::' + exchangeChannel + '::' + symbol;
         } else {
             // bidasks@bookTicker
-            return unifiedChannel + 's' + '|' + exchangeChannel;
+            return unifiedChannel + 's' + '::' + exchangeChannel;
         }
     }
 
