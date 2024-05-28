@@ -2,7 +2,7 @@
 
 import Exchange from './abstract/bit2me.js';
 import { BadRequest, InsufficientFunds, InvalidOrder, OrderNotFound, InvalidNonce, RateLimitExceeded, ExchangeError, OnMaintenance, NotSupported, CancelPending, OperationFailed, BadSymbol, AuthenticationError, PermissionDenied } from './base/errors.js';
-import { DECIMAL_PLACES } from './base/functions/number.js';
+import { DECIMAL_PLACES, TRUNCATE } from './base/functions/number.js';
 import Precise from './base/Precise.js';
 import type { Balances, Dict, Int, Market, MarketInterface, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade } from './base/types.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
@@ -387,10 +387,10 @@ export default class bit2me extends Exchange {
             'last': this.safeString (ticker, 'close'),
             'previousClose': undefined,
             'change': undefined,
-            'percentage': this.safeString (ticker, 'percentage'),
+            'percentage': this.decimalToPrecision (this.safeString (ticker, 'percentage'), TRUNCATE, 2, DECIMAL_PLACES),
             'average': undefined,
-            'baseVolume': this.safeString (ticker, 'baseVolume'),
-            'quoteVolume': this.safeString (ticker, 'quoteVolume'),
+            'baseVolume': this.decimalToPrecision (this.safeString (ticker, 'baseVolume'), TRUNCATE, 8, DECIMAL_PLACES),
+            'quoteVolume': this.decimalToPrecision (this.safeString (ticker, 'quoteVolume'), TRUNCATE, 8, DECIMAL_PLACES),
             'info': ticker,
         }, market);
     }
