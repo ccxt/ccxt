@@ -27,6 +27,8 @@ export default class oxfun extends oxfunRest {
                 'watchTickers': true,
                 'watchBalance': true,
                 'createOrderWs': true,
+                'editOrderWs': true,
+                'cancelOrderWs': true,
             },
             'urls': {
                 'api': {
@@ -817,6 +819,43 @@ export default class oxfun extends oxfunRest {
         return await this.watch (url, messageHash, request, messageHash);
     }
 
+    async editOrderWs (id: string, symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}): Promise<Order> {
+        /**
+         * @method
+         * @name oxfun#editOrderWs
+         * @description edit a trade order
+         * @see https://docs.ox.fun/?json#modify-order
+         * @param {string} id order id
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {string} type 'market' or 'limit'
+         * @param {string} side 'buy' or 'sell'
+         * @param {float} amount how much of the currency you want to trade in units of the base currency
+         * @param {float|undefined} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {int} [params.timestamp] in milliseconds. If an order reaches the matching engine and the current timestamp exceeds timestamp + recvWindow, then the order will be rejected.
+         * @param {int} [params.recvWindow] in milliseconds. If an order reaches the matching engine and the current timestamp exceeds timestamp + recvWindow, then the order will be rejected. If timestamp is provided without recvWindow, then a default recvWindow of 1000ms is used.
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        await this.loadMarkets ();
+        await this.authenticate ();
+        const market = this.market (symbol);
+        const messageHash = this.nonce ().toString ();
+        const request: Dict = {
+            'op': 'modifyorder',
+            'tag': messageHash,
+        };
+        params = this.omit (params, 'tag'); // todo: check
+        let orderRequest: Dict = this.createOrderRequest (market, type, side, amount, price, params);
+        orderRequest = this.extend (orderRequest, { 'orderId': id });
+        const timestamp = this.safeInteger (orderRequest, 'timestamp');
+        if (timestamp === undefined) {
+            orderRequest['timestamp'] = this.milliseconds ();
+        }
+        request['data'] = orderRequest;
+        const url = this.urls['api']['ws'];
+        return await this.watch (url, messageHash, request, messageHash);
+    }
+
     handlePlaceOrders (client: Client, message) {
         //
         //     {
@@ -859,6 +898,36 @@ export default class oxfun extends oxfunRest {
         const data = this.safeValue (message, 'data', {});
         const order = this.parseOrder (data);
         client.resolve (order, messageHash);
+    }
+
+    async cancelOrderWs (id: string, symbol: Str = undefined, params = {}): Promise<Order> {
+        /**
+         * @method
+         * @name oxfun#cancelOrderWs
+         * @see https://docs.ox.fun/?json#cancel-order
+         * @description cancels an open order
+         * @param {string} id order id
+         * @param {string} symbol unified market symbol, default is undefined
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' cancelOrderWs() requires a symbol argument');
+        }
+        await this.loadMarkets ();
+        await this.authenticate ();
+        const messageHash = this.nonce ().toString ();
+        const data: Dict = {
+            'marketCode': this.marketId (symbol),
+            'orderId': id,
+        };
+        const request: Dict = {
+            'op': 'cancelorder',
+            'tag': messageHash,
+            'data': data,
+        };
+        const url = this.urls['api']['ws'];
+        return await this.watch (url, messageHash, request, messageHash);
     }
 
     async authenticate (params = {}) {
@@ -932,7 +1001,7 @@ export default class oxfun extends oxfunRest {
             if (event === 'login') {
                 this.handleAuthenticationMessage (client, message);
             }
-            if (event === 'placeorder') {
+            if ((event === 'placeorder') || (event === 'modifyorder') || (event === 'cancelorder')) {
                 this.handlePlaceOrders (client, message);
             }
         }
