@@ -1595,6 +1595,12 @@
             "watchTrades": {
                 "side": "undefined"
             },
+            "watchOrderBook": {
+                "timestamp": "undefined"
+            },
+            "watchOrderBookForSymbols": {
+                "timestamp": "undefined"
+            },
             "fetchPositions": {
                 "marginRatio": "undefined",
                 "stopLossPrice": "undefined",
