@@ -159,7 +159,9 @@
       {
         "description": "spot tickers",
         "method": "fetchTickers",
-        "input": ["[B2M/USDT,ETH/USDT]"],
+        "input": [
+          ["B2M/USDT","ETH/USDT"]
+        ],
         "httpResponse": [
           {
             "timestamp": "1716542341109",
