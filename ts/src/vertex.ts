@@ -81,7 +81,7 @@ export default class vertex extends Exchange {
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
                 'fetchMyLiquidations': false,
-                'fetchMyTrades': false,
+                'fetchMyTrades': true,
                 'fetchOHLCV': true,
                 'fetchOpenInterest': true,
                 'fetchOpenInterestHistory': false,
@@ -503,18 +503,92 @@ export default class vertex extends Exchange {
         //       "timestamp": 1691068943,
         //       "trade_type": "buy"
         // }
-        //
+        // fetchMytrades
+        // {
+        //     "digest": "0x80ce789702b670b7d33f2aa67e12c85f124395c3f9acdb422dde3b4973ccd50c",
+        //     "order": {
+        //         "sender": "0x12a0b4888021576eb10a67616dd3dd3d9ce206b664656661756c740000000000",
+        //         "priceX18": "27544000000000000000000",
+        //         "amount": "2000000000000000000",
+        //         "expiration": "4611686020107119633",
+        //         "nonce": "1761322608857448448"
+        //     },
+        //     "base_filled": "736000000000000000",
+        //     "quote_filled": "-20276464287857571514302",
+        //     "fee": "4055287857571514302",
+        //     "sequencer_fee": "0"
+        //     "cumulative_fee": "4055287857571514302",
+        //     "cumulative_base_filled": "736000000000000000",
+        //     "cumulative_quote_filled": "-20276464287857571514302",
+        //     "submission_idx": "563012",
+        //     "pre_balance": {
+        //       "base": {
+        //         "perp": {
+        //           "product_id": 2,
+        //           "lp_balance": {
+        //             "amount": "0",
+        //             "last_cumulative_funding_x18": "1823351297710837"
+        //           },
+        //           "balance": {
+        //             "amount": "2686684000000000000000",
+        //             "v_quote_balance": "-76348662407149297671587247",
+        //             "last_cumulative_funding_x18": "134999841911604906604576"
+        //           }
+        //         }
+        //       },
+        //       "quote": null
+        //     },
+        //     "post_balance": {
+        //       "base": {
+        //         "perp": {
+        //           "product_id": 2,
+        //           "lp_balance": {
+        //             "amount": "0",
+        //             "last_cumulative_funding_x18": "1823351297710837"
+        //           },
+        //           "balance": {
+        //             "amount": "2686013000000000000000",
+        //             "v_quote_balance": "-76328351274188497671587247",
+        //             "last_cumulative_funding_x18": "134999841911604906604576"
+        //           }
+        //         }
+        //       },
+        //       "quote": null
+        //     }
+        //   }
+        let price = undefined;
+        let amount = undefined;
+        let side = undefined;
+        let fee = undefined;
+        const id = this.safeString2 (trade, 'trade_id', 'submission_idx');
+        const order = this.safeString (trade, 'digest');
         const timestamp = this.safeTimestamp (trade, 'timestamp');
-        const tickerId = this.safeString (trade, 'ticker_id');
-        const splitTickerId = tickerId.split ('_');
-        const splitSymbol = splitTickerId[0].split ('-');
-        const marketId = splitSymbol[0] + splitTickerId[1];
-        market = this.safeMarket (marketId, market);
+        if (timestamp === undefined) {
+            // fetchMyTrades
+            const baseBalance = this.safeDict (this.safeDict (trade, 'pre_balance', {}), 'base', {});
+            let marketId = undefined;
+            if ('perp' in baseBalance) {
+                marketId = this.safeString (this.safeDict (baseBalance, 'perp', {}), 'product_id');
+            } else {
+                marketId = this.safeString (this.safeDict (baseBalance, 'spot', {}), 'product_id');
+            }
+            market = this.safeMarket (marketId);
+            price = this.safeString (trade, 'price');
+            fee = {
+                'cost': this.convertFromX18 (this.safeString (trade, 'fee')),
+                'currency': undefined,
+            };
+        } else {
+            const tickerId = this.safeString (trade, 'ticker_id');
+            const splitTickerId = tickerId.split ('_');
+            const splitSymbol = splitTickerId[0].split ('-');
+            const marketId = splitSymbol[0] + splitTickerId[1];
+            market = this.safeMarket (marketId, market);
+            price = this.safeString (trade, 'price');
+            amount = this.safeString (trade, 'base_filled');
+            side = this.safeStringLower (trade, 'trade_type');
+        }
         const symbol = market['symbol'];
-        const price = this.safeString (trade, 'price');
-        const amount = this.safeString (trade, 'base_filled');
-        const side = this.safeStringLower (trade, 'trade_type');
-        const id = this.safeString (trade, 'trade_id');
         return this.safeTrade ({
             'id': id,
             'timestamp': timestamp,
@@ -524,10 +598,10 @@ export default class vertex extends Exchange {
             'price': price,
             'amount': amount,
             'cost': undefined,
-            'order': undefined,
+            'order': order,
             'takerOrMaker': undefined,
             'type': undefined,
-            'fee': undefined,
+            'fee': fee,
             'info': trade,
         }, market);
     }
@@ -577,6 +651,214 @@ export default class vertex extends Exchange {
         // ]
         //
         return this.parseTrades (response, market, since, limit);
+    }
+
+    async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+        /**
+         * @method
+         * @name vertex#fetchMyTrades
+         * @description fetch all trades made by the user
+         * @see https://docs.vertexprotocol.com/developer-resources/api/archive-indexer/matches
+         * @param {string} symbol unified market symbol
+         * @param {int} [since] the earliest time in ms to fetch trades for
+         * @param {int} [limit] the maximum number of trades structures to retrieve
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+         */
+        await this.loadMarkets ();
+        let market: Market = undefined;
+        const matchesRequest = {
+            'subaccount': this.convertAddressToSender (this.walletAddress),
+        };
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            matchesRequest['product_ids'] = [ this.parseToNumeric (market['id']) ];
+        }
+        const until = this.safeInteger (params, 'until');
+        if (until !== undefined) {
+            params = this.omit (params, 'until');
+            matchesRequest['max_time'] = until;
+        }
+        if (limit !== undefined) {
+            matchesRequest['limit'] = limit;
+        }
+        const request = {
+            'matches': matchesRequest,
+        }
+        const response = await this.v1ArchivePost (this.extend (request, params));
+        //
+        // {
+        //     "matches": [
+        //       {
+        //         "digest": "0x80ce789702b670b7d33f2aa67e12c85f124395c3f9acdb422dde3b4973ccd50c",
+        //         "order": {
+        //           "sender": "0x12a0b4888021576eb10a67616dd3dd3d9ce206b664656661756c740000000000",
+        //           "priceX18": "27544000000000000000000",
+        //           "amount": "2000000000000000000",
+        //           "expiration": "4611686020107119633",
+        //           "nonce": "1761322608857448448"
+        //         },
+        //         "base_filled": "736000000000000000",
+        //         "quote_filled": "-20276464287857571514302",
+        //         "fee": "4055287857571514302",
+        //         "sequencer_fee": "0"
+        //         "cumulative_fee": "4055287857571514302",
+        //         "cumulative_base_filled": "736000000000000000",
+        //         "cumulative_quote_filled": "-20276464287857571514302",
+        //         "submission_idx": "563012",
+        //         "pre_balance": {
+        //           "base": {
+        //             "perp": {
+        //               "product_id": 2,
+        //               "lp_balance": {
+        //                 "amount": "0",
+        //                 "last_cumulative_funding_x18": "1823351297710837"
+        //               },
+        //               "balance": {
+        //                 "amount": "2686684000000000000000",
+        //                 "v_quote_balance": "-76348662407149297671587247",
+        //                 "last_cumulative_funding_x18": "134999841911604906604576"
+        //               }
+        //             }
+        //           },
+        //           "quote": null
+        //         },
+        //         "post_balance": {
+        //           "base": {
+        //             "perp": {
+        //               "product_id": 2,
+        //               "lp_balance": {
+        //                 "amount": "0",
+        //                 "last_cumulative_funding_x18": "1823351297710837"
+        //               },
+        //               "balance": {
+        //                 "amount": "2686013000000000000000",
+        //                 "v_quote_balance": "-76328351274188497671587247",
+        //                 "last_cumulative_funding_x18": "134999841911604906604576"
+        //               }
+        //             }
+        //           },
+        //           "quote": null
+        //         }
+        //       },
+        //       {
+        //         "digest": "0x0f6e5a0434e36d8e6d4fed950d3624b0d8c91a8a84efd156bb25c1382561c0c2",
+        //         "order": {
+        //           "sender": "0x12a0b4888021576eb10a67616dd3dd3d9ce206b664656661756c740000000000",
+        //           "priceX18": "27540000000000000000000",
+        //           "amount": "2000000000000000000",
+        //           "expiration": "4611686020107119623",
+        //           "nonce": "1761322602510417920"
+        //         },
+        //         "base_filled": "723999999999999999",
+        //         "quote_filled": "-19944943483044913474043",
+        //         "fee": "5983483044913474042",
+        //         "cumulative_fee": "11958484645393618085",
+        //         "cumulative_base_filled": "1446999999999999998",
+        //         "cumulative_quote_filled": "-39861640484645393618087",
+        //         "submission_idx": "563011",
+        //         "pre_balance": {
+        //           "base": {
+        //             "perp": {
+        //               "product_id": 2,
+        //               "lp_balance": {
+        //                 "amount": "0",
+        //                 "last_cumulative_funding_x18": "1823351297710837"
+        //               },
+        //               "balance": {
+        //                 "amount": "2686684000000000000000",
+        //                 "v_quote_balance": "-76348662407149297671587247",
+        //                 "last_cumulative_funding_x18": "134999841911604906604576"
+        //               }
+        //             }
+        //           },
+        //           "quote": null
+        //         },
+        //         "post_balance": {
+        //           "base": {
+        //             "perp": {
+        //               "product_id": 2,
+        //               "lp_balance": {
+        //                 "amount": "0",
+        //                 "last_cumulative_funding_x18": "1823351297710837"
+        //               },
+        //               "balance": {
+        //                 "amount": "2686013000000000000000",
+        //                 "v_quote_balance": "-76328351274188497671587247",
+        //                 "last_cumulative_funding_x18": "134999841911604906604576"
+        //               }
+        //             }
+        //           },
+        //           "quote": null
+        //         }
+        //       }
+        //     ],
+        //     "txs": [
+        //       {
+        //         "tx": {
+        //           "match_orders": {
+        //             "product_id": 2,
+        //             "amm": true,
+        //             "taker": {
+        //               "order": {
+        //                 "sender": "0x12a0b4888021576eb10a67616dd3dd3d9ce206b664656661756c740000000000",
+        //                 "price_x18": "27544000000000000000000",
+        //                 "amount": "2000000000000000000",
+        //                 "expiration": 4611686020107120000,
+        //                 "nonce": 1761322608857448400
+        //               },
+        //               "signature": "0xe8fa7151bde348afa3b46dc52798046b7c8318f1b0a7f689710debbc094658cc1bf5a7e478ccc8278b625da0b9402c86b580d2e31e13831337dfd6153f4b37811b"
+        //             },
+        //             "maker": {
+        //               "order": {
+        //                 "sender": "0xebdbbcdbd2646c5f23a1e0806027eee5f71b074664656661756c740000000000",
+        //                 "price_x18": "27544000000000000000000",
+        //                 "amount": "-736000000000000000",
+        //                 "expiration": 1679731669,
+        //                 "nonce": 1761322585591644200
+        //               },
+        //               "signature": "0x47f9d47f0777f3ca0b13f07b7682dbeea098c0e377b87dcb025754fe34c900e336b8c7744e021fb9c46a4f8c6a1478bafa28bf0d023ae496aa3efa4d8e81df181c"
+        //             }
+        //           }
+        //         },
+        //         "submission_idx": "563012",
+        //         "timestamp": "1679728133"
+        //       },
+        //       {
+        //         "tx": {
+        //           "match_orders": {
+        //             "product_id": 1,
+        //             "amm": true,
+        //             "taker": {
+        //               "order": {
+        //                 "sender": "0x12a0b4888021576eb10a67616dd3dd3d9ce206b664656661756c740000000000",
+        //                 "price_x18": "27540000000000000000000",
+        //                 "amount": "2000000000000000000",
+        //                 "expiration": 4611686020107120000,
+        //                 "nonce": 1761322602510418000
+        //               },
+        //               "signature": "0x826c68f1a3f76d9ffbe8041f8d45e969d31f1ab6f2ae2f6379d1493e479e56436091d6cf4c72e212dd2f1d2fa17c627c4c21bd6d281c77172b8af030488478b71c"
+        //             },
+        //             "maker": {
+        //               "order": {
+        //                 "sender": "0xf8d240d9514c9a4715d66268d7af3b53d619642564656661756c740000000000",
+        //                 "price_x18": "27540000000000000000000",
+        //                 "amount": "-724000000000000000",
+        //                 "expiration": 1679731656,
+        //                 "nonce": 1761322565506171000
+        //               },
+        //               "signature": "0xd8b6505b8d9b8c3cbfe793080976388035682c02a27893fb26b48a5b2bfe943f4162dea3a42e24e0dff5e2f74fbf77e33d83619140a2a581117c55e6cc236bdb1c"
+        //             }
+        //           }
+        //         },
+        //         "submission_idx": "563011",
+        //         "timestamp": "1679728127"
+        //       }
+        //     ]
+        // }
+        //
+        const trades = this.safeList (response, 'matches', []);
+        return this.parseTrades (trades, market, since, limit, params);
     }
 
     async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
