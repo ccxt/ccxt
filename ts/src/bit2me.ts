@@ -310,7 +310,7 @@ export default class bit2me extends Exchange {
                 },
             },
             'precision': {
-                'price':  this.safeInteger (market, 'pricePrecision'),
+                'price': this.safeInteger (market, 'pricePrecision'),
                 'amount': this.safeInteger (market, 'amountPrecision'),
             },
             'active': isActive,
