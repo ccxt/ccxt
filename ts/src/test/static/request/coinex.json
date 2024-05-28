@@ -1287,7 +1287,24 @@
               "USDT"
             ]
         }
-     ]
+     ],
+     "withdraw": [
+        {
+          "description": "Withdraw USDT on the TRC20 chain",
+          "method": "withdraw",
+          "url": "https://api.coinex.com/v2/assets/withdraw",
+          "input": [
+            "USDT",
+            15,
+            "TY5vq3MT6b5cQVAHWHtpGyPg1ERcQgi3UN",
+            null,
+            {
+              "network": "TRX"
+            }
+          ],
+          "output": "{\"amount\":\"15\",\"ccy\":\"USDT\",\"chain\":\"TRC20\",\"to_address\":\"TY5vq3MT6b5cQVAHWHtpGyPg1ERcQgi3UN\"}"
+        }
+      ]
     },
     "disabledTests": {}
 }
