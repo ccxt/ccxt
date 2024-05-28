@@ -383,14 +383,13 @@ export default class bingx extends bingxRest {
             const sym = symbolAndTimeframe[0];
             const tf = symbolAndTimeframe[1];
             const market = this.market (sym);
-            const rawTf = this.safeString (timeframes, tf, tf);
+            const rawTimeframe = this.safeString (timeframes, tf, tf);
             if (chosenTimeframe === undefined) {
-                chosenTimeframe = rawTf;
-            } else if (chosenTimeframe !== rawTf) {
+                chosenTimeframe = rawTimeframe;
+            } else if (chosenTimeframe !== rawTimeframe) {
                 throw new BadRequest (this.id + ' watchOHLCVForSymbols requires all timeframes to be the same');
             }
-            const channelName = 'kline_' + chosenTimeframe;
-            messageHashes.push (this.getMessageHash ('ohlcv', channelName, market['symbol']));
+            messageHashes.push (this.getMessageHash ('ohlcv', chosenTimeframe, market['symbol']));
         }
         const subscriptionHash = 'all@kline_' + chosenTimeframe;
         const url = this.safeString (this.urls['api']['ws'], marketType);
@@ -769,7 +768,6 @@ export default class bingx extends bingxRest {
         const firstPart = parts[0];
         const isAllEndpoint = (firstPart === 'all');
         const marketId = this.safeString (message, 's', firstPart);
-        const channelName = dataType.replace (firstPart + '@', '');
         const marketType = isSwap ? 'swap' : 'spot';
         const market = this.safeMarket (marketId, undefined, undefined, marketType);
         const symbol = market['symbol'];
@@ -791,11 +789,11 @@ export default class bingx extends bingxRest {
             stored.append (parsed);
         }
         const resolveData = [ symbol, unifiedTimeframe, stored ];
-        const messageHash = this.getMessageHash ('ohlcv', channelName, symbol);
+        const messageHash = this.getMessageHash ('ohlcv', rawTimeframe, symbol);
         client.resolve (resolveData, messageHash);
         // resolve for "all"
         if (isAllEndpoint) {
-            const messageHashForAll = this.getMessageHash ('ohlcv', channelName, undefined);
+            const messageHashForAll = this.getMessageHash ('ohlcv', rawTimeframe, undefined);
             client.resolve (resolveData, messageHashForAll);
         }
     }
@@ -823,12 +821,13 @@ export default class bingx extends bingxRest {
         }
         const options = this.safeValue (this.options, marketType, {});
         const timeframes = this.safeValue (options, 'timeframes', {});
-        const interval = this.safeString (timeframes, timeframe, timeframe);
-        const messageHash = market['id'] + '@kline_' + interval;
+        const rawTimeframe = this.safeString (timeframes, timeframe, timeframe);
+        const messageHash = this.getMessageHash ('ohlcv', rawTimeframe, market['symbol']);
+        const subscriptionHash = market['id'] + '@kline_' + rawTimeframe;
         const uuid = this.uuid ();
         const request: Dict = {
             'id': uuid,
-            'dataType': messageHash,
+            'dataType': subscriptionHash,
         };
         if (marketType === 'swap') {
             request['reqType'] = 'sub';
@@ -836,10 +835,10 @@ export default class bingx extends bingxRest {
         const subscriptionArgs: Dict = {
             'symbol': symbol,
             'limit': limit,
-            'interval': interval,
+            'timeframe': rawTimeframe,
             'params': params,
         };
-        const result = await this.watch (url, messageHash, this.extend (request, query), messageHash, subscriptionArgs);
+        const result = await this.watch (url, messageHash, this.extend (request, query), subscriptionHash, subscriptionArgs);
         const ohlcv = result[2];
         if (this.newUpdates) {
             limit = ohlcv.getLimit (symbol, limit);

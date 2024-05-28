@@ -1601,7 +1601,6 @@
             "watchOrderBookForSymbols": {
                 "timestamp": "undefined"
             },
-            "watchOHLCVForSymbols": "tmp",
             "fetchPositions": {
                 "marginRatio": "undefined",
                 "stopLossPrice": "undefined",
