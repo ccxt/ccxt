@@ -164,7 +164,7 @@ export default class okx extends okxRest {
                 this.deepExtend (firstArgument, params),
             ],
         };
-        return this.watch (url, messageHash, request, messageHash);
+        return await this.watch (url, messageHash, request, messageHash);
     }
 
     async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
