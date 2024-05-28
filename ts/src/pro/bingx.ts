@@ -762,8 +762,7 @@ export default class bingx extends bingxRest {
         }
         const dataType = this.safeString (message, 'dataType');
         const rawTimeframe = dataType.split ('_')[1];
-        const timeframes = this.safeDict (this.options, 'timeframes', {});
-        const unifiedTimeframe = this.findTimeframe (rawTimeframe, timeframes);
+        const unifiedTimeframe = this.findTimeframe (rawTimeframe, this.timeframes);
         const isSwap = client.url.indexOf ('swap') >= 0;
         const parts = dataType.split ('@');
         const firstPart = parts[0];
@@ -786,11 +785,11 @@ export default class bingx extends bingxRest {
             const parsed = this.parseWsOHLCV (candle, market);
             stored.append (parsed);
         }
+        const resolveData = [ symbol, unifiedTimeframe, stored ];
         const messageHash = this.getMessageHash ('ohlcv', channelName, symbol);
-        client.resolve (stored, messageHash);
+        client.resolve (resolveData, messageHash);
         // resolve for "all"
         if (isAllEndpoint) {
-            const resolveData = [ symbol, unifiedTimeframe, stored ];
             const messageHashForAll = this.getMessageHash ('ohlcv', channelName, undefined);
             client.resolve (resolveData, messageHashForAll);
         }
@@ -829,7 +828,8 @@ export default class bingx extends bingxRest {
         if (marketType === 'swap') {
             request['reqType'] = 'sub';
         }
-        const ohlcv = await this.watch (url, messageHash, this.extend (request, query), messageHash);
+        const result = await this.watch (url, messageHash, this.extend (request, query), messageHash);
+        const ohlcv = result[2];
         if (this.newUpdates) {
             limit = ohlcv.getLimit (symbol, limit);
         }
