@@ -3,7 +3,7 @@
 
 import oxfunRest from '../oxfun.js';
 import { ArgumentsRequired, AuthenticationError } from '../base/errors.js';
-import type { Balances, Dict, Int, Market, OHLCV, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, Trade } from '../base/types.js';
+import type { Balances, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade } from '../base/types.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 import Client from '../base/ws/Client.js';
@@ -26,6 +26,7 @@ export default class oxfun extends oxfunRest {
                 'watchTicker': true,
                 'watchTickers': true,
                 'watchBalance': true,
+                'createOrderWs': true,
             },
             'urls': {
                 'api': {
@@ -514,6 +515,7 @@ export default class oxfun extends oxfunRest {
          * @see https://docs.ox.fun/?json#balance-channel
          * @description watch balance and get the amount of funds available for trading or funds locked in orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {int|string} [params.tag] If given it will be echoed in the reply and the max size of tag is 32
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
          */
         await this.loadMarkets ();
@@ -578,6 +580,7 @@ export default class oxfun extends oxfunRest {
          * @description watch all open positions
          * @param {string[]|undefined} symbols list of unified market symbols
          * @param {object} params extra parameters specific to the exchange API endpoint
+         * @param {int|string} [params.tag] If given it will be echoed in the reply and the max size of tag is 32
          * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
          */
         await this.loadMarkets ();
@@ -700,6 +703,7 @@ export default class oxfun extends oxfunRest {
          * @param {int} [since] the earliest time in ms to fetch orders for
          * @param {int} [limit] the maximum number of order structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {int|string} [params.tag] If given it will be echoed in the reply and the max size of tag is 32
          * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
@@ -770,6 +774,93 @@ export default class oxfun extends oxfunRest {
         }
     }
 
+    async createOrderWs (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}): Promise<Order> {
+        /**
+         * @method
+         * @name oxfun#createOrderWs
+         * @see https://docs.ox.fun/?json#order-commands
+         * @description create a trade order
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {string} type 'market', 'limit', 'STOP_LIMIT' or 'STOP_MARKET'
+         * @param {string} side 'buy' or 'sell'
+         * @param {float} amount how much of currency you want to trade in units of base currency
+         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {int} [params.clientOrderId] a unique id for the order
+         * @param {int} [params.timestamp] in milliseconds. If an order reaches the matching engine and the current timestamp exceeds timestamp + recvWindow, then the order will be rejected.
+         * @param {int} [params.recvWindow] in milliseconds. If an order reaches the matching engine and the current timestamp exceeds timestamp + recvWindow, then the order will be rejected. If timestamp is provided without recvWindow, then a default recvWindow of 1000ms is used.
+         * @param {float} [params.cost] the quote quantity that can be used as an alternative for the amount for market buy orders
+         * @param {float} [params.triggerPrice] The price at which a trigger order is triggered at
+         * @param {float} [params.limitPrice] Limit price for the STOP_LIMIT order
+         * @param {bool} [params.postOnly] if true, the order will only be posted if it will be a maker order
+         * @param {string} [params.timeInForce] GTC (default), IOC, FOK, PO, MAKER_ONLY or MAKER_ONLY_REPRICE (reprices order to the best maker only price if the specified price were to lead to a taker trade)
+         * @param {string} [params.selfTradePreventionMode] NONE, EXPIRE_MAKER, EXPIRE_TAKER or EXPIRE_BOTH for more info check here {@link https://docs.ox.fun/?json#self-trade-prevention-modes}
+         * @param {string} [params.displayQuantity] for an iceberg order, pass both quantity and displayQuantity fields in the order request
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        await this.loadMarkets ();
+        await this.authenticate ();
+        const market = this.market (symbol);
+        const messageHash = this.nonce ().toString ();
+        const request: Dict = {
+            'op': 'placeorder',
+            'tag': messageHash,
+        };
+        params = this.omit (params, 'tag'); // todo: check
+        const orderRequest: Dict = this.createOrderRequest (market, type, side, amount, price, params);
+        const timestamp = this.safeInteger (orderRequest, 'timestamp');
+        if (timestamp === undefined) {
+            orderRequest['timestamp'] = this.milliseconds ();
+        }
+        request['data'] = orderRequest;
+        const url = this.urls['api']['ws'];
+        return await this.watch (url, messageHash, request, messageHash);
+    }
+
+    handlePlaceOrders (client: Client, message) {
+        //
+        //     {
+        //         "event": "placeorder",
+        //         "submitted": true,
+        //         "tag": "1716934577",
+        //         "timestamp": "1716932973899",
+        //         "data": {
+        //             "marketCode": "ETH-USD-SWAP-LIN",
+        //             "side": "BUY",
+        //             "orderType": "LIMIT",
+        //             "quantity": "0.010",
+        //             "timeInForce": "GTC",
+        //             "price": "400.0",
+        //             "limitPrice": "400.0",
+        //             "orderId": "1000117429736",
+        //             "source": 13
+        //         }
+        //     }
+        //
+        //
+        // Failure response format
+        //     {
+        //         "event": "placeorder",
+        //         "submitted": false,
+        //         "message": "JSON data format is invalid",
+        //         "code": "20009",
+        //         "timestamp": "1716932877381"
+        //     }
+        //
+        const messageHash = this.safeString (message, 'tag');
+        const submitted = this.safeBool (message, 'submitted');
+        // filter out partial errors
+        if (!submitted) {
+            const method = this.safeString (message, 'event');
+            const stringMsg = this.json (message);
+            const code = this.safeInteger (message, 'code');
+            this.handleErrors (code, undefined, client.url, method, undefined, stringMsg, message, undefined, undefined);
+        }
+        const data = this.safeValue (message, 'data', {});
+        const order = this.parseOrder (data);
+        client.resolve (order, messageHash);
+    }
+
     async authenticate (params = {}) {
         const url = this.urls['api']['ws'];
         const client = this.client (url);
@@ -837,8 +928,13 @@ export default class oxfun extends oxfunRest {
             if (table.indexOf ('order') > -1) {
                 this.handleOrders (client, message);
             }
-        } else if (event === 'login') {
-            this.handleAuthenticationMessage (client, message);
+        } else {
+            if (event === 'login') {
+                this.handleAuthenticationMessage (client, message);
+            }
+            if (event === 'placeorder') {
+                this.handlePlaceOrders (client, message);
+            }
         }
     }
 }
