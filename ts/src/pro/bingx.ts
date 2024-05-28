@@ -753,33 +753,47 @@ export default class bingx extends bingxRest {
         //        ]
         //    }
         //
-        const data = this.safeValue (message, 'data', []);
+        const data = this.safeList (message, 'data', []);
         let candles = undefined;
         if (Array.isArray (data)) {
             candles = data;
         } else {
-            candles = [ this.safeValue (data, 'K', []) ];
+            candles = [ this.safeList (data, 'K', []) ];
         }
-        const messageHash = this.safeString (message, 'dataType');
-        const timeframeId = messageHash.split ('_')[1];
-        const marketId = messageHash.split ('@')[0];
+        const dataType = this.safeString (message, 'dataType');
+        const rawTimeframe = dataType.split ('_')[1];
+        const timeframes = this.safeDict (this.options, 'timeframes', {});
+        const unifiedTimeframe = this.findTimeframe (rawTimeframe, timeframes);
         const isSwap = client.url.indexOf ('swap') >= 0;
+        const parts = dataType.split ('@');
+        const firstPart = parts[0];
+        const isAllEndpoint = (firstPart === 'all');
+        const marketId = this.safeString (message, 's', firstPart);
+        const channelName = dataType.replace (firstPart + '@', '');
         const marketType = isSwap ? 'swap' : 'spot';
         const market = this.safeMarket (marketId, undefined, undefined, marketType);
         const symbol = market['symbol'];
-        this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
-        let stored = this.safeValue (this.ohlcvs[symbol], timeframeId);
-        if (stored === undefined) {
-            const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
-            stored = new ArrayCacheByTimestamp (limit);
-            this.ohlcvs[symbol][timeframeId] = stored;
+        if (this.safeValue (this.ohlcvs[symbol], rawTimeframe) === undefined) {
+            const subscriptionHash = dataType;
+            const subscription = client.subscriptions[subscriptionHash];
+            const limit = this.safeInteger (subscription, 'limit');
+            this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
+            this.ohlcvs[symbol][unifiedTimeframe] = new ArrayCacheByTimestamp (limit);
         }
+        const stored = this.ohlcvs[symbol][unifiedTimeframe];
         for (let i = 0; i < candles.length; i++) {
             const candle = candles[i];
             const parsed = this.parseWsOHLCV (candle, market);
             stored.append (parsed);
         }
+        const messageHash = this.getMessageHash ('ohlcv', channelName, symbol);
         client.resolve (stored, messageHash);
+        // resolve for "all"
+        if (isAllEndpoint) {
+            const resolveData = [ symbol, unifiedTimeframe, stored ];
+            const messageHashForAll = this.getMessageHash ('ohlcv', channelName, undefined);
+            client.resolve (resolveData, messageHashForAll);
+        }
     }
 
     async watchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
