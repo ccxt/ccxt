@@ -402,9 +402,7 @@ export default class bingx extends bingxRest {
             request['reqType'] = 'sub';
         }
         const subscriptionArgs: Dict = {
-            'symbols': symbolsAndTimeframes,
             'limit': limit,
-            'interval': chosenTimeframe,
             'params': params,
         };
         const [ symbol, timeframe, candles ] = await this.watchMultiple (url, messageHashes, request, [ subscriptionHash ], subscriptionArgs);
@@ -598,7 +596,6 @@ export default class bingx extends bingxRest {
             request['reqType'] = 'sub';
         }
         const subscriptionArgs: Dict = {
-            'symbol': symbol,
             'limit': limit,
             'interval': interval,
             'params': params,
@@ -833,9 +830,7 @@ export default class bingx extends bingxRest {
             request['reqType'] = 'sub';
         }
         const subscriptionArgs: Dict = {
-            'symbol': symbol,
             'limit': limit,
-            'timeframe': rawTimeframe,
             'params': params,
         };
         const result = await this.watch (url, messageHash, this.extend (request, query), subscriptionHash, subscriptionArgs);
