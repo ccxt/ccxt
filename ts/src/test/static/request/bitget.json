@@ -261,6 +261,40 @@
                   }
                 ],
                 "output": "{\"symbol\":\"BTCUSDT\",\"orderType\":\"market\",\"force\":\"GTC\",\"marginCoin\":\"USDT\",\"size\":\"0.001\",\"productType\":\"USDT-FUTURES\",\"marginMode\":\"crossed\",\"tradeSide\":\"Open\",\"side\":\"sell\"}"
+            },
+            {
+                "description": "swap market buy +hedged +reduceOnly",
+                "method": "createOrder",
+                "url": "https://api.bitget.com/api/v2/mix/order/place-order",
+                "input": [
+                  "BTC/USDT:USDT",
+                  "market",
+                  "buy",
+                  0.001,
+                  null,
+                  {
+                    "hedged": true,
+                    "reduceOnly": true
+                  }
+                ],
+                "output": "{\"symbol\":\"BTCUSDT\",\"orderType\":\"market\",\"force\":\"GTC\",\"marginCoin\":\"USDT\",\"size\":\"0.001\",\"productType\":\"USDT-FUTURES\",\"marginMode\":\"crossed\",\"tradeSide\":\"Close\",\"side\":\"sell\"}"
+            },
+            {
+                "description": "swap market sell +hedged +reduceOnly",
+                "method": "createOrder",
+                "url": "https://api.bitget.com/api/v2/mix/order/place-order",
+                "input": [
+                  "BTC/USDT:USDT",
+                  "market",
+                  "sell",
+                  0.001,
+                  null,
+                  {
+                    "hedged": true,
+                    "reduceOnly": true
+                  }
+                ],
+                "output": "{\"symbol\":\"BTCUSDT\",\"orderType\":\"market\",\"force\":\"GTC\",\"marginCoin\":\"USDT\",\"size\":\"0.001\",\"productType\":\"USDT-FUTURES\",\"marginMode\":\"crossed\",\"tradeSide\":\"Close\",\"side\":\"buy\"}"
             }
         ],
         "createMarketBuyOrderWithCost": [
