@@ -483,6 +483,7 @@ class Exchange {
         'poloniexfutures',
         'probit',
         'ramzinex',
+        'tabdeal',
         'timex',
         'tokocrypto',
         'tradeogre',

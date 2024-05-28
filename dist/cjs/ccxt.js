@@ -111,6 +111,7 @@ var poloniex = require('./src/poloniex.js');
 var poloniexfutures = require('./src/poloniexfutures.js');
 var probit = require('./src/probit.js');
 var ramzinex = require('./src/ramzinex.js');
+var tabdeal = require('./src/tabdeal.js');
 var timex = require('./src/timex.js');
 var tokocrypto = require('./src/tokocrypto.js');
 var tradeogre = require('./src/tradeogre.js');
@@ -294,6 +295,7 @@ const exchanges = {
     'poloniexfutures': poloniexfutures,
     'probit': probit,
     'ramzinex': ramzinex,
+    'tabdeal': tabdeal,
     'timex': timex,
     'tokocrypto': tokocrypto,
     'tradeogre': tradeogre,
@@ -521,6 +523,7 @@ exports.poloniex = poloniex;
 exports.poloniexfutures = poloniexfutures;
 exports.probit = probit;
 exports.ramzinex = ramzinex;
+exports.tabdeal = tabdeal;
 exports.timex = timex;
 exports.tokocrypto = tokocrypto;
 exports.tradeogre = tradeogre;
