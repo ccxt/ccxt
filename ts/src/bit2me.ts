@@ -475,7 +475,7 @@ export default class bit2me extends Exchange {
         return this.filterByArrayTickers (tickers, 'symbol', symbols);
     }
 
-    async fetchOrderBook (symbol: string, params = {}): Promise<OrderBook> {
+    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         /**
          * @method
          * @name bit2me#fetchOrderBook
