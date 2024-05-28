@@ -1010,7 +1010,9 @@ public partial class kraken : Exchange
         }
         if (isTrue(!isEqual(since, null)))
         {
-            ((IDictionary<string,object>)request)["since"] = this.numberToString(this.parseToInt(divide(since, 1000))); // expected to be in seconds
+            // contrary to kraken's api documentation, the since parameter must be passed in nanoseconds
+            // the adding of '000000' is copied from the fetchTrades function
+            ((IDictionary<string,object>)request)["since"] = add(this.numberToString(since), "000000"); // expected to be in nanoseconds
         }
         object response = await this.publicGetOHLC(this.extend(request, parameters));
         //
