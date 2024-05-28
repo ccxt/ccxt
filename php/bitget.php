@@ -2772,7 +2772,7 @@ class bitget extends Exchange {
         $request = array();
         $type = null;
         list($type, $params) = $this->handle_market_type_and_params('fetchTickers', $market, $params);
-        // Calls like `.fetch_tickers(null, array(subType:'inverse'))` should be supported for this exchange, so
+        // Calls like `.fetchTickers (null, array(subType:'inverse'))` should be supported for this exchange, so
         // as "options.defaultSubType" is also set in exchange options, we should consider `$params->subType`
         // with higher priority and only default to spot, if `subType` is not set in $params
         $passedSubType = $this->safe_string($params, 'subType');

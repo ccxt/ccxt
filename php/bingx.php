@@ -2071,7 +2071,8 @@ class bingx extends Exchange {
         //
         if (gettype($response) === 'string') {
             // broken api engine : $order-ids are too long numbers (i.e. 1742930526912864656)
-            // and JSON.parse can not handle them in JS, so we have to use .parse_json            // however, when $order has an attached SL/TP, their value types need extra parsing
+            // and JSON.parse can not handle them in JS, so we have to use .parseJson
+            // however, when $order has an attached SL/TP, their value types need extra parsing
             $response = $this->fix_stringified_json_members($response);
             $response = $this->parse_json($response);
         }

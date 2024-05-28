@@ -798,7 +798,7 @@ class alpaca extends Exchange {
             //       "message" => "order is not found."
             //   }
             //
-            return $this->safe_value($response, 'message', array());
+            return $this->parse_order($response);
         }) ();
     }
 
