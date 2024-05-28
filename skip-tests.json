@@ -1570,7 +1570,6 @@
         }
     },
     "bingx": {
-        "skipWs": "broken symbols returned",
         "skipMethods": {
             "loadMarkets": {
                 "taker": "is undefined",
