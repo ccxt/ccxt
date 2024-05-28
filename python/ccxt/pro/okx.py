@@ -164,7 +164,7 @@ class okx(ccxt.async_support.okx):
                 self.deep_extend(firstArgument, params),
             ],
         }
-        return self.watch(url, messageHash, request, messageHash)
+        return await self.watch(url, messageHash, request, messageHash)
 
     async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """

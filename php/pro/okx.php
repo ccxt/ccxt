@@ -172,7 +172,7 @@ class okx extends \ccxt\async\okx {
                     $this->deep_extend($firstArgument, $params),
                 ),
             );
-            return $this->watch($url, $messageHash, $request, $messageHash);
+            return Async\await($this->watch($url, $messageHash, $request, $messageHash));
         }) ();
     }
 

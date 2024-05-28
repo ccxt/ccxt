@@ -143,7 +143,7 @@ public partial class okx : ccxt.okx
             { "op", "subscribe" },
             { "args", new List<object> {this.deepExtend(firstArgument, parameters)} },
         };
-        return this.watch(url, messageHash, request, messageHash);
+        return await this.watch(url, messageHash, request, messageHash);
     }
 
     public async override Task<object> watchTrades(object symbol, object since = null, object limit = null, object parameters = null)

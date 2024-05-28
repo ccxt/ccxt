@@ -159,7 +159,7 @@ class okx extends okx$1 {
                 this.deepExtend(firstArgument, params),
             ],
         };
-        return this.watch(url, messageHash, request, messageHash);
+        return await this.watch(url, messageHash, request, messageHash);
     }
     async watchTrades(symbol, since = undefined, limit = undefined, params = {}) {
         /**
