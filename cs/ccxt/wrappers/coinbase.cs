@@ -266,6 +266,12 @@ public partial class coinbase
     /// object : extra parameters specific to the exchange API endpoint
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>params.usePrivate</term>
+    /// <description>
+    /// boolean : use private endpoint for fetching markets
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
     /// <returns> <term>object[]</term> an array of objects representing market data.</returns>
@@ -302,6 +308,12 @@ public partial class coinbase
     /// object : extra parameters specific to the exchange API endpoint
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>params.usePrivate</term>
+    /// <description>
+    /// boolean : use private endpoint for fetching tickers
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}.</returns>
@@ -333,6 +345,12 @@ public partial class coinbase
     /// <term>params</term>
     /// <description>
     /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.usePrivate</term>
+    /// <description>
+    /// boolean : whether to use the private endpoint for fetching the ticker
     /// </description>
     /// </item>
     /// </list>
@@ -872,6 +890,12 @@ public partial class coinbase
     /// boolean : default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>params.usePrivate</term>
+    /// <description>
+    /// boolean : default false, when true will use the private endpoint to fetch the candles
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
     /// <returns> <term>int[][]</term> A list of candles ordered as timestamp, open, high, low, close, volume.</returns>
@@ -904,6 +928,12 @@ public partial class coinbase
     /// <term>params</term>
     /// <description>
     /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.usePrivate</term>
+    /// <description>
+    /// boolean : default false, when true will use the private endpoint to fetch the trades
     /// </description>
     /// </item>
     /// </list>
@@ -978,6 +1008,12 @@ public partial class coinbase
     /// <term>params</term>
     /// <description>
     /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.usePrivate</term>
+    /// <description>
+    /// boolean : default false, when true will use the private endpoint to fetch the order book
     /// </description>
     /// </item>
     /// </list>

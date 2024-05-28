@@ -174,7 +174,8 @@ In CCXT Pro each public and private unified RESTful method having a `fetch*` pre
   - `fetchOrders` → `watchOrders` <sup>*(notice the `watch` prefix)*</sup>
   - `fetchMyTrades` → `watchMyTrades`
   - `fetchPositions` → `watchPositions`
-  <sup>*soon*</sup>
+  - `fetchLiquidations` → `watchLiquidations`
+  - `fetchFundingRates` → `watchFundingRates`
   - `createOrder` → `createOrderWs`
   - `editOrder` → `editOrderWs`
   - `cancelOrder` → `cancelOrderWs`

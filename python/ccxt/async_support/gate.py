@@ -3436,7 +3436,7 @@ class gate(Exchange, ImplicitAPI):
         #
         return self.parse_transaction(response, currency)
 
-    def parse_transaction_status(self, status):
+    def parse_transaction_status(self, status: Str):
         statuses: dict = {
             'PEND': 'pending',
             'REQUEST': 'pending',
@@ -6958,7 +6958,7 @@ class gate(Exchange, ImplicitAPI):
         #
         return self.parse_positions(response, symbols, params)
 
-    def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response, requestHeaders, requestBody):
         if response is None:
             return None
         #

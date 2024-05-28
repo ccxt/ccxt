@@ -1426,7 +1426,7 @@ class hitbtc extends Exchange {
         }) ();
     }
 
-    public function parse_transaction_status($status) {
+    public function parse_transaction_status(?string $status) {
         $statuses = array(
             'PENDING' => 'pending',
             'FAILED' => 'failed',
@@ -3640,7 +3640,7 @@ class hitbtc extends Exchange {
         return array( $marginMode, $params );
     }
 
-    public function handle_errors($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
         //
         //     {
         //       "error" => {

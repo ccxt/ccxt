@@ -580,7 +580,7 @@ class bitmex(Exchange, ImplicitAPI):
         #
         return self.parse_markets(response)
 
-    def parse_market(self, market) -> Market:
+    def parse_market(self, market: dict) -> Market:
         id = self.safe_string(market, 'symbol')
         baseId = self.safe_string(market, 'underlying')
         quoteId = self.safe_string(market, 'quoteCurrency')
@@ -1220,7 +1220,7 @@ class bitmex(Exchange, ImplicitAPI):
         transactions = self.filter_by_array(response, 'transactType', ['Withdrawal', 'Deposit'], False)
         return self.parse_transactions(transactions, currency, since, limit)
 
-    def parse_transaction_status(self, status):
+    def parse_transaction_status(self, status: Str):
         statuses: dict = {
             'Confirmed': 'pending',
             'Canceled': 'canceled',
@@ -2705,7 +2705,7 @@ class bitmex(Exchange, ImplicitAPI):
             'datetime': None,
         })
 
-    def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response, requestHeaders, requestBody):
         if response is None:
             return None
         if code == 429:

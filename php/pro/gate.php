@@ -7,7 +7,9 @@ namespace ccxt\pro;
 
 use Exception; // a common import
 use ccxt\ArgumentsRequired;
+use ccxt\BadRequest;
 use ccxt\InvalidNonce;
+use ccxt\Precise;
 use React\Async;
 use React\Promise\PromiseInterface;
 
@@ -26,6 +28,10 @@ class gate extends \ccxt\async\gate {
                 'watchOHLCV' => true,
                 'watchBalance' => true,
                 'watchOrders' => true,
+                'watchLiquidations' => false,
+                'watchLiquidationsForSymbols' => false,
+                'watchMyLiquidations' => true,
+                'watchMyLiquidationsForSymbols' => true,
                 'watchPositions' => true,
             ),
             'urls' => array(
@@ -1068,6 +1074,184 @@ class gate extends \ccxt\async\gate {
         $client->resolve ($this->orders, 'orders');
     }
 
+    public function watch_my_liquidations(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+        /**
+         * watch the public liquidations of a trading pair
+         * @see https://www.gate.io/docs/developers/futures/ws/en/#liquidates-api
+         * @see https://www.gate.io/docs/developers/delivery/ws/en/#liquidates-api
+         * @see https://www.gate.io/docs/developers/options/ws/en/#liquidates-channel
+         * @param {string} $symbol unified CCXT market $symbol
+         * @param {int} [$since] the earliest time in ms to fetch liquidations for
+         * @param {int} [$limit] the maximum number of liquidation structures to retrieve
+         * @param {array} [$params] exchange specific parameters for the bitmex api endpoint
+         * @return {array} an array of {@link https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure liquidation structures}
+         */
+        return $this->watch_my_liquidations_for_symbols(array( $symbol ), $since, $limit, $params);
+    }
+
+    public function watch_my_liquidations_for_symbols(?array $symbols = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbols, $since, $limit, $params) {
+            /**
+             * watch the private liquidations of a trading pair
+             * @see https://www.gate.io/docs/developers/futures/ws/en/#liquidates-api
+             * @see https://www.gate.io/docs/developers/delivery/ws/en/#liquidates-api
+             * @see https://www.gate.io/docs/developers/options/ws/en/#liquidates-$channel
+             * @param {string} symbol unified CCXT $market symbol
+             * @param {int} [$since] the earliest time in ms to fetch liquidations for
+             * @param {int} [$limit] the maximum number of liquidation structures to retrieve
+             * @param {array} [$params] exchange specific parameters for the gate api endpoint
+             * @return {array} an array of {@link https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure liquidation structures}
+             */
+            Async\await($this->load_markets());
+            $symbols = $this->market_symbols($symbols, null, true, true);
+            $market = $this->get_market_from_symbols($symbols);
+            $type = null;
+            $query = null;
+            list($type, $query) = $this->handle_market_type_and_params('watchMyLiquidationsForSymbols', $market, $params);
+            $typeId = $this->get_supported_mapping($type, array(
+                'future' => 'futures',
+                'swap' => 'futures',
+                'option' => 'options',
+            ));
+            $subType = null;
+            list($subType, $query) = $this->handle_sub_type_and_params('watchMyLiquidationsForSymbols', $market, $query);
+            $isInverse = ($subType === 'inverse');
+            $url = $this->get_url_by_market_type($type, $isInverse);
+            $payload = array();
+            $messageHash = '';
+            if ($this->is_empty($symbols)) {
+                if ($typeId !== 'futures' && !$isInverse) {
+                    throw new BadRequest($this->id . ' watchMyLiquidationsForSymbols() does not support listening to all $symbols, you must call watchMyLiquidations() instead for each symbol you wish to watch.');
+                }
+                $messageHash = 'myLiquidations';
+                $payload[] = '!all';
+            } else {
+                $symbolsLength = count($symbols);
+                if ($symbolsLength !== 1) {
+                    throw new BadRequest($this->id . ' watchMyLiquidationsForSymbols() only allows one symbol at a time. To listen to several $symbols call watchMyLiquidationsForSymbols() several times.');
+                }
+                $messageHash = 'myLiquidations::' . $symbols[0];
+                $payload[] = $market['id'];
+            }
+            $channel = $typeId . '.liquidates';
+            $newLiquidations = Async\await($this->subscribe_private($url, $messageHash, $payload, $channel, $query, true));
+            if ($this->newUpdates) {
+                return $newLiquidations;
+            }
+            return $this->filter_by_symbols_since_limit($this->liquidations, $symbols, $since, $limit, true);
+        }) ();
+    }
+
+    public function handle_liquidation(Client $client, $message) {
+        //
+        // future / delivery
+        //     {
+        //         "channel":"futures.liquidates",
+        //         "event":"update",
+        //         "time":1541505434,
+        //         "time_ms":1541505434123,
+        //         "result":array(
+        //            {
+        //               "entry_price":209,
+        //               "fill_price":215.1,
+        //               "left":0,
+        //               "leverage":0.0,
+        //               "liq_price":213,
+        //               "margin":0.007816722941,
+        //               "mark_price":213,
+        //               "order_id":4093362,
+        //               "order_price":215.1,
+        //               "size":-124,
+        //               "time":1541486601,
+        //               "time_ms":1541486601123,
+        //               "contract":"BTC_USD",
+        //               "user":"1040xxxx"
+        //            }
+        //         )
+        //     }
+        // option
+        //    {
+        //        "channel":"options.liquidates",
+        //        "event":"update",
+        //        "time":1630654851,
+        //        "result":array(
+        //           {
+        //              "user":"1xxxx",
+        //              "init_margin":1190,
+        //              "maint_margin":1042.5,
+        //              "order_margin":0,
+        //              "time":1639051907,
+        //              "time_ms":1639051907000
+        //           }
+        //        )
+        //    }
+        //
+        $rawLiquidations = $this->safe_list($message, 'result', array());
+        $newLiquidations = array();
+        for ($i = 0; $i < count($rawLiquidations); $i++) {
+            $rawLiquidation = $rawLiquidations[$i];
+            $liquidation = $this->parse_ws_liquidation($rawLiquidation);
+            $symbol = $this->safe_string($liquidation, 'symbol');
+            $liquidations = $this->safe_value($this->liquidations, $symbol);
+            if ($liquidations === null) {
+                $limit = $this->safe_integer($this->options, 'liquidationsLimit', 1000);
+                $liquidations = new ArrayCache ($limit);
+            }
+            $liquidations->append ($liquidation);
+            $this->liquidations[$symbol] = $liquidations;
+            $client->resolve ($liquidations, 'myLiquidations::' . $symbol);
+        }
+        $client->resolve ($newLiquidations, 'myLiquidations');
+    }
+
+    public function parse_ws_liquidation($liquidation, $market = null) {
+        //
+        // future / delivery
+        //    {
+        //        "entry_price" => 209,
+        //        "fill_price" => 215.1,
+        //        "left" => 0,
+        //        "leverage" => 0.0,
+        //        "liq_price" => 213,
+        //        "margin" => 0.007816722941,
+        //        "mark_price" => 213,
+        //        "order_id" => 4093362,
+        //        "order_price" => 215.1,
+        //        "size" => -124,
+        //        "time" => 1541486601,
+        //        "time_ms" => 1541486601123,
+        //        "contract" => "BTC_USD",
+        //        "user" => "1040xxxx"
+        //    }
+        // option
+        //    {
+        //        "user" => "1xxxx",
+        //        "init_margin" => 1190,
+        //        "maint_margin" => 1042.5,
+        //        "order_margin" => 0,
+        //        "time" => 1639051907,
+        //        "time_ms" => 1639051907000
+        //    }
+        //
+        $marketId = $this->safe_string($liquidation, 'contract');
+        $market = $this->safe_market($marketId, $market);
+        $timestamp = $this->safe_integer($liquidation, 'time_ms');
+        $originalSize = $this->safe_string($liquidation, 'size');
+        $left = $this->safe_string($liquidation, 'left');
+        $amount = Precise::string_abs(Precise::string_sub($originalSize, $left));
+        return $this->safe_liquidation(array(
+            'info' => $liquidation,
+            'symbol' => $this->safe_symbol($marketId, $market),
+            'contracts' => $this->parse_number($amount),
+            'contractSize' => $this->safe_number($market, 'contractSize'),
+            'price' => $this->safe_number($liquidation, 'fill_price'),
+            'baseValue' => null,
+            'quoteValue' => null,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+        ));
+    }
+
     public function handle_error_message(Client $client, $message) {
         // {
         //     "time" => 1647274664,
@@ -1243,6 +1427,7 @@ class gate extends \ccxt\async\gate {
             'trades' => array($this, 'handle_trades'),
             'order_book_update' => array($this, 'handle_order_book'),
             'balances' => array($this, 'handle_balance'),
+            'liquidates' => array($this, 'handle_liquidation'),
         );
         $method = $this->safe_value($v4Methods, $channelType);
         if ($method !== null) {

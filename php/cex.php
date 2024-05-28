@@ -1642,7 +1642,7 @@ class cex extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
         if (gettype($response) === 'array' && array_keys($response) === array_keys(array_keys($response))) {
             return $response; // public endpoints may return array()-arrays
         }

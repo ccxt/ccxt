@@ -83,8 +83,8 @@ class coinex extends Exchange {
                 'fetchIndexOHLCV' => false,
                 'fetchIsolatedBorrowRate' => true,
                 'fetchIsolatedBorrowRates' => false,
-                'fetchLeverage' => 'emulated',
-                'fetchLeverages' => true,
+                'fetchLeverage' => true,
+                'fetchLeverages' => false,
                 'fetchLeverageTiers' => true,
                 'fetchMarginAdjustmentHistory' => true,
                 'fetchMarketLeverageTiers' => 'emulated',
@@ -4702,7 +4702,7 @@ class coinex extends Exchange {
         }) ();
     }
 
-    public function parse_transaction_status($status) {
+    public function parse_transaction_status(?string $status) {
         $statuses = array(
             'audit' => 'pending',
             'pass' => 'pending',
@@ -5549,62 +5549,65 @@ class coinex extends Exchange {
         return $result;
     }
 
-    public function fetch_leverages(?array $symbols = null, $params = array ()): PromiseInterface {
-        return Async\async(function () use ($symbols, $params) {
+    public function fetch_leverage(string $symbol, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbol, $params) {
             /**
-             * fetch the set leverage for all contract and margin markets
-             * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot002_account007_margin_account_settings
-             * @param {string[]} [$symbols] a list of unified $market $symbols
+             * fetch the set leverage for a $market
+             * @see https://docs.coinex.com/api/v2/assets/loan-flat/http/list-margin-interest-limit
+             * @param {string} $symbol unified $market $symbol
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a list of ~@link https://docs.ccxt.com/#/?id=leverage-structure leverage structures~
+             * @param {string} $params->code unified $currency $code
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=leverage-structure leverage structure~
              */
             Async\await($this->load_markets());
-            $symbols = $this->market_symbols($symbols);
-            $market = null;
-            if ($symbols !== null) {
-                $symbol = $this->safe_value($symbols, 0);
-                $market = $this->market($symbol);
+            $code = $this->safe_string($params, 'code');
+            if ($code === null) {
+                throw new ArgumentsRequired($this->id . ' fetchLeverage() requires a $code parameter');
             }
-            $marketType = null;
-            list($marketType, $params) = $this->handle_market_type_and_params('fetchLeverages', $market, $params);
-            if ($marketType !== 'spot') {
-                throw new NotSupported($this->id . ' fetchLeverages() supports spot margin markets only');
-            }
-            $response = Async\await($this->v1PrivateGetMarginConfig ($params));
+            $params = $this->omit($params, 'code');
+            $currency = $this->currency($code);
+            $market = $this->market($symbol);
+            $request = array(
+                'market' => $market['id'],
+                'ccy' => $currency['id'],
+            );
+            $response = Async\await($this->v2PrivateGetAssetsMarginInterestLimit ($this->extend($request, $params)));
             //
             //     {
             //         "code" => 0,
             //         "data" => array(
-            //             {
-            //                 "market" => "BTCUSDT",
-            //                 "leverage" => 10,
-            //                 "BTC" => array(
-            //                     "min_amount" => "0.0008",
-            //                     "max_amount" => "200",
-            //                     "day_rate" => "0.0015"
-            //                 ),
-            //                 "USDT" => array(
-            //                     "min_amount" => "50",
-            //                     "max_amount" => "500000",
-            //                     "day_rate" => "0.001"
-            //                 }
-            //             ),
+            //             "market" => "BTCUSDT",
+            //             "ccy" => "USDT",
+            //             "leverage" => 10,
+            //             "min_amount" => "50",
+            //             "max_amount" => "500000",
+            //             "daily_interest_rate" => "0.001"
             //         ),
-            //         "message" => "Success"
+            //         "message" => "OK"
             //     }
             //
-            $leverages = $this->safe_list($response, 'data', array());
-            return $this->parse_leverages($leverages, $symbols, 'market', $marketType);
+            $data = $this->safe_dict($response, 'data', array());
+            return $this->parse_leverage($data, $market);
         }) ();
     }
 
     public function parse_leverage(array $leverage, ?array $market = null): array {
+        //
+        //     {
+        //         "market" => "BTCUSDT",
+        //         "ccy" => "USDT",
+        //         "leverage" => 10,
+        //         "min_amount" => "50",
+        //         "max_amount" => "500000",
+        //         "daily_interest_rate" => "0.001"
+        //     }
+        //
         $marketId = $this->safe_string($leverage, 'market');
         $leverageValue = $this->safe_integer($leverage, 'leverage');
         return array(
             'info' => $leverage,
             'symbol' => $this->safe_symbol($marketId, $market, null, 'spot'),
-            'marginMode' => null,
+            'marginMode' => 'isolated',
             'longLeverage' => $leverageValue,
             'shortLeverage' => $leverageValue,
         );
@@ -5813,7 +5816,7 @@ class coinex extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors($httpCode, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
         if ($response === null) {
             return null;
         }

@@ -186,7 +186,7 @@ class btcalpha(Exchange, ImplicitAPI):
         #
         return self.parse_markets(response)
 
-    def parse_market(self, market) -> Market:
+    def parse_market(self, market: dict) -> Market:
         id = self.safe_string(market, 'name')
         baseId = self.safe_string(market, 'currency1')
         quoteId = self.safe_string(market, 'currency2')
@@ -544,7 +544,7 @@ class btcalpha(Exchange, ImplicitAPI):
             'updated': None,
         }
 
-    def parse_transaction_status(self, status):
+    def parse_transaction_status(self, status: Str):
         statuses: dict = {
             '10': 'pending',  # New
             '20': 'pending',  # Verified, waiting for approving
@@ -866,7 +866,7 @@ class btcalpha(Exchange, ImplicitAPI):
             headers['X-NONCE'] = str(self.nonce())
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response, requestHeaders, requestBody):
         if response is None:
             return None  # fallback to default error handler
         #

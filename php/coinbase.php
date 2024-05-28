@@ -338,6 +338,7 @@ class coinbase extends Exchange {
                 'CGLD' => 'CELO',
             ),
             'options' => array(
+                'usePrivate' => false,
                 'brokerId' => 'ccxt',
                 'stablePairs' => array( 'BUSD-USD', 'CBETH-ETH', 'DAI-USD', 'GUSD-USD', 'GYEN-USD', 'PAX-USD', 'PAX-USDT', 'USDC-EUR', 'USDC-GBP', 'USDT-EUR', 'USDT-GBP', 'USDT-USD', 'USDT-USDC', 'WBTC-BTC' ),
                 'fetchCurrencies' => array(
@@ -784,7 +785,7 @@ class coinbase extends Exchange {
         return $this->fetch_transactions_with_method('v2PrivateGetAccountsAccountIdDeposits', $code, $since, $limit, $params);
     }
 
-    public function parse_transaction_status($status) {
+    public function parse_transaction_status(?string $status) {
         $statuses = array(
             'created' => 'pending',
             'completed' => 'ok',
@@ -1094,6 +1095,7 @@ class coinbase extends Exchange {
          * @see https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-exchange-rates#get-exchange-rates
          * retrieves data on all markets for coinbase
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {boolean} [$params->usePrivate] use private endpoint for fetching markets
          * @return {array[]} an array of objects representing market data
          */
         $method = $this->safe_string($this->options, 'fetchMarkets', 'fetchMarketsV3');
@@ -1177,54 +1179,59 @@ class coinbase extends Exchange {
     }
 
     public function fetch_markets_v3($params = array ()) {
-        $spotUnresolvedPromises = array(
-            $this->v3PublicGetBrokerageMarketProducts ($params),
-            //
-            //    {
-            //        products => array(
-            //            array(
-            //                product_id => 'BTC-USD',
-            //                price => '67060',
-            //                price_percentage_change_24h => '3.30054960636883',
-            //                volume_24h => '10967.87426597',
-            //                volume_percentage_change_24h => '141.73048325503036',
-            //                base_increment => '0.00000001',
-            //                quote_increment => '0.01',
-            //                quote_min_size => '1',
-            //                quote_max_size => '150000000',
-            //                base_min_size => '0.00000001',
-            //                base_max_size => '3400',
-            //                base_name => 'Bitcoin',
-            //                quote_name => 'US Dollar',
-            //                watched => false,
-            //                is_disabled => false,
-            //                new => false,
-            //                status => 'online',
-            //                cancel_only => false,
-            //                limit_only => false,
-            //                post_only => false,
-            //                trading_disabled => false,
-            //                auction_mode => false,
-            //                product_type => 'SPOT',
-            //                quote_currency_id => 'USD',
-            //                base_currency_id => 'BTC',
-            //                fcm_trading_session_details => null,
-            //                mid_market_price => '',
-            //                alias => '',
-            //                alias_to => array( 'BTC-USDC' ),
-            //                base_display_symbol => 'BTC',
-            //                quote_display_symbol => 'USD',
-            //                view_only => false,
-            //                price_increment => '0.01',
-            //                display_name => 'BTC-USD',
-            //                product_venue => 'CBE'
-            //            ),
-            //            ...
-            //        ),
-            //        num_products => '646'
-            //    }
-            //
-        );
+        $usePrivate = false;
+        list($usePrivate, $params) = $this->handle_option_and_params($params, 'fetchMarkets', 'usePrivate', false);
+        $spotUnresolvedPromises = array();
+        if ($usePrivate) {
+            $spotUnresolvedPromises[] = $this->v3PrivateGetBrokerageProducts ($params);
+        } else {
+            $spotUnresolvedPromises[] = $this->v3PublicGetBrokerageMarketProducts ($params);
+        }
+        //
+        //    {
+        //        products => array(
+        //            array(
+        //                product_id => 'BTC-USD',
+        //                price => '67060',
+        //                price_percentage_change_24h => '3.30054960636883',
+        //                volume_24h => '10967.87426597',
+        //                volume_percentage_change_24h => '141.73048325503036',
+        //                base_increment => '0.00000001',
+        //                quote_increment => '0.01',
+        //                quote_min_size => '1',
+        //                quote_max_size => '150000000',
+        //                base_min_size => '0.00000001',
+        //                base_max_size => '3400',
+        //                base_name => 'Bitcoin',
+        //                quote_name => 'US Dollar',
+        //                watched => false,
+        //                is_disabled => false,
+        //                new => false,
+        //                status => 'online',
+        //                cancel_only => false,
+        //                limit_only => false,
+        //                post_only => false,
+        //                trading_disabled => false,
+        //                auction_mode => false,
+        //                product_type => 'SPOT',
+        //                quote_currency_id => 'USD',
+        //                base_currency_id => 'BTC',
+        //                fcm_trading_session_details => null,
+        //                mid_market_price => '',
+        //                alias => '',
+        //                alias_to => array( 'BTC-USDC' ),
+        //                base_display_symbol => 'BTC',
+        //                quote_display_symbol => 'USD',
+        //                view_only => false,
+        //                price_increment => '0.01',
+        //                display_name => 'BTC-USD',
+        //                product_venue => 'CBE'
+        //            ),
+        //            ...
+        //        ),
+        //        num_products => '646'
+        //    }
+        //
         if ($this->check_required_credentials(false)) {
             $spotUnresolvedPromises[] = $this->v3PrivateGetBrokerageTransactionSummary ($params);
         }
@@ -1750,6 +1757,7 @@ class coinbase extends Exchange {
          * @see https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-exchange-rates#get-exchange-rates
          * @param {string[]|null} $symbols unified $symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {boolean} [$params->usePrivate] use private endpoint for fetching tickers
          * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structures~
          */
         $method = $this->safe_string($this->options, 'fetchTickers', 'fetchTickersV3');
@@ -1806,7 +1814,14 @@ class coinbase extends Exchange {
         if ($marketType !== null && $marketType !== 'default') {
             $request['product_type'] = ($marketType === 'swap') ? 'FUTURE' : 'SPOT';
         }
-        $response = $this->v3PublicGetBrokerageMarketProducts ($this->extend($request, $params));
+        $response = null;
+        $usePrivate = false;
+        list($usePrivate, $params) = $this->handle_option_and_params($params, 'fetchTickers', 'usePrivate', false);
+        if ($usePrivate) {
+            $response = $this->v3PrivateGetBrokerageProducts ($this->extend($request, $params));
+        } else {
+            $response = $this->v3PublicGetBrokerageMarketProducts ($this->extend($request, $params));
+        }
         //
         //     {
         //         "products" => array(
@@ -1865,6 +1880,7 @@ class coinbase extends Exchange {
          * @see https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-prices#get-sell-price
          * @param {string} $symbol unified $symbol of the market to fetch the ticker for
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {boolean} [$params->usePrivate] whether to use the private endpoint for fetching the ticker
          * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
          */
         $method = $this->safe_string($this->options, 'fetchTicker', 'fetchTickerV3');
@@ -1910,7 +1926,14 @@ class coinbase extends Exchange {
             'product_id' => $market['id'],
             'limit' => 1,
         );
-        $response = $this->v3PublicGetBrokerageMarketProductsProductIdTicker ($this->extend($request, $params));
+        $usePrivate = false;
+        list($usePrivate, $params) = $this->handle_option_and_params($params, 'fetchTicker', 'usePrivate', false);
+        $response = null;
+        if ($usePrivate) {
+            $response = $this->v3PrivateGetBrokerageProductsProductIdTicker ($this->extend($request, $params));
+        } else {
+            $response = $this->v3PublicGetBrokerageMarketProductsProductIdTicker ($this->extend($request, $params));
+        }
         //
         //     {
         //         "trades" => array(
@@ -3454,6 +3477,7 @@ class coinbase extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {int} [$params->until] the latest time in ms to fetch trades for
          * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
+         * @param {boolean} [$params->usePrivate] default false, when true will use the private endpoint to fetch the $candles
          * @return {int[][]} A list of $candles ordered, open, high, low, close, volume
          */
         $this->load_markets();
@@ -3487,7 +3511,14 @@ class coinbase extends Exchange {
             // 300 $candles max
             $request['end'] = Precise::string_add($sinceString, (string) $requestedDuration);
         }
-        $response = $this->v3PublicGetBrokerageMarketProductsProductIdCandles ($this->extend($request, $params));
+        $response = null;
+        $usePrivate = false;
+        list($usePrivate, $params) = $this->handle_option_and_params($params, 'fetchOHLCV', 'usePrivate', false);
+        if ($usePrivate) {
+            $response = $this->v3PrivateGetBrokerageProductsProductIdCandles ($this->extend($request, $params));
+        } else {
+            $response = $this->v3PublicGetBrokerageMarketProductsProductIdCandles ($this->extend($request, $params));
+        }
         //
         //     {
         //         "candles" => array(
@@ -3537,6 +3568,7 @@ class coinbase extends Exchange {
          * @param {int} [$since] not used by coinbase fetchTrades
          * @param {int} [$limit] the maximum number of trade structures to fetch
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {boolean} [$params->usePrivate] default false, when true will use the private endpoint to fetch the $trades
          * @return {Trade[]} a list of ~@link https://docs.ccxt.com/#/?id=public-$trades trade structures~
          */
         $this->load_markets();
@@ -3557,7 +3589,14 @@ class coinbase extends Exchange {
         } elseif ($since !== null) {
             throw new ArgumentsRequired($this->id . ' fetchTrades() requires a `$until` parameter when you use `$since` argument');
         }
-        $response = $this->v3PublicGetBrokerageMarketProductsProductIdTicker ($this->extend($request, $params));
+        $response = null;
+        $usePrivate = false;
+        list($usePrivate, $params) = $this->handle_option_and_params($params, 'fetchTrades', 'usePrivate', false);
+        if ($usePrivate) {
+            $response = $this->v3PrivateGetBrokerageProductsProductIdTicker ($this->extend($request, $params));
+        } else {
+            $response = $this->v3PublicGetBrokerageMarketProductsProductIdTicker ($this->extend($request, $params));
+        }
         //
         //     {
         //         "trades" => array(
@@ -3656,6 +3695,7 @@ class coinbase extends Exchange {
          * @param {string} $symbol unified $symbol of the $market to fetch the order book for
          * @param {int} [$limit] the maximum amount of order book entries to return
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {boolean} [$params->usePrivate] default false, when true will use the private endpoint to fetch the order book
          * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by $market symbols
          */
         $this->load_markets();
@@ -3666,7 +3706,14 @@ class coinbase extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
-        $response = $this->v3PublicGetBrokerageMarketProductBook ($this->extend($request, $params));
+        $response = null;
+        $usePrivate = false;
+        list($usePrivate, $params) = $this->handle_option_and_params($params, 'fetchOrderBook', 'usePrivate', false);
+        if ($usePrivate) {
+            $response = $this->v3PrivateGetBrokerageProductBook ($this->extend($request, $params));
+        } else {
+            $response = $this->v3PublicGetBrokerageMarketProductBook ($this->extend($request, $params));
+        }
         //
         //     {
         //         "pricebook" => {
@@ -4559,7 +4606,7 @@ class coinbase extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
         if ($response === null) {
             return null; // fallback to default error handler
         }

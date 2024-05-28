@@ -233,6 +233,7 @@ class binance extends Exchange {
                         'system/status' => 0.1,
                         // these endpoints require $this->apiKey
                         'accountSnapshot' => 240, // Weight(IP) => 2400 => cost = 0.1 * 2400 = 240
+                        'account/info' => 0.1,
                         'margin/asset' => 1, // Weight(IP) => 10 => cost = 0.1 * 10 = 1
                         'margin/pair' => 1,
                         'margin/allAssets' => 0.1,
@@ -3056,7 +3057,7 @@ class binance extends Exchange {
         return $result;
     }
 
-    public function parse_market($market): array {
+    public function parse_market(array $market): array {
         $swap = false;
         $future = false;
         $option = false;
@@ -4866,7 +4867,7 @@ class binance extends Exchange {
         if ($cancelId === null) {
             $request['cancelOrderId'] = $id; // user can provide either cancelOrderId, cancelOrigClientOrderId or cancelOrigClientOrderId
         }
-        // remove timeInForce from $params because PO is only used by $this->is_post_onlyand it's not a valid value for Binance
+        // remove timeInForce from $params because PO is only used by array($this, 'is_post_only') and it's not a valid value for Binance
         if ($this->safe_string($params, 'timeInForce') === 'PO') {
             $params = $this->omit($params, array( 'timeInForce' ));
         }
@@ -6002,7 +6003,7 @@ class binance extends Exchange {
         if (!$isPortfolioMargin && $market['contract'] && $postOnly) {
             $request['timeInForce'] = 'GTX';
         }
-        // remove timeInForce from $params because PO is only used by $this->is_post_onlyand it's not a valid value for Binance
+        // remove timeInForce from $params because PO is only used by array($this, 'is_post_only') and it's not a valid value for Binance
         if ($this->safe_string($params, 'timeInForce') === 'PO') {
             $params = $this->omit($params, 'timeInForce');
         }
@@ -10784,7 +10785,7 @@ class binance extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function get_exceptions_by_url($url, $exactOrBroad) {
+    public function get_exceptions_by_url(string $url, string $exactOrBroad) {
         $marketType = null;
         $hostname = ($this->hostname !== null) ? $this->hostname : 'binance.com';
         if (str_starts_with($url, 'https://api.' . $hostname . '/')) {
@@ -10805,7 +10806,7 @@ class binance extends Exchange {
         return array();
     }
 
-    public function handle_errors($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
         if (($code === 418) || ($code === 429)) {
             throw new DDoSProtection($this->id . ' ' . (string) $code . ' ' . $reason . ' ' . $body);
         }

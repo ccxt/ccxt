@@ -490,7 +490,7 @@ class bitget extends Exchange {
                             'v2/mix/account/set-margin' => 4,
                             'v2/mix/account/set-margin-mode' => 4,
                             'v2/mix/account/set-position-mode' => 4,
-                            'v2/mix/order/place-order' => 20,
+                            'v2/mix/order/place-order' => 2,
                             'v2/mix/order/click-backhand' => 20,
                             'v2/mix/order/batch-place-order' => 20,
                             'v2/mix/order/modify-order' => 2,
@@ -1569,7 +1569,7 @@ class bitget extends Exchange {
         }) ();
     }
 
-    public function parse_market($market): array {
+    public function parse_market(array $market): array {
         //
         // $spot
         //
@@ -2437,7 +2437,7 @@ class bitget extends Exchange {
         );
     }
 
-    public function parse_transaction_status($status) {
+    public function parse_transaction_status(?string $status) {
         $statuses = array(
             'success' => 'ok',
             'Pending' => 'pending',
@@ -2805,7 +2805,7 @@ class bitget extends Exchange {
             $request = array();
             $type = null;
             list($type, $params) = $this->handle_market_type_and_params('fetchTickers', $market, $params);
-            // Calls like `.fetch_tickers(null, array(subType:'inverse'))` should be supported for this exchange, so
+            // Calls like `.fetchTickers (null, array(subType:'inverse'))` should be supported for this exchange, so
             // as "options.defaultSubType" is also set in exchange options, we should consider `$params->subType`
             // with higher priority and only default to spot, if `subType` is not set in $params
             $passedSubType = $this->safe_string($params, 'subType');
@@ -8731,7 +8731,7 @@ class bitget extends Exchange {
         }) ();
     }
 
-    public function handle_errors($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
         if (!$response) {
             return null; // fallback to default error handler
         }

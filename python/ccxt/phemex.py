@@ -512,7 +512,7 @@ class phemex(Exchange, ImplicitAPI):
         parts = value.split(' ')
         return self.safe_number(parts, 0)
 
-    def parse_swap_market(self, market):
+    def parse_swap_market(self, market: dict):
         #
         #     {
         #         "symbol":"BTCUSD",
@@ -647,7 +647,7 @@ class phemex(Exchange, ImplicitAPI):
             'info': market,
         })
 
-    def parse_spot_market(self, market):
+    def parse_spot_market(self, market: dict):
         #
         #     {
         #         "symbol":"sBTCUSDT",
@@ -3225,7 +3225,7 @@ class phemex(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data', [])
         return self.parse_transactions(data, currency, since, limit)
 
-    def parse_transaction_status(self, status):
+    def parse_transaction_status(self, status: Str):
         statuses: dict = {
             'Success': 'ok',
             'Succeed': 'ok',
@@ -4453,7 +4453,7 @@ class phemex(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 'data', {})
         return self.parse_transaction(data, currency)
 
-    def handle_errors(self, httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody):
+    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response, requestHeaders, requestBody):
         if response is None:
             return None  # fallback to default error handler
         #

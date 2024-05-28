@@ -1605,7 +1605,7 @@ class currencycom(Exchange, ImplicitAPI):
             'fee': fee,
         }
 
-    def parse_transaction_status(self, status):
+    def parse_transaction_status(self, status: Str):
         statuses: dict = {
             'APPROVAL': 'pending',
             'PROCESSED': 'ok',
@@ -1922,7 +1922,7 @@ class currencycom(Exchange, ImplicitAPI):
             'takeProfitPrice': None,
         })
 
-    def handle_errors(self, httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody):
+    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response, requestHeaders, requestBody):
         if (httpCode == 418) or (httpCode == 429):
             raise DDoSProtection(self.id + ' ' + str(httpCode) + ' ' + reason + ' ' + body)
         # error response in a form: {"code": -1013, "msg": "Invalid quantity."}

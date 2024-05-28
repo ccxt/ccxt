@@ -2279,7 +2279,7 @@ class wavesexchange(Exchange, ImplicitAPI):
             data = self.array_concat(data, items)
         return self.parse_deposit_withdraw_fees(data, codes, 'id')
 
-    def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response, requestHeaders, requestBody):
         errorCode = self.safe_string(response, 'error')
         success = self.safe_bool(response, 'success', True)
         Exception = self.safe_value(self.exceptions, errorCode)

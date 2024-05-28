@@ -1206,7 +1206,7 @@ export default class whitebit extends Exchange {
     async createMarketOrderWithCost(symbol, side, cost, params = {}) {
         /**
          * @method
-         * @name createMarketOrderWithCost
+         * @name whitebit#createMarketOrderWithCost
          * @description create a market order by providing the symbol, side and cost
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {string} side 'buy' or 'sell'
@@ -1221,7 +1221,7 @@ export default class whitebit extends Exchange {
     async createMarketBuyOrderWithCost(symbol, cost, params = {}) {
         /**
          * @method
-         * @name createMarketBuyOrderWithCost
+         * @name whitebit#createMarketBuyOrderWithCost
          * @description create a market buy order by providing the symbol and cost
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {float} cost how much you want to trade in units of the quote currency
