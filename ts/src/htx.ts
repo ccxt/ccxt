@@ -9000,10 +9000,10 @@ export default class htx extends Exchange {
         const market = this.market (symbol);
         const clientOrderId = this.safeString (params, 'clientOrderId');
         if (!market['contract']) {
-            throw new BadRequest (this.id + ' fetchMarketLeverageTiers() symbol supports contract markets only');
+            throw new BadRequest (this.id + ' closePosition() symbol supports contract markets only');
         }
         this.checkRequiredArgument ('closePosition', side, 'side');
-        const request = {
+        const request: Dict = {
             'contract_code': market['id'],
             'direction': side,
         };
@@ -9027,10 +9027,7 @@ export default class htx extends Exchange {
             }
         } else {  // USDT-M
             let marginMode = undefined;
-            [ marginMode, params ] = this.handleMarginModeAndParams ('closePosition', params);
-            if (marginMode === undefined) {
-                throw new ArgumentsRequired (this.id + ' closePosition requires an extra argument params["marginMode"] for linear markets');
-            }
+            [ marginMode, params ] = this.handleMarginModeAndParams ('closePosition', params, 'cross');
             if (marginMode === 'cross') {
                 response = await this.contractPrivatePostLinearSwapApiV1SwapCrossLightningClosePosition (this.extend (request, params));
             } else {  // isolated
