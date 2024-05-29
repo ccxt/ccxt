@@ -21,7 +21,7 @@ export default class vertex extends vertexRest {
                 'watchOHLCV': false,
                 'watchOrderBook': true,
                 'watchOrders': false,
-                'watchTicker': false,
+                'watchTicker': true,
                 'watchTickers': false,
                 'watchTrades': true,
                 'watchPositions': false,
