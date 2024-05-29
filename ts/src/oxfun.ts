@@ -2814,7 +2814,7 @@ export default class oxfun extends Exchange {
                 body = this.json (params);
                 queryString = body;
             }
-            const msgString = datetime + '\n' + nonce + '\n' + method + '\n' + urlParts[1] + '\n/' + path + '\n' + queryString;
+            const msgString = datetime + '\n' + nonce.toString () + '\n' + method + '\n' + urlParts[1] + '\n/' + path + '\n' + queryString;
             const signature = this.hmac (this.encode (msgString), this.encode (this.secret), sha256, 'base64');
             headers = {
                 'Content-Type': 'application/json',
