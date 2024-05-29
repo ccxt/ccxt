@@ -448,7 +448,8 @@ class bit2c(Exchange, ImplicitAPI):
         request: dict = {
             'id': id,
         }
-        return self.privatePostOrderCancelOrder(self.extend(request, params))
+        response = self.privatePostOrderCancelOrder(self.extend(request, params))
+        return self.parse_order(response)
 
     def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """

@@ -1225,6 +1225,7 @@ class bitget extends Exchange {
                     '40712' => '\\ccxt\\InsufficientFunds', // Insufficient margin
                     '40713' => '\\ccxt\\ExchangeError', // Cannot exceed the maximum transferable margin amount
                     '40714' => '\\ccxt\\ExchangeError', // No direct margin call is allowed
+                    '40762' => '\\ccxt\\InsufficientFunds', // array("code":"40762","msg":"The order amount exceeds the balance","requestTime":1716572156622,"data":null)
                     '40768' => '\\ccxt\\OrderNotFound', // Order does not exist"
                     '41114' => '\\ccxt\\OnMaintenance', // array("code":"41114","msg":"The current trading pair is under maintenance, please refer to the official announcement for the opening time","requestTime":1679196062544,"data":null)
                     '43011' => '\\ccxt\\InvalidOrder', // The parameter does not meet the specification executePrice <= 0
@@ -4270,11 +4271,17 @@ class bitget extends Exchange {
                 }
                 $marginModeRequest = ($marginMode === 'cross') ? 'crossed' : 'isolated';
                 $request['marginMode'] = $marginModeRequest;
-                $oneWayMode = $this->safe_bool($params, 'oneWayMode', false);
-                $params = $this->omit($params, 'oneWayMode');
+                $hedged = null;
+                list($hedged, $params) = $this->handle_param_bool($params, 'hedged', false);
+                // backward compatibility for `$oneWayMode`
+                $oneWayMode = null;
+                list($oneWayMode, $params) = $this->handle_param_bool($params, 'oneWayMode');
+                if ($oneWayMode !== null) {
+                    $hedged = !$oneWayMode;
+                }
                 $requestSide = $side;
                 if ($reduceOnly) {
-                    if ($oneWayMode) {
+                    if (!$hedged) {
                         $request['reduceOnly'] = 'YES';
                     } else {
                         // on bitget hedge mode if the position is long the $side is always buy, and if the position is short the $side is always sell
@@ -4282,7 +4289,7 @@ class bitget extends Exchange {
                         $request['tradeSide'] = 'Close';
                     }
                 } else {
-                    if (!$oneWayMode) {
+                    if ($hedged) {
                         $request['tradeSide'] = 'Open';
                     }
                 }

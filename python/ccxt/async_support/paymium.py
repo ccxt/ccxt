@@ -407,7 +407,10 @@ class paymium(Exchange, ImplicitAPI):
         request: dict = {
             'uuid': id,
         }
-        return await self.privateDeleteUserOrdersUuidCancel(self.extend(request, params))
+        response = await self.privateDeleteUserOrdersUuidCancel(self.extend(request, params))
+        return self.safe_order({
+            'info': response,
+        })
 
     async def transfer(self, code: str, amount: float, fromAccount: str, toAccount: str, params={}) -> TransferEntry:
         """
