@@ -955,7 +955,7 @@ export default class oxfun extends oxfunRest {
         const marketId = this.marketId (symbol);
         const dataArray = [];
         for (let i = 0; i < idsLength; i++) {
-            const data = {
+            const data: Dict = {
                 'instId': marketId,
                 'ordId': ids[i],
             };
