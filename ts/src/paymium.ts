@@ -441,7 +441,10 @@ export default class paymium extends Exchange {
         const request: Dict = {
             'uuid': id,
         };
-        return await this.privateDeleteUserOrdersUuidCancel (this.extend (request, params));
+        const response = await this.privateDeleteUserOrdersUuidCancel (this.extend (request, params));
+        return this.safeOrder ({
+            'info': response,
+        });
     }
 
     async transfer (code: string, amount: number, fromAccount: string, toAccount:string, params = {}): Promise<TransferEntry> {
