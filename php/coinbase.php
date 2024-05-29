@@ -107,8 +107,8 @@ class coinbase extends Exchange {
                 'fetchTickers' => true,
                 'fetchTime' => true,
                 'fetchTrades' => true,
-                'fetchTradingFee' => false,
-                'fetchTradingFees' => false,
+                'fetchTradingFee' => 'emulated',
+                'fetchTradingFees' => true,
                 'fetchWithdrawals' => true,
                 'reduceMargin' => false,
                 'setLeverage' => false,
@@ -4482,6 +4482,66 @@ class coinbase extends Exchange {
             'stopLossPrice' => null,
             'takeProfitPrice' => null,
         ));
+    }
+
+    public function fetch_trading_fees($params = array ()): array {
+        /**
+         * @see https://docs.cdp.coinbase.com/advanced-trade/reference/retailbrokerageapi_gettransactionsummary/
+         * fetch the trading fees for multiple markets
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->type] 'spot' or 'swap'
+         * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=fee-structure fee structures~ indexed by $market symbols
+         */
+        $this->load_markets();
+        $type = null;
+        list($type, $params) = $this->handle_market_type_and_params('fetchTradingFees', null, $params);
+        $isSpot = ($type === 'spot');
+        $productType = $isSpot ? 'SPOT' : 'FUTURE';
+        $request = array(
+            'product_type' => $productType,
+        );
+        $response = $this->v3PrivateGetBrokerageTransactionSummary ($this->extend($request, $params));
+        //
+        // {
+        //     total_volume => '0',
+        //     total_fees => '0',
+        //     fee_tier => array(
+        //       pricing_tier => 'Advanced 1',
+        //       usd_from => '0',
+        //       usd_to => '1000',
+        //       taker_fee_rate => '0.008',
+        //       maker_fee_rate => '0.006',
+        //       aop_from => '',
+        //       aop_to => ''
+        //     ),
+        //     margin_rate => null,
+        //     goods_and_services_tax => null,
+        //     advanced_trade_only_volume => '0',
+        //     advanced_trade_only_fees => '0',
+        //     coinbase_pro_volume => '0',
+        //     coinbase_pro_fees => '0',
+        //     total_balance => '',
+        //     has_promo_fee => false
+        // }
+        //
+        $data = $this->safe_dict($response, 'fee_tier', array());
+        $taker_fee = $this->safe_number($data, 'taker_fee_rate');
+        $marker_fee = $this->safe_number($data, 'maker_fee_rate');
+        $result = array();
+        for ($i = 0; $i < count($this->symbols); $i++) {
+            $symbol = $this->symbols[$i];
+            $market = $this->market($symbol);
+            if (($isSpot && $market['spot']) || (!$isSpot && !$market['spot'])) {
+                $result[$symbol] = array(
+                    'info' => $response,
+                    'symbol' => $symbol,
+                    'maker' => $taker_fee,
+                    'taker' => $marker_fee,
+                    'percentage' => true,
+                );
+            }
+        }
+        return $result;
     }
 
     public function create_auth_token(?int $seconds, ?string $method = null, ?string $url = null) {

@@ -1001,7 +1001,9 @@ export default class kraken extends Exchange {
             request['interval'] = timeframe;
         }
         if (since !== undefined) {
-            request['since'] = this.numberToString (this.parseToInt (since / 1000)); // expected to be in seconds
+            const scaledSince = this.parseToInt (since / 1000);
+            const timeFrameInSeconds = parsedTimeframe * 60;
+            request['since'] = this.numberToString (scaledSince - timeFrameInSeconds); // expected to be in seconds
         }
         const response = await this.publicGetOHLC (this.extend (request, params));
         //

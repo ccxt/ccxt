@@ -143,7 +143,7 @@ public partial class okx : ccxt.okx
             { "op", "subscribe" },
             { "args", new List<object> {this.deepExtend(firstArgument, parameters)} },
         };
-        return this.watch(url, messageHash, request, messageHash);
+        return await this.watch(url, messageHash, request, messageHash);
     }
 
     public async override Task<object> watchTrades(object symbol, object since = null, object limit = null, object parameters = null)
@@ -1176,12 +1176,11 @@ public partial class okx : ccxt.okx
             }
         } else if (isTrue(isTrue((isEqual(channel, "books5"))) || isTrue((isEqual(channel, "bbo-tbt")))))
         {
-            object orderbook = this.safeValue(this.orderbooks, symbol);
-            if (isTrue(isEqual(orderbook, null)))
+            if (!isTrue((inOp(this.orderbooks, symbol))))
             {
-                orderbook = this.orderBook(new Dictionary<string, object>() {}, limit);
+                ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.orderBook(new Dictionary<string, object>() {}, limit);
             }
-            ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = orderbook;
+            object orderbook = getValue(this.orderbooks, symbol);
             for (object i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
             {
                 object update = getValue(data, i);

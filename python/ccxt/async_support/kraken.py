@@ -970,7 +970,9 @@ class kraken(Exchange, ImplicitAPI):
         else:
             request['interval'] = timeframe
         if since is not None:
-            request['since'] = self.number_to_string(self.parse_to_int(since / 1000))  # expected to be in seconds
+            scaledSince = self.parse_to_int(since / 1000)
+            timeFrameInSeconds = parsedTimeframe * 60
+            request['since'] = self.number_to_string(scaledSince - timeFrameInSeconds)  # expected to be in seconds
         response = await self.publicGetOHLC(self.extend(request, params))
         #
         #     {

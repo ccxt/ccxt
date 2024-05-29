@@ -1230,6 +1230,7 @@ export default class bitget extends Exchange {
                     '40712': InsufficientFunds, // Insufficient margin
                     '40713': ExchangeError, // Cannot exceed the maximum transferable margin amount
                     '40714': ExchangeError, // No direct margin call is allowed
+                    '40762': InsufficientFunds, // {"code":"40762","msg":"The order amount exceeds the balance","requestTime":1716572156622,"data":null}
                     '40768': OrderNotFound, // Order does not exist"
                     '41114': OnMaintenance, // {"code":"41114","msg":"The current trading pair is under maintenance, please refer to the official announcement for the opening time","requestTime":1679196062544,"data":null}
                     '43011': InvalidOrder, // The parameter does not meet the specification executePrice <= 0
@@ -4313,11 +4314,17 @@ export default class bitget extends Exchange {
                 }
                 const marginModeRequest = (marginMode === 'cross') ? 'crossed' : 'isolated';
                 request['marginMode'] = marginModeRequest;
-                const oneWayMode = this.safeBool (params, 'oneWayMode', false);
-                params = this.omit (params, 'oneWayMode');
+                let hedged = undefined;
+                [ hedged, params ] = this.handleParamBool (params, 'hedged', false);
+                // backward compatibility for `oneWayMode`
+                let oneWayMode = undefined;
+                [ oneWayMode, params ] = this.handleParamBool (params, 'oneWayMode');
+                if (oneWayMode !== undefined) {
+                    hedged = !oneWayMode;
+                }
                 let requestSide = side;
                 if (reduceOnly) {
-                    if (oneWayMode) {
+                    if (!hedged) {
                         request['reduceOnly'] = 'YES';
                     } else {
                         // on bitget hedge mode if the position is long the side is always buy, and if the position is short the side is always sell
@@ -4325,7 +4332,7 @@ export default class bitget extends Exchange {
                         request['tradeSide'] = 'Close';
                     }
                 } else {
-                    if (!oneWayMode) {
+                    if (hedged) {
                         request['tradeSide'] = 'Open';
                     }
                 }

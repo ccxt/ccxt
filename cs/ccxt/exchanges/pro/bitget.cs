@@ -1055,7 +1055,9 @@ public partial class bitget : ccxt.bitget
         * @param {int} [limit] the maximum number of order structures to retrieve
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @param {boolean} [params.stop] *contract only* set to true for watching trigger orders
-        * @param {string} [params.marginMode] 'isolated' or 'cross' for watching spot margin orders
+        * @param {string} [params.marginMode] 'isolated' or 'cross' for watching spot margin orders]
+        * @param {string} [params.type] 'spot', 'swap'
+        * @param {string} [params.subType] 'linear', 'inverse'
         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
         */
         parameters ??= new Dictionary<string, object>();
@@ -1075,13 +1077,31 @@ public partial class bitget : ccxt.bitget
             marketId = getValue(market, "id");
             messageHash = add(add(messageHash, ":"), symbol);
         }
+        object productType = this.safeString(parameters, "productType");
         object type = null;
         var typeparametersVariable = this.handleMarketTypeAndParams("watchOrders", market, parameters);
         type = ((IList<object>)typeparametersVariable)[0];
         parameters = ((IList<object>)typeparametersVariable)[1];
+        object subType = null;
+        var subTypeparametersVariable = this.handleSubTypeAndParams("watchOrders", market, parameters, "linear");
+        subType = ((IList<object>)subTypeparametersVariable)[0];
+        parameters = ((IList<object>)subTypeparametersVariable)[1];
         if (isTrue(isTrue((isEqual(type, "spot"))) && isTrue((isEqual(symbol, null)))))
         {
             throw new ArgumentsRequired ((string)add(add(add(this.id, " watchOrders requires a symbol argument for "), type), " markets.")) ;
+        }
+        if (isTrue(isTrue(isTrue((isEqual(productType, null))) && isTrue((!isEqual(type, "spot")))) && isTrue((isEqual(symbol, null)))))
+        {
+            messageHash = add(add(messageHash, ":"), subType);
+        } else if (isTrue(isEqual(productType, "USDT-FUTURES")))
+        {
+            messageHash = add(messageHash, ":linear");
+        } else if (isTrue(isEqual(productType, "COIN-FUTURES")))
+        {
+            messageHash = add(messageHash, ":inverse");
+        } else if (isTrue(isEqual(productType, "USDC-FUTURES")))
+        {
+            messageHash = add(messageHash, ":usdcfutures"); // non unified channel
         }
         object instType = null;
         var instTypeparametersVariable = this.getInstType(market, parameters);
@@ -1112,6 +1132,7 @@ public partial class bitget : ccxt.bitget
                 channel = "orders-crossed";
             }
         }
+        subscriptionHash = add(add(subscriptionHash, ":"), instType);
         object args = new Dictionary<string, object>() {
             { "instType", instType },
             { "channel", channel },
@@ -1175,6 +1196,9 @@ public partial class bitget : ccxt.bitget
         {
             marketType = "contract";
         }
+        object isLinearSwap = (isEqual(instType, "USDT-FUTURES"));
+        object isInverseSwap = (isEqual(instType, "COIN-FUTURES"));
+        object isUSDCFutures = (isEqual(instType, "USDC-FUTURES"));
         object data = this.safeValue(message, "data", new List<object>() {});
         if (isTrue(isEqual(this.orders, null)))
         {
@@ -1204,6 +1228,18 @@ public partial class bitget : ccxt.bitget
             callDynamically(client as WebSocketClient, "resolve", new object[] {stored, innerMessageHash});
         }
         callDynamically(client as WebSocketClient, "resolve", new object[] {stored, messageHash});
+        if (isTrue(isLinearSwap))
+        {
+            callDynamically(client as WebSocketClient, "resolve", new object[] {stored, "order:linear"});
+        }
+        if (isTrue(isInverseSwap))
+        {
+            callDynamically(client as WebSocketClient, "resolve", new object[] {stored, "order:inverse"});
+        }
+        if (isTrue(isUSDCFutures))
+        {
+            callDynamically(client as WebSocketClient, "resolve", new object[] {stored, "order:usdcfutures"});
+        }
     }
 
     public override object parseWsOrder(object order, object market = null)

@@ -1201,15 +1201,9 @@ class bitmart extends Exchange {
         $market = $this->safe_market($marketId, $market);
         $symbol = $market['symbol'];
         $last = $this->safe_string_2($ticker, 'close_24h', 'last_price');
-        $percentage = $this->safe_string($ticker, 'price_change_percent_24h');
+        $percentage = Precise::string_abs($this->safe_string($ticker, 'price_change_percent_24h'));
         if ($percentage === null) {
-            $percentageRaw = $this->safe_string($ticker, 'fluctuation');
-            if (($percentageRaw !== null) && ($percentageRaw !== '0')) { // a few tickers show strictly '0' in fluctuation field
-                $direction = $percentageRaw[0];
-                $percentage = $direction . Precise::string_mul(str_replace($direction, '', $percentageRaw), '100');
-            } elseif ($percentageRaw === '0') {
-                $percentage = '0';
-            }
+            $percentage = Precise::string_abs(Precise::string_mul($this->safe_string($ticker, 'fluctuation'), '100'));
         }
         $baseVolume = $this->safe_string($ticker, 'base_volume_24h');
         $quoteVolume = $this->safe_string($ticker, 'quote_volume_24h');

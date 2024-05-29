@@ -473,7 +473,8 @@ class bit2c extends Exchange {
             $request = array(
                 'id' => $id,
             );
-            return Async\await($this->privatePostOrderCancelOrder ($this->extend($request, $params)));
+            $response = Async\await($this->privatePostOrderCancelOrder ($this->extend($request, $params)));
+            return $this->parse_order($response);
         }) ();
     }
 

@@ -38,8 +38,8 @@ export default class whitebit extends Exchange {
     createMarketBuyOrderWithCost(symbol: string, cost: number, params?: {}): Promise<Order>;
     createOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): Promise<Order>;
     editOrder(id: string, symbol: string, type: OrderType, side: OrderSide, amount?: Num, price?: Num, params?: {}): Promise<Order>;
-    cancelOrder(id: string, symbol?: Str, params?: {}): Promise<any>;
-    cancelAllOrders(symbol?: Str, params?: {}): Promise<any>;
+    cancelOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
+    cancelAllOrders(symbol?: Str, params?: {}): Promise<Order[]>;
     cancelAllOrdersAfter(timeout: Int, params?: {}): Promise<any>;
     parseBalance(response: any): Balances;
     fetchBalance(params?: {}): Promise<Balances>;

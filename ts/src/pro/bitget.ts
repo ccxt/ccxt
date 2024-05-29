@@ -986,7 +986,9 @@ export default class bitget extends bitgetRest {
          * @param {int} [limit] the maximum number of order structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {boolean} [params.stop] *contract only* set to true for watching trigger orders
-         * @param {string} [params.marginMode] 'isolated' or 'cross' for watching spot margin orders
+         * @param {string} [params.marginMode] 'isolated' or 'cross' for watching spot margin orders]
+         * @param {string} [params.type] 'spot', 'swap'
+         * @param {string} [params.subType] 'linear', 'inverse'
          * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
          */
         await this.loadMarkets ();
@@ -1002,10 +1004,22 @@ export default class bitget extends bitgetRest {
             marketId = market['id'];
             messageHash = messageHash + ':' + symbol;
         }
+        const productType = this.safeString (params, 'productType');
         let type = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('watchOrders', market, params);
+        let subType = undefined;
+        [ subType, params ] = this.handleSubTypeAndParams ('watchOrders', market, params, 'linear');
         if ((type === 'spot') && (symbol === undefined)) {
             throw new ArgumentsRequired (this.id + ' watchOrders requires a symbol argument for ' + type + ' markets.');
+        }
+        if ((productType === undefined) && (type !== 'spot') && (symbol === undefined)) {
+            messageHash = messageHash + ':' + subType;
+        } else if (productType === 'USDT-FUTURES') {
+            messageHash = messageHash + ':linear';
+        } else if (productType === 'COIN-FUTURES') {
+            messageHash = messageHash + ':inverse';
+        } else if (productType === 'USDC-FUTURES') {
+            messageHash = messageHash + ':usdcfutures'; // non unified channel
         }
         let instType = undefined;
         [ instType, params ] = this.getInstType (market, params);
@@ -1027,6 +1041,7 @@ export default class bitget extends bitgetRest {
                 channel = 'orders-crossed';
             }
         }
+        subscriptionHash = subscriptionHash + ':' + instType;
         const args: Dict = {
             'instType': instType,
             'channel': channel,
@@ -1085,6 +1100,9 @@ export default class bitget extends bitgetRest {
         } else {
             marketType = 'contract';
         }
+        const isLinearSwap = (instType === 'USDT-FUTURES');
+        const isInverseSwap = (instType === 'COIN-FUTURES');
+        const isUSDCFutures = (instType === 'USDC-FUTURES');
         const data = this.safeValue (message, 'data', []);
         if (this.orders === undefined) {
             const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
@@ -1111,6 +1129,15 @@ export default class bitget extends bitgetRest {
             client.resolve (stored, innerMessageHash);
         }
         client.resolve (stored, messageHash);
+        if (isLinearSwap) {
+            client.resolve (stored, 'order:linear');
+        }
+        if (isInverseSwap) {
+            client.resolve (stored, 'order:inverse');
+        }
+        if (isUSDCFutures) {
+            client.resolve (stored, 'order:usdcfutures');
+        }
     }
 
     parseWsOrder (order, market = undefined) {

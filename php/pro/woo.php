@@ -136,15 +136,15 @@ class woo extends \ccxt\async\woo {
         //         }
         //     }
         //
-        $data = $this->safe_value($message, 'data');
+        $data = $this->safe_dict($message, 'data');
         $marketId = $this->safe_string($data, 'symbol');
         $market = $this->safe_market($marketId);
         $symbol = $market['symbol'];
         $topic = $this->safe_string($message, 'topic');
-        $orderbook = $this->safe_value($this->orderbooks, $symbol);
-        if ($orderbook === null) {
-            $orderbook = $this->order_book(array());
+        if (!(is_array($this->orderbooks) && array_key_exists($symbol, $this->orderbooks))) {
+            $this->orderbooks[$symbol] = $this->order_book(array());
         }
+        $orderbook = $this->orderbooks[$symbol];
         $timestamp = $this->safe_integer($message, 'ts');
         $snapshot = $this->parse_order_book($data, $symbol, $timestamp, 'bids', 'asks');
         $orderbook->reset ($snapshot);

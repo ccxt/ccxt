@@ -984,7 +984,7 @@ public partial class coinex
     /// make a withdrawal
     /// </summary>
     /// <remarks>
-    /// See <see href="https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot002_account015_submit_withdraw"/>  <br/>
+    /// See <see href="https://docs.coinex.com/api/v2/assets/deposit-withdrawal/http/withdrawal"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>

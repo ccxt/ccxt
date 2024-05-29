@@ -1010,7 +1010,9 @@ public partial class kraken : Exchange
         }
         if (isTrue(!isEqual(since, null)))
         {
-            ((IDictionary<string,object>)request)["since"] = this.numberToString(this.parseToInt(divide(since, 1000))); // expected to be in seconds
+            object scaledSince = this.parseToInt(divide(since, 1000));
+            object timeFrameInSeconds = multiply(parsedTimeframe, 60);
+            ((IDictionary<string,object>)request)["since"] = this.numberToString(subtract(scaledSince, timeFrameInSeconds)); // expected to be in seconds
         }
         object response = await this.publicGetOHLC(this.extend(request, parameters));
         //

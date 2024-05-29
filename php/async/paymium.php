@@ -439,7 +439,10 @@ class paymium extends Exchange {
             $request = array(
                 'uuid' => $id,
             );
-            return Async\await($this->privateDeleteUserOrdersUuidCancel ($this->extend($request, $params)));
+            $response = Async\await($this->privateDeleteUserOrdersUuidCancel ($this->extend($request, $params)));
+            return $this->safe_order(array(
+                'info' => $response,
+            ));
         }) ();
     }
 

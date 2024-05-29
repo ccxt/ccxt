@@ -1008,7 +1008,9 @@ class kraken extends Exchange {
                 $request['interval'] = $timeframe;
             }
             if ($since !== null) {
-                $request['since'] = $this->number_to_string($this->parse_to_int($since / 1000)); // expected to be in seconds
+                $scaledSince = $this->parse_to_int($since / 1000);
+                $timeFrameInSeconds = $parsedTimeframe * 60;
+                $request['since'] = $this->number_to_string($scaledSince - $timeFrameInSeconds); // expected to be in seconds
             }
             $response = Async\await($this->publicGetOHLC ($this->extend($request, $params)));
             //

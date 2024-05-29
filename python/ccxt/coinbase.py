@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.coinbase import ImplicitAPI
 import hashlib
-from ccxt.base.types import Account, Balances, Conversion, Currencies, Currency, Int, Market, MarketInterface, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
+from ccxt.base.types import Account, Balances, Conversion, Currencies, Currency, Int, Market, MarketInterface, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -121,8 +121,8 @@ class coinbase(Exchange, ImplicitAPI):
                 'fetchTickers': True,
                 'fetchTime': True,
                 'fetchTrades': True,
-                'fetchTradingFee': False,
-                'fetchTradingFees': False,
+                'fetchTradingFee': 'emulated',
+                'fetchTradingFees': True,
                 'fetchWithdrawals': True,
                 'reduceMargin': False,
                 'setLeverage': False,
@@ -4271,6 +4271,63 @@ class coinbase(Exchange, ImplicitAPI):
             'stopLossPrice': None,
             'takeProfitPrice': None,
         })
+
+    def fetch_trading_fees(self, params={}) -> TradingFees:
+        """
+        :see: https://docs.cdp.coinbase.com/advanced-trade/reference/retailbrokerageapi_gettransactionsummary/
+        fetch the trading fees for multiple markets
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.type]: 'spot' or 'swap'
+        :returns dict: a dictionary of `fee structures <https://docs.ccxt.com/#/?id=fee-structure>` indexed by market symbols
+        """
+        self.load_markets()
+        type = None
+        type, params = self.handle_market_type_and_params('fetchTradingFees', None, params)
+        isSpot = (type == 'spot')
+        productType = 'SPOT' if isSpot else 'FUTURE'
+        request: dict = {
+            'product_type': productType,
+        }
+        response = self.v3PrivateGetBrokerageTransactionSummary(self.extend(request, params))
+        #
+        # {
+        #     total_volume: '0',
+        #     total_fees: '0',
+        #     fee_tier: {
+        #       pricing_tier: 'Advanced 1',
+        #       usd_from: '0',
+        #       usd_to: '1000',
+        #       taker_fee_rate: '0.008',
+        #       maker_fee_rate: '0.006',
+        #       aop_from: '',
+        #       aop_to: ''
+        #     },
+        #     margin_rate: null,
+        #     goods_and_services_tax: null,
+        #     advanced_trade_only_volume: '0',
+        #     advanced_trade_only_fees: '0',
+        #     coinbase_pro_volume: '0',
+        #     coinbase_pro_fees: '0',
+        #     total_balance: '',
+        #     has_promo_fee: False
+        # }
+        #
+        data = self.safe_dict(response, 'fee_tier', {})
+        taker_fee = self.safe_number(data, 'taker_fee_rate')
+        marker_fee = self.safe_number(data, 'maker_fee_rate')
+        result: dict = {}
+        for i in range(0, len(self.symbols)):
+            symbol = self.symbols[i]
+            market = self.market(symbol)
+            if (isSpot and market['spot']) or (not isSpot and not market['spot']):
+                result[symbol] = {
+                    'info': response,
+                    'symbol': symbol,
+                    'maker': taker_fee,
+                    'taker': marker_fee,
+                    'percentage': True,
+                }
+        return result
 
     def create_auth_token(self, seconds: Int, method: Str = None, url: Str = None):
         # it may not work for v2

@@ -678,21 +678,21 @@ class bybit(ccxt.async_support.bybit):
         isSpot = client.url.find('spot') >= 0
         type = self.safe_string(message, 'type')
         isSnapshot = (type == 'snapshot')
-        data = self.safe_value(message, 'data', {})
+        data = self.safe_dict(message, 'data', {})
         marketId = self.safe_string(data, 's')
         marketType = 'spot' if isSpot else 'contract'
         market = self.safe_market(marketId, None, None, marketType)
         symbol = market['symbol']
         timestamp = self.safe_integer(message, 'ts')
-        orderbook = self.safe_value(self.orderbooks, symbol)
-        if orderbook is None:
-            orderbook = self.order_book()
+        if not (symbol in self.orderbooks):
+            self.orderbooks[symbol] = self.order_book()
+        orderbook = self.orderbooks[symbol]
         if isSnapshot:
             snapshot = self.parse_order_book(data, symbol, timestamp, 'b', 'a')
             orderbook.reset(snapshot)
         else:
-            asks = self.safe_value(data, 'a', [])
-            bids = self.safe_value(data, 'b', [])
+            asks = self.safe_list(data, 'a', [])
+            bids = self.safe_list(data, 'b', [])
             self.handle_deltas(orderbook['asks'], asks)
             self.handle_deltas(orderbook['bids'], bids)
             orderbook['timestamp'] = timestamp

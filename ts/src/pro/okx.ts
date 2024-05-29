@@ -164,7 +164,7 @@ export default class okx extends okxRest {
                 this.deepExtend (firstArgument, params),
             ],
         };
-        return this.watch (url, messageHash, request, messageHash);
+        return await this.watch (url, messageHash, request, messageHash);
     }
 
     async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
@@ -1095,11 +1095,10 @@ export default class okx extends okxRest {
                 }
             }
         } else if ((channel === 'books5') || (channel === 'bbo-tbt')) {
-            let orderbook = this.safeValue (this.orderbooks, symbol);
-            if (orderbook === undefined) {
-                orderbook = this.orderBook ({}, limit);
+            if (!(symbol in this.orderbooks)) {
+                this.orderbooks[symbol] = this.orderBook ({}, limit);
             }
-            this.orderbooks[symbol] = orderbook;
+            const orderbook = this.orderbooks[symbol];
             for (let i = 0; i < data.length; i++) {
                 const update = data[i];
                 const timestamp = this.safeInteger (update, 'ts');

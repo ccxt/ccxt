@@ -1069,7 +1069,7 @@ public partial class bingx : Exchange
             time = null;
         }
         object cost = this.safeString(trade, "quoteQty");
-        object type = ((bool) isTrue((isEqual(cost, null)))) ? "spot" : "swap";
+        // const type = (cost === undefined) ? 'spot' : 'swap'; this is not reliable
         object currencyId = this.safeStringN(trade, new List<object>() {"currency", "N", "commissionAsset"});
         object currencyCode = this.safeCurrencyCode(currencyId);
         object m = this.safeBool(trade, "m");
@@ -1112,7 +1112,7 @@ public partial class bingx : Exchange
             { "info", trade },
             { "timestamp", time },
             { "datetime", this.iso8601(time) },
-            { "symbol", this.safeSymbol(marketId, market, "-", type) },
+            { "symbol", this.safeSymbol(marketId, market, "-") },
             { "order", this.safeString2(trade, "orderId", "i") },
             { "type", this.safeStringLower(trade, "o") },
             { "side", this.parseOrderSide(side) },
