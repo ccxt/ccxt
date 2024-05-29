@@ -1004,7 +1004,7 @@ export default class bingx extends bingxRest {
         //    }
         //
         const isSpot = ('dataType' in message);
-        const result = this.safeValue2 (message, 'data', 'o', {});
+        const result = this.safeDict2 (message, 'data', 'o', {});
         let cachedTrades = this.myTrades;
         if (cachedTrades === undefined) {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
