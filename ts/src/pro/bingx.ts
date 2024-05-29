@@ -1061,10 +1061,13 @@ export default class bingx extends bingxRest {
         //         }
         //     }
         //
-        const a = this.safeValue (message, 'a', {});
-        const data = this.safeValue (a, 'B', []);
+        const a = this.safeDict (message, 'a', {});
+        const data = this.safeList (a, 'B', []);
         const timestamp = this.safeInteger2 (message, 'T', 'E');
         const type = ('P' in a) ? 'swap' : 'spot';
+        if (!(type in this.balance)) {
+            this.balance[type] = {};
+        }
         this.balance[type]['info'] = data;
         this.balance[type]['timestamp'] = timestamp;
         this.balance[type]['datetime'] = this.iso8601 (timestamp);
