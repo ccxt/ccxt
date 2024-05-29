@@ -123,13 +123,13 @@ public partial class kraken : Exchange
                     { "get", new Dictionary<string, object>() {
                         { "Assets", 1 },
                         { "AssetPairs", 1 },
-                        { "Depth", 1 },
-                        { "OHLC", 1 },
+                        { "Depth", 1.2 },
+                        { "OHLC", 1.2 },
                         { "Spread", 1 },
                         { "SystemStatus", 1 },
                         { "Ticker", 1 },
                         { "Time", 1 },
-                        { "Trades", 1 },
+                        { "Trades", 1.2 },
                     } },
                 } },
                 { "private", new Dictionary<string, object>() {
