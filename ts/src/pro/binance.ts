@@ -829,8 +829,7 @@ export default class binance extends binanceRest {
         const symbol = market['symbol'];
         const name = 'depth';
         const messageHash = market['lowercaseId'] + '@' + name;
-        const orderbook = this.safeValue (this.orderbooks, symbol);
-        if (orderbook === undefined) {
+        if (!(symbol in this.orderbooks)) {
             //
             // https://github.com/ccxt/ccxt/issues/6672
             //
@@ -841,6 +840,7 @@ export default class binance extends binanceRest {
             //
             return;
         }
+        const orderbook = this.orderbooks[symbol];
         const nonce = this.safeInteger (orderbook, 'nonce');
         if (nonce === undefined) {
             // 2. Buffer the events you receive from the stream.
