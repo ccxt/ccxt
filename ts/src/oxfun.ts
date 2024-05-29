@@ -3,7 +3,7 @@
 
 import Exchange from './abstract/oxfun.js';
 import { Precise } from './base/Precise.js';
-import { ArgumentsRequired, AuthenticationError, BadRequest, ExchangeError, NotSupported } from './base/errors.js';
+import { AccountNotEnabled, ArgumentsRequired, AuthenticationError, BadRequest, BadSymbol, ExchangeError, InvalidOrder, InsufficientFunds, OrderNotFound, MarketClosed, NetworkError, NotSupported, OperationFailed, RateLimitExceeded, RequestTimeout } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import type { Account, Balances, Bool, Currencies, Currency, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderType, OrderSide, OrderRequest, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry } from './base/types.js';
@@ -243,38 +243,70 @@ export default class oxfun extends Exchange {
             },
             'exceptions': {
                 'exact': {
-                    '-20001': BadRequest, // {"success":false,"code":"20001","message":"marketCode is invalid"}
-                    // {"success":false,"code":"20001","message":"timeframe is invalid"}
-                    // {"success":false,"code":"20001","message":"limit exceeds the maximum"}
-                    // {"success":false,"code":"20001","message":"limit is invalid"}
-                    // {"success":false,"code":"20001","message":"startTime/endTime is invalid"}
-                    // {"success":false,"code":"20001","message":"startTime and endTime must be within 7 days of each other"}
-                    // {"success":false,"code":"20001","message":"endTime must be greater than startTime"}
-                    // {"success":false,"code":"20001","message":"level exceeds the maximum"}
-                    // {"success":false,"code":"20001","message":"marketCode is invalid"}
+                    '- 0010': OperationFailed, // {"event":null,"success":false,"message":"Validation failed","code":"0010","data":null} - failed transfer
+                    '-429': RateLimitExceeded, // Rate limit reached
+                    '-05001': AuthenticationError, // Your operation authority is invalid
+                    '-10001': ExchangeError, // General networking failure
+                    '-20000': BadRequest, // Signature is invalid
+                    '-20001': BadRequest, // {"success":false,"code":"20001","message":"marketCode is invalid"
+                    '-20002': BadRequest, // Unexpected error, please check if your request data complies with the specification.
+                    '-20003': NotSupported, // Unrecognized operation
+                    '-20005': AuthenticationError, // Already logged in
+                    '-20006': BadRequest, // Quantity must be greater than zero
+                    '-20007': AuthenticationError, // You are accessing server too rapidly
+                    '-20008': BadRequest, // clientOrderId must be greater than zero if provided
+                    '-20009': BadRequest, // JSON data format is invalid
+                    '-20010': ArgumentsRequired, // Either clientOrderId or orderId is required
+                    '-20011': ArgumentsRequired, // marketCode is required
+                    '-20012': ArgumentsRequired, // side is required
+                    '-20013': ArgumentsRequired, // orderType is required
+                    '-20014': BadRequest, // clientOrderId is not long type
+                    '-20015': BadSymbol, // marketCode is invalid
+                    '-20016': BadRequest, // side is invalid
+                    '-20017': BadRequest, // orderType is invalid
+                    '-20018': BadRequest, // timeInForce is invalid
+                    '-20019': BadRequest, // orderId is invalid
+                    '-20020': BadRequest, // stopPrice or limitPrice is invalid
+                    '-20021': BadRequest, // price is invalid
+                    '-20022': ArgumentsRequired, // price is required for LIMIT order
+                    '-20023': ArgumentsRequired, // timestamp is required
+                    '-20024': ExchangeError, // timestamp exceeds the threshold
+                    '-20025': AuthenticationError, // API key is invalid
+                    '-20026': BadRequest, // Token is invalid or expired
+                    '-20027': BadRequest, // The length of the message exceeds the maximum length
+                    '-20028': BadRequest, // price or stopPrice or limitPrice must be greater than zero
+                    '-20029': BadRequest, // stopPrice must be less than limitPrice for Buy Stop Order
+                    '-20030': BadRequest, // limitPrice must be less than stopPrice for Sell Stop Order
+                    '-20031': MarketClosed, // The marketCode is closed for trading temporarily
+                    '-20032': NetworkError, // Failed to submit due to timeout in server side
+                    '-20033': BadRequest, // triggerType is invalid
+                    '-20034': BadRequest, // The size of tag must be less than 32
+                    '-20050': ExchangeError, // selfTradePreventionMode is invalid
                     '-30001': BadRequest, // {"success":false,"code":"30001","message":"Required parameter 'marketCode' is missing"}
-                    // {"event":null,"success":false,"message":"Validation failed","code":"0010","data":null} - failed transfer
-                    // {"success":false,"code":"20001","message":"subAcc is invalid"}
-                    // {"success":false,"message":null,"code":"500","timestamp":"2024-05-09T13:15:30.418+0000","data":null}
-                    // {"success":false,"code":"20001","message":"This market does not have a funding rate"}
-                    // {"success":false,"code":"30001","message":"Required parameter 'asset' is missing"}
-                    // {"success":false,"code":"20001","message":"startTime and endTime must be within 7 days of each other"}
-                    // {"success":false,"code":"30001","message":"Required parameter 'timestamp' is missing","data":null}
-                    // {"success":false,"code":"20001","message":"subAcc is invalid"}
-                    // {"success":false,"code":"30001","message":"Required parameter 'externalFee' is missing"}
                     '-35034': AuthenticationError, // {"success":false,"code":"35034","message":"Wallet API is not functioning properly, please try again or contact support."}
                     '-35046': AuthenticationError, // {"success":false,"code":"35046","message":"Error. Please refresh the page."}
-                    // {"success":false,"code":"30001","message":"Required parameter 'quantity' is missing"}
-                    // 429 Rate limit reached
-                    // 10001 General networking failure
-                    // 20001 Invalid parameter
-                    // 30001 Missing parameter
-                    // 40001 Alert from the server
-                    // 50001 Unknown server error
-                    // 20031 The marketCode is closed for trading temporarily
+                    '-40001': ExchangeError, // Alert from the server
+                    '-50001': ExchangeError, // Unknown server error
+                    '-300001': AccountNotEnabled, // Invalid account status xxx, please contact administration if any questions
+                    '-300011': InvalidOrder, // Repo market orders are not allowed during the auction window
+                    '-300012': InvalidOrder, // Repo bids above 0 and offers below 0 are not allowed during the auction window
+                    '-100005': OrderNotFound, // Open order not found
+                    '-100006': InvalidOrder, // Open order is not owned by the user
+                    '-100008': BadRequest, // Quantity cannot be less than the quantity increment xxx
+                    '-100015': NetworkError, // recvWindow xxx has expired
+                    '-710001': ExchangeError, // System failure, exception thrown -> xxx
+                    '-710002': BadRequest, // The price is lower than the minimum
+                    '-710003': BadRequest, // The price is higher than the maximum
+                    '-710004': BadRequest, // Position quantity exceeds the limit
+                    '-710005': InsufficientFunds, // Insufficient margin
+                    '-710006': InsufficientFunds, // Insufficient balance
+                    '-710007': InsufficientFunds, // Insufficient position
+                    '-000101': NetworkError, // Internal server is unavailable temporary, try again later
+                    '-000201': NetworkError, // Trade service is busy, try again later
                 },
                 'broad': {
-                    // todo: add more error codes
+                    '-20001': OperationFailed, // Operation failed, please contact system administrator
+                    '-200050': RequestTimeout, // The market is not active
                 },
             },
         });
