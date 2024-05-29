@@ -629,6 +629,7 @@ export default class bitfinex2 extends bitfinex2Rest {
             orderbook['symbol'] = symbol;
             client.resolve (orderbook, messageHash);
         } else {
+            const orderbook = this.orderbooks[symbol];
             const deltas = message[1];
             const orderbookItem = this.orderbooks[symbol];
             if (isRaw) {
