@@ -35,6 +35,8 @@ class htx extends Exchange {
                 'cancelAllOrdersAfter' => true,
                 'cancelOrder' => true,
                 'cancelOrders' => true,
+                'closeAllPositions' => false,
+                'closePosition' => true,
                 'createDepositAddress' => null,
                 'createMarketBuyOrderWithCost' => true,
                 'createMarketOrderWithCost' => false,
@@ -5243,7 +5245,7 @@ class htx extends Exchange {
          * @param {float} [$params->stopLossPrice] *contract only* the $price a stop-loss order is triggered at
          * @param {float} [$params->takeProfitPrice] *contract only* the $price a take-profit order is triggered at
          * @param {string} [$params->operator] *spot and margin only* gte or lte, trigger $price condition
-         * @param {string} [$params->offset] *contract only* 'open', 'close', or 'both', required in hedge mode
+         * @param {string} [$params->offset] *contract only* 'both' (linear only), 'open', or 'close', required in hedge mode and for inverse markets
          * @param {bool} [$params->postOnly] *contract only* true or false
          * @param {int} [$params->leverRate] *contract only* required for all contract orders except tpsl, leverage greater than 20x requires prior approval of high-leverage agreement
          * @param {string} [$params->timeInForce] supports 'IOC' and 'FOK'
@@ -5297,6 +5299,10 @@ class htx extends Exchange {
                     }
                 }
             } elseif ($market['inverse']) {
+                $offset = $this->safe_string($params, 'offset');
+                if ($offset === null) {
+                    throw new ArgumentsRequired($this->id . ' createOrder () requires an extra parameter $params["offset"] to be set to "open" or "close" when placing orders in inverse markets');
+                }
                 if ($market['swap']) {
                     if ($isStop) {
                         $response = $this->contractPrivatePostSwapApiV1SwapTriggerOrder ($contractRequest);
@@ -7332,14 +7338,20 @@ class htx extends Exchange {
          * fetch all open positions
          * @param {string[]|null} $symbols list of unified $market $symbols
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->subType] 'linear' or 'inverse'
+         * @param {string} [$params->type] *inverse only* 'future', or 'swap'
+         * @param {string} [$params->marginMode] *linear only* 'cross' or 'isolated'
          * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=$position-structure $position structure~
          */
         $this->load_markets();
         $symbols = $this->market_symbols($symbols);
         $market = null;
         if ($symbols !== null) {
-            $first = $this->safe_string($symbols, 0);
-            $market = $this->market($first);
+            $symbolsLength = count($symbols);
+            if ($symbolsLength > 0) {
+                $first = $this->safe_string($symbols, 0);
+                $market = $this->market($first);
+            }
         }
         $marginMode = null;
         list($marginMode, $params) = $this->handle_margin_mode_and_params('fetchPositions', $params, 'cross');
@@ -8850,6 +8862,65 @@ class htx extends Exchange {
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
         ));
+    }
+
+    public function close_position(string $symbol, ?string $side = null, $params = array ()): array {
+        /**
+         * closes open positions for a contract $market, requires 'amount' in $params, unlike other exchanges
+         * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-place-lightning-close-order  // USDT-M (isolated)
+         * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-place-lightning-close-position  // USDT-M (cross)
+         * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#place-lightning-close-order  // Coin-M swap
+         * @see https://huobiapi.github.io/docs/dm/v1/en/#place-flash-close-order                      // Coin-M futures
+         * @param {string} $symbol unified CCXT $market $symbol
+         * @param {string} $side 'buy' or 'sell', the $side of the closing order, opposite $side side
+         * @param {array} [$params] extra parameters specific to the okx api endpoint
+         * @param {string} [$params->clientOrderId] client needs to provide unique API and have to maintain the API themselves afterwards. [1, 9223372036854775807]
+         * @param {array} [$params->marginMode] 'cross' or 'isolated', required for linear markets
+         *
+         * EXCHANGE SPECIFIC PARAMETERS
+         * @param {number} [$params->amount] order quantity
+         * @param {string} [$params->order_price_type] 'lightning' by default, 'lightning_fok' => lightning fok type, 'lightning_ioc' => lightning ioc type 'market' by default, 'market' => $market order type, 'lightning_fok' => lightning
+         * @return {array} ~@link https://docs.ccxt.com/#/?id=position-structure an order structure~
+         */
+        $this->load_markets();
+        $market = $this->market($symbol);
+        $clientOrderId = $this->safe_string($params, 'clientOrderId');
+        if (!$market['contract']) {
+            throw new BadRequest($this->id . ' closePosition() $symbol supports contract markets only');
+        }
+        $this->check_required_argument('closePosition', $side, 'side');
+        $request = array(
+            'contract_code' => $market['id'],
+            'direction' => $side,
+        );
+        if ($clientOrderId !== null) {
+            $request['client_order_id'] = $clientOrderId;
+        }
+        if ($market['inverse']) {
+            $amount = $this->safe_string_2($params, 'volume', 'amount');
+            if ($amount === null) {
+                throw new ArgumentsRequired($this->id . ' closePosition () requires an extra argument $params["amount"] for inverse markets');
+            }
+            $request['volume'] = $this->amount_to_precision($symbol, $amount);
+        }
+        $params = $this->omit($params, array( 'clientOrderId', 'volume', 'amount' ));
+        $response = null;
+        if ($market['inverse']) {  // Coin-M
+            if ($market['swap']) {
+                $response = $this->contractPrivatePostSwapApiV1SwapLightningClosePosition ($this->extend($request, $params));
+            } else {  // future
+                $response = $this->contractPrivatePostApiV1LightningClosePosition ($this->extend($request, $params));
+            }
+        } else {  // USDT-M
+            $marginMode = null;
+            list($marginMode, $params) = $this->handle_margin_mode_and_params('closePosition', $params, 'cross');
+            if ($marginMode === 'cross') {
+                $response = $this->contractPrivatePostLinearSwapApiV1SwapCrossLightningClosePosition ($this->extend($request, $params));
+            } else {  // isolated
+                $response = $this->contractPrivatePostLinearSwapApiV1SwapLightningClosePosition ($this->extend($request, $params));
+            }
+        }
+        return $this->parse_order($response, $market);
     }
 
     public function set_position_mode(bool $hedged, ?string $symbol = null, $params = array ()) {

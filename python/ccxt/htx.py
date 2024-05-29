@@ -56,6 +56,8 @@ class htx(Exchange, ImplicitAPI):
                 'cancelAllOrdersAfter': True,
                 'cancelOrder': True,
                 'cancelOrders': True,
+                'closeAllPositions': False,
+                'closePosition': True,
                 'createDepositAddress': None,
                 'createMarketBuyOrderWithCost': True,
                 'createMarketOrderWithCost': False,
@@ -5003,7 +5005,7 @@ class htx(Exchange, ImplicitAPI):
         :param float [params.stopLossPrice]: *contract only* the price a stop-loss order is triggered at
         :param float [params.takeProfitPrice]: *contract only* the price a take-profit order is triggered at
         :param str [params.operator]: *spot and margin only* gte or lte, trigger price condition
-        :param str [params.offset]: *contract only* 'open', 'close', or 'both', required in hedge mode
+        :param str [params.offset]: *contract only* 'both'(linear only), 'open', or 'close', required in hedge mode and for inverse markets
         :param bool [params.postOnly]: *contract only* True or False
         :param int [params.leverRate]: *contract only* required for all contract orders except tpsl, leverage greater than 20x requires prior approval of high-leverage agreement
         :param str [params.timeInForce]: supports 'IOC' and 'FOK'
@@ -5053,6 +5055,9 @@ class htx(Exchange, ImplicitAPI):
                     else:
                         response = self.contractPrivatePostLinearSwapApiV1SwapCrossOrder(contractRequest)
             elif market['inverse']:
+                offset = self.safe_string(params, 'offset')
+                if offset is None:
+                    raise ArgumentsRequired(self.id + ' createOrder() requires an extra parameter params["offset"] to be set to "open" or "close" when placing orders in inverse markets')
                 if market['swap']:
                     if isStop:
                         response = self.contractPrivatePostSwapApiV1SwapTriggerOrder(contractRequest)
@@ -6934,14 +6939,19 @@ class htx(Exchange, ImplicitAPI):
         fetch all open positions
         :param str[]|None symbols: list of unified market symbols
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.subType]: 'linear' or 'inverse'
+        :param str [params.type]: *inverse only* 'future', or 'swap'
+        :param str [params.marginMode]: *linear only* 'cross' or 'isolated'
         :returns dict[]: a list of `position structure <https://docs.ccxt.com/#/?id=position-structure>`
         """
         self.load_markets()
         symbols = self.market_symbols(symbols)
         market = None
         if symbols is not None:
-            first = self.safe_string(symbols, 0)
-            market = self.market(first)
+            symbolsLength = len(symbols)
+            if symbolsLength > 0:
+                first = self.safe_string(symbols, 0)
+                market = self.market(first)
         marginMode = None
         marginMode, params = self.handle_margin_mode_and_params('fetchPositions', params, 'cross')
         subType = None
@@ -8384,6 +8394,57 @@ class htx(Exchange, ImplicitAPI):
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
         })
+
+    def close_position(self, symbol: str, side: OrderSide = None, params={}) -> Order:
+        """
+        closes open positions for a contract market, requires 'amount' in params, unlike other exchanges
+        :see: https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-place-lightning-close-order  # USDT-M(isolated)
+        :see: https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-place-lightning-close-position  # USDT-M(cross)
+        :see: https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#place-lightning-close-order  # Coin-M swap
+        :see: https://huobiapi.github.io/docs/dm/v1/en/#place-flash-close-order                      # Coin-M futures
+        :param str symbol: unified CCXT market symbol
+        :param str side: 'buy' or 'sell', the side of the closing order, opposite side side
+        :param dict [params]: extra parameters specific to the okx api endpoint
+        :param str [params.clientOrderId]: client needs to provide unique API and have to maintain the API themselves afterwards. [1, 9223372036854775807]
+        :param dict [params.marginMode]: 'cross' or 'isolated', required for linear markets
+         *
+         * EXCHANGE SPECIFIC PARAMETERS
+        :param number [params.amount]: order quantity
+        :param str [params.order_price_type]: 'lightning' by default, 'lightning_fok': lightning fok type, 'lightning_ioc': lightning ioc type 'market' by default, 'market': market order type, 'lightning_fok': lightning
+        :returns dict: `an order structure <https://docs.ccxt.com/#/?id=position-structure>`
+        """
+        self.load_markets()
+        market = self.market(symbol)
+        clientOrderId = self.safe_string(params, 'clientOrderId')
+        if not market['contract']:
+            raise BadRequest(self.id + ' closePosition() symbol supports contract markets only')
+        self.check_required_argument('closePosition', side, 'side')
+        request: dict = {
+            'contract_code': market['id'],
+            'direction': side,
+        }
+        if clientOrderId is not None:
+            request['client_order_id'] = clientOrderId
+        if market['inverse']:
+            amount = self.safe_string_2(params, 'volume', 'amount')
+            if amount is None:
+                raise ArgumentsRequired(self.id + ' closePosition() requires an extra argument params["amount"] for inverse markets')
+            request['volume'] = self.amount_to_precision(symbol, amount)
+        params = self.omit(params, ['clientOrderId', 'volume', 'amount'])
+        response = None
+        if market['inverse']:  # Coin-M
+            if market['swap']:
+                response = self.contractPrivatePostSwapApiV1SwapLightningClosePosition(self.extend(request, params))
+            else:  # future
+                response = self.contractPrivatePostApiV1LightningClosePosition(self.extend(request, params))
+        else:  # USDT-M
+            marginMode = None
+            marginMode, params = self.handle_margin_mode_and_params('closePosition', params, 'cross')
+            if marginMode == 'cross':
+                response = self.contractPrivatePostLinearSwapApiV1SwapCrossLightningClosePosition(self.extend(request, params))
+            else:  # isolated
+                response = self.contractPrivatePostLinearSwapApiV1SwapLightningClosePosition(self.extend(request, params))
+        return self.parse_order(response, market)
 
     def set_position_mode(self, hedged: bool, symbol: Str = None, params={}):
         """
