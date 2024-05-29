@@ -803,14 +803,13 @@ export default class oxfun extends oxfunRest {
          */
         await this.loadMarkets ();
         await this.authenticate ();
-        const market = this.market (symbol);
         const messageHash = this.nonce ().toString ();
         const request: Dict = {
             'op': 'placeorder',
             'tag': messageHash,
         };
         params = this.omit (params, 'tag'); // todo: check
-        const orderRequest: Dict = this.createOrderRequest (market, type, side, amount, price, params);
+        const orderRequest: Dict = this.createOrderRequest (symbol, type, side, amount, price, params);
         const timestamp = this.safeInteger (orderRequest, 'timestamp');
         if (timestamp === undefined) {
             orderRequest['timestamp'] = this.milliseconds ();
