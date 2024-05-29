@@ -7435,9 +7435,12 @@ export default class htx extends Exchange {
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
         let market = undefined;
-        if ((symbols !== undefined) && (symbols.length > 0)) {
-            const first = this.safeString (symbols, 0);
-            market = this.market (first);
+        if (symbols !== undefined) {
+            const symbolsLength = symbols.length;
+            if (symbolsLength > 0) {
+                const first = this.safeString (symbols, 0);
+                market = this.market (first);
+            }
         }
         let marginMode = undefined;
         [ marginMode, params ] = this.handleMarginModeAndParams ('fetchPositions', params, 'cross');
