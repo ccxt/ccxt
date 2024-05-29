@@ -99,12 +99,13 @@ export default class vertex extends vertexRest {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
+        const name = 'trade';
         symbol = market['symbol'];
-        const topic = market['id'] + '@trade';
+        const topic = market['id'] + '@' + name;
         const request = {
             'method': 'subscribe',
             'stream': {
-                'type': 'trade',
+                'type': name,
                 'product_id': this.parseToNumeric (market['id']),
             },
         };
@@ -132,11 +133,10 @@ export default class vertex extends vertexRest {
         //     "is_maker_amm": true // true when maker is amm
         // }
         //
-        const timestamp = this.safeInteger (message, 'timestamp');
         const marketId = this.safeString (message, 'product_id');
         const market = this.safeMarket (marketId);
         const symbol = market['symbol'];
-        const trade = this.parseWsTrade (this.extend (message, { 'timestamp': timestamp }), market);
+        const trade = this.parseWsTrade (message, market);
         if (!(symbol in this.trades)) {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
             const stored = new ArrayCache (limit);
@@ -188,6 +188,94 @@ export default class vertex extends vertexRest {
         }, market);
     }
 
+    async watchTicker (symbol: string, params = {}): Promise<Ticker> {
+        /**
+         * @method
+         * @name vertex#watchTicker
+         * @see https://docs.vertexprotocol.com/developer-resources/api/subscriptions/streams
+         * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+         * @param {string} symbol unified symbol of the market to fetch the ticker for
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+         */
+        await this.loadMarkets ();
+        const name = 'best_bid_offer';
+        const market = this.market (symbol);
+        symbol = market['symbol'];
+        const topic = market['id'] + '@' + name;
+        const request = {
+            'method': 'subscribe',
+            'stream': {
+                'type': name,
+                'product_id': this.parseToNumeric (market['id']),
+            },
+        };
+        const message = this.extend (request, params);
+        return await this.watchPublic (topic, message);
+    }
+
+    parseWsTicker (ticker, market = undefined) {
+        //
+        // {
+        //     "type": "best_bid_offer",
+        //     "timestamp": "1676151190656903000", // timestamp of the event in nanoseconds
+        //     "product_id": 1,
+        //     "bid_price": "1000", // the highest bid price, multiplied by 1e18
+        //     "bid_qty": "1000", // quantity at the huighest bid, multiplied by 1e18. 
+        //                        // i.e. if this is USDC with 6 decimals, one USDC 
+        //                        // would be 1e12
+        //     "ask_price": "1000", // lowest ask price
+        //     "ask_qty": "1000" // quantity at the lowest ask
+        // }
+        //
+        const timestamp = Precise.stringDiv (this.safeString (ticker, 'timestamp'), '1000000');
+        return this.safeTicker ({
+            'symbol': this.safeSymbol (undefined, market),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'high': this.safeString (ticker, 'high'),
+            'low': this.safeString (ticker, 'low'),
+            'bid': this.convertFromX18 (this.safeString (ticker, 'bid_price')),
+            'bidVolume': this.convertFromX18 (this.safeString (ticker, 'bid_qty')),
+            'ask': this.convertFromX18 (this.safeString (ticker, 'ask_price')),
+            'askVolume': this.convertFromX18 (this.safeString (ticker, 'ask_qty')),
+            'vwap': undefined,
+            'open': undefined,
+            'close': undefined,
+            'last': undefined,
+            'previousClose': undefined,
+            'change': undefined,
+            'percentage': undefined,
+            'average': undefined,
+            'baseVolume': undefined,
+            'quoteVolume': undefined,
+            'info': ticker,
+        }, market);
+    }
+
+    handleTicker (client: Client, message) {
+        //
+        // {
+        //     "type": "best_bid_offer",
+        //     "timestamp": "1676151190656903000", // timestamp of the event in nanoseconds
+        //     "product_id": 1,
+        //     "bid_price": "1000", // the highest bid price, multiplied by 1e18
+        //     "bid_qty": "1000", // quantity at the huighest bid, multiplied by 1e18. 
+        //                        // i.e. if this is USDC with 6 decimals, one USDC 
+        //                        // would be 1e12
+        //     "ask_price": "1000", // lowest ask price
+        //     "ask_qty": "1000" // quantity at the lowest ask
+        // }
+        //
+        const marketId = this.safeString (message, 'product_id');
+        const market = this.safeMarket (marketId);
+        const ticker = this.parseWsTicker (message, market);
+        ticker['symbol'] = market['symbol'];
+        this.tickers[market['symbol']] = ticker;
+        client.resolve (ticker, marketId + '@best_bid_offer');
+        return message;
+    }
+
     handleErrorMessage (client: Client, message) {
         //
         //
@@ -225,6 +313,7 @@ export default class vertex extends vertexRest {
         }
         const methods = {
             'trade': this.handleTrade,
+            'best_bid_offer': this.handleTicker,
         };
         const event = this.safeString (message, 'type');
         let method = this.safeValue (methods, event);
