@@ -737,11 +737,11 @@ export default class binance extends binanceRest {
             // todo: this is a synch blocking call - make it async
             // default 100, max 1000, valid limits 5, 10, 20, 50, 100, 500, 1000
             const snapshot = await this.fetchRestOrderBookSafe (symbol, limit, params);
-            const orderbook = this.safeValue (this.orderbooks, symbol);
-            if (orderbook === undefined) {
+            if (this.safeValue (this.orderbooks, symbol) === undefined) {
                 // if the orderbook is dropped before the snapshot is received
                 return;
             }
+            const orderbook = this.orderbooks[symbol];
             orderbook.reset (snapshot);
             // unroll the accumulated deltas
             const messages = orderbook.cache;
