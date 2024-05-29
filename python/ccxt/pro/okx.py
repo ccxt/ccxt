@@ -1004,10 +1004,9 @@ class okx(ccxt.async_support.okx):
                     self.handle_order_book_message(client, update, orderbook, messageHash)
                     client.resolve(orderbook, messageHash)
         elif (channel == 'books5') or (channel == 'bbo-tbt'):
-            orderbook = self.safe_value(self.orderbooks, symbol)
-            if orderbook is None:
-                orderbook = self.order_book({}, limit)
-            self.orderbooks[symbol] = orderbook
+            if not (symbol in self.orderbooks):
+                self.orderbooks[symbol] = self.order_book({}, limit)
+            orderbook = self.orderbooks[symbol]
             for i in range(0, len(data)):
                 update = data[i]
                 timestamp = self.safe_integer(update, 'ts')

@@ -784,12 +784,12 @@ public partial class binance : ccxt.binance
             // todo: this is a synch blocking call - make it async
             // default 100, max 1000, valid limits 5, 10, 20, 50, 100, 500, 1000
             object snapshot = await this.fetchRestOrderBookSafe(symbol, limit, parameters);
-            object orderbook = this.safeValue(this.orderbooks, symbol);
-            if (isTrue(isEqual(orderbook, null)))
+            if (isTrue(isEqual(this.safeValue(this.orderbooks, symbol), null)))
             {
                 // if the orderbook is dropped before the snapshot is received
                 return;
             }
+            object orderbook = getValue(this.orderbooks, symbol);
             (orderbook as IOrderBook).reset(snapshot);
             // unroll the accumulated deltas
             object messages = (orderbook as ccxt.pro.OrderBook).cache;
@@ -890,8 +890,7 @@ public partial class binance : ccxt.binance
         object symbol = getValue(market, "symbol");
         object name = "depth";
         object messageHash = add(add(getValue(market, "lowercaseId"), "@"), name);
-        object orderbook = this.safeValue(this.orderbooks, symbol);
-        if (isTrue(isEqual(orderbook, null)))
+        if (!isTrue((inOp(this.orderbooks, symbol))))
         {
             //
             // https://github.com/ccxt/ccxt/issues/6672
@@ -903,6 +902,7 @@ public partial class binance : ccxt.binance
             //
             return;
         }
+        object orderbook = getValue(this.orderbooks, symbol);
         object nonce = this.safeInteger(orderbook, "nonce");
         if (isTrue(isEqual(nonce, null)))
         {

@@ -551,8 +551,7 @@ class bitfinex2(ccxt.async_support.bitfinex2):
         prec = self.safe_string(subscription, 'prec', 'P0')
         isRaw = (prec == 'R0')
         # if it is an initial snapshot
-        orderbook = self.safe_value(self.orderbooks, symbol)
-        if orderbook is None:
+        if not (symbol in self.orderbooks):
             limit = self.safe_integer(subscription, 'len')
             if isRaw:
                 # raw order books
@@ -571,7 +570,7 @@ class bitfinex2(ccxt.async_support.bitfinex2):
                     bookside = orderbook[side]
                     idString = self.safe_string(delta, 0)
                     price = self.safe_float(delta, 1)
-                    bookside.store(price, size, idString)
+                    bookside.storeArray([price, size, idString])
             else:
                 deltas = message[1]
                 for i in range(0, len(deltas)):
@@ -582,10 +581,11 @@ class bitfinex2(ccxt.async_support.bitfinex2):
                     size = -amount if (amount < 0) else amount
                     side = 'asks' if (amount < 0) else 'bids'
                     bookside = orderbook[side]
-                    bookside.store(price, size, counter)
+                    bookside.storeArray([price, size, counter])
             orderbook['symbol'] = symbol
             client.resolve(orderbook, messageHash)
         else:
+            orderbook = self.orderbooks[symbol]
             deltas = message[1]
             orderbookItem = self.orderbooks[symbol]
             if isRaw:

@@ -1030,7 +1030,7 @@ class bingx extends Exchange {
             $time = null;
         }
         $cost = $this->safe_string($trade, 'quoteQty');
-        $type = ($cost === null) ? 'spot' : 'swap';
+        // $type = ($cost === null) ? 'spot' : 'swap'; this is not reliable
         $currencyId = $this->safe_string_n($trade, array( 'currency', 'N', 'commissionAsset' ));
         $currencyCode = $this->safe_currency_code($currencyId);
         $m = $this->safe_bool($trade, 'm');
@@ -1067,7 +1067,7 @@ class bingx extends Exchange {
             'info' => $trade,
             'timestamp' => $time,
             'datetime' => $this->iso8601($time),
-            'symbol' => $this->safe_symbol($marketId, $market, '-', $type),
+            'symbol' => $this->safe_symbol($marketId, $market, '-'),
             'order' => $this->safe_string_2($trade, 'orderId', 'i'),
             'type' => $this->safe_string_lower($trade, 'o'),
             'side' => $this->parse_order_side($side),

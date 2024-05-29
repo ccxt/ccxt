@@ -691,10 +691,10 @@ class binance(ccxt.async_support.binance):
             # todo: self is a synch blocking call - make it async
             # default 100, max 1000, valid limits 5, 10, 20, 50, 100, 500, 1000
             snapshot = await self.fetch_rest_order_book_safe(symbol, limit, params)
-            orderbook = self.safe_value(self.orderbooks, symbol)
-            if orderbook is None:
+            if self.safe_value(self.orderbooks, symbol) is None:
                 # if the orderbook is dropped before the snapshot is received
                 return
+            orderbook = self.orderbooks[symbol]
             orderbook.reset(snapshot)
             # unroll the accumulated deltas
             messages = orderbook.cache
@@ -770,8 +770,7 @@ class binance(ccxt.async_support.binance):
         symbol = market['symbol']
         name = 'depth'
         messageHash = market['lowercaseId'] + '@' + name
-        orderbook = self.safe_value(self.orderbooks, symbol)
-        if orderbook is None:
+        if not (symbol in self.orderbooks):
             #
             # https://github.com/ccxt/ccxt/issues/6672
             #
@@ -781,6 +780,7 @@ class binance(ccxt.async_support.binance):
             # therefore it is safe to drop these premature messages.
             #
             return
+        orderbook = self.orderbooks[symbol]
         nonce = self.safe_integer(orderbook, 'nonce')
         if nonce is None:
             # 2. Buffer the events you receive from the stream.

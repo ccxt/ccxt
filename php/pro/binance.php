@@ -735,11 +735,11 @@ class binance extends \ccxt\async\binance {
                 // todo => this is a synch blocking call - make it async
                 // default 100, max 1000, valid limits 5, 10, 20, 50, 100, 500, 1000
                 $snapshot = Async\await($this->fetch_rest_order_book_safe($symbol, $limit, $params));
-                $orderbook = $this->safe_value($this->orderbooks, $symbol);
-                if ($orderbook === null) {
+                if ($this->safe_value($this->orderbooks, $symbol) === null) {
                     // if the $orderbook is dropped before the $snapshot is received
                     return;
                 }
+                $orderbook = $this->orderbooks[$symbol];
                 $orderbook->reset ($snapshot);
                 // unroll the accumulated deltas
                 $messages = $orderbook->cache;
@@ -828,8 +828,7 @@ class binance extends \ccxt\async\binance {
         $symbol = $market['symbol'];
         $name = 'depth';
         $messageHash = $market['lowercaseId'] . '@' . $name;
-        $orderbook = $this->safe_value($this->orderbooks, $symbol);
-        if ($orderbook === null) {
+        if (!(is_array($this->orderbooks) && array_key_exists($symbol, $this->orderbooks))) {
             //
             // https://github.com/ccxt/ccxt/issues/6672
             //
@@ -840,6 +839,7 @@ class binance extends \ccxt\async\binance {
             //
             return;
         }
+        $orderbook = $this->orderbooks[$symbol];
         $nonce = $this->safe_integer($orderbook, 'nonce');
         if ($nonce === null) {
             // 2. Buffer the events you receive from the stream.
