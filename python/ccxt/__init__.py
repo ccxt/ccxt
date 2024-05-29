@@ -183,6 +183,7 @@ from ccxt.tabdeal import tabdeal                                      # noqa: F4
 from ccxt.timex import timex                                          # noqa: F401
 from ccxt.tokocrypto import tokocrypto                                # noqa: F401
 from ccxt.tradeogre import tradeogre                                  # noqa: F401
+from ccxt.ubitex import ubitex                                        # noqa: F401
 from ccxt.upbit import upbit                                          # noqa: F401
 from ccxt.wallex import wallex                                        # noqa: F401
 from ccxt.wavesexchange import wavesexchange                          # noqa: F401
@@ -298,6 +299,7 @@ exchanges = [
     'timex',
     'tokocrypto',
     'tradeogre',
+    'ubitex',
     'upbit',
     'wallex',
     'wavesexchange',

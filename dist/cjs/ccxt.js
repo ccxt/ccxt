@@ -115,6 +115,7 @@ var tabdeal = require('./src/tabdeal.js');
 var timex = require('./src/timex.js');
 var tokocrypto = require('./src/tokocrypto.js');
 var tradeogre = require('./src/tradeogre.js');
+var ubitex = require('./src/ubitex.js');
 var upbit = require('./src/upbit.js');
 var wallex = require('./src/wallex.js');
 var wavesexchange = require('./src/wavesexchange.js');
@@ -299,6 +300,7 @@ const exchanges = {
     'timex': timex,
     'tokocrypto': tokocrypto,
     'tradeogre': tradeogre,
+    'ubitex': ubitex,
     'upbit': upbit,
     'wallex': wallex,
     'wavesexchange': wavesexchange,
@@ -527,6 +529,7 @@ exports.tabdeal = tabdeal;
 exports.timex = timex;
 exports.tokocrypto = tokocrypto;
 exports.tradeogre = tradeogre;
+exports.ubitex = ubitex;
 exports.upbit = upbit;
 exports.wallex = wallex;
 exports.wavesexchange = wavesexchange;

@@ -134,7 +134,7 @@ class tabdeal extends Exchange {
         return Async\async(function () use ($symbols, $params) {
             /**
              * retrieves data on all markets for tabdeal
-             * @see https://api-docs.tabdeal.ir/#be8d9c51a2
+             * @see https://docs.tabdeal.org/#e626e3bd10
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} an array of objects representing $market data
              */
@@ -222,7 +222,7 @@ class tabdeal extends Exchange {
         return Async\async(function () use ($symbols, $params) {
             /**
              * fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each $market
-             * @see https://api-docs.tabdeal.ir/#be8d9c51a2
+             * @see https://docs.tabdeal.org/#e626e3bd10
              * @param {string[]|null} $symbols unified $symbols of the markets to fetch the ticker for, all $market tickers are returned if not assigned
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structures~
@@ -246,7 +246,7 @@ class tabdeal extends Exchange {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-             * @see https://api-docs.tabdeal.ir/#be8d9c51a2
+             * @see https://docs.tabdeal.org/#e626e3bd10
              * @param {string} $symbol unified $symbol of the market to fetch the $ticker for
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=$ticker-structure $ticker structure~
@@ -308,7 +308,7 @@ class tabdeal extends Exchange {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * fetches historical candlestick data containing the $open, $high, $low, and $close price, and the $volume of a $market
-             * @see https://api-docs.tabdeal.ir/#be8d9c51a2
+             * @see https://docs.tabdeal.org/
              * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
              * @param {string} $timeframe the length of time each $candle represents
              * @param {int} [$since] timestamp in ms of the earliest $candle to fetch

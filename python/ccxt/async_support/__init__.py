@@ -163,6 +163,7 @@ from ccxt.async_support.tabdeal import tabdeal                                  
 from ccxt.async_support.timex import timex                                      # noqa: F401
 from ccxt.async_support.tokocrypto import tokocrypto                            # noqa: F401
 from ccxt.async_support.tradeogre import tradeogre                              # noqa: F401
+from ccxt.async_support.ubitex import ubitex                                    # noqa: F401
 from ccxt.async_support.upbit import upbit                                      # noqa: F401
 from ccxt.async_support.wallex import wallex                                    # noqa: F401
 from ccxt.async_support.wavesexchange import wavesexchange                      # noqa: F401
@@ -278,6 +279,7 @@ exchanges = [
     'timex',
     'tokocrypto',
     'tradeogre',
+    'ubitex',
     'upbit',
     'wallex',
     'wavesexchange',

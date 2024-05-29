@@ -487,6 +487,7 @@ class Exchange {
         'timex',
         'tokocrypto',
         'tradeogre',
+        'ubitex',
         'upbit',
         'wallex',
         'wavesexchange',
