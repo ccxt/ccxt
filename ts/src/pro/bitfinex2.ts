@@ -612,7 +612,7 @@ export default class bitfinex2 extends bitfinex2Rest {
                     const bookside = orderbook[side];
                     const idString = this.safeString (delta, 0);
                     const price = this.safeFloat (delta, 1);
-                    bookside.store (price, size, idString);
+                    bookside.storeArray ([price, size, idString]);
                 }
             } else {
                 const deltas = message[1];
@@ -624,7 +624,7 @@ export default class bitfinex2 extends bitfinex2Rest {
                     const size = (amount < 0) ? -amount : amount;
                     const side = (amount < 0) ? 'asks' : 'bids';
                     const bookside = orderbook[side];
-                    bookside.store (price, size, counter);
+                    bookside.storeArray ([price, size, counter]);
                 }
             }
             orderbook['symbol'] = symbol;
