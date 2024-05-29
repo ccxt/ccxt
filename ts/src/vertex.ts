@@ -1476,7 +1476,7 @@ export default class vertex extends Exchange {
     }
 
     nonce () {
-        return this.milliseconds ();
+        return this.milliseconds () - this.options['timeDifference'];
     }
 
     hashMessage (message) {
