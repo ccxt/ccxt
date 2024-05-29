@@ -1011,7 +1011,10 @@ export default class bingx extends bingxRest {
             cachedTrades = new ArrayCacheBySymbolById (limit);
             this.myTrades = cachedTrades;
         }
-        const parsed = this.parseTrade (result);
+        const type = isSpot ? 'spot' : 'swap';
+        const marketId = this.safeString (result, 's');
+        const market = this.safeMarket (marketId, undefined, '-', type);
+        const parsed = this.parseTrade (result, market);
         const symbol = parsed['symbol'];
         const spotHash = 'spot:mytrades';
         const swapHash = 'swap:mytrades';
