@@ -6,7 +6,7 @@ import { Precise } from './base/Precise.js';
 import { AccountNotEnabled, ArgumentsRequired, AuthenticationError, BadRequest, BadSymbol, ExchangeError, InvalidOrder, InsufficientFunds, OrderNotFound, MarketClosed, NetworkError, NotSupported, OperationFailed, RateLimitExceeded, RequestTimeout } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { Account, Balances, Bool, Currencies, Currency, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderType, OrderSide, OrderRequest, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry } from './base/types.js';
+import type { Account, Balances, Bool, Currencies, Currency, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderType, OrderSide, OrderRequest, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry, FeeInterface } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -1409,7 +1409,7 @@ export default class oxfun extends Exchange {
          */
         await this.loadMarkets ();
         const request: Dict = {};
-        let market = undefined;
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['marketCode'] = market['id'];
@@ -1715,7 +1715,7 @@ export default class oxfun extends Exchange {
         // API keys linked to the parent account can get all account transfers, while API keys linked to a sub-account can only see transfers where the sub-account is either the "fromAccount" or "toAccount"
         await this.loadMarkets ();
         const request: Dict = {};
-        let currency = undefined;
+        let currency: Currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
             request['asset'] = currency['id'];
@@ -1854,7 +1854,7 @@ export default class oxfun extends Exchange {
          */
         await this.loadMarkets ();
         const request: Dict = {};
-        let currency = undefined;
+        let currency: Currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
             request['asset'] = currency['id'];
@@ -1910,7 +1910,7 @@ export default class oxfun extends Exchange {
          */
         await this.loadMarkets ();
         const request: Dict = {};
-        let currency = undefined;
+        let currency: Currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
             request['asset'] = currency['id'];
@@ -2027,7 +2027,7 @@ export default class oxfun extends Exchange {
         const timestamp = this.safeInteger2 (transaction, 'creditedAt', 'requestedAt');
         const amount = this.safeNumber (transaction, 'quantity');
         const feeCost = this.safeNumber (transaction, 'fee');
-        let fee = undefined;
+        let fee: FeeInterface = undefined;
         if (feeCost !== undefined) {
             fee = {
                 'cost': feeCost,
@@ -2109,7 +2109,7 @@ export default class oxfun extends Exchange {
         if (tag !== undefined) {
             request['memo'] = tag;
         }
-        let networkCode = undefined;
+        let networkCode: Str = undefined;
         [ networkCode, params ] = this.handleNetworkCodeAndParams (params);
         if (networkCode !== undefined) {
             request['network'] = this.networkCodeToId (networkCode);
@@ -2475,7 +2475,7 @@ export default class oxfun extends Exchange {
             'marketCode': market['id'],
             'side': side.toUpperCase (),
         };
-        const cost = this.safeNumber2 (params, 'cost', 'amount');
+        const cost = this.safeString2 (params, 'cost', 'amount');
         if (cost !== undefined) {
             request['amount'] = cost; // todo costToPrecision
             params = this.omit (params, [ 'cost', 'amount' ]);
@@ -2501,7 +2501,7 @@ export default class oxfun extends Exchange {
         } else if (price !== undefined) {
             request['price'] = price; // todo priceToPrecision
         }
-        let postOnly: Str = undefined;
+        let postOnly: Bool = undefined;
         const isMarketOrder = (orderType === 'MARKET') || (orderType === 'STOP_MARKET');
         [ postOnly, params ] = this.handlePostOnly (isMarketOrder, false, params);
         const timeInForce = this.safeStringUpper (params, 'timeInForce');
@@ -2593,7 +2593,7 @@ export default class oxfun extends Exchange {
          */
         await this.loadMarkets ();
         const request: Dict = {};
-        let market = undefined;
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
@@ -2714,12 +2714,12 @@ export default class oxfun extends Exchange {
         const marketId = this.safeString (order, 'marketCode');
         market = this.safeMarket (marketId, market);
         const timestamp = this.safeInteger (order, 'createdAt');
-        let fee = undefined;
+        let fee: FeeInterface = undefined;
         const feeCurrency = this.safeString (order, 'feeInstrumentId');
         if (feeCurrency !== undefined) {
             fee = {
                 'currency': this.safeCurrencyCode (feeCurrency),
-                'cost': this.safeString (order, 'fees'),
+                'cost': this.safeNumber (order, 'fees'),
             };
         }
         let status = this.safeString (order, 'status');
