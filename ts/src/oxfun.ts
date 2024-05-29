@@ -399,8 +399,8 @@ export default class oxfun extends Exchange {
         const quote = this.safeCurrencyCode (quoteId);
         let symbol = base + '/' + quote;
         let type = this.safeStringLower (market, 'type', 'spot'); // markets from v3/tickers are spot and have no type
-        let settleId = undefined;
-        let settle = undefined;
+        let settleId: Str = undefined;
+        let settle: Str = undefined;
         const isFuture = (type === 'future'); // the exchange has only perpetual futures
         if (isFuture) {
             type = 'swap'; // todo check
@@ -613,7 +613,7 @@ export default class oxfun extends Exchange {
             const code = this.safeCurrencyCode (id);
             const networks: Dict = {};
             const chains = this.safeList (currency, 'networkList', []);
-            let currencyMaxPrecision = undefined;
+            let currencyMaxPrecision: Str = undefined;
             let currencyDepositEnabled: Bool = undefined;
             let currencyWithdrawEnabled: Bool = undefined;
             for (let j = 0; j < chains.length; j++) {
@@ -1563,7 +1563,7 @@ export default class oxfun extends Exchange {
         //         ]
         //     }
         //
-        const result = {
+        const result: Dict = {
             'info': balance,
         };
         const balances = this.safeList (balance, 'balances', []);
@@ -1755,7 +1755,7 @@ export default class oxfun extends Exchange {
     }
 
     parseTransferStatus (status) {
-        const statuses = {
+        const statuses: Dict = {
             'COMPLETED': 'ok',
         };
         return this.safeString (statuses, status, status);
@@ -1977,9 +1977,9 @@ export default class oxfun extends Exchange {
         const id = this.safeString (transaction, 'id');
         const type = this.safeString (transaction, 'type');
         transaction = this.omit (transaction, 'type');
-        let address = undefined;
-        let addressTo = undefined;
-        let status = undefined;
+        let address: Str = undefined;
+        let addressTo: Str = undefined;
+        let status: Str = undefined;
         if (type === 'deposit') {
             address = this.safeString (transaction, 'address');
             status = this.parseDepositStatus (this.safeString (transaction, 'status'));
@@ -2469,7 +2469,7 @@ export default class oxfun extends Exchange {
         } else if (price !== undefined) {
             request['price'] = price; // todo priceToPrecision
         }
-        let postOnly = undefined;
+        let postOnly: Str = undefined;
         const isMarketOrder = (orderType === 'MARKET') || (orderType === 'STOP_MARKET');
         [ postOnly, params ] = this.handlePostOnly (isMarketOrder, false, params);
         const timeInForce = this.safeStringUpper (params, 'timeInForce');
