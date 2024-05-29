@@ -228,17 +228,19 @@ export default class oxfun extends Exchange {
                     'MATIC': 'Polygon',
                     'FTM': 'Fantom',
                     'BNB': 'BNBSmartChain',
+                    'Optimism': 'Optimism', // todo check
                 },
                 'networksById': {
                     'Bitcoin': 'BTC',
                     'Ethereum': 'ERC20',
                     'Avalanche': 'AVAX',
-                    'Solana': 'SOL',
+                    'Solana': 'SOL', // todo check
                     'Arbitrum': 'ARB',
                     'Polygon': 'MATIC', // todo check
                     'Fantom': 'FTM', // todo check
-                    'Base': 'ERC20', // todo check
+                    'Base': 'BASE', // todo check
                     'BNBSmartChain': 'BNB',
+                    'Optimism': 'Optimism', // todo check
                 },
             },
             'exceptions': {
@@ -641,9 +643,11 @@ export default class oxfun extends Exchange {
         const result: Dict = {};
         for (let i = 0; i < data.length; i++) {
             const currency = data[i];
-            const id = this.safeString (currency, 'asset', ''); // todo check specific names like USDT.ARB
+            const fullId = this.safeString (currency, 'asset', '');
+            const parts = fullId.split ('.');
+            const id = parts[0];
             const code = this.safeCurrencyCode (id);
-            const networks: Dict = {};
+            let networks: Dict = {};
             const chains = this.safeList (currency, 'networkList', []);
             let currencyMaxPrecision: Str = undefined;
             let currencyDepositEnabled: Bool = undefined;
@@ -688,6 +692,10 @@ export default class oxfun extends Exchange {
                 if ((currencyMaxPrecision === undefined) || Precise.stringGt (currencyMaxPrecision, precision)) {
                     currencyMaxPrecision = precision;
                 }
+            }
+            if (code in result) {
+                // checking for specific ids as USDC.ARB
+                networks = this.extend (result[code]['networks'], networks);
             }
             result[code] = {
                 'id': id,
