@@ -171,6 +171,10 @@ class zonda extends Exchange {
                         'balances/BITBAY/balance',
                         'fiat_cantor/rate/{baseId}/{quoteId}',
                         'fiat_cantor/history',
+                        'client_payments/v2/customer/crypto/{currency}/channels/deposit',
+                        'client_payments/v2/customer/crypto/{currency}/channels/withdrawal',
+                        'client_payments/v2/customer/crypto/deposit/fee',
+                        'client_payments/v2/customer/crypto/withdrawal/fee',
                     ),
                     'post' => array(
                         'trading/offer/{symbol}',
@@ -181,6 +185,8 @@ class zonda extends Exchange {
                         'fiat_cantor/exchange',
                         'api_payments/withdrawals/crypto',
                         'api_payments/withdrawals/fiat',
+                        'client_payments/v2/customer/crypto/deposit',
+                        'client_payments/v2/customer/crypto/withdrawal',
                     ),
                     'delete' => array(
                         'trading/offer/{symbol}/{id}/{side}/{price}',
@@ -421,7 +427,7 @@ class zonda extends Exchange {
         }) ();
     }
 
-    public function parse_order($order, ?array $market = null): array {
+    public function parse_order(array $order, ?array $market = null): array {
         //
         //     {
         //         "market" => "ETH-EUR",
@@ -844,7 +850,7 @@ class zonda extends Exchange {
         }) ();
     }
 
-    public function parse_ledger_entry($item, ?array $currency = null) {
+    public function parse_ledger_entry(array $item, ?array $currency = null) {
         //
         //    FUNDS_MIGRATION
         //    {
@@ -1241,7 +1247,7 @@ class zonda extends Exchange {
         }) ();
     }
 
-    public function parse_trade($trade, ?array $market = null): array {
+    public function parse_trade(array $trade, ?array $market = null): array {
         //
         // createOrder trades
         //
@@ -1764,7 +1770,7 @@ class zonda extends Exchange {
         }) ();
     }
 
-    public function parse_transaction($transaction, ?array $currency = null): array {
+    public function parse_transaction(array $transaction, ?array $currency = null): array {
         //
         // withdraw
         //
@@ -1848,7 +1854,7 @@ class zonda extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors($httpCode, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
         if ($response === null) {
             return null; // fallback to default $error handler
         }

@@ -6,7 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.paymium import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Currency, Int, Market, Num, OrderBook, OrderSide, OrderType, Str, Ticker, Trade, TransferEntry
+from ccxt.base.types import Balances, Currency, Int, Market, Num, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Trade, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.decimal_to_precision import TICK_SIZE
@@ -240,7 +240,7 @@ class paymium(Exchange, ImplicitAPI):
         #
         return self.parse_ticker(ticker, market)
 
-    def parse_trade(self, trade, market: Market = None) -> Trade:
+    def parse_trade(self, trade: dict, market: Market = None) -> Trade:
         timestamp = self.safe_timestamp(trade, 'created_at_int')
         id = self.safe_string(trade, 'uuid')
         market = self.safe_market(None, market)
@@ -325,7 +325,7 @@ class paymium(Exchange, ImplicitAPI):
         #
         return self.parse_deposit_address(response)
 
-    async def fetch_deposit_addresses(self, codes: List[str] = None, params={}):
+    async def fetch_deposit_addresses(self, codes: Strings = None, params={}):
         """
         fetch deposit addresses for multiple currencies and chain types
         :see: https://paymium.github.io/api-documentation/#tag/User/paths/~1user~1addresses/get
@@ -407,7 +407,10 @@ class paymium(Exchange, ImplicitAPI):
         request: dict = {
             'uuid': id,
         }
-        return await self.privateDeleteUserOrdersUuidCancel(self.extend(request, params))
+        response = await self.privateDeleteUserOrdersUuidCancel(self.extend(request, params))
+        return self.safe_order({
+            'info': response,
+        })
 
     async def transfer(self, code: str, amount: float, fromAccount: str, toAccount: str, params={}) -> TransferEntry:
         """
@@ -552,7 +555,7 @@ class paymium(Exchange, ImplicitAPI):
             headers['Api-Signature'] = self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha256)
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody):
+    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response, requestHeaders, requestBody):
         if response is None:
             return None
         errors = self.safe_value(response, 'errors')

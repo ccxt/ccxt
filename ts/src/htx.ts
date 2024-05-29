@@ -6,7 +6,7 @@ import { AccountNotEnabled, ArgumentsRequired, AuthenticationError, ExchangeErro
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE, TRUNCATE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { TransferEntry, Int, OrderSide, OrderType, Order, OHLCV, Trade, FundingRateHistory, Balances, Str, Dict, Transaction, Ticker, OrderBook, Tickers, OrderRequest, Strings, Market, Currency, Num, Account, TradingFeeInterface, Currencies, IsolatedBorrowRates, IsolatedBorrowRate } from './base/types.js';
+import type { TransferEntry, Int, OrderSide, OrderType, Order, OHLCV, Trade, FundingRateHistory, Balances, Str, Dict, Transaction, Ticker, OrderBook, Tickers, OrderRequest, Strings, Market, Currency, Num, Account, TradingFeeInterface, Currencies, IsolatedBorrowRates, IsolatedBorrowRate, LeverageTiers, LeverageTier, int } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -1481,7 +1481,7 @@ export default class htx extends Exchange {
         return this.safeInteger2 (response, 'data', 'ts');
     }
 
-    parseTradingFee (fee, market: Market = undefined): TradingFeeInterface {
+    parseTradingFee (fee: Dict, market: Market = undefined): TradingFeeInterface {
         //
         //     {
         //         "symbol":"btcusdt",
@@ -2468,7 +2468,7 @@ export default class htx extends Exchange {
         throw new ExchangeError (this.id + ' fetchOrderBook() returned unrecognized response: ' + this.json (response));
     }
 
-    parseTrade (trade, market: Market = undefined): Trade {
+    parseTrade (trade: Dict, market: Market = undefined): Trade {
         //
         // spot fetchTrades (public)
         //
@@ -4569,7 +4569,7 @@ export default class htx extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseOrder (order, market: Market = undefined): Order {
+    parseOrder (order: Dict, market: Market = undefined): Order {
         //
         // spot
         //
@@ -6261,7 +6261,7 @@ export default class htx extends Exchange {
         return this.parseTransactions (response['data'], currency, since, limit);
     }
 
-    parseTransaction (transaction, currency: Currency = undefined): Transaction {
+    parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {
         //
         // fetchDeposits
         //
@@ -6357,7 +6357,7 @@ export default class htx extends Exchange {
         };
     }
 
-    parseTransactionStatus (status) {
+    parseTransactionStatus (status: Str) {
         const statuses: Dict = {
             // deposit statuses
             'unknown': 'failed',
@@ -6920,7 +6920,7 @@ export default class htx extends Exchange {
         return this.filterByCurrencySinceLimit (interest, code, since, limit);
     }
 
-    parseBorrowInterest (info, market: Market = undefined) {
+    parseBorrowInterest (info: Dict, market: Market = undefined) {
         // isolated
         //    {
         //        "interest-rate":"0.000040830000000000",
@@ -7107,7 +7107,7 @@ export default class htx extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    handleErrors (httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+    handleErrors (httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response, requestHeaders, requestBody) {
         if (response === undefined) {
             return undefined; // fallback to default error handler
         }
@@ -7328,7 +7328,7 @@ export default class htx extends Exchange {
         };
     }
 
-    parsePosition (position, market: Market = undefined) {
+    parsePosition (position: Dict, market: Market = undefined) {
         //
         //    {
         //        "symbol": "BTC",
@@ -7833,7 +7833,7 @@ export default class htx extends Exchange {
         return this.safeString (types, type, type);
     }
 
-    parseLedgerEntry (item, currency: Currency = undefined) {
+    parseLedgerEntry (item: Dict, currency: Currency = undefined) {
         //
         //     {
         //         "accountId": 10000001,
@@ -7956,7 +7956,7 @@ export default class htx extends Exchange {
         return this.parseLedger (data, currency, since, limit);
     }
 
-    async fetchLeverageTiers (symbols: Strings = undefined, params = {}) {
+    async fetchLeverageTiers (symbols: Strings = undefined, params = {}): Promise<LeverageTiers> {
         /**
          * @method
          * @name huobi#fetchLeverageTiers
@@ -8000,7 +8000,7 @@ export default class htx extends Exchange {
         return this.parseLeverageTiers (data, symbols, 'contract_code');
     }
 
-    async fetchMarketLeverageTiers (symbol: string, params = {}) {
+    async fetchMarketLeverageTiers (symbol: string, params = {}): Promise<LeverageTier[]> {
         /**
          * @method
          * @name huobi#fetchMarketLeverageTiers

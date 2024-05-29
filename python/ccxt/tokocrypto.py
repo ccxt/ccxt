@@ -849,7 +849,7 @@ class tokocrypto(Exchange, ImplicitAPI):
         orderbook['nonce'] = self.safe_integer(data, 'lastUpdateId')
         return orderbook
 
-    def parse_trade(self, trade, market: Market = None) -> Trade:
+    def parse_trade(self, trade: dict, market: Market = None) -> Trade:
         #
         # aggregate trades
         # https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md#compressedaggregate-trades-list
@@ -1396,7 +1396,7 @@ class tokocrypto(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_order(self, order, market: Market = None) -> Order:
+    def parse_order(self, order: dict, market: Market = None) -> Order:
         #
         # spot
         #
@@ -2130,7 +2130,7 @@ class tokocrypto(Exchange, ImplicitAPI):
         statuses = self.safe_value(statusesByType, type, {})
         return self.safe_string(statuses, status, status)
 
-    def parse_transaction(self, transaction, currency: Currency = None) -> Transaction:
+    def parse_transaction(self, transaction: dict, currency: Currency = None) -> Transaction:
         #
         # fetchDeposits
         #
@@ -2331,7 +2331,7 @@ class tokocrypto(Exchange, ImplicitAPI):
                 url += '?' + self.urlencode(params)
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response, requestHeaders, requestBody):
         if (code == 418) or (code == 429):
             raise DDoSProtection(self.id + ' ' + str(code) + ' ' + reason + ' ' + body)
         # error response in a form: {"code": -1013, "msg": "Invalid quantity."}

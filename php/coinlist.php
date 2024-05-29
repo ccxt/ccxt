@@ -427,7 +427,7 @@ class coinlist extends Exchange {
         return $this->parse_markets($markets);
     }
 
-    public function parse_market($market): array {
+    public function parse_market(array $market): array {
         $id = $this->safe_string($market, 'symbol');
         $baseId = $this->safe_string($market, 'base_currency');
         $quoteId = $this->safe_string($market, 'quote_currency');
@@ -792,7 +792,7 @@ class coinlist extends Exchange {
         return $this->parse_trades($auctions, $market, $since, $limit);
     }
 
-    public function parse_trade($trade, ?array $market = null): array {
+    public function parse_trade(array $trade, ?array $market = null): array {
         //
         // fetchTrades
         //     {
@@ -1543,7 +1543,7 @@ class coinlist extends Exchange {
         return $this->parse_order($response, $market);
     }
 
-    public function parse_order($order, ?array $market = null): array {
+    public function parse_order(array $order, ?array $market = null): array {
         //
         // fetchOrder
         //     {
@@ -1967,7 +1967,7 @@ class coinlist extends Exchange {
         return $this->parse_transaction($data, $currency);
     }
 
-    public function parse_transaction($transaction, ?array $currency = null): array {
+    public function parse_transaction(array $transaction, ?array $currency = null): array {
         // withdraw
         //
         //     {
@@ -2143,7 +2143,7 @@ class coinlist extends Exchange {
         return $this->parse_ledger($ledger, $currency, $since, $limit);
     }
 
-    public function parse_ledger_entry($item, ?array $currency = null) {
+    public function parse_ledger_entry(array $item, ?array $currency = null) {
         //
         // deposit transaction from wallet (funding) to pro (trading)
         //     {
@@ -2288,7 +2288,7 @@ class coinlist extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
         if ($response === null) {
             // In some cases the exchange returns 202 Accepted for bad orders.
             // The $body of that $response contains order_id of the order.

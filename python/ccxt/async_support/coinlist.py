@@ -437,7 +437,7 @@ class coinlist(Exchange, ImplicitAPI):
         markets = self.safe_value(response, 'symbols', [])
         return self.parse_markets(markets)
 
-    def parse_market(self, market) -> Market:
+    def parse_market(self, market: dict) -> Market:
         id = self.safe_string(market, 'symbol')
         baseId = self.safe_string(market, 'base_currency')
         quoteId = self.safe_string(market, 'quote_currency')
@@ -788,7 +788,7 @@ class coinlist(Exchange, ImplicitAPI):
         auctions = self.safe_list(response, 'auctions', [])
         return self.parse_trades(auctions, market, since, limit)
 
-    def parse_trade(self, trade, market: Market = None) -> Trade:
+    def parse_trade(self, trade: dict, market: Market = None) -> Trade:
         #
         # fetchTrades
         #     {
@@ -1492,7 +1492,7 @@ class coinlist(Exchange, ImplicitAPI):
         response = await self.privatePatchV1OrdersOrderId(self.extend(request, params))
         return self.parse_order(response, market)
 
-    def parse_order(self, order, market: Market = None) -> Order:
+    def parse_order(self, order: dict, market: Market = None) -> Order:
         #
         # fetchOrder
         #     {
@@ -1895,7 +1895,7 @@ class coinlist(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 'data', {})
         return self.parse_transaction(data, currency)
 
-    def parse_transaction(self, transaction, currency: Currency = None) -> Transaction:
+    def parse_transaction(self, transaction: dict, currency: Currency = None) -> Transaction:
         # withdraw
         #
         #     {
@@ -2061,7 +2061,7 @@ class coinlist(Exchange, ImplicitAPI):
         ledger = self.safe_value(response, 'transactions', [])
         return self.parse_ledger(ledger, currency, since, limit)
 
-    def parse_ledger_entry(self, item, currency: Currency = None):
+    def parse_ledger_entry(self, item: dict, currency: Currency = None):
         #
         # deposit transaction from wallet(funding) to pro(trading)
         #     {
@@ -2200,7 +2200,7 @@ class coinlist(Exchange, ImplicitAPI):
             url += '?' + query
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response, requestHeaders, requestBody):
         if response is None:
             # In some cases the exchange returns 202 Accepted for bad orders.
             # The body of that response contains order_id of the order.

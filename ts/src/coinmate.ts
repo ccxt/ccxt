@@ -6,7 +6,7 @@ import { ExchangeError, InvalidOrder, OrderNotFound, RateLimitExceeded, Insuffic
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { Balances, Currency, Dict, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, Transaction } from './base/types.js';
+import type { Balances, Currency, Dict, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, Transaction, int } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -525,7 +525,7 @@ export default class coinmate extends Exchange {
         return this.parseTransactions (items, undefined, since, limit);
     }
 
-    parseTransactionStatus (status) {
+    parseTransactionStatus (status: Str) {
         const statuses: Dict = {
             'COMPLETED': 'ok',
             'WAITING': 'pending',
@@ -538,7 +538,7 @@ export default class coinmate extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseTransaction (transaction, currency: Currency = undefined): Transaction {
+    parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {
         //
         // deposits
         //
@@ -701,7 +701,7 @@ export default class coinmate extends Exchange {
         return this.parseTrades (data, undefined, since, limit);
     }
 
-    parseTrade (trade, market: Market = undefined): Trade {
+    parseTrade (trade: Dict, market: Market = undefined): Trade {
         //
         // fetchMyTrades (private)
         //
@@ -905,7 +905,7 @@ export default class coinmate extends Exchange {
         return this.safeString (types, type, type);
     }
 
-    parseOrder (order, market: Market = undefined): Order {
+    parseOrder (order: Dict, market: Market = undefined): Order {
         //
         // limit sell
         //
@@ -1101,7 +1101,7 @@ export default class coinmate extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+    handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response, requestHeaders, requestBody) {
         if (response !== undefined) {
             if ('error' in response) {
                 // {"error":true,"errorMessage":"Minimum Order Size 0.01 ETH","data":null}

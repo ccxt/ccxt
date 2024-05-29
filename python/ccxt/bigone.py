@@ -1009,7 +1009,7 @@ class bigone(Exchange, ImplicitAPI):
             'nonce': None,
         }
 
-    def parse_trade(self, trade, market: Market = None) -> Trade:
+    def parse_trade(self, trade: dict, market: Market = None) -> Trade:
         #
         # fetchTrades(public)
         #
@@ -1302,7 +1302,7 @@ class bigone(Exchange, ImplicitAPI):
         }
         return self.safe_string(types, type, type)
 
-    def parse_order(self, order, market: Market = None) -> Order:
+    def parse_order(self, order: dict, market: Market = None) -> Order:
         #
         #    {
         #        "id": "42154072251",
@@ -1780,7 +1780,7 @@ class bigone(Exchange, ImplicitAPI):
             'info': response,
         }
 
-    def parse_transaction_status(self, status):
+    def parse_transaction_status(self, status: Str):
         statuses: dict = {
             # what are other statuses here?
             'WITHHOLD': 'ok',  # deposits
@@ -1791,7 +1791,7 @@ class bigone(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_transaction(self, transaction, currency: Currency = None) -> Transaction:
+    def parse_transaction(self, transaction: dict, currency: Currency = None) -> Transaction:
         #
         # fetchDeposits
         #
@@ -2094,7 +2094,7 @@ class bigone(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 'data', {})
         return self.parse_transaction(data, currency)
 
-    def handle_errors(self, httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody):
+    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response, requestHeaders, requestBody):
         if response is None:
             return None  # fallback to default error handler
         #

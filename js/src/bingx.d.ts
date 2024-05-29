@@ -1,5 +1,5 @@
 import Exchange from './abstract/bingx.js';
-import type { TransferEntry, Int, OrderSide, OHLCV, FundingRateHistory, Order, OrderType, OrderRequest, Str, Trade, Balances, Transaction, Ticker, OrderBook, Tickers, Market, Strings, Currency, Position, Dict, Leverage, MarginMode, Num, MarginModification, Currencies, TransferEntries } from './base/types.js';
+import type { TransferEntry, Int, OrderSide, OHLCV, FundingRateHistory, Order, OrderType, OrderRequest, Str, Trade, Balances, Transaction, Ticker, OrderBook, Tickers, Market, Strings, Currency, Position, Dict, Leverage, MarginMode, Num, MarginModification, Currencies, TransferEntries, int } from './base/types.js';
 /**
  * @class bingx
  * @augments Exchange
@@ -10,12 +10,12 @@ export default class bingx extends Exchange {
     fetchCurrencies(params?: {}): Promise<Currencies>;
     fetchSpotMarkets(params: any): Promise<import("./base/types.js").MarketInterface[]>;
     fetchSwapMarkets(params: any): Promise<import("./base/types.js").MarketInterface[]>;
-    parseMarket(market: any): Market;
+    parseMarket(market: Dict): Market;
     fetchMarkets(params?: {}): Promise<Market[]>;
     fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
     parseOHLCV(ohlcv: any, market?: Market): OHLCV;
     fetchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
-    parseTrade(trade: any, market?: Market): Trade;
+    parseTrade(trade: Dict, market?: Market): Trade;
     fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
     fetchFundingRate(symbol: string, params?: {}): Promise<{
         info: any;
@@ -65,7 +65,7 @@ export default class bingx extends Exchange {
     fetchBalance(params?: {}): Promise<Balances>;
     parseBalance(response: any): Balances;
     fetchPositions(symbols?: Strings, params?: {}): Promise<Position[]>;
-    parsePosition(position: any, market?: Market): Position;
+    parsePosition(position: Dict, market?: Market): Position;
     createMarketOrderWithCost(symbol: string, side: OrderSide, cost: number, params?: {}): Promise<Order>;
     createMarketBuyOrderWithCost(symbol: string, cost: number, params?: {}): Promise<Order>;
     createMarketSellOrderWithCost(symbol: string, cost: number, params?: {}): Promise<Order>;
@@ -74,7 +74,7 @@ export default class bingx extends Exchange {
     createOrders(orders: OrderRequest[], params?: {}): Promise<Order[]>;
     parseOrderSide(side: any): string;
     parseOrderType(type: Str): string;
-    parseOrder(order: any, market?: Market): Order;
+    parseOrder(order: Dict, market?: Market): Order;
     parseOrderStatus(status: Str): string;
     cancelOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
     cancelAllOrders(symbol?: Str, params?: {}): Promise<any>;
@@ -98,7 +98,7 @@ export default class bingx extends Exchange {
     };
     fetchDeposits(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
     fetchWithdrawals(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
-    parseTransaction(transaction: any, currency?: Currency): Transaction;
+    parseTransaction(transaction: Dict, currency?: Currency): Transaction;
     parseTransactionStatus(status: string): string;
     setMarginMode(marginMode: string, symbol?: Str, params?: {}): Promise<any>;
     addMargin(symbol: string, amount: number, params?: {}): Promise<MarginModification>;
@@ -124,7 +124,7 @@ export default class bingx extends Exchange {
     setPositionMode(hedged: boolean, symbol?: Str, params?: {}): Promise<any>;
     editOrder(id: string, symbol: string, type: OrderType, side: OrderSide, amount?: Num, price?: Num, params?: {}): Promise<Order>;
     fetchMarginMode(symbol: string, params?: {}): Promise<MarginMode>;
-    parseMarginMode(marginMode: any, market?: any): MarginMode;
+    parseMarginMode(marginMode: Dict, market?: any): MarginMode;
     sign(path: any, section?: string, method?: string, params?: {}, headers?: any, body?: any): {
         url: string;
         method: string;
@@ -133,5 +133,5 @@ export default class bingx extends Exchange {
     };
     nonce(): number;
     setSandboxMode(enable: boolean): void;
-    handleErrors(httpCode: any, reason: any, url: any, method: any, headers: any, body: any, response: any, requestHeaders: any, requestBody: any): any;
+    handleErrors(httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): any;
 }

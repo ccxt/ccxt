@@ -3,7 +3,7 @@ import { ArgumentsRequired, AuthenticationError, BadRequest, BadSymbol, Exchange
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { Account, Balances, Currencies, Currency, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction, TransferEntries, TransferEntry } from './base/types.js';
+import type { Account, Balances, Currencies, Currency, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction, TransferEntries, TransferEntry, int } from './base/types.js';
 
 /**
  * @class coinlist
@@ -433,7 +433,7 @@ export default class coinlist extends Exchange {
         return this.parseMarkets (markets);
     }
 
-    parseMarket (market): Market {
+    parseMarket (market: Dict): Market {
         const id = this.safeString (market, 'symbol');
         const baseId = this.safeString (market, 'base_currency');
         const quoteId = this.safeString (market, 'quote_currency');
@@ -808,7 +808,7 @@ export default class coinlist extends Exchange {
         return this.parseTrades (auctions, market, since, limit);
     }
 
-    parseTrade (trade, market: Market = undefined): Trade {
+    parseTrade (trade: Dict, market: Market = undefined): Trade {
         //
         // fetchTrades
         //     {
@@ -1589,7 +1589,7 @@ export default class coinlist extends Exchange {
         return this.parseOrder (response, market);
     }
 
-    parseOrder (order, market: Market = undefined): Order {
+    parseOrder (order: Dict, market: Market = undefined): Order {
         //
         // fetchOrder
         //     {
@@ -2021,7 +2021,7 @@ export default class coinlist extends Exchange {
         return this.parseTransaction (data, currency);
     }
 
-    parseTransaction (transaction, currency: Currency = undefined): Transaction {
+    parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {
         // withdraw
         //
         //     {
@@ -2199,7 +2199,7 @@ export default class coinlist extends Exchange {
         return this.parseLedger (ledger, currency, since, limit);
     }
 
-    parseLedgerEntry (item, currency: Currency = undefined) {
+    parseLedgerEntry (item: Dict, currency: Currency = undefined) {
         //
         // deposit transaction from wallet (funding) to pro (trading)
         //     {
@@ -2344,7 +2344,7 @@ export default class coinlist extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+    handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response, requestHeaders, requestBody) {
         if (response === undefined) {
             // In some cases the exchange returns 202 Accepted for bad orders.
             // The body of that response contains order_id of the order.

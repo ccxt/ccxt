@@ -562,7 +562,7 @@ class testMainClass extends baseMainTestClass {
                 return;
             }
             if ($this->info) {
-                $args_stringified = '(' . implode(',', $args) . ')';
+                $args_stringified = '(' . $exchange->json($args) . ')'; // args.join() breaks when we provide a list of symbols or multidimensional array; "args.toString()" breaks bcz of "array to string conversion"
                 dump($this->add_padding('[INFO] TESTING', 25), $this->exchange_hint($exchange), $method_name, $args_stringified);
             }
             Async\await(call_method($this->test_files, $method_name, $exchange, $skipped_properties_for_method, $args));

@@ -5,7 +5,7 @@ import { Market } from '../ccxt.js';
 import Exchange from './abstract/tradeogre.js';
 import { InsufficientFunds, AuthenticationError, BadRequest, ExchangeError } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Int, Num, Order, OrderSide, OrderType, Str, Ticker, IndexType, Dict } from './base/types.js';
+import type { Int, Num, Order, OrderSide, OrderType, Str, Ticker, IndexType, Dict, int } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -392,7 +392,7 @@ export default class tradeogre extends Exchange {
         return this.parseTrades (response, market, since, limit);
     }
 
-    parseTrade (trade, market: Market = undefined) {
+    parseTrade (trade: Dict, market: Market = undefined) {
         //
         //  {
         //      "date":1515128233,
@@ -563,7 +563,7 @@ export default class tradeogre extends Exchange {
         return this.parseOrder (response, undefined);
     }
 
-    parseOrder (order, market: Market = undefined): Order {
+    parseOrder (order: Dict, market: Market = undefined): Order {
         //
         //
         // {
@@ -627,7 +627,7 @@ export default class tradeogre extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+    handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response, requestHeaders, requestBody) {
         if (response === undefined) {
             return undefined;
         }

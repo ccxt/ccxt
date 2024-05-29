@@ -6,7 +6,7 @@ import { ExchangeError, BadSymbol, AuthenticationError, InsufficientFunds, Inval
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { TransferEntry, Balances, Currency, FundingHistory, FundingRateHistory, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, MarginModification, Currencies, Dict, TransferEntries } from './base/types.js';
+import type { TransferEntry, Balances, Currency, FundingHistory, FundingRateHistory, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, MarginModification, Currencies, Dict, TransferEntries, LeverageTier, LeverageTiers, int } from './base/types.js';
 
 // ----------------------------------------------------------------------------
 
@@ -500,7 +500,7 @@ export default class phemex extends Exchange {
         return this.safeNumber (parts, 0);
     }
 
-    parseSwapMarket (market) {
+    parseSwapMarket (market: Dict) {
         //
         //     {
         //         "symbol":"BTCUSD",
@@ -638,7 +638,7 @@ export default class phemex extends Exchange {
         });
     }
 
-    parseSpotMarket (market) {
+    parseSpotMarket (market: Dict) {
         //
         //     {
         //         "symbol":"sBTCUSDT",
@@ -1552,7 +1552,7 @@ export default class phemex extends Exchange {
         return this.parseTrades (trades, market, since, limit);
     }
 
-    parseTrade (trade, market: Market = undefined): Trade {
+    parseTrade (trade: Dict, market: Market = undefined): Trade {
         //
         // fetchTrades (public) spot & contract
         //
@@ -2164,7 +2164,7 @@ export default class phemex extends Exchange {
         return this.safeString (types, type, type);
     }
 
-    parseTimeInForce (timeInForce) {
+    parseTimeInForce (timeInForce: Str) {
         const timeInForces: Dict = {
             'GoodTillCancel': 'GTC',
             'PostOnly': 'PO',
@@ -2174,7 +2174,7 @@ export default class phemex extends Exchange {
         return this.safeString (timeInForces, timeInForce, timeInForce);
     }
 
-    parseSpotOrder (order, market: Market = undefined) {
+    parseSpotOrder (order: Dict, market: Market = undefined) {
         //
         // spot
         //
@@ -2476,7 +2476,7 @@ export default class phemex extends Exchange {
         });
     }
 
-    parseOrder (order, market: Market = undefined): Order {
+    parseOrder (order: Dict, market: Market = undefined): Order {
         const isSwap = this.safeBool (market, 'swap', false);
         const hasPnl = ('closedPnl' in order) || ('closedPnlRv' in order) || ('totalPnlRv' in order);
         if (isSwap || hasPnl) {
@@ -3445,7 +3445,7 @@ export default class phemex extends Exchange {
         return this.parseTransactions (data, currency, since, limit);
     }
 
-    parseTransactionStatus (status) {
+    parseTransactionStatus (status: Str) {
         const statuses: Dict = {
             'Success': 'ok',
             'Succeed': 'ok',
@@ -3466,7 +3466,7 @@ export default class phemex extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseTransaction (transaction, currency: Currency = undefined): Transaction {
+    parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {
         //
         // withdraw
         //
@@ -3723,7 +3723,7 @@ export default class phemex extends Exchange {
         return this.filterByArrayPositions (result, 'symbol', symbols, false);
     }
 
-    parsePosition (position, market: Market = undefined) {
+    parsePosition (position: Dict, market: Market = undefined) {
         //
         //    {
         //        "userID": "811370",
@@ -4197,7 +4197,7 @@ export default class phemex extends Exchange {
         return await this.privatePutGPositionsSwitchPosModeSync (this.extend (request, params));
     }
 
-    async fetchLeverageTiers (symbols: Strings = undefined, params = {}) {
+    async fetchLeverageTiers (symbols: Strings = undefined, params = {}): Promise<LeverageTiers> {
         /**
          * @method
          * @name phemex#fetchLeverageTiers
@@ -4298,7 +4298,7 @@ export default class phemex extends Exchange {
         return this.parseLeverageTiers (riskLimits, symbols, 'symbol');
     }
 
-    parseMarketLeverageTiers (info, market: Market = undefined) {
+    parseMarketLeverageTiers (info, market: Market = undefined): LeverageTier[] {
         /**
          * @param {object} info Exchange market response for 1 market
          * @param {object} market CCXT market
@@ -4784,7 +4784,7 @@ export default class phemex extends Exchange {
         return this.parseTransaction (data, currency);
     }
 
-    handleErrors (httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+    handleErrors (httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response, requestHeaders, requestBody) {
         if (response === undefined) {
             return undefined; // fallback to default error handler
         }

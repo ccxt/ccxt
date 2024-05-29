@@ -125,15 +125,15 @@ class woo extends woo$1 {
         //         }
         //     }
         //
-        const data = this.safeValue(message, 'data');
+        const data = this.safeDict(message, 'data');
         const marketId = this.safeString(data, 'symbol');
         const market = this.safeMarket(marketId);
         const symbol = market['symbol'];
         const topic = this.safeString(message, 'topic');
-        let orderbook = this.safeValue(this.orderbooks, symbol);
-        if (orderbook === undefined) {
-            orderbook = this.orderBook({});
+        if (!(symbol in this.orderbooks)) {
+            this.orderbooks[symbol] = this.orderBook({});
         }
+        const orderbook = this.orderbooks[symbol];
         const timestamp = this.safeInteger(message, 'ts');
         const snapshot = this.parseOrderBook(data, symbol, timestamp, 'bids', 'asks');
         orderbook.reset(snapshot);

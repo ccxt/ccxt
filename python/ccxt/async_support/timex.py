@@ -441,7 +441,7 @@ class timex(Exchange, ImplicitAPI):
                 return currency
         return None
 
-    def parse_transaction(self, transaction, currency: Currency = None) -> Transaction:
+    def parse_transaction(self, transaction: dict, currency: Currency = None) -> Transaction:
         #
         #     {
         #         "from": "0x1134cc86b45039cc211c6d1d2e4b3c77f60207ed",
@@ -1099,7 +1099,7 @@ class timex(Exchange, ImplicitAPI):
         trades = self.safe_list(response, 'trades', [])
         return self.parse_trades(trades, market, since, limit)
 
-    def parse_trading_fee(self, fee, market: Market = None) -> TradingFeeInterface:
+    def parse_trading_fee(self, fee: dict, market: Market = None) -> TradingFeeInterface:
         #
         #     {
         #         "fee": 0.0075,
@@ -1142,7 +1142,7 @@ class timex(Exchange, ImplicitAPI):
         result = self.safe_value(response, 0, {})
         return self.parse_trading_fee(result, market)
 
-    def parse_market(self, market) -> Market:
+    def parse_market(self, market: dict) -> Market:
         #
         #     {
         #         "symbol": "ETHBTC",
@@ -1225,7 +1225,7 @@ class timex(Exchange, ImplicitAPI):
             'info': market,
         }
 
-    def parse_currency(self, currency):
+    def parse_currency(self, currency: dict):
         #
         #     {
         #         "symbol": "BTC",
@@ -1348,7 +1348,7 @@ class timex(Exchange, ImplicitAPI):
             'quoteVolume': self.safe_string(ticker, 'volumeQuote'),
         }, market)
 
-    def parse_trade(self, trade, market: Market = None) -> Trade:
+    def parse_trade(self, trade: dict, market: Market = None) -> Trade:
         #
         # fetchTrades(public)
         #
@@ -1435,7 +1435,7 @@ class timex(Exchange, ImplicitAPI):
             self.safe_number(ohlcv, 'volume'),
         ]
 
-    def parse_order(self, order, market: Market = None) -> Order:
+    def parse_order(self, order: dict, market: Market = None) -> Order:
         #
         # fetchOrder, createOrder, cancelOrder, cancelOrders, fetchOpenOrders, fetchClosedOrders
         #
@@ -1572,7 +1572,7 @@ class timex(Exchange, ImplicitAPI):
             headers = {'authorization': secret}
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, statusCode, statusText, url, method, responseHeaders, responseBody, response, requestHeaders, requestBody):
+    def handle_errors(self, statusCode: int, statusText: str, url: str, method: str, responseHeaders: dict, responseBody, response, requestHeaders, requestBody):
         if response is None:
             return None
         if statusCode >= 400:

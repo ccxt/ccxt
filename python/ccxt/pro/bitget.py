@@ -917,7 +917,9 @@ class bitget(ccxt.async_support.bitget):
         :param int [limit]: the maximum number of order structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param boolean [params.stop]: *contract only* set to True for watching trigger orders
-        :param str [params.marginMode]: 'isolated' or 'cross' for watching spot margin orders
+        :param str [params.marginMode]: 'isolated' or 'cross' for watching spot margin orders]
+        :param str [params.type]: 'spot', 'swap'
+        :param str [params.subType]: 'linear', 'inverse'
         :returns dict[]: a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
         """
         await self.load_markets()
@@ -932,10 +934,21 @@ class bitget(ccxt.async_support.bitget):
             symbol = market['symbol']
             marketId = market['id']
             messageHash = messageHash + ':' + symbol
+        productType = self.safe_string(params, 'productType')
         type = None
         type, params = self.handle_market_type_and_params('watchOrders', market, params)
+        subType = None
+        subType, params = self.handle_sub_type_and_params('watchOrders', market, params, 'linear')
         if (type == 'spot') and (symbol is None):
             raise ArgumentsRequired(self.id + ' watchOrders requires a symbol argument for ' + type + ' markets.')
+        if (productType is None) and (type != 'spot') and (symbol is None):
+            messageHash = messageHash + ':' + subType
+        elif productType == 'USDT-FUTURES':
+            messageHash = messageHash + ':linear'
+        elif productType == 'COIN-FUTURES':
+            messageHash = messageHash + ':inverse'
+        elif productType == 'USDC-FUTURES':
+            messageHash = messageHash + ':usdcfutures'  # non unified channel
         instType = None
         instType, params = self.get_inst_type(market, params)
         if type == 'spot':
@@ -952,6 +965,7 @@ class bitget(ccxt.async_support.bitget):
                 channel = 'orders-isolated'
             else:
                 channel = 'orders-crossed'
+        subscriptionHash = subscriptionHash + ':' + instType
         args: dict = {
             'instType': instType,
             'channel': channel,
@@ -1007,6 +1021,9 @@ class bitget(ccxt.async_support.bitget):
             marketType = 'spot'
         else:
             marketType = 'contract'
+        isLinearSwap = (instType == 'USDT-FUTURES')
+        isInverseSwap = (instType == 'COIN-FUTURES')
+        isUSDCFutures = (instType == 'USDC-FUTURES')
         data = self.safe_value(message, 'data', [])
         if self.orders is None:
             limit = self.safe_integer(self.options, 'ordersLimit', 1000)
@@ -1030,6 +1047,12 @@ class bitget(ccxt.async_support.bitget):
             innerMessageHash = messageHash + ':' + symbol
             client.resolve(stored, innerMessageHash)
         client.resolve(stored, messageHash)
+        if isLinearSwap:
+            client.resolve(stored, 'order:linear')
+        if isInverseSwap:
+            client.resolve(stored, 'order:inverse')
+        if isUSDCFutures:
+            client.resolve(stored, 'order:usdcfutures')
 
     def parse_ws_order(self, order, market=None):
         #

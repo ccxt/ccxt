@@ -428,7 +428,7 @@ class exmo(Exchange, ImplicitAPI):
             raise ExchangeError(self.id + ' parseFixedFloatValue() detected an unsupported non-zero percentage-based fee ' + input)
         return result
 
-    async def fetch_transaction_fees(self, codes: List[str] = None, params={}):
+    async def fetch_transaction_fees(self, codes: Strings = None, params={}):
         """
          * @deprecated
         please use fetchDepositWithdrawFees instead
@@ -1099,7 +1099,7 @@ class exmo(Exchange, ImplicitAPI):
         market = self.market(symbol)
         return self.parse_ticker(response[market['id']], market)
 
-    def parse_trade(self, trade, market: Market = None) -> Trade:
+    def parse_trade(self, trade: dict, market: Market = None) -> Trade:
         #
         # fetchTrades(public)
         #
@@ -1682,7 +1682,7 @@ class exmo(Exchange, ImplicitAPI):
         }
         return self.safe_string(side, orderType, orderType)
 
-    def parse_order(self, order, market: Market = None) -> Order:
+    def parse_order(self, order: dict, market: Market = None) -> Order:
         #
         # fetchOrders, fetchOpenOrders, fetchClosedOrders, fetchCanceledOrders
         #
@@ -2015,7 +2015,7 @@ class exmo(Exchange, ImplicitAPI):
         response = await self.privatePostWithdrawCrypt(self.extend(request, params))
         return self.parse_transaction(response, currency)
 
-    def parse_transaction_status(self, status):
+    def parse_transaction_status(self, status: Str):
         statuses: dict = {
             'transferred': 'ok',
             'paid': 'ok',
@@ -2025,7 +2025,7 @@ class exmo(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_transaction(self, transaction, currency: Currency = None) -> Transaction:
+    def parse_transaction(self, transaction: dict, currency: Currency = None) -> Transaction:
         #
         # fetchDepositsWithdrawals
         #
@@ -2419,7 +2419,7 @@ class exmo(Exchange, ImplicitAPI):
     def nonce(self):
         return self.milliseconds()
 
-    def handle_errors(self, httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody):
+    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response, requestHeaders, requestBody):
         if response is None:
             return None  # fallback to default error handler
         if ('error' in response) and not ('result' in response):

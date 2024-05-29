@@ -6,7 +6,7 @@ import { AuthenticationError, PermissionDenied, AccountSuspended, ExchangeError,
 import { Precise } from './base/Precise.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { DECIMAL_PLACES } from './base/functions/number.js';
-import type { TransferEntry, Int, OrderSide, OHLCV, FundingRateHistory, Order, OrderType, OrderRequest, Str, Trade, Balances, Transaction, Ticker, OrderBook, Tickers, Market, Strings, Currency, Position, Dict, Leverage, MarginMode, Num, MarginModification, Currencies, TransferEntries } from './base/types.js';
+import type { TransferEntry, Int, OrderSide, OHLCV, FundingRateHistory, Order, OrderType, OrderRequest, Str, Trade, Balances, Transaction, Ticker, OrderBook, Tickers, Market, Strings, Currency, Position, Dict, Leverage, MarginMode, Num, MarginModification, Currencies, TransferEntries, int } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -637,7 +637,7 @@ export default class bingx extends Exchange {
         return this.parseMarkets (markets);
     }
 
-    parseMarket (market): Market {
+    parseMarket (market: Dict): Market {
         const id = this.safeString (market, 'symbol');
         const symbolParts = id.split ('-');
         const baseId = symbolParts[0];
@@ -955,7 +955,7 @@ export default class bingx extends Exchange {
         return this.parseTrades (trades, market, since, limit);
     }
 
-    parseTrade (trade, market: Market = undefined): Trade {
+    parseTrade (trade: Dict, market: Market = undefined): Trade {
         //
         // spot
         // fetchTrades
@@ -1045,7 +1045,7 @@ export default class bingx extends Exchange {
             time = undefined;
         }
         const cost = this.safeString (trade, 'quoteQty');
-        const type = (cost === undefined) ? 'spot' : 'swap';
+        // const type = (cost === undefined) ? 'spot' : 'swap'; this is not reliable
         const currencyId = this.safeStringN (trade, [ 'currency', 'N', 'commissionAsset' ]);
         const currencyCode = this.safeCurrencyCode (currencyId);
         const m = this.safeBool (trade, 'm');
@@ -1082,7 +1082,7 @@ export default class bingx extends Exchange {
             'info': trade,
             'timestamp': time,
             'datetime': this.iso8601 (time),
-            'symbol': this.safeSymbol (marketId, market, '-', type),
+            'symbol': this.safeSymbol (marketId, market, '-'),
             'order': this.safeString2 (trade, 'orderId', 'i'),
             'type': this.safeStringLower (trade, 'o'),
             'side': this.parseOrderSide (side),
@@ -1725,7 +1725,7 @@ export default class bingx extends Exchange {
         return this.parsePositions (positions, symbols);
     }
 
-    parsePosition (position, market: Market = undefined) {
+    parsePosition (position: Dict, market: Market = undefined) {
         //
         //    {
         //        "positionId":"1773122376147623936",
@@ -2240,7 +2240,7 @@ export default class bingx extends Exchange {
         return this.safeString (types, type, type);
     }
 
-    parseOrder (order, market: Market = undefined): Order {
+    parseOrder (order: Dict, market: Market = undefined): Order {
         //
         // spot
         // createOrder, createOrders, cancelOrder
@@ -3536,7 +3536,7 @@ export default class bingx extends Exchange {
         return this.parseTransactions (response, currency, since, limit);
     }
 
-    parseTransaction (transaction, currency: Currency = undefined): Transaction {
+    parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {
         //
         // fetchDeposits
         //
@@ -4526,7 +4526,7 @@ export default class bingx extends Exchange {
         return this.parseMarginMode (data, market);
     }
 
-    parseMarginMode (marginMode, market = undefined): MarginMode {
+    parseMarginMode (marginMode: Dict, market = undefined): MarginMode {
         let marginType = this.safeStringLower (marginMode, 'marginType');
         marginType = (marginType === 'crossed') ? 'cross' : marginType;
         return {
@@ -4590,7 +4590,7 @@ export default class bingx extends Exchange {
         this.options['sandboxMode'] = enable;
     }
 
-    handleErrors (httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+    handleErrors (httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response, requestHeaders, requestBody) {
         if (response === undefined) {
             return undefined; // fallback to default error handler
         }

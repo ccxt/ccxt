@@ -6,7 +6,7 @@ import { NotSupported, RateLimitExceeded, AuthenticationError, PermissionDenied,
 import { Precise } from './base/Precise.js';
 import { SIGNIFICANT_DIGITS, DECIMAL_PLACES, TRUNCATE, ROUND } from './base/functions/number.js';
 import { sha384 } from './static_dependencies/noble-hashes/sha512.js';
-import type { TransferEntry, Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, Num, TradingFees, Dict } from './base/types.js';
+import type { TransferEntry, Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, Num, TradingFees, Dict, int } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -396,7 +396,7 @@ export default class bitfinex extends Exchange {
         });
     }
 
-    async fetchTransactionFees (codes: string[] = undefined, params = {}) {
+    async fetchTransactionFees (codes: Strings = undefined, params = {}) {
         /**
          * @method
          * @name bitfinex#fetchTransactionFees
@@ -952,7 +952,7 @@ export default class bitfinex extends Exchange {
         }, market);
     }
 
-    parseTrade (trade, market: Market = undefined): Trade {
+    parseTrade (trade: Dict, market: Market = undefined): Trade {
         //
         // fetchTrades (public) v1
         //
@@ -1190,7 +1190,7 @@ export default class bitfinex extends Exchange {
         return await this.privatePostOrderCancelAll (params);
     }
 
-    parseOrder (order, market: Market = undefined): Order {
+    parseOrder (order: Dict, market: Market = undefined): Order {
         //
         //     {
         //           "id": 57334010955,
@@ -1505,7 +1505,7 @@ export default class bitfinex extends Exchange {
         return this.parseTransactions (response, currency, since, limit);
     }
 
-    parseTransaction (transaction, currency: Currency = undefined): Transaction {
+    parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {
         //
         // crypto
         //
@@ -1584,7 +1584,7 @@ export default class bitfinex extends Exchange {
         };
     }
 
-    parseTransactionStatus (status) {
+    parseTransactionStatus (status: Str) {
         const statuses: Dict = {
             'SENDING': 'pending',
             'CANCELED': 'canceled',
@@ -1717,7 +1717,7 @@ export default class bitfinex extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+    handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response, requestHeaders, requestBody) {
         if (response === undefined) {
             return undefined;
         }

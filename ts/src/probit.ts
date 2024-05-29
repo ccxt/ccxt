@@ -5,7 +5,7 @@ import Exchange from './abstract/probit.js';
 import { ExchangeError, ExchangeNotAvailable, BadResponse, BadRequest, InvalidOrder, InsufficientFunds, AuthenticationError, InvalidAddress, RateLimitExceeded, DDoSProtection, BadSymbol, ArgumentsRequired } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TRUNCATE, TICK_SIZE } from './base/functions/number.js';
-import type { Balances, Currencies, Currency, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
+import type { Balances, Currencies, Currency, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, int } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -267,7 +267,7 @@ export default class probit extends Exchange {
         return this.parseMarkets (markets);
     }
 
-    parseMarket (market): Market {
+    parseMarket (market: Dict): Market {
         const id = this.safeString (market, 'id');
         const baseId = this.safeString (market, 'base_currency_id');
         const quoteId = this.safeString (market, 'quote_currency_id');
@@ -812,7 +812,7 @@ export default class probit extends Exchange {
         return this.parseTrades (data, market, since, limit);
     }
 
-    parseTrade (trade, market: Market = undefined): Trade {
+    parseTrade (trade: Dict, market: Market = undefined): Trade {
         //
         // fetchTrades (public)
         //
@@ -1123,7 +1123,7 @@ export default class probit extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseOrder (order, market: Market = undefined): Order {
+    parseOrder (order: Dict, market: Market = undefined): Order {
         //
         //     {
         //         id,
@@ -1385,7 +1385,7 @@ export default class probit extends Exchange {
         return this.parseDepositAddress (firstAddress, currency);
     }
 
-    async fetchDepositAddresses (codes: string[] = undefined, params = {}) {
+    async fetchDepositAddresses (codes: Strings = undefined, params = {}) {
         /**
          * @method
          * @name probit#fetchDepositAddresses
@@ -1560,7 +1560,7 @@ export default class probit extends Exchange {
         return this.parseTransactions (data, currency, since, limit);
     }
 
-    parseTransaction (transaction, currency: Currency = undefined): Transaction {
+    parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {
         //
         //     {
         //         "id": "01211d4b-0e68-41d6-97cb-298bfe2cab67",
@@ -1625,7 +1625,7 @@ export default class probit extends Exchange {
         };
     }
 
-    parseTransactionStatus (status) {
+    parseTransactionStatus (status: Str) {
         const statuses: Dict = {
             'requested': 'pending',
             'pending': 'pending',
@@ -1854,7 +1854,7 @@ export default class probit extends Exchange {
         return response;
     }
 
-    handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+    handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response, requestHeaders, requestBody) {
         if (response === undefined) {
             return undefined; // fallback to default error handler
         }

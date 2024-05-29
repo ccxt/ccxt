@@ -174,7 +174,7 @@ class zaif(Exchange, ImplicitAPI):
         #
         return self.parse_markets(markets)
 
-    def parse_market(self, market) -> Market:
+    def parse_market(self, market: dict) -> Market:
         id = self.safe_string(market, 'currency_pair')
         name = self.safe_string(market, 'name')
         baseId, quoteId = name.split('/')
@@ -349,7 +349,7 @@ class zaif(Exchange, ImplicitAPI):
         #
         return self.parse_ticker(ticker, market)
 
-    def parse_trade(self, trade, market: Market = None) -> Trade:
+    def parse_trade(self, trade: dict, market: Market = None) -> Trade:
         #
         # fetchTrades(public)
         #
@@ -461,9 +461,25 @@ class zaif(Exchange, ImplicitAPI):
         request: dict = {
             'order_id': id,
         }
-        return await self.privatePostCancelOrder(self.extend(request, params))
+        response = await self.privatePostCancelOrder(self.extend(request, params))
+        #
+        #    {
+        #        "success": 1,
+        #        "return": {
+        #            "order_id": 184,
+        #            "funds": {
+        #                "jpy": 15320,
+        #                "btc": 1.392,
+        #                "mona": 2600,
+        #                "kaori": 0.1
+        #            }
+        #        }
+        #    }
+        #
+        data = self.safe_dict(response, 'return')
+        return self.parse_order(data)
 
-    def parse_order(self, order, market: Market = None) -> Order:
+    def parse_order(self, order: dict, market: Market = None) -> Order:
         #
         #     {
         #         "currency_pair": "btc_jpy",
@@ -474,6 +490,18 @@ class zaif(Exchange, ImplicitAPI):
         #         "comment" : "demo"
         #     }
         #
+        # cancelOrder
+        #
+        #    {
+        #        "order_id": 184,
+        #        "funds": {
+        #            "jpy": 15320,
+        #            "btc": 1.392,
+        #            "mona": 2600,
+        #            "kaori": 0.1
+        #        }
+        #    }
+        #
         side = self.safe_string(order, 'action')
         side = 'buy' if (side == 'bid') else 'sell'
         timestamp = self.safe_timestamp(order, 'timestamp')
@@ -481,7 +509,7 @@ class zaif(Exchange, ImplicitAPI):
         symbol = self.safe_symbol(marketId, market, '_')
         price = self.safe_string(order, 'price')
         amount = self.safe_string(order, 'amount')
-        id = self.safe_string(order, 'id')
+        id = self.safe_string_2(order, 'id', 'order_id')
         return self.safe_order({
             'id': id,
             'clientOrderId': None,
@@ -603,7 +631,7 @@ class zaif(Exchange, ImplicitAPI):
         returnData = self.safe_dict(result, 'return')
         return self.parse_transaction(returnData, currency)
 
-    def parse_transaction(self, transaction, currency: Currency = None) -> Transaction:
+    def parse_transaction(self, transaction: dict, currency: Currency = None) -> Transaction:
         #
         #     {
         #         "id": 23634,
@@ -679,7 +707,7 @@ class zaif(Exchange, ImplicitAPI):
             }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody):
+    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response, requestHeaders, requestBody):
         if response is None:
             return None
         #

@@ -1201,15 +1201,9 @@ class bitmart extends Exchange {
         $market = $this->safe_market($marketId, $market);
         $symbol = $market['symbol'];
         $last = $this->safe_string_2($ticker, 'close_24h', 'last_price');
-        $percentage = $this->safe_string($ticker, 'price_change_percent_24h');
+        $percentage = Precise::string_abs($this->safe_string($ticker, 'price_change_percent_24h'));
         if ($percentage === null) {
-            $percentageRaw = $this->safe_string($ticker, 'fluctuation');
-            if (($percentageRaw !== null) && ($percentageRaw !== '0')) { // a few tickers show strictly '0' in fluctuation field
-                $direction = $percentageRaw[0];
-                $percentage = $direction . Precise::string_mul(str_replace($direction, '', $percentageRaw), '100');
-            } elseif ($percentageRaw === '0') {
-                $percentage = '0';
-            }
+            $percentage = Precise::string_abs(Precise::string_mul($this->safe_string($ticker, 'fluctuation'), '100'));
         }
         $baseVolume = $this->safe_string($ticker, 'base_volume_24h');
         $quoteVolume = $this->safe_string($ticker, 'quote_volume_24h');
@@ -1455,7 +1449,7 @@ class bitmart extends Exchange {
         }) ();
     }
 
-    public function parse_trade($trade, ?array $market = null): array {
+    public function parse_trade(array $trade, ?array $market = null): array {
         //
         // public fetchTrades spot ( $amount = count * price )
         //
@@ -2091,7 +2085,7 @@ class bitmart extends Exchange {
         }) ();
     }
 
-    public function parse_trading_fee($fee, ?array $market = null): array {
+    public function parse_trading_fee(array $fee, ?array $market = null): array {
         //
         //     {
         //         "symbol" => "ETH_USDT",
@@ -2145,7 +2139,7 @@ class bitmart extends Exchange {
         }) ();
     }
 
-    public function parse_order($order, ?array $market = null): array {
+    public function parse_order(array $order, ?array $market = null): array {
         //
         // createOrder
         //
@@ -2720,7 +2714,7 @@ class bitmart extends Exchange {
             }
             $data = $this->safe_value($response, 'data');
             if ($data === true) {
-                return $this->parse_order($id, $market);
+                return $this->safe_order(array( 'id' => $id ), $market);
             }
             $succeeded = $this->safe_value($data, 'succeed');
             if ($succeeded !== null) {
@@ -2734,8 +2728,8 @@ class bitmart extends Exchange {
                     throw new InvalidOrder($this->id . ' cancelOrder() ' . $symbol . ' $order $id ' . $id . ' is filled or canceled');
                 }
             }
-            $order = $this->parse_order($id, $market);
-            return $this->extend($order, array( 'id' => $id ));
+            $order = $this->safe_order(array( 'id' => $id, 'symbol' => $market['symbol'], 'info' => array()), $market);
+            return $order;
         }) ();
     }
 
@@ -3522,7 +3516,7 @@ class bitmart extends Exchange {
         }) ();
     }
 
-    public function parse_transaction_status($status) {
+    public function parse_transaction_status(?string $status) {
         $statuses = array(
             '0' => 'pending', // Create
             '1' => 'pending', // Submitted, waiting for withdrawal
@@ -3534,7 +3528,7 @@ class bitmart extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_transaction($transaction, ?array $currency = null): array {
+    public function parse_transaction(array $transaction, ?array $currency = null): array {
         //
         // withdraw
         //
@@ -4117,7 +4111,7 @@ class bitmart extends Exchange {
         }) ();
     }
 
-    public function parse_borrow_interest($info, ?array $market = null) {
+    public function parse_borrow_interest(array $info, ?array $market = null) {
         //
         //     {
         //         "borrow_id" => "1657664327844Lk5eJJugXmdHHZoe",
@@ -4414,7 +4408,7 @@ class bitmart extends Exchange {
         }) ();
     }
 
-    public function parse_position($position, ?array $market = null) {
+    public function parse_position(array $position, ?array $market = null) {
         //
         //     {
         //         "symbol" => "BTCUSDT",
@@ -4621,7 +4615,7 @@ class bitmart extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
         if ($response === null) {
             return null;
         }

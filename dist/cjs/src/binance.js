@@ -239,6 +239,7 @@ class binance extends binance$1 {
                         'system/status': 0.1,
                         // these endpoints require this.apiKey
                         'accountSnapshot': 240,
+                        'account/info': 0.1,
                         'margin/asset': 1,
                         'margin/pair': 1,
                         'margin/allAssets': 0.1,
@@ -842,6 +843,7 @@ class binance extends binance$1 {
                         'order/asyn/id': 10,
                         'trade/asyn': 1000,
                         'trade/asyn/id': 10,
+                        'feeBurn': 1,
                     },
                     'post': {
                         'batchOrders': 5,
@@ -856,6 +858,7 @@ class binance extends binance$1 {
                         // broker endpoints
                         'apiReferral/customization': 1,
                         'apiReferral/userCustomization': 1,
+                        'feeBurn': 1,
                     },
                     'put': {
                         'listenKey': 1,

@@ -377,7 +377,7 @@ class tradeogre(Exchange, ImplicitAPI):
         response = self.publicGetHistoryMarket(self.extend(request, params))
         return self.parse_trades(response, market, since, limit)
 
-    def parse_trade(self, trade, market: Market = None):
+    def parse_trade(self, trade: dict, market: Market = None):
         #
         #  {
         #      "date":1515128233,
@@ -523,7 +523,7 @@ class tradeogre(Exchange, ImplicitAPI):
         response = self.privateGetAccountOrderUuid(self.extend(request, params))
         return self.parse_order(response, None)
 
-    def parse_order(self, order, market: Market = None) -> Order:
+    def parse_order(self, order: dict, market: Market = None) -> Order:
         #
         #
         # {
@@ -581,7 +581,7 @@ class tradeogre(Exchange, ImplicitAPI):
                 body = self.urlencode(params)
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response, requestHeaders, requestBody):
         if response is None:
             return None
         if not ('success' in response):

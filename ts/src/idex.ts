@@ -9,7 +9,7 @@ import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { keccak_256 as keccak } from './static_dependencies/noble-hashes/sha3.js';
 import { secp256k1 } from './static_dependencies/noble-curves/secp256k1.js';
 import { ecdsa } from './base/functions/crypto.js';
-import type { Balances, Currencies, Currency, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction } from './base/types.js';
+import type { Balances, Currencies, Currency, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction, int } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -554,7 +554,7 @@ export default class idex extends Exchange {
         return this.parseTrades (response, market, since, limit);
     }
 
-    parseTrade (trade, market: Market = undefined): Trade {
+    parseTrade (trade: Dict, market: Market = undefined): Trade {
         //
         // public trades
         //  {
@@ -1074,7 +1074,7 @@ export default class idex extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseOrder (order, market: Market = undefined): Order {
+    parseOrder (order: Dict, market: Market = undefined): Order {
         //
         //     {
         //         "market": "DIL-ETH",
@@ -1514,7 +1514,7 @@ export default class idex extends Exchange {
         return this.parseOrder (canceledOrder, market);
     }
 
-    handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+    handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response, requestHeaders, requestBody) {
         const errorCode = this.safeString (response, 'code');
         const message = this.safeString (response, 'message');
         if (errorCode !== undefined) {
@@ -1680,14 +1680,14 @@ export default class idex extends Exchange {
         return this.parseTransactions (response, currency, since, limit);
     }
 
-    parseTransactionStatus (status) {
+    parseTransactionStatus (status: Str) {
         const statuses: Dict = {
             'mined': 'ok',
         };
         return this.safeString (statuses, status, status);
     }
 
-    parseTransaction (transaction, currency: Currency = undefined): Transaction {
+    parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {
         //
         // fetchDeposits
         //

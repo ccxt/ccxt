@@ -6,7 +6,7 @@ import { ExchangeError, ExchangeNotAvailable, ArgumentsRequired, BadRequest, Inv
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderRequest, Str, Transaction, Ticker, OrderBook, Balances, Tickers, Market, Strings, Currency, Position, TransferEntry, Leverage, Leverages, MarginMode, Num, TradingFeeInterface, Dict } from './base/types.js';
+import type { Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderRequest, Str, Transaction, Ticker, OrderBook, Balances, Tickers, Market, Strings, Currency, Position, TransferEntry, Leverage, Leverages, MarginMode, Num, TradingFeeInterface, Dict, int } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -365,7 +365,7 @@ export default class blofin extends Exchange {
         return this.parseMarkets (data);
     }
 
-    parseMarket (market): Market {
+    parseMarket (market: Dict): Market {
         const id = this.safeString (market, 'instId');
         const type = this.safeStringLower (market, 'instType');
         const spot = (type === 'spot');
@@ -568,7 +568,7 @@ export default class blofin extends Exchange {
         return this.parseTickers (tickers, symbols);
     }
 
-    parseTrade (trade, market: Market = undefined): Trade {
+    parseTrade (trade: Dict, market: Market = undefined): Trade {
         //
         // fetch trades
         //   {
@@ -953,7 +953,7 @@ export default class blofin extends Exchange {
         return this.safeBalance (result);
     }
 
-    parseTradingFee (fee, market: Market = undefined): TradingFeeInterface {
+    parseTradingFee (fee: Dict, market: Market = undefined): TradingFeeInterface {
         return {
             'info': fee,
             'symbol': this.safeSymbol (undefined, market),
@@ -1054,7 +1054,7 @@ export default class blofin extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseOrder (order, market: Market = undefined): Order {
+    parseOrder (order: Dict, market: Market = undefined): Order {
         //
         // {
         //     "orderId": "2075628533",
@@ -1531,7 +1531,7 @@ export default class blofin extends Exchange {
         return this.parseLedger (data, currency, since, limit);
     }
 
-    parseTransaction (transaction, currency: Currency = undefined): Transaction {
+    parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {
         //
         //
         // fetchDeposits
@@ -1617,7 +1617,7 @@ export default class blofin extends Exchange {
         };
     }
 
-    parseTransactionStatus (status) {
+    parseTransactionStatus (status: Str) {
         const statuses: Dict = {
             '0': 'pending',
             '1': 'ok',
@@ -1644,7 +1644,7 @@ export default class blofin extends Exchange {
         return this.safeString (types, type, type);
     }
 
-    parseLedgerEntry (item, currency: Currency = undefined) {
+    parseLedgerEntry (item: Dict, currency: Currency = undefined) {
         const id = this.safeString (item, 'transferId');
         const referenceId = this.safeString (item, 'clientId');
         const fromAccount = this.safeString (item, 'fromAccount');
@@ -1823,7 +1823,7 @@ export default class blofin extends Exchange {
         return this.parsePosition (position, market);
     }
 
-    async fetchPositions (symbols: string[] = undefined, params = {}): Promise<Position[]> {
+    async fetchPositions (symbols: Strings = undefined, params = {}): Promise<Position[]> {
         /**
          * @method
          * @name blofin#fetchPosition
@@ -1842,7 +1842,7 @@ export default class blofin extends Exchange {
         return this.filterByArrayPositions (result, 'symbol', symbols, false);
     }
 
-    parsePosition (position, market: Market = undefined) {
+    parsePosition (position: Dict, market: Market = undefined) {
         const marketId = this.safeString (position, 'instId');
         market = this.safeMarket (marketId, market);
         const symbol = market['symbol'];
@@ -1930,7 +1930,7 @@ export default class blofin extends Exchange {
         });
     }
 
-    async fetchLeverages (symbols: string[] = undefined, params = {}): Promise<Leverages> {
+    async fetchLeverages (symbols: Strings = undefined, params = {}): Promise<Leverages> {
         /**
          * @method
          * @name blofin#fetchLeverages
@@ -2183,7 +2183,7 @@ export default class blofin extends Exchange {
         return this.parseMarginMode (data, market);
     }
 
-    parseMarginMode (marginMode, market = undefined): MarginMode {
+    parseMarginMode (marginMode: Dict, market = undefined): MarginMode {
         return {
             'info': marginMode,
             'symbol': market['symbol'],
@@ -2191,7 +2191,7 @@ export default class blofin extends Exchange {
         } as MarginMode;
     }
 
-    handleErrors (httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+    handleErrors (httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response, requestHeaders, requestBody) {
         if (response === undefined) {
             return undefined; // fallback to default error handler
         }

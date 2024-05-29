@@ -412,9 +412,9 @@ public partial class bitmart : ccxt.bitmart
         /**
         * @method
         * @name bitmart#watchOrders
-        * @see https://developer-pro.bitmart.com/en/spot/#private-order-channel
-        * @see https://developer-pro.bitmart.com/en/futures/#private-order-channel
         * @description watches information on multiple orders made by the user
+        * @see https://developer-pro.bitmart.com/en/spot/#private-order-progress
+        * @see https://developer-pro.bitmart.com/en/futures/#private-order-channel
         * @param {string} symbol unified market symbol of the market orders were made in
         * @param {int} [since] the earliest time in ms to fetch orders for
         * @param {int} [limit] the maximum number of order structures to retrieve
@@ -439,13 +439,17 @@ public partial class bitmart : ccxt.bitmart
         object request = null;
         if (isTrue(isEqual(type, "spot")))
         {
-            if (isTrue(isEqual(symbol, null)))
+            object argsRequest = "spot/user/order:";
+            if (isTrue(!isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired ((string)add(this.id, " watchOrders() requires a symbol argument for spot markets")) ;
+                argsRequest = add(argsRequest, getValue(market, "id"));
+            } else
+            {
+                argsRequest = "spot/user/orders:ALL_SYMBOLS";
             }
             request = new Dictionary<string, object>() {
                 { "op", "subscribe" },
-                { "args", new List<object>() {add("spot/user/order:", getValue(market, "id"))} },
+                { "args", new List<object>() {argsRequest} },
             };
         } else
         {

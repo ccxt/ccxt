@@ -6,7 +6,7 @@ import { AuthenticationError, RateLimitExceeded, BadRequest, ExchangeError, Inva
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { TransferEntry, Balances, Conversion, Currency, FundingRateHistory, Int, Market, MarketType, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Dict, Bool, Strings, Trade, Transaction, Leverage, Account, Currencies, TradingFees, TransferEntries } from './base/types.js';
+import type { TransferEntry, Balances, Conversion, Currency, FundingRateHistory, Int, Market, MarketType, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Dict, Bool, Strings, Trade, Transaction, Leverage, Account, Currencies, TradingFees, TransferEntries, int } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -434,7 +434,7 @@ export default class woo extends Exchange {
         return this.parseMarkets (data);
     }
 
-    parseMarket (market): Market {
+    parseMarket (market: Dict): Market {
         const marketId = this.safeString (market, 'symbol');
         const parts = marketId.split ('_');
         const first = this.safeString (parts, 0);
@@ -572,7 +572,7 @@ export default class woo extends Exchange {
         return this.parseTrades (resultResponse, market, since, limit);
     }
 
-    parseTrade (trade, market: Market = undefined): Trade {
+    parseTrade (trade: Dict, market: Market = undefined): Trade {
         //
         // public/market_trades
         //
@@ -1531,7 +1531,7 @@ export default class woo extends Exchange {
         return await this.fetchOrders (symbol, since, limit, extendedParams);
     }
 
-    parseTimeInForce (timeInForce) {
+    parseTimeInForce (timeInForce: Str) {
         const timeInForces: Dict = {
             'ioc': 'IOC',
             'fok': 'FOK',
@@ -1540,7 +1540,7 @@ export default class woo extends Exchange {
         return this.safeString (timeInForces, timeInForce, undefined);
     }
 
-    parseOrder (order, market: Market = undefined): Order {
+    parseOrder (order: Dict, market: Market = undefined): Order {
         //
         // Possible input functions:
         // * createOrder
@@ -2125,7 +2125,7 @@ export default class woo extends Exchange {
         return this.parseLedger (rows, currency, since, limit, params);
     }
 
-    parseLedgerEntry (item, currency: Currency = undefined) {
+    parseLedgerEntry (item: Dict, currency: Currency = undefined) {
         const networkizedCode = this.safeString (item, 'token');
         const currencyDefined = this.getCurrencyFromChaincode (networkizedCode, currency);
         const code = currencyDefined['code'];
@@ -2243,7 +2243,7 @@ export default class woo extends Exchange {
         return this.parseTransactions (rows, currency, since, limit, params);
     }
 
-    parseTransaction (transaction, currency: Currency = undefined): Transaction {
+    parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {
         // example in fetchLedger
         const networkizedCode = this.safeString (transaction, 'token');
         const currencyDefined = this.getCurrencyFromChaincode (networkizedCode, currency);
@@ -2280,7 +2280,7 @@ export default class woo extends Exchange {
         };
     }
 
-    parseTransactionStatus (status) {
+    parseTransactionStatus (status: Str) {
         const statuses: Dict = {
             'NEW': 'pending',
             'CONFIRMING': 'pending',
@@ -2606,7 +2606,7 @@ export default class woo extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    handleErrors (httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+    handleErrors (httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response, requestHeaders, requestBody) {
         if (!response) {
             return undefined; // fallback to default error handler
         }
@@ -3003,7 +3003,7 @@ export default class woo extends Exchange {
         return this.parsePositions (positions, symbols);
     }
 
-    parsePosition (position, market: Market = undefined) {
+    parsePosition (position: Dict, market: Market = undefined) {
         //
         //     {
         //         "symbol": "0_symbol",

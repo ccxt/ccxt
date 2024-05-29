@@ -7,7 +7,7 @@ import { Precise } from './base/Precise.js';
 import { TRUNCATE, TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
-import type { IndexType, Int, OrderSide, OrderType, OHLCV, Trade, Order, Balances, Str, Dict, Transaction, Ticker, OrderBook, Tickers, Strings, Currency, Market, TransferEntry, Num, TradingFeeInterface, Currencies } from './base/types.js';
+import type { IndexType, Int, OrderSide, OrderType, OHLCV, Trade, Order, Balances, Str, Dict, Transaction, Ticker, OrderBook, Tickers, Strings, Currency, Market, TransferEntry, Num, TradingFeeInterface, Currencies, int } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -163,13 +163,13 @@ export default class kraken extends Exchange {
                         // rate-limits explained in comment in the top of this file
                         'Assets': 1,
                         'AssetPairs': 1,
-                        'Depth': 1,
-                        'OHLC': 1,
+                        'Depth': 1.2,
+                        'OHLC': 1.2, // 1.2 because 1 triggers too many requests immediately
                         'Spread': 1,
                         'SystemStatus': 1,
                         'Ticker': 1,
                         'Time': 1,
-                        'Trades': 1,
+                        'Trades': 1.2,
                     },
                 },
                 'private': {
@@ -1001,9 +1001,9 @@ export default class kraken extends Exchange {
             request['interval'] = timeframe;
         }
         if (since !== undefined) {
-            // contrary to kraken's api documentation, the since parameter must be passed in nanoseconds
-            // the adding of '000000' is copied from the fetchTrades function
-            request['since'] = this.numberToString (since) + '000000'; // expected to be in nanoseconds
+            const scaledSince = this.parseToInt (since / 1000);
+            const timeFrameInSeconds = parsedTimeframe * 60;
+            request['since'] = this.numberToString (scaledSince - timeFrameInSeconds); // expected to be in seconds
         }
         const response = await this.publicGetOHLC (this.extend (request, params));
         //
@@ -1035,7 +1035,7 @@ export default class kraken extends Exchange {
         return this.safeString (types, type, type);
     }
 
-    parseLedgerEntry (item, currency: Currency = undefined) {
+    parseLedgerEntry (item: Dict, currency: Currency = undefined) {
         //
         //     {
         //         'LTFK7F-N2CUX-PNY4SX': {
@@ -1170,7 +1170,7 @@ export default class kraken extends Exchange {
         return items[0];
     }
 
-    parseTrade (trade, market: Market = undefined): Trade {
+    parseTrade (trade: Dict, market: Market = undefined): Trade {
         //
         // fetchTrades (public)
         //
@@ -1291,10 +1291,7 @@ export default class kraken extends Exchange {
         // https://support.kraken.com/hc/en-us/articles/218198197-How-to-pull-all-trade-data-using-the-Kraken-REST-API
         // https://github.com/ccxt/ccxt/issues/5677
         if (since !== undefined) {
-            // php does not format it properly
-            // therefore we use string concatenation here
-            request['since'] = since * 1e6;
-            request['since'] = since.toString () + '000000'; // expected to be in nanoseconds
+            request['since'] = this.numberToString (this.parseToInt (since / 1000)); // expected to be in seconds
         }
         if (limit !== undefined) {
             request['count'] = limit;
@@ -1520,7 +1517,7 @@ export default class kraken extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseOrder (order, market: Market = undefined): Order {
+    parseOrder (order: Dict, market: Market = undefined): Order {
         //
         // createOrder for regular orders
         //
@@ -2344,7 +2341,7 @@ export default class kraken extends Exchange {
         return this.parseOrders (orders, market, since, limit);
     }
 
-    parseTransactionStatus (status) {
+    parseTransactionStatus (status: Str) {
         // IFEX transaction states
         const statuses: Dict = {
             'Initial': 'pending',
@@ -2362,7 +2359,7 @@ export default class kraken extends Exchange {
         return this.safeString (withdrawMethods, network, network);
     }
 
-    parseTransaction (transaction, currency: Currency = undefined): Transaction {
+    parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {
         //
         // fetchDeposits
         //
@@ -2886,7 +2883,7 @@ export default class kraken extends Exchange {
         return this.filterByArrayPositions (results, 'symbol', symbols, false);
     }
 
-    parsePosition (position, market: Market = undefined) {
+    parsePosition (position: Dict, market: Market = undefined) {
         //
         //             {
         //                 "pair": "ETHUSDT",
@@ -3071,7 +3068,7 @@ export default class kraken extends Exchange {
         return this.milliseconds ();
     }
 
-    handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+    handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response, requestHeaders, requestBody) {
         if (code === 520) {
             throw new ExchangeNotAvailable (this.id + ' ' + code.toString () + ' ' + reason);
         }

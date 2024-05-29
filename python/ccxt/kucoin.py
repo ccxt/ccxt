@@ -2514,7 +2514,7 @@ class kucoin(Exchange, ImplicitAPI):
             responseData = self.safe_value(responseData, 0)
         return self.parse_order(responseData, market)
 
-    def parse_order(self, order, market: Market = None) -> Order:
+    def parse_order(self, order: dict, market: Market = None) -> Order:
         #
         # createOrder
         #
@@ -2843,7 +2843,7 @@ class kucoin(Exchange, ImplicitAPI):
         trades = self.safe_list(response, 'data', [])
         return self.parse_trades(trades, market, since, limit)
 
-    def parse_trade(self, trade, market: Market = None) -> Trade:
+    def parse_trade(self, trade: dict, market: Market = None) -> Trade:
         #
         # fetchTrades(public)
         #
@@ -3100,7 +3100,7 @@ class kucoin(Exchange, ImplicitAPI):
             code = currency['code']
             self.currencies[code]['networks'][networkCode]['precision'] = precision
 
-    def parse_transaction_status(self, status):
+    def parse_transaction_status(self, status: Str):
         statuses: dict = {
             'SUCCESS': 'ok',
             'PROCESSING': 'pending',
@@ -3109,7 +3109,7 @@ class kucoin(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_transaction(self, transaction, currency: Currency = None) -> Transaction:
+    def parse_transaction(self, transaction: dict, currency: Currency = None) -> Transaction:
         #
         # fetchDeposits
         #
@@ -3730,7 +3730,7 @@ class kucoin(Exchange, ImplicitAPI):
         }
         return self.safe_string(types, type, type)
 
-    def parse_ledger_entry(self, item, currency: Currency = None):
+    def parse_ledger_entry(self, item: dict, currency: Currency = None):
         #
         #     {
         #         "id": "611a1e7c6a053300067a88d9",  #unique key for each ledger entry
@@ -4048,7 +4048,7 @@ class kucoin(Exchange, ImplicitAPI):
         assets = self.safe_list(data, 'assets', []) if (marginMode == 'isolated') else self.safe_list(data, 'accounts', [])
         return self.parse_borrow_interests(assets, None)
 
-    def parse_borrow_interest(self, info, market: Market = None):
+    def parse_borrow_interest(self, info: dict, market: Market = None):
         #
         # Cross
         #
@@ -4497,7 +4497,7 @@ class kucoin(Exchange, ImplicitAPI):
                     headers['KC-BROKER-NAME'] = brokerName
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response, requestHeaders, requestBody):
         if not response:
             self.throw_broadly_matched_exception(self.exceptions['broad'], body, body)
             return None

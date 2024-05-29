@@ -316,7 +316,7 @@ class bitopro(Exchange, ImplicitAPI):
         #
         return self.parse_markets(markets)
 
-    def parse_market(self, market) -> Market:
+    def parse_market(self, market: dict) -> Market:
         active = not self.safe_value(market, 'maintain')
         id = self.safe_string(market, 'pair')
         uppercaseId = id.upper()
@@ -512,7 +512,7 @@ class bitopro(Exchange, ImplicitAPI):
         #
         return self.parse_order_book(response, market['symbol'], None, 'bids', 'asks', 'price', 'amount')
 
-    def parse_trade(self, trade, market: Market = None) -> Trade:
+    def parse_trade(self, trade: dict, market: Market = None) -> Trade:
         #
         # fetchTrades
         #         {
@@ -869,7 +869,7 @@ class bitopro(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, None)
 
-    def parse_order(self, order, market: Market = None) -> Order:
+    def parse_order(self, order: dict, market: Market = None) -> Order:
         #
         # createOrder
         #         {
@@ -1259,7 +1259,7 @@ class bitopro(Exchange, ImplicitAPI):
         #
         return self.parse_trades(trades, market, since, limit)
 
-    def parse_transaction_status(self, status):
+    def parse_transaction_status(self, status: Str):
         states: dict = {
             'COMPLETE': 'ok',
             'INVALID': 'failed',
@@ -1273,7 +1273,7 @@ class bitopro(Exchange, ImplicitAPI):
         }
         return self.safe_string(states, status, status)
 
-    def parse_transaction(self, transaction, currency: Currency = None) -> Transaction:
+    def parse_transaction(self, transaction: dict, currency: Currency = None) -> Transaction:
         #
         # fetchDeposits
         #
@@ -1618,7 +1618,7 @@ class bitopro(Exchange, ImplicitAPI):
         url = self.urls['api']['rest'] + url
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response, requestHeaders, requestBody):
         if response is None:
             return None  # fallback to the default error handler
         if code >= 200 and code < 300:

@@ -1124,18 +1124,10 @@ public partial class bitmart : Exchange
         market = this.safeMarket(marketId, market);
         object symbol = getValue(market, "symbol");
         object last = this.safeString2(ticker, "close_24h", "last_price");
-        object percentage = this.safeString(ticker, "price_change_percent_24h");
+        object percentage = Precise.stringAbs(this.safeString(ticker, "price_change_percent_24h"));
         if (isTrue(isEqual(percentage, null)))
         {
-            object percentageRaw = this.safeString(ticker, "fluctuation");
-            if (isTrue(isTrue((!isEqual(percentageRaw, null))) && isTrue((!isEqual(percentageRaw, "0")))))
-            {
-                object direction = getValue(percentageRaw, 0);
-                percentage = add(direction, Precise.stringMul(((string)percentageRaw).Replace((string)direction, (string)""), "100"));
-            } else if (isTrue(isEqual(percentageRaw, "0")))
-            {
-                percentage = "0";
-            }
+            percentage = Precise.stringAbs(Precise.stringMul(this.safeString(ticker, "fluctuation"), "100"));
         }
         object baseVolume = this.safeString(ticker, "base_volume_24h");
         object quoteVolume = this.safeString(ticker, "quote_volume_24h");
@@ -2820,7 +2812,9 @@ public partial class bitmart : Exchange
         object data = this.safeValue(response, "data");
         if (isTrue(isEqual(data, true)))
         {
-            return this.parseOrder(id, market);
+            return this.safeOrder(new Dictionary<string, object>() {
+                { "id", id },
+            }, market);
         }
         object succeeded = this.safeValue(data, "succeed");
         if (isTrue(!isEqual(succeeded, null)))
@@ -2838,10 +2832,12 @@ public partial class bitmart : Exchange
                 throw new InvalidOrder ((string)add(add(add(add(add(this.id, " cancelOrder() "), symbol), " order id "), id), " is filled or canceled")) ;
             }
         }
-        object order = this.parseOrder(id, market);
-        return this.extend(order, new Dictionary<string, object>() {
+        object order = this.safeOrder(new Dictionary<string, object>() {
             { "id", id },
-        });
+            { "symbol", getValue(market, "symbol") },
+            { "info", new Dictionary<string, object>() {} },
+        }, market);
+        return order;
     }
 
     public async virtual Task<object> cancelOrders(object ids, object symbol = null, object parameters = null)

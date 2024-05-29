@@ -6,7 +6,7 @@ import { ExchangeError, InsufficientFunds, BadRequest, BadSymbol, InvalidOrder, 
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { Balances, Currency, Greeks, Int, Market, MarketInterface, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Position, Leverage, MarginMode, Num, Option, MarginModification, Currencies, Dict } from './base/types.js';
+import type { Balances, Currency, Greeks, Int, Market, MarketInterface, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Position, Leverage, MarginMode, Num, Option, MarginModification, Currencies, Dict, int } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -1313,7 +1313,7 @@ export default class delta extends Exchange {
         return this.parseOrderBook (result, market['symbol'], undefined, 'buy', 'sell', 'price', 'size');
     }
 
-    parseTrade (trade, market: Market = undefined): Trade {
+    parseTrade (trade: Dict, market: Market = undefined): Trade {
         //
         // public fetchTrades
         //
@@ -1643,7 +1643,7 @@ export default class delta extends Exchange {
         return this.parsePositions (result, symbols);
     }
 
-    parsePosition (position, market: Market = undefined) {
+    parsePosition (position: Dict, market: Market = undefined) {
         //
         // fetchPosition
         //
@@ -1723,7 +1723,7 @@ export default class delta extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseOrder (order, market: Market = undefined): Order {
+    parseOrder (order: Dict, market: Market = undefined): Order {
         //
         // createOrder, cancelOrder, editOrder, fetchOpenOrders, fetchClosedOrders
         //
@@ -2274,7 +2274,7 @@ export default class delta extends Exchange {
         return this.safeString (types, type, type);
     }
 
-    parseLedgerEntry (item, currency: Currency = undefined) {
+    parseLedgerEntry (item: Dict, currency: Currency = undefined) {
         //
         //     {
         //         "amount":"29.889184",
@@ -3345,7 +3345,7 @@ export default class delta extends Exchange {
         return this.parseMarginMode (result, market);
     }
 
-    parseMarginMode (marginMode, market = undefined): MarginMode {
+    parseMarginMode (marginMode: Dict, market = undefined): MarginMode {
         let symbol = undefined;
         if (market !== undefined) {
             symbol = market['symbol'];
@@ -3537,7 +3537,7 @@ export default class delta extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+    handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response, requestHeaders, requestBody) {
         if (response === undefined) {
             return undefined;
         }

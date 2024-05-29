@@ -6,7 +6,7 @@ import { ExchangeError, InvalidNonce, AuthenticationError, PermissionDenied, Not
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
-import type { Balances, Currency, Dict, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade, TradingFees } from './base/types.js';
+import type { Balances, Currency, Dict, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade, TradingFees, int } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -473,7 +473,8 @@ export default class bit2c extends Exchange {
         const request: Dict = {
             'id': id,
         };
-        return await this.privatePostOrderCancelOrder (this.extend (request, params));
+        const response = await this.privatePostOrderCancelOrder (this.extend (request, params));
+        return this.parseOrder (response);
     }
 
     async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
@@ -536,7 +537,7 @@ export default class bit2c extends Exchange {
         return this.parseOrder (response, market);
     }
 
-    parseOrder (order, market: Market = undefined): Order {
+    parseOrder (order: Dict, market: Market = undefined): Order {
         //
         //      createOrder
         //      {
@@ -729,7 +730,7 @@ export default class bit2c extends Exchange {
         return newString;
     }
 
-    parseTrade (trade, market: Market = undefined): Trade {
+    parseTrade (trade: Dict, market: Market = undefined): Trade {
         //
         // public fetchTrades
         //
@@ -912,7 +913,7 @@ export default class bit2c extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    handleErrors (httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+    handleErrors (httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response, requestHeaders, requestBody) {
         if (response === undefined) {
             return undefined; // fallback to default error handler
         }

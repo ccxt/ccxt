@@ -5,7 +5,7 @@ import { BadRequest, AuthenticationError, InsufficientFunds, InvalidOrder, Argum
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { Balances, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade } from './base/types.js';
+import type { Balances, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, int } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -202,7 +202,7 @@ export default class ace extends Exchange {
         return this.parseMarkets (response);
     }
 
-    parseMarket (market): Market {
+    parseMarket (market: Dict): Market {
         const baseId = this.safeString (market, 'base');
         const base = this.safeCurrencyCode (baseId);
         const quoteId = this.safeString (market, 'quote');
@@ -506,7 +506,7 @@ export default class ace extends Exchange {
         return this.safeString (statuses, status, undefined);
     }
 
-    parseOrder (order, market: Market = undefined): Order {
+    parseOrder (order: Dict, market: Market = undefined): Order {
         //
         // createOrder
         //         "15697850529570392100421100482693"
@@ -769,7 +769,7 @@ export default class ace extends Exchange {
         return this.parseOrders (orders, market, since, limit);
     }
 
-    parseTrade (trade, market: Market = undefined): Trade {
+    parseTrade (trade: Dict, market: Market = undefined): Trade {
         //
         // fetchOrderTrades
         //         {
@@ -1068,7 +1068,7 @@ export default class ace extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+    handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response, requestHeaders, requestBody) {
         if (response === undefined) {
             return undefined; // fallback to the default error handler
         }

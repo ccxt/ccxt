@@ -468,7 +468,7 @@ class blockchaincom(Exchange, ImplicitAPI):
         }
         return self.safe_string(states, state, state)
 
-    def parse_order(self, order, market: Market = None) -> Order:
+    def parse_order(self, order: dict, market: Market = None) -> Order:
         #
         #     {
         #         "clOrdId": "00001",
@@ -700,7 +700,7 @@ class blockchaincom(Exchange, ImplicitAPI):
         response = self.privateGetOrders(self.extend(request, params))
         return self.parse_orders(response, market, since, limit)
 
-    def parse_trade(self, trade, market: Market = None) -> Trade:
+    def parse_trade(self, trade: dict, market: Market = None) -> Trade:
         #
         #     {
         #         "exOrdId":281685751028507,
@@ -805,7 +805,7 @@ class blockchaincom(Exchange, ImplicitAPI):
         }
         return self.safe_string(states, state, state)
 
-    def parse_transaction(self, transaction, currency: Currency = None) -> Transaction:
+    def parse_transaction(self, transaction: dict, currency: Currency = None) -> Transaction:
         #
         # deposit
         #
@@ -1083,7 +1083,7 @@ class blockchaincom(Exchange, ImplicitAPI):
                 headers['Content-Type'] = 'application/json'
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response, requestHeaders, requestBody):
         # {"timestamp":"2021-10-21T15:13:58.837+00:00","status":404,"error":"Not Found","message":"","path":"/orders/505050"
         if response is None:
             return None

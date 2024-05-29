@@ -580,7 +580,7 @@ class bitmex(Exchange, ImplicitAPI):
         #
         return self.parse_markets(response)
 
-    def parse_market(self, market) -> Market:
+    def parse_market(self, market: dict) -> Market:
         id = self.safe_string(market, 'symbol')
         baseId = self.safe_string(market, 'underlying')
         quoteId = self.safe_string(market, 'quoteCurrency')
@@ -1049,7 +1049,7 @@ class bitmex(Exchange, ImplicitAPI):
         }
         return self.safe_string(types, type, type)
 
-    def parse_ledger_entry(self, item, currency: Currency = None):
+    def parse_ledger_entry(self, item: dict, currency: Currency = None):
         #
         #     {
         #         "transactID": "69573da3-7744-5467-3207-89fd6efe7a47",
@@ -1220,7 +1220,7 @@ class bitmex(Exchange, ImplicitAPI):
         transactions = self.filter_by_array(response, 'transactType', ['Withdrawal', 'Deposit'], False)
         return self.parse_transactions(transactions, currency, since, limit)
 
-    def parse_transaction_status(self, status):
+    def parse_transaction_status(self, status: Str):
         statuses: dict = {
             'Confirmed': 'pending',
             'Canceled': 'canceled',
@@ -1229,7 +1229,7 @@ class bitmex(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_transaction(self, transaction, currency: Currency = None) -> Transaction:
+    def parse_transaction(self, transaction: dict, currency: Currency = None) -> Transaction:
         #
         #    {
         #        "transactID": "ffe699c2-95ee-4c13-91f9-0faf41daec25",
@@ -1469,7 +1469,7 @@ class bitmex(Exchange, ImplicitAPI):
                 result[i][0] = result[i][0] - duration
         return result
 
-    def parse_trade(self, trade, market: Market = None) -> Trade:
+    def parse_trade(self, trade: dict, market: Market = None) -> Trade:
         #
         # fetchTrades(public)
         #
@@ -1596,7 +1596,7 @@ class bitmex(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_time_in_force(self, timeInForce):
+    def parse_time_in_force(self, timeInForce: Str):
         timeInForces: dict = {
             'Day': 'Day',
             'GoodTillCancel': 'GTC',
@@ -1605,7 +1605,7 @@ class bitmex(Exchange, ImplicitAPI):
         }
         return self.safe_string(timeInForces, timeInForce, timeInForce)
 
-    def parse_order(self, order, market: Market = None) -> Order:
+    def parse_order(self, order: dict, market: Market = None) -> Order:
         #
         #     {
         #         "orderID":"56222c7a-9956-413a-82cf-99f4812c214b",
@@ -2005,7 +2005,7 @@ class bitmex(Exchange, ImplicitAPI):
         #
         return response
 
-    async def fetch_leverages(self, symbols: List[str] = None, params={}) -> Leverages:
+    async def fetch_leverages(self, symbols: Strings = None, params={}) -> Leverages:
         """
         fetch the set leverage for all contract markets
         :see: https://www.bitmex.com/api/explorer/#not /Position/Position_get
@@ -2137,7 +2137,7 @@ class bitmex(Exchange, ImplicitAPI):
         results = self.parse_positions(response, symbols)
         return self.filter_by_array_positions(results, 'symbol', symbols, False)
 
-    def parse_position(self, position, market: Market = None):
+    def parse_position(self, position: dict, market: Market = None):
         #
         #     {
         #         "account": 9371654,
@@ -2705,7 +2705,7 @@ class bitmex(Exchange, ImplicitAPI):
             'datetime': None,
         })
 
-    def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response, requestHeaders, requestBody):
         if response is None:
             return None
         if code == 429:

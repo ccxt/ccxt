@@ -431,7 +431,7 @@ class woo(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'rows', [])
         return self.parse_markets(data)
 
-    def parse_market(self, market) -> Market:
+    def parse_market(self, market: dict) -> Market:
         marketId = self.safe_string(market, 'symbol')
         parts = marketId.split('_')
         first = self.safe_string(parts, 0)
@@ -562,7 +562,7 @@ class woo(Exchange, ImplicitAPI):
         resultResponse = self.safe_list(response, 'rows', [])
         return self.parse_trades(resultResponse, market, since, limit)
 
-    def parse_trade(self, trade, market: Market = None) -> Trade:
+    def parse_trade(self, trade: dict, market: Market = None) -> Trade:
         #
         # public/market_trades
         #
@@ -1425,7 +1425,7 @@ class woo(Exchange, ImplicitAPI):
         extendedParams = self.extend(params, {'status': 'COMPLETED'})
         return await self.fetch_orders(symbol, since, limit, extendedParams)
 
-    def parse_time_in_force(self, timeInForce):
+    def parse_time_in_force(self, timeInForce: Str):
         timeInForces: dict = {
             'ioc': 'IOC',
             'fok': 'FOK',
@@ -1433,7 +1433,7 @@ class woo(Exchange, ImplicitAPI):
         }
         return self.safe_string(timeInForces, timeInForce, None)
 
-    def parse_order(self, order, market: Market = None) -> Order:
+    def parse_order(self, order: dict, market: Market = None) -> Order:
         #
         # Possible input functions:
         # * createOrder
@@ -1971,7 +1971,7 @@ class woo(Exchange, ImplicitAPI):
         currency, rows = await self.get_asset_history_rows(code, since, limit, params)
         return self.parse_ledger(rows, currency, since, limit, params)
 
-    def parse_ledger_entry(self, item, currency: Currency = None):
+    def parse_ledger_entry(self, item: dict, currency: Currency = None):
         networkizedCode = self.safe_string(item, 'token')
         currencyDefined = self.get_currency_from_chaincode(networkizedCode, currency)
         code = currencyDefined['code']
@@ -2075,7 +2075,7 @@ class woo(Exchange, ImplicitAPI):
         #
         return self.parse_transactions(rows, currency, since, limit, params)
 
-    def parse_transaction(self, transaction, currency: Currency = None) -> Transaction:
+    def parse_transaction(self, transaction: dict, currency: Currency = None) -> Transaction:
         # example in fetchLedger
         networkizedCode = self.safe_string(transaction, 'token')
         currencyDefined = self.get_currency_from_chaincode(networkizedCode, currency)
@@ -2110,7 +2110,7 @@ class woo(Exchange, ImplicitAPI):
             'network': None,
         }
 
-    def parse_transaction_status(self, status):
+    def parse_transaction_status(self, status: Str):
         statuses: dict = {
             'NEW': 'pending',
             'CONFIRMING': 'pending',
@@ -2400,7 +2400,7 @@ class woo(Exchange, ImplicitAPI):
             headers['x-api-signature'] = self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha256)
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody):
+    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response, requestHeaders, requestBody):
         if not response:
             return None  # fallback to default error handler
         #
@@ -2768,7 +2768,7 @@ class woo(Exchange, ImplicitAPI):
         positions = self.safe_list(result, 'positions', [])
         return self.parse_positions(positions, symbols)
 
-    def parse_position(self, position, market: Market = None):
+    def parse_position(self, position: dict, market: Market = None):
         #
         #     {
         #         "symbol": "0_symbol",

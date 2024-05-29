@@ -772,7 +772,7 @@ class alpaca(Exchange, ImplicitAPI):
         #       "message": "order is not found."
         #   }
         #
-        return self.safe_value(response, 'message', {})
+        return self.parse_order(response)
 
     async def cancel_all_orders(self, symbol: Str = None, params={}):
         """
@@ -908,7 +908,7 @@ class alpaca(Exchange, ImplicitAPI):
         }
         return await self.fetch_orders(symbol, since, limit, self.extend(request, params))
 
-    def parse_order(self, order, market: Market = None) -> Order:
+    def parse_order(self, order: dict, market: Market = None) -> Order:
         #
         #    {
         #        "id":"6ecfcc34-4bed-4b53-83ba-c564aa832a81",
@@ -1002,13 +1002,13 @@ class alpaca(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_time_in_force(self, timeInForce):
+    def parse_time_in_force(self, timeInForce: Str):
         timeInForces: dict = {
             'day': 'Day',
         }
         return self.safe_string(timeInForces, timeInForce, timeInForce)
 
-    def parse_trade(self, trade, market: Market = None) -> Trade:
+    def parse_trade(self, trade: dict, market: Market = None) -> Trade:
         #
         #   {
         #       "t":"2022-06-14T05:00:00.027869Z",
@@ -1064,7 +1064,7 @@ class alpaca(Exchange, ImplicitAPI):
         url = url + endpoint
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response, requestHeaders, requestBody):
         if response is None:
             return None  # default error handler
         # {

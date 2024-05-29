@@ -18,6 +18,10 @@ class bitmex extends \ccxt\async\bitmex {
             'has' => array(
                 'ws' => true,
                 'watchBalance' => true,
+                'watchLiquidations' => true,
+                'watchLiquidationsForSymbols' => true,
+                'watchMyLiquidations' => null,
+                'watchMyLiquidationsForSymbols' => null,
                 'watchMyTrades' => true,
                 'watchOHLCV' => true,
                 'watchOrderBook' => true,
@@ -358,6 +362,109 @@ class bitmex extends \ccxt\async\bitmex {
             $client->resolve ($fullParsedTicker, 'alltickers');
         }
         return $message;
+    }
+
+    public function watch_liquidations(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+        /**
+         * watch the public liquidations of a trading pair
+         * @see https://www.bitmex.com/app/wsAPI#Liquidation
+         * @param {string} $symbol unified CCXT market $symbol
+         * @param {int} [$since] the earliest time in ms to fetch liquidations for
+         * @param {int} [$limit] the maximum number of liquidation structures to retrieve
+         * @param {array} [$params] exchange specific parameters for the bitmex api endpoint
+         * @return {array} an array of {@link https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure liquidation structures}
+         */
+        return $this->watch_liquidations_for_symbols(array( $symbol ), $since, $limit, $params);
+    }
+
+    public function watch_liquidations_for_symbols(?array $symbols = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbols, $since, $limit, $params) {
+            /**
+             * watch the public liquidations of a trading pair
+             * @see https://www.bitmex.com/app/wsAPI#Liquidation
+             * @param {string} $symbol unified CCXT $market $symbol
+             * @param {int} [$since] the earliest time in ms to fetch liquidations for
+             * @param {int} [$limit] the maximum number of liquidation structures to retrieve
+             * @param {array} [$params] exchange specific parameters for the bitmex api endpoint
+             * @return {array} an array of {@link https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure liquidation structures}
+             */
+            Async\await($this->load_markets());
+            $symbols = $this->market_symbols($symbols, null, true, true);
+            $messageHashes = array();
+            $subscriptionHashes = array();
+            if ($this->is_empty($symbols)) {
+                $subscriptionHashes[] = 'liquidation';
+                $messageHashes[] = 'liquidations';
+            } else {
+                for ($i = 0; $i < count($symbols); $i++) {
+                    $symbol = $symbols[$i];
+                    $market = $this->market($symbol);
+                    $subscriptionHashes[] = 'liquidation:' . $market['id'];
+                    $messageHashes[] = 'liquidations::' . $symbol;
+                }
+            }
+            $url = $this->urls['api']['ws'];
+            $request = array(
+                'op' => 'subscribe',
+                'args' => $subscriptionHashes,
+            );
+            $newLiquidations = Async\await($this->watch_multiple($url, $messageHashes, $this->deep_extend($request, $params), $subscriptionHashes));
+            if ($this->newUpdates) {
+                return $newLiquidations;
+            }
+            return $this->filter_by_symbols_since_limit($this->liquidations, $symbols, $since, $limit, true);
+        }) ();
+    }
+
+    public function handle_liquidation(Client $client, $message) {
+        //
+        //    {
+        //        "table":"liquidation",
+        //        "action":"partial",
+        //        "keys":array(
+        //           "orderID"
+        //        ),
+        //        "types":array(
+        //           "orderID":"guid",
+        //           "symbol":"symbol",
+        //           "side":"symbol",
+        //           "price":"float",
+        //           "leavesQty":"long"
+        //        ),
+        //        "filter":array(),
+        //        "data":array(
+        //           {
+        //              "orderID":"e0a568ee-7830-4428-92c3-73e82b9576ce",
+        //              "symbol":"XPLAUSDT",
+        //              "side":"Sell",
+        //              "price":0.206,
+        //              "leavesQty":340
+        //           }
+        //        )
+        //    }
+        //
+        $rawLiquidations = $this->safe_value($message, 'data', array());
+        $newLiquidations = array();
+        for ($i = 0; $i < count($rawLiquidations); $i++) {
+            $rawLiquidation = $rawLiquidations[$i];
+            $liquidation = $this->parse_liquidation($rawLiquidation);
+            $symbol = $liquidation['symbol'];
+            $liquidations = $this->safe_value($this->liquidations, $symbol);
+            if ($liquidations === null) {
+                $limit = $this->safe_integer($this->options, 'liquidationsLimit', 1000);
+                $liquidations = new ArrayCache ($limit);
+            }
+            $liquidations->append ($liquidation);
+            $this->liquidations[$symbol] = $liquidations;
+            $newLiquidations[] = $liquidation;
+        }
+        $client->resolve ($newLiquidations, 'liquidations');
+        $liquidationsBySymbol = $this->index_by($newLiquidations, 'symbol');
+        $symbols = is_array($liquidationsBySymbol) ? array_keys($liquidationsBySymbol) : array();
+        for ($i = 0; $i < count($symbols); $i++) {
+            $symbol = $symbols[$i];
+            $client->resolve ($liquidationsBySymbol[$symbol], 'liquidations::' . $symbol);
+        }
     }
 
     public function watch_balance($params = array ()): PromiseInterface {
@@ -1637,6 +1744,7 @@ class bitmex extends \ccxt\async\bitmex {
                 'order' => array($this, 'handle_orders'),
                 'execution' => array($this, 'handle_my_trades'),
                 'margin' => array($this, 'handle_balance'),
+                'liquidation' => array($this, 'handle_liquidation'),
                 'position' => array($this, 'handle_positions'),
             );
             $method = $this->safe_value($methods, $table);

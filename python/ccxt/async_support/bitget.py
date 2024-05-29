@@ -8,7 +8,7 @@ from ccxt.abstract.bitget import ImplicitAPI
 import asyncio
 import hashlib
 import json
-from ccxt.base.types import Balances, Conversion, CrossBorrowRate, Currencies, Currency, FundingHistory, Int, IsolatedBorrowRate, Leverage, Liquidation, MarginMode, MarginModification, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry, TransferEntries
+from ccxt.base.types import Balances, Conversion, CrossBorrowRate, Currencies, Currency, FundingHistory, Int, IsolatedBorrowRate, Leverage, LeverageTier, Liquidation, MarginMode, MarginModification, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry, TransferEntries
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -505,7 +505,7 @@ class bitget(Exchange, ImplicitAPI):
                             'v2/mix/account/set-margin': 4,
                             'v2/mix/account/set-margin-mode': 4,
                             'v2/mix/account/set-position-mode': 4,
-                            'v2/mix/order/place-order': 20,
+                            'v2/mix/order/place-order': 2,
                             'v2/mix/order/click-backhand': 20,
                             'v2/mix/order/batch-place-order': 20,
                             'v2/mix/order/modify-order': 2,
@@ -1250,6 +1250,7 @@ class bitget(Exchange, ImplicitAPI):
                     '40712': InsufficientFunds,  # Insufficient margin
                     '40713': ExchangeError,  # Cannot exceed the maximum transferable margin amount
                     '40714': ExchangeError,  # No direct margin call is allowed
+                    '40762': InsufficientFunds,  # {"code":"40762","msg":"The order amount exceeds the balance","requestTime":1716572156622,"data":null}
                     '40768': OrderNotFound,  # Order does not exist"
                     '41114': OnMaintenance,  # {"code":"41114","msg":"The current trading pair is under maintenance, please refer to the official announcement for the opening time","requestTime":1679196062544,"data":null}
                     '43011': InvalidOrder,  # The parameter does not meet the specification executePrice <= 0
@@ -1559,7 +1560,7 @@ class bitget(Exchange, ImplicitAPI):
             result = self.array_concat(result, promises[i])
         return result
 
-    def parse_market(self, market) -> Market:
+    def parse_market(self, market: dict) -> Market:
         #
         # spot
         #
@@ -1945,7 +1946,7 @@ class bitget(Exchange, ImplicitAPI):
             }
         return result
 
-    async def fetch_market_leverage_tiers(self, symbol: str, params={}):
+    async def fetch_market_leverage_tiers(self, symbol: str, params={}) -> List[LeverageTier]:
         """
         retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes for a single market
         :see: https://www.bitget.com/api-doc/contract/position/Get-Query-Position-Lever
@@ -2049,7 +2050,7 @@ class bitget(Exchange, ImplicitAPI):
         result = self.safe_value(response, 'data', [])
         return self.parse_market_leverage_tiers(result, market)
 
-    def parse_market_leverage_tiers(self, info, market: Market = None):
+    def parse_market_leverage_tiers(self, info, market: Market = None) -> List[LeverageTier]:
         #
         # swap and future
         #
@@ -2303,7 +2304,7 @@ class bitget(Exchange, ImplicitAPI):
         rawTransactions = self.safe_list(response, 'data', [])
         return self.parse_transactions(rawTransactions, currency, since, limit)
 
-    def parse_transaction(self, transaction, currency: Currency = None) -> Transaction:
+    def parse_transaction(self, transaction: dict, currency: Currency = None) -> Transaction:
         #
         # fetchDeposits
         #
@@ -2378,7 +2379,7 @@ class bitget(Exchange, ImplicitAPI):
             'fee': fee,
         }
 
-    def parse_transaction_status(self, status):
+    def parse_transaction_status(self, status: Str):
         statuses: dict = {
             'success': 'ok',
             'Pending': 'pending',
@@ -2724,7 +2725,7 @@ class bitget(Exchange, ImplicitAPI):
         request: dict = {}
         type = None
         type, params = self.handle_market_type_and_params('fetchTickers', market, params)
-        # Calls like `.fetch_tickers(None, {subType:'inverse'})` should be supported for self exchange, so
+        # Calls like `.fetchTickers(None, {subType:'inverse'})` should be supported for self exchange, so
         # as "options.defaultSubType" is also set in exchange options, we should consider `params.subType`
         # with higher priority and only default to spot, if `subType` is not set in params
         passedSubType = self.safe_string(params, 'subType')
@@ -2796,7 +2797,7 @@ class bitget(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data', [])
         return self.parse_tickers(data, symbols)
 
-    def parse_trade(self, trade, market: Market = None) -> Trade:
+    def parse_trade(self, trade: dict, market: Market = None) -> Trade:
         #
         # spot, swap and future: fetchTrades
         #
@@ -3552,7 +3553,7 @@ class bitget(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_order(self, order, market: Market = None) -> Order:
+    def parse_order(self, order: dict, market: Market = None) -> Order:
         #
         # createOrder, editOrder, closePosition
         #
@@ -4139,18 +4140,23 @@ class bitget(Exchange, ImplicitAPI):
                     marginMode = 'cross'
                 marginModeRequest = 'crossed' if (marginMode == 'cross') else 'isolated'
                 request['marginMode'] = marginModeRequest
-                oneWayMode = self.safe_bool(params, 'oneWayMode', False)
-                params = self.omit(params, 'oneWayMode')
+                hedged = None
+                hedged, params = self.handle_param_bool(params, 'hedged', False)
+                # backward compatibility for `oneWayMode`
+                oneWayMode = None
+                oneWayMode, params = self.handle_param_bool(params, 'oneWayMode')
+                if oneWayMode is not None:
+                    hedged = not oneWayMode
                 requestSide = side
                 if reduceOnly:
-                    if oneWayMode:
+                    if not hedged:
                         request['reduceOnly'] = 'YES'
                     else:
                         # on bitget hedge mode if the position is long the side is always buy, and if the position is short the side is always sell
                         requestSide = 'sell' if (side == 'buy') else 'buy'
                         request['tradeSide'] = 'Close'
                 else:
-                    if not oneWayMode:
+                    if hedged:
                         request['tradeSide'] = 'Open'
                 request['side'] = requestSide
         elif marketType == 'spot':
@@ -5576,7 +5582,7 @@ class bitget(Exchange, ImplicitAPI):
             return self.parse_ledger(bills, currency, since, limit)
         return self.parse_ledger(data, currency, since, limit)
 
-    def parse_ledger_entry(self, item, currency: Currency = None):
+    def parse_ledger_entry(self, item: dict, currency: Currency = None):
         #
         # spot
         #
@@ -6041,7 +6047,7 @@ class bitget(Exchange, ImplicitAPI):
         symbols = self.market_symbols(symbols)
         return self.filter_by_array_positions(result, 'symbol', symbols, False)
 
-    def parse_position(self, position, market: Market = None):
+    def parse_position(self, position: dict, market: Market = None):
         #
         # fetchPosition
         #
@@ -7671,7 +7677,7 @@ class bitget(Exchange, ImplicitAPI):
         interest = self.parse_borrow_interests(rows, market)
         return self.filter_by_currency_since_limit(interest, code, since, limit)
 
-    def parse_borrow_interest(self, info, market: Market = None):
+    def parse_borrow_interest(self, info: dict, market: Market = None):
         #
         # isolated
         #
@@ -7854,7 +7860,7 @@ class bitget(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 'data', {})
         return self.parse_margin_mode(data, market)
 
-    def parse_margin_mode(self, marginMode, market=None) -> MarginMode:
+    def parse_margin_mode(self, marginMode: dict, market=None) -> MarginMode:
         marginType = self.safe_string(marginMode, 'marginMode')
         marginType = 'cross' if (marginType == 'crossed') else marginType
         return {
@@ -8182,7 +8188,7 @@ class bitget(Exchange, ImplicitAPI):
             }
         return result
 
-    def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response, requestHeaders, requestBody):
         if not response:
             return None  # fallback to default error handler
         #

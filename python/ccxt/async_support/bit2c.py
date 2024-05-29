@@ -448,7 +448,8 @@ class bit2c(Exchange, ImplicitAPI):
         request: dict = {
             'id': id,
         }
-        return await self.privatePostOrderCancelOrder(self.extend(request, params))
+        response = await self.privatePostOrderCancelOrder(self.extend(request, params))
+        return self.parse_order(response)
 
     async def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
@@ -503,7 +504,7 @@ class bit2c(Exchange, ImplicitAPI):
         #
         return self.parse_order(response, market)
 
-    def parse_order(self, order, market: Market = None) -> Order:
+    def parse_order(self, order: dict, market: Market = None) -> Order:
         #
         #      createOrder
         #      {
@@ -680,7 +681,7 @@ class bit2c(Exchange, ImplicitAPI):
             newString += strParts[i]
         return newString
 
-    def parse_trade(self, trade, market: Market = None) -> Trade:
+    def parse_trade(self, trade: dict, market: Market = None) -> Trade:
         #
         # public fetchTrades
         #
@@ -846,7 +847,7 @@ class bit2c(Exchange, ImplicitAPI):
             }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody):
+    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response, requestHeaders, requestBody):
         if response is None:
             return None  # fallback to default error handler
         #

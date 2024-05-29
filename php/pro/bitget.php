@@ -984,7 +984,9 @@ class bitget extends \ccxt\async\bitget {
              * @param {int} [$limit] the maximum number of order structures to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {boolean} [$params->stop] *contract only* set to true for watching trigger $orders
-             * @param {string} [$params->marginMode] 'isolated' or 'cross' for watching spot margin $orders
+             * @param {string} [$params->marginMode] 'isolated' or 'cross' for watching spot margin $orders]
+             * @param {string} [$params->type] 'spot', 'swap'
+             * @param {string} [$params->subType] 'linear', 'inverse'
              * @return {array[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
              */
             Async\await($this->load_markets());
@@ -1000,10 +1002,22 @@ class bitget extends \ccxt\async\bitget {
                 $marketId = $market['id'];
                 $messageHash = $messageHash . ':' . $symbol;
             }
+            $productType = $this->safe_string($params, 'productType');
             $type = null;
             list($type, $params) = $this->handle_market_type_and_params('watchOrders', $market, $params);
+            $subType = null;
+            list($subType, $params) = $this->handle_sub_type_and_params('watchOrders', $market, $params, 'linear');
             if (($type === 'spot') && ($symbol === null)) {
                 throw new ArgumentsRequired($this->id . ' watchOrders requires a $symbol argument for ' . $type . ' markets.');
+            }
+            if (($productType === null) && ($type !== 'spot') && ($symbol === null)) {
+                $messageHash = $messageHash . ':' . $subType;
+            } elseif ($productType === 'USDT-FUTURES') {
+                $messageHash = $messageHash . ':linear';
+            } elseif ($productType === 'COIN-FUTURES') {
+                $messageHash = $messageHash . ':inverse';
+            } elseif ($productType === 'USDC-FUTURES') {
+                $messageHash = $messageHash . ':usdcfutures'; // non unified $channel
             }
             $instType = null;
             list($instType, $params) = $this->get_inst_type($market, $params);
@@ -1025,6 +1039,7 @@ class bitget extends \ccxt\async\bitget {
                     $channel = 'orders-crossed';
                 }
             }
+            $subscriptionHash = $subscriptionHash . ':' . $instType;
             $args = array(
                 'instType' => $instType,
                 'channel' => $channel,
@@ -1084,6 +1099,9 @@ class bitget extends \ccxt\async\bitget {
         } else {
             $marketType = 'contract';
         }
+        $isLinearSwap = ($instType === 'USDT-FUTURES');
+        $isInverseSwap = ($instType === 'COIN-FUTURES');
+        $isUSDCFutures = ($instType === 'USDC-FUTURES');
         $data = $this->safe_value($message, 'data', array());
         if ($this->orders === null) {
             $limit = $this->safe_integer($this->options, 'ordersLimit', 1000);
@@ -1110,6 +1128,15 @@ class bitget extends \ccxt\async\bitget {
             $client->resolve ($stored, $innerMessageHash);
         }
         $client->resolve ($stored, $messageHash);
+        if ($isLinearSwap) {
+            $client->resolve ($stored, 'order:linear');
+        }
+        if ($isInverseSwap) {
+            $client->resolve ($stored, 'order:inverse');
+        }
+        if ($isUSDCFutures) {
+            $client->resolve ($stored, 'order:usdcfutures');
+        }
     }
 
     public function parse_ws_order($order, $market = null) {

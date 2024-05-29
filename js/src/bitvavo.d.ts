@@ -1,5 +1,5 @@
 import Exchange from './abstract/bitvavo.js';
-import type { Balances, Currencies, Currency, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction } from './base/types.js';
+import type { Balances, Currencies, Currency, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction, int } from './base/types.js';
 /**
  * @class bitvavo
  * @augments Exchange
@@ -18,7 +18,7 @@ export default class bitvavo extends Exchange {
     parseTicker(ticker: Dict, market?: Market): Ticker;
     fetchTickers(symbols?: Strings, params?: {}): Promise<Tickers>;
     fetchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
-    parseTrade(trade: any, market?: Market): Trade;
+    parseTrade(trade: Dict, market?: Market): Trade;
     fetchTradingFees(params?: {}): Promise<TradingFees>;
     parseTradingFees(fees: any, market?: any): Dict;
     fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
@@ -46,7 +46,7 @@ export default class bitvavo extends Exchange {
     fetchOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     fetchOpenOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     parseOrderStatus(status: Str): string;
-    parseOrder(order: any, market?: Market): Order;
+    parseOrder(order: Dict, market?: Market): Order;
     fetchMyTradesRequest(symbol?: Str, since?: Int, limit?: Int, params?: {}): any;
     fetchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     withdrawRequest(code: Str, amount: any, address: any, tag?: any, params?: {}): any;
@@ -55,8 +55,8 @@ export default class bitvavo extends Exchange {
     fetchWithdrawals(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
     fetchDepositsRequest(code?: Str, since?: Int, limit?: Int, params?: {}): any;
     fetchDeposits(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
-    parseTransactionStatus(status: any): string;
-    parseTransaction(transaction: any, currency?: Currency): Transaction;
+    parseTransactionStatus(status: Str): string;
+    parseTransaction(transaction: Dict, currency?: Currency): Transaction;
     parseDepositWithdrawFee(fee: any, currency?: Currency): Dict;
     fetchDepositWithdrawFees(codes?: Strings, params?: {}): Promise<any>;
     sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {
@@ -65,6 +65,6 @@ export default class bitvavo extends Exchange {
         body: any;
         headers: any;
     };
-    handleErrors(httpCode: any, reason: any, url: any, method: any, headers: any, body: any, response: any, requestHeaders: any, requestBody: any): any;
+    handleErrors(httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): any;
     calculateRateLimiterCost(api: any, method: any, path: any, params: any, config?: {}): any;
 }

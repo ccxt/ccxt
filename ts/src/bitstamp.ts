@@ -6,7 +6,7 @@ import { AuthenticationError, BadRequest, ExchangeError, NotSupported, Permissio
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { Balances, Currencies, Currency, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry } from './base/types.js';
+import type { Balances, Currencies, Currency, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry, int } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -908,7 +908,7 @@ export default class bitstamp extends Exchange {
         return undefined;
     }
 
-    parseTrade (trade, market: Market = undefined): Trade {
+    parseTrade (trade: Dict, market: Market = undefined): Trade {
         //
         // fetchTrades (public)
         //
@@ -1238,7 +1238,7 @@ export default class bitstamp extends Exchange {
         return this.parseTradingFee (tradingFee, market);
     }
 
-    parseTradingFee (fee, market: Market = undefined): TradingFeeInterface {
+    parseTradingFee (fee: Dict, market: Market = undefined): TradingFeeInterface {
         const marketId = this.safeString (fee, 'market');
         const fees = this.safeDict (fee, 'fees', {});
         return {
@@ -1290,7 +1290,7 @@ export default class bitstamp extends Exchange {
         return this.parseTradingFees (response);
     }
 
-    async fetchTransactionFees (codes: string[] = undefined, params = {}) {
+    async fetchTransactionFees (codes: Strings = undefined, params = {}) {
         /**
          * @method
          * @name bitstamp#fetchTransactionFees
@@ -1685,7 +1685,7 @@ export default class bitstamp extends Exchange {
         return this.parseTransactions (response, undefined, since, limit);
     }
 
-    parseTransaction (transaction, currency: Currency = undefined): Transaction {
+    parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {
         //
         // fetchDepositsWithdrawals
         //
@@ -1808,7 +1808,7 @@ export default class bitstamp extends Exchange {
         };
     }
 
-    parseTransactionStatus (status) {
+    parseTransactionStatus (status: Str) {
         //
         //   withdrawals:
         //   0 (open), 1 (in process), 2 (finished), 3 (canceled) or 4 (failed).
@@ -1823,7 +1823,7 @@ export default class bitstamp extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseOrder (order, market: Market = undefined): Order {
+    parseOrder (order: Dict, market: Market = undefined): Order {
         //
         //   from fetch order:
         //     { status: "Finished",
@@ -1913,7 +1913,7 @@ export default class bitstamp extends Exchange {
         return this.safeString (types, type, type);
     }
 
-    parseLedgerEntry (item, currency: Currency = undefined) {
+    parseLedgerEntry (item: Dict, currency: Currency = undefined) {
         //
         //     [
         //         {
@@ -2273,7 +2273,7 @@ export default class bitstamp extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    handleErrors (httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+    handleErrors (httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response, requestHeaders, requestBody) {
         if (response === undefined) {
             return undefined;
         }

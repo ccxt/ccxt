@@ -7,7 +7,7 @@ import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { totp } from './base/functions/totp.js';
-import type { IndexType, Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade, Transaction, Num, Account, Currencies, Dict } from './base/types.js';
+import type { IndexType, Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade, Transaction, Num, Account, Currencies, Dict, int } from './base/types.js';
 // ---------------------------------------------------------------------------
 
 /**
@@ -471,7 +471,7 @@ export default class ndax extends Exchange {
         return this.parseMarkets (response);
     }
 
-    parseMarket (market): Market {
+    parseMarket (market: Dict): Market {
         const id = this.safeString (market, 'InstrumentId');
         // const lowercaseId = this.safeStringLower (market, 'symbol');
         const baseId = this.safeString (market, 'Product1');
@@ -804,7 +804,7 @@ export default class ndax extends Exchange {
         return this.parseOHLCVs (response, market, timeframe, since, limit);
     }
 
-    parseTrade (trade, market: Market = undefined): Trade {
+    parseTrade (trade: Dict, market: Market = undefined): Trade {
         //
         // fetchTrades (public)
         //
@@ -1133,7 +1133,7 @@ export default class ndax extends Exchange {
         return this.safeString (types, type, type);
     }
 
-    parseLedgerEntry (item, currency: Currency = undefined) {
+    parseLedgerEntry (item: Dict, currency: Currency = undefined) {
         //
         //     {
         //         "TransactionId": 2663709493,
@@ -1252,7 +1252,7 @@ export default class ndax extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseOrder (order, market: Market = undefined): Order {
+    parseOrder (order: Dict, market: Market = undefined): Order {
         //
         // createOrder
         //
@@ -2222,7 +2222,7 @@ export default class ndax extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseTransaction (transaction, currency: Currency = undefined): Transaction {
+    parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {
         //
         // fetchDeposits
         //
@@ -2475,7 +2475,7 @@ export default class ndax extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+    handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response, requestHeaders, requestBody) {
         if (code === 404) {
             throw new AuthenticationError (this.id + ' ' + body);
         }

@@ -340,7 +340,7 @@ class independentreserve(Exchange, ImplicitAPI):
         # }
         return self.parse_ticker(response, market)
 
-    def parse_order(self, order, market: Market = None) -> Order:
+    def parse_order(self, order: dict, market: Market = None) -> Order:
         #
         # fetchOrder
         #
@@ -533,7 +533,7 @@ class independentreserve(Exchange, ImplicitAPI):
             market = self.market(symbol)
         return self.parse_trades(response['Data'], market, since, limit)
 
-    def parse_trade(self, trade, market: Market = None) -> Trade:
+    def parse_trade(self, trade: dict, market: Market = None) -> Trade:
         timestamp = self.parse8601(trade['TradeTimestampUtc'])
         id = self.safe_string(trade, 'TradeGuid')
         orderId = self.safe_string(trade, 'OrderGuid')

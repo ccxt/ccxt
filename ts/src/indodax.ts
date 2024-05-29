@@ -5,7 +5,7 @@ import Exchange from './abstract/indodax.js';
 import { ExchangeError, ArgumentsRequired, InsufficientFunds, InvalidOrder, OrderNotFound, AuthenticationError, BadSymbol } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
-import type { Balances, Currency, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
+import type { Balances, Currency, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, int } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -525,7 +525,7 @@ export default class indodax extends Exchange {
         return this.parseTickers (tickers, symbols);
     }
 
-    parseTrade (trade, market: Market = undefined): Trade {
+    parseTrade (trade: Dict, market: Market = undefined): Trade {
         const timestamp = this.safeTimestamp (trade, 'date');
         return this.safeTrade ({
             'id': this.safeString (trade, 'tid'),
@@ -645,7 +645,7 @@ export default class indodax extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseOrder (order, market: Market = undefined): Order {
+    parseOrder (order: Dict, market: Market = undefined): Order {
         //
         //     {
         //         "order_id": "12345",
@@ -1075,7 +1075,7 @@ export default class indodax extends Exchange {
         return this.parseTransaction (response, currency);
     }
 
-    parseTransaction (transaction, currency: Currency = undefined): Transaction {
+    parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {
         //
         // withdraw
         //
@@ -1153,14 +1153,14 @@ export default class indodax extends Exchange {
         };
     }
 
-    parseTransactionStatus (status) {
+    parseTransactionStatus (status: Str) {
         const statuses: Dict = {
             'success': 'ok',
         };
         return this.safeString (statuses, status, status);
     }
 
-    async fetchDepositAddresses (codes: string[] = undefined, params = {}) {
+    async fetchDepositAddresses (codes: Strings = undefined, params = {}) {
         /**
          * @method
          * @name indodax#fetchDepositAddresses
@@ -1270,7 +1270,7 @@ export default class indodax extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+    handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response, requestHeaders, requestBody) {
         if (response === undefined) {
             return undefined;
         }

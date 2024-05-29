@@ -1,5 +1,5 @@
 import Exchange from './abstract/bitstamp.js';
-import type { Balances, Currencies, Currency, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry } from './base/types.js';
+import type { Balances, Currencies, Currency, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry, int } from './base/types.js';
 /**
  * @class bitstamp
  * @augments Exchange
@@ -46,17 +46,17 @@ export default class bitstamp extends Exchange {
     fetchTickers(symbols?: Strings, params?: {}): Promise<Tickers>;
     getCurrencyIdFromTransaction(transaction: any): string;
     getMarketFromTrade(trade: any): import("./base/types.js").MarketInterface;
-    parseTrade(trade: any, market?: Market): Trade;
+    parseTrade(trade: Dict, market?: Market): Trade;
     fetchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     parseOHLCV(ohlcv: any, market?: Market): OHLCV;
     fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
     parseBalance(response: any): Balances;
     fetchBalance(params?: {}): Promise<Balances>;
     fetchTradingFee(symbol: string, params?: {}): Promise<TradingFeeInterface>;
-    parseTradingFee(fee: any, market?: Market): TradingFeeInterface;
+    parseTradingFee(fee: Dict, market?: Market): TradingFeeInterface;
     parseTradingFees(fees: any): Dict;
     fetchTradingFees(params?: {}): Promise<TradingFees>;
-    fetchTransactionFees(codes?: string[], params?: {}): Promise<Dict>;
+    fetchTransactionFees(codes?: Strings, params?: {}): Promise<Dict>;
     parseTransactionFees(response: any, codes?: any): Dict;
     fetchDepositWithdrawFees(codes?: any, params?: {}): Promise<any>;
     parseDepositWithdrawFee(fee: any, currency?: any): any;
@@ -69,13 +69,13 @@ export default class bitstamp extends Exchange {
     fetchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     fetchDepositsWithdrawals(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
     fetchWithdrawals(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
-    parseTransaction(transaction: any, currency?: Currency): Transaction;
-    parseTransactionStatus(status: any): string;
-    parseOrder(order: any, market?: Market): Order;
+    parseTransaction(transaction: Dict, currency?: Currency): Transaction;
+    parseTransactionStatus(status: Str): string;
+    parseOrder(order: Dict, market?: Market): Order;
     parseLedgerEntryType(type: any): string;
-    parseLedgerEntry(item: any, currency?: Currency): {
+    parseLedgerEntry(item: Dict, currency?: Currency): {
         id: string;
-        info: any;
+        info: Dict;
         timestamp: number;
         datetime: string;
         direction: string;
@@ -91,7 +91,7 @@ export default class bitstamp extends Exchange {
         fee: import("./base/types.js").FeeInterface;
     } | {
         id: string;
-        info: any;
+        info: Dict;
         timestamp: number;
         datetime: string;
         direction: any;
@@ -138,5 +138,5 @@ export default class bitstamp extends Exchange {
         body: any;
         headers: any;
     };
-    handleErrors(httpCode: any, reason: any, url: any, method: any, headers: any, body: any, response: any, requestHeaders: any, requestBody: any): any;
+    handleErrors(httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): any;
 }

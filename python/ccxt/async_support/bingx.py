@@ -636,7 +636,7 @@ class bingx(Exchange, ImplicitAPI):
         markets = self.safe_list(response, 'data', [])
         return self.parse_markets(markets)
 
-    def parse_market(self, market) -> Market:
+    def parse_market(self, market: dict) -> Market:
         id = self.safe_string(market, 'symbol')
         symbolParts = id.split('-')
         baseId = symbolParts[0]
@@ -929,7 +929,7 @@ class bingx(Exchange, ImplicitAPI):
         trades = self.safe_list(response, 'data', [])
         return self.parse_trades(trades, market, since, limit)
 
-    def parse_trade(self, trade, market: Market = None) -> Trade:
+    def parse_trade(self, trade: dict, market: Market = None) -> Trade:
         #
         # spot
         # fetchTrades
@@ -1017,7 +1017,7 @@ class bingx(Exchange, ImplicitAPI):
         if time == 0:
             time = None
         cost = self.safe_string(trade, 'quoteQty')
-        type = 'spot' if (cost is None) else 'swap'
+        # type = 'spot' if (cost is None) else 'swap'; self is not reliable
         currencyId = self.safe_string_n(trade, ['currency', 'N', 'commissionAsset'])
         currencyCode = self.safe_currency_code(currencyId)
         m = self.safe_bool(trade, 'm')
@@ -1048,7 +1048,7 @@ class bingx(Exchange, ImplicitAPI):
             'info': trade,
             'timestamp': time,
             'datetime': self.iso8601(time),
-            'symbol': self.safe_symbol(marketId, market, '-', type),
+            'symbol': self.safe_symbol(marketId, market, '-'),
             'order': self.safe_string_2(trade, 'orderId', 'i'),
             'type': self.safe_string_lower(trade, 'o'),
             'side': self.parse_order_side(side),
@@ -1639,7 +1639,7 @@ class bingx(Exchange, ImplicitAPI):
         positions = self.safe_list(response, 'data', [])
         return self.parse_positions(positions, symbols)
 
-    def parse_position(self, position, market: Market = None):
+    def parse_position(self, position: dict, market: Market = None):
         #
         #    {
         #        "positionId":"1773122376147623936",
@@ -1986,7 +1986,8 @@ class bingx(Exchange, ImplicitAPI):
         #
         if isinstance(response, str):
             # broken api engine : order-ids are too long numbers(i.e. 1742930526912864656)
-            # and json.loadscan not handle them in JS, so we have to use .parse_json            # however, when order has an attached SL/TP, their value types need extra parsing
+            # and json.loadscan not handle them in JS, so we have to use .parseJson
+            # however, when order has an attached SL/TP, their value types need extra parsing
             response = self.fix_stringified_json_members(response)
             response = self.parse_json(response)
         data = self.safe_value(response, 'data', {})
@@ -2100,7 +2101,7 @@ class bingx(Exchange, ImplicitAPI):
         }
         return self.safe_string(types, type, type)
 
-    def parse_order(self, order, market: Market = None) -> Order:
+    def parse_order(self, order: dict, market: Market = None) -> Order:
         #
         # spot
         # createOrder, createOrders, cancelOrder
@@ -3302,7 +3303,7 @@ class bingx(Exchange, ImplicitAPI):
         #
         return self.parse_transactions(response, currency, since, limit)
 
-    def parse_transaction(self, transaction, currency: Currency = None) -> Transaction:
+    def parse_transaction(self, transaction: dict, currency: Currency = None) -> Transaction:
         #
         # fetchDeposits
         #
@@ -4209,7 +4210,7 @@ class bingx(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 'data', {})
         return self.parse_margin_mode(data, market)
 
-    def parse_margin_mode(self, marginMode, market=None) -> MarginMode:
+    def parse_margin_mode(self, marginMode: dict, market=None) -> MarginMode:
         marginType = self.safe_string_lower(marginMode, 'marginType')
         marginType = 'cross' if (marginType == 'crossed') else marginType
         return {
@@ -4264,7 +4265,7 @@ class bingx(Exchange, ImplicitAPI):
         super(bingx, self).set_sandbox_mode(enable)
         self.options['sandboxMode'] = enable
 
-    def handle_errors(self, httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody):
+    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response, requestHeaders, requestBody):
         if response is None:
             return None  # fallback to default error handler
         #

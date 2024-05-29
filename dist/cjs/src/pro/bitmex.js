@@ -13,6 +13,10 @@ class bitmex extends bitmex$1 {
             'has': {
                 'ws': true,
                 'watchBalance': true,
+                'watchLiquidations': true,
+                'watchLiquidationsForSymbols': true,
+                'watchMyLiquidations': undefined,
+                'watchMyLiquidationsForSymbols': undefined,
                 'watchMyTrades': true,
                 'watchOHLCV': true,
                 'watchOrderBook': true,
@@ -348,6 +352,109 @@ class bitmex extends bitmex$1 {
             client.resolve(fullParsedTicker, 'alltickers');
         }
         return message;
+    }
+    async watchLiquidations(symbol, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name bitmex#watchLiquidations
+         * @description watch the public liquidations of a trading pair
+         * @see https://www.bitmex.com/app/wsAPI#Liquidation
+         * @param {string} symbol unified CCXT market symbol
+         * @param {int} [since] the earliest time in ms to fetch liquidations for
+         * @param {int} [limit] the maximum number of liquidation structures to retrieve
+         * @param {object} [params] exchange specific parameters for the bitmex api endpoint
+         * @returns {object} an array of [liquidation structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure}
+         */
+        return this.watchLiquidationsForSymbols([symbol], since, limit, params);
+    }
+    async watchLiquidationsForSymbols(symbols = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name bitmex#watchLiquidationsForSymbols
+         * @description watch the public liquidations of a trading pair
+         * @see https://www.bitmex.com/app/wsAPI#Liquidation
+         * @param {string} symbol unified CCXT market symbol
+         * @param {int} [since] the earliest time in ms to fetch liquidations for
+         * @param {int} [limit] the maximum number of liquidation structures to retrieve
+         * @param {object} [params] exchange specific parameters for the bitmex api endpoint
+         * @returns {object} an array of [liquidation structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure}
+         */
+        await this.loadMarkets();
+        symbols = this.marketSymbols(symbols, undefined, true, true);
+        const messageHashes = [];
+        const subscriptionHashes = [];
+        if (this.isEmpty(symbols)) {
+            subscriptionHashes.push('liquidation');
+            messageHashes.push('liquidations');
+        }
+        else {
+            for (let i = 0; i < symbols.length; i++) {
+                const symbol = symbols[i];
+                const market = this.market(symbol);
+                subscriptionHashes.push('liquidation:' + market['id']);
+                messageHashes.push('liquidations::' + symbol);
+            }
+        }
+        const url = this.urls['api']['ws'];
+        const request = {
+            'op': 'subscribe',
+            'args': subscriptionHashes,
+        };
+        const newLiquidations = await this.watchMultiple(url, messageHashes, this.deepExtend(request, params), subscriptionHashes);
+        if (this.newUpdates) {
+            return newLiquidations;
+        }
+        return this.filterBySymbolsSinceLimit(this.liquidations, symbols, since, limit, true);
+    }
+    handleLiquidation(client, message) {
+        //
+        //    {
+        //        "table":"liquidation",
+        //        "action":"partial",
+        //        "keys":[
+        //           "orderID"
+        //        ],
+        //        "types":{
+        //           "orderID":"guid",
+        //           "symbol":"symbol",
+        //           "side":"symbol",
+        //           "price":"float",
+        //           "leavesQty":"long"
+        //        },
+        //        "filter":{},
+        //        "data":[
+        //           {
+        //              "orderID":"e0a568ee-7830-4428-92c3-73e82b9576ce",
+        //              "symbol":"XPLAUSDT",
+        //              "side":"Sell",
+        //              "price":0.206,
+        //              "leavesQty":340
+        //           }
+        //        ]
+        //    }
+        //
+        const rawLiquidations = this.safeValue(message, 'data', []);
+        const newLiquidations = [];
+        for (let i = 0; i < rawLiquidations.length; i++) {
+            const rawLiquidation = rawLiquidations[i];
+            const liquidation = this.parseLiquidation(rawLiquidation);
+            const symbol = liquidation['symbol'];
+            let liquidations = this.safeValue(this.liquidations, symbol);
+            if (liquidations === undefined) {
+                const limit = this.safeInteger(this.options, 'liquidationsLimit', 1000);
+                liquidations = new Cache.ArrayCache(limit);
+            }
+            liquidations.append(liquidation);
+            this.liquidations[symbol] = liquidations;
+            newLiquidations.push(liquidation);
+        }
+        client.resolve(newLiquidations, 'liquidations');
+        const liquidationsBySymbol = this.indexBy(newLiquidations, 'symbol');
+        const symbols = Object.keys(liquidationsBySymbol);
+        for (let i = 0; i < symbols.length; i++) {
+            const symbol = symbols[i];
+            client.resolve(liquidationsBySymbol[symbol], 'liquidations::' + symbol);
+        }
     }
     async watchBalance(params = {}) {
         /**
@@ -1608,6 +1715,7 @@ class bitmex extends bitmex$1 {
                 'order': this.handleOrders,
                 'execution': this.handleMyTrades,
                 'margin': this.handleBalance,
+                'liquidation': this.handleLiquidation,
                 'position': this.handlePositions,
             };
             const method = this.safeValue(methods, table);

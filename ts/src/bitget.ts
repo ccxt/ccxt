@@ -6,7 +6,7 @@ import { ExchangeError, ExchangeNotAvailable, NotSupported, OnMaintenance, Argum
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderRequest, FundingHistory, Balances, Str, Transaction, Ticker, OrderBook, Tickers, Market, Strings, Currency, Position, Liquidation, TransferEntry, Leverage, MarginMode, Num, MarginModification, TradingFeeInterface, Currencies, TradingFees, Conversion, CrossBorrowRate, IsolatedBorrowRate, Dict, TransferEntries } from './base/types.js';
+import type { Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderRequest, FundingHistory, Balances, Str, Transaction, Ticker, OrderBook, Tickers, Market, Strings, Currency, Position, Liquidation, TransferEntry, Leverage, MarginMode, Num, MarginModification, TradingFeeInterface, Currencies, TradingFees, Conversion, CrossBorrowRate, IsolatedBorrowRate, Dict, TransferEntries, LeverageTier, int } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -485,7 +485,7 @@ export default class bitget extends Exchange {
                             'v2/mix/account/set-margin': 4,
                             'v2/mix/account/set-margin-mode': 4,
                             'v2/mix/account/set-position-mode': 4,
-                            'v2/mix/order/place-order': 20,
+                            'v2/mix/order/place-order': 2,
                             'v2/mix/order/click-backhand': 20,
                             'v2/mix/order/batch-place-order': 20,
                             'v2/mix/order/modify-order': 2,
@@ -1230,6 +1230,7 @@ export default class bitget extends Exchange {
                     '40712': InsufficientFunds, // Insufficient margin
                     '40713': ExchangeError, // Cannot exceed the maximum transferable margin amount
                     '40714': ExchangeError, // No direct margin call is allowed
+                    '40762': InsufficientFunds, // {"code":"40762","msg":"The order amount exceeds the balance","requestTime":1716572156622,"data":null}
                     '40768': OrderNotFound, // Order does not exist"
                     '41114': OnMaintenance, // {"code":"41114","msg":"The current trading pair is under maintenance, please refer to the official announcement for the opening time","requestTime":1679196062544,"data":null}
                     '43011': InvalidOrder, // The parameter does not meet the specification executePrice <= 0
@@ -1564,7 +1565,7 @@ export default class bitget extends Exchange {
         return result;
     }
 
-    parseMarket (market): Market {
+    parseMarket (market: Dict): Market {
         //
         // spot
         //
@@ -1966,7 +1967,7 @@ export default class bitget extends Exchange {
         return result;
     }
 
-    async fetchMarketLeverageTiers (symbol: string, params = {}) {
+    async fetchMarketLeverageTiers (symbol: string, params = {}): Promise<LeverageTier[]> {
         /**
          * @method
          * @name bitget#fetchMarketLeverageTiers
@@ -2076,7 +2077,7 @@ export default class bitget extends Exchange {
         return this.parseMarketLeverageTiers (result, market);
     }
 
-    parseMarketLeverageTiers (info, market: Market = undefined) {
+    parseMarketLeverageTiers (info, market: Market = undefined): LeverageTier[] {
         //
         // swap and future
         //
@@ -2353,7 +2354,7 @@ export default class bitget extends Exchange {
         return this.parseTransactions (rawTransactions, currency, since, limit);
     }
 
-    parseTransaction (transaction, currency: Currency = undefined): Transaction {
+    parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {
         //
         // fetchDeposits
         //
@@ -2430,7 +2431,7 @@ export default class bitget extends Exchange {
         };
     }
 
-    parseTransactionStatus (status) {
+    parseTransactionStatus (status: Str) {
         const statuses: Dict = {
             'success': 'ok',
             'Pending': 'pending',
@@ -2875,7 +2876,7 @@ export default class bitget extends Exchange {
         return this.parseTickers (data, symbols);
     }
 
-    parseTrade (trade, market: Market = undefined): Trade {
+    parseTrade (trade: Dict, market: Market = undefined): Trade {
         //
         // spot, swap and future: fetchTrades
         //
@@ -3687,7 +3688,7 @@ export default class bitget extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseOrder (order, market: Market = undefined): Order {
+    parseOrder (order: Dict, market: Market = undefined): Order {
         //
         // createOrder, editOrder, closePosition
         //
@@ -4313,11 +4314,17 @@ export default class bitget extends Exchange {
                 }
                 const marginModeRequest = (marginMode === 'cross') ? 'crossed' : 'isolated';
                 request['marginMode'] = marginModeRequest;
-                const oneWayMode = this.safeBool (params, 'oneWayMode', false);
-                params = this.omit (params, 'oneWayMode');
+                let hedged = undefined;
+                [ hedged, params ] = this.handleParamBool (params, 'hedged', false);
+                // backward compatibility for `oneWayMode`
+                let oneWayMode = undefined;
+                [ oneWayMode, params ] = this.handleParamBool (params, 'oneWayMode');
+                if (oneWayMode !== undefined) {
+                    hedged = !oneWayMode;
+                }
                 let requestSide = side;
                 if (reduceOnly) {
-                    if (oneWayMode) {
+                    if (!hedged) {
                         request['reduceOnly'] = 'YES';
                     } else {
                         // on bitget hedge mode if the position is long the side is always buy, and if the position is short the side is always sell
@@ -4325,7 +4332,7 @@ export default class bitget extends Exchange {
                         request['tradeSide'] = 'Close';
                     }
                 } else {
-                    if (!oneWayMode) {
+                    if (hedged) {
                         request['tradeSide'] = 'Open';
                     }
                 }
@@ -5906,7 +5913,7 @@ export default class bitget extends Exchange {
         return this.parseLedger (data, currency, since, limit);
     }
 
-    parseLedgerEntry (item, currency: Currency = undefined) {
+    parseLedgerEntry (item: Dict, currency: Currency = undefined) {
         //
         // spot
         //
@@ -6406,7 +6413,7 @@ export default class bitget extends Exchange {
         return this.filterByArrayPositions (result, 'symbol', symbols, false);
     }
 
-    parsePosition (position, market: Market = undefined) {
+    parsePosition (position: Dict, market: Market = undefined) {
         //
         // fetchPosition
         //
@@ -8172,7 +8179,7 @@ export default class bitget extends Exchange {
         return this.filterByCurrencySinceLimit (interest, code, since, limit);
     }
 
-    parseBorrowInterest (info, market: Market = undefined) {
+    parseBorrowInterest (info: Dict, market: Market = undefined) {
         //
         // isolated
         //
@@ -8368,7 +8375,7 @@ export default class bitget extends Exchange {
         return this.parseMarginMode (data, market);
     }
 
-    parseMarginMode (marginMode, market = undefined): MarginMode {
+    parseMarginMode (marginMode: Dict, market = undefined): MarginMode {
         let marginType = this.safeString (marginMode, 'marginMode');
         marginType = (marginType === 'crossed') ? 'cross' : marginType;
         return {
@@ -8724,7 +8731,7 @@ export default class bitget extends Exchange {
         return result;
     }
 
-    handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+    handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response, requestHeaders, requestBody) {
         if (!response) {
             return undefined; // fallback to default error handler
         }

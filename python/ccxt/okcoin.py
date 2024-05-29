@@ -643,7 +643,7 @@ class okcoin(Exchange, ImplicitAPI):
         markets = self.safe_value(response, 'data', [])
         return self.parse_markets(markets)
 
-    def parse_market(self, market) -> Market:
+    def parse_market(self, market: dict) -> Market:
         #
         # spot markets
         #
@@ -974,7 +974,7 @@ class okcoin(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data', [])
         return self.parse_tickers(data, symbols, params)
 
-    def parse_trade(self, trade, market: Market = None) -> Trade:
+    def parse_trade(self, trade: dict, market: Market = None) -> Trade:
         #
         # public fetchTrades
         #
@@ -1668,7 +1668,7 @@ class okcoin(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_order(self, order, market: Market = None) -> Order:
+    def parse_order(self, order: dict, market: Market = None) -> Order:
         #
         # createOrder
         #
@@ -2493,7 +2493,7 @@ class okcoin(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data', [])
         return self.parse_transactions(data, currency, since, limit, params)
 
-    def parse_transaction_status(self, status):
+    def parse_transaction_status(self, status: Str):
         #
         # deposit statuses
         #
@@ -2530,7 +2530,7 @@ class okcoin(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_transaction(self, transaction, currency: Currency = None) -> Transaction:
+    def parse_transaction(self, transaction: dict, currency: Currency = None) -> Transaction:
         #
         # withdraw
         #
@@ -2781,7 +2781,7 @@ class okcoin(Exchange, ImplicitAPI):
         }
         return self.safe_string(types, type, type)
 
-    def parse_ledger_entry(self, item, currency: Currency = None):
+    def parse_ledger_entry(self, item: dict, currency: Currency = None):
         #
         # privateGetAccountBills, privateGetAccountBillsArchive
         #
@@ -2898,7 +2898,7 @@ class okcoin(Exchange, ImplicitAPI):
         else:
             return self.parse_trading_balance(response)
 
-    def handle_errors(self, httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody):
+    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response, requestHeaders, requestBody):
         if not response:
             return None  # fallback to default error handler
         #

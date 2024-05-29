@@ -224,7 +224,7 @@ class btcbox(Exchange, ImplicitAPI):
         response = await self.publicGetTicker(self.extend(request, params))
         return self.parse_ticker(response, market)
 
-    def parse_trade(self, trade, market: Market = None) -> Trade:
+    def parse_trade(self, trade: dict, market: Market = None) -> Trade:
         #
         # fetchTrades(public)
         #
@@ -353,7 +353,7 @@ class btcbox(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_order(self, order, market: Market = None) -> Order:
+    def parse_order(self, order: dict, market: Market = None) -> Order:
         #
         #     {
         #         "id":11,
@@ -519,7 +519,7 @@ class btcbox(Exchange, ImplicitAPI):
             }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody):
+    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response, requestHeaders, requestBody):
         if response is None:
             return None  # resort to defaultErrorHandler
         # typical error response: {"result":false,"code":"401"}

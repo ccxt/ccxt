@@ -6,7 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.coinex import ImplicitAPI
 import asyncio
-from ccxt.base.types import Balances, Currencies, Currency, Int, IsolatedBorrowRate, Leverage, Leverages, MarginModification, Market, Num, Order, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry, TransferEntries
+from ccxt.base.types import Balances, Currencies, Currency, Int, IsolatedBorrowRate, Leverage, LeverageTier, LeverageTiers, MarginModification, Market, Num, Order, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry, TransferEntries
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -82,8 +82,8 @@ class coinex(Exchange, ImplicitAPI):
                 'fetchDepositAddressByNetwork': False,
                 'fetchDepositAddresses': False,
                 'fetchDeposits': True,
-                'fetchDepositWithdrawFee': 'emulated',
-                'fetchDepositWithdrawFees': True,
+                'fetchDepositWithdrawFee': True,
+                'fetchDepositWithdrawFees': False,
                 'fetchFundingHistory': True,
                 'fetchFundingRate': True,
                 'fetchFundingRateHistory': True,
@@ -91,8 +91,8 @@ class coinex(Exchange, ImplicitAPI):
                 'fetchIndexOHLCV': False,
                 'fetchIsolatedBorrowRate': True,
                 'fetchIsolatedBorrowRates': False,
-                'fetchLeverage': 'emulated',
-                'fetchLeverages': True,
+                'fetchLeverage': True,
+                'fetchLeverages': False,
                 'fetchLeverageTiers': True,
                 'fetchMarginAdjustmentHistory': True,
                 'fetchMarketLeverageTiers': 'emulated',
@@ -1165,7 +1165,7 @@ class coinex(Exchange, ImplicitAPI):
         timestamp = self.safe_integer(depth, 'updated_at')
         return self.parse_order_book(depth, symbol, timestamp)
 
-    def parse_trade(self, trade, market: Market = None) -> Trade:
+    def parse_trade(self, trade: dict, market: Market = None) -> Trade:
         #
         # Spot and Swap fetchTrades(public)
         #
@@ -1398,7 +1398,7 @@ class coinex(Exchange, ImplicitAPI):
             result[symbol] = self.parse_trading_fee(entry, market)
         return result
 
-    def parse_trading_fee(self, fee, market: Market = None) -> TradingFeeInterface:
+    def parse_trading_fee(self, fee: dict, market: Market = None) -> TradingFeeInterface:
         marketId = self.safe_value(fee, 'market')
         symbol = self.safe_symbol(marketId, market)
         return {
@@ -1657,7 +1657,7 @@ class coinex(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_order(self, order, market: Market = None) -> Order:
+    def parse_order(self, order: dict, market: Market = None) -> Order:
         #
         # Spot and Margin createOrder, createOrders, editOrder, cancelOrders, cancelOrder, fetchOpenOrders
         #
@@ -3824,7 +3824,7 @@ class coinex(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data', [])
         return self.parse_position(data[0], market)
 
-    def parse_position(self, position, market: Market = None):
+    def parse_position(self, position: dict, market: Market = None):
         #
         #     {
         #         "position_id": 305891033,
@@ -3976,7 +3976,7 @@ class coinex(Exchange, ImplicitAPI):
         #     }
         #
 
-    async def fetch_leverage_tiers(self, symbols: Strings = None, params={}):
+    async def fetch_leverage_tiers(self, symbols: Strings = None, params={}) -> LeverageTiers:
         """
         retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes
         :see: https://docs.coinex.com/api/v2/futures/market/http/list-market-position-level
@@ -4018,7 +4018,7 @@ class coinex(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data', [])
         return self.parse_leverage_tiers(data, symbols, 'market')
 
-    def parse_market_leverage_tiers(self, info, market: Market = None):
+    def parse_market_leverage_tiers(self, info, market: Market = None) -> List[LeverageTier]:
         tiers = []
         brackets = self.safe_list(info, 'level', [])
         minNotional = 0
@@ -4375,7 +4375,7 @@ class coinex(Exchange, ImplicitAPI):
     async def withdraw(self, code: str, amount: float, address: str, tag=None, params={}):
         """
         make a withdrawal
-        :see: https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot002_account015_submit_withdraw
+        :see: https://docs.coinex.com/api/v2/assets/deposit-withdrawal/http/withdrawal
         :param str code: unified currency code
         :param float amount: the amount to withdraw
         :param str address: the address to withdraw to
@@ -4388,41 +4388,48 @@ class coinex(Exchange, ImplicitAPI):
         self.check_address(address)
         await self.load_markets()
         currency = self.currency(code)
-        networkCode = self.safe_string_upper(params, 'network')
+        networkCode = self.safe_string_upper_2(params, 'network', 'chain')
         params = self.omit(params, 'network')
         if tag:
             address = address + ':' + tag
         request: dict = {
-            'coin_type': currency['id'],
-            'coin_address': address,  # must be authorized, inter-user transfer by a registered mobile phone number or an email address is supported
-            'actual_amount': float(self.number_to_string(amount)),  # the actual amount without fees, https://www.coinex.com/fees
-            'transfer_method': 'onchain',  # onchain, local
+            'ccy': currency['id'],
+            'to_address': address,  # must be authorized, inter-user transfer by a registered mobile phone number or an email address is supported
+            'amount': self.number_to_string(amount),  # the actual amount without fees, https://www.coinex.com/fees
         }
         if networkCode is not None:
-            request['smart_contract_name'] = self.network_code_to_id(networkCode)
-        response = await self.v1PrivatePostBalanceCoinWithdraw(self.extend(request, params))
+            request['chain'] = self.network_code_to_id(networkCode)  # required for on-chain, not required for inter-user transfer
+        response = await self.v2PrivatePostAssetsWithdraw(self.extend(request, params))
         #
         #     {
         #         "code": 0,
         #         "data": {
-        #             "actual_amount": "1.00000000",
-        #             "amount": "1.00000000",
-        #             "coin_address": "1KAv3pazbTk2JnQ5xTo6fpKK7p1it2RzD4",
-        #             "coin_type": "BCH",
-        #             "coin_withdraw_id": 206,
+        #             "withdraw_id": 31193755,
+        #             "created_at": 1716874165038,
+        #             "withdraw_method": "ON_CHAIN",
+        #             "ccy": "USDT",
+        #             "amount": "17.3",
+        #             "actual_amount": "15",
+        #             "chain": "TRC20",
+        #             "tx_fee": "2.3",
+        #             "fee_asset": "USDT",
+        #             "fee_amount": "2.3",
+        #             "to_address": "TY5vq3MT6b5cQVAHWHtpGyPg1ERcQgi3UN",
+        #             "memo": "",
+        #             "tx_id": "",
         #             "confirmations": 0,
-        #             "create_time": 1524228297,
-        #             "status": "audit",
-        #             "tx_fee": "0",
-        #             "tx_id": ""
+        #             "explorer_address_url": "https://tronscan.org/#/address/TY5vq3MT6b5cQVAHWHtpGyPg1ERcQgi3UN",
+        #             "explorer_tx_url": "https://tronscan.org/#/transaction/",
+        #             "remark": "",
+        #             "status": "audit_required"
         #         },
-        #         "message": "Ok"
+        #         "message": "OK"
         #     }
         #
         transaction = self.safe_dict(response, 'data', {})
         return self.parse_transaction(transaction, currency)
 
-    def parse_transaction_status(self, status):
+    def parse_transaction_status(self, status: Str):
         statuses: dict = {
             'audit': 'pending',
             'pass': 'pending',
@@ -4498,7 +4505,7 @@ class coinex(Exchange, ImplicitAPI):
         sorted = self.sort_by(rates, 'timestamp')
         return self.filter_by_symbol_since_limit(sorted, market['symbol'], since, limit)
 
-    def parse_transaction(self, transaction, currency: Currency = None) -> Transaction:
+    def parse_transaction(self, transaction: dict, currency: Currency = None) -> Transaction:
         #
         # fetchDeposits
         #
@@ -4520,7 +4527,7 @@ class coinex(Exchange, ImplicitAPI):
         #         "remark": ""
         #     }
         #
-        # fetchWithdrawals
+        # fetchWithdrawals and withdraw
         #
         #     {
         #         "withdraw_id": 259364,
@@ -4947,7 +4954,7 @@ class coinex(Exchange, ImplicitAPI):
         interest = self.parse_borrow_interests(rows, market)
         return self.filter_by_currency_since_limit(interest, code, since, limit)
 
-    def parse_borrow_interest(self, info, market: Market = None):
+    def parse_borrow_interest(self, info: dict, market: Market = None):
         #
         #     {
         #         "borrow_id": 2642934,
@@ -5085,143 +5092,176 @@ class coinex(Exchange, ImplicitAPI):
             'info': info,
         }
 
-    async def fetch_deposit_withdraw_fees(self, codes: Strings = None, params={}):
+    async def fetch_deposit_withdraw_fee(self, code: str, params={}):
         """
-        fetch deposit and withdraw fees
-        :see: https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot001_market010_asset_config
-        :param str[]|None codes: list of unified currency codes
+        fetch the fee for deposits and withdrawals
+        :see: https://docs.coinex.com/api/v2/assets/deposit-withdrawal/http/get-deposit-withdrawal-config
+        :param str code: unified currency code
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict[]: a list of `fees structures <https://docs.ccxt.com/#/?id=fee-structure>`
+        :returns dict: a `fee structure <https://docs.ccxt.com/#/?id=fee-structure>`
         """
         await self.load_markets()
-        request: dict = {}
-        if codes is not None:
-            codesLength = len(codes)
-            if codesLength == 1:
-                request['coin_type'] = self.safe_value(codes, 0)
-        response = await self.v1PublicGetCommonAssetConfig(self.extend(request, params))
-        #
-        #    {
-        #        "code": 0,
-        #        "data": {
-        #            "CET-CSC": {
-        #                "asset": "CET",
-        #                "chain": "CSC",
-        #                "can_deposit": True,
-        #                "can_withdraw ": False,
-        #                "deposit_least_amount": "1",
-        #                "withdraw_least_amount": "1",
-        #                "withdraw_tx_fee": "0.1"
-        #            },
-        #            "CET-ERC20": {
-        #                "asset": "CET",
-        #                "chain": "ERC20",
-        #                "can_deposit": True,
-        #                "can_withdraw": False,
-        #                "deposit_least_amount": "14",
-        #                "withdraw_least_amount": "14",
-        #                "withdraw_tx_fee": "14"
-        #            }
-        #        },
-        #        "message": "Success"
-        #    }
-        #
-        return self.parse_deposit_withdraw_fees(response, codes)
-
-    def parse_deposit_withdraw_fees(self, response, codes=None, currencyIdKey=None):
-        depositWithdrawFees: dict = {}
-        codes = self.market_codes(codes)
-        data = self.safe_value(response, 'data')
-        currencyIds = list(data.keys())
-        for i in range(0, len(currencyIds)):
-            entry = currencyIds[i]
-            splitEntry = entry.split('-')
-            feeInfo = data[currencyIds[i]]
-            currencyId = self.safe_string(feeInfo, 'asset')
-            currency = self.safe_currency(currencyId)
-            code = self.safe_string(currency, 'code')
-            if (codes is None) or (self.in_array(code, codes)):
-                depositWithdrawFee = self.safe_value(depositWithdrawFees, code)
-                if depositWithdrawFee is None:
-                    depositWithdrawFees[code] = self.deposit_withdraw_fee({})
-                depositWithdrawFees[code]['info'][entry] = feeInfo
-                networkId = self.safe_string(splitEntry, 1)
-                withdrawFee = self.safe_value(feeInfo, 'withdraw_tx_fee')
-                withdrawResult: dict = {
-                    'fee': withdrawFee,
-                    'percentage': False if (withdrawFee is not None) else None,
-                }
-                depositResult: dict = {
-                    'fee': None,
-                    'percentage': None,
-                }
-                if networkId is not None:
-                    networkCode = self.network_id_to_code(networkId)
-                    depositWithdrawFees[code]['networks'][networkCode] = {
-                        'withdraw': withdrawResult,
-                        'deposit': depositResult,
-                    }
-                else:
-                    depositWithdrawFees[code]['withdraw'] = withdrawResult
-                    depositWithdrawFees[code]['deposit'] = depositResult
-        depositWithdrawCodes = list(depositWithdrawFees.keys())
-        for i in range(0, len(depositWithdrawCodes)):
-            code = depositWithdrawCodes[i]
-            currency = self.currency(code)
-            depositWithdrawFees[code] = self.assign_default_deposit_withdraw_fees(depositWithdrawFees[code], currency)
-        return depositWithdrawFees
-
-    async def fetch_leverages(self, symbols: List[str] = None, params={}) -> Leverages:
-        """
-        fetch the set leverage for all contract and margin markets
-        :see: https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot002_account007_margin_account_settings
-        :param str[] [symbols]: a list of unified market symbols
-        :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a list of `leverage structures <https://docs.ccxt.com/#/?id=leverage-structure>`
-        """
-        await self.load_markets()
-        symbols = self.market_symbols(symbols)
-        market = None
-        if symbols is not None:
-            symbol = self.safe_value(symbols, 0)
-            market = self.market(symbol)
-        marketType = None
-        marketType, params = self.handle_market_type_and_params('fetchLeverages', market, params)
-        if marketType != 'spot':
-            raise NotSupported(self.id + ' fetchLeverages() supports spot margin markets only')
-        response = await self.v1PrivateGetMarginConfig(params)
+        currency = self.currency(code)
+        request: dict = {
+            'ccy': currency['id'],
+        }
+        response = await self.v2PrivateGetAssetsDepositWithdrawConfig(self.extend(request, params))
         #
         #     {
         #         "code": 0,
-        #         "data": [
-        #             {
-        #                 "market": "BTCUSDT",
-        #                 "leverage": 10,
-        #                 "BTC": {
-        #                     "min_amount": "0.0008",
-        #                     "max_amount": "200",
-        #                     "day_rate": "0.0015"
-        #                 },
-        #                 "USDT": {
-        #                     "min_amount": "50",
-        #                     "max_amount": "500000",
-        #                     "day_rate": "0.001"
-        #                 }
+        #         "data": {
+        #             "asset": {
+        #                 "ccy": "USDT",
+        #                 "deposit_enabled": True,
+        #                 "withdraw_enabled": True,
+        #                 "inter_transfer_enabled": True,
+        #                 "is_st": False
         #             },
-        #         ],
-        #         "message": "Success"
+        #             "chains": [
+        #                 {
+        #                     "chain": "TRC20",
+        #                     "min_deposit_amount": "2.4",
+        #                     "min_withdraw_amount": "2.4",
+        #                     "deposit_enabled": True,
+        #                     "withdraw_enabled": True,
+        #                     "deposit_delay_minutes": 0,
+        #                     "safe_confirmations": 10,
+        #                     "irreversible_confirmations": 20,
+        #                     "deflation_rate": "0",
+        #                     "withdrawal_fee": "2.4",
+        #                     "withdrawal_precision": 6,
+        #                     "memo": "",
+        #                     "is_memo_required_for_deposit": False,
+        #                     "explorer_asset_url": "https://tronscan.org/#/token20/TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t"
+        #                 },
+        #             ]
+        #         },
+        #         "message": "OK"
         #     }
         #
-        leverages = self.safe_list(response, 'data', [])
-        return self.parse_leverages(leverages, symbols, 'market', marketType)
+        data = self.safe_dict(response, 'data', {})
+        return self.parse_deposit_withdraw_fee(data, currency)
+
+    def parse_deposit_withdraw_fee(self, fee, currency: Currency = None):
+        #
+        #     {
+        #         "asset": {
+        #             "ccy": "USDT",
+        #             "deposit_enabled": True,
+        #             "withdraw_enabled": True,
+        #             "inter_transfer_enabled": True,
+        #             "is_st": False
+        #         },
+        #         "chains": [
+        #             {
+        #                 "chain": "TRC20",
+        #                 "min_deposit_amount": "2.4",
+        #                 "min_withdraw_amount": "2.4",
+        #                 "deposit_enabled": True,
+        #                 "withdraw_enabled": True,
+        #                 "deposit_delay_minutes": 0,
+        #                 "safe_confirmations": 10,
+        #                 "irreversible_confirmations": 20,
+        #                 "deflation_rate": "0",
+        #                 "withdrawal_fee": "2.4",
+        #                 "withdrawal_precision": 6,
+        #                 "memo": "",
+        #                 "is_memo_required_for_deposit": False,
+        #                 "explorer_asset_url": "https://tronscan.org/#/token20/TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t"
+        #             },
+        #         ]
+        #     }
+        #
+        result: dict = {
+            'info': fee,
+            'withdraw': {
+                'fee': None,
+                'percentage': None,
+            },
+            'deposit': {
+                'fee': None,
+                'percentage': None,
+            },
+            'networks': {},
+        }
+        chains = self.safe_list(fee, 'chains', [])
+        asset = self.safe_dict(fee, 'asset', {})
+        for i in range(0, len(chains)):
+            entry = chains[i]
+            isWithdrawEnabled = self.safe_bool(entry, 'withdraw_enabled')
+            if isWithdrawEnabled:
+                result['withdraw']['fee'] = self.safe_number(entry, 'withdrawal_fee')
+                result['withdraw']['percentage'] = False
+                networkId = self.safe_string(entry, 'chain')
+                if networkId:
+                    networkCode = self.network_id_to_code(networkId, self.safe_string(asset, 'ccy'))
+                    result['networks'][networkCode] = {
+                        'withdraw': {
+                            'fee': self.safe_number(entry, 'withdrawal_fee'),
+                            'percentage': False,
+                        },
+                        'deposit': {
+                            'fee': None,
+                            'percentage': None,
+                        },
+                    }
+        return result
+
+    async def fetch_leverage(self, symbol: str, params={}) -> Leverage:
+        """
+        fetch the set leverage for a market
+        :see: https://docs.coinex.com/api/v2/assets/loan-flat/http/list-margin-interest-limit
+        :param str symbol: unified market symbol
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str params['code']: unified currency code
+        :returns dict: a `leverage structure <https://docs.ccxt.com/#/?id=leverage-structure>`
+        """
+        await self.load_markets()
+        code = self.safe_string(params, 'code')
+        if code is None:
+            raise ArgumentsRequired(self.id + ' fetchLeverage() requires a code parameter')
+        params = self.omit(params, 'code')
+        currency = self.currency(code)
+        market = self.market(symbol)
+        request: dict = {
+            'market': market['id'],
+            'ccy': currency['id'],
+        }
+        response = await self.v2PrivateGetAssetsMarginInterestLimit(self.extend(request, params))
+        #
+        #     {
+        #         "code": 0,
+        #         "data": {
+        #             "market": "BTCUSDT",
+        #             "ccy": "USDT",
+        #             "leverage": 10,
+        #             "min_amount": "50",
+        #             "max_amount": "500000",
+        #             "daily_interest_rate": "0.001"
+        #         },
+        #         "message": "OK"
+        #     }
+        #
+        data = self.safe_dict(response, 'data', {})
+        return self.parse_leverage(data, market)
 
     def parse_leverage(self, leverage: dict, market: Market = None) -> Leverage:
+        #
+        #     {
+        #         "market": "BTCUSDT",
+        #         "ccy": "USDT",
+        #         "leverage": 10,
+        #         "min_amount": "50",
+        #         "max_amount": "500000",
+        #         "daily_interest_rate": "0.001"
+        #     }
+        #
         marketId = self.safe_string(leverage, 'market')
         leverageValue = self.safe_integer(leverage, 'leverage')
         return {
             'info': leverage,
             'symbol': self.safe_symbol(marketId, market, None, 'spot'),
-            'marginMode': None,
+            'marginMode': 'isolated',
             'longLeverage': leverageValue,
             'shortLeverage': leverageValue,
         }
@@ -5408,7 +5448,7 @@ class coinex(Exchange, ImplicitAPI):
                         url += '?' + urlencoded
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody):
+    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response, requestHeaders, requestBody):
         if response is None:
             return None
         code = self.safe_string(response, 'code')

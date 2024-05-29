@@ -6,7 +6,7 @@ import { ExchangeError, ExchangeNotAvailable, OnMaintenance, ArgumentsRequired, 
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { TransferEntry, Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, Num, Currencies, Dict } from './base/types.js';
+import type { TransferEntry, Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, Num, Currencies, Dict, int } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -631,7 +631,7 @@ export default class okcoin extends Exchange {
         return this.parseMarkets (markets);
     }
 
-    parseMarket (market): Market {
+    parseMarket (market: Dict): Market {
         //
         // spot markets
         //
@@ -985,7 +985,7 @@ export default class okcoin extends Exchange {
         return this.parseTickers (data, symbols, params);
     }
 
-    parseTrade (trade, market: Market = undefined): Trade {
+    parseTrade (trade: Dict, market: Market = undefined): Trade {
         //
         // public fetchTrades
         //
@@ -1768,7 +1768,7 @@ export default class okcoin extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseOrder (order, market: Market = undefined): Order {
+    parseOrder (order: Dict, market: Market = undefined): Order {
         //
         // createOrder
         //
@@ -2656,7 +2656,7 @@ export default class okcoin extends Exchange {
         return this.parseTransactions (data, currency, since, limit, params);
     }
 
-    parseTransactionStatus (status) {
+    parseTransactionStatus (status: Str) {
         //
         // deposit statuses
         //
@@ -2694,7 +2694,7 @@ export default class okcoin extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseTransaction (transaction, currency: Currency = undefined): Transaction {
+    parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {
         //
         // withdraw
         //
@@ -2964,7 +2964,7 @@ export default class okcoin extends Exchange {
         return this.safeString (types, type, type);
     }
 
-    parseLedgerEntry (item, currency: Currency = undefined) {
+    parseLedgerEntry (item: Dict, currency: Currency = undefined) {
         //
         // privateGetAccountBills, privateGetAccountBillsArchive
         //
@@ -3091,7 +3091,7 @@ export default class okcoin extends Exchange {
         }
     }
 
-    handleErrors (httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+    handleErrors (httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response, requestHeaders, requestBody) {
         if (!response) {
             return undefined; // fallback to default error handler
         }

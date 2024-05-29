@@ -71,8 +71,8 @@ export default class coinex extends Exchange {
                 'fetchDepositAddressByNetwork': false,
                 'fetchDepositAddresses': false,
                 'fetchDeposits': true,
-                'fetchDepositWithdrawFee': 'emulated',
-                'fetchDepositWithdrawFees': true,
+                'fetchDepositWithdrawFee': true,
+                'fetchDepositWithdrawFees': false,
                 'fetchFundingHistory': true,
                 'fetchFundingRate': true,
                 'fetchFundingRateHistory': true,
@@ -80,8 +80,8 @@ export default class coinex extends Exchange {
                 'fetchIndexOHLCV': false,
                 'fetchIsolatedBorrowRate': true,
                 'fetchIsolatedBorrowRates': false,
-                'fetchLeverage': 'emulated',
-                'fetchLeverages': true,
+                'fetchLeverage': true,
+                'fetchLeverages': false,
                 'fetchLeverageTiers': true,
                 'fetchMarginAdjustmentHistory': true,
                 'fetchMarketLeverageTiers': 'emulated',
@@ -4646,7 +4646,7 @@ export default class coinex extends Exchange {
          * @method
          * @name coinex#withdraw
          * @description make a withdrawal
-         * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot002_account015_submit_withdraw
+         * @see https://docs.coinex.com/api/v2/assets/deposit-withdrawal/http/withdrawal
          * @param {string} code unified currency code
          * @param {float} amount the amount to withdraw
          * @param {string} address the address to withdraw to
@@ -4659,37 +4659,44 @@ export default class coinex extends Exchange {
         this.checkAddress(address);
         await this.loadMarkets();
         const currency = this.currency(code);
-        const networkCode = this.safeStringUpper(params, 'network');
+        const networkCode = this.safeStringUpper2(params, 'network', 'chain');
         params = this.omit(params, 'network');
         if (tag) {
             address = address + ':' + tag;
         }
         const request = {
-            'coin_type': currency['id'],
-            'coin_address': address,
-            'actual_amount': parseFloat(this.numberToString(amount)),
-            'transfer_method': 'onchain', // onchain, local
+            'ccy': currency['id'],
+            'to_address': address,
+            'amount': this.numberToString(amount), // the actual amount without fees, https://www.coinex.com/fees
         };
         if (networkCode !== undefined) {
-            request['smart_contract_name'] = this.networkCodeToId(networkCode);
+            request['chain'] = this.networkCodeToId(networkCode); // required for on-chain, not required for inter-user transfer
         }
-        const response = await this.v1PrivatePostBalanceCoinWithdraw(this.extend(request, params));
+        const response = await this.v2PrivatePostAssetsWithdraw(this.extend(request, params));
         //
         //     {
         //         "code": 0,
         //         "data": {
-        //             "actual_amount": "1.00000000",
-        //             "amount": "1.00000000",
-        //             "coin_address": "1KAv3pazbTk2JnQ5xTo6fpKK7p1it2RzD4",
-        //             "coin_type": "BCH",
-        //             "coin_withdraw_id": 206,
+        //             "withdraw_id": 31193755,
+        //             "created_at": 1716874165038,
+        //             "withdraw_method": "ON_CHAIN",
+        //             "ccy": "USDT",
+        //             "amount": "17.3",
+        //             "actual_amount": "15",
+        //             "chain": "TRC20",
+        //             "tx_fee": "2.3",
+        //             "fee_asset": "USDT",
+        //             "fee_amount": "2.3",
+        //             "to_address": "TY5vq3MT6b5cQVAHWHtpGyPg1ERcQgi3UN",
+        //             "memo": "",
+        //             "tx_id": "",
         //             "confirmations": 0,
-        //             "create_time": 1524228297,
-        //             "status": "audit",
-        //             "tx_fee": "0",
-        //             "tx_id": ""
+        //             "explorer_address_url": "https://tronscan.org/#/address/TY5vq3MT6b5cQVAHWHtpGyPg1ERcQgi3UN",
+        //             "explorer_tx_url": "https://tronscan.org/#/transaction/",
+        //             "remark": "",
+        //             "status": "audit_required"
         //         },
-        //         "message": "Ok"
+        //         "message": "OK"
         //     }
         //
         const transaction = this.safeDict(response, 'data', {});
@@ -4800,7 +4807,7 @@ export default class coinex extends Exchange {
         //         "remark": ""
         //     }
         //
-        // fetchWithdrawals
+        // fetchWithdrawals and withdraw
         //
         //     {
         //         "withdraw_id": 259364,
@@ -5406,157 +5413,184 @@ export default class coinex extends Exchange {
             'info': info,
         };
     }
-    async fetchDepositWithdrawFees(codes = undefined, params = {}) {
+    async fetchDepositWithdrawFee(code, params = {}) {
         /**
          * @method
-         * @name coinex#fetchDepositWithdrawFees
-         * @description fetch deposit and withdraw fees
-         * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot001_market010_asset_config
-         * @param {string[]|undefined} codes list of unified currency codes
+         * @name coinex#fetchDepositWithdrawFee
+         * @description fetch the fee for deposits and withdrawals
+         * @see https://docs.coinex.com/api/v2/assets/deposit-withdrawal/http/get-deposit-withdrawal-config
+         * @param {string} code unified currency code
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object[]} a list of [fees structures]{@link https://docs.ccxt.com/#/?id=fee-structure}
+         * @returns {object} a [fee structure]{@link https://docs.ccxt.com/#/?id=fee-structure}
          */
         await this.loadMarkets();
-        const request = {};
-        if (codes !== undefined) {
-            const codesLength = codes.length;
-            if (codesLength === 1) {
-                request['coin_type'] = this.safeValue(codes, 0);
-            }
-        }
-        const response = await this.v1PublicGetCommonAssetConfig(this.extend(request, params));
-        //
-        //    {
-        //        "code": 0,
-        //        "data": {
-        //            "CET-CSC": {
-        //                "asset": "CET",
-        //                "chain": "CSC",
-        //                "can_deposit": true,
-        //                "can_withdraw ": false,
-        //                "deposit_least_amount": "1",
-        //                "withdraw_least_amount": "1",
-        //                "withdraw_tx_fee": "0.1"
-        //            },
-        //            "CET-ERC20": {
-        //                "asset": "CET",
-        //                "chain": "ERC20",
-        //                "can_deposit": true,
-        //                "can_withdraw": false,
-        //                "deposit_least_amount": "14",
-        //                "withdraw_least_amount": "14",
-        //                "withdraw_tx_fee": "14"
-        //            }
-        //        },
-        //        "message": "Success"
-        //    }
-        //
-        return this.parseDepositWithdrawFees(response, codes);
-    }
-    parseDepositWithdrawFees(response, codes = undefined, currencyIdKey = undefined) {
-        const depositWithdrawFees = {};
-        codes = this.marketCodes(codes);
-        const data = this.safeValue(response, 'data');
-        const currencyIds = Object.keys(data);
-        for (let i = 0; i < currencyIds.length; i++) {
-            const entry = currencyIds[i];
-            const splitEntry = entry.split('-');
-            const feeInfo = data[currencyIds[i]];
-            const currencyId = this.safeString(feeInfo, 'asset');
-            const currency = this.safeCurrency(currencyId);
-            const code = this.safeString(currency, 'code');
-            if ((codes === undefined) || (this.inArray(code, codes))) {
-                const depositWithdrawFee = this.safeValue(depositWithdrawFees, code);
-                if (depositWithdrawFee === undefined) {
-                    depositWithdrawFees[code] = this.depositWithdrawFee({});
-                }
-                depositWithdrawFees[code]['info'][entry] = feeInfo;
-                const networkId = this.safeString(splitEntry, 1);
-                const withdrawFee = this.safeValue(feeInfo, 'withdraw_tx_fee');
-                const withdrawResult = {
-                    'fee': withdrawFee,
-                    'percentage': (withdrawFee !== undefined) ? false : undefined,
-                };
-                const depositResult = {
-                    'fee': undefined,
-                    'percentage': undefined,
-                };
-                if (networkId !== undefined) {
-                    const networkCode = this.networkIdToCode(networkId);
-                    depositWithdrawFees[code]['networks'][networkCode] = {
-                        'withdraw': withdrawResult,
-                        'deposit': depositResult,
-                    };
-                }
-                else {
-                    depositWithdrawFees[code]['withdraw'] = withdrawResult;
-                    depositWithdrawFees[code]['deposit'] = depositResult;
-                }
-            }
-        }
-        const depositWithdrawCodes = Object.keys(depositWithdrawFees);
-        for (let i = 0; i < depositWithdrawCodes.length; i++) {
-            const code = depositWithdrawCodes[i];
-            const currency = this.currency(code);
-            depositWithdrawFees[code] = this.assignDefaultDepositWithdrawFees(depositWithdrawFees[code], currency);
-        }
-        return depositWithdrawFees;
-    }
-    async fetchLeverages(symbols = undefined, params = {}) {
-        /**
-         * @method
-         * @name coinex#fetchLeverages
-         * @description fetch the set leverage for all contract and margin markets
-         * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot002_account007_margin_account_settings
-         * @param {string[]} [symbols] a list of unified market symbols
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a list of [leverage structures]{@link https://docs.ccxt.com/#/?id=leverage-structure}
-         */
-        await this.loadMarkets();
-        symbols = this.marketSymbols(symbols);
-        let market = undefined;
-        if (symbols !== undefined) {
-            const symbol = this.safeValue(symbols, 0);
-            market = this.market(symbol);
-        }
-        let marketType = undefined;
-        [marketType, params] = this.handleMarketTypeAndParams('fetchLeverages', market, params);
-        if (marketType !== 'spot') {
-            throw new NotSupported(this.id + ' fetchLeverages() supports spot margin markets only');
-        }
-        const response = await this.v1PrivateGetMarginConfig(params);
+        const currency = this.currency(code);
+        const request = {
+            'ccy': currency['id'],
+        };
+        const response = await this.v2PrivateGetAssetsDepositWithdrawConfig(this.extend(request, params));
         //
         //     {
         //         "code": 0,
-        //         "data": [
-        //             {
-        //                 "market": "BTCUSDT",
-        //                 "leverage": 10,
-        //                 "BTC": {
-        //                     "min_amount": "0.0008",
-        //                     "max_amount": "200",
-        //                     "day_rate": "0.0015"
-        //                 },
-        //                 "USDT": {
-        //                     "min_amount": "50",
-        //                     "max_amount": "500000",
-        //                     "day_rate": "0.001"
-        //                 }
+        //         "data": {
+        //             "asset": {
+        //                 "ccy": "USDT",
+        //                 "deposit_enabled": true,
+        //                 "withdraw_enabled": true,
+        //                 "inter_transfer_enabled": true,
+        //                 "is_st": false
         //             },
-        //         ],
-        //         "message": "Success"
+        //             "chains": [
+        //                 {
+        //                     "chain": "TRC20",
+        //                     "min_deposit_amount": "2.4",
+        //                     "min_withdraw_amount": "2.4",
+        //                     "deposit_enabled": true,
+        //                     "withdraw_enabled": true,
+        //                     "deposit_delay_minutes": 0,
+        //                     "safe_confirmations": 10,
+        //                     "irreversible_confirmations": 20,
+        //                     "deflation_rate": "0",
+        //                     "withdrawal_fee": "2.4",
+        //                     "withdrawal_precision": 6,
+        //                     "memo": "",
+        //                     "is_memo_required_for_deposit": false,
+        //                     "explorer_asset_url": "https://tronscan.org/#/token20/TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t"
+        //                 },
+        //             ]
+        //         },
+        //         "message": "OK"
         //     }
         //
-        const leverages = this.safeList(response, 'data', []);
-        return this.parseLeverages(leverages, symbols, 'market', marketType);
+        const data = this.safeDict(response, 'data', {});
+        return this.parseDepositWithdrawFee(data, currency);
+    }
+    parseDepositWithdrawFee(fee, currency = undefined) {
+        //
+        //     {
+        //         "asset": {
+        //             "ccy": "USDT",
+        //             "deposit_enabled": true,
+        //             "withdraw_enabled": true,
+        //             "inter_transfer_enabled": true,
+        //             "is_st": false
+        //         },
+        //         "chains": [
+        //             {
+        //                 "chain": "TRC20",
+        //                 "min_deposit_amount": "2.4",
+        //                 "min_withdraw_amount": "2.4",
+        //                 "deposit_enabled": true,
+        //                 "withdraw_enabled": true,
+        //                 "deposit_delay_minutes": 0,
+        //                 "safe_confirmations": 10,
+        //                 "irreversible_confirmations": 20,
+        //                 "deflation_rate": "0",
+        //                 "withdrawal_fee": "2.4",
+        //                 "withdrawal_precision": 6,
+        //                 "memo": "",
+        //                 "is_memo_required_for_deposit": false,
+        //                 "explorer_asset_url": "https://tronscan.org/#/token20/TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t"
+        //             },
+        //         ]
+        //     }
+        //
+        const result = {
+            'info': fee,
+            'withdraw': {
+                'fee': undefined,
+                'percentage': undefined,
+            },
+            'deposit': {
+                'fee': undefined,
+                'percentage': undefined,
+            },
+            'networks': {},
+        };
+        const chains = this.safeList(fee, 'chains', []);
+        const asset = this.safeDict(fee, 'asset', {});
+        for (let i = 0; i < chains.length; i++) {
+            const entry = chains[i];
+            const isWithdrawEnabled = this.safeBool(entry, 'withdraw_enabled');
+            if (isWithdrawEnabled) {
+                result['withdraw']['fee'] = this.safeNumber(entry, 'withdrawal_fee');
+                result['withdraw']['percentage'] = false;
+                const networkId = this.safeString(entry, 'chain');
+                if (networkId) {
+                    const networkCode = this.networkIdToCode(networkId, this.safeString(asset, 'ccy'));
+                    result['networks'][networkCode] = {
+                        'withdraw': {
+                            'fee': this.safeNumber(entry, 'withdrawal_fee'),
+                            'percentage': false,
+                        },
+                        'deposit': {
+                            'fee': undefined,
+                            'percentage': undefined,
+                        },
+                    };
+                }
+            }
+        }
+        return result;
+    }
+    async fetchLeverage(symbol, params = {}) {
+        /**
+         * @method
+         * @name coinex#fetchLeverage
+         * @description fetch the set leverage for a market
+         * @see https://docs.coinex.com/api/v2/assets/loan-flat/http/list-margin-interest-limit
+         * @param {string} symbol unified market symbol
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} params.code unified currency code
+         * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/#/?id=leverage-structure}
+         */
+        await this.loadMarkets();
+        const code = this.safeString(params, 'code');
+        if (code === undefined) {
+            throw new ArgumentsRequired(this.id + ' fetchLeverage() requires a code parameter');
+        }
+        params = this.omit(params, 'code');
+        const currency = this.currency(code);
+        const market = this.market(symbol);
+        const request = {
+            'market': market['id'],
+            'ccy': currency['id'],
+        };
+        const response = await this.v2PrivateGetAssetsMarginInterestLimit(this.extend(request, params));
+        //
+        //     {
+        //         "code": 0,
+        //         "data": {
+        //             "market": "BTCUSDT",
+        //             "ccy": "USDT",
+        //             "leverage": 10,
+        //             "min_amount": "50",
+        //             "max_amount": "500000",
+        //             "daily_interest_rate": "0.001"
+        //         },
+        //         "message": "OK"
+        //     }
+        //
+        const data = this.safeDict(response, 'data', {});
+        return this.parseLeverage(data, market);
     }
     parseLeverage(leverage, market = undefined) {
+        //
+        //     {
+        //         "market": "BTCUSDT",
+        //         "ccy": "USDT",
+        //         "leverage": 10,
+        //         "min_amount": "50",
+        //         "max_amount": "500000",
+        //         "daily_interest_rate": "0.001"
+        //     }
+        //
         const marketId = this.safeString(leverage, 'market');
         const leverageValue = this.safeInteger(leverage, 'leverage');
         return {
             'info': leverage,
             'symbol': this.safeSymbol(marketId, market, undefined, 'spot'),
-            'marginMode': undefined,
+            'marginMode': 'isolated',
             'longLeverage': leverageValue,
             'shortLeverage': leverageValue,
         };

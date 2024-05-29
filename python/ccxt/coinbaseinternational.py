@@ -675,7 +675,7 @@ class coinbaseinternational(Exchange, ImplicitAPI):
         #
         return self.parse_position(position)
 
-    def parse_position(self, position, market: Market = None):
+    def parse_position(self, position: dict, market: Market = None):
         #
         #    {
         #       "symbol":"BTC-PERP",
@@ -800,7 +800,7 @@ class coinbaseinternational(Exchange, ImplicitAPI):
         params['type'] = 'DEPOSIT'
         return self.fetch_deposits_withdrawals(code, since, limit, params)
 
-    def parse_transaction_status(self, status):
+    def parse_transaction_status(self, status: Str):
         statuses: dict = {
             'PROCESSED': 'ok',
             'NEW': 'pending',
@@ -809,7 +809,7 @@ class coinbaseinternational(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_transaction(self, transaction, currency: Currency = None) -> Transaction:
+    def parse_transaction(self, transaction: dict, currency: Currency = None) -> Transaction:
         #
         #    {
         #        "idem":"8e471d77-4208-45a8-9e5b-f3bd8a2c1fc3"
@@ -844,7 +844,7 @@ class coinbaseinternational(Exchange, ImplicitAPI):
             },
         }
 
-    def parse_trade(self, trade, market: Market = None) -> Trade:
+    def parse_trade(self, trade: dict, market: Market = None) -> Trade:
         #
         #    {
         #       "portfolio_id":"1wp37qsc-1-0",
@@ -957,7 +957,7 @@ class coinbaseinternational(Exchange, ImplicitAPI):
         #
         return self.parse_markets(response)
 
-    def parse_market(self, market) -> Market:
+    def parse_market(self, market: dict) -> Market:
         #
         #   {
         #       "instrument_id":"149264164756389888",
@@ -1096,7 +1096,7 @@ class coinbaseinternational(Exchange, ImplicitAPI):
             result[currency['code']] = currency
         return result
 
-    def parse_currency(self, currency):
+    def parse_currency(self, currency: dict):
         #
         #    {
         #       "asset_id":"1",
@@ -1385,7 +1385,7 @@ class coinbaseinternational(Exchange, ImplicitAPI):
         #
         return self.parse_order(response, market)
 
-    def parse_order(self, order, market: Market = None) -> Order:
+    def parse_order(self, order: dict, market: Market = None) -> Order:
         #
         #    {
         #        "order_id":"1x96skvg-1-0",
@@ -1881,7 +1881,7 @@ class coinbaseinternational(Exchange, ImplicitAPI):
             }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response, requestHeaders, requestBody):
         #
         #    {
         #        "title":"io.javalin.http.BadRequestResponse: Order rejected(DUPLICATE_CLIENT_ORDER_ID - duplicate client order id detected)",

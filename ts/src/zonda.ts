@@ -6,7 +6,7 @@ import { InvalidNonce, InsufficientFunds, AuthenticationError, InvalidOrder, Exc
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
 import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
-import type { TransferEntry, Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, Num, Dict } from './base/types.js';
+import type { TransferEntry, Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, Num, Dict, int } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -171,6 +171,10 @@ export default class zonda extends Exchange {
                         'balances/BITBAY/balance',
                         'fiat_cantor/rate/{baseId}/{quoteId}',
                         'fiat_cantor/history',
+                        'client_payments/v2/customer/crypto/{currency}/channels/deposit',
+                        'client_payments/v2/customer/crypto/{currency}/channels/withdrawal',
+                        'client_payments/v2/customer/crypto/deposit/fee',
+                        'client_payments/v2/customer/crypto/withdrawal/fee',
                     ],
                     'post': [
                         'trading/offer/{symbol}',
@@ -181,6 +185,8 @@ export default class zonda extends Exchange {
                         'fiat_cantor/exchange',
                         'api_payments/withdrawals/crypto',
                         'api_payments/withdrawals/fiat',
+                        'client_payments/v2/customer/crypto/deposit',
+                        'client_payments/v2/customer/crypto/withdrawal',
                     ],
                     'delete': [
                         'trading/offer/{symbol}/{id}/{side}/{price}',
@@ -421,7 +427,7 @@ export default class zonda extends Exchange {
         return this.parseOrders (items, undefined, since, limit, { 'status': 'open' });
     }
 
-    parseOrder (order, market: Market = undefined): Order {
+    parseOrder (order: Dict, market: Market = undefined): Order {
         //
         //     {
         //         "market": "ETH-EUR",
@@ -844,7 +850,7 @@ export default class zonda extends Exchange {
         return this.parseLedger (items, undefined, since, limit);
     }
 
-    parseLedgerEntry (item, currency: Currency = undefined) {
+    parseLedgerEntry (item: Dict, currency: Currency = undefined) {
         //
         //    FUNDS_MIGRATION
         //    {
@@ -1241,7 +1247,7 @@ export default class zonda extends Exchange {
         return this.parseOHLCVs (items, market, timeframe, since, limit);
     }
 
-    parseTrade (trade, market: Market = undefined): Trade {
+    parseTrade (trade: Dict, market: Market = undefined): Trade {
         //
         // createOrder trades
         //
@@ -1575,7 +1581,7 @@ export default class zonda extends Exchange {
         return this.parseDepositAddress (first, currency);
     }
 
-    async fetchDepositAddresses (codes: string[] = undefined, params = {}) {
+    async fetchDepositAddresses (codes: Strings = undefined, params = {}) {
         /**
          * @method
          * @name zonda#fetchDepositAddresses
@@ -1764,7 +1770,7 @@ export default class zonda extends Exchange {
         return this.parseTransaction (data, currency);
     }
 
-    parseTransaction (transaction, currency: Currency = undefined): Transaction {
+    parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {
         //
         // withdraw
         //
@@ -1848,7 +1854,7 @@ export default class zonda extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    handleErrors (httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+    handleErrors (httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response, requestHeaders, requestBody) {
         if (response === undefined) {
             return undefined; // fallback to default error handler
         }

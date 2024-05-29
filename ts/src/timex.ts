@@ -2,7 +2,7 @@ import Exchange from './abstract/timex.js';
 import { ExchangeError, PermissionDenied, ExchangeNotAvailable, InsufficientFunds, OrderNotFound, InvalidOrder, RateLimitExceeded, NotSupported, BadRequest, AuthenticationError, ArgumentsRequired } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Balances, Currencies, Currency, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, Transaction } from './base/types.js';
+import type { Balances, Currencies, Currency, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, Transaction, int } from './base/types.js';
 
 /**
  * @class timex
@@ -448,7 +448,7 @@ export default class timex extends Exchange {
         return undefined;
     }
 
-    parseTransaction (transaction, currency: Currency = undefined): Transaction {
+    parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {
         //
         //     {
         //         "from": "0x1134cc86b45039cc211c6d1d2e4b3c77f60207ed",
@@ -1168,7 +1168,7 @@ export default class timex extends Exchange {
         return this.parseTrades (trades, market, since, limit);
     }
 
-    parseTradingFee (fee, market: Market = undefined): TradingFeeInterface {
+    parseTradingFee (fee: Dict, market: Market = undefined): TradingFeeInterface {
         //
         //     {
         //         "fee": 0.0075,
@@ -1215,7 +1215,7 @@ export default class timex extends Exchange {
         return this.parseTradingFee (result, market);
     }
 
-    parseMarket (market): Market {
+    parseMarket (market: Dict): Market {
         //
         //     {
         //         "symbol": "ETHBTC",
@@ -1299,7 +1299,7 @@ export default class timex extends Exchange {
         };
     }
 
-    parseCurrency (currency) {
+    parseCurrency (currency: Dict) {
         //
         //     {
         //         "symbol": "BTC",
@@ -1427,7 +1427,7 @@ export default class timex extends Exchange {
         }, market);
     }
 
-    parseTrade (trade, market: Market = undefined): Trade {
+    parseTrade (trade: Dict, market: Market = undefined): Trade {
         //
         // fetchTrades (public)
         //
@@ -1518,7 +1518,7 @@ export default class timex extends Exchange {
         ];
     }
 
-    parseOrder (order, market: Market = undefined): Order {
+    parseOrder (order: Dict, market: Market = undefined): Order {
         //
         // fetchOrder, createOrder, cancelOrder, cancelOrders, fetchOpenOrders, fetchClosedOrders
         //
@@ -1664,7 +1664,7 @@ export default class timex extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    handleErrors (statusCode, statusText, url, method, responseHeaders, responseBody, response, requestHeaders, requestBody) {
+    handleErrors (statusCode: int, statusText: string, url: string, method: string, responseHeaders: Dict, responseBody, response, requestHeaders, requestBody) {
         if (response === undefined) {
             return undefined;
         }

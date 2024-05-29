@@ -5,7 +5,7 @@ import Exchange from './abstract/onetrading.js';
 import { AuthenticationError, ExchangeError, PermissionDenied, BadRequest, ArgumentsRequired, OrderNotFound, InsufficientFunds, ExchangeNotAvailable, DDoSProtection, InvalidAddress, InvalidOrder } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Balances, Currencies, Currency, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction } from './base/types.js';
+import type { Balances, Currencies, Currency, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction, int } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -388,7 +388,7 @@ export default class onetrading extends Exchange {
         return this.parseMarkets (response);
     }
 
-    parseMarket (market): Market {
+    parseMarket (market: Dict): Market {
         const baseAsset = this.safeValue (market, 'base', {});
         const quoteAsset = this.safeValue (market, 'quote', {});
         const baseId = this.safeString (baseAsset, 'code');
@@ -877,7 +877,7 @@ export default class onetrading extends Exchange {
         return this.parseOHLCVs (response, market, timeframe, since, limit);
     }
 
-    parseTrade (trade, market: Market = undefined): Trade {
+    parseTrade (trade: Dict, market: Market = undefined): Trade {
         //
         // fetchTrades (public)
         //
@@ -1307,7 +1307,7 @@ export default class onetrading extends Exchange {
         return this.parseTransaction (response, currency);
     }
 
-    parseTransaction (transaction, currency: Currency = undefined): Transaction {
+    parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {
         //
         // fetchDeposits, fetchWithdrawals
         //
@@ -1401,7 +1401,7 @@ export default class onetrading extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseOrder (order, market: Market = undefined): Order {
+    parseOrder (order: Dict, market: Market = undefined): Order {
         //
         // createOrder
         //
@@ -1511,7 +1511,7 @@ export default class onetrading extends Exchange {
         }, market);
     }
 
-    parseTimeInForce (timeInForce) {
+    parseTimeInForce (timeInForce: Str) {
         const timeInForces: Dict = {
             'GOOD_TILL_CANCELLED': 'GTC',
             'GOOD_TILL_TIME': 'GTT',
@@ -2018,7 +2018,7 @@ export default class onetrading extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+    handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response, requestHeaders, requestBody) {
         if (response === undefined) {
             return undefined;
         }

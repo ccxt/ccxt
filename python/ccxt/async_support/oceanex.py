@@ -181,7 +181,7 @@ class oceanex(Exchange, ImplicitAPI):
         markets = self.safe_value(response, 'data', [])
         return self.parse_markets(markets)
 
-    def parse_market(self, market) -> Market:
+    def parse_market(self, market: dict) -> Market:
         id = self.safe_value(market, 'id')
         name = self.safe_value(market, 'name')
         baseId, quoteId = name.split('/')
@@ -487,7 +487,7 @@ class oceanex(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data')
         return self.parse_trades(data, market, since, limit)
 
-    def parse_trade(self, trade, market: Market = None) -> Trade:
+    def parse_trade(self, trade: dict, market: Market = None) -> Trade:
         #
         # fetchTrades(public)
         #
@@ -755,7 +755,7 @@ class oceanex(Exchange, ImplicitAPI):
         ohlcvs = self.safe_list(response, 'data', [])
         return self.parse_ohlcvs(ohlcvs, market, timeframe, since, limit)
 
-    def parse_order(self, order, market: Market = None) -> Order:
+    def parse_order(self, order: dict, market: Market = None) -> Order:
         #
         #     {
         #         "created_at": "2019-01-18T00:38:18Z",
@@ -887,7 +887,7 @@ class oceanex(Exchange, ImplicitAPI):
         headers = {'Content-Type': 'application/json'}
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response, requestHeaders, requestBody):
         #
         #     {"code":1011,"message":"This IP 'x.x.x.x' is not allowed","data":{}}
         #

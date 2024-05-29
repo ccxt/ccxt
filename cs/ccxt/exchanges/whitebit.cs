@@ -1160,7 +1160,7 @@ public partial class whitebit : Exchange
     {
         /**
         * @method
-        * @name createMarketOrderWithCost
+        * @name whitebit#createMarketOrderWithCost
         * @description create a market order by providing the symbol, side and cost
         * @param {string} symbol unified symbol of the market to create an order in
         * @param {string} side 'buy' or 'sell'
@@ -1178,7 +1178,7 @@ public partial class whitebit : Exchange
     {
         /**
         * @method
-        * @name createMarketBuyOrderWithCost
+        * @name whitebit#createMarketBuyOrderWithCost
         * @description create a market buy order by providing the symbol and cost
         * @param {string} symbol unified symbol of the market to create an order in
         * @param {float} cost how much you want to trade in units of the quote currency
@@ -1414,7 +1414,27 @@ public partial class whitebit : Exchange
             { "market", getValue(market, "id") },
             { "orderId", parseInt(id) },
         };
-        return await this.v4PrivatePostOrderCancel(this.extend(request, parameters));
+        object response = await this.v4PrivatePostOrderCancel(this.extend(request, parameters));
+        //
+        //    {
+        //        "orderId": 4180284841, // order id
+        //        "clientOrderId": "customId11", // custom order identifier; "clientOrderId": "" - if not specified.
+        //        "market": "BTC_USDT", // deal market
+        //        "side": "buy", // order side
+        //        "type": "stop market", // order type
+        //        "timestamp": 1595792396.165973, // current timestamp
+        //        "dealMoney": "0", // if order finished - amount in money currency that is finished
+        //        "dealStock": "0", // if order finished - amount in stock currency that is finished
+        //        "amount": "0.001", // amount
+        //        "takerFee": "0.001", // maker fee ratio. If the number less than 0.0001 - it will be rounded to zero
+        //        "makerFee": "0.001", // maker fee ratio. If the number less than 0.0001 - it will be rounded to zero
+        //        "left": "0.001", // if order not finished - rest of the amount that must be finished
+        //        "dealFee": "0", // fee in money that you pay if order is finished
+        //        "price": "40000", // price if price isset
+        //        "activation_price": "40000" // activation price if activation price is set
+        //    }
+        //
+        return this.parseOrder(response);
     }
 
     public async override Task<object> cancelAllOrders(object symbol = null, object parameters = null)
@@ -1469,7 +1489,7 @@ public partial class whitebit : Exchange
         //
         // []
         //
-        return response;
+        return this.parseOrders(response, market);
     }
 
     public async override Task<object> cancelAllOrdersAfter(object timeout, object parameters = null)
@@ -1738,7 +1758,7 @@ public partial class whitebit : Exchange
     public override object parseOrder(object order, object market = null)
     {
         //
-        // createOrder, fetchOpenOrders
+        // createOrder, fetchOpenOrders, cancelOrder
         //
         //      {
         //          "orderId":105687928629,
@@ -1753,6 +1773,7 @@ public partial class whitebit : Exchange
         //          "takerFee":"0.001",
         //          "makerFee":"0",
         //          "left":"100",
+        //          "price": "40000", // price if price isset
         //          "dealFee":"0",
         //          "activation_price":"0.065"      // stop price (if stop limit or stop market)
         //      }

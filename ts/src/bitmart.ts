@@ -6,7 +6,7 @@ import { AuthenticationError, ExchangeNotAvailable, OnMaintenance, AccountSuspen
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE, TRUNCATE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { Int, OrderSide, Balances, OrderType, OHLCV, Order, Str, Trade, Transaction, Ticker, OrderBook, Tickers, Strings, Currency, Market, TransferEntry, Num, TradingFeeInterface, Currencies, IsolatedBorrowRates, IsolatedBorrowRate, Dict, TransferEntries, OrderRequest } from './base/types.js';
+import type { Int, OrderSide, Balances, OrderType, OHLCV, Order, Str, Trade, Transaction, Ticker, OrderBook, Tickers, Strings, Currency, Market, TransferEntry, Num, TradingFeeInterface, Currencies, IsolatedBorrowRates, IsolatedBorrowRate, Dict, TransferEntries, OrderRequest, int } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -1193,15 +1193,9 @@ export default class bitmart extends Exchange {
         market = this.safeMarket (marketId, market);
         const symbol = market['symbol'];
         const last = this.safeString2 (ticker, 'close_24h', 'last_price');
-        let percentage = this.safeString (ticker, 'price_change_percent_24h');
+        let percentage = Precise.stringAbs (this.safeString (ticker, 'price_change_percent_24h'));
         if (percentage === undefined) {
-            const percentageRaw = this.safeString (ticker, 'fluctuation');
-            if ((percentageRaw !== undefined) && (percentageRaw !== '0')) { // a few tickers show strictly '0' in fluctuation field
-                const direction = percentageRaw[0];
-                percentage = direction + Precise.stringMul (percentageRaw.replace (direction, ''), '100');
-            } else if (percentageRaw === '0') {
-                percentage = '0';
-            }
+            percentage = Precise.stringAbs (Precise.stringMul (this.safeString (ticker, 'fluctuation'), '100'));
         }
         let baseVolume = this.safeString (ticker, 'base_volume_24h');
         let quoteVolume = this.safeString (ticker, 'quote_volume_24h');
@@ -1447,7 +1441,7 @@ export default class bitmart extends Exchange {
         return this.parseOrderBook (data, market['symbol'], timestamp);
     }
 
-    parseTrade (trade, market: Market = undefined): Trade {
+    parseTrade (trade: Dict, market: Market = undefined): Trade {
         //
         // public fetchTrades spot ( amount = count * price )
         //
@@ -2083,7 +2077,7 @@ export default class bitmart extends Exchange {
         return this.customParseBalance (response, marketType);
     }
 
-    parseTradingFee (fee, market: Market = undefined): TradingFeeInterface {
+    parseTradingFee (fee: Dict, market: Market = undefined): TradingFeeInterface {
         //
         //     {
         //         "symbol": "ETH_USDT",
@@ -2137,7 +2131,7 @@ export default class bitmart extends Exchange {
         return this.parseTradingFee (data);
     }
 
-    parseOrder (order, market: Market = undefined): Order {
+    parseOrder (order: Dict, market: Market = undefined): Order {
         //
         // createOrder
         //
@@ -2717,7 +2711,7 @@ export default class bitmart extends Exchange {
         }
         const data = this.safeValue (response, 'data');
         if (data === true) {
-            return this.parseOrder (id, market);
+            return this.safeOrder ({ 'id': id }, market);
         }
         const succeeded = this.safeValue (data, 'succeed');
         if (succeeded !== undefined) {
@@ -2731,8 +2725,8 @@ export default class bitmart extends Exchange {
                 throw new InvalidOrder (this.id + ' cancelOrder() ' + symbol + ' order id ' + id + ' is filled or canceled');
             }
         }
-        const order = this.parseOrder (id, market);
-        return this.extend (order, { 'id': id });
+        const order = this.safeOrder ({ 'id': id, 'symbol': market['symbol'], 'info': {}}, market);
+        return order;
     }
 
     async cancelOrders (ids: string[], symbol: Str = undefined, params = {}) {
@@ -3514,7 +3508,7 @@ export default class bitmart extends Exchange {
         return await this.fetchTransactionsByType ('withdraw', code, since, limit, params);
     }
 
-    parseTransactionStatus (status) {
+    parseTransactionStatus (status: Str) {
         const statuses: Dict = {
             '0': 'pending', // Create
             '1': 'pending', // Submitted, waiting for withdrawal
@@ -3526,7 +3520,7 @@ export default class bitmart extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseTransaction (transaction, currency: Currency = undefined): Transaction {
+    parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {
         //
         // withdraw
         //
@@ -4109,7 +4103,7 @@ export default class bitmart extends Exchange {
         return this.filterByCurrencySinceLimit (interest, code, since, limit);
     }
 
-    parseBorrowInterest (info, market: Market = undefined) {
+    parseBorrowInterest (info: Dict, market: Market = undefined) {
         //
         //     {
         //         "borrow_id": "1657664327844Lk5eJJugXmdHHZoe",
@@ -4406,7 +4400,7 @@ export default class bitmart extends Exchange {
         return this.filterByArrayPositions (result, 'symbol', symbols, false);
     }
 
-    parsePosition (position, market: Market = undefined) {
+    parsePosition (position: Dict, market: Market = undefined) {
         //
         //     {
         //         "symbol": "BTCUSDT",
@@ -4613,7 +4607,7 @@ export default class bitmart extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+    handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response, requestHeaders, requestBody) {
         if (response === undefined) {
             return undefined;
         }

@@ -6,7 +6,7 @@ import { ExchangeError, AuthenticationError, DDoSProtection, InvalidOrder, Insuf
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { IndexType, Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, Num, Dict } from './base/types.js';
+import type { IndexType, Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, Num, Dict, int } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -186,7 +186,7 @@ export default class btcalpha extends Exchange {
         return this.parseMarkets (response);
     }
 
-    parseMarket (market): Market {
+    parseMarket (market: Dict): Market {
         const id = this.safeString (market, 'name');
         const baseId = this.safeString (market, 'currency1');
         const quoteId = this.safeString (market, 'currency2');
@@ -387,7 +387,7 @@ export default class btcalpha extends Exchange {
         return result;
     }
 
-    parseTrade (trade, market: Market = undefined): Trade {
+    parseTrade (trade: Dict, market: Market = undefined): Trade {
         //
         // fetchTrades (public)
         //
@@ -528,7 +528,7 @@ export default class btcalpha extends Exchange {
         return this.parseTransactions (response, currency, since, limit, { 'type': 'withdrawal' });
     }
 
-    parseTransaction (transaction, currency: Currency = undefined): Transaction {
+    parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {
         //
         //  deposit
         //      {
@@ -574,7 +574,7 @@ export default class btcalpha extends Exchange {
         };
     }
 
-    parseTransactionStatus (status) {
+    parseTransactionStatus (status: Str) {
         const statuses: Dict = {
             '10': 'pending',  // New
             '20': 'pending',  // Verified, waiting for approving
@@ -679,7 +679,7 @@ export default class btcalpha extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseOrder (order, market: Market = undefined): Order {
+    parseOrder (order: Dict, market: Market = undefined): Order {
         //
         // fetchClosedOrders / fetchOrder
         //     {
@@ -944,7 +944,7 @@ export default class btcalpha extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+    handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response, requestHeaders, requestBody) {
         if (response === undefined) {
             return undefined; // fallback to default error handler
         }

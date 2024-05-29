@@ -1,5 +1,5 @@
 import Exchange from './abstract/bitmart.js';
-import type { Int, OrderSide, Balances, OrderType, OHLCV, Order, Str, Trade, Transaction, Ticker, OrderBook, Tickers, Strings, Currency, Market, TransferEntry, Num, TradingFeeInterface, Currencies, IsolatedBorrowRates, IsolatedBorrowRate, Dict, TransferEntries, OrderRequest } from './base/types.js';
+import type { Int, OrderSide, Balances, OrderType, OHLCV, Order, Str, Trade, Transaction, Ticker, OrderBook, Tickers, Strings, Currency, Market, TransferEntry, Num, TradingFeeInterface, Currencies, IsolatedBorrowRates, IsolatedBorrowRate, Dict, TransferEntries, OrderRequest, int } from './base/types.js';
 /**
  * @class bitmart
  * @augments Exchange
@@ -40,7 +40,7 @@ export default class bitmart extends Exchange {
     fetchTicker(symbol: string, params?: {}): Promise<Ticker>;
     fetchTickers(symbols?: Strings, params?: {}): Promise<Tickers>;
     fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
-    parseTrade(trade: any, market?: Market): Trade;
+    parseTrade(trade: Dict, market?: Market): Trade;
     fetchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     parseOHLCV(ohlcv: any, market?: Market): OHLCV;
     fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
@@ -49,9 +49,9 @@ export default class bitmart extends Exchange {
     customParseBalance(response: any, marketType: any): Balances;
     parseBalanceHelper(entry: any): import("./base/types.js").BalanceAccount;
     fetchBalance(params?: {}): Promise<Balances>;
-    parseTradingFee(fee: any, market?: Market): TradingFeeInterface;
+    parseTradingFee(fee: Dict, market?: Market): TradingFeeInterface;
     fetchTradingFee(symbol: string, params?: {}): Promise<TradingFeeInterface>;
-    parseOrder(order: any, market?: Market): Order;
+    parseOrder(order: Dict, market?: Market): Order;
     parseOrderSide(side: any): string;
     parseOrderStatusByType(type: any, status: any): string;
     createMarketBuyOrderWithCost(symbol: string, cost: number, params?: {}): Promise<Order>;
@@ -88,8 +88,8 @@ export default class bitmart extends Exchange {
     fetchDeposits(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
     fetchWithdrawal(id: string, code?: Str, params?: {}): Promise<Transaction>;
     fetchWithdrawals(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
-    parseTransactionStatus(status: any): string;
-    parseTransaction(transaction: any, currency?: Currency): Transaction;
+    parseTransactionStatus(status: Str): string;
+    parseTransaction(transaction: Dict, currency?: Currency): Transaction;
     repayIsolatedMargin(symbol: string, code: string, amount: any, params?: {}): Promise<any>;
     borrowIsolatedMargin(symbol: string, code: string, amount: number, params?: {}): Promise<any>;
     parseMarginLoan(info: any, currency?: Currency): {
@@ -111,7 +111,7 @@ export default class bitmart extends Exchange {
     parseTransfer(transfer: Dict, currency?: Currency): TransferEntry;
     fetchTransfers(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<TransferEntries>;
     fetchBorrowInterest(code?: Str, symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<any>;
-    parseBorrowInterest(info: any, market?: Market): {
+    parseBorrowInterest(info: Dict, market?: Market): {
         symbol: string;
         marginMode: string;
         currency: string;
@@ -120,7 +120,7 @@ export default class bitmart extends Exchange {
         amountBorrowed: number;
         timestamp: number;
         datetime: string;
-        info: any;
+        info: Dict;
     };
     fetchOpenInterest(symbol: string, params?: {}): Promise<import("./base/types.js").OpenInterest>;
     parseOpenInterest(interest: any, market?: Market): import("./base/types.js").OpenInterest;
@@ -165,7 +165,7 @@ export default class bitmart extends Exchange {
     };
     fetchPosition(symbol: string, params?: {}): Promise<import("./base/types.js").Position>;
     fetchPositions(symbols?: Strings, params?: {}): Promise<import("./base/types.js").Position[]>;
-    parsePosition(position: any, market?: Market): import("./base/types.js").Position;
+    parsePosition(position: Dict, market?: Market): import("./base/types.js").Position;
     fetchMyLiquidations(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Liquidation[]>;
     parseLiquidation(liquidation: any, market?: Market): import("./base/types.js").Liquidation;
     nonce(): number;
@@ -175,5 +175,5 @@ export default class bitmart extends Exchange {
         body: any;
         headers: any;
     };
-    handleErrors(code: any, reason: any, url: any, method: any, headers: any, body: any, response: any, requestHeaders: any, requestBody: any): any;
+    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): any;
 }

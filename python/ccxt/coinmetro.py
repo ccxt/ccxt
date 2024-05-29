@@ -373,7 +373,7 @@ class coinmetro(Exchange, ImplicitAPI):
         #
         return self.parse_markets(response)
 
-    def parse_market(self, market) -> Market:
+    def parse_market(self, market: dict) -> Market:
         id = self.safe_string(market, 'pair')
         parsedMarketId = self.parse_market_id(id)
         baseId = self.safe_string(parsedMarketId, 'baseId')
@@ -636,7 +636,7 @@ class coinmetro(Exchange, ImplicitAPI):
         #
         return self.parse_trades(response, market, since, limit)
 
-    def parse_trade(self, trade, market: Market = None) -> Trade:
+    def parse_trade(self, trade: dict, market: Market = None) -> Trade:
         #
         # fetchTrades
         #     {
@@ -1079,7 +1079,7 @@ class coinmetro(Exchange, ImplicitAPI):
                 ledger.append(rawLedgerEntry)
         return self.parse_ledger(ledger, currency, since, limit)
 
-    def parse_ledger_entry(self, item, currency: Currency = None):
+    def parse_ledger_entry(self, item: dict, currency: Currency = None):
         datetime = self.safe_string(item, 'timestamp')
         currencyId = self.safe_string(item, 'currencyId')
         item = self.omit(item, 'currencyId')
@@ -1444,7 +1444,7 @@ class coinmetro(Exchange, ImplicitAPI):
         #
         return self.parse_order(response)
 
-    def parse_order(self, order, market: Market = None) -> Order:
+    def parse_order(self, order: dict, market: Market = None) -> Order:
         #
         # createOrder market
         #     {
@@ -1794,7 +1794,7 @@ class coinmetro(Exchange, ImplicitAPI):
             url = url[0:len(url) - 1]
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response, requestHeaders, requestBody):
         if response is None:
             return None
         if (code != 200) and (code != 201) and (code != 202):

@@ -412,7 +412,7 @@ class coinspot extends Exchange {
         return $this->parse_trades($trades, $market, $since, $limit);
     }
 
-    public function parse_trade($trade, ?array $market = null): array {
+    public function parse_trade(array $trade, ?array $market = null): array {
         //
         // public fetchTrades
         //

@@ -1180,14 +1180,9 @@ class bitmart(Exchange, ImplicitAPI):
         market = self.safe_market(marketId, market)
         symbol = market['symbol']
         last = self.safe_string_2(ticker, 'close_24h', 'last_price')
-        percentage = self.safe_string(ticker, 'price_change_percent_24h')
+        percentage = Precise.string_abs(self.safe_string(ticker, 'price_change_percent_24h'))
         if percentage is None:
-            percentageRaw = self.safe_string(ticker, 'fluctuation')
-            if (percentageRaw is not None) and (percentageRaw != '0'):  # a few tickers show strictly '0' in fluctuation field
-                direction = percentageRaw[0]
-                percentage = direction + Precise.string_mul(percentageRaw.replace(direction, ''), '100')
-            elif percentageRaw == '0':
-                percentage = '0'
+            percentage = Precise.string_abs(Precise.string_mul(self.safe_string(ticker, 'fluctuation'), '100'))
         baseVolume = self.safe_string(ticker, 'base_volume_24h')
         quoteVolume = self.safe_string(ticker, 'quote_volume_24h')
         if quoteVolume is None:
@@ -1413,7 +1408,7 @@ class bitmart(Exchange, ImplicitAPI):
         timestamp = self.safe_integer_2(data, 'ts', 'timestamp')
         return self.parse_order_book(data, market['symbol'], timestamp)
 
-    def parse_trade(self, trade, market: Market = None) -> Trade:
+    def parse_trade(self, trade: dict, market: Market = None) -> Trade:
         #
         # public fetchTrades spot( amount = count * price )
         #
@@ -2002,7 +1997,7 @@ class bitmart(Exchange, ImplicitAPI):
         #
         return self.custom_parse_balance(response, marketType)
 
-    def parse_trading_fee(self, fee, market: Market = None) -> TradingFeeInterface:
+    def parse_trading_fee(self, fee: dict, market: Market = None) -> TradingFeeInterface:
         #
         #     {
         #         "symbol": "ETH_USDT",
@@ -2051,7 +2046,7 @@ class bitmart(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'data')
         return self.parse_trading_fee(data)
 
-    def parse_order(self, order, market: Market = None) -> Order:
+    def parse_order(self, order: dict, market: Market = None) -> Order:
         #
         # createOrder
         #
@@ -2575,7 +2570,7 @@ class bitmart(Exchange, ImplicitAPI):
             return response
         data = self.safe_value(response, 'data')
         if data is True:
-            return self.parse_order(id, market)
+            return self.safe_order({'id': id}, market)
         succeeded = self.safe_value(data, 'succeed')
         if succeeded is not None:
             id = self.safe_string(succeeded, 0)
@@ -2585,8 +2580,8 @@ class bitmart(Exchange, ImplicitAPI):
             result = self.safe_value(data, 'result')
             if not result:
                 raise InvalidOrder(self.id + ' cancelOrder() ' + symbol + ' order id ' + id + ' is filled or canceled')
-        order = self.parse_order(id, market)
-        return self.extend(order, {'id': id})
+        order = self.safe_order({'id': id, 'symbol': market['symbol'], 'info': {}}, market)
+        return order
 
     def cancel_orders(self, ids: List[str], symbol: Str = None, params={}):
         """
@@ -3282,7 +3277,7 @@ class bitmart(Exchange, ImplicitAPI):
         """
         return self.fetch_transactions_by_type('withdraw', code, since, limit, params)
 
-    def parse_transaction_status(self, status):
+    def parse_transaction_status(self, status: Str):
         statuses: dict = {
             '0': 'pending',  # Create
             '1': 'pending',  # Submitted, waiting for withdrawal
@@ -3293,7 +3288,7 @@ class bitmart(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_transaction(self, transaction, currency: Currency = None) -> Transaction:
+    def parse_transaction(self, transaction: dict, currency: Currency = None) -> Transaction:
         #
         # withdraw
         #
@@ -3834,7 +3829,7 @@ class bitmart(Exchange, ImplicitAPI):
         interest = self.parse_borrow_interests(rows, market)
         return self.filter_by_currency_since_limit(interest, code, since, limit)
 
-    def parse_borrow_interest(self, info, market: Market = None):
+    def parse_borrow_interest(self, info: dict, market: Market = None):
         #
         #     {
         #         "borrow_id": "1657664327844Lk5eJJugXmdHHZoe",
@@ -4106,7 +4101,7 @@ class bitmart(Exchange, ImplicitAPI):
         symbols = self.market_symbols(symbols)
         return self.filter_by_array_positions(result, 'symbol', symbols, False)
 
-    def parse_position(self, position, market: Market = None):
+    def parse_position(self, position: dict, market: Market = None):
         #
         #     {
         #         "symbol": "BTCUSDT",
@@ -4297,7 +4292,7 @@ class bitmart(Exchange, ImplicitAPI):
             headers['X-BM-SIGN'] = signature
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response, requestHeaders, requestBody):
         if response is None:
             return None
         #

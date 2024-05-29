@@ -183,6 +183,10 @@ class zonda(Exchange, ImplicitAPI):
                         'balances/BITBAY/balance',
                         'fiat_cantor/rate/{baseId}/{quoteId}',
                         'fiat_cantor/history',
+                        'client_payments/v2/customer/crypto/{currency}/channels/deposit',
+                        'client_payments/v2/customer/crypto/{currency}/channels/withdrawal',
+                        'client_payments/v2/customer/crypto/deposit/fee',
+                        'client_payments/v2/customer/crypto/withdrawal/fee',
                     ],
                     'post': [
                         'trading/offer/{symbol}',
@@ -193,6 +197,8 @@ class zonda(Exchange, ImplicitAPI):
                         'fiat_cantor/exchange',
                         'api_payments/withdrawals/crypto',
                         'api_payments/withdrawals/fiat',
+                        'client_payments/v2/customer/crypto/deposit',
+                        'client_payments/v2/customer/crypto/withdrawal',
                     ],
                     'delete': [
                         'trading/offer/{symbol}/{id}/{side}/{price}',
@@ -424,7 +430,7 @@ class zonda(Exchange, ImplicitAPI):
         items = self.safe_list(response, 'items', [])
         return self.parse_orders(items, None, since, limit, {'status': 'open'})
 
-    def parse_order(self, order, market: Market = None) -> Order:
+    def parse_order(self, order: dict, market: Market = None) -> Order:
         #
         #     {
         #         "market": "ETH-EUR",
@@ -817,7 +823,7 @@ class zonda(Exchange, ImplicitAPI):
         items = response['items']
         return self.parse_ledger(items, None, since, limit)
 
-    def parse_ledger_entry(self, item, currency: Currency = None):
+    def parse_ledger_entry(self, item: dict, currency: Currency = None):
         #
         #    FUNDS_MIGRATION
         #    {
@@ -1205,7 +1211,7 @@ class zonda(Exchange, ImplicitAPI):
         items = self.safe_list(response, 'items', [])
         return self.parse_ohlcvs(items, market, timeframe, since, limit)
 
-    def parse_trade(self, trade, market: Market = None) -> Trade:
+    def parse_trade(self, trade: dict, market: Market = None) -> Trade:
         #
         # createOrder trades
         #
@@ -1514,7 +1520,7 @@ class zonda(Exchange, ImplicitAPI):
         first = self.safe_dict(data, 0)
         return self.parse_deposit_address(first, currency)
 
-    async def fetch_deposit_addresses(self, codes: List[str] = None, params={}):
+    async def fetch_deposit_addresses(self, codes: Strings = None, params={}):
         """
         :see: https://docs.zondacrypto.exchange/reference/deposit-addresses-for-crypto
         fetch deposit addresses for multiple currencies and chain types
@@ -1689,7 +1695,7 @@ class zonda(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 'data')
         return self.parse_transaction(data, currency)
 
-    def parse_transaction(self, transaction, currency: Currency = None) -> Transaction:
+    def parse_transaction(self, transaction: dict, currency: Currency = None) -> Transaction:
         #
         # withdraw
         #
@@ -1766,7 +1772,7 @@ class zonda(Exchange, ImplicitAPI):
             }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody):
+    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response, requestHeaders, requestBody):
         if response is None:
             return None  # fallback to default error handler
         if 'code' in response:

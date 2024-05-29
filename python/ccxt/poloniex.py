@@ -514,7 +514,7 @@ class poloniex(Exchange, ImplicitAPI):
         #
         return self.parse_markets(markets)
 
-    def parse_market(self, market) -> Market:
+    def parse_market(self, market: dict) -> Market:
         id = self.safe_string(market, 'symbol')
         baseId = self.safe_string(market, 'baseCurrencyName')
         quoteId = self.safe_string(market, 'quoteCurrencyName')
@@ -840,7 +840,7 @@ class poloniex(Exchange, ImplicitAPI):
         #
         return self.parse_ticker(response, market)
 
-    def parse_trade(self, trade, market: Market = None) -> Trade:
+    def parse_trade(self, trade: dict, market: Market = None) -> Trade:
         #
         # fetchTrades
         #
@@ -1029,7 +1029,7 @@ class poloniex(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_order(self, order, market: Market = None) -> Order:
+    def parse_order(self, order: dict, market: Market = None) -> Order:
         #
         # fetchOpenOrder
         #
@@ -2084,7 +2084,7 @@ class poloniex(Exchange, ImplicitAPI):
         transactions = self.parse_transactions(deposits, currency, since, limit)
         return self.filter_by_currency_since_limit(transactions, code, since, limit)
 
-    def parse_transaction_status(self, status):
+    def parse_transaction_status(self, status: Str):
         statuses: dict = {
             'COMPLETE': 'ok',
             'COMPLETED': 'ok',
@@ -2097,7 +2097,7 @@ class poloniex(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_transaction(self, transaction, currency: Currency = None) -> Transaction:
+    def parse_transaction(self, transaction: dict, currency: Currency = None) -> Transaction:
         #
         # deposits
         #
@@ -2212,7 +2212,7 @@ class poloniex(Exchange, ImplicitAPI):
             }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response, requestHeaders, requestBody):
         if response is None:
             return None
         #

@@ -236,7 +236,7 @@ class wazirx(Exchange, ImplicitAPI):
         markets = self.safe_value(response, 'symbols', [])
         return self.parse_markets(markets)
 
-    def parse_market(self, market) -> Market:
+    def parse_market(self, market: dict) -> Market:
         id = self.safe_string(market, 'symbol')
         baseId = self.safe_string(market, 'baseAsset')
         quoteId = self.safe_string(market, 'quoteAsset')
@@ -490,7 +490,7 @@ class wazirx(Exchange, ImplicitAPI):
         # ]
         return self.parse_trades(response, market, since, limit)
 
-    def parse_trade(self, trade, market: Market = None) -> Trade:
+    def parse_trade(self, trade: dict, market: Market = None) -> Trade:
         #
         #     {
         #         "id":322307791,
@@ -830,7 +830,7 @@ class wazirx(Exchange, ImplicitAPI):
         # }
         return self.parse_order(response, market)
 
-    def parse_order(self, order, market: Market = None) -> Order:
+    def parse_order(self, order: dict, market: Market = None) -> Order:
         # {
         #     "id":1949417813,
         #     "symbol":"ltcusdt",
@@ -1107,7 +1107,7 @@ class wazirx(Exchange, ImplicitAPI):
         #
         return self.parse_transactions(response, currency, since, limit)
 
-    def parse_transaction_status(self, status):
+    def parse_transaction_status(self, status: Str):
         statuses: dict = {
             '0': 'ok',
             '1': 'fail',
@@ -1116,7 +1116,7 @@ class wazirx(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_transaction(self, transaction, currency: Currency = None) -> Transaction:
+    def parse_transaction(self, transaction: dict, currency: Currency = None) -> Transaction:
         #
         #     {
         #         "address": "0x94df8b352de7f46f64b01d3666bf6e936e44ce60",
@@ -1187,7 +1187,7 @@ class wazirx(Exchange, ImplicitAPI):
             }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response, requestHeaders, requestBody):
         #
         # {"code":2098,"message":"Request out of receiving window."}
         #

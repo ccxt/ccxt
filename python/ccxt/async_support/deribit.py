@@ -1304,7 +1304,7 @@ class deribit(Exchange, ImplicitAPI):
         ohlcvs = self.convert_trading_view_to_ohlcv(result, 'ticks', 'open', 'high', 'low', 'close', 'volume', True)
         return self.parse_ohlcvs(ohlcvs, market, timeframe, since, limit)
 
-    def parse_trade(self, trade, market: Market = None) -> Trade:
+    def parse_trade(self, trade: dict, market: Market = None) -> Trade:
         #
         # fetchTrades(public)
         #
@@ -1634,7 +1634,7 @@ class deribit(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_time_in_force(self, timeInForce):
+    def parse_time_in_force(self, timeInForce: Str):
         timeInForces: dict = {
             'good_til_cancelled': 'GTC',
             'fill_or_kill': 'FOK',
@@ -1651,7 +1651,7 @@ class deribit(Exchange, ImplicitAPI):
         }
         return self.safe_string(orderTypes, orderType, orderType)
 
-    def parse_order(self, order, market: Market = None) -> Order:
+    def parse_order(self, order: dict, market: Market = None) -> Order:
         #
         # createOrder
         #
@@ -2297,14 +2297,14 @@ class deribit(Exchange, ImplicitAPI):
         data = self.safe_list(result, 'data', [])
         return self.parse_transactions(data, currency, since, limit, params)
 
-    def parse_transaction_status(self, status):
+    def parse_transaction_status(self, status: Str):
         statuses: dict = {
             'completed': 'ok',
             'unconfirmed': 'pending',
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_transaction(self, transaction, currency: Currency = None) -> Transaction:
+    def parse_transaction(self, transaction: dict, currency: Currency = None) -> Transaction:
         #
         # fetchWithdrawals
         #
@@ -2372,7 +2372,7 @@ class deribit(Exchange, ImplicitAPI):
             'fee': fee,
         }
 
-    def parse_position(self, position, market: Market = None):
+    def parse_position(self, position: dict, market: Market = None):
         #
         #     {
         #         "jsonrpc": "2.0",
@@ -3411,7 +3411,7 @@ class deribit(Exchange, ImplicitAPI):
         url = self.urls['api']['rest'] + request
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody):
+    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response, requestHeaders, requestBody):
         if not response:
             return None  # fallback to default error handler
         #

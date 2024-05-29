@@ -831,7 +831,7 @@ class gemini(Exchange, ImplicitAPI):
         :see: https://docs.gemini.com/rest-api/#ticker-v2
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :param dict [params.fetchTickerMethod]: 'fetchTickerV2', 'fetchTickerV1' or 'fetchTickerV1AndV2' - 'fetchTickerV1' for original ccxt.gemini.fetch_ticker- 'fetchTickerV1AndV2' for 2 api calls to get the result of both fetchTicker methods - default = 'fetchTickerV1'
+        :param dict [params.fetchTickerMethod]: 'fetchTickerV2', 'fetchTickerV1' or 'fetchTickerV1AndV2' - 'fetchTickerV1' for original ccxt.gemini.fetchTicker - 'fetchTickerV1AndV2' for 2 api calls to get the result of both fetchTicker methods - default = 'fetchTickerV1'
         :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
         method = self.safe_value(self.options, 'fetchTickerMethod', 'fetchTickerV1')
@@ -957,7 +957,7 @@ class gemini(Exchange, ImplicitAPI):
         #
         return self.parse_tickers(response, symbols)
 
-    def parse_trade(self, trade, market: Market = None) -> Trade:
+    def parse_trade(self, trade: dict, market: Market = None) -> Trade:
         #
         # public fetchTrades
         #
@@ -1134,7 +1134,7 @@ class gemini(Exchange, ImplicitAPI):
         response = self.privatePostV1Balances(params)
         return self.parse_balance(response)
 
-    def parse_order(self, order, market: Market = None) -> Order:
+    def parse_order(self, order: dict, market: Market = None) -> Order:
         #
         # createOrder(private)
         #
@@ -1597,7 +1597,7 @@ class gemini(Exchange, ImplicitAPI):
         response = self.privatePostV1Transfers(self.extend(request, params))
         return self.parse_transactions(response)
 
-    def parse_transaction(self, transaction, currency: Currency = None) -> Transaction:
+    def parse_transaction(self, transaction: dict, currency: Currency = None) -> Transaction:
         #
         # withdraw
         #
@@ -1653,7 +1653,7 @@ class gemini(Exchange, ImplicitAPI):
             'fee': fee,
         }
 
-    def parse_transaction_status(self, status):
+    def parse_transaction_status(self, status: Str):
         statuses: dict = {
             'Advanced': 'ok',
             'Complete': 'ok',
@@ -1748,7 +1748,7 @@ class gemini(Exchange, ImplicitAPI):
             body = self.json(query)
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody):
+    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response, requestHeaders, requestBody):
         if response is None:
             if isinstance(body, str):
                 feedback = self.id + ' ' + body

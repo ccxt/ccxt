@@ -634,7 +634,7 @@ class cex(Exchange, ImplicitAPI):
         ticker = await self.publicGetTickerPair(self.extend(request, params))
         return self.parse_ticker(ticker, market)
 
-    def parse_trade(self, trade, market: Market = None) -> Trade:
+    def parse_trade(self, trade: dict, market: Market = None) -> Trade:
         #
         # fetchTrades(public)
         #
@@ -857,7 +857,7 @@ class cex(Exchange, ImplicitAPI):
         #
         return orders
 
-    def parse_order(self, order, market: Market = None) -> Order:
+    def parse_order(self, order: dict, market: Market = None) -> Order:
         # Depending on the call, 'time' can be a unix int, unix string or ISO string
         # Yes, really
         timestamp = self.safe_value(order, 'time')
@@ -1585,7 +1585,7 @@ class cex(Exchange, ImplicitAPI):
             }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response, requestHeaders, requestBody):
         if isinstance(response, list):
             return response  # public endpoints may return []-arrays
         if body == 'true':
