@@ -2289,7 +2289,6 @@ export default class oxfun extends Exchange {
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
-        const market = this.market (symbol);
         const request: Dict = {
             'responseType': this.safeString (params, 'responseType', 'FULL'),
             'timestamp': this.safeInteger (params, 'timestamp', this.milliseconds ()),
@@ -2300,7 +2299,7 @@ export default class oxfun extends Exchange {
             request['recvWindow'] = recvWindow;
             params = this.omit (params, 'recvWindow');
         }
-        const orderRequest = this.createOrderRequest (market, type, side, amount, price, params);
+        const orderRequest = this.createOrderRequest (symbol, type, side, amount, price, params);
         request['orders'] = [ orderRequest ];
         const response = await this.privatePostV3OrdersPlace (request);
         //
@@ -2421,7 +2420,7 @@ export default class oxfun extends Exchange {
         //
         const data = this.safeList (response, 'data', []);
         const order = this.safeDict (data, 0, {});
-        return this.parseOrder (order, market);
+        return this.parseOrder (order);
     }
 
     async createOrders (orders: OrderRequest[], params = {}): Promise<Order[]> {
@@ -2461,7 +2460,7 @@ export default class oxfun extends Exchange {
         return this.parseOrders (data);
     }
 
-    createOrderRequest (market, type, side, amount, price = undefined, params = {}) {
+    createOrderRequest (symbol, type, side, amount, price = undefined, params = {}) {
         /**
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {string} type 'market', 'limit', 'STOP_LIMIT' or 'STOP_MARKET'
@@ -2479,6 +2478,7 @@ export default class oxfun extends Exchange {
          * @param {string} [params.displayQuantity] for an iceberg order, pass both quantity and displayQuantity fields in the order request
          */
         // const symbol = market['symbol'];
+        const market = this.safeMarket (symbol);
         const request: Dict = {
             'marketCode': market['id'],
             'side': side.toUpperCase (),
