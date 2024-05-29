@@ -19,7 +19,7 @@ export default class vertex extends vertexRest {
                 'watchBalance': false,
                 'watchMyTrades': false,
                 'watchOHLCV': false,
-                'watchOrderBook': false,
+                'watchOrderBook': true,
                 'watchOrders': false,
                 'watchTicker': false,
                 'watchTickers': false,
@@ -276,6 +276,86 @@ export default class vertex extends vertexRest {
         return message;
     }
 
+    async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
+        /**
+         * @method
+         * @name vertex#watchOrderBook
+         * @see https://docs.vertexprotocol.com/developer-resources/api/subscriptions/streams
+         * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @param {string} symbol unified symbol of the market to fetch the order book for
+         * @param {int} [limit] the maximum amount of order book entries to return.
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+         */
+        await this.loadMarkets ();
+        const name = 'book_depth';
+        const market = this.market (symbol);
+        symbol = market['symbol'];
+        const topic = market['id'] + '@' + name;
+        const request = {
+            'method': 'subscribe',
+            'stream': {
+                'type': name,
+                'product_id': this.parseToNumeric (market['id']),
+            },
+        };
+        const message = this.extend (request, params);
+        const orderbook = await this.watchPublic (topic, message);
+        return orderbook.limit ();
+    }
+
+    handleOrderBook (client: Client, message) {
+        //
+        // {
+        //     "type":"book_depth",
+        //     // book depth aggregates a number of events once every 50ms
+        //     // these are the minimum and maximum timestamps from 
+        //     // events that contributed to this response
+        //     "min_timestamp": "1683805381879572835",
+        //     "max_timestamp": "1683805381879572835",
+        //     // the max_timestamp of the last book_depth event for this product
+        //     "last_max_timestamp": "1683805381771464799",
+        //     "product_id":1,
+        //     // changes to the bid side of the book in the form of [[price, new_qty]]
+        //     "bids":[["21594490000000000000000","51007390115411548"]],
+        //     // changes to the ask side of the book in the form of [[price, new_qty]]
+        //     "asks":[["21694490000000000000000","0"],["21695050000000000000000","0"]]
+        // }
+        //
+        const marketId = this.safeString (message, 'product_id');
+        const market = this.safeMarket (marketId);
+        const symbol = market['symbol'];
+        if (!(symbol in this.orderbooks)) {
+            this.orderbooks[symbol] = this.orderBook ();
+        }
+        const orderbook = this.orderbooks[symbol];
+        const timestamp = this.parseToNumeric (Precise.stringDiv (this.safeString (message, 'last_max_timestamp'), '1000000'));
+        // convert from X18
+        const data = {
+            'bids': [],
+            'asks': [],
+        }
+        const bids = this.safeList (message, 'bids', []);
+        for (let i = 0; i < bids.length; i++) {
+            const bid = bids[i];
+            data['bids'].push ([
+                this.convertFromX18 (bid[0]),
+                this.convertFromX18 (bid[1]),
+            ]);
+        }
+        const asks = this.safeList (message, 'asks', []);
+        for (let i = 0; i < asks.length; i++) {
+            const ask = asks[i];
+            data['asks'].push ([
+                this.convertFromX18 (ask[0]),
+                this.convertFromX18 (ask[1]),
+            ]);
+        }
+        const snapshot = this.parseOrderBook (data, symbol, timestamp, 'bids', 'asks');
+        orderbook.reset (snapshot);
+        client.resolve (orderbook, marketId + '@book_depth');
+    }
+
     handleErrorMessage (client: Client, message) {
         //
         //
@@ -314,6 +394,7 @@ export default class vertex extends vertexRest {
         const methods = {
             'trade': this.handleTrade,
             'best_bid_offer': this.handleTicker,
+            'book_depth': this.handleOrderBook,
         };
         const event = this.safeString (message, 'type');
         let method = this.safeValue (methods, event);
