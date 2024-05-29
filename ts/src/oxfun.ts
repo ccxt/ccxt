@@ -2441,13 +2441,12 @@ export default class oxfun extends Exchange {
         for (let i = 0; i < orders.length; i++) {
             const rawOrder = orders[i];
             const symbol = this.safeString (rawOrder, 'symbol');
-            const market = this.market (symbol);
             const type = this.safeString (rawOrder, 'type');
             const side = this.safeString (rawOrder, 'side');
             const amount = this.safeNumber (rawOrder, 'amount');
             const price = this.safeNumber (rawOrder, 'price');
             const orderParams = this.safeDict (rawOrder, 'params', {});
-            const orderRequest = this.createOrderRequest (market, type, side, amount, price, orderParams);
+            const orderRequest = this.createOrderRequest (symbol, type, side, amount, price, orderParams);
             ordersRequests.push (orderRequest);
         }
         const request: Dict = {
@@ -2478,7 +2477,7 @@ export default class oxfun extends Exchange {
          * @param {string} [params.displayQuantity] for an iceberg order, pass both quantity and displayQuantity fields in the order request
          */
         // const symbol = market['symbol'];
-        const market = this.safeMarket (symbol);
+        const market = this.market (symbol);
         const request: Dict = {
             'marketCode': market['id'],
             'side': side.toUpperCase (),
