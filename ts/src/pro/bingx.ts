@@ -582,8 +582,8 @@ export default class bingx extends bingxRest {
         }
         let interval = undefined;
         if (marketType !== 'spot') {
-            [ interval, params ] = this.handleOptionAndParams (params, 'watchOrderBookForSymbols', 'interval', 500);
-            this.checkRequiredArgument ('watchOrderBookForSymbols', interval, 'interval', [ 100, 200, 500, 1000 ]);
+            [ interval, params ] = this.handleOptionAndParams (params, 'watchOrderBook', 'interval', 500);
+            this.checkRequiredArgument ('watchOrderBook', interval, 'interval', [ 100, 200, 500, 1000 ]);
             channelName = channelName + '@' + interval.toString () + 'ms';
         }
         const subscriptionHash = market['id'] + '@' + channelName;
