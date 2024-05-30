@@ -17,7 +17,7 @@ export default class vertex extends vertexRest {
             'has': {
                 'ws': true,
                 'watchBalance': false,
-                'watchMyTrades': false,
+                'watchMyTrades': true,
                 'watchOHLCV': false,
                 'watchOrderBook': true,
                 'watchOrders': false,
@@ -133,10 +133,10 @@ export default class vertex extends vertexRest {
         //     "is_maker_amm": true // true when maker is amm
         // }
         //
+        const topic = this.safeString (message, 'type');
         const marketId = this.safeString (message, 'product_id');
-        const market = this.safeMarket (marketId);
-        const symbol = market['symbol'];
-        const trade = this.parseWsTrade (message, market);
+        const trade = this.parseWsTrade (message);
+        const symbol = trade['symbol'];
         if (!(symbol in this.trades)) {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
             const stored = new ArrayCache (limit);
@@ -145,11 +145,84 @@ export default class vertex extends vertexRest {
         const trades = this.trades[symbol];
         trades.append (trade);
         this.trades[symbol] = trades;
-        client.resolve (trades, marketId + '@trade');
+        client.resolve (trades, marketId + '@' + topic);
+    }
+
+    async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+        /**
+         * @method
+         * @name vertex#watchMyTrades
+         * @description watches information on multiple trades made by the user
+         * @see https://docs.vertexprotocol.com/developer-resources/api/subscriptions/streams
+         * @param {string} symbol unified market symbol of the market orders were made in
+         * @param {int} [since] the earliest time in ms to fetch orders for
+         * @param {int} [limit] the maximum number of order structures to retrieve
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const name = 'fill';
+        symbol = market['symbol'];
+        const topic = market['id'] + '@' + name;
+        const request = {
+            'method': 'subscribe',
+            'stream': {
+                'type': name,
+                'product_id': this.parseToNumeric (market['id']),
+                'subaccount': this.convertAddressToSender (this.walletAddress),
+            },
+        };
+        const message = this.extend (request, params);
+        const trades = await this.watchPublic (topic, message);
+        if (this.newUpdates) {
+            limit = trades.getLimit (symbol, limit);
+        }
+        return this.filterBySymbolSinceLimit (trades, symbol, since, limit, true);
+    }
+
+    handleMyTrades (client: Client, message) {
+        //
+        // {
+        //     "type": "fill",
+        //     "timestamp": "1676151190656903000", // timestamp of the event in nanoseconds
+        //     "product_id": 1,
+        //     // the subaccount that placed this order
+        //     "subaccount": "0x7a5ec2748e9065794491a8d29dcf3f9edb8d7c43746573743000000000000000",
+        //     // hash of the order that uniquely identifies it
+        //     "order_digest": "0xf4f7a8767faf0c7f72251a1f9e5da590f708fd9842bf8fcdeacbaa0237958fff",
+        //     // the amount filled, multiplied by 1e18
+        //     "filled_qty": "1000",
+        //     // the amount outstanding unfilled, multiplied by 1e18
+        //     "remaining_qty": "2000",
+        //     // the original order amount, multiplied by 1e18
+        //     "original_qty": "3000",
+        //     // fill price
+        //     "price": "24991000000000000000000",
+        //     // true for `taker`, false for `maker`
+        //     "is_taker": true,
+        //     "is_bid": true,
+        //     // true when matching against amm
+        //     "is_against_amm": true,
+        //     // an optional `order id` that can be provided when placing an order
+        //     "id": 100
+        // }
+        //
+        const topic = this.safeString (message, 'type');
+        const marketId = this.safeString (message, 'product_id');
+        if (this.myTrades === undefined) {
+            const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
+            this.myTrades = new ArrayCacheBySymbolById (limit);
+        }
+        const trades = this.myTrades;
+        const parsed = this.parseWsTrade (message);
+        trades.append (parsed);
+        client.resolve (trades, marketId + '@' + topic);
     }
 
     parseWsTrade (trade, market = undefined) {
         //
+        // watchTrades
         // {
         //     "type": "trade",
         //     "timestamp": "1676151190656903000", // timestamp of the event in nanoseconds
@@ -163,26 +236,61 @@ export default class vertex extends vertexRest {
         //     "is_taker_buyer": true,
         //     "is_maker_amm": true // true when maker is amm
         // }
+        // watchMyTrades
+        // {
+        //     "type": "fill",
+        //     "timestamp": "1676151190656903000", // timestamp of the event in nanoseconds
+        //     "product_id": 1,
+        //     // the subaccount that placed this order
+        //     "subaccount": "0x7a5ec2748e9065794491a8d29dcf3f9edb8d7c43746573743000000000000000",
+        //     // hash of the order that uniquely identifies it
+        //     "order_digest": "0xf4f7a8767faf0c7f72251a1f9e5da590f708fd9842bf8fcdeacbaa0237958fff",
+        //     // the amount filled, multiplied by 1e18
+        //     "filled_qty": "1000",
+        //     // the amount outstanding unfilled, multiplied by 1e18
+        //     "remaining_qty": "2000",
+        //     // the original order amount, multiplied by 1e18
+        //     "original_qty": "3000",
+        //     // fill price
+        //     "price": "24991000000000000000000",
+        //     // true for `taker`, false for `maker`
+        //     "is_taker": true,
+        //     "is_bid": true,
+        //     // true when matching against amm
+        //     "is_against_amm": true,
+        //     // an optional `order id` that can be provided when placing an order
+        //     "id": 100
+        // }
         //
-        const marketId = this.safeString (trade, 'symbol');
+        const marketId = this.safeString (trade, 'product_id');
         market = this.safeMarket (marketId, market);
         const symbol = market['symbol'];
         const price = this.convertFromX18 (this.safeString (trade, 'price'));
-        const amount = this.convertFromX18 (this.safeString (trade, 'taker_qty'));
+        const amount = this.convertFromX18 (this.safeString2 (trade, 'taker_qty', 'filled_qty'));
         const cost = Precise.stringMul (price, amount);
         const timestamp = Precise.stringDiv (this.safeString (trade, 'timestamp'), '1000000');
+        let takerOrMaker = undefined;
+        const isTaker = this.safeBool (trade, 'is_taker');
+        if (isTaker !== undefined) {
+            takerOrMaker = (isTaker) ? 'taker' : 'maker';
+        }
+        let side = undefined;
+        const isBid = this.safeBool (trade, 'is_bid');
+        if (isBid !== undefined) {
+            side = (isBid) ? 'buy' : 'sell';
+        }
         return this.safeTrade ({
             'id': undefined,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'symbol': symbol,
-            'side': undefined,
+            'side': side,
             'price': price,
             'amount': amount,
             'cost': cost,
-            'order': undefined,
-            'takerOrMaker': undefined,
-            'type': this.safeStringLower (trade, 'type'),
+            'order': this.safeString2 (trade, 'digest', 'id'),
+            'takerOrMaker': takerOrMaker,
+            'type': undefined,
             'fee': undefined,
             'info': trade,
         }, market);
@@ -395,6 +503,7 @@ export default class vertex extends vertexRest {
             'trade': this.handleTrade,
             'best_bid_offer': this.handleTicker,
             'book_depth': this.handleOrderBook,
+            'fill': this.handleMyTrades,
         };
         const event = this.safeString (message, 'type');
         let method = this.safeValue (methods, event);
