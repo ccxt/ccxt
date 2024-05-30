@@ -1255,10 +1255,7 @@ class NewTranspiler {
             [ /\'use strict\';?\s+/g, '' ],
         ])
 
-        const commentStartLine = '***** AUTO-TRANSPILER-START *****';
-        const commentEndLine = '***** AUTO-TRANSPILER-END *****';
-
-        const mainContent = ts.split (commentStartLine)[1].split (commentEndLine)[0];
+        const mainContent = ts;
         const csharp = this.transpiler.transpileCSharp(mainContent);
         // let contentIndentend = csharp.content.split('\n').map(line => line ? '    ' + line : line).join('\n');
         let contentIndentend = csharp.content;
