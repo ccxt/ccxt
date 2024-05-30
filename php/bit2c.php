@@ -454,7 +454,8 @@ class bit2c extends Exchange {
         $request = array(
             'id' => $id,
         );
-        return $this->privatePostOrderCancelOrder ($this->extend($request, $params));
+        $response = $this->privatePostOrderCancelOrder ($this->extend($request, $params));
+        return $this->parse_order($response);
     }
 
     public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {

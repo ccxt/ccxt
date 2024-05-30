@@ -1341,7 +1341,27 @@ class whitebit(Exchange, ImplicitAPI):
             'market': market['id'],
             'orderId': int(id),
         }
-        return await self.v4PrivatePostOrderCancel(self.extend(request, params))
+        response = await self.v4PrivatePostOrderCancel(self.extend(request, params))
+        #
+        #    {
+        #        "orderId": 4180284841,  # order id
+        #        "clientOrderId": "customId11",  # custom order identifier; "clientOrderId": "" - if not specified.
+        #        "market": "BTC_USDT",  # deal market
+        #        "side": "buy",  # order side
+        #        "type": "stop market",  # order type
+        #        "timestamp": 1595792396.165973,  # current timestamp
+        #        "dealMoney": "0",  # if order finished - amount in money currency that is finished
+        #        "dealStock": "0",  # if order finished - amount in stock currency that is finished
+        #        "amount": "0.001",  # amount
+        #        "takerFee": "0.001",  # maker fee ratio. If the number less than 0.0001 - it will be rounded to zero
+        #        "makerFee": "0.001",  # maker fee ratio. If the number less than 0.0001 - it will be rounded to zero
+        #        "left": "0.001",  # if order not finished - rest of the amount that must be finished
+        #        "dealFee": "0",  # fee in money that you pay if order is finished
+        #        "price": "40000",  # price if price isset
+        #        "activation_price": "40000"  # activation price if activation price is set
+        #    }
+        #
+        return self.parse_order(response)
 
     async def cancel_all_orders(self, symbol: Str = None, params={}):
         """
@@ -1378,7 +1398,7 @@ class whitebit(Exchange, ImplicitAPI):
         #
         # []
         #
-        return response
+        return self.parse_orders(response, market)
 
     async def cancel_all_orders_after(self, timeout: Int, params={}):
         """
@@ -1588,7 +1608,7 @@ class whitebit(Exchange, ImplicitAPI):
 
     def parse_order(self, order: dict, market: Market = None) -> Order:
         #
-        # createOrder, fetchOpenOrders
+        # createOrder, fetchOpenOrders, cancelOrder
         #
         #      {
         #          "orderId":105687928629,
@@ -1603,6 +1623,7 @@ class whitebit(Exchange, ImplicitAPI):
         #          "takerFee":"0.001",
         #          "makerFee":"0",
         #          "left":"100",
+        #          "price": "40000",  # price if price isset
         #          "dealFee":"0",
         #          "activation_price":"0.065"      # stop price(if stop limit or stop market)
         #      }

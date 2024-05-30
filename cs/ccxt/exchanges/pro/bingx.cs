@@ -1092,7 +1092,7 @@ public partial class bingx : ccxt.bingx
         //    }
         //
         object isSpot = (inOp(message, "dataType"));
-        object result = this.safeValue2(message, "data", "o", new Dictionary<string, object>() {});
+        object result = this.safeDict2(message, "data", "o", new Dictionary<string, object>() {});
         object cachedTrades = this.myTrades;
         if (isTrue(isEqual(cachedTrades, null)))
         {
@@ -1100,7 +1100,10 @@ public partial class bingx : ccxt.bingx
             cachedTrades = new ArrayCacheBySymbolById(limit);
             this.myTrades = cachedTrades;
         }
-        object parsed = this.parseTrade(result);
+        object type = ((bool) isTrue(isSpot)) ? "spot" : "swap";
+        object marketId = this.safeString(result, "s");
+        object market = this.safeMarket(marketId, null, "-", type);
+        object parsed = this.parseTrade(result, market);
         object symbol = getValue(parsed, "symbol");
         object spotHash = "spot:mytrades";
         object swapHash = "swap:mytrades";
@@ -1148,10 +1151,14 @@ public partial class bingx : ccxt.bingx
         //         }
         //     }
         //
-        object a = this.safeValue(message, "a", new Dictionary<string, object>() {});
-        object data = this.safeValue(a, "B", new List<object>() {});
+        object a = this.safeDict(message, "a", new Dictionary<string, object>() {});
+        object data = this.safeList(a, "B", new List<object>() {});
         object timestamp = this.safeInteger2(message, "T", "E");
         object type = ((bool) isTrue((inOp(a, "P")))) ? "swap" : "spot";
+        if (!isTrue((inOp(this.balance, type))))
+        {
+            ((IDictionary<string,object>)this.balance)[(string)type] = new Dictionary<string, object>() {};
+        }
         ((IDictionary<string,object>)getValue(this.balance, type))["info"] = data;
         ((IDictionary<string,object>)getValue(this.balance, type))["timestamp"] = timestamp;
         ((IDictionary<string,object>)getValue(this.balance, type))["datetime"] = this.iso8601(timestamp);

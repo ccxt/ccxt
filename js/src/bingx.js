@@ -1039,7 +1039,7 @@ export default class bingx extends Exchange {
             time = undefined;
         }
         const cost = this.safeString(trade, 'quoteQty');
-        const type = (cost === undefined) ? 'spot' : 'swap';
+        // const type = (cost === undefined) ? 'spot' : 'swap'; this is not reliable
         const currencyId = this.safeStringN(trade, ['currency', 'N', 'commissionAsset']);
         const currencyCode = this.safeCurrencyCode(currencyId);
         const m = this.safeBool(trade, 'm');
@@ -1076,7 +1076,7 @@ export default class bingx extends Exchange {
             'info': trade,
             'timestamp': time,
             'datetime': this.iso8601(time),
-            'symbol': this.safeSymbol(marketId, market, '-', type),
+            'symbol': this.safeSymbol(marketId, market, '-'),
             'order': this.safeString2(trade, 'orderId', 'i'),
             'type': this.safeStringLower(trade, 'o'),
             'side': this.parseOrderSide(side),

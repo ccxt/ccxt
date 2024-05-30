@@ -710,23 +710,23 @@ export default class bybit extends bybitRest {
         const isSpot = client.url.indexOf('spot') >= 0;
         const type = this.safeString(message, 'type');
         const isSnapshot = (type === 'snapshot');
-        const data = this.safeValue(message, 'data', {});
+        const data = this.safeDict(message, 'data', {});
         const marketId = this.safeString(data, 's');
         const marketType = isSpot ? 'spot' : 'contract';
         const market = this.safeMarket(marketId, undefined, undefined, marketType);
         const symbol = market['symbol'];
         const timestamp = this.safeInteger(message, 'ts');
-        let orderbook = this.safeValue(this.orderbooks, symbol);
-        if (orderbook === undefined) {
-            orderbook = this.orderBook();
+        if (!(symbol in this.orderbooks)) {
+            this.orderbooks[symbol] = this.orderBook();
         }
+        const orderbook = this.orderbooks[symbol];
         if (isSnapshot) {
             const snapshot = this.parseOrderBook(data, symbol, timestamp, 'b', 'a');
             orderbook.reset(snapshot);
         }
         else {
-            const asks = this.safeValue(data, 'a', []);
-            const bids = this.safeValue(data, 'b', []);
+            const asks = this.safeList(data, 'a', []);
+            const bids = this.safeList(data, 'b', []);
             this.handleDeltas(orderbook['asks'], asks);
             this.handleDeltas(orderbook['bids'], bids);
             orderbook['timestamp'] = timestamp;

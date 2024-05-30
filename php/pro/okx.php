@@ -172,7 +172,7 @@ class okx extends \ccxt\async\okx {
                     $this->deep_extend($firstArgument, $params),
                 ),
             );
-            return $this->watch($url, $messageHash, $request, $messageHash);
+            return Async\await($this->watch($url, $messageHash, $request, $messageHash));
         }) ();
     }
 
@@ -1104,11 +1104,10 @@ class okx extends \ccxt\async\okx {
                 }
             }
         } elseif (($channel === 'books5') || ($channel === 'bbo-tbt')) {
-            $orderbook = $this->safe_value($this->orderbooks, $symbol);
-            if ($orderbook === null) {
-                $orderbook = $this->order_book(array(), $limit);
+            if (!(is_array($this->orderbooks) && array_key_exists($symbol, $this->orderbooks))) {
+                $this->orderbooks[$symbol] = $this->order_book(array(), $limit);
             }
-            $this->orderbooks[$symbol] = $orderbook;
+            $orderbook = $this->orderbooks[$symbol];
             for ($i = 0; $i < count($data); $i++) {
                 $update = $data[$i];
                 $timestamp = $this->safe_integer($update, 'ts');

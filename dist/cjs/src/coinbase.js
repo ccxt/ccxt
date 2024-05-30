@@ -111,8 +111,8 @@ class coinbase extends coinbase$1 {
                 'fetchTickers': true,
                 'fetchTime': true,
                 'fetchTrades': true,
-                'fetchTradingFee': false,
-                'fetchTradingFees': false,
+                'fetchTradingFee': 'emulated',
+                'fetchTradingFees': true,
                 'fetchWithdrawals': true,
                 'reduceMargin': false,
                 'setLeverage': false,
@@ -4536,6 +4536,67 @@ class coinbase extends coinbase$1 {
             'stopLossPrice': undefined,
             'takeProfitPrice': undefined,
         });
+    }
+    async fetchTradingFees(params = {}) {
+        /**
+         * @method
+         * @name coinbase#fetchTradingFees
+         * @see https://docs.cdp.coinbase.com/advanced-trade/reference/retailbrokerageapi_gettransactionsummary/
+         * @description fetch the trading fees for multiple markets
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.type] 'spot' or 'swap'
+         * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols
+         */
+        await this.loadMarkets();
+        let type = undefined;
+        [type, params] = this.handleMarketTypeAndParams('fetchTradingFees', undefined, params);
+        const isSpot = (type === 'spot');
+        const productType = isSpot ? 'SPOT' : 'FUTURE';
+        const request = {
+            'product_type': productType,
+        };
+        const response = await this.v3PrivateGetBrokerageTransactionSummary(this.extend(request, params));
+        //
+        // {
+        //     total_volume: '0',
+        //     total_fees: '0',
+        //     fee_tier: {
+        //       pricing_tier: 'Advanced 1',
+        //       usd_from: '0',
+        //       usd_to: '1000',
+        //       taker_fee_rate: '0.008',
+        //       maker_fee_rate: '0.006',
+        //       aop_from: '',
+        //       aop_to: ''
+        //     },
+        //     margin_rate: null,
+        //     goods_and_services_tax: null,
+        //     advanced_trade_only_volume: '0',
+        //     advanced_trade_only_fees: '0',
+        //     coinbase_pro_volume: '0',
+        //     coinbase_pro_fees: '0',
+        //     total_balance: '',
+        //     has_promo_fee: false
+        // }
+        //
+        const data = this.safeDict(response, 'fee_tier', {});
+        const taker_fee = this.safeNumber(data, 'taker_fee_rate');
+        const marker_fee = this.safeNumber(data, 'maker_fee_rate');
+        const result = {};
+        for (let i = 0; i < this.symbols.length; i++) {
+            const symbol = this.symbols[i];
+            const market = this.market(symbol);
+            if ((isSpot && market['spot']) || (!isSpot && !market['spot'])) {
+                result[symbol] = {
+                    'info': response,
+                    'symbol': symbol,
+                    'maker': taker_fee,
+                    'taker': marker_fee,
+                    'percentage': true,
+                };
+            }
+        }
+        return result;
     }
     createAuthToken(seconds, method = undefined, url = undefined) {
         // it may not work for v2

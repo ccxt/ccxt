@@ -2,7 +2,7 @@
 //  ---------------------------------------------------------------------------
 
 import bitmartRest from '../bitmart.js';
-import { ArgumentsRequired, AuthenticationError, ExchangeError, NotSupported } from '../base/errors.js';
+import { AuthenticationError, ExchangeError, NotSupported } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide } from '../base/ws/Cache.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
 import type { Int, Market, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Position, Balances, Dict } from '../base/types.js';
@@ -367,9 +367,9 @@ export default class bitmart extends bitmartRest {
         /**
          * @method
          * @name bitmart#watchOrders
-         * @see https://developer-pro.bitmart.com/en/spot/#private-order-channel
-         * @see https://developer-pro.bitmart.com/en/futures/#private-order-channel
          * @description watches information on multiple orders made by the user
+         * @see https://developer-pro.bitmart.com/en/spot/#private-order-progress
+         * @see https://developer-pro.bitmart.com/en/futures/#private-order-channel
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
          * @param {int} [limit] the maximum number of order structures to retrieve
@@ -389,12 +389,15 @@ export default class bitmart extends bitmartRest {
         await this.authenticate (type, params);
         let request = undefined;
         if (type === 'spot') {
-            if (symbol === undefined) {
-                throw new ArgumentsRequired (this.id + ' watchOrders() requires a symbol argument for spot markets');
+            let argsRequest = 'spot/user/order:';
+            if (symbol !== undefined) {
+                argsRequest += market['id'];
+            } else {
+                argsRequest = 'spot/user/orders:ALL_SYMBOLS';
             }
             request = {
                 'op': 'subscribe',
-                'args': [ 'spot/user/order:' + market['id'] ],
+                'args': [ argsRequest ],
             };
         } else {
             request = {

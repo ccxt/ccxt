@@ -418,7 +418,10 @@ class paymium extends Exchange {
         $request = array(
             'uuid' => $id,
         );
-        return $this->privateDeleteUserOrdersUuidCancel ($this->extend($request, $params));
+        $response = $this->privateDeleteUserOrdersUuidCancel ($this->extend($request, $params));
+        return $this->safe_order(array(
+            'info' => $response,
+        ));
     }
 
     public function transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array ()): array {

@@ -130,14 +130,14 @@ class woo(ccxt.async_support.woo):
         #         }
         #     }
         #
-        data = self.safe_value(message, 'data')
+        data = self.safe_dict(message, 'data')
         marketId = self.safe_string(data, 'symbol')
         market = self.safe_market(marketId)
         symbol = market['symbol']
         topic = self.safe_string(message, 'topic')
-        orderbook = self.safe_value(self.orderbooks, symbol)
-        if orderbook is None:
-            orderbook = self.order_book({})
+        if not (symbol in self.orderbooks):
+            self.orderbooks[symbol] = self.order_book({})
+        orderbook = self.orderbooks[symbol]
         timestamp = self.safe_integer(message, 'ts')
         snapshot = self.parse_order_book(data, symbol, timestamp, 'bids', 'asks')
         orderbook.reset(snapshot)

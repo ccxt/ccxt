@@ -1190,6 +1190,7 @@ public partial class bitget : Exchange
                     { "40712", typeof(InsufficientFunds) },
                     { "40713", typeof(ExchangeError) },
                     { "40714", typeof(ExchangeError) },
+                    { "40762", typeof(InsufficientFunds) },
                     { "40768", typeof(OrderNotFound) },
                     { "41114", typeof(OnMaintenance) },
                     { "43011", typeof(InvalidOrder) },
@@ -4571,12 +4572,23 @@ public partial class bitget : Exchange
                 }
                 object marginModeRequest = ((bool) isTrue((isEqual(marginMode, "cross")))) ? "crossed" : "isolated";
                 ((IDictionary<string,object>)request)["marginMode"] = marginModeRequest;
-                object oneWayMode = this.safeBool(parameters, "oneWayMode", false);
-                parameters = this.omit(parameters, "oneWayMode");
+                object hedged = null;
+                var hedgedparametersVariable = this.handleParamBool(parameters, "hedged", false);
+                hedged = ((IList<object>)hedgedparametersVariable)[0];
+                parameters = ((IList<object>)hedgedparametersVariable)[1];
+                // backward compatibility for `oneWayMode`
+                object oneWayMode = null;
+                var oneWayModeparametersVariable = this.handleParamBool(parameters, "oneWayMode");
+                oneWayMode = ((IList<object>)oneWayModeparametersVariable)[0];
+                parameters = ((IList<object>)oneWayModeparametersVariable)[1];
+                if (isTrue(!isEqual(oneWayMode, null)))
+                {
+                    hedged = !isTrue(oneWayMode);
+                }
                 object requestSide = side;
                 if (isTrue(reduceOnly))
                 {
-                    if (isTrue(oneWayMode))
+                    if (!isTrue(hedged))
                     {
                         ((IDictionary<string,object>)request)["reduceOnly"] = "YES";
                     } else
@@ -4587,7 +4599,7 @@ public partial class bitget : Exchange
                     }
                 } else
                 {
-                    if (!isTrue(oneWayMode))
+                    if (isTrue(hedged))
                     {
                         ((IDictionary<string,object>)request)["tradeSide"] = "Open";
                     }
