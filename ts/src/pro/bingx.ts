@@ -259,7 +259,6 @@ export default class bingx extends bingxRest {
         if (marketType === 'spot') {
             throw new NotSupported (this.id + ' watchTickers is not supported for spot markets yet');
         }
-        const channelName = 'ticker';
         const messageHashes = [];
         const subscriptionHashes = [ 'all@ticker' ];
         if (symbolsDefined) {
@@ -351,7 +350,7 @@ export default class bingx extends bingxRest {
     async watchOHLCVForSymbols (symbolsAndTimeframes: string[][], since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
-         * @name okx#watchOHLCVForSymbols
+         * @name bingx#watchOHLCVForSymbols
          * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
          * @param {string[][]} symbolsAndTimeframes array of arrays containing unified symbols and timeframes to fetch OHLCV data for, example [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]
          * @param {int} [since] timestamp in ms of the earliest candle to fetch
@@ -659,7 +658,6 @@ export default class bingx extends bingxRest {
         const firstPart = parts[0];
         const isAllEndpoint = (firstPart === 'all');
         const marketId = this.safeString (data, 'symbol', firstPart);
-        const channelName = dataType.replace (firstPart + '@', '');
         const isSwap = client.url.indexOf ('swap') >= 0;
         const marketType = isSwap ? 'swap' : 'spot';
         const market = this.safeMarket (marketId, undefined, undefined, marketType);
@@ -773,7 +771,7 @@ export default class bingx extends bingxRest {
         this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
         const rawTimeframe = dataType.split ('_')[1];
         const marketOptions = this.safeDict (this.options, marketType);
-        const timeframes = this.safeValue (marketOptions, 'timeframes', {});
+        const timeframes = this.safeDict (marketOptions, 'timeframes', {});
         const unifiedTimeframe = this.findTimeframe (rawTimeframe, timeframes);
         if (this.safeValue (this.ohlcvs[symbol], rawTimeframe) === undefined) {
             const subscriptionHash = dataType;
