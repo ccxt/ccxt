@@ -2,11 +2,9 @@
 
 import vertexRest from '../vertex.js';
 import { AuthenticationError, NotSupported, ArgumentsRequired } from '../base/errors.js';
-import { ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCache, ArrayCacheBySymbolBySide } from '../base/ws/Cache.js';
+import { ArrayCacheBySymbolById, ArrayCache, ArrayCacheBySymbolBySide } from '../base/ws/Cache.js';
 import { Precise } from '../base/Precise.js';
-import { eddsa } from '../base/functions/crypto.js';
-import { ed25519 } from '../static_dependencies/noble-curves/ed25519.js';
-import type { Int, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Balances, Position } from '../base/types.js';
+import type { Int, Str, Strings, OrderBook, Order, Trade, Ticker, Market, Position } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 // ----------------------------------------------------------------------------
@@ -20,7 +18,7 @@ export default class vertex extends vertexRest {
                 'watchMyTrades': true,
                 'watchOHLCV': false,
                 'watchOrderBook': true,
-                'watchOrders': false,
+                'watchOrders': true,
                 'watchTicker': true,
                 'watchTickers': false,
                 'watchTrades': true,
@@ -502,7 +500,7 @@ export default class vertex extends vertexRest {
         const message = this.extend (request, params);
         const newPositions = await this.watchPublic (topic, message);
         if (this.newUpdates) {
-            return newPositions;
+            limit = newPositions.getLimit (symbols[0], limit);
         }
         return this.filterBySymbolsSinceLimit (this.positions, symbols, since, limit, true);
     }
@@ -617,17 +615,227 @@ export default class vertex extends vertexRest {
         });
     }
 
+    handleAuth (client: Client, message) {
+        //
+        // { result: null, id: 1 }
+        //
+        const messageHash = 'authenticated';
+        const error = this.safeString (message, 'error');
+        if (error === undefined) {
+            // client.resolve (message, messageHash);
+            const future = this.safeValue (client.futures, 'authenticated');
+            future.resolve (true);
+        } else {
+            const error = new AuthenticationError (this.json (message));
+            client.reject (error, messageHash);
+            // allows further authentication attempts
+            if (messageHash in client.subscriptions) {
+                delete client.subscriptions['authenticated'];
+            }
+        }
+    }
+
+    buildWsAuthenticationSig (message, chainId, verifyingContractAddress) {
+        const messageTypes = {
+            'StreamAuthentication': [
+                { 'name': 'sender', 'type': 'bytes32' },
+                { 'name': 'expiration', 'type': 'uint64' },
+            ],
+        };
+        return this.buildSig (chainId, messageTypes, message, verifyingContractAddress);
+    }
+
+    async authenticate (params = {}) {
+        this.checkRequiredCredentials ();
+        const url = this.urls['api']['ws']['public'];
+        const client = this.client (url);
+        const messageHash = 'authenticated';
+        const future = client.future (messageHash);
+        const authenticated = this.safeValue (client.subscriptions, messageHash);
+        if (authenticated === undefined) {
+            const requestId = this.requestId (url);
+            const contracts = await this.queryContracts ();
+            const chainId = this.safeString (contracts, 'chain_id');
+            const verifyingContractAddress = this.safeString (contracts, 'endpoint_addr');
+            const now = this.nonce ();
+            const nonce = now + 90000;
+            const authentication = {
+                'sender': this.convertAddressToSender (this.walletAddress),
+                'expiration': nonce,
+            };
+            const request = {
+                'id': requestId,
+                'method': 'authenticate',
+                'tx': {
+                    'sender': authentication['sender'],
+                    'expiration': this.numberToString (authentication['expiration']),
+                },
+                'signature': this.buildWsAuthenticationSig (authentication, chainId, verifyingContractAddress),
+            };
+            const message = this.extend (request, params);
+            this.watch (url, messageHash, message, messageHash);
+        }
+        return await future;
+    }
+
+    async watchPrivate (messageHash, message, params = {}) {
+        await this.authenticate (params);
+        const url = this.urls['api']['ws']['public'];
+        const requestId = this.requestId (url);
+        const subscribe = {
+            'id': requestId,
+        };
+        const request = this.extend (subscribe, message);
+        return await this.watch (url, messageHash, request, messageHash, subscribe);
+    }
+
+    async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+        /**
+         * @method
+         * @name vertex#watchOrders
+         * @description watches information on multiple orders made by the user
+         * @see https://docs.vertexprotocol.com/developer-resources/api/subscriptions/streams
+         * @param {string} symbol unified market symbol of the market orders were made in
+         * @param {int} [since] the earliest time in ms to fetch orders for
+         * @param {int} [limit] the maximum number of order structures to retrieve
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        await this.loadMarkets ();
+        const name = 'order_update';
+        const market = this.market (symbol);
+        const topic = market['id'] + '@' + name;
+        const request = {
+            'method': 'subscribe',
+            'stream': {
+                'type': name,
+                'subaccount': this.convertAddressToSender (this.walletAddress),
+                'product_id': this.parseToNumeric (market['id']),
+            },
+        };
+        const message = this.extend (request, params);
+        const orders = await this.watchPrivate (topic, message);
+        if (this.newUpdates) {
+            limit = orders.getLimit (symbol, limit);
+        }
+        return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
+    }
+
+    parseWsOrderStatus (status) {
+        if (status !== undefined) {
+            const statuses = {
+                'filled': 'open',
+                'placed': 'open',
+                'cancelled': 'canceled',
+            };
+            return this.safeString (statuses, status, status);
+        }
+        return status;
+    }
+
+    parseWsOrder (order, market: Market = undefined): Order {
+        //
+        // {
+        //     "type": "order_update",
+        //     // timestamp of the event in nanoseconds
+        //     "timestamp": "1695081920633151000", 
+        //     "product_id": 1,
+        //     // order digest
+        //     "digest": "0xf7712b63ccf70358db8f201e9bf33977423e7a63f6a16f6dab180bdd580f7c6c",
+        //     // remaining amount to be filled.
+        //     // will be `0` if the order is either fully filled or cancelled.
+        //     "amount": "82000000000000000",
+        //     // any of: "filled", "cancelled", "placed"
+        //     "reason": "filled"
+        //     // an optional `order id` that can be provided when placing an order
+        //     "id": 100
+        // }
+        //
+        const marketId = this.safeString (order, 'product_id');
+        const timestamp = this.parseToNumeric (Precise.stringDiv (this.safeString (order, 'timestamp'), '1000000'));
+        const remaining = this.parseToNumeric (this.convertFromX18 (this.safeString (order, 'amount')));
+        let status = this.parseWsOrderStatus (this.safeString (order, 'reason'));
+        if (remaining === 0 && status === 'open') {
+            status = 'closed';
+        }
+        market = this.safeMarket (marketId, market);
+        const symbol = market['symbol'];
+        return this.safeOrder ({
+            'info': order,
+            'id': this.safeString2 (order, 'digest', 'id'),
+            'clientOrderId': undefined,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'lastTradeTimestamp': undefined,
+            'lastUpdateTimestamp': undefined,
+            'symbol': symbol,
+            'type': undefined,
+            'timeInForce': undefined,
+            'postOnly': undefined,
+            'reduceOnly': undefined,
+            'side': undefined,
+            'price': undefined,
+            'triggerPrice': undefined,
+            'amount': undefined,
+            'cost': undefined,
+            'average': undefined,
+            'filled': undefined,
+            'remaining': remaining,
+            'status': status,
+            'fee': undefined,
+            'trades': undefined,
+        }, market);
+    }
+
+    handleOrderUpdate (client: Client, message) {
+        //
+        // {
+        //     "type": "order_update",
+        //     // timestamp of the event in nanoseconds
+        //     "timestamp": "1695081920633151000", 
+        //     "product_id": 1,
+        //     // order digest
+        //     "digest": "0xf7712b63ccf70358db8f201e9bf33977423e7a63f6a16f6dab180bdd580f7c6c",
+        //     // remaining amount to be filled.
+        //     // will be `0` if the order is either fully filled or cancelled.
+        //     "amount": "82000000000000000",
+        //     // any of: "filled", "cancelled", "placed"
+        //     "reason": "filled"
+        //     // an optional `order id` that can be provided when placing an order
+        //     "id": 100
+        // }
+        //
+        const topic = this.safeString (message, 'type');
+        const marketId = this.safeString (message, 'product_id');
+        const parsed = this.parseWsOrder (message);
+        const symbol = this.safeString (parsed, 'symbol');
+        const orderId = this.safeString (parsed, 'id');
+        if (symbol !== undefined) {
+            if (this.orders === undefined) {
+                const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
+                this.orders = new ArrayCacheBySymbolById (limit);
+            }
+            const cachedOrders = this.orders;
+            const orders = this.safeDict (cachedOrders.hashmap, symbol, {});
+            const order = this.safeDict (orders, orderId);
+            if (order !== undefined) {
+                parsed['timestamp'] = this.safeInteger (order, 'timestamp');
+                parsed['datetime'] = this.safeString (order, 'datetime');
+            }
+            cachedOrders.append (parsed);
+            client.resolve (this.orders, marketId + '@' + topic);
+        }
+    }
+
     handleErrorMessage (client: Client, message) {
         //
+        // {
+        //     result: null,
+        //     error: 'error parsing request: missing field `expiration`',
+        //     id: 0
+        // }
         //
-        if (!('success' in message)) {
-            return false;
-        }
-        const success = this.safeBool (message, 'success');
-        if (success) {
-            return false;
-        }
-        const errorMessage = this.safeString (message, 'errorMsg');
+        const errorMessage = this.safeString (message, 'error');
         try {
             if (errorMessage !== undefined) {
                 const feedback = this.id + ' ' + this.json (message);
@@ -658,12 +866,19 @@ export default class vertex extends vertexRest {
             'book_depth': this.handleOrderBook,
             'fill': this.handleMyTrades,
             'position_change': this.handlePositions,
+            'order_update': this.handleOrderUpdate,
         };
         const event = this.safeString (message, 'type');
         let method = this.safeValue (methods, event);
         if (method !== undefined) {
             method.call (this, client, message);
             return;
+        } else {
+            // check whether it's authentication
+            const auth = this.safeValue (client.futures, 'authenticated');
+            if (auth !== undefined) {
+                this.handleAuth (client, message);
+            }
         }
     }
 }
