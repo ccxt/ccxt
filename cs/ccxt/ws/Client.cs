@@ -367,9 +367,6 @@ public partial class Exchange
                             } catch (Exception e) {
                                 this.handleMessage(this, decompressedString);
                             }
-                            
-
-
                         }
                         // string json = System.Text.Encoding.UTF8.GetString(buffer, 0, result.Count);
                     }
