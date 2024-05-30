@@ -104,7 +104,7 @@ export default class bingx extends bingxRest {
             throw new BadRequest (this.id + ' watchTrades is not supported for ' + marketType + ' markets.');
         }
         const subscriptionHash = market['id'] + '@ticker';
-        const messageHash = this.getMessageHash ('ticker', 'ticker', market['symbol']);
+        const messageHash = this.getMessageHash ('ticker', market['symbol']);
         const uuid = this.uuid ();
         const request: Dict = {
             'id': uuid,
@@ -180,9 +180,9 @@ export default class bingx extends bingxRest {
         const symbol = market['symbol'];
         const ticker = this.parseWsTicker (data, market);
         this.tickers[symbol] = ticker;
-        client.resolve (ticker, this.getMessageHash ('ticker', 'ticker', symbol));
+        client.resolve (ticker, this.getMessageHash ('ticker', symbol));
         if (this.safeString (message, 'dataType') === 'all@ticker') {
-            client.resolve (ticker, this.getMessageHash ('ticker', 'ticker', undefined));
+            client.resolve (ticker, this.getMessageHash ('ticker'));
         }
     }
 
@@ -266,10 +266,10 @@ export default class bingx extends bingxRest {
             for (let i = 0; i < symbols.length; i++) {
                 const symbol = symbols[i];
                 const market = this.market (symbol);
-                messageHashes.push (this.getMessageHash ('ticker', channelName, market['symbol']));
+                messageHashes.push (this.getMessageHash ('ticker', market['symbol']));
             }
         } else {
-            messageHashes.push (this.getMessageHash ('ticker', channelName, undefined));
+            messageHashes.push (this.getMessageHash ('ticker'));
         }
         const url = this.safeString (this.urls['api']['ws'], marketType);
         const uuid = this.uuid ();
@@ -324,10 +324,10 @@ export default class bingx extends bingxRest {
             for (let i = 0; i < symbols.length; i++) {
                 const symbol = symbols[i];
                 const market = this.market (symbol);
-                messageHashes.push (this.getMessageHash ('orderbook', channelName, market['symbol']));
+                messageHashes.push (this.getMessageHash ('orderbook', market['symbol']));
             }
         } else {
-            messageHashes.push (this.getMessageHash ('orderbook', channelName, undefined));
+            messageHashes.push (this.getMessageHash ('orderbook'));
         }
         const url = this.safeString (this.urls['api']['ws'], marketType);
         const uuid = this.uuid ();
@@ -389,7 +389,7 @@ export default class bingx extends bingxRest {
             } else if (chosenTimeframe !== rawTimeframe) {
                 throw new BadRequest (this.id + ' watchOHLCVForSymbols requires all timeframes to be the same');
             }
-            messageHashes.push (this.getMessageHash ('ohlcv', chosenTimeframe, market['symbol']));
+            messageHashes.push (this.getMessageHash ('ohlcv', market['symbol'], chosenTimeframe));
         }
         const subscriptionHash = 'all@kline_' + chosenTimeframe;
         const url = this.safeString (this.urls['api']['ws'], marketType);
@@ -426,15 +426,17 @@ export default class bingx extends bingxRest {
         return limit;
     }
 
-    getMessageHash (unifiedChannel: string, exchangeChannel: string, symbol: Str) {
-        // sometimes exchangeChannel & unifiedChannel names might coincide
+    getMessageHash (unifiedChannel: string, symbol: Str = undefined, extra: Str = undefined) {
+        let hash = unifiedChannel;
         if (symbol !== undefined) {
-            // bidask:bookTicker@BTC/USDT
-            return unifiedChannel + '::' + exchangeChannel + '::' + symbol;
+            hash += '::' + symbol;
         } else {
-            // bidasks@bookTicker
-            return unifiedChannel + 's' + '::' + exchangeChannel;
+            hash += 's'; // tickers, orderbooks, ohlcvs ...
         }
+        if (extra !== undefined) {
+            hash += '::' + extra;
+        }
+        return hash;
     }
 
     async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
@@ -586,7 +588,7 @@ export default class bingx extends bingxRest {
             channelName = channelName + '@' + interval.toString () + 'ms';
         }
         const subscriptionHash = market['id'] + '@' + channelName;
-        const messageHash = this.getMessageHash ('orderbook', channelName, market['symbol']);
+        const messageHash = this.getMessageHash ('orderbook', market['symbol']);
         const uuid = this.uuid ();
         const request: Dict = {
             'id': uuid,
@@ -673,11 +675,11 @@ export default class bingx extends bingxRest {
         const snapshot = this.parseOrderBook (data, symbol, undefined, 'bids', 'asks', 0, 1);
         orderbook.reset (snapshot);
         this.orderbooks[symbol] = orderbook;
-        const messageHash = this.getMessageHash ('orderbook', channelName, symbol);
+        const messageHash = this.getMessageHash ('orderbook', symbol);
         client.resolve (orderbook, messageHash);
         // resolve for "all"
         if (isAllEndpoint) {
-            const messageHashForAll = this.getMessageHash ('orderbook', channelName, undefined);
+            const messageHashForAll = this.getMessageHash ('orderbook');
             client.resolve (orderbook, messageHashForAll);
         }
     }
@@ -786,11 +788,11 @@ export default class bingx extends bingxRest {
             stored.append (parsed);
         }
         const resolveData = [ symbol, unifiedTimeframe, stored ];
-        const messageHash = this.getMessageHash ('ohlcv', rawTimeframe, symbol);
+        const messageHash = this.getMessageHash ('ohlcv', symbol, unifiedTimeframe);
         client.resolve (resolveData, messageHash);
         // resolve for "all"
         if (isAllEndpoint) {
-            const messageHashForAll = this.getMessageHash ('ohlcv', rawTimeframe, undefined);
+            const messageHashForAll = this.getMessageHash ('ohlcv', undefined, unifiedTimeframe);
             client.resolve (resolveData, messageHashForAll);
         }
     }
@@ -819,7 +821,7 @@ export default class bingx extends bingxRest {
         const options = this.safeValue (this.options, marketType, {});
         const timeframes = this.safeValue (options, 'timeframes', {});
         const rawTimeframe = this.safeString (timeframes, timeframe, timeframe);
-        const messageHash = this.getMessageHash ('ohlcv', rawTimeframe, market['symbol']);
+        const messageHash = this.getMessageHash ('ohlcv', market['symbol'], timeframe);
         const subscriptionHash = market['id'] + '@kline_' + rawTimeframe;
         const uuid = this.uuid ();
         const request: Dict = {
@@ -1253,14 +1255,17 @@ export default class bingx extends bingxRest {
         //    }
         //
         const isSpot = ('dataType' in message);
-        const result = this.safeValue2 (message, 'data', 'o', {});
+        const result = this.safeDict2 (message, 'data', 'o', {});
         let cachedTrades = this.myTrades;
         if (cachedTrades === undefined) {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
             cachedTrades = new ArrayCacheBySymbolById (limit);
             this.myTrades = cachedTrades;
         }
-        const parsed = this.parseTrade (result);
+        const type = isSpot ? 'spot' : 'swap';
+        const marketId = this.safeString (result, 's');
+        const market = this.safeMarket (marketId, undefined, '-', type);
+        const parsed = this.parseTrade (result, market);
         const symbol = parsed['symbol'];
         const spotHash = 'spot:mytrades';
         const swapHash = 'swap:mytrades';
@@ -1307,10 +1312,13 @@ export default class bingx extends bingxRest {
         //         }
         //     }
         //
-        const a = this.safeValue (message, 'a', {});
-        const data = this.safeValue (a, 'B', []);
+        const a = this.safeDict (message, 'a', {});
+        const data = this.safeList (a, 'B', []);
         const timestamp = this.safeInteger2 (message, 'T', 'E');
         const type = ('P' in a) ? 'swap' : 'spot';
+        if (!(type in this.balance)) {
+            this.balance[type] = {};
+        }
         this.balance[type]['info'] = data;
         this.balance[type]['timestamp'] = timestamp;
         this.balance[type]['datetime'] = this.iso8601 (timestamp);
