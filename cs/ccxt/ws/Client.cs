@@ -357,14 +357,18 @@ public partial class Exchange
 
                             string decompressedString = System.Text.Encoding.UTF8.GetString(decompressedData);
 
-                            var deserializedJson = JsonHelper.Deserialize(decompressedString);
-
                             if (this.verbose)
                             {
                                 Console.WriteLine($"On binary message {decompressedString}");
                             }
+                            try {
+                                var deserializedJson = JsonHelper.Deserialize(decompressedString);
+                                this.handleMessage(this, deserializedJson);
+                            } catch (Exception e) {
+                                this.handleMessage(this, decompressedString);
+                            }
+                            
 
-                            this.handleMessage(this, deserializedJson);
 
                         }
                         // string json = System.Text.Encoding.UTF8.GetString(buffer, 0, result.Count);
