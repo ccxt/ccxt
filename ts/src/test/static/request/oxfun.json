@@ -1,0 +1,144 @@
+{
+    "exchange": "oxfun",
+    "skipKeys": [],
+    "outputType": "json",
+    "methods": {
+        "createOrder": [
+            {
+                "description": "spot limit buy",
+                "method": "createOrder",
+                "url": "https://api.ox.fun/v3/orders/place",
+                "input": [
+                    "ETH/USDT",
+                    "limit",
+                    "buy",
+                    0.01,
+                    10
+                ],
+                "output": "{\"responseType\":\"FULL\",\"timestamp\":1717083207271,\"orders\":[{\"marketCode\":\"ETH-USDT\",\"side\":\"BUY\",\"quantity\":0.01,\"orderType\":\"LIMIT\",\"price\":10}]}"
+            },
+            {
+                "description": "swap limit buy",
+                "method": "createOrder",
+                "url": "https://api.ox.fun/v3/orders/place",
+                "input": [
+                    "ETH/USDT:OX",
+                    "limit",
+                    "buy",
+                    0.01,
+                    10
+                ],
+                "output": "{\"responseType\":\"FULL\",\"timestamp\":1717083306700,\"orders\":[{\"marketCode\":\"ETH-USD-SWAP-LIN\",\"side\":\"BUY\",\"quantity\":0.01,\"orderType\":\"LIMIT\",\"price\":10}]}"
+            }
+        ],
+        "fetchTrades": [
+            {
+                "description": "Spot fetch public trades",
+                "method": "fetchTrades",
+                "url": "https://api.ox.fun/v3/exchange-trades?marketCode=ETH-USDT",
+                "input": [
+                    "ETH/USDT"
+                ]
+            },
+            {
+                "description": "Swap fetch public trades",
+                "method": "fetchTrades",
+                "url": "https://api.ox.fun/v3/exchange-trades?marketCode=ETH-USD-SWAP-LIN",
+                "input": [
+                    "ETH/USDT:OX"
+                ]
+            }
+        ],
+        "fetchOrderBook": [
+            {
+                "description": "Spot fetch order book with a limit argument",
+                "method": "fetchOrderBook",
+                "url": "https://api.ox.fun/v3/depth?marketCode=ETH-USDT&level=3",
+                "input": [
+                    "ETH/USDT",
+                    3
+                ]
+            },
+            {
+                "description": "Swap fetch order book with a limit argument",
+                "method": "fetchOrderBook",
+                "url": "https://api.ox.fun/v3/depth?marketCode=ETH-USD-SWAP-LIN&level=3",
+                "input": [
+                    "ETH/USDT:OX",
+                    3
+                ]
+            }
+        ],
+        "fetchOrder": [
+            {
+                "description": "Spot fetch an order",
+                "method": "fetchOrder",
+                "url": "https://api.ox.fun/v3/orders/status?orderId=1000117918630",
+                "input": [
+                    1000117918630,
+                    "ETH/USDT"
+                ]
+            },
+            {
+                "description": "Swap fetch an order",
+                "method": "fetchOrder",
+                "url": "https://api.ox.fun/v3/orders/status?orderId=1000117922976",
+                "input": [
+                    1000117922976,
+                    "ETH/USDT:OX"
+                ]
+            }
+        ],
+        "fetchMyTrades": [
+            {
+                "description": "Swap fetch my trades",
+                "method": "fetchMyTrades",
+                "url": "https://api.ox.fun/v3/trades?marketCode=ETH-USD-SWAP-LIN&startTime=1716966000000",
+                "input": [
+                    "ETH/USDT:OX",
+                    1716966000000
+                ]
+            }
+        ],
+        "fetchTicker": [
+            {
+                "description": "Spot fetch ticker",
+                "method": "fetchTicker",
+                "url": "https://api.ox.fun/v3/tickers?marketCode=ETH-USDT",
+                "input": [
+                    "ETH/USDT"
+                ]
+            },
+            {
+                "description": "Swap fetch ticker",
+                "method": "fetchTicker",
+                "url": "https://api.ox.fun/v3/tickers?marketCode=ETH-USD-SWAP-LIN",
+                "input": [
+                    "ETH/USDT:OX"
+                ]
+            }
+        ],
+        "fetchOHLCV": [
+            {
+                "description": "Spot fetch candles with a since timestamp argument",
+                "method": "fetchOHLCV",
+                "url": "https://api.ox.fun/v3/candles?marketCode=ETH-USDT&timeframe=60s&startTime=1717085760000",
+                "input": [
+                    "ETH/USDT",
+                    "1m",
+                    1717085760000
+                ]
+            },
+            {
+                "description": "Swap fetch candles with a since timestamp argument",
+                "method": "fetchOHLCV",
+                "url": "https://api.ox.fun/v3/candles?marketCode=ETH-USD-SWAP-LIN&timeframe=60s&startTime=1717085880000",
+                "input": [
+                    "ETH/USDT:OX",
+                    "1m",
+                    1717085880000
+                ]
+            }
+        ]
+    }
+}
