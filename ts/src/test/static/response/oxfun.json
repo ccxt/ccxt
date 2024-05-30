@@ -1,0 +1,414 @@
+{
+    "exchange": "oxfun",
+    "options": {},
+    "methods": {
+        "createOrder": [
+            {
+                "description": "spot limit buy",
+                "method": "createOrder",
+                "input": [
+                    "ETH/USDT",
+                    "limit",
+                    "buy",
+                    0.01,
+                    10
+                ],
+                "httpResponse": {
+                    "success": true,
+                    "data": [
+                        {
+                            "notice": "OrderOpened",
+                            "accountId": "106464",
+                            "orderId": "1000117918630",
+                            "submitted": true,
+                            "clientOrderId": "0",
+                            "marketCode": "ETH-USDT",
+                            "status": "OPEN",
+                            "side": "BUY",
+                            "price": "10.0",
+                            "isTriggered": false,
+                            "quantity": "0.01",
+                            "amount": "0.0",
+                            "orderType": "LIMIT",
+                            "timeInForce": "GTC",
+                            "createdAt": "1717083208567",
+                            "source": "11",
+                            "displayQuantity": "0.01"
+                        }
+                    ]
+                },
+                "parsedResponse": {
+                    "id": "1000117918630",
+                    "clientOrderId": "0",
+                    "timestamp": 1717083208567,
+                    "datetime": "2024-05-30T15:33:28.567Z",
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": null,
+                    "status": "open",
+                    "symbol": "ETH/USDT",
+                    "type": "limit",
+                    "timeInForce": "GTC",
+                    "side": "buy",
+                    "price": 10,
+                    "average": null,
+                    "amount": 0.01,
+                    "filled": null,
+                    "remaining": null,
+                    "triggerPrice": null,
+                    "stopLossPrice": null,
+                    "cost": null,
+                    "trades": [],
+                    "fee": null,
+                    "info": {
+                        "notice": "OrderOpened",
+                        "accountId": "106464",
+                        "orderId": "1000117918630",
+                        "submitted": true,
+                        "clientOrderId": "0",
+                        "marketCode": "ETH-USDT",
+                        "status": "OPEN",
+                        "side": "BUY",
+                        "price": "10.0",
+                        "isTriggered": false,
+                        "quantity": "0.01",
+                        "amount": "0.0",
+                        "orderType": "LIMIT",
+                        "timeInForce": "GTC",
+                        "createdAt": "1717083208567",
+                        "source": "11",
+                        "displayQuantity": "0.01"
+                    },
+                    "fees": [],
+                    "postOnly": false,
+                    "reduceOnly": null,
+                    "stopPrice": null,
+                    "takeProfitPrice": null
+                }
+            }
+        ],
+        "fetchOrderBook": [
+            {
+                "description": "Fill this with a description of the method call",
+                "method": "fetchOrderBook",
+                "input": [
+                    "ETH/USDT",
+                    3
+                ],
+                "httpResponse": {
+                    "success": true,
+                    "level": "3",
+                    "data": {
+                        "marketCode": "ETH-USDT",
+                        "lastUpdatedAt": "1717084636971",
+                        "asks": [],
+                        "bids": [
+                            [
+                                99,
+                                0.01
+                            ],
+                            [
+                                10,
+                                0.01
+                            ]
+                        ]
+                    }
+                },
+                "parsedResponse": {
+                    "symbol": "ETH/USDT",
+                    "bids": [
+                        [
+                            99,
+                            0.01
+                        ],
+                        [
+                            10,
+                            0.01
+                        ]
+                    ],
+                    "asks": [],
+                    "timestamp": 1717084636971,
+                    "datetime": "2024-05-30T15:57:16.971Z",
+                    "nonce": null
+                }
+            }
+        ],
+        "fetchOrder": [
+            {
+                "description": "fetch spot order by id",
+                "method": "fetchOrder",
+                "input": [
+                    1000117918630,
+                    "ETH/USDT"
+                ],
+                "httpResponse": {
+                    "success": true,
+                    "data": {
+                    "orderId": "1000117918630",
+                    "clientOrderId": "0",
+                    "marketCode": "ETH-USDT",
+                    "status": "OPEN",
+                    "side": "BUY",
+                    "price": "10.0",
+                    "isTriggered": false,
+                    "remainQuantity": "0.01",
+                    "totalQuantity": "0.01",
+                    "amount": "0",
+                    "displayQuantity": "0.01",
+                    "cumulativeMatchedQuantity": "0",
+                    "orderType": "LIMIT",
+                    "timeInForce": "GTC",
+                    "source": "11",
+                    "createdAt": "1717083208542"
+                    }
+                },
+                "parsedResponse": {
+                    "id": "1000117918630",
+                    "clientOrderId": "0",
+                    "timestamp": 1717083208542,
+                    "datetime": "2024-05-30T15:33:28.542Z",
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": null,
+                    "status": "open",
+                    "symbol": "ETH/USDT",
+                    "type": "limit",
+                    "timeInForce": "GTC",
+                    "side": "buy",
+                    "price": 10,
+                    "average": null,
+                    "amount": 0.01,
+                    "filled": 0,
+                    "remaining": 0.01,
+                    "triggerPrice": null,
+                    "stopLossPrice": null,
+                    "cost": 0,
+                    "trades": [],
+                    "fee": null,
+                    "info": {
+                    "orderId": "1000117918630",
+                    "clientOrderId": "0",
+                    "marketCode": "ETH-USDT",
+                    "status": "OPEN",
+                    "side": "BUY",
+                    "price": "10.0",
+                    "isTriggered": false,
+                    "remainQuantity": "0.01",
+                    "totalQuantity": "0.01",
+                    "amount": "0",
+                    "displayQuantity": "0.01",
+                    "cumulativeMatchedQuantity": "0",
+                    "orderType": "LIMIT",
+                    "timeInForce": "GTC",
+                    "source": "11",
+                    "createdAt": "1717083208542"
+                    },
+                    "fees": [],
+                    "postOnly": false,
+                    "reduceOnly": null,
+                    "stopPrice": null,
+                    "takeProfitPrice": null
+                }
+            }
+        ],
+        "fetchMyTrades": [
+            {
+                "description": "Fill this with a description of the method call",
+                "method": "fetchMyTrades",
+                "input": [
+                    "ETH/USDT:OX",
+                    1716966000000
+                ],
+                "httpResponse": {
+                    "success": true,
+                    "data": [
+                        {
+                            "orderId": "1000117638529",
+                            "clientOrderId": "1717024731867",
+                            "matchId": "400017157974541552",
+                            "marketCode": "ETH-USD-SWAP-LIN",
+                            "side": "SELL",
+                            "matchedQuantity": "0.01",
+                            "matchPrice": "3794.7",
+                            "total": "3794.7",
+                            "orderMatchType": "TAKER",
+                            "feeAsset": "OX",
+                            "fee": "2.65629",
+                            "source": "0",
+                            "matchedAt": "1717024733539"
+                        }
+                    ]
+                },
+                "parsedResponse": [
+                    {
+                        "id": "400017157974541552",
+                        "timestamp": 1717024733539,
+                        "datetime": "2024-05-29T23:18:53.539Z",
+                        "symbol": "ETH/USDT:OX",
+                        "type": null,
+                        "order": "1000117638529",
+                        "side": "sell",
+                        "takerOrMaker": "taker",
+                        "price": 3794.7,
+                        "amount": 0.01,
+                        "cost": 37.947,
+                        "fee": {
+                            "cost": 2.65629,
+                            "currency": "OX"
+                        },
+                        "info": {
+                            "orderId": "1000117638529",
+                            "clientOrderId": "1717024731867",
+                            "matchId": "400017157974541552",
+                            "marketCode": "ETH-USD-SWAP-LIN",
+                            "side": "SELL",
+                            "matchedQuantity": "0.01",
+                            "matchPrice": "3794.7",
+                            "total": "3794.7",
+                            "orderMatchType": "TAKER",
+                            "feeAsset": "OX",
+                            "fee": "2.65629",
+                            "source": "0",
+                            "matchedAt": "1717024733539"
+                        },
+                        "fees": [
+                            {
+                            "cost": 2.65629,
+                            "currency": "OX"
+                            }
+                        ]
+                    }
+                ]
+            }
+        ],
+        "fetchTicker": [
+            {
+                "description": "Fetch ticker for ETH/USDT",
+                "method": "fetchTicker",
+                "input": [
+                    "ETH/USDT"
+                ],
+                "httpResponse": {
+                    "success": true,
+                    "data": [
+                        {
+                            "marketCode": "ETH-USDT",
+                            "markPrice": "3775.4",
+                            "open24h": "3764.4",
+                            "high24h": "3801.6",
+                            "low24h": "3703.1",
+                            "volume24h": "0",
+                            "currencyVolume24h": "0",
+                            "openInterest": "0",
+                            "lastTradedPrice": "0",
+                            "lastTradedQuantity": "0",
+                            "lastUpdatedAt": "1717085734197"
+                        }
+                    ]
+                },
+                "parsedResponse": {
+                    "symbol": "ETH/USDT",
+                    "timestamp": 1717085734197,
+                    "datetime": "2024-05-30T16:15:34.197Z",
+                    "high": 3801.6,
+                    "low": 3703.1,
+                    "bid": null,
+                    "bidVolume": null,
+                    "ask": null,
+                    "askVolume": null,
+                    "vwap": null,
+                    "open": 3764.4,
+                    "close": null,
+                    "last": null,
+                    "previousClose": null,
+                    "change": null,
+                    "percentage": null,
+                    "average": null,
+                    "baseVolume": 0,
+                    "quoteVolume": null,
+                    "info": {
+                    "marketCode": "ETH-USDT",
+                    "markPrice": "3775.4",
+                    "open24h": "3764.4",
+                    "high24h": "3801.6",
+                    "low24h": "3703.1",
+                    "volume24h": "0",
+                    "currencyVolume24h": "0",
+                    "openInterest": "0",
+                    "lastTradedPrice": "0",
+                    "lastTradedQuantity": "0",
+                    "lastUpdatedAt": "1717085734197"
+                    }
+                }
+            }
+        ],
+        "fetchOHLCV": [
+            {
+                "description": "Fetch OHLCV for ETH/USDT",
+                "method": "fetchOHLCV",
+                "input": [
+                    "ETH/USDT",
+                    "1m",
+                    1717085760000
+                ],
+                "httpResponse": {
+                    "success": true,
+                    "timeframe": "60s",
+                    "data": [
+                        {
+                            "open": "3776.80000000",
+                            "high": "3777.90000000",
+                            "low": "3775.90000000",
+                            "close": "3776.80000000",
+                            "volume": "0",
+                            "currencyVolume": "0",
+                            "openedAt": "1717085880000"
+                        },
+                        {
+                            "open": "3775.00000000",
+                            "high": "3777.30000000",
+                            "low": "3775.00000000",
+                            "close": "3776.80000000",
+                            "volume": "0",
+                            "currencyVolume": "0",
+                            "openedAt": "1717085820000"
+                        },
+                        {
+                            "open": "3775.00000000",
+                            "high": "3775.90000000",
+                            "low": "3773.70000000",
+                            "close": "3775.00000000",
+                            "volume": "0",
+                            "currencyVolume": "0",
+                            "openedAt": "1717085760000"
+                        }
+                    ]
+                },
+                "parsedResponse": [
+                    [
+                        1717085760000,
+                        3775,
+                        3775.9,
+                        3773.7,
+                        3775,
+                        0
+                    ],
+                    [
+                        1717085820000,
+                        3775,
+                        3777.3,
+                        3775,
+                        3776.8,
+                        0
+                    ],
+                    [
+                        1717085880000,
+                        3776.8,
+                        3777.9,
+                        3775.9,
+                        3776.8,
+                        0
+                    ]
+                ]
+            }
+        ]
+    }
+}
