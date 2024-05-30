@@ -324,8 +324,8 @@ export default class vertex extends vertexRest {
         //     "timestamp": "1676151190656903000", // timestamp of the event in nanoseconds
         //     "product_id": 1,
         //     "bid_price": "1000", // the highest bid price, multiplied by 1e18
-        //     "bid_qty": "1000", // quantity at the huighest bid, multiplied by 1e18. 
-        //                        // i.e. if this is USDC with 6 decimals, one USDC 
+        //     "bid_qty": "1000", // quantity at the huighest bid, multiplied by 1e18.
+        //                        // i.e. if this is USDC with 6 decimals, one USDC
         //                        // would be 1e12
         //     "ask_price": "1000", // lowest ask price
         //     "ask_qty": "1000" // quantity at the lowest ask
@@ -363,8 +363,8 @@ export default class vertex extends vertexRest {
         //     "timestamp": "1676151190656903000", // timestamp of the event in nanoseconds
         //     "product_id": 1,
         //     "bid_price": "1000", // the highest bid price, multiplied by 1e18
-        //     "bid_qty": "1000", // quantity at the huighest bid, multiplied by 1e18. 
-        //                        // i.e. if this is USDC with 6 decimals, one USDC 
+        //     "bid_qty": "1000", // quantity at the huighest bid, multiplied by 1e18.
+        //                        // i.e. if this is USDC with 6 decimals, one USDC
         //                        // would be 1e12
         //     "ask_price": "1000", // lowest ask price
         //     "ask_qty": "1000" // quantity at the lowest ask
@@ -411,7 +411,7 @@ export default class vertex extends vertexRest {
         // {
         //     "type":"book_depth",
         //     // book depth aggregates a number of events once every 50ms
-        //     // these are the minimum and maximum timestamps from 
+        //     // these are the minimum and maximum timestamps from
         //     // events that contributed to this response
         //     "min_timestamp": "1683805381879572835",
         //     "max_timestamp": "1683805381879572835",
@@ -436,7 +436,7 @@ export default class vertex extends vertexRest {
         const data = {
             'bids': [],
             'asks': [],
-        }
+        };
         const bids = this.safeList (message, 'bids', []);
         for (let i = 0; i < bids.length; i++) {
             const bid = bids[i];
@@ -626,8 +626,8 @@ export default class vertex extends vertexRest {
             const future = this.safeValue (client.futures, 'authenticated');
             future.resolve (true);
         } else {
-            const error = new AuthenticationError (this.json (message));
-            client.reject (error, messageHash);
+            const authError = new AuthenticationError (this.json (message));
+            client.reject (authError, messageHash);
             // allows further authentication attempts
             if (messageHash in client.subscriptions) {
                 delete client.subscriptions['authenticated'];
@@ -738,7 +738,7 @@ export default class vertex extends vertexRest {
         // {
         //     "type": "order_update",
         //     // timestamp of the event in nanoseconds
-        //     "timestamp": "1695081920633151000", 
+        //     "timestamp": "1695081920633151000",
         //     "product_id": 1,
         //     // order digest
         //     "digest": "0xf7712b63ccf70358db8f201e9bf33977423e7a63f6a16f6dab180bdd580f7c6c",
@@ -792,7 +792,7 @@ export default class vertex extends vertexRest {
         // {
         //     "type": "order_update",
         //     // timestamp of the event in nanoseconds
-        //     "timestamp": "1695081920633151000", 
+        //     "timestamp": "1695081920633151000",
         //     "product_id": 1,
         //     // order digest
         //     "digest": "0xf7712b63ccf70358db8f201e9bf33977423e7a63f6a16f6dab180bdd580f7c6c",
@@ -869,16 +869,15 @@ export default class vertex extends vertexRest {
             'order_update': this.handleOrderUpdate,
         };
         const event = this.safeString (message, 'type');
-        let method = this.safeValue (methods, event);
+        const method = this.safeValue (methods, event);
         if (method !== undefined) {
             method.call (this, client, message);
             return;
-        } else {
-            // check whether it's authentication
-            const auth = this.safeValue (client.futures, 'authenticated');
-            if (auth !== undefined) {
-                this.handleAuth (client, message);
-            }
+        }
+        // check whether it's authentication
+        const auth = this.safeValue (client.futures, 'authenticated');
+        if (auth !== undefined) {
+            this.handleAuth (client, message);
         }
     }
 }
