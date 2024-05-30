@@ -1,7 +1,7 @@
 // ----------------------------------------------------------------------------
 
 import vertexRest from '../vertex.js';
-import { AuthenticationError, NotSupported } from '../base/errors.js';
+import { AuthenticationError, NotSupported, ArgumentsRequired } from '../base/errors.js';
 import { ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCache, ArrayCacheBySymbolBySide } from '../base/ws/Cache.js';
 import { Precise } from '../base/Precise.js';
 import { eddsa } from '../base/functions/crypto.js';
@@ -24,7 +24,7 @@ export default class vertex extends vertexRest {
                 'watchTicker': true,
                 'watchTickers': false,
                 'watchTrades': true,
-                'watchPositions': false,
+                'watchPositions': true,
             },
             'urls': {
                 'api': {
@@ -100,7 +100,6 @@ export default class vertex extends vertexRest {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const name = 'trade';
-        symbol = market['symbol'];
         const topic = market['id'] + '@' + name;
         const request = {
             'method': 'subscribe',
@@ -163,7 +162,6 @@ export default class vertex extends vertexRest {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const name = 'fill';
-        symbol = market['symbol'];
         const topic = market['id'] + '@' + name;
         const request = {
             'method': 'subscribe',
@@ -309,7 +307,6 @@ export default class vertex extends vertexRest {
         await this.loadMarkets ();
         const name = 'best_bid_offer';
         const market = this.market (symbol);
-        symbol = market['symbol'];
         const topic = market['id'] + '@' + name;
         const request = {
             'method': 'subscribe',
@@ -398,7 +395,6 @@ export default class vertex extends vertexRest {
         await this.loadMarkets ();
         const name = 'book_depth';
         const market = this.market (symbol);
-        symbol = market['symbol'];
         const topic = market['id'] + '@' + name;
         const request = {
             'method': 'subscribe',
@@ -464,6 +460,163 @@ export default class vertex extends vertexRest {
         client.resolve (orderbook, marketId + '@book_depth');
     }
 
+    async watchPositions (symbols: Strings = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Position[]> {
+        /**
+         * @method
+         * @name vertex#watchPositions
+         * @see https://docs.vertexprotocol.com/developer-resources/api/subscriptions/streams
+         * @description watch all open positions
+         * @param {string[]|undefined} symbols list of unified market symbols
+         * @param {object} params extra parameters specific to the exchange API endpoint
+         * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
+         */
+        await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols);
+        if (!this.isEmpty (symbols)) {
+            if (symbols.length > 1) {
+                throw new NotSupported (this.id + ' watchPositions require only one symbol.');
+            }
+        } else {
+            throw new ArgumentsRequired (this.id + ' watchPositions require one symbol.');
+        }
+        const url = this.urls['api']['ws']['public'];
+        const client = this.client (url);
+        this.setPositionsCache (client, symbols);
+        const fetchPositionsSnapshot = this.handleOption ('watchPositions', 'fetchPositionsSnapshot', true);
+        const awaitPositionsSnapshot = this.safeBool ('watchPositions', 'awaitPositionsSnapshot', true);
+        if (fetchPositionsSnapshot && awaitPositionsSnapshot && this.positions === undefined) {
+            const snapshot = await client.future ('fetchPositionsSnapshot');
+            return this.filterBySymbolsSinceLimit (snapshot, symbols, since, limit, true);
+        }
+        const name = 'position_change';
+        const market = this.market (symbols[0]);
+        const topic = market['id'] + '@' + name;
+        const request = {
+            'method': 'subscribe',
+            'stream': {
+                'type': name,
+                'product_id': this.parseToNumeric (market['id']),
+                'subaccount': this.convertAddressToSender (this.walletAddress),
+            },
+        };
+        const message = this.extend (request, params);
+        const newPositions = await this.watchPublic (topic, message);
+        if (this.newUpdates) {
+            return newPositions;
+        }
+        return this.filterBySymbolsSinceLimit (this.positions, symbols, since, limit, true);
+    }
+
+    setPositionsCache (client: Client, type, symbols: Strings = undefined) {
+        const fetchPositionsSnapshot = this.handleOption ('watchPositions', 'fetchPositionsSnapshot', false);
+        if (fetchPositionsSnapshot) {
+            const messageHash = 'fetchPositionsSnapshot';
+            if (!(messageHash in client.futures)) {
+                client.future (messageHash);
+                this.spawn (this.loadPositionsSnapshot, client, messageHash);
+            }
+        } else {
+            this.positions = new ArrayCacheBySymbolBySide ();
+        }
+    }
+
+    async loadPositionsSnapshot (client, messageHash) {
+        const positions = await this.fetchPositions ();
+        this.positions = new ArrayCacheBySymbolBySide ();
+        const cache = this.positions;
+        for (let i = 0; i < positions.length; i++) {
+            const position = positions[i];
+            cache.append (position);
+        }
+        // don't remove the future from the .futures cache
+        const future = client.futures[messageHash];
+        future.resolve (cache);
+        client.resolve (cache, 'positions');
+    }
+
+    handlePositions (client, message) {
+        //
+        // {
+        //     "type":"position_change",
+        //     "timestamp": "1676151190656903000", // timestamp of event in nanoseconds
+        //     "product_id":1,
+        //      // whether this is a position change for the LP token for this product
+        //     "is_lp":false,
+        //     // subaccount who's position changed
+        //     "subaccount":"0x7a5ec2748e9065794491a8d29dcf3f9edb8d7c43706d00000000000000000000",
+        //     // new amount for this product
+        //     "amount":"51007390115411548",
+        //     // new quote balance for this product; zero for everything except non lp perps
+        //     // the negative of the entry cost of the perp
+        //     "v_quote_amount":"0"
+        // }
+        //
+        if (this.positions === undefined) {
+            this.positions = new ArrayCacheBySymbolBySide ();
+        }
+        const cache = this.positions;
+        const topic = this.safeString (message, 'type');
+        const marketId = this.safeString (message, 'product_id');
+        const market = this.safeMarket (marketId);
+        const position = this.parseWsPosition (message, market);
+        cache.append (position);
+        client.resolve (position, marketId + '@' + topic);
+    }
+
+    parseWsPosition (position, market = undefined) {
+        //
+        // {
+        //     "type":"position_change",
+        //     "timestamp": "1676151190656903000", // timestamp of event in nanoseconds
+        //     "product_id":1,
+        //      // whether this is a position change for the LP token for this product
+        //     "is_lp":false,
+        //     // subaccount who's position changed
+        //     "subaccount":"0x7a5ec2748e9065794491a8d29dcf3f9edb8d7c43706d00000000000000000000",
+        //     // new amount for this product
+        //     "amount":"51007390115411548",
+        //     // new quote balance for this product; zero for everything except non lp perps
+        //     // the negative of the entry cost of the perp
+        //     "v_quote_amount":"0"
+        // }
+        //
+        const marketId = this.safeString (position, 'product_id');
+        market = this.safeMarket (marketId);
+        const contractSize = this.convertFromX18 (this.safeString (position, 'amount'));
+        const side = (Precise.stringLt (contractSize, '1')) ? 'sell' : 'buy';
+        const timestamp = this.parseToNumeric (Precise.stringDiv (this.safeString (position, 'timestamp'), '1000000'));
+        return this.safePosition ({
+            'info': position,
+            'id': undefined,
+            'symbol': this.safeString (market, 'symbol'),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'lastUpdateTimestamp': undefined,
+            'initialMargin': undefined,
+            'initialMarginPercentage': undefined,
+            'maintenanceMargin': undefined,
+            'maintenanceMarginPercentage': undefined,
+            'entryPrice': undefined,
+            'notional': undefined,
+            'leverage': undefined,
+            'unrealizedPnl': undefined,
+            'contracts': undefined,
+            'contractSize': this.parseNumber (contractSize),
+            'marginRatio': undefined,
+            'liquidationPrice': undefined,
+            'markPrice': undefined,
+            'lastPrice': undefined,
+            'collateral': undefined,
+            'marginMode': 'cross',
+            'marginType': undefined,
+            'side': side,
+            'percentage': undefined,
+            'hedged': undefined,
+            'stopLossPrice': undefined,
+            'takeProfitPrice': undefined,
+        });
+    }
+
     handleErrorMessage (client: Client, message) {
         //
         //
@@ -504,6 +657,7 @@ export default class vertex extends vertexRest {
             'best_bid_offer': this.handleTicker,
             'book_depth': this.handleOrderBook,
             'fill': this.handleMyTrades,
+            'position_change': this.handlePositions,
         };
         const event = this.safeString (message, 'type');
         let method = this.safeValue (methods, event);
