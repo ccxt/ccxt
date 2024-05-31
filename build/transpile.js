@@ -32,6 +32,15 @@ const exchangesWsIds = exchanges.ws;
 
 let __dirname = new URL('.', import.meta.url).pathname;
 
+function overwriteSafe (path, content) {
+    try {
+        overwriteFile (path, content);
+    } catch {
+        checkCreateFolder (path);
+        writeFile (path, content);
+    }
+}
+
 // this is necessary because for some reason
 // pathname keeps the first '/' for windows paths
 // making them invalid
@@ -1489,7 +1498,7 @@ class Transpiler {
             const sortedExchangeCapabilities = this.sortExchangeCapabilities (contents)
             if (sortedExchangeCapabilities) {
                 contents = sortedExchangeCapabilities
-                overwriteFile (tsPath, contents)
+                overwriteSafe (tsPath, contents)
             }
 
             let tsMtime = fs.statSync (tsPath).mtime.getTime ();
@@ -1521,7 +1530,7 @@ class Transpiler {
                 ].forEach (([ folder, filename, code ]) => {
                     if (folder) {
                         const qualifiedPath = path.join (folder, filename)
-                        overwriteFile (qualifiedPath, code)
+                        overwriteSafe (qualifiedPath, code)
                         // fs.utimesSync (qualifiedPath, new Date (), new Date (tsMtime))
                         // this line makes it impossible to detect if the files were properly transpiled or not (to avoid stale files)
                     }
@@ -2048,8 +2057,8 @@ class Transpiler {
         log.magenta ('→', pyFile.yellow)
         log.magenta ('→', phpFile.yellow)
 
-        overwriteFile (pyFile, python)
-        overwriteFile (phpFile, php)
+        overwriteSafe (pyFile, python)
+        overwriteSafe (phpFile, php)
     }
 
     //-------------------------------------------------------------------------
@@ -2123,8 +2132,8 @@ class Transpiler {
         log.magenta ('→', pyFile.yellow)
         log.magenta ('→', phpFile.yellow)
 
-        overwriteFile (pyFile, python)
-        overwriteFile (phpFile, php)
+        overwriteSafe (pyFile, python)
+        overwriteSafe (phpFile, php)
     }
 
     //-------------------------------------------------------------------------
@@ -2213,8 +2222,8 @@ class Transpiler {
         log.magenta ('→', pyFile.yellow)
         log.magenta ('→', phpFile.yellow)
 
-        overwriteFile (pyFile, python)
-        overwriteFile (phpFile, php)
+        overwriteSafe (pyFile, python)
+        overwriteSafe (phpFile, php)
     }
 
     // ============================================================================
@@ -2323,8 +2332,8 @@ class Transpiler {
                 base: true,
                 name: testName,
                 tsFile: tsFile,
-                pyFileAsync: baseFolders.py + unCamelCasedFileName + '.py',
-                phpFileAsync: baseFolders.php + unCamelCasedFileName + '.php',
+                pyFileSync: baseFolders.py + unCamelCasedFileName + '.py',
+                phpFileSync: baseFolders.php + unCamelCasedFileName + '.php',
             };
             tests.push(test);
         }
@@ -2343,7 +2352,7 @@ class Transpiler {
         ].join('\n');
 
         log.magenta ('→', finalPath)
-        overwriteFile (finalPath, baseContent)
+        overwriteSafe (finalPath, baseContent)
     }
 
     transpileMainTests (files) {
@@ -2402,12 +2411,12 @@ class Transpiler {
         let newPython = impHelper + python3;
         
         newPython = snakeCaseFunctions (newPython);
-        overwriteFile (files.pyFileAsync, newPython);
+        overwriteSafe (files.pyFileAsync, newPython);
         this.transpilePythonAsyncToSync (files.pyFileAsync, files.pyFileSync);
         // remove 4 extra newlines
         let existingPythonWN = fs.readFileSync (files.pyFileSync).toString ();
         existingPythonWN = existingPythonWN.replace (/(\n){4}/g, '\n\n');
-        overwriteFile (files.pyFileSync, existingPythonWN);
+        overwriteSafe (files.pyFileSync, existingPythonWN);
 
 
         // ########### PHP ###########
@@ -2427,10 +2436,10 @@ class Transpiler {
             return newContent;
         }
         let bodyPhpAsync = phpReform (phpAsync);
-        overwriteFile (files.phpFileAsync, bodyPhpAsync);
+        overwriteSafe (files.phpFileAsync, bodyPhpAsync);
         let bodyPhpSync = phpReform (php);
         bodyPhpSync = bodyPhpSync.replace (/Promise\\all/g, '');
-        overwriteFile (files.phpFileSync, bodyPhpSync);
+        overwriteSafe (files.phpFileSync, bodyPhpSync);
     }
 
     // ============================================================================
@@ -2539,12 +2548,7 @@ class Transpiler {
 
         const fileSaveFunc = (path, content) => {
             log.magenta ('→', path);
-            try {
-                overwriteFile (path, content);
-            } catch {
-                checkCreateFolder (path);
-                writeFile (path, content);
-            }
+            overwriteSafe (path, content);
         };
 
         for (let i = 0; i < flatResult.length; i++) {
@@ -2862,8 +2866,8 @@ class Transpiler {
                     finalPyHeaders += '\n\n'
                 }
                 // write files
-                overwriteFile (examplesFolders.py  + fileName + '.py', preambles.pyAsync + finalPyHeaders + finalBodies.pyAsync)
-                overwriteFile (examplesFolders.php + fileName + '.php', preambles.phpAsync + fileHeaders.phpAsync + finalBodies.phpAsync)
+                overwriteSafe (examplesFolders.py  + fileName + '.py', preambles.pyAsync + finalPyHeaders + finalBodies.pyAsync)
+                overwriteSafe (examplesFolders.php + fileName + '.php', preambles.phpAsync + fileHeaders.phpAsync + finalBodies.phpAsync)
             }
         }
     }
@@ -2919,7 +2923,7 @@ class Transpiler {
                     this.getJsPreamble(),
                     content
                 ].join ("\n")
-                overwriteFile (jsFilePath, contents)
+                overwriteSafe (jsFilePath, contents)
             }
         })
         log.bright.yellow ('Added JS preamble to all ', jsFiles.length + ' files.')
