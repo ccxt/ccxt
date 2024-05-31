@@ -56,7 +56,8 @@ export default class oxfun extends oxfunRest {
                 },
             },
             'streaming': {
-                'keepAlive': 60000,
+                'ping': this.ping,
+                'keepAlive': 10000,
             },
         });
     }
@@ -1010,7 +1011,20 @@ export default class oxfun extends oxfunRest {
         }
     }
 
+    ping (client) {
+        return 'ping';
+    }
+
+    handlePong (client: Client, message) {
+        client.lastPong = this.milliseconds ();
+        return message;
+    }
+
     handleMessage (client: Client, message) {
+        if (message === 'pong') {
+            this.handlePong (client, message);
+            return;
+        }
         const table = this.safeString (message, 'table');
         const data = this.safeList (message, 'data', []);
         const event = this.safeString (message, 'event');
