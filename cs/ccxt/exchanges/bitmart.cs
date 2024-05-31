@@ -1124,10 +1124,10 @@ public partial class bitmart : Exchange
         market = this.safeMarket(marketId, market);
         object symbol = getValue(market, "symbol");
         object last = this.safeString2(ticker, "close_24h", "last_price");
-        object percentage = Precise.stringAbs(this.safeString(ticker, "price_change_percent_24h"));
+        object percentage = this.safeString(ticker, "price_change_percent_24h");
         if (isTrue(isEqual(percentage, null)))
         {
-            percentage = Precise.stringAbs(Precise.stringMul(this.safeString(ticker, "fluctuation"), "100"));
+            percentage = Precise.stringMul(this.safeString(ticker, "fluctuation"), "100");
         }
         object baseVolume = this.safeString(ticker, "base_volume_24h");
         object quoteVolume = this.safeString(ticker, "quote_volume_24h");

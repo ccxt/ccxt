@@ -754,8 +754,8 @@ public partial class kraken : Exchange
         return new Dictionary<string, object>() {
             { "info", response },
             { "symbol", getValue(market, "symbol") },
-            { "maker", this.safeNumber(symbolMakerFee, "fee") },
-            { "taker", this.safeNumber(symbolTakerFee, "fee") },
+            { "maker", this.parseNumber(Precise.stringDiv(this.safeString(symbolMakerFee, "fee"), "100")) },
+            { "taker", this.parseNumber(Precise.stringDiv(this.safeString(symbolTakerFee, "fee"), "100")) },
             { "percentage", true },
             { "tierBased", true },
         };

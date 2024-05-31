@@ -2881,7 +2881,9 @@ public partial class bingx : Exchange
         {
             throw new BadRequest ((string)add(this.id, " cancelAllOrders is only supported for spot and swap markets.")) ;
         }
-        return response;
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        object orders = this.safeList2(data, "success", "orders", new List<object>() {});
+        return this.parseOrders(orders);
     }
 
     public async virtual Task<object> cancelOrders(object ids, object symbol = null, object parameters = null)
@@ -2940,36 +2942,9 @@ public partial class bingx : Exchange
             }
             response = await this.swapV2PrivateDeleteTradeBatchOrders(this.extend(request, parameters));
         }
-        //
-        //    {
-        //        "code": 0,
-        //        "msg": "",
-        //        "data": {
-        //          "success": [
-        //            {
-        //              "symbol": "LINK-USDT",
-        //              "orderId": 1597783850786750464,
-        //              "side": "BUY",
-        //              "positionSide": "LONG",
-        //              "type": "TRIGGER_MARKET",
-        //              "origQty": "5.0",
-        //              "price": "5.5710",
-        //              "executedQty": "0.0",
-        //              "avgPrice": "0.0000",
-        //              "cumQuote": "0",
-        //              "stopPrice": "5.0000",
-        //              "profit": "0.0000",
-        //              "commission": "0.000000",
-        //              "status": "CANCELLED",
-        //              "time": 1669776330000,
-        //              "updateTime": 1672370837000
-        //            }
-        //          ],
-        //          "failed": null
-        //        }
-        //    }
-        //
-        return response;
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        object success = this.safeList2(data, "success", "orders", new List<object>() {});
+        return this.parseOrders(success);
     }
 
     public async override Task<object> cancelAllOrdersAfter(object timeout, object parameters = null)

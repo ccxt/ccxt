@@ -761,8 +761,8 @@ class kraken(Exchange, ImplicitAPI):
         return {
             'info': response,
             'symbol': market['symbol'],
-            'maker': self.safe_number(symbolMakerFee, 'fee'),
-            'taker': self.safe_number(symbolTakerFee, 'fee'),
+            'maker': self.parse_number(Precise.string_div(self.safe_string(symbolMakerFee, 'fee'), '100')),
+            'taker': self.parse_number(Precise.string_div(self.safe_string(symbolTakerFee, 'fee'), '100')),
             'percentage': True,
             'tierBased': True,
         }

@@ -2138,8 +2138,10 @@ class woofipro(Exchange, ImplicitAPI):
 
     def sign_hash(self, hash, privateKey):
         signature = self.ecdsa(hash[-64:], privateKey[-64:], 'secp256k1', None)
+        r = signature['r']
+        s = signature['s']
         v = self.int_to_base16(self.sum(27, signature['v']))
-        return '0x' + signature['r'].rjust(64, '0') + signature['s'].rjust(64, '0') + v
+        return '0x' + r.rjust(64, '0') + s.rjust(64, '0') + v
 
     def sign_message(self, message, privateKey):
         return self.sign_hash(self.hash_message(message), privateKey[-64:])

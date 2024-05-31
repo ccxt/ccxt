@@ -1182,9 +1182,9 @@ class bitmart extends bitmart$1 {
         market = this.safeMarket(marketId, market);
         const symbol = market['symbol'];
         const last = this.safeString2(ticker, 'close_24h', 'last_price');
-        let percentage = Precise["default"].stringAbs(this.safeString(ticker, 'price_change_percent_24h'));
+        let percentage = this.safeString(ticker, 'price_change_percent_24h');
         if (percentage === undefined) {
-            percentage = Precise["default"].stringAbs(Precise["default"].stringMul(this.safeString(ticker, 'fluctuation'), '100'));
+            percentage = Precise["default"].stringMul(this.safeString(ticker, 'fluctuation'), '100');
         }
         let baseVolume = this.safeString(ticker, 'base_volume_24h');
         let quoteVolume = this.safeString(ticker, 'quote_volume_24h');
