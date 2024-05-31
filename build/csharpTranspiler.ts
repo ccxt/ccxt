@@ -1019,10 +1019,7 @@ class NewTranspiler {
             this.createGeneratedHeader().join('\n'),
             'public partial class BaseTest',
             '{',
-            '    public void OrderBookTests()',
-            '    {',
             contentIdented,
-            '    }',
             '}',
         ].join('\n')
 
@@ -1062,10 +1059,7 @@ class NewTranspiler {
             this.createGeneratedHeader().join('\n'),
             'public partial class BaseTest',
             '{',
-            '    public void CacheTests()',
-            '    {',
             contentIdented,
-            '    }',
             '}',
         ].join('\n')
 
@@ -1100,10 +1094,7 @@ class NewTranspiler {
             this.createGeneratedHeader().join('\n'),
             'public partial class BaseTest',
             '{',
-            '    public void PrecisionTests()',
-            '    {',
             contentIdented,
-            '    }',
             '}',
         ].join('\n')
 
@@ -1138,10 +1129,7 @@ class NewTranspiler {
             this.createGeneratedHeader().join('\n'),
             'public partial class BaseTest',
             '{',
-            '    public void CryptoTests()',
-            '    {',
             contentIdented,
-            '    }',
             '}',
         ].join('\n')
 
