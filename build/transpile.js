@@ -2350,7 +2350,7 @@ class Transpiler {
     createBaseInitFile (pyPath, tests) {
         const finalPath = pyPath + '__init__.py';
         const fileNames = tests.filter(t => t !== 'test.sharedMethods').map(test => this.uncamelcaseName(test));
-        const importNames = fileNames.map(testName => `from ccxt.test.base.${testName} import ${testName} # noqa E402`)
+        const importNames = fileNames.map(testName => `from ccxt.test.exchange.base.${testName} import ${testName} # noqa E402`)
         const baseContent = [
             '',
             this.getPythonGenerated(),
