@@ -139,6 +139,7 @@ export default class oxfun extends Exchange {
             },
             'urls': {
                 'logo': '', // todo: add a logo
+                'referral': 'https://ox.fun/register?shareAccountId=5Z2D4aC3',
                 'api': {
                     'public': 'https://api.ox.fun',
                     'private': 'https://api.ox.fun',
