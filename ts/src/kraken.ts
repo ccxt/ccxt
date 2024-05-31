@@ -767,8 +767,8 @@ export default class kraken extends Exchange {
         return {
             'info': response,
             'symbol': market['symbol'],
-            'maker': this.parseToNumeric (Precise.stringDiv (this.safeString (symbolMakerFee, 'fee'), '100')),
-            'taker': this.parseToNumeric (Precise.stringDiv (this.safeString (symbolTakerFee, 'fee'), '100')),
+            'maker': this.parseNumber (Precise.stringDiv (this.safeString (symbolMakerFee, 'fee'), '100')),
+            'taker': this.parseNumber (Precise.stringDiv (this.safeString (symbolTakerFee, 'fee'), '100')),
             'percentage': true,
             'tierBased': true,
         };
