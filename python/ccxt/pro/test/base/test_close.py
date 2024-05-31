@@ -32,7 +32,7 @@ async def close_after(exchange, ms):
     await exchange.close()
 
 
-async def test_close():
+async def test_ws_close():
     exchange = ccxt.pro.binance()
     # exchange.verbose = True
     # --------------------------------------------
@@ -67,7 +67,3 @@ async def test_close():
     except Exception as e:
         print(f"Unexpected exception: {e}")
         assert False
-    exit(0)
-
-
-run(test_close())

@@ -273,256 +273,258 @@ negative_stored_incremetal_order_book_target = {
 
 
 # --------------------------------------------------------------------------------------------------------------------
-order_book = OrderBook(order_book_input)
+def test_ws_order_book():
+        
+    order_book = OrderBook(order_book_input)
 
 
-limited = OrderBook(order_book_input, 5)
+    limited = OrderBook(order_book_input, 5)
 
 
-order_book.limit()
+    order_book.limit()
 
 
-assert equals(order_book, order_book_target)
+    assert equals(order_book, order_book_target)
 
 
-limited.limit()
+    limited.limit()
 
 
-assert equals(limited, limited_order_book_target)
+    assert equals(limited, limited_order_book_target)
 
 
-order_book.limit()
+    order_book.limit()
 
 
-assert equals(order_book, order_book_target)
+    assert equals(order_book, order_book_target)
 
 
-bids = order_book['bids']
+    bids = order_book['bids']
 
 
-bids.store(1000, 0)
+    bids.store(1000, 0)
 
 
-order_book.limit()
+    order_book.limit()
 
 
-assert equals(order_book, order_book_target)
+    assert equals(order_book, order_book_target)
 
 
-bids.store(3, 4)
+    bids.store(3, 4)
 
 
-order_book.limit()
+    order_book.limit()
 
 
-assert equals(order_book, store_bid)
+    assert equals(order_book, store_bid)
 
 
-bids.store(3, 0)
+    bids.store(3, 0)
 
 
-order_book.limit()
+    order_book.limit()
 
 
-assert equals(order_book, order_book_target)
+    assert equals(order_book, order_book_target)
 
 
-asks = limited['asks']
+    asks = limited['asks']
 
 
-asks.store(15.5, 0)
+    asks.store(15.5, 0)
 
 
-limited.limit()
+    limited.limit()
 
 
-assert equals(limited, limited_deleted_order_book_target)
+    assert equals(limited, limited_deleted_order_book_target)
 
 
-# --------------------------------------------------------------------------------------------------------------------
-indexed_order_book = IndexedOrderBook(indexed_order_book_input)
+    # --------------------------------------------------------------------------------------------------------------------
+    indexed_order_book = IndexedOrderBook(indexed_order_book_input)
 
 
-limited_indexed_order_book = IndexedOrderBook(indexed_order_book_input, 5)
+    limited_indexed_order_book = IndexedOrderBook(indexed_order_book_input, 5)
 
 
-indexed_order_book.limit()
+    indexed_order_book.limit()
 
 
-assert equals(indexed_order_book, indexed_order_book_target)
+    assert equals(indexed_order_book, indexed_order_book_target)
 
 
-limited_indexed_order_book.limit()
+    limited_indexed_order_book.limit()
 
 
-assert equals(limited_indexed_order_book, limited_indexed_order_book_target)
+    assert equals(limited_indexed_order_book, limited_indexed_order_book_target)
 
 
-indexed_order_book.limit()
+    indexed_order_book.limit()
 
 
-assert equals(indexed_order_book, indexed_order_book_target)
+    assert equals(indexed_order_book, indexed_order_book_target)
 
 
-indexed_bids = indexed_order_book['bids']
+    indexed_bids = indexed_order_book['bids']
 
 
-indexed_bids.store_array([1000, 0, '12345'])
+    indexed_bids.store_array([1000, 0, '12345'])
 
 
-assert equals(indexed_order_book, indexed_order_book_target)
+    assert equals(indexed_order_book, indexed_order_book_target)
 
 
-indexed_bids.store_array([10, 0, '1234'])
+    indexed_bids.store_array([10, 0, '1234'])
 
 
-indexed_bids.store_array([10, 2, '1231'])
+    indexed_bids.store_array([10, 2, '1231'])
 
 
-indexed_bids.store_array([10, 1, '1232'])
+    indexed_bids.store_array([10, 1, '1232'])
 
 
-indexed_bids.store_array([4, 2, '12399'])
+    indexed_bids.store_array([4, 2, '12399'])
 
 
-indexed_bids.store_array([9, 2, '1231'])
+    indexed_bids.store_array([9, 2, '1231'])
 
 
-indexed_bids.store_array([9, 3, '1231'])
+    indexed_bids.store_array([9, 3, '1231'])
 
 
-indexed_bids.store_array([9, 1, '1232'])
+    indexed_bids.store_array([9, 1, '1232'])
 
 
-indexed_order_book.limit()
+    indexed_order_book.limit()
 
 
-assert equals(indexed_order_book, overwrite1234)
+    assert equals(indexed_order_book, overwrite1234)
 
 
-indexed_order_book = IndexedOrderBook(indexed_order_book_input)
+    indexed_order_book = IndexedOrderBook(indexed_order_book_input)
 
 
-indexed_asks = indexed_order_book['asks']
+    indexed_asks = indexed_order_book['asks']
 
 
-indexed_asks.store_array([13.5, 13, '1244'])
+    indexed_asks.store_array([13.5, 13, '1244'])
 
 
-indexed_order_book.limit()
+    indexed_order_book.limit()
 
 
-assert equals(indexed_order_book, overwrite1244)
+    assert equals(indexed_order_book, overwrite1244)
 
 
-# --------------------------------------------------------------------------------------------------------------------
-counted_order_book = CountedOrderBook(counted_order_book_input)
+    # --------------------------------------------------------------------------------------------------------------------
+    counted_order_book = CountedOrderBook(counted_order_book_input)
 
 
-limited_counted_order_book = CountedOrderBook(counted_order_book_input, 5)
+    limited_counted_order_book = CountedOrderBook(counted_order_book_input, 5)
 
 
-counted_order_book.limit()
+    counted_order_book.limit()
 
 
-assert equals(counted_order_book, counted_order_book_target)
+    assert equals(counted_order_book, counted_order_book_target)
 
 
-limited_counted_order_book.limit()
+    limited_counted_order_book.limit()
 
 
-assert equals(limited_counted_order_book, limited_counted_order_book_target)
+    assert equals(limited_counted_order_book, limited_counted_order_book_target)
 
 
-counted_order_book.limit()
+    counted_order_book.limit()
 
 
-assert equals(counted_order_book, counted_order_book_target)
+    assert equals(counted_order_book, counted_order_book_target)
 
 
-counted_bids = counted_order_book['bids']
+    counted_bids = counted_order_book['bids']
 
 
-counted_bids.store_array([5, 0, 6])
+    counted_bids.store_array([5, 0, 6])
 
 
-counted_order_book.limit()
+    counted_order_book.limit()
 
 
-assert equals(counted_order_book, counted_order_book_target)
+    assert equals(counted_order_book, counted_order_book_target)
 
 
-counted_bids.store_array([1, 1, 6])
+    counted_bids.store_array([1, 1, 6])
 
 
-counted_order_book.limit()
+    counted_order_book.limit()
 
 
-assert equals(counted_order_book, stored_counted_orderbook_target)
+    assert equals(counted_order_book, stored_counted_orderbook_target)
 
 
-# --------------------------------------------------------------------------------------------------------------------
-# let incrementalOrderBook = new IncrementalOrderBook (incrementalOrderBookInput);
-# const limitedIncrementalOrderBook = new IncrementalOrderBook (incrementalOrderBookInput, 5);
-# incrementalOrderBook.limit ();
-# assert (equals (incrementalOrderBook, incremetalOrderBookTarget));
-# incrementalOrderBook.limit (5);
-# limitedIncrementalOrderBook.limit ();
-# assert (equals (incrementalOrderBook, limitedIncremetalOrderBookTarget));
-# assert (equals (limitedIncrementalOrderBook, limitedIncremetalOrderBookTarget));
-# incrementalOrderBook.limit ();
-# assert (equals (incrementalOrderBook, incremetalOrderBookTarget));
-# bids = incrementalOrderBook['bids'];
-# bids.store (3, 3);
-# incrementalOrderBook.limit ();
-# assert (equals (incrementalOrderBook, storedIncremetalOrderBookTarget));
-# bids.store (3, 7);
-# incrementalOrderBook.limit ();
-# assert (equals (incrementalOrderBook, doubleStoredIncremetalOrderBookTarget));
-# bids.store (17, 0);
-# assert (equals (incrementalOrderBook, doubleStoredIncremetalOrderBookTarget));
-# incrementalOrderBook = new IncrementalOrderBook (incrementalOrderBookInput);
-# asks = incrementalOrderBook['asks'];
-# asks.store (15.5, -10);
-# incrementalOrderBook.limit ();
-# assert (equals (incrementalOrderBook, negativeStoredIncremetalOrderBookTarget));
-# --------------------------------------------------------------------------------------------------------------------
-# let incrementalIndexedOrderBook = new IncrementalIndexedOrderBook (indexedOrderBookInput);
-# const limitedIncrementalIndexedOrderBook = new IncrementalIndexedOrderBook (indexedOrderBookInput, 5);
-# incrementalIndexedOrderBook.limit ();
-# assert (equals (incrementalIndexedOrderBook, incrementalIndexedOrderBookTarget));
-# incrementalIndexedOrderBook.limit (5);
-# limitedIncrementalIndexedOrderBook.limit ();
-# assert (equals (incrementalIndexedOrderBook, limitedIncrementalIndexedOrderBookTarget));
-# assert (equals (limitedIncrementalIndexedOrderBook, limitedIncrementalIndexedOrderBookTarget));
-# incrementalIndexedOrderBook.limit ();
-# assert (equals (incrementalIndexedOrderBook, incrementalIndexedOrderBookTarget));
-# bids = incrementalIndexedOrderBook['bids'];
-# bids.store (5, 0, 'xxyy');
-# incrementalIndexedOrderBook.limit ();
-# assert (equals (incrementalIndexedOrderBook, incrementalIndexedOrderBookTarget));
-# bids.store (10.0, 3, '1234');  # price does match merge size
-# incrementalIndexedOrderBook.limit ();
-# assert (equals (incrementalIndexedOrderBook, storedIncrementalIndexedOrderBookTarget));
-# bids.store (0, 0, '1234');
-# incrementalIndexedOrderBook.limit ();
-# assert (equals (incrementalIndexedOrderBook, incrementalIndexedOrderBookDeletedTarget));
-# incrementalIndexedOrderBook = new IncrementalIndexedOrderBook (indexedOrderBookInput);
-# bids = incrementalIndexedOrderBook['bids'];
-# bids.store (10.2, 3, '1234');  # price does not match merge size
-# incrementalIndexedOrderBook.limit ();
-# assert (equals (incrementalIndexedOrderBook, anotherStoredIncrementalIndexedOrderBookTarget));
-# --------------------------------------------------------------------------------------------------------------------
-reset_book = OrderBook(store_bid)
+    # --------------------------------------------------------------------------------------------------------------------
+    # let incrementalOrderBook = new IncrementalOrderBook (incrementalOrderBookInput);
+    # const limitedIncrementalOrderBook = new IncrementalOrderBook (incrementalOrderBookInput, 5);
+    # incrementalOrderBook.limit ();
+    # assert (equals (incrementalOrderBook, incremetalOrderBookTarget));
+    # incrementalOrderBook.limit (5);
+    # limitedIncrementalOrderBook.limit ();
+    # assert (equals (incrementalOrderBook, limitedIncremetalOrderBookTarget));
+    # assert (equals (limitedIncrementalOrderBook, limitedIncremetalOrderBookTarget));
+    # incrementalOrderBook.limit ();
+    # assert (equals (incrementalOrderBook, incremetalOrderBookTarget));
+    # bids = incrementalOrderBook['bids'];
+    # bids.store (3, 3);
+    # incrementalOrderBook.limit ();
+    # assert (equals (incrementalOrderBook, storedIncremetalOrderBookTarget));
+    # bids.store (3, 7);
+    # incrementalOrderBook.limit ();
+    # assert (equals (incrementalOrderBook, doubleStoredIncremetalOrderBookTarget));
+    # bids.store (17, 0);
+    # assert (equals (incrementalOrderBook, doubleStoredIncremetalOrderBookTarget));
+    # incrementalOrderBook = new IncrementalOrderBook (incrementalOrderBookInput);
+    # asks = incrementalOrderBook['asks'];
+    # asks.store (15.5, -10);
+    # incrementalOrderBook.limit ();
+    # assert (equals (incrementalOrderBook, negativeStoredIncremetalOrderBookTarget));
+    # --------------------------------------------------------------------------------------------------------------------
+    # let incrementalIndexedOrderBook = new IncrementalIndexedOrderBook (indexedOrderBookInput);
+    # const limitedIncrementalIndexedOrderBook = new IncrementalIndexedOrderBook (indexedOrderBookInput, 5);
+    # incrementalIndexedOrderBook.limit ();
+    # assert (equals (incrementalIndexedOrderBook, incrementalIndexedOrderBookTarget));
+    # incrementalIndexedOrderBook.limit (5);
+    # limitedIncrementalIndexedOrderBook.limit ();
+    # assert (equals (incrementalIndexedOrderBook, limitedIncrementalIndexedOrderBookTarget));
+    # assert (equals (limitedIncrementalIndexedOrderBook, limitedIncrementalIndexedOrderBookTarget));
+    # incrementalIndexedOrderBook.limit ();
+    # assert (equals (incrementalIndexedOrderBook, incrementalIndexedOrderBookTarget));
+    # bids = incrementalIndexedOrderBook['bids'];
+    # bids.store (5, 0, 'xxyy');
+    # incrementalIndexedOrderBook.limit ();
+    # assert (equals (incrementalIndexedOrderBook, incrementalIndexedOrderBookTarget));
+    # bids.store (10.0, 3, '1234');  # price does match merge size
+    # incrementalIndexedOrderBook.limit ();
+    # assert (equals (incrementalIndexedOrderBook, storedIncrementalIndexedOrderBookTarget));
+    # bids.store (0, 0, '1234');
+    # incrementalIndexedOrderBook.limit ();
+    # assert (equals (incrementalIndexedOrderBook, incrementalIndexedOrderBookDeletedTarget));
+    # incrementalIndexedOrderBook = new IncrementalIndexedOrderBook (indexedOrderBookInput);
+    # bids = incrementalIndexedOrderBook['bids'];
+    # bids.store (10.2, 3, '1234');  # price does not match merge size
+    # incrementalIndexedOrderBook.limit ();
+    # assert (equals (incrementalIndexedOrderBook, anotherStoredIncrementalIndexedOrderBookTarget));
+    # --------------------------------------------------------------------------------------------------------------------
+    reset_book = OrderBook(store_bid)
 
 
-reset_book.limit()
+    reset_book.limit()
 
 
-reset_book.reset(order_book_input)
+    reset_book.reset(order_book_input)
 
 
-reset_book.limit()
+    reset_book.limit()
 
 
-assert equals(reset_book, order_book_target)
+    assert equals(reset_book, order_book_target)
