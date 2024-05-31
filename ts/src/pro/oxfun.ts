@@ -57,7 +57,7 @@ export default class oxfun extends oxfunRest {
             },
             'streaming': {
                 'ping': this.ping,
-                'keepAlive': 10000,
+                'keepAlive': 50000,
             },
         });
     }
