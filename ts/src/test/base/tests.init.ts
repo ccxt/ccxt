@@ -4,15 +4,15 @@ import ololog from 'ololog'
 import { strictEqual, deepEqual } from 'assert' // for easier debugging
 import { Exchange, functions } from '../../../ccxt.js'
 
-import './functions/test.generic.js'
-import './functions/test.time.js'
-import './functions/test.type.js'
-import './functions/test.number.js'
-import './functions/test.datetime.js'
-import './functions/test.crypto.js'
+import './test.generic.js'
+import './test.time.js'
+import './test.type.js'
+import './test.number.js'
+import './test.datetime.js'
+import './test.crypto.js'
 
 
-import testBaseFunctionsExtend from './functions/test.extend.js';
+import testBaseFunctionsExtend from './test.extend.js';
 
 const { index, aggregate, unCamelCase } = functions
 
