@@ -9,11 +9,13 @@ import { DIR_NAME, AuthenticationError, NotSupported, ExchangeError, ProxyError,
 
 import testMainClass from './tests.js';
 
-import baseTestsInit from './base/tests.init.js';
+import baseTestsInitRest from './base/tests.init.js';
+import baseTestsInitWs from '../pro/test/base/tests.init.js';
 
 
 // ########### args ###########
 
+const isWs = getCliArgValue ('--ws');
 const isBaseTests = getCliArgValue ('--baseTests');
 const isExchangeTests = getCliArgValue ('--exchangeTests');
 const reqResTests = getCliArgValue ('--responseTests') || getCliArgValue ('--requestTests');
@@ -24,8 +26,11 @@ if (isBaseTests || isAllTest) {
     const exchange = new Exchange ({
         'id': 'xyzexchange',
     });
-
-    baseTestsInit (exchange);
+    if (isWs) {
+        baseTestsInitWs ();
+    } else {
+        baseTestsInitRest (exchange);
+    }
 }
 
 // ####### exchange tests #######

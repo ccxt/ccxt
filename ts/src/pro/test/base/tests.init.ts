@@ -3,10 +3,10 @@ import testOrderBook from "./test.OrderBook.js";
 import testCache from "./test.Cache.js";
 import testClose from "./test.close.js";
 
-async function testBaseWs () {
+function testBaseWs () {
     testOrderBook ();
     testCache ();
-    await testClose ();
+    testClose ();
 }
 
 export default testBaseWs;
