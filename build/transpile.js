@@ -2035,12 +2035,14 @@ class Transpiler {
             [ /^export default[^\n]+\n/g, '' ],
             [/^\/\*.*\s+/mg, ''],
             [/^const\s+{.*}\s+=.*$/gm, ''],
-            [ /function (\w+) \(\) \{/g, 'def $1():' ],
             [ /(export default .*)/g, '' ],
         ])
 
         let { python2Body, phpBody } = this.transpileJavaScriptToPythonAndPHP ({ js, removeEmptyLines: false })
 
+        python2Body = this.regexAll (python2Body, [
+            [ /function(\w+) \(\) \{/g, 'def $1():' ],
+        ])
         // phpBody = phpBody.replace (/exchange\./g, 'Exchange::')
 
         const pythonHeader = [
@@ -2082,11 +2084,14 @@ class Transpiler {
             [/^const\s+{.*}\s+=.*$/gm, ''],
             [ /decimalToPrecision/g, 'decimal_to_precision' ],
             [ /numberToString/g, 'number_to_string' ],
-            [ /function (\w+) \(\) \{/g, 'def $1():' ],
             [ /(export default .*)/g, '' ],
         ])
 
         let { python3Body, python2Body, phpBody, phpAsyncBody } = this.transpileJavaScriptToPythonAndPHP ({ js, removeEmptyLines: false })
+
+        python2Body = this.regexAll (python2Body, [
+            [ /function (\w+)\(\) \{/g, 'def $1():' ],
+        ])
 
         const pythonHeader = [
             "",
@@ -2156,11 +2161,14 @@ class Transpiler {
             [ /^export default[^\n]+\n/g, '' ],
             [/^const\s+{.*}\s+=.*$/gm, ''],
             [ /function equals \([\S\s]+?return true;?\n}\n/g, '' ],
-            [ /function (test\w+) \(\) \{/g, 'def $1():' ],
             [ /(export default .*)/g, '' ],
         ])
 
         let { python2Body, phpBody } = this.transpileJavaScriptToPythonAndPHP ({ js, removeEmptyLines: false })
+
+        python2Body = this.regexAll (python2Body, [
+            [ /function (\w+)\(\) \{/g, 'def $1():' ],
+        ])
 
         const pythonHeader = [
             "",
