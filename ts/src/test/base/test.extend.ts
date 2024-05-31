@@ -2,8 +2,14 @@
 // AUTO_TRANSPILE_ENABLED
 
 import assert from 'assert';
+import ccxt from '../../../ccxt.js';
 
-function testBaseFunctionsExtend (exchange: any) {
+function testBaseFunctionsExtend () {
+
+    const exchange = new ccxt.Exchange ({
+        'id': 'regirock',
+    });
+
     const obj1 = {
         "a": 1,
         "b": [ 1, 2 ],

@@ -205,7 +205,7 @@ function testUnCamelCase () {
 
 
 function baseTestsInit (exchange) {
-    testBaseFunctionsExtend (exchange);
+    testBaseFunctionsExtend ();
     testUnCamelCase ();
     testCryptoAll ();
     testDatetimeAll ();
