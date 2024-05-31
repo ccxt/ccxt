@@ -12,6 +12,6 @@ require_once (__DIR__ . '/test_extend.php');
 $exchange = new Exchange ([
     'id'=> 'xyzexchange',
 ]);
-test_number_all();
-test_crypto_all();
+testNumberAll();
+testCryptoAll();
 test_base_functions_extend($exchange);
