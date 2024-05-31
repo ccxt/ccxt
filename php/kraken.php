@@ -754,8 +754,8 @@ class kraken extends Exchange {
         return array(
             'info' => $response,
             'symbol' => $market['symbol'],
-            'maker' => $this->safe_number($symbolMakerFee, 'fee'),
-            'taker' => $this->safe_number($symbolTakerFee, 'fee'),
+            'maker' => $this->parse_number(Precise::string_div($this->safe_string($symbolMakerFee, 'fee'), '100')),
+            'taker' => $this->parse_number(Precise::string_div($this->safe_string($symbolTakerFee, 'fee'), '100')),
             'percentage' => true,
             'tierBased' => true,
         );

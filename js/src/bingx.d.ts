@@ -77,8 +77,8 @@ export default class bingx extends Exchange {
     parseOrder(order: Dict, market?: Market): Order;
     parseOrderStatus(status: Str): string;
     cancelOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
-    cancelAllOrders(symbol?: Str, params?: {}): Promise<any>;
-    cancelOrders(ids: string[], symbol?: Str, params?: {}): Promise<any>;
+    cancelAllOrders(symbol?: Str, params?: {}): Promise<Order[]>;
+    cancelOrders(ids: string[], symbol?: Str, params?: {}): Promise<Order[]>;
     cancelAllOrdersAfter(timeout: Int, params?: {}): Promise<any>;
     fetchOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
     fetchOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;

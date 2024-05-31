@@ -1180,9 +1180,9 @@ class bitmart(Exchange, ImplicitAPI):
         market = self.safe_market(marketId, market)
         symbol = market['symbol']
         last = self.safe_string_2(ticker, 'close_24h', 'last_price')
-        percentage = Precise.string_abs(self.safe_string(ticker, 'price_change_percent_24h'))
+        percentage = self.safe_string(ticker, 'price_change_percent_24h')
         if percentage is None:
-            percentage = Precise.string_abs(Precise.string_mul(self.safe_string(ticker, 'fluctuation'), '100'))
+            percentage = Precise.string_mul(self.safe_string(ticker, 'fluctuation'), '100')
         baseVolume = self.safe_string(ticker, 'base_volume_24h')
         quoteVolume = self.safe_string(ticker, 'quote_volume_24h')
         if quoteVolume is None:

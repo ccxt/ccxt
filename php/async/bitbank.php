@@ -701,8 +701,31 @@ class bitbank extends Exchange {
                 'pair' => $market['id'],
             );
             $response = Async\await($this->privatePostUserSpotCancelOrder ($this->extend($request, $params)));
+            //
+            //    {
+            //        "success" => 1,
+            //        "data" => {
+            //            "order_id" => 0,
+            //            "pair" => "string",
+            //            "side" => "string",
+            //            "type" => "string",
+            //            "start_amount" => "string",
+            //            "remaining_amount" => "string",
+            //            "executed_amount" => "string",
+            //            "price" => "string",
+            //            "post_only" => false,
+            //            "average_price" => "string",
+            //            "ordered_at" => 0,
+            //            "expire_at" => 0,
+            //            "canceled_at" => 0,
+            //            "triggered_at" => 0,
+            //            "trigger_price" => "string",
+            //            "status" => "string"
+            //        }
+            //    }
+            //
             $data = $this->safe_value($response, 'data');
-            return $data;
+            return $this->parse_order($data);
         }) ();
     }
 
@@ -722,6 +745,28 @@ class bitbank extends Exchange {
                 'pair' => $market['id'],
             );
             $response = Async\await($this->privateGetUserSpotOrder ($this->extend($request, $params)));
+            //
+            //    {
+            //        "success" => 1,
+            //        "data" => {
+            //          "order_id" => 0,
+            //          "pair" => "string",
+            //          "side" => "string",
+            //          "type" => "string",
+            //          "start_amount" => "string",
+            //          "remaining_amount" => "string",
+            //          "executed_amount" => "string",
+            //          "price" => "string",
+            //          "post_only" => false,
+            //          "average_price" => "string",
+            //          "ordered_at" => 0,
+            //          "expire_at" => 0,
+            //          "triggered_at" => 0,
+            //          "triger_price" => "string",
+            //          "status" => "string"
+            //        }
+            //    }
+            //
             $data = $this->safe_dict($response, 'data');
             return $this->parse_order($data, $market);
         }) ();

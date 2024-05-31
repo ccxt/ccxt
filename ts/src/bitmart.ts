@@ -1210,10 +1210,10 @@ export default class bitmart extends Exchange {
         market = this.safeMarket (marketId, market);
         const symbol = market['symbol'];
         const last = this.safeStringN (ticker, [ 'last_price', 'last', 1 ]);
-        let percentage = Precise.stringAbs (this.safeString (ticker, 'price_change_percent_24h'));
+        let percentage = this.safeString (ticker, 'price_change_percent_24h');
         const change = this.safeString2 (ticker, 'fluctuation', 7);
         if (percentage === undefined) {
-            percentage = Precise.stringAbs (Precise.stringMul (change, '100'));
+            percentage = Precise.stringMul (change, '100');
         }
         let baseVolume = this.safeStringN (ticker, [ 'base_volume_24h', 'v_24h', 2 ]);
         let quoteVolume = this.safeStringLowerN (ticker, [ 'quote_volume_24h', 'qv_24h', 3 ]);

@@ -2570,7 +2570,9 @@ class bingx(Exchange, ImplicitAPI):
             #
         else:
             raise BadRequest(self.id + ' cancelAllOrders is only supported for spot and swap markets.')
-        return response
+        data = self.safe_dict(response, 'data', {})
+        orders = self.safe_list_2(data, 'success', 'orders', [])
+        return self.parse_orders(orders)
 
     async def cancel_orders(self, ids: List[str], symbol: Str = None, params={}):
         """
@@ -2606,42 +2608,70 @@ class bingx(Exchange, ImplicitAPI):
             spotReqKey = 'clientOrderIDs' if areClientOrderIds else 'orderIds'
             request[spotReqKey] = ','.join(parsedIds)
             response = await self.spotV1PrivatePostTradeCancelOrders(self.extend(request, params))
+            #
+            #    {
+            #       "code": 0,
+            #       "msg": "",
+            #       "debugMsg": "",
+            #       "data": {
+            #           "orders": [
+            #                {
+            #                    "symbol": "SOL-USDT",
+            #                    "orderId": 1795970045910614016,
+            #                    "transactTime": 1717027601111,
+            #                    "price": "180.25",
+            #                    "stopPrice": "0",
+            #                    "origQty": "0.03",
+            #                    "executedQty": "0",
+            #                    "cummulativeQuoteQty": "0",
+            #                    "status": "CANCELED",
+            #                    "type": "LIMIT",
+            #                    "side": "SELL",
+            #                    "clientOrderID": ""
+            #                },
+            #                ...
+            #            ]
+            #        }
+            #    }
+            #
         else:
             if areClientOrderIds:
                 request['clientOrderIDList'] = self.json(parsedIds)
             else:
                 request['orderIdList'] = parsedIds
             response = await self.swapV2PrivateDeleteTradeBatchOrders(self.extend(request, params))
-        #
-        #    {
-        #        "code": 0,
-        #        "msg": "",
-        #        "data": {
-        #          "success": [
-        #            {
-        #              "symbol": "LINK-USDT",
-        #              "orderId": 1597783850786750464,
-        #              "side": "BUY",
-        #              "positionSide": "LONG",
-        #              "type": "TRIGGER_MARKET",
-        #              "origQty": "5.0",
-        #              "price": "5.5710",
-        #              "executedQty": "0.0",
-        #              "avgPrice": "0.0000",
-        #              "cumQuote": "0",
-        #              "stopPrice": "5.0000",
-        #              "profit": "0.0000",
-        #              "commission": "0.000000",
-        #              "status": "CANCELLED",
-        #              "time": 1669776330000,
-        #              "updateTime": 1672370837000
-        #            }
-        #          ],
-        #          "failed": null
-        #        }
-        #    }
-        #
-        return response
+            #
+            #    {
+            #        "code": 0,
+            #        "msg": "",
+            #        "data": {
+            #          "success": [
+            #            {
+            #              "symbol": "LINK-USDT",
+            #              "orderId": 1597783850786750464,
+            #              "side": "BUY",
+            #              "positionSide": "LONG",
+            #              "type": "TRIGGER_MARKET",
+            #              "origQty": "5.0",
+            #              "price": "5.5710",
+            #              "executedQty": "0.0",
+            #              "avgPrice": "0.0000",
+            #              "cumQuote": "0",
+            #              "stopPrice": "5.0000",
+            #              "profit": "0.0000",
+            #              "commission": "0.000000",
+            #              "status": "CANCELLED",
+            #              "time": 1669776330000,
+            #              "updateTime": 1672370837000
+            #            }
+            #          ],
+            #          "failed": null
+            #        }
+            #    }
+            #
+        data = self.safe_dict(response, 'data', {})
+        success = self.safe_list_2(data, 'success', 'orders', [])
+        return self.parse_orders(success)
 
     async def cancel_all_orders_after(self, timeout: Int, params={}):
         """

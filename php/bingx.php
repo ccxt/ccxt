@@ -2612,10 +2612,10 @@ class bingx extends Exchange {
 
     public function cancel_all_orders(?string $symbol = null, $params = array ()) {
         /**
-         * cancel all open orders
+         * cancel all open $orders
          * @see https://bingx-api.github.io/docs/#/en-us/spot/trade-api.html#Cancel%20orders%20by%20symbol
          * @see https://bingx-api.github.io/docs/#/swapV2/trade-api.html#Cancel%20All%20Orders
-         * @param {string} [$symbol] unified $market $symbol, only orders in the $market of this $symbol are cancelled when $symbol is not null
+         * @param {string} [$symbol] unified $market $symbol, only $orders in the $market of this $symbol are cancelled when $symbol is not null
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
          */
@@ -2686,7 +2686,9 @@ class bingx extends Exchange {
         } else {
             throw new BadRequest($this->id . ' cancelAllOrders is only supported for spot and swap markets.');
         }
-        return $response;
+        $data = $this->safe_dict($response, 'data', array());
+        $orders = $this->safe_list_2($data, 'success', 'orders', array());
+        return $this->parse_orders($orders);
     }
 
     public function cancel_orders(array $ids, ?string $symbol = null, $params = array ()) {
@@ -2726,6 +2728,32 @@ class bingx extends Exchange {
             $spotReqKey = $areClientOrderIds ? 'clientOrderIDs' : 'orderIds';
             $request[$spotReqKey] = implode(',', $parsedIds);
             $response = $this->spotV1PrivatePostTradeCancelOrders ($this->extend($request, $params));
+            //
+            //    {
+            //       "code" => 0,
+            //       "msg" => "",
+            //       "debugMsg" => "",
+            //       "data" => {
+            //           "orders" => array(
+            //                array(
+            //                    "symbol" => "SOL-USDT",
+            //                    "orderId" => 1795970045910614016,
+            //                    "transactTime" => 1717027601111,
+            //                    "price" => "180.25",
+            //                    "stopPrice" => "0",
+            //                    "origQty" => "0.03",
+            //                    "executedQty" => "0",
+            //                    "cummulativeQuoteQty" => "0",
+            //                    "status" => "CANCELED",
+            //                    "type" => "LIMIT",
+            //                    "side" => "SELL",
+            //                    "clientOrderID" => ""
+            //                ),
+            //                ...
+            //            )
+            //        }
+            //    }
+            //
         } else {
             if ($areClientOrderIds) {
                 $request['clientOrderIDList'] = $this->json($parsedIds);
@@ -2733,37 +2761,39 @@ class bingx extends Exchange {
                 $request['orderIdList'] = $parsedIds;
             }
             $response = $this->swapV2PrivateDeleteTradeBatchOrders ($this->extend($request, $params));
+            //
+            //    {
+            //        "code" => 0,
+            //        "msg" => "",
+            //        "data" => {
+            //          "success" => array(
+            //            {
+            //              "symbol" => "LINK-USDT",
+            //              "orderId" => 1597783850786750464,
+            //              "side" => "BUY",
+            //              "positionSide" => "LONG",
+            //              "type" => "TRIGGER_MARKET",
+            //              "origQty" => "5.0",
+            //              "price" => "5.5710",
+            //              "executedQty" => "0.0",
+            //              "avgPrice" => "0.0000",
+            //              "cumQuote" => "0",
+            //              "stopPrice" => "5.0000",
+            //              "profit" => "0.0000",
+            //              "commission" => "0.000000",
+            //              "status" => "CANCELLED",
+            //              "time" => 1669776330000,
+            //              "updateTime" => 1672370837000
+            //            }
+            //          ),
+            //          "failed" => null
+            //        }
+            //    }
+            //
         }
-        //
-        //    {
-        //        "code" => 0,
-        //        "msg" => "",
-        //        "data" => {
-        //          "success" => array(
-        //            {
-        //              "symbol" => "LINK-USDT",
-        //              "orderId" => 1597783850786750464,
-        //              "side" => "BUY",
-        //              "positionSide" => "LONG",
-        //              "type" => "TRIGGER_MARKET",
-        //              "origQty" => "5.0",
-        //              "price" => "5.5710",
-        //              "executedQty" => "0.0",
-        //              "avgPrice" => "0.0000",
-        //              "cumQuote" => "0",
-        //              "stopPrice" => "5.0000",
-        //              "profit" => "0.0000",
-        //              "commission" => "0.000000",
-        //              "status" => "CANCELLED",
-        //              "time" => 1669776330000,
-        //              "updateTime" => 1672370837000
-        //            }
-        //          ),
-        //          "failed" => null
-        //        }
-        //    }
-        //
-        return $response;
+        $data = $this->safe_dict($response, 'data', array());
+        $success = $this->safe_list_2($data, 'success', 'orders', array());
+        return $this->parse_orders($success);
     }
 
     public function cancel_all_orders_after(?int $timeout, $params = array ()) {
