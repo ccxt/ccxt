@@ -2262,7 +2262,7 @@ class Transpiler {
             py: './python/ccxt/test/',
             pyBase: './python/ccxt/test/base/',
             php: './php/test/',
-            phpBase: './php/test/base/',
+            phpBase: './php/test/exchange/base/',
         };
 
         let baseTests = fs.readdirSync (baseFolders.tsBase).filter(filename => filename.endsWith('.ts')).map(filename => filename.replace('.ts', ''));
@@ -2627,7 +2627,7 @@ class Transpiler {
                 const snake_case = unCamelCase(subTestName);
                 const isSharedMethodsImport = subTestName.includes ('SharedMethods');
                 const isSameDirImport = tests.find(t => t.name === subTestName);
-                const phpPrefix = isSameDirImport ? '__DIR__ . \'/' : 'PATH_TO_CCXT . \'/test/base/';
+                const phpPrefix = isSameDirImport ? '__DIR__ . \'/' : 'PATH_TO_CCXT . \'/test/exchange/base/';
                 let pySuffix = isSameDirImport ? '' : '.base';
 
                 if (isSharedMethodsImport) {
@@ -2636,9 +2636,9 @@ class Transpiler {
 
                     // php
                     if (!test.base) {
-                        phpHeaderAsync.push (`include_once PATH_TO_CCXT . '/test/base/test_shared_methods.php';`)
+                        phpHeaderAsync.push (`include_once PATH_TO_CCXT . '/test/exchange/base/test_shared_methods.php';`)
                     } else {
-                        phpHeaderSync.push (`include_once PATH_TO_CCXT . '/test/base/test_shared_methods.php';`)
+                        phpHeaderSync.push (`include_once PATH_TO_CCXT . '/test/exchange/base/test_shared_methods.php';`)
                     }
                 } else {
                     if (test.base) {

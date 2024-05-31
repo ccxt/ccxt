@@ -1412,7 +1412,7 @@ class NewTranspiler {
 
 if (isMainEntry(import.meta.url)) {
     const ws = process.argv.includes ('--ws')
-    const baseOnly = process.argv.includes ('--base')
+    const baseOnly = process.argv.includes ('--baseTests')
     const test = process.argv.includes ('--test') || process.argv.includes ('--tests')
     const examples = process.argv.includes ('--examples');
     const force = process.argv.includes ('--force')

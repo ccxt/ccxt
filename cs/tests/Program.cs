@@ -32,6 +32,7 @@ public class Tests
     public static bool privateTests = false;
     public static bool privateOnly = false;
     public static bool baseTests = false;
+    public static bool exchangeTests = false;
     public static bool cacheTests = false;
     public static bool orderBookTests = false;
     public static bool info = false;
@@ -44,11 +45,13 @@ public class Tests
 
     static void InitOptions(string[] args)
     {
-        var isBase = args.Contains("--base");
+        var isBase = args.Contains("--baseTests");
         baseTests = isBase;
         cacheTests = args.Contains("--cache");
         orderBookTests = args.Contains("--orderbook");
         raceCondition = args.Contains("--race");
+        exchangeTests = args.Contains("--exchangeTests") || args.Contains("--requestTests") || args.Contains("--responseTests");
+
         var argsWithoutOptions = args.Where(arg => !arg.StartsWith("--")).ToList();
         if (argsWithoutOptions.Count > 0)
         {
@@ -126,8 +129,10 @@ public class Tests
             return;
         }
 
-        var testClass = new testMainClass();
-        testClass.init(exchangeId, symbol, methodName).Wait();
+        if (exchangeTests) {
+            var testClass = new testMainClass();
+            testClass.init(exchangeId, symbol, methodName).Wait();
+        }
     }
 
     static void RunBaseTests()
