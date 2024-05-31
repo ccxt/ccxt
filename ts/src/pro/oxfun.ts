@@ -669,11 +669,11 @@ export default class oxfun extends oxfunRest {
             'id': undefined,
             'symbol': market['symbol'],
             'notional': undefined,
-            'marginMode': 'cross', // todo check
+            'marginMode': 'cross',
             'liquidationPrice': this.safeNumber (position, 'estLiquidationPrice'),
             'entryPrice': this.safeNumber (position, 'entryPrice'),
             'unrealizedPnl': this.safeNumber (position, 'positionPnl'),
-            'realizedPnl': undefined, // todo check
+            'realizedPnl': undefined,
             'percentage': undefined,
             'contracts': this.safeNumber (position, 'quantity'),
             'contractSize': undefined,
@@ -808,7 +808,7 @@ export default class oxfun extends oxfunRest {
             'op': 'placeorder',
             'tag': messageHash,
         };
-        params = this.omit (params, 'tag'); // todo: check
+        params = this.omit (params, 'tag');
         const orderRequest: Dict = this.createOrderRequest (symbol, type, side, amount, price, params);
         const timestamp = this.safeInteger (orderRequest, 'timestamp');
         if (timestamp === undefined) {
@@ -844,7 +844,7 @@ export default class oxfun extends oxfunRest {
             'op': 'modifyorder',
             'tag': messageHash,
         };
-        params = this.omit (params, 'tag'); // todo: check
+        params = this.omit (params, 'tag');
         let orderRequest: Dict = this.createOrderRequest (market, type, side, amount, price, params);
         orderRequest = this.extend (orderRequest, { 'orderId': id });
         const timestamp = this.safeInteger (orderRequest, 'timestamp');
