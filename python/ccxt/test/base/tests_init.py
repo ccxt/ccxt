@@ -5,8 +5,8 @@ root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.a
 sys.path.append(root)
 
 from test_extend import test_base_functions_extend  # noqa: F401
-from test_number import test_number  # noqa: F401
-from test_crypto import test_crypto  # noqa: F401
+from test_number import test_number_all  # noqa: F401
+from test_crypto import test_crypto_all  # noqa: F401
 
 
 

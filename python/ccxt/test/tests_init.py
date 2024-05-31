@@ -10,10 +10,12 @@ except ImportError:
     asyncio = None
 
 from base.tests_init import test_base_init_rest  # noqa: F401
+from ccxt.pro.test.base.tests_init import test_base_init_ws  # noqa: F401
 
 
 # ########### args ###########
 
+isWs = get_cli_arg_value('--ws')
 isBaseTests = get_cli_arg_value('--baseTests')
 isExchangeTests = get_cli_arg_value('--exchangeTests')
 reqResTests = get_cli_arg_value('--responseTests') or get_cli_arg_value('--requestTests')
@@ -25,7 +27,10 @@ if (isBaseTests or isAllTest):
     exchange = ccxt.Exchange({  # noqa: F405
         'id': 'xyzexchange',
     })
-    test_base_init_rest(exchange)
+    if (isWs):
+        test_base_init_ws()
+    else:
+        test_base_init_rest(exchange)
     print('base tests passed!')
 
 
