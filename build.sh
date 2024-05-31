@@ -197,7 +197,7 @@ npm run buildCS
 
 # run base tests (base js,py,php, brokerId )
 # npm run test-base
-npm run test-js-base && npm run test-python-base && npm run test-php-base && npm run id-tests
+npm run test-base-js && npm run test-base-py && npm run test-base-php && npm run id-tests
 
 # rest_args=${REST_EXCHANGES[*]} || "skip"
 rest_args=$(IFS=" " ; echo "${REST_EXCHANGES[*]}") || "skip"
