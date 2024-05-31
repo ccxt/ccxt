@@ -2094,17 +2094,17 @@ export default class vertex extends Exchange {
         const nonce = this.getNonce (now, 90000);
         const cancels = {
             'sender': this.convertAddressToSender (this.walletAddress),
-            'nonce': nonce,
             'productIds': [
                 this.parseToNumeric (marketId),
             ],
+            'nonce': nonce,
         };
         const request = {
             'cancel_product_orders': {
                 'tx': {
                     'sender': cancels['sender'],
-                    'nonce': this.numberToString (cancels['nonce']),
                     'productIds': cancels['productIds'],
+                    'nonce': this.numberToString (cancels['nonce']),
                 },
                 'signature': this.buildCancelAllOrdersSig (cancels, chainId, verifyingContractAddress),
             },
@@ -2191,9 +2191,9 @@ export default class vertex extends Exchange {
         const nonce = this.getNonce (now, 90000);
         const cancels = {
             'sender': this.convertAddressToSender (this.walletAddress),
-            'nonce': nonce,
             'productIds': [],
             'digests': ids,
+            'nonce': nonce,
         };
         const marketIdNum = this.parseToNumeric (marketId);
         for (let i = 0; i < ids.length; i++) {
@@ -2203,9 +2203,9 @@ export default class vertex extends Exchange {
             'cancel_orders': {
                 'tx': {
                     'sender': cancels['sender'],
-                    'nonce': this.numberToString (cancels['nonce']),
                     'productIds': cancels['productIds'],
                     'digests': cancels['digests'],
+                    'nonce': this.numberToString (cancels['nonce']),
                 },
                 'signature': this.buildCancelOrdersSig (cancels, chainId, verifyingContractAddress),
             },
