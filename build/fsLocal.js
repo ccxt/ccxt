@@ -23,6 +23,11 @@ function overwriteFile (filename, contents) {
     fs.writeFileSync (filename, contents)
 }
 
+function writeFile (filename, contents) {
+    // log.cyan ('Writing → ' + filename.yellow)
+    fs.writeFileSync (filename, contents)
+}
+
 function createFolder (folder) {
     try {
         fs.mkdirSync (folder)
@@ -44,6 +49,7 @@ export {
     replaceInFile,
     copyFile,
     overwriteFile,
+    writeFile,
     createFolder,
     createFolderRecursively,
 }

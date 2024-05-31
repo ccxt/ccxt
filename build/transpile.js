@@ -11,7 +11,7 @@ import errors from "../js/src/base/errors.js"
 import {unCamelCase, precisionConstants, safeString, unique} from "../js/src/base/functions.js"
 import Exchange from '../js/src/base/Exchange.js'
 import { basename, join, resolve } from 'path'
-import { createFolderRecursively, replaceInFile, overwriteFile } from './fsLocal.js'
+import { createFolderRecursively, replaceInFile, overwriteFile, writeFile } from './fsLocal.js'
 import { pathToFileURL } from 'url'
 import errorHierarchy from '../js/src/base/errorHierarchy.js'
 import { platform } from 'process'
@@ -2539,7 +2539,11 @@ class Transpiler {
 
         const fileSaveFunc = (path, content) => {
             log.magenta ('→', path);
-            overwriteFile (path, content);
+            try {
+                overwriteFile (path, content);
+            } catch {
+                writeFile (path, content);
+            }
         };
 
         for (let i = 0; i < flatResult.length; i++) {
