@@ -9,14 +9,7 @@ try:
 except ImportError:
     asyncio = None
 
-from base.functions.test_extend import test_base_functions_extend
-# tested inside imports itself
-import base.test_number  # noqa: F401
-import base.test_crypto  # noqa: F401
-
-
-
-
+from base.tests_init import test_base_init_rest  # noqa: F401
 
 
 # ########### args ###########
@@ -32,7 +25,7 @@ if (isBaseTests or isAllTest):
     exchange = ccxt.Exchange({  # noqa: F405
         'id': 'xyzexchange',
     })
-    test_base_functions_extend(exchange)
+    test_base_init_rest(exchange)
     print('base tests passed!')
 
 
