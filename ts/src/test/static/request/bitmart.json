@@ -7,7 +7,7 @@
             {
                 "description": "Fetch spot ticker",
                 "method": "fetchTicker",
-                "url": "https://api-cloud.bitmart.com/spot/v1/ticker?symbol=BTC_USDT",
+                "url": "https://api-cloud.bitmart.com/spot/quotation/v3/ticker?symbol=BTC_USDT",
                 "input": [
                     "BTC/USDT"
                 ]
@@ -18,22 +18,6 @@
                 "url": "https://api-cloud.bitmart.com/contract/v1/tickers?contract_symbol=BTCUSDT",
                 "input": [
                     "BTC/USDT:USDT"
-                ]
-            },
-            {
-                "description": "Swap ticker",
-                "method": "fetchTicker",
-                "url": "https://api-cloud.bitmart.com/contract/v1/tickers?contract_symbol=BTCUSDT",
-                "input": [
-                    "BTC/USDT:USDT"
-                ]
-            },
-            {
-                "description": "spot ticker",
-                "method": "fetchTicker",
-                "url": "https://api-cloud.bitmart.com/spot/v1/ticker?symbol=BTC_USDT",
-                "input": [
-                    "BTC/USDT"
                 ]
             }
         ],
