@@ -41,7 +41,7 @@
             {
                 "description": "Fetch spot tickers",
                 "method": "fetchTickers",
-                "url": "https://api-cloud.bitmart.com/spot/v2/ticker",
+                "url": "https://api-cloud.bitmart.com/spot/quotation/v3/tickers",
                 "input": [
                     [
                         "BTC/USDT"
@@ -61,7 +61,7 @@
             {
                 "description": "spot tickers",
                 "method": "fetchTickers",
-                "url": "https://api-cloud.bitmart.com/spot/v2/ticker",
+                "url": "https://api-cloud.bitmart.com/spot/quotation/v3/tickers",
                 "input": [
                     [
                         "BTC/USDT",
