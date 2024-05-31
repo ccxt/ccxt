@@ -229,19 +229,19 @@ export default class oxfun extends Exchange {
                     'MATIC': 'Polygon',
                     'FTM': 'Fantom',
                     'BNB': 'BNBSmartChain',
-                    'Optimism': 'Optimism', // todo check
+                    'OPTIMISM': 'Optimism',
                 },
                 'networksById': {
                     'Bitcoin': 'BTC',
                     'Ethereum': 'ERC20',
                     'Avalanche': 'AVAX',
-                    'Solana': 'SOL', // todo check
+                    'Solana': 'SOL',
                     'Arbitrum': 'ARB',
-                    'Polygon': 'MATIC', // todo check
-                    'Fantom': 'FTM', // todo check
-                    'Base': 'BASE', // todo check
+                    'Polygon': 'MATIC',
+                    'Fantom': 'FTM',
+                    'Base': 'BASE',
                     'BNBSmartChain': 'BNB',
-                    'Optimism': 'Optimism', // todo check
+                    'Optimism': 'OPTIMISM',
                 },
             },
             'exceptions': {
@@ -906,11 +906,9 @@ export default class oxfun extends Exchange {
         if (until !== undefined) {
             request['endTime'] = until;
             params = this.omit (params, 'until');
+        } else if (since !== undefined) {
+            request['endTime'] = this.sum (since, 7 * 24 * 60 * 60 * 1000); // for the exchange not to throw an exception if since is younger than 7 days
         }
-        // todo should we add this?
-        // else if (since !== undefined) {
-        //     request['endTime'] = this.sum (since, 7 * 24 * 60 * 60 * 1000);
-        // }
         const response = await this.publicGetV3Candles (this.extend (request, params));
         //
         //     {
@@ -1377,11 +1375,9 @@ export default class oxfun extends Exchange {
         if (until !== undefined) {
             request['endTime'] = until;
             params = this.omit (params, 'until');
+        } else if (since !== undefined) {
+            request['endTime'] = this.sum (since, 7 * 24 * 60 * 60 * 1000); // for the exchange not to throw an exception if since is younger than 7 days
         }
-        // todo should we add this?
-        // else if (since !== undefined) {
-        //     request['endTime'] = this.sum (since, 7 * 24 * 60 * 60 * 1000);
-        // }
         const response = await this.publicGetV3ExchangeTrades (this.extend (request, params));
         //
         //     {
@@ -1433,11 +1429,9 @@ export default class oxfun extends Exchange {
         if (until !== undefined) {
             request['endTime'] = until;
             params = this.omit (params, 'until');
+        } else if (since !== undefined) {
+            request['endTime'] = this.sum (since, 7 * 24 * 60 * 60 * 1000); // for the exchange not to throw an exception if since is younger than 7 days
         }
-        // todo should we add this?
-        // else if (since !== undefined) {
-        //     request['endTime'] = this.sum (since, 7 * 24 * 60 * 60 * 1000);
-        // }
         const response = await this.privateGetV3Trades (this.extend (request, params));
         //
         //     {
@@ -1739,11 +1733,9 @@ export default class oxfun extends Exchange {
         if (until !== undefined) {
             request['endTime'] = until;
             params = this.omit (params, 'until');
+        } else if (since !== undefined) {
+            request['endTime'] = this.sum (since, 7 * 24 * 60 * 60 * 1000); // for the exchange not to throw an exception if since is younger than 7 days
         }
-        // todo should we add this?
-        // else if (since !== undefined) {
-        //     request['endTime'] = this.sum (since, 7 * 24 * 60 * 60 * 1000);
-        // }
         const response = await this.privateGetV3Transfer (this.extend (request, params));
         //
         //     {
@@ -2491,7 +2483,7 @@ export default class oxfun extends Exchange {
         } else {
             request['quantity'] = amount; // todo amountToPrecision
         }
-        const triggerPrice = this.safeNumber2 (params, 'triggerPrice', 'stopPrice');
+        const triggerPrice = this.safeString2 (params, 'triggerPrice', 'stopPrice');
         let orderType = type.toUpperCase ();
         if (triggerPrice !== undefined) {
             if (orderType === 'MARKET') {
@@ -2504,9 +2496,7 @@ export default class oxfun extends Exchange {
         }
         request['orderType'] = orderType;
         if (orderType === 'STOP_LIMIT') {
-            const limitPrice = this.safeNumber (params, 'limitPrice', price);
-            request['limitPrice'] = limitPrice; // todo priceToPrecision
-            params = this.omit (params, 'limitPrice');
+            request['limitPrice'] = price; // todo priceToPrecision
         } else if (price !== undefined) {
             request['price'] = price; // todo priceToPrecision
         }
