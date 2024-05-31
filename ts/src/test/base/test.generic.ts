@@ -149,4 +149,4 @@ function testGeneric() {
 	testSortBy()
 }
 
-testGeneric()
+export default testGeneric;

@@ -4,12 +4,12 @@ import ololog from 'ololog'
 import { strictEqual, deepEqual } from 'assert' // for easier debugging
 import { Exchange, functions } from '../../../ccxt.js'
 
-import './test.generic.js'
-import './test.time.js'
-import './test.type.js'
-import './test.number.js'
-import './test.datetime.js'
-import './test.crypto.js'
+import testGeneric from './test.generic.js'
+// import './test.time.js'
+import testTypeAll from './test.type.js'
+import testNumberAll from './test.number.js'
+import testDatetimeAll from './test.datetime.js'
+import testCryptoAll from './test.crypto.js'
 
 
 import testBaseFunctionsExtend from './test.extend.js';
@@ -203,7 +203,16 @@ function testUnCamelCase () {
 
 // ----------------------------------------------------------------------------
 
-function testBase () {
+
+function baseTestsInit (exchange) {
+    testBaseFunctionsExtend (exchange);
+    testUnCamelCase ();
+    testCryptoAll ();
+    testDatetimeAll ();
+    testNumberAll ();
+    testTypeAll ();
+    testGeneric ();
+
     testCalculateFee ()
     // testExchangeConfigExtension () // skipped
     testAggregate ()
@@ -211,13 +220,6 @@ function testBase () {
     testCamelCasePropertyConversion ()
     testCamelCasePropertyConversion2 ()
     testLegacyHasSomething ()
-}
-
-
-function baseTestsInit (exchange) {
-    testBaseFunctionsExtend (exchange);
-    testUnCamelCase ();
-    testBase ();
     console.log ('base tests passed!');
 }
 

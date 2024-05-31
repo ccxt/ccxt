@@ -53,9 +53,10 @@ function testSafeValue() {
     equal (safeValue ({ 'foo': 0 }, 'foo'), 0)
 }
 
-function testType () {
+function testTypeAll () {
     testSafeFloatSafeInteger ()
     testSafeValue ()
 }
 
-testType ()
+export default testTypeAll;
+
