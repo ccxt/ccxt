@@ -6,7 +6,7 @@ import { AuthenticationError, ExchangeNotAvailable, OnMaintenance, AccountSuspen
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE, TRUNCATE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { Int, OrderSide, Balances, OrderType, OHLCV, Order, Str, Trade, Transaction, Ticker, OrderBook, Tickers, Strings, Currency, Market, TransferEntry, Num, TradingFeeInterface, Currencies, IsolatedBorrowRates, IsolatedBorrowRate, Dict, TransferEntries, OrderRequest, int } from './base/types.js';
+import type { Int, OrderSide, Balances, OrderType, OHLCV, Order, Str, Trade, Transaction, Ticker, OrderBook, Tickers, Strings, Currency, Market, TransferEntry, Num, TradingFeeInterface, Currencies, IsolatedBorrowRates, IsolatedBorrowRate, Dict, TransferEntries, OrderRequest, int, List } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -1140,25 +1140,24 @@ export default class bitmart extends Exchange {
         //
         // spot (REST)
         //
-        //      {
-        //          "symbol": "SOLAR_USDT",
-        //          "last_price": "0.020342",
-        //          "quote_volume_24h": "56817.811802",
-        //          "base_volume_24h": "2172060",
-        //          "high_24h": "0.256000",
-        //          "low_24h": "0.016980",
-        //          "open_24h": "0.022309",
-        //          "close_24h": "0.020342",
-        //          "best_ask": "0.020389",
-        //          "best_ask_size": "339.000000000000000000000000000000",
-        //          "best_bid": "0.020342",
-        //          "best_bid_size": "3369.000000000000000000000000000000",
-        //          "fluctuation": "-0.0882",
-        //          "url": "https://www.bitmart.com/trade?symbol=SOLAR_USDT",
-        //          "timestamp": 1667403439367
-        //      }
+        //     [
+        //         "AFIN_USDT",     // symbol
+        //         "0.001047",      // last
+        //         "11110",         // v_24h
+        //         "11.632170",     // qv_24h
+        //         "0.001048",      // open_24h
+        //         "0.001048",      // high_24h
+        //         "0.001047",      // low_24h
+        //         "-0.00095",      // price_change_24h
+        //         "0.001029",      // bid_px
+        //         "5555",          // bid_sz
+        //         "0.001041",      // ask_px
+        //         "5297",          // ask_sz
+        //         "1717122550482"  // timestamp
+        //     ]
         //
         // spot (WS)
+        //
         //      {
         //          "symbol":"BTC_USDT",
         //          "last_price":"146.24",
@@ -1184,21 +1183,22 @@ export default class bitmart extends Exchange {
         //          "legal_coin_price":"0.1302699"
         //      }
         //
-        let timestamp = this.safeInteger (ticker, 'timestamp');
+        let timestamp = this.safeInteger2 (ticker, 'timestamp', 12);
         if (timestamp === undefined) {
             // ticker from WS has a different field (in seconds)
             timestamp = this.safeIntegerProduct (ticker, 's_t', 1000);
         }
-        const marketId = this.safeString2 (ticker, 'symbol', 'contract_symbol');
+        const marketId = this.safeStringN (ticker, [ 'symbol', 'contract_symbol', 0 ]);
         market = this.safeMarket (marketId, market);
         const symbol = market['symbol'];
-        const last = this.safeString2 (ticker, 'close_24h', 'last_price');
+        const last = this.safeString2 (ticker, 'last_price', 1);
         let percentage = Precise.stringAbs (this.safeString (ticker, 'price_change_percent_24h'));
+        const change = this.safeString2 (ticker, 'fluctuation', 7);
         if (percentage === undefined) {
-            percentage = Precise.stringAbs (Precise.stringMul (this.safeString (ticker, 'fluctuation'), '100'));
+            percentage = Precise.stringAbs (Precise.stringMul (change, '100'));
         }
-        let baseVolume = this.safeString (ticker, 'base_volume_24h');
-        let quoteVolume = this.safeString (ticker, 'quote_volume_24h');
+        let baseVolume = this.safeString2 (ticker, 'base_volume_24h', 2);
+        let quoteVolume = this.safeStringLower2 (ticker, 'quote_volume_24h', 3);
         if (quoteVolume === undefined) {
             if (baseVolume === undefined) {
                 // this is swap
@@ -1211,24 +1211,24 @@ export default class bitmart extends Exchange {
             }
         }
         const average = this.safeString2 (ticker, 'avg_price', 'index_price');
-        const high = this.safeString2 (ticker, 'high_24h', 'high_price');
-        const low = this.safeString2 (ticker, 'low_24h', 'low_price');
+        const high = this.safeStringN (ticker, [ 'high_24h', 'high_price', 5 ]);
+        const low = this.safeStringN (ticker, [ 'low_24h', 'low_price', 6 ]);
         return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'high': high,
             'low': low,
-            'bid': this.safeString (ticker, 'best_bid'),
-            'bidVolume': this.safeString (ticker, 'best_bid_size'),
-            'ask': this.safeString (ticker, 'best_ask'),
-            'askVolume': this.safeString (ticker, 'best_ask_size'),
+            'bid': this.safeString2 (ticker, 'best_bid', 8),
+            'bidVolume': this.safeString2 (ticker, 'best_bid_size', 9),
+            'ask': this.safeString2 (ticker, 'best_ask', 10),
+            'askVolume': this.safeString2 (ticker, 'best_ask_size', 11),
             'vwap': undefined,
-            'open': this.safeString (ticker, 'open_24h'),
+            'open': this.safeString2 (ticker, 'open_24h', 4),
             'close': last,
             'last': last,
             'previousClose': undefined,
-            'change': undefined,
+            'change': change,
             'percentage': percentage,
             'average': average,
             'baseVolume': baseVolume,
@@ -1330,7 +1330,7 @@ export default class bitmart extends Exchange {
          * @method
          * @name bitmart#fetchTickers
          * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
-         * @see https://developer-pro.bitmart.com/en/spot/#get-ticker-of-all-pairs-v2
+         * @see https://developer-pro.bitmart.com/en/spot/#get-ticker-of-all-pairs-v3
          * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
@@ -1346,14 +1346,66 @@ export default class bitmart extends Exchange {
         [ type, params ] = this.handleMarketTypeAndParams ('fetchTickers', market, params);
         let response = undefined;
         if (type === 'spot') {
-            response = await this.publicGetSpotV2Ticker (params);
+            response = await this.publicGetSpotQuotationV3Tickers (params);
+            //
+            //     {
+            //         "code": 1000,
+            //         "trace": "17c5e5d9ac49f9b71efca2bed55f1a.105.171225637482393",
+            //         "message": "success",
+            //         "data": [
+            //             [
+            //                 "AFIN_USDT",
+            //                 "0.001047",
+            //                 "11110",
+            //                 "11.632170",
+            //                 "0.001048",
+            //                 "0.001048",
+            //                 "0.001047",
+            //                 "-0.00095",
+            //                 "0.001029",
+            //                 "5555",
+            //                 "0.001041",
+            //                 "5297",
+            //                 "1717122550482"
+            //             ],
+            //         ]
+            //     }
+            //
         } else if (type === 'swap') {
             response = await this.publicGetContractV1Tickers (params);
+            //
+            //     {
+            //         "message": "OK",
+            //         "code": 1000,
+            //         "trace": "c1dec681c24ea5d.105.171712565",
+            //         "data": {
+            //             "tickers": [
+            //                 {
+            //                     "contract_symbol": "SNTUSDT",
+            //                     "last_price": "0.0366600",
+            //                     "index_price": "0.03587373",
+            //                     "last_funding_rate": "0.00005000",
+            //                     "price_change_percent_24h": "-2.629",
+            //                     "volume_24h": "10102540.19909109848",
+            //                     "url": "https://futures.bitmart.com/en?symbol=SNTUSDT",
+            //                     "high_price": "0.0405600",
+            //                     "low_price": "0.0355000",
+            //                     "legal_coin_price": "0.03666697"
+            //                 },
+            //             ]
+            //         }
+            //     }
+            //
         } else {
             throw new NotSupported (this.id + ' fetchTickers() does not support ' + type + ' markets, only spot and swap markets are accepted');
         }
-        const data = this.safeValue (response, 'data', {});
-        const tickers = this.safeValue (data, 'tickers', []);
+        let tickers: List = [];
+        if (type === 'spot') {
+            tickers = this.safeList (response, 'data', []);
+        } else {
+            const data = this.safeDict (response, 'data', {});
+            tickers = this.safeList (data, 'tickers', []);
+        }
         const result: Dict = {};
         for (let i = 0; i < tickers.length; i++) {
             const ticker = this.parseTicker (tickers[i]);
