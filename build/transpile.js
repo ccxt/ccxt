@@ -2260,7 +2260,7 @@ class Transpiler {
             ts: './ts/src/test/Exchange/',
             tsBase: './ts/src/test/Exchange/base/',
             py: './python/ccxt/test/',
-            pyBase: './python/ccxt/test/base/',
+            pyBase: './python/ccxt/test/exchange/base/',
             php: './php/test/',
             phpBase: './php/test/exchange/base/',
         };
@@ -2633,11 +2633,11 @@ class Transpiler {
                 const isSharedMethodsImport = subTestName.includes ('SharedMethods');
                 const isSameDirImport = tests.find(t => t.name === subTestName);
                 const phpPrefix = isSameDirImport ? '__DIR__ . \'/' : 'PATH_TO_CCXT . \'/test/exchange/base/';
-                let pySuffix = isSameDirImport ? '' : '.base';
+                let pySuffix = isSameDirImport ? '' : '.exchange.base';
 
                 if (isSharedMethodsImport) {
-                    pythonHeaderAsync.push (`from ccxt.test.base import test_shared_methods  # noqa E402`)
-                    pythonHeaderSync.push (`from ccxt.test.base import test_shared_methods  # noqa E402`)
+                    pythonHeaderAsync.push (`from ccxt.test.exchange.base import test_shared_methods  # noqa E402`)
+                    pythonHeaderSync.push (`from ccxt.test.exchange.base import test_shared_methods  # noqa E402`)
 
                     // php
                     if (!test.base) {
@@ -2648,7 +2648,7 @@ class Transpiler {
                 } else {
                     if (test.base) {
                         phpHeaderSync.push (`include_once __DIR__ . '/${snake_case}.php';`)
-                        pythonHeaderSync.push (`from ccxt.test.base.${snake_case} import ${snake_case}  # noqa E402`)
+                        pythonHeaderSync.push (`from ccxt.test.exchange.base.${snake_case} import ${snake_case}  # noqa E402`)
                     } else {
                         phpHeaderSync.push (`include_once ${phpPrefix}${snake_case}.php';`)
                         phpHeaderAsync.push (`include_once ${phpPrefix}${snake_case}.php';`)
