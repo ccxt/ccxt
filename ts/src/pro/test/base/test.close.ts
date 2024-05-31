@@ -76,4 +76,5 @@ async function testClose () {
     process.exit (0);
 }
 
-await testClose ();
+export default testClose;
+

@@ -246,151 +246,156 @@ const negativeStoredIncremetalOrderBookTarget = {
 
 // --------------------------------------------------------------------------------------------------------------------
 
-const orderBook = new OrderBook (orderBookInput);
-const limited = new OrderBook (orderBookInput, 5);
-orderBook.limit ();
-assert (equals (orderBook, orderBookTarget));
+function orderbookTests () {
 
-limited.limit ();
-assert (equals (limited, limitedOrderBookTarget));
+    const orderBook = new OrderBook (orderBookInput);
+    const limited = new OrderBook (orderBookInput, 5);
+    orderBook.limit ();
+    assert (equals (orderBook, orderBookTarget));
 
-orderBook.limit ();
-assert (equals (orderBook, orderBookTarget));
+    limited.limit ();
+    assert (equals (limited, limitedOrderBookTarget));
 
-const bids = orderBook['bids'];
-bids.store (1000, 0);
-orderBook.limit ();
+    orderBook.limit ();
+    assert (equals (orderBook, orderBookTarget));
 
-assert (equals (orderBook, orderBookTarget));
+    const bids = orderBook['bids'];
+    bids.store (1000, 0);
+    orderBook.limit ();
 
-bids.store (3, 4);
-orderBook.limit ();
+    assert (equals (orderBook, orderBookTarget));
 
-assert (equals (orderBook, storeBid));
-bids.store (3, 0);
-orderBook.limit ();
-assert (equals (orderBook, orderBookTarget));
-const asks = limited['asks'];
-asks.store (15.5, 0);
-limited.limit ();
-assert (equals (limited, limitedDeletedOrderBookTarget));
+    bids.store (3, 4);
+    orderBook.limit ();
 
-// --------------------------------------------------------------------------------------------------------------------
+    assert (equals (orderBook, storeBid));
+    bids.store (3, 0);
+    orderBook.limit ();
+    assert (equals (orderBook, orderBookTarget));
+    const asks = limited['asks'];
+    asks.store (15.5, 0);
+    limited.limit ();
+    assert (equals (limited, limitedDeletedOrderBookTarget));
 
-let indexedOrderBook = new IndexedOrderBook (indexedOrderBookInput);
-const limitedIndexedOrderBook = new IndexedOrderBook (indexedOrderBookInput, 5);
-indexedOrderBook.limit ();
-assert (equals (indexedOrderBook, indexedOrderBookTarget));
+    // --------------------------------------------------------------------------------------------------------------------
 
-limitedIndexedOrderBook.limit ();
-assert (equals (limitedIndexedOrderBook, limitedIndexedOrderBookTarget));
-indexedOrderBook.limit ();
-assert (equals (indexedOrderBook, indexedOrderBookTarget));
+    let indexedOrderBook = new IndexedOrderBook (indexedOrderBookInput);
+    const limitedIndexedOrderBook = new IndexedOrderBook (indexedOrderBookInput, 5);
+    indexedOrderBook.limit ();
+    assert (equals (indexedOrderBook, indexedOrderBookTarget));
 
-const indexedBids = indexedOrderBook['bids'];
-indexedBids.storeArray ([ 1000, 0, '12345' ]);
-assert (equals (indexedOrderBook, indexedOrderBookTarget));
-indexedBids.storeArray ([ 10, 0, '1234' ]);
-indexedBids.storeArray ([ 10, 2, '1231' ]);
-indexedBids.storeArray ([ 10, 1, '1232' ]);
-indexedBids.storeArray ([ 4, 2, '12399' ]);
-indexedBids.storeArray ([ 9, 2, '1231' ]);
-indexedBids.storeArray ([ 9, 3, '1231' ]);
-indexedBids.storeArray ([ 9, 1, '1232' ]);
-indexedOrderBook.limit ();
-assert (equals (indexedOrderBook, overwrite1234));
-indexedOrderBook = new IndexedOrderBook (indexedOrderBookInput);
-const indexedAsks = indexedOrderBook['asks'];
-indexedAsks.storeArray ([ 13.5, 13, '1244' ]);
-indexedOrderBook.limit ();
-assert (equals (indexedOrderBook, overwrite1244));
+    limitedIndexedOrderBook.limit ();
+    assert (equals (limitedIndexedOrderBook, limitedIndexedOrderBookTarget));
+    indexedOrderBook.limit ();
+    assert (equals (indexedOrderBook, indexedOrderBookTarget));
 
-// --------------------------------------------------------------------------------------------------------------------
+    const indexedBids = indexedOrderBook['bids'];
+    indexedBids.storeArray ([ 1000, 0, '12345' ]);
+    assert (equals (indexedOrderBook, indexedOrderBookTarget));
+    indexedBids.storeArray ([ 10, 0, '1234' ]);
+    indexedBids.storeArray ([ 10, 2, '1231' ]);
+    indexedBids.storeArray ([ 10, 1, '1232' ]);
+    indexedBids.storeArray ([ 4, 2, '12399' ]);
+    indexedBids.storeArray ([ 9, 2, '1231' ]);
+    indexedBids.storeArray ([ 9, 3, '1231' ]);
+    indexedBids.storeArray ([ 9, 1, '1232' ]);
+    indexedOrderBook.limit ();
+    assert (equals (indexedOrderBook, overwrite1234));
+    indexedOrderBook = new IndexedOrderBook (indexedOrderBookInput);
+    const indexedAsks = indexedOrderBook['asks'];
+    indexedAsks.storeArray ([ 13.5, 13, '1244' ]);
+    indexedOrderBook.limit ();
+    assert (equals (indexedOrderBook, overwrite1244));
 
-const countedOrderBook = new CountedOrderBook (countedOrderBookInput);
-const limitedCountedOrderBook = new CountedOrderBook (countedOrderBookInput, 5);
-countedOrderBook.limit ();
-assert (equals (countedOrderBook, countedOrderBookTarget));
+    // --------------------------------------------------------------------------------------------------------------------
 
-limitedCountedOrderBook.limit ();
-assert (equals (limitedCountedOrderBook, limitedCountedOrderBookTarget));
-countedOrderBook.limit ();
-assert (equals (countedOrderBook, countedOrderBookTarget));
+    const countedOrderBook = new CountedOrderBook (countedOrderBookInput);
+    const limitedCountedOrderBook = new CountedOrderBook (countedOrderBookInput, 5);
+    countedOrderBook.limit ();
+    assert (equals (countedOrderBook, countedOrderBookTarget));
 
-const countedBids = countedOrderBook['bids'];
-countedBids.storeArray ([ 5, 0, 6 ]);
-countedOrderBook.limit ();
-assert (equals (countedOrderBook, countedOrderBookTarget));
-countedBids.storeArray ([ 1, 1, 6 ]);
-countedOrderBook.limit ();
-assert (equals (countedOrderBook, storedCountedOrderbookTarget));
+    limitedCountedOrderBook.limit ();
+    assert (equals (limitedCountedOrderBook, limitedCountedOrderBookTarget));
+    countedOrderBook.limit ();
+    assert (equals (countedOrderBook, countedOrderBookTarget));
 
-// --------------------------------------------------------------------------------------------------------------------
+    const countedBids = countedOrderBook['bids'];
+    countedBids.storeArray ([ 5, 0, 6 ]);
+    countedOrderBook.limit ();
+    assert (equals (countedOrderBook, countedOrderBookTarget));
+    countedBids.storeArray ([ 1, 1, 6 ]);
+    countedOrderBook.limit ();
+    assert (equals (countedOrderBook, storedCountedOrderbookTarget));
 
-// let incrementalOrderBook = new IncrementalOrderBook (incrementalOrderBookInput);
-// const limitedIncrementalOrderBook = new IncrementalOrderBook (incrementalOrderBookInput, 5);
-// incrementalOrderBook.limit ();
-// assert (equals (incrementalOrderBook, incremetalOrderBookTarget));
+    // --------------------------------------------------------------------------------------------------------------------
 
-// incrementalOrderBook.limit (5);
-// limitedIncrementalOrderBook.limit ();
-// assert (equals (incrementalOrderBook, limitedIncremetalOrderBookTarget));
-// assert (equals (limitedIncrementalOrderBook, limitedIncremetalOrderBookTarget));
-// incrementalOrderBook.limit ();
-// assert (equals (incrementalOrderBook, incremetalOrderBookTarget));
+    // let incrementalOrderBook = new IncrementalOrderBook (incrementalOrderBookInput);
+    // const limitedIncrementalOrderBook = new IncrementalOrderBook (incrementalOrderBookInput, 5);
+    // incrementalOrderBook.limit ();
+    // assert (equals (incrementalOrderBook, incremetalOrderBookTarget));
 
-// bids = incrementalOrderBook['bids'];
-// bids.store (3, 3);
-// incrementalOrderBook.limit ();
-// assert (equals (incrementalOrderBook, storedIncremetalOrderBookTarget));
-// bids.store (3, 7);
-// incrementalOrderBook.limit ();
-// assert (equals (incrementalOrderBook, doubleStoredIncremetalOrderBookTarget));
-// bids.store (17, 0);
-// assert (equals (incrementalOrderBook, doubleStoredIncremetalOrderBookTarget));
-// incrementalOrderBook = new IncrementalOrderBook (incrementalOrderBookInput);
-// asks = incrementalOrderBook['asks'];
-// asks.store (15.5, -10);
-// incrementalOrderBook.limit ();
-// assert (equals (incrementalOrderBook, negativeStoredIncremetalOrderBookTarget));
+    // incrementalOrderBook.limit (5);
+    // limitedIncrementalOrderBook.limit ();
+    // assert (equals (incrementalOrderBook, limitedIncremetalOrderBookTarget));
+    // assert (equals (limitedIncrementalOrderBook, limitedIncremetalOrderBookTarget));
+    // incrementalOrderBook.limit ();
+    // assert (equals (incrementalOrderBook, incremetalOrderBookTarget));
 
-// --------------------------------------------------------------------------------------------------------------------
+    // bids = incrementalOrderBook['bids'];
+    // bids.store (3, 3);
+    // incrementalOrderBook.limit ();
+    // assert (equals (incrementalOrderBook, storedIncremetalOrderBookTarget));
+    // bids.store (3, 7);
+    // incrementalOrderBook.limit ();
+    // assert (equals (incrementalOrderBook, doubleStoredIncremetalOrderBookTarget));
+    // bids.store (17, 0);
+    // assert (equals (incrementalOrderBook, doubleStoredIncremetalOrderBookTarget));
+    // incrementalOrderBook = new IncrementalOrderBook (incrementalOrderBookInput);
+    // asks = incrementalOrderBook['asks'];
+    // asks.store (15.5, -10);
+    // incrementalOrderBook.limit ();
+    // assert (equals (incrementalOrderBook, negativeStoredIncremetalOrderBookTarget));
 
-// let incrementalIndexedOrderBook = new IncrementalIndexedOrderBook (indexedOrderBookInput);
-// const limitedIncrementalIndexedOrderBook = new IncrementalIndexedOrderBook (indexedOrderBookInput, 5);
-// incrementalIndexedOrderBook.limit ();
-// assert (equals (incrementalIndexedOrderBook, incrementalIndexedOrderBookTarget));
+    // --------------------------------------------------------------------------------------------------------------------
 
-// incrementalIndexedOrderBook.limit (5);
-// limitedIncrementalIndexedOrderBook.limit ();
-// assert (equals (incrementalIndexedOrderBook, limitedIncrementalIndexedOrderBookTarget));
-// assert (equals (limitedIncrementalIndexedOrderBook, limitedIncrementalIndexedOrderBookTarget));
-// incrementalIndexedOrderBook.limit ();
-// assert (equals (incrementalIndexedOrderBook, incrementalIndexedOrderBookTarget));
+    // let incrementalIndexedOrderBook = new IncrementalIndexedOrderBook (indexedOrderBookInput);
+    // const limitedIncrementalIndexedOrderBook = new IncrementalIndexedOrderBook (indexedOrderBookInput, 5);
+    // incrementalIndexedOrderBook.limit ();
+    // assert (equals (incrementalIndexedOrderBook, incrementalIndexedOrderBookTarget));
 
-// bids = incrementalIndexedOrderBook['bids'];
-// bids.store (5, 0, 'xxyy');
-// incrementalIndexedOrderBook.limit ();
-// assert (equals (incrementalIndexedOrderBook, incrementalIndexedOrderBookTarget));
+    // incrementalIndexedOrderBook.limit (5);
+    // limitedIncrementalIndexedOrderBook.limit ();
+    // assert (equals (incrementalIndexedOrderBook, limitedIncrementalIndexedOrderBookTarget));
+    // assert (equals (limitedIncrementalIndexedOrderBook, limitedIncrementalIndexedOrderBookTarget));
+    // incrementalIndexedOrderBook.limit ();
+    // assert (equals (incrementalIndexedOrderBook, incrementalIndexedOrderBookTarget));
 
-// bids.store (10.0, 3, '1234');  // price does match merge size
-// incrementalIndexedOrderBook.limit ();
-// assert (equals (incrementalIndexedOrderBook, storedIncrementalIndexedOrderBookTarget));
+    // bids = incrementalIndexedOrderBook['bids'];
+    // bids.store (5, 0, 'xxyy');
+    // incrementalIndexedOrderBook.limit ();
+    // assert (equals (incrementalIndexedOrderBook, incrementalIndexedOrderBookTarget));
 
-// bids.store (0, 0, '1234');
-// incrementalIndexedOrderBook.limit ();
-// assert (equals (incrementalIndexedOrderBook, incrementalIndexedOrderBookDeletedTarget));
+    // bids.store (10.0, 3, '1234');  // price does match merge size
+    // incrementalIndexedOrderBook.limit ();
+    // assert (equals (incrementalIndexedOrderBook, storedIncrementalIndexedOrderBookTarget));
 
-// incrementalIndexedOrderBook = new IncrementalIndexedOrderBook (indexedOrderBookInput);
-// bids = incrementalIndexedOrderBook['bids'];
-// bids.store (10.2, 3, '1234');  // price does not match merge size
-// incrementalIndexedOrderBook.limit ();
-// assert (equals (incrementalIndexedOrderBook, anotherStoredIncrementalIndexedOrderBookTarget));
+    // bids.store (0, 0, '1234');
+    // incrementalIndexedOrderBook.limit ();
+    // assert (equals (incrementalIndexedOrderBook, incrementalIndexedOrderBookDeletedTarget));
 
-// --------------------------------------------------------------------------------------------------------------------
+    // incrementalIndexedOrderBook = new IncrementalIndexedOrderBook (indexedOrderBookInput);
+    // bids = incrementalIndexedOrderBook['bids'];
+    // bids.store (10.2, 3, '1234');  // price does not match merge size
+    // incrementalIndexedOrderBook.limit ();
+    // assert (equals (incrementalIndexedOrderBook, anotherStoredIncrementalIndexedOrderBookTarget));
 
-const resetBook = new OrderBook (storeBid);
-resetBook.limit ();
-resetBook.reset (orderBookInput);
-resetBook.limit ();
-assert (equals (resetBook, orderBookTarget));
+    // --------------------------------------------------------------------------------------------------------------------
+
+    const resetBook = new OrderBook (storeBid);
+    resetBook.limit ();
+    resetBook.reset (orderBookInput);
+    resetBook.limit ();
+    assert (equals (resetBook, orderBookTarget));
+}
+
+export default orderbookTests;
