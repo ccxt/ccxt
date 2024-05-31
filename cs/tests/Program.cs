@@ -133,23 +133,23 @@ public class Tests
 
     static void RunBaseTests()
     {
-        tests.PrecisionTests();
+        tests.testNumberAll();
         Helper.Green(" [C#] Precision tests passed");
-        tests.DateTimeTests();
+        tests.testDatetimeAll();
         Helper.Green(" [C#] Datetime tests passed");
-        tests.CryptoTests();
+        tests.testCryptoAll();
         Helper.Green(" [C#] Crypto tests passed");
     }
 
     static void RunCacheTests()
     {
-        tests.CacheTests();
+        tests.testCacheAll();
         Helper.Green(" [C#] ArrayCache tests passed");
     }
 
     static void OrderBookTests()
     {
-        tests.OrderBookTests();
+        tests.testOrderBookAll();
         Helper.Green(" [C#] OrderBook tests passed");
     }
 
