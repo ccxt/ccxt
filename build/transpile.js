@@ -2013,7 +2013,7 @@ class Transpiler {
     //-----------------------------------------------------------------------------
 
     transpileDateTimeTests () {
-        const jsFile = './ts/src/test/base/functions/test.datetime.ts'
+        const jsFile = './ts/src/test/base/test.datetime.ts'
         const pyFile = './python/ccxt/test/base/test_datetime.py'
         const phpFile = './php/test/base/test_datetime.php'
 
@@ -2056,7 +2056,7 @@ class Transpiler {
 
     transpilePrecisionTests () {
 
-        const jsFile = './ts/src/test/base/functions/test.number.ts'
+        const jsFile = './ts/src/test/base/test.number.ts'
         const pyFile = './python/ccxt/test/base/test_number.py'
         const phpFile = './php/test/base/test_number.php'
 
@@ -2130,7 +2130,7 @@ class Transpiler {
     //-------------------------------------------------------------------------
 
     transpileCryptoTests () {
-        const jsFile = './ts/src/test/base/functions/test.crypto.ts' // using ts version to avoid formatting issues
+        const jsFile = './ts/src/test/base/test.crypto.ts' // using ts version to avoid formatting issues
         const pyFile = './python/ccxt/test/base/test_crypto.py'
         const phpFile = './php/test/base/test_crypto.php'
 
@@ -2303,9 +2303,9 @@ class Transpiler {
     baseFunctionalitiesTests () {
 
         const baseFolders = {
-            ts: './ts/src/test/base/functions/',
-            py: './python/ccxt/test/base/functions/',
-            php: './php/test/base/functions/',
+            ts: './ts/src/test/base/',
+            py: './python/ccxt/test/base/',
+            php: './php/test/base/',
         };
 
         let baseFunctionTests = fs.readdirSync (baseFolders.ts).filter(filename => filename.endsWith('.ts')).map(filename => filename.replace('.ts', ''));
