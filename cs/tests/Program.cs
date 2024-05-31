@@ -106,7 +106,7 @@ public class Tests
         {
             if (isWs)
             {
-                RunCacheTests();
+                CacheTests();
                 OrderBookTests();
             }
             else 
@@ -139,9 +139,23 @@ public class Tests
         Helper.Green(" [C#] Datetime tests passed");
         tests.testCryptoAll();
         Helper.Green(" [C#] Crypto tests passed");
+        // run auto-transpiled tests (all of them start by 'testBaseFunction')
+        RunAutoTranspiledBaseTests (tests);
     }
 
-    static void RunCacheTests()
+    static void RunAutoTranspiledBaseTests(object testsInstance) {
+        MethodInfo[] methods = testsInstance.GetType()
+                        .GetMethods(BindingFlags.Instance | BindingFlags.Public)
+                        .Where(m => m.Name.StartsWith("testBaseFunction") && m.ReturnType == typeof(void))
+                        .ToArray();
+        // 2. Invoke Each Method
+        foreach (MethodInfo method in methods)
+        {
+            method.Invoke(testsInstance, null); 
+        }
+    }
+
+    static void CacheTests()
     {
         tests.testCacheAll();
         Helper.Green(" [C#] ArrayCache tests passed");
