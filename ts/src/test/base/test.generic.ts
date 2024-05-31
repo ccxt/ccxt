@@ -1,6 +1,6 @@
 /*  ------------------------------------------------------------------------ */
 /* eslint-disable */
-import { deepExtend, groupBy, filterBy, omit, sum, sortBy } from '../../../base/functions/generic.js'
+import { deepExtend, groupBy, filterBy, omit, sum, sortBy } from '../../base/functions/generic.js'
 import { strictEqual, equal, deepEqual } from 'assert'
 
 function testDeepExtend() {

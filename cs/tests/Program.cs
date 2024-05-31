@@ -108,7 +108,9 @@ public class Tests
             {
                 RunCacheTests();
                 OrderBookTests();
-            } else {
+            }
+            else 
+            {
                 RunBaseTests();
             }
             Helper.Green(" [C#] base tests passed");
