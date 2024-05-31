@@ -3,7 +3,7 @@ import ts from "typescript";
 import path from 'path'
 import errors from "../js/src/base/errors.js"
 import { basename, join, resolve } from 'path'
-import { createFolderRecursively, replaceInFile, overwriteFile } from './fsLocal.js'
+import { createFolderRecursively, replaceInFile, overwriteFile, writeFile, checkCreateFolder } from './fsLocal.js'
 import { platform } from 'process'
 import fs from 'fs'
 import log from 'ololog'
@@ -22,6 +22,15 @@ let exchanges = JSON.parse (fs.readFileSync("./exchanges.json", "utf8"));
 const exchangeIds = exchanges.ids
 
 let __dirname = new URL('.', import.meta.url).pathname;
+
+function overwriteSafe (path, content) {
+    try {
+        overwriteFile (path, content);
+    } catch {
+        checkCreateFolder (path);
+        writeFile (path, content);
+    }
+}
 
 // this is necessary because for some reason
 // pathname keeps the first '/' for windows paths
@@ -620,7 +629,7 @@ class NewTranspiler {
         ].join('\n')
         log.magenta ('→', (path as any).yellow)
 
-        overwriteFile (path, file);
+        overwriteSafe (path, file);
     }
 
     transpileErrorHierarchy () {
@@ -686,7 +695,7 @@ class NewTranspiler {
             log.bright.cyan (message, (ERRORS_FILE as any).yellow)
             // const csharpRegex = /(?<=public partial class Exchange\n{)((.|\n)+)(?=})/g
             // replaceInFile (ERRORS_FILE, csharpRegex, csharpBodyIntellisense)
-            overwriteFile (ERRORS_FILE, csharpBodyIntellisense)
+            overwriteSafe (ERRORS_FILE, csharpBodyIntellisense)
         }
 
         log.bright.cyan (message, (ERRORS_FILE as any).yellow)
@@ -795,7 +804,7 @@ class NewTranspiler {
                     '}'
                 ].join('\n');
 
-                overwriteFile (EXAMPLES_OUTPUT_FOLDER + fileName + '.cs', finalFile);
+                overwriteSafe (EXAMPLES_OUTPUT_FOLDER + fileName + '.cs', finalFile);
             }
         }
     }
@@ -983,7 +992,7 @@ class NewTranspiler {
         const csharp  = this.createCSharpClass (csharpResult, ws)
 
         if (csharpFolder) {
-            overwriteFile (csharpFolder + csharpFilename, csharp)
+            overwriteSafe (csharpFolder + csharpFilename, csharp)
             // fs.utimesSync (csharpFolder + csharpFilename, new Date (), new Date (tsMtime))
         }
     }
@@ -1025,7 +1034,7 @@ class NewTranspiler {
 
         log.magenta ('→', (csharpFile as any).yellow)
 
-        overwriteFile (csharpFile, file);
+        overwriteSafe (csharpFile, file);
     }
 
     // ---------------------------------------------------------------------------------------------
@@ -1065,7 +1074,7 @@ class NewTranspiler {
 
         log.magenta ('→', (csharpFile as any).yellow)
 
-        overwriteFile (csharpFile, file);
+        overwriteSafe (csharpFile, file);
     }
 
     // ---------------------------------------------------------------------------------------------
@@ -1100,7 +1109,7 @@ class NewTranspiler {
 
         log.magenta ('→', (csharpFile as any).yellow)
 
-        overwriteFile (csharpFile, file);
+        overwriteSafe (csharpFile, file);
     }
 
     transpileCryptoTestsToCSharp (outDir: string) {
@@ -1135,7 +1144,7 @@ class NewTranspiler {
 
         log.magenta ('→', (csharpFile as any).yellow)
 
-        overwriteFile (csharpFile, file);
+        overwriteSafe (csharpFile, file);
     }
 
     transpileExchangeTest(name: string, path: string): [string, string] {
@@ -1210,16 +1219,13 @@ class NewTranspiler {
             this.createGeneratedHeader().join('\n'),
             'public partial class BaseTest',
             '{',
-            '    public void DateTimeTests()',
-            '    {',
             contentIdented,
-            '    }',
             '}',
         ].join('\n')
 
         log.magenta ('→', (csharpFile as any).yellow)
 
-        overwriteFile (csharpFile, file);
+        overwriteSafe (csharpFile, file);
     }
 
     transpileBaseTestsToCSharp () {
@@ -1249,7 +1255,8 @@ class NewTranspiler {
                 continue;
             }
                 
-            const csharpFile = `${outDir}/${testName}.cs`;
+            const csFileName = this.capitalize(testName.replace ('test.', ''));
+            const csharpFile = `${outDir}/${csFileName}.cs`;
 
             log.magenta ('Transpiling from', (tsFile as any).yellow)
 
@@ -1270,16 +1277,13 @@ class NewTranspiler {
                 this.createGeneratedHeader().join('\n'),
                 'public partial class BaseTest',
                 '{',
-                '    public void PrecisionTests()',
-                '    {',
                 contentIdented,
-                '    }',
                 '}',
             ].join('\n')
 
             log.magenta ('→', (csharpFile as any).yellow)
 
-            overwriteFile (csharpFile, file);
+            overwriteSafe (csharpFile, file);
         } 
     }
 
@@ -1319,7 +1323,7 @@ class NewTranspiler {
             contentIndentend,
         ].join('\n')
 
-        overwriteFile (files.csharpFile, file);
+        overwriteSafe (files.csharpFile, file);
     }
 
     transpileExchangeTests(){
@@ -1439,7 +1443,7 @@ class NewTranspiler {
                     '}',
                 ].join('\n');
             }
-            overwriteFile (tests[idx].csharpFile, csharp);
+            overwriteSafe (tests[idx].csharpFile, csharp);
         });
     }
 
