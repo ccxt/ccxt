@@ -8,8 +8,10 @@ require_once (__DIR__ . '/test_number.php');
 require_once (__DIR__ . '/test_crypto.php');
 require_once (__DIR__ . '/test_extend.php');
 
-function test_base_rest_all($exchange) {
-    test_number_all();
-    test_crypto_all();
-    test_base_functions_extend($exchange);
-}
+
+$exchange = new Exchange ([
+    'id'=> 'xyzexchange',
+]);
+test_number_all();
+test_crypto_all();
+test_base_functions_extend($exchange);

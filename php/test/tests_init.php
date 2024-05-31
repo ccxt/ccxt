@@ -21,16 +21,12 @@ $isAllTest = !$reqResTests && !$isBaseTests && !$isExchangeTests; // if neither 
 // ####### base tests #######
 if ($isBaseTests || $isAllTest) {
     if ($isWs) {
-        // no ws tests yet
+        require_once (__DIR__ . '/../pro/test/base/tests_init.php');
     } else {
         // test base things
         require_once (__DIR__ . '/base/tests_init.php');
-        $exchange = new Exchange ([
-            'id'=> 'xyzexchange',
-        ]);
-        test_base_rest_all($exchange);
-        print('base tests passed!');
     }
+    print('base tests passed!');
 
 }
 
