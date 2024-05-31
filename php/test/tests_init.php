@@ -27,12 +27,10 @@ if ($isBaseTests || $isAllTest) {
         require_once (__DIR__ . '/base/tests_init.php');
     }
     print('base tests passed!');
-
 }
 
 // ####### exchange tests #######
 if ($isExchangeTests || $reqResTests || $isAllTest) {
     // if (is_synchronous)
     (new testMainClass ())->init($argvExchange, $argvSymbol, $argvMethod);
-    print('exchange tests passed!');
 }
