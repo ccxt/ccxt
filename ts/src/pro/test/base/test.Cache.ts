@@ -22,7 +22,7 @@ function equals (a, b) {
 
 // ----------------------------------------------------------------------------
 
-function testCache () {
+function testCacheAll () {
     const arrayCache = new ArrayCache (3);
 
     arrayCache.append ({ 'symbol': 'BTC/USDT', 'data': 1 });
@@ -408,4 +408,4 @@ function testCache () {
     assert (cacheSymbolSide3.getLimit (undefined, outsideLimit) === 1); // watch all positions
 }
 
-export default testCache;
+export default testCacheAll;
