@@ -21,7 +21,7 @@ export default class oxfun extends Exchange {
             'name': 'Oxfun',
             'countries': [ 'PA' ], // Panama todo check
             'version': 'v3',
-            'rateLimit': 120, // 100 requests per second and 25000 per 5 minutes todo check
+            'rateLimit': 120, // 100 requests per second and 25000 per 5 minutes
             'pro': true,
             'has': {
                 'CORS': undefined,
@@ -154,51 +154,51 @@ export default class oxfun extends Exchange {
             'api': {
                 'public': {
                     'get': {
-                        'v3/markets': 1, // unified
-                        'v3/assets': 1, // unified
-                        'v3/tickers': 1, // unified
-                        'v3/funding/estimates': 1, // unified
-                        'v3/candles': 1, // unified
-                        'v3/depth': 1, // unified
-                        'v3/markets/operational': 1, // todo check if it is useful
-                        'v3/exchange-trades': 1, // unified
-                        'v3/funding/rates': 1, // unified
-                        'v3/leverage/tiers': 1, // unified
+                        'v3/markets': 1,
+                        'v3/assets': 1,
+                        'v3/tickers': 1,
+                        'v3/funding/estimates': 1,
+                        'v3/candles': 1,
+                        'v3/depth': 1,
+                        'v3/markets/operational': 1,
+                        'v3/exchange-trades': 1,
+                        'v3/funding/rates': 1,
+                        'v3/leverage/tiers': 1,
                     },
                 },
                 'private': {
                     'get': {
                         'v3/account': 1,
-                        'v3/account/names': 1, // unified
+                        'v3/account/names': 1,
                         'v3/wallet': 1, // retruns only FUNDING in OX
-                        'v3/transfer': 1, // unified
-                        'v3/balances': 1, // unified
-                        'v3/positions': 1, // unified
-                        'v3/funding': 1, // unified
-                        'v3/deposit-addresses': 1, // unified
-                        'v3/deposit': 1, // unified
+                        'v3/transfer': 1,
+                        'v3/balances': 1,
+                        'v3/positions': 1,
+                        'v3/funding': 1,
+                        'v3/deposit-addresses': 1,
+                        'v3/deposit': 1,
                         'v3/withdrawal-addresses': 1,
-                        'v3/withdrawal': 1, // unified
+                        'v3/withdrawal': 1,
                         'v3/withdrawal-fees': 1,
-                        'v3/orders/status': 1, // unified
-                        'v3/orders/working': 1, // unified
-                        'v3/trades': 1, // unified
+                        'v3/orders/status': 1,
+                        'v3/orders/working': 1,
+                        'v3/trades': 1,
                     },
                     'post': {
-                        'v3/transfer': 1, // unified
-                        'v3/withdrawal': 1, // unified
-                        'v3/orders/place': 1, // unified
+                        'v3/transfer': 1,
+                        'v3/withdrawal': 1,
+                        'v3/orders/place': 1,
                     },
                     'delete': {
-                        'v3/orders/cancel': 1, // unified
-                        'v3/orders/cancel-all': 1, // unified
+                        'v3/orders/cancel': 1,
+                        'v3/orders/cancel-all': 1,
                     },
                 },
             },
             'fees': {
                 'trading': {
                     'tierBased': true,
-                    'percentage': true, // todo check
+                    'percentage': true,
                     'maker': this.parseNumber ('0.00020'),
                     'taker': this.parseNumber ('0.00070'),
                     'tiers': {
@@ -339,7 +339,7 @@ export default class oxfun extends Exchange {
         //                     tickSize: '0.00001',
         //                     minSize: '1',
         //                     listedAt: '1704766320000',
-        //                     upperPriceBound: '0.02122', // todo find out what is it
+        //                     upperPriceBound: '0.02122',
         //                     lowerPriceBound: '0.01142',
         //                     markPrice: '0.01632',
         //                     indexPrice: '0.01564',
@@ -427,7 +427,7 @@ export default class oxfun extends Exchange {
         const baseId = this.safeString (parts, 0);
         let quoteId = this.safeString (parts, 1);
         if (quoteId === 'USD') {
-            quoteId = 'USDT'; // todo check
+            quoteId = 'USDT';
         }
         const base = this.safeCurrencyCode (baseId);
         const quote = this.safeCurrencyCode (quoteId);
@@ -437,9 +437,9 @@ export default class oxfun extends Exchange {
         let settle: Str = undefined;
         const isFuture = (type === 'future'); // the exchange has only perpetual futures
         if (isFuture) {
-            type = 'swap'; // todo check
-            settleId = 'OX'; // todo check
-            settle = this.safeCurrencyCode ('OX'); // todo check
+            type = 'swap';
+            settleId = 'OX';
+            settle = this.safeCurrencyCode ('OX');
             symbol = symbol + ':' + settle;
         }
         const isSpot = type === 'spot';
@@ -455,17 +455,17 @@ export default class oxfun extends Exchange {
             'settleId': settleId,
             'type': type,
             'spot': isSpot,
-            'margin': false, // todo check for spot market
+            'margin': false,
             'swap': isFuture,
             'future': false,
             'option': false,
-            'active': true, // todo check
+            'active': true,
             'contract': isFuture,
-            'linear': isFuture ? true : undefined, // todo check
-            'inverse': isFuture ? false : undefined, // todo check
+            'linear': isFuture ? true : undefined,
+            'inverse': isFuture ? false : undefined,
             'taker': this.fees['trading']['taker'],
             'maker': this.fees['trading']['maker'],
-            'contractSize': isFuture ? 1 : undefined, // todo check
+            'contractSize': isFuture ? 1 : undefined,
             'expiry': undefined,
             'expiryDatetime': undefined,
             'strike': undefined,
@@ -564,7 +564,7 @@ export default class oxfun extends Exchange {
         //                         "transactionPrecision": "18",
         //                         "isWithdrawalFeeChargedToUser": true,
         //                         "canDeposit": true,
-        //                         "canWithdraw": false, // todo check
+        //                         "canWithdraw": false,
         //                         "minDeposit": "0.00010",
         //                         "minWithdrawal": "0.00010"
         //                     },
@@ -702,7 +702,7 @@ export default class oxfun extends Exchange {
                 'code': code,
                 'name': undefined,
                 'type': undefined,
-                'active': undefined, // todo check
+                'active': undefined,
                 'deposit': currencyDepositEnabled,
                 'withdraw': currencyWithdrawEnabled,
                 'fee': undefined,
@@ -829,7 +829,7 @@ export default class oxfun extends Exchange {
         return this.parseTicker (ticker, market);
     }
 
-    parseTicker (ticker, market: Market = undefined): Ticker { // todo make sure the parsed ticker is correct
+    parseTicker (ticker, market: Market = undefined): Ticker {
         //
         //     {
         //         "marketCode": "BTC-USD-SWAP-LIN",
@@ -869,7 +869,7 @@ export default class oxfun extends Exchange {
             'percentage': undefined,
             'average': undefined,
             'baseVolume': this.safeString (ticker, 'currencyVolume24h'),
-            'quoteVolume': undefined, // todo check - exchange returns volume in OX
+            'quoteVolume': undefined, // the exchange returns cost in OX
             'info': ticker,
         }, market);
     }
@@ -1515,7 +1515,7 @@ export default class oxfun extends Exchange {
             'takerOrMaker': this.safeStringLower2 (trade, 'matchType', 'orderMatchType'),
             'price': this.safeString (trade, 'matchPrice'),
             'amount': this.safeString2 (trade, 'matchQuantity', 'matchedQuantity'),
-            'cost': undefined, // todo check - the exchange returns total cost in OX
+            'cost': undefined, // the exchange returns total cost in OX
             'fee': fee,
             'info': trade,
         }, market);
@@ -2153,7 +2153,7 @@ export default class oxfun extends Exchange {
          * @see https://docs.ox.fun/?json#get-v3-positions
          * @param {string[]|undefined} symbols list of unified market symbols
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {boolean} [params.subAcc] todo
+         * @param {boolean} [params.subAcc]
          * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
          */
         // Calling this endpoint using an API key pair linked to the parent account with the parameter "subAcc"
@@ -2236,11 +2236,11 @@ export default class oxfun extends Exchange {
             'id': undefined,
             'symbol': market['symbol'],
             'notional': undefined,
-            'marginMode': 'cross', // todo check
+            'marginMode': 'cross',
             'liquidationPrice': this.safeNumber (position, 'estLiquidationPrice'),
             'entryPrice': this.safeNumber (position, 'entryPrice'),
             'unrealizedPnl': this.safeNumber (position, 'positionPnl'),
-            'realizedPnl': undefined, // todo check
+            'realizedPnl': undefined,
             'percentage': undefined,
             'contracts': this.safeNumber (position, 'position'),
             'contractSize': undefined,
@@ -2481,6 +2481,7 @@ export default class oxfun extends Exchange {
         const request: Dict = {
             'marketCode': market['id'],
             'side': side.toUpperCase (),
+            'source': 1000,
         };
         const cost = this.safeString2 (params, 'cost', 'amount');
         if (cost !== undefined) {
@@ -2515,7 +2516,7 @@ export default class oxfun extends Exchange {
         if (postOnly && (timeInForce !== 'MAKER_ONLY_REPRICE')) {
             request['timeInForce'] = 'MAKER_ONLY';
         }
-        return this.extend (request, params); // todo YZH need your explanation
+        return this.extend (request, params);
     }
 
     async createMarketBuyOrderWithCost (symbol: string, cost: number, params = {}) {
@@ -2717,6 +2718,115 @@ export default class oxfun extends Exchange {
 
     parseOrder (order, market: Market = undefined): Order {
         //
+        // accepted market order responseType FULL
+        //     {
+        //         "notice": "OrderMatched",
+        //         "accountId": "106490",
+        //         "orderId": "1000109901865",
+        //         "submitted": true,
+        //         "clientOrderId": "0",
+        //         "marketCode": "OX-USDT",
+        //         "status": "FILLED",
+        //         "side": "SELL",
+        //         "isTriggered": false,
+        //         "quantity": "150.0",
+        //         "amount": "0.0",
+        //         "remainQuantity": "0.0",
+        //         "matchId": "100017047880451399",
+        //         "matchPrice": "0.01465",
+        //         "matchQuantity": "150.0",
+        //         "feeInstrumentId": "USDT",
+        //         "fees": "0.0015382500",
+        //         "orderType": "MARKET",
+        //         "createdAt": "1715592472236",
+        //         "lastMatchedAt": "1715592472200",
+        //         "displayQuantity": "150.0"
+        //     }
+        //
+        // accepted limit order responseType FULL
+        //     {
+        //         "notice": "OrderOpened",
+        //         "accountId": "106490",
+        //         "orderId": "1000111482406",
+        //         "submitted": true,
+        //         "clientOrderId": "0",
+        //         "marketCode": "ETH-USD-SWAP-LIN",
+        //         "status": "OPEN",
+        //         "side": "SELL",
+        //         "price": "4000.0",
+        //         "isTriggered": false,
+        //         "quantity": "0.01",
+        //         "amount": "0.0",
+        //         "orderType": "LIMIT",
+        //         "timeInForce": "GTC",
+        //         "createdAt": "1715763507682",
+        //         "displayQuantity": "0.01"
+        //     }
+        //
+        // accepted order responseType ACK
+        //     {
+        //         "accountId": "106490",
+        //         "orderId": "1000109892193",
+        //         "submitted": true,
+        //         "marketCode": "OX-USDT",
+        //         "side": "BUY",
+        //         "price": "0.01961",
+        //         "isTriggered": false,
+        //         "quantity": "100",
+        //         "orderType": "MARKET",
+        //         "timeInForce": "IOC",
+        //         "createdAt": "1715591529057",
+        //         "selfTradePreventionMode": "NONE"
+        //     }
+        //
+        //  rejected order (balance insufficient)
+        //     {
+        //         "code": "710001",
+        //         "message": "System failure, exception thrown -> null",
+        //         "submitted": false,
+        //         "marketCode": "OX-USDT",
+        //         "side": "BUY",
+        //         "price": "0.01961",
+        //         "amount": "100",
+        //         "orderType": "MARKET",
+        //         "timeInForce": "IOC",
+        //         "createdAt": "1715591678835",
+        //         "source": 11,
+        //         "selfTradePreventionMode": "NONE"
+        //     }
+        //
+        // rejected order (bad request)
+        //     {
+        //         "code": "20044",
+        //         "message": "Amount is not supported for this order type",
+        //         "submitted": false,
+        //         "marketCode": "OX-USDT",
+        //         "side": "SELL",
+        //         "amount": "200",
+        //         "orderType": "MARKET",
+        //         "createdAt": "1715592079986",
+        //         "source": 11
+        //     }
+        //
+        // fetchOrder
+        //     {
+        //         "orderId": "1000111762980",
+        //         "clientOrderId": "0",
+        //         "marketCode": "ETH-USD-SWAP-LIN",
+        //         "status": "OPEN",
+        //         "side": "BUY",
+        //         "price": "2700.0",
+        //         "isTriggered": false,
+        //         "remainQuantity": "0.01",
+        //         "totalQuantity": "0.01",
+        //         "amount": "0",
+        //         "displayQuantity": "0.01",
+        //         "cumulativeMatchedQuantity": "0",
+        //         "orderType": "STOP_LIMIT",
+        //         "timeInForce": "GTC",
+        //         "source": "11",
+        //         "createdAt": "1715794191277"
+        //     }
         //
         const marketId = this.safeString (order, 'marketCode');
         market = this.safeMarket (marketId, market);
@@ -2767,7 +2877,7 @@ export default class oxfun extends Exchange {
             'PARTIALLY_FILLED': 'open',
             'PARTIAL_FILL': 'open',
             'FILLED': 'closed',
-            'CANCELED': 'canceled', // todo check
+            'CANCELED': 'canceled',
             'CANCELED_BY_USER': 'canceled',
             'CANCELED_BY_MAKER_ONLY': 'rejected',
             'CANCELED_BY_FOK': 'rejected',
