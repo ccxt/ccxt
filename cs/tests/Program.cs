@@ -31,10 +31,9 @@ public class Tests
     public static bool sandbox = false;
     public static bool privateTests = false;
     public static bool privateOnly = false;
+    public static bool isWs = false;
     public static bool baseTests = false;
     public static bool exchangeTests = false;
-    public static bool cacheTests = false;
-    public static bool orderBookTests = false;
     public static bool info = false;
     public static bool debug = false;
     public static bool raceCondition = false;
@@ -45,10 +44,9 @@ public class Tests
 
     static void InitOptions(string[] args)
     {
+        isWs = args.Contains("--ws");
         var isBase = args.Contains("--baseTests");
         baseTests = isBase;
-        cacheTests = args.Contains("--cache");
-        orderBookTests = args.Contains("--orderbook");
         raceCondition = args.Contains("--race");
         exchangeTests = args.Contains("--exchangeTests") || args.Contains("--requestTests") || args.Contains("--responseTests");
 
@@ -106,22 +104,18 @@ public class Tests
 
         if (baseTests)
         {
-            RunBaseTests();
+            if (isWs)
+            {
+                RunCacheTests();
+                OrderBookTests();
+            } else {
+                RunBaseTests();
+            }
+            Helper.Green(" [C#] base tests passed");
             return;
         }
 
 
-        if (cacheTests)
-        {
-            RunCacheTests();
-            return;
-        }
-
-        if (orderBookTests)
-        {
-            OrderBookTests();
-            return;
-        }
 
         if (raceCondition)
         {
