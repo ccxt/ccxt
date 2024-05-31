@@ -651,7 +651,11 @@ export default class blockchaincom extends Exchange {
         //
         // {}
         //
-        return [] as Order[];
+        return [
+            this.safeOrder ({
+                'info': response,
+            }),
+        ];
     }
 
     async fetchTradingFees (params = {}): Promise<TradingFees> {
