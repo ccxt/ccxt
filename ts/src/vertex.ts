@@ -317,8 +317,7 @@ export default class vertex extends Exchange {
             'options': {
                 'defaultType': 'swap',
                 'sandboxMode': false,
-                'defaultSlippage': 0.05,
-                'zeroAddress': '0x0000000000000000000000000000000000000000',
+                'timeDifference': 0, // the difference between system clock and exchange server clock
             },
         });
     }
