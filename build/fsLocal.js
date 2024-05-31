@@ -45,6 +45,16 @@ function createFolderRecursively (folder) {
     }
 }
 
+function checkCreateFolder (filePath) {
+    const folder = path.dirname (filePath)
+    if (!(fs.existsSync(folder) && fs.lstatSync(folder).isDirectory())) {
+        fs.mkdirSync(folder, { recursive: true }, (err) => {
+            if (err) throw err;
+            console.log('Directory created successfully!');
+        });
+    }
+}
+
 export {
     replaceInFile,
     copyFile,
@@ -52,4 +62,5 @@ export {
     writeFile,
     createFolder,
     createFolderRecursively,
+    checkCreateFolder,
 }

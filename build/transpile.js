@@ -11,7 +11,7 @@ import errors from "../js/src/base/errors.js"
 import {unCamelCase, precisionConstants, safeString, unique} from "../js/src/base/functions.js"
 import Exchange from '../js/src/base/Exchange.js'
 import { basename, join, resolve } from 'path'
-import { createFolderRecursively, replaceInFile, overwriteFile, writeFile } from './fsLocal.js'
+import { createFolderRecursively, replaceInFile, overwriteFile, writeFile, checkCreateFolder } from './fsLocal.js'
 import { pathToFileURL } from 'url'
 import errorHierarchy from '../js/src/base/errorHierarchy.js'
 import { platform } from 'process'
@@ -2542,6 +2542,7 @@ class Transpiler {
             try {
                 overwriteFile (path, content);
             } catch {
+                checkCreateFolder (path);
                 writeFile (path, content);
             }
         };
