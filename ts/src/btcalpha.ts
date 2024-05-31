@@ -723,7 +723,7 @@ export default class btcalpha extends Exchange {
         const filled = this.safeString (order, 'amount_filled');
         const amount = this.safeString (order, 'amount_original');
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
-        const id = this.safeString2 (order, 'oid', 'id');
+        const id = this.safeStringN (order, [ 'oid', 'id', 'order' ]);
         const trades = this.safeValue (order, 'trades');
         const side = this.safeString2 (order, 'my_side', 'type');
         return this.safeOrder ({
@@ -803,7 +803,12 @@ export default class btcalpha extends Exchange {
             'order': id,
         };
         const response = await this.privatePostOrderCancel (this.extend (request, params));
-        return response;
+        //
+        //    {
+        //        "order": 63568
+        //    }
+        //
+        return this.parseOrder (response);
     }
 
     async fetchOrder (id: string, symbol: Str = undefined, params = {}) {
