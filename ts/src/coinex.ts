@@ -3206,7 +3206,11 @@ export default class coinex extends Exchange {
             // {"code":0,"data":{},"message":"OK"}
             //
         }
-        return response;
+        return [
+            this.safeOrder ({
+                'info': response,
+            }),
+        ];
     }
 
     async fetchOrder (id: string, symbol: Str = undefined, params = {}) {
