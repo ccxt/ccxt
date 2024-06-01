@@ -634,7 +634,14 @@ class coincheck extends Exchange {
             $request = array(
                 'id' => $id,
             );
-            return Async\await($this->privateDeleteExchangeOrdersId ($this->extend($request, $params)));
+            $response = Async\await($this->privateDeleteExchangeOrdersId ($this->extend($request, $params)));
+            //
+            //    {
+            //        "success" => true,
+            //        "id" => 12345
+            //    }
+            //
+            return $this->parse_order($response);
         }) ();
     }
 

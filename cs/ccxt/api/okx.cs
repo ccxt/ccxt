@@ -346,6 +346,21 @@ public partial class okx : Exchange
         return await this.callAsync ("publicGetFinanceSavingsLendingRateHistory",parameters);
     }
 
+    public async Task<object> publicGetFinanceFixedLoanLendingOffers (object parameters = null)
+    {
+        return await this.callAsync ("publicGetFinanceFixedLoanLendingOffers",parameters);
+    }
+
+    public async Task<object> publicGetFinanceFixedLoanLendingApyHistory (object parameters = null)
+    {
+        return await this.callAsync ("publicGetFinanceFixedLoanLendingApyHistory",parameters);
+    }
+
+    public async Task<object> publicGetFinanceFixedLoanPendingLendingVolume (object parameters = null)
+    {
+        return await this.callAsync ("publicGetFinanceFixedLoanPendingLendingVolume",parameters);
+    }
+
     public async Task<object> publicGetFinanceSfpDcdProducts (object parameters = null)
     {
         return await this.callAsync ("publicGetFinanceSfpDcdProducts",parameters);

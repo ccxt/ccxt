@@ -252,6 +252,9 @@ class okx extends Exchange {
                         'finance/staking-defi/eth/apy-history' => 5 / 3,
                         'finance/savings/lending-rate-summary' => 5 / 3,
                         'finance/savings/lending-rate-history' => 5 / 3,
+                        'finance/fixed-loan/lending-offers' => 10 / 3,
+                        'finance/fixed-loan/lending-apy-history' => 10 / 3,
+                        'finance/fixed-loan/pending-lending-volume' => 10 / 3,
                         // public broker
                         'finance/sfp/dcd/products' => 2 / 3,
                         // copytrading
