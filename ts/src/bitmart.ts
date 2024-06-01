@@ -6,7 +6,7 @@ import { AuthenticationError, ExchangeNotAvailable, OnMaintenance, AccountSuspen
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE, TRUNCATE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { Int, OrderSide, Balances, OrderType, OHLCV, Order, Str, Trade, Transaction, Ticker, OrderBook, Tickers, Strings, Currency, Market, TransferEntry, Num, TradingFeeInterface, Currencies, IsolatedBorrowRates, IsolatedBorrowRate, Dict, TransferEntries, OrderRequest, int, List } from './base/types.js';
+import type { Int, OrderSide, Balances, OrderType, OHLCV, Order, Str, Trade, Transaction, Ticker, OrderBook, Tickers, Strings, Currency, Market, TransferEntry, Num, TradingFeeInterface, Currencies, IsolatedBorrowRates, IsolatedBorrowRate, Dict, TransferEntries, OrderRequest, int } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -1325,7 +1325,7 @@ export default class bitmart extends Exchange {
         }
         // fails in naming for contract tickers 'contract_symbol'
         let tickersById = undefined;
-        let tickers: List = [];
+        let tickers = [];
         let ticker: Dict = {};
         if (market['spot']) {
             ticker = this.safeDict (response, 'data', {});
@@ -1412,7 +1412,7 @@ export default class bitmart extends Exchange {
         } else {
             throw new NotSupported (this.id + ' fetchTickers() does not support ' + type + ' markets, only spot and swap markets are accepted');
         }
-        let tickers: List = [];
+        let tickers = [];
         if (type === 'spot') {
             tickers = this.safeList (response, 'data', []);
         } else {
