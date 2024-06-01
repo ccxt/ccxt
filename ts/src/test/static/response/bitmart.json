@@ -341,397 +341,52 @@
         ],
         "fetchTrades": [
             {
-                "description": "public spot trades",
+                "description": "spot trades",
                 "method": "fetchTrades",
                 "input": [
-                    "BTC/USDT",
-                    null,
-                    1
+                  "LTC/USDT",
+                  null,
+                  1
                 ],
                 "httpResponse": {
-                    "message": "OK",
-                    "code": "1000",
-                    "trace": "81a9d57b63be4819b65d3065e6a4682b.98.17103276593350339",
-                    "data": {
-                        "trades": [
-                            {
-                                "amount": "4197.31",
-                                "order_time": "1710327657996",
-                                "price": "73238.70",
-                                "count": "0.05731",
-                                "type": "buy"
-                            },
-                            {
-                                "amount": "88.62",
-                                "order_time": "1710327657994",
-                                "price": "73238.70",
-                                "count": "0.00121",
-                                "type": "sell"
-                            },
-                            {
-                                "amount": "4285.93",
-                                "order_time": "1710327657893",
-                                "price": "73238.70",
-                                "count": "0.05852",
-                                "type": "buy"
-                            },
-                            {
-                                "amount": "481.91",
-                                "order_time": "1710327657804",
-                                "price": "73238.70",
-                                "count": "0.00658",
-                                "type": "sell"
-                            },
-                            {
-                                "amount": "186.76",
-                                "order_time": "1710327657802",
-                                "price": "73238.70",
-                                "count": "0.00255",
-                                "type": "buy"
-                            },
-                            {
-                                "amount": "280.50",
-                                "order_time": "1710327657799",
-                                "price": "73238.70",
-                                "count": "0.00383",
-                                "type": "buy"
-                            },
-                            {
-                                "amount": "57.86",
-                                "order_time": "1710327657797",
-                                "price": "73238.70",
-                                "count": "0.00079",
-                                "type": "sell"
-                            },
-                            {
-                                "amount": "210.20",
-                                "order_time": "1710327657797",
-                                "price": "73238.70",
-                                "count": "0.00287",
-                                "type": "buy"
-                            },
-                            {
-                                "amount": "7.32",
-                                "order_time": "1710327657796",
-                                "price": "73238.70",
-                                "count": "0.00010",
-                                "type": "sell"
-                            },
-                            {
-                                "amount": "2830.68",
-                                "order_time": "1710327657796",
-                                "price": "73238.70",
-                                "count": "0.03865",
-                                "type": "buy"
-                            },
-                            {
-                                "amount": "147.94",
-                                "order_time": "1710327657795",
-                                "price": "73238.70",
-                                "count": "0.00202",
-                                "type": "sell"
-                            },
-                            {
-                                "amount": "82.76",
-                                "order_time": "1710327657795",
-                                "price": "73238.70",
-                                "count": "0.00113",
-                                "type": "buy"
-                            },
-                            {
-                                "amount": "4285.93",
-                                "order_time": "1710327657692",
-                                "price": "73238.70",
-                                "count": "0.05852",
-                                "type": "buy"
-                            },
-                            {
-                                "amount": "494.36",
-                                "order_time": "1710327657598",
-                                "price": "73238.70",
-                                "count": "0.00675",
-                                "type": "sell"
-                            },
-                            {
-                                "amount": "96.68",
-                                "order_time": "1710327657598",
-                                "price": "73238.70",
-                                "count": "0.00132",
-                                "type": "buy"
-                            },
-                            {
-                                "amount": "334.70",
-                                "order_time": "1710327657596",
-                                "price": "73238.70",
-                                "count": "0.00457",
-                                "type": "buy"
-                            },
-                            {
-                                "amount": "757.29",
-                                "order_time": "1710327657596",
-                                "price": "73238.70",
-                                "count": "0.01034",
-                                "type": "buy"
-                            },
-                            {
-                                "amount": "119.38",
-                                "order_time": "1710327657596",
-                                "price": "73238.70",
-                                "count": "0.00163",
-                                "type": "buy"
-                            },
-                            {
-                                "amount": "612.28",
-                                "order_time": "1710327657594",
-                                "price": "73238.70",
-                                "count": "0.00836",
-                                "type": "buy"
-                            },
-                            {
-                                "amount": "1498.46",
-                                "order_time": "1710327657593",
-                                "price": "73238.70",
-                                "count": "0.02046",
-                                "type": "sell"
-                            },
-                            {
-                                "amount": "7.32",
-                                "order_time": "1710327657593",
-                                "price": "73238.70",
-                                "count": "0.00010",
-                                "type": "sell"
-                            },
-                            {
-                                "amount": "331.04",
-                                "order_time": "1710327657592",
-                                "price": "73238.70",
-                                "count": "0.00452",
-                                "type": "sell"
-                            },
-                            {
-                                "amount": "34.42",
-                                "order_time": "1710327657592",
-                                "price": "73238.70",
-                                "count": "0.00047",
-                                "type": "sell"
-                            },
-                            {
-                                "amount": "3818.67",
-                                "order_time": "1710327657488",
-                                "price": "73238.70",
-                                "count": "0.05214",
-                                "type": "buy"
-                            },
-                            {
-                                "amount": "8.06",
-                                "order_time": "1710327657487",
-                                "price": "73238.70",
-                                "count": "0.00011",
-                                "type": "sell"
-                            },
-                            {
-                                "amount": "509.74",
-                                "order_time": "1710327657399",
-                                "price": "73238.70",
-                                "count": "0.00696",
-                                "type": "sell"
-                            },
-                            {
-                                "amount": "3070.90",
-                                "order_time": "1710327657399",
-                                "price": "73238.70",
-                                "count": "0.04193",
-                                "type": "buy"
-                            },
-                            {
-                                "amount": "71.04",
-                                "order_time": "1710327657399",
-                                "price": "73238.70",
-                                "count": "0.00097",
-                                "type": "buy"
-                            },
-                            {
-                                "amount": "46.87",
-                                "order_time": "1710327657399",
-                                "price": "73238.70",
-                                "count": "0.00064",
-                                "type": "sell"
-                            },
-                            {
-                                "amount": "8.06",
-                                "order_time": "1710327657398",
-                                "price": "73238.70",
-                                "count": "0.00011",
-                                "type": "sell"
-                            },
-                            {
-                                "amount": "78.37",
-                                "order_time": "1710327657397",
-                                "price": "73238.70",
-                                "count": "0.00107",
-                                "type": "buy"
-                            },
-                            {
-                                "amount": "459.94",
-                                "order_time": "1710327657063",
-                                "price": "73238.70",
-                                "count": "0.00628",
-                                "type": "buy"
-                            },
-                            {
-                                "amount": "941.85",
-                                "order_time": "1710327657062",
-                                "price": "73238.70",
-                                "count": "0.01286",
-                                "type": "sell"
-                            },
-                            {
-                                "amount": "88.62",
-                                "order_time": "1710327657060",
-                                "price": "73238.70",
-                                "count": "0.00121",
-                                "type": "buy"
-                            },
-                            {
-                                "amount": "8.79",
-                                "order_time": "1710327657058",
-                                "price": "73238.70",
-                                "count": "0.00012",
-                                "type": "buy"
-                            },
-                            {
-                                "amount": "109.86",
-                                "order_time": "1710327656961",
-                                "price": "73238.70",
-                                "count": "0.00150",
-                                "type": "buy"
-                            },
-                            {
-                                "amount": "8.79",
-                                "order_time": "1710327656959",
-                                "price": "73238.70",
-                                "count": "0.00012",
-                                "type": "buy"
-                            },
-                            {
-                                "amount": "904.50",
-                                "order_time": "1710327656959",
-                                "price": "73238.70",
-                                "count": "0.01235",
-                                "type": "sell"
-                            },
-                            {
-                                "amount": "109.13",
-                                "order_time": "1710327656959",
-                                "price": "73238.70",
-                                "count": "0.00149",
-                                "type": "sell"
-                            },
-                            {
-                                "amount": "93.75",
-                                "order_time": "1710327656958",
-                                "price": "73238.70",
-                                "count": "0.00128",
-                                "type": "sell"
-                            },
-                            {
-                                "amount": "405.74",
-                                "order_time": "1710327656871",
-                                "price": "73238.69",
-                                "count": "0.00554",
-                                "type": "sell"
-                            },
-                            {
-                                "amount": "1562.18",
-                                "order_time": "1710327656858",
-                                "price": "73238.69",
-                                "count": "0.02133",
-                                "type": "sell"
-                            },
-                            {
-                                "amount": "443.09",
-                                "order_time": "1710327656858",
-                                "price": "73238.70",
-                                "count": "0.00605",
-                                "type": "buy"
-                            },
-                            {
-                                "amount": "919.88",
-                                "order_time": "1710327656858",
-                                "price": "73238.69",
-                                "count": "0.01256",
-                                "type": "buy"
-                            },
-                            {
-                                "amount": "8.06",
-                                "order_time": "1710327656856",
-                                "price": "73238.69",
-                                "count": "0.00011",
-                                "type": "buy"
-                            },
-                            {
-                                "amount": "289.29",
-                                "order_time": "1710327656856",
-                                "price": "73238.70",
-                                "count": "0.00395",
-                                "type": "buy"
-                            },
-                            {
-                                "amount": "657.68",
-                                "order_time": "1710327656856",
-                                "price": "73238.70",
-                                "count": "0.00898",
-                                "type": "buy"
-                            },
-                            {
-                                "amount": "94.48",
-                                "order_time": "1710327656755",
-                                "price": "73238.69",
-                                "count": "0.00129",
-                                "type": "sell"
-                            },
-                            {
-                                "amount": "8.06",
-                                "order_time": "1710327656754",
-                                "price": "73238.69",
-                                "count": "0.00011",
-                                "type": "buy"
-                            },
-                            {
-                                "amount": "54.20",
-                                "order_time": "1710327656754",
-                                "price": "73238.69",
-                                "count": "0.00074",
-                                "type": "buy"
-                            }
-                        ]
-                    }
+                  "code": "1000",
+                  "trace": "8c82ad6ce8b74f30a7a14995d36ba5d9.100.17172382683017021",
+                  "message": "success",
+                  "data": [
+                    [
+                      "LTC_USDT",
+                      "1717238257307",
+                      "83.4299",
+                      "0.218",
+                      "sell"
+                    ]
+                  ]
                 },
                 "parsedResponse": [
-                    {
-                        "info": {
-                            "amount": "4197.31",
-                            "order_time": "1710327657996",
-                            "price": "73238.70",
-                            "count": "0.05731",
-                            "type": "buy"
-                        },
-                        "id": null,
-                        "order": null,
-                        "timestamp": 1710327657996,
-                        "datetime": "2024-03-13T11:00:57.996Z",
-                        "symbol": "BTC/USDT",
-                        "type": null,
-                        "side": "buy",
-                        "price": 73238.7,
-                        "amount": 0.05731,
-                        "cost": 4197.31,
-                        "takerOrMaker": null,
-                        "fee": null,
-                        "fees": []
-                    }
+                  {
+                    "info": [
+                      "LTC_USDT",
+                      "1717238257307",
+                      "83.4299",
+                      "0.218",
+                      "sell"
+                    ],
+                    "id": null,
+                    "order": null,
+                    "timestamp": 1717238257307,
+                    "datetime": "2024-06-01T10:37:37.307Z",
+                    "symbol": "LTC/USDT",
+                    "type": null,
+                    "side": "sell",
+                    "price": 83.4299,
+                    "amount": 0.218,
+                    "cost": 18.1877182,
+                    "takerOrMaker": null,
+                    "fee": null,
+                    "fees": []
+                  }
                 ]
-            }
+              }
         ],
         "fetchTicker": [
             {
