@@ -426,10 +426,7 @@ export default class oxfun extends Exchange {
         const id = this.safeString (market, 'marketCode', '');
         const parts = id.split ('-');
         const baseId = this.safeString (parts, 0);
-        let quoteId = this.safeString (parts, 1);
-        if (quoteId === 'USD') {
-            quoteId = 'USDT';
-        }
+        const quoteId = this.safeString (parts, 1);
         const base = this.safeCurrencyCode (baseId);
         const quote = this.safeCurrencyCode (quoteId);
         let symbol = base + '/' + quote;
