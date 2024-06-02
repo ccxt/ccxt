@@ -306,7 +306,7 @@ class currencycom(ccxt.async_support.currencycom):
         messageHash = '/api/v1/account'
         url = self.urls['api']['ws']
         requestId = str(self.request_id())
-        payload = {
+        payload: dict = {
             'timestamp': self.milliseconds(),
             'apiKey': self.apiKey,
         }
@@ -402,7 +402,7 @@ class currencycom(ccxt.async_support.currencycom):
         destination = 'OHLCMarketData.subscribe'
         messageHash = destination + ':' + timeframe
         timeframes = self.safe_value(self.options, 'timeframes')
-        request = {
+        request: dict = {
             'destination': destination,
             'payload': {
                 'intervals': [
@@ -512,7 +512,7 @@ class currencycom(ccxt.async_support.currencycom):
                 if status == 'OK':
                     subscriptionDestination = self.safe_string(subscription, 'destination')
                     if subscriptionDestination is not None:
-                        methods = {
+                        methods: dict = {
                             '/api/v1/ticker/24hr': self.handle_ticker,
                             '/api/v1/account': self.handle_balance,
                         }
@@ -524,7 +524,7 @@ class currencycom(ccxt.async_support.currencycom):
                             return
         destination = self.safe_string(message, 'destination')
         if destination is not None:
-            methods = {
+            methods: dict = {
                 'marketdepth.event': self.handle_order_book,
                 'internal.trade': self.handle_trades,
                 'ohlc.event': self.handle_ohlcv,

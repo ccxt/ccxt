@@ -149,6 +149,7 @@ interface Exchange {
     privateGetV5AssetCoinQueryInfo(params?: {}): Promise<implicitReturnType>;
     privateGetV5AssetWithdrawQueryRecord(params?: {}): Promise<implicitReturnType>;
     privateGetV5AssetWithdrawWithdrawableAmount(params?: {}): Promise<implicitReturnType>;
+    privateGetV5AssetWithdrawVaspList(params?: {}): Promise<implicitReturnType>;
     privateGetV5UserQuerySubMembers(params?: {}): Promise<implicitReturnType>;
     privateGetV5UserQueryApi(params?: {}): Promise<implicitReturnType>;
     privateGetV5UserSubApikeys(params?: {}): Promise<implicitReturnType>;

@@ -45,6 +45,74 @@ public partial class bitmex
         return new Tickers(res);
     }
     /// <summary>
+    /// watch the public liquidations of a trading pair
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://www.bitmex.com/app/wsAPI#Liquidation"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>since</term>
+    /// <description>
+    /// int : the earliest time in ms to fetch liquidations for
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>limit</term>
+    /// <description>
+    /// int : the maximum number of liquidation structures to retrieve
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : exchange specific parameters for the bitmex api endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> an array of [liquidation structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure}.</returns>
+    public async Task<List<Liquidation>> WatchLiquidations(string symbol, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    {
+        var since = since2 == 0 ? null : (object)since2;
+        var limit = limit2 == 0 ? null : (object)limit2;
+        var res = await this.watchLiquidations(symbol, since, limit, parameters);
+        return ((IList<object>)res).Select(item => new Liquidation(item)).ToList<Liquidation>();
+    }
+    /// <summary>
+    /// watch the public liquidations of a trading pair
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://www.bitmex.com/app/wsAPI#Liquidation"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>since</term>
+    /// <description>
+    /// int : the earliest time in ms to fetch liquidations for
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>limit</term>
+    /// <description>
+    /// int : the maximum number of liquidation structures to retrieve
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : exchange specific parameters for the bitmex api endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> an array of [liquidation structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure}.</returns>
+    public async Task<List<Liquidation>> WatchLiquidationsForSymbols(List<string> symbols = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    {
+        var since = since2 == 0 ? null : (object)since2;
+        var limit = limit2 == 0 ? null : (object)limit2;
+        var res = await this.watchLiquidationsForSymbols(symbols, since, limit, parameters);
+        return ((IList<object>)res).Select(item => new Liquidation(item)).ToList<Liquidation>();
+    }
+    /// <summary>
     /// watch balance and get the amount of funds available for trading or funds locked in orders
     /// </summary>
     /// <remarks>

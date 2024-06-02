@@ -469,7 +469,8 @@ public partial class bit2c : Exchange
         object request = new Dictionary<string, object>() {
             { "id", id },
         };
-        return await this.privatePostOrderCancelOrder(this.extend(request, parameters));
+        object response = await this.privatePostOrderCancelOrder(this.extend(request, parameters));
+        return this.parseOrder(response);
     }
 
     public async override Task<object> fetchOpenOrders(object symbol = null, object since = null, object limit = null, object parameters = null)

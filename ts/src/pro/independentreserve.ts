@@ -3,7 +3,7 @@
 import independentreserveRest from '../independentreserve.js';
 import { NotSupported, InvalidNonce } from '../base/errors.js';
 import { ArrayCache } from '../base/ws/Cache.js';
-import type { Int, OrderBook, Trade } from '../base/types.js';
+import type { Int, OrderBook, Trade, Dict } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -143,7 +143,7 @@ export default class independentreserve extends independentreserveRest {
         const limitString = this.numberToString (limit);
         const url = this.urls['api']['ws'] + '/orderbook/' + limitString + '?subscribe=' + market['base'] + '-' + market['quote'];
         const messageHash = 'orderbook:' + symbol + ':' + limitString;
-        const subscription = {
+        const subscription: Dict = {
             'receivedSnapshot': false,
         };
         const orderbook = await this.watch (url, messageHash, undefined, messageHash, subscription);
@@ -225,6 +225,8 @@ export default class independentreserve extends independentreserveRest {
             const responseChecksum = this.safeInteger (orderBook, 'Crc32');
             if (calculatedChecksum !== responseChecksum) {
                 const error = new InvalidNonce (this.id + ' invalid checksum');
+                delete client.subscriptions[messageHash];
+                delete this.orderbooks[symbol];
                 client.reject (error, messageHash);
             }
         }
@@ -276,7 +278,7 @@ export default class independentreserve extends independentreserveRest {
 
     handleMessage (client: Client, message) {
         const event = this.safeString (message, 'Event');
-        const handlers = {
+        const handlers: Dict = {
             'Subscriptions': this.handleSubscriptions,
             'Heartbeat': this.handleHeartbeat,
             'Trade': this.handleTrades,

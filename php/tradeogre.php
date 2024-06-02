@@ -262,7 +262,7 @@ class tradeogre extends Exchange {
         $request = array(
             'market' => $market['id'],
         );
-        $response = $this->publicGetTickerMarket (array_merge($request, $params));
+        $response = $this->publicGetTickerMarket ($this->extend($request, $params));
         //
         //   {
         //       "success":true,
@@ -328,7 +328,7 @@ class tradeogre extends Exchange {
         $request = array(
             'market' => $market['id'],
         );
-        $response = $this->publicGetOrdersMarket (array_merge($request, $params));
+        $response = $this->publicGetOrdersMarket ($this->extend($request, $params));
         //
         // {
         //     "success" => true,
@@ -376,11 +376,11 @@ class tradeogre extends Exchange {
         $request = array(
             'market' => $market['id'],
         );
-        $response = $this->publicGetHistoryMarket (array_merge($request, $params));
+        $response = $this->publicGetHistoryMarket ($this->extend($request, $params));
         return $this->parse_trades($response, $market, $since, $limit);
     }
 
-    public function parse_trade($trade, ?array $market = null) {
+    public function parse_trade(array $trade, ?array $market = null) {
         //
         //  {
         //      "date":1515128233,
@@ -467,9 +467,9 @@ class tradeogre extends Exchange {
         }
         $response = null;
         if ($side === 'buy') {
-            $response = $this->privatePostOrderBuy (array_merge($request, $params));
+            $response = $this->privatePostOrderBuy ($this->extend($request, $params));
         } else {
-            $response = $this->privatePostOrderSell (array_merge($request, $params));
+            $response = $this->privatePostOrderSell ($this->extend($request, $params));
         }
         return $this->parse_order($response, $market);
     }
@@ -486,7 +486,7 @@ class tradeogre extends Exchange {
         $request = array(
             'uuid' => $id,
         );
-        $response = $this->privatePostOrderCancel (array_merge($request, $params));
+        $response = $this->privatePostOrderCancel ($this->extend($request, $params));
         return $this->parse_order($response);
     }
 
@@ -519,7 +519,7 @@ class tradeogre extends Exchange {
         if ($symbol !== null) {
             $request['market'] = $market['id'];
         }
-        $response = $this->privatePostAccountOrders (array_merge($request, $params));
+        $response = $this->privatePostAccountOrders ($this->extend($request, $params));
         return $this->parse_orders($response, $market, $since, $limit);
     }
 
@@ -535,11 +535,11 @@ class tradeogre extends Exchange {
         $request = array(
             'uuid' => $id,
         );
-        $response = $this->privateGetAccountOrderUuid (array_merge($request, $params));
+        $response = $this->privateGetAccountOrderUuid ($this->extend($request, $params));
         return $this->parse_order($response, null);
     }
 
-    public function parse_order($order, ?array $market = null): array {
+    public function parse_order(array $order, ?array $market = null): array {
         //
         //
         // {
@@ -603,7 +603,7 @@ class tradeogre extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
         if ($response === null) {
             return null;
         }

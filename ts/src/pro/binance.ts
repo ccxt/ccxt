@@ -5,7 +5,7 @@ import binanceRest from '../binance.js';
 import { Precise } from '../base/Precise.js';
 import { InvalidNonce, ArgumentsRequired, BadRequest, NotSupported } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide } from '../base/ws/Cache.js';
-import type { Int, OrderSide, OrderType, Str, Strings, Trade, OrderBook, Order, Ticker, Tickers, OHLCV, Position, Balances, Num } from '../base/types.js';
+import type { Int, OrderSide, OrderType, Str, Strings, Trade, OrderBook, Order, Ticker, Tickers, OHLCV, Position, Balances, Num, Dict, Liquidation } from '../base/types.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
 import { rsa } from '../base/functions/rsa.js';
 import { eddsa } from '../base/functions/crypto.js';
@@ -20,6 +20,10 @@ export default class binance extends binanceRest {
             'has': {
                 'ws': true,
                 'watchBalance': true,
+                'watchLiquidations': true,
+                'watchLiquidationsForSymbols': true,
+                'watchMyLiquidations': true,
+                'watchMyLiquidationsForSymbols': true,
                 'watchBidsAsks': true,
                 'watchMyTrades': true,
                 'watchOHLCV': true,
@@ -104,6 +108,8 @@ export default class binance extends binanceRest {
                 // get updates every 1000ms or 100ms
                 // or every 0ms in real-time for futures
                 'watchOrderBookRate': 100,
+                'liquidationsLimit': 1000,
+                'myLiquidationsLimit': 1000,
                 'tradesLimit': 1000,
                 'ordersLimit': 1000,
                 'OHLCVLimit': 1000,
@@ -127,6 +133,9 @@ export default class binance extends binanceRest {
                 'watchBalance': {
                     'fetchBalanceSnapshot': false, // or true
                     'awaitBalanceSnapshot': true, // whether to wait for the balance snapshot before providing updates
+                },
+                'watchLiquidationsForSymbols': {
+                    'defaultType': 'swap',
                 },
                 'watchPositions': {
                     'fetchPositionsSnapshot': true, // or false
@@ -158,7 +167,7 @@ export default class binance extends binanceRest {
         return newValue;
     }
 
-    stream (type, subscriptionHash, numSubscriptions = 1) {
+    stream (type: Str, subscriptionHash: Str, numSubscriptions = 1) {
         const streamBySubscriptionsHash = this.safeDict (this.options, 'streamBySubscriptionsHash', this.createSafeDictionary ());
         let stream = this.safeString (streamBySubscriptionsHash, subscriptionHash);
         if (stream === undefined) {
@@ -183,6 +192,351 @@ export default class binance extends binanceRest {
             this.options['numSubscriptionsByStream'][stream] = subscriptionsByStream + numSubscriptions;
         }
         return stream;
+    }
+
+    async watchLiquidations (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Liquidation[]> {
+        /**
+         * @method
+         * @name binance#watchLiquidations
+         * @description watch the public liquidations of a trading pair
+         * @see https://binance-docs.github.io/apidocs/futures/en/#liquidation-order-streams
+         * @see https://binance-docs.github.io/apidocs/delivery/en/#liquidation-order-streams
+         * @param {string} symbol unified CCXT market symbol
+         * @param {int} [since] the earliest time in ms to fetch liquidations for
+         * @param {int} [limit] the maximum number of liquidation structures to retrieve
+         * @param {object} [params] exchange specific parameters for the bitmex api endpoint
+         * @returns {object} an array of [liquidation structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure}
+         */
+        return this.watchLiquidationsForSymbols ([ symbol ], since, limit, params);
+    }
+
+    async watchLiquidationsForSymbols (symbols: string[] = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Liquidation[]> {
+        /**
+         * @method
+         * @name binance#watchLiquidationsForSymbols
+         * @description watch the public liquidations of a trading pair
+         * @see https://binance-docs.github.io/apidocs/futures/en/#all-market-liquidation-order-streams
+         * @see https://binance-docs.github.io/apidocs/delivery/en/#all-market-liquidation-order-streams
+         * @param {string} symbol unified CCXT market symbol
+         * @param {int} [since] the earliest time in ms to fetch liquidations for
+         * @param {int} [limit] the maximum number of liquidation structures to retrieve
+         * @param {object} [params] exchange specific parameters for the bitmex api endpoint
+         * @returns {object} an array of [liquidation structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure}
+         */
+        await this.loadMarkets ();
+        const subscriptionHashes = [];
+        const messageHashes = [];
+        let streamHash = 'liquidations';
+        symbols = this.marketSymbols (symbols, undefined, true, true);
+        if (this.isEmpty (symbols)) {
+            subscriptionHashes.push ('!' + 'forceOrder@arr');
+            messageHashes.push ('liquidations');
+        } else {
+            for (let i = 0; i < symbols.length; i++) {
+                const market = this.market (symbols[i]);
+                subscriptionHashes.push (market['id'] + '@forceOrder');
+                messageHashes.push ('liquidations::' + symbols[i]);
+            }
+            streamHash += '::' + symbols.join (',');
+        }
+        const firstMarket = this.getMarketFromSymbols (symbols);
+        let type = undefined;
+        [ type, params ] = this.handleMarketTypeAndParams ('watchLiquidationsForSymbols', firstMarket, params);
+        if (type === 'spot') {
+            throw new BadRequest (this.id + 'watchLiquidationsForSymbols is not supported for swap symbols');
+        }
+        let subType = undefined;
+        [ subType, params ] = this.handleSubTypeAndParams ('watchLiquidationsForSymbols', firstMarket, params);
+        if (this.isLinear (type, subType)) {
+            type = 'future';
+        } else if (this.isInverse (type, subType)) {
+            type = 'delivery';
+        }
+        const numSubscriptions = subscriptionHashes.length;
+        const url = this.urls['api']['ws'][type] + '/' + this.stream (type, streamHash, numSubscriptions);
+        const requestId = this.requestId (url);
+        const request = {
+            'method': 'SUBSCRIBE',
+            'params': subscriptionHashes,
+            'id': requestId,
+        };
+        const subscribe = {
+            'id': requestId,
+        };
+        const newLiquidations = await this.watchMultiple (url, messageHashes, this.extend (request, params), subscriptionHashes, subscribe);
+        if (this.newUpdates) {
+            return newLiquidations;
+        }
+        return this.filterBySymbolsSinceLimit (this.liquidations, symbols, since, limit, true);
+    }
+
+    handleLiquidation (client: Client, message) {
+        //
+        // future
+        //    {
+        //        "e":"forceOrder",
+        //        "E":1698871323061,
+        //        "o":{
+        //           "s":"BTCUSDT",
+        //           "S":"BUY",
+        //           "o":"LIMIT",
+        //           "f":"IOC",
+        //           "q":"1.437",
+        //           "p":"35100.81",
+        //           "ap":"34959.70",
+        //           "X":"FILLED",
+        //           "l":"1.437",
+        //           "z":"1.437",
+        //           "T":1698871323059
+        //        }
+        //    }
+        // delivery
+        //    {
+        //        "e":"forceOrder",              // Event Type
+        //        "E": 1591154240950,            // Event Time
+        //        "o":{
+        //            "s":"BTCUSD_200925",       // Symbol
+        //            "ps": "BTCUSD",            // Pair
+        //            "S":"SELL",                // Side
+        //            "o":"LIMIT",               // Order Type
+        //            "f":"IOC",                 // Time in Force
+        //            "q":"1",                   // Original Quantity
+        //            "p":"9425.5",              // Price
+        //            "ap":"9496.5",             // Average Price
+        //            "X":"FILLED",              // Order Status
+        //            "l":"1",                   // Order Last Filled Quantity
+        //            "z":"1",                   // Order Filled Accumulated Quantity
+        //            "T": 1591154240949,        // Order Trade Time
+        //        }
+        //    }
+        //
+        const rawLiquidation = this.safeValue (message, 'o', {});
+        const marketId = this.safeString (rawLiquidation, 's');
+        const market = this.safeMarket (marketId, undefined, '', 'contract');
+        const symbol = market['symbol'];
+        const liquidation = this.parseWsLiquidation (rawLiquidation, market);
+        let liquidations = this.safeValue (this.liquidations, symbol);
+        if (liquidations === undefined) {
+            const limit = this.safeInteger (this.options, 'liquidationsLimit', 1000);
+            liquidations = new ArrayCache (limit);
+        }
+        liquidations.append (liquidation);
+        this.liquidations[symbol] = liquidations;
+        client.resolve ([ liquidation ], 'liquidations');
+        client.resolve ([ liquidation ], 'liquidations::' + symbol);
+    }
+
+    parseWsLiquidation (liquidation, market = undefined) {
+        //
+        // future
+        //    {
+        //        "s":"BTCUSDT",
+        //        "S":"BUY",
+        //        "o":"LIMIT",
+        //        "f":"IOC",
+        //        "q":"1.437",
+        //        "p":"35100.81",
+        //        "ap":"34959.70",
+        //        "X":"FILLED",
+        //        "l":"1.437",
+        //        "z":"1.437",
+        //        "T":1698871323059
+        //    }
+        // delivery
+        //    {
+        //        "s":"BTCUSD_200925",       // Symbol
+        //        "ps": "BTCUSD",            // Pair
+        //        "S":"SELL",                // Side
+        //        "o":"LIMIT",               // Order Type
+        //        "f":"IOC",                 // Time in Force
+        //        "q":"1",                   // Original Quantity
+        //        "p":"9425.5",              // Price
+        //        "ap":"9496.5",             // Average Price
+        //        "X":"FILLED",              // Order Status
+        //        "l":"1",                   // Order Last Filled Quantity
+        //        "z":"1",                   // Order Filled Accumulated Quantity
+        //        "T": 1591154240949,        // Order Trade Time
+        //    }
+        // myLiquidation
+        //    {
+        //        "s":"BTCUSDT",              // Symbol
+        //        "c":"TEST",                 // Client Order Id
+        //          // special client order id:
+        //          // starts with "autoclose-": liquidation order
+        //          // "adl_autoclose": ADL auto close order
+        //          // "settlement_autoclose-": settlement order for delisting or delivery
+        //        "S":"SELL",                 // Side
+        //        "o":"TRAILING_STOP_MARKET", // Order Type
+        //        "f":"GTC",                  // Time in Force
+        //        "q":"0.001",                // Original Quantity
+        //        "p":"0",                    // Original Price
+        //        "ap":"0",                   // Average Price
+        //        "sp":"7103.04",             // Stop Price. Please ignore with TRAILING_STOP_MARKET order
+        //        "x":"NEW",                  // Execution Type
+        //        "X":"NEW",                  // Order Status
+        //        "i":8886774,                // Order Id
+        //        "l":"0",                    // Order Last Filled Quantity
+        //        "z":"0",                    // Order Filled Accumulated Quantity
+        //        "L":"0",                    // Last Filled Price
+        //        "N":"USDT",                 // Commission Asset, will not push if no commission
+        //        "n":"0",                    // Commission, will not push if no commission
+        //        "T":1568879465650,          // Order Trade Time
+        //        "t":0,                      // Trade Id
+        //        "b":"0",                    // Bids Notional
+        //        "a":"9.91",                 // Ask Notional
+        //        "m":false,                  // Is this trade the maker side?
+        //        "R":false,                  // Is this reduce only
+        //        "wt":"CONTRACT_PRICE",      // Stop Price Working Type
+        //        "ot":"TRAILING_STOP_MARKET",// Original Order Type
+        //        "ps":"LONG",                // Position Side
+        //        "cp":false,                 // If Close-All, pushed with conditional order
+        //        "AP":"7476.89",             // Activation Price, only puhed with TRAILING_STOP_MARKET order
+        //        "cr":"5.0",                 // Callback Rate, only puhed with TRAILING_STOP_MARKET order
+        //        "pP": false,                // If price protection is turned on
+        //        "si": 0,                    // ignore
+        //        "ss": 0,                    // ignore
+        //        "rp":"0",                   // Realized Profit of the trade
+        //        "V":"EXPIRE_TAKER",         // STP mode
+        //        "pm":"OPPONENT",            // Price match mode
+        //        "gtd":0                     // TIF GTD order auto cancel time
+        //    }
+        //
+        const marketId = this.safeString (liquidation, 's');
+        market = this.safeMarket (marketId, market);
+        const timestamp = this.safeInteger (liquidation, 'T');
+        return this.safeLiquidation ({
+            'info': liquidation,
+            'symbol': this.safeSymbol (marketId, market),
+            'contracts': this.safeNumber (liquidation, 'l'),
+            'contractSize': this.safeNumber (market, 'contractSize'),
+            'price': this.safeNumber (liquidation, 'ap'),
+            'baseValue': undefined,
+            'quoteValue': undefined,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+        });
+    }
+
+    async watchMyLiquidations (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Liquidation[]> {
+        /**
+         * @method
+         * @name binance#watchMyLiquidations
+         * @description watch the private liquidations of a trading pair
+         * @see https://binance-docs.github.io/apidocs/futures/en/#event-order-update
+         * @see https://binance-docs.github.io/apidocs/delivery/en/#event-order-update
+         * @param {string} symbol unified CCXT market symbol
+         * @param {int} [since] the earliest time in ms to fetch liquidations for
+         * @param {int} [limit] the maximum number of liquidation structures to retrieve
+         * @param {object} [params] exchange specific parameters for the bitmex api endpoint
+         * @returns {object} an array of [liquidation structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure}
+         */
+        return this.watchMyLiquidationsForSymbols ([ symbol ], since, limit, params);
+    }
+
+    async watchMyLiquidationsForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params = {}): Promise<Liquidation[]> {
+        /**
+         * @method
+         * @name binance#watchMyLiquidationsForSymbols
+         * @description watch the private liquidations of a trading pair
+         * @see https://binance-docs.github.io/apidocs/futures/en/#event-order-update
+         * @see https://binance-docs.github.io/apidocs/delivery/en/#event-order-update
+         * @param {string} symbol unified CCXT market symbol
+         * @param {int} [since] the earliest time in ms to fetch liquidations for
+         * @param {int} [limit] the maximum number of liquidation structures to retrieve
+         * @param {object} [params] exchange specific parameters for the bitmex api endpoint
+         * @returns {object} an array of [liquidation structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure}
+         */
+        await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols, undefined, true, true, true);
+        const market = this.getMarketFromSymbols (symbols);
+        const messageHashes = [ 'myLiquidations' ];
+        if (!this.isEmpty (symbols)) {
+            for (let i = 0; i < symbols.length; i++) {
+                const symbol = symbols[i];
+                messageHashes.push ('myLiquidations::' + symbol);
+            }
+        }
+        let type = undefined;
+        [ type, params ] = this.handleMarketTypeAndParams ('watchMyLiquidationsForSymbols', market, params);
+        let subType = undefined;
+        [ subType, params ] = this.handleSubTypeAndParams ('watchMyLiquidationsForSymbols', market, params);
+        if (this.isLinear (type, subType)) {
+            type = 'future';
+        } else if (this.isInverse (type, subType)) {
+            type = 'delivery';
+        }
+        await this.authenticate (params);
+        const url = this.urls['api']['ws'][type] + '/' + this.options[type]['listenKey'];
+        const message = undefined;
+        const newLiquidations = await this.watchMultiple (url, messageHashes, message, [ type ]);
+        if (this.newUpdates) {
+            return newLiquidations;
+        }
+        return this.filterBySymbolsSinceLimit (this.liquidations, symbols, since, limit);
+    }
+
+    handleMyLiquidation (client: Client, message) {
+        //
+        //    {
+        //        "s":"BTCUSDT",              // Symbol
+        //        "c":"TEST",                 // Client Order Id
+        //          // special client order id:
+        //          // starts with "autoclose-": liquidation order
+        //          // "adl_autoclose": ADL auto close order
+        //          // "settlement_autoclose-": settlement order for delisting or delivery
+        //        "S":"SELL",                 // Side
+        //        "o":"TRAILING_STOP_MARKET", // Order Type
+        //        "f":"GTC",                  // Time in Force
+        //        "q":"0.001",                // Original Quantity
+        //        "p":"0",                    // Original Price
+        //        "ap":"0",                   // Average Price
+        //        "sp":"7103.04",             // Stop Price. Please ignore with TRAILING_STOP_MARKET order
+        //        "x":"NEW",                  // Execution Type
+        //        "X":"NEW",                  // Order Status
+        //        "i":8886774,                // Order Id
+        //        "l":"0",                    // Order Last Filled Quantity
+        //        "z":"0",                    // Order Filled Accumulated Quantity
+        //        "L":"0",                    // Last Filled Price
+        //        "N":"USDT",                 // Commission Asset, will not push if no commission
+        //        "n":"0",                    // Commission, will not push if no commission
+        //        "T":1568879465650,          // Order Trade Time
+        //        "t":0,                      // Trade Id
+        //        "b":"0",                    // Bids Notional
+        //        "a":"9.91",                 // Ask Notional
+        //        "m":false,                  // Is this trade the maker side?
+        //        "R":false,                  // Is this reduce only
+        //        "wt":"CONTRACT_PRICE",      // Stop Price Working Type
+        //        "ot":"TRAILING_STOP_MARKET",// Original Order Type
+        //        "ps":"LONG",                // Position Side
+        //        "cp":false,                 // If Close-All, pushed with conditional order
+        //        "AP":"7476.89",             // Activation Price, only puhed with TRAILING_STOP_MARKET order
+        //        "cr":"5.0",                 // Callback Rate, only puhed with TRAILING_STOP_MARKET order
+        //        "pP": false,                // If price protection is turned on
+        //        "si": 0,                    // ignore
+        //        "ss": 0,                    // ignore
+        //        "rp":"0",                   // Realized Profit of the trade
+        //        "V":"EXPIRE_TAKER",         // STP mode
+        //        "pm":"OPPONENT",            // Price match mode
+        //        "gtd":0                     // TIF GTD order auto cancel time
+        //    }
+        //
+        const orderType = this.safeString (message, 'o');
+        if (orderType !== 'LIQUIDATION') {
+            return;
+        }
+        const marketId = this.safeString (message, 's');
+        const market = this.safeMarket (marketId);
+        const symbol = this.safeSymbol (marketId);
+        const liquidation = this.parseWsLiquidation (message, market);
+        let myLiquidations = this.safeValue (this.myLiquidations, symbol);
+        if (myLiquidations === undefined) {
+            const limit = this.safeInteger (this.options, 'myLiquidationsLimit', 1000);
+            myLiquidations = new ArrayCache (limit);
+        }
+        myLiquidations.append (liquidation);
+        this.myLiquidations[symbol] = myLiquidations;
+        client.resolve ([ liquidation ], 'myLiquidations');
+        client.resolve ([ liquidation ], 'myLiquidations::' + symbol);
     }
 
     async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
@@ -275,12 +629,12 @@ export default class binance extends binanceRest {
         const messageHashesLength = messageHashes.length;
         const url = this.urls['api']['ws'][type] + '/' + this.stream (type, streamHash, messageHashesLength);
         const requestId = this.requestId (url);
-        const request = {
+        const request: Dict = {
             'method': 'SUBSCRIBE',
             'params': subParams,
             'id': requestId,
         };
-        const subscription = {
+        const subscription: Dict = {
             'id': requestId.toString (),
             'name': name,
             'symbols': symbols,
@@ -307,7 +661,7 @@ export default class binance extends binanceRest {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const payload = {
+        const payload: Dict = {
             'symbol': market['id'],
         };
         if (limit !== undefined) {
@@ -324,12 +678,12 @@ export default class binance extends binanceRest {
         [ returnRateLimits, params ] = this.handleOptionAndParams (params, 'createOrderWs', 'returnRateLimits', false);
         payload['returnRateLimits'] = returnRateLimits;
         params = this.omit (params, 'test');
-        const message = {
+        const message: Dict = {
             'id': messageHash,
             'method': 'depth',
             'params': this.signParams (this.extend (payload, params)),
         };
-        const subscription = {
+        const subscription: Dict = {
             'method': this.handleFetchOrderBook,
         };
         const orderbook = await this.watch (url, messageHash, message, messageHash, subscription);
@@ -383,11 +737,11 @@ export default class binance extends binanceRest {
             // todo: this is a synch blocking call - make it async
             // default 100, max 1000, valid limits 5, 10, 20, 50, 100, 500, 1000
             const snapshot = await this.fetchRestOrderBookSafe (symbol, limit, params);
-            const orderbook = this.safeValue (this.orderbooks, symbol);
-            if (orderbook === undefined) {
+            if (this.safeValue (this.orderbooks, symbol) === undefined) {
                 // if the orderbook is dropped before the snapshot is received
                 return;
             }
+            const orderbook = this.orderbooks[symbol];
             orderbook.reset (snapshot);
             // unroll the accumulated deltas
             const messages = orderbook.cache;
@@ -475,8 +829,7 @@ export default class binance extends binanceRest {
         const symbol = market['symbol'];
         const name = 'depth';
         const messageHash = market['lowercaseId'] + '@' + name;
-        const orderbook = this.safeValue (this.orderbooks, symbol);
-        if (orderbook === undefined) {
+        if (!(symbol in this.orderbooks)) {
             //
             // https://github.com/ccxt/ccxt/issues/6672
             //
@@ -487,6 +840,7 @@ export default class binance extends binanceRest {
             //
             return;
         }
+        const orderbook = this.orderbooks[symbol];
         const nonce = this.safeInteger (orderbook, 'nonce');
         if (nonce === undefined) {
             // 2. Buffer the events you receive from the stream.
@@ -625,12 +979,12 @@ export default class binance extends binanceRest {
         const subParamsLength = subParams.length;
         const url = this.urls['api']['ws'][type] + '/' + this.stream (type, streamHash, subParamsLength);
         const requestId = this.requestId (url);
-        const request = {
+        const request: Dict = {
             'method': 'SUBSCRIBE',
             'params': subParams,
             'id': requestId,
         };
-        const subscribe = {
+        const subscribe: Dict = {
             'id': requestId,
         };
         const trades = await this.watchMultiple (url, subParams, this.extend (request, query), subParams, subscribe);
@@ -872,14 +1226,14 @@ export default class binance extends binanceRest {
         }
         const url = this.urls['api']['ws'][type] + '/' + this.stream (type, messageHash);
         const requestId = this.requestId (url);
-        const request = {
+        const request: Dict = {
             'method': 'SUBSCRIBE',
             'params': [
                 messageHash,
             ],
             'id': requestId,
         };
-        const subscribe = {
+        const subscribe: Dict = {
             'id': requestId,
         };
         const ohlcv = await this.watch (url, messageHash, this.extend (request, params), messageHash, subscribe);
@@ -917,7 +1271,7 @@ export default class binance extends binanceRest {
         //     }
         //
         let event = this.safeString (message, 'e');
-        const eventMap = {
+        const eventMap: Dict = {
             'indexPrice_kline': 'indexPriceKline',
             'markPrice_kline': 'markPriceKline',
         };
@@ -969,7 +1323,7 @@ export default class binance extends binanceRest {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const payload = {
+        const payload: Dict = {
             'symbol': market['id'],
         };
         const type = this.getMarketType ('fetchTickerWs', market, params);
@@ -979,7 +1333,7 @@ export default class binance extends binanceRest {
         const url = this.urls['api']['ws']['ws-api'][type];
         const requestId = this.requestId (url);
         const messageHash = requestId.toString ();
-        const subscription = {
+        const subscription: Dict = {
             'method': this.handleTickerWs,
         };
         let returnRateLimits = false;
@@ -988,7 +1342,7 @@ export default class binance extends binanceRest {
         params = this.omit (params, 'test');
         let method = undefined;
         [ method, params ] = this.handleOptionAndParams (params, 'fetchTickerWs', 'method', 'ticker.book');
-        const message = {
+        const message: Dict = {
             'id': messageHash,
             'method': method,
             'params': this.signParams (this.extend (payload, params)),
@@ -1025,7 +1379,7 @@ export default class binance extends binanceRest {
         const messageHash = requestId.toString ();
         let returnRateLimits = false;
         [ returnRateLimits, params ] = this.handleOptionAndParams (params, 'fetchOHLCVWs', 'returnRateLimits', false);
-        const payload = {
+        const payload: Dict = {
             'symbol': this.marketId (symbol),
             'returnRateLimits': returnRateLimits,
             'interval': this.timeframes[timeframe],
@@ -1041,12 +1395,12 @@ export default class binance extends binanceRest {
         if (until !== undefined) {
             payload['endTime'] = until;
         }
-        const message = {
+        const message: Dict = {
             'id': messageHash,
             'method': 'klines',
             'params': this.extend (payload, params),
         };
-        const subscription = {
+        const subscription: Dict = {
             'method': this.handleFetchOHLCV,
         };
         return await this.watch (url, messageHash, message, messageHash, subscription);
@@ -1196,12 +1550,12 @@ export default class binance extends binanceRest {
         }
         const url = this.urls['api']['ws'][rawMarketType] + '/' + this.stream (rawMarketType, streamHash);
         const requestId = this.requestId (url);
-        const request = {
+        const request: Dict = {
             'method': 'SUBSCRIBE',
             'params': subscriptionArgs,
             'id': requestId,
         };
-        const subscribe = {
+        const subscribe: Dict = {
             'id': requestId,
         };
         const result = await this.watchMultiple (url, messageHashes, this.deepExtend (request, params), subscriptionArgs, subscribe);
@@ -1210,7 +1564,7 @@ export default class binance extends binanceRest {
         if (!symbolsDefined) {
             return result;
         } else {
-            const newDict = {};
+            const newDict: Dict = {};
             newDict[result['symbol']] = result;
             return newDict;
         }
@@ -1403,7 +1757,7 @@ export default class binance extends binanceRest {
         let channelName = undefined;
         const resolvedMessageHashes = [];
         let rawTickers = [];
-        const newTickers = {};
+        const newTickers: Dict = {};
         if (Array.isArray (message)) {
             rawTickers = message;
         } else {
@@ -1548,7 +1902,7 @@ export default class binance extends binanceRest {
             // A network error happened: we can't renew a listen key that does not exist.
             return;
         }
-        const request = {};
+        const request: Dict = {};
         const symbol = this.safeString (params, 'symbol');
         params = this.omit (params, [ 'type', 'symbol' ]);
         const time = this.milliseconds ();
@@ -1624,7 +1978,7 @@ export default class binance extends binanceRest {
     }
 
     async loadBalanceSnapshot (client, messageHash, type, isPortfolioMargin) {
-        const params = {
+        const params: Dict = {
             'type': type,
         };
         if (isPortfolioMargin) {
@@ -1663,17 +2017,17 @@ export default class binance extends binanceRest {
         const messageHash = requestId.toString ();
         let returnRateLimits = false;
         [ returnRateLimits, params ] = this.handleOptionAndParams (params, 'fetchBalanceWs', 'returnRateLimits', false);
-        const payload = {
+        const payload: Dict = {
             'returnRateLimits': returnRateLimits,
         };
         let method = undefined;
         [ method, params ] = this.handleOptionAndParams (params, 'fetchBalanceWs', 'method', 'account.status');
-        const message = {
+        const message: Dict = {
             'id': messageHash,
             'method': method,
             'params': this.signParams (this.extend (payload, params)),
         };
-        const subscription = {
+        const subscription: Dict = {
             'method': (method === 'account.status') ? this.handleAccountStatusWs : this.handleBalanceWs,
         };
         return await this.watch (url, messageHash, message, messageHash, subscription);
@@ -1771,7 +2125,7 @@ export default class binance extends binanceRest {
         const url = this.urls['api']['ws']['ws-api']['future'];
         const requestId = this.requestId (url);
         const messageHash = requestId.toString ();
-        const payload = {};
+        const payload: Dict = {};
         if (symbols !== undefined) {
             const symbolsLength = symbols.length;
             if (symbolsLength === 1) {
@@ -1781,12 +2135,12 @@ export default class binance extends binanceRest {
         let returnRateLimits = false;
         [ returnRateLimits, params ] = this.handleOptionAndParams (params, 'fetchPositionsWs', 'returnRateLimits', false);
         payload['returnRateLimits'] = returnRateLimits;
-        const message = {
+        const message: Dict = {
             'id': messageHash,
             'method': 'account.position',
             'params': this.signParams (this.extend (payload, params)),
         };
-        const subscription = {
+        const subscription: Dict = {
             'method': this.handlePositionsWs,
         };
         const result = await this.watch (url, messageHash, message, messageHash, subscription);
@@ -2030,7 +2384,7 @@ export default class binance extends binanceRest {
         payload['returnRateLimits'] = returnRateLimits;
         const test = this.safeBool (params, 'test', false);
         params = this.omit (params, 'test');
-        const message = {
+        const message: Dict = {
             'id': messageHash,
             'method': 'order.place',
             'params': this.signParams (this.extend (payload, params)),
@@ -2042,7 +2396,7 @@ export default class binance extends binanceRest {
                 message['method'] = 'order.test';
             }
         }
-        const subscription = {
+        const subscription: Dict = {
             'method': this.handleOrderWs,
         };
         return await this.watch (url, messageHash, message, messageHash, subscription);
@@ -2146,7 +2500,7 @@ export default class binance extends binanceRest {
         client.resolve (orders, messageHash);
     }
 
-    async editOrderWs (id: string, symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}): Promise<Order> {
+    async editOrderWs (id: string, symbol: string, type: OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params = {}): Promise<Order> {
         /**
          * @method
          * @name binance#editOrderWs
@@ -2180,12 +2534,12 @@ export default class binance extends binanceRest {
         let returnRateLimits = false;
         [ returnRateLimits, params ] = this.handleOptionAndParams (params, 'editOrderWs', 'returnRateLimits', false);
         payload['returnRateLimits'] = returnRateLimits;
-        const message = {
+        const message: Dict = {
             'id': messageHash,
             'method': (marketType === 'future') ? 'order.modify' : 'order.cancelReplace',
             'params': this.signParams (this.extend (payload, params)),
         };
-        const subscription = {
+        const subscription: Dict = {
             'method': this.handleEditOrderWs,
         };
         return await this.watch (url, messageHash, message, messageHash, subscription);
@@ -2326,7 +2680,7 @@ export default class binance extends binanceRest {
         const messageHash = requestId.toString ();
         let returnRateLimits = false;
         [ returnRateLimits, params ] = this.handleOptionAndParams (params, 'cancelOrderWs', 'returnRateLimits', false);
-        const payload = {
+        const payload: Dict = {
             'symbol': this.marketId (symbol),
             'returnRateLimits': returnRateLimits,
         };
@@ -2337,12 +2691,12 @@ export default class binance extends binanceRest {
             payload['orderId'] = this.parseToInt (id);
         }
         params = this.omit (params, [ 'origClientOrderId', 'clientOrderId' ]);
-        const message = {
+        const message: Dict = {
             'id': messageHash,
             'method': 'order.cancel',
             'params': this.signParams (this.extend (payload, params)),
         };
-        const subscription = {
+        const subscription: Dict = {
             'method': this.handleOrderWs,
         };
         return await this.watch (url, messageHash, message, messageHash, subscription);
@@ -2369,16 +2723,16 @@ export default class binance extends binanceRest {
         const messageHash = requestId.toString ();
         let returnRateLimits = false;
         [ returnRateLimits, params ] = this.handleOptionAndParams (params, 'cancelAllOrdersWs', 'returnRateLimits', false);
-        const payload = {
+        const payload: Dict = {
             'symbol': this.marketId (symbol),
             'returnRateLimits': returnRateLimits,
         };
-        const message = {
+        const message: Dict = {
             'id': messageHash,
             'method': 'order.cancel',
             'params': this.signParams (this.extend (payload, params)),
         };
-        const subscription = {
+        const subscription: Dict = {
             'method': this.handleOrdersWs,
         };
         return await this.watch (url, messageHash, message, messageHash, subscription);
@@ -2409,7 +2763,7 @@ export default class binance extends binanceRest {
         const messageHash = requestId.toString ();
         let returnRateLimits = false;
         [ returnRateLimits, params ] = this.handleOptionAndParams (params, 'fetchOrderWs', 'returnRateLimits', false);
-        const payload = {
+        const payload: Dict = {
             'symbol': this.marketId (symbol),
             'returnRateLimits': returnRateLimits,
         };
@@ -2419,12 +2773,12 @@ export default class binance extends binanceRest {
         } else {
             payload['orderId'] = this.parseToInt (id);
         }
-        const message = {
+        const message: Dict = {
             'id': messageHash,
             'method': 'order.status',
             'params': this.signParams (this.extend (payload, params)),
         };
-        const subscription = {
+        const subscription: Dict = {
             'method': this.handleOrderWs,
         };
         return await this.watch (url, messageHash, message, messageHash, subscription);
@@ -2460,16 +2814,16 @@ export default class binance extends binanceRest {
         const messageHash = requestId.toString ();
         let returnRateLimits = false;
         [ returnRateLimits, params ] = this.handleOptionAndParams (params, 'fetchOrderWs', 'returnRateLimits', false);
-        const payload = {
+        const payload: Dict = {
             'symbol': this.marketId (symbol),
             'returnRateLimits': returnRateLimits,
         };
-        const message = {
+        const message: Dict = {
             'id': messageHash,
             'method': 'allOrders',
             'params': this.signParams (this.extend (payload, params)),
         };
-        const subscription = {
+        const subscription: Dict = {
             'method': this.handleOrdersWs,
         };
         const orders = await this.watch (url, messageHash, message, messageHash, subscription);
@@ -2522,18 +2876,18 @@ export default class binance extends binanceRest {
         const messageHash = requestId.toString ();
         let returnRateLimits = false;
         [ returnRateLimits, params ] = this.handleOptionAndParams (params, 'fetchOrderWs', 'returnRateLimits', false);
-        const payload = {
+        const payload: Dict = {
             'returnRateLimits': returnRateLimits,
         };
         if (symbol !== undefined) {
             payload['symbol'] = this.marketId (symbol);
         }
-        const message = {
+        const message: Dict = {
             'id': messageHash,
             'method': 'openOrders.status',
             'params': this.signParams (this.extend (payload, params)),
         };
-        const subscription = {
+        const subscription: Dict = {
             'method': this.handleOrdersWs,
         };
         const orders = await this.watch (url, messageHash, message, messageHash, subscription);
@@ -2837,6 +3191,7 @@ export default class binance extends binanceRest {
         }
         this.handleMyTrade (client, message);
         this.handleOrder (client, message);
+        this.handleMyLiquidation (client, message);
     }
 
     async watchPositions (symbols: Strings = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Position[]> {
@@ -2857,7 +3212,7 @@ export default class binance extends binanceRest {
             market = this.getMarketFromSymbols (symbols);
             messageHash = '::' + symbols.join (',');
         }
-        const marketTypeObject = {};
+        const marketTypeObject: Dict = {};
         if (market !== undefined) {
             marketTypeObject['type'] = market['type'];
             marketTypeObject['subType'] = market['subType'];
@@ -2923,7 +3278,7 @@ export default class binance extends binanceRest {
     }
 
     async loadPositionsSnapshot (client, messageHash, type, isPortfolioMargin) {
-        const params = {
+        const params: Dict = {
             'type': type,
         };
         if (isPortfolioMargin) {
@@ -3093,7 +3448,7 @@ export default class binance extends binanceRest {
         const messageHash = requestId.toString ();
         let returnRateLimits = false;
         [ returnRateLimits, params ] = this.handleOptionAndParams (params, 'fetchMyTradesWs', 'returnRateLimits', false);
-        const payload = {
+        const payload: Dict = {
             'symbol': this.marketId (symbol),
             'returnRateLimits': returnRateLimits,
         };
@@ -3107,12 +3462,12 @@ export default class binance extends binanceRest {
         if (fromId !== undefined && since !== undefined) {
             throw new BadRequest (this.id + 'fetchMyTradesWs does not support fetching by both fromId and since parameters at the same time');
         }
-        const message = {
+        const message: Dict = {
             'id': messageHash,
             'method': 'myTrades',
             'params': this.signParams (this.extend (payload, params)),
         };
-        const subscription = {
+        const subscription: Dict = {
             'method': this.handleTradesWs,
         };
         const trades = await this.watch (url, messageHash, message, messageHash, subscription);
@@ -3148,19 +3503,19 @@ export default class binance extends binanceRest {
         const messageHash = requestId.toString ();
         let returnRateLimits = false;
         [ returnRateLimits, params ] = this.handleOptionAndParams (params, 'fetchTradesWs', 'returnRateLimits', false);
-        const payload = {
+        const payload: Dict = {
             'symbol': this.marketId (symbol),
             'returnRateLimits': returnRateLimits,
         };
         if (limit !== undefined) {
             payload['limit'] = limit;
         }
-        const message = {
+        const message: Dict = {
             'id': messageHash,
             'method': 'trades.historical',
             'params': this.extend (payload, params),
         };
-        const subscription = {
+        const subscription: Dict = {
             'method': this.handleTradesWs,
         };
         const trades = await this.watch (url, messageHash, message, messageHash, subscription);
@@ -3437,7 +3792,7 @@ export default class binance extends binanceRest {
             return;
         }
         // handle other APIs
-        const methods = {
+        const methods: Dict = {
             'depthUpdate': this.handleOrderBook,
             'trade': this.handleTrade,
             'aggTrade': this.handleTrade,
@@ -3460,6 +3815,7 @@ export default class binance extends binanceRest {
             'ACCOUNT_UPDATE': this.handleAcountUpdate,
             'executionReport': this.handleOrderUpdate,
             'ORDER_TRADE_UPDATE': this.handleOrderUpdate,
+            'forceOrder': this.handleLiquidation,
         };
         let event = this.safeString (message, 'e');
         if (Array.isArray (message)) {

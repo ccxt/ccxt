@@ -217,6 +217,8 @@ class independentreserve extends independentreserve$1 {
             const responseChecksum = this.safeInteger(orderBook, 'Crc32');
             if (calculatedChecksum !== responseChecksum) {
                 const error = new errors.InvalidNonce(this.id + ' invalid checksum');
+                delete client.subscriptions[messageHash];
+                delete this.orderbooks[symbol];
                 client.reject(error, messageHash);
             }
         }

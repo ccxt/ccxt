@@ -388,6 +388,7 @@ public partial class kucoin : Exchange
                     { "The withdrawal amount is below the minimum requirement.", typeof(ExchangeError) },
                     { "Unsuccessful! Exceeded the max. funds out-transfer limit", typeof(InsufficientFunds) },
                     { "The amount increment is invalid.", typeof(BadRequest) },
+                    { "The quantity is below the minimum requirement.", typeof(InvalidOrder) },
                     { "400", typeof(BadRequest) },
                     { "401", typeof(AuthenticationError) },
                     { "403", typeof(NotSupported) },
@@ -5016,6 +5017,7 @@ public partial class kucoin : Exchange
                 object partnerSignature = this.hmac(this.encode(partnerPayload), this.encode(partnerSecret), sha256, "base64");
                 ((IDictionary<string,object>)headers)["KC-API-PARTNER-SIGN"] = partnerSignature;
                 ((IDictionary<string,object>)headers)["KC-API-PARTNER"] = partnerId;
+                ((IDictionary<string,object>)headers)["KC-API-PARTNER-VERIFY"] = "true";
             }
             if (isTrue(isBroker))
             {

@@ -1971,12 +1971,11 @@ public partial class poloniex : Exchange
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object currency = this.currency(code);
-        amount = this.currencyToPrecision(code, amount);
         object accountsByType = this.safeValue(this.options, "accountsByType", new Dictionary<string, object>() {});
         object fromId = this.safeString(accountsByType, fromAccount, fromAccount);
         object toId = this.safeString(accountsByType, toAccount, fromAccount);
         object request = new Dictionary<string, object>() {
-            { "amount", amount },
+            { "amount", this.currencyToPrecision(code, amount) },
             { "currency", getValue(currency, "id") },
             { "fromAccount", fromId },
             { "toAccount", toId },

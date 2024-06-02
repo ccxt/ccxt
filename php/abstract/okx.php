@@ -178,6 +178,15 @@ abstract class okx extends \ccxt\Exchange {
     public function public_get_sprd_public_trades($params = array()) {
         return $this->request('sprd/public-trades', 'public', 'GET', $params, null, null, array("cost" => 0.2));
     }
+    public function public_get_market_sprd_ticker($params = array()) {
+        return $this->request('market/sprd-ticker', 'public', 'GET', $params, null, null, array("cost" => 2));
+    }
+    public function public_get_market_sprd_candles($params = array()) {
+        return $this->request('market/sprd-candles', 'public', 'GET', $params, null, null, array("cost" => 2));
+    }
+    public function public_get_market_sprd_history_candles($params = array()) {
+        return $this->request('market/sprd-history-candles', 'public', 'GET', $params, null, null, array("cost" => 2));
+    }
     public function public_get_tradingbot_grid_ai_param($params = array()) {
         return $this->request('tradingBot/grid/ai-param', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
@@ -198,6 +207,15 @@ abstract class okx extends \ccxt\Exchange {
     }
     public function public_get_finance_savings_lending_rate_history($params = array()) {
         return $this->request('finance/savings/lending-rate-history', 'public', 'GET', $params, null, null, array("cost" => 1.6666666666666667));
+    }
+    public function public_get_finance_fixed_loan_lending_offers($params = array()) {
+        return $this->request('finance/fixed-loan/lending-offers', 'public', 'GET', $params, null, null, array("cost" => 3.3333333333333335));
+    }
+    public function public_get_finance_fixed_loan_lending_apy_history($params = array()) {
+        return $this->request('finance/fixed-loan/lending-apy-history', 'public', 'GET', $params, null, null, array("cost" => 3.3333333333333335));
+    }
+    public function public_get_finance_fixed_loan_pending_lending_volume($params = array()) {
+        return $this->request('finance/fixed-loan/pending-lending-volume', 'public', 'GET', $params, null, null, array("cost" => 3.3333333333333335));
     }
     public function public_get_finance_sfp_dcd_products($params = array()) {
         return $this->request('finance/sfp/dcd/products', 'public', 'GET', $params, null, null, array("cost" => 0.6666666666666666));
@@ -802,6 +820,9 @@ abstract class okx extends \ccxt\Exchange {
     public function private_post_tradingbot_grid_min_investment($params = array()) {
         return $this->request('tradingBot/grid/min-investment', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
+    public function private_post_tradingbot_grid_adjust_investment($params = array()) {
+        return $this->request('tradingBot/grid/adjust-investment', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
     public function private_post_tradingbot_signal_create_signal($params = array()) {
         return $this->request('tradingBot/signal/create-signal', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
@@ -1096,6 +1117,15 @@ abstract class okx extends \ccxt\Exchange {
     public function publicGetSprdPublicTrades($params = array()) {
         return $this->request('sprd/public-trades', 'public', 'GET', $params, null, null, array("cost" => 0.2));
     }
+    public function publicGetMarketSprdTicker($params = array()) {
+        return $this->request('market/sprd-ticker', 'public', 'GET', $params, null, null, array("cost" => 2));
+    }
+    public function publicGetMarketSprdCandles($params = array()) {
+        return $this->request('market/sprd-candles', 'public', 'GET', $params, null, null, array("cost" => 2));
+    }
+    public function publicGetMarketSprdHistoryCandles($params = array()) {
+        return $this->request('market/sprd-history-candles', 'public', 'GET', $params, null, null, array("cost" => 2));
+    }
     public function publicGetTradingBotGridAiParam($params = array()) {
         return $this->request('tradingBot/grid/ai-param', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
@@ -1116,6 +1146,15 @@ abstract class okx extends \ccxt\Exchange {
     }
     public function publicGetFinanceSavingsLendingRateHistory($params = array()) {
         return $this->request('finance/savings/lending-rate-history', 'public', 'GET', $params, null, null, array("cost" => 1.6666666666666667));
+    }
+    public function publicGetFinanceFixedLoanLendingOffers($params = array()) {
+        return $this->request('finance/fixed-loan/lending-offers', 'public', 'GET', $params, null, null, array("cost" => 3.3333333333333335));
+    }
+    public function publicGetFinanceFixedLoanLendingApyHistory($params = array()) {
+        return $this->request('finance/fixed-loan/lending-apy-history', 'public', 'GET', $params, null, null, array("cost" => 3.3333333333333335));
+    }
+    public function publicGetFinanceFixedLoanPendingLendingVolume($params = array()) {
+        return $this->request('finance/fixed-loan/pending-lending-volume', 'public', 'GET', $params, null, null, array("cost" => 3.3333333333333335));
     }
     public function publicGetFinanceSfpDcdProducts($params = array()) {
         return $this->request('finance/sfp/dcd/products', 'public', 'GET', $params, null, null, array("cost" => 0.6666666666666666));
@@ -1719,6 +1758,9 @@ abstract class okx extends \ccxt\Exchange {
     }
     public function privatePostTradingBotGridMinInvestment($params = array()) {
         return $this->request('tradingBot/grid/min-investment', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function privatePostTradingBotGridAdjustInvestment($params = array()) {
+        return $this->request('tradingBot/grid/adjust-investment', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
     public function privatePostTradingBotSignalCreateSignal($params = array()) {
         return $this->request('tradingBot/signal/create-signal', 'private', 'POST', $params, null, null, array("cost" => 1));

@@ -664,6 +664,15 @@
                         "clientOrderId": "myorder2"
                     }
                 ]
+            },
+            {
+                "description": "cancel trigger order",
+                "method": "cancelOrder",
+                "url": "https://open-api.bingx.com/openApi/swap/v2/trade/order?orderId=1792480780099366912&symbol=LTC-USDT&timestamp=1716195827169&signature=0f1b1278f4f38b7e53ea9a25914ea0613bad9e37ffc530a8d2998e1ed8014172",
+                "input": [
+                  "1792480780099366912",
+                  "LTC/USDT:USDT"
+                ]
             }
         ],
         "cancelOrders": [

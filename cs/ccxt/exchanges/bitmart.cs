@@ -26,11 +26,12 @@ public partial class bitmart : Exchange
                 { "borrowIsolatedMargin", true },
                 { "cancelAllOrders", true },
                 { "cancelOrder", true },
-                { "cancelOrders", false },
+                { "cancelOrders", true },
                 { "createMarketBuyOrderWithCost", true },
                 { "createMarketOrderWithCost", false },
                 { "createMarketSellOrderWithCost", false },
                 { "createOrder", true },
+                { "createOrders", true },
                 { "createPostOnlyOrder", true },
                 { "createStopLimitOrder", false },
                 { "createStopMarketOrder", false },
@@ -164,7 +165,7 @@ public partial class bitmart : Exchange
                         { "spot/v1/order_detail", 1 },
                         { "spot/v2/orders", 5 },
                         { "spot/v1/trades", 5 },
-                        { "spot/v2/trades", 5 },
+                        { "spot/v2/trades", 4 },
                         { "spot/v3/orders", 5 },
                         { "spot/v2/order_detail", 1 },
                         { "spot/v1/margin/isolated/borrow_record", 1 },
@@ -202,6 +203,8 @@ public partial class bitmart : Exchange
                         { "spot/v4/query/history-orders", 5 },
                         { "spot/v4/query/trades", 5 },
                         { "spot/v4/query/order-trades", 5 },
+                        { "spot/v4/cancel_orders", 3 },
+                        { "spot/v4/batch_orders", 3 },
                         { "spot/v3/cancel_order", 1 },
                         { "spot/v2/batch_orders", 1 },
                         { "spot/v2/submit_order", 1 },
@@ -1124,15 +1127,7 @@ public partial class bitmart : Exchange
         object percentage = this.safeString(ticker, "price_change_percent_24h");
         if (isTrue(isEqual(percentage, null)))
         {
-            object percentageRaw = this.safeString(ticker, "fluctuation");
-            if (isTrue(isTrue((!isEqual(percentageRaw, null))) && isTrue((!isEqual(percentageRaw, "0")))))
-            {
-                object direction = getValue(percentageRaw, 0);
-                percentage = add(direction, Precise.stringMul(((string)percentageRaw).Replace((string)direction, (string)""), "100"));
-            } else if (isTrue(isEqual(percentageRaw, "0")))
-            {
-                percentage = "0";
-            }
+            percentage = Precise.stringMul(this.safeString(ticker, "fluctuation"), "100");
         }
         object baseVolume = this.safeString(ticker, "base_volume_24h");
         object quoteVolume = this.safeString(ticker, "quote_volume_24h");
@@ -1408,13 +1403,13 @@ public partial class bitmart : Exchange
         //
         // public fetchTrades spot ( amount = count * price )
         //
-        //    {
-        //        "amount": "818.94",
-        //        "order_time": "1637601839035",    // ETH/USDT
-        //        "price": "4221.99",
-        //        "count": "0.19397",
-        //        "type": "buy"
-        //    }
+        //     [
+        //         "BTC_USDT",      // symbol
+        //         "1717212457302", // timestamp
+        //         "67643.11",      // price
+        //         "0.00106",       // size
+        //         "sell"           // side
+        //     ]
         //
         // spot: fetchMyTrades
         //
@@ -1461,17 +1456,18 @@ public partial class bitmart : Exchange
         //        'lastTradeID': 6802340762
         //    }
         //
-        object timestamp = this.safeIntegerN(trade, new List<object>() {"order_time", "createTime", "create_time"});
-        object isPublicTrade = (inOp(trade, "order_time"));
+        object timestamp = this.safeIntegerN(trade, new List<object>() {"createTime", "create_time", 1});
+        object isPublic = this.safeString(trade, 0);
+        object isPublicTrade = (!isEqual(isPublic, null));
         object amount = null;
         object cost = null;
         object type = null;
         object side = null;
         if (isTrue(isPublicTrade))
         {
-            amount = this.safeString(trade, "count");
+            amount = this.safeString2(trade, "count", 3);
             cost = this.safeString(trade, "amount");
-            side = this.safeString(trade, "type");
+            side = this.safeString2(trade, "type", 4);
         } else
         {
             amount = this.safeStringN(trade, new List<object>() {"size", "vol", "fillQty"});
@@ -1479,7 +1475,7 @@ public partial class bitmart : Exchange
             type = this.safeString(trade, "type");
             side = this.parseOrderSide(this.safeString(trade, "side"));
         }
-        object marketId = this.safeString(trade, "symbol");
+        object marketId = this.safeString2(trade, "symbol", 0);
         market = this.safeMarket(marketId, market);
         object feeCostString = this.safeString2(trade, "fee", "paid_fees");
         object fee = null;
@@ -1505,7 +1501,7 @@ public partial class bitmart : Exchange
             { "symbol", getValue(market, "symbol") },
             { "type", type },
             { "side", side },
-            { "price", this.safeString2(trade, "price", "fillPrice") },
+            { "price", this.safeStringN(trade, new List<object>() {"price", "fillPrice", 2}) },
             { "amount", amount },
             { "cost", cost },
             { "takerOrMaker", this.safeStringLower2(trade, "tradeRole", "exec_type") },
@@ -1518,10 +1514,11 @@ public partial class bitmart : Exchange
         /**
         * @method
         * @name bitmart#fetchTrades
-        * @description get the list of most recent trades for a particular symbol
+        * @description get a list of the most recent trades for a particular symbol
+        * @see https://developer-pro.bitmart.com/en/spot/#get-recent-trades-v3
         * @param {string} symbol unified symbol of the market to fetch trades for
         * @param {int} [since] timestamp in ms of the earliest trade to fetch
-        * @param {int} [limit] the maximum amount of trades to fetch
+        * @param {int} [limit] the maximum number of trades to fetch
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
         */
@@ -1535,30 +1532,29 @@ public partial class bitmart : Exchange
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
         };
-        object response = await this.publicGetSpotV1SymbolsTrades(this.extend(request, parameters));
-        //
-        // spot
+        if (isTrue(!isEqual(limit, null)))
+        {
+            ((IDictionary<string,object>)request)["limit"] = limit;
+        }
+        object response = await this.publicGetSpotQuotationV3Trades(this.extend(request, parameters));
         //
         //     {
-        //         "message":"OK",
-        //         "code":1000,
-        //         "trace":"222d74c0-8f6d-49d9-8e1b-98118c50eeba",
-        //         "data":{
-        //             "trades":[
-        //                 {
-        //                     "amount":"0.005703",
-        //                     "order_time":1599652045394,
-        //                     "price":"0.034029",
-        //                     "count":"0.1676",
-        //                     "type":"sell"
-        //                 },
-        //             ]
-        //         }
+        //         "code": 1000,
+        //         "trace": "58031f9a5bd.111.17117",
+        //         "message": "success",
+        //         "data": [
+        //             [
+        //                 "BTC_USDT",
+        //                 "1717212457302",
+        //                 "67643.11",
+        //                 "0.00106",
+        //                 "sell"
+        //             ],
+        //         ]
         //     }
         //
-        object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
-        object trades = this.safeList(data, "trades", new List<object>() {});
-        return this.parseTrades(trades, market, since, limit);
+        object data = this.safeList(response, "data", new List<object>() {});
+        return this.parseTrades(data, market, since, limit);
     }
 
     public override object parseOHLCV(object ohlcv, object market = null)
@@ -2433,6 +2429,86 @@ public partial class bitmart : Exchange
         return order;
     }
 
+    public async override Task<object> createOrders(object orders, object parameters = null)
+    {
+        /**
+        * @method
+        * @name bitmart#createOrders
+        * @description create a list of trade orders
+        * @see https://developer-pro.bitmart.com/en/spot/#new-batch-order-v4-signed
+        * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
+        * @param {object} [params]  extra parameters specific to the exchange API endpoint
+        * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object ordersRequests = new List<object>() {};
+        object symbol = null;
+        object market = null;
+        for (object i = 0; isLessThan(i, getArrayLength(orders)); postFixIncrement(ref i))
+        {
+            object rawOrder = getValue(orders, i);
+            object marketId = this.safeString(rawOrder, "symbol");
+            market = this.market(marketId);
+            if (!isTrue(getValue(market, "spot")))
+            {
+                throw new NotSupported ((string)add(this.id, " createOrders() supports spot orders only")) ;
+            }
+            if (isTrue(isEqual(symbol, null)))
+            {
+                symbol = marketId;
+            } else
+            {
+                if (isTrue(!isEqual(symbol, marketId)))
+                {
+                    throw new BadRequest ((string)add(this.id, " createOrders() requires all orders to have the same symbol")) ;
+                }
+            }
+            object type = this.safeString(rawOrder, "type");
+            object side = this.safeString(rawOrder, "side");
+            object amount = this.safeValue(rawOrder, "amount");
+            object price = this.safeValue(rawOrder, "price");
+            object orderParams = this.safeDict(rawOrder, "params", new Dictionary<string, object>() {});
+            object orderRequest = this.createSpotOrderRequest(marketId, type, side, amount, price, orderParams);
+            orderRequest = this.omit(orderRequest, new List<object>() {"symbol"}); // not needed because it goes in the outter object
+            ((IList<object>)ordersRequests).Add(orderRequest);
+        }
+        object request = new Dictionary<string, object>() {
+            { "symbol", getValue(market, "id") },
+            { "orderParams", ordersRequests },
+        };
+        object response = await this.privatePostSpotV4BatchOrders(request);
+        //
+        // {
+        //     "message": "OK",
+        //     "code": 1000,
+        //     "trace": "5fc697fb817a4b5396284786a9b2609a.263.17022620476480263",
+        //     "data": {
+        //       "code": 0,
+        //       "msg": "success",
+        //       "data": {
+        //         "orderIds": [
+        //           "212751308355553320"
+        //         ]
+        //       }
+        //     }
+        // }
+        //
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        object innderData = this.safeDict(data, "data", new Dictionary<string, object>() {});
+        object orderIds = this.safeList(innderData, "orderIds", new List<object>() {});
+        object parsedOrders = new List<object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(orderIds)); postFixIncrement(ref i))
+        {
+            object orderId = getValue(orderIds, i);
+            object order = this.safeOrder(new Dictionary<string, object>() {
+                { "id", orderId },
+            }, market);
+            ((IList<object>)parsedOrders).Add(order);
+        }
+        return parsedOrders;
+    }
+
     public virtual object createSwapOrderRequest(object symbol, object type, object side, object amount, object price = null, object parameters = null)
     {
         /**
@@ -2617,7 +2693,7 @@ public partial class bitmart : Exchange
             // for market buy it requires the amount of quote currency to spend
             if (isTrue(isEqual(side, "buy")))
             {
-                object notional = this.safeNumber2(parameters, "cost", "notional");
+                object notional = this.safeString2(parameters, "cost", "notional");
                 parameters = this.omit(parameters, "cost");
                 object createMarketBuyOrderRequiresPrice = true;
                 var createMarketBuyOrderRequiresPriceparametersVariable = this.handleOptionAndParams(parameters, "createOrder", "createMarketBuyOrderRequiresPrice", true);
@@ -2632,11 +2708,11 @@ public partial class bitmart : Exchange
                     {
                         object amountString = this.numberToString(amount);
                         object priceString = this.numberToString(price);
-                        notional = this.parseNumber(Precise.stringMul(amountString, priceString));
+                        notional = Precise.stringMul(amountString, priceString);
                     }
                 } else
                 {
-                    notional = ((bool) isTrue((isEqual(notional, null)))) ? amount : notional;
+                    notional = ((bool) isTrue((isEqual(notional, null)))) ? this.numberToString(amount) : notional;
                 }
                 ((IDictionary<string,object>)request)["notional"] = this.decimalToPrecision(notional, TRUNCATE, getValue(getValue(market, "precision"), "price"), this.precisionMode);
             } else if (isTrue(isEqual(side, "sell")))
@@ -2737,7 +2813,9 @@ public partial class bitmart : Exchange
         object data = this.safeValue(response, "data");
         if (isTrue(isEqual(data, true)))
         {
-            return this.parseOrder(id, market);
+            return this.safeOrder(new Dictionary<string, object>() {
+                { "id", id },
+            }, market);
         }
         object succeeded = this.safeValue(data, "succeed");
         if (isTrue(!isEqual(succeeded, null)))
@@ -2755,10 +2833,88 @@ public partial class bitmart : Exchange
                 throw new InvalidOrder ((string)add(add(add(add(add(this.id, " cancelOrder() "), symbol), " order id "), id), " is filled or canceled")) ;
             }
         }
-        object order = this.parseOrder(id, market);
-        return this.extend(order, new Dictionary<string, object>() {
+        object order = this.safeOrder(new Dictionary<string, object>() {
             { "id", id },
-        });
+            { "symbol", getValue(market, "symbol") },
+            { "info", new Dictionary<string, object>() {} },
+        }, market);
+        return order;
+    }
+
+    public async virtual Task<object> cancelOrders(object ids, object symbol = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name bitmart#cancelOrders
+        * @description cancel multiple orders
+        * @see https://developer-pro.bitmart.com/en/spot/#cancel-batch-order-v4-signed
+        * @param {string[]} ids order ids
+        * @param {string} symbol unified symbol of the market the order was made in
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @param {string[]} [params.clientOrderIds] client order ids
+        * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        if (isTrue(isEqual(symbol, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " cancelOrders() requires a symbol argument")) ;
+        }
+        await this.loadMarkets();
+        object market = this.market(symbol);
+        if (!isTrue(getValue(market, "spot")))
+        {
+            throw new NotSupported ((string)add(add(add(this.id, " cancelOrders() does not support "), getValue(market, "type")), " orders, only spot orders are accepted")) ;
+        }
+        object clientOrderIds = this.safeList(parameters, "clientOrderIds");
+        parameters = this.omit(parameters, new List<object>() {"clientOrderIds"});
+        object request = new Dictionary<string, object>() {
+            { "symbol", getValue(market, "id") },
+        };
+        if (isTrue(!isEqual(clientOrderIds, null)))
+        {
+            ((IDictionary<string,object>)request)["clientOrderIds"] = clientOrderIds;
+        } else
+        {
+            ((IDictionary<string,object>)request)["orderIds"] = ids;
+        }
+        object response = await this.privatePostSpotV4CancelOrders(this.extend(request, parameters));
+        //
+        //  {
+        //      "message": "OK",
+        //      "code": 1000,
+        //      "trace": "c4edbce860164203954f7c3c81d60fc6.309.17022669632770001",
+        //      "data": {
+        //        "successIds": [
+        //          "213055379155243012"
+        //        ],
+        //        "failIds": [],
+        //        "totalCount": 1,
+        //        "successCount": 1,
+        //        "failedCount": 0
+        //      }
+        //  }
+        //
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        object allOrders = new List<object>() {};
+        object successIds = this.safeList(data, "successIds", new List<object>() {});
+        for (object i = 0; isLessThan(i, getArrayLength(successIds)); postFixIncrement(ref i))
+        {
+            object id = getValue(successIds, i);
+            ((IList<object>)allOrders).Add(this.safeOrder(new Dictionary<string, object>() {
+                { "id", id },
+                { "status", "canceled" },
+            }, market));
+        }
+        object failIds = this.safeList(data, "failIds", new List<object>() {});
+        for (object i = 0; isLessThan(i, getArrayLength(failIds)); postFixIncrement(ref i))
+        {
+            object id = getValue(failIds, i);
+            ((IList<object>)allOrders).Add(this.safeOrder(new Dictionary<string, object>() {
+                { "id", id },
+                { "status", "failed" },
+            }, market));
+        }
+        return allOrders;
     }
 
     public async override Task<object> cancelAllOrders(object symbol = null, object parameters = null)
@@ -4076,7 +4232,7 @@ public partial class bitmart : Exchange
         };
     }
 
-    public async virtual Task<object> fetchTransfers(object code = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<object> fetchTransfers(object code = null, object since = null, object limit = null, object parameters = null)
     {
         /**
         * @method

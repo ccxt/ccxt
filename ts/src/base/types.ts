@@ -1,5 +1,5 @@
 export type Int = number | undefined;
-
+export type int = number;
 export type Str = string | undefined;
 export type Strings = string[] | undefined;
 export type Num = number | undefined;
@@ -294,6 +294,9 @@ export interface FundingRate {
     previousFundingRate?: number;
 }
 
+export interface FundingRates extends Dictionary<FundingRate> {
+}
+
 export interface Position {
     symbol: string;
     id?: Str;
@@ -576,6 +579,12 @@ export interface IsolatedBorrowRates extends Dictionary<IsolatedBorrowRates> {
 }
 
 export interface CrossBorrowRates extends Dictionary<CrossBorrowRates> {
+}
+
+export interface TransferEntries extends Dictionary<TransferEntry> {
+}
+
+export interface LeverageTiers extends Dictionary<LeverageTier[]> {
 }
 
 /** [ timestamp, open, high, low, close, volume ] */

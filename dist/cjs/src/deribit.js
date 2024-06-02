@@ -2887,7 +2887,7 @@ class deribit extends deribit$1 {
             'id': this.safeString(transfer, 'id'),
             'status': this.parseTransferStatus(status),
             'amount': this.safeNumber(transfer, 'amount'),
-            'code': this.safeCurrencyCode(currencyId, currency),
+            'currency': this.safeCurrencyCode(currencyId, currency),
             'fromAccount': direction !== 'payment' ? account : undefined,
             'toAccount': direction === 'payment' ? account : undefined,
             'timestamp': timestamp,

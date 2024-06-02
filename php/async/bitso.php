@@ -203,7 +203,7 @@ class bitso extends Exchange {
             if ($limit !== null) {
                 $request['limit'] = $limit;
             }
-            $response = Async\await($this->privateGetLedger (array_merge($request, $params)));
+            $response = Async\await($this->privateGetLedger ($this->extend($request, $params)));
             //
             //     {
             //         "success" => true,
@@ -243,7 +243,7 @@ class bitso extends Exchange {
         return $this->safe_string($types, $type, $type);
     }
 
-    public function parse_ledger_entry($item, ?array $currency = null) {
+    public function parse_ledger_entry(array $item, ?array $currency = null) {
         //
         //     {
         //         "eid" => "2510b3e2bc1c87f584500a18084f35ed",
@@ -431,7 +431,7 @@ class bitso extends Exchange {
                 $fee['tiers'] = $tiers;
                 // TODO => precisions can be also set from https://bitso.com/api/v3/catalogues ->available_currency_conversions->currencies (or ->currencies->metadata)  or https://bitso.com/api/v3/get_exchange_rates/mxn
                 $defaultPricePrecision = $this->safe_number($this->options['precision'], $quote, $this->options['defaultPrecision']);
-                $result[] = array_merge(array(
+                $result[] = $this->extend(array(
                     'id' => $id,
                     'symbol' => $base . '/' . $quote,
                     'base' => $base,
@@ -562,14 +562,14 @@ class bitso extends Exchange {
             $request = array(
                 'book' => $market['id'],
             );
-            $response = Async\await($this->publicGetOrderBook (array_merge($request, $params)));
+            $response = Async\await($this->publicGetOrderBook ($this->extend($request, $params)));
             $orderbook = $this->safe_value($response, 'payload');
             $timestamp = $this->parse8601($this->safe_string($orderbook, 'updated_at'));
             return $this->parse_order_book($orderbook, $market['symbol'], $timestamp, 'bids', 'asks', 'price', 'amount');
         }) ();
     }
 
-    public function parse_ticker($ticker, ?array $market = null): array {
+    public function parse_ticker(array $ticker, ?array $market = null): array {
         //
         //     {
         //         "high":"37446.85",
@@ -628,7 +628,7 @@ class bitso extends Exchange {
             $request = array(
                 'book' => $market['id'],
             );
-            $response = Async\await($this->publicGetTicker (array_merge($request, $params)));
+            $response = Async\await($this->publicGetTicker ($this->extend($request, $params)));
             $ticker = $this->safe_value($response, 'payload');
             //
             //     {
@@ -679,7 +679,7 @@ class bitso extends Exchange {
                 $request['end'] = $now;
                 $request['start'] = $now - $this->parse_timeframe($timeframe) * 1000 * $limit;
             }
-            $response = Async\await($this->publicGetOhlc (array_merge($request, $params)));
+            $response = Async\await($this->publicGetOhlc ($this->extend($request, $params)));
             //
             //     {
             //         "success":true,
@@ -729,7 +729,7 @@ class bitso extends Exchange {
         );
     }
 
-    public function parse_trade($trade, ?array $market = null): array {
+    public function parse_trade(array $trade, ?array $market = null): array {
         //
         // fetchTrades (public)
         //
@@ -851,7 +851,7 @@ class bitso extends Exchange {
             $request = array(
                 'book' => $market['id'],
             );
-            $response = Async\await($this->publicGetTrades (array_merge($request, $params)));
+            $response = Async\await($this->publicGetTrades ($this->extend($request, $params)));
             return $this->parse_trades($response['payload'], $market, $since, $limit);
         }) ();
     }
@@ -953,7 +953,7 @@ class bitso extends Exchange {
             }
             // convert it to an integer unconditionally
             if ($markerInParams) {
-                $params = array_merge($params, array(
+                $params = $this->extend($params, array(
                     'marker' => intval($params['marker']),
                 ));
             }
@@ -963,7 +963,7 @@ class bitso extends Exchange {
                 // 'sort' => 'desc', // default = desc
                 // 'marker' => id, // integer id to start from
             );
-            $response = Async\await($this->privateGetUserTrades (array_merge($request, $params)));
+            $response = Async\await($this->privateGetUserTrades ($this->extend($request, $params)));
             return $this->parse_trades($response['payload'], $market, $since, $limit);
         }) ();
     }
@@ -992,7 +992,7 @@ class bitso extends Exchange {
             if ($type === 'limit') {
                 $request['price'] = $this->price_to_precision($market['symbol'], $price);
             }
-            $response = Async\await($this->privatePostOrders (array_merge($request, $params)));
+            $response = Async\await($this->privatePostOrders ($this->extend($request, $params)));
             $id = $this->safe_string($response['payload'], 'oid');
             return $this->safe_order(array(
                 'info' => $response,
@@ -1015,7 +1015,7 @@ class bitso extends Exchange {
             $request = array(
                 'oid' => $id,
             );
-            return Async\await($this->privateDeleteOrdersOid (array_merge($request, $params)));
+            return Async\await($this->privateDeleteOrdersOid ($this->extend($request, $params)));
         }) ();
     }
 
@@ -1040,7 +1040,7 @@ class bitso extends Exchange {
             $request = array(
                 'oids' => $oids,
             );
-            $response = Async\await($this->privateDeleteOrders (array_merge($request, $params)));
+            $response = Async\await($this->privateDeleteOrders ($this->extend($request, $params)));
             //
             //     {
             //         "success" => true,
@@ -1086,7 +1086,7 @@ class bitso extends Exchange {
         }) ();
     }
 
-    public function parse_order_status($status) {
+    public function parse_order_status(?string $status) {
         $statuses = array(
             'partial-fill' => 'open', // this is a common substitution in ccxt
             'partially filled' => 'open',
@@ -1096,7 +1096,7 @@ class bitso extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_order($order, ?array $market = null): array {
+    public function parse_order(array $order, ?array $market = null): array {
         //
         //
         // canceledOrder
@@ -1168,7 +1168,7 @@ class bitso extends Exchange {
             }
             // convert it to an integer unconditionally
             if ($markerInParams) {
-                $params = array_merge($params, array(
+                $params = $this->extend($params, array(
                     'marker' => intval($params['marker']),
                 ));
             }
@@ -1178,7 +1178,7 @@ class bitso extends Exchange {
                 // 'sort' => 'desc', // default = desc
                 // 'marker' => id, // integer id to start from
             );
-            $response = Async\await($this->privateGetOpenOrders (array_merge($request, $params)));
+            $response = Async\await($this->privateGetOpenOrders ($this->extend($request, $params)));
             $orders = $this->parse_orders($response['payload'], $market, $since, $limit);
             return $orders;
         }) ();
@@ -1225,7 +1225,7 @@ class bitso extends Exchange {
             $request = array(
                 'oid' => $id,
             );
-            $response = Async\await($this->privateGetOrderTradesOid (array_merge($request, $params)));
+            $response = Async\await($this->privateGetOrderTradesOid ($this->extend($request, $params)));
             return $this->parse_trades($response['payload'], $market);
         }) ();
     }
@@ -1244,7 +1244,7 @@ class bitso extends Exchange {
             $request = array(
                 'fid' => $id,
             );
-            $response = Async\await($this->privateGetFundingsFid (array_merge($request, $params)));
+            $response = Async\await($this->privateGetFundingsFid ($this->extend($request, $params)));
             //
             //     {
             //         "success" => true,
@@ -1332,7 +1332,7 @@ class bitso extends Exchange {
             $request = array(
                 'fund_currency' => $currency['id'],
             );
-            $response = Async\await($this->privateGetFundingDestination (array_merge($request, $params)));
+            $response = Async\await($this->privateGetFundingDestination ($this->extend($request, $params)));
             $address = $this->safe_string($response['payload'], 'account_identifier');
             $tag = null;
             if (mb_strpos($address, '?dt=') !== false) {
@@ -1617,7 +1617,7 @@ class bitso extends Exchange {
                 'destination_tag' => $tag,
             );
             $classMethod = 'privatePost' . $method . 'Withdrawal';
-            $response = Async\await($this->$classMethod (array_merge($request, $params)));
+            $response = Async\await($this->$classMethod ($this->extend($request, $params)));
             //
             //     {
             //         "success" => true,
@@ -1657,7 +1657,7 @@ class bitso extends Exchange {
         return $this->safe_string($networksById, $networkId, $networkId);
     }
 
-    public function parse_transaction($transaction, ?array $currency = null): array {
+    public function parse_transaction(array $transaction, ?array $currency = null): array {
         //
         // deposit
         //     {
@@ -1727,7 +1727,7 @@ class bitso extends Exchange {
         );
     }
 
-    public function parse_transaction_status($status) {
+    public function parse_transaction_status(?string $status) {
         $statuses = array(
             'pending' => 'pending',
             'in_progress' => 'pending',
@@ -1770,7 +1770,7 @@ class bitso extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors($httpCode, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
         if ($response === null) {
             return null; // fallback to default $error handler
         }

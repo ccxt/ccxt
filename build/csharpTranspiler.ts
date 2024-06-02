@@ -286,7 +286,7 @@ class NewTranspiler {
     }
 
     isDictionary(type: string): boolean {
-        return (type === 'Object') || (type === 'Dictionary<any>') || (type === 'unknown') || ((type.startsWith('{')) && (type.endsWith('}')))
+        return (type === 'Object') || (type === 'Dictionary<any>') || (type === 'unknown') || (type === 'Dict') || ((type.startsWith('{')) && (type.endsWith('}')))
     }
 
     isStringType(type: string) {
@@ -505,6 +505,11 @@ class NewTranspiler {
         // custom handling for now
         if (methodName === 'fetchTime'){
             return `return (Int64)res;`;
+        }
+
+        // handle the typescript type Dict
+        if (unwrappedType === 'Dict') {
+            return `return (Dictionary<string, object>)res;`;
         }
 
         const needsToInstantiate = !unwrappedType.startsWith('List<') && !unwrappedType.startsWith('Dictionary<') && unwrappedType !== 'object' && unwrappedType !== 'string' && unwrappedType !== 'float' && unwrappedType !== 'bool' && unwrappedType !== 'Int64';

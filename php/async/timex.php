@@ -387,7 +387,7 @@ class timex extends Exchange {
             $request = array(
                 'address' => $address,
             );
-            $response = Async\await($this->managerGetDeposits (array_merge($request, $params)));
+            $response = Async\await($this->managerGetDeposits ($this->extend($request, $params)));
             //
             //     array(
             //         {
@@ -424,7 +424,7 @@ class timex extends Exchange {
             $request = array(
                 'address' => $address,
             );
-            $response = Async\await($this->managerGetWithdrawals (array_merge($request, $params)));
+            $response = Async\await($this->managerGetWithdrawals ($this->extend($request, $params)));
             //
             //     array(
             //         {
@@ -455,7 +455,7 @@ class timex extends Exchange {
         return null;
     }
 
-    public function parse_transaction($transaction, ?array $currency = null): array {
+    public function parse_transaction(array $transaction, ?array $currency = null): array {
         //
         //     {
         //         "from" => "0x1134cc86b45039cc211c6d1d2e4b3c77f60207ed",
@@ -507,7 +507,7 @@ class timex extends Exchange {
             $request = array(
                 'period' => $this->timeframes[$period], // I1, I5, I15, I30, H1, H2, H4, H6, H12, D1, W1
             );
-            $response = Async\await($this->publicGetTickers (array_merge($request, $params)));
+            $response = Async\await($this->publicGetTickers ($this->extend($request, $params)));
             //
             //     array(
             //         {
@@ -545,7 +545,7 @@ class timex extends Exchange {
                 'market' => $market['id'],
                 'period' => $this->timeframes[$period], // I1, I5, I15, I30, H1, H2, H4, H6, H12, D1, W1
             );
-            $response = Async\await($this->publicGetTickers (array_merge($request, $params)));
+            $response = Async\await($this->publicGetTickers ($this->extend($request, $params)));
             //
             //     array(
             //         {
@@ -586,7 +586,7 @@ class timex extends Exchange {
             if ($limit !== null) {
                 $request['limit'] = $limit;
             }
-            $response = Async\await($this->publicGetOrderbookV2 (array_merge($request, $params)));
+            $response = Async\await($this->publicGetOrderbookV2 ($this->extend($request, $params)));
             //
             //     {
             //         "timestamp":"2019-12-05T00:21:09.538",
@@ -649,7 +649,7 @@ class timex extends Exchange {
             if ($limit !== null) {
                 $request['size'] = $limit; // default is 100
             }
-            $response = Async\await($this->publicGetTrades (array_merge($request, $query)));
+            $response = Async\await($this->publicGetTrades ($this->extend($request, $query)));
             //
             //     array(
             //         {
@@ -696,7 +696,7 @@ class timex extends Exchange {
                 $request['till'] = $this->iso8601($now);
                 $request['from'] = $this->iso8601($now - $limit * $duration * 1000 - 1);
             }
-            $response = Async\await($this->publicGetCandles (array_merge($request, $params)));
+            $response = Async\await($this->publicGetCandles ($this->extend($request, $params)));
             //
             //     array(
             //         array(
@@ -803,7 +803,7 @@ class timex extends Exchange {
             } else {
                 $request['price'] = 0;
             }
-            $response = Async\await($this->tradingPostOrders (array_merge($request, $query)));
+            $response = Async\await($this->tradingPostOrders ($this->extend($request, $query)));
             //
             //     {
             //         "orders" => array(
@@ -844,7 +844,7 @@ class timex extends Exchange {
             if ($price !== null) {
                 $request['price'] = $this->price_to_precision($symbol, $price);
             }
-            $response = Async\await($this->tradingPutOrders (array_merge($request, $params)));
+            $response = Async\await($this->tradingPutOrders ($this->extend($request, $params)));
             //
             //     {
             //         "changedOrders" => array(
@@ -914,7 +914,7 @@ class timex extends Exchange {
             $request = array(
                 'id' => $ids,
             );
-            $response = Async\await($this->tradingDeleteOrders (array_merge($request, $params)));
+            $response = Async\await($this->tradingDeleteOrders ($this->extend($request, $params)));
             //
             //     {
             //         "changedOrders" => array(
@@ -992,7 +992,7 @@ class timex extends Exchange {
             //
             $order = $this->safe_value($response, 'order', array());
             $trades = $this->safe_list($response, 'trades', array());
-            return $this->parse_order(array_merge($order, array( 'trades' => $trades )));
+            return $this->parse_order($this->extend($order, array( 'trades' => $trades )));
         }) ();
     }
 
@@ -1025,7 +1025,7 @@ class timex extends Exchange {
             if ($limit !== null) {
                 $request['size'] = $limit;
             }
-            $response = Async\await($this->tradingGetOrders (array_merge($request, $query)));
+            $response = Async\await($this->tradingGetOrders ($this->extend($request, $query)));
             //
             //     {
             //         "orders" => array(
@@ -1086,7 +1086,7 @@ class timex extends Exchange {
             if ($limit !== null) {
                 $request['size'] = $limit;
             }
-            $response = Async\await($this->historyGetOrders (array_merge($request, $query)));
+            $response = Async\await($this->historyGetOrders ($this->extend($request, $query)));
             //
             //     {
             //         "orders" => array(
@@ -1153,7 +1153,7 @@ class timex extends Exchange {
             if ($limit !== null) {
                 $request['size'] = $limit;
             }
-            $response = Async\await($this->historyGetTrades (array_merge($request, $query)));
+            $response = Async\await($this->historyGetTrades ($this->extend($request, $query)));
             //
             //     {
             //         "trades" => array(
@@ -1177,7 +1177,7 @@ class timex extends Exchange {
         }) ();
     }
 
-    public function parse_trading_fee($fee, ?array $market = null): array {
+    public function parse_trading_fee(array $fee, ?array $market = null): array {
         //
         //     {
         //         "fee" => 0.0075,
@@ -1210,7 +1210,7 @@ class timex extends Exchange {
             $request = array(
                 'markets' => $market['id'],
             );
-            $response = Async\await($this->tradingGetFees (array_merge($request, $params)));
+            $response = Async\await($this->tradingGetFees ($this->extend($request, $params)));
             //
             //     array(
             //         {
@@ -1224,7 +1224,7 @@ class timex extends Exchange {
         }) ();
     }
 
-    public function parse_market($market): array {
+    public function parse_market(array $market): array {
         //
         //     {
         //         "symbol" => "ETHBTC",
@@ -1308,7 +1308,7 @@ class timex extends Exchange {
         );
     }
 
-    public function parse_currency($currency) {
+    public function parse_currency(array $currency) {
         //
         //     {
         //         "symbol" => "BTC",
@@ -1391,7 +1391,7 @@ class timex extends Exchange {
         );
     }
 
-    public function parse_ticker($ticker, ?array $market = null): array {
+    public function parse_ticker(array $ticker, ?array $market = null): array {
         //
         //     {
         //         "ask" => 0.017,
@@ -1436,7 +1436,7 @@ class timex extends Exchange {
         ), $market);
     }
 
-    public function parse_trade($trade, ?array $market = null): array {
+    public function parse_trade(array $trade, ?array $market = null): array {
         //
         // fetchTrades (public)
         //
@@ -1527,7 +1527,7 @@ class timex extends Exchange {
         );
     }
 
-    public function parse_order($order, ?array $market = null): array {
+    public function parse_order(array $order, ?array $market = null): array {
         //
         // fetchOrder, createOrder, cancelOrder, cancelOrders, fetchOpenOrders, fetchClosedOrders
         //
@@ -1607,7 +1607,7 @@ class timex extends Exchange {
             $request = array(
                 'symbol' => $currency['code'],
             );
-            $response = Async\await($this->currenciesGetSSymbol (array_merge($request, $params)));
+            $response = Async\await($this->currenciesGetSSymbol ($this->extend($request, $params)));
             //
             //    {
             //        id => '1',
@@ -1672,7 +1672,7 @@ class timex extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors($statusCode, $statusText, $url, $method, $responseHeaders, $responseBody, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $statusCode, string $statusText, string $url, string $method, array $responseHeaders, $responseBody, $response, $requestHeaders, $requestBody) {
         if ($response === null) {
             return null;
         }

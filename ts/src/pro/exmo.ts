@@ -5,7 +5,7 @@ import exmoRest from '../exmo.js';
 import { NotSupported } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 import { sha512 } from '../static_dependencies/noble-hashes/sha512.js';
-import type { Int, Str, OrderBook, Trade, Ticker, Balances } from '../base/types.js';
+import type { Int, Str, OrderBook, Trade, Ticker, Balances, Dict } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -60,7 +60,7 @@ export default class exmo extends exmoRest {
         const [ type, query ] = this.handleMarketTypeAndParams ('watchBalance', undefined, params);
         const messageHash = 'balance:' + type;
         const url = this.urls['api']['ws'][type];
-        const subscribe = {
+        const subscribe: Dict = {
             'method': 'subscribe',
             'topics': [ type + '/wallet' ],
             'id': this.requestId (),
@@ -219,7 +219,7 @@ export default class exmo extends exmoRest {
         symbol = market['symbol'];
         const url = this.urls['api']['ws']['public'];
         const messageHash = 'ticker:' + symbol;
-        const message = {
+        const message: Dict = {
             'method': 'subscribe',
             'topics': [
                 'spot/ticker:' + market['id'],
@@ -278,7 +278,7 @@ export default class exmo extends exmoRest {
         symbol = market['symbol'];
         const url = this.urls['api']['ws']['public'];
         const messageHash = 'trades:' + symbol;
-        const message = {
+        const message: Dict = {
             'method': 'subscribe',
             'topics': [
                 'spot/trades:' + market['id'],
@@ -351,7 +351,7 @@ export default class exmo extends exmoRest {
             symbol = market['symbol'];
             messageHash = 'myTrades:' + market['symbol'];
         }
-        const message = {
+        const message: Dict = {
             'method': 'subscribe',
             'topics': [
                 type + '/user_trades',
@@ -442,7 +442,7 @@ export default class exmo extends exmoRest {
             rawTrades = [ rawTrade ];
         }
         const trades = this.parseTrades (rawTrades);
-        const symbols = {};
+        const symbols: Dict = {};
         for (let j = 0; j < trades.length; j++) {
             const trade = trades[j];
             myTrades.append (trade);
@@ -473,7 +473,7 @@ export default class exmo extends exmoRest {
         const url = this.urls['api']['ws']['public'];
         const messageHash = 'orderbook:' + symbol;
         params = this.omit (params, 'aggregation');
-        const subscribe = {
+        const subscribe: Dict = {
             'method': 'subscribe',
             'id': this.requestId (),
             'topics': [
@@ -574,7 +574,7 @@ export default class exmo extends exmoRest {
         //     "topic": "spot/ticker:BTC_USDT"
         // }
         const event = this.safeString (message, 'event');
-        const events = {
+        const events: Dict = {
             'logged_in': this.handleAuthenticationMessage,
             'info': this.handleInfo,
             'subscribed': this.handleSubscribed,
@@ -589,7 +589,7 @@ export default class exmo extends exmoRest {
             if (topic !== undefined) {
                 const parts = topic.split (':');
                 const channel = this.safeString (parts, 0);
-                const handlers = {
+                const handlers: Dict = {
                     'spot/ticker': this.handleTicker,
                     'spot/wallet': this.handleBalance,
                     'margin/wallet': this.handleBalance,
@@ -662,7 +662,7 @@ export default class exmo extends exmoRest {
             const requestId = this.requestId ();
             const signData = this.apiKey + time.toString ();
             const sign = this.hmac (this.encode (signData), this.encode (this.secret), sha512, 'base64');
-            const request = {
+            const request: Dict = {
                 'method': 'login',
                 'id': requestId,
                 'api_key': this.apiKey,

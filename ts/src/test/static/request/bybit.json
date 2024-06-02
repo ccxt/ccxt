@@ -977,6 +977,7 @@
         ],
         "fetchLeverageTiers": [
             {
+                "disabled": true,
                 "description": "linear leverage tiers",
                 "method": "fetchLeverageTiers",
                 "url": "https://api-testnet.bybit.com/v5/market/risk-limit?category=linear",

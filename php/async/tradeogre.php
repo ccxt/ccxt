@@ -269,7 +269,7 @@ class tradeogre extends Exchange {
             $request = array(
                 'market' => $market['id'],
             );
-            $response = Async\await($this->publicGetTickerMarket (array_merge($request, $params)));
+            $response = Async\await($this->publicGetTickerMarket ($this->extend($request, $params)));
             //
             //   {
             //       "success":true,
@@ -337,7 +337,7 @@ class tradeogre extends Exchange {
             $request = array(
                 'market' => $market['id'],
             );
-            $response = Async\await($this->publicGetOrdersMarket (array_merge($request, $params)));
+            $response = Async\await($this->publicGetOrdersMarket ($this->extend($request, $params)));
             //
             // {
             //     "success" => true,
@@ -387,12 +387,12 @@ class tradeogre extends Exchange {
             $request = array(
                 'market' => $market['id'],
             );
-            $response = Async\await($this->publicGetHistoryMarket (array_merge($request, $params)));
+            $response = Async\await($this->publicGetHistoryMarket ($this->extend($request, $params)));
             return $this->parse_trades($response, $market, $since, $limit);
         }) ();
     }
 
-    public function parse_trade($trade, ?array $market = null) {
+    public function parse_trade(array $trade, ?array $market = null) {
         //
         //  {
         //      "date":1515128233,
@@ -482,9 +482,9 @@ class tradeogre extends Exchange {
             }
             $response = null;
             if ($side === 'buy') {
-                $response = Async\await($this->privatePostOrderBuy (array_merge($request, $params)));
+                $response = Async\await($this->privatePostOrderBuy ($this->extend($request, $params)));
             } else {
-                $response = Async\await($this->privatePostOrderSell (array_merge($request, $params)));
+                $response = Async\await($this->privatePostOrderSell ($this->extend($request, $params)));
             }
             return $this->parse_order($response, $market);
         }) ();
@@ -503,7 +503,7 @@ class tradeogre extends Exchange {
             $request = array(
                 'uuid' => $id,
             );
-            $response = Async\await($this->privatePostOrderCancel (array_merge($request, $params)));
+            $response = Async\await($this->privatePostOrderCancel ($this->extend($request, $params)));
             return $this->parse_order($response);
         }) ();
     }
@@ -540,7 +540,7 @@ class tradeogre extends Exchange {
             if ($symbol !== null) {
                 $request['market'] = $market['id'];
             }
-            $response = Async\await($this->privatePostAccountOrders (array_merge($request, $params)));
+            $response = Async\await($this->privatePostAccountOrders ($this->extend($request, $params)));
             return $this->parse_orders($response, $market, $since, $limit);
         }) ();
     }
@@ -558,12 +558,12 @@ class tradeogre extends Exchange {
             $request = array(
                 'uuid' => $id,
             );
-            $response = Async\await($this->privateGetAccountOrderUuid (array_merge($request, $params)));
+            $response = Async\await($this->privateGetAccountOrderUuid ($this->extend($request, $params)));
             return $this->parse_order($response, null);
         }) ();
     }
 
-    public function parse_order($order, ?array $market = null): array {
+    public function parse_order(array $order, ?array $market = null): array {
         //
         //
         // {
@@ -627,7 +627,7 @@ class tradeogre extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
         if ($response === null) {
             return null;
         }

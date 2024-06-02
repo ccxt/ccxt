@@ -1,5 +1,5 @@
 import bybitRest from '../bybit.js';
-import type { Int, OHLCV, Str, Strings, Ticker, OrderBook, Order, Trade, Tickers, Position, Balances, OrderType, OrderSide, Num } from '../base/types.js';
+import type { Int, OHLCV, Str, Strings, Ticker, OrderBook, Order, Trade, Tickers, Position, Balances, OrderType, OrderSide, Num, Liquidation } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class bybit extends bybitRest {
     describe(): any;
@@ -31,6 +31,9 @@ export default class bybit extends bybitRest {
     setPositionsCache(client: Client, symbols?: Strings): void;
     loadPositionsSnapshot(client: any, messageHash: any): Promise<void>;
     handlePositions(client: any, message: any): void;
+    watchLiquidations(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Liquidation[]>;
+    handleLiquidation(client: Client, message: any): void;
+    parseWsLiquidation(liquidation: any, market?: any): Liquidation;
     watchOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     handleOrderWs(client: Client, message: any): void;
     handleOrder(client: Client, message: any): void;

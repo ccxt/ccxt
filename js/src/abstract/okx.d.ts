@@ -58,6 +58,9 @@ interface Exchange {
     publicGetSprdBooks(params?: {}): Promise<implicitReturnType>;
     publicGetSprdTicker(params?: {}): Promise<implicitReturnType>;
     publicGetSprdPublicTrades(params?: {}): Promise<implicitReturnType>;
+    publicGetMarketSprdTicker(params?: {}): Promise<implicitReturnType>;
+    publicGetMarketSprdCandles(params?: {}): Promise<implicitReturnType>;
+    publicGetMarketSprdHistoryCandles(params?: {}): Promise<implicitReturnType>;
     publicGetTradingBotGridAiParam(params?: {}): Promise<implicitReturnType>;
     publicGetTradingBotGridMinInvestment(params?: {}): Promise<implicitReturnType>;
     publicGetTradingBotPublicRsiBackTesting(params?: {}): Promise<implicitReturnType>;
@@ -65,6 +68,9 @@ interface Exchange {
     publicGetFinanceStakingDefiEthApyHistory(params?: {}): Promise<implicitReturnType>;
     publicGetFinanceSavingsLendingRateSummary(params?: {}): Promise<implicitReturnType>;
     publicGetFinanceSavingsLendingRateHistory(params?: {}): Promise<implicitReturnType>;
+    publicGetFinanceFixedLoanLendingOffers(params?: {}): Promise<implicitReturnType>;
+    publicGetFinanceFixedLoanLendingApyHistory(params?: {}): Promise<implicitReturnType>;
+    publicGetFinanceFixedLoanPendingLendingVolume(params?: {}): Promise<implicitReturnType>;
     publicGetFinanceSfpDcdProducts(params?: {}): Promise<implicitReturnType>;
     publicGetCopytradingPublicLeadTraders(params?: {}): Promise<implicitReturnType>;
     publicGetCopytradingPublicWeeklyPnl(params?: {}): Promise<implicitReturnType>;
@@ -266,6 +272,7 @@ interface Exchange {
     privatePostTradingBotGridComputeMarginBalance(params?: {}): Promise<implicitReturnType>;
     privatePostTradingBotGridMarginBalance(params?: {}): Promise<implicitReturnType>;
     privatePostTradingBotGridMinInvestment(params?: {}): Promise<implicitReturnType>;
+    privatePostTradingBotGridAdjustInvestment(params?: {}): Promise<implicitReturnType>;
     privatePostTradingBotSignalCreateSignal(params?: {}): Promise<implicitReturnType>;
     privatePostTradingBotSignalOrderAlgo(params?: {}): Promise<implicitReturnType>;
     privatePostTradingBotSignalStopOrderAlgo(params?: {}): Promise<implicitReturnType>;

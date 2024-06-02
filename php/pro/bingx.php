@@ -104,7 +104,7 @@ class bingx extends \ccxt\async\bingx {
             if ($marketType === 'swap') {
                 $request['reqType'] = 'sub';
             }
-            return Async\await($this->watch($url, $messageHash, array_merge($request, $query), $messageHash));
+            return Async\await($this->watch($url, $messageHash, $this->extend($request, $query), $messageHash));
         }) ();
     }
 
@@ -199,7 +199,7 @@ class bingx extends \ccxt\async\bingx {
         //         "b" => "2.5747"
         //     }
         //
-        $timestamp = $this->safe_integer($message, 'ts');
+        $timestamp = $this->safe_integer($message, 'C');
         $marketId = $this->safe_string($message, 's');
         $market = $this->safe_market($marketId, $market);
         $close = $this->safe_string($message, 'c');
@@ -255,7 +255,7 @@ class bingx extends \ccxt\async\bingx {
             if ($marketType === 'swap') {
                 $request['reqType'] = 'sub';
             }
-            $trades = Async\await($this->watch($url, $messageHash, array_merge($request, $query), $messageHash));
+            $trades = Async\await($this->watch($url, $messageHash, $this->extend($request, $query), $messageHash));
             if ($this->newUpdates) {
                 $limit = $trades->getLimit ($symbol, $limit);
             }
@@ -587,7 +587,7 @@ class bingx extends \ccxt\async\bingx {
             if ($marketType === 'swap') {
                 $request['reqType'] = 'sub';
             }
-            $ohlcv = Async\await($this->watch($url, $messageHash, array_merge($request, $query), $messageHash));
+            $ohlcv = Async\await($this->watch($url, $messageHash, $this->extend($request, $query), $messageHash));
             if ($this->newUpdates) {
                 $limit = $ohlcv->getLimit ($symbol, $limit);
             }
@@ -752,7 +752,7 @@ class bingx extends \ccxt\async\bingx {
     public function load_balance_snapshot($client, $messageHash, $type) {
         return Async\async(function () use ($client, $messageHash, $type) {
             $response = Async\await($this->fetch_balance(array( 'type' => $type )));
-            $this->balance[$type] = array_merge($response, $this->safe_value($this->balance, $type, array()));
+            $this->balance[$type] = $this->extend($response, $this->safe_value($this->balance, $type, array()));
             // don't remove the $future from the .futures cache
             $future = $client->futures[$messageHash];
             $future->resolve ();
@@ -1015,14 +1015,17 @@ class bingx extends \ccxt\async\bingx {
         //    }
         //
         $isSpot = (is_array($message) && array_key_exists('dataType', $message));
-        $result = $this->safe_value_2($message, 'data', 'o', array());
+        $result = $this->safe_dict_2($message, 'data', 'o', array());
         $cachedTrades = $this->myTrades;
         if ($cachedTrades === null) {
             $limit = $this->safe_integer($this->options, 'tradesLimit', 1000);
             $cachedTrades = new ArrayCacheBySymbolById ($limit);
             $this->myTrades = $cachedTrades;
         }
-        $parsed = $this->parse_trade($result);
+        $type = $isSpot ? 'spot' : 'swap';
+        $marketId = $this->safe_string($result, 's');
+        $market = $this->safe_market($marketId, null, '-', $type);
+        $parsed = $this->parse_trade($result, $market);
         $symbol = $parsed['symbol'];
         $spotHash = 'spot:mytrades';
         $swapHash = 'swap:mytrades';
@@ -1069,10 +1072,13 @@ class bingx extends \ccxt\async\bingx {
         //         }
         //     }
         //
-        $a = $this->safe_value($message, 'a', array());
-        $data = $this->safe_value($a, 'B', array());
+        $a = $this->safe_dict($message, 'a', array());
+        $data = $this->safe_list($a, 'B', array());
         $timestamp = $this->safe_integer_2($message, 'T', 'E');
         $type = (is_array($a) && array_key_exists('P', $a)) ? 'swap' : 'spot';
+        if (!(is_array($this->balance) && array_key_exists($type, $this->balance))) {
+            $this->balance[$type] = array();
+        }
         $this->balance[$type]['info'] = $data;
         $this->balance[$type]['timestamp'] = $timestamp;
         $this->balance[$type]['datetime'] = $this->iso8601($timestamp);

@@ -6,7 +6,7 @@ import { ExchangeError, AuthenticationError, ArgumentsRequired, BadRequest, Inva
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { jwt } from './base/functions/rsa.js';
-import type { Balances, Dictionary, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees } from './base/types.js';
+import type { Balances, Dict, Dictionary, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, int } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -161,7 +161,7 @@ export default class oceanex extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} an array of objects representing market data
          */
-        const request = { 'show_details': true };
+        const request: Dict = { 'show_details': true };
         const response = await this.publicGetMarkets (this.extend (request, params));
         //
         //    {
@@ -180,7 +180,7 @@ export default class oceanex extends Exchange {
         return this.parseMarkets (markets);
     }
 
-    parseMarket (market): Market {
+    parseMarket (market: Dict): Market {
         const id = this.safeValue (market, 'id');
         const name = this.safeValue (market, 'name');
         let [ baseId, quoteId ] = name.split ('/');
@@ -252,7 +252,7 @@ export default class oceanex extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'pair': market['id'],
         };
         const response = await this.publicGetTickersPair (this.extend (request, params));
@@ -293,7 +293,7 @@ export default class oceanex extends Exchange {
             symbols = this.symbols;
         }
         const marketIds = this.marketIds (symbols);
-        const request = { 'markets': marketIds };
+        const request: Dict = { 'markets': marketIds };
         const response = await this.publicGetTickersMulti (this.extend (request, params));
         //
         //     {
@@ -313,7 +313,7 @@ export default class oceanex extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'data', []);
-        const result = {};
+        const result: Dict = {};
         for (let i = 0; i < data.length; i++) {
             const ticker = data[i];
             const marketId = this.safeString (ticker, 'market');
@@ -378,7 +378,7 @@ export default class oceanex extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'market': market['id'],
         };
         if (limit !== undefined) {
@@ -425,7 +425,7 @@ export default class oceanex extends Exchange {
             symbols = this.symbols;
         }
         const marketIds = this.marketIds (symbols);
-        const request = {
+        const request: Dict = {
             'markets': marketIds,
         };
         if (limit !== undefined) {
@@ -456,7 +456,7 @@ export default class oceanex extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'data', []);
-        const result = {};
+        const result: Dict = {};
         for (let i = 0; i < data.length; i++) {
             const orderbook = data[i];
             const marketId = this.safeString (orderbook, 'market');
@@ -481,7 +481,7 @@ export default class oceanex extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'market': market['id'],
         };
         if (limit !== undefined) {
@@ -510,7 +510,7 @@ export default class oceanex extends Exchange {
         return this.parseTrades (data, market, since, limit);
     }
 
-    parseTrade (trade, market: Market = undefined): Trade {
+    parseTrade (trade: Dict, market: Market = undefined): Trade {
         //
         // fetchTrades (public)
         //
@@ -583,7 +583,7 @@ export default class oceanex extends Exchange {
          */
         const response = await this.publicGetFeesTrading (params);
         const data = this.safeValue (response, 'data', []);
-        const result = {};
+        const result: Dict = {};
         for (let i = 0; i < data.length; i++) {
             const group = data[i];
             const maker = this.safeValue (group, 'ask_fee', {});
@@ -609,7 +609,7 @@ export default class oceanex extends Exchange {
     parseBalance (response): Balances {
         const data = this.safeValue (response, 'data');
         const balances = this.safeValue (data, 'accounts', []);
-        const result = { 'info': response };
+        const result: Dict = { 'info': response };
         for (let i = 0; i < balances.length; i++) {
             const balance = balances[i];
             const currencyId = this.safeValue (balance, 'currency');
@@ -652,7 +652,7 @@ export default class oceanex extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'market': market['id'],
             'side': side,
             'ord_type': type,
@@ -682,7 +682,7 @@ export default class oceanex extends Exchange {
             market = this.market (symbol);
         }
         const ids = [ id ];
-        const request = { 'ids': ids };
+        const request: Dict = { 'ids': ids };
         const response = await this.privateGetOrders (this.extend (request, params));
         const data = this.safeValue (response, 'data');
         const dataLength = data.length;
@@ -711,7 +711,7 @@ export default class oceanex extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
-        const request = {
+        const request: Dict = {
             'states': [ 'wait' ],
         };
         return await this.fetchOrders (symbol, since, limit, this.extend (request, params));
@@ -729,7 +729,7 @@ export default class oceanex extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
-        const request = {
+        const request: Dict = {
             'states': [ 'done', 'cancel' ],
         };
         return await this.fetchOrders (symbol, since, limit, this.extend (request, params));
@@ -754,7 +754,7 @@ export default class oceanex extends Exchange {
         const market = this.market (symbol);
         const states = this.safeValue (params, 'states', [ 'wait', 'done', 'cancel' ]);
         const query = this.omit (params, 'states');
-        const request = {
+        const request: Dict = {
             'market': market['id'],
             'states': states,
             'need_price': 'True',
@@ -808,7 +808,7 @@ export default class oceanex extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'market': market['id'],
             'period': this.safeString (this.timeframes, timeframe, timeframe),
         };
@@ -823,7 +823,7 @@ export default class oceanex extends Exchange {
         return this.parseOHLCVs (ohlcvs, market, timeframe, since, limit);
     }
 
-    parseOrder (order, market: Market = undefined): Order {
+    parseOrder (order: Dict, market: Market = undefined): Order {
         //
         //     {
         //         "created_at": "2019-01-18T00:38:18Z",
@@ -879,8 +879,8 @@ export default class oceanex extends Exchange {
         }, market);
     }
 
-    parseOrderStatus (status) {
-        const statuses = {
+    parseOrderStatus (status: Str) {
+        const statuses: Dict = {
             'wait': 'open',
             'done': 'closed',
             'cancel': 'canceled',
@@ -958,7 +958,7 @@ export default class oceanex extends Exchange {
             }
         } else if (api === 'private') {
             this.checkRequiredCredentials ();
-            const request = {
+            const request: Dict = {
                 'uid': this.apiKey,
                 'data': query,
             };
@@ -972,7 +972,7 @@ export default class oceanex extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+    handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response, requestHeaders, requestBody) {
         //
         //     {"code":1011,"message":"This IP 'x.x.x.x' is not allowed","data":{}}
         //

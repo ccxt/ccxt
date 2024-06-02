@@ -196,10 +196,10 @@ public partial class coinmetro
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}.</returns>
-    public async Task<Dictionary<string, Ticker>> FetchBidsAsks(List<String> symbols = null, Dictionary<string, object> parameters = null)
+    public async Task<Tickers> FetchBidsAsks(List<String> symbols = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchBidsAsks(symbols, parameters);
-        return ((Dictionary<string, Ticker>)res);
+        return new Tickers(res);
     }
     /// <summary>
     /// query for balance and get the amount of funds available for trading or funds locked in orders
