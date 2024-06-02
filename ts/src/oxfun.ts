@@ -490,7 +490,7 @@ export default class oxfun extends Exchange {
                     'max': undefined,
                 },
             },
-            'created': undefined,
+            'created': this.safeInteger (market, 'listedAt'),
             'index': undefined,
             'info': market,
         });
