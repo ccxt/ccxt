@@ -1635,12 +1635,6 @@ export default class vertex extends Exchange {
             // 1 << 61 = 2305843009213693952
             expiration = Precise.stringOr (expiration, '2305843009213693952');
         }
-        const order = {
-            'sender': this.convertAddressToSender (this.walletAddress),
-            'nonce': nonce,
-            'expiration': expiration,
-            'priceX18': this.convertToX18 (this.priceToPrecision (symbol, price)),
-        };
         let amountString = this.numberToString (amount);
         if (side === 'sell') {
             if (amount > 0) {
@@ -1653,16 +1647,22 @@ export default class vertex extends Exchange {
                 amountString = Precise.stringMul (amountString, '-1');
             }
         }
-        order['amount'] = this.convertToX18 (this.amountToPrecision (symbol, amountString));
+        const order = {
+            'sender': this.convertAddressToSender (this.walletAddress),
+            'priceX18': this.convertToX18 (this.priceToPrecision (symbol, price)),
+            'amount': this.convertToX18 (this.amountToPrecision (symbol, amountString)),
+            'expiration': expiration,
+            'nonce': nonce,
+        };
         const request = {
             'place_order': {
                 'product_id': marketId,
                 'order': {
                     'sender': order['sender'],
-                    'nonce': order['nonce'],
-                    'expiration': this.numberToString (order['expiration']),
                     'priceX18': order['priceX18'],
                     'amount': order['amount'],
+                    'expiration': this.numberToString (order['expiration']),
+                    'nonce': order['nonce'],
                 },
                 'signature': this.buildCreateOrderSig (order, chainId, verifyingContractAddress),
             },
@@ -2731,17 +2731,17 @@ export default class vertex extends Exchange {
         const nonce = this.safeNumber (nonces, 'tx_nonce');
         const withdraw = {
             'sender': this.convertAddressToSender (this.walletAddress),
-            'nonce': nonce,
-            'amount': amount.toString (),
             'productId': this.parseToNumeric (currency['id']),
+            'amount': amount.toString (),
+            'nonce': nonce,
         };
         const request = {
             'withdraw_collateral': {
                 'tx': {
                     'sender': withdraw['sender'],
-                    'nonce': this.numberToString (withdraw['nonce']),
-                    'amount': withdraw['amount'],
                     'productId': withdraw['productId'],
+                    'amount': withdraw['amount'],
+                    'nonce': this.numberToString (withdraw['nonce']),
                 },
                 'signature': this.buildWithdrawSig (withdraw, chainId, verifyingContractAddress),
             },
