@@ -22,7 +22,7 @@
                 "method": "createOrder",
                 "url": "https://api.ox.fun/v3/orders/place",
                 "input": [
-                    "ETH/USDT:OX",
+                    "ETH/USD:OX",
                     "limit",
                     "buy",
                     0.01,
@@ -45,7 +45,7 @@
                 "method": "fetchTrades",
                 "url": "https://api.ox.fun/v3/exchange-trades?marketCode=ETH-USD-SWAP-LIN",
                 "input": [
-                    "ETH/USDT:OX"
+                    "ETH/USD:OX"
                 ]
             }
         ],
@@ -64,7 +64,7 @@
                 "method": "fetchOrderBook",
                 "url": "https://api.ox.fun/v3/depth?marketCode=ETH-USD-SWAP-LIN&level=3",
                 "input": [
-                    "ETH/USDT:OX",
+                    "ETH/USD:OX",
                     3
                 ]
             }
@@ -85,7 +85,7 @@
                 "url": "https://api.ox.fun/v3/orders/status?orderId=1000117922976",
                 "input": [
                     1000117922976,
-                    "ETH/USDT:OX"
+                    "ETH/USD:OX"
                 ]
             }
         ],
@@ -95,7 +95,7 @@
                 "method": "fetchMyTrades",
                 "url": "https://api.ox.fun/v3/trades?marketCode=ETH-USD-SWAP-LIN&startTime=1716966000000",
                 "input": [
-                    "ETH/USDT:OX",
+                    "ETH/USD:OX",
                     1716966000000
                 ]
             }
@@ -114,7 +114,7 @@
                 "method": "fetchTicker",
                 "url": "https://api.ox.fun/v3/tickers?marketCode=ETH-USD-SWAP-LIN",
                 "input": [
-                    "ETH/USDT:OX"
+                    "ETH/USD:OX"
                 ]
             }
         ],
@@ -134,7 +134,7 @@
                 "method": "fetchOHLCV",
                 "url": "https://api.ox.fun/v3/candles?marketCode=ETH-USD-SWAP-LIN&timeframe=60s&startTime=1717085880000",
                 "input": [
-                    "ETH/USDT:OX",
+                    "ETH/USD:OX",
                     "1m",
                     1717085880000
                 ]

@@ -214,7 +214,7 @@
                 "description": "Fill this with a description of the method call",
                 "method": "fetchMyTrades",
                 "input": [
-                    "ETH/USDT:OX",
+                    "ETH/USD:OX",
                     1716966000000
                 ],
                 "httpResponse": {
@@ -242,7 +242,7 @@
                         "id": "400017157974541552",
                         "timestamp": 1717024733539,
                         "datetime": "2024-05-29T23:18:53.539Z",
-                        "symbol": "ETH/USDT:OX",
+                        "symbol": "ETH/USD:OX",
                         "type": null,
                         "order": "1000117638529",
                         "side": "sell",
