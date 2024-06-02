@@ -43,11 +43,11 @@
             "tickSize": "1",
             "minSize": "0.0001",
             "listedAt": "1704686640000",
-            "upperPriceBound": "75013",
-            "lowerPriceBound": "61373",
-            "markPrice": "68193",
+            "upperPriceBound": "75026",
+            "lowerPriceBound": "61384",
+            "markPrice": "68205",
             "indexPrice": "68022",
-            "lastUpdatedAt": "1717348037844"
+            "lastUpdatedAt": "1717348153013"
         },
         "tierBased": true,
         "percentage": true,
@@ -127,11 +127,11 @@
             "minSize": "0.01",
             "listedAt": "1704801780000",
             "settlementAt": "2147625300000",
-            "upperPriceBound": "174.18",
-            "lowerPriceBound": "154.46",
-            "markPrice": "164.32",
-            "indexPrice": "163.71",
-            "lastUpdatedAt": "1717348038253"
+            "upperPriceBound": "174.26",
+            "lowerPriceBound": "154.52",
+            "markPrice": "164.39",
+            "indexPrice": "163.82",
+            "lastUpdatedAt": "1717348162899"
         },
         "tierBased": true,
         "percentage": true,
@@ -210,11 +210,11 @@
             "tickSize": "0.1",
             "minSize": "0.001",
             "listedAt": "1704801600000",
-            "upperPriceBound": "4176.7",
-            "lowerPriceBound": "3417.3",
-            "markPrice": "3797.0",
-            "indexPrice": "3785.0",
-            "lastUpdatedAt": "1717348035356"
+            "upperPriceBound": "4173.3",
+            "lowerPriceBound": "3414.5",
+            "markPrice": "3793.9",
+            "indexPrice": "3782.5",
+            "lastUpdatedAt": "1717348158904"
         },
         "tierBased": true,
         "percentage": true,
@@ -293,11 +293,11 @@
             "tickSize": "0.0001",
             "minSize": "1",
             "listedAt": "1704807000000",
-            "upperPriceBound": "0.4709",
-            "lowerPriceBound": "0.4259",
-            "markPrice": "0.4484",
-            "indexPrice": "0.4481",
-            "lastUpdatedAt": "1717348030206"
+            "upperPriceBound": "0.4704",
+            "lowerPriceBound": "0.4256",
+            "markPrice": "0.4480",
+            "indexPrice": "0.4480",
+            "lastUpdatedAt": "1717348143091"
         },
         "tierBased": true,
         "percentage": true,
@@ -368,7 +368,7 @@
             "openInterest": "0",
             "lastTradedPrice": "0",
             "lastTradedQuantity": "0",
-            "lastUpdatedAt": "1717348038233"
+            "lastUpdatedAt": "1717348162213"
         },
         "tierBased": true,
         "percentage": true,
@@ -430,7 +430,7 @@
         },
         "info": {
             "marketCode": "LTC-USDT",
-            "markPrice": "82.76",
+            "markPrice": "82.78",
             "open24h": "83.36",
             "high24h": "83.58",
             "low24h": "82.20",
@@ -439,7 +439,7 @@
             "openInterest": "0",
             "lastTradedPrice": "0",
             "lastTradedQuantity": "0",
-            "lastUpdatedAt": "1717348038240"
+            "lastUpdatedAt": "1717348162232"
         },
         "tierBased": true,
         "percentage": true,
@@ -501,7 +501,7 @@
         },
         "info": {
             "marketCode": "SOL-USDT",
-            "markPrice": "163.71",
+            "markPrice": "163.82",
             "open24h": "167.32",
             "high24h": "167.75",
             "low24h": "163.71",
@@ -510,7 +510,78 @@
             "openInterest": "0",
             "lastTradedPrice": "0",
             "lastTradedQuantity": "0",
-            "lastUpdatedAt": "1717348038094"
+            "lastUpdatedAt": "1717348162187"
+        },
+        "tierBased": true,
+        "percentage": true,
+        "tiers": {
+            "maker": [
+                [
+                    0,
+                    0.0002
+                ],
+                [
+                    2500000,
+                    0.0001
+                ],
+                [
+                    25000000,
+                    0
+                ]
+            ],
+            "taker": [
+                [
+                    0,
+                    0.0007
+                ],
+                [
+                    2500000,
+                    0.0005
+                ],
+                [
+                    25000000,
+                    0.0004
+                ]
+            ]
+        }
+    },
+    "ETH/USDT": {
+        "id": "ETH-USDT",
+        "symbol": "ETH/USDT",
+        "base": "ETH",
+        "quote": "USDT",
+        "baseId": "ETH",
+        "quoteId": "USDT",
+        "type": "spot",
+        "spot": true,
+        "margin": false,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "index": false,
+        "active": true,
+        "contract": false,
+        "taker": 0.0007,
+        "maker": 0.0002,
+        "precision": {},
+        "limits": {
+            "leverage": {},
+            "amount": {},
+            "price": {},
+            "cost": {}
+        },
+        "info": {
+            "marketCode": "ETH-USDT",
+            "markPrice": "3782.5",
+            "open24h": "3807.0",
+            "high24h": "3838.1",
+            "low24h": "3771.4",
+            "volume24h": "0",
+            "currencyVolume24h": "0",
+            "openInterest": "0",
+            "lastTradedPrice": "0",
+            "lastTradedQuantity": "0",
+            "lastUpdatedAt": "1717348162194"
         },
         "tierBased": true,
         "percentage": true,
