@@ -610,6 +610,14 @@
                   }
                 ]
             }
+        ],
+        "fetchAccounts": [
+            {
+                "description": "fetch accounts",
+                "method": "fetchAccounts",
+                "url": "https://api.coinbase.com/api/v3/brokerage/accounts?limit=250",
+                "input": []
+            }
         ]
     }
 }
