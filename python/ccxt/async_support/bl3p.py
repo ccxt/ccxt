@@ -413,7 +413,13 @@ class bl3p(Exchange, ImplicitAPI):
         request: dict = {
             'order_id': id,
         }
-        return await self.privatePostMarketMoneyOrderCancel(self.extend(request, params))
+        response = await self.privatePostMarketMoneyOrderCancel(self.extend(request, params))
+        #
+        # "success"
+        #
+        return self.safe_order({
+            'info': response,
+        })
 
     async def create_deposit_address(self, code: str, params={}):
         """
