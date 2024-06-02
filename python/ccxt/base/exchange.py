@@ -315,6 +315,7 @@ class Exchange(object):
     }
     precisionMode = DECIMAL_PLACES
     number = float  # or str (a pointer to a class)
+    number_types = {int, float}
     minFundingAddressLength = 1  # used in check_address
     substituteCommonCurrencyCodes = True
     reduceFees = True
@@ -2639,16 +2640,20 @@ class Exchange(object):
         trades = []
         if parseFilled or parseCost or shouldParseFees:
             rawTrades = self.safe_value(order, 'trades', trades)
-            oldNumber = self.number
+            if rawTrades:
+                self.logger.warning(f'{self.id} Parsing trades in safe_order')
             # we parse trades as strings here!
-            self.number = str
             trades = self.parse_trades(rawTrades, market, None, None, {
                 'symbol': order['symbol'],
                 'side': order['side'],
                 'type': order['type'],
                 'order': order['id'],
             })
-            self.number = oldNumber
+            # we transform all numbers to strings as in ccxt
+            for trade in trades:
+                for k, v in trade.items():
+                    if type(v) in self.number_types:
+                        trade[k] = str(v)
             tradesLength = 0
             isArray = isinstance(trades, list)
             if isArray:
