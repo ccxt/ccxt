@@ -468,10 +468,10 @@ public partial class coinbase : Exchange
         parameters = ((IList<object>)paginateparametersVariable)[1];
         if (isTrue(paginate))
         {
-            return await this.fetchPaginatedCallCursor("fetchAccounts", null, null, null, parameters, "cursor", "cursor", null, 100);
+            return await this.fetchPaginatedCallCursor("fetchAccounts", null, null, null, parameters, "cursor", "cursor", null, 250);
         }
         object request = new Dictionary<string, object>() {
-            { "limit", 100 },
+            { "limit", 250 },
         };
         object response = await this.v3PrivateGetBrokerageAccounts(this.extend(request, parameters));
         //

@@ -3166,7 +3166,11 @@ class coinex extends Exchange {
             // array("code":0,"data":array(),"message":"OK")
             //
         }
-        return $response;
+        return array(
+            $this->safe_order(array(
+                'info' => $response,
+            )),
+        );
     }
 
     public function fetch_order(string $id, ?string $symbol = null, $params = array ()) {

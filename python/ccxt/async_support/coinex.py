@@ -3059,7 +3059,11 @@ class coinex(Exchange, ImplicitAPI):
             #
             # {"code":0,"data":{},"message":"OK"}
             #
-        return response
+        return [
+            self.safe_order({
+                'info': response,
+            }),
+        ]
 
     async def fetch_order(self, id: str, symbol: Str = None, params={}):
         """

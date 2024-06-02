@@ -502,9 +502,9 @@ class coinbase(Exchange, ImplicitAPI):
         paginate = False
         paginate, params = self.handle_option_and_params(params, 'fetchAccounts', 'paginate')
         if paginate:
-            return self.fetch_paginated_call_cursor('fetchAccounts', None, None, None, params, 'cursor', 'cursor', None, 100)
+            return self.fetch_paginated_call_cursor('fetchAccounts', None, None, None, params, 'cursor', 'cursor', None, 250)
         request: dict = {
-            'limit': 100,
+            'limit': 250,
         }
         response = self.v3PrivateGetBrokerageAccounts(self.extend(request, params))
         #
