@@ -1,0 +1,36 @@
+import onetradingRest from '../onetrading.js';
+import type { Int, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Balances } from '../base/types.js';
+import Client from '../base/ws/Client.js';
+export default class onetrading extends onetradingRest {
+    describe(): any;
+    watchBalance(params?: {}): Promise<Balances>;
+    handleBalanceSnapshot(client: any, message: any): void;
+    watchTicker(symbol: string, params?: {}): Promise<Ticker>;
+    watchTickers(symbols?: Strings, params?: {}): Promise<Tickers>;
+    handleTicker(client: Client, message: any): void;
+    parseWSTicker(ticker: any, market?: any): Ticker;
+    watchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
+    watchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
+    handleOrderBook(client: Client, message: any): void;
+    handleDelta(orderbook: any, delta: any): void;
+    handleDeltas(orderbook: any, deltas: any): void;
+    watchOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
+    handleTrading(client: Client, message: any): void;
+    parseTradingOrder(order: any, market?: any): Order;
+    parseTradingOrderStatus(status: any): string;
+    handleOrders(client: Client, message: any): void;
+    handleAccountUpdate(client: Client, message: any): void;
+    parseWsOrderStatus(status: any): string;
+    updateBalance(balance: any): void;
+    watchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
+    handleOHLCV(client: Client, message: any): void;
+    findTimeframe(timeframe: any, timeframes?: any): string;
+    handleSubscriptions(client: Client, message: any): any;
+    handleHeartbeat(client: Client, message: any): any;
+    handleErrorMessage(client: Client, message: any): void;
+    handleMessage(client: Client, message: any): void;
+    handlePricePointUpdates(client: Client, message: any): any;
+    handleAuthenticationMessage(client: Client, message: any): any;
+    watchMany(messageHash: any, request: any, subscriptionHash: any, symbols?: Strings, params?: {}): Promise<any>;
+    authenticate(params?: {}): Promise<any>;
+}

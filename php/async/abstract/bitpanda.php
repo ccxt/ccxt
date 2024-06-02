@@ -6,7 +6,7 @@ namespace ccxt\async\abstract;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 
-abstract class bitpanda extends \ccxt\async\Exchange {
+abstract class bitpanda extends \ccxt\async\onetrading {
     public function public_get_currencies($params = array()) {
         return $this->request('currencies', 'public', 'GET', $params, null, null, array());
     }

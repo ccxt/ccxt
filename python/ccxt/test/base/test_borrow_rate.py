@@ -12,9 +12,7 @@ sys.path.append(root)
 # ----------------------------------------------------------------------------
 # -*- coding: utf-8 -*-
 
-
 from ccxt.test.base import test_shared_methods  # noqa E402
-
 
 def test_borrow_rate(exchange, skipped_properties, method, entry, requested_code):
     format = {
@@ -26,7 +24,7 @@ def test_borrow_rate(exchange, skipped_properties, method, entry, requested_code
         'period': 86400000,
     }
     test_shared_methods.assert_structure(exchange, skipped_properties, method, entry, format)
-    test_shared_methods.assert_timestamp(exchange, skipped_properties, method, entry)
+    test_shared_methods.assert_timestamp_and_datetime(exchange, skipped_properties, method, entry)
     test_shared_methods.assert_currency_code(exchange, skipped_properties, method, entry, entry['currency'], requested_code)
     #
     # assert (borrowRate['period'] === 86400000 || borrowRate['period'] === 3600000) # Milliseconds in an hour or a day

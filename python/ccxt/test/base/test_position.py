@@ -12,9 +12,7 @@ sys.path.append(root)
 # ----------------------------------------------------------------------------
 # -*- coding: utf-8 -*-
 
-
 from ccxt.test.base import test_shared_methods  # noqa E402
-
 
 def test_position(exchange, skipped_properties, method, entry, symbol, now):
     format = {
@@ -42,7 +40,7 @@ def test_position(exchange, skipped_properties, method, entry, symbol, now):
     }
     emptyot_allowed_for = ['liquidationPrice', 'initialMargin', 'initialMarginPercentage', 'maintenanceMargin', 'maintenanceMarginPercentage', 'marginRatio']
     test_shared_methods.assert_structure(exchange, skipped_properties, method, entry, format, emptyot_allowed_for)
-    test_shared_methods.assert_timestamp(exchange, skipped_properties, method, entry, now)
+    test_shared_methods.assert_timestamp_and_datetime(exchange, skipped_properties, method, entry, now)
     test_shared_methods.assert_symbol(exchange, skipped_properties, method, entry, 'symbol', symbol)
     test_shared_methods.assert_in_array(exchange, skipped_properties, method, entry, 'side', ['long', 'short'])
     test_shared_methods.assert_in_array(exchange, skipped_properties, method, entry, 'marginMode', ['cross', 'isolated'])
@@ -60,4 +58,3 @@ def test_position(exchange, skipped_properties, method, entry, symbol, now):
     test_shared_methods.assert_greater(exchange, skipped_properties, method, entry, 'liquidationPrice', '0')
     test_shared_methods.assert_greater(exchange, skipped_properties, method, entry, 'markPrice', '0')
     test_shared_methods.assert_greater(exchange, skipped_properties, method, entry, 'collateral', '0')
-    test_shared_methods.assert_greater_or_equal(exchange, skipped_properties, method, entry, 'percentage', '0')

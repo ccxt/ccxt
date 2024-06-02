@@ -7,15 +7,14 @@ const minusOne = BigInt(-1);
 const base = BigInt(10);
 class Precise {
     constructor(number, decimals = undefined) {
-        this.decimals = undefined;
-        this.integer = undefined;
         this.base = undefined;
         if (decimals === undefined) {
             let modifier = 0;
             number = number.toLowerCase();
             if (number.indexOf('e') > -1) {
-                [number, modifier] = number.split('e');
-                modifier = parseInt(modifier.toString());
+                let modifierString = '0';
+                [number, modifierString] = number.split('e');
+                modifier = parseInt(modifierString);
             }
             const decimalIndex = number.indexOf('.');
             this.decimals = (decimalIndex > -1) ? number.length - decimalIndex - 1 : 0;
@@ -35,7 +34,7 @@ class Precise {
     }
     div(other, precision = 18) {
         const distance = precision - this.decimals + other.decimals;
-        let numerator = undefined;
+        let numerator;
         if (distance === 0) {
             numerator = this.integer;
         }

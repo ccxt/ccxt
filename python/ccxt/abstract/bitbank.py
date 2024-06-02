@@ -9,6 +9,7 @@ class ImplicitAPI:
     public_get_pair_transactions = publicGetPairTransactions = Entry('{pair}/transactions', 'public', 'GET', {})
     public_get_pair_transactions_yyyymmdd = publicGetPairTransactionsYyyymmdd = Entry('{pair}/transactions/{yyyymmdd}', 'public', 'GET', {})
     public_get_pair_candlestick_candletype_yyyymmdd = publicGetPairCandlestickCandletypeYyyymmdd = Entry('{pair}/candlestick/{candletype}/{yyyymmdd}', 'public', 'GET', {})
+    public_get_pair_circuit_break_info = publicGetPairCircuitBreakInfo = Entry('{pair}/circuit_break_info', 'public', 'GET', {})
     private_get_user_assets = privateGetUserAssets = Entry('user/assets', 'private', 'GET', {})
     private_get_user_spot_order = privateGetUserSpotOrder = Entry('user/spot/order', 'private', 'GET', {})
     private_get_user_spot_active_orders = privateGetUserSpotActiveOrders = Entry('user/spot/active_orders', 'private', 'GET', {})

@@ -16,6 +16,7 @@ interface Exchange {
     publicGetDepth (params?: {}): Promise<implicitReturnType>;
     publicGetOHLC (params?: {}): Promise<implicitReturnType>;
     publicGetSpread (params?: {}): Promise<implicitReturnType>;
+    publicGetSystemStatus (params?: {}): Promise<implicitReturnType>;
     publicGetTicker (params?: {}): Promise<implicitReturnType>;
     publicGetTime (params?: {}): Promise<implicitReturnType>;
     publicGetTrades (params?: {}): Promise<implicitReturnType>;
@@ -24,6 +25,7 @@ interface Exchange {
     privatePostAddExport (params?: {}): Promise<implicitReturnType>;
     privatePostBalance (params?: {}): Promise<implicitReturnType>;
     privatePostCancelAll (params?: {}): Promise<implicitReturnType>;
+    privatePostCancelAllOrdersAfter (params?: {}): Promise<implicitReturnType>;
     privatePostCancelOrder (params?: {}): Promise<implicitReturnType>;
     privatePostCancelOrderBatch (params?: {}): Promise<implicitReturnType>;
     privatePostClosedOrders (params?: {}): Promise<implicitReturnType>;
@@ -41,21 +43,25 @@ interface Exchange {
     privatePostQueryTrades (params?: {}): Promise<implicitReturnType>;
     privatePostRetrieveExport (params?: {}): Promise<implicitReturnType>;
     privatePostRemoveExport (params?: {}): Promise<implicitReturnType>;
+    privatePostBalanceEx (params?: {}): Promise<implicitReturnType>;
     privatePostTradeBalance (params?: {}): Promise<implicitReturnType>;
     privatePostTradesHistory (params?: {}): Promise<implicitReturnType>;
     privatePostTradeVolume (params?: {}): Promise<implicitReturnType>;
     privatePostWithdraw (params?: {}): Promise<implicitReturnType>;
     privatePostWithdrawCancel (params?: {}): Promise<implicitReturnType>;
     privatePostWithdrawInfo (params?: {}): Promise<implicitReturnType>;
+    privatePostWithdrawMethods (params?: {}): Promise<implicitReturnType>;
+    privatePostWithdrawAddresses (params?: {}): Promise<implicitReturnType>;
     privatePostWithdrawStatus (params?: {}): Promise<implicitReturnType>;
     privatePostWalletTransfer (params?: {}): Promise<implicitReturnType>;
-    privatePostStake (params?: {}): Promise<implicitReturnType>;
-    privatePostUnstake (params?: {}): Promise<implicitReturnType>;
-    privatePostStakingAssets (params?: {}): Promise<implicitReturnType>;
-    privatePostStakingPending (params?: {}): Promise<implicitReturnType>;
-    privatePostStakingTransactions (params?: {}): Promise<implicitReturnType>;
     privatePostCreateSubaccount (params?: {}): Promise<implicitReturnType>;
     privatePostAccountTransfer (params?: {}): Promise<implicitReturnType>;
+    privatePostEarnAllocate (params?: {}): Promise<implicitReturnType>;
+    privatePostEarnDeallocate (params?: {}): Promise<implicitReturnType>;
+    privatePostEarnAllocateStatus (params?: {}): Promise<implicitReturnType>;
+    privatePostEarnDeallocateStatus (params?: {}): Promise<implicitReturnType>;
+    privatePostEarnStrategies (params?: {}): Promise<implicitReturnType>;
+    privatePostEarnAllocations (params?: {}): Promise<implicitReturnType>;
 }
 abstract class Exchange extends _Exchange {}
 

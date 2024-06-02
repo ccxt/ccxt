@@ -12,6 +12,7 @@
   "extends": ["eslint:recommended", "airbnb-base", "plugin:import/typescript"],
   "ignorePatterns": ["*/*", "cli.ts"],
   "rules": {
+    "no-console": "off",
     "import/no-unresolved":"off", // tmp until typescript decides to properly resolve names
     "import/named": "off",
     "strict": "off",

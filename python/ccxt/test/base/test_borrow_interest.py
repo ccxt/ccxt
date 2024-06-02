@@ -12,9 +12,7 @@ sys.path.append(root)
 # ----------------------------------------------------------------------------
 # -*- coding: utf-8 -*-
 
-
 from ccxt.test.base import test_shared_methods  # noqa E402
-
 
 def test_borrow_interest(exchange, skipped_properties, method, entry, requested_code, requested_symbol):
     format = {
@@ -29,7 +27,7 @@ def test_borrow_interest(exchange, skipped_properties, method, entry, requested_
     }
     empty_allowed_for = ['account']
     test_shared_methods.assert_structure(exchange, skipped_properties, method, entry, format, empty_allowed_for)
-    test_shared_methods.assert_timestamp(exchange, skipped_properties, method, entry)
+    test_shared_methods.assert_timestamp_and_datetime(exchange, skipped_properties, method, entry)
     test_shared_methods.assert_currency_code(exchange, skipped_properties, method, entry, entry['currency'], requested_code)
     test_shared_methods.assert_symbol(exchange, skipped_properties, method, entry, entry['account'], requested_symbol)
     test_shared_methods.assert_greater(exchange, skipped_properties, method, entry, 'interest', '0')

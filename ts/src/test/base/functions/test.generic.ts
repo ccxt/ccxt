@@ -56,7 +56,7 @@ function testDeepExtend() {
 
 function testGroupBy() {
 
-    const array = [
+    const sampleArray = [
         { 'foo': 'a' },
         { 'foo': 'b' },
         { 'foo': 'c' },
@@ -65,7 +65,7 @@ function testGroupBy() {
         { 'foo': 'c' },
     ]
 
-    deepEqual (groupBy (array, 'foo'), {
+    deepEqual (groupBy (sampleArray, 'foo'), {
         'a': [ { 'foo': 'a' } ],
         'b': [ { 'foo': 'b' }, { 'foo': 'b' } ],
         'c': [ { 'foo': 'c' }, { 'foo': 'c' }, { 'foo': 'c' } ],
@@ -74,7 +74,7 @@ function testGroupBy() {
 
 function testFilterBy() {
 
-    const array = [
+    const sampleArray = [
         { 'foo': 'a' },
         { 'foo': undefined },
         { 'foo': 'b' },
@@ -87,7 +87,7 @@ function testFilterBy() {
         { 'foo': 'c' },
     ]
 
-    deepEqual (filterBy (array, 'foo', 'a'), [
+    deepEqual (filterBy (sampleArray, 'foo', 'a'), [
         { 'foo': 'a' },
         { 'foo': 'a', 'bar': 'b' },
     ])

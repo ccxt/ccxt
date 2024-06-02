@@ -10,6 +10,9 @@ abstract class paymium extends \ccxt\Exchange {
     public function public_get_countries($params = array()) {
         return $this->request('countries', 'public', 'GET', $params, null, null, array());
     }
+    public function public_get_currencies($params = array()) {
+        return $this->request('currencies', 'public', 'GET', $params, null, null, array());
+    }
     public function public_get_data_currency_ticker($params = array()) {
         return $this->request('data/{currency}/ticker', 'public', 'GET', $params, null, null, array());
     }
@@ -78,6 +81,9 @@ abstract class paymium extends \ccxt\Exchange {
     }
     public function publicGetCountries($params = array()) {
         return $this->request('countries', 'public', 'GET', $params, null, null, array());
+    }
+    public function publicGetCurrencies($params = array()) {
+        return $this->request('currencies', 'public', 'GET', $params, null, null, array());
     }
     public function publicGetDataCurrencyTicker($params = array()) {
         return $this->request('data/{currency}/ticker', 'public', 'GET', $params, null, null, array());

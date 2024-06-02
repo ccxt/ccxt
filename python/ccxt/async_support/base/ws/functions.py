@@ -9,7 +9,7 @@ import datetime
 
 
 def inflate(data):
-    return decompress(data, -MAX_WBITS).decode('utf-8')
+    return decompress(data, -MAX_WBITS)
 
 
 def inflate64(data):
@@ -34,7 +34,7 @@ def iso8601(timestamp=None):
     if int(timestamp) < 0:
         return None
     try:
-        utc = datetime.datetime.utcfromtimestamp(timestamp // 1000)
+        utc = datetime.datetime.fromtimestamp(timestamp // 1000, datetime.timezone.utc)
         return utc.strftime('%Y-%m-%dT%H:%M:%S.%f')[:-6] + "{:03d}".format(int(timestamp) % 1000) + 'Z'
     except (TypeError, OverflowError, OSError):
         return None

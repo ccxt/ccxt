@@ -12,9 +12,7 @@ sys.path.append(root)
 # ----------------------------------------------------------------------------
 # -*- coding: utf-8 -*-
 
-
 from ccxt.test.base import test_order_book  # noqa E402
-
 
 def test_fetch_order_books(exchange, skipped_properties):
     method = 'fetchOrderBooks'
@@ -22,7 +20,7 @@ def test_fetch_order_books(exchange, skipped_properties):
     order_books = exchange.fetch_order_books([symbol])
     assert isinstance(order_books, dict), exchange.id + ' ' + method + ' must return an object. ' + exchange.json(order_books)
     order_book_keys = list(order_books.keys())
-    assert len(order_book_keys) > 0, exchange.id + ' ' + method + ' returned 0 length data'
+    assert len(order_book_keys), exchange.id + ' ' + method + ' returned 0 length data'
     for i in range(0, len(order_book_keys)):
-        symbol = order_book_keys[i]
-        test_order_book(exchange, skipped_properties, method, order_books[symbol], symbol)
+        symbol_inner = order_book_keys[i]
+        test_order_book(exchange, skipped_properties, method, order_books[symbol_inner], symbol_inner)

@@ -1,0 +1,432 @@
+{
+    "BTC/USD": {
+        "id": "BTC/USD",
+        "symbol": "BTC/USD",
+        "base": "BTC",
+        "quote": "USD",
+        "baseId": "BTC",
+        "quoteId": "USD",
+        "type": "spot",
+        "spot": true,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "contract": false,
+        "precision": {
+            "amount": 1e-8,
+            "price": 0.1
+        },
+        "limits": {
+            "amount": {
+                "min": 0.00035981
+            },
+            "price": {
+                "min": 3500,
+                "max": 350000
+            },
+            "cost": {
+                "min": 10
+            },
+            "leverage": {}
+        },
+        "info": {
+            "symbol1": "BTC",
+            "symbol2": "USD",
+            "pricePrecision": "1",
+            "minLotSize": "0.00035981",
+            "minLotSizeS2": "10",
+            "maxLotSize": null,
+            "minPrice": "3500",
+            "maxPrice": "350000"
+        },
+        "taker": 0.0025,
+        "maker": 0.0016
+    },
+    "BTC/EUR": {
+        "id": "BTC/EUR",
+        "symbol": "BTC/EUR",
+        "base": "BTC",
+        "quote": "EUR",
+        "baseId": "BTC",
+        "quoteId": "EUR",
+        "type": "spot",
+        "spot": true,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "contract": false,
+        "precision": {
+            "amount": 1e-8,
+            "price": 0.1
+        },
+        "limits": {
+            "amount": {
+                "min": 0.00035981
+            },
+            "price": {
+                "min": 2000,
+                "max": 300000
+            },
+            "cost": {
+                "min": 10
+            },
+            "leverage": {}
+        },
+        "info": {
+            "symbol1": "BTC",
+            "symbol2": "EUR",
+            "pricePrecision": "1",
+            "minLotSize": "0.00035981",
+            "minLotSizeS2": "10",
+            "maxLotSize": null,
+            "minPrice": "2000",
+            "maxPrice": "300000"
+        },
+        "taker": 0.0025,
+        "maker": 0.0016
+    },
+    "LTC/USD": {
+        "id": "LTC/USD",
+        "symbol": "LTC/USD",
+        "base": "LTC",
+        "quote": "USD",
+        "baseId": "LTC",
+        "quoteId": "USD",
+        "type": "spot",
+        "spot": true,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "contract": false,
+        "precision": {
+            "amount": 1e-8,
+            "price": 0.001
+        },
+        "limits": {
+            "amount": {
+                "min": 0.13798541
+            },
+            "price": {
+                "min": 7.73,
+                "max": 2048
+            },
+            "cost": {
+                "min": 10
+            },
+            "leverage": {}
+        },
+        "info": {
+            "symbol1": "LTC",
+            "symbol2": "USD",
+            "pricePrecision": "3",
+            "minLotSize": "0.13798541",
+            "minLotSizeS2": "10",
+            "maxLotSize": null,
+            "minPrice": "7.73",
+            "maxPrice": "2048"
+        },
+        "taker": 0.0025,
+        "maker": 0.0016
+    },
+    "ETH/USD": {
+        "id": "ETH/USD",
+        "symbol": "ETH/USD",
+        "base": "ETH",
+        "quote": "USD",
+        "baseId": "ETH",
+        "quoteId": "USD",
+        "type": "spot",
+        "spot": true,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "contract": false,
+        "precision": {
+            "amount": 0.000001,
+            "price": 0.01
+        },
+        "limits": {
+            "amount": {
+                "min": 0.006705
+            },
+            "price": {
+                "min": 26.41,
+                "max": 10000
+            },
+            "cost": {
+                "min": 10
+            },
+            "leverage": {}
+        },
+        "info": {
+            "symbol1": "ETH",
+            "symbol2": "USD",
+            "pricePrecision": "2",
+            "minLotSize": "0.006705",
+            "minLotSizeS2": "10",
+            "maxLotSize": null,
+            "minPrice": "26.41",
+            "maxPrice": "10000"
+        },
+        "taker": 0.0025,
+        "maker": 0.0016
+    },
+    "BTC/USDT": {
+        "id": "BTC/USDT",
+        "symbol": "BTC/USDT",
+        "base": "BTC",
+        "quote": "USDT",
+        "baseId": "BTC",
+        "quoteId": "USDT",
+        "type": "spot",
+        "spot": true,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "contract": false,
+        "precision": {
+            "amount": 1e-8,
+            "price": 0.1
+        },
+        "limits": {
+            "amount": {
+                "min": 0.00035981
+            },
+            "price": {
+                "min": 9000,
+                "max": 350000
+            },
+            "cost": {
+                "min": 10
+            },
+            "leverage": {}
+        },
+        "info": {
+            "symbol1": "BTC",
+            "symbol2": "USDT",
+            "pricePrecision": "1",
+            "minLotSize": "0.00035981",
+            "minLotSizeS2": "10",
+            "maxLotSize": null,
+            "minPrice": "9000",
+            "maxPrice": "350000"
+        },
+        "taker": 0.0025,
+        "maker": 0.0016
+    },
+    "LTC/USDT": {
+        "id": "LTC/USDT",
+        "symbol": "LTC/USDT",
+        "base": "LTC",
+        "quote": "USDT",
+        "baseId": "LTC",
+        "quoteId": "USDT",
+        "type": "spot",
+        "spot": true,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "contract": false,
+        "precision": {
+            "amount": 1e-8,
+            "price": 0.001
+        },
+        "limits": {
+            "amount": {
+                "min": 0.13798541
+            },
+            "price": {
+                "min": 7.72,
+                "max": 2048
+            },
+            "cost": {
+                "min": 10
+            },
+            "leverage": {}
+        },
+        "info": {
+            "symbol1": "LTC",
+            "symbol2": "USDT",
+            "pricePrecision": "3",
+            "minLotSize": "0.13798541",
+            "minLotSizeS2": "10",
+            "maxLotSize": null,
+            "minPrice": "7.72",
+            "maxPrice": "2048"
+        },
+        "taker": 0.0025,
+        "maker": 0.0016
+    },
+    "ADA/USDT": {
+        "id": "ADA/USDT",
+        "symbol": "ADA/USDT",
+        "base": "ADA",
+        "quote": "USDT",
+        "baseId": "ADA",
+        "quoteId": "USDT",
+        "type": "spot",
+        "spot": true,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "contract": false,
+        "precision": {
+            "amount": 0.000001,
+            "price": 0.000001
+        },
+        "limits": {
+            "amount": {
+                "min": 15.708556
+            },
+            "price": {
+                "min": 0.0062,
+                "max": 50
+            },
+            "cost": {
+                "min": 10
+            },
+            "leverage": {}
+        },
+        "info": {
+            "symbol1": "ADA",
+            "symbol2": "USDT",
+            "pricePrecision": "6",
+            "minLotSize": "15.708556",
+            "minLotSizeS2": "10",
+            "maxLotSize": null,
+            "minPrice": "0.0062",
+            "maxPrice": "50"
+        },
+        "taker": 0.0025,
+        "maker": 0.0016
+    },
+    "XRP/USDT": {
+        "id": "XRP/USDT",
+        "symbol": "XRP/USDT",
+        "base": "XRP",
+        "quote": "USDT",
+        "baseId": "XRP",
+        "quoteId": "USDT",
+        "type": "spot",
+        "spot": true,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "contract": false,
+        "precision": {
+            "amount": 0.000001,
+            "price": 0.00001
+        },
+        "limits": {
+            "amount": {
+                "min": 16.984107
+            },
+            "price": {
+                "min": 0.0343,
+                "max": 50
+            },
+            "cost": {
+                "min": 10
+            },
+            "leverage": {}
+        },
+        "info": {
+            "symbol1": "XRP",
+            "symbol2": "USDT",
+            "pricePrecision": "5",
+            "minLotSize": "16.984107",
+            "minLotSizeS2": "10",
+            "maxLotSize": null,
+            "minPrice": "0.0343",
+            "maxPrice": "50"
+        },
+        "taker": 0.0025,
+        "maker": 0.0016
+    },
+    "TRX/USDT": {
+        "id": "TRX/USDT",
+        "symbol": "TRX/USDT",
+        "base": "TRX",
+        "quote": "USDT",
+        "baseId": "TRX",
+        "quoteId": "USDT",
+        "type": "spot",
+        "spot": true,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "contract": false,
+        "precision": {
+            "amount": 0.000001,
+            "price": 0.00001
+        },
+        "limits": {
+            "amount": {
+                "min": 121.241513
+            },
+            "price": {
+                "min": 0.0001,
+                "max": 50
+            },
+            "cost": {
+                "min": 10
+            },
+            "leverage": {}
+        },
+        "info": {
+            "symbol1": "TRX",
+            "symbol2": "USDT",
+            "pricePrecision": "5",
+            "minLotSize": "121.241513",
+            "minLotSizeS2": "10",
+            "maxLotSize": null,
+            "minPrice": "0.0001",
+            "maxPrice": "50"
+        },
+        "taker": 0.0025,
+        "maker": 0.0016
+    },
+    "ETH/USDT": {
+        "id": "ETH/USDT",
+        "symbol": "ETH/USDT",
+        "base": "ETH",
+        "quote": "USDT",
+        "baseId": "ETH",
+        "quoteId": "USDT",
+        "type": "spot",
+        "spot": true,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "contract": false,
+        "taker": 0.0025,
+        "maker": 0.0016,
+        "precision": {
+            "amount": 0.000001,
+            "price": 0.01
+        },
+        "limits": {
+            "leverage": {},
+            "amount": {
+                "min": 0.006705
+            },
+            "price": {
+                "min": 100,
+                "max": 11000
+            },
+            "cost": {
+                "min": 10
+            }
+        },
+        "info": {
+            "symbol1": "ETH",
+            "symbol2": "USDT",
+            "pricePrecision": "2",
+            "minLotSize": "0.006705",
+            "minLotSizeS2": "10",
+            "maxLotSize": null,
+            "minPrice": "100",
+            "maxPrice": "11000"
+        }
+    }
+}

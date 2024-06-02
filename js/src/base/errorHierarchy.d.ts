@@ -10,7 +10,12 @@ declare const errorHierarchy: {
             ArgumentsRequired: {};
             BadRequest: {
                 BadSymbol: {};
-                MarginModeAlreadySet: {};
+            };
+            OperationRejected: {
+                NoChange: {
+                    MarginModeAlreadySet: {};
+                };
+                MarketClosed: {};
             };
             BadResponse: {
                 NullResponse: {};
@@ -26,18 +31,22 @@ declare const errorHierarchy: {
                 OrderImmediatelyFillable: {};
                 OrderNotFillable: {};
                 DuplicateOrderId: {};
+                ContractUnavailable: {};
             };
             NotSupported: {};
+            ProxyError: {};
+            ExchangeClosedByUser: {};
         };
-        NetworkError: {
-            DDoSProtection: {
+        OperationFailed: {
+            NetworkError: {
+                DDoSProtection: {};
                 RateLimitExceeded: {};
+                ExchangeNotAvailable: {
+                    OnMaintenance: {};
+                };
+                InvalidNonce: {};
+                RequestTimeout: {};
             };
-            ExchangeNotAvailable: {
-                OnMaintenance: {};
-            };
-            InvalidNonce: {};
-            RequestTimeout: {};
         };
     };
 };

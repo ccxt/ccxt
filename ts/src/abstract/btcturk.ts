@@ -12,11 +12,14 @@ interface Exchange {
     publicGetOrderbook (params?: {}): Promise<implicitReturnType>;
     publicGetTicker (params?: {}): Promise<implicitReturnType>;
     publicGetTrades (params?: {}): Promise<implicitReturnType>;
+    publicGetOhlc (params?: {}): Promise<implicitReturnType>;
     publicGetServerExchangeinfo (params?: {}): Promise<implicitReturnType>;
     privateGetUsersBalances (params?: {}): Promise<implicitReturnType>;
     privateGetOpenOrders (params?: {}): Promise<implicitReturnType>;
     privateGetAllOrders (params?: {}): Promise<implicitReturnType>;
     privateGetUsersTransactionsTrade (params?: {}): Promise<implicitReturnType>;
+    privatePostUsersTransactionsCrypto (params?: {}): Promise<implicitReturnType>;
+    privatePostUsersTransactionsFiat (params?: {}): Promise<implicitReturnType>;
     privatePostOrder (params?: {}): Promise<implicitReturnType>;
     privatePostCancelOrder (params?: {}): Promise<implicitReturnType>;
     privateDeleteOrder (params?: {}): Promise<implicitReturnType>;

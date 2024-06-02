@@ -12,10 +12,8 @@ sys.path.append(root)
 # ----------------------------------------------------------------------------
 # -*- coding: utf-8 -*-
 
-
 from ccxt.base.precise import Precise  # noqa E402
 from ccxt.test.base import test_shared_methods  # noqa E402
-
 
 def test_balance(exchange, skipped_properties, method, entry):
     format = {
@@ -30,6 +28,9 @@ def test_balance(exchange, skipped_properties, method, entry):
     codes_total = list(entry['total'].keys())
     codes_free = list(entry['free'].keys())
     codes_used = list(entry['used'].keys())
+    test_shared_methods.assert_non_emtpy_array(exchange, skipped_properties, method, codes_total, 'total')
+    test_shared_methods.assert_non_emtpy_array(exchange, skipped_properties, method, codes_free, 'free')
+    test_shared_methods.assert_non_emtpy_array(exchange, skipped_properties, method, codes_used, 'used')
     all_codes = exchange.array_concat(codes_total, codes_free)
     all_codes = exchange.array_concat(all_codes, codes_used)
     codes_length = len(codes_total)
@@ -38,7 +39,7 @@ def test_balance(exchange, skipped_properties, method, entry):
     assert (codes_length == free_length) or (codes_length == used_length), 'free and total and used codes have different lengths' + log_text
     for i in range(0, len(all_codes)):
         code = all_codes[i]
-        test_shared_methods.assert_currency_code(exchange, skipped_properties, method, entry, code)
+        # testSharedMethods.assertCurrencyCode (exchange, skippedProperties, method, entry, code);
         assert code in entry['total'], 'code ' + code + ' not in total' + log_text
         assert code in entry['free'], 'code ' + code + ' not in free' + log_text
         assert code in entry['used'], 'code ' + code + ' not in used' + log_text

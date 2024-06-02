@@ -17,42 +17,46 @@ use React\Promise;
 
 
 // AUTO-TRANSPILE //
-function example_1() {
+// ABOUT CCXT PROXIES, READ MORE AT: https://docs.ccxt.com/#/README?id=proxy
+function example_proxy_url() {
     return Async\async(function () {
         $my_ex = new \ccxt\async\kucoin();
-        $my_ex->proxy_url = 'https://cors-anywhere.herokuapp.com/'; // It prepends redirect url to requests, so requests leads to call url i.e.: https://cors-anywhere.herokuapp.com/?https://target_url.com . It might be useful for simple redirection or CORS bypassing purposes (Note, this will not work for websocket connections, but only for REST calls).
+        $my_ex->proxy_url = 'http://5.75.153.75:8090/proxy_url.php?caller=https://ccxt.com&url=';
         var_dump(Async\await($my_ex->fetch('https://api.ipify.org/')));
     }) ();
 }
 
 
-function example_2() {
+function example_http_proxy() {
     return Async\async(function () {
         $my_ex = new \ccxt\async\kucoin();
-        // choose "httpProxy" or "httpsProxy" depending on your proxy url protocol
-        $my_ex->https_proxy = 'http://51.83.140.52:11230'; // It sets a real proxy for communication, so calls are made directly to url https://target_url.com , but tunneled through a proxy server (Note, this might work for websocket connections too).
+        $my_ex->http_proxy = 'http://5.75.153.75:8002'; // "httpProxy" or "httpsProxy" (depending on your proxy protocol)
         var_dump(Async\await($my_ex->fetch('https://api.ipify.org/')));
     }) ();
 }
 
 
-function example_3() {
+function example_socks_proxy() {
     return Async\async(function () {
         $my_ex = new \ccxt\async\kucoin();
-        $my_ex->socks_proxy = 'socks5://127.0.0.1:1080'; // It is for socks5 or socks5h proxy (Note, this might work for websocket connections too).
+        $my_ex->socks_proxy = 'socks5://127.0.0.1:1080'; // from protocols: socks, socks5, socks5h
         var_dump(Async\await($my_ex->fetch('https://api.ipify.org/')));
     }) ();
 }
 
 
-// Note, you can use your callback (instead of string value) for each of them, i.e.:
-//
-//
-//     myEx.proxyUrlCallback = function (url, method, headers, body) { return 'xyz'; }
-//
-// or
-//
-//     myEx.proxyUrlCallback = mycallback;
-//
-// Note, in PHP you can also pass a callback's string with a qualified namespace/class name, i.e. '\yourFunction' or '\yourNamesPace\yourFunction'
-Async\await(example_1());
+function example_web_sockets() {
+    return Async\async(function () {
+        $my_ex = new \ccxt\pro\kucoin();
+        $my_ex->http_proxy = 'http://5.75.153.75:8002'; // even though you are using WebSockets, you might also need to set up proxy for the exchange's REST requests
+        $my_ex->ws_proxy = 'http://5.75.153.75:8002'; // "wsProxy" or "wssProxy" or "wsSocksProxy" (depending on your proxy protocol)
+        Async\await($my_ex->load_markets());
+        while (true) {
+            $ticker = Async\await($my_ex->watch_ticker('BTC/USDT'));
+            var_dump($ticker);
+        }
+    }) ();
+}
+
+
+Async\await(example_proxy_url());

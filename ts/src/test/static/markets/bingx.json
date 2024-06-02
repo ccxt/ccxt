@@ -1,0 +1,723 @@
+{
+    "BTC/USDT": {
+        "id": "BTC-USDT",
+        "symbol": "BTC/USDT",
+        "base": "BTC",
+        "quote": "USDT",
+        "baseId": "BTC",
+        "quoteId": "USDT",
+        "type": "spot",
+        "spot": true,
+        "margin": false,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "index": false,
+        "active": true,
+        "contract": false,
+        "taker": 0.001,
+        "maker": 0.001,
+        "precision": {
+            "amount": 5,
+            "price": 2
+        },
+        "limits": {
+            "leverage": {},
+            "amount": {
+                "min": 0.0001826,
+                "max": 18.2663756
+            },
+            "price": {},
+            "cost": {
+                "min": 5,
+                "max": 5260122.38270638
+            }
+        },
+        "info": {
+            "symbol": "BTC-USDT",
+            "minQty": "0.0001826",
+            "maxQty": "18.2663756",
+            "minNotional": "5",
+            "maxNotional": "5260122.38270638",
+            "status": "1",
+            "tickSize": "0.01",
+            "stepSize": "0.00001",
+            "apiStateSell": true,
+            "apiStateBuy": true,
+            "timeOnline": "0"
+        },
+        "feeSide": "get"
+    },
+    "LTC/USDT": {
+        "id": "LTC-USDT",
+        "symbol": "LTC/USDT",
+        "base": "LTC",
+        "quote": "USDT",
+        "baseId": "LTC",
+        "quoteId": "USDT",
+        "type": "spot",
+        "spot": true,
+        "margin": false,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "index": false,
+        "active": true,
+        "contract": false,
+        "taker": 0.001,
+        "maker": 0.001,
+        "precision": {
+            "amount": 4,
+            "price": 2
+        },
+        "limits": {
+            "leverage": {},
+            "amount": {
+                "min": 0.0537,
+                "max": 5376.3441
+            },
+            "price": {},
+            "cost": {
+                "min": 5,
+                "max": 2193405.48863296
+            }
+        },
+        "info": {
+            "symbol": "LTC-USDT",
+            "minQty": "0.0537",
+            "maxQty": "5376.3441",
+            "minNotional": "5",
+            "maxNotional": "2193405.48863296",
+            "status": "1",
+            "tickSize": "0.01",
+            "stepSize": "0.0001",
+            "apiStateSell": true,
+            "apiStateBuy": true,
+            "timeOnline": "0"
+        },
+        "feeSide": "get"
+    },
+    "ADA/USDT": {
+        "id": "ADA-USDT",
+        "symbol": "ADA/USDT",
+        "base": "ADA",
+        "quote": "USDT",
+        "baseId": "ADA",
+        "quoteId": "USDT",
+        "type": "spot",
+        "spot": true,
+        "margin": false,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "index": false,
+        "active": true,
+        "contract": false,
+        "taker": 0.001,
+        "maker": 0.001,
+        "precision": {
+            "amount": 2,
+            "price": 4
+        },
+        "limits": {
+            "leverage": {},
+            "amount": {
+                "min": 13.27,
+                "max": 1327316.17
+            },
+            "price": {},
+            "cost": {
+                "min": 5,
+                "max": 2006885.82387116
+            }
+        },
+        "info": {
+            "symbol": "ADA-USDT",
+            "minQty": "13.27",
+            "maxQty": "1327316.17",
+            "minNotional": "5",
+            "maxNotional": "2006885.82387116",
+            "status": "1",
+            "tickSize": "0.0001",
+            "stepSize": "0.01",
+            "apiStateSell": true,
+            "apiStateBuy": true,
+            "timeOnline": "0"
+        },
+        "feeSide": "get"
+    },
+    "XRP/USDT": {
+        "id": "XRP-USDT",
+        "symbol": "XRP/USDT",
+        "base": "XRP",
+        "quote": "USDT",
+        "baseId": "XRP",
+        "quoteId": "USDT",
+        "type": "spot",
+        "spot": true,
+        "margin": false,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "index": false,
+        "active": true,
+        "contract": false,
+        "taker": 0.001,
+        "maker": 0.001,
+        "precision": {
+            "amount": 2,
+            "price": 4
+        },
+        "limits": {
+            "leverage": {},
+            "amount": {
+                "min": 11.21,
+                "max": 1121352.81
+            },
+            "price": {},
+            "cost": {
+                "min": 5,
+                "max": 4527307.65147932
+            }
+        },
+        "info": {
+            "symbol": "XRP-USDT",
+            "minQty": "11.21",
+            "maxQty": "1121352.81",
+            "minNotional": "5",
+            "maxNotional": "4527307.65147932",
+            "status": "1",
+            "tickSize": "0.0001",
+            "stepSize": "0.01",
+            "apiStateSell": true,
+            "apiStateBuy": true,
+            "timeOnline": "0"
+        },
+        "feeSide": "get"
+    },
+    "SOL/USDT": {
+        "id": "SOL-USDT",
+        "symbol": "SOL/USDT",
+        "base": "SOL",
+        "quote": "USDT",
+        "baseId": "SOL",
+        "quoteId": "USDT",
+        "type": "spot",
+        "spot": true,
+        "margin": false,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "index": false,
+        "active": true,
+        "contract": false,
+        "taker": 0.001,
+        "maker": 0.001,
+        "precision": {
+            "amount": 4,
+            "price": 2
+        },
+        "limits": {
+            "leverage": {},
+            "amount": {
+                "min": 0.2395,
+                "max": 23957.8343
+            },
+            "price": {},
+            "cost": {
+                "min": 5,
+                "max": 12757751.04936593
+            }
+        },
+        "info": {
+            "symbol": "SOL-USDT",
+            "minQty": "0.2395",
+            "maxQty": "23957.8343",
+            "minNotional": "5",
+            "maxNotional": "12757751.04936593",
+            "status": "1",
+            "tickSize": "0.01",
+            "stepSize": "0.0001",
+            "apiStateSell": true,
+            "apiStateBuy": true,
+            "timeOnline": "0"
+        },
+        "feeSide": "get"
+    },
+    "TRX/USDT": {
+        "id": "TRX-USDT",
+        "symbol": "TRX/USDT",
+        "base": "TRX",
+        "quote": "USDT",
+        "baseId": "TRX",
+        "quoteId": "USDT",
+        "type": "spot",
+        "spot": true,
+        "margin": false,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "index": false,
+        "active": true,
+        "contract": false,
+        "taker": 0.001,
+        "maker": 0.001,
+        "precision": {
+            "amount": 1,
+            "price": 5
+        },
+        "limits": {
+            "leverage": {},
+            "amount": {
+                "min": 70.9,
+                "max": 7096728.5
+            },
+            "price": {},
+            "cost": {
+                "min": 5,
+                "max": 735148.65357077
+            }
+        },
+        "info": {
+            "symbol": "TRX-USDT",
+            "minQty": "70.9",
+            "maxQty": "7096728.5",
+            "minNotional": "5",
+            "maxNotional": "735148.65357077",
+            "status": "1",
+            "tickSize": "0.00001",
+            "stepSize": "0.1",
+            "apiStateSell": true,
+            "apiStateBuy": true,
+            "timeOnline": "0"
+        },
+        "feeSide": "get"
+    },
+    "LTC/USDT:USDT": {
+        "id": "LTC-USDT",
+        "symbol": "LTC/USDT:USDT",
+        "base": "LTC",
+        "quote": "USDT",
+        "settle": "USDT",
+        "baseId": "LTC",
+        "quoteId": "USDT",
+        "settleId": "USDT",
+        "type": "swap",
+        "spot": false,
+        "margin": false,
+        "swap": true,
+        "future": false,
+        "option": false,
+        "active": true,
+        "contract": true,
+        "linear": true,
+        "inverse": false,
+        "subType": "linear",
+        "taker": 0.0005,
+        "maker": 0.0002,
+        "contractSize": 1,
+        "precision": {
+            "amount": 1,
+            "price": 2
+        },
+        "limits": {
+            "leverage": {
+                "max": 100
+            },
+            "amount": {
+                "min": 0.1
+            },
+            "price": {},
+            "cost": {
+                "min": 2
+            }
+        },
+        "info": {
+            "contractId": "100006",
+            "symbol": "LTC-USDT",
+            "size": "0",
+            "quantityPrecision": "1",
+            "pricePrecision": "2",
+            "feeRate": "0.0005",
+            "makerFeeRate": "0.0002",
+            "takerFeeRate": "0.0005",
+            "tradeMinLimit": "0",
+            "tradeMinQuantity": "0.1",
+            "tradeMinUSDT": "2",
+            "maxLongLeverage": "100",
+            "maxShortLeverage": "100",
+            "currency": "USDT",
+            "asset": "LTC",
+            "status": "1",
+            "apiStateOpen": "true",
+            "apiStateClose": "true",
+            "ensureTrigger": true,
+            "triggerFeeRate": "0.00050000"
+        },
+        "feeSide": "quote"
+    },
+    "BTC/USDT:USDT": {
+        "id": "BTC-USDT",
+        "symbol": "BTC/USDT:USDT",
+        "base": "BTC",
+        "quote": "USDT",
+        "settle": "USDT",
+        "baseId": "BTC",
+        "quoteId": "USDT",
+        "settleId": "USDT",
+        "type": "swap",
+        "spot": false,
+        "margin": false,
+        "swap": true,
+        "future": false,
+        "option": false,
+        "active": true,
+        "contract": true,
+        "linear": true,
+        "inverse": false,
+        "subType": "linear",
+        "taker": 0.0005,
+        "maker": 0.0002,
+        "contractSize": 1,
+        "precision": {
+            "amount": 4,
+            "price": 1
+        },
+        "limits": {
+            "leverage": {
+                "max": 125
+            },
+            "amount": {
+                "min": 0.0001
+            },
+            "price": {},
+            "cost": {
+                "min": 2
+            }
+        },
+        "info": {
+            "contractId": "100",
+            "symbol": "BTC-USDT",
+            "size": "0",
+            "quantityPrecision": "4",
+            "pricePrecision": "1",
+            "feeRate": "0.0005",
+            "makerFeeRate": "0.0002",
+            "takerFeeRate": "0.0005",
+            "tradeMinLimit": "0",
+            "tradeMinQuantity": "0.0001",
+            "tradeMinUSDT": "2",
+            "maxLongLeverage": "125",
+            "maxShortLeverage": "125",
+            "currency": "USDT",
+            "asset": "BTC",
+            "status": "1",
+            "apiStateOpen": "true",
+            "apiStateClose": "true",
+            "ensureTrigger": true,
+            "triggerFeeRate": "0.00020000"
+        },
+        "feeSide": "quote"
+    },
+    "ADA/USDT:USDT": {
+        "id": "ADA-USDT",
+        "symbol": "ADA/USDT:USDT",
+        "base": "ADA",
+        "quote": "USDT",
+        "settle": "USDT",
+        "baseId": "ADA",
+        "quoteId": "USDT",
+        "settleId": "USDT",
+        "type": "swap",
+        "spot": false,
+        "margin": false,
+        "swap": true,
+        "future": false,
+        "option": false,
+        "active": true,
+        "contract": true,
+        "linear": true,
+        "inverse": false,
+        "subType": "linear",
+        "taker": 0.0005,
+        "maker": 0.0002,
+        "contractSize": 1,
+        "precision": {
+            "amount": 0,
+            "price": 5
+        },
+        "limits": {
+            "leverage": {
+                "max": 5
+            },
+            "amount": {
+                "min": 1
+            },
+            "price": {},
+            "cost": {
+                "min": 2
+            }
+        },
+        "info": {
+            "contractId": "100004",
+            "symbol": "ADA-USDT",
+            "size": "0",
+            "quantityPrecision": "0",
+            "pricePrecision": "5",
+            "feeRate": "0.0005",
+            "makerFeeRate": "0.0002",
+            "takerFeeRate": "0.0005",
+            "tradeMinLimit": "0",
+            "tradeMinQuantity": "1",
+            "tradeMinUSDT": "2",
+            "maxLongLeverage": "5",
+            "maxShortLeverage": "5",
+            "currency": "USDT",
+            "asset": "ADA",
+            "status": "1",
+            "apiStateOpen": "true",
+            "apiStateClose": "true",
+            "ensureTrigger": true,
+            "triggerFeeRate": "0.00015000"
+        },
+        "feeSide": "quote"
+    },
+    "ETH/USDT:USDT": {
+        "id": "ETH-USDT",
+        "symbol": "ETH/USDT:USDT",
+        "base": "ETH",
+        "quote": "USDT",
+        "settle": "USDT",
+        "baseId": "ETH",
+        "quoteId": "USDT",
+        "settleId": "USDT",
+        "type": "swap",
+        "spot": false,
+        "margin": false,
+        "swap": true,
+        "future": false,
+        "option": false,
+        "active": true,
+        "contract": true,
+        "linear": true,
+        "inverse": false,
+        "subType": "linear",
+        "taker": 0.0005,
+        "maker": 0.0002,
+        "contractSize": 1,
+        "precision": {
+            "amount": 2,
+            "price": 2
+        },
+        "limits": {
+            "leverage": {
+                "max": 125
+            },
+            "amount": {
+                "min": 0.01
+            },
+            "price": {},
+            "cost": {
+                "min": 2
+            }
+        },
+        "info": {
+            "contractId": "101",
+            "symbol": "ETH-USDT",
+            "size": "0",
+            "quantityPrecision": "2",
+            "pricePrecision": "2",
+            "feeRate": "0.0005",
+            "makerFeeRate": "0.0002",
+            "takerFeeRate": "0.0005",
+            "tradeMinLimit": "0",
+            "tradeMinQuantity": "0.01",
+            "tradeMinUSDT": "2",
+            "maxLongLeverage": "125",
+            "maxShortLeverage": "125",
+            "currency": "USDT",
+            "asset": "ETH",
+            "status": "1",
+            "apiStateOpen": "true",
+            "apiStateClose": "true",
+            "ensureTrigger": true,
+            "triggerFeeRate": "0.00010000"
+        },
+        "feeSide": "quote"
+    },
+    "ETH/USDT": {
+        "id": "ETH-USDT",
+        "symbol": "ETH/USDT",
+        "base": "ETH",
+        "quote": "USDT",
+        "baseId": "ETH",
+        "quoteId": "USDT",
+        "type": "spot",
+        "spot": true,
+        "margin": false,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "index": false,
+        "active": true,
+        "contract": false,
+        "taker": 0.001,
+        "maker": 0.001,
+        "precision": {
+            "amount": 6,
+            "price": 2
+        },
+        "limits": {
+            "leverage": {},
+            "amount": {
+                "min": 0.002736,
+                "max": 273.684672
+            },
+            "price": {},
+            "cost": {
+                "min": 5,
+                "max": 4794604.95075703
+            }
+        },
+        "info": {
+            "symbol": "ETH-USDT",
+            "minQty": "0.002736",
+            "maxQty": "273.684672",
+            "minNotional": "5",
+            "maxNotional": "4794604.95075703",
+            "status": "1",
+            "tickSize": "0.01",
+            "stepSize": "0.000001",
+            "apiStateSell": true,
+            "apiStateBuy": true,
+            "timeOnline": "0"
+        },
+        "feeSide": "get"
+    },
+    "SOL/USDT:USDT": {
+        "id": "SOL-USDT",
+        "symbol": "SOL/USDT:USDT",
+        "base": "SOL",
+        "quote": "USDT",
+        "settle": "USDT",
+        "baseId": "SOL",
+        "quoteId": "USDT",
+        "settleId": "USDT",
+        "type": "swap",
+        "spot": false,
+        "margin": false,
+        "swap": true,
+        "future": false,
+        "option": false,
+        "active": true,
+        "contract": true,
+        "linear": true,
+        "inverse": false,
+        "subType": "linear",
+        "taker": 0.0005,
+        "maker": 0.0002,
+        "contractSize": 1,
+        "precision": {
+            "amount": 0,
+            "price": 3
+        },
+        "limits": {
+            "leverage": {
+                "max": 5
+            },
+            "amount": {
+                "min": 1
+            },
+            "price": {},
+            "cost": {
+                "min": 2
+            }
+        },
+        "info": {
+            "contractId": "100028",
+            "symbol": "SOL-USDT",
+            "size": "0",
+            "quantityPrecision": "0",
+            "pricePrecision": "3",
+            "feeRate": "0.0005",
+            "makerFeeRate": "0.0002",
+            "takerFeeRate": "0.0005",
+            "tradeMinLimit": "0",
+            "tradeMinQuantity": "1",
+            "tradeMinUSDT": "2",
+            "maxLongLeverage": "5",
+            "maxShortLeverage": "5",
+            "currency": "USDT",
+            "asset": "SOL",
+            "status": "1",
+            "apiStateOpen": "true",
+            "apiStateClose": "true",
+            "ensureTrigger": true,
+            "triggerFeeRate": "0.00050000"
+        },
+        "feeSide": "quote"
+    },
+    "DOGE/USDT:USDT": {
+        "id": "DOGE-USDT",
+        "symbol": "DOGE/USDT:USDT",
+        "base": "DOGE",
+        "quote": "USDT",
+        "settle": "USDT",
+        "baseId": "DOGE",
+        "quoteId": "USDT",
+        "settleId": "USDT",
+        "type": "swap",
+        "spot": false,
+        "margin": false,
+        "swap": true,
+        "future": false,
+        "option": false,
+        "active": true,
+        "contract": true,
+        "linear": true,
+        "inverse": false,
+        "subType": "linear",
+        "taker": 0.0005,
+        "maker": 0.0002,
+        "contractSize": 1,
+        "precision": {
+            "amount": 0,
+            "price": 5
+        },
+        "limits": {
+            "leverage": {
+                "max": 5
+            },
+            "amount": {
+                "min": 1
+            },
+            "price": {},
+            "cost": {
+                "min": 2
+            }
+        },
+        "info": {
+            "contractId": "100035",
+            "symbol": "DOGE-USDT",
+            "size": "0",
+            "quantityPrecision": "0",
+            "pricePrecision": "5",
+            "feeRate": "0.0005",
+            "makerFeeRate": "0.0002",
+            "takerFeeRate": "0.0005",
+            "tradeMinLimit": "0",
+            "tradeMinQuantity": "1",
+            "tradeMinUSDT": "2",
+            "maxLongLeverage": "5",
+            "maxShortLeverage": "5",
+            "currency": "USDT",
+            "asset": "DOGE",
+            "status": "1",
+            "apiStateOpen": "true",
+            "apiStateClose": "true",
+            "ensureTrigger": true,
+            "triggerFeeRate": "0.00030000"
+        },
+        "feeSide": "quote"
+    }
+}

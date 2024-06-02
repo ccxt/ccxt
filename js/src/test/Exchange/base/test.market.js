@@ -5,8 +5,8 @@
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
 import assert from 'assert';
-import testSharedMethods from './test.sharedMethods.js';
 import Precise from '../../../base/Precise.js';
+import testSharedMethods from './test.sharedMethods.js';
 function testMarket(exchange, skippedProperties, method, market) {
     const format = {
         'id': 'btcusd',
@@ -63,7 +63,7 @@ function testMarket(exchange, skippedProperties, method, market) {
     testSharedMethods.assertSymbol(exchange, skippedProperties, method, market, 'symbol');
     const logText = testSharedMethods.logTemplate(exchange, method, market);
     //
-    const validTypes = ['spot', 'margin', 'swap', 'future', 'option'];
+    const validTypes = ['spot', 'margin', 'swap', 'future', 'option', 'index'];
     testSharedMethods.assertInArray(exchange, skippedProperties, method, market, 'type', validTypes);
     const hasIndex = ('index' in market); // todo: add in all
     // check if string is consistent with 'type'
@@ -93,6 +93,10 @@ function testMarket(exchange, skippedProperties, method, market) {
         testSharedMethods.assertInArray(exchange, skippedProperties, method, market, 'margin', [false, undefined]);
     }
     if (!('contractSize' in skippedProperties)) {
+        if (!market['spot']) {
+            // if not spot, then contractSize should be defined
+            assert(market['contractSize'] !== undefined, '"contractSize" must be defined when "spot" is false' + logText);
+        }
         testSharedMethods.assertGreater(exchange, skippedProperties, method, market, 'contractSize', '0');
     }
     // typical values
@@ -133,13 +137,13 @@ function testMarket(exchange, skippedProperties, method, market) {
     }
     else {
         // linear & inverse needs to be undefined
-        assert((market['linear'] === undefined) && (market['inverse'] === undefined), 'market linear and inverse must be undefined when "contract" is true' + logText);
+        assert((market['linear'] === undefined) && (market['inverse'] === undefined), 'market linear and inverse must be undefined when "contract" is false' + logText);
         // contract size should be undefined
         if (!('contractSize' in skippedProperties)) {
             assert(contractSize === undefined, '"contractSize" must be undefined when "contract" is false' + logText);
         }
         // settle should be undefined
-        assert((market['settle'] === undefined) && (market['settleId'] === undefined), '"settle" must be undefined when "contract" is true' + logText);
+        assert((market['settle'] === undefined) && (market['settleId'] === undefined), '"settle" must be undefined when "contract" is false' + logText);
         // spot should be true
         assert(market['spot'], '"spot" must be true when "contract" is false' + logText);
     }
@@ -180,7 +184,8 @@ function testMarket(exchange, skippedProperties, method, market) {
     // check precisions
     if (!('precision' in skippedProperties)) {
         const precisionKeys = Object.keys(market['precision']);
-        assert(precisionKeys.length >= 2, 'precision should have "amount" and "price" keys at least' + logText);
+        const keysLength = precisionKeys.length;
+        assert(keysLength >= 2, 'precision should have "amount" and "price" keys at least' + logText);
         for (let i = 0; i < precisionKeys.length; i++) {
             testSharedMethods.checkPrecisionAccuracy(exchange, skippedProperties, method, market['precision'], precisionKeys[i]);
         }
@@ -188,7 +193,8 @@ function testMarket(exchange, skippedProperties, method, market) {
     // check limits
     if (!('limits' in skippedProperties)) {
         const limitsKeys = Object.keys(market['limits']);
-        assert(limitsKeys.length >= 3, 'limits should have "amount", "price" and "cost" keys at least' + logText);
+        const keysLength = limitsKeys.length;
+        assert(keysLength >= 3, 'limits should have "amount", "price" and "cost" keys at least' + logText);
         for (let i = 0; i < limitsKeys.length; i++) {
             const key = limitsKeys[i];
             const limitEntry = market['limits'][key];
@@ -204,10 +210,11 @@ function testMarket(exchange, skippedProperties, method, market) {
         }
     }
     // check whether valid currency ID and CODE is used
-    if (!('currencyIdAndCode' in skippedProperties)) {
+    if (!('currency' in skippedProperties) && !('currencyIdAndCode' in skippedProperties)) {
         testSharedMethods.assertValidCurrencyIdAndCode(exchange, skippedProperties, method, market, market['baseId'], market['base']);
         testSharedMethods.assertValidCurrencyIdAndCode(exchange, skippedProperties, method, market, market['quoteId'], market['quote']);
         testSharedMethods.assertValidCurrencyIdAndCode(exchange, skippedProperties, method, market, market['settleId'], market['settle']);
     }
+    testSharedMethods.assertTimestamp(exchange, skippedProperties, method, market, undefined, 'created');
 }
 export default testMarket;

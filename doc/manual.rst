@@ -4038,6 +4038,7 @@ The ``fetchStatus()`` method will return a status structure like shown below:
        'updated': undefined, // integer, last updated timestamp in milliseconds if updated via the API
        'eta': undefined, // when the maintenance or outage is expected to end
        'url': undefined, // a link to a GitHub issue or to an exchange post on the subject
+       'info': { ... }
    }
 
 The possible values in the ``status`` field are:
@@ -5594,7 +5595,7 @@ Some exchanges allow you to specify optional parameters for your order. You can 
 
    # Python
    # add a custom order flag
-   kraken.create_market_buy_order('BTC/USD', 1, {'trading_agreement': 'agree'})
+   kraken.create_market_buy_order('BTC/USD', 1, {'validate': true})
 
 .. code-block:: PHP
 
