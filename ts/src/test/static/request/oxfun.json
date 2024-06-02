@@ -1,6 +1,6 @@
 {
     "exchange": "oxfun",
-    "skipKeys": [],
+    "skipKeys": ["timestamp"],
     "outputType": "json",
     "methods": {
         "createOrder": [
