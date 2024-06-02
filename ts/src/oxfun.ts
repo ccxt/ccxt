@@ -138,7 +138,7 @@ export default class oxfun extends Exchange {
                 '1d': '86400s',
             },
             'urls': {
-                'logo': '', // todo: add a logo
+                'logo': 'https://github.com/ccxt/ccxt/assets/43336371/9c7114b3-ec32-4cf7-a716-f807d7d071cd',
                 'referral': 'https://ox.fun/register?shareAccountId=5Z2D4aC3',
                 'api': {
                     'public': 'https://api.ox.fun',
