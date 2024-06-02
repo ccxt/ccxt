@@ -246,12 +246,12 @@ export default class oxfun extends Exchange {
             },
             'exceptions': {
                 'exact': {
-                    '- 0010': OperationFailed, // {"event":null,"success":false,"message":"Validation failed","code":"0010","data":null} - failed transfer
+                    '-0010': OperationFailed, // {"event":null,"success":false,"message":"Validation failed","code":"0010","data":null} - failed transfer
                     '-429': RateLimitExceeded, // Rate limit reached
                     '-05001': AuthenticationError, // Your operation authority is invalid
                     '-10001': ExchangeError, // General networking failure
                     '-20000': BadRequest, // Signature is invalid
-                    '-20001': BadRequest, // {"success":false,"code":"20001","message":"marketCode is invalid"
+                    '-20001': BadRequest, // "success":false,"code":"20001","message":"marketCode is invalid"
                     '-20002': BadRequest, // Unexpected error, please check if your request data complies with the specification.
                     '-20003': NotSupported, // Unrecognized operation
                     '-20005': AuthenticationError, // Already logged in
