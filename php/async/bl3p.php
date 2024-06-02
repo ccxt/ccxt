@@ -439,7 +439,13 @@ class bl3p extends Exchange {
             $request = array(
                 'order_id' => $id,
             );
-            return Async\await($this->privatePostMarketMoneyOrderCancel ($this->extend($request, $params)));
+            $response = Async\await($this->privatePostMarketMoneyOrderCancel ($this->extend($request, $params)));
+            //
+            // "success"
+            //
+            return $this->safe_order(array(
+                'info' => $response,
+            ));
         }) ();
     }
 

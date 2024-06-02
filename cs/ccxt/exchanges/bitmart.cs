@@ -1124,10 +1124,10 @@ public partial class bitmart : Exchange
         market = this.safeMarket(marketId, market);
         object symbol = getValue(market, "symbol");
         object last = this.safeString2(ticker, "close_24h", "last_price");
-        object percentage = Precise.stringAbs(this.safeString(ticker, "price_change_percent_24h"));
+        object percentage = this.safeString(ticker, "price_change_percent_24h");
         if (isTrue(isEqual(percentage, null)))
         {
-            percentage = Precise.stringAbs(Precise.stringMul(this.safeString(ticker, "fluctuation"), "100"));
+            percentage = Precise.stringMul(this.safeString(ticker, "fluctuation"), "100");
         }
         object baseVolume = this.safeString(ticker, "base_volume_24h");
         object quoteVolume = this.safeString(ticker, "quote_volume_24h");
@@ -1403,13 +1403,13 @@ public partial class bitmart : Exchange
         //
         // public fetchTrades spot ( amount = count * price )
         //
-        //    {
-        //        "amount": "818.94",
-        //        "order_time": "1637601839035",    // ETH/USDT
-        //        "price": "4221.99",
-        //        "count": "0.19397",
-        //        "type": "buy"
-        //    }
+        //     [
+        //         "BTC_USDT",      // symbol
+        //         "1717212457302", // timestamp
+        //         "67643.11",      // price
+        //         "0.00106",       // size
+        //         "sell"           // side
+        //     ]
         //
         // spot: fetchMyTrades
         //
@@ -1456,17 +1456,18 @@ public partial class bitmart : Exchange
         //        'lastTradeID': 6802340762
         //    }
         //
-        object timestamp = this.safeIntegerN(trade, new List<object>() {"order_time", "createTime", "create_time"});
-        object isPublicTrade = (inOp(trade, "order_time"));
+        object timestamp = this.safeIntegerN(trade, new List<object>() {"createTime", "create_time", 1});
+        object isPublic = this.safeString(trade, 0);
+        object isPublicTrade = (!isEqual(isPublic, null));
         object amount = null;
         object cost = null;
         object type = null;
         object side = null;
         if (isTrue(isPublicTrade))
         {
-            amount = this.safeString(trade, "count");
+            amount = this.safeString2(trade, "count", 3);
             cost = this.safeString(trade, "amount");
-            side = this.safeString(trade, "type");
+            side = this.safeString2(trade, "type", 4);
         } else
         {
             amount = this.safeStringN(trade, new List<object>() {"size", "vol", "fillQty"});
@@ -1474,7 +1475,7 @@ public partial class bitmart : Exchange
             type = this.safeString(trade, "type");
             side = this.parseOrderSide(this.safeString(trade, "side"));
         }
-        object marketId = this.safeString(trade, "symbol");
+        object marketId = this.safeString2(trade, "symbol", 0);
         market = this.safeMarket(marketId, market);
         object feeCostString = this.safeString2(trade, "fee", "paid_fees");
         object fee = null;
@@ -1500,7 +1501,7 @@ public partial class bitmart : Exchange
             { "symbol", getValue(market, "symbol") },
             { "type", type },
             { "side", side },
-            { "price", this.safeString2(trade, "price", "fillPrice") },
+            { "price", this.safeStringN(trade, new List<object>() {"price", "fillPrice", 2}) },
             { "amount", amount },
             { "cost", cost },
             { "takerOrMaker", this.safeStringLower2(trade, "tradeRole", "exec_type") },
@@ -1513,10 +1514,11 @@ public partial class bitmart : Exchange
         /**
         * @method
         * @name bitmart#fetchTrades
-        * @description get the list of most recent trades for a particular symbol
+        * @description get a list of the most recent trades for a particular symbol
+        * @see https://developer-pro.bitmart.com/en/spot/#get-recent-trades-v3
         * @param {string} symbol unified symbol of the market to fetch trades for
         * @param {int} [since] timestamp in ms of the earliest trade to fetch
-        * @param {int} [limit] the maximum amount of trades to fetch
+        * @param {int} [limit] the maximum number of trades to fetch
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
         */
@@ -1530,30 +1532,29 @@ public partial class bitmart : Exchange
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
         };
-        object response = await this.publicGetSpotV1SymbolsTrades(this.extend(request, parameters));
-        //
-        // spot
+        if (isTrue(!isEqual(limit, null)))
+        {
+            ((IDictionary<string,object>)request)["limit"] = limit;
+        }
+        object response = await this.publicGetSpotQuotationV3Trades(this.extend(request, parameters));
         //
         //     {
-        //         "message":"OK",
-        //         "code":1000,
-        //         "trace":"222d74c0-8f6d-49d9-8e1b-98118c50eeba",
-        //         "data":{
-        //             "trades":[
-        //                 {
-        //                     "amount":"0.005703",
-        //                     "order_time":1599652045394,
-        //                     "price":"0.034029",
-        //                     "count":"0.1676",
-        //                     "type":"sell"
-        //                 },
-        //             ]
-        //         }
+        //         "code": 1000,
+        //         "trace": "58031f9a5bd.111.17117",
+        //         "message": "success",
+        //         "data": [
+        //             [
+        //                 "BTC_USDT",
+        //                 "1717212457302",
+        //                 "67643.11",
+        //                 "0.00106",
+        //                 "sell"
+        //             ],
+        //         ]
         //     }
         //
-        object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
-        object trades = this.safeList(data, "trades", new List<object>() {});
-        return this.parseTrades(trades, market, since, limit);
+        object data = this.safeList(response, "data", new List<object>() {});
+        return this.parseTrades(data, market, since, limit);
     }
 
     public override object parseOHLCV(object ohlcv, object market = null)

@@ -164,13 +164,13 @@ export default class kraken extends Exchange {
                         // rate-limits explained in comment in the top of this file
                         'Assets': 1,
                         'AssetPairs': 1,
-                        'Depth': 1,
-                        'OHLC': 1,
+                        'Depth': 1.2,
+                        'OHLC': 1.2,
                         'Spread': 1,
                         'SystemStatus': 1,
                         'Ticker': 1,
                         'Time': 1,
-                        'Trades': 1,
+                        'Trades': 1.2,
                     },
                 },
                 'private': {
@@ -761,8 +761,8 @@ export default class kraken extends Exchange {
         return {
             'info': response,
             'symbol': market['symbol'],
-            'maker': this.safeNumber(symbolMakerFee, 'fee'),
-            'taker': this.safeNumber(symbolTakerFee, 'fee'),
+            'maker': this.parseNumber(Precise.stringDiv(this.safeString(symbolMakerFee, 'fee'), '100')),
+            'taker': this.parseNumber(Precise.stringDiv(this.safeString(symbolTakerFee, 'fee'), '100')),
             'percentage': true,
             'tierBased': true,
         };

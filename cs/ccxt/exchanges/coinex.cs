@@ -1612,17 +1612,16 @@ public partial class coinex : Exchange
         var marginModeparametersVariable = this.handleMarginModeAndParams("fetchBalance", parameters);
         marginMode = ((IList<object>)marginModeparametersVariable)[0];
         parameters = ((IList<object>)marginModeparametersVariable)[1];
-        marketType = ((bool) isTrue((!isEqual(marginMode, null)))) ? "margin" : marketType;
-        parameters = this.omit(parameters, "margin");
-        if (isTrue(isEqual(marketType, "margin")))
-        {
-            return await this.fetchMarginBalance(parameters);
-        } else if (isTrue(isEqual(marketType, "swap")))
+        object isMargin = isTrue((!isEqual(marginMode, null))) || isTrue((isEqual(marketType, "margin")));
+        if (isTrue(isEqual(marketType, "swap")))
         {
             return await this.fetchSwapBalance(parameters);
         } else if (isTrue(isEqual(marketType, "financial")))
         {
             return await this.fetchFinancialBalance(parameters);
+        } else if (isTrue(isMargin))
+        {
+            return await this.fetchMarginBalance(parameters);
         } else
         {
             return await this.fetchSpotBalance(parameters);
@@ -2582,7 +2581,9 @@ public partial class coinex : Exchange
             }
             response = await this.v2PrivatePostSpotCancelAllOrder(this.extend(request, parameters));
         }
-        return response;
+        return new List<object> {this.safeOrder(new Dictionary<string, object>() {
+    { "info", response },
+})};
     }
 
     public async override Task<object> fetchOrder(object id, object symbol = null, object parameters = null)

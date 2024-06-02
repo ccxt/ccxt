@@ -684,7 +684,17 @@ class btcturk(Exchange, ImplicitAPI):
         request: dict = {
             'id': id,
         }
-        return self.privateDeleteOrder(self.extend(request, params))
+        response = self.privateDeleteOrder(self.extend(request, params))
+        #
+        #    {
+        #        "success": True,
+        #        "message": "SUCCESS",
+        #        "code": 0
+        #    }
+        #
+        return self.safe_order({
+            'info': response,
+        })
 
     def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """

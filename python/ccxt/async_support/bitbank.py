@@ -669,8 +669,31 @@ class bitbank(Exchange, ImplicitAPI):
             'pair': market['id'],
         }
         response = await self.privatePostUserSpotCancelOrder(self.extend(request, params))
+        #
+        #    {
+        #        "success": 1,
+        #        "data": {
+        #            "order_id": 0,
+        #            "pair": "string",
+        #            "side": "string",
+        #            "type": "string",
+        #            "start_amount": "string",
+        #            "remaining_amount": "string",
+        #            "executed_amount": "string",
+        #            "price": "string",
+        #            "post_only": False,
+        #            "average_price": "string",
+        #            "ordered_at": 0,
+        #            "expire_at": 0,
+        #            "canceled_at": 0,
+        #            "triggered_at": 0,
+        #            "trigger_price": "string",
+        #            "status": "string"
+        #        }
+        #    }
+        #
         data = self.safe_value(response, 'data')
-        return data
+        return self.parse_order(data)
 
     async def fetch_order(self, id: str, symbol: Str = None, params={}):
         """
@@ -687,6 +710,28 @@ class bitbank(Exchange, ImplicitAPI):
             'pair': market['id'],
         }
         response = await self.privateGetUserSpotOrder(self.extend(request, params))
+        #
+        #    {
+        #        "success": 1,
+        #        "data": {
+        #          "order_id": 0,
+        #          "pair": "string",
+        #          "side": "string",
+        #          "type": "string",
+        #          "start_amount": "string",
+        #          "remaining_amount": "string",
+        #          "executed_amount": "string",
+        #          "price": "string",
+        #          "post_only": False,
+        #          "average_price": "string",
+        #          "ordered_at": 0,
+        #          "expire_at": 0,
+        #          "triggered_at": 0,
+        #          "triger_price": "string",
+        #          "status": "string"
+        #        }
+        #    }
+        #
         data = self.safe_dict(response, 'data')
         return self.parse_order(data, market)
 

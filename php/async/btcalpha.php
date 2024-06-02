@@ -725,7 +725,7 @@ class btcalpha extends Exchange {
         $filled = $this->safe_string($order, 'amount_filled');
         $amount = $this->safe_string($order, 'amount_original');
         $status = $this->parse_order_status($this->safe_string($order, 'status'));
-        $id = $this->safe_string_2($order, 'oid', 'id');
+        $id = $this->safe_string_n($order, array( 'oid', 'id', 'order' ));
         $trades = $this->safe_value($order, 'trades');
         $side = $this->safe_string_2($order, 'my_side', 'type');
         return $this->safe_order(array(
@@ -804,7 +804,12 @@ class btcalpha extends Exchange {
                 'order' => $id,
             );
             $response = Async\await($this->privatePostOrderCancel ($this->extend($request, $params)));
-            return $response;
+            //
+            //    {
+            //        "order" => 63568
+            //    }
+            //
+            return $this->parse_order($response);
         }) ();
     }
 

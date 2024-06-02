@@ -702,7 +702,17 @@ class btcturk extends Exchange {
         $request = array(
             'id' => $id,
         );
-        return $this->privateDeleteOrder ($this->extend($request, $params));
+        $response = $this->privateDeleteOrder ($this->extend($request, $params));
+        //
+        //    {
+        //        "success" => true,
+        //        "message" => "SUCCESS",
+        //        "code" => 0
+        //    }
+        //
+        return $this->safe_order(array(
+            'info' => $response,
+        ));
     }
 
     public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {

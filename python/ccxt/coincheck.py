@@ -595,7 +595,14 @@ class coincheck(Exchange, ImplicitAPI):
         request: dict = {
             'id': id,
         }
-        return self.privateDeleteExchangeOrdersId(self.extend(request, params))
+        response = self.privateDeleteExchangeOrdersId(self.extend(request, params))
+        #
+        #    {
+        #        "success": True,
+        #        "id": 12345
+        #    }
+        #
+        return self.parse_order(response)
 
     def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
         """

@@ -1689,14 +1689,13 @@ export default class coinex extends Exchange {
         [ marketType, params ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params);
         let marginMode = undefined;
         [ marginMode, params ] = this.handleMarginModeAndParams ('fetchBalance', params);
-        marketType = (marginMode !== undefined) ? 'margin' : marketType;
-        params = this.omit (params, 'margin');
-        if (marketType === 'margin') {
-            return await this.fetchMarginBalance (params);
-        } else if (marketType === 'swap') {
+        const isMargin = (marginMode !== undefined) || (marketType === 'margin');
+        if (marketType === 'swap') {
             return await this.fetchSwapBalance (params);
         } else if (marketType === 'financial') {
             return await this.fetchFinancialBalance (params);
+        } else if (isMargin) {
+            return await this.fetchMarginBalance (params);
         } else {
             return await this.fetchSpotBalance (params);
         }
@@ -3207,7 +3206,11 @@ export default class coinex extends Exchange {
             // {"code":0,"data":{},"message":"OK"}
             //
         }
-        return response;
+        return [
+            this.safeOrder ({
+                'info': response,
+            }),
+        ];
     }
 
     async fetchOrder (id: string, symbol: Str = undefined, params = {}) {

@@ -1634,14 +1634,13 @@ class coinex(Exchange, ImplicitAPI):
         marketType, params = self.handle_market_type_and_params('fetchBalance', None, params)
         marginMode = None
         marginMode, params = self.handle_margin_mode_and_params('fetchBalance', params)
-        marketType = 'margin' if (marginMode is not None) else marketType
-        params = self.omit(params, 'margin')
-        if marketType == 'margin':
-            return self.fetch_margin_balance(params)
-        elif marketType == 'swap':
+        isMargin = (marginMode is not None) or (marketType == 'margin')
+        if marketType == 'swap':
             return self.fetch_swap_balance(params)
         elif marketType == 'financial':
             return self.fetch_financial_balance(params)
+        elif isMargin:
+            return self.fetch_margin_balance(params)
         else:
             return self.fetch_spot_balance(params)
 
@@ -3059,7 +3058,11 @@ class coinex(Exchange, ImplicitAPI):
             #
             # {"code":0,"data":{},"message":"OK"}
             #
-        return response
+        return [
+            self.safe_order({
+                'info': response,
+            }),
+        ]
 
     def fetch_order(self, id: str, symbol: Str = None, params={}):
         """

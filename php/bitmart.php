@@ -1176,9 +1176,9 @@ class bitmart extends Exchange {
         $market = $this->safe_market($marketId, $market);
         $symbol = $market['symbol'];
         $last = $this->safe_string_2($ticker, 'close_24h', 'last_price');
-        $percentage = Precise::string_abs($this->safe_string($ticker, 'price_change_percent_24h'));
+        $percentage = $this->safe_string($ticker, 'price_change_percent_24h');
         if ($percentage === null) {
-            $percentage = Precise::string_abs(Precise::string_mul($this->safe_string($ticker, 'fluctuation'), '100'));
+            $percentage = Precise::string_mul($this->safe_string($ticker, 'fluctuation'), '100');
         }
         $baseVolume = $this->safe_string($ticker, 'base_volume_24h');
         $quoteVolume = $this->safe_string($ticker, 'quote_volume_24h');
@@ -1422,13 +1422,13 @@ class bitmart extends Exchange {
         //
         // public fetchTrades spot ( $amount = count * price )
         //
-        //    {
-        //        "amount" => "818.94",
-        //        "order_time" => "1637601839035",    // ETH/USDT
-        //        "price" => "4221.99",
-        //        "count" => "0.19397",
-        //        "type" => "buy"
-        //    }
+        //     array(
+        //         "BTC_USDT",      // symbol
+        //         "1717212457302", // $timestamp
+        //         "67643.11",      // price
+        //         "0.00106",       // size
+        //         "sell"           // $side
+        //     )
         //
         // spot => fetchMyTrades
         //
@@ -1475,23 +1475,24 @@ class bitmart extends Exchange {
         //        'lastTradeID' => 6802340762
         //    }
         //
-        $timestamp = $this->safe_integer_n($trade, array( 'order_time', 'createTime', 'create_time' ));
-        $isPublicTrade = (is_array($trade) && array_key_exists('order_time', $trade));
+        $timestamp = $this->safe_integer_n($trade, array( 'createTime', 'create_time', 1 ));
+        $isPublic = $this->safe_string($trade, 0);
+        $isPublicTrade = ($isPublic !== null);
         $amount = null;
         $cost = null;
         $type = null;
         $side = null;
         if ($isPublicTrade) {
-            $amount = $this->safe_string($trade, 'count');
+            $amount = $this->safe_string_2($trade, 'count', 3);
             $cost = $this->safe_string($trade, 'amount');
-            $side = $this->safe_string($trade, 'type');
+            $side = $this->safe_string_2($trade, 'type', 4);
         } else {
             $amount = $this->safe_string_n($trade, array( 'size', 'vol', 'fillQty' ));
             $cost = $this->safe_string($trade, 'notional');
             $type = $this->safe_string($trade, 'type');
             $side = $this->parse_order_side($this->safe_string($trade, 'side'));
         }
-        $marketId = $this->safe_string($trade, 'symbol');
+        $marketId = $this->safe_string_2($trade, 'symbol', 0);
         $market = $this->safe_market($marketId, $market);
         $feeCostString = $this->safe_string_2($trade, 'fee', 'paid_fees');
         $fee = null;
@@ -1515,7 +1516,7 @@ class bitmart extends Exchange {
             'symbol' => $market['symbol'],
             'type' => $type,
             'side' => $side,
-            'price' => $this->safe_string_2($trade, 'price', 'fillPrice'),
+            'price' => $this->safe_string_n($trade, array( 'price', 'fillPrice', 2 )),
             'amount' => $amount,
             'cost' => $cost,
             'takerOrMaker' => $this->safe_string_lower_2($trade, 'tradeRole', 'exec_type'),
@@ -1525,12 +1526,13 @@ class bitmart extends Exchange {
 
     public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
-         * get the list of most recent $trades for a particular $symbol
-         * @param {string} $symbol unified $symbol of the $market to fetch $trades for
+         * get a list of the most recent trades for a particular $symbol
+         * @see https://developer-pro.bitmart.com/en/spot/#get-recent-trades-v3
+         * @param {string} $symbol unified $symbol of the $market to fetch trades for
          * @param {int} [$since] timestamp in ms of the earliest trade to fetch
-         * @param {int} [$limit] the maximum amount of $trades to fetch
+         * @param {int} [$limit] the maximum number of trades to fetch
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {Trade[]} a list of ~@link https://docs.ccxt.com/#/?id=public-$trades trade structures~
+         * @return {Trade[]} a list of ~@link https://docs.ccxt.com/#/?id=public-trades trade structures~
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -1540,30 +1542,28 @@ class bitmart extends Exchange {
         $request = array(
             'symbol' => $market['id'],
         );
-        $response = $this->publicGetSpotV1SymbolsTrades ($this->extend($request, $params));
-        //
-        // spot
+        if ($limit !== null) {
+            $request['limit'] = $limit;
+        }
+        $response = $this->publicGetSpotQuotationV3Trades ($this->extend($request, $params));
         //
         //     {
-        //         "message":"OK",
-        //         "code":1000,
-        //         "trace":"222d74c0-8f6d-49d9-8e1b-98118c50eeba",
-        //         "data":{
-        //             "trades":array(
-        //                 array(
-        //                     "amount":"0.005703",
-        //                     "order_time":1599652045394,
-        //                     "price":"0.034029",
-        //                     "count":"0.1676",
-        //                     "type":"sell"
-        //                 ),
-        //             )
-        //         }
+        //         "code" => 1000,
+        //         "trace" => "58031f9a5bd.111.17117",
+        //         "message" => "success",
+        //         "data" => array(
+        //             array(
+        //                 "BTC_USDT",
+        //                 "1717212457302",
+        //                 "67643.11",
+        //                 "0.00106",
+        //                 "sell"
+        //             ),
+        //         )
         //     }
         //
-        $data = $this->safe_value($response, 'data', array());
-        $trades = $this->safe_list($data, 'trades', array());
-        return $this->parse_trades($trades, $market, $since, $limit);
+        $data = $this->safe_list($response, 'data', array());
+        return $this->parse_trades($data, $market, $since, $limit);
     }
 
     public function parse_ohlcv($ohlcv, ?array $market = null): array {

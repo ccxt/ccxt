@@ -1180,9 +1180,9 @@ class bitmart(Exchange, ImplicitAPI):
         market = self.safe_market(marketId, market)
         symbol = market['symbol']
         last = self.safe_string_2(ticker, 'close_24h', 'last_price')
-        percentage = Precise.string_abs(self.safe_string(ticker, 'price_change_percent_24h'))
+        percentage = self.safe_string(ticker, 'price_change_percent_24h')
         if percentage is None:
-            percentage = Precise.string_abs(Precise.string_mul(self.safe_string(ticker, 'fluctuation'), '100'))
+            percentage = Precise.string_mul(self.safe_string(ticker, 'fluctuation'), '100')
         baseVolume = self.safe_string(ticker, 'base_volume_24h')
         quoteVolume = self.safe_string(ticker, 'quote_volume_24h')
         if quoteVolume is None:
@@ -1412,13 +1412,13 @@ class bitmart(Exchange, ImplicitAPI):
         #
         # public fetchTrades spot( amount = count * price )
         #
-        #    {
-        #        "amount": "818.94",
-        #        "order_time": "1637601839035",    # ETH/USDT
-        #        "price": "4221.99",
-        #        "count": "0.19397",
-        #        "type": "buy"
-        #    }
+        #     [
+        #         "BTC_USDT",      # symbol
+        #         "1717212457302",  # timestamp
+        #         "67643.11",      # price
+        #         "0.00106",       # size
+        #         "sell"           # side
+        #     ]
         #
         # spot: fetchMyTrades
         #
@@ -1465,22 +1465,23 @@ class bitmart(Exchange, ImplicitAPI):
         #        'lastTradeID': 6802340762
         #    }
         #
-        timestamp = self.safe_integer_n(trade, ['order_time', 'createTime', 'create_time'])
-        isPublicTrade = ('order_time' in trade)
+        timestamp = self.safe_integer_n(trade, ['createTime', 'create_time', 1])
+        isPublic = self.safe_string(trade, 0)
+        isPublicTrade = (isPublic is not None)
         amount = None
         cost = None
         type = None
         side = None
         if isPublicTrade:
-            amount = self.safe_string(trade, 'count')
+            amount = self.safe_string_2(trade, 'count', 3)
             cost = self.safe_string(trade, 'amount')
-            side = self.safe_string(trade, 'type')
+            side = self.safe_string_2(trade, 'type', 4)
         else:
             amount = self.safe_string_n(trade, ['size', 'vol', 'fillQty'])
             cost = self.safe_string(trade, 'notional')
             type = self.safe_string(trade, 'type')
             side = self.parse_order_side(self.safe_string(trade, 'side'))
-        marketId = self.safe_string(trade, 'symbol')
+        marketId = self.safe_string_2(trade, 'symbol', 0)
         market = self.safe_market(marketId, market)
         feeCostString = self.safe_string_2(trade, 'fee', 'paid_fees')
         fee = None
@@ -1502,7 +1503,7 @@ class bitmart(Exchange, ImplicitAPI):
             'symbol': market['symbol'],
             'type': type,
             'side': side,
-            'price': self.safe_string_2(trade, 'price', 'fillPrice'),
+            'price': self.safe_string_n(trade, ['price', 'fillPrice', 2]),
             'amount': amount,
             'cost': cost,
             'takerOrMaker': self.safe_string_lower_2(trade, 'tradeRole', 'exec_type'),
@@ -1511,10 +1512,11 @@ class bitmart(Exchange, ImplicitAPI):
 
     def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
-        get the list of most recent trades for a particular symbol
+        get a list of the most recent trades for a particular symbol
+        :see: https://developer-pro.bitmart.com/en/spot/#get-recent-trades-v3
         :param str symbol: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
-        :param int [limit]: the maximum amount of trades to fetch
+        :param int [limit]: the maximum number of trades to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/#/?id=public-trades>`
         """
@@ -1525,30 +1527,27 @@ class bitmart(Exchange, ImplicitAPI):
         request: dict = {
             'symbol': market['id'],
         }
-        response = self.publicGetSpotV1SymbolsTrades(self.extend(request, params))
-        #
-        # spot
+        if limit is not None:
+            request['limit'] = limit
+        response = self.publicGetSpotQuotationV3Trades(self.extend(request, params))
         #
         #     {
-        #         "message":"OK",
-        #         "code":1000,
-        #         "trace":"222d74c0-8f6d-49d9-8e1b-98118c50eeba",
-        #         "data":{
-        #             "trades":[
-        #                 {
-        #                     "amount":"0.005703",
-        #                     "order_time":1599652045394,
-        #                     "price":"0.034029",
-        #                     "count":"0.1676",
-        #                     "type":"sell"
-        #                 },
-        #             ]
-        #         }
+        #         "code": 1000,
+        #         "trace": "58031f9a5bd.111.17117",
+        #         "message": "success",
+        #         "data": [
+        #             [
+        #                 "BTC_USDT",
+        #                 "1717212457302",
+        #                 "67643.11",
+        #                 "0.00106",
+        #                 "sell"
+        #             ],
+        #         ]
         #     }
         #
-        data = self.safe_value(response, 'data', {})
-        trades = self.safe_list(data, 'trades', [])
-        return self.parse_trades(trades, market, since, limit)
+        data = self.safe_list(response, 'data', [])
+        return self.parse_trades(data, market, since, limit)
 
     def parse_ohlcv(self, ohlcv, market: Market = None) -> list:
         #

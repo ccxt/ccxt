@@ -1663,14 +1663,13 @@ class coinex extends Exchange {
         list($marketType, $params) = $this->handle_market_type_and_params('fetchBalance', null, $params);
         $marginMode = null;
         list($marginMode, $params) = $this->handle_margin_mode_and_params('fetchBalance', $params);
-        $marketType = ($marginMode !== null) ? 'margin' : $marketType;
-        $params = $this->omit($params, 'margin');
-        if ($marketType === 'margin') {
-            return $this->fetch_margin_balance($params);
-        } elseif ($marketType === 'swap') {
+        $isMargin = ($marginMode !== null) || ($marketType === 'margin');
+        if ($marketType === 'swap') {
             return $this->fetch_swap_balance($params);
         } elseif ($marketType === 'financial') {
             return $this->fetch_financial_balance($params);
+        } elseif ($isMargin) {
+            return $this->fetch_margin_balance($params);
         } else {
             return $this->fetch_spot_balance($params);
         }
@@ -3167,7 +3166,11 @@ class coinex extends Exchange {
             // array("code":0,"data":array(),"message":"OK")
             //
         }
-        return $response;
+        return array(
+            $this->safe_order(array(
+                'info' => $response,
+            )),
+        );
     }
 
     public function fetch_order(string $id, ?string $symbol = null, $params = array ()) {
