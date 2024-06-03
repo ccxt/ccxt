@@ -10,9 +10,7 @@ import testTypeAll from './test.type.js'
 import testNumberAll from './test.number.js'
 import testDatetimeAll from './test.datetime.js'
 import testCryptoAll from './test.crypto.js'
-
-
-import testBaseFunctionsExtend from './test.extend.js';
+import testExtendAll from './test.extend.js';
 
 const { index, aggregate, unCamelCase } = functions
 
@@ -205,7 +203,7 @@ function testUnCamelCase () {
 
 
 function baseTestsInit (exchange) {
-    testBaseFunctionsExtend ();
+    testExtendAll ();
     testUnCamelCase ();
     testCryptoAll ();
     testDatetimeAll ();
