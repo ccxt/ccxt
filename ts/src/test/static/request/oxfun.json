@@ -15,7 +15,7 @@
                     0.01,
                     10
                 ],
-                "output": "{\"responseType\":\"FULL\",\"timestamp\":1717083207271,\"orders\":[{\"marketCode\":\"ETH-USDT\",\"side\":\"BUY\",\"quantity\":0.01,\"orderType\":\"LIMIT\",\"price\":10}]}"
+                "output": "{\"responseType\":\"FULL\",\"timestamp\":1717083207271,\"orders\":[{\"source\":1000, \"marketCode\":\"ETH-USDT\",\"side\":\"BUY\",\"quantity\":0.01,\"orderType\":\"LIMIT\",\"price\":10}]}"
             },
             {
                 "description": "swap limit buy",
@@ -28,7 +28,7 @@
                     0.01,
                     10
                 ],
-                "output": "{\"responseType\":\"FULL\",\"timestamp\":1717083306700,\"orders\":[{\"marketCode\":\"ETH-USD-SWAP-LIN\",\"side\":\"BUY\",\"quantity\":0.01,\"orderType\":\"LIMIT\",\"price\":10}]}"
+                "output": "{\"responseType\":\"FULL\",\"timestamp\":1717083306700,\"orders\":[{\"source\":1000,\"marketCode\":\"ETH-USD-SWAP-LIN\",\"side\":\"BUY\",\"quantity\":0.01,\"orderType\":\"LIMIT\",\"price\":10}]}"
             }
         ],
         "fetchTrades": [
@@ -93,7 +93,7 @@
             {
                 "description": "Swap fetch my trades",
                 "method": "fetchMyTrades",
-                "url": "https://api.ox.fun/v3/trades?marketCode=ETH-USD-SWAP-LIN&startTime=1716966000000",
+                "url": "https://api.ox.fun/v3/trades?marketCode=ETH-USD-SWAP-LIN&startTime=1716966000000&endTime=1717570800000",
                 "input": [
                     "ETH/USD:OX",
                     1716966000000
@@ -122,7 +122,7 @@
             {
                 "description": "Spot fetch candles with a since timestamp argument",
                 "method": "fetchOHLCV",
-                "url": "https://api.ox.fun/v3/candles?marketCode=ETH-USDT&timeframe=60s&startTime=1717085760000",
+                "url": "https://api.ox.fun/v3/candles?marketCode=ETH-USDT&timeframe=60s&startTime=1717085760000&endTime=1717690560000",
                 "input": [
                     "ETH/USDT",
                     "1m",
@@ -132,7 +132,7 @@
             {
                 "description": "Swap fetch candles with a since timestamp argument",
                 "method": "fetchOHLCV",
-                "url": "https://api.ox.fun/v3/candles?marketCode=ETH-USD-SWAP-LIN&timeframe=60s&startTime=1717085880000",
+                "url": "https://api.ox.fun/v3/candles?marketCode=ETH-USD-SWAP-LIN&timeframe=60s&startTime=1717085880000&endTime=1717690680000",
                 "input": [
                     "ETH/USD:OX",
                     "1m",
