@@ -1514,7 +1514,8 @@ export default class testMainClass extends baseMainTestClass {
             this.testHyperliquid (),
             this.testCoinbaseinternational (),
             this.testCoinbaseAdvanced (),
-            this.testWoofiPro ()
+            this.testWoofiPro (),
+            this.testOxfun ()
         ];
         await Promise.all (promises);
         const successMessage = '[' + this.lang + '][TEST_SUCCESS] brokerId tests passed.';
@@ -1882,6 +1883,25 @@ export default class testMainClass extends baseMainTestClass {
         }
         const brokerId = request['order_tag'];
         assert (brokerId === id, 'woofipro - id: ' + id + ' different from  broker_id: ' + brokerId);
+        await close (exchange);
+        return true;
+    }
+
+    async testOxfun () {
+        const exchange = this.initOfflineExchange ('oxfun');
+        exchange.secret = 'secretsecretsecretsecretsecretsecretsecrets';
+        const id = 1000;
+        await exchange.loadMarkets ();
+        let request = undefined;
+        try {
+            await exchange.createOrder ('BTC/USD:OX', 'limit', 'buy', 1, 20000);
+        } catch (e) {
+            request = jsonParse (exchange.last_request_body);
+        }
+        const orders = request['orders'];
+        const first = orders[0];
+        const brokerId = first['source'];
+        assert (brokerId === id, 'oxfun - id: ' + id.toString () + ' different from  broker_id: ' + brokerId.toString ());
         await close (exchange);
         return true;
     }

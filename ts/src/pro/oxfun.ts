@@ -839,14 +839,13 @@ export default class oxfun extends oxfunRest {
          */
         await this.loadMarkets ();
         await this.authenticate ();
-        const market = this.market (symbol);
         const messageHash = this.nonce ().toString ();
         const request: Dict = {
             'op': 'modifyorder',
             'tag': messageHash,
         };
         params = this.omit (params, 'tag');
-        let orderRequest: Dict = this.createOrderRequest (market, type, side, amount, price, params);
+        let orderRequest: Dict = this.createOrderRequest (symbol, type, side, amount, price, params);
         orderRequest = this.extend (orderRequest, { 'orderId': id });
         const timestamp = this.safeInteger (orderRequest, 'timestamp');
         if (timestamp === undefined) {

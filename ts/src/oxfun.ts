@@ -2449,7 +2449,7 @@ export default class oxfun extends Exchange {
         return this.parseOrders (data);
     }
 
-    createOrderRequest (symbol, type, side, amount, price = undefined, params = {}) {
+    createOrderRequest (symbol: string, type: string, side: string, amount, price = undefined, params = {}) {
         /**
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {string} type 'market', 'limit', 'STOP_LIMIT' or 'STOP_MARKET'
@@ -2466,7 +2466,6 @@ export default class oxfun extends Exchange {
          * @param {string} [params.selfTradePreventionMode] NONE, EXPIRE_MAKER, EXPIRE_TAKER or EXPIRE_BOTH for more info check here {@link https://docs.ox.fun/?json#self-trade-prevention-modes}
          * @param {string} [params.displayQuantity] for an iceberg order, pass both quantity and displayQuantity fields in the order request
          */
-        // const symbol = market['symbol'];
         const market = this.market (symbol);
         const request: Dict = {
             'marketCode': market['id'],
