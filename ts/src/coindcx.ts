@@ -3,7 +3,7 @@
 
 import Exchange from './abstract/coindcx.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { } from './base/types.js';
+import type { Dict, Market, Num } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -130,8 +130,9 @@ export default class coindcx extends Exchange {
             'urls': {
                 'logo': '', // todo: add a logo
                 'api': {
-                    'public': 'https://api.coindcx.com', // base URL for some public endpoint is https://public.coindcx.com. However, it will only be used where it is exclusively mentioned in the documentation.
+                    'public1': 'https://api.coindcx.com', // base URL for some public endpoint is https://public.coindcx.com. However, it will only be used where it is exclusively mentioned in the documentation.
                     'private': 'https://api.coindcx.com',
+                    'public2': 'https://public.coindcx.com',
                 },
                 'www': 'https://coindcx.com/',
                 'doc': [
@@ -140,11 +141,15 @@ export default class coindcx extends Exchange {
                 'fees': '', // The User hereby agrees and acknowledges that presently no fees or charges are levied by CoinDCX for the use of CoinDCX API
             },
             'api': {
-                'public': {
+                'public1': {
                     'get': {
                         'exchange/ticker': 1,
                         'exchange/v1/markets': 1,
                         'exchange/v1/markets_details': 1,
+                    },
+                },
+                'public2': {
+                    'get': {
                         'market_data/trade_history': 1,
                         'market_data/orderbook': 1,
                         'market_data/candles': 1,
@@ -205,6 +210,118 @@ export default class coindcx extends Exchange {
                 },
             },
         });
+    }
+
+    async fetchMarkets (params = {}): Promise<Market[]> {
+        /**
+         * @method
+         * @name coindcx#fetchMarkets
+         * @description retrieves data on all markets for coindcx
+         * @see https://docs.coindcx.com/?javascript#markets-details
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object[]} an array of objects representing market data
+         */
+        const response = await this.public1GetExchangeV1MarketsDetails (params);
+        //
+        //     [
+        //         {
+        //             "coindcx_name": "ONDOUSDT",
+        //             "base_currency_short_name": "USDT",
+        //             "target_currency_short_name": "ONDO",
+        //             "target_currency_name": "Ondo",
+        //             "base_currency_name": "Tether",
+        //             "min_quantity": 10.0,
+        //             "max_quantity": 10000000000.0,
+        //             "max_quantity_market": 10000000000.0,
+        //             "min_price": 1.0e-05,
+        //             "max_price": 10000000000.0,
+        //             "min_notional": 0.1,
+        //             "base_currency_precision": 5,
+        //             "target_currency_precision": 4,
+        //             "step": 0.0001,
+        //             "order_types": [
+        //                 "market_order",
+        //                 "limit_order"
+        //             ],
+        //             "symbol": "ONDOUSDT",
+        //             "ecode": "KC",
+        //             "bo_sl_safety_percent": null,
+        //             "max_leverage": null,
+        //             "max_leverage_short": null,
+        //             "pair": "KC-ONDO_USDT",
+        //             "status": "active"
+        //         }
+        //     ]
+        //
+        return this.parseMarkets (response);
+    }
+
+    parseMarket (market: Dict): Market {
+        const marketId = this.safeString (market, 'coindcx_name');
+        const baseId = this.safeString (market, 'target_currency_short_name');
+        const quoteId = this.safeString (market, 'base_currency_short_name');
+        const base = this.safeCurrencyCode (baseId);
+        const quote = this.safeCurrencyCode (quoteId);
+        const symbol = base + '/' + quote;
+        let margin = false;
+        const max_leverage: Num = this.safeNumber (market, 'max_leverage');
+        if (max_leverage !== undefined) {
+            margin = true;
+        }
+        const active = this.safeString (market, 'status');
+        let isActive = false;
+        if (active === 'active') {
+            isActive = true;
+        }
+        return {
+            'id': marketId,
+            'symbol': symbol,
+            'base': base,
+            'quote': quote,
+            'settle': undefined,
+            'baseId': baseId,
+            'quoteId': quoteId,
+            'settleId': undefined,
+            'type': 'spot', // todo check
+            'spot': true,
+            'margin': margin,
+            'swap': false,
+            'future': false,
+            'option': false,
+            'active': isActive,
+            'contract': false,
+            'linear': undefined,
+            'inverse': undefined,
+            'contractSize': undefined,
+            'expiry': undefined,
+            'expiryDatetime': undefined,
+            'strike': undefined,
+            'optionType': undefined,
+            'precision': {
+                'amount': this.safeNumber (market, 'target_currency_precision'),
+                'price': this.safeNumber (market, 'base_currency_precision'),
+            },
+            'limits': {
+                'leverage': {
+                    'min': undefined,
+                    'max': max_leverage,
+                },
+                'amount': {
+                    'min': this.safeNumber (market, 'min_quantity'),
+                    'max': this.safeNumber (market, 'max_quantity'),
+                },
+                'price': {
+                    'min': this.safeNumber (market, 'min_price'),
+                    'max': this.safeNumber (market, 'max_price'),
+                },
+                'cost': {
+                    'min': this.safeNumber (market, 'min_notional'),
+                    'max': undefined,
+                },
+            },
+            'created': undefined,
+            'info': market,
+        };
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
