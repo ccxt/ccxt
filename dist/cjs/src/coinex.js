@@ -3229,7 +3229,11 @@ class coinex extends coinex$1 {
             // {"code":0,"data":{},"message":"OK"}
             //
         }
-        return response;
+        return [
+            this.safeOrder({
+                'info': response,
+            }),
+        ];
     }
     async fetchOrder(id, symbol = undefined, params = {}) {
         /**

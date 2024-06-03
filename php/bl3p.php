@@ -423,7 +423,13 @@ class bl3p extends Exchange {
         $request = array(
             'order_id' => $id,
         );
-        return $this->privatePostMarketMoneyOrderCancel ($this->extend($request, $params));
+        $response = $this->privatePostMarketMoneyOrderCancel ($this->extend($request, $params));
+        //
+        // "success"
+        //
+        return $this->safe_order(array(
+            'info' => $response,
+        ));
     }
 
     public function create_deposit_address(string $code, $params = array ()) {

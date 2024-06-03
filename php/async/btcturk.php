@@ -724,7 +724,17 @@ class btcturk extends Exchange {
             $request = array(
                 'id' => $id,
             );
-            return Async\await($this->privateDeleteOrder ($this->extend($request, $params)));
+            $response = Async\await($this->privateDeleteOrder ($this->extend($request, $params)));
+            //
+            //    {
+            //        "success" => true,
+            //        "message" => "SUCCESS",
+            //        "code" => 0
+            //    }
+            //
+            return $this->safe_order(array(
+                'info' => $response,
+            ));
         }) ();
     }
 

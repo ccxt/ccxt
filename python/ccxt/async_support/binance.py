@@ -1248,6 +1248,7 @@ class binance(Exchange, ImplicitAPI):
                     'future': 'UMFUTURE',  # backwards compatibility
                     'delivery': 'CMFUTURE',  # backwards compatbility
                     'linear': 'UMFUTURE',
+                    'swap': 'UMFUTURE',
                     'inverse': 'CMFUTURE',
                     'option': 'OPTION',
                 },

@@ -613,7 +613,14 @@ class coincheck extends Exchange {
         $request = array(
             'id' => $id,
         );
-        return $this->privateDeleteExchangeOrdersId ($this->extend($request, $params));
+        $response = $this->privateDeleteExchangeOrdersId ($this->extend($request, $params));
+        //
+        //    {
+        //        "success" => true,
+        //        "id" => 12345
+        //    }
+        //
+        return $this->parse_order($response);
     }
 
     public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {

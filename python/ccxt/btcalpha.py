@@ -679,7 +679,7 @@ class btcalpha(Exchange, ImplicitAPI):
         filled = self.safe_string(order, 'amount_filled')
         amount = self.safe_string(order, 'amount_original')
         status = self.parse_order_status(self.safe_string(order, 'status'))
-        id = self.safe_string_2(order, 'oid', 'id')
+        id = self.safe_string_n(order, ['oid', 'id', 'order'])
         trades = self.safe_value(order, 'trades')
         side = self.safe_string_2(order, 'my_side', 'type')
         return self.safe_order({
@@ -751,7 +751,12 @@ class btcalpha(Exchange, ImplicitAPI):
             'order': id,
         }
         response = self.privatePostOrderCancel(self.extend(request, params))
-        return response
+        #
+        #    {
+        #        "order": 63568
+        #    }
+        #
+        return self.parse_order(response)
 
     def fetch_order(self, id: str, symbol: Str = None, params={}):
         """

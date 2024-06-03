@@ -573,11 +573,13 @@
         ],
         "fetchTrades": [
             {
-                "description": "spot fetchTrades",
+                "description": "spot fetchTrades with a symbol and limit argument",
                 "method": "fetchTrades",
-                "url": "https://api-cloud.bitmart.com/spot/v1/symbols/trades?symbol=BTC_USDT",
+                "url": "https://api-cloud.bitmart.com/spot/quotation/v3/trades?symbol=BTC_USDT&limit=3",
                 "input": [
-                    "BTC/USDT"
+                    "BTC/USDT",
+                    null,
+                    3
                 ]
             }
         ],

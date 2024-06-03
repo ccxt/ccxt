@@ -1224,6 +1224,7 @@ class binance extends binance$1 {
                     'future': 'UMFUTURE',
                     'delivery': 'CMFUTURE',
                     'linear': 'UMFUTURE',
+                    'swap': 'UMFUTURE',
                     'inverse': 'CMFUTURE',
                     'option': 'OPTION',
                 },

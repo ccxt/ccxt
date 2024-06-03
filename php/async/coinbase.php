@@ -512,10 +512,10 @@ class coinbase extends Exchange {
             $paginate = false;
             list($paginate, $params) = $this->handle_option_and_params($params, 'fetchAccounts', 'paginate');
             if ($paginate) {
-                return Async\await($this->fetch_paginated_call_cursor('fetchAccounts', null, null, null, $params, 'cursor', 'cursor', null, 100));
+                return Async\await($this->fetch_paginated_call_cursor('fetchAccounts', null, null, null, $params, 'cursor', 'cursor', null, 250));
             }
             $request = array(
-                'limit' => 100,
+                'limit' => 250,
             );
             $response = Async\await($this->v3PrivateGetBrokerageAccounts ($this->extend($request, $params)));
             //

@@ -1227,6 +1227,7 @@ export default class binance extends Exchange {
                     'future': 'UMFUTURE',
                     'delivery': 'CMFUTURE',
                     'linear': 'UMFUTURE',
+                    'swap': 'UMFUTURE',
                     'inverse': 'CMFUTURE',
                     'option': 'OPTION',
                 },

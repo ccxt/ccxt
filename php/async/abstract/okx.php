@@ -208,6 +208,15 @@ abstract class okx extends \ccxt\async\Exchange {
     public function public_get_finance_savings_lending_rate_history($params = array()) {
         return $this->request('finance/savings/lending-rate-history', 'public', 'GET', $params, null, null, array("cost" => 1.6666666666666667));
     }
+    public function public_get_finance_fixed_loan_lending_offers($params = array()) {
+        return $this->request('finance/fixed-loan/lending-offers', 'public', 'GET', $params, null, null, array("cost" => 3.3333333333333335));
+    }
+    public function public_get_finance_fixed_loan_lending_apy_history($params = array()) {
+        return $this->request('finance/fixed-loan/lending-apy-history', 'public', 'GET', $params, null, null, array("cost" => 3.3333333333333335));
+    }
+    public function public_get_finance_fixed_loan_pending_lending_volume($params = array()) {
+        return $this->request('finance/fixed-loan/pending-lending-volume', 'public', 'GET', $params, null, null, array("cost" => 3.3333333333333335));
+    }
     public function public_get_finance_sfp_dcd_products($params = array()) {
         return $this->request('finance/sfp/dcd/products', 'public', 'GET', $params, null, null, array("cost" => 0.6666666666666666));
     }
@@ -1137,6 +1146,15 @@ abstract class okx extends \ccxt\async\Exchange {
     }
     public function publicGetFinanceSavingsLendingRateHistory($params = array()) {
         return $this->request('finance/savings/lending-rate-history', 'public', 'GET', $params, null, null, array("cost" => 1.6666666666666667));
+    }
+    public function publicGetFinanceFixedLoanLendingOffers($params = array()) {
+        return $this->request('finance/fixed-loan/lending-offers', 'public', 'GET', $params, null, null, array("cost" => 3.3333333333333335));
+    }
+    public function publicGetFinanceFixedLoanLendingApyHistory($params = array()) {
+        return $this->request('finance/fixed-loan/lending-apy-history', 'public', 'GET', $params, null, null, array("cost" => 3.3333333333333335));
+    }
+    public function publicGetFinanceFixedLoanPendingLendingVolume($params = array()) {
+        return $this->request('finance/fixed-loan/pending-lending-volume', 'public', 'GET', $params, null, null, array("cost" => 3.3333333333333335));
     }
     public function publicGetFinanceSfpDcdProducts($params = array()) {
         return $this->request('finance/sfp/dcd/products', 'public', 'GET', $params, null, null, array("cost" => 0.6666666666666666));

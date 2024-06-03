@@ -501,10 +501,10 @@ class coinbase extends coinbase$1 {
         let paginate = false;
         [paginate, params] = this.handleOptionAndParams(params, 'fetchAccounts', 'paginate');
         if (paginate) {
-            return await this.fetchPaginatedCallCursor('fetchAccounts', undefined, undefined, undefined, params, 'cursor', 'cursor', undefined, 100);
+            return await this.fetchPaginatedCallCursor('fetchAccounts', undefined, undefined, undefined, params, 'cursor', 'cursor', undefined, 250);
         }
         const request = {
-            'limit': 100,
+            'limit': 250,
         };
         const response = await this.v3PrivateGetBrokerageAccounts(this.extend(request, params));
         //
