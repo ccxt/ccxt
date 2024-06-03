@@ -2288,17 +2288,20 @@ export default class coinlist extends Exchange {
         const request = this.omit(params, this.extractParams(path));
         const endpoint = '/' + this.implodeParams(path, params);
         let url = this.urls['api'][api] + endpoint;
-        const query = this.urlencode(request);
+        const isBulk = Array.isArray(params);
+        let query = undefined;
+        if (!isBulk) {
+            query = this.urlencode(request);
+        }
         if (api === 'private') {
             this.checkRequiredCredentials();
             const timestamp = this.seconds().toString();
             let auth = timestamp + method + endpoint;
-            const isBulk = Array.isArray(params);
             if ((method === 'POST') || (method === 'PATCH') || isBulk) {
                 body = this.json(request);
                 auth += body;
             }
-            else if (query.length !== 0) {
+            else if (query !== undefined && query.length !== 0) {
                 auth += '?' + query;
                 url += '?' + query;
             }
@@ -2310,7 +2313,7 @@ export default class coinlist extends Exchange {
                 'Content-Type': 'application/json',
             };
         }
-        else if (query.length !== 0) {
+        else if (query !== undefined && query.length !== 0) {
             url += '?' + query;
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };

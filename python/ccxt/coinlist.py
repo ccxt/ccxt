@@ -2177,16 +2177,18 @@ class coinlist(Exchange, ImplicitAPI):
         request = self.omit(params, self.extract_params(path))
         endpoint = '/' + self.implode_params(path, params)
         url = self.urls['api'][api] + endpoint
-        query = self.urlencode(request)
+        isBulk = isinstance(params, list)
+        query: Str = None
+        if not isBulk:
+            query = self.urlencode(request)
         if api == 'private':
             self.check_required_credentials()
             timestamp = str(self.seconds())
             auth = timestamp + method + endpoint
-            isBulk = isinstance(params, list)
             if (method == 'POST') or (method == 'PATCH') or isBulk:
                 body = self.json(request)
                 auth += body
-            elif len(query) != 0:
+            elif query is not None and len(query) != 0:
                 auth += '?' + query
                 url += '?' + query
             signature = self.hmac(self.encode(auth), self.base64_to_binary(self.secret), hashlib.sha256, 'base64')
@@ -2196,7 +2198,7 @@ class coinlist(Exchange, ImplicitAPI):
                 'CL-ACCESS-TIMESTAMP': timestamp,
                 'Content-Type': 'application/json',
             }
-        elif len(query) != 0:
+        elif query is not None and len(query) != 0:
             url += '?' + query
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
