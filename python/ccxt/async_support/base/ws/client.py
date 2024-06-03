@@ -33,7 +33,6 @@ class Client(object):
     verbose = False  # verbose output
     gunzip = False
     inflate = False
-    throttle = None
     connections_throttler = None
     messages_throttler = None
     connecting = False

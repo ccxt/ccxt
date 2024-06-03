@@ -1458,8 +1458,8 @@ export default class Exchange {
             const onConnected = this.onConnected.bind (this);
             // decide client type here: ws / signalr / socketio
             const wsOptions = this.safeValue (this.options, 'ws', {});
-            const wsConnectionsTokenConfig = this.calculateWsTokenBucket (wsOptions, url);
-            const wsMessagesTokenConfig = this.calculateWsTokenBucket (wsOptions, url, 'messages');
+            const wsConnectionsTokenConfig = this.getWsRateLimitConfig (url, 'connections');
+            const wsMessagesTokenConfig = this.getWsRateLimitConfig (url, 'messages');
             // proxy agents
             const [ httpProxy, httpsProxy, socksProxy ] = this.checkWsProxySettings ();
             const chosenAgent = this.setProxyAgents (httpProxy, httpsProxy, socksProxy);
@@ -1547,7 +1547,7 @@ export default class Exchange {
                 const options = this.safeValue (this.options, 'ws');
                 const cost = this.safeValue (options, 'cost', 1);
                 if (message) {
-                    if (this.enableRateLimit && client.throttle) {
+                    if (this.enableRateLimit) {
                         // add cost here |
                         //               |
                         //               V
@@ -1847,35 +1847,60 @@ export default class Exchange {
     // ------------------------------------------------------------------------
     // METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
 
-    calculateWsTokenBucket (wsOptions, url, tokenKey = 'connections') {
-        const rateLimits = this.safeValue (wsOptions, 'rateLimits');
-        const specificRateLimit = this.safeValue (rateLimits, tokenKey);
-        const rateLimit = this.safeNumber (specificRateLimit, 'rateLimit');
-        if (rateLimits === undefined || rateLimit === undefined) {
-            return this.tokenBucket; // default to the rest bucket
-        }
-        let cost = 1;
+    getWsRateLimitConfig (url, bucketHash = 'connections'): Dictionary<any> {
+        /**
+         * @ignore
+         * @method
+         * @description Safely extract boolean value from dictionary or list
+         * @returns {object}
+         *
+         * The rate limits can be configured by setting the `options.ws.rateLimits` property in the exchange configuration. Here's an example:
+         *
+         * ```json
+         * 'options': {
+         *     'ws': {
+         *         'rateLimits': {
+         *             'default': {  // set default rate limit for all rate limits
+         *                 'rateLimit': 100,
+         *                 'connections': 1, // cost per connection
+         *                 'subscriptions': 5,  // cost per subscription
+         *             },
+         *             'https://some_url': {  // set the rate limit for a specific url
+         *                 'rateLimit': 100,
+         *                 'connections': 2, // override cost for a connection
+         *                 'subscriptions': 3, // override cost for a subscription
+         *             }
+         *         }
+         *     }
+         * }
+         * ```
+         *
+         * In this example, the default rate limit is set to 100, the cost per connection is 1, and the cost per subscription is 5. For the url `https://some_url`, the rate limit is set to 100, the cost per connection is overridden to 2, and the cost per subscription is overridden to 3. The `rateLimit` property sets the maximum number of requests that can be made per second, the `connections` property sets the cost of creating a new connection, and the `subscriptions` property sets the cost of creating a new subscription.
+         */
+        const wsOptions = this.safeDict (this.options, 'ws');
+        const rateLimits = this.safeDict (wsOptions, 'rateLimits', {});
+        const exchangeDefaultRateLimit = this.safeDict (rateLimits, 'default', {});
+        let cost = this.safeNumber (exchangeDefaultRateLimit, bucketHash);
+        let rateLimit = this.safeNumber (exchangeDefaultRateLimit, 'rateLimit');
         const rateLimitsKeys = Object.keys (rateLimits);
         for (let i = 0; i < rateLimitsKeys.length; i++) {
             const rateLimitKey = rateLimitsKeys[i];
             if (url.startsWith (rateLimitKey)) {
-                const value = this.safeValue (rateLimits, rateLimitKey);
-                const urlCost = this.safeInteger (value, tokenKey);
-                if (urlCost !== undefined) {
-                    cost = urlCost;
-                    break;
-                }
+                const value = this.safeDict (rateLimits, rateLimitKey);
+                rateLimit = this.safeNumber (value, 'rateLimit', rateLimit);
+                cost = this.safeNumber (value, bucketHash, cost);
+                break;
             }
         }
         const refillRate = (rateLimit !== undefined) ? (1 / rateLimit) : Number.MAX_SAFE_INTEGER;
-        const tokenBucket = this.safeValue (rateLimits, 'tokenBucket', {});
-        const config = this.extend ({
+        cost = (cost !== undefined) ? cost : 1;
+        const config = {
             'delay': 0.001,
             'capacity': 1,
             'cost': cost,
             'maxCapacity': 1000,
             'refillRate': refillRate,
-        }, tokenBucket);
+        };
         return config;
     }
 

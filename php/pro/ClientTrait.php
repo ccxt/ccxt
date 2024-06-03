@@ -97,7 +97,7 @@ trait ClientTrait {
         $client->set_ws_connector($selected_proxy_address, $proxy_connector);
     }
 
-    public function watch_multiple($url, $message_hashes, $message = null, $subscribe_hashes = null, $subscription = null) {
+    public function watch_multiple($url, $message_hashes, $message = null, $subscribe_hashes = null, $subscription = null, $message_cost = 1) {
         $client = $this->client($url);
 
         // todo: calculate the backoff delay in php
@@ -126,16 +126,11 @@ trait ClientTrait {
 
         if ($missing_subscriptions) {
             $connected->then(
-                function($result) use ($client, $message, $message_hashes, $subscribe_hashes, $future) {
-                    // todo: add PHP async rate-limiting
+                function($result) use ($client, $message, $message_hashes, $subscribe_hashes, $future, $message_cost) {
                     // todo: decouple signing from subscriptions
                     if ($message) {
                         if ($this->enableRateLimit) {
-                            // add cost here |
-                            //               |
-                            //               V
-
-                            \call_user_func($client->message_throttler, $message_cost)->then(function ($result) use ($client, $message, $message_hashes, $subscribe_hashes, $future) {
+                            \call_user_func($client->messages_throttler, $message_cost)->then(function ($result) use ($client, $message, $message_hashes, $subscribe_hashes, $future) {
                                 try {
                                     Async\await($client->send($message));
                                 } catch (Exception $error) {
@@ -162,7 +157,7 @@ trait ClientTrait {
         return $future;
     }
 
-    public function watch($url, $message_hash, $message = null, $subscribe_hash = null, $subscription = null) {
+    public function watch($url, $message_hash, $message = null, $subscribe_hash = null, $subscription = null, $message_cost = 1) {
         $client = $this->client($url);
 
         // todo: calculate the backoff delay in php
@@ -175,20 +170,21 @@ trait ClientTrait {
         if (!$subscribed) {
             $client->subscriptions[$subscribe_hash] = $subscription ?? true;
         }
-        $connected = $client->connect($backoff_delay);
+        $connected = null;
+        if ($this->enableRateLimit) {
+            $connected = call_user_func($client->connections_throttler)->then(function ($result) use ($client, $backoff_delay) {
+                return $client->connect($backoff_delay);
+            });
+        } else{
+            $connected = $client->connect($backoff_delay);
+        }
         if (!$subscribed) {
             $connected->then(
-                function($result) use ($client, $message, $message_hash, $subscribe_hash) {
-                    // todo: add PHP async rate-limiting
+                function($result) use ($client, $message, $message_hash, $subscribe_hash, $message_cost) {
                     // todo: decouple signing from subscriptions
-                    $options = $this->safe_value($this->options, 'ws');
-                    $cost = $this->safe_value ($options, 'cost', 1);
                     if ($message) {
                         if ($this->enableRateLimit) {
-                            // add cost here |
-                            //               |
-                            //               V
-                            \call_user_func($client->throttle, $cost)->then(function ($result) use ($client, $message, $message_hash, $subscribe_hash) {
+                            \call_user_func($client->messages_throttler, $message_cost)->then(function ($result) use ($client, $message, $message_hash, $subscribe_hash) {
                                 try {
                                     Async\await($client->send($message));
                                 } catch (Exception $error) {

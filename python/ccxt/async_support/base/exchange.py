@@ -392,7 +392,7 @@ class Exchange(BaseExchange):
             raise NotSupported(self.id + '.handle_message() not implemented yet')
         return {}
 
-    def watch_multiple(self, url, message_hashes, message=None, subscribe_hashes=None, subscription=None):
+    def watch_multiple(self, url, message_hashes, message=None, subscribe_hashes=None, subscription=None, message_cost=1):
         # base exchange self.open starts the aiohttp Session in an async context
         self.open()
         backoff_delay = 0
@@ -412,7 +412,7 @@ class Exchange(BaseExchange):
         else:
             async def connect():
                 if self.enableRateLimit:
-                    client.messages_throttler()
+                    await client.connections_throttler()
                 return client.connect(self.session, backoff_delay)
             connected = asyncio.ensure_future(connect())
 
@@ -421,7 +421,7 @@ class Exchange(BaseExchange):
             if message:
                 async def send_message():
                     if self.enableRateLimit:
-                        await client.messages_throttler()
+                        await client.messages_throttler(message_cost)
                     try:
                         await client.send(message)
                     except ConnectionError as e:
@@ -435,7 +435,7 @@ class Exchange(BaseExchange):
 
         return future
 
-    def watch(self, url, message_hash, message=None, subscribe_hash=None, subscription=None):
+    def watch(self, url, message_hash, message=None, subscribe_hash=None, subscription=None, message_cost=1):
         # base exchange self.open starts the aiohttp Session in an async context
         self.open()
         backoff_delay = 0
@@ -449,8 +449,14 @@ class Exchange(BaseExchange):
         if not subscribed:
             client.subscriptions[subscribe_hash] = subscription or True
 
-        connected = client.connected if client.connected.done() \
-            else asyncio.ensure_future(client.connect(self.session, backoff_delay))
+        if client.connected.done():
+            connected = client.connected
+        else:
+            async def connect():
+                if self.enableRateLimit:
+                    await client.connections_throttler()
+                return client.connect(self.session, backoff_delay)
+            connected = asyncio.ensure_future(connect())
 
         def after(fut):
             # todo: decouple signing from subscriptions
@@ -459,7 +465,7 @@ class Exchange(BaseExchange):
             if message:
                 async def send_message():
                     if self.enableRateLimit:
-                        await client.throttle(cost)
+                        await client.messages_throttle(cost)
                     try:
                         await client.send(message)
                     except ConnectionError as e:
