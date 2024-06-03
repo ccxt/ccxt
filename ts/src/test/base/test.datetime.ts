@@ -1,12 +1,13 @@
 // @ts-nocheck
-/* eslint-disable */
-import ccxt from '../../../ccxt.js';
+// AUTO_TRANSPILE_ENABLED
+
 import assert from 'assert';
-import { functions } from '../../../ccxt.js';
-const { ROUND_UP, ROUND_DOWN } = functions;
+import ccxt from '../../../ccxt.js';
 
 function testDatetimeAll () {
-        
+    const ROUND_UP = 2;
+    const ROUND_DOWN = 3;
+
     const exchange = new ccxt.Exchange ({
         'id': 'regirock',
     });
