@@ -662,11 +662,18 @@ export default class vertex extends Exchange {
                 marketId = this.safeString (this.safeDict (baseBalance, 'spot', {}), 'product_id');
             }
             market = this.safeMarket (marketId);
-            price = this.safeString (trade, 'price');
+            const subOrder = this.safeDict (trade, 'order', {});
+            price = this.convertFromX18 (this.safeString (subOrder, 'priceX18'));
+            amount = this.convertFromX18 (this.safeString (trade, 'base_filled'));
             fee = {
                 'cost': this.convertFromX18 (this.safeString (trade, 'fee')),
                 'currency': undefined,
             };
+            if (Precise.stringLt (amount, '0')) {
+                side = 'sell';
+            } else {
+                side = 'buy';
+            }
         } else {
             const tickerId = this.safeString (trade, 'ticker_id');
             const splitTickerId = tickerId.split ('_');
@@ -677,6 +684,7 @@ export default class vertex extends Exchange {
             amount = this.safeString (trade, 'base_filled');
             side = this.safeStringLower (trade, 'trade_type');
         }
+        amount = Precise.stringAbs (amount);
         const symbol = market['symbol'];
         return this.safeTrade ({
             'id': id,
@@ -2625,7 +2633,10 @@ export default class vertex extends Exchange {
         market = this.safeMarket (marketId);
         const balance = this.safeDict (position, 'balance', {});
         const contractSize = this.convertFromX18 (this.safeString (balance, 'amount'));
-        const side = (Precise.stringLt (contractSize, '1')) ? 'sell' : 'buy';
+        let side = 'buy';
+        if (Precise.stringLt (contractSize, '1')) {
+            side = 'sell';
+        }
         return this.safePosition ({
             'info': position,
             'id': undefined,
