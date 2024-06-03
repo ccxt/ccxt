@@ -1707,7 +1707,11 @@ export default class woofipro extends Exchange {
         //     }
         // }
         //
-        return response;
+        return [
+            {
+                'info': response,
+            },
+        ];
     }
 
     async fetchOrder (id: string, symbol: Str = undefined, params = {}) {
