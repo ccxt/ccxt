@@ -149,8 +149,8 @@ public class Tests
         foreach (MethodInfo method in methods)
         {
             method.Invoke(testsInstance, null); 
+            Helper.Green(" [C#] " + method.ToString() + " tests passed");
         }
-        Helper.Green(" [C#] " + testsInstance.GetType().ToString() + " tests passed");
     }
 
     static void WsCacheTests()
