@@ -12,7 +12,7 @@ from ccxt.test.base.test_crypto import testBaseCryptography as test_base_cryptog
 
 
 def test_base_init_rest(exchange):
-    test_base_extend(exchange)
+    test_base_extend()
     test_base_datetime()
     test_base_number()
     test_base_cryptography()
