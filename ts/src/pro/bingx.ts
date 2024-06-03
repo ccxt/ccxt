@@ -4,7 +4,7 @@
 import bingxRest from '../bingx.js';
 import { BadRequest, NetworkError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
-import type { Int, OHLCV, Str, OrderBook, Order, Trade, Balances, Ticker } from '../base/types.js';
+import type { Int, OHLCV, Str, OrderBook, Order, Trade, Balances, Ticker, Dict } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 import { Precise } from '../base/Precise.js';
 
@@ -95,7 +95,7 @@ export default class bingx extends bingxRest {
         }
         const messageHash = market['id'] + '@ticker';
         const uuid = this.uuid ();
-        const request = {
+        const request: Dict = {
             'id': uuid,
             'dataType': messageHash,
         };
@@ -196,7 +196,7 @@ export default class bingx extends bingxRest {
         //         "b": "2.5747"
         //     }
         //
-        const timestamp = this.safeInteger (message, 'ts');
+        const timestamp = this.safeInteger (message, 'C');
         const marketId = this.safeString (message, 's');
         market = this.safeMarket (marketId, market);
         const close = this.safeString (message, 'c');
@@ -246,7 +246,7 @@ export default class bingx extends bingxRest {
         }
         const messageHash = market['id'] + '@trade';
         const uuid = this.uuid ();
-        const request = {
+        const request: Dict = {
             'id': uuid,
             'dataType': messageHash,
         };
@@ -379,7 +379,7 @@ export default class bingx extends bingxRest {
         }
         const messageHash = market['id'] + '@depth' + limit.toString ();
         const uuid = this.uuid ();
-        const request = {
+        const request: Dict = {
             'id': uuid,
             'dataType': messageHash,
         };
@@ -578,7 +578,7 @@ export default class bingx extends bingxRest {
         const interval = this.safeString (timeframes, timeframe, timeframe);
         const messageHash = market['id'] + '@kline_' + interval;
         const uuid = this.uuid ();
-        const request = {
+        const request: Dict = {
             'id': uuid,
             'dataType': messageHash,
         };
@@ -1004,14 +1004,17 @@ export default class bingx extends bingxRest {
         //    }
         //
         const isSpot = ('dataType' in message);
-        const result = this.safeValue2 (message, 'data', 'o', {});
+        const result = this.safeDict2 (message, 'data', 'o', {});
         let cachedTrades = this.myTrades;
         if (cachedTrades === undefined) {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
             cachedTrades = new ArrayCacheBySymbolById (limit);
             this.myTrades = cachedTrades;
         }
-        const parsed = this.parseTrade (result);
+        const type = isSpot ? 'spot' : 'swap';
+        const marketId = this.safeString (result, 's');
+        const market = this.safeMarket (marketId, undefined, '-', type);
+        const parsed = this.parseTrade (result, market);
         const symbol = parsed['symbol'];
         const spotHash = 'spot:mytrades';
         const swapHash = 'swap:mytrades';
@@ -1058,10 +1061,13 @@ export default class bingx extends bingxRest {
         //         }
         //     }
         //
-        const a = this.safeValue (message, 'a', {});
-        const data = this.safeValue (a, 'B', []);
+        const a = this.safeDict (message, 'a', {});
+        const data = this.safeList (a, 'B', []);
         const timestamp = this.safeInteger2 (message, 'T', 'E');
         const type = ('P' in a) ? 'swap' : 'spot';
+        if (!(type in this.balance)) {
+            this.balance[type] = {};
+        }
         this.balance[type]['info'] = data;
         this.balance[type]['timestamp'] = timestamp;
         this.balance[type]['datetime'] = this.iso8601 (timestamp);

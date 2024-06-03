@@ -138,7 +138,7 @@ class independentreserve(ccxt.async_support.independentreserve):
         limitString = self.number_to_string(limit)
         url = self.urls['api']['ws'] + '/orderbook/' + limitString + '?subscribe=' + market['base'] + '-' + market['quote']
         messageHash = 'orderbook:' + symbol + ':' + limitString
-        subscription = {
+        subscription: dict = {
             'receivedSnapshot': False,
         }
         orderbook = await self.watch(url, messageHash, None, messageHash, subscription)
@@ -256,7 +256,7 @@ class independentreserve(ccxt.async_support.independentreserve):
 
     def handle_message(self, client: Client, message):
         event = self.safe_string(message, 'Event')
-        handlers = {
+        handlers: dict = {
             'Subscriptions': self.handle_subscriptions,
             'Heartbeat': self.handle_heartbeat,
             'Trade': self.handle_trades,

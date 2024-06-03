@@ -95,7 +95,7 @@ class deribit(ccxt.async_support.deribit):
         for i in range(0, len(currencies)):
             currencyCode = currencies[i]
             channels.append('user.portfolio.' + currencyCode)
-        subscribe = {
+        subscribe: dict = {
             'jsonrpc': '2.0',
             'method': 'private/subscribe',
             'params': {
@@ -178,7 +178,7 @@ class deribit(ccxt.async_support.deribit):
         if interval == 'raw':
             await self.authenticate()
         channel = 'ticker.' + market['id'] + '.' + interval
-        message = {
+        message: dict = {
             'jsonrpc': '2.0',
             'method': 'public/subscribe',
             'params': {
@@ -324,7 +324,7 @@ class deribit(ccxt.async_support.deribit):
         interval = self.safe_string(params, 'interval', 'raw')
         params = self.omit(params, 'interval')
         channel = 'user.trades.any.any.' + interval
-        message = {
+        message: dict = {
             'jsonrpc': '2.0',
             'method': 'private/subscribe',
             'params': {
@@ -377,7 +377,7 @@ class deribit(ccxt.async_support.deribit):
             limit = self.safe_integer(self.options, 'tradesLimit', 1000)
             cachedTrades = ArrayCacheBySymbolById(limit)
         parsed = self.parse_trades(trades)
-        marketIds = {}
+        marketIds: dict = {}
         for i in range(0, len(parsed)):
             trade = parsed[i]
             cachedTrades.append(trade)
@@ -489,11 +489,11 @@ class deribit(ccxt.async_support.deribit):
         marketId = self.safe_string(data, 'instrument_name')
         symbol = self.safe_symbol(marketId)
         timestamp = self.safe_integer(data, 'timestamp')
-        storedOrderBook = self.safe_value(self.orderbooks, symbol)
-        if storedOrderBook is None:
-            storedOrderBook = self.counted_order_book()
-        asks = self.safe_value(data, 'asks', [])
-        bids = self.safe_value(data, 'bids', [])
+        if not (symbol in self.orderbooks):
+            self.orderbooks[symbol] = self.counted_order_book()
+        storedOrderBook = self.orderbooks[symbol]
+        asks = self.safe_list(data, 'asks', [])
+        bids = self.safe_list(data, 'bids', [])
         self.handle_deltas(storedOrderBook['asks'], asks)
         self.handle_deltas(storedOrderBook['bids'], bids)
         storedOrderBook['nonce'] = timestamp
@@ -505,8 +505,8 @@ class deribit(ccxt.async_support.deribit):
         client.resolve(storedOrderBook, messageHash)
 
     def clean_order_book(self, data):
-        bids = self.safe_value(data, 'bids', [])
-        asks = self.safe_value(data, 'asks', [])
+        bids = self.safe_list(data, 'bids', [])
+        asks = self.safe_list(data, 'asks', [])
         cleanedBids = []
         for i in range(0, len(bids)):
             cleanedBids.append([bids[i][1], bids[i][2]])
@@ -521,9 +521,9 @@ class deribit(ccxt.async_support.deribit):
         price = delta[1]
         amount = delta[2]
         if delta[0] == 'new' or delta[0] == 'change':
-            bookside.store(price, amount, 1)
+            bookside.storeArray([price, amount, 1])
         elif delta[0] == 'delete':
-            bookside.store(price, amount, 0)
+            bookside.storeArray([price, amount, 0])
 
     def handle_deltas(self, bookside, deltas):
         for i in range(0, len(deltas)):
@@ -549,7 +549,7 @@ class deribit(ccxt.async_support.deribit):
         kind = self.safe_string(params, 'kind', 'any')
         params = self.omit(params, 'interval', 'currency', 'kind')
         channel = 'user.orders.' + kind + '.' + currency + '.' + interval
-        message = {
+        message: dict = {
             'jsonrpc': '2.0',
             'method': 'private/subscribe',
             'params': {
@@ -735,7 +735,7 @@ class deribit(ccxt.async_support.deribit):
             message = channelName + '.' + market['id'] + '.' + channelDescriptor
             rawSubscriptions.append(message)
             messageHashes.append(channelName + '|' + market['symbol'] + '|' + channelDescriptor)
-        request = {
+        request: dict = {
             'jsonrpc': '2.0',
             'method': 'public/subscribe',
             'params': {
@@ -818,12 +818,12 @@ class deribit(ccxt.async_support.deribit):
         if channel is not None:
             parts = channel.split('.')
             channelId = self.safe_string(parts, 0)
-            userHandlers = {
+            userHandlers: dict = {
                 'trades': self.handle_my_trades,
                 'portfolio': self.handle_balance,
                 'orders': self.handle_orders,
             }
-            handlers = {
+            handlers: dict = {
                 'ticker': self.handle_ticker,
                 'book': self.handle_order_book,
                 'trades': self.handle_trades,
@@ -874,7 +874,7 @@ class deribit(ccxt.async_support.deribit):
             self.check_required_credentials()
             requestId = self.request_id()
             signature = self.hmac(self.encode(timeString + '\n' + nonce + '\n'), self.encode(self.secret), hashlib.sha256)
-            request = {
+            request: dict = {
                 'jsonrpc': '2.0',
                 'id': requestId,
                 'method': 'public/auth',

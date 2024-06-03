@@ -164,13 +164,13 @@ export default class kraken extends Exchange {
                         // rate-limits explained in comment in the top of this file
                         'Assets': 1,
                         'AssetPairs': 1,
-                        'Depth': 1,
-                        'OHLC': 1,
+                        'Depth': 1.2,
+                        'OHLC': 1.2,
                         'Spread': 1,
                         'SystemStatus': 1,
                         'Ticker': 1,
                         'Time': 1,
-                        'Trades': 1,
+                        'Trades': 1.2,
                     },
                 },
                 'private': {
@@ -761,8 +761,8 @@ export default class kraken extends Exchange {
         return {
             'info': response,
             'symbol': market['symbol'],
-            'maker': this.safeNumber(symbolMakerFee, 'fee'),
-            'taker': this.safeNumber(symbolTakerFee, 'fee'),
+            'maker': this.parseNumber(Precise.stringDiv(this.safeString(symbolMakerFee, 'fee'), '100')),
+            'taker': this.parseNumber(Precise.stringDiv(this.safeString(symbolTakerFee, 'fee'), '100')),
             'percentage': true,
             'tierBased': true,
         };
@@ -989,9 +989,9 @@ export default class kraken extends Exchange {
             request['interval'] = timeframe;
         }
         if (since !== undefined) {
-            // contrary to kraken's api documentation, the since parameter must be passed in nanoseconds
-            // the adding of '000000' is copied from the fetchTrades function
-            request['since'] = this.numberToString(since) + '000000'; // expected to be in nanoseconds
+            const scaledSince = this.parseToInt(since / 1000);
+            const timeFrameInSeconds = parsedTimeframe * 60;
+            request['since'] = this.numberToString(scaledSince - timeFrameInSeconds); // expected to be in seconds
         }
         const response = await this.publicGetOHLC(this.extend(request, params));
         //
@@ -1276,10 +1276,7 @@ export default class kraken extends Exchange {
         // https://support.kraken.com/hc/en-us/articles/218198197-How-to-pull-all-trade-data-using-the-Kraken-REST-API
         // https://github.com/ccxt/ccxt/issues/5677
         if (since !== undefined) {
-            // php does not format it properly
-            // therefore we use string concatenation here
-            request['since'] = since * 1e6;
-            request['since'] = since.toString() + '000000'; // expected to be in nanoseconds
+            request['since'] = this.numberToString(this.parseToInt(since / 1000)); // expected to be in seconds
         }
         if (limit !== undefined) {
             request['count'] = limit;

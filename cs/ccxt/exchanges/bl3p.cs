@@ -446,7 +446,13 @@ public partial class bl3p : Exchange
         object request = new Dictionary<string, object>() {
             { "order_id", id },
         };
-        return await this.privatePostMarketMoneyOrderCancel(this.extend(request, parameters));
+        object response = await this.privatePostMarketMoneyOrderCancel(this.extend(request, parameters));
+        //
+        // "success"
+        //
+        return this.safeOrder(new Dictionary<string, object>() {
+            { "info", response },
+        });
     }
 
     public async override Task<object> createDepositAddress(object code, object parameters = null)

@@ -66,7 +66,7 @@ class hyperliquid(ccxt.async_support.hyperliquid):
         symbol = market['symbol']
         messageHash = 'orderbook:' + symbol
         url = self.urls['api']['ws']['public']
-        request = {
+        request: dict = {
             'method': 'subscribe',
             'subscription': {
                 'type': 'l2Book',
@@ -109,7 +109,7 @@ class hyperliquid(ccxt.async_support.hyperliquid):
         market = self.market(marketId)
         symbol = market['symbol']
         rawData = self.safe_list(entry, 'levels', [])
-        data = {
+        data: dict = {
             'bids': self.safe_list(rawData, 0, []),
             'asks': self.safe_list(rawData, 1, []),
         }
@@ -141,7 +141,7 @@ class hyperliquid(ccxt.async_support.hyperliquid):
             symbol = self.symbol(symbol)
             messageHash += ':' + symbol
         url = self.urls['api']['ws']['public']
-        request = {
+        request: dict = {
             'method': 'subscribe',
             'subscription': {
                 'type': 'userFills',
@@ -188,7 +188,7 @@ class hyperliquid(ccxt.async_support.hyperliquid):
             limit = self.safe_integer(self.options, 'tradesLimit', 1000)
             self.myTrades = ArrayCacheBySymbolById(limit)
         trades = self.myTrades
-        symbols = {}
+        symbols: dict = {}
         data = self.safe_list(entry, 'fills', [])
         dataLength = len(data)
         if dataLength == 0:
@@ -221,7 +221,7 @@ class hyperliquid(ccxt.async_support.hyperliquid):
         symbol = market['symbol']
         messageHash = 'trade:' + symbol
         url = self.urls['api']['ws']['public']
-        request = {
+        request: dict = {
             'method': 'subscribe',
             'subscription': {
                 'type': 'trades',
@@ -345,7 +345,7 @@ class hyperliquid(ccxt.async_support.hyperliquid):
         market = self.market(symbol)
         symbol = market['symbol']
         url = self.urls['api']['ws']['public']
-        request = {
+        request: dict = {
             'method': 'subscribe',
             'subscription': {
                 'type': 'candle',
@@ -415,7 +415,7 @@ class hyperliquid(ccxt.async_support.hyperliquid):
             symbol = market['symbol']
             messageHash = messageHash + ':' + symbol
         url = self.urls['api']['ws']['public']
-        request = {
+        request: dict = {
             'method': 'subscribe',
             'subscription': {
                 'type': 'orderUpdates',
@@ -458,7 +458,7 @@ class hyperliquid(ccxt.async_support.hyperliquid):
             return
         stored = self.orders
         messageHash = 'order'
-        marketSymbols = {}
+        marketSymbols: dict = {}
         for i in range(0, len(data)):
             rawOrder = data[i]
             order = self.parse_order(rawOrder)
@@ -490,7 +490,7 @@ class hyperliquid(ccxt.async_support.hyperliquid):
         if self.handle_error_message(client, message):
             return
         topic = self.safe_string(message, 'channel', '')
-        methods = {
+        methods: dict = {
             'pong': self.handle_pong,
             'trades': self.handle_trades,
             'l2Book': self.handle_order_book,

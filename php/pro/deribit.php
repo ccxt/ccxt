@@ -526,12 +526,12 @@ class deribit extends \ccxt\async\deribit {
         $marketId = $this->safe_string($data, 'instrument_name');
         $symbol = $this->safe_symbol($marketId);
         $timestamp = $this->safe_integer($data, 'timestamp');
-        $storedOrderBook = $this->safe_value($this->orderbooks, $symbol);
-        if ($storedOrderBook === null) {
-            $storedOrderBook = $this->counted_order_book();
+        if (!(is_array($this->orderbooks) && array_key_exists($symbol, $this->orderbooks))) {
+            $this->orderbooks[$symbol] = $this->counted_order_book();
         }
-        $asks = $this->safe_value($data, 'asks', array());
-        $bids = $this->safe_value($data, 'bids', array());
+        $storedOrderBook = $this->orderbooks[$symbol];
+        $asks = $this->safe_list($data, 'asks', array());
+        $bids = $this->safe_list($data, 'bids', array());
         $this->handle_deltas($storedOrderBook['asks'], $asks);
         $this->handle_deltas($storedOrderBook['bids'], $bids);
         $storedOrderBook['nonce'] = $timestamp;
@@ -544,8 +544,8 @@ class deribit extends \ccxt\async\deribit {
     }
 
     public function clean_order_book($data) {
-        $bids = $this->safe_value($data, 'bids', array());
-        $asks = $this->safe_value($data, 'asks', array());
+        $bids = $this->safe_list($data, 'bids', array());
+        $asks = $this->safe_list($data, 'asks', array());
         $cleanedBids = array();
         for ($i = 0; $i < count($bids); $i++) {
             $cleanedBids[] = [ $bids[$i][1], $bids[$i][2] ];
@@ -563,9 +563,9 @@ class deribit extends \ccxt\async\deribit {
         $price = $delta[1];
         $amount = $delta[2];
         if ($delta[0] === 'new' || $delta[0] === 'change') {
-            $bookside->store ($price, $amount, 1);
+            $bookside->storeArray (array( $price, $amount, 1 ));
         } elseif ($delta[0] === 'delete') {
-            $bookside->store ($price, $amount, 0);
+            $bookside->storeArray (array( $price, $amount, 0 ));
         }
     }
 

@@ -5,7 +5,7 @@ import Exchange from './abstract/lykke.js';
 import { NotSupported, ExchangeError, BadRequest, InsufficientFunds, InvalidOrder, DuplicateOrderId } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { IndexType, Balances, Currency, Int, Market, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, Num, Currencies, Dict } from './base/types.js';
+import type { IndexType, Balances, Currency, Int, Market, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, Num, Currencies, Dict, int } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -229,7 +229,7 @@ export default class lykke extends Exchange {
         //         "error":null
         //     }
         //
-        const result = {};
+        const result: Dict = {};
         for (let i = 0; i < currencies.length; i++) {
             const currency = currencies[i];
             const id = this.safeString (currency, 'assetId');
@@ -443,7 +443,7 @@ export default class lykke extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'assetPairIds': market['id'],
         };
         // publicGetTickers or publicGetPrices
@@ -537,7 +537,7 @@ export default class lykke extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'assetPairId': market['id'],
         };
         if (limit !== undefined) {
@@ -573,7 +573,7 @@ export default class lykke extends Exchange {
         return this.parseOrderBook (orderbook, market['symbol'], timestamp, 'bids', 'asks', 'p', 'v');
     }
 
-    parseTrade (trade, market: Market = undefined): Trade {
+    parseTrade (trade: Dict, market: Market = undefined): Trade {
         //
         //  public fetchTrades
         //
@@ -645,7 +645,7 @@ export default class lykke extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'assetPairId': market['id'],
             // 'offset': 0,
         };
@@ -683,7 +683,7 @@ export default class lykke extends Exchange {
         //         }
         //     ]
         //
-        const result = { 'info': response };
+        const result: Dict = { 'info': response };
         for (let i = 0; i < response.length; i++) {
             const balance = response[i];
             const currencyId = this.safeString (balance, 'assetId');
@@ -726,8 +726,8 @@ export default class lykke extends Exchange {
         return this.parseBalance (payload);
     }
 
-    parseOrderStatus (status) {
-        const statuses = {
+    parseOrderStatus (status: Str) {
+        const statuses: Dict = {
             'Open': 'open',
             'Pending': 'open',
             'InOrderBook': 'open',
@@ -741,7 +741,7 @@ export default class lykke extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseOrder (order, market: Market = undefined): Order {
+    parseOrder (order: Dict, market: Market = undefined): Order {
         //
         //     {
         //         "id":"1b367978-7e4f-454b-b870-64040d484443",
@@ -814,7 +814,7 @@ export default class lykke extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const query = {
+        const query: Dict = {
             'assetPairId': market['id'],
             'side': this.capitalize (side),
             'volume': parseFloat (this.amountToPrecision (market['symbol'], amount)),
@@ -886,7 +886,7 @@ export default class lykke extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
-        const request = {
+        const request: Dict = {
             'orderId': id,
         };
         //
@@ -909,7 +909,7 @@ export default class lykke extends Exchange {
          * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
-        const request = {
+        const request: Dict = {
             // 'side': 'Buy',
         };
         let market = undefined;
@@ -937,7 +937,7 @@ export default class lykke extends Exchange {
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
-        const request = {
+        const request: Dict = {
             'orderId': id,
         };
         const response = await this.privateGetOrdersOrderId (this.extend (request, params));
@@ -981,7 +981,7 @@ export default class lykke extends Exchange {
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        const request = {
+        const request: Dict = {
             // 'offset': 0,
             // 'take': 1,
         };
@@ -1031,7 +1031,7 @@ export default class lykke extends Exchange {
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        const request = {
+        const request: Dict = {
             // 'offset': 0,
             // 'take': 1,
         };
@@ -1077,7 +1077,7 @@ export default class lykke extends Exchange {
          * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
          */
         await this.loadMarkets ();
-        const request = {
+        const request: Dict = {
             // 'side': 'buy',
             // 'offset': 0,
             // 'take': 1,
@@ -1138,7 +1138,7 @@ export default class lykke extends Exchange {
          */
         await this.loadMarkets ();
         const currency = this.currency (code);
-        const request = {
+        const request: Dict = {
             'assetId': this.safeString (currency, 'id'),
         };
         const response = await this.privateGetOperationsDepositsAddressesAssetId (this.extend (request, params));
@@ -1164,7 +1164,7 @@ export default class lykke extends Exchange {
         };
     }
 
-    parseTransaction (transaction, currency: Currency = undefined): Transaction {
+    parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {
         //
         // withdraw
         //     "3035b1ad-2005-4587-a986-1f7966be78e0"
@@ -1238,7 +1238,7 @@ export default class lykke extends Exchange {
          * @returns {object} a list of [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         await this.loadMarkets ();
-        const request = {
+        const request: Dict = {
             // 'offset': 0,
             // 'take': 1,
         };
@@ -1285,7 +1285,7 @@ export default class lykke extends Exchange {
         await this.loadMarkets ();
         this.checkAddress (address);
         const currency = this.currency (code);
-        const request = {
+        const request: Dict = {
             'assetId': currency['id'],
             'volume': parseFloat (this.currencyToPrecision (code, amount)),
             'destinationAddress': address,
@@ -1332,7 +1332,7 @@ export default class lykke extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+    handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response, requestHeaders, requestBody) {
         if (response === undefined) {
             return undefined;
         }

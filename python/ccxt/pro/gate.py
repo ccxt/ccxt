@@ -6,13 +6,14 @@
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCacheByTimestamp
 import hashlib
-from ccxt.base.types import Balances, Int, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, Trade
+from ccxt.base.types import Balances, Int, Liquidation, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, Trade
 from ccxt.async_support.base.ws.client import Client
 from typing import List
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import InvalidNonce
+from ccxt.base.precise import Precise
 
 
 class gate(ccxt.async_support.gate):
@@ -30,6 +31,10 @@ class gate(ccxt.async_support.gate):
                 'watchOHLCV': True,
                 'watchBalance': True,
                 'watchOrders': True,
+                'watchLiquidations': False,
+                'watchLiquidationsForSymbols': False,
+                'watchMyLiquidations': True,
+                'watchMyLiquidationsForSymbols': True,
                 'watchPositions': True,
             },
             'urls': {
@@ -122,7 +127,7 @@ class gate(ccxt.async_support.gate):
         if market['contract']:
             stringLimit = str(limit)
             payload.append(stringLimit)
-        subscription = {
+        subscription: dict = {
             'symbol': symbol,
             'limit': limit,
         }
@@ -357,7 +362,7 @@ class gate(ccxt.async_support.gate):
             messageHashes.append(prefix + ':' + symbol)
         tickerOrBidAsk = await self.subscribe_public_multiple(url, messageHashes, marketIds, channel, params)
         if self.newUpdates:
-            items = {}
+            items: dict = {}
             items[tickerOrBidAsk['symbol']] = tickerOrBidAsk
             return items
         result = self.tickers if isWatchTickers else self.bidsasks
@@ -509,7 +514,7 @@ class gate(ccxt.async_support.gate):
         result = self.safe_value(message, 'result')
         if not isinstance(result, list):
             result = [result]
-        marketIds = {}
+        marketIds: dict = {}
         for i in range(0, len(result)):
             ohlcv = result[i]
             subscription = self.safe_string(ohlcv, 'n', '')
@@ -608,7 +613,7 @@ class gate(ccxt.async_support.gate):
             cachedTrades = ArrayCacheBySymbolById(limit)
             self.myTrades = cachedTrades
         parsed = self.parse_trades(result)
-        marketIds = {}
+        marketIds: dict = {}
         for i in range(0, len(parsed)):
             trade = parsed[i]
             cachedTrades.append(trade)
@@ -939,7 +944,7 @@ class gate(ccxt.async_support.gate):
         if self.orders is None:
             self.orders = ArrayCacheBySymbolById(limit)
         stored = self.orders
-        marketIds = {}
+        marketIds: dict = {}
         parsedOrders = self.parse_orders(orders)
         for i in range(0, len(parsedOrders)):
             parsed = parsedOrders[i]
@@ -962,6 +967,172 @@ class gate(ccxt.async_support.gate):
             messageHash = 'orders:' + keys[i]
             client.resolve(self.orders, messageHash)
         client.resolve(self.orders, 'orders')
+
+    async def watch_my_liquidations(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Liquidation]:
+        """
+        watch the public liquidations of a trading pair
+        :see: https://www.gate.io/docs/developers/futures/ws/en/#liquidates-api
+        :see: https://www.gate.io/docs/developers/delivery/ws/en/#liquidates-api
+        :see: https://www.gate.io/docs/developers/options/ws/en/#liquidates-channel
+        :param str symbol: unified CCXT market symbol
+        :param int [since]: the earliest time in ms to fetch liquidations for
+        :param int [limit]: the maximum number of liquidation structures to retrieve
+        :param dict [params]: exchange specific parameters for the bitmex api endpoint
+        :returns dict: an array of `liquidation structures <https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure>`
+        """
+        return self.watch_my_liquidations_for_symbols([symbol], since, limit, params)
+
+    async def watch_my_liquidations_for_symbols(self, symbols: List[str] = None, since: Int = None, limit: Int = None, params={}) -> List[Liquidation]:
+        """
+        watch the private liquidations of a trading pair
+        :see: https://www.gate.io/docs/developers/futures/ws/en/#liquidates-api
+        :see: https://www.gate.io/docs/developers/delivery/ws/en/#liquidates-api
+        :see: https://www.gate.io/docs/developers/options/ws/en/#liquidates-channel
+        :param str symbol: unified CCXT market symbol
+        :param int [since]: the earliest time in ms to fetch liquidations for
+        :param int [limit]: the maximum number of liquidation structures to retrieve
+        :param dict [params]: exchange specific parameters for the gate api endpoint
+        :returns dict: an array of `liquidation structures <https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure>`
+        """
+        await self.load_markets()
+        symbols = self.market_symbols(symbols, None, True, True)
+        market = self.get_market_from_symbols(symbols)
+        type = None
+        query = None
+        type, query = self.handle_market_type_and_params('watchMyLiquidationsForSymbols', market, params)
+        typeId = self.get_supported_mapping(type, {
+            'future': 'futures',
+            'swap': 'futures',
+            'option': 'options',
+        })
+        subType = None
+        subType, query = self.handle_sub_type_and_params('watchMyLiquidationsForSymbols', market, query)
+        isInverse = (subType == 'inverse')
+        url = self.get_url_by_market_type(type, isInverse)
+        payload = []
+        messageHash = ''
+        if self.is_empty(symbols):
+            if typeId != 'futures' and not isInverse:
+                raise BadRequest(self.id + ' watchMyLiquidationsForSymbols() does not support listening to all symbols, you must call watchMyLiquidations() instead for each symbol you wish to watch.')
+            messageHash = 'myLiquidations'
+            payload.append('not all')
+        else:
+            symbolsLength = len(symbols)
+            if symbolsLength != 1:
+                raise BadRequest(self.id + ' watchMyLiquidationsForSymbols() only allows one symbol at a time. To listen to several symbols call watchMyLiquidationsForSymbols() several times.')
+            messageHash = 'myLiquidations::' + symbols[0]
+            payload.append(market['id'])
+        channel = typeId + '.liquidates'
+        newLiquidations = await self.subscribe_private(url, messageHash, payload, channel, query, True)
+        if self.newUpdates:
+            return newLiquidations
+        return self.filter_by_symbols_since_limit(self.liquidations, symbols, since, limit, True)
+
+    def handle_liquidation(self, client: Client, message):
+        #
+        # future / delivery
+        #     {
+        #         "channel":"futures.liquidates",
+        #         "event":"update",
+        #         "time":1541505434,
+        #         "time_ms":1541505434123,
+        #         "result":[
+        #            {
+        #               "entry_price":209,
+        #               "fill_price":215.1,
+        #               "left":0,
+        #               "leverage":0.0,
+        #               "liq_price":213,
+        #               "margin":0.007816722941,
+        #               "mark_price":213,
+        #               "order_id":4093362,
+        #               "order_price":215.1,
+        #               "size":-124,
+        #               "time":1541486601,
+        #               "time_ms":1541486601123,
+        #               "contract":"BTC_USD",
+        #               "user":"1040xxxx"
+        #            }
+        #         ]
+        #     }
+        # option
+        #    {
+        #        "channel":"options.liquidates",
+        #        "event":"update",
+        #        "time":1630654851,
+        #        "result":[
+        #           {
+        #              "user":"1xxxx",
+        #              "init_margin":1190,
+        #              "maint_margin":1042.5,
+        #              "order_margin":0,
+        #              "time":1639051907,
+        #              "time_ms":1639051907000
+        #           }
+        #        ]
+        #    }
+        #
+        rawLiquidations = self.safe_list(message, 'result', [])
+        newLiquidations = []
+        for i in range(0, len(rawLiquidations)):
+            rawLiquidation = rawLiquidations[i]
+            liquidation = self.parse_ws_liquidation(rawLiquidation)
+            symbol = self.safe_string(liquidation, 'symbol')
+            liquidations = self.safe_value(self.liquidations, symbol)
+            if liquidations is None:
+                limit = self.safe_integer(self.options, 'liquidationsLimit', 1000)
+                liquidations = ArrayCache(limit)
+            liquidations.append(liquidation)
+            self.liquidations[symbol] = liquidations
+            client.resolve(liquidations, 'myLiquidations::' + symbol)
+        client.resolve(newLiquidations, 'myLiquidations')
+
+    def parse_ws_liquidation(self, liquidation, market=None):
+        #
+        # future / delivery
+        #    {
+        #        "entry_price": 209,
+        #        "fill_price": 215.1,
+        #        "left": 0,
+        #        "leverage": 0.0,
+        #        "liq_price": 213,
+        #        "margin": 0.007816722941,
+        #        "mark_price": 213,
+        #        "order_id": 4093362,
+        #        "order_price": 215.1,
+        #        "size": -124,
+        #        "time": 1541486601,
+        #        "time_ms": 1541486601123,
+        #        "contract": "BTC_USD",
+        #        "user": "1040xxxx"
+        #    }
+        # option
+        #    {
+        #        "user": "1xxxx",
+        #        "init_margin": 1190,
+        #        "maint_margin": 1042.5,
+        #        "order_margin": 0,
+        #        "time": 1639051907,
+        #        "time_ms": 1639051907000
+        #    }
+        #
+        marketId = self.safe_string(liquidation, 'contract')
+        market = self.safe_market(marketId, market)
+        timestamp = self.safe_integer(liquidation, 'time_ms')
+        originalSize = self.safe_string(liquidation, 'size')
+        left = self.safe_string(liquidation, 'left')
+        amount = Precise.string_abs(Precise.string_sub(originalSize, left))
+        return self.safe_liquidation({
+            'info': liquidation,
+            'symbol': self.safe_symbol(marketId, market),
+            'contracts': self.parse_number(amount),
+            'contractSize': self.safe_number(market, 'contractSize'),
+            'price': self.safe_number(liquidation, 'fill_price'),
+            'baseValue': None,
+            'quoteValue': None,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+        })
 
     def handle_error_message(self, client: Client, message):
         # {
@@ -1003,7 +1174,7 @@ class gate(ccxt.async_support.gate):
 
     def handle_subscription_status(self, client: Client, message):
         channel = self.safe_string(message, 'channel')
-        methods = {
+        methods: dict = {
             'balance': self.handle_balance_subscription,
             'spot.order_book_update': self.handle_order_book_subscription,
             'futures.order_book_update': self.handle_order_book_subscription,
@@ -1116,7 +1287,7 @@ class gate(ccxt.async_support.gate):
         channel = self.safe_string(message, 'channel', '')
         channelParts = channel.split('.')
         channelType = self.safe_value(channelParts, 1)
-        v4Methods = {
+        v4Methods: dict = {
             'usertrades': self.handle_my_trades,
             'candlesticks': self.handle_ohlcv,
             'orders': self.handle_order,
@@ -1126,6 +1297,7 @@ class gate(ccxt.async_support.gate):
             'trades': self.handle_trades,
             'order_book_update': self.handle_order_book,
             'balances': self.handle_balance,
+            'liquidates': self.handle_liquidation,
         }
         method = self.safe_value(v4Methods, channelType)
         if method is not None:
@@ -1155,7 +1327,7 @@ class gate(ccxt.async_support.gate):
             return url
 
     def get_market_type_by_url(self, url: str):
-        findBy = {
+        findBy: dict = {
             'op-': 'option',
             'delivery': 'future',
             'fx': 'swap',
@@ -1177,7 +1349,7 @@ class gate(ccxt.async_support.gate):
     async def subscribe_public(self, url, messageHash, payload, channel, params={}, subscription=None):
         requestId = self.request_id()
         time = self.seconds()
-        request = {
+        request: dict = {
             'id': requestId,
             'time': time,
             'channel': channel,
@@ -1195,7 +1367,7 @@ class gate(ccxt.async_support.gate):
     async def subscribe_public_multiple(self, url, messageHashes, payload, channel, params={}):
         requestId = self.request_id()
         time = self.seconds()
-        request = {
+        request: dict = {
             'id': requestId,
             'time': time,
             'channel': channel,
@@ -1220,13 +1392,13 @@ class gate(ccxt.async_support.gate):
         event = 'subscribe'
         signaturePayload = 'channel=' + channel + '&' + 'event=' + event + '&' + 'time=' + str(time)
         signature = self.hmac(self.encode(signaturePayload), self.encode(self.secret), hashlib.sha512, 'hex')
-        auth = {
+        auth: dict = {
             'method': 'api_key',
             'KEY': self.apiKey,
             'SIGN': signature,
         }
         requestId = self.request_id()
-        request = {
+        request: dict = {
             'id': requestId,
             'time': time,
             'channel': channel,

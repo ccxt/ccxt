@@ -219,6 +219,7 @@ public partial class binance : Exchange
                     { "get", new Dictionary<string, object>() {
                         { "system/status", 0.1 },
                         { "accountSnapshot", 240 },
+                        { "account/info", 0.1 },
                         { "margin/asset", 1 },
                         { "margin/pair", 1 },
                         { "margin/allAssets", 0.1 },
@@ -874,6 +875,7 @@ public partial class binance : Exchange
                         { "order/asyn/id", 10 },
                         { "trade/asyn", 1000 },
                         { "trade/asyn/id", 10 },
+                        { "feeBurn", 1 },
                     } },
                     { "post", new Dictionary<string, object>() {
                         { "batchOrders", 5 },
@@ -887,6 +889,7 @@ public partial class binance : Exchange
                         { "multiAssetsMargin", 1 },
                         { "apiReferral/customization", 1 },
                         { "apiReferral/userCustomization", 1 },
+                        { "feeBurn", 1 },
                     } },
                     { "put", new Dictionary<string, object>() {
                         { "listenKey", 1 },
@@ -1215,6 +1218,7 @@ public partial class binance : Exchange
                     { "future", "UMFUTURE" },
                     { "delivery", "CMFUTURE" },
                     { "linear", "UMFUTURE" },
+                    { "swap", "UMFUTURE" },
                     { "inverse", "CMFUTURE" },
                     { "option", "OPTION" },
                 } },
@@ -6128,6 +6132,19 @@ public partial class binance : Exchange
                     ((IDictionary<string,object>)request)["isIsolated"] = true;
                 }
             }
+        } else
+        {
+            postOnly = this.isPostOnly(isMarketOrder, isEqual(initialUppercaseType, "LIMIT_MAKER"), parameters);
+            if (isTrue(postOnly))
+            {
+                if (!isTrue(getValue(market, "contract")))
+                {
+                    uppercaseType = "LIMIT_MAKER"; // only this endpoint accepts GTXhttps://binance-docs.github.io/apidocs/pm/en/#new-margin-order-trade
+                } else
+                {
+                    ((IDictionary<string,object>)request)["timeInForce"] = "GTX";
+                }
+            }
         }
         // handle newOrderRespType response type
         if (isTrue(isTrue((isTrue((isEqual(marketType, "spot"))) || isTrue((isEqual(marketType, "margin"))))) && !isTrue(isPortfolioMargin)))
@@ -6279,7 +6296,7 @@ public partial class binance : Exchange
                 ((IDictionary<string,object>)request)["stopPrice"] = this.priceToPrecision(symbol, stopPrice);
             }
         }
-        if (isTrue(isTrue(timeInForceIsRequired) && isTrue((isEqual(this.safeString(parameters, "timeInForce"), null)))))
+        if (isTrue(isTrue(isTrue(timeInForceIsRequired) && isTrue((isEqual(this.safeString(parameters, "timeInForce"), null)))) && isTrue((isEqual(this.safeString(request, "timeInForce"), null)))))
         {
             ((IDictionary<string,object>)request)["timeInForce"] = getValue(this.options, "defaultTimeInForce"); // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
         }

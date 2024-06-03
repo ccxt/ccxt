@@ -3,7 +3,7 @@
 
 import upbitRest from '../upbit.js';
 import { ArrayCache } from '../base/ws/Cache.js';
-import type { Int, OrderBook, Trade, Ticker } from '../base/types.js';
+import type { Int, OrderBook, Trade, Ticker, Dict } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -229,7 +229,7 @@ export default class upbit extends upbitRest {
     }
 
     handleMessage (client: Client, message) {
-        const methods = {
+        const methods: Dict = {
             'ticker': this.handleTicker,
             'orderbook': this.handleOrderBook,
             'trade': this.handleTrades,

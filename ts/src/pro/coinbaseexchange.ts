@@ -5,7 +5,7 @@ import coinbaseexchangeRest from '../coinbaseexchange.js';
 import { AuthenticationError, ExchangeError, BadSymbol, BadRequest, ArgumentsRequired } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
-import type { Tickers, Int, Ticker, Str, Strings, OrderBook, Trade, Order } from '../base/types.js';
+import type { Tickers, Int, Ticker, Str, Strings, OrderBook, Trade, Order, Dict } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -74,7 +74,7 @@ export default class coinbaseexchange extends coinbaseexchangeRest {
             // need to distinguish between public trades and user trades
             url = url + '?';
         }
-        const subscribe = {
+        const subscribe: Dict = {
             'type': 'subscribe',
             'product_ids': productIds,
             'channels': [
@@ -102,7 +102,7 @@ export default class coinbaseexchange extends coinbaseexchangeRest {
             // need to distinguish between public trades and user trades
             url = url + '?';
         }
-        const subscribe = {
+        const subscribe: Dict = {
             'type': 'subscribe',
             'product_ids': productIds,
             'channels': [
@@ -145,7 +145,7 @@ export default class coinbaseexchange extends coinbaseexchangeRest {
         const messageHash = 'ticker';
         const ticker = await this.subscribeMultiple (channel, symbols, messageHash, params);
         if (this.newUpdates) {
-            const result = {};
+            const result: Dict = {};
             result[ticker['symbol']] = ticker;
             return result;
         }
@@ -326,7 +326,7 @@ export default class coinbaseexchange extends coinbaseexchangeRest {
             messageHashes.push (name + ':' + marketId);
         }
         const url = this.urls['api']['ws'];
-        const subscribe = {
+        const subscribe: Dict = {
             'type': 'subscribe',
             'product_ids': marketIds,
             'channels': [
@@ -334,7 +334,7 @@ export default class coinbaseexchange extends coinbaseexchangeRest {
             ],
         };
         const request = this.extend (subscribe, params);
-        const subscription = {
+        const subscription: Dict = {
             'messageHash': name,
             'symbols': symbols,
             'marketIds': marketIds,
@@ -361,7 +361,7 @@ export default class coinbaseexchange extends coinbaseexchangeRest {
         symbol = market['symbol'];
         const messageHash = name + ':' + market['id'];
         const url = this.urls['api']['ws'];
-        const subscribe = {
+        const subscribe: Dict = {
             'type': 'subscribe',
             'product_ids': [
                 market['id'],
@@ -371,7 +371,7 @@ export default class coinbaseexchange extends coinbaseexchangeRest {
             ],
         };
         const request = this.extend (subscribe, params);
-        const subscription = {
+        const subscription: Dict = {
             'messageHash': messageHash,
             'symbol': symbol,
             'marketId': market['id'],
@@ -523,7 +523,7 @@ export default class coinbaseexchange extends coinbaseexchangeRest {
     }
 
     parseWsOrderStatus (status) {
-        const statuses = {
+        const statuses: Dict = {
             'filled': 'closed',
             'canceled': 'canceled',
         };
@@ -891,7 +891,7 @@ export default class coinbaseexchange extends coinbaseexchangeRest {
             const orderbook = this.orderbooks[symbol];
             const timestamp = this.parse8601 (this.safeString (message, 'time'));
             const changes = this.safeValue (message, 'changes', []);
-            const sides = {
+            const sides: Dict = {
                 'sell': 'asks',
                 'buy': 'bids',
             };
@@ -957,7 +957,7 @@ export default class coinbaseexchange extends coinbaseexchangeRest {
 
     handleMessage (client: Client, message) {
         const type = this.safeString (message, 'type');
-        const methods = {
+        const methods: Dict = {
             'snapshot': this.handleOrderBook,
             'l2update': this.handleOrderBook,
             'subscribe': this.handleSubscriptionStatus,

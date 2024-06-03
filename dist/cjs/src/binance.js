@@ -239,6 +239,7 @@ class binance extends binance$1 {
                         'system/status': 0.1,
                         // these endpoints require this.apiKey
                         'accountSnapshot': 240,
+                        'account/info': 0.1,
                         'margin/asset': 1,
                         'margin/pair': 1,
                         'margin/allAssets': 0.1,
@@ -842,6 +843,7 @@ class binance extends binance$1 {
                         'order/asyn/id': 10,
                         'trade/asyn': 1000,
                         'trade/asyn/id': 10,
+                        'feeBurn': 1,
                     },
                     'post': {
                         'batchOrders': 5,
@@ -856,6 +858,7 @@ class binance extends binance$1 {
                         // broker endpoints
                         'apiReferral/customization': 1,
                         'apiReferral/userCustomization': 1,
+                        'feeBurn': 1,
                     },
                     'put': {
                         'listenKey': 1,
@@ -1221,6 +1224,7 @@ class binance extends binance$1 {
                     'future': 'UMFUTURE',
                     'delivery': 'CMFUTURE',
                     'linear': 'UMFUTURE',
+                    'swap': 'UMFUTURE',
                     'inverse': 'CMFUTURE',
                     'option': 'OPTION',
                 },
@@ -5983,6 +5987,17 @@ class binance extends binance$1 {
                 }
             }
         }
+        else {
+            postOnly = this.isPostOnly(isMarketOrder, initialUppercaseType === 'LIMIT_MAKER', params);
+            if (postOnly) {
+                if (!market['contract']) {
+                    uppercaseType = 'LIMIT_MAKER'; // only this endpoint accepts GTXhttps://binance-docs.github.io/apidocs/pm/en/#new-margin-order-trade
+                }
+                else {
+                    request['timeInForce'] = 'GTX';
+                }
+            }
+        }
         // handle newOrderRespType response type
         if (((marketType === 'spot') || (marketType === 'margin')) && !isPortfolioMargin) {
             request['newOrderRespType'] = this.safeString(this.options['newOrderRespType'], type, 'FULL'); // 'ACK' for order id, 'RESULT' for full order or 'FULL' for order with fills
@@ -6116,7 +6131,7 @@ class binance extends binance$1 {
                 request['stopPrice'] = this.priceToPrecision(symbol, stopPrice);
             }
         }
-        if (timeInForceIsRequired && (this.safeString(params, 'timeInForce') === undefined)) {
+        if (timeInForceIsRequired && (this.safeString(params, 'timeInForce') === undefined) && (this.safeString(request, 'timeInForce') === undefined)) {
             request['timeInForce'] = this.options['defaultTimeInForce']; // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
         }
         if (!isPortfolioMargin && market['contract'] && postOnly) {

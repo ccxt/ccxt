@@ -76,6 +76,9 @@ interface Exchange {
     publicGetFinanceStakingDefiEthApyHistory (params?: {}): Promise<implicitReturnType>;
     publicGetFinanceSavingsLendingRateSummary (params?: {}): Promise<implicitReturnType>;
     publicGetFinanceSavingsLendingRateHistory (params?: {}): Promise<implicitReturnType>;
+    publicGetFinanceFixedLoanLendingOffers (params?: {}): Promise<implicitReturnType>;
+    publicGetFinanceFixedLoanLendingApyHistory (params?: {}): Promise<implicitReturnType>;
+    publicGetFinanceFixedLoanPendingLendingVolume (params?: {}): Promise<implicitReturnType>;
     publicGetFinanceSfpDcdProducts (params?: {}): Promise<implicitReturnType>;
     publicGetCopytradingPublicLeadTraders (params?: {}): Promise<implicitReturnType>;
     publicGetCopytradingPublicWeeklyPnl (params?: {}): Promise<implicitReturnType>;

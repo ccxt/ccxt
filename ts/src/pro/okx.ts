@@ -5,7 +5,7 @@ import okxRest from '../okx.js';
 import { ArgumentsRequired, BadRequest, ExchangeError, InvalidNonce, AuthenticationError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide } from '../base/ws/Cache.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
-import type { Int, OrderSide, OrderType, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Position, Balances, Num, FundingRate, FundingRates } from '../base/types.js';
+import type { Int, OrderSide, OrderType, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Position, Balances, Num, FundingRate, FundingRates, Dict, Liquidation } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -22,6 +22,10 @@ export default class okx extends okxRest {
                 'watchTradesForSymbols': true,
                 'watchOrderBookForSymbols': true,
                 'watchBalance': true,
+                'watchLiquidations': 'emulated',
+                'watchLiquidationsForSymbols': true,
+                'watchMyLiquidations': 'emulated',
+                'watchMyLiquidationsForSymbols': true,
                 'watchOHLCV': true,
                 'watchOHLCVForSymbols': true,
                 'watchOrders': true,
@@ -130,13 +134,13 @@ export default class okx extends okxRest {
         messageHash += '::' + symbols.join (',');
         for (let i = 0; i < symbols.length; i++) {
             const marketId = this.marketId (symbols[i]);
-            const arg = {
+            const arg: Dict = {
                 'channel': channel,
                 'instId': marketId,
             };
             args.push (this.extend (arg, params));
         }
-        const request = {
+        const request: Dict = {
             'op': 'subscribe',
             'args': args,
         };
@@ -146,7 +150,7 @@ export default class okx extends okxRest {
     async subscribe (access, messageHash, channel, symbol, params = {}) {
         await this.loadMarkets ();
         const url = this.getUrl (channel, access);
-        const firstArgument = {
+        const firstArgument: Dict = {
             'channel': channel,
         };
         if (symbol !== undefined) {
@@ -154,7 +158,7 @@ export default class okx extends okxRest {
             messageHash += ':' + market['id'];
             firstArgument['instId'] = market['id'];
         }
-        const request = {
+        const request: Dict = {
             'op': 'subscribe',
             'args': [
                 this.deepExtend (firstArgument, params),
@@ -201,13 +205,13 @@ export default class okx extends okxRest {
             const symbol = symbols[i];
             messageHashes.push (channel + ':' + symbol);
             const marketId = this.marketId (symbol);
-            const topic = {
+            const topic: Dict = {
                 'channel': channel,
                 'instId': marketId,
             };
             topics.push (topic);
         }
-        const request = {
+        const request: Dict = {
             'op': 'subscribe',
             'args': topics,
         };
@@ -290,13 +294,13 @@ export default class okx extends okxRest {
             const symbol = symbols[i];
             messageHashes.push (channel + ':' + symbol);
             const marketId = this.marketId (symbol);
-            const topic = {
+            const topic: Dict = {
                 'channel': channel,
                 'instId': marketId,
             };
             topics.push (topic);
         }
-        const request = {
+        const request: Dict = {
             'op': 'subscribe',
             'args': topics,
         };
@@ -304,7 +308,7 @@ export default class okx extends okxRest {
         const fundingRate = await this.watchMultiple (url, messageHashes, request, messageHashes);
         if (this.newUpdates) {
             const symbol = this.safeString (fundingRate, 'symbol');
-            const result = {};
+            const result: Dict = {};
             result[symbol] = fundingRate;
             return result;
         }
@@ -434,6 +438,260 @@ export default class okx extends okxRest {
         return message;
     }
 
+    async watchLiquidationsForSymbols (symbols: string[] = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Liquidation[]> {
+        /**
+         * @method
+         * @name okx#watchLiquidationsForSymbols
+         * @description watch the public liquidations of a trading pair
+         * @see https://www.okx.com/docs-v5/en/#public-data-websocket-liquidation-orders-channel
+         * @param {string} symbol unified CCXT market symbol
+         * @param {int} [since] the earliest time in ms to fetch liquidations for
+         * @param {int} [limit] the maximum number of liquidation structures to retrieve
+         * @param {object} [params] exchange specific parameters for the okx api endpoint
+         * @returns {object} an array of [liquidation structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure}
+         */
+        await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols, undefined, true, true);
+        let messageHash = 'liquidations';
+        if (symbols !== undefined) {
+            messageHash += '::' + symbols.join (',');
+        }
+        const market = this.getMarketFromSymbols (symbols);
+        let type = undefined;
+        [ type, params ] = this.handleMarketTypeAndParams ('watchliquidationsForSymbols', market, params);
+        const channel = 'liquidation-orders';
+        if (type === 'spot') {
+            type = 'SWAP';
+        } else if (type === 'future') {
+            type = 'futures';
+        }
+        const uppercaseType = type.toUpperCase ();
+        const request = {
+            'instType': uppercaseType,
+        };
+        const newLiquidations = await this.subscribe ('public', messageHash, channel, undefined, this.extend (request, params));
+        if (this.newUpdates) {
+            return newLiquidations;
+        }
+        return this.filterBySymbolsSinceLimit (this.liquidations, symbols, since, limit, true);
+    }
+
+    handleLiquidation (client: Client, message) {
+        //
+        //    {
+        //        "arg": {
+        //            "channel": "liquidation-orders",
+        //            "instType": "SWAP"
+        //        },
+        //        "data": [
+        //            {
+        //                "details": [
+        //                    {
+        //                        "bkLoss": "0",
+        //                        "bkPx": "0.007831",
+        //                        "ccy": "",
+        //                        "posSide": "short",
+        //                        "side": "buy",
+        //                        "sz": "13",
+        //                        "ts": "1692266434010"
+        //                    }
+        //                ],
+        //                "instFamily": "IOST-USDT",
+        //                "instId": "IOST-USDT-SWAP",
+        //                "instType": "SWAP",
+        //                "uly": "IOST-USDT"
+        //            }
+        //        ]
+        //    }
+        //
+        const rawLiquidations = this.safeList (message, 'data', []);
+        for (let i = 0; i < rawLiquidations.length; i++) {
+            const rawLiquidation = rawLiquidations[i];
+            const liquidation = this.parseWsLiquidation (rawLiquidation);
+            const symbol = this.safeString (liquidation, 'symbol');
+            let liquidations = this.safeValue (this.liquidations, symbol);
+            if (liquidations === undefined) {
+                const limit = this.safeInteger (this.options, 'liquidationsLimit', 1000);
+                liquidations = new ArrayCache (limit);
+            }
+            liquidations.append (liquidation);
+            this.liquidations[symbol] = liquidations;
+            client.resolve ([ liquidation ], 'liquidations');
+            client.resolve ([ liquidation ], 'liquidations::' + symbol);
+        }
+    }
+
+    async watchMyLiquidationsForSymbols (symbols: string[] = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Liquidation[]> {
+        /**
+         * @method
+         * @name okx#watchMyLiquidationsForSymbols
+         * @description watch the private liquidations of a trading pair
+         * @see https://www.okx.com/docs-v5/en/#trading-account-websocket-balance-and-position-channel
+         * @param {string} symbol unified CCXT market symbol
+         * @param {int} [since] the earliest time in ms to fetch liquidations for
+         * @param {int} [limit] the maximum number of liquidation structures to retrieve
+         * @param {object} [params] exchange specific parameters for the okx api endpoint
+         * @returns {object} an array of [liquidation structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure}
+         */
+        await this.loadMarkets ();
+        const isStop = this.safeValue2 (params, 'stop', 'trigger', false);
+        params = this.omit (params, [ 'stop', 'trigger' ]);
+        await this.authenticate ({ 'access': isStop ? 'business' : 'private' });
+        symbols = this.marketSymbols (symbols, undefined, true, true);
+        let messageHash = 'myLiquidations';
+        if (symbols !== undefined) {
+            messageHash += '::' + symbols.join (',');
+        }
+        const channel = 'balance_and_position';
+        const newLiquidations = await this.subscribe ('private', messageHash, channel, undefined, params);
+        if (this.newUpdates) {
+            return newLiquidations;
+        }
+        return this.filterBySymbolsSinceLimit (this.liquidations, symbols, since, limit, true);
+    }
+
+    handleMyLiquidation (client: Client, message) {
+        //
+        //    {
+        //        "arg": {
+        //            "channel": "balance_and_position",
+        //            "uid": "77982378738415879"
+        //        },
+        //        "data": [{
+        //            "pTime": "1597026383085",
+        //            "eventType": "snapshot",
+        //            "balData": [{
+        //                "ccy": "BTC",
+        //                "cashBal": "1",
+        //                "uTime": "1597026383085"
+        //            }],
+        //            "posData": [{
+        //                "posId": "1111111111",
+        //                "tradeId": "2",
+        //                "instId": "BTC-USD-191018",
+        //                "instType": "FUTURES",
+        //                "mgnMode": "cross",
+        //                "posSide": "long",
+        //                "pos": "10",
+        //                "ccy": "BTC",
+        //                "posCcy": "",
+        //                "avgPx": "3320",
+        //                "uTIme": "1597026383085"
+        //            }],
+        //            "trades": [{
+        //                "instId": "BTC-USD-191018",
+        //                "tradeId": "2",
+        //            }]
+        //        }]
+        //    }
+        //
+        const rawLiquidations = this.safeList (message, 'data', []);
+        for (let i = 0; i < rawLiquidations.length; i++) {
+            const rawLiquidation = rawLiquidations[i];
+            const eventType = this.safeString (rawLiquidation, 'eventType');
+            if (eventType !== 'liquidation') {
+                return;
+            }
+            const liquidation = this.parseWsMyLiquidation (rawLiquidation);
+            const symbol = this.safeString (liquidation, 'symbol');
+            let liquidations = this.safeValue (this.liquidations, symbol);
+            if (liquidations === undefined) {
+                const limit = this.safeInteger (this.options, 'myLiquidationsLimit', 1000);
+                liquidations = new ArrayCache (limit);
+            }
+            liquidations.append (liquidation);
+            this.liquidations[symbol] = liquidations;
+            client.resolve ([ liquidation ], 'myLiquidations');
+            client.resolve ([ liquidation ], 'myLiquidations::' + symbol);
+        }
+    }
+
+    parseWsMyLiquidation (liquidation, market = undefined) {
+        //
+        //    {
+        //        "pTime": "1597026383085",
+        //        "eventType": "snapshot",
+        //        "balData": [{
+        //            "ccy": "BTC",
+        //            "cashBal": "1",
+        //            "uTime": "1597026383085"
+        //        }],
+        //        "posData": [{
+        //            "posId": "1111111111",
+        //            "tradeId": "2",
+        //            "instId": "BTC-USD-191018",
+        //            "instType": "FUTURES",
+        //            "mgnMode": "cross",
+        //            "posSide": "long",
+        //            "pos": "10",
+        //            "ccy": "BTC",
+        //            "posCcy": "",
+        //            "avgPx": "3320",
+        //            "uTIme": "1597026383085"
+        //        }],
+        //        "trades": [{
+        //            "instId": "BTC-USD-191018",
+        //            "tradeId": "2",
+        //        }]
+        //    }
+        //
+        const posData = this.safeList (liquidation, 'posData', []);
+        const firstPosData = this.safeDict (posData, 0, {});
+        const marketId = this.safeString (firstPosData, 'instId');
+        market = this.safeMarket (marketId, market);
+        const timestamp = this.safeInteger (firstPosData, 'uTIme');
+        return this.safeLiquidation ({
+            'info': liquidation,
+            'symbol': this.safeSymbol (marketId, market),
+            'contracts': this.safeNumber (firstPosData, 'pos'),
+            'contractSize': this.safeNumber (market, 'contractSize'),
+            'price': this.safeNumber (liquidation, 'avgPx'),
+            'baseValue': undefined,
+            'quoteValue': undefined,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+        });
+    }
+
+    parseWsLiquidation (liquidation, market = undefined) {
+        //
+        // public liquidation
+        //    {
+        //        "details": [
+        //            {
+        //                "bkLoss": "0",
+        //                "bkPx": "0.007831",
+        //                "ccy": "",
+        //                "posSide": "short",
+        //                "side": "buy",
+        //                "sz": "13",
+        //                "ts": "1692266434010"
+        //            }
+        //        ],
+        //        "instFamily": "IOST-USDT",
+        //        "instId": "IOST-USDT-SWAP",
+        //        "instType": "SWAP",
+        //        "uly": "IOST-USDT"
+        //    }
+        //
+        const details = this.safeList (liquidation, 'details', []);
+        const liquidationDetails = this.safeDict (details, 0, {});
+        const marketId = this.safeString (liquidation, 'instId');
+        market = this.safeMarket (marketId, market);
+        const timestamp = this.safeInteger (liquidationDetails, 'ts');
+        return this.safeLiquidation ({
+            'info': liquidation,
+            'symbol': this.safeSymbol (marketId, market),
+            'contracts': this.safeNumber (liquidationDetails, 'sz'),
+            'contractSize': this.safeNumber (market, 'contractSize'),
+            'price': this.safeNumber (liquidationDetails, 'bkPx'),
+            'baseValue': undefined,
+            'quoteValue': undefined,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+        });
+    }
+
     async watchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         /**
          * @method
@@ -482,14 +740,14 @@ export default class okx extends okxRest {
             const marketId = this.marketId (sym);
             const interval = this.safeString (this.timeframes, tf, tf);
             const channel = 'candle' + interval;
-            const topic = {
+            const topic: Dict = {
                 'channel': channel,
                 'instId': marketId,
             };
             topics.push (topic);
             messageHashes.push ('multi:' + channel + ':' + sym);
         }
-        const request = {
+        const request: Dict = {
             'op': 'subscribe',
             'args': topics,
         };
@@ -625,13 +883,13 @@ export default class okx extends okxRest {
             const symbol = symbols[i];
             messageHashes.push (depth + ':' + symbol);
             const marketId = this.marketId (symbol);
-            const topic = {
+            const topic: Dict = {
                 'channel': depth,
                 'instId': marketId,
             };
             topics.push (topic);
         }
-        const request = {
+        const request: Dict = {
             'op': 'subscribe',
             'args': topics,
         };
@@ -809,7 +1067,7 @@ export default class okx extends okxRest {
         const marketId = this.safeString (arg, 'instId');
         const market = this.safeMarket (marketId);
         const symbol = market['symbol'];
-        const depths = {
+        const depths: Dict = {
             'bbo-tbt': 1,
             'books': 400,
             'books5': 5,
@@ -837,11 +1095,10 @@ export default class okx extends okxRest {
                 }
             }
         } else if ((channel === 'books5') || (channel === 'bbo-tbt')) {
-            let orderbook = this.safeValue (this.orderbooks, symbol);
-            if (orderbook === undefined) {
-                orderbook = this.orderBook ({}, limit);
+            if (!(symbol in this.orderbooks)) {
+                this.orderbooks[symbol] = this.orderBook ({}, limit);
             }
-            this.orderbooks[symbol] = orderbook;
+            const orderbook = this.orderbooks[symbol];
             for (let i = 0; i < data.length; i++) {
                 const update = data[i];
                 const timestamp = this.safeInteger (update, 'ts');
@@ -869,7 +1126,7 @@ export default class okx extends okxRest {
             const auth = timestamp + method + path;
             const signature = this.hmac (this.encode (auth), this.encode (this.secret), sha256, 'base64');
             const operation = 'login';
-            const request = {
+            const request: Dict = {
                 'op': operation,
                 'args': [
                     {
@@ -897,6 +1154,10 @@ export default class okx extends okxRest {
         await this.loadMarkets ();
         await this.authenticate ();
         return await this.subscribe ('private', 'account', 'account', undefined, params);
+    }
+
+    handleBalanceAndPosition (client: Client, message) {
+        this.handleMyLiquidation (client, message);
     }
 
     handleBalance (client: Client, message) {
@@ -1020,7 +1281,7 @@ export default class okx extends okxRest {
                 uppercaseType = 'MARGIN';
             }
         }
-        const request = {
+        const request: Dict = {
             'instType': uppercaseType,
         };
         const orders = await this.subscribe ('private', messageHash, channel, undefined, this.extend (request, params));
@@ -1043,18 +1304,18 @@ export default class okx extends okxRest {
         await this.loadMarkets ();
         await this.authenticate (params);
         symbols = this.marketSymbols (symbols);
-        const request = {
+        const request: Dict = {
             'instType': 'ANY',
         };
         const channel = 'positions';
         let newPositions = undefined;
         if (symbols === undefined) {
-            const arg = {
+            const arg: Dict = {
                 'channel': 'positions',
                 'instType': 'ANY',
             };
             const args = [ arg ];
-            const nonSymbolRequest = {
+            const nonSymbolRequest: Dict = {
                 'op': 'subscribe',
                 'args': args,
             };
@@ -1203,7 +1464,7 @@ export default class okx extends okxRest {
                 uppercaseType = 'MARGIN';
             }
         }
-        const request = {
+        const request: Dict = {
             'instType': uppercaseType,
         };
         const channel = isStop ? 'orders-algo' : 'orders';
@@ -1375,7 +1636,7 @@ export default class okx extends okxRest {
             this.myTrades = new ArrayCacheBySymbolById (limit);
         }
         const myTrades = this.myTrades;
-        const symbols = {};
+        const symbols: Dict = {};
         for (let i = 0; i < filteredOrders.length; i++) {
             const rawTrade = filteredOrders[i];
             const trade = this.orderToTrade (rawTrade);
@@ -1421,7 +1682,7 @@ export default class okx extends okxRest {
         if ((op !== 'order') && (op !== 'batch-orders')) {
             throw new BadRequest (this.id + ' createOrderWs() does not support algo trading. this.options["createOrderWs"]["op"] must be either order or privatePostTradeOrder or privatePostTradeOrderAlgo');
         }
-        const request = {
+        const request: Dict = {
             'id': messageHash,
             'op': op,
             'args': [ args ],
@@ -1486,7 +1747,7 @@ export default class okx extends okxRest {
         let op = undefined;
         [ op, params ] = this.handleOptionAndParams (params, 'editOrderWs', 'op', 'amend-order');
         const args = this.editOrderRequest (id, symbol, type, side, amount, price, params);
-        const request = {
+        const request: Dict = {
             'id': messageHash,
             'op': op,
             'args': [ args ],
@@ -1515,7 +1776,7 @@ export default class okx extends okxRest {
         const messageHash = this.nonce ().toString ();
         const clientOrderId = this.safeString2 (params, 'clOrdId', 'clientOrderId');
         params = this.omit (params, [ 'clientOrderId', 'clOrdId' ]);
-        const arg = {
+        const arg: Dict = {
             'instId': this.marketId (symbol),
         };
         if (clientOrderId !== undefined) {
@@ -1523,7 +1784,7 @@ export default class okx extends okxRest {
         } else {
             arg['ordId'] = id;
         }
-        const request = {
+        const request: Dict = {
             'id': messageHash,
             'op': 'cancel-order',
             'args': [ this.extend (arg, params) ],
@@ -1555,13 +1816,13 @@ export default class okx extends okxRest {
         const messageHash = this.nonce ().toString ();
         const args = [];
         for (let i = 0; i < idsLength; i++) {
-            const arg = {
+            const arg: Dict = {
                 'instId': this.marketId (symbol),
                 'ordId': ids[i],
             };
             args.push (arg);
         }
-        const request = {
+        const request: Dict = {
             'id': messageHash,
             'op': 'batch-cancel-orders',
             'args': args,
@@ -1590,7 +1851,7 @@ export default class okx extends okxRest {
         }
         const url = this.getUrl ('private', 'private');
         const messageHash = this.nonce ().toString ();
-        const request = {
+        const request: Dict = {
             'id': messageHash,
             'op': 'mass-cancel',
             'args': [ this.extend ({
@@ -1722,7 +1983,7 @@ export default class okx extends okxRest {
         // if (table === undefined) {
         const event = this.safeString2 (message, 'event', 'op');
         if (event !== undefined) {
-            const methods = {
+            const methods: Dict = {
                 // 'info': this.handleSystemStatus,
                 // 'book': 'handleOrderBook',
                 'login': this.handleAuthenticate,
@@ -1741,7 +2002,7 @@ export default class okx extends okxRest {
         } else {
             const arg = this.safeValue (message, 'arg', {});
             const channel = this.safeString (arg, 'channel');
-            const methods = {
+            const methods: Dict = {
                 'bbo-tbt': this.handleOrderBook, // newly added channel that sends tick-by-tick Level 1 data, all API users can subscribe, public depth channel, verification not required
                 'books': this.handleOrderBook, // all API users can subscribe, public depth channel, verification not required
                 'books5': this.handleOrderBook, // all API users can subscribe, public depth channel, verification not required, data feeds will be delivered every 100ms (vs. every 200ms now)
@@ -1758,6 +2019,8 @@ export default class okx extends okxRest {
                 // 'margin_account': this.handleBalance,
                 'orders': this.handleOrders,
                 'orders-algo': this.handleOrders,
+                'liquidation-orders': this.handleLiquidation,
+                'balance_and_position': this.handleBalanceAndPosition,
             };
             const method = this.safeValue (methods, channel);
             if (method === undefined) {

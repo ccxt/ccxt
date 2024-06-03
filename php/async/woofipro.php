@@ -400,7 +400,7 @@ class woofipro extends Exchange {
         }) ();
     }
 
-    public function parse_market($market): array {
+    public function parse_market(array $market): array {
         //
         //   {
         //     "symbol" => "PERP_BTC_USDC",
@@ -650,7 +650,7 @@ class woofipro extends Exchange {
         return $fee;
     }
 
-    public function parse_trade($trade, ?array $market = null): array {
+    public function parse_trade(array $trade, ?array $market = null): array {
         //
         // public/market_trades
         //
@@ -1090,7 +1090,7 @@ class woofipro extends Exchange {
         }) ();
     }
 
-    public function parse_order($order, ?array $market = null): array {
+    public function parse_order(array $order, ?array $market = null): array {
         //
         // Possible input functions:
         // * createOrder
@@ -1207,7 +1207,7 @@ class woofipro extends Exchange {
         ), $market);
     }
 
-    public function parse_time_in_force($timeInForce) {
+    public function parse_time_in_force(?string $timeInForce) {
         $timeInForces = array(
             'ioc' => 'IOC',
             'fok' => 'FOK',
@@ -1216,7 +1216,7 @@ class woofipro extends Exchange {
         return $this->safe_string($timeInForces, $timeInForce, null);
     }
 
-    public function parse_order_status($status) {
+    public function parse_order_status(?string $status) {
         if ($status !== null) {
             $statuses = array(
                 'NEW' => 'open',
@@ -1234,7 +1234,7 @@ class woofipro extends Exchange {
         return $status;
     }
 
-    public function parse_order_type($type) {
+    public function parse_order_type(?string $type) {
         $types = array(
             'LIMIT' => 'limit',
             'MARKET' => 'market',
@@ -2123,7 +2123,7 @@ class woofipro extends Exchange {
         }) ();
     }
 
-    public function parse_ledger_entry($item, ?array $currency = null) {
+    public function parse_ledger_entry(array $item, ?array $currency = null) {
         $code = $this->safe_string($item, 'token');
         $amount = $this->safe_number($item, 'amount');
         $side = $this->safe_string($item, 'token_side');
@@ -2173,7 +2173,7 @@ class woofipro extends Exchange {
         }) ();
     }
 
-    public function parse_transaction($transaction, ?array $currency = null): array {
+    public function parse_transaction(array $transaction, ?array $currency = null): array {
         // example in fetchLedger
         $code = $this->safe_string($transaction, 'token');
         $movementDirection = $this->safe_string_lower($transaction, 'token_side');
@@ -2208,7 +2208,7 @@ class woofipro extends Exchange {
         );
     }
 
-    public function parse_transaction_status($status) {
+    public function parse_transaction_status(?string $status) {
         $statuses = array(
             'NEW' => 'pending',
             'CONFIRMING' => 'pending',
@@ -2306,8 +2306,10 @@ class woofipro extends Exchange {
 
     public function sign_hash($hash, $privateKey) {
         $signature = $this->ecdsa(mb_substr($hash, -64), mb_substr($privateKey, -64), 'secp256k1', null);
+        $r = $signature['r'];
+        $s = $signature['s'];
         $v = $this->int_to_base16($this->sum(27, $signature['v']));
-        return '0x' . $signature['r'].padStart (64, '0') . $signature['s'].padStart (64, '0') . $v;
+        return '0x' . str_pad($r, 64, '0', STR_PAD_LEFT) . str_pad($s, 64, '0', STR_PAD_LEFT) . $v;
     }
 
     public function sign_message($message, $privateKey) {
@@ -2470,7 +2472,7 @@ class woofipro extends Exchange {
         }) ();
     }
 
-    public function parse_position($position, ?array $market = null) {
+    public function parse_position(array $position, ?array $market = null) {
         //
         // {
         //     "IMR_withdraw_orders" => 0.1,
@@ -2711,7 +2713,7 @@ class woofipro extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors($httpCode, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
         if (!$response) {
             return null; // fallback to default error handler
         }

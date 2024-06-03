@@ -5,7 +5,7 @@ import cryptocomRest from '../cryptocom.js';
 import { AuthenticationError, InvalidNonce, NetworkError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide } from '../base/ws/Cache.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
-import type { Int, OrderSide, OrderType, Str, Strings, OrderBook, Order, Trade, Ticker, OHLCV, Position, Balances, Num } from '../base/types.js';
+import type { Int, OrderSide, OrderType, Str, Strings, OrderBook, Order, Trade, Ticker, OHLCV, Position, Balances, Num, Dict } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -135,7 +135,7 @@ export default class cryptocom extends cryptocomRest {
         const price = this.safeFloat (delta, 0);
         const amount = this.safeFloat (delta, 1);
         const count = this.safeInteger (delta, 2);
-        bookside.store (price, amount, count);
+        bookside.storeArray ([ price, amount, count ]);
     }
 
     handleDeltas (bookside, deltas) {
@@ -206,11 +206,11 @@ export default class cryptocom extends cryptocomRest {
         let data = this.safeValue (message, 'data');
         data = this.safeValue (data, 0);
         const timestamp = this.safeInteger (data, 't');
-        let orderbook = this.safeValue (this.orderbooks, symbol);
-        if (orderbook === undefined) {
+        if (!(symbol in this.orderbooks)) {
             const limit = this.safeInteger (message, 'depth');
-            orderbook = this.countedOrderBook ({}, limit);
+            this.orderbooks[symbol] = this.countedOrderBook ({}, limit);
         }
+        const orderbook = this.orderbooks[symbol];
         const channel = this.safeString (message, 'channel');
         const nonce = this.safeInteger2 (data, 'u', 's');
         let books = data;
@@ -559,7 +559,7 @@ export default class cryptocom extends cryptocomRest {
         await this.authenticate ();
         const url = this.urls['api']['ws']['private'];
         const id = this.nonce ();
-        const request = {
+        const request: Dict = {
             'method': 'subscribe',
             'params': {
                 'channels': [ 'user.position_balance' ],
@@ -765,7 +765,7 @@ export default class cryptocom extends cryptocomRest {
          */
         await this.loadMarkets ();
         params = this.createOrderRequest (symbol, type, side, amount, price, params);
-        const request = {
+        const request: Dict = {
             'method': 'private/create-order',
             'params': params,
         };
@@ -806,7 +806,7 @@ export default class cryptocom extends cryptocomRest {
         params = this.extend ({
             'order_id': id,
         }, params);
-        const request = {
+        const request: Dict = {
             'method': 'private/cancel-order',
             'params': params,
         };
@@ -826,7 +826,7 @@ export default class cryptocom extends cryptocomRest {
          */
         await this.loadMarkets ();
         let market = undefined;
-        const request = {
+        const request: Dict = {
             'method': 'private/cancel-all-orders',
             'params': this.extend ({}, params),
         };
@@ -853,7 +853,7 @@ export default class cryptocom extends cryptocomRest {
     async watchPublic (messageHash, params = {}) {
         const url = this.urls['api']['ws']['public'];
         const id = this.nonce ();
-        const request = {
+        const request: Dict = {
             'method': 'subscribe',
             'params': {
                 'channels': [ messageHash ],
@@ -867,7 +867,7 @@ export default class cryptocom extends cryptocomRest {
     async watchPublicMultiple (messageHashes, topics, params = {}) {
         const url = this.urls['api']['ws']['public'];
         const id = this.nonce ();
-        const request = {
+        const request: Dict = {
             'method': 'subscribe',
             'params': {
                 'channels': topics,
@@ -881,7 +881,7 @@ export default class cryptocom extends cryptocomRest {
     async watchPrivateRequest (nonce, params = {}) {
         await this.authenticate ();
         const url = this.urls['api']['ws']['private'];
-        const request = {
+        const request: Dict = {
             'id': nonce,
             'nonce': nonce,
         };
@@ -893,7 +893,7 @@ export default class cryptocom extends cryptocomRest {
         await this.authenticate ();
         const url = this.urls['api']['ws']['private'];
         const id = this.nonce ();
-        const request = {
+        const request: Dict = {
             'method': 'subscribe',
             'params': {
                 'channels': [ messageHash ],
@@ -939,7 +939,7 @@ export default class cryptocom extends cryptocomRest {
     }
 
     handleSubscribe (client: Client, message) {
-        const methods = {
+        const methods: Dict = {
             'candlestick': this.handleOHLCV,
             'ticker': this.handleTicker,
             'trade': this.handleTrades,
@@ -1001,7 +1001,7 @@ export default class cryptocom extends cryptocomRest {
             return;
         }
         const method = this.safeString (message, 'method');
-        const methods = {
+        const methods: Dict = {
             '': this.handlePing,
             'public/heartbeat': this.handlePing,
             'public/auth': this.handleAuthenticate,
@@ -1029,7 +1029,7 @@ export default class cryptocom extends cryptocomRest {
             const nonce = this.nonce ().toString ();
             const auth = method + nonce + this.apiKey + nonce;
             const signature = this.hmac (this.encode (auth), this.encode (this.secret), sha256);
-            const request = {
+            const request: Dict = {
                 'id': nonce,
                 'nonce': nonce,
                 'method': method,

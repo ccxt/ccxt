@@ -297,7 +297,7 @@ class yobit(Exchange, ImplicitAPI):
     def parse_balance(self, response) -> Balances:
         balances = self.safe_dict(response, 'return', {})
         timestamp = self.safe_integer(balances, 'server_time')
-        result = {
+        result: dict = {
             'info': response,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
@@ -455,7 +455,7 @@ class yobit(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'pair': market['id'],
         }
         if limit is not None:
@@ -487,14 +487,14 @@ class yobit(Exchange, ImplicitAPI):
         else:
             ids = self.market_ids(symbols)
             ids = '-'.join(ids)
-        request = {
+        request: dict = {
             'pair': ids,
             # 'ignore_invalid': True,
         }
         if limit is not None:
             request['limit'] = limit
         response = self.publicGetDepthPair(self.extend(request, params))
-        result = {}
+        result: dict = {}
         ids = list(response.keys())
         for i in range(0, len(ids)):
             id = ids[i]
@@ -566,11 +566,11 @@ class yobit(Exchange, ImplicitAPI):
         actualLength = len(idsString) + lenghtOfBaseUrl
         if actualLength > maxLength:
             raise ArgumentsRequired(self.id + ' fetchTickers() is being requested for ' + str(idsLength) + ' markets(which has an URL length of ' + str(actualLength) + ' characters), but it exceedes max URL length(' + str(maxLength) + '), please pass limisted symbols array to fetchTickers to fit in one request')
-        request = {
+        request: dict = {
             'pair': idsString,
         }
         tickers = self.publicGetTickerPair(self.extend(request, params))
-        result = {}
+        result: dict = {}
         keys = list(tickers.keys())
         for k in range(0, len(keys)):
             id = keys[k]
@@ -591,7 +591,7 @@ class yobit(Exchange, ImplicitAPI):
         tickers = self.fetch_tickers([symbol], params)
         return tickers[symbol]
 
-    def parse_trade(self, trade, market: Market = None) -> Trade:
+    def parse_trade(self, trade: dict, market: Market = None) -> Trade:
         #
         # fetchTrades(public)
         #
@@ -677,7 +677,7 @@ class yobit(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'pair': market['id'],
         }
         if limit is not None:
@@ -733,7 +733,7 @@ class yobit(Exchange, ImplicitAPI):
         #
         pairs = self.safe_dict(response, 'pairs', {})
         marketIds = list(pairs.keys())
-        result = {}
+        result: dict = {}
         for i in range(0, len(marketIds)):
             marketId = marketIds[i]
             pair = self.safe_dict(pairs, marketId, {})
@@ -768,7 +768,7 @@ class yobit(Exchange, ImplicitAPI):
             raise ExchangeError(self.id + ' createOrder() allows limit orders only')
         self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'pair': market['id'],
             'type': side,
             'amount': self.amount_to_precision(symbol, amount),
@@ -809,7 +809,7 @@ class yobit(Exchange, ImplicitAPI):
         :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
-        request = {
+        request: dict = {
             'order_id': int(id),
         }
         response = self.privatePostCancelOrder(self.extend(request, params))
@@ -835,8 +835,8 @@ class yobit(Exchange, ImplicitAPI):
         result = self.safe_dict(response, 'return', {})
         return self.parse_order(result)
 
-    def parse_order_status(self, status):
-        statuses = {
+    def parse_order_status(self, status: Str):
+        statuses: dict = {
             '0': 'open',
             '1': 'closed',
             '2': 'canceled',
@@ -844,7 +844,7 @@ class yobit(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_order(self, order, market: Market = None) -> Order:
+    def parse_order(self, order: dict, market: Market = None) -> Order:
         #
         # createOrder(private)
         #
@@ -955,7 +955,7 @@ class yobit(Exchange, ImplicitAPI):
         :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
-        request = {
+        request: dict = {
             'order_id': int(id),
         }
         response = self.privatePostOrderInfo(self.extend(request, params))
@@ -992,7 +992,7 @@ class yobit(Exchange, ImplicitAPI):
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchOpenOrders() requires a symbol argument')
         self.load_markets()
-        request = {}
+        request: dict = {}
         market = None
         if symbol is not None:
             marketInner = self.market(symbol)
@@ -1039,7 +1039,7 @@ class yobit(Exchange, ImplicitAPI):
         self.load_markets()
         market = self.market(symbol)
         # some derived classes use camelcase notation for request fields
-        request = {
+        request: dict = {
             # 'from': 123456789,  # trade ID, from which the display starts numerical 0(test result: liqui ignores self field)
             # 'count': 1000,  # the number of trades for display numerical, default = 1000
             # 'from_id': trade ID, from which the display starts numerical 0
@@ -1089,7 +1089,7 @@ class yobit(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `address structure <https://docs.ccxt.com/#/?id=address-structure>`
         """
-        request = {
+        request: dict = {
             'need_new': 1,
         }
         response = self.fetch_deposit_address(code, self.extend(request, params))
@@ -1120,7 +1120,7 @@ class yobit(Exchange, ImplicitAPI):
             if network != 'ERC20':
                 currencyId = currencyId + network.lower()
             params = self.omit(params, 'network')
-        request = {
+        request: dict = {
             'coinName': currencyId,
             'need_new': 0,
         }
@@ -1168,7 +1168,7 @@ class yobit(Exchange, ImplicitAPI):
         self.check_address(address)
         self.load_markets()
         currency = self.currency(code)
-        request = {
+        request: dict = {
             'coinName': currency['id'],
             'amount': amount,
             'address': address,
@@ -1236,7 +1236,7 @@ class yobit(Exchange, ImplicitAPI):
                     }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody):
+    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response, requestHeaders, requestBody):
         if response is None:
             return None  # fallback to default error handler
         if 'success' in response:

@@ -6,7 +6,7 @@ import { ExchangeError, ExchangeNotAvailable, AuthenticationError, BadRequest, P
 import { Precise } from './base/Precise.js';
 import { DECIMAL_PLACES, SIGNIFICANT_DIGITS, TRUNCATE } from './base/functions/number.js';
 import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
-import type { Balances, Currency, Dict, Int, Market, MarketInterface, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
+import type { Balances, Currency, Dict, Int, Market, MarketInterface, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, int } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -214,7 +214,7 @@ export default class bithumb extends Exchange {
             const quote = quotes[i];
             const quoteId = quote;
             const extension = this.safeValue (quoteCurrencies, quote, {});
-            const request = {
+            const request: Dict = {
                 'quoteId': quoteId,
             };
             const response = await this.publicGetTickerALLQuoteId (this.extend (request, params));
@@ -287,7 +287,7 @@ export default class bithumb extends Exchange {
     }
 
     parseBalance (response): Balances {
-        const result = { 'info': response };
+        const result: Dict = { 'info': response };
         const balances = this.safeValue (response, 'data');
         const codes = Object.keys (this.currencies);
         for (let i = 0; i < codes.length; i++) {
@@ -313,7 +313,7 @@ export default class bithumb extends Exchange {
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
          */
         await this.loadMarkets ();
-        const request = {
+        const request: Dict = {
             'currency': 'ALL',
         };
         const response = await this.privatePostInfoBalance (this.extend (request, params));
@@ -333,7 +333,7 @@ export default class bithumb extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'baseId': market['baseId'],
             'quoteId': market['quoteId'],
         };
@@ -426,13 +426,13 @@ export default class bithumb extends Exchange {
          * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets ();
-        const result = {};
+        const result: Dict = {};
         const quoteCurrencies = this.safeValue (this.options, 'quoteCurrencies', {});
         const quotes = Object.keys (quoteCurrencies);
         for (let i = 0; i < quotes.length; i++) {
             const quote = quotes[i];
             const quoteId = quote;
-            const request = {
+            const request: Dict = {
                 'quoteId': quoteId,
             };
             const response = await this.publicGetTickerALLQuoteId (this.extend (request, params));
@@ -486,7 +486,7 @@ export default class bithumb extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'baseId': market['baseId'],
             'quoteId': market['quoteId'],
         };
@@ -550,7 +550,7 @@ export default class bithumb extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'baseId': market['baseId'],
             'quoteId': market['quoteId'],
             'interval': this.safeString (this.timeframes, timeframe, timeframe),
@@ -583,7 +583,7 @@ export default class bithumb extends Exchange {
         return this.parseOHLCVs (data, market, timeframe, since, limit);
     }
 
-    parseTrade (trade, market: Market = undefined): Trade {
+    parseTrade (trade: Dict, market: Market = undefined): Trade {
         //
         // fetchTrades (public)
         //
@@ -675,7 +675,7 @@ export default class bithumb extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'baseId': market['baseId'],
             'quoteId': market['quoteId'],
         };
@@ -719,7 +719,7 @@ export default class bithumb extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'order_currency': market['id'],
             'payment_currency': market['quote'],
             'units': amount,
@@ -760,7 +760,7 @@ export default class bithumb extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'order_id': id,
             'count': 1,
             'order_currency': market['base'],
@@ -798,8 +798,8 @@ export default class bithumb extends Exchange {
         return this.parseOrder (this.extend (data, { 'order_id': id }), market);
     }
 
-    parseOrderStatus (status) {
-        const statuses = {
+    parseOrderStatus (status: Str) {
+        const statuses: Dict = {
             'Pending': 'open',
             'Completed': 'closed',
             'Cancel': 'canceled',
@@ -807,7 +807,7 @@ export default class bithumb extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseOrder (order, market: Market = undefined): Order {
+    parseOrder (order: Dict, market: Market = undefined): Order {
         //
         //
         // fetchOrder
@@ -926,7 +926,7 @@ export default class bithumb extends Exchange {
         if (limit === undefined) {
             limit = 100;
         }
-        const request = {
+        const request: Dict = {
             'count': limit,
             'order_currency': market['base'],
             'payment_currency': market['quote'],
@@ -978,7 +978,7 @@ export default class bithumb extends Exchange {
         const side = (params['side'] === 'buy') ? 'bid' : 'ask';
         params = this.omit (params, [ 'side', 'currency' ]);
         // https://github.com/ccxt/ccxt/issues/6771
-        const request = {
+        const request: Dict = {
             'order_id': id,
             'type': side,
             'order_currency': market['base'],
@@ -988,7 +988,7 @@ export default class bithumb extends Exchange {
     }
 
     async cancelUnifiedOrder (order, params = {}) {
-        const request = {
+        const request: Dict = {
             'side': order['side'],
         };
         return await this.cancelOrder (order['id'], order['symbol'], this.extend (request, params));
@@ -1011,7 +1011,7 @@ export default class bithumb extends Exchange {
         this.checkAddress (address);
         await this.loadMarkets ();
         const currency = this.currency (code);
-        const request = {
+        const request: Dict = {
             'units': amount,
             'address': address,
             'currency': currency['id'],
@@ -1031,7 +1031,7 @@ export default class bithumb extends Exchange {
         return this.parseTransaction (response, currency);
     }
 
-    parseTransaction (transaction, currency: Currency = undefined): Transaction {
+    parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {
         //
         // withdraw
         //
@@ -1106,7 +1106,7 @@ export default class bithumb extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    handleErrors (httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+    handleErrors (httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response, requestHeaders, requestBody) {
         if (response === undefined) {
             return undefined; // fallback to default error handler
         }

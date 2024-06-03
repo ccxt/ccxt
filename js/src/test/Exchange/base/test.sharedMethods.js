@@ -275,6 +275,7 @@ function assertFeeStructure(exchange, skippedProperties, method, entry, key) {
     const logText = logTemplate(exchange, method, entry);
     const keyString = stringValue(key);
     if (Number.isInteger(key)) {
+        key = key;
         assert(Array.isArray(entry), 'fee container is expected to be an array' + logText);
         assert(key < entry.length, 'fee key ' + keyString + ' was expected to be present in entry' + logText);
     }

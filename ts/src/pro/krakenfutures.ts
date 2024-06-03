@@ -6,7 +6,7 @@ import { ArrayCache, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 import { Precise } from '../base/Precise.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
 import { sha512 } from '../static_dependencies/noble-hashes/sha512.js';
-import type { Int, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, Position, Balances } from '../base/types.js';
+import type { Int, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, Position, Balances, Dict } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -81,7 +81,7 @@ export default class krakenfutures extends krakenfuturesRest {
         const client = this.client (url);
         let future = this.safeValue (client.subscriptions, messageHash);
         if (future === undefined) {
-            const request = {
+            const request: Dict = {
                 'event': 'challenge',
                 'api_key': this.apiKey,
             };
@@ -119,7 +119,7 @@ export default class krakenfutures extends krakenfuturesRest {
          */
         await this.loadMarkets ();
         const url = this.urls['api']['ws'];
-        const subscribe = {
+        const subscribe: Dict = {
             'event': 'subscribe',
             'feed': name,
         };
@@ -155,7 +155,7 @@ export default class krakenfutures extends krakenfuturesRest {
         await this.loadMarkets ();
         await this.authenticate ();
         const url = this.urls['api']['ws'];
-        const subscribe = {
+        const subscribe: Dict = {
             'event': 'subscribe',
             'feed': name,
             'api_key': this.apiKey,
@@ -196,7 +196,7 @@ export default class krakenfutures extends krakenfuturesRest {
         symbols = this.marketSymbols (symbols, undefined, false);
         const ticker = await this.watchMultiHelper ('ticker', 'ticker', symbols, undefined, params);
         if (this.newUpdates) {
-            const result = {};
+            const result: Dict = {};
             result[ticker['symbol']] = ticker;
             return result;
         }
@@ -215,7 +215,7 @@ export default class krakenfutures extends krakenfuturesRest {
          */
         const ticker = await this.watchMultiHelper ('bidask', 'ticker_lite', symbols, undefined, params);
         if (this.newUpdates) {
-            const result = {};
+            const result: Dict = {};
             result[ticker['symbol']] = ticker;
             return result;
         }
@@ -840,7 +840,7 @@ export default class krakenfutures extends krakenfuturesRest {
         const orders = this.safeValue (message, 'orders', []);
         const limit = this.safeInteger (this.options, 'ordersLimit');
         this.orders = new ArrayCacheBySymbolById (limit);
-        const symbols = {};
+        const symbols: Dict = {};
         const cachedOrders = this.orders;
         for (let i = 0; i < orders.length; i++) {
             const order = orders[i];
@@ -1336,7 +1336,7 @@ export default class krakenfutures extends krakenfuturesRest {
         const timestamp = this.safeInteger (message, 'timestamp');
         if (holding !== undefined) {
             const holdingKeys = Object.keys (holding);                  // cashAccount
-            const holdingResult = {
+            const holdingResult: Dict = {
                 'info': message,
                 'timestamp': timestamp,
                 'datetime': this.iso8601 (timestamp),
@@ -1354,7 +1354,7 @@ export default class krakenfutures extends krakenfuturesRest {
         }
         if (futures !== undefined) {
             const futuresKeys = Object.keys (futures);                  // marginAccount
-            const futuresResult = {
+            const futuresResult: Dict = {
                 'info': message,
                 'timestamp': timestamp,
                 'datetime': this.iso8601 (timestamp),
@@ -1379,7 +1379,7 @@ export default class krakenfutures extends krakenfuturesRest {
         if (flexFutures !== undefined) {
             const flexFutureCurrencies = this.safeValue (flexFutures, 'currencies', {});
             const flexFuturesKeys = Object.keys (flexFutureCurrencies); // multi-collateral margin account
-            const flexFuturesResult = {
+            const flexFuturesResult: Dict = {
                 'info': message,
                 'timestamp': timestamp,
                 'datetime': this.iso8601 (timestamp),
@@ -1434,7 +1434,7 @@ export default class krakenfutures extends krakenfuturesRest {
             stored = new ArrayCacheBySymbolById (limit);
             this.myTrades = stored;
         }
-        const tradeSymbols = {};
+        const tradeSymbols: Dict = {};
         for (let i = 0; i < trades.length; i++) {
             const trade = trades[i];
             const parsedTrade = this.parseWsMyTrade (trade);
@@ -1504,7 +1504,7 @@ export default class krakenfutures extends krakenfuturesRest {
             messageHashes.push (this.getMessageHash (unifiedName, undefined, this.symbol (symbols[i])));
         }
         const marketIds = this.marketIds (symbols);
-        const request = {
+        const request: Dict = {
             'event': 'subscribe',
             'feed': channelName,
             'product_ids': marketIds,
@@ -1554,7 +1554,7 @@ export default class krakenfutures extends krakenfuturesRest {
             client.lastPong = this.milliseconds ();
         } else if (event === undefined) {
             const feed = this.safeString (message, 'feed');
-            const methods = {
+            const methods: Dict = {
                 'ticker': this.handleTicker,
                 'ticker_lite': this.handleBidAsk,
                 'trade': this.handleTrade,

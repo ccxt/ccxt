@@ -179,9 +179,10 @@ public partial class bitmart
         return new OrderBook(res);
     }
     /// <summary>
-    /// get the list of most recent trades for a particular symbol
+    /// get a list of the most recent trades for a particular symbol
     /// </summary>
     /// <remarks>
+    /// See <see href="https://developer-pro.bitmart.com/en/spot/#get-recent-trades-v3"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -192,7 +193,7 @@ public partial class bitmart
     /// <item>
     /// <term>limit</term>
     /// <description>
-    /// int : the maximum amount of trades to fetch
+    /// int : the maximum number of trades to fetch
     /// </description>
     /// </item>
     /// <item>

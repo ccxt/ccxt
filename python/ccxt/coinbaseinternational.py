@@ -373,7 +373,7 @@ class coinbaseinternational(Exchange, ImplicitAPI):
             return self.fetch_paginated_call_incremental('fetchFundingRateHistory', symbol, since, limit, params, pageKey, maxEntriesPerRequest)
         market = self.market(symbol)
         page = self.safe_integer(params, pageKey, 1) - 1
-        request = {
+        request: dict = {
             'instrument': market['id'],
             'result_offset': self.safe_integer_2(params, 'offset', 'result_offset', page * maxEntriesPerRequest),
         }
@@ -449,7 +449,7 @@ class coinbaseinternational(Exchange, ImplicitAPI):
         method, params = self.handle_option_and_params(params, 'createDepositAddress', 'method', 'v1PrivatePostTransfersAddress')
         portfolio = None
         portfolio, params = self.handle_portfolio_and_params('createDepositAddress', params)
-        request = {
+        request: dict = {
             'portfolio': portfolio,
         }
         if method == 'v1PrivatePostTransfersAddress':
@@ -495,7 +495,7 @@ class coinbaseinternational(Exchange, ImplicitAPI):
         networks = self.safe_dict(currency, 'networks')
         if networks is not None:
             return
-        request = {
+        request: dict = {
             'asset': currency['id'],
         }
         rawNetworks = self.v1PublicGetAssetsAssetNetworks(request)
@@ -505,7 +505,7 @@ class coinbaseinternational(Exchange, ImplicitAPI):
         #            "asset_id" = self.parse_networks(rawNetworks)
 
     def parse_networks(self, networks, params={}):
-        result = {}
+        result: dict = {}
         for i in range(0, len(networks)):
             network = self.extend(self.parse_network(networks[i]), params)
             result[network['network']] = network
@@ -565,7 +565,7 @@ class coinbaseinternational(Exchange, ImplicitAPI):
         portfolio, params = self.handle_portfolio_and_params('setMargin', params)
         if symbol is not None:
             raise BadRequest(self.id + ' setMargin() only allows setting margin to full portfolio')
-        request = {
+        request: dict = {
             'portfolio': portfolio,
             'margin_override': amount,
         }
@@ -595,7 +595,7 @@ class coinbaseinternational(Exchange, ImplicitAPI):
         if paginate:
             return self.fetch_paginated_call_incremental('fetchDepositsWithdrawals', code, since, limit, params, pageKey, maxEntriesPerRequest)
         page = self.safe_integer(params, pageKey, 1) - 1
-        request = {
+        request: dict = {
             'result_offset': self.safe_integer_2(params, 'offset', 'result_offset', page * maxEntriesPerRequest),
         }
         if since is not None:
@@ -653,7 +653,7 @@ class coinbaseinternational(Exchange, ImplicitAPI):
         symbol = self.symbol(symbol)
         portfolio = None
         portfolio, params = self.handle_portfolio_and_params('fetchPosition', params)
-        request = {
+        request: dict = {
             'portfolio': portfolio,
             'instrument': self.market_id(symbol),
         }
@@ -675,7 +675,7 @@ class coinbaseinternational(Exchange, ImplicitAPI):
         #
         return self.parse_position(position)
 
-    def parse_position(self, position, market: Market = None):
+    def parse_position(self, position: dict, market: Market = None):
         #
         #    {
         #       "symbol":"BTC-PERP",
@@ -736,7 +736,7 @@ class coinbaseinternational(Exchange, ImplicitAPI):
         self.load_markets()
         portfolio = None
         portfolio, params = self.handle_portfolio_and_params('fetchPositions', params)
-        request = {
+        request: dict = {
             'portfolio': portfolio,
         }
         response = self.v1PrivateGetPortfoliosPortfolioPositions(self.extend(request, params))
@@ -800,8 +800,8 @@ class coinbaseinternational(Exchange, ImplicitAPI):
         params['type'] = 'DEPOSIT'
         return self.fetch_deposits_withdrawals(code, since, limit, params)
 
-    def parse_transaction_status(self, status):
-        statuses = {
+    def parse_transaction_status(self, status: Str):
+        statuses: dict = {
             'PROCESSED': 'ok',
             'NEW': 'pending',
             'STARTED': 'pending',
@@ -809,7 +809,7 @@ class coinbaseinternational(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_transaction(self, transaction, currency: Currency = None) -> Transaction:
+    def parse_transaction(self, transaction: dict, currency: Currency = None) -> Transaction:
         #
         #    {
         #        "idem":"8e471d77-4208-45a8-9e5b-f3bd8a2c1fc3"
@@ -844,7 +844,7 @@ class coinbaseinternational(Exchange, ImplicitAPI):
             },
         }
 
-    def parse_trade(self, trade, market: Market = None) -> Trade:
+    def parse_trade(self, trade: dict, market: Market = None) -> Trade:
         #
         #    {
         #       "portfolio_id":"1wp37qsc-1-0",
@@ -957,7 +957,7 @@ class coinbaseinternational(Exchange, ImplicitAPI):
         #
         return self.parse_markets(response)
 
-    def parse_market(self, market) -> Market:
+    def parse_market(self, market: dict) -> Market:
         #
         #   {
         #       "instrument_id":"149264164756389888",
@@ -1090,13 +1090,13 @@ class coinbaseinternational(Exchange, ImplicitAPI):
         #        ...
         #    ]
         #
-        result = {}
+        result: dict = {}
         for i in range(0, len(currencies)):
             currency = self.parse_currency(currencies[i])
             result[currency['code']] = currency
         return result
 
-    def parse_currency(self, currency):
+    def parse_currency(self, currency: dict):
         #
         #    {
         #       "asset_id":"1",
@@ -1136,7 +1136,7 @@ class coinbaseinternational(Exchange, ImplicitAPI):
         self.load_markets()
         symbols = self.market_symbols(symbols)
         instruments = self.v1PublicGetInstruments(params)
-        tickers = {}
+        tickers: dict = {}
         for i in range(0, len(instruments)):
             instrument = instruments[i]
             marketId = self.safe_string(instrument, 'symbol')
@@ -1155,7 +1155,7 @@ class coinbaseinternational(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'instrument': self.market_id(symbol),
         }
         ticker = self.v1PublicGetInstrumentsInstrumentQuote(self.extend(request, params))
@@ -1214,7 +1214,7 @@ class coinbaseinternational(Exchange, ImplicitAPI):
         self.load_markets()
         portfolio = None
         portfolio, params = self.handle_portfolio_and_params('fetchBalance', params)
-        request = {
+        request: dict = {
             'portfolio': portfolio,
         }
         balances = self.v1PrivateGetPortfoliosPortfolioBalances(self.extend(request, params))
@@ -1253,7 +1253,7 @@ class coinbaseinternational(Exchange, ImplicitAPI):
         #       "loan_collateral_requirement":"0.0"
         #    }
         #
-        result = {
+        result: dict = {
             'info': response,
         }
         for i in range(0, len(response)):
@@ -1279,7 +1279,7 @@ class coinbaseinternational(Exchange, ImplicitAPI):
         """
         self.load_markets()
         currency = self.currency(code)
-        request = {
+        request: dict = {
             'asset': currency['id'],
             'ammount': amount,
             'from': fromAccount,
@@ -1325,7 +1325,7 @@ class coinbaseinternational(Exchange, ImplicitAPI):
         clientOrderIdprefix = self.safe_string(self.options, 'brokerId', 'nfqkvdjp')
         clientOrderId = clientOrderIdprefix + '-' + self.uuid()
         clientOrderId = clientOrderId[0:17]
-        request = {
+        request: dict = {
             'client_order_id': clientOrderId,
             'side': side.upper(),
             'instrument': market['id'],
@@ -1385,7 +1385,7 @@ class coinbaseinternational(Exchange, ImplicitAPI):
         #
         return self.parse_order(response, market)
 
-    def parse_order(self, order, market: Market = None) -> Order:
+    def parse_order(self, order: dict, market: Market = None) -> Order:
         #
         #    {
         #        "order_id":"1x96skvg-1-0",
@@ -1442,8 +1442,8 @@ class coinbaseinternational(Exchange, ImplicitAPI):
             'trades': None,
         }, market)
 
-    def parse_order_status(self, status):
-        statuses = {
+    def parse_order_status(self, status: Str):
+        statuses: dict = {
             'NEW': 'open',
             'PARTIAL_FILLED': 'open',
             'FILLED': 'closed',
@@ -1457,10 +1457,10 @@ class coinbaseinternational(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_order_type(self, type):
+    def parse_order_type(self, type: Str):
         if type == 'UNKNOWN_ORDER_TYPE':
             return None
-        types = {
+        types: dict = {
             'MARKET': 'market',
             'LIMIT': 'limit',
             'STOP': 'limit',
@@ -1480,7 +1480,7 @@ class coinbaseinternational(Exchange, ImplicitAPI):
         self.load_markets()
         portfolio = None
         portfolio, params = self.handle_portfolio_and_params('cancelOrder', params)
-        request = {
+        request: dict = {
             'portfolio': portfolio,
             'id': id,
         }
@@ -1523,7 +1523,7 @@ class coinbaseinternational(Exchange, ImplicitAPI):
         self.load_markets()
         portfolio = None
         portfolio, params = self.handle_portfolio_and_params('cancelAllOrders', params)
-        request = {
+        request: dict = {
             'portfolio': portfolio,
         }
         market = None
@@ -1549,7 +1549,7 @@ class coinbaseinternational(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'id': id,
         }
         portfolio = None
@@ -1585,7 +1585,7 @@ class coinbaseinternational(Exchange, ImplicitAPI):
             market = self.market(symbol)
         portfolio = None
         portfolio, params = self.handle_portfolio_and_params('fetchOrder', params)
-        request = {
+        request: dict = {
             'id': id,
             'portfolio': portfolio,
         }
@@ -1641,7 +1641,7 @@ class coinbaseinternational(Exchange, ImplicitAPI):
         if paginate:
             return self.fetch_paginated_call_incremental('fetchOpenOrders', symbol, since, limit, params, pageKey, maxEntriesPerRequest)
         page = self.safe_integer(params, pageKey, 1) - 1
-        request = {
+        request: dict = {
             'portfolio': portfolio,
             'result_offset': self.safe_integer_2(params, 'offset', 'result_offset', page * maxEntriesPerRequest),
         }
@@ -1717,7 +1717,7 @@ class coinbaseinternational(Exchange, ImplicitAPI):
         if symbol is not None:
             market = self.market(symbol)
         page = self.safe_integer(params, pageKey, 1) - 1
-        request = {
+        request: dict = {
             'result_offset': self.safe_integer_2(params, 'offset', 'result_offset', page * maxEntriesPerRequest),
         }
         if limit is not None:
@@ -1799,7 +1799,7 @@ class coinbaseinternational(Exchange, ImplicitAPI):
         method, params = self.handle_option_and_params(params, 'withdraw', 'method', 'v1PrivatePostTransfersWithdraw')
         networkId = None
         networkId, params = self.handle_network_id_and_params(code, 'withdraw', params)
-        request = {
+        request: dict = {
             'portfolio': portfolio,
             'type': 'send',
             'asset': currency['id'],
@@ -1881,7 +1881,7 @@ class coinbaseinternational(Exchange, ImplicitAPI):
             }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response, requestHeaders, requestBody):
         #
         #    {
         #        "title":"io.javalin.http.BadRequestResponse: Order rejected(DUPLICATE_CLIENT_ORDER_ID - duplicate client order id detected)",

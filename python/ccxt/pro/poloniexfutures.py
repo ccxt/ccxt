@@ -152,7 +152,7 @@ class poloniexfutures(ccxt.async_support.poloniexfutures):
         messageHash = name
         tunnelId = await self.stream(url, messageHash)
         requestId = self.request_id()
-        subscribe = {
+        subscribe: dict = {
             'id': requestId,
             'type': 'subscribe',
             'topic': name,                 # Subscribed topic. Some topics support subscribe to the data of multiple trading pairs through ",".
@@ -160,7 +160,7 @@ class poloniexfutures(ccxt.async_support.poloniexfutures):
             'response': True,              # Whether the server needs to return the receipt information of self subscription or not. Set by default.
             'tunnelId': tunnelId,
         }
-        subscriptionRequest = {
+        subscriptionRequest: dict = {
             'id': requestId,
         }
         if subscription is None:
@@ -187,13 +187,13 @@ class poloniexfutures(ccxt.async_support.poloniexfutures):
             stream = 'stream-' + streamIndexString
             self.options['streamBySubscriptionsHash'][subscriptionHash] = stream
             messageHash = 'tunnel:' + stream
-            request = {
+            request: dict = {
                 'id': messageHash,
                 'type': 'openTunnel',
                 'newTunnelId': stream,
                 'response': True,
             }
-            subscription = {
+            subscription: dict = {
                 'id': messageHash,
                 'method': self.handle_new_stream,
             }
@@ -281,7 +281,7 @@ class poloniexfutures(ccxt.async_support.poloniexfutures):
             if limit != 5 and limit != 50:
                 raise BadRequest(self.id + ' watchOrderBook limit argument must be none, 5 or 50 if using method /contractMarket/level2')
             name += 'Depth' + self.number_to_string(limit)
-        subscription = {
+        subscription: dict = {
             'symbol': symbol,
             'limit': limit,
             'method': self.handle_order_book_subscription,
@@ -517,14 +517,14 @@ class poloniexfutures(ccxt.async_support.poloniexfutures):
         :param str type: "open", "match", "filled", "canceled", "update"
         :returns str:
         """
-        types = {
+        types: dict = {
             'canceled': 'canceled',
             'cancel': 'canceled',
             'filled': 'closed',
         }
         parsedStatus = self.safe_string(types, type)
         if parsedStatus is None:
-            statuses = {
+            statuses: dict = {
                 'open': 'open',
                 'match': 'open',
                 'done': 'closed',
@@ -891,7 +891,7 @@ class poloniexfutures(ccxt.async_support.poloniexfutures):
         #    }
         #
         timestamp = self.safe_integer(response, 'timestamp')
-        result = {
+        result: dict = {
             'info': response,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
@@ -914,7 +914,7 @@ class poloniexfutures(ccxt.async_support.poloniexfutures):
 
     def handle_subject(self, client: Client, message):
         subject = self.safe_string(message, 'subject')
-        methods = {
+        methods: dict = {
             'auth': self.handle_authenticate,
             'received': self.handle_l3_order_book,
             'open': self.handle_l3_order_book,
@@ -957,7 +957,7 @@ class poloniexfutures(ccxt.async_support.poloniexfutures):
 
     def handle_message(self, client: Client, message):
         type = self.safe_string(message, 'type')
-        methods = {
+        methods: dict = {
             'welcome': self.handle_system_status,
             'ack': self.handle_subscription_status,
             'message': self.handle_subject,

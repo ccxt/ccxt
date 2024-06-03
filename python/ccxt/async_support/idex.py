@@ -347,7 +347,7 @@ class idex(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'market': market['id'],
         }
         # [
@@ -460,7 +460,7 @@ class idex(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'market': market['id'],
             'interval': timeframe,
         }
@@ -516,7 +516,7 @@ class idex(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'market': market['id'],
         }
         if since is not None:
@@ -537,7 +537,7 @@ class idex(Exchange, ImplicitAPI):
         response = await self.publicGetTrades(self.extend(request, params))
         return self.parse_trades(response, market, since, limit)
 
-    def parse_trade(self, trade, market: Market = None) -> Trade:
+    def parse_trade(self, trade: dict, market: Market = None) -> Trade:
         #
         # public trades
         #  {
@@ -623,7 +623,7 @@ class idex(Exchange, ImplicitAPI):
         self.check_required_credentials()
         await self.load_markets()
         nonce = self.uuidv1()
-        request = {
+        request: dict = {
             'nonce': nonce,
         }
         response = None
@@ -643,7 +643,7 @@ class idex(Exchange, ImplicitAPI):
         #
         maker = self.safe_number(response, 'makerFeeRate')
         taker = self.safe_number(response, 'takerFeeRate')
-        result = {}
+        result: dict = {}
         for i in range(0, len(self.symbols)):
             symbol = self.symbols[i]
             result[symbol] = {
@@ -667,7 +667,7 @@ class idex(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'market': market['id'],
             'level': 2,
         }
@@ -736,7 +736,7 @@ class idex(Exchange, ImplicitAPI):
         #        },
         #     ]
         #
-        result = {}
+        result: dict = {}
         for i in range(0, len(response)):
             entry = response[i]
             name = self.safe_string(entry, 'name')
@@ -762,7 +762,7 @@ class idex(Exchange, ImplicitAPI):
         return result
 
     def parse_balance(self, response) -> Balances:
-        result = {
+        result: dict = {
             'info': response,
             'timestamp': None,
             'datetime': None,
@@ -788,7 +788,7 @@ class idex(Exchange, ImplicitAPI):
         self.check_required_credentials()
         await self.load_markets()
         nonce1 = self.uuidv1()
-        request = {
+        request: dict = {
             'nonce': nonce1,
             'wallet': self.walletAddress,
         }
@@ -829,7 +829,7 @@ class idex(Exchange, ImplicitAPI):
         self.check_required_credentials()
         await self.load_markets()
         market = None
-        request = {
+        request: dict = {
             'nonce': self.uuidv1(),
             'wallet': self.walletAddress,
         }
@@ -883,7 +883,7 @@ class idex(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
-        request = {
+        request: dict = {
             'orderId': id,
         }
         return await self.fetch_orders_helper(symbol, None, None, self.extend(request, params))
@@ -898,7 +898,7 @@ class idex(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
-        request = {
+        request: dict = {
             'closed': False,
         }
         return await self.fetch_orders_helper(symbol, since, limit, self.extend(request, params))
@@ -913,14 +913,14 @@ class idex(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
-        request = {
+        request: dict = {
             'closed': True,
         }
         return await self.fetch_orders_helper(symbol, since, limit, self.extend(request, params))
 
     async def fetch_orders_helper(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         await self.load_markets()
-        request = {
+        request: dict = {
             'nonce': self.uuidv1(),
             'wallet': self.walletAddress,
         }
@@ -999,9 +999,9 @@ class idex(Exchange, ImplicitAPI):
         else:
             return self.parse_order(response, market)
 
-    def parse_order_status(self, status):
+    def parse_order_status(self, status: Str):
         # https://docs.idex.io/#order-states-amp-lifecycle
-        statuses = {
+        statuses: dict = {
             'active': 'open',
             'partiallyFilled': 'open',
             'rejected': 'canceled',
@@ -1009,7 +1009,7 @@ class idex(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_order(self, order, market: Market = None) -> Order:
+    def parse_order(self, order: dict, market: Market = None) -> Order:
         #
         #     {
         #         "market": "DIL-ETH",
@@ -1098,7 +1098,7 @@ class idex(Exchange, ImplicitAPI):
         #   "totalPortfolioValueUsd": "0.00",
         #   "time": 1598468353626
         # }
-        request = {
+        request: dict = {
             'parameters': {
                 'nonce': nonce,
                 'wallet': walletAddress,
@@ -1128,7 +1128,7 @@ class idex(Exchange, ImplicitAPI):
         market = self.market(symbol)
         nonce = self.uuidv1()
         typeEnum = None
-        stopLossTypeEnums = {
+        stopLossTypeEnums: dict = {
             'stopLoss': 3,
             'stopLossLimit': 4,
             'takeProfit': 5,
@@ -1139,7 +1139,7 @@ class idex(Exchange, ImplicitAPI):
             if not ('stopPrice' in params):
                 raise BadRequest(self.id + ' createOrder() stopPrice is a required parameter for ' + type + 'orders')
             stopPriceString = self.price_to_precision(symbol, params['stopPrice'])
-        limitTypeEnums = {
+        limitTypeEnums: dict = {
             'limit': 1,
             'limitMaker': 2,
         }
@@ -1172,7 +1172,7 @@ class idex(Exchange, ImplicitAPI):
         })
         amountString = self.amount_to_precision(symbol, amount)
         # https://docs.idex.io/#time-in-force
-        timeInForceEnums = {
+        timeInForceEnums: dict = {
             'gtc': 0,
             'ioc': 2,
             'fok': 3,
@@ -1187,7 +1187,7 @@ class idex(Exchange, ImplicitAPI):
             asString = ', '.join(allOptions)
             raise BadRequest(self.id + ' ' + timeInForce + ' is not a valid timeInForce, please choose one of ' + asString)
         # https://docs.idex.io/#self-trade-prevention
-        selfTradePreventionEnums = {
+        selfTradePreventionEnums: dict = {
             'dc': 0,
             'co': 1,
             'cn': 2,
@@ -1230,7 +1230,7 @@ class idex(Exchange, ImplicitAPI):
         binary = self.binary_concat_array(allBytes)
         hash = self.hash(binary, 'keccak', 'hex')
         signature = self.sign_message_string(hash, self.privateKey)
-        request = {
+        request: dict = {
             'parameters': {
                 'nonce': nonce,
                 'market': market['id'],
@@ -1319,7 +1319,7 @@ class idex(Exchange, ImplicitAPI):
         binary = self.binary_concat_array(byteArray)
         hash = self.hash(binary, 'keccak', 'hex')
         signature = self.sign_message_string(hash, self.privateKey)
-        request = {
+        request: dict = {
             'parameters': {
                 'nonce': nonce,
                 'wallet': address,
@@ -1357,7 +1357,7 @@ class idex(Exchange, ImplicitAPI):
         if symbol is not None:
             market = self.market(symbol)
         nonce = self.uuidv1()
-        request = {
+        request: dict = {
             'parameters': {
                 'nonce': nonce,
                 'wallet': self.walletAddress,
@@ -1403,7 +1403,7 @@ class idex(Exchange, ImplicitAPI):
         binary = self.binary_concat_array(byteArray)
         hash = self.hash(binary, 'keccak', 'hex')
         signature = self.sign_message_string(hash, self.privateKey)
-        request = {
+        request: dict = {
             'parameters': {
                 'nonce': nonce,
                 'wallet': self.walletAddress,
@@ -1416,7 +1416,7 @@ class idex(Exchange, ImplicitAPI):
         canceledOrder = self.safe_dict(response, 0)
         return self.parse_order(canceledOrder, market)
 
-    def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response, requestHeaders, requestBody):
         errorCode = self.safe_string(response, 'code')
         message = self.safe_string(response, 'message')
         if errorCode is not None:
@@ -1435,7 +1435,7 @@ class idex(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         nonce = self.uuidv1()
-        request = {
+        request: dict = {
             'nonce': nonce,
             'wallet': self.walletAddress,
             'depositId': id,
@@ -1498,7 +1498,7 @@ class idex(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         nonce = self.uuidv1()
-        request = {
+        request: dict = {
             'nonce': nonce,
             'wallet': self.walletAddress,
             'withdrawalId': id,
@@ -1524,7 +1524,7 @@ class idex(Exchange, ImplicitAPI):
     async def fetch_transactions_helper(self, code: Str = None, since: Int = None, limit: Int = None, params={}):
         await self.load_markets()
         nonce = self.uuidv1()
-        request = {
+        request: dict = {
             'nonce': nonce,
             'wallet': self.walletAddress,
         }
@@ -1557,13 +1557,13 @@ class idex(Exchange, ImplicitAPI):
             raise NotSupported(self.id + ' fetchTransactionsHelper() not support self method')
         return self.parse_transactions(response, currency, since, limit)
 
-    def parse_transaction_status(self, status):
-        statuses = {
+    def parse_transaction_status(self, status: Str):
+        statuses: dict = {
             'mined': 'ok',
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_transaction(self, transaction, currency: Currency = None) -> Transaction:
+    def parse_transaction(self, transaction: dict, currency: Currency = None) -> Transaction:
         #
         # fetchDeposits
         #
@@ -1662,7 +1662,7 @@ class idex(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `address structure <https://docs.ccxt.com/#/?id=address-structure>`
         """
-        request = {}
+        request: dict = {}
         request['nonce'] = self.uuidv1()
         response = await self.privateGetWallets(self.extend(request, params))
         #

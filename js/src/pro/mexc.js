@@ -72,7 +72,7 @@ export default class mexc extends mexcRest {
     async watchTicker(symbol, params = {}) {
         /**
          * @method
-         * @name mexc3#watchTicker
+         * @name mexc#watchTicker
          * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
          * @param {string} symbol unified symbol of the market to fetch the ticker for
          * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -205,7 +205,7 @@ export default class mexc extends mexcRest {
     async watchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         /**
          * @method
-         * @name mexc3#watchOHLCV
+         * @name mexc#watchOHLCV
          * @see https://mxcdevelop.github.io/apidocs/spot_v3_en/#kline-streams
          * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
          * @param {string} symbol unified symbol of the market to fetch OHLCV data for
@@ -351,7 +351,7 @@ export default class mexc extends mexcRest {
     async watchOrderBook(symbol, limit = undefined, params = {}) {
         /**
          * @method
-         * @name mexc3#watchOrderBook
+         * @name mexc#watchOrderBook
          * @see https://mxcdevelop.github.io/apidocs/spot_v3_en/#diff-depth-stream
          * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @param {string} symbol unified symbol of the market to fetch the order book for
@@ -511,8 +511,8 @@ export default class mexc extends mexcRest {
             return;
         }
         orderbook['nonce'] = deltaNonce;
-        const asks = this.safeValue(delta, 'asks', []);
-        const bids = this.safeValue(delta, 'bids', []);
+        const asks = this.safeList(delta, 'asks', []);
+        const bids = this.safeList(delta, 'bids', []);
         const asksOrderSide = orderbook['asks'];
         const bidsOrderSide = orderbook['bids'];
         this.handleBooksideDelta(asksOrderSide, asks);
@@ -521,7 +521,7 @@ export default class mexc extends mexcRest {
     async watchTrades(symbol, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
-         * @name mexc3#watchTrades
+         * @name mexc#watchTrades
          * @see https://mxcdevelop.github.io/apidocs/spot_v3_en/#trade-streams
          * @description get the list of most recent trades for a particular symbol
          * @param {string} symbol unified symbol of the market to fetch trades for
@@ -610,7 +610,7 @@ export default class mexc extends mexcRest {
     async watchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
-         * @name mexc3#watchMyTrades
+         * @name mexc#watchMyTrades
          * @see https://mxcdevelop.github.io/apidocs/spot_v3_en/#spot-account-deals
          * @description watches information on multiple trades made by the user
          * @param {string} symbol unified market symbol of the market trades were made in
@@ -757,7 +757,7 @@ export default class mexc extends mexcRest {
     async watchOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
-         * @name mexc3#watchOrders
+         * @name mexc#watchOrders
          * @see https://mxcdevelop.github.io/apidocs/spot_v3_en/#spot-account-orders
          * @see https://mxcdevelop.github.io/apidocs/spot_v3_en/#margin-account-orders
          * @description watches information on multiple orders made by the user
@@ -1009,7 +1009,7 @@ export default class mexc extends mexcRest {
     async watchBalance(params = {}) {
         /**
          * @method
-         * @name mexc3#watchBalance
+         * @name mexc#watchBalance
          * @see https://mxcdevelop.github.io/apidocs/spot_v3_en/#spot-account-upadte
          * @description watch balance and get the amount of funds available for trading or funds locked in orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint

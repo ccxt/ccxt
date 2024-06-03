@@ -8,7 +8,7 @@ import { Precise } from './base/Precise.js';
 import { md5 } from './static_dependencies/noble-hashes/md5.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { rsa } from './base/functions/rsa.js';
-import type { Balances, Currency, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction } from './base/types.js';
+import type { Balances, Currency, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, int } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -439,7 +439,7 @@ export default class lbank extends Exchange {
     }
 
     async fetchSwapMarkets (params = {}) {
-        const request = {
+        const request: Dict = {
             'productGroup': 'SwapU',
         };
         const response = await this.contractPublicGetCfdOpenApiV1PubInstrument (this.extend (request, params));
@@ -613,7 +613,7 @@ export default class lbank extends Exchange {
             const responseForSwap = await this.fetchTickers ([ market['symbol'] ], params);
             return this.safeValue (responseForSwap, market['symbol']) as Ticker;
         }
-        const request = {
+        const request: Dict = {
             'symbol': market['id'],
         };
         const response = await this.spotPublicGetTicker24hr (this.extend (request, params));
@@ -663,7 +663,7 @@ export default class lbank extends Exchange {
                 market = this.market (symbols[0]);
             }
         }
-        const request = {};
+        const request: Dict = {};
         let type = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('fetchTickers', market, params);
         let response = undefined;
@@ -740,7 +740,7 @@ export default class lbank extends Exchange {
         if (limit === undefined) {
             limit = 60;
         }
-        const request = {
+        const request: Dict = {
             'symbol': market['id'],
         };
         let type = undefined;
@@ -809,7 +809,7 @@ export default class lbank extends Exchange {
         return this.parseOrderBook (orderbook, market['symbol'], timestamp);
     }
 
-    parseTrade (trade, market: Market = undefined): Trade {
+    parseTrade (trade: Dict, market: Market = undefined): Trade {
         //
         // fetchTrades (old) spotPublicGetTrades
         //
@@ -927,7 +927,7 @@ export default class lbank extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'symbol': market['id'],
         };
         if (since !== undefined) {
@@ -1014,7 +1014,7 @@ export default class lbank extends Exchange {
             const duration = this.parseTimeframe (timeframe);
             since = this.milliseconds () - duration * 1000 * limit;
         }
-        const request = {
+        const request: Dict = {
             'symbol': market['id'],
             'type': this.safeString (this.timeframes, timeframe, timeframe),
             'time': this.parseToInt (since / 1000),
@@ -1125,7 +1125,7 @@ export default class lbank extends Exchange {
         //      ]
         //
         const timestamp = this.safeInteger (response, 'ts');
-        const result = {
+        const result: Dict = {
             'info': response,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -1234,7 +1234,7 @@ export default class lbank extends Exchange {
         return this.parseBalance (response);
     }
 
-    parseTradingFee (fee, market: Market = undefined): TradingFeeInterface {
+    parseTradingFee (fee: Dict, market: Market = undefined): TradingFeeInterface {
         //
         //      {
         //          "symbol":"skt_usdt",
@@ -1279,10 +1279,10 @@ export default class lbank extends Exchange {
          * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols
          */
         await this.loadMarkets ();
-        const request = {};
+        const request: Dict = {};
         const response = await this.spotPrivatePostSupplementCustomerTradeFee (this.extend (request, params));
         const fees = this.safeValue (response, 'data', []);
-        const result = {};
+        const result: Dict = {};
         for (let i = 0; i < fees.length; i++) {
             const fee = this.parseTradingFee (fees[i]);
             const symbol = fee['symbol'];
@@ -1333,7 +1333,7 @@ export default class lbank extends Exchange {
         const postOnly = this.safeBool (params, 'postOnly', false);
         const timeInForce = this.safeStringUpper (params, 'timeInForce');
         params = this.omit (params, [ 'custom_id', 'clientOrderId', 'timeInForce', 'postOnly' ]);
-        const request = {
+        const request: Dict = {
             'symbol': market['id'],
         };
         const ioc = (timeInForce === 'IOC');
@@ -1413,8 +1413,8 @@ export default class lbank extends Exchange {
         }, market);
     }
 
-    parseOrderStatus (status) {
-        const statuses = {
+    parseOrderStatus (status: Str) {
+        const statuses: Dict = {
             '-1': 'canceled', // canceled
             '0': 'open', // not traded
             '1': 'open', // partial deal
@@ -1425,7 +1425,7 @@ export default class lbank extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseOrder (order, market: Market = undefined): Order {
+    parseOrder (order: Dict, market: Market = undefined): Order {
         //
         // fetchOrderSupplement (private)
         //
@@ -1580,7 +1580,7 @@ export default class lbank extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'symbol': market['id'],
             'orderId': id,
         };
@@ -1617,7 +1617,7 @@ export default class lbank extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'symbol': market['id'],
             'order_id': id,
         };
@@ -1676,7 +1676,7 @@ export default class lbank extends Exchange {
         const market = this.market (symbol);
         since = this.safeValue (params, 'start_date', since);
         params = this.omit (params, 'start_date');
-        const request = {
+        const request: Dict = {
             'symbol': market['id'],
             // 'start_date' Start time yyyy-mm-dd, the maximum is today, the default is yesterday
             // 'end_date' Finish time yyyy-mm-dd, the maximum is today, the default is today
@@ -1739,7 +1739,7 @@ export default class lbank extends Exchange {
         if (limit === undefined) {
             limit = 100;
         }
-        const request = {
+        const request: Dict = {
             'symbol': market['id'],
             'current_page': 1,
             'page_length': limit,
@@ -1798,7 +1798,7 @@ export default class lbank extends Exchange {
         if (limit === undefined) {
             limit = 100;
         }
-        const request = {
+        const request: Dict = {
             'symbol': market['id'],
             'current_page': 1,
             'page_length': limit,
@@ -1854,7 +1854,7 @@ export default class lbank extends Exchange {
         const clientOrderId = this.safeString2 (params, 'origClientOrderId', 'clientOrderId');
         params = this.omit (params, [ 'origClientOrderId', 'clientOrderId' ]);
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'symbol': market['id'],
             'orderId': id,
         };
@@ -1894,7 +1894,7 @@ export default class lbank extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'symbol': market['id'],
         };
         const response = await this.spotPrivatePostSupplementCancelOrderBySymbol (this.extend (request, params));
@@ -1956,7 +1956,7 @@ export default class lbank extends Exchange {
     async fetchDepositAddressDefault (code: string, params = {}) {
         await this.loadMarkets ();
         const currency = this.currency (code);
-        const request = {
+        const request: Dict = {
             'assetCode': currency['id'],
         };
         const network = this.getNetworkCodeForCurrency (code, params);
@@ -1997,7 +1997,7 @@ export default class lbank extends Exchange {
         // returns the address for whatever the default network is...
         await this.loadMarkets ();
         const currency = this.currency (code);
-        const request = {
+        const request: Dict = {
             'coin': currency['id'],
         };
         const networks = this.safeValue (this.options, 'networks');
@@ -2055,7 +2055,7 @@ export default class lbank extends Exchange {
         // The relevant coin network fee can be found by calling fetchDepositWithdrawFees (), note: if no network param is supplied then the default network will be used, this can also be found in fetchDepositWithdrawFees ().
         this.checkRequiredArgument ('withdraw', fee, 'fee');
         const currency = this.currency (code);
-        const request = {
+        const request: Dict = {
             'address': address,
             'coin': currency['id'],
             'amount': amount,
@@ -2097,7 +2097,7 @@ export default class lbank extends Exchange {
     }
 
     parseTransactionStatus (status, type) {
-        const statuses = {
+        const statuses: Dict = {
             'deposit': {
                 '1': 'pending',
                 '2': 'ok',
@@ -2115,7 +2115,7 @@ export default class lbank extends Exchange {
         return this.safeString (this.safeValue (statuses, type, {}), status, status);
     }
 
-    parseTransaction (transaction, currency: Currency = undefined): Transaction {
+    parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {
         //
         // fetchDeposits (private)
         //
@@ -2214,7 +2214,7 @@ export default class lbank extends Exchange {
          * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         await this.loadMarkets ();
-        const request = {
+        const request: Dict = {
             // 'status': Recharge status: ("1","Applying"),("2","Recharge successful"),("3","Recharge failed"),("4","Already Cancel"), ("5", "Transfer")
             // 'endTime': end time, timestamp in milliseconds, default now
         };
@@ -2268,7 +2268,7 @@ export default class lbank extends Exchange {
          * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         await this.loadMarkets ();
-        const request = {
+        const request: Dict = {
             // 'status': Recharge status: ("1","Applying"),("2","Recharge successful"),("3","Recharge failed"),("4","Already Cancel"), ("5", "Transfer")
             // 'endTime': end time, timestamp in milliseconds, default now
             // 'withdrawOrderId': Custom withdrawal id
@@ -2313,7 +2313,7 @@ export default class lbank extends Exchange {
         return this.parseTransactions (withdraws, currency, since, limit);
     }
 
-    async fetchTransactionFees (codes: string[] = undefined, params = {}) {
+    async fetchTransactionFees (codes: Strings = undefined, params = {}) {
         /**
          * @method
          * @name lbank#fetchTransactionFees
@@ -2379,7 +2379,7 @@ export default class lbank extends Exchange {
         //    }
         //
         const result = this.safeValue (response, 'data', []);
-        const withdrawFees = {};
+        const withdrawFees: Dict = {};
         for (let i = 0; i < result.length; i++) {
             const entry = result[i];
             const currencyId = this.safeString (entry, 'coin');
@@ -2409,7 +2409,7 @@ export default class lbank extends Exchange {
         await this.loadMarkets ();
         const code = this.safeString2 (params, 'coin', 'assetCode');
         params = this.omit (params, [ 'coin', 'assetCode' ]);
-        const request = {};
+        const request: Dict = {};
         if (code !== undefined) {
             const currency = this.currency (code);
             request['assetCode'] = currency['id'];
@@ -2437,7 +2437,7 @@ export default class lbank extends Exchange {
         //    }
         //
         const result = this.safeValue (response, 'data', []);
-        const withdrawFees = {};
+        const withdrawFees: Dict = {};
         for (let i = 0; i < result.length; i++) {
             const item = result[i];
             const canWithdraw = this.safeValue (item, 'canWithDraw');
@@ -2536,7 +2536,7 @@ export default class lbank extends Exchange {
         // extremely incomplete response
         // vast majority fees undefined
         await this.loadMarkets ();
-        const request = {};
+        const request: Dict = {};
         const response = await this.spotPublicGetWithdrawConfigs (this.extend (request, params));
         //
         //    {
@@ -2580,7 +2580,7 @@ export default class lbank extends Exchange {
         //        ...
         //    ]
         //
-        const result = {};
+        const result: Dict = {};
         for (let i = 0; i < response.length; i++) {
             const fee = response[i];
             const canWithdraw = this.safeValue (fee, 'canWithDraw');
@@ -2756,7 +2756,7 @@ export default class lbank extends Exchange {
         return pem + '-----END PRIVATE KEY-----';
     }
 
-    handleErrors (httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+    handleErrors (httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response, requestHeaders, requestBody) {
         if (response === undefined) {
             return undefined;
         }

@@ -1,5 +1,5 @@
 import Exchange from './abstract/coinbaseinternational.js';
-import type { Int, OrderSide, OrderType, Order, Trade, Ticker, Str, Transaction, Balances, Tickers, Strings, Market, Currency, TransferEntry, Position, FundingRateHistory, Currencies } from './base/types.js';
+import type { Int, OrderSide, OrderType, Order, Trade, Ticker, Str, Transaction, Balances, Tickers, Strings, Market, Currency, TransferEntry, Position, FundingRateHistory, Currencies, Dict, int } from './base/types.js';
 /**
  * @class coinbaseinternational
  * @augments Exchange
@@ -44,7 +44,7 @@ export default class coinbaseinternational extends Exchange {
     }>;
     findDefaultNetwork(networks: any): any;
     loadCurrencyNetworks(code: any, params?: {}): Promise<void>;
-    parseNetworks(networks: any, params?: {}): {};
+    parseNetworks(networks: any, params?: {}): Dict;
     parseNetwork(network: any, params?: {}): {
         info: any;
         id: string;
@@ -69,22 +69,22 @@ export default class coinbaseinternational extends Exchange {
     setMargin(symbol: string, amount: number, params?: {}): Promise<any>;
     fetchDepositsWithdrawals(code?: string, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
     fetchPosition(symbol: string, params?: {}): Promise<Position>;
-    parsePosition(position: any, market?: Market): Position;
+    parsePosition(position: Dict, market?: Market): Position;
     fetchPositions(symbols?: Strings, params?: {}): Promise<Position[]>;
     fetchWithdrawals(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
     fetchDeposits(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
-    parseTransactionStatus(status: any): string;
-    parseTransaction(transaction: any, currency?: Currency): Transaction;
-    parseTrade(trade: any, market?: Market): Trade;
+    parseTransactionStatus(status: Str): string;
+    parseTransaction(transaction: Dict, currency?: Currency): Transaction;
+    parseTrade(trade: Dict, market?: Market): Trade;
     fetchMarkets(params?: {}): Promise<Market[]>;
-    parseMarket(market: any): Market;
+    parseMarket(market: Dict): Market;
     fetchCurrencies(params?: {}): Promise<Currencies>;
-    parseCurrency(currency: any): {
+    parseCurrency(currency: Dict): {
         id: string;
         name: string;
         code: string;
         precision: any;
-        info: any;
+        info: Dict;
         active: boolean;
         deposit: any;
         withdraw: any;
@@ -105,9 +105,9 @@ export default class coinbaseinternational extends Exchange {
     parseBalance(response: any): Balances;
     transfer(code: string, amount: number, fromAccount: string, toAccount: string, params?: {}): Promise<TransferEntry>;
     createOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: number, params?: {}): Promise<Order>;
-    parseOrder(order: any, market?: Market): Order;
-    parseOrderStatus(status: any): string;
-    parseOrderType(type: any): string;
+    parseOrder(order: Dict, market?: Market): Order;
+    parseOrderStatus(status: Str): string;
+    parseOrderType(type: Str): string;
     cancelOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
     cancelAllOrders(symbol?: string, params?: {}): Promise<Order[]>;
     editOrder(id: string, symbol: string, type: OrderType, side: OrderSide, amount?: number, price?: number, params?: {}): Promise<Order>;
@@ -142,5 +142,5 @@ export default class coinbaseinternational extends Exchange {
         body: any;
         headers: any;
     };
-    handleErrors(code: any, reason: any, url: any, method: any, headers: any, body: any, response: any, requestHeaders: any, requestBody: any): any;
+    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): any;
 }

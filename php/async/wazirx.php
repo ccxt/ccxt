@@ -233,7 +233,7 @@ class wazirx extends Exchange {
         }) ();
     }
 
-    public function parse_market($market): array {
+    public function parse_market(array $market): array {
         $id = $this->safe_string($market, 'symbol');
         $baseId = $this->safe_string($market, 'baseAsset');
         $quoteId = $this->safe_string($market, 'quoteAsset');
@@ -513,7 +513,7 @@ class wazirx extends Exchange {
         }) ();
     }
 
-    public function parse_trade($trade, ?array $market = null): array {
+    public function parse_trade(array $trade, ?array $market = null): array {
         //
         //     {
         //         "id":322307791,
@@ -890,7 +890,7 @@ class wazirx extends Exchange {
         }) ();
     }
 
-    public function parse_order($order, ?array $market = null): array {
+    public function parse_order(array $order, ?array $market = null): array {
         // array(
         //     "id":1949417813,
         //     "symbol":"ltcusdt",
@@ -938,7 +938,7 @@ class wazirx extends Exchange {
         ), $market);
     }
 
-    public function parse_order_status($status) {
+    public function parse_order_status(?string $status) {
         $statuses = array(
             'wait' => 'open',
             'done' => 'closed',
@@ -1190,7 +1190,7 @@ class wazirx extends Exchange {
         }) ();
     }
 
-    public function parse_transaction_status($status) {
+    public function parse_transaction_status(?string $status) {
         $statuses = array(
             '0' => 'ok',
             '1' => 'fail',
@@ -1200,7 +1200,7 @@ class wazirx extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_transaction($transaction, ?array $currency = null): array {
+    public function parse_transaction(array $transaction, ?array $currency = null): array {
         //
         //     {
         //         "address" => "0x94df8b352de7f46f64b01d3666bf6e936e44ce60",
@@ -1277,7 +1277,7 @@ class wazirx extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
         //
         // array("code":2098,"message":"Request out of receiving window.")
         //

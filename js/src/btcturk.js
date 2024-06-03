@@ -714,7 +714,17 @@ export default class btcturk extends Exchange {
         const request = {
             'id': id,
         };
-        return await this.privateDeleteOrder(this.extend(request, params));
+        const response = await this.privateDeleteOrder(this.extend(request, params));
+        //
+        //    {
+        //        "success": true,
+        //        "message": "SUCCESS",
+        //        "code": 0
+        //    }
+        //
+        return this.safeOrder({
+            'info': response,
+        });
     }
     async fetchOpenOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**

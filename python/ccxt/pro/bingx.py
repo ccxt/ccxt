@@ -95,7 +95,7 @@ class bingx(ccxt.async_support.bingx):
             raise BadRequest(self.id + ' watchTrades is not supported for ' + marketType + ' markets.')
         messageHash = market['id'] + '@ticker'
         uuid = self.uuid()
-        request = {
+        request: dict = {
             'id': uuid,
             'dataType': messageHash,
         }
@@ -193,7 +193,7 @@ class bingx(ccxt.async_support.bingx):
         #         "b": "2.5747"
         #     }
         #
-        timestamp = self.safe_integer(message, 'ts')
+        timestamp = self.safe_integer(message, 'C')
         marketId = self.safe_string(message, 's')
         market = self.safe_market(marketId, market)
         close = self.safe_string(message, 'c')
@@ -239,7 +239,7 @@ class bingx(ccxt.async_support.bingx):
             raise BadRequest(self.id + ' watchTrades is not supported for ' + marketType + ' markets.')
         messageHash = market['id'] + '@trade'
         uuid = self.uuid()
-        request = {
+        request: dict = {
             'id': uuid,
             'dataType': messageHash,
         }
@@ -358,7 +358,7 @@ class bingx(ccxt.async_support.bingx):
             raise BadRequest(self.id + ' watchOrderBook is not supported for ' + marketType + ' markets.')
         messageHash = market['id'] + '@depth' + str(limit)
         uuid = self.uuid()
-        request = {
+        request: dict = {
             'id': uuid,
             'dataType': messageHash,
         }
@@ -544,7 +544,7 @@ class bingx(ccxt.async_support.bingx):
         interval = self.safe_string(timeframes, timeframe, timeframe)
         messageHash = market['id'] + '@kline_' + interval
         uuid = self.uuid()
-        request = {
+        request: dict = {
             'id': uuid,
             'dataType': messageHash,
         }
@@ -928,13 +928,16 @@ class bingx(ccxt.async_support.bingx):
         #    }
         #
         isSpot = ('dataType' in message)
-        result = self.safe_value_2(message, 'data', 'o', {})
+        result = self.safe_dict_2(message, 'data', 'o', {})
         cachedTrades = self.myTrades
         if cachedTrades is None:
             limit = self.safe_integer(self.options, 'tradesLimit', 1000)
             cachedTrades = ArrayCacheBySymbolById(limit)
             self.myTrades = cachedTrades
-        parsed = self.parse_trade(result)
+        type = 'spot' if isSpot else 'swap'
+        marketId = self.safe_string(result, 's')
+        market = self.safe_market(marketId, None, '-', type)
+        parsed = self.parse_trade(result, market)
         symbol = parsed['symbol']
         spotHash = 'spot:mytrades'
         swapHash = 'swap:mytrades'
@@ -980,10 +983,12 @@ class bingx(ccxt.async_support.bingx):
         #         }
         #     }
         #
-        a = self.safe_value(message, 'a', {})
-        data = self.safe_value(a, 'B', [])
+        a = self.safe_dict(message, 'a', {})
+        data = self.safe_list(a, 'B', [])
         timestamp = self.safe_integer_2(message, 'T', 'E')
         type = 'swap' if ('P' in a) else 'spot'
+        if not (type in self.balance):
+            self.balance[type] = {}
         self.balance[type]['info'] = data
         self.balance[type]['timestamp'] = timestamp
         self.balance[type]['datetime'] = self.iso8601(timestamp)

@@ -11,6 +11,7 @@ import { Exchange as _Exchange } from '../base/Exchange.js';
 interface Exchange {
     sapiGetSystemStatus (params?: {}): Promise<implicitReturnType>;
     sapiGetAccountSnapshot (params?: {}): Promise<implicitReturnType>;
+    sapiGetAccountInfo (params?: {}): Promise<implicitReturnType>;
     sapiGetMarginAsset (params?: {}): Promise<implicitReturnType>;
     sapiGetMarginPair (params?: {}): Promise<implicitReturnType>;
     sapiGetMarginAllAssets (params?: {}): Promise<implicitReturnType>;
@@ -526,6 +527,7 @@ interface Exchange {
     fapiPrivateGetOrderAsynId (params?: {}): Promise<implicitReturnType>;
     fapiPrivateGetTradeAsyn (params?: {}): Promise<implicitReturnType>;
     fapiPrivateGetTradeAsynId (params?: {}): Promise<implicitReturnType>;
+    fapiPrivateGetFeeBurn (params?: {}): Promise<implicitReturnType>;
     fapiPrivatePostBatchOrders (params?: {}): Promise<implicitReturnType>;
     fapiPrivatePostPositionSideDual (params?: {}): Promise<implicitReturnType>;
     fapiPrivatePostPositionMargin (params?: {}): Promise<implicitReturnType>;
@@ -537,6 +539,7 @@ interface Exchange {
     fapiPrivatePostMultiAssetsMargin (params?: {}): Promise<implicitReturnType>;
     fapiPrivatePostApiReferralCustomization (params?: {}): Promise<implicitReturnType>;
     fapiPrivatePostApiReferralUserCustomization (params?: {}): Promise<implicitReturnType>;
+    fapiPrivatePostFeeBurn (params?: {}): Promise<implicitReturnType>;
     fapiPrivatePutListenKey (params?: {}): Promise<implicitReturnType>;
     fapiPrivatePutOrder (params?: {}): Promise<implicitReturnType>;
     fapiPrivatePutBatchOrders (params?: {}): Promise<implicitReturnType>;

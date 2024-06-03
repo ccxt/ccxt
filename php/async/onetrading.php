@@ -390,7 +390,7 @@ class onetrading extends Exchange {
         }) ();
     }
 
-    public function parse_market($market): array {
+    public function parse_market(array $market): array {
         $baseAsset = $this->safe_value($market, 'base', array());
         $quoteAsset = $this->safe_value($market, 'quote', array());
         $baseId = $this->safe_string($baseAsset, 'code');
@@ -883,7 +883,7 @@ class onetrading extends Exchange {
         }) ();
     }
 
-    public function parse_trade($trade, ?array $market = null): array {
+    public function parse_trade(array $trade, ?array $market = null): array {
         //
         // fetchTrades (public)
         //
@@ -1313,7 +1313,7 @@ class onetrading extends Exchange {
         }) ();
     }
 
-    public function parse_transaction($transaction, ?array $currency = null): array {
+    public function parse_transaction(array $transaction, ?array $currency = null): array {
         //
         // fetchDeposits, fetchWithdrawals
         //
@@ -1392,7 +1392,7 @@ class onetrading extends Exchange {
         );
     }
 
-    public function parse_order_status($status) {
+    public function parse_order_status(?string $status) {
         $statuses = array(
             'FILLED' => 'open',
             'FILLED_FULLY' => 'closed',
@@ -1407,7 +1407,7 @@ class onetrading extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_order($order, ?array $market = null): array {
+    public function parse_order(array $order, ?array $market = null): array {
         //
         // createOrder
         //
@@ -1517,7 +1517,7 @@ class onetrading extends Exchange {
         ), $market);
     }
 
-    public function parse_time_in_force($timeInForce) {
+    public function parse_time_in_force(?string $timeInForce) {
         $timeInForces = array(
             'GOOD_TILL_CANCELLED' => 'GTC',
             'GOOD_TILL_TIME' => 'GTT',
@@ -2024,7 +2024,7 @@ class onetrading extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
         if ($response === null) {
             return null;
         }

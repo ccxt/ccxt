@@ -170,7 +170,7 @@ class zaif extends Exchange {
         return $this->parse_markets($markets);
     }
 
-    public function parse_market($market): array {
+    public function parse_market(array $market): array {
         $id = $this->safe_string($market, 'currency_pair');
         $name = $this->safe_string($market, 'name');
         list($baseId, $quoteId) = explode('/', $name);
@@ -354,7 +354,7 @@ class zaif extends Exchange {
         return $this->parse_ticker($ticker, $market);
     }
 
-    public function parse_trade($trade, ?array $market = null): array {
+    public function parse_trade(array $trade, ?array $market = null): array {
         //
         // fetchTrades (public)
         //
@@ -472,10 +472,26 @@ class zaif extends Exchange {
         $request = array(
             'order_id' => $id,
         );
-        return $this->privatePostCancelOrder ($this->extend($request, $params));
+        $response = $this->privatePostCancelOrder ($this->extend($request, $params));
+        //
+        //    {
+        //        "success" => 1,
+        //        "return" => {
+        //            "order_id" => 184,
+        //            "funds" => {
+        //                "jpy" => 15320,
+        //                "btc" => 1.392,
+        //                "mona" => 2600,
+        //                "kaori" => 0.1
+        //            }
+        //        }
+        //    }
+        //
+        $data = $this->safe_dict($response, 'return');
+        return $this->parse_order($data);
     }
 
-    public function parse_order($order, ?array $market = null): array {
+    public function parse_order(array $order, ?array $market = null): array {
         //
         //     {
         //         "currency_pair" => "btc_jpy",
@@ -486,6 +502,18 @@ class zaif extends Exchange {
         //         "comment" : "demo"
         //     }
         //
+        // cancelOrder
+        //
+        //    {
+        //        "order_id" => 184,
+        //        "funds" => {
+        //            "jpy" => 15320,
+        //            "btc" => 1.392,
+        //            "mona" => 2600,
+        //            "kaori" => 0.1
+        //        }
+        //    }
+        //
         $side = $this->safe_string($order, 'action');
         $side = ($side === 'bid') ? 'buy' : 'sell';
         $timestamp = $this->safe_timestamp($order, 'timestamp');
@@ -493,7 +521,7 @@ class zaif extends Exchange {
         $symbol = $this->safe_symbol($marketId, $market, '_');
         $price = $this->safe_string($order, 'price');
         $amount = $this->safe_string($order, 'amount');
-        $id = $this->safe_string($order, 'id');
+        $id = $this->safe_string_2($order, 'id', 'order_id');
         return $this->safe_order(array(
             'id' => $id,
             'clientOrderId' => null,
@@ -623,7 +651,7 @@ class zaif extends Exchange {
         return $this->parse_transaction($returnData, $currency);
     }
 
-    public function parse_transaction($transaction, ?array $currency = null): array {
+    public function parse_transaction(array $transaction, ?array $currency = null): array {
         //
         //     {
         //         "id" => 23634,
@@ -705,7 +733,7 @@ class zaif extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors($httpCode, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
         if ($response === null) {
             return null;
         }

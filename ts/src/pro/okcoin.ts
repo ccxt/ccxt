@@ -5,7 +5,7 @@ import okcoinRest from '../okcoin.js';
 import { ArgumentsRequired, AuthenticationError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
-import type { Int, Str, OrderBook, Order, Trade, Ticker, OHLCV, Balances } from '../base/types.js';
+import type { Int, Str, OrderBook, Order, Trade, Ticker, OHLCV, Balances, Dict } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -60,7 +60,7 @@ export default class okcoin extends okcoinRest {
         const market = this.market (symbol);
         const url = this.urls['api']['ws'];
         const messageHash = market['type'] + '/' + channel + ':' + market['id'];
-        const request = {
+        const request: Dict = {
             'op': 'subscribe',
             'args': [ messageHash ],
         };
@@ -158,7 +158,7 @@ export default class okcoin extends okcoinRest {
                 this.orders = new ArrayCacheBySymbolById (limit);
             }
             const stored = this.orders;
-            const marketIds = {};
+            const marketIds: Dict = {};
             const parsed = this.parseOrders (orders);
             for (let i = 0; i < parsed.length; i++) {
                 const order = parsed[i];
@@ -481,7 +481,7 @@ export default class okcoin extends okcoinRest {
             const path = '/users/self/verify';
             const auth = timestamp + method + path;
             const signature = this.hmac (this.encode (auth), this.encode (this.secret), sha256, 'base64');
-            const request = {
+            const request: Dict = {
                 'op': messageHash,
                 'args': [
                     this.apiKey,
@@ -554,7 +554,7 @@ export default class okcoin extends okcoinRest {
         const messageHash = accountType + '/' + account;
         const subscriptionHash = messageHash + ':' + suffix;
         const url = this.urls['api']['ws'];
-        const request = {
+        const request: Dict = {
             'op': 'subscribe',
             'args': [ subscriptionHash ],
         };
@@ -737,7 +737,7 @@ export default class okcoin extends okcoinRest {
         if (table === undefined) {
             const event = this.safeString (message, 'event');
             if (event !== undefined) {
-                const methods = {
+                const methods: Dict = {
                     // 'info': this.handleSystemStatus,
                     // 'book': 'handleOrderBook',
                     'login': this.handleAuthenticate,
@@ -751,7 +751,7 @@ export default class okcoin extends okcoinRest {
         } else {
             const parts = table.split ('/');
             const name = this.safeString (parts, 1);
-            const methods = {
+            const methods: Dict = {
                 'depth': this.handleOrderBook,
                 'depth5': this.handleOrderBook,
                 'depth_l2_tbt': this.handleOrderBook,

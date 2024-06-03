@@ -439,7 +439,7 @@ class coinlist extends Exchange {
         }) ();
     }
 
-    public function parse_market($market): array {
+    public function parse_market(array $market): array {
         $id = $this->safe_string($market, 'symbol');
         $baseId = $this->safe_string($market, 'base_currency');
         $quoteId = $this->safe_string($market, 'quote_currency');
@@ -814,7 +814,7 @@ class coinlist extends Exchange {
         }) ();
     }
 
-    public function parse_trade($trade, ?array $market = null): array {
+    public function parse_trade(array $trade, ?array $market = null): array {
         //
         // fetchTrades
         //     {
@@ -1595,7 +1595,7 @@ class coinlist extends Exchange {
         }) ();
     }
 
-    public function parse_order($order, ?array $market = null): array {
+    public function parse_order(array $order, ?array $market = null): array {
         //
         // fetchOrder
         //     {
@@ -1722,7 +1722,7 @@ class coinlist extends Exchange {
         ), $market);
     }
 
-    public function parse_order_status($status) {
+    public function parse_order_status(?string $status) {
         $statuses = array(
             'pending' => 'open',
             'accepted' => 'open',
@@ -2027,7 +2027,7 @@ class coinlist extends Exchange {
         }) ();
     }
 
-    public function parse_transaction($transaction, ?array $currency = null): array {
+    public function parse_transaction(array $transaction, ?array $currency = null): array {
         // withdraw
         //
         //     {
@@ -2205,7 +2205,7 @@ class coinlist extends Exchange {
         }) ();
     }
 
-    public function parse_ledger_entry($item, ?array $currency = null) {
+    public function parse_ledger_entry(array $item, ?array $currency = null) {
         //
         // deposit transaction from wallet (funding) to pro (trading)
         //     {
@@ -2324,16 +2324,19 @@ class coinlist extends Exchange {
         $request = $this->omit($params, $this->extract_params($path));
         $endpoint = '/' . $this->implode_params($path, $params);
         $url = $this->urls['api'][$api] . $endpoint;
-        $query = $this->urlencode($request);
+        $isBulk = gettype($params) === 'array' && array_keys($params) === array_keys(array_keys($params));
+        $query = null;
+        if (!$isBulk) {
+            $query = $this->urlencode($request);
+        }
         if ($api === 'private') {
             $this->check_required_credentials();
             $timestamp = (string) $this->seconds();
             $auth = $timestamp . $method . $endpoint;
-            $isBulk = gettype($params) === 'array' && array_keys($params) === array_keys(array_keys($params));
             if (($method === 'POST') || ($method === 'PATCH') || $isBulk) {
                 $body = $this->json($request);
                 $auth .= $body;
-            } elseif (strlen($query) !== 0) {
+            } elseif ($query !== null && strlen($query) !== 0) {
                 $auth .= '?' . $query;
                 $url .= '?' . $query;
             }
@@ -2344,13 +2347,13 @@ class coinlist extends Exchange {
                 'CL-ACCESS-TIMESTAMP' => $timestamp,
                 'Content-Type' => 'application/json',
             );
-        } elseif (strlen($query) !== 0) {
+        } elseif ($query !== null && strlen($query) !== 0) {
             $url .= '?' . $query;
         }
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
         if ($response === null) {
             // In some cases the exchange returns 202 Accepted for bad orders.
             // The $body of that $response contains order_id of the order.
