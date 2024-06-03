@@ -1,12 +1,16 @@
+// @ts-nocheck
+// AUTO_TRANSPILE_ENABLED
+
 import assert from 'assert';
 import { functions } from '../../../ccxt.js';
 // eslint-disable-next-line import/newline-after-import
 import Precise from '../../base/Precise.js';
 const { numberToString, decimalToPrecision, ROUND, TRUNCATE, DECIMAL_PLACES, TICK_SIZE, PAD_WITH_ZERO, SIGNIFICANT_DIGITS } = functions;
+
 // ----------------------------------------------------------------------------
 // numberToString
 
-function testNumberAll () {
+function testBaseNumberAll () {
     assert (numberToString (-7.8e-7) === '-0.00000078');
     assert (numberToString (7.8e-7) === '0.00000078');
     assert (numberToString (-17.805e-7) === '-0.0000017805');

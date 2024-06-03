@@ -4,7 +4,7 @@
 import assert from 'assert';
 import ccxt from '../../../ccxt.js';
 
-function testDatetimeAll () {
+function testBaseDatetimeAll () {
     const ROUND_UP = 2;
     const ROUND_DOWN = 3;
 
