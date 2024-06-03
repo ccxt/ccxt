@@ -2262,16 +2262,19 @@ class coinlist extends Exchange {
         $request = $this->omit($params, $this->extract_params($path));
         $endpoint = '/' . $this->implode_params($path, $params);
         $url = $this->urls['api'][$api] . $endpoint;
-        $query = $this->urlencode($request);
+        $isBulk = gettype($params) === 'array' && array_keys($params) === array_keys(array_keys($params));
+        $query = null;
+        if (!$isBulk) {
+            $query = $this->urlencode($request);
+        }
         if ($api === 'private') {
             $this->check_required_credentials();
             $timestamp = (string) $this->seconds();
             $auth = $timestamp . $method . $endpoint;
-            $isBulk = gettype($params) === 'array' && array_keys($params) === array_keys(array_keys($params));
             if (($method === 'POST') || ($method === 'PATCH') || $isBulk) {
                 $body = $this->json($request);
                 $auth .= $body;
-            } elseif (strlen($query) !== 0) {
+            } elseif ($query !== null && strlen($query) !== 0) {
                 $auth .= '?' . $query;
                 $url .= '?' . $query;
             }
@@ -2282,7 +2285,7 @@ class coinlist extends Exchange {
                 'CL-ACCESS-TIMESTAMP' => $timestamp,
                 'Content-Type' => 'application/json',
             );
-        } elseif (strlen($query) !== 0) {
+        } elseif ($query !== null && strlen($query) !== 0) {
             $url .= '?' . $query;
         }
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );

@@ -2432,18 +2432,22 @@ public partial class coinlist : Exchange
         object request = this.omit(parameters, this.extractParams(path));
         object endpoint = add("/", this.implodeParams(path, parameters));
         object url = add(getValue(getValue(this.urls, "api"), api), endpoint);
-        object query = this.urlencode(request);
+        object isBulk = ((parameters is IList<object>) || (parameters.GetType().IsGenericType && parameters.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))));
+        object query = null;
+        if (!isTrue(isBulk))
+        {
+            query = this.urlencode(request);
+        }
         if (isTrue(isEqual(api, "private")))
         {
             this.checkRequiredCredentials();
             object timestamp = ((object)this.seconds()).ToString();
             object auth = add(add(timestamp, method), endpoint);
-            object isBulk = ((parameters is IList<object>) || (parameters.GetType().IsGenericType && parameters.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))));
             if (isTrue(isTrue(isTrue((isEqual(method, "POST"))) || isTrue((isEqual(method, "PATCH")))) || isTrue(isBulk)))
             {
                 body = this.json(request);
                 auth = add(auth, body);
-            } else if (isTrue(!isEqual(getArrayLength(query), 0)))
+            } else if (isTrue(isTrue(!isEqual(query, null)) && isTrue(!isEqual(((string)query).Length, 0))))
             {
                 auth = add(auth, add("?", query));
                 url = add(url, add("?", query));
@@ -2455,7 +2459,7 @@ public partial class coinlist : Exchange
                 { "CL-ACCESS-TIMESTAMP", timestamp },
                 { "Content-Type", "application/json" },
             };
-        } else if (isTrue(!isEqual(getArrayLength(query), 0)))
+        } else if (isTrue(isTrue(!isEqual(query, null)) && isTrue(!isEqual(((string)query).Length, 0))))
         {
             url = add(url, add("?", query));
         }
