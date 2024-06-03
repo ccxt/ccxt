@@ -3,15 +3,12 @@
 
 import assert from 'assert';
 import ccxt from '../../../ccxt.js';
+import { numberToString, decimalToPrecision, ROUND, TRUNCATE, DECIMAL_PLACES, TICK_SIZE, PAD_WITH_ZERO, SIGNIFICANT_DIGITS } from '../../base/functions/number.js';
 
 function testBaseDatetime () {
-    const ROUND_UP = 2;
-    const ROUND_DOWN = 3;
-
     const exchange = new ccxt.Exchange ({
         'id': 'regirock',
     });
-
 
     assert (exchange.iso8601 (514862627000) === '1986-04-26T01:23:47.000Z');
     assert (exchange.iso8601 (514862627559) === '1986-04-26T01:23:47.559Z');

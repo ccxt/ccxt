@@ -13,7 +13,7 @@ require_once (__DIR__ . '/test_datetime.php');
 $exchange = new Exchange ([
     'id'=> 'xyzexchange',
 ]);
-test_base_datetime_all();
-test_base_number_all();
-test_base_crypto_All();
-test_base_functions_extend($exchange);
+test_base_datetime();
+test_base_number();
+test_base_cryptography();
+test_base_extend($exchange);

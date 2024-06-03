@@ -2098,6 +2098,7 @@ class Transpiler {
             [/^const\s+{.*}\s+=.*$/gm, ''],
             [ /function equals \([\S\s]+?return true;?\n}\n/g, '' ],
             [ /(export default .*)/g, '' ],
+            [ /testBaseCryptography/g, 'test_base_cryptography' ],
         ])
 
         let { python2Body, phpBody } = this.transpileJavaScriptToPythonAndPHP ({ js, removeEmptyLines: false })
@@ -2489,7 +2490,8 @@ class Transpiler {
                 replace (/\$exchange\[\$method\]/g, '$exchange->$method').
                 replace (/\$test_shared_methods\->/g, '').
                 replace (/TICK_SIZE/g, '\\ccxt\\TICK_SIZE').
-                replace (/Precise\->/g, 'Precise::');
+                replace (/Precise\->/g, 'Precise::').
+                replace (/\$ccxt->/g, '\\ccxt\\');
             str = this.phpReplaceException (str);
             return exchangeCamelCaseProps(str);
         }
@@ -2547,12 +2549,16 @@ class Transpiler {
             phpHeaderAsync.push ('use React\\Async;');
             phpHeaderAsync.push ('use React\\Promise;');
 
-            const decimalProps = [ 'DECIMAL_PLACES', 'TICK_SIZE', 'NO_PADDING', 'TRUNCATE', 'ROUND', 'ROUND_UP', 'ROUND_DOWN', 'SIGNIFICANT_DIGITS', 'decimal_to_precision', 'number_to_string' ];
+            const decimalProps = [ 'DECIMAL_PLACES', 'TICK_SIZE', 'NO_PADDING', 'TRUNCATE', 'ROUND', 'ROUND_UP', 'ROUND_DOWN', 'SIGNIFICANT_DIGITS', 'PAD_WITH_ZERO', 'decimal_to_precision', 'number_to_string' ];
             for (const propName of decimalProps) {
-                if (pythonAsync.indexOf (propName) >= 0) {
+                if (pythonAsync.includes (propName)) {
                     pythonHeaderSync.push ('from ccxt.base.decimal_to_precision import ' + propName + '  # noqa E402')
                     pythonHeaderAsync.push ('from ccxt.base.decimal_to_precision import ' + propName + '  # noqa E402')
                 }
+            }
+            if (pythonAsync.includes ('ccxt.')) {
+                pythonHeaderSync.push ('import ccxt  # noqa: F402')
+                pythonHeaderAsync.push ('import ccxt  # noqa: F402')
             }
             if (usesNumber) {
                 pythonHeaderSync.push ('import numbers  # noqa E402')
