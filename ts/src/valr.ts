@@ -21,6 +21,7 @@ import type {
     TradingFees,
     Str,
     CrossBorrowRates,
+    Num,
 } from './base/types.js';
 import { Precise } from './base/Precise.js';
 import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
@@ -907,7 +908,7 @@ export default class valr extends Exchange {
         } as Account;
     }
 
-    async fetchOrder (id: string, symbol: string = undefined, params = {}): Promise<Order> {
+    async fetchOrder (id: string, symbol: Str = undefined, params = {}): Promise<Order> {
         /**
          * @method
          * @name valr#fetchOrder
@@ -951,7 +952,7 @@ export default class valr extends Exchange {
         return this.parseOrder (response);
     }
 
-    async fetchOpenOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name valr#fetchOpenOrders
@@ -1011,7 +1012,7 @@ export default class valr extends Exchange {
         return this.parseOrder (response);
     }
 
-    async fetchClosedOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    async fetchClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name valr#fetchOpenOrders
@@ -1102,7 +1103,7 @@ export default class valr extends Exchange {
         return this.safeOrder (result, market);
     }
 
-    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: number = undefined, params = {}): Promise<Order> {
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}): Promise<Order> {
         /**
          * @method
          * @name valr#createOrder
@@ -1172,7 +1173,7 @@ export default class valr extends Exchange {
         // const response = await this.privatePostBatchOrders ()
     }
 
-    async editOrder (id: string, symbol: string, type: OrderType, side: OrderSide, amount: number = undefined, price: number = undefined, params = {}): Promise<Order> {
+    async editOrder (id: string, symbol: string, type: OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params = {}): Promise<Order> {
         /**
          * @method
          * @name valr#editOrder
@@ -1218,7 +1219,7 @@ export default class valr extends Exchange {
         });
     }
 
-    async cancelOrder (id: string, symbol: string = undefined, params = {}): Promise<Order> {
+    async cancelOrder (id: string, symbol: Str = undefined, params = {}): Promise<Order> {
         /**
          * @method
          * @name valr#cancelOrder
@@ -1250,7 +1251,7 @@ export default class valr extends Exchange {
         });
     }
 
-    async cancelAllOrders (symbol: string = undefined, params = {}): Promise<Order[]> {
+    async cancelAllOrders (symbol: Str = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name valr#cancelAllOrders
@@ -1359,7 +1360,7 @@ export default class valr extends Exchange {
         return this.parseTrades (response, undefined, since, limit, params);
     }
 
-    async fetchMyTrades (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         /**
          * @method
          * @name valr#fetchTrades
@@ -1539,7 +1540,7 @@ export default class valr extends Exchange {
         };
     }
 
-    async fetchDeposits (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
+    async fetchDeposits (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         /**
          * @method
          * @name valr#fetchDeposits
@@ -1606,7 +1607,7 @@ export default class valr extends Exchange {
         // Todo - Update Exchange.ts fetchDeposits argument from symbol to code parameter
     }
 
-    async fetchWithdrawals (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
+    async fetchWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         /**
          * @method
          * @name valr#fetchWithdrawals
