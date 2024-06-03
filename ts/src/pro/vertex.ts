@@ -581,7 +581,10 @@ export default class vertex extends vertexRest {
         const marketId = this.safeString (position, 'product_id');
         market = this.safeMarket (marketId);
         const contractSize = this.convertFromX18 (this.safeString (position, 'amount'));
-        const side = (Precise.stringLt (contractSize, '1')) ? 'sell' : 'buy';
+        let side = 'buy';
+        if (Precise.stringLt (contractSize, '1')) {
+            side = 'sell';
+        }
         const timestamp = this.parseToNumeric (Precise.stringDiv (this.safeString (position, 'timestamp'), '1000000'));
         return this.safePosition ({
             'info': position,
