@@ -1514,7 +1514,8 @@ export default class testMainClass extends baseMainTestClass {
             this.testHyperliquid (),
             this.testCoinbaseinternational (),
             this.testCoinbaseAdvanced (),
-            this.testWoofiPro ()
+            this.testWoofiPro (),
+            this.testVertex ()
         ];
         await Promise.all (promises);
         const successMessage = '[' + this.lang + '][TEST_SUCCESS] brokerId tests passed.';
@@ -1882,6 +1883,24 @@ export default class testMainClass extends baseMainTestClass {
         }
         const brokerId = request['order_tag'];
         assert (brokerId === id, 'woofipro - id: ' + id + ' different from  broker_id: ' + brokerId);
+        await close (exchange);
+        return true;
+    }
+
+    async testVertex () {
+        const exchange = this.initOfflineExchange ('vertex');
+        exchange.secret = 'secretsecretsecretsecretsecretsecretsecrets';
+        const id = 5930043274845996;
+        await exchange.loadMarkets ();
+        let request = undefined;
+        try {
+            await exchange.createOrder ('BTC/USDC:USDC', 'limit', 'buy', 1, 20000);
+        } catch (e) {
+            request = jsonParse (exchange.last_request_body);
+        }
+        const order = request['place_order'];
+        const brokerId = order['id'];
+        assert (brokerId === id, 'vertex - id: ' + id.toString () + ' different from  broker_id: ' + brokerId.toString ());
         await close (exchange);
         return true;
     }
