@@ -2019,68 +2019,6 @@ class Transpiler {
         }
     }
 
-    //-----------------------------------------------------------------------------
-
-    transpilePrecisionTests () {
-
-        const jsFile = './ts/src/test/base/test.number.ts'
-        const pyFile = './python/ccxt/test/base/test_number.py'
-        const phpFile = './php/test/base/test_number.php'
-
-        log.magenta ('Transpiling from', jsFile.yellow)
-
-        let js = fs.readFileSync (jsFile).toString ()
-
-        js = this.regexAll (js, [
-            [ /\'use strict\';?\s+/g, '' ],
-            [ /[^\n]+from[^\n]+\n/g, '' ],
-            [ /^export default[^\n]+\n/g, '' ],
-            [/^const\s+{.*}\s+=.*$/gm, ''],
-            [ /decimalToPrecision/g, 'decimal_to_precision' ],
-            [ /numberToString/g, 'number_to_string' ],
-            [ /(export default .*)/g, '' ],
-        ])
-
-        let { python3Body, python2Body, phpBody, phpAsyncBody } = this.transpileJavaScriptToPythonAndPHP ({ js, removeEmptyLines: false })
-
-        python2Body = this.regexAll (python2Body, [
-            [ /function (\w+)\(\) \{/g, 'def $1():' ],
-        ]) 
-        const phpHeader = [
-            "",
-            "include_once (__DIR__.'/../custom/fail_on_all_errors.php');",
-            "",
-            "// testDecimalToPrecisionErrorHandling",
-            "//",
-            "// $this->expectException ('ccxt\\\\BaseError');",
-            "// $this->expectExceptionMessageRegExp ('/Negative precision is not yet supported/');",
-            "// Exchange::decimalToPrecision ('123456.789', TRUNCATE, -2, DECIMAL_PLACES);",
-            "//",
-            "// $this->expectException ('ccxt\\\\BaseError');",
-            "// $this->expectExceptionMessageRegExp ('/Invalid number/');",
-            "// Exchange::decimalToPrecision ('foo');",
-            "",
-            "// ----------------------------------------------------------------------------",
-            "",
-            "function decimal_to_precision ($x, $roundingMode = ROUND, $numPrecisionDigits = null, $countingMode = DECIMAL_PLACES, $paddingMode = NO_PADDING) {",
-            "    return Exchange::decimal_to_precision ($x, $roundingMode, $numPrecisionDigits, $countingMode, $paddingMode);",
-            "}",
-            "function number_to_string ($x) {",
-            "    return Exchange::number_to_string ($x);",
-            "}",
-            "",
-        ].join ("\n")
-
-        const python = this.getPythonPreamble (4) + pythonHeader + python2Body
-        const php = this.getPHPPreamble (true, 3) + phpHeader + phpBody
-
-        log.magenta ('→', pyFile.yellow)
-        log.magenta ('→', phpFile.yellow)
-
-        overwriteSafe (pyFile, python)
-        overwriteSafe (phpFile, php)
-    }
-
     //-------------------------------------------------------------------------
 
     transpileCryptoTests () {
@@ -2160,10 +2098,6 @@ class Transpiler {
             "",
             "function rsa(...$arg) {",
             "    return Exchange::rsa(...$arg);",
-            "}",
-            "",
-            "function equals($a, $b) {",
-            "    return $a === $b;",
             "}",
         ].join ("\n")
 
@@ -2491,6 +2425,7 @@ class Transpiler {
                 replace (/\$test_shared_methods\->/g, '').
                 replace (/TICK_SIZE/g, '\\ccxt\\TICK_SIZE').
                 replace (/Precise\->/g, 'Precise::').
+                replace (/function equals(.*?)\{/g, '').
                 replace (/\$ccxt->/g, '\\ccxt\\');
             str = this.phpReplaceException (str);
             return exchangeCamelCaseProps(str);
