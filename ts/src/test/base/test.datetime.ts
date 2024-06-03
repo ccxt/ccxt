@@ -98,4 +98,4 @@ function testBaseDatetimeAll () {
     // $this->assertSame(514862627123, Exchange::parse_date('1986-04-26T01:23:47.123Z'));
 }
 
-export default testDatetimeAll;
+export default testBaseDatetimeAll;

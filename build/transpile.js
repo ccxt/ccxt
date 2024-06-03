@@ -2021,52 +2021,6 @@ class Transpiler {
 
     //-----------------------------------------------------------------------------
 
-    transpileDateTimeTests () {
-        const jsFile = './ts/src/test/base/test.datetime.ts'
-        const pyFile = './python/ccxt/test/base/test_datetime.py'
-        const phpFile = './php/test/base/test_datetime.php'
-
-        log.magenta ('Transpiling from', jsFile.yellow)
-
-        let js = fs.readFileSync (jsFile).toString ()
-
-        js = this.regexAll (js, [
-            [ /[^\n]+from[^\n]+\n/g, '' ],
-            [ /^export default[^\n]+\n/g, '' ],
-            [/^\/\*.*\s+/mg, ''],
-            [/^const\s+{.*}\s+=.*$/gm, ''],
-            [ /(export default .*)/g, '' ],
-        ])
-
-        let { python2Body, phpBody } = this.transpileJavaScriptToPythonAndPHP ({ js, removeEmptyLines: false })
-
-        python2Body = this.regexAll (python2Body, [
-            [ /function(\w+) \(\) \{/g, 'def $1():' ],
-        ])
-        // phpBody = phpBody.replace (/exchange\./g, 'Exchange::')
-
-        const pythonHeader = [
-            "",
-            "import ccxt  # noqa: F402",
-            "from ccxt.base.decimal_to_precision import ROUND_UP, ROUND_DOWN  # noqa F401",
-            "",
-            "# ----------------------------------------------------------------------------",
-            "",
-            "",
-        ].join ("\n")
-
-        const python = this.getPythonPreamble (4) + pythonHeader + python2Body
-        const php = this.getPHPPreamble (true, 3) + phpBody
-
-        log.magenta ('→', pyFile.yellow)
-        log.magenta ('→', phpFile.yellow)
-
-        overwriteSafe (pyFile, python)
-        overwriteSafe (phpFile, php)
-    }
-
-    //-------------------------------------------------------------------------
-
     transpilePrecisionTests () {
 
         const jsFile = './ts/src/test/base/test.number.ts'
@@ -2091,25 +2045,7 @@ class Transpiler {
 
         python2Body = this.regexAll (python2Body, [
             [ /function (\w+)\(\) \{/g, 'def $1():' ],
-        ])
-
-        const pythonHeader = [
-            "",
-            "from ccxt.base.decimal_to_precision import decimal_to_precision  # noqa F401",
-            "from ccxt.base.decimal_to_precision import TRUNCATE              # noqa F401",
-            "from ccxt.base.decimal_to_precision import ROUND                 # noqa F401",
-            "from ccxt.base.decimal_to_precision import DECIMAL_PLACES        # noqa F401",
-            "from ccxt.base.decimal_to_precision import SIGNIFICANT_DIGITS    # noqa F401",
-            "from ccxt.base.decimal_to_precision import TICK_SIZE             # noqa F401",
-            "from ccxt.base.decimal_to_precision import PAD_WITH_ZERO         # noqa F401",
-            "from ccxt.base.decimal_to_precision import NO_PADDING            # noqa F401",
-            "from ccxt.base.decimal_to_precision import number_to_string      # noqa F401",
-            "from ccxt.base.exchange import Exchange                          # noqa F401",
-            "from ccxt.base.precise import Precise                            # noqa F401",
-            "",
-            "",
-        ].join ("\n")
-
+        ]) 
         const phpHeader = [
             "",
             "include_once (__DIR__.'/../custom/fail_on_all_errors.php');",
@@ -2267,8 +2203,6 @@ class Transpiler {
     // ============================================================================
 
     transpileExchangeTests () {
-
-        this.baseFunctionalitiesTests ();
 
         this.transpileMainTests ({
             'tsFile': './ts/src/test/tests.ts',
@@ -2582,7 +2516,6 @@ class Transpiler {
 
             const usesPrecise = imports.find(x => x.name.includes('Precise'));
             const usesNumber = pythonAsync.indexOf ('numbers.') >= 0;
-            const usesTickSize = pythonAsync.indexOf ('TICK_SIZE') >= 0;
             const requiredSubTests  = imports.filter(x => x.name.includes('test')).map(x => x.name);
             const usesAsyncio = pythonAsync.indexOf ('asyncio.') >= 0;
 
@@ -2614,9 +2547,12 @@ class Transpiler {
             phpHeaderAsync.push ('use React\\Async;');
             phpHeaderAsync.push ('use React\\Promise;');
 
-            if (usesTickSize) {
-                pythonHeaderSync.push ('from ccxt.base.decimal_to_precision import TICK_SIZE  # noqa E402')
-                pythonHeaderAsync.push ('from ccxt.base.decimal_to_precision import TICK_SIZE  # noqa E402')
+            const decimalProps = [ 'DECIMAL_PLACES', 'TICK_SIZE', 'NO_PADDING', 'TRUNCATE', 'ROUND', 'ROUND_UP', 'ROUND_DOWN', 'SIGNIFICANT_DIGITS', 'decimal_to_precision', 'number_to_string' ];
+            for (const propName of decimalProps) {
+                if (pythonAsync.indexOf (propName) >= 0) {
+                    pythonHeaderSync.push ('from ccxt.base.decimal_to_precision import ' + propName + '  # noqa E402')
+                    pythonHeaderAsync.push ('from ccxt.base.decimal_to_precision import ' + propName + '  # noqa E402')
+                }
             }
             if (usesNumber) {
                 pythonHeaderSync.push ('import numbers  # noqa E402')
@@ -2705,8 +2641,8 @@ class Transpiler {
 
     transpileTests () {
 
-        this.transpilePrecisionTests ()
-        this.transpileDateTimeTests ()
+        this.baseFunctionalitiesTests ();
+
         this.transpileCryptoTests ()
 
         this.transpileExchangeTests ()

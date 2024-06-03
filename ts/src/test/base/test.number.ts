@@ -394,4 +394,4 @@ function testBaseNumberAll () {
     // $this->assertSame (439, Exchange::sum (2, null, [88], 30, '7', 400, null));
 }
 
-export default testNumberAll;
+export default testBaseNumberAll;
