@@ -1,12 +1,12 @@
 
-import testOrderBook from "./test.OrderBook.js";
-import testCache from "./test.Cache.js";
-import testClose from "./test.close.js";
+import testWsOrderBook from "./test.OrderBook.js";
+import testWsCache from "./test.Cache.js";
+import testWsClose from "./test.close.js";
 
 function testBaseWs () {
-    testOrderBook ();
-    testCache ();
-    testClose ();
+    testWsOrderBook ();
+    testWsCache ();
+    testWsClose ();
 }
 
 export default testBaseWs;

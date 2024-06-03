@@ -23,7 +23,7 @@ function equals (a, b) {
 
 // --------------------------------------------------------------------------------------------------------------------
 
-function testOrderBookAll () {
+function testWsOrderBook () {
 
     const orderBookInput = {
         'bids': [ [ 10.0, 10 ], [ 9.1, 11 ], [ 8.2, 12 ], [ 7.3, 13 ], [ 6.4, 14 ], [ 4.5, 13 ], [ 4.5, 0 ] ],
@@ -398,4 +398,4 @@ function testOrderBookAll () {
     assert (equals (resetBook, orderBookTarget));
 }
 
-export default testOrderBookAll;
+export default testWsOrderBook;
