@@ -7,7 +7,7 @@ import Precise from '../../base/Precise.js';
 import { numberToString, decimalToPrecision, ROUND, TRUNCATE, DECIMAL_PLACES, TICK_SIZE, PAD_WITH_ZERO, SIGNIFICANT_DIGITS } from '../../base/functions/number.js';
 
 
-function testBaseNumberAll () {
+function testBaseNumber () {
     // ----------------------------------------------------------------------------
     // numberToString
     assert (numberToString (-7.8e-7) === '-0.00000078');
@@ -393,4 +393,4 @@ function testBaseNumberAll () {
     // $this->assertSame (439, Exchange::sum (2, null, [88], 30, '7', 400, null));
 }
 
-export default testBaseNumberAll;
+export default testBaseNumber;

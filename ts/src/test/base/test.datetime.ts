@@ -4,7 +4,7 @@
 import assert from 'assert';
 import ccxt from '../../../ccxt.js';
 
-function testBaseDatetimeAll () {
+function testBaseDatetime () {
     const ROUND_UP = 2;
     const ROUND_DOWN = 3;
 
@@ -98,4 +98,4 @@ function testBaseDatetimeAll () {
     // $this->assertSame(514862627123, Exchange::parse_date('1986-04-26T01:23:47.123Z'));
 }
 
-export default testBaseDatetimeAll;
+export default testBaseDatetime;

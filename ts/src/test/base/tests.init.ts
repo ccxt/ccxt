@@ -6,11 +6,11 @@ import { Exchange, functions } from '../../../ccxt.js'
 
 import testGeneric from './test.generic.js'
 // import './test.time.js'
-import testTypeAll from './test.type.js'
-import testNumberAll from './test.number.js'
-import testDatetimeAll from './test.datetime.js'
-import testCryptoAll from './test.crypto.js'
-import testExtendAll from './test.extend.js';
+import testTypes from './test.type.js'
+import testNumber from './test.number.js'
+import testDatetime from './test.datetime.js'
+import testCrypto from './test.crypto.js'
+import testExtend from './test.extend.js';
 
 const { index, aggregate, unCamelCase } = functions
 
@@ -203,12 +203,12 @@ function testUnCamelCase () {
 
 
 function baseTestsInit (exchange) {
-    testExtendAll ();
+    testExtend ();
     testUnCamelCase ();
-    testCryptoAll ();
-    testDatetimeAll ();
-    testNumberAll ();
-    testTypeAll ();
+    testCrypto ();
+    testDatetime ();
+    testNumber ();
+    testTypes ();
     testGeneric ();
 
     testCalculateFee ()
