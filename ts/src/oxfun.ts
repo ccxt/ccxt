@@ -2818,7 +2818,7 @@ export default class oxfun extends Exchange {
         const marketId = this.safeString (order, 'marketCode');
         market = this.safeMarket (marketId, market);
         const timestamp = this.safeInteger (order, 'createdAt');
-        let fee: FeeInterface = undefined;
+        let fee = undefined;
         const feeCurrency = this.safeString (order, 'feeInstrumentId');
         if (feeCurrency !== undefined) {
             fee = {
