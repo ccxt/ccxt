@@ -1532,7 +1532,13 @@ export default class Exchange {
         // the policy is to make sure that 100% of promises are resolved or rejected
         // either with a call to client.resolve or client.reject with
         //  a proper exception class instance
-        const connected = client.connect (backoffDelay);
+        let connected = undefined;
+        if (this.enableRateLimit && !client.startedConnecting) {
+            // const connectionCost = this.safeValue (this.options, 'ws', {}).connectionCost;
+            connected = client.connectionsThrottler.throttle ().then (() => client.connect (backoffDelay));
+        } else {
+            connected = client.connect (backoffDelay);
+        }
         // the following is executed only if the catch-clause does not
         // catch any connection-level exceptions from the client
         // (connection established successfully)
@@ -1545,7 +1551,7 @@ export default class Exchange {
                         // add cost here |
                         //               |
                         //               V
-                        client.throttle (cost).then (() => {
+                        client.messagesThrottler.throttle (cost).then (() => {
                             client.send (message);
                         }).catch ((e) => {
                             for (let i = 0; i < missingSubscriptions.length; i++) {
@@ -1635,13 +1641,10 @@ export default class Exchange {
         if (!clientSubscription) {
             connected.then (() => {
                 const options = this.safeValue (this.options, 'ws');
-                const cost = this.safeValue (options, 'cost', 1);
+                const cost = this.safeValue (options, 'cost', messageCost);
                 if (message) {
-                    if (this.enableRateLimit && client.messageThrottler) {
-                        // add cost here |
-                        //               |
-                        //               V
-                        client.messageThrottler.throttle (cost).then (() => {
+                    if (this.enableRateLimit && client.messagesThrottler) {
+                        client.messagesThrottler.throttle (cost).then (() => {
                             client.send (message);
                         }).catch ((e) => {
                             client.onError (e);
