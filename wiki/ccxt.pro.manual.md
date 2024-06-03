@@ -562,6 +562,39 @@ In **throttling mode** CCXT Pro will receive and manage the data in the backgrou
 
 The obvious downside of the throttling mode is being less reactive or responsive to updates. When a trading algorithm has to wait some number milliseconds before being executed – an update or two may arrive sooner than that time expires. In throttling mode the user will only check for those updates upon next wakeup (loop iteration), so the reaction lag may vary within some number of milliseconds over time.
 
+### Rate Limiting
+
+Rate limiting is a technique for controlling the rate of requests sent to the exchange. In CCXT Pro, two rate limiters are initiated:
+
+1. **Connection Rate Limiter**: This rate limiter is used to throttle the creation of new connections to the exchange. It ensures that the number of new connections per unit of time does not exceed the limit set by the exchange.
+
+2. **Message Rate Limiter**: This rate limiter is used to throttle the number of messages or new subscriptions sent to the exchange. It ensures that the number of messages sent per unit of time does not exceed the limit set by the exchange.
+
+The `exchange.enableRateLimit` property is used to turn both rate limiters on or off. When `exchange.enableRateLimit` is set to `true`, both rate limiters are enabled, and when it's set to `false`, both rate limiters are disabled. It's recommended to enable rate limiting to prevent the exchange from blocking your requests due to too many requests in a short period of time.
+
+#### Configuring Rate Limits
+
+You can configure the rate limits by setting the `options.ws.rateLimits` property in the exchange configuration. Here's an example:
+
+```json
+'options': {
+    'ws': {
+        'rateLimits': {
+            'default': {  // set default rate limit for all rate limits
+                'rateLimit': 50,
+                'connections': 1, // cost per connection
+                'messages': 2,  // cost per message
+            },
+            'wss://stream.binance.com:9443': {  // set the rate limit for a specific url
+                'rateLimit': 100,
+                'messages': 3, // override cost for a message type
+            }
+        }
+    }
+}
+```
+
+**Note for Developers**: The weight of a message can be overridden by passing in `messageCost` to the `exchange.watch` function.
 ## Public Methods
 
 ### watchOrderBook
