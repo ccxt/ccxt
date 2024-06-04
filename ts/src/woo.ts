@@ -1294,7 +1294,9 @@ export default class woo extends Exchange {
         //         "status":"CANCEL_ALL_SENT"
         //     }
         //
-        return response;
+        return [
+            this.safeOrder (response),
+        ];
     }
 
     async cancelAllOrdersAfter (timeout: Int, params = {}) {
@@ -1322,7 +1324,9 @@ export default class woo extends Exchange {
         //         "timestamp": 1711534302943
         //     }
         //
-        return response;
+        return [
+            this.safeOrder (response),
+        ];
     }
 
     async fetchOrder (id: string, symbol: Str = undefined, params = {}) {
