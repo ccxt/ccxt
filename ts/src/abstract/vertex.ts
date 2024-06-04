@@ -12,6 +12,7 @@ interface Exchange {
     v1ArchivePost (params?: {}): Promise<implicitReturnType>;
     v1GatewayGetQuery (params?: {}): Promise<implicitReturnType>;
     v1GatewayGetSymbols (params?: {}): Promise<implicitReturnType>;
+    v1GatewayGetTime (params?: {}): Promise<implicitReturnType>;
     v1GatewayPostQuery (params?: {}): Promise<implicitReturnType>;
     v1GatewayPostExecute (params?: {}): Promise<implicitReturnType>;
     v1TriggerPostExecute (params?: {}): Promise<implicitReturnType>;
