@@ -98,7 +98,7 @@ export default class vertex extends Exchange {
                 'fetchStatus': true,
                 'fetchTicker': false,
                 'fetchTickers': true,
-                'fetchTime': false,
+                'fetchTime': true,
                 'fetchTrades': true,
                 'fetchTradingFee': false,
                 'fetchTradingFees': true,
@@ -168,6 +168,7 @@ export default class vertex extends Exchange {
                         'get': {
                             'query': 1,
                             'symbols': 1,
+                            'time': 1,
                         },
                         'post': {
                             'query': 1,
@@ -545,6 +546,19 @@ export default class vertex extends Exchange {
             result.push (this.parseMarket (rawMarket));
         }
         return result;
+    }
+
+    async fetchTime (params = {}) {
+        /**
+         * @method
+         * @name vertex#fetchTime
+         * @description fetches the current integer timestamp in milliseconds from the exchange server
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {int} the current integer timestamp in milliseconds from the exchange server
+         */
+        const response = await this.v1GatewayGetTime (params);
+        // 1717481623452
+        return this.parseNumber (response);
     }
 
     async fetchStatus (params = {}) {
@@ -1606,6 +1620,11 @@ export default class vertex extends Exchange {
          * @param {float} [params.triggerPrice] The price at which a trigger order is triggered at
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
+        const marketType = type.toLowerCase ();
+        const isMarketOrder = marketType === 'market';
+        if (isMarketOrder && price === undefined) {
+            throw new ArgumentsRequired (this.id + ' createOrder() requires a price argument for market order');
+        }
         await this.loadMarkets ();
         const market = this.market (symbol);
         const marketId = this.parseToNumeric (market['id']);
@@ -1613,7 +1632,8 @@ export default class vertex extends Exchange {
         const chainId = this.safeString (contracts, 'chain_id');
         const bookAddresses = this.safeList (contracts, 'book_addrs', []);
         const verifyingContractAddress = this.safeString (bookAddresses, marketId);
-        const timeInForce = this.safeStringLower (params, 'timeInForce');
+        const defaultTimeInForce = (isMarketOrder) ? 'fok' : undefined;
+        const timeInForce = this.safeStringLower (params, 'timeInForce', defaultTimeInForce);
         const postOnly = this.safeBool (params, 'postOnly', false);
         const reduceOnly = this.safeBool (params, 'reduceOnly', false);
         const triggerPrice = this.safeString2 (params, 'triggerPrice', 'stopPrice');
