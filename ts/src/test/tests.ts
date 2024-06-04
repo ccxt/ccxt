@@ -268,7 +268,10 @@ class testMainClass extends baseMainTestClass {
             dump (this.addPadding ('[INFO] TESTING', 25), this.exchangeHint (exchange), methodName, argsStringified);
         }
         await callMethod (this.testFiles, methodName, exchange, skippedPropertiesForMethod, args);
-        // if it was passed successfully, add to the list of successfull tests
+        if (this.info) {
+            dump (this.addPadding ('[INFO] TESTING DONE', 25), this.exchangeHint (exchange), methodName);
+        }
+        // add to the list of successed tests
         if (isPublic) {
             this.checkedPublicTests[methodName] = true;
         }

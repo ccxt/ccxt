@@ -117,7 +117,6 @@ public class Tests
                 RestBaseTests();
             }
             Helper.Green(" [C#] base tests passed");
-            return;
         }
 
         if (raceCondition)
