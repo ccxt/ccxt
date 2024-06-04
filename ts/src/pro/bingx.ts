@@ -374,7 +374,7 @@ export default class bingx extends bingxRest {
             }
         }
         const marketOptions = this.safeDict (this.options, marketType);
-        const timeframes = this.safeValue (marketOptions, 'timeframes', {});
+        const timeframes = this.safeDict (marketOptions, 'timeframes', {});
         for (let i = 0; i < symbolsAndTimeframes.length; i++) {
             const symbolAndTimeframe = symbolsAndTimeframes[i];
             const sym = symbolAndTimeframe[0];
