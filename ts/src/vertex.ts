@@ -1620,8 +1620,10 @@ export default class vertex extends Exchange {
          * @param {float} [params.triggerPrice] The price at which a trigger order is triggered at
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
-        if (price === undefined) {
-            throw new ArgumentsRequired (this.id + ' createOrder() requires a price argument');
+        const marketType = type.toLowerCase ();
+        const isMarketOrder = marketType === 'market';
+        if (isMarketOrder && price === undefined) {
+            throw new ArgumentsRequired (this.id + ' createOrder() requires a price argument for market order');
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -1630,7 +1632,7 @@ export default class vertex extends Exchange {
         const chainId = this.safeString (contracts, 'chain_id');
         const bookAddresses = this.safeList (contracts, 'book_addrs', []);
         const verifyingContractAddress = this.safeString (bookAddresses, marketId);
-        const defaultTimeInForce = (type === 'market') ? 'fok' : undefined;
+        const defaultTimeInForce = (isMarketOrder) ? 'fok' : undefined;
         const timeInForce = this.safeStringLower (params, 'timeInForce', defaultTimeInForce);
         const postOnly = this.safeBool (params, 'postOnly', false);
         const reduceOnly = this.safeBool (params, 'reduceOnly', false);
