@@ -34,6 +34,8 @@ public class Tests
     public static bool isWs = false;
     public static bool isBaseTests = false;
     public static bool isExchangeTests = false;
+    public static bool isReqResTests = false;
+    public static bool isAllTest = false;
     public static bool info = false;
     public static bool debug = false;
     public static bool raceCondition = false;
@@ -47,8 +49,8 @@ public class Tests
         isWs = args.Contains("--ws");
         isBaseTests = args.Contains("--baseTests");
         isExchangeTests = args.Contains("--exchangeTests");
-        var reqResTests =  args.Contains("--requestTests") || args.Contains("--responseTests");
-        var isAllTest = !reqResTests && !isBaseTests && !isExchangeTests; // if neither was chosen
+        isReqResTests =  args.Contains("--requestTests") || args.Contains("--responseTests");
+        isAllTest = !isReqResTests && !isBaseTests && !isExchangeTests; // if neither was chosen
 
         raceCondition = args.Contains("--race");
         var argsWithoutOptions = args.Where(arg => !arg.StartsWith("--")).ToList();
@@ -103,7 +105,7 @@ public class Tests
         ReadConfig();
         InitOptions(args);
 
-        if (isBaseTests)
+        if (isBaseTests || isAllTest)
         {
             if (isWs)
             {
@@ -118,15 +120,13 @@ public class Tests
             return;
         }
 
-
-
         if (raceCondition)
         {
             RaceConditionTests();
             return;
         }
 
-        if (isExchangeTests) {
+        if (isExchangeTests || isReqResTests || isAllTest) {
             var testClass = new testMainClass();
             testClass.init(exchangeId, symbol, methodName).Wait();
         }
