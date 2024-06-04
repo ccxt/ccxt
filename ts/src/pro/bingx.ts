@@ -280,8 +280,6 @@ export default class bingx extends bingxRest {
             request['reqType'] = 'sub';
         }
         const result = await this.watchMultiple (url, messageHashes, this.deepExtend (request, params), subscriptionHashes);
-        // for efficiency, we have two type of returned structure here - if symbols array was provided, then individual
-        // ticker dict comes in, otherwise all-tickers dict comes in
         if (this.newUpdates) {
             const newDict: Dict = {};
             newDict[result['symbol']] = result;
