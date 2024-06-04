@@ -236,16 +236,16 @@ export default class alpaca extends alpacaRest {
         const datetime = this.safeString (message, 't');
         const timestamp = this.parse8601 (datetime);
         const isSnapshot = this.safeBool (message, 'r', false);
-        let orderbook = this.safeValue (this.orderbooks, symbol);
-        if (orderbook === undefined) {
-            orderbook = this.orderBook ();
+        if (!(symbol in this.orderbooks)) {
+            this.orderbooks[symbol] = this.orderBook ();
         }
+        const orderbook = this.orderbooks[symbol];
         if (isSnapshot) {
             const snapshot = this.parseOrderBook (message, symbol, timestamp, 'b', 'a', 'p', 's');
             orderbook.reset (snapshot);
         } else {
-            const asks = this.safeValue (message, 'a', []);
-            const bids = this.safeValue (message, 'b', []);
+            const asks = this.safeList (message, 'a', []);
+            const bids = this.safeList (message, 'b', []);
             this.handleDeltas (orderbook['asks'], asks);
             this.handleDeltas (orderbook['bids'], bids);
             orderbook['timestamp'] = timestamp;
