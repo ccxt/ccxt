@@ -358,7 +358,7 @@ export default class bingx extends bingxRest {
          */
         const symbolsLength = symbolsAndTimeframes.length;
         if (symbolsLength !== 0 && !Array.isArray (symbolsAndTimeframes[0])) {
-            throw new ArgumentsRequired (this.id + " watchOHLCVForSymbols() requires a an array like  [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]");
+            throw new ArgumentsRequired (this.id + " watchOHLCVForSymbols() requires a an array like  [['BTC/USDT:USDT', '1m'], ['LTC/USDT:USDT', '5m']]");
         }
         await this.loadMarkets ();
         const messageHashes = [];
