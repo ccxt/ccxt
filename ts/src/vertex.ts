@@ -129,7 +129,7 @@ export default class vertex extends Exchange {
             },
             'hostname': 'vertexprotocol.com',
             'urls': {
-                'logo': '',
+                'logo': 'https://github.com/ccxt/ccxt/assets/43336371/bd04a0fa-3b48-47b6-9d8b-124954d520a8',
                 'api': {
                     'v1': {
                         'archive': 'https://archive.prod.{hostname}/v1',
