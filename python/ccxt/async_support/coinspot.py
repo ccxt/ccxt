@@ -505,11 +505,20 @@ class coinspot(Exchange, ImplicitAPI):
         if side != 'buy' and side != 'sell':
             raise ArgumentsRequired(self.id + ' cancelOrder() requires a side parameter, "buy" or "sell"')
         params = self.omit(params, 'side')
-        method = 'privatePostMy' + self.capitalize(side) + 'Cancel'
         request: dict = {
             'id': id,
         }
-        return await getattr(self, method)(self.extend(request, params))
+        response = None
+        if side == 'buy':
+            response = await self.privatePostMyBuyCancel(self.extend(request, params))
+        else:
+            response = await self.privatePostMySellCancel(self.extend(request, params))
+        #
+        # status - ok, error
+        #
+        return self.safe_order({
+            'info': response,
+        })
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api'][api] + '/' + path

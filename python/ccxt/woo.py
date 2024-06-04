@@ -1212,7 +1212,9 @@ class woo(Exchange, ImplicitAPI):
         #         "status":"CANCEL_ALL_SENT"
         #     }
         #
-        return response
+        return [
+            self.safe_order(response),
+        ]
 
     def cancel_all_orders_after(self, timeout: Int, params={}):
         """
@@ -1237,7 +1239,9 @@ class woo(Exchange, ImplicitAPI):
         #         "timestamp": 1711534302943
         #     }
         #
-        return response
+        return [
+            self.safe_order(response),
+        ]
 
     def fetch_order(self, id: str, symbol: Str = None, params={}):
         """
