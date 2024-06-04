@@ -4,7 +4,7 @@ import sys
 root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))))
 sys.path.append(root)
 
-from asyncio import run, sleep, gather
+from asyncio import sleep, gather
 from ccxt.base.errors import ExchangeClosedByUser  # noqa E402
 import ccxt.pro
 

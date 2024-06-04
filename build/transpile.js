@@ -2491,7 +2491,7 @@ class Transpiler {
                     pythonHeaderAsync.push ('from ccxt.base.decimal_to_precision import ' + propName + '  # noqa E402')
                 }
             }
-            if (pythonAsync.includes ('ccxt.')) {
+            if (pythonAsync.includes (/\sccxt\./)) {
                 pythonHeaderSync.push ('import ccxt  # noqa: F402')
                 pythonHeaderAsync.push ('import ccxt  # noqa: F402')
             }
