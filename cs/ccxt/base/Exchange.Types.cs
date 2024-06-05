@@ -87,7 +87,7 @@ public struct TradingFeeInterface
         taker = Exchange.SafeFloat(tradingFeeInterface, "taker");
         percentage = tradingFeeInterface.ContainsKey("percentage") && tradingFeeInterface["percentage"] != null ? (bool)tradingFeeInterface["percentage"] : null;
         tierBased = tradingFeeInterface.ContainsKey("tierBased") && tradingFeeInterface["tierBased"] != null ? (bool)tradingFeeInterface["tierBased"] : null;
-        info = tradingFeeInterface.ContainsKey("info") ? (Dictionary<string, object>)tradingFeeInterface["info"] : null;
+        info = Helper.GetInfo(tradingFeeInterface);
     }
 }
 
