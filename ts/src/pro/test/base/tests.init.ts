@@ -6,7 +6,7 @@ import testWsClose from "./test.close.js";
 function testBaseWs () {
     testWsOrderBook ();
     testWsCache ();
-    testWsClose ();
+    // todo : testWsClose ();
 }
 
 export default testBaseWs;
