@@ -1135,9 +1135,6 @@ export default class bitget extends bitgetRest {
         } else {
             marketType = 'contract';
         }
-        const isLinearSwap = (instType === 'USDT-FUTURES');
-        const isInverseSwap = (instType === 'COIN-FUTURES');
-        const isUSDCFutures = (instType === 'USDC-FUTURES');
         const data = this.safeValue (message, 'data', []);
         if (this.orders === undefined) {
             const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
@@ -1146,8 +1143,7 @@ export default class bitget extends bitgetRest {
         }
         const isTrigger = (channel === 'orders-algo') || (channel === 'ordersAlgo');
         const stored = isTrigger ? this.triggerOrders : this.orders;
-        const messageHash = isTrigger ? 'triggerOrder' : 'order';
-        const marketSymbols: Dict = {};
+        const messageHash = isTrigger ? 'order:trigger' : 'order';
         for (let i = 0; i < data.length; i++) {
             const order = data[i];
             const marketId = this.safeString (order, 'instId', argInstId);
@@ -1155,23 +1151,15 @@ export default class bitget extends bitgetRest {
             const parsed = this.parseWsOrder (order, market);
             stored.append (parsed);
             const symbol = parsed['symbol'];
-            marketSymbols[symbol] = true;
-        }
-        const keys = Object.keys (marketSymbols);
-        for (let i = 0; i < keys.length; i++) {
-            const symbol = keys[i];
-            const innerMessageHash = messageHash + ':' + symbol;
-            client.resolve (stored, innerMessageHash);
+            client.resolve (stored, messageHash + ':' + symbol);
         }
         client.resolve (stored, messageHash);
-        if (isLinearSwap) {
-            client.resolve (stored, 'order:linear');
-        }
-        if (isInverseSwap) {
+        if (instType === 'USDT-FUTURES') {
+            client.resolve (stored, 'order:linear:USDT');
+        } else if (instType === 'USDC-FUTURES') {
+            client.resolve (stored, 'order:linear:USDC');
+        } else if (instType === 'COIN-FUTURES') {
             client.resolve (stored, 'order:inverse');
-        }
-        if (isUSDCFutures) {
-            client.resolve (stored, 'order:usdcfutures');
         }
     }
 
