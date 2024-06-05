@@ -1322,7 +1322,7 @@ export default class bitget extends bitgetRest {
             totalAmount = this.safeString (order, 'size');
             cost = this.safeString (order, 'fillNotionalUsd');
         }
-        remaining = this.omitZero (Precise.stringSub (totalAmount, totalFilled));
+        remaining = Precise.stringSub (totalAmount, totalFilled);
         return this.safeOrder ({
             'info': order,
             'symbol': symbol,
