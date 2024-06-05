@@ -1341,6 +1341,16 @@ export default class testMainClass extends baseMainTestClass {
             // c# to string requirement
             exchange.secret = secret.toString ();
         }
+        const privateKey = exchange.safeString (exchangeData, 'privateKey');
+        if (privateKey) {
+            // c# to string requirement
+            exchange.privateKey = privateKey.toString ();
+        }
+        const walletAddress = exchange.safeString (exchangeData, 'walletAddress');
+        if (walletAddress) {
+            // c# to string requirement
+            exchange.walletAddress = walletAddress.toString ();
+        }
         // exchange.options = exchange.deepExtend (exchange.options, globalOptions); // custom options to be used in the tests
         exchange.extendExchangeOptions (globalOptions);
         const methods = exchange.safeValue (exchangeData, 'methods', {});
