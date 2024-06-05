@@ -992,22 +992,33 @@ export default class bitget extends bitgetRest {
          * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
          */
         await this.loadMarkets ();
+        let type = undefined;
+        let subType = undefined;
+        let productType = undefined;
+        let settle = undefined;
         let market = undefined;
-        let marketId = undefined;
+        let instId = undefined;
         let isTrigger = undefined;
         [ isTrigger, params ] = this.isTriggerOrder (params);
-        let messageHash = (isTrigger) ? 'triggerOrder' : 'order';
-        let subscriptionHash = 'order:trades';
+        let messageHash = isTrigger ? 'order:trigger' : 'order';
+        let subscriptionHash = isTrigger ? 'order:trigger' : 'order';
+        subscriptionHash += ':trades';
         if (symbol !== undefined) {
             market = this.market (symbol);
             symbol = market['symbol'];
-            marketId = market['id'];
+            instId = market['id'];
             messageHash = messageHash + ':' + symbol;
         }
-        let type = undefined;
-        let productType = undefined;
-        [ params, type, productType ] = this.handleProductTypeWithParams (market, 'watchOrders', params);
-        if ((type === 'spot' || type === 'margin') && (symbol === undefined)) {
+        [ params, type, subType, settle, productType ] = this.handleProductTypesAndParams (market, 'watchOrders', params);
+        if (symbol === undefined) {
+            messageHash += ':' + subType;
+            if (settle !== undefined) {
+                messageHash += ':' + settle;
+            }
+        }
+        if (!(type === 'spot' || type === 'margin')) {
+            instId = 'default'; // different from other streams here the 'rest' id is required for spot markets, contract markets require default here
+        } else if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' watchOrders requires a symbol argument for ' + type + ' markets.');
         }
         if (type === 'spot') {
@@ -1016,7 +1027,6 @@ export default class bitget extends bitgetRest {
         if (isTrigger) {
             subscriptionHash = subscriptionHash + ':stop'; // we don't want to re-use the same subscription hash for stop orders
         }
-        const instId = (type === 'spot' || type === 'margin') ? marketId : 'default'; // different from other streams here the 'rest' id is required for spot markets, contract markets require default here
         let channel = isTrigger ? 'orders-algo' : 'orders';
         let marginMode = undefined;
         [ marginMode, params ] = this.handleMarginModeAndParams ('watchOrders', params);
@@ -1041,7 +1051,7 @@ export default class bitget extends bitgetRest {
         return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
     }
 
-    handleProductTypeWithParams (market, methodName, params) {
+    handleProductTypesAndParams (market, methodName, params) {
         const sandboxMode = this.safeBool (this.options, 'sandboxMode', false);
         let productType = this.safeString (params, 'productType');
         let type = undefined;
@@ -1052,8 +1062,10 @@ export default class bitget extends bitgetRest {
             type = 'swap';
             if (productType.indexOf ('USDT-FUTURES') >= 0) {
                 subType = 'linear';
+                settle = 'USDT';
             } else if (productType.indexOf ('USDC-FUTURES') >= 0) {
                 subType = 'linear';
+                settle = 'USDC';
             } else if (productType.indexOf ('COIN-FUTURES') >= 0) {
                 subType = 'inverse';
             } else {
@@ -1073,10 +1085,15 @@ export default class bitget extends bitgetRest {
                     productType = settle.toUpperCase () + '-FUTURES'; // i.e. USDT-FUTURES
                 }
                 // for sandbox mode, add 'S' prefix
-                productType = sandboxMode ? ('S' + productType) : productType;
+                if (sandboxMode) {
+                    productType = 'S' + productType;
+                    if (settle !== undefined) {
+                        settle = 'S' + settle;
+                    }
+                }
             }
         }
-        return [ params, type, productType ];
+        return [ params, type, subType, settle, productType ];
     }
 
     handleOrder (client: Client, message) {
