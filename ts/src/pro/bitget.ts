@@ -1011,7 +1011,7 @@ export default class bitget extends bitgetRest {
         }
         let isTrigger = undefined;
         [ isTrigger, params ] = this.isTriggerOrder (params);
-        let messageHash = !isTrigger ? 'order' : 'order:trigger';
+        let messageHash = (!isTrigger) ? 'order' : 'order:trigger';
         if (symbol === undefined) {
             messageHash += ':' + subType;
             if (settle !== undefined) {
@@ -1150,7 +1150,7 @@ export default class bitget extends bitgetRest {
         }
         const isTrigger = (channel === 'orders-algo') || (channel === 'ordersAlgo');
         const stored = isTrigger ? this.triggerOrders : this.orders;
-        const messageHash = isTrigger ? 'order:trigger' : 'order';
+        const messageHash = (!isTrigger) ? 'order' : 'order:trigger';
         for (let i = 0; i < data.length; i++) {
             const order = data[i];
             const marketId = this.safeString (order, 'instId', argInstId);
