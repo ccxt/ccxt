@@ -65,14 +65,12 @@ export default class bitget extends bitgetRest {
                     '1d': '1D',
                     '1w': '1W',
                 },
-            },
-            'ws': {
-                'rateLimits': {
-                    'connections': {
-                        'rateLimit': 1000,
-                    },
-                    'messages': {
-                        'rateLimit': 1,
+                'ws': {
+                    'rateLimits': {
+                        'default': {
+                            'rateLimit': 100,
+                            'messages': 1, // 10 messages per second
+                        },
                     },
                 },
             },

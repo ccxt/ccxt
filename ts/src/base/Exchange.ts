@@ -1892,15 +1892,13 @@ export default class Exchange {
                 break;
             }
         }
-        const refillRate = (rateLimit !== undefined) ? (1 / rateLimit) : Number.MAX_SAFE_INTEGER;
-        cost = (cost !== undefined) ? cost : 1;
-        const config = {
-            'delay': 0.001,
-            'capacity': 1,
-            'cost': cost,
-            'maxCapacity': 1000,
-            'refillRate': refillRate,
-        };
+        const config: Dict = {};
+        if (cost) {
+            config['cost'] = cost;
+        }
+        if (rateLimit) {
+            config['refillRate'] = 1 / rateLimit;
+        }
         return config;
     }
 
