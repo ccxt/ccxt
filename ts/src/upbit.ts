@@ -1916,7 +1916,7 @@ export default class upbit extends Exchange {
                 'nonce': nonce,
             };
             if (Object.keys (query).length) {
-                const auth = this.urlencode (query);
+                const auth = this.urlencode (this.keysort (query));
                 const hash = this.hash (this.encode (auth), sha512);
                 request['query_hash'] = hash;
                 request['query_hash_alg'] = 'SHA512';
