@@ -3,7 +3,7 @@
 
 import upbitRest from '../upbit.js';
 import { ArrayCache, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
-import type { Int, Str, Order, OrderBook, Trade, Ticker, Dict } from '../base/types.js';
+import type { Int, Str, Order, OrderBook, Trade, Ticker, Dict, Balances } from '../base/types.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
 import { jwt } from '../base/functions/rsa.js';
 import Client from '../base/ws/Client.js';
@@ -20,6 +20,7 @@ export default class upbit extends upbitRest {
                 'watchTrades': true,
                 'watchOrders': true,
                 'watchMyTrades': true,
+                'watchBalance': true,
             },
             'urls': {
                 'api': {
@@ -499,12 +500,65 @@ export default class upbit extends upbitRest {
         client.resolve (this.orders, messageHash);
     }
 
+    async watchBalance (params = {}): Promise<Balances> {
+        /**
+         * @method
+         * @name upbit#watchBalance
+         * @see https://global-docs.upbit.com/reference/websocket-myasset
+         * @description query for balance and get the amount of funds available for trading or funds locked in orders
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+         */
+        await this.loadMarkets ();
+        const channel = 'myAsset';
+        const messageHash = 'myAsset';
+        return await this.watchPrivate (undefined, channel, messageHash);
+    }
+
+    handleBalance (client: Client, message) {
+        //
+        // {
+        //     "type": "myAsset",
+        //     "asset_uuid": "e635f223-1609-4969-8fb6-4376937baad6",
+        //     "assets": [
+        //       {
+        //         "currency": "SGD",
+        //         "balance": 1386929.37231066771348207123,
+        //         "locked": 10329.670127489597585685
+        //       }
+        //     ],
+        //     "asset_timestamp": 1710146517259,
+        //     "timestamp": 1710146517267,
+        //     "stream_type": "REALTIME"
+        // }
+        //
+        const data = this.safeList (message, 'assets', []);
+        const timestamp = this.safeInteger (message, 'timestamp');
+        this.balance['timestamp'] = timestamp;
+        this.balance['datetime'] = this.iso8601 (timestamp);
+        for (let i = 0; i < data.length; i++) {
+            const balance = data[i];
+            const currencyId = this.safeString (balance, 'currency');
+            const code = this.safeCurrencyCode (currencyId);
+            const available = this.safeString (balance, 'balance');
+            const frozen = this.safeString (balance, 'locked');
+            const account = this.account ();
+            account['free'] = available;
+            account['used'] = frozen;
+            this.balance[code] = account;
+            this.balance = this.safeBalance (this.balance);
+        }
+        const messageHash = this.safeString (message, 'type');
+        client.resolve (this.balance, messageHash);
+    }
+
     handleMessage (client: Client, message) {
         const methods: Dict = {
             'ticker': this.handleTicker,
             'orderbook': this.handleOrderBook,
             'trade': this.handleTrades,
             'myOrder': this.handleMyOrder,
+            'myAsset': this.handleBalance,
         };
         const methodName = this.safeString (message, 'type');
         const method = this.safeValue (methods, methodName);
