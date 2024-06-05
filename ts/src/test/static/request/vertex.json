@@ -4,7 +4,8 @@
         "sender",
         "nonce",
         "expiration",
-        "signature"
+        "signature",
+        "subaccount"
     ],
     "walletAddress": "0xc751489d24a33172541ea451bc253d7a9e98c781",
     "privateKey": "c33b1eb4b53108bf52e10f636d8c1236c04c33a712357ba3543ab45f48a5cb0b",
@@ -55,6 +56,38 @@
                 1
               ],
               "output": "{\"place_order\":{\"id\":5930043274845996, \"product_id\":31,\"order\":{\"sender\":\"0xc950889d14a3717f541ec246bc253d7a9e98c78f64656661756c740000000000\",\"priceX18\":\"1000000000000000000\",\"amount\":\"250000000000000000000\",\"expiration\":\"1717434643111\",\"nonce\":\"1800860752109634536\"},\"signature\":\"0xc7531db7448be295305cbaba9d7443ddb1e2edb20dc0866b3ad741d08f09b9793d52e8c047cd64ba1ae60c00f67c45ec6eb180330bbe15e27c3c92a782ab73371b\"}}"
+            },
+            {
+              "description": "spot IOC order",
+              "method": "createOrder",
+              "url": "https://gateway.prod.vertexprotocol.com/v1/execute",
+              "input": [
+                "USDT/USDC",
+                "limit",
+                "buy",
+                10,
+                1,
+                {
+                  "timeInForce": "IOC"
+                }
+              ],
+              "output": "{\"place_order\":{\"product_id\":31,\"order\":{\"sender\":\"0xc950889d14a3717f541ec246bc253d7a9e98c78f64656661756c740000000000\",\"priceX18\":\"1000000000000000000\",\"amount\":\"10000000000000000000\",\"expiration\":\"4611687736024352375\",\"nonce\":\"1801030958392017896\"},\"signature\":\"0x21b6e776eeeef64616b62a8f2038723fe91dbc011460f49d90ddc13a6e6e741173876d20a3a41707d3ed62b4d951b818cd9325b8c2d9626233a730aac0719b341c\",\"id\":5930043274845996}}"
+            },
+            {
+              "description": "swap IOC order",
+              "method": "createOrder",
+              "url": "https://gateway.prod.vertexprotocol.com/v1/execute",
+              "input": [
+                "SOL/USDC:USDC",
+                "limit",
+                "buy",
+                0.5,
+                172,
+                {
+                  "timeInForce": "IOC"
+                }
+              ],
+              "output": "{\"place_order\":{\"product_id\":12,\"order\":{\"sender\":\"0xc950889d14a3717f541ec246bc253d7a9e98c78f64656661756c740000000000\",\"priceX18\":\"172000000000000000000\",\"amount\":\"500000000000000000\",\"expiration\":\"4611687736024459077\",\"nonce\":\"1801031070277174248\"},\"signature\":\"0x605f0d743d6ee27f173469c047d60cce7ddc8c71200e2ecda730a2fc4fa4070f0e5d70c3e0772ce4f0d00f6c0797e49b173150d79aec454c6bf172e6d551c2c21b\",\"id\":5930043274845996}}"
             }
         ],
         "cancelOrder": [
@@ -90,6 +123,54 @@
                 ],
                 "output": "{\"cancel_product_orders\":{\"tx\":{\"sender\":\"0xc950889d14a3717f541ec246bc253d7a9e98c78f64656661756c740000000000\",\"nonce\":\"1800219871512888296\",\"productIds\":[12]},\"signature\":\"0x5037f0d52e7cb9823fe87db92ff84bb4444d3e5d41e3b95676e8818232dddcb362c3be7bb308a36fe49e42022557572dcdc84a4804388556afce27a0d211a2581b\"}}"
             }
+        ],
+        "fetchMyTrades": [
+          {
+            "description": "swap trades",
+            "method": "fetchMyTrades",
+            "url": "https://archive.prod.vertexprotocol.com/v1",
+            "input": [
+              "SOL/USDC:USDC"
+            ],
+            "output": "{\"matches\":{\"subaccount\":\"0xc950889d14a3717f541ec246bc253d7a9e98c78f64656661756c740000000000\",\"product_ids\":[12]}}"
+          },
+          {
+            "description": "spot trades",
+            "method": "fetchMyTrades",
+            "url": "https://archive.prod.vertexprotocol.com/v1",
+            "input": [
+              "USDT/USDC"
+            ],
+            "output": "{\"matches\":{\"subaccount\":\"0xc950889d14a3717f541ec246bc253d7a9e98c78f64656661756c740000000000\",\"product_ids\":[31]}}"
+          }
+        ],
+        "fetchOpenOrders": [
+          {
+            "description": "swap open orders",
+            "method": "fetchOpenOrders",
+            "url": "https://gateway.prod.vertexprotocol.com/v1/query",
+            "input": [
+              "SOL/USDC:USDC"
+            ],
+            "output": "{\"product_id\":12,\"type\":\"subaccount_orders\",\"sender\":\"0xc950889d14a3717f541ec246bc253d7a9e98c78f64656661756c740000000000\"}"
+          },
+          {
+            "description": "spot open orders",
+            "method": "fetchOpenOrders",
+            "url": "https://gateway.prod.vertexprotocol.com/v1/query",
+            "input": [
+              "USDT/USDC"
+            ],
+            "output": "{\"product_id\":31,\"type\":\"subaccount_orders\",\"sender\":\"0xc950889d14a3717f541ec246bc253d7a9e98c78f64656661756c740000000000\"}"
+          }
+        ],
+        "fetchBalance": [
+          {
+            "description": "balance",
+            "method": "fetchBalance",
+            "url": "https://gateway.prod.vertexprotocol.com/v1/query?type=subaccount_info&subaccount=0xc950889d14a3717f541ec246bc253d7a9e98c78f64656661756c740000000000",
+            "input": []
+          }
         ]
     }
 }
