@@ -1140,21 +1140,23 @@ export default class bitmart extends Exchange {
         //
         // spot (REST) fetchTickers
         //
-        //     [
-        //         "AFIN_USDT",     // symbol
-        //         "0.001047",      // last
-        //         "11110",         // v_24h
-        //         "11.632170",     // qv_24h
-        //         "0.001048",      // open_24h
-        //         "0.001048",      // high_24h
-        //         "0.001047",      // low_24h
-        //         "-0.00095",      // price_change_24h
-        //         "0.001029",      // bid_px
-        //         "5555",          // bid_sz
-        //         "0.001041",      // ask_px
-        //         "5297",          // ask_sz
-        //         "1717122550482"  // timestamp
-        //     ]
+        //     {
+        //         'result': [
+        //             "AFIN_USDT",     // symbol
+        //             "0.001047",      // last
+        //             "11110",         // v_24h
+        //             "11.632170",     // qv_24h
+        //             "0.001048",      // open_24h
+        //             "0.001048",      // high_24h
+        //             "0.001047",      // low_24h
+        //             "-0.00095",      // price_change_24h
+        //             "0.001029",      // bid_px
+        //             "5555",          // bid_sz
+        //             "0.001041",      // ask_px
+        //             "5297",          // ask_sz
+        //             "1717122550482"  // timestamp
+        //         ]
+        //     }
         //
         // spot (REST) fetchTicker
         //
@@ -1201,22 +1203,46 @@ export default class bitmart extends Exchange {
         //          "legal_coin_price":"0.1302699"
         //      }
         //
-        let timestamp = this.safeIntegerN (ticker, [ 'timestamp', 'ts', 12 ]);
+        const result = this.safeList (ticker, 'result', []);
+        const average = this.safeString2 (ticker, 'avg_price', 'index_price');
+        let marketId = this.safeString2 (ticker, 'symbol', 'contract_symbol');
+        let timestamp = this.safeInteger2 (ticker, 'timestamp', 'ts');
+        let last = this.safeString2 (ticker, 'last_price', 'last');
+        let percentage = this.safeString (ticker, 'price_change_percent_24h');
+        let change = this.safeString (ticker, 'fluctuation');
+        let high = this.safeString2 (ticker, 'high_24h', 'high_price');
+        let low = this.safeString2 (ticker, 'low_24h', 'low_price');
+        let bid = this.safeString2 (ticker, 'best_bid', 'bid_px');
+        let bidVolume = this.safeString2 (ticker, 'best_bid_size', 'bid_sz');
+        let ask = this.safeString2 (ticker, 'best_ask', 'ask_px');
+        let askVolume = this.safeString2 (ticker, 'best_ask_size', 'ask_sz');
+        let open = this.safeString (ticker, 'open_24h');
+        let baseVolume = this.safeString2 (ticker, 'base_volume_24h', 'v_24h');
+        let quoteVolume = this.safeStringLower2 (ticker, 'quote_volume_24h', 'qv_24h');
+        if (result[0] !== undefined) {
+            marketId = this.safeString (result, 0);
+            timestamp = this.safeInteger (result, 12);
+            high = this.safeString (result, 5);
+            low = this.safeString (result, 6);
+            bid = this.safeString (result, 8);
+            bidVolume = this.safeString (result, 9);
+            ask = this.safeString (result, 10);
+            askVolume = this.safeString (result, 11);
+            open = this.safeString (result, 4);
+            last = this.safeString (result, 1);
+            change = this.safeString (result, 7);
+            baseVolume = this.safeString (result, 2);
+            quoteVolume = this.safeStringLower (result, 3);
+        }
+        market = this.safeMarket (marketId, market);
+        const symbol = market['symbol'];
         if (timestamp === undefined) {
             // ticker from WS has a different field (in seconds)
             timestamp = this.safeIntegerProduct (ticker, 's_t', 1000);
         }
-        const marketId = this.safeStringN (ticker, [ 'symbol', 'contract_symbol', 0 ]);
-        market = this.safeMarket (marketId, market);
-        const symbol = market['symbol'];
-        const last = this.safeStringN (ticker, [ 'last_price', 'last', 1 ]);
-        let percentage = this.safeString (ticker, 'price_change_percent_24h');
-        const change = this.safeString2 (ticker, 'fluctuation', 7);
         if (percentage === undefined) {
             percentage = Precise.stringMul (change, '100');
         }
-        let baseVolume = this.safeStringN (ticker, [ 'base_volume_24h', 'v_24h', 2 ]);
-        let quoteVolume = this.safeStringLowerN (ticker, [ 'quote_volume_24h', 'qv_24h', 3 ]);
         if (quoteVolume === undefined) {
             if (baseVolume === undefined) {
                 // this is swap
@@ -1228,21 +1254,18 @@ export default class bitmart extends Exchange {
                 baseVolume = undefined;
             }
         }
-        const average = this.safeString2 (ticker, 'avg_price', 'index_price');
-        const high = this.safeStringN (ticker, [ 'high_24h', 'high_price', 5 ]);
-        const low = this.safeStringN (ticker, [ 'low_24h', 'low_price', 6 ]);
         return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'high': high,
             'low': low,
-            'bid': this.safeStringN (ticker, [ 'best_bid', 'bid_px', 8 ]),
-            'bidVolume': this.safeStringN (ticker, [ 'best_bid_size', 'bid_sz', 9 ]),
-            'ask': this.safeStringN (ticker, [ 'best_ask', 'ask_px', 10 ]),
-            'askVolume': this.safeStringN (ticker, [ 'best_ask_size', 'ask_sz', 11 ]),
+            'bid': bid,
+            'bidVolume': bidVolume,
+            'ask': ask,
+            'askVolume': askVolume,
             'vwap': undefined,
-            'open': this.safeString2 (ticker, 'open_24h', 4),
+            'open': open,
             'close': last,
             'last': last,
             'previousClose': undefined,
@@ -1421,7 +1444,12 @@ export default class bitmart extends Exchange {
         }
         const result: Dict = {};
         for (let i = 0; i < tickers.length; i++) {
-            const ticker = this.parseTicker (tickers[i]);
+            let ticker: Dict = {};
+            if (type === 'spot') {
+                ticker = this.parseTicker ({ 'result': tickers[i] });
+            } else {
+                ticker = this.parseTicker (tickers[i]);
+            }
             const symbol = ticker['symbol'];
             result[symbol] = ticker;
         }
