@@ -22,7 +22,7 @@ const reqResTests = getCliArgValue ('--responseTests') || getCliArgValue ('--req
 const isAllTest = !reqResTests && !isBaseTests && !isExchangeTests; // if neither was chosen
 
 // ####### base tests #######
-if (isBaseTests || isAllTest) {
+if (isBaseTests) {
     const exchange = new Exchange ({
         'id': 'xyzexchange',
     });

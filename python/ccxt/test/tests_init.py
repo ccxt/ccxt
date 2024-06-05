@@ -22,7 +22,7 @@ reqResTests = get_cli_arg_value('--responseTests') or get_cli_arg_value('--reque
 isAllTest = not reqResTests and not isBaseTests and not isExchangeTests  # if neither was chosen
 
 # ###### base tests #######
-if (isBaseTests or isAllTest):
+if (isBaseTests):
     # test base things
     exchange = ccxt.Exchange({  # noqa: F405
         'id': 'xyzexchange',

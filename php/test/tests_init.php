@@ -22,7 +22,7 @@ $isAllTest = !$reqResTests && !$isBaseTests && !$isExchangeTests; // if neither 
 
 
 // ####### base tests #######
-if ($isBaseTests || $isAllTest) {
+if ($isBaseTests) {
     if ($isWs) {
         require_once (__DIR__ . '/../pro/test/base/tests_init.php');
     } else {

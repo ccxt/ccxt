@@ -105,7 +105,7 @@ public class Tests
         ReadConfig();
         InitOptions(args);
 
-        if (isBaseTests || isAllTest)
+        if (isBaseTests)
         {
             if (isWs)
             {
