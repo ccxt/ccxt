@@ -239,8 +239,8 @@ export default class binance extends Exchange {
                     // 1 UID (sapi) => cost = 0.006667 => (1000 / (50 * 0.006667)) * 60 = 180000
                     'get': {
                         // copy trading
-                        'copyTrading/futures/userStatus': 1,
-                        'copyTrading/futures/leadSymbol': 1,
+                        'copyTrading/futures/userStatus': 2,
+                        'copyTrading/futures/leadSymbol': 2,
                         'system/status': 0.1,
                         // these endpoints require this.apiKey
                         'accountSnapshot': 240, // Weight(IP): 2400 => cost = 0.1 * 2400 = 240
