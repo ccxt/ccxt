@@ -334,11 +334,11 @@ public partial class ascendex : ccxt.ascendex
         object marketId = this.safeString(message, "symbol");
         object symbol = this.safeSymbol(marketId);
         object messageHash = add(add(channel, ":"), marketId);
-        object orderbook = this.safeValue(this.orderbooks, symbol);
-        if (isTrue(isEqual(orderbook, null)))
+        if (!isTrue((inOp(this.orderbooks, symbol))))
         {
-            orderbook = this.orderBook(new Dictionary<string, object>() {});
+            ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.orderBook(new Dictionary<string, object>() {});
         }
+        object orderbook = getValue(this.orderbooks, symbol);
         if (isTrue(isEqual(getValue(orderbook, "nonce"), null)))
         {
             ((IList<object>)(orderbook as ccxt.pro.OrderBook).cache).Add(message);
