@@ -2,8 +2,10 @@
 //  ---------------------------------------------------------------------------
 
 import upbitRest from '../upbit.js';
-import { ArrayCache } from '../base/ws/Cache.js';
-import type { Int, OrderBook, Trade, Ticker, Dict } from '../base/types.js';
+import { ArrayCache, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
+import type { Int, Str, Order, OrderBook, Trade, Ticker, Dict } from '../base/types.js';
+import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
+import { jwt } from '../base/functions/rsa.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -16,10 +18,11 @@ export default class upbit extends upbitRest {
                 'watchOrderBook': true,
                 'watchTicker': true,
                 'watchTrades': true,
+                'watchOrders': true,
             },
             'urls': {
                 'api': {
-                    'ws': 'wss://api.upbit.com/websocket/v1',
+                    'ws': 'wss://{hostname}/websocket/v1',
                 },
             },
             'options': {
@@ -33,7 +36,9 @@ export default class upbit extends upbitRest {
         const market = this.market (symbol);
         symbol = market['symbol'];
         const marketId = market['id'];
-        const url = this.urls['api']['ws'];
+        const url = this.implodeParams (this.urls['api']['ws'], {
+            'hostname': this.hostname,
+        });
         this.options[channel] = this.safeValue (this.options, channel, {});
         this.options[channel][symbol] = true;
         const symbols = Object.keys (this.options[channel]);
@@ -231,11 +236,231 @@ export default class upbit extends upbitRest {
         client.resolve (stored, messageHash);
     }
 
+    async authenticate (params = {}) {
+        this.checkRequiredCredentials ();
+        const authenticated = this.options['ws']['token'];
+        if (authenticated === undefined) {
+            const auth: Dict = {
+                'access_key': this.apiKey,
+                'nonce': this.uuid (),
+            };
+            const token = jwt (auth, this.encode (this.secret), sha256, false);
+            this.options['ws']['token'] = token;
+            this.options['ws']['options']['headers'] = {
+                'authorization': 'Bearer ' + token,
+            };
+        }
+        const url = this.urls['api']['ws'] + '/private';
+        const client = this.client (url);
+        return client;
+    }
+
+    async watchPrivate (symbol, channel, params = {}) {
+        await this.authenticate ();
+        let messageHash = channel;
+        const request = {
+            'type': channel,
+        };
+        if (symbol !== undefined) {
+            await this.loadMarkets ();
+            const market = this.market (symbol);
+            symbol = market['symbol'];
+            this.options[channel] = this.safeValue (this.options, channel, {});
+            this.options[channel][symbol] = true;
+            const symbols = Object.keys (this.options[channel]);
+            const marketIds = this.marketIds (symbols);
+            request['codes'] = marketIds;
+            messageHash = messageHash + ':' + symbol;
+        }
+        let url = this.implodeParams (this.urls['api']['ws'], {
+            'hostname': this.hostname,
+        });
+        url += '/private';
+        const message = [
+            {
+                'ticket': this.uuid (),
+            },
+            request,
+        ];
+        return await this.watch (url, messageHash, message, messageHash);
+    }
+
+    async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+        /**
+         * @method
+         * @name upbit#watchOrders
+         * @see https://global-docs.upbit.com/reference/websocket-myorder
+         * @description watches information on multiple orders made by the user
+         * @param {string} symbol unified market symbol of the market orders were made in
+         * @param {int} [since] the earliest time in ms to fetch orders for
+         * @param {int} [limit] the maximum number of order structures to retrieve
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        await this.loadMarkets ();
+        const channel = 'myOrder';
+        const orders = await this.watchPrivate (symbol, channel);
+        if (this.newUpdates) {
+            limit = orders.getLimit (symbol, limit);
+        }
+        return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
+    }
+
+    parseWsOrderStatus (status: Str) {
+        const statuses: Dict = {
+            'wait': 'open',
+            'done': 'closed',
+            'cancel': 'canceled',
+            'watch': 'open', // not sure what this status means
+            'trade': 'open',
+        };
+        return this.safeString (statuses, status, status);
+    }
+
+    parseWsOrder (order, market = undefined) {
+        //
+        // {
+        //     "type": "myOrder",
+        //     "code": "SGD-XRP",
+        //     "uuid": "ac2dc2a3-fce9-40a2-a4f6-5987c25c438f",
+        //     "ask_bid": "BID",
+        //     "order_type": "limit",
+        //     "state": "trade",
+        //     "price": 0.001453,
+        //     "avg_price": 0.00145372,
+        //     "volume": 30925891.29839369,
+        //     "remaining_volume": 29968038.09235948,
+        //     "executed_volume": 30925891.29839369,
+        //     "trades_count": 1,
+        //     "reserved_fee": 44.23943970238218,
+        //     "remaining_fee": 21.77177967409916,
+        //     "paid_fee": 22.467660028283017,
+        //     "locked": 43565.33112787242,
+        //     "executed_funds": 44935.32005656603,
+        //     "order_timestamp": 1710751590000,
+        //     "timestamp": 1710751597500,
+        //     "stream_type": "REALTIME"
+        // }
+        //
+        const id = this.safeString (order, 'uuid');
+        let side = this.safeStringLower (order, 'ask_bid');
+        if (side === 'bid') {
+            side = 'buy';
+        } else {
+            side = 'sell';
+        }
+        let type = this.safeString (order, 'order_type');
+        const timestamp = this.parse8601 (this.safeString (order, 'order_timestamp'));
+        const status = this.parseWsOrderStatus (this.safeString (order, 'state'));
+        const lastTradeTimestamp = this.safeString (order, 'trade_timestamp');
+        let price = this.safeString (order, 'price');
+        const amount = this.safeString (order, 'volume');
+        const remaining = this.safeString (order, 'remaining_volume');
+        const filled = this.safeString (order, 'executed_volume');
+        let cost = undefined;
+        if (type === 'price') {
+            type = 'market';
+            cost = price;
+            price = undefined;
+        }
+        const average = this.safeString (order, 'avg_price');
+        const marketId = this.safeString (order, 'code');
+        market = this.safeMarket (marketId, market);
+        let fee = undefined;
+        const feeCost = this.safeString (order, 'paid_fee');
+        if (feeCost !== undefined) {
+            fee = {
+                'currency': market['quote'],
+                'cost': feeCost,
+            };
+        }
+        return this.safeOrder ({
+            'info': order,
+            'id': id,
+            'clientOrderId': undefined,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'lastTradeTimestamp': lastTradeTimestamp,
+            'symbol': market['symbol'],
+            'type': type,
+            'timeInForce': this.safeString (order, 'time_in_force'),
+            'postOnly': undefined,
+            'side': side,
+            'price': price,
+            'stopPrice': undefined,
+            'triggerPrice': undefined,
+            'cost': this.parseNumber (cost),
+            'average': this.parseNumber (average),
+            'amount': amount,
+            'filled': filled,
+            'remaining': remaining,
+            'status': status,
+            'fee': fee,
+            'trades': undefined,
+        });
+    }
+
+    handleOrder (client: Client, message) {
+        //
+        // {
+        //     "type": "myOrder",
+        //     "code": "SGD-XRP",
+        //     "uuid": "ac2dc2a3-fce9-40a2-a4f6-5987c25c438f",
+        //     "ask_bid": "BID",
+        //     "order_type": "limit",
+        //     "state": "trade",
+        //     "price": 0.001453,
+        //     "avg_price": 0.00145372,
+        //     "volume": 30925891.29839369,
+        //     "remaining_volume": 29968038.09235948,
+        //     "executed_volume": 30925891.29839369,
+        //     "trades_count": 1,
+        //     "reserved_fee": 44.23943970238218,
+        //     "remaining_fee": 21.77177967409916,
+        //     "paid_fee": 22.467660028283017,
+        //     "locked": 43565.33112787242,
+        //     "executed_funds": 44935.32005656603,
+        //     "order_timestamp": 1710751590000,
+        //     "timestamp": 1710751597500,
+        //     "stream_type": "REALTIME"
+        // }
+        //
+        const topic = this.safeString (message, 'type');
+        const parsed = this.parseWsOrder (message);
+        const symbol = this.safeString (parsed, 'symbol');
+        const orderId = this.safeString (parsed, 'id');
+        if (this.orders === undefined) {
+            const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
+            this.orders = new ArrayCacheBySymbolById (limit);
+        }
+        const cachedOrders = this.orders;
+        const orders = this.safeValue (cachedOrders.hashmap, symbol, {});
+        const order = this.safeValue (orders, orderId);
+        if (order !== undefined) {
+            const fee = this.safeValue (order, 'fee');
+            if (fee !== undefined) {
+                parsed['fee'] = fee;
+            }
+            const fees = this.safeValue (order, 'fees');
+            if (fees !== undefined) {
+                parsed['fees'] = fees;
+            }
+            parsed['trades'] = this.safeValue (order, 'trades');
+            parsed['timestamp'] = this.safeInteger (order, 'timestamp');
+            parsed['datetime'] = this.safeString (order, 'datetime');
+        }
+        cachedOrders.append (parsed);
+        client.resolve (this.orders, topic);
+        const messageHashSymbol = topic + ':' + symbol;
+        client.resolve (this.orders, messageHashSymbol);
+    }
+
     handleMessage (client: Client, message) {
         const methods: Dict = {
             'ticker': this.handleTicker,
             'orderbook': this.handleOrderBook,
             'trade': this.handleTrades,
+            'myOrder': this.handleOrder,
         };
         const methodName = this.safeString (message, 'type');
         const method = this.safeValue (methods, methodName);
