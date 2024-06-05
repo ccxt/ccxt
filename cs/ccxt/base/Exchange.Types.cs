@@ -181,7 +181,7 @@ public struct Market
         contractSize = Exchange.SafeFloat(market, "contractSize");
         linear = market.ContainsKey("linear") && market["linear"] != null ? (bool)market["linear"] : null;
         inverse = market.ContainsKey("inverse") && market["inverse"] != null ? (bool)market["inverse"] : null;
-        expiry = Exchange.SafeFloat(market, "expiry");
+        expiry = Exchange.SafeInteger(market, "expiry");
         expiryDatetime = Exchange.SafeString(market, "expiryDatetime");
         strike = Exchange.SafeFloat(market, "strike");
         optionType = Exchange.SafeString(market, "optionType");
@@ -192,7 +192,7 @@ public struct Market
         feeSide = Exchange.SafeString(market, "feeSide");
         precision = market.ContainsKey("precision") ? new Precision(market["precision"]) : null;
         limits = market.ContainsKey("limits") ? new Limits(market["limits"]) : null;
-        info = market;
+        info = Helper.GetInfo(market);
         created = Exchange.SafeInteger(market, "created");
     }
 }
@@ -228,22 +228,7 @@ public struct Trade
         side = Exchange.SafeString(trade, "side");
         takerOrMaker = Exchange.SafeString(trade, "takerOrMaker");
         fee = trade.ContainsKey("fee") ? new Fee(trade["fee"]) : null;
-
-        var tradeInfo = trade["info"];
-        if (tradeInfo is IDictionary<string, object>)
-        {
-            info = (Dictionary<string, object>)tradeInfo;
-        }
-        else if (tradeInfo is IList<object>)
-        {
-            info = new Dictionary<string, object> {
-                {"response", tradeInfo}
-            };
-        }
-        else
-        {
-            info = null;
-        }
+        info = Helper.GetInfo(trade);
     }
 }
 
@@ -301,7 +286,7 @@ public struct Order
         takeProfitPrice = Exchange.SafeFloat(order, "takeProfitPrice");
         reduceOnly = Exchange.SafeBool(order, "reduceOnly", false);
         postOnly = Exchange.SafeBool(order, "postOnly", false);
-        info = order.ContainsKey("info") ? (Dictionary<string, object>)order["info"] : null;
+        info = Helper.GetInfo(order);
     }
 }
 
@@ -1613,22 +1598,7 @@ public struct Currency
     {
 
         // info = Exchange.SafeValue(currency, "info") != null ? (Dictionary<string, object>)Exchange.SafeValue(currency, "info") : null;
-        var rawInfo = Helper.GetInfo(currency);
-        if (rawInfo is IDictionary<string, object>)
-        {
-            info = (Dictionary<string, object>)rawInfo;
-        }
-        else if (rawInfo is IList<object>)
-        {
-            info = new Dictionary<string, object> {
-                {"currencies", rawInfo}
-            };
-        }
-        else
-        {
-            info = null;
-        }
-
+        info = Helper.GetInfo(currency);
         id = Exchange.SafeString(currency, "id");
         code = Exchange.SafeString(currency, "code");
         precision = Exchange.SafeFloat(currency, "precision");
