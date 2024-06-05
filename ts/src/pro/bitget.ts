@@ -997,13 +997,13 @@ export default class bitget extends bitgetRest {
         let subType = undefined;
         let settle = undefined;
         let instId = undefined;
-        let productType = undefined;
+        let instType = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
             symbol = market['symbol'];
             instId = market['id'];
         }
-        [ params, type, subType, settle, productType ] = this.handleProductTypesAndParams (market, 'watchOrders', params);
+        [ params, type, subType, settle, instType ] = this.handleProductTypesAndParams (market, 'watchOrders', params);
         if (type !== 'spot' && type !== 'margin') {
             instId = 'default'; // different from other streams here the 'rest' id is required for spot markets, contract markets require default here
         } else if (symbol === undefined) {
@@ -1024,7 +1024,7 @@ export default class bitget extends bitgetRest {
         let marginMode = undefined;
         [ marginMode, params ] = this.handleMarginModeAndParams ('watchOrders', params);
         if (marginMode !== undefined) {
-            productType = 'MARGIN';
+            instType = 'MARGIN';
             if (marginMode === 'isolated') {
                 channel = 'orders-isolated';
             } else {
@@ -1032,7 +1032,7 @@ export default class bitget extends bitgetRest {
             }
         }
         const args: Dict = {
-            'instType': productType,
+            'instType': instType,
             'channel': channel,
             'instId': instId,
         };
