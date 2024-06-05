@@ -1004,14 +1004,14 @@ export default class bitget extends bitgetRest {
             instId = market['id'];
         }
         [ params, type, subType, settle, productType ] = this.handleProductTypesAndParams (market, 'watchOrders', params);
-        if (!(type === 'spot' || type === 'margin')) {
+        if (type !== 'spot' && type !== 'margin') {
             instId = 'default'; // different from other streams here the 'rest' id is required for spot markets, contract markets require default here
         } else if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' watchOrders requires a symbol argument for ' + type + ' markets.');
         }
         let isTrigger = undefined;
         [ isTrigger, params ] = this.isTriggerOrder (params);
-        let messageHash = isTrigger ? 'order:trigger' : 'order';
+        let messageHash = !isTrigger ? 'order' : 'order:trigger';
         if (symbol === undefined) {
             messageHash += ':' + subType;
             if (settle !== undefined) {
@@ -1066,13 +1066,12 @@ export default class bitget extends bitgetRest {
         } else {
             // unified approach
             [ type, params ] = this.handleMarketTypeAndParams (methodName, market, params);
-            [ subType, params ] = this.handleSubTypeAndParams (methodName, market, params, 'linear');
-            if (type === 'spot') {
-                productType = 'SPOT';
-            } else {
+            [ subType, params ] = this.handleSubTypeAndParams (methodName, market, params);
+            if (this.inArray (subType, [ 'linear', 'inverse' ])) {
+                type = 'swap';
                 if (subType === 'inverse') {
                     productType = 'COIN-FUTURES';
-                } else {
+                } else if (subType === 'linear') {
                     [ settle, params ] = this.handleParamString (params, 'settle', this.safeString (market, 'settle', 'USDT')); // default to USDT
                     productType = settle.toUpperCase () + '-FUTURES'; // i.e. USDT-FUTURES
                 }
@@ -1082,6 +1081,14 @@ export default class bitget extends bitgetRest {
                     if (settle !== undefined) {
                         settle = 'S' + settle;
                     }
+                }
+            } else {
+                if (type === 'spot') {
+                    productType = 'SPOT';
+                } else if (type === 'margin') {
+                    productType = 'MARGIN';
+                } else {
+                    throw new NotSupported (this.id + ' handleProductTypeWithParams - you need to specify "subType" param for ' + type + ' markets');
                 }
             }
         }
