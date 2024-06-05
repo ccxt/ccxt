@@ -47,6 +47,19 @@
                 "input": [
                     "ETH/USD:OX"
                 ]
+            },
+            {
+                "description": "Fetch trades with a since timestamp argument",
+                "method": "fetchTrades",
+                "url": "https://api.ox.fun/v3/exchange-trades?marketCode=ETH-USD-SWAP-LIN&startTime=1715686562085&limit=2&endTime=1715687562085",
+                "input": [
+                    "ETH/USD:OX",
+                    1715686562085,
+                    2,
+                    {
+                        "until": 1715687562085
+                    }
+                ]
             }
         ],
         "fetchOrderBook": [
@@ -89,6 +102,15 @@
                 ]
             }
         ],
+        "cancelAllOrders": [
+            {
+                "description": "Fill this with a description of the method call",
+                "method": "cancelAllOrders",
+                "url": "https://api.ox.fun/v3/orders/cancel-all",
+                "input": [],
+                "output": "{}"
+            }
+        ],
         "fetchMyTrades": [
             {
                 "description": "Swap fetch my trades",
@@ -98,6 +120,14 @@
                     "ETH/USD:OX",
                     1716966000000
                 ]
+            }
+        ],
+        "fetchTichers": [
+            {
+                "description": "Fetch all tickers",
+                "method": "fetchTickers",
+                "url": "https://api.ox.fun/v3/tickers",
+                "input": []
             }
         ],
         "fetchTicker": [
@@ -137,6 +167,117 @@
                     "ETH/USD:OX",
                     "1m",
                     1717085880000
+                ]
+            }
+        ],
+        "fetchMarkets": [
+            {
+                "description": "Fetch markets",
+                "method": "fetchBalance",
+                "url": "https://api.ox.fun/v3/balances",
+                "input": []
+            }
+        ],
+        "fetchCurrencies": [
+            {
+                "description": "Fetch all currencies",
+                "method": "fetchCurrencies",
+                "url": "https://api.ox.fun/v3/assets",
+                "input": []
+            }
+        ],
+        "fetchFundingRates": [
+            {
+                "description": "Fetch all funding rates",
+                "method": "fetchFundingRates",
+                "url": "https://api.ox.fun/v3/funding/estimates",
+                "input": []
+            }
+        ],
+        "FetchFundingRateHistory": [
+            {
+                "description": "Fetch funding rate history for a specific market",
+                "method": "fetchFundingRateHistory",
+                "url": "https://api.ox.fun/v3/funding/rates?marketCode=ETH-USD-SWAP-LIN&startTime=1717581601006",
+                "input": [
+                    "ETH/USD:OX",
+                    1717581601006
+                ]
+            }
+        ],
+        "fetchFundingHistory": [
+            {
+                "description": "Fetch funding history",
+                "method": "fetchFundingHistory",
+                "url": "https://api.ox.fun/v3/funding?marketCode=ETH-USD-SWAP-LIN&startTime=1715083251516&limit=2&endTime=1715086852890",
+                "input": [
+                    "ETH/USD:OX",
+                    1715083251516,
+                    2,
+                    {
+                        "until": 1715086852890
+                    }
+                ]
+            }
+        ],
+        "fetchLeverageTiers": [
+            {
+                "description": "Fetch leverage tiers",
+                "method": "fetchLeverageTiers",
+                "url": "https://api.ox.fun/v3/leverage/tiers",
+                "input": []
+            }
+        ],
+        "fetchBalance": [
+            {
+                "description": "Fetch balance",
+                "method": "fetchBalance",
+                "url": "https://api.ox.fun/v3/balances",
+                "input": []
+            }
+        ],
+        "fetchAccounts": [
+            {
+                "description": "Fetch accounts",
+                "method": "fetchAccounts",
+                "url": "https://api.ox.fun/v3/account/names",
+                "input": []
+            }
+        ],
+        "transfer": [
+            {
+                "description": "Transfer from main account to sub account",
+                "method": "transfer",
+                "url": "https://api.ox.fun/v3/transfer",
+                "input": [
+                    "OX",
+                    10,
+                    106464,
+                    106570
+                ],
+                "output": "{\"asset\":\"OX\",\"quantity\":\"10\",\"fromAccount\":106464,\"toAccount\":106570}"
+            }
+        ],
+        "fetchTransfers": [
+            {
+                "description": "Fetch transfers",
+                "method": "fetchTransfers",
+                "url": "https://api.ox.fun/v3/transfer",
+                "input": []
+            }
+        ],
+        "fetchWithdrawals": [
+            {
+                "description": "Fetch withdrawals",
+                "method": "fetchWithdrawals",
+                "url": "https://api.ox.fun/v3/withdrawal?asset=OX&startTime=1715530365450&limit=2&endTime=1715530527000",
+                "input": [
+                    "OX",
+                    1715530365450,
+                    2,
+                    {
+                        "until": 1715530527000
+                    }
                 ]
             }
         ]
