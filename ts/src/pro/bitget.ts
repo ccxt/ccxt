@@ -1,7 +1,7 @@
 //  ---------------------------------------------------------------------------
 
 import bitgetRest from '../bitget.js';
-import { AuthenticationError, BadRequest, ArgumentsRequired, NotSupported, InvalidNonce, ExchangeError, RateLimitExceeded } from '../base/errors.js';
+import { AuthenticationError, BadRequest, ArgumentsRequired, InvalidNonce, ExchangeError, RateLimitExceeded } from '../base/errors.js';
 import { Precise } from '../base/Precise.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
@@ -1041,58 +1041,6 @@ export default class bitget extends bitgetRest {
             limit = orders.getLimit (symbol, limit);
         }
         return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
-    }
-
-    handleProductTypesAndParams (market, methodName, params) {
-        const sandboxMode = this.safeBool (this.options, 'sandboxMode', false);
-        let productType = this.safeString (params, 'productType');
-        let type = undefined;
-        let subType = undefined;
-        let settle = undefined;
-        // backward compatibility
-        if (productType !== undefined) {
-            type = 'swap';
-            if (productType.indexOf ('USDT-FUTURES') >= 0) {
-                subType = 'linear';
-                settle = 'USDT';
-            } else if (productType.indexOf ('USDC-FUTURES') >= 0) {
-                subType = 'linear';
-                settle = 'USDC';
-            } else if (productType.indexOf ('COIN-FUTURES') >= 0) {
-                subType = 'inverse';
-            } else {
-                throw new NotSupported (this.id + ' handleProductTypeWithParams does not support productType ' + productType);
-            }
-        } else {
-            // unified approach
-            [ type, params ] = this.handleMarketTypeAndParams (methodName, market, params);
-            [ subType, params ] = this.handleSubTypeAndParams (methodName, market, params);
-            if (this.inArray (subType, [ 'linear', 'inverse' ])) {
-                type = 'swap';
-                if (subType === 'inverse') {
-                    productType = 'COIN-FUTURES';
-                } else if (subType === 'linear') {
-                    [ settle, params ] = this.handleParamString (params, 'settle', this.safeString (market, 'settle', 'USDT')); // default to USDT
-                    productType = settle.toUpperCase () + '-FUTURES'; // i.e. USDT-FUTURES
-                }
-                // for sandbox mode, add 'S' prefix
-                if (sandboxMode) {
-                    productType = 'S' + productType;
-                    if (settle !== undefined) {
-                        settle = 'S' + settle;
-                    }
-                }
-            } else {
-                if (type === 'spot') {
-                    productType = 'SPOT';
-                } else if (type === 'margin') {
-                    productType = 'MARGIN';
-                } else {
-                    throw new NotSupported (this.id + ' handleProductTypeWithParams - you need to specify "subType" param for ' + type + ' markets');
-                }
-            }
-        }
-        return [ params, type, subType, settle, productType ];
     }
 
     handleOrder (client: Client, message) {
