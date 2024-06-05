@@ -142,7 +142,7 @@ public struct Market
     public double? contractSize;
     public bool? linear;
     public bool? inverse;
-    public double? expiry;
+    public Int64? expiry;
     public string? expiryDatetime;
     public double? strike;
     public string? optionType;
