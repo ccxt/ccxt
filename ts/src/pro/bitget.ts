@@ -1151,6 +1151,7 @@ export default class bitget extends bitgetRest {
         const isTrigger = (channel === 'orders-algo') || (channel === 'ordersAlgo');
         const stored = isTrigger ? this.triggerOrders : this.orders;
         const messageHash = (!isTrigger) ? 'order' : 'order:trigger';
+        const marketSymbols: Dict = {};
         for (let i = 0; i < data.length; i++) {
             const order = data[i];
             const marketId = this.safeString (order, 'instId', argInstId);
@@ -1158,6 +1159,11 @@ export default class bitget extends bitgetRest {
             const parsed = this.parseWsOrder (order, market);
             stored.append (parsed);
             const symbol = parsed['symbol'];
+            marketSymbols[symbol] = true;
+        }
+        const keys = Object.keys (marketSymbols);
+        for (let i = 0; i < keys.length; i++) {
+            const symbol = keys[i];
             client.resolve (stored, messageHash + ':' + symbol);
         }
         client.resolve (stored, messageHash);
