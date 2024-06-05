@@ -992,40 +992,33 @@ export default class bitget extends bitgetRest {
          * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
          */
         await this.loadMarkets ();
+        let market = undefined;
         let type = undefined;
         let subType = undefined;
-        let productType = undefined;
         let settle = undefined;
-        let market = undefined;
         let instId = undefined;
-        let isTrigger = undefined;
-        [ isTrigger, params ] = this.isTriggerOrder (params);
-        let messageHash = isTrigger ? 'order:trigger' : 'order';
-        let subscriptionHash = isTrigger ? 'order:trigger' : 'order';
-        subscriptionHash += ':trades';
+        let productType = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
             symbol = market['symbol'];
             instId = market['id'];
-            messageHash = messageHash + ':' + symbol;
         }
         [ params, type, subType, settle, productType ] = this.handleProductTypesAndParams (market, 'watchOrders', params);
-        if (symbol === undefined) {
-            messageHash += ':' + subType;
-            if (settle !== undefined) {
-                messageHash += ':' + settle;
-            }
-        }
         if (!(type === 'spot' || type === 'margin')) {
             instId = 'default'; // different from other streams here the 'rest' id is required for spot markets, contract markets require default here
         } else if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' watchOrders requires a symbol argument for ' + type + ' markets.');
         }
-        if (type === 'spot') {
-            subscriptionHash = subscriptionHash + ':' + symbol;
-        }
-        if (isTrigger) {
-            subscriptionHash = subscriptionHash + ':stop'; // we don't want to re-use the same subscription hash for stop orders
+        let isTrigger = undefined;
+        [ isTrigger, params ] = this.isTriggerOrder (params);
+        let messageHash = isTrigger ? 'order:trigger' : 'order';
+        if (symbol === undefined) {
+            messageHash += ':' + subType;
+            if (settle !== undefined) {
+                messageHash += ':' + settle;
+            }
+        } else {
+            messageHash += ':' + symbol;
         }
         let channel = isTrigger ? 'orders-algo' : 'orders';
         let marginMode = undefined;
@@ -1038,13 +1031,12 @@ export default class bitget extends bitgetRest {
                 channel = 'orders-crossed';
             }
         }
-        subscriptionHash = subscriptionHash + ':' + productType;
         const args: Dict = {
             'instType': productType,
             'channel': channel,
             'instId': instId,
         };
-        const orders = await this.watchPrivate (messageHash, subscriptionHash, args, params);
+        const orders = await this.watchPrivate (messageHash, messageHash, args, params);
         if (this.newUpdates) {
             limit = orders.getLimit (symbol, limit);
         }
