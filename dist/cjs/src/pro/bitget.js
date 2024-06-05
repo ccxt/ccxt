@@ -1312,7 +1312,7 @@ class bitget extends bitget$1 {
             totalAmount = this.safeString(order, 'size');
             cost = this.safeString(order, 'fillNotionalUsd');
         }
-        remaining = this.omitZero(Precise["default"].stringSub(totalAmount, totalFilled));
+        remaining = Precise["default"].stringSub(totalAmount, totalFilled);
         return this.safeOrder({
             'info': order,
             'symbol': symbol,

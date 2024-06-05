@@ -1436,7 +1436,7 @@ public partial class bitget : ccxt.bitget
             totalAmount = this.safeString(order, "size");
             cost = this.safeString(order, "fillNotionalUsd");
         }
-        remaining = this.omitZero(Precise.stringSub(totalAmount, totalFilled));
+        remaining = Precise.stringSub(totalAmount, totalFilled);
         return this.safeOrder(new Dictionary<string, object>() {
             { "info", order },
             { "symbol", symbol },

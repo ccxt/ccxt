@@ -1321,7 +1321,7 @@ class bitget extends \ccxt\async\bitget {
             $totalAmount = $this->safe_string($order, 'size');
             $cost = $this->safe_string($order, 'fillNotionalUsd');
         }
-        $remaining = $this->omit_zero(Precise::string_sub($totalAmount, $totalFilled));
+        $remaining = Precise::string_sub($totalAmount, $totalFilled);
         return $this->safe_order(array(
             'info' => $order,
             'symbol' => $symbol,

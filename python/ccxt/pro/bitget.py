@@ -1229,7 +1229,7 @@ class bitget(ccxt.async_support.bitget):
             filledAmount = self.safe_string(order, 'baseVolume')
             totalAmount = self.safe_string(order, 'size')
             cost = self.safe_string(order, 'fillNotionalUsd')
-        remaining = self.omit_zero(Precise.string_sub(totalAmount, totalFilled))
+        remaining = Precise.string_sub(totalAmount, totalFilled)
         return self.safe_order({
             'info': order,
             'symbol': symbol,
