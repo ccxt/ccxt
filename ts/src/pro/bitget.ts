@@ -1,7 +1,7 @@
 //  ---------------------------------------------------------------------------
 
 import bitgetRest from '../bitget.js';
-import { AuthenticationError, BadRequest, ArgumentsRequired, InvalidNonce, ExchangeError, RateLimitExceeded } from '../base/errors.js';
+import { AuthenticationError, BadRequest, ArgumentsRequired, NotSupported, InvalidNonce, ExchangeError, RateLimitExceeded } from '../base/errors.js';
 import { Precise } from '../base/Precise.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
@@ -1004,25 +1004,12 @@ export default class bitget extends bitgetRest {
             marketId = market['id'];
             messageHash = messageHash + ':' + symbol;
         }
-        const productType = this.safeString (params, 'productType');
         let type = undefined;
-        [ type, params ] = this.handleMarketTypeAndParams ('watchOrders', market, params);
-        let subType = undefined;
-        [ subType, params ] = this.handleSubTypeAndParams ('watchOrders', market, params, 'linear');
+        let productType = undefined;
+        [ params, type, productType ] = this.handleProductTypeWithParams (market, 'watchOrders', params);
         if ((type === 'spot' || type === 'margin') && (symbol === undefined)) {
             throw new ArgumentsRequired (this.id + ' watchOrders requires a symbol argument for ' + type + ' markets.');
         }
-        if ((productType === undefined) && (type !== 'spot') && (symbol === undefined)) {
-            messageHash = messageHash + ':' + subType;
-        } else if (productType === 'USDT-FUTURES') {
-            messageHash = messageHash + ':linear';
-        } else if (productType === 'COIN-FUTURES') {
-            messageHash = messageHash + ':inverse';
-        } else if (productType === 'USDC-FUTURES') {
-            messageHash = messageHash + ':usdcfutures'; // non unified channel
-        }
-        let instType = undefined;
-        [ instType, params ] = this.getInstType (market, params);
         if (type === 'spot') {
             subscriptionHash = subscriptionHash + ':' + symbol;
         }
@@ -1034,16 +1021,16 @@ export default class bitget extends bitgetRest {
         let marginMode = undefined;
         [ marginMode, params ] = this.handleMarginModeAndParams ('watchOrders', params);
         if (marginMode !== undefined) {
-            instType = 'MARGIN';
+            productType = 'MARGIN';
             if (marginMode === 'isolated') {
                 channel = 'orders-isolated';
             } else {
                 channel = 'orders-crossed';
             }
         }
-        subscriptionHash = subscriptionHash + ':' + instType;
+        subscriptionHash = subscriptionHash + ':' + productType;
         const args: Dict = {
-            'instType': instType,
+            'instType': productType,
             'channel': channel,
             'instId': instId,
         };
@@ -1052,6 +1039,44 @@ export default class bitget extends bitgetRest {
             limit = orders.getLimit (symbol, limit);
         }
         return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
+    }
+
+    handleProductTypeWithParams (market, methodName, params) {
+        const sandboxMode = this.safeBool (this.options, 'sandboxMode', false);
+        let productType = this.safeString (params, 'productType');
+        let type = undefined;
+        let subType = undefined;
+        let settle = undefined;
+        // backward compatibility
+        if (productType !== undefined) {
+            type = 'swap';
+            if (productType.indexOf ('USDT-FUTURES') >= 0) {
+                subType = 'linear';
+            } else if (productType.indexOf ('USDC-FUTURES') >= 0) {
+                subType = 'linear';
+            } else if (productType.indexOf ('COIN-FUTURES') >= 0) {
+                subType = 'inverse';
+            } else {
+                throw new NotSupported (this.id + ' handleProductTypeWithParams does not support productType ' + productType);
+            }
+        } else {
+            // unified approach
+            [ type, params ] = this.handleMarketTypeAndParams (methodName, market, params);
+            [ subType, params ] = this.handleSubTypeAndParams (methodName, market, params, 'linear');
+            if (type === 'spot') {
+                productType = 'SPOT';
+            } else {
+                if (subType === 'inverse') {
+                    productType = 'COIN-FUTURES';
+                } else {
+                    [ settle, params ] = this.handleParamString (params, 'settle', this.safeString (market, 'settle', 'USDT')); // default to USDT
+                    productType = settle.toUpperCase () + '-FUTURES'; // i.e. USDT-FUTURES
+                }
+                // for sandbox mode, add 'S' prefix
+                productType = sandboxMode ? ('S' + productType) : productType;
+            }
+        }
+        return [ params, type, productType ];
     }
 
     handleOrder (client: Client, message) {
