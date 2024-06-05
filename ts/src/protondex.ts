@@ -522,13 +522,14 @@ export default class protondex extends Exchange {
         //     ]
         //
         let results = [];
+        let current_market = market;
         if (Array.isArray (orders)) {
             for (let i = 0; i < orders.length; i++) {
                 if (params['allMarkets']) {
                     const mSymbol = this.safeString (params['allMarkets'], orders[i]['market_id']);
-                    market = this.market (mSymbol);
+                    current_market = this.market (mSymbol);
                 }
-                const order = this.parseOrder (orders[i], market);
+                const order = this.parseOrder (orders[i], current_market);
                 results.push (order);
             }
         } else {
@@ -537,9 +538,9 @@ export default class protondex extends Exchange {
                 const id = ids[i];
                 if (params['allMarkets']) {
                     const mSymbol = this.safeString (params['allMarkets'], orders[i]['market_id']);
-                    market = this.market (mSymbol);
+                    current_market = this.market (mSymbol);
                 }
-                const order = this.parseOrder (this.extend ({ 'id': id }, orders[id]), market);
+                const order = this.parseOrder (this.extend ({ 'id': id }, orders[id]), current_market);
                 results.push (order);
             }
         }
@@ -626,6 +627,7 @@ export default class protondex extends Exchange {
                 closedOrders.push (data[p]);
             }
         }
+        market = undefined;
         return this.parseOrders (closedOrders, market, 1, 100, { 'allMarkets': marketIds });
     }
 
