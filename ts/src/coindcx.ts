@@ -3,7 +3,7 @@
 
 import Exchange from './abstract/coindcx.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Dict, Market, Num } from './base/types.js';
+import type { Dict, Market, Num, Strings, Ticker, Tickers } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -77,7 +77,7 @@ export default class coindcx extends Exchange {
                 'fetchLeverage': false,
                 'fetchLeverageTiers': false,
                 'fetchMarketLeverageTiers': false,
-                'fetchMarkets': false,
+                'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
                 'fetchMyTrades': false,
                 'fetchOHLCV': false,
@@ -322,6 +322,80 @@ export default class coindcx extends Exchange {
             'created': undefined,
             'info': market,
         };
+    }
+
+    async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+        /**
+         * @method
+         * @name coindcx#fetchTickers
+         * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+         * @see https://docs.coindcx.com/?javascript#ticker
+         * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+         */
+        await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols);
+        const response = await this.public1GetExchangeTicker (params);
+        //
+        // [
+        //     {
+        //         "market": "BTCINR",
+        //         "change_24_hour": "1.486",
+        //         "high": "6199999.0",
+        //         "low": "6028180.13",
+        //         "volume": "16901590.410328545",
+        //         "last_price": "6181299.060000000000",
+        //         "bid": "6103600.520000000000",
+        //         "ask": "6180699.010000000000",
+        //         "timestamp": 1717616755
+        //     }
+        // ]
+        //
+        return this.parseTickers (response, symbols);
+    }
+
+    parseTicker (ticker, market: Market = undefined): Ticker {
+        //
+        //  {
+        //      "market": "BTCINR",
+        //      "change_24_hour": "1.486",
+        //      "high": "6199999.0",
+        //      "low": "6028180.13",
+        //      "volume": "16901590.410328545",
+        //      "last_price": "6181299.060000000000",
+        //      "bid": "6103600.520000000000",
+        //      "ask": "6180699.010000000000",
+        //      "timestamp": 1717616755
+        //  }
+        //
+        const timestamp = this.safeInteger (ticker, 'timestamp');
+        const marketId = this.safeString (ticker, 'market');
+        market = this.safeMarket (marketId, market);
+        const symbol = market['symbol'];
+        const last = this.safeString (ticker, 'last_price');
+        return this.safeTicker ({
+            'symbol': symbol,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'high': this.safeString (ticker, 'high'),
+            'low': this.safeString (ticker, 'low'),
+            'bid': undefined,
+            'bidVolume': this.safeString (ticker, 'bid'),
+            'ask': undefined,
+            'askVolume': this.safeString (ticker, 'ask'),
+            'vwap': undefined,
+            'open': undefined,
+            'close': last,
+            'last': last,
+            'previousClose': undefined,
+            'change': undefined,
+            'percentage': undefined,
+            'average': undefined,
+            'baseVolume': this.safeString (ticker, 'change_24_hour'),
+            'quoteVolume': undefined,
+            'info': ticker,
+        }, market);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
