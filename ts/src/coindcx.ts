@@ -335,7 +335,6 @@ export default class coindcx extends Exchange {
          * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets ();
-        symbols = this.marketSymbols (symbols);
         const response = await this.public1GetExchangeTicker (params);
         //
         // [
