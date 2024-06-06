@@ -170,14 +170,6 @@
                 ]
             }
         ],
-        "fetchMarkets": [
-            {
-                "description": "Fetch markets",
-                "method": "fetchBalance",
-                "url": "https://api.ox.fun/v3/balances",
-                "input": []
-            }
-        ],
         "fetchCurrencies": [
             {
                 "description": "Fetch all currencies",
@@ -194,7 +186,7 @@
                 "input": []
             }
         ],
-        "FetchFundingRateHistory": [
+        "fetchFundingRateHistory": [
             {
                 "description": "Fetch funding rate history for a specific market",
                 "method": "fetchFundingRateHistory",
