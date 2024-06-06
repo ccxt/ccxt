@@ -21,11 +21,11 @@
                 "method": "createOrder",
                 "url": "https://gateway.prod.vertexprotocol.com/v1/execute",
                 "input": [
-                  "SOL/USDC:USDC",
-                  "limit",
-                  "buy",
-                  3,
-                  50
+                    "SOL/USDC:USDC",
+                    "limit",
+                    "buy",
+                    3,
+                    50
                 ],
                 "output": "{\"place_order\":{\"id\":5930043274845996, \"product_id\":12,\"order\":{\"sender\":\"0xc950889d14a3717f541ec246bc253d7a9e98c78f64656661756c740000000000\",\"nonce\":\"1800218739978798056\",\"expiration\":\"1716822372631\",\"priceX18\":\"50000000000000000000\",\"amount\":\"3000000000000000000\"},\"signature\":\"0x7fb86566dbce3f52361a7ca37c59430af1b1536b5efa00e65753739c205af0f83ef5497345af99addc1ed671504bb613783e6ce3be6dd0ab82432625e41f12781c\"}}"
             },
@@ -34,93 +34,93 @@
                 "method": "createOrder",
                 "url": "https://gateway.prod.vertexprotocol.com/v1/execute",
                 "input": [
-                  "SOL/USDC:USDC",
-                  "limit",
-                  "buy",
-                  3,
-                  50,
-                  {
-                    "postOnly": true
-                  }
+                    "SOL/USDC:USDC",
+                    "limit",
+                    "buy",
+                    3,
+                    50,
+                    {
+                        "postOnly": true
+                    }
                 ],
                 "output": "{\"place_order\":{ \"id\":5930043274845996, \"product_id\":12,\"order\":{\"sender\":\"0xc950889d14a3717f541ec246bc253d7a9e98c78f64656661756c740000000000\",\"nonce\":\"1800219268351001576\",\"expiration\":\"13835059772105040238\",\"priceX18\":\"50000000000000000000\",\"amount\":\"3000000000000000000\"},\"signature\":\"0x3d6b60f42c34846dbe065d8cea0886944fd1def02d0621c81076759903e5cc1c68323db4ce14f89dae0ab5bb138bd2d2e645c12f1159c79828da4d9c74602e581b\"}}"
             },
             {
-              "description": "spot order",
-              "method": "createOrder",
-              "url": "https://gateway.prod.vertexprotocol.com/v1/execute",
-              "input": [
-                "USDT/USDC",
-                "limit",
-                "buy",
-                251,
-                1
-              ],
-              "output": "{\"place_order\":{\"id\":5930043274845996, \"product_id\":31,\"order\":{\"sender\":\"0xc950889d14a3717f541ec246bc253d7a9e98c78f64656661756c740000000000\",\"priceX18\":\"1000000000000000000\",\"amount\":\"250000000000000000000\",\"expiration\":\"1717434643111\",\"nonce\":\"1800860752109634536\"},\"signature\":\"0xc7531db7448be295305cbaba9d7443ddb1e2edb20dc0866b3ad741d08f09b9793d52e8c047cd64ba1ae60c00f67c45ec6eb180330bbe15e27c3c92a782ab73371b\"}}"
+                "description": "spot order",
+                "method": "createOrder",
+                "url": "https://gateway.prod.vertexprotocol.com/v1/execute",
+                "input": [
+                    "USDT/USDC",
+                    "limit",
+                    "buy",
+                    251,
+                    1
+                ],
+                "output": "{\"place_order\":{\"id\":5930043274845996, \"product_id\":31,\"order\":{\"sender\":\"0xc950889d14a3717f541ec246bc253d7a9e98c78f64656661756c740000000000\",\"priceX18\":\"1000000000000000000\",\"amount\":\"250000000000000000000\",\"expiration\":\"1717434643111\",\"nonce\":\"1800860752109634536\"},\"signature\":\"0xc7531db7448be295305cbaba9d7443ddb1e2edb20dc0866b3ad741d08f09b9793d52e8c047cd64ba1ae60c00f67c45ec6eb180330bbe15e27c3c92a782ab73371b\"}}"
             },
             {
-              "description": "spot IOC order",
-              "method": "createOrder",
-              "url": "https://gateway.prod.vertexprotocol.com/v1/execute",
-              "input": [
-                "USDT/USDC",
-                "limit",
-                "buy",
-                10,
-                1,
-                {
-                  "timeInForce": "IOC"
-                }
-              ],
-              "output": "{\"place_order\":{\"product_id\":31,\"order\":{\"sender\":\"0xc950889d14a3717f541ec246bc253d7a9e98c78f64656661756c740000000000\",\"priceX18\":\"1000000000000000000\",\"amount\":\"10000000000000000000\",\"expiration\":\"4611687736024352375\",\"nonce\":\"1801030958392017896\"},\"signature\":\"0x21b6e776eeeef64616b62a8f2038723fe91dbc011460f49d90ddc13a6e6e741173876d20a3a41707d3ed62b4d951b818cd9325b8c2d9626233a730aac0719b341c\",\"id\":5930043274845996}}"
+                "description": "spot IOC order",
+                "method": "createOrder",
+                "url": "https://gateway.prod.vertexprotocol.com/v1/execute",
+                "input": [
+                    "USDT/USDC",
+                    "limit",
+                    "buy",
+                    10,
+                    1,
+                    {
+                        "timeInForce": "IOC"
+                    }
+                ],
+                "output": "{\"place_order\":{\"product_id\":31,\"order\":{\"sender\":\"0xc950889d14a3717f541ec246bc253d7a9e98c78f64656661756c740000000000\",\"priceX18\":\"1000000000000000000\",\"amount\":\"10000000000000000000\",\"expiration\":\"4611687736024352375\",\"nonce\":\"1801030958392017896\"},\"signature\":\"0x21b6e776eeeef64616b62a8f2038723fe91dbc011460f49d90ddc13a6e6e741173876d20a3a41707d3ed62b4d951b818cd9325b8c2d9626233a730aac0719b341c\",\"id\":5930043274845996}}"
             },
             {
-              "description": "swap IOC order",
-              "method": "createOrder",
-              "url": "https://gateway.prod.vertexprotocol.com/v1/execute",
-              "input": [
-                "SOL/USDC:USDC",
-                "limit",
-                "buy",
-                0.5,
-                172,
-                {
-                  "timeInForce": "IOC"
-                }
-              ],
-              "output": "{\"place_order\":{\"product_id\":12,\"order\":{\"sender\":\"0xc950889d14a3717f541ec246bc253d7a9e98c78f64656661756c740000000000\",\"priceX18\":\"172000000000000000000\",\"amount\":\"500000000000000000\",\"expiration\":\"4611687736024459077\",\"nonce\":\"1801031070277174248\"},\"signature\":\"0x605f0d743d6ee27f173469c047d60cce7ddc8c71200e2ecda730a2fc4fa4070f0e5d70c3e0772ce4f0d00f6c0797e49b173150d79aec454c6bf172e6d551c2c21b\",\"id\":5930043274845996}}"
+                "description": "swap IOC order",
+                "method": "createOrder",
+                "url": "https://gateway.prod.vertexprotocol.com/v1/execute",
+                "input": [
+                    "SOL/USDC:USDC",
+                    "limit",
+                    "buy",
+                    0.5,
+                    172,
+                    {
+                        "timeInForce": "IOC"
+                    }
+                ],
+                "output": "{\"place_order\":{\"product_id\":12,\"order\":{\"sender\":\"0xc950889d14a3717f541ec246bc253d7a9e98c78f64656661756c740000000000\",\"priceX18\":\"172000000000000000000\",\"amount\":\"500000000000000000\",\"expiration\":\"4611687736024459077\",\"nonce\":\"1801031070277174248\"},\"signature\":\"0x605f0d743d6ee27f173469c047d60cce7ddc8c71200e2ecda730a2fc4fa4070f0e5d70c3e0772ce4f0d00f6c0797e49b173150d79aec454c6bf172e6d551c2c21b\",\"id\":5930043274845996}}"
             },
             {
-              "description": "swap trigger order",
-              "method": "createOrder",
-              "url": "https://gateway.prod.vertexprotocol.com/v1/execute",
-              "input": [
-                "SOL/USDC:USDC",
-                "limit",
-                "buy",
-                0.5,
-                172,
-                {
-                  "triggerPrice": "175"
-                }
-              ],
-              "output": "{\"place_order\":{\"product_id\":12,\"order\":{\"sender\":\"0xc950889d14a3717f541ec246bc253d7a9e98c78f64656661756c740000000000\",\"priceX18\":\"172000000000000000000\",\"amount\":\"500000000000000000\",\"expiration\":\"4611687736024459077\",\"nonce\":\"1801031070277174248\"},\"trigger\":{\"last_price_below\":\"175000000000000000000\"},\"signature\":\"0x605f0d743d6ee27f173469c047d60cce7ddc8c71200e2ecda730a2fc4fa4070f0e5d70c3e0772ce4f0d00f6c0797e49b173150d79aec454c6bf172e6d551c2c21b\",\"id\":5930043274845996}}"
+                "description": "swap trigger order",
+                "method": "createOrder",
+                "url": "https://gateway.prod.vertexprotocol.com/v1/execute",
+                "input": [
+                    "SOL/USDC:USDC",
+                    "limit",
+                    "buy",
+                    0.5,
+                    172,
+                    {
+                        "triggerPrice": "175"
+                    }
+                ],
+                "output": "{\"place_order\":{\"product_id\":12,\"order\":{\"sender\":\"0xc950889d14a3717f541ec246bc253d7a9e98c78f64656661756c740000000000\",\"priceX18\":\"172000000000000000000\",\"amount\":\"500000000000000000\",\"expiration\":\"4611687736024459077\",\"nonce\":\"1801031070277174248\"},\"trigger\":{\"last_price_below\":\"175000000000000000000\"},\"signature\":\"0x605f0d743d6ee27f173469c047d60cce7ddc8c71200e2ecda730a2fc4fa4070f0e5d70c3e0772ce4f0d00f6c0797e49b173150d79aec454c6bf172e6d551c2c21b\",\"id\":5930043274845996}}"
             },
             {
-              "description": "swap take profit order",
-              "method": "createOrder",
-              "url": "https://gateway.prod.vertexprotocol.com/v1/execute",
-              "input": [
-                "SOL/USDC:USDC",
-                "limit",
-                "buy",
-                0.5,
-                172,
-                {
-                  "takeProfitPrice": "170"
-                }
-              ],
-              "output": "{\"place_order\":{\"product_id\":12,\"order\":{\"sender\":\"0xc950889d14a3717f541ec246bc253d7a9e98c78f64656661756c740000000000\",\"priceX18\":\"172000000000000000000\",\"amount\":\"500000000000000000\",\"expiration\":\"4611687736024459077\",\"nonce\":\"1801031070277174248\"},\"trigger\":{\"last_price_above\":\"170000000000000000000\"},\"signature\":\"0x605f0d743d6ee27f173469c047d60cce7ddc8c71200e2ecda730a2fc4fa4070f0e5d70c3e0772ce4f0d00f6c0797e49b173150d79aec454c6bf172e6d551c2c21b\",\"id\":5930043274845996}}"
+                "description": "swap take profit order",
+                "method": "createOrder",
+                "url": "https://gateway.prod.vertexprotocol.com/v1/execute",
+                "input": [
+                    "SOL/USDC:USDC",
+                    "limit",
+                    "buy",
+                    0.5,
+                    172,
+                    {
+                        "takeProfitPrice": "170"
+                    }
+                ],
+                "output": "{\"place_order\":{\"product_id\":12,\"order\":{\"sender\":\"0xc950889d14a3717f541ec246bc253d7a9e98c78f64656661756c740000000000\",\"priceX18\":\"172000000000000000000\",\"amount\":\"500000000000000000\",\"expiration\":\"4611687736024459077\",\"nonce\":\"1801031070277174248\"},\"trigger\":{\"last_price_above\":\"170000000000000000000\"},\"signature\":\"0x605f0d743d6ee27f173469c047d60cce7ddc8c71200e2ecda730a2fc4fa4070f0e5d70c3e0772ce4f0d00f6c0797e49b173150d79aec454c6bf172e6d551c2c21b\",\"id\":5930043274845996}}"
             }
         ],
         "cancelOrder": [
@@ -129,24 +129,24 @@
                 "method": "cancelOrder",
                 "url": "https://gateway.prod.vertexprotocol.com/v1/execute",
                 "input": [
-                  "0x21973f66e6832c2d62fa290aea21818a0754dc8f0236e55b0058bc7014674416",
-                  "SOL/USDC:USDC"
+                    "0x21973f66e6832c2d62fa290aea21818a0754dc8f0236e55b0058bc7014674416",
+                    "SOL/USDC:USDC"
                 ],
                 "output": "{\"cancel_orders\":{\"tx\":{\"sender\":\"0xc950889d14a3717f541ec246bc253d7a9e98c78f64656661756c740000000000\",\"nonce\":\"1800218880221643752\",\"productIds\":[12],\"digests\":[\"0x21973f66e6832c2d62fa290aea21818a0754dc8f0236e55b0058bc7014674416\"]},\"signature\":\"0xa991fbcf9a56d987f46f8edcbc71d2705bf39d793a64855d5990feda2886675f66ca01f26ec3d3ee1bf988329ce8b5aaa7ce28989e515cc822ea182fd73e599b1c\"}}"
             },
             {
-              "description": "cancel swap stop order",
-              "method": "cancelOrder",
-              "url": "https://trigger.prod.vertexprotocol.com/v1/execute",
-              "input": [
-                "0x21973f66e6832c2d62fa290aea21818a0754dc8f0236e55b0058bc7014674416",
-                "SOL/USDC:USDC",
-                {
-                  "trigger": true
-                }
-              ],
-              "output": "{\"cancel_orders\":{\"tx\":{\"sender\":\"0xc950889d14a3717f541ec246bc253d7a9e98c78f64656661756c740000000000\",\"nonce\":\"1800218880221643752\",\"productIds\":[12],\"digests\":[\"0x21973f66e6832c2d62fa290aea21818a0754dc8f0236e55b0058bc7014674416\"]},\"signature\":\"0xa991fbcf9a56d987f46f8edcbc71d2705bf39d793a64855d5990feda2886675f66ca01f26ec3d3ee1bf988329ce8b5aaa7ce28989e515cc822ea182fd73e599b1c\"}}"
-          }
+                "description": "cancel swap stop order",
+                "method": "cancelOrder",
+                "url": "https://trigger.prod.vertexprotocol.com/v1/execute",
+                "input": [
+                    "0x21973f66e6832c2d62fa290aea21818a0754dc8f0236e55b0058bc7014674416",
+                    "SOL/USDC:USDC",
+                    {
+                        "trigger": true
+                    }
+                ],
+                "output": "{\"cancel_orders\":{\"tx\":{\"sender\":\"0xc950889d14a3717f541ec246bc253d7a9e98c78f64656661756c740000000000\",\"nonce\":\"1800218880221643752\",\"productIds\":[12],\"digests\":[\"0x21973f66e6832c2d62fa290aea21818a0754dc8f0236e55b0058bc7014674416\"]},\"signature\":\"0xa991fbcf9a56d987f46f8edcbc71d2705bf39d793a64855d5990feda2886675f66ca01f26ec3d3ee1bf988329ce8b5aaa7ce28989e515cc822ea182fd73e599b1c\"}}"
+            }
         ],
         "fetchOrder": [
             {
@@ -154,8 +154,8 @@
                 "method": "fetchOrder",
                 "url": "https://gateway.prod.vertexprotocol.com/v1/query?type=order&product_id=12&digest=0x64dcbf8baae563de7538be03dc485e6ca24ba5a43fe3186a2327d6c06197a1f0",
                 "input": [
-                  "0x64dcbf8baae563de7538be03dc485e6ca24ba5a43fe3186a2327d6c06197a1f0",
-                  "SOL/USDC:USDC"
+                    "0x64dcbf8baae563de7538be03dc485e6ca24ba5a43fe3186a2327d6c06197a1f0",
+                    "SOL/USDC:USDC"
                 ]
             }
         ],
@@ -181,78 +181,206 @@
                 "method": "cancelAllOrders",
                 "url": "https://gateway.prod.vertexprotocol.com/v1/execute",
                 "input": [
-                  "SOL/USDC:USDC"
+                    "SOL/USDC:USDC"
                 ],
                 "output": "{\"cancel_product_orders\":{\"tx\":{\"sender\":\"0xc950889d14a3717f541ec246bc253d7a9e98c78f64656661756c740000000000\",\"nonce\":\"1800219871512888296\",\"productIds\":[12]},\"signature\":\"0x5037f0d52e7cb9823fe87db92ff84bb4444d3e5d41e3b95676e8818232dddcb362c3be7bb308a36fe49e42022557572dcdc84a4804388556afce27a0d211a2581b\"}}"
             },
             {
-              "description": "cancel all stop orders",
-              "method": "cancelAllOrders",
-              "url": "https://trigger.prod.vertexprotocol.com/v1/execute",
-              "input": [
-                "SOL/USDC:USDC",
-                {
-                  "trigger": true
-                }
-              ],
-              "output": "{\"cancel_product_orders\":{\"tx\":{\"sender\":\"0xc950889d14a3717f541ec246bc253d7a9e98c78f64656661756c740000000000\",\"nonce\":\"1800219871512888296\",\"productIds\":[12]},\"signature\":\"0x5037f0d52e7cb9823fe87db92ff84bb4444d3e5d41e3b95676e8818232dddcb362c3be7bb308a36fe49e42022557572dcdc84a4804388556afce27a0d211a2581b\"}}"
-          }
+                "description": "cancel all stop orders",
+                "method": "cancelAllOrders",
+                "url": "https://trigger.prod.vertexprotocol.com/v1/execute",
+                "input": [
+                    "SOL/USDC:USDC",
+                    {
+                        "trigger": true
+                    }
+                ],
+                "output": "{\"cancel_product_orders\":{\"tx\":{\"sender\":\"0xc950889d14a3717f541ec246bc253d7a9e98c78f64656661756c740000000000\",\"nonce\":\"1800219871512888296\",\"productIds\":[12]},\"signature\":\"0x5037f0d52e7cb9823fe87db92ff84bb4444d3e5d41e3b95676e8818232dddcb362c3be7bb308a36fe49e42022557572dcdc84a4804388556afce27a0d211a2581b\"}}"
+            }
         ],
         "fetchMyTrades": [
-          {
-            "description": "swap trades",
-            "method": "fetchMyTrades",
-            "url": "https://archive.prod.vertexprotocol.com/v1",
-            "input": [
-              "SOL/USDC:USDC"
-            ],
-            "output": "{\"matches\":{\"subaccount\":\"0xc950889d14a3717f541ec246bc253d7a9e98c78f64656661756c740000000000\",\"product_ids\":[12]}}"
-          },
-          {
-            "description": "spot trades",
-            "method": "fetchMyTrades",
-            "url": "https://archive.prod.vertexprotocol.com/v1",
-            "input": [
-              "USDT/USDC"
-            ],
-            "output": "{\"matches\":{\"subaccount\":\"0xc950889d14a3717f541ec246bc253d7a9e98c78f64656661756c740000000000\",\"product_ids\":[31]}}"
-          }
+            {
+                "description": "swap trades",
+                "method": "fetchMyTrades",
+                "url": "https://archive.prod.vertexprotocol.com/v1",
+                "input": [
+                    "SOL/USDC:USDC"
+                ],
+                "output": "{\"matches\":{\"subaccount\":\"0xc950889d14a3717f541ec246bc253d7a9e98c78f64656661756c740000000000\",\"product_ids\":[12]}}"
+            },
+            {
+                "description": "spot trades",
+                "method": "fetchMyTrades",
+                "url": "https://archive.prod.vertexprotocol.com/v1",
+                "input": [
+                    "USDT/USDC"
+                ],
+                "output": "{\"matches\":{\"subaccount\":\"0xc950889d14a3717f541ec246bc253d7a9e98c78f64656661756c740000000000\",\"product_ids\":[31]}}"
+            }
         ],
         "fetchOpenOrders": [
-          {
-            "description": "swap open orders",
-            "method": "fetchOpenOrders",
-            "url": "https://gateway.prod.vertexprotocol.com/v1/query",
-            "input": [
-              "SOL/USDC:USDC"
-            ],
-            "output": "{\"product_id\":12,\"type\":\"subaccount_orders\",\"sender\":\"0xc950889d14a3717f541ec246bc253d7a9e98c78f64656661756c740000000000\"}"
-          },
-          {
-            "description": "spot open orders",
-            "method": "fetchOpenOrders",
-            "url": "https://gateway.prod.vertexprotocol.com/v1/query",
-            "input": [
-              "USDT/USDC"
-            ],
-            "output": "{\"product_id\":31,\"type\":\"subaccount_orders\",\"sender\":\"0xc950889d14a3717f541ec246bc253d7a9e98c78f64656661756c740000000000\"}"
-          }
+            {
+                "description": "swap open orders",
+                "method": "fetchOpenOrders",
+                "url": "https://gateway.prod.vertexprotocol.com/v1/query",
+                "input": [
+                    "SOL/USDC:USDC"
+                ],
+                "output": "{\"product_id\":12,\"type\":\"subaccount_orders\",\"sender\":\"0xc950889d14a3717f541ec246bc253d7a9e98c78f64656661756c740000000000\"}"
+            },
+            {
+                "description": "spot open orders",
+                "method": "fetchOpenOrders",
+                "url": "https://gateway.prod.vertexprotocol.com/v1/query",
+                "input": [
+                    "USDT/USDC"
+                ],
+                "output": "{\"product_id\":31,\"type\":\"subaccount_orders\",\"sender\":\"0xc950889d14a3717f541ec246bc253d7a9e98c78f64656661756c740000000000\"}"
+            }
         ],
         "fetchBalance": [
-          {
-            "description": "balance",
-            "method": "fetchBalance",
-            "url": "https://gateway.prod.vertexprotocol.com/v1/query?type=subaccount_info&subaccount=0xc950889d14a3717f541ec246bc253d7a9e98c78f64656661756c740000000000",
-            "input": []
-          }
+            {
+                "description": "balance",
+                "method": "fetchBalance",
+                "url": "https://gateway.prod.vertexprotocol.com/v1/query?type=subaccount_info&subaccount=0xc950889d14a3717f541ec246bc253d7a9e98c78f64656661756c740000000000",
+                "input": []
+            }
         ],
         "fetchPositions": [
-          {
-            "description": "positions",
-            "method": "fetchPositions",
-            "url": "https://gateway.prod.vertexprotocol.com/v1/query?type=subaccount_info&subaccount=0xc950889d14a3717f541ec246bc253d7a9e98c78f64656661756c740000000000",
-            "input": []
-          }
+            {
+                "description": "positions",
+                "method": "fetchPositions",
+                "url": "https://gateway.prod.vertexprotocol.com/v1/query?type=subaccount_info&subaccount=0xc950889d14a3717f541ec246bc253d7a9e98c78f64656661756c740000000000",
+                "input": []
+            }
+        ],
+        "fetchCurrencies": [
+            {
+                "description": "currencies",
+                "method": "fetchCurrencies",
+                "url": "https://gateway.prod.vertexprotocol.com/v2/assets",
+                "input": []
+            }
+        ],
+        "fetchMarkets": [
+            {
+                "description": "markets",
+                "method": "fetchMarkets",
+                "url": "https://gateway.prod.vertexprotocol.com/v1/query?type=symbols",
+                "input": []
+            }
+        ],
+        "fetchTime": [
+            {
+                "description": "time",
+                "method": "fetchTime",
+                "url": "https://gateway.prod.vertexprotocol.com/v1/time",
+                "input": []
+            }
+        ],
+        "fetchStatus": [
+            {
+                "description": "status",
+                "method": "fetchStatus",
+                "url": "https://gateway.prod.vertexprotocol.com/v1/query?type=status",
+                "input": []
+            }
+        ],
+        "fetchTrades": [
+            {
+                "description": "trades",
+                "method": "fetchTrades",
+                "url": "https://gateway.prod.vertexprotocol.com/v2/trades?ticker_id=USDT_USDC&limit=1",
+                "input": [
+                    "USDT/USDC",
+                    null,
+                    1
+                ]
+            }
+        ],
+        "fetchOrderBook": [
+            {
+                "description": "orderbook",
+                "method": "fetchOrderBook",
+                "url": "https://gateway.prod.vertexprotocol.com/v2/orderbook?ticker_id=USDT_USDC&depth=1",
+                "input": [
+                    "USDT/USDC",
+                    1
+                ]
+            }
+        ],
+        "fetchTradingFees": [
+            {
+                "description": "tradingFees",
+                "method": "fetchTradingFees",
+                "url": "https://gateway.prod.vertexprotocol.com/v1/query?type=fee_rates&sender=0xc751489d24a33172541ea451bc253d7a9e98c78164656661756c740000000000",
+                "input": []
+            }
+        ],
+        "fetchOHLCV": [
+            {
+                "description": "OHLCV",
+                "method": "fetchOHLCV",
+                "url": "https://gateway.prod.vertexprotocol.com/v1",
+                "input": [
+                    "USDT/USDC",
+                    "1m",
+                    null,
+                    1
+                ],
+                "output": "{\"candlesticks\":{\"product_id\":31,\"granularity\":60,\"limit\":1}}"
+            }
+        ],
+        "fetchFundingRate": [
+            {
+                "description": "fundingRate",
+                "method": "fetchFundingRate",
+                "url": "https://gateway.prod.vertexprotocol.com/v1",
+                "input": [
+                    "USDT/USDC"
+                ],
+                "output": "{\"funding_rate\":{\"product_id\":31}}"
+            }
+        ],
+        "fetchFundingRates": [
+            {
+                "description": "fundingRates",
+                "method": "fetchFundingRates",
+                "url": "https://gateway.prod.vertexprotocol.com/v2/contracts",
+                "input": []
+            }
+        ],
+        "fetchOpenInterest": [
+            {
+                "description": "openInterest",
+                "method": "fetchOpenInterest",
+                "url": "https://gateway.prod.vertexprotocol.com/v2/contracts",
+                "input": [
+                    "SOL/USDC:USDC"
+                ]
+            }
+        ],
+        "fetchTickers": [
+            {
+                "description": "tickers",
+                "method": "fetchTickers",
+                "url": "https://gateway.prod.vertexprotocol.com/v2/tickers",
+                "input": []
+            }
+        ],
+        "cancelOrders": [
+            {
+                "description": "cancelOrders",
+                "method": "cancelOrders",
+                "url": "https://gateway.prod.vertexprotocol.com/v1/execute",
+                "input": [
+                    [
+                        "0x21973f66e6832c2d62fa290aea21818a0754dc8f0236e55b0058bc7014674416"
+                    ],
+                    "SOL/USDC:USDC"
+                ],
+                "output": "{\"cancel_orders\":{\"tx\":{\"sender\":\"0xc751489d24a33172541ea451bc253d7a9e98c78164656661756c740000000000\",\"productIds\":[12],\"digests\":[\"0x21973f66e6832c2d62fa290aea21818a0754dc8f0236e55b0058bc7014674416\"],\"nonce\":\"1801105366368388072\"},\"signature\":\"0xbf4b04276d29abedd5c3ac8a50a071e3ab65522d0954141ee0c6826f8079396274d8ab5220678cefee2ec530af920e6588c4913dd8d6dfaa870f789441c47e331c\"}}"
+            }
         ]
     }
 }
