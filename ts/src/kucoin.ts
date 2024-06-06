@@ -2416,7 +2416,6 @@ export default class kucoin extends Exchange {
                 'id': orderId,
             });
         }
-        return this.parseOrder (response);
     }
 
     async cancelAllOrders (symbol: Str = undefined, params = {}) {
