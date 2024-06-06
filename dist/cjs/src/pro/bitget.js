@@ -1018,6 +1018,7 @@ class bitget extends bitget$1 {
         [marginMode, params] = this.handleMarginModeAndParams('watchOrders', params);
         if (marginMode !== undefined) {
             instType = 'MARGIN';
+            messageHash = messageHash + ':' + marginMode;
             if (marginMode === 'isolated') {
                 channel = 'orders-isolated';
             }
@@ -1111,7 +1112,13 @@ class bitget extends bitget$1 {
         const keys = Object.keys(marketSymbols);
         for (let i = 0; i < keys.length; i++) {
             const symbol = keys[i];
-            const innerMessageHash = messageHash + ':' + symbol;
+            let innerMessageHash = messageHash + ':' + symbol;
+            if (channel === 'orders-crossed') {
+                innerMessageHash = innerMessageHash + ':cross';
+            }
+            else if (channel === 'orders-isolated') {
+                innerMessageHash = innerMessageHash + ':isolated';
+            }
             client.resolve(stored, innerMessageHash);
         }
         client.resolve(stored, messageHash);
