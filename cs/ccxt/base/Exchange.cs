@@ -232,7 +232,10 @@ public partial class Exchange
 #endif
 
                 var stringContent = body != null ? new StringContent(body, Encoding.UTF8, contentTypeHeader) : null;
-                stringContent.Headers.ContentType.CharSet = "";
+                if (stringContent != null)
+                {
+                    stringContent.Headers.ContentType.CharSet = "";
+                }
                 request.Content = stringContent;
 
                 if (method == "POST")
