@@ -3,35 +3,40 @@
 
 import Exchange from './abstract/valr.js';
 import type {
-    Market,
-    Balances,
-    Tickers,
-    Ticker,
-    Order,
-    OrderType,
-    OrderSide,
-    OrderRequest,
-    Int,
-    OrderBook,
-    Trade,
-    Currency,
-    Transaction,
     Account,
-    Currencies,
-    TradingFees,
-    Str,
+    Balances,
     CrossBorrowRates,
+    Currencies,
+    Currency,
+    Dict,
+    int,
+    Int,
+    Market,
     Num,
+    Order,
+    OrderBook,
+    OrderRequest,
+    OrderSide,
+    OrderType,
+    Str,
+    Ticker,
+    Tickers,
+    Trade,
+    TradingFees,
+    Transaction,
 } from './base/types.js';
 import { Precise } from './base/Precise.js';
 import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
 import {
-    NotSupported,
     ArgumentsRequired,
-    InvalidOrder,
-    BadSymbol,
-    NullResponse,
+    AuthenticationError,
     BadRequest,
+    BadSymbol,
+    DuplicateOrderId,
+    InvalidOrder,
+    NotSupported,
+    NullResponse,
+    OrderNotFound,
 } from './base/errors.js';
 
 // ---------------------------------------------------------------------------
@@ -368,6 +373,17 @@ export default class valr extends Exchange {
                     'USD': 'USD',
                 },
                 'subAccountId': undefined,
+            },
+            'httpExceptions': {
+                '403': AuthenticationError,
+            },
+            'exceptions': {
+                'exact': {
+                    '-1': OrderNotFound, // {"code":-1,"message":"Invalid Order. "}
+                    '-12007': InvalidOrder, // {"code":-12007,"message":"Minimum order size not met . Minimum amount: 1 USDT, minimum total: 10 ZAR"}
+                    '-11502': DuplicateOrderId, // {'code': '-11502', 'message': "Duplicate customer order id's are not allowed"}
+                },
+                'broad': {},
             },
         });
     }
@@ -2044,5 +2060,23 @@ export default class valr extends Exchange {
             }
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': this.deepExtend (headers, signHeaders) };
+    }
+
+    handleErrors (statusCode: int, statusText: string, url: string, method: string, responseHeaders: Dict, responseBody: string, response, requestHeaders, requestBody) {
+        if (response === undefined) {
+            return undefined; // fallback to the default error handler
+        }
+        if (statusCode === 200 || statusCode === 202) {
+            return undefined;
+        }
+        const message = this.safeString (response, 'message');
+        const errorCode = this.safeString (response, 'code');
+        if (errorCode && message) {
+            const errorMessage = this.id + ' ' + message;
+            const erroCodeStr = errorCode.toString ();
+            this.throwExactlyMatchedException (this.exceptions['exact'], erroCodeStr, errorMessage);
+            this.throwBroadlyMatchedException (this.exceptions['broad'], erroCodeStr, errorMessage);
+        }
+        return undefined;
     }
 }
