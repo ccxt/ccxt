@@ -34,7 +34,7 @@ public partial class mexc : ccxt.mexc
                 { "api", new Dictionary<string, object>() {
                     { "ws", new Dictionary<string, object>() {
                         { "spot", "wss://wbs.mexc.com/ws" },
-                        { "swap", "wss://contract.mexc.com/ws" },
+                        { "swap", "wss://contract.mexc.com/edge" },
                     } },
                 } },
             } },

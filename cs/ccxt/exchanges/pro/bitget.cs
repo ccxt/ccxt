@@ -1086,7 +1086,7 @@ public partial class bitget : ccxt.bitget
         var subTypeparametersVariable = this.handleSubTypeAndParams("watchOrders", market, parameters, "linear");
         subType = ((IList<object>)subTypeparametersVariable)[0];
         parameters = ((IList<object>)subTypeparametersVariable)[1];
-        if (isTrue(isTrue((isEqual(type, "spot"))) && isTrue((isEqual(symbol, null)))))
+        if (isTrue(isTrue((isTrue(isEqual(type, "spot")) || isTrue(isEqual(type, "margin")))) && isTrue((isEqual(symbol, null)))))
         {
             throw new ArgumentsRequired ((string)add(add(add(this.id, " watchOrders requires a symbol argument for "), type), " markets.")) ;
         }
@@ -1115,7 +1115,7 @@ public partial class bitget : ccxt.bitget
         {
             subscriptionHash = add(subscriptionHash, ":stop"); // we don't want to re-use the same subscription hash for stop orders
         }
-        object instId = ((bool) isTrue((isEqual(type, "spot")))) ? marketId : "default"; // different from other streams here the 'rest' id is required for spot markets, contract markets require default here
+        object instId = ((bool) isTrue((isTrue(isEqual(type, "spot")) || isTrue(isEqual(type, "margin"))))) ? marketId : "default"; // different from other streams here the 'rest' id is required for spot markets, contract markets require default here
         object channel = ((bool) isTrue(isTrigger)) ? "orders-algo" : "orders";
         object marginMode = null;
         var marginModeparametersVariable = this.handleMarginModeAndParams("watchOrders", parameters);
@@ -1124,6 +1124,7 @@ public partial class bitget : ccxt.bitget
         if (isTrue(!isEqual(marginMode, null)))
         {
             instType = "MARGIN";
+            messageHash = add(add(messageHash, ":"), marginMode);
             if (isTrue(isEqual(marginMode, "isolated")))
             {
                 channel = "orders-isolated";
@@ -1182,9 +1183,10 @@ public partial class bitget : ccxt.bitget
         //         "ts": 1701923982497
         //     }
         //
-        object arg = this.safeValue(message, "arg", new Dictionary<string, object>() {});
+        object arg = this.safeDict(message, "arg", new Dictionary<string, object>() {});
         object channel = this.safeString(arg, "channel");
         object instType = this.safeString(arg, "instType");
+        object argInstId = this.safeString(arg, "instId");
         object marketType = null;
         if (isTrue(isEqual(instType, "SPOT")))
         {
@@ -1213,7 +1215,7 @@ public partial class bitget : ccxt.bitget
         for (object i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
         {
             object order = getValue(data, i);
-            object marketId = this.safeString(order, "instId");
+            object marketId = this.safeString(order, "instId", argInstId);
             object market = this.safeMarket(marketId, null, null, marketType);
             object parsed = this.parseWsOrder(order, market);
             callDynamically(stored, "append", new object[] {parsed});
@@ -1225,6 +1227,13 @@ public partial class bitget : ccxt.bitget
         {
             object symbol = getValue(keys, i);
             object innerMessageHash = add(add(messageHash, ":"), symbol);
+            if (isTrue(isEqual(channel, "orders-crossed")))
+            {
+                innerMessageHash = add(innerMessageHash, ":cross");
+            } else if (isTrue(isEqual(channel, "orders-isolated")))
+            {
+                innerMessageHash = add(innerMessageHash, ":isolated");
+            }
             callDynamically(client as WebSocketClient, "resolve", new object[] {stored, innerMessageHash});
         }
         callDynamically(client as WebSocketClient, "resolve", new object[] {stored, messageHash});
@@ -1435,7 +1444,7 @@ public partial class bitget : ccxt.bitget
             totalAmount = this.safeString(order, "size");
             cost = this.safeString(order, "fillNotionalUsd");
         }
-        remaining = this.omitZero(Precise.stringSub(totalAmount, totalFilled));
+        remaining = Precise.stringSub(totalAmount, totalFilled);
         return this.safeOrder(new Dictionary<string, object>() {
             { "info", order },
             { "symbol", symbol },

@@ -1397,7 +1397,25 @@ class coinlist(Exchange, ImplicitAPI):
         self.load_markets()
         params = ids
         response = self.privateDeleteV1OrdersBulk(params)
-        return response
+        #
+        #    {
+        #        "message": "Cancel order requests received.",
+        #        "order_ids": [
+        #            "ff132955-43bc-4fe5-9d9c-5ba226cc89a0"
+        #        ],
+        #        "timestamp": "2024-06-01T02:32:30.305Z"
+        #    }
+        #
+        orderIds = self.safe_list(response, 'order_ids', [])
+        orders = []
+        datetime = self.safe_string(response, 'timestamp')
+        for i in range(0, len(orderIds)):
+            orders.append(self.safe_order({
+                'info': orderIds[i],
+                'id': orderIds[i],
+                'lastUpdateTimestamp': self.parse8601(datetime),
+            }))
+        return orders
 
     def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         """

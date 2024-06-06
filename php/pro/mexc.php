@@ -38,7 +38,7 @@ class mexc extends \ccxt\async\mexc {
                 'api' => array(
                     'ws' => array(
                         'spot' => 'wss://wbs.mexc.com/ws',
-                        'swap' => 'wss://contract.mexc.com/ws',
+                        'swap' => 'wss://contract.mexc.com/edge',
                     ),
                 ),
             ),

@@ -243,6 +243,9 @@ class binance extends Exchange {
                     // UID (sapi) request rate limit of 180 000 per minute
                     // 1 UID (sapi) => cost = 0.006667 => (1000 / (50 * 0.006667)) * 60 = 180000
                     'get' => array(
+                        // copy trading
+                        'copyTrading/futures/userStatus' => 2,
+                        'copyTrading/futures/leadSymbol' => 2,
                         'system/status' => 0.1,
                         // these endpoints require $this->apiKey
                         'accountSnapshot' => 240, // Weight(IP) => 2400 => cost = 0.1 * 2400 = 240

@@ -1455,7 +1455,26 @@ class coinlist extends coinlist$1 {
         await this.loadMarkets();
         params = ids;
         const response = await this.privateDeleteV1OrdersBulk(params);
-        return response;
+        //
+        //    {
+        //        "message": "Cancel order requests received.",
+        //        "order_ids": [
+        //            "ff132955-43bc-4fe5-9d9c-5ba226cc89a0"
+        //        ],
+        //        "timestamp": "2024-06-01T02:32:30.305Z"
+        //    }
+        //
+        const orderIds = this.safeList(response, 'order_ids', []);
+        const orders = [];
+        const datetime = this.safeString(response, 'timestamp');
+        for (let i = 0; i < orderIds.length; i++) {
+            orders.push(this.safeOrder({
+                'info': orderIds[i],
+                'id': orderIds[i],
+                'lastUpdateTimestamp': this.parse8601(datetime),
+            }));
+        }
+        return orders;
     }
     async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
         /**

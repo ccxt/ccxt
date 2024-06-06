@@ -1459,7 +1459,17 @@ export default class bitstamp extends Exchange {
         const request: Dict = {
             'id': id,
         };
-        return await this.privatePostCancelOrder (this.extend (request, params));
+        const response = await this.privatePostCancelOrder (this.extend (request, params));
+        //
+        //    {
+        //        "id": 1453282316578816,
+        //        "amount": "0.02035278",
+        //        "price": "2100.45",
+        //        "type": 0,
+        //        "market": "BTC/USD"
+        //    }
+        //
+        return this.parseOrder (response);
     }
 
     async cancelAllOrders (symbol: Str = undefined, params = {}) {
@@ -1484,7 +1494,23 @@ export default class bitstamp extends Exchange {
         } else {
             response = await this.privatePostCancelAllOrders (this.extend (request, params));
         }
-        return response;
+        //
+        //    {
+        //        "canceled": [
+        //            {
+        //                "id": 1453282316578816,
+        //                "amount": "0.02035278",
+        //                "price": "2100.45",
+        //                "type": 0,
+        //                "currency_pair": "BTC/USD",
+        //                "market": "BTC/USD"
+        //            }
+        //        ],
+        //        "success": true
+        //    }
+        //
+        const canceled = this.safeList (response, 'canceled');
+        return this.parseOrders (canceled);
     }
 
     parseOrderStatus (status: Str) {
@@ -1862,6 +1888,16 @@ export default class bitstamp extends Exchange {
         //           "type": "0",
         //           "id": "2814205012"
         //       }
+        //
+        // cancelOrder
+        //
+        //    {
+        //        "id": 1453282316578816,
+        //        "amount": "0.02035278",
+        //        "price": "2100.45",
+        //        "type": 0,
+        //        "market": "BTC/USD"
+        //    }
         //
         const id = this.safeString (order, 'id');
         const clientOrderId = this.safeString (order, 'client_order_id');

@@ -505,20 +505,20 @@ class wazirx(ccxt.async_support.wazirx):
         market = self.safe_market(marketId)
         symbol = market['symbol']
         messageHash = 'orderbook:' + symbol
-        currentOrderBook = self.safe_value(self.orderbooks, symbol)
-        if currentOrderBook is None:
+        # currentOrderBook = self.safe_value(self.orderbooks, symbol)
+        if not (symbol in self.orderbooks):
             snapshot = self.parse_order_book(data, symbol, timestamp, 'b', 'a')
-            orderBook = self.order_book(snapshot)
-            self.orderbooks[symbol] = orderBook
+            self.orderbooks[symbol] = self.order_book(snapshot)
         else:
-            asks = self.safe_value(data, 'a', [])
-            bids = self.safe_value(data, 'b', [])
-            self.handle_deltas(currentOrderBook['asks'], asks)
-            self.handle_deltas(currentOrderBook['bids'], bids)
-            currentOrderBook['nonce'] = timestamp
-            currentOrderBook['timestamp'] = timestamp
-            currentOrderBook['datetime'] = self.iso8601(timestamp)
-            self.orderbooks[symbol] = currentOrderBook
+            orderbook = self.orderbooks[symbol]
+            asks = self.safe_list(data, 'a', [])
+            bids = self.safe_list(data, 'b', [])
+            self.handle_deltas(orderbook['asks'], asks)
+            self.handle_deltas(orderbook['bids'], bids)
+            orderbook['nonce'] = timestamp
+            orderbook['timestamp'] = timestamp
+            orderbook['datetime'] = self.iso8601(timestamp)
+            self.orderbooks[symbol] = orderbook
         client.resolve(self.orderbooks[symbol], messageHash)
 
     async def watch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:

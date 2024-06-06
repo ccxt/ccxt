@@ -226,15 +226,15 @@ class alpaca(ccxt.async_support.alpaca):
         datetime = self.safe_string(message, 't')
         timestamp = self.parse8601(datetime)
         isSnapshot = self.safe_bool(message, 'r', False)
-        orderbook = self.safe_value(self.orderbooks, symbol)
-        if orderbook is None:
-            orderbook = self.order_book()
+        if not (symbol in self.orderbooks):
+            self.orderbooks[symbol] = self.order_book()
+        orderbook = self.orderbooks[symbol]
         if isSnapshot:
             snapshot = self.parse_order_book(message, symbol, timestamp, 'b', 'a', 'p', 's')
             orderbook.reset(snapshot)
         else:
-            asks = self.safe_value(message, 'a', [])
-            bids = self.safe_value(message, 'b', [])
+            asks = self.safe_list(message, 'a', [])
+            bids = self.safe_list(message, 'b', [])
             self.handle_deltas(orderbook['asks'], asks)
             self.handle_deltas(orderbook['bids'], bids)
             orderbook['timestamp'] = timestamp

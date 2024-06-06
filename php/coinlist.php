@@ -1427,8 +1427,8 @@ class coinlist extends Exchange {
 
     public function cancel_orders($ids, ?string $symbol = null, $params = array ()) {
         /**
-         * cancel multiple orders
-         * @see https://trade-docs.coinlist.co/?javascript--nodejs#cancel-specific-orders
+         * cancel multiple $orders
+         * @see https://trade-docs.coinlist.co/?javascript--nodejs#cancel-specific-$orders
          * @param {string[]} $ids order $ids
          * @param {string} $symbol not used by coinlist cancelOrders ()
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -1437,7 +1437,26 @@ class coinlist extends Exchange {
         $this->load_markets();
         $params = $ids;
         $response = $this->privateDeleteV1OrdersBulk ($params);
-        return $response;
+        //
+        //    {
+        //        "message" => "Cancel order requests received.",
+        //        "order_ids" => array(
+        //            "ff132955-43bc-4fe5-9d9c-5ba226cc89a0"
+        //        ),
+        //        "timestamp" => "2024-06-01T02:32:30.305Z"
+        //    }
+        //
+        $orderIds = $this->safe_list($response, 'order_ids', array());
+        $orders = array();
+        $datetime = $this->safe_string($response, 'timestamp');
+        for ($i = 0; $i < count($orderIds); $i++) {
+            $orders[] = $this->safe_order(array(
+                'info' => $orderIds[$i],
+                'id' => $orderIds[$i],
+                'lastUpdateTimestamp' => $this->parse8601($datetime),
+            ));
+        }
+        return $orders;
     }
 
     public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {

@@ -520,21 +520,21 @@ class wazirx extends wazirx$1 {
         const market = this.safeMarket(marketId);
         const symbol = market['symbol'];
         const messageHash = 'orderbook:' + symbol;
-        const currentOrderBook = this.safeValue(this.orderbooks, symbol);
-        if (currentOrderBook === undefined) {
+        // const currentOrderBook = this.safeValue (this.orderbooks, symbol);
+        if (!(symbol in this.orderbooks)) {
             const snapshot = this.parseOrderBook(data, symbol, timestamp, 'b', 'a');
-            const orderBook = this.orderBook(snapshot);
-            this.orderbooks[symbol] = orderBook;
+            this.orderbooks[symbol] = this.orderBook(snapshot);
         }
         else {
-            const asks = this.safeValue(data, 'a', []);
-            const bids = this.safeValue(data, 'b', []);
-            this.handleDeltas(currentOrderBook['asks'], asks);
-            this.handleDeltas(currentOrderBook['bids'], bids);
-            currentOrderBook['nonce'] = timestamp;
-            currentOrderBook['timestamp'] = timestamp;
-            currentOrderBook['datetime'] = this.iso8601(timestamp);
-            this.orderbooks[symbol] = currentOrderBook;
+            const orderbook = this.orderbooks[symbol];
+            const asks = this.safeList(data, 'a', []);
+            const bids = this.safeList(data, 'b', []);
+            this.handleDeltas(orderbook['asks'], asks);
+            this.handleDeltas(orderbook['bids'], bids);
+            orderbook['nonce'] = timestamp;
+            orderbook['timestamp'] = timestamp;
+            orderbook['datetime'] = this.iso8601(timestamp);
+            this.orderbooks[symbol] = orderbook;
         }
         client.resolve(this.orderbooks[symbol], messageHash);
     }

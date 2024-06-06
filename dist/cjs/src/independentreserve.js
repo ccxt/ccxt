@@ -385,6 +385,21 @@ class independentreserve extends independentreserve$1 {
         //         "FeePercent": 0.005,
         //     }
         //
+        // cancelOrder
+        //
+        //    {
+        //        "AvgPrice": 455.48,
+        //        "CreatedTimestampUtc": "2022-08-05T06:42:11.3032208Z",
+        //        "OrderGuid": "719c495c-a39e-4884-93ac-280b37245037",
+        //        "Price": 485.76,
+        //        "PrimaryCurrencyCode": "Xbt",
+        //        "ReservedAmount": 0.358,
+        //        "SecondaryCurrencyCode": "Usd",
+        //        "Status": "Cancelled",
+        //        "Type": "LimitOffer",
+        //        "VolumeFilled": 0,
+        //        "VolumeOrdered": 0.358
+        //    }
         let symbol = undefined;
         const baseId = this.safeString(order, 'PrimaryCurrencyCode');
         const quoteId = this.safeString(order, 'SecondaryCurrencyCode');
@@ -715,6 +730,7 @@ class independentreserve extends independentreserve$1 {
          * @method
          * @name independentreserve#cancelOrder
          * @description cancels an open order
+         * @see https://www.independentreserve.com/features/api#CancelOrder
          * @param {string} id order id
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -724,7 +740,23 @@ class independentreserve extends independentreserve$1 {
         const request = {
             'orderGuid': id,
         };
-        return await this.privatePostCancelOrder(this.extend(request, params));
+        const response = await this.privatePostCancelOrder(this.extend(request, params));
+        //
+        //    {
+        //        "AvgPrice": 455.48,
+        //        "CreatedTimestampUtc": "2022-08-05T06:42:11.3032208Z",
+        //        "OrderGuid": "719c495c-a39e-4884-93ac-280b37245037",
+        //        "Price": 485.76,
+        //        "PrimaryCurrencyCode": "Xbt",
+        //        "ReservedAmount": 0.358,
+        //        "SecondaryCurrencyCode": "Usd",
+        //        "Status": "Cancelled",
+        //        "Type": "LimitOffer",
+        //        "VolumeFilled": 0,
+        //        "VolumeOrdered": 0.358
+        //    }
+        //
+        return this.parseOrder(response);
     }
     async fetchDepositAddress(code, params = {}) {
         /**

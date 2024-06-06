@@ -1007,7 +1007,7 @@ class bitget extends \ccxt\async\bitget {
             list($type, $params) = $this->handle_market_type_and_params('watchOrders', $market, $params);
             $subType = null;
             list($subType, $params) = $this->handle_sub_type_and_params('watchOrders', $market, $params, 'linear');
-            if (($type === 'spot') && ($symbol === null)) {
+            if (($type === 'spot' || $type === 'margin') && ($symbol === null)) {
                 throw new ArgumentsRequired($this->id . ' watchOrders requires a $symbol argument for ' . $type . ' markets.');
             }
             if (($productType === null) && ($type !== 'spot') && ($symbol === null)) {
@@ -1027,12 +1027,13 @@ class bitget extends \ccxt\async\bitget {
             if ($isTrigger) {
                 $subscriptionHash = $subscriptionHash . ':stop'; // we don't want to re-use the same subscription hash for stop $orders
             }
-            $instId = ($type === 'spot') ? $marketId : 'default'; // different from other streams here the 'rest' id is required for spot markets, contract markets require default here
+            $instId = ($type === 'spot' || $type === 'margin') ? $marketId : 'default'; // different from other streams here the 'rest' id is required for spot markets, contract markets require default here
             $channel = $isTrigger ? 'orders-algo' : 'orders';
             $marginMode = null;
             list($marginMode, $params) = $this->handle_margin_mode_and_params('watchOrders', $params);
             if ($marginMode !== null) {
                 $instType = 'MARGIN';
+                $messageHash = $messageHash . ':' . $marginMode;
                 if ($marginMode === 'isolated') {
                     $channel = 'orders-isolated';
                 } else {
@@ -1088,9 +1089,10 @@ class bitget extends \ccxt\async\bitget {
         //         "ts" => 1701923982497
         //     }
         //
-        $arg = $this->safe_value($message, 'arg', array());
+        $arg = $this->safe_dict($message, 'arg', array());
         $channel = $this->safe_string($arg, 'channel');
         $instType = $this->safe_string($arg, 'instType');
+        $argInstId = $this->safe_string($arg, 'instId');
         $marketType = null;
         if ($instType === 'SPOT') {
             $marketType = 'spot';
@@ -1114,7 +1116,7 @@ class bitget extends \ccxt\async\bitget {
         $marketSymbols = array();
         for ($i = 0; $i < count($data); $i++) {
             $order = $data[$i];
-            $marketId = $this->safe_string($order, 'instId');
+            $marketId = $this->safe_string($order, 'instId', $argInstId);
             $market = $this->safe_market($marketId, null, null, $marketType);
             $parsed = $this->parse_ws_order($order, $market);
             $stored->append ($parsed);
@@ -1125,6 +1127,11 @@ class bitget extends \ccxt\async\bitget {
         for ($i = 0; $i < count($keys); $i++) {
             $symbol = $keys[$i];
             $innerMessageHash = $messageHash . ':' . $symbol;
+            if ($channel === 'orders-crossed') {
+                $innerMessageHash = $innerMessageHash . ':cross';
+            } elseif ($channel === 'orders-isolated') {
+                $innerMessageHash = $innerMessageHash . ':isolated';
+            }
             $client->resolve ($stored, $innerMessageHash);
         }
         $client->resolve ($stored, $messageHash);
@@ -1320,7 +1327,7 @@ class bitget extends \ccxt\async\bitget {
             $totalAmount = $this->safe_string($order, 'size');
             $cost = $this->safe_string($order, 'fillNotionalUsd');
         }
-        $remaining = $this->omit_zero(Precise::string_sub($totalAmount, $totalFilled));
+        $remaining = Precise::string_sub($totalAmount, $totalFilled);
         return $this->safe_order(array(
             'info' => $order,
             'symbol' => $symbol,

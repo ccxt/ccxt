@@ -1426,7 +1426,17 @@ class bitstamp extends Exchange {
         $request = array(
             'id' => $id,
         );
-        return $this->privatePostCancelOrder ($this->extend($request, $params));
+        $response = $this->privatePostCancelOrder ($this->extend($request, $params));
+        //
+        //    {
+        //        "id" => 1453282316578816,
+        //        "amount" => "0.02035278",
+        //        "price" => "2100.45",
+        //        "type" => 0,
+        //        "market" => "BTC/USD"
+        //    }
+        //
+        return $this->parse_order($response);
     }
 
     public function cancel_all_orders(?string $symbol = null, $params = array ()) {
@@ -1449,7 +1459,23 @@ class bitstamp extends Exchange {
         } else {
             $response = $this->privatePostCancelAllOrders ($this->extend($request, $params));
         }
-        return $response;
+        //
+        //    {
+        //        "canceled" => array(
+        //            {
+        //                "id" => 1453282316578816,
+        //                "amount" => "0.02035278",
+        //                "price" => "2100.45",
+        //                "type" => 0,
+        //                "currency_pair" => "BTC/USD",
+        //                "market" => "BTC/USD"
+        //            }
+        //        ),
+        //        "success" => true
+        //    }
+        //
+        $canceled = $this->safe_list($response, 'canceled');
+        return $this->parse_orders($canceled);
     }
 
     public function parse_order_status(?string $status) {
@@ -1819,6 +1845,16 @@ class bitstamp extends Exchange {
         //           "type" => "0",
         //           "id" => "2814205012"
         //       }
+        //
+        // cancelOrder
+        //
+        //    {
+        //        "id" => 1453282316578816,
+        //        "amount" => "0.02035278",
+        //        "price" => "2100.45",
+        //        "type" => 0,
+        //        "market" => "BTC/USD"
+        //    }
         //
         $id = $this->safe_string($order, 'id');
         $clientOrderId = $this->safe_string($order, 'client_order_id');

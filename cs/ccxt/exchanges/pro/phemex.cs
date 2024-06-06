@@ -766,12 +766,12 @@ public partial class phemex : ccxt.phemex
             callDynamically(client as WebSocketClient, "resolve", new object[] {orderbook, messageHash});
         } else
         {
-            object orderbook = this.safeValue(this.orderbooks, symbol);
-            if (isTrue(!isEqual(orderbook, null)))
+            if (isTrue(inOp(this.orderbooks, symbol)))
             {
-                object changes = this.safeValue2(message, "book", "orderbook_p", new Dictionary<string, object>() {});
-                object asks = this.safeValue(changes, "asks", new List<object>() {});
-                object bids = this.safeValue(changes, "bids", new List<object>() {});
+                object orderbook = getValue(this.orderbooks, symbol);
+                object changes = this.safeDict2(message, "book", "orderbook_p", new Dictionary<string, object>() {});
+                object asks = this.safeList(changes, "asks", new List<object>() {});
+                object bids = this.safeList(changes, "bids", new List<object>() {});
                 this.customHandleDeltas(getValue(orderbook, "asks"), asks, market);
                 this.customHandleDeltas(getValue(orderbook, "bids"), bids, market);
                 ((IDictionary<string,object>)orderbook)["nonce"] = nonce;

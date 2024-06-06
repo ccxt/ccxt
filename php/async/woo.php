@@ -1294,7 +1294,9 @@ class woo extends Exchange {
             //         "status":"CANCEL_ALL_SENT"
             //     }
             //
-            return $response;
+            return array(
+                $this->safe_order($response),
+            );
         }) ();
     }
 
@@ -1322,7 +1324,9 @@ class woo extends Exchange {
             //         "timestamp" => 1711534302943
             //     }
             //
-            return $response;
+            return array(
+                $this->safe_order($response),
+            );
         }) ();
     }
 

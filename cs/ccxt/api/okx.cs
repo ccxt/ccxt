@@ -741,6 +741,21 @@ public partial class okx : Exchange
         return await this.callAsync ("privateGetAccountMmpConfig",parameters);
     }
 
+    public async Task<object> privateGetAccountFixedLoanBorrowingLimit (object parameters = null)
+    {
+        return await this.callAsync ("privateGetAccountFixedLoanBorrowingLimit",parameters);
+    }
+
+    public async Task<object> privateGetAccountFixedLoanBorrowingQuote (object parameters = null)
+    {
+        return await this.callAsync ("privateGetAccountFixedLoanBorrowingQuote",parameters);
+    }
+
+    public async Task<object> privateGetAccountFixedLoanBorrowingOrdersList (object parameters = null)
+    {
+        return await this.callAsync ("privateGetAccountFixedLoanBorrowingOrdersList",parameters);
+    }
+
     public async Task<object> privateGetUsersSubaccountList (object parameters = null)
     {
         return await this.callAsync ("privateGetUsersSubaccountList",parameters);
@@ -1294,6 +1309,26 @@ public partial class okx : Exchange
     public async Task<object> privatePostAccountMmpConfig (object parameters = null)
     {
         return await this.callAsync ("privatePostAccountMmpConfig",parameters);
+    }
+
+    public async Task<object> privatePostAccountFixedLoanBorrowingOrder (object parameters = null)
+    {
+        return await this.callAsync ("privatePostAccountFixedLoanBorrowingOrder",parameters);
+    }
+
+    public async Task<object> privatePostAccountFixedLoanAmendBorrowingOrder (object parameters = null)
+    {
+        return await this.callAsync ("privatePostAccountFixedLoanAmendBorrowingOrder",parameters);
+    }
+
+    public async Task<object> privatePostAccountFixedLoanManualReborrow (object parameters = null)
+    {
+        return await this.callAsync ("privatePostAccountFixedLoanManualReborrow",parameters);
+    }
+
+    public async Task<object> privatePostAccountFixedLoanRepayBorrowingOrder (object parameters = null)
+    {
+        return await this.callAsync ("privatePostAccountFixedLoanRepayBorrowingOrder",parameters);
     }
 
     public async Task<object> privatePostUsersSubaccountModifyApikey (object parameters = null)

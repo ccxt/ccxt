@@ -550,12 +550,11 @@ public partial class exmo : ccxt.exmo
         object orderBook = this.safeValue(message, "data", new Dictionary<string, object>() {});
         object messageHash = add("orderbook:", symbol);
         object timestamp = this.safeInteger(message, "ts");
-        object orderbook = this.safeValue(this.orderbooks, symbol);
-        if (isTrue(isEqual(orderbook, null)))
+        if (!isTrue((inOp(this.orderbooks, symbol))))
         {
-            orderbook = this.orderBook(new Dictionary<string, object>() {});
-            ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = orderbook;
+            ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.orderBook(new Dictionary<string, object>() {});
         }
+        object orderbook = getValue(this.orderbooks, symbol);
         object eventVar = this.safeString(message, "event");
         if (isTrue(isEqual(eventVar, "snapshot")))
         {
@@ -563,8 +562,8 @@ public partial class exmo : ccxt.exmo
             (orderbook as IOrderBook).reset(snapshot);
         } else
         {
-            object asks = this.safeValue(orderBook, "ask", new List<object>() {});
-            object bids = this.safeValue(orderBook, "bid", new List<object>() {});
+            object asks = this.safeList(orderBook, "ask", new List<object>() {});
+            object bids = this.safeList(orderBook, "bid", new List<object>() {});
             this.handleDeltas(getValue(orderbook, "asks"), asks);
             this.handleDeltas(getValue(orderbook, "bids"), bids);
             ((IDictionary<string,object>)orderbook)["timestamp"] = timestamp;

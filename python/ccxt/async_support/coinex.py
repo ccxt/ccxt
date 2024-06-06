@@ -5440,7 +5440,7 @@ class coinex(Exchange, ImplicitAPI):
                 preparedString += nonce + self.secret
                 signature = self.hash(self.encode(preparedString), 'sha256')
                 headers = {
-                    'Content-Type': 'application/json; charset=utf-8',
+                    'Content-Type': 'application/json',
                     'Accept': 'application/json',
                     'X-COINEX-KEY': self.apiKey,
                     'X-COINEX-SIGN': signature,

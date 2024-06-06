@@ -2008,12 +2008,22 @@ class kraken(Exchange, ImplicitAPI):
         params = self.omit(params, ['userref', 'clientOrderId'])
         try:
             response = self.privatePostCancelOrder(self.extend(request, params))
+            #
+            #    {
+            #        error: [],
+            #        result: {
+            #            count: '1'
+            #        }
+            #    }
+            #
         except Exception as e:
             if self.last_http_response:
                 if self.last_http_response.find('EOrder:Unknown order') >= 0:
                     raise OrderNotFound(self.id + ' cancelOrder() error ' + self.last_http_response)
             raise e
-        return response
+        return self.safe_order({
+            'info': response,
+        })
 
     def cancel_orders(self, ids, symbol: Str = None, params={}):
         """
@@ -2036,7 +2046,11 @@ class kraken(Exchange, ImplicitAPI):
         #         }
         #     }
         #
-        return response
+        return [
+            self.safe_order({
+                'info': response,
+            }),
+        ]
 
     def cancel_all_orders(self, symbol: Str = None, params={}):
         """
@@ -2047,7 +2061,20 @@ class kraken(Exchange, ImplicitAPI):
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
-        return self.privatePostCancelAll(params)
+        response = self.privatePostCancelAll(params)
+        #
+        #    {
+        #        error: [],
+        #        result: {
+        #            count: '1'
+        #        }
+        #    }
+        #
+        return [
+            self.safe_order({
+                'info': response,
+            }),
+        ]
 
     def cancel_all_orders_after(self, timeout: Int, params={}):
         """

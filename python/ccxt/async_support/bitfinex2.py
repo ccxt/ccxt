@@ -1655,7 +1655,7 @@ class bitfinex2(Exchange, ImplicitAPI):
             raise ExchangeError(self.id + ' ' + response[6] + ': ' + errorText + '(#' + errorCode + ')')
         orders = self.safe_list(response, 4, [])
         order = self.safe_list(orders, 0)
-        return self.parse_order(order, market)
+        return self.parse_order(self.extend({'result': order}), market)
 
     async def create_orders(self, orders: List[OrderRequest], params={}):
         """

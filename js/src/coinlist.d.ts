@@ -42,7 +42,7 @@ export default class coinlist extends Exchange {
     fetchCanceledOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     cancelAllOrders(symbol?: Str, params?: {}): Promise<Order[]>;
     cancelOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
-    cancelOrders(ids: any, symbol?: Str, params?: {}): Promise<any>;
+    cancelOrders(ids: any, symbol?: Str, params?: {}): Promise<any[]>;
     createOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): Promise<Order>;
     editOrder(id: string, symbol: string, type: OrderType, side: OrderSide, amount?: Num, price?: Num, params?: {}): Promise<Order>;
     parseOrder(order: Dict, market?: Market): Order;
