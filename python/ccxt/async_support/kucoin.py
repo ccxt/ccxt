@@ -2238,19 +2238,76 @@ class kucoin(Exchange, ImplicitAPI):
             request['clientOid'] = clientOrderId
             if stop:
                 response = await self.privateDeleteStopOrderCancelOrderByClientOid(self.extend(request, params))
+                #
+                #    {
+                #        code: '200000',
+                #        data: {
+                #          cancelledOrderId: 'vs8lgpiuao41iaft003khbbk',
+                #          clientOid: '123456'
+                #        }
+                #    }
+                #
             elif hf:
                 response = await self.privateDeleteHfOrdersClientOrderClientOid(self.extend(request, params))
+                #
+                #    {
+                #        "code": "200000",
+                #        "data": {
+                #          "clientOid": "6d539dc614db3"
+                #        }
+                #    }
+                #
             else:
                 response = await self.privateDeleteOrderClientOrderClientOid(self.extend(request, params))
+                #
+                #    {
+                #        code: '200000',
+                #        data: {
+                #          cancelledOrderId: '665e580f6660500007aba341',
+                #          clientOid: '1234567',
+                #          cancelledOcoOrderIds: null
+                #        }
+                #    }
+                #
+            response = self.safe_dict(response, 'data')
+            return self.parse_order(response)
         else:
             request['orderId'] = id
             if stop:
                 response = await self.privateDeleteStopOrderOrderId(self.extend(request, params))
+                #
+                #    {
+                #        code: '200000',
+                #        data: {cancelledOrderIds: ['vs8lgpiuaco91qk8003vebu9']}
+                #    }
+                #
             elif hf:
                 response = await self.privateDeleteHfOrdersOrderId(self.extend(request, params))
+                #
+                #    {
+                #        "code": "200000",
+                #        "data": {
+                #          "orderId": "630625dbd9180300014c8d52"
+                #        }
+                #    }
+                #
+                response = self.safe_dict(response, 'data')
+                return self.parse_order(response)
             else:
                 response = await self.privateDeleteOrdersOrderId(self.extend(request, params))
-        return response
+                #
+                #    {
+                #        code: '200000',
+                #        data: {cancelledOrderIds: ['665e4fbe28051a0007245c41']}
+                #    }
+                #
+            data = self.safe_dict(response, 'data')
+            orderIds = self.safe_list(data, 'cancelledOrderIds', [])
+            orderId = self.safe_string(orderIds, 0)
+            return self.safe_order({
+                'info': data,
+                'id': orderId,
+            })
 
     async def cancel_all_orders(self, symbol: Str = None, params={}):
         """
@@ -2664,7 +2721,7 @@ class kucoin(Exchange, ImplicitAPI):
         stopPrice = self.safe_number(order, 'stopPrice')
         return self.safe_order({
             'info': order,
-            'id': self.safe_string_n(order, ['id', 'orderId', 'newOrderId']),
+            'id': self.safe_string_n(order, ['id', 'orderId', 'newOrderId', 'cancelledOrderId']),
             'clientOrderId': self.safe_string(order, 'clientOid'),
             'symbol': self.safe_symbol(marketId, market, '-'),
             'type': self.safe_string(order, 'type'),
