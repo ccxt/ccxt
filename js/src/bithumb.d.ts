@@ -24,8 +24,8 @@ export default class bithumb extends Exchange {
     parseOrderStatus(status: Str): string;
     parseOrder(order: Dict, market?: Market): Order;
     fetchOpenOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
-    cancelOrder(id: string, symbol?: Str, params?: {}): Promise<any>;
-    cancelUnifiedOrder(order: any, params?: {}): Promise<any>;
+    cancelOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
+    cancelUnifiedOrder(order: any, params?: {}): Promise<Order>;
     withdraw(code: string, amount: number, address: string, tag?: any, params?: {}): Promise<Transaction>;
     parseTransaction(transaction: Dict, currency?: Currency): Transaction;
     fixCommaNumber(numberStr: any): any;

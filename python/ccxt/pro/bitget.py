@@ -939,7 +939,7 @@ class bitget(ccxt.async_support.bitget):
         type, params = self.handle_market_type_and_params('watchOrders', market, params)
         subType = None
         subType, params = self.handle_sub_type_and_params('watchOrders', market, params, 'linear')
-        if (type == 'spot') and (symbol is None):
+        if (type == 'spot' or type == 'margin') and (symbol is None):
             raise ArgumentsRequired(self.id + ' watchOrders requires a symbol argument for ' + type + ' markets.')
         if (productType is None) and (type != 'spot') and (symbol is None):
             messageHash = messageHash + ':' + subType
@@ -955,7 +955,7 @@ class bitget(ccxt.async_support.bitget):
             subscriptionHash = subscriptionHash + ':' + symbol
         if isTrigger:
             subscriptionHash = subscriptionHash + ':stop'  # we don't want to re-use the same subscription hash for stop orders
-        instId = marketId if (type == 'spot') else 'default'  # different from other streams here the 'rest' id is required for spot markets, contract markets require default here
+        instId = marketId if (type == 'spot' or type == 'margin') else 'default'  # different from other streams here the 'rest' id is required for spot markets, contract markets require default here
         channel = 'orders-algo' if isTrigger else 'orders'
         marginMode = None
         marginMode, params = self.handle_margin_mode_and_params('watchOrders', params)
@@ -1011,9 +1011,10 @@ class bitget(ccxt.async_support.bitget):
         #         "ts": 1701923982497
         #     }
         #
-        arg = self.safe_value(message, 'arg', {})
+        arg = self.safe_dict(message, 'arg', {})
         channel = self.safe_string(arg, 'channel')
         instType = self.safe_string(arg, 'instType')
+        argInstId = self.safe_string(arg, 'instId')
         marketType = None
         if instType == 'SPOT':
             marketType = 'spot'
@@ -1035,7 +1036,7 @@ class bitget(ccxt.async_support.bitget):
         marketSymbols: dict = {}
         for i in range(0, len(data)):
             order = data[i]
-            marketId = self.safe_string(order, 'instId')
+            marketId = self.safe_string(order, 'instId', argInstId)
             market = self.safe_market(marketId, None, None, marketType)
             parsed = self.parse_ws_order(order, market)
             stored.append(parsed)
@@ -1228,7 +1229,7 @@ class bitget(ccxt.async_support.bitget):
             filledAmount = self.safe_string(order, 'baseVolume')
             totalAmount = self.safe_string(order, 'size')
             cost = self.safe_string(order, 'fillNotionalUsd')
-        remaining = self.omit_zero(Precise.string_sub(totalAmount, totalFilled))
+        remaining = Precise.string_sub(totalAmount, totalFilled)
         return self.safe_order({
             'info': order,
             'symbol': symbol,

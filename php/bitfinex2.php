@@ -1713,7 +1713,7 @@ class bitfinex2 extends Exchange {
         }
         $orders = $this->safe_list($response, 4, array());
         $order = $this->safe_list($orders, 0);
-        return $this->parse_order($order, $market);
+        return $this->parse_order($this->extend(array( 'result' => $order )), $market);
     }
 
     public function create_orders(array $orders, $params = array ()) {

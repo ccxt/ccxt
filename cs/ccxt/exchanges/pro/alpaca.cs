@@ -246,19 +246,19 @@ public partial class alpaca : ccxt.alpaca
         object datetime = this.safeString(message, "t");
         object timestamp = this.parse8601(datetime);
         object isSnapshot = this.safeBool(message, "r", false);
-        object orderbook = this.safeValue(this.orderbooks, symbol);
-        if (isTrue(isEqual(orderbook, null)))
+        if (!isTrue((inOp(this.orderbooks, symbol))))
         {
-            orderbook = this.orderBook();
+            ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.orderBook();
         }
+        object orderbook = getValue(this.orderbooks, symbol);
         if (isTrue(isSnapshot))
         {
             object snapshot = this.parseOrderBook(message, symbol, timestamp, "b", "a", "p", "s");
             (orderbook as IOrderBook).reset(snapshot);
         } else
         {
-            object asks = this.safeValue(message, "a", new List<object>() {});
-            object bids = this.safeValue(message, "b", new List<object>() {});
+            object asks = this.safeList(message, "a", new List<object>() {});
+            object bids = this.safeList(message, "b", new List<object>() {});
             this.handleDeltas(getValue(orderbook, "asks"), asks);
             this.handleDeltas(getValue(orderbook, "bids"), bids);
             ((IDictionary<string,object>)orderbook)["timestamp"] = timestamp;

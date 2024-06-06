@@ -1657,7 +1657,9 @@ class woofipro extends Exchange {
             //     }
             // }
             //
-            return $response;
+            return array( $this->safe_order(array(
+                'info' => $response,
+            )) );
         }) ();
     }
 
@@ -1701,7 +1703,11 @@ class woofipro extends Exchange {
             //     }
             // }
             //
-            return $response;
+            return array(
+                array(
+                    'info' => $response,
+                ),
+            );
         }) ();
     }
 

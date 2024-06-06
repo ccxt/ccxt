@@ -1009,7 +1009,7 @@ export default class bitget extends bitgetRest {
         [ type, params ] = this.handleMarketTypeAndParams ('watchOrders', market, params);
         let subType = undefined;
         [ subType, params ] = this.handleSubTypeAndParams ('watchOrders', market, params, 'linear');
-        if ((type === 'spot') && (symbol === undefined)) {
+        if ((type === 'spot' || type === 'margin') && (symbol === undefined)) {
             throw new ArgumentsRequired (this.id + ' watchOrders requires a symbol argument for ' + type + ' markets.');
         }
         if ((productType === undefined) && (type !== 'spot') && (symbol === undefined)) {
@@ -1029,7 +1029,7 @@ export default class bitget extends bitgetRest {
         if (isTrigger) {
             subscriptionHash = subscriptionHash + ':stop'; // we don't want to re-use the same subscription hash for stop orders
         }
-        const instId = (type === 'spot') ? marketId : 'default'; // different from other streams here the 'rest' id is required for spot markets, contract markets require default here
+        const instId = (type === 'spot' || type === 'margin') ? marketId : 'default'; // different from other streams here the 'rest' id is required for spot markets, contract markets require default here
         let channel = isTrigger ? 'orders-algo' : 'orders';
         let marginMode = undefined;
         [ marginMode, params ] = this.handleMarginModeAndParams ('watchOrders', params);
@@ -1089,9 +1089,10 @@ export default class bitget extends bitgetRest {
         //         "ts": 1701923982497
         //     }
         //
-        const arg = this.safeValue (message, 'arg', {});
+        const arg = this.safeDict (message, 'arg', {});
         const channel = this.safeString (arg, 'channel');
         const instType = this.safeString (arg, 'instType');
+        const argInstId = this.safeString (arg, 'instId');
         let marketType = undefined;
         if (instType === 'SPOT') {
             marketType = 'spot';
@@ -1115,7 +1116,7 @@ export default class bitget extends bitgetRest {
         const marketSymbols: Dict = {};
         for (let i = 0; i < data.length; i++) {
             const order = data[i];
-            const marketId = this.safeString (order, 'instId');
+            const marketId = this.safeString (order, 'instId', argInstId);
             const market = this.safeMarket (marketId, undefined, undefined, marketType);
             const parsed = this.parseWsOrder (order, market);
             stored.append (parsed);
@@ -1321,7 +1322,7 @@ export default class bitget extends bitgetRest {
             totalAmount = this.safeString (order, 'size');
             cost = this.safeString (order, 'fillNotionalUsd');
         }
-        remaining = this.omitZero (Precise.stringSub (totalAmount, totalFilled));
+        remaining = Precise.stringSub (totalAmount, totalFilled);
         return this.safeOrder ({
             'info': order,
             'symbol': symbol,
