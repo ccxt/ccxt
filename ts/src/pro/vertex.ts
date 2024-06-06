@@ -26,14 +26,10 @@ export default class vertex extends vertexRest {
             },
             'urls': {
                 'api': {
-                    'ws': {
-                        'public': 'wss://gateway.prod.vertexprotocol.com/v1/subscribe',
-                    },
+                    'ws': 'wss://gateway.prod.vertexprotocol.com/v1/subscribe',
                 },
                 'test': {
-                    'ws': {
-                        'public': 'wss://gateway.sepolia-test.vertexprotocol.com/v1/subscribe',
-                    },
+                    'ws': 'wss://gateway.sepolia-test.vertexprotocol.com/v1/subscribe',
                 },
             },
             'requiredCredentials': {
@@ -74,7 +70,7 @@ export default class vertex extends vertexRest {
     }
 
     async watchPublic (messageHash, message) {
-        const url = this.urls['api']['ws']['public'];
+        const url = this.urls['api']['ws'];
         const requestId = this.requestId (url);
         const subscribe = {
             'id': requestId,
@@ -155,9 +151,12 @@ export default class vertex extends vertexRest {
          * @param {int} [since] the earliest time in ms to fetch orders for
          * @param {int} [limit] the maximum number of order structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.user] user address, will default to this.walletAddress if not provided
          * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
          */
         await this.loadMarkets ();
+        let userAddress = undefined;
+        [ userAddress, params ] = this.handlePublicAddress ('watchMyTrades', params);
         const market = this.market (symbol);
         const name = 'fill';
         const topic = market['id'] + '@' + name;
@@ -166,7 +165,7 @@ export default class vertex extends vertexRest {
             'stream': {
                 'type': name,
                 'product_id': this.parseToNumeric (market['id']),
-                'subaccount': this.convertAddressToSender (this.walletAddress),
+                'subaccount': this.convertAddressToSender (userAddress),
             },
         };
         const message = this.extend (request, params);
@@ -466,6 +465,7 @@ export default class vertex extends vertexRest {
          * @description watch all open positions
          * @param {string[]|undefined} symbols list of unified market symbols
          * @param {object} params extra parameters specific to the exchange API endpoint
+         * @param {string} [params.user] user address, will default to this.walletAddress if not provided
          * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
          */
         await this.loadMarkets ();
@@ -477,9 +477,11 @@ export default class vertex extends vertexRest {
         } else {
             throw new ArgumentsRequired (this.id + ' watchPositions require one symbol.');
         }
-        const url = this.urls['api']['ws']['public'];
+        let userAddress = undefined;
+        [ userAddress, params ] = this.handlePublicAddress ('watchPositions', params);
+        const url = this.urls['api']['ws'];
         const client = this.client (url);
-        this.setPositionsCache (client, symbols);
+        this.setPositionsCache (client, symbols, params);
         const fetchPositionsSnapshot = this.handleOption ('watchPositions', 'fetchPositionsSnapshot', true);
         const awaitPositionsSnapshot = this.safeBool ('watchPositions', 'awaitPositionsSnapshot', true);
         if (fetchPositionsSnapshot && awaitPositionsSnapshot && this.positions === undefined) {
@@ -494,7 +496,7 @@ export default class vertex extends vertexRest {
             'stream': {
                 'type': name,
                 'product_id': this.parseToNumeric (market['id']),
-                'subaccount': this.convertAddressToSender (this.walletAddress),
+                'subaccount': this.convertAddressToSender (userAddress),
             },
         };
         const message = this.extend (request, params);
@@ -505,21 +507,21 @@ export default class vertex extends vertexRest {
         return this.filterBySymbolsSinceLimit (this.positions, symbols, since, limit, true);
     }
 
-    setPositionsCache (client: Client, type, symbols: Strings = undefined) {
+    setPositionsCache (client: Client, symbols: Strings = undefined, params = {}) {
         const fetchPositionsSnapshot = this.handleOption ('watchPositions', 'fetchPositionsSnapshot', false);
         if (fetchPositionsSnapshot) {
             const messageHash = 'fetchPositionsSnapshot';
             if (!(messageHash in client.futures)) {
                 client.future (messageHash);
-                this.spawn (this.loadPositionsSnapshot, client, messageHash);
+                this.spawn (this.loadPositionsSnapshot, client, messageHash, symbols, params);
             }
         } else {
             this.positions = new ArrayCacheBySymbolBySide ();
         }
     }
 
-    async loadPositionsSnapshot (client, messageHash) {
-        const positions = await this.fetchPositions ();
+    async loadPositionsSnapshot (client, messageHash, symbols, params) {
+        const positions = await this.fetchPositions (symbols, params);
         this.positions = new ArrayCacheBySymbolBySide ();
         const cache = this.positions;
         for (let i = 0; i < positions.length; i++) {
@@ -650,7 +652,7 @@ export default class vertex extends vertexRest {
 
     async authenticate (params = {}) {
         this.checkRequiredCredentials ();
-        const url = this.urls['api']['ws']['public'];
+        const url = this.urls['api']['ws'];
         const client = this.client (url);
         const messageHash = 'authenticated';
         const future = client.future (messageHash);
@@ -683,7 +685,7 @@ export default class vertex extends vertexRest {
 
     async watchPrivate (messageHash, message, params = {}) {
         await this.authenticate (params);
-        const url = this.urls['api']['ws']['public'];
+        const url = this.urls['api']['ws'];
         const requestId = this.requestId (url);
         const subscribe = {
             'id': requestId,
@@ -704,6 +706,7 @@ export default class vertex extends vertexRest {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
+        this.checkRequiredCredentials ();
         await this.loadMarkets ();
         const name = 'order_update';
         const market = this.market (symbol);
