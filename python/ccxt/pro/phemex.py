@@ -677,11 +677,11 @@ class phemex(ccxt.async_support.phemex):
             self.orderbooks[symbol] = orderbook
             client.resolve(orderbook, messageHash)
         else:
-            orderbook = self.safe_value(self.orderbooks, symbol)
-            if orderbook is not None:
-                changes = self.safe_value_2(message, 'book', 'orderbook_p', {})
-                asks = self.safe_value(changes, 'asks', [])
-                bids = self.safe_value(changes, 'bids', [])
+            if symbol in self.orderbooks:
+                orderbook = self.orderbooks[symbol]
+                changes = self.safe_dict_2(message, 'book', 'orderbook_p', {})
+                asks = self.safe_list(changes, 'asks', [])
+                bids = self.safe_list(changes, 'bids', [])
                 self.custom_handle_deltas(orderbook['asks'], asks, market)
                 self.custom_handle_deltas(orderbook['bids'], bids, market)
                 orderbook['nonce'] = nonce

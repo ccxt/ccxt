@@ -1782,23 +1782,28 @@ class upbit(Exchange, ImplicitAPI):
                 url += '?' + self.urlencode(query)
         if api == 'private':
             self.check_required_credentials()
+            headers = {}
             nonce = self.uuid()
             request: dict = {
                 'access_key': self.apiKey,
                 'nonce': nonce,
             }
-            if query:
-                auth = self.urlencode(query)
+            hasQuery = query
+            auth = None
+            if (method != 'GET') and (method != 'DELETE'):
+                body = self.json(params)
+                headers['Content-Type'] = 'application/json'
+                if hasQuery:
+                    auth = self.urlencode(query)
+            else:
+                if hasQuery:
+                    auth = self.urlencode(self.keysort(query))
+            if auth is not None:
                 hash = self.hash(self.encode(auth), 'sha512')
                 request['query_hash'] = hash
                 request['query_hash_alg'] = 'SHA512'
             token = self.jwt(request, self.encode(self.secret), 'sha256')
-            headers = {
-                'Authorization': 'Bearer ' + token,
-            }
-            if (method != 'GET') and (method != 'DELETE'):
-                body = self.json(params)
-                headers['Content-Type'] = 'application/json'
+            headers['Authorization'] = 'Bearer ' + token
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response, requestHeaders, requestBody):

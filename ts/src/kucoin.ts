@@ -2343,22 +2343,79 @@ export default class kucoin extends Exchange {
             request['clientOid'] = clientOrderId;
             if (stop) {
                 response = await this.privateDeleteStopOrderCancelOrderByClientOid (this.extend (request, params));
+                //
+                //    {
+                //        code: '200000',
+                //        data: {
+                //          cancelledOrderId: 'vs8lgpiuao41iaft003khbbk',
+                //          clientOid: '123456'
+                //        }
+                //    }
+                //
             } else if (hf) {
                 response = await this.privateDeleteHfOrdersClientOrderClientOid (this.extend (request, params));
+                //
+                //    {
+                //        "code": "200000",
+                //        "data": {
+                //          "clientOid": "6d539dc614db3"
+                //        }
+                //    }
+                //
             } else {
                 response = await this.privateDeleteOrderClientOrderClientOid (this.extend (request, params));
+                //
+                //    {
+                //        code: '200000',
+                //        data: {
+                //          cancelledOrderId: '665e580f6660500007aba341',
+                //          clientOid: '1234567',
+                //          cancelledOcoOrderIds: null
+                //        }
+                //    }
+                //
             }
+            response = this.safeDict (response, 'data');
+            return this.parseOrder (response);
         } else {
             request['orderId'] = id;
             if (stop) {
                 response = await this.privateDeleteStopOrderOrderId (this.extend (request, params));
+                //
+                //    {
+                //        code: '200000',
+                //        data: { cancelledOrderIds: [ 'vs8lgpiuaco91qk8003vebu9' ] }
+                //    }
+                //
             } else if (hf) {
                 response = await this.privateDeleteHfOrdersOrderId (this.extend (request, params));
+                //
+                //    {
+                //        "code": "200000",
+                //        "data": {
+                //          "orderId": "630625dbd9180300014c8d52"
+                //        }
+                //    }
+                //
+                response = this.safeDict (response, 'data');
+                return this.parseOrder (response);
             } else {
                 response = await this.privateDeleteOrdersOrderId (this.extend (request, params));
+                //
+                //    {
+                //        code: '200000',
+                //        data: { cancelledOrderIds: [ '665e4fbe28051a0007245c41' ] }
+                //    }
+                //
             }
+            const data = this.safeDict (response, 'data');
+            const orderIds = this.safeList (data, 'cancelledOrderIds', []);
+            const orderId = this.safeString (orderIds, 0);
+            return this.safeOrder ({
+                'info': data,
+                'id': orderId,
+            });
         }
-        return response;
     }
 
     async cancelAllOrders (symbol: Str = undefined, params = {}) {
@@ -2818,7 +2875,7 @@ export default class kucoin extends Exchange {
         const stopPrice = this.safeNumber (order, 'stopPrice');
         return this.safeOrder ({
             'info': order,
-            'id': this.safeStringN (order, [ 'id', 'orderId', 'newOrderId' ]),
+            'id': this.safeStringN (order, [ 'id', 'orderId', 'newOrderId', 'cancelledOrderId' ]),
             'clientOrderId': this.safeString (order, 'clientOid'),
             'symbol': this.safeSymbol (marketId, market, '-'),
             'type': this.safeString (order, 'type'),

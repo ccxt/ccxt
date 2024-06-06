@@ -751,10 +751,10 @@ class lbank(ccxt.async_support.lbank):
         orderBook = self.safe_value(message, 'depth', message)
         datetime = self.safe_string(message, 'TS')
         timestamp = self.parse8601(datetime)
-        orderbook = self.safe_value(self.orderbooks, symbol)
-        if orderbook is None:
-            orderbook = self.order_book({})
-            self.orderbooks[symbol] = orderbook
+        # orderbook = self.safe_value(self.orderbooks, symbol)
+        if not (symbol in self.orderbooks):
+            self.orderbooks[symbol] = self.order_book({})
+        orderbook = self.orderbooks[symbol]
         snapshot = self.parse_order_book(orderBook, symbol, timestamp, 'bids', 'asks')
         orderbook.reset(snapshot)
         messageHash = 'orderbook:' + symbol

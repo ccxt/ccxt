@@ -11,6 +11,16 @@ public partial class binanceusdm : binance
 {
     public binanceusdm (object args = null): base(args) {}
 
+    public async Task<object> sapiGetCopyTradingFuturesUserStatus (object parameters = null)
+    {
+        return await this.callAsync ("sapiGetCopyTradingFuturesUserStatus",parameters);
+    }
+
+    public async Task<object> sapiGetCopyTradingFuturesLeadSymbol (object parameters = null)
+    {
+        return await this.callAsync ("sapiGetCopyTradingFuturesLeadSymbol",parameters);
+    }
+
     public async Task<object> sapiGetSystemStatus (object parameters = null)
     {
         return await this.callAsync ("sapiGetSystemStatus",parameters);

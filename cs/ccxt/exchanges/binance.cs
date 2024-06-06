@@ -217,6 +217,8 @@ public partial class binance : Exchange
             { "api", new Dictionary<string, object>() {
                 { "sapi", new Dictionary<string, object>() {
                     { "get", new Dictionary<string, object>() {
+                        { "copyTrading/futures/userStatus", 2 },
+                        { "copyTrading/futures/leadSymbol", 2 },
                         { "system/status", 0.1 },
                         { "accountSnapshot", 240 },
                         { "account/info", 0.1 },

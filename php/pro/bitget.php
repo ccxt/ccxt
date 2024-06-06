@@ -1033,6 +1033,7 @@ class bitget extends \ccxt\async\bitget {
             list($marginMode, $params) = $this->handle_margin_mode_and_params('watchOrders', $params);
             if ($marginMode !== null) {
                 $instType = 'MARGIN';
+                $messageHash = $messageHash . ':' . $marginMode;
                 if ($marginMode === 'isolated') {
                     $channel = 'orders-isolated';
                 } else {
@@ -1126,6 +1127,11 @@ class bitget extends \ccxt\async\bitget {
         for ($i = 0; $i < count($keys); $i++) {
             $symbol = $keys[$i];
             $innerMessageHash = $messageHash . ':' . $symbol;
+            if ($channel === 'orders-crossed') {
+                $innerMessageHash = $innerMessageHash . ':cross';
+            } elseif ($channel === 'orders-isolated') {
+                $innerMessageHash = $innerMessageHash . ':isolated';
+            }
             $client->resolve ($stored, $innerMessageHash);
         }
         $client->resolve ($stored, $messageHash);
@@ -1321,7 +1327,7 @@ class bitget extends \ccxt\async\bitget {
             $totalAmount = $this->safe_string($order, 'size');
             $cost = $this->safe_string($order, 'fillNotionalUsd');
         }
-        $remaining = $this->omit_zero(Precise::string_sub($totalAmount, $totalFilled));
+        $remaining = Precise::string_sub($totalAmount, $totalFilled);
         return $this->safe_order(array(
             'info' => $order,
             'symbol' => $symbol,

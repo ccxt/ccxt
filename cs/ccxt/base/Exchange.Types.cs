@@ -7,6 +7,31 @@ namespace ccxt;
 // public partial class Exchange
 // {
 
+class Helper
+{
+    public static Dictionary<string, object> GetInfo(object data2)
+    {
+        var data = (Dictionary<string, object>)data2;
+        if (data.ContainsKey("info"))
+        {
+            var info = data["info"];
+            if (info is IDictionary<string, object>)
+            {
+                return (Dictionary<string, object>)info;
+            }
+            else if (info is IList<object>)
+            {
+                return new Dictionary<string, object> {
+                    {"response", info}
+                };
+            }
+        }
+        return null;
+
+    }
+}
+
+
 public struct Precision
 {
     public double? amount;
@@ -62,7 +87,7 @@ public struct TradingFeeInterface
         taker = Exchange.SafeFloat(tradingFeeInterface, "taker");
         percentage = tradingFeeInterface.ContainsKey("percentage") && tradingFeeInterface["percentage"] != null ? (bool)tradingFeeInterface["percentage"] : null;
         tierBased = tradingFeeInterface.ContainsKey("tierBased") && tradingFeeInterface["tierBased"] != null ? (bool)tradingFeeInterface["tierBased"] : null;
-        info = tradingFeeInterface.ContainsKey("info") ? (Dictionary<string, object>)tradingFeeInterface["info"] : null;
+        info = Helper.GetInfo(tradingFeeInterface);
     }
 }
 
@@ -117,7 +142,7 @@ public struct Market
     public double? contractSize;
     public bool? linear;
     public bool? inverse;
-    public double? expiry;
+    public Int64? expiry;
     public string? expiryDatetime;
     public double? strike;
     public string? optionType;
@@ -156,7 +181,7 @@ public struct Market
         contractSize = Exchange.SafeFloat(market, "contractSize");
         linear = market.ContainsKey("linear") && market["linear"] != null ? (bool)market["linear"] : null;
         inverse = market.ContainsKey("inverse") && market["inverse"] != null ? (bool)market["inverse"] : null;
-        expiry = Exchange.SafeFloat(market, "expiry");
+        expiry = Exchange.SafeInteger(market, "expiry");
         expiryDatetime = Exchange.SafeString(market, "expiryDatetime");
         strike = Exchange.SafeFloat(market, "strike");
         optionType = Exchange.SafeString(market, "optionType");
@@ -167,7 +192,7 @@ public struct Market
         feeSide = Exchange.SafeString(market, "feeSide");
         precision = market.ContainsKey("precision") ? new Precision(market["precision"]) : null;
         limits = market.ContainsKey("limits") ? new Limits(market["limits"]) : null;
-        info = market;
+        info = Helper.GetInfo(market);
         created = Exchange.SafeInteger(market, "created");
     }
 }
@@ -203,22 +228,7 @@ public struct Trade
         side = Exchange.SafeString(trade, "side");
         takerOrMaker = Exchange.SafeString(trade, "takerOrMaker");
         fee = trade.ContainsKey("fee") ? new Fee(trade["fee"]) : null;
-
-        var tradeInfo = trade["info"];
-        if (tradeInfo is IDictionary<string, object>)
-        {
-            info = (Dictionary<string, object>)tradeInfo;
-        }
-        else if (tradeInfo is IList<object>)
-        {
-            info = new Dictionary<string, object> {
-                {"response", tradeInfo}
-            };
-        }
-        else
-        {
-            info = null;
-        }
+        info = Helper.GetInfo(trade);
     }
 }
 
@@ -276,7 +286,7 @@ public struct Order
         takeProfitPrice = Exchange.SafeFloat(order, "takeProfitPrice");
         reduceOnly = Exchange.SafeBool(order, "reduceOnly", false);
         postOnly = Exchange.SafeBool(order, "postOnly", false);
-        info = order.ContainsKey("info") ? (Dictionary<string, object>)order["info"] : null;
+        info = Helper.GetInfo(order);
     }
 }
 
@@ -326,7 +336,7 @@ public struct Ticker
         average = Exchange.SafeFloat(ticker, "average");
         baseVolume = Exchange.SafeFloat(ticker, "baseVolume");
         quoteVolume = Exchange.SafeFloat(ticker, "quoteVolume");
-        info = ticker.ContainsKey("info") ? (Dictionary<string, object>)ticker["info"] : null;
+        info = Helper.GetInfo(ticker);
     }
 }
 
@@ -339,7 +349,7 @@ public struct Tickers
     {
         var tickers = (Dictionary<string, object>)tickers2;
 
-        info = tickers.ContainsKey("info") ? (Dictionary<string, object>)tickers["info"] : null;
+        info = Helper.GetInfo(tickers);
         this.tickers = new Dictionary<string, Ticker>();
         foreach (var ticker in tickers)
         {
@@ -386,7 +396,7 @@ public struct LastPrice
         datetime = Exchange.SafeString(lastPrice, "datetime");
         price = Exchange.SafeFloat(lastPrice, "price");
         side = Exchange.SafeString(lastPrice, "side");
-        info = lastPrice.ContainsKey("info") ? (Dictionary<string, object>)lastPrice["info"] : null;
+        info = Helper.GetInfo(lastPrice);
     }
 }
 
@@ -415,7 +425,7 @@ public struct MarginModification
         status = Exchange.SafeString(marginModification, "status");
         timestamp = Exchange.SafeInteger(marginModification, "timestamp");
         datetime = Exchange.SafeString(marginModification, "datetime");
-        info = marginModification.ContainsKey("info") ? (Dictionary<string, object>)marginModification["info"] : null;
+        info = Helper.GetInfo(marginModification);
     }
 }
 
@@ -428,7 +438,7 @@ public struct LastPrices
     {
         var lastPrices = (Dictionary<string, object>)lastPrices2;
 
-        info = lastPrices.ContainsKey("info") ? (Dictionary<string, object>)lastPrices["info"] : null;
+        info = Helper.GetInfo(lastPrices);
         this.lastPrices = new Dictionary<string, LastPrice>();
         foreach (var lastPrice in lastPrices)
         {
@@ -467,7 +477,7 @@ public struct Currencies
     {
         var currencies = (Dictionary<string, object>)currencies2;
 
-        info = currencies.ContainsKey("info") ? (Dictionary<string, object>)currencies["info"] : null;
+        info = Helper.GetInfo(currencies);
         this.currencies = new Dictionary<string, Currency>();
         foreach (var currency in currencies)
         {
@@ -506,7 +516,7 @@ public struct TradingFees
     {
         var tradingFees = (Dictionary<string, object>)tradingFees2;
 
-        info = tradingFees.ContainsKey("info") ? (Dictionary<string, object>)tradingFees["info"] : null;
+        info = Helper.GetInfo(tradingFees);
         this.tradingFees = new Dictionary<string, TradingFeeInterface>();
         foreach (var tradingFee in tradingFees)
         {
@@ -690,22 +700,7 @@ public struct Balances
             total.Add(balance.Key, Convert.ToDouble(balance.Value));
         }
         // info = (Dictionary<string, object>)balances["info"];
-        var balancesInfo = balances.ContainsKey("info") ? (balances["info"]) : null;
-        if (balancesInfo is IDictionary<string, object>)
-        {
-            info = (Dictionary<string, object>)balancesInfo;
-        }
-        else if (balancesInfo is IList<object>)
-        {
-            info = new Dictionary<string, object> {
-                {"response", balancesInfo}
-            };
-        }
-        else
-        {
-            info = null;
-        }
-
+        info = Helper.GetInfo(balances);
     }
 
     public Balance this[string key]
@@ -754,7 +749,7 @@ public struct DepositAddressResponse
         address = Exchange.SafeString(depositAddressResponse, "address");
         tag = Exchange.SafeString(depositAddressResponse, "tag");
         status = Exchange.SafeString(depositAddressResponse, "status");
-        info = depositAddressResponse.ContainsKey("info") ? (Dictionary<string, object>)depositAddressResponse["info"] : null;
+        info = Helper.GetInfo(depositAddressResponse);
     }
 }
 
@@ -773,7 +768,7 @@ public struct CrossBorrowRate
         rate = Exchange.SafeFloat(crossBorrowRate2, "rate");
         timestamp = Exchange.SafeInteger(crossBorrowRate2, "timestamp");
         datetime = Exchange.SafeString(crossBorrowRate2, "datetime");
-        info = crossBorrowRate2.ContainsKey("info") ? (Dictionary<string, object>)crossBorrowRate2["info"] : null;
+        info = Helper.GetInfo(crossBorrowRate2);
     }
 }
 
@@ -786,7 +781,7 @@ public struct CrossBorrowRates
     {
         var crossBorrowRates = (Dictionary<string, object>)crossBorrowRates2;
 
-        info = crossBorrowRates.ContainsKey("info") ? (Dictionary<string, object>)crossBorrowRates["info"] : null;
+        info = Helper.GetInfo(crossBorrowRates);
         this.crossBorrowRates = new Dictionary<string, CrossBorrowRate>();
         foreach (var crossBorrowRate in crossBorrowRates)
         {
@@ -839,7 +834,7 @@ public struct IsolatedBorrowRate
         rate = Exchange.SafeFloat(isolatedBorrowRate2, "rate");
         timestamp = Exchange.SafeInteger(isolatedBorrowRate2, "timestamp");
         datetime = Exchange.SafeString(isolatedBorrowRate2, "datetime");
-        info = isolatedBorrowRate2.ContainsKey("info") ? (Dictionary<string, object>)isolatedBorrowRate2["info"] : null;
+        info = Helper.GetInfo(isolatedBorrowRate2);
     }
 }
 
@@ -852,7 +847,7 @@ public struct IsolatedBorrowRates
     {
         var isolatedBorrowRates = (Dictionary<string, object>)isolatedBorrowRates2;
 
-        info = isolatedBorrowRates.ContainsKey("info") ? (Dictionary<string, object>)isolatedBorrowRates["info"] : null;
+        info = Helper.GetInfo(isolatedBorrowRates);
         this.isolatedBorrowRates = new Dictionary<string, IsolatedBorrowRate>();
         foreach (var isolatedBorrowRate in isolatedBorrowRates)
         {
@@ -905,7 +900,7 @@ public struct BorrowInterest
         timestamp = Exchange.SafeInteger(borrowInterest, "timestamp");
         datetime = Exchange.SafeString(borrowInterest, "datetime");
         marginMode = Exchange.SafeString(borrowInterest, "marginMode");
-        info = Exchange.SafeValue(borrowInterest, "info", new Dictionary<string, object>()) as Dictionary<string, object>;
+        info = Helper.GetInfo(borrowInterest);
     }
 }
 
@@ -925,7 +920,7 @@ public struct OpenInterest
         openInterestValue = Exchange.SafeFloat(openInterest, "openInterestValue");
         timestamp = Exchange.SafeInteger(openInterest, "timestamp");
         datetime = Exchange.SafeString(openInterest, "datetime");
-        info = Exchange.SafeValue(openInterest, "info", new Dictionary<string, object>()) as Dictionary<string, object>;
+        info = Helper.GetInfo(openInterest);
     }
 }
 
@@ -945,7 +940,7 @@ public struct Liquidation
         baseValue = Exchange.SafeFloat(openInterest, "baseValue");
         timestamp = Exchange.SafeInteger(openInterest, "timestamp");
         datetime = Exchange.SafeString(openInterest, "datetime");
-        info = Exchange.SafeValue(openInterest, "info", new Dictionary<string, object>()) as Dictionary<string, object>;
+        info = Helper.GetInfo(openInterest);
     }
 }
 
@@ -996,7 +991,7 @@ public struct FundingRates
     {
         var rates = (Dictionary<string, object>)fr2;
 
-        info = rates.ContainsKey("info") ? (Dictionary<string, object>)rates["info"] : null;
+        info = Helper.GetInfo(rates);
         this.fundingRates = new Dictionary<string, Ticker>();
         foreach (var rate in rates)
         {
@@ -1122,7 +1117,7 @@ public struct Position
     {
         symbol = Exchange.SafeString(position, "symbol");
         id = Exchange.SafeString(position, "id");
-        info = Exchange.SafeValue(position, "info") != null ? (Dictionary<string, object>)Exchange.SafeValue(position, "info") : null;
+        info = Helper.GetInfo(position);
         timestamp = Exchange.SafeInteger(position, "timestamp");
         datetime = Exchange.SafeString(position, "datetime");
         contracts = Exchange.SafeFloat(position, "contracts");
@@ -1170,7 +1165,7 @@ public struct LeverageTier
         maxNotional = Exchange.SafeFloat(leverageTier, "maxNotional");
         maintenanceMarginRate = Exchange.SafeFloat(leverageTier, "maintenanceMarginRate");
         maxLeverage = Exchange.SafeFloat(leverageTier, "maxLeverage");
-        info = Exchange.SafeValue(leverageTier, "info") != null ? (Dictionary<string, object>)Exchange.SafeValue(leverageTier, "info") : null;
+        info = Helper.GetInfo(leverageTier);
     }
 }
 
@@ -1240,7 +1235,7 @@ public struct LedgerEntry
     public LedgerEntry(object ledgerEntry)
     {
         id = Exchange.SafeString(ledgerEntry, "id");
-        info = Exchange.SafeValue(ledgerEntry, "info") != null ? (Dictionary<string, object>)Exchange.SafeValue(ledgerEntry, "info") : null;
+        info = Helper.GetInfo(ledgerEntry);
         timestamp = Exchange.SafeInteger(ledgerEntry, "timestamp");
         datetime = Exchange.SafeString(ledgerEntry, "datetime");
         direction = Exchange.SafeString(ledgerEntry, "direction");
@@ -1279,7 +1274,7 @@ public struct DepositWithdrawFee
 
     public DepositWithdrawFee(object depositWithdrawFee)
     {
-        info = Exchange.SafeValue(depositWithdrawFee, "info") != null ? (Dictionary<string, object>)Exchange.SafeValue(depositWithdrawFee, "info") : null;
+        info = Helper.GetInfo(depositWithdrawFee);
         withdraw = Exchange.SafeValue(depositWithdrawFee, "withdraw") != null ? new DepositWithdrawFeeNetwork(Exchange.SafeValue(depositWithdrawFee, "withdraw")) : null;
         deposit = Exchange.SafeValue(depositWithdrawFee, "deposit") != null ? new DepositWithdrawFeeNetwork(Exchange.SafeValue(depositWithdrawFee, "deposit")) : null;
         networks = new Dictionary<string, DepositWithdrawFeeNetwork>();
@@ -1309,7 +1304,7 @@ public struct TransferEntry
 
     public TransferEntry(object transfer)
     {
-        info = Exchange.SafeValue(transfer, "info") != null ? (Dictionary<string, object>)Exchange.SafeValue(transfer, "info") : null;
+        info = Helper.GetInfo(transfer);
         id = Exchange.SafeString(transfer, "id");
         timestamp = Exchange.SafeInteger(transfer, "timestamp");
         datetime = Exchange.SafeString(transfer, "datetime");
@@ -1371,7 +1366,7 @@ public struct FundingHistory
 
     public FundingHistory(object funding)
     {
-        info = Exchange.SafeValue(funding, "info") != null ? (Dictionary<string, object>)Exchange.SafeValue(funding, "info") : null;
+        info = Helper.GetInfo(funding);
         id = Exchange.SafeString(funding, "id");
         timestamp = Exchange.SafeInteger(funding, "timestamp");
         datetime = Exchange.SafeString(funding, "datetime");
@@ -1391,7 +1386,7 @@ public struct MarginMode
 
     public MarginMode(object marginMode)
     {
-        info = Exchange.SafeValue(marginMode, "info") != null ? (Dictionary<string, object>)Exchange.SafeValue(marginMode, "info") : null;
+        info = Helper.GetInfo(marginMode);
         symbol = Exchange.SafeString(marginMode, "symbol");
         this.marginMode = Exchange.SafeString(marginMode, "marginMode");
     }
@@ -1409,7 +1404,7 @@ public struct Leverage
 
     public Leverage(object levObj)
     {
-        info = Exchange.SafeValue(levObj, "info") != null ? (Dictionary<string, object>)Exchange.SafeValue(levObj, "info") : null;
+        info = Helper.GetInfo(levObj);
         symbol = Exchange.SafeString(levObj, "symbol");
         marginMode = Exchange.SafeString(levObj, "marginMode");
         leverage = Exchange.SafeInteger(levObj, "leverage");
@@ -1442,7 +1437,7 @@ public struct Greeks
 
     public Greeks(object greeks)
     {
-        info = Exchange.SafeValue(greeks, "info") != null ? (Dictionary<string, object>)Exchange.SafeValue(greeks, "info") : null;
+        info = Helper.GetInfo(greeks);
         timestamp = Exchange.SafeInteger(greeks, "timestamp");
         datetime = Exchange.SafeString(greeks, "datetime"); ;
         delta = Exchange.SafeFloat(greeks, "delta");
@@ -1480,7 +1475,7 @@ public struct Conversion
 
     public Conversion(object conversion)
     {
-        info = Exchange.SafeValue(conversion, "info") != null ? (Dictionary<string, object>)Exchange.SafeValue(conversion, "info") : null;
+        info = Helper.GetInfo(conversion);
         timestamp = Exchange.SafeInteger(conversion, "timestamp");
         datetime = Exchange.SafeString(conversion, "datetime"); ;
         id = Exchange.SafeString(conversion, "id");
@@ -1532,7 +1527,7 @@ public struct MarketInterface
 
     public MarketInterface(object market)
     {
-        info = Exchange.SafeValue(market, "info") != null ? (Dictionary<string, object>)Exchange.SafeValue(market, "info") : null;
+        info = Helper.GetInfo(market);
         uppercaseId = Exchange.SafeString(market, "uppercaseId");
         lowercaseId = Exchange.SafeString(market, "lowercaseId");
         symbol = Exchange.SafeString(market, "symbol");
@@ -1603,22 +1598,7 @@ public struct Currency
     {
 
         // info = Exchange.SafeValue(currency, "info") != null ? (Dictionary<string, object>)Exchange.SafeValue(currency, "info") : null;
-        var rawInfo = Exchange.SafeValue(currency, "info");
-        if (rawInfo is IDictionary<string, object>)
-        {
-            info = (Dictionary<string, object>)rawInfo;
-        }
-        else if (rawInfo is IList<object>)
-        {
-            info = new Dictionary<string, object> {
-                {"currencies", rawInfo}
-            };
-        }
-        else
-        {
-            info = null;
-        }
-
+        info = Helper.GetInfo(currency);
         id = Exchange.SafeString(currency, "id");
         code = Exchange.SafeString(currency, "code");
         precision = Exchange.SafeFloat(currency, "precision");
@@ -1658,7 +1638,7 @@ public struct Network
 
     public Network(object network)
     {
-        info = Exchange.SafeValue(network, "info") != null ? (Dictionary<string, object>)Exchange.SafeValue(network, "info") : null;
+        info = Helper.GetInfo(network);
         id = Exchange.SafeString(network, "id");
         fee = Exchange.SafeFloat(network, "fee");
         active = Exchange.SafeValue(network, "active") != null ? (bool)Exchange.SafeValue(network, "active") : null;
@@ -1679,7 +1659,7 @@ public struct MarginModes
     {
         var marginModes = (Dictionary<string, object>)marginMode2;
 
-        info = marginModes.ContainsKey("info") ? (Dictionary<string, object>)marginModes["info"] : null;
+        info = Helper.GetInfo(marginModes);
         this.marginModes = new Dictionary<string, MarginMode>();
         foreach (var marginMode in marginModes)
         {
@@ -1718,7 +1698,7 @@ public struct Leverages
     {
         var leverages = (Dictionary<string, object>)leverage2;
 
-        info = leverages.ContainsKey("info") ? (Dictionary<string, object>)leverages["info"] : null;
+        info = Helper.GetInfo(leverages);
         this.leverages = new Dictionary<string, Leverage>();
         foreach (var leverage in leverages)
         {
@@ -1773,7 +1753,7 @@ public struct Account
     public Account(object accountStructure2)
     {
         var accountStructure = (Dictionary<string, object>)accountStructure2;
-        info = accountStructure.ContainsKey("info") ? (Dictionary<string, object>)accountStructure["info"] : null;
+        info = Helper.GetInfo(accountStructure);
         id = Exchange.SafeString(accountStructure, "id");
         type = Exchange.SafeString(accountStructure, "type");
         code = Exchange.SafeString(accountStructure, "code");
@@ -1824,7 +1804,7 @@ public struct Option
         percentage = Exchange.SafeFloat(option2, "percentage");
         baseVolume = Exchange.SafeFloat(option2, "baseVolume");
         quoteVolume = Exchange.SafeFloat(option2, "quoteVolume");
-        info = ticker.ContainsKey("info") ? (Dictionary<string, object>)ticker["info"] : null;
+        info = Helper.GetInfo(option2);
     }
 }
 
@@ -1838,7 +1818,7 @@ public struct OptionChain
     {
         var marginModes = (Dictionary<string, object>)optionchains2;
 
-        info = marginModes.ContainsKey("info") ? (Dictionary<string, object>)marginModes["info"] : null;
+        info = Helper.GetInfo(marginModes);
         this.chains = new Dictionary<string, Option>();
         foreach (var marginMode in marginModes)
         {
@@ -1877,7 +1857,7 @@ public struct TransferEntries
     {
         var transferEntries = (Dictionary<string, object>)transferEntries2;
 
-        info = transferEntries.ContainsKey("info") ? (Dictionary<string, object>)transferEntries["info"] : null;
+        info = Helper.GetInfo(transferEntries);
         this.transferEntries = new Dictionary<string, TransferEntry>();
         foreach (var transferEntry in transferEntries)
         {

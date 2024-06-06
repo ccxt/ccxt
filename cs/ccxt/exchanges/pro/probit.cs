@@ -514,12 +514,12 @@ public partial class probit : ccxt.probit
         object symbol = this.safeSymbol(marketId);
         object dataBySide = this.groupBy(orderBook, "side");
         object messageHash = add("orderbook:", symbol);
-        object orderbook = this.safeValue(this.orderbooks, symbol);
-        if (isTrue(isEqual(orderbook, null)))
+        // let orderbook = this.safeValue (this.orderbooks, symbol);
+        if (!isTrue((inOp(this.orderbooks, symbol))))
         {
-            orderbook = this.orderBook(new Dictionary<string, object>() {});
-            ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = orderbook;
+            ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.orderBook(new Dictionary<string, object>() {});
         }
+        object orderbook = getValue(this.orderbooks, symbol);
         object reset = this.safeBool(message, "reset", false);
         if (isTrue(reset))
         {

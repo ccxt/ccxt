@@ -7,6 +7,12 @@ namespace ccxt\async\abstract;
 
 
 abstract class binanceus extends \ccxt\async\binance {
+    public function sapi_get_copytrading_futures_userstatus($params = array()) {
+        return $this->request('copyTrading/futures/userStatus', 'sapi', 'GET', $params, null, null, array("cost" => 2));
+    }
+    public function sapi_get_copytrading_futures_leadsymbol($params = array()) {
+        return $this->request('copyTrading/futures/leadSymbol', 'sapi', 'GET', $params, null, null, array("cost" => 2));
+    }
     public function sapi_get_system_status($params = array()) {
         return $this->request('system/status', 'sapi', 'GET', $params, null, null, array("cost" => 0.1));
     }
@@ -2274,6 +2280,12 @@ abstract class binanceus extends \ccxt\async\binance {
     }
     public function papi_delete_listenkey($params = array()) {
         return $this->request('listenKey', 'papi', 'DELETE', $params, null, null, array("cost" => 1));
+    }
+    public function sapiGetCopyTradingFuturesUserStatus($params = array()) {
+        return $this->request('copyTrading/futures/userStatus', 'sapi', 'GET', $params, null, null, array("cost" => 2));
+    }
+    public function sapiGetCopyTradingFuturesLeadSymbol($params = array()) {
+        return $this->request('copyTrading/futures/leadSymbol', 'sapi', 'GET', $params, null, null, array("cost" => 2));
     }
     public function sapiGetSystemStatus($params = array()) {
         return $this->request('system/status', 'sapi', 'GET', $params, null, null, array("cost" => 0.1));

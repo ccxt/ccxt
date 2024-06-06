@@ -1789,7 +1789,9 @@ public partial class bitfinex2 : Exchange
         }
         object orders = this.safeList(response, 4, new List<object>() {});
         object order = this.safeList(orders, 0);
-        return this.parseOrder(order, market);
+        return this.parseOrder(this.extend(new Dictionary<string, object>() {
+            { "result", order },
+        }), market);
     }
 
     public async override Task<object> createOrders(object orders, object parameters = null)

@@ -1124,6 +1124,7 @@ public partial class bitget : ccxt.bitget
         if (isTrue(!isEqual(marginMode, null)))
         {
             instType = "MARGIN";
+            messageHash = add(add(messageHash, ":"), marginMode);
             if (isTrue(isEqual(marginMode, "isolated")))
             {
                 channel = "orders-isolated";
@@ -1226,6 +1227,13 @@ public partial class bitget : ccxt.bitget
         {
             object symbol = getValue(keys, i);
             object innerMessageHash = add(add(messageHash, ":"), symbol);
+            if (isTrue(isEqual(channel, "orders-crossed")))
+            {
+                innerMessageHash = add(innerMessageHash, ":cross");
+            } else if (isTrue(isEqual(channel, "orders-isolated")))
+            {
+                innerMessageHash = add(innerMessageHash, ":isolated");
+            }
             callDynamically(client as WebSocketClient, "resolve", new object[] {stored, innerMessageHash});
         }
         callDynamically(client as WebSocketClient, "resolve", new object[] {stored, messageHash});
@@ -1436,7 +1444,7 @@ public partial class bitget : ccxt.bitget
             totalAmount = this.safeString(order, "size");
             cost = this.safeString(order, "fillNotionalUsd");
         }
-        remaining = this.omitZero(Precise.stringSub(totalAmount, totalFilled));
+        remaining = Precise.stringSub(totalAmount, totalFilled);
         return this.safeOrder(new Dictionary<string, object>() {
             { "info", order },
             { "symbol", symbol },

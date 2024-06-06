@@ -1261,8 +1261,8 @@ class krakenfutures extends Exchange {
     public function cancel_all_orders(?string $symbol = null, $params = array ()) {
         return Async\async(function () use ($symbol, $params) {
             /**
-             * @see https://docs.futures.kraken.com/#http-api-trading-v3-api-order-management-cancel-all-orders
-             * Cancels all orders on the exchange, including trigger orders
+             * @see https://docs.futures.kraken.com/#http-api-trading-v3-api-$order-management-cancel-all-$orders
+             * Cancels all $orders on the exchange, including trigger $orders
              * @param {str} $symbol Unified market $symbol
              * @param {dict} [$params] Exchange specific $params
              * @return Response from exchange api
@@ -1272,7 +1272,46 @@ class krakenfutures extends Exchange {
                 $request['symbol'] = $this->market_id($symbol);
             }
             $response = Async\await($this->privatePostCancelallorders ($this->extend($request, $params)));
-            return $response;
+            //
+            //    {
+            //        result => 'success',
+            //        $cancelStatus => {
+            //          receivedTime => '2024-06-06T01:12:44.814Z',
+            //          cancelOnly => 'PF_XRPUSD',
+            //          status => 'cancelled',
+            //          cancelledOrders => array( array( order_id => '272fd0ac-45c0-4003-b84d-d39b9e86bd36' ) ),
+            //          $orderEvents => array(
+            //            array(
+            //              uid => '272fd0ac-45c0-4003-b84d-d39b9e86bd36',
+            //              $order => array(
+            //                orderId => '272fd0ac-45c0-4003-b84d-d39b9e86bd36',
+            //                cliOrdId => null,
+            //                type => 'lmt',
+            //                $symbol => 'PF_XRPUSD',
+            //                side => 'buy',
+            //                quantity => '10',
+            //                filled => '0',
+            //                limitPrice => '0.4',
+            //                reduceOnly => false,
+            //                timestamp => '2024-06-06T01:11:16.045Z',
+            //                lastUpdateTimestamp => '2024-06-06T01:11:16.045Z'
+            //              ),
+            //              type => 'CANCEL'
+            //            }
+            //          )
+            //        ),
+            //        serverTime => '2024-06-06T01:12:44.814Z'
+            //    }
+            //
+            $cancelStatus = $this->safe_dict($response, 'cancelStatus');
+            $orderEvents = $this->safe_list($cancelStatus, 'orderEvents', array());
+            $orders = array();
+            for ($i = 0; $i < count($orderEvents); $i++) {
+                $orderEvent = $this->safe_dict($orderEvents, 0);
+                $order = $this->safe_dict($orderEvent, 'order', array());
+                $orders[] = $order;
+            }
+            return $this->parse_orders($orders);
         }) ();
     }
 
@@ -1647,6 +1686,22 @@ class krakenfutures extends Exchange {
         //                "type" => "CANCEL"
         //            }
         //        )
+        //    }
+        //
+        // cancelAllOrders
+        //
+        //    {
+        //        "orderId" => "85c40002-3f20-4e87-9302-262626c3531b",
+        //        "cliOrdId" => null,
+        //        "type" => "lmt",
+        //        "symbol" => "pi_xbtusd",
+        //        "side" => "buy",
+        //        "quantity" => 1000,
+        //        "filled" => 0,
+        //        "limitPrice" => 10144,
+        //        "stopPrice" => null,
+        //        "reduceOnly" => false,
+        //        "timestamp" => "2019-08-01T15:26:27.790Z"
         //    }
         //
         // FETCH OPEN ORDERS
