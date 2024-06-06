@@ -1296,6 +1296,14 @@ export default class Exchange {
             }
             return this.markets
         }
+        const leveragesFromOutside = this.safeValue (params, 'leveragesFromOutside', undefined);
+        if (leveragesFromOutside) {
+            this.options['leveragesFromOutside'] = leveragesFromOutside
+        }
+        const fetchLeveragesCallback = this.safeValue (params, 'fetchLeveragesCallback', undefined);
+        if (fetchLeveragesCallback) {
+            this.options['fetchLeveragesCallback'] = fetchLeveragesCallback
+        }
         let currencies = undefined
         // only call if exchange API provides endpoint (true), thus avoid emulated versions ('emulated')
         if (this.has['fetchCurrencies'] === true) {
