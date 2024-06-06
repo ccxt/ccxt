@@ -515,7 +515,7 @@ export default class coindcx extends Exchange {
         //     }
         //
         const timestamp = this.safeInteger (response, 'timestamp');
-        return this.parseOrderBook (response, market['symbol']);
+        return this.parseOrderBook (response, market['symbol'], timestamp);
     }
 
     parseBidsAsks (bidsAsks) {
