@@ -775,12 +775,15 @@ export default class vertex extends Exchange {
          * @param {int} [since] the earliest time in ms to fetch trades for
          * @param {int} [limit] the maximum number of trades structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.user] user address, will default to this.walletAddress if not provided
          * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
          */
         await this.loadMarkets ();
+        let userAddress = undefined;
+        [ userAddress, params ] = this.handlePublicAddress ('fetchMyTrades', params);
         let market: Market = undefined;
         const matchesRequest = {
-            'subaccount': this.convertAddressToSender (this.walletAddress),
+            'subaccount': this.convertAddressToSender (userAddress),
         };
         if (symbol !== undefined) {
             market = this.market (symbol);
@@ -1044,12 +1047,15 @@ export default class vertex extends Exchange {
          * @description fetch the trading fees for multiple markets
          * @see https://docs.vertexprotocol.com/developer-resources/api/gateway/queries/fee-rates
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.user] user address, will default to this.walletAddress if not provided
          * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols
          */
         await this.loadMarkets ();
+        let userAddress = undefined;
+        [ userAddress, params ] = this.handlePublicAddress ('fetchTradingFees', params);
         const request = {
             'type': 'fee_rates',
-            'sender': this.convertAddressToSender (this.walletAddress),
+            'sender': this.convertAddressToSender (userAddress),
         };
         const response = await this.v1GatewayGetQuery (this.extend (request, params));
         //
@@ -1913,9 +1919,12 @@ export default class vertex extends Exchange {
          * @param {int} [limit] the maximum number of open orders structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {boolean} [params.stop] whether the order is a stop/algo order
+         * @param {string} [params.user] user address, will default to this.walletAddress if not provided
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
+        let userAddress = undefined;
+        [ userAddress, params ] = this.handlePublicAddress ('fetchOpenOrders', params);
         const request = {};
         let market: Market = undefined;
         const stop = this.safeBool2 (params, 'stop', 'trigger');
@@ -1930,7 +1939,7 @@ export default class vertex extends Exchange {
             const chainId = this.safeString (contracts, 'chain_id');
             const verifyingContractAddress = this.safeString (contracts, 'endpoint_addr');
             const tx = {
-                'sender': this.convertAddressToSender (this.walletAddress),
+                'sender': this.convertAddressToSender (userAddress),
                 'recvTime': this.nonce () + 90000,
             };
             request['signature'] = this.buildListTriggerTxSig (tx, chainId, verifyingContractAddress);
@@ -1982,7 +1991,7 @@ export default class vertex extends Exchange {
         } else {
             this.checkRequiredArgument ('fetchOpenOrders', symbol, 'symbol');
             request['type'] = 'subaccount_orders';
-            request['sender'] = this.convertAddressToSender (this.walletAddress);
+            request['sender'] = this.convertAddressToSender (userAddress);
             response = await this.v1GatewayPostQuery (this.extend (request, params));
             //
             // {
@@ -2026,6 +2035,7 @@ export default class vertex extends Exchange {
          * @param {int} [limit] the maximum number of open orders structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {boolean} [params.stop] whether the order is a stop/algo order
+         * @param {string} [params.user] user address, will default to this.walletAddress if not provided
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         const stop = this.safeBool2 (params, 'stop', 'trigger');
@@ -2033,6 +2043,8 @@ export default class vertex extends Exchange {
         if (!stop) {
             throw new NotSupported (this.id + ' fetchOrders only support trigger orders');
         }
+        let userAddress = undefined;
+        [ userAddress, params ] = this.handlePublicAddress ('fetchOrders', params);
         await this.loadMarkets ();
         let market: Market = undefined;
         const request = {
@@ -2047,7 +2059,7 @@ export default class vertex extends Exchange {
         const chainId = this.safeString (contracts, 'chain_id');
         const verifyingContractAddress = this.safeString (contracts, 'endpoint_addr');
         const tx = {
-            'sender': this.convertAddressToSender (this.walletAddress),
+            'sender': this.convertAddressToSender (userAddress),
             'recvTime': this.nonce () + 90000,
         };
         request['signature'] = this.buildListTriggerTxSig (tx, chainId, verifyingContractAddress);
@@ -2289,11 +2301,14 @@ export default class vertex extends Exchange {
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
          * @see https://docs.vertexprotocol.com/developer-resources/api/gateway/queries/subaccount-info
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.user] user address, will default to this.walletAddress if not provided
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
          */
+        let userAddress = undefined;
+        [ userAddress, params ] = this.handlePublicAddress ('fetchBalance', params);
         const request = {
             'type': 'subaccount_info',
-            'subaccount': this.convertAddressToSender (this.walletAddress),
+            'subaccount': this.convertAddressToSender (userAddress),
         };
         const response = await this.v1GatewayGetQuery (this.extend (request, params));
         //
@@ -2699,12 +2714,14 @@ export default class vertex extends Exchange {
          * @see https://docs.vertexprotocol.com/developer-resources/api/gateway/queries/subaccount-info
          * @param {string[]} [symbols] list of unified market symbols
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {string} [method] method name to call, "positionRisk", "account" or "option", default is "positionRisk"
+         * @param {string} [params.user] user address, will default to this.walletAddress if not provided
          * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
          */
+        let userAddress = undefined;
+        [ userAddress, params ] = this.handlePublicAddress ('fetchPositions', params);
         const request = {
             'type': 'subaccount_info',
-            'subaccount': this.convertAddressToSender (this.walletAddress),
+            'subaccount': this.convertAddressToSender (userAddress),
         };
         const response = await this.v1GatewayGetQuery (this.extend (request, params));
         // the response is the same as fetchBalance
@@ -2788,6 +2805,20 @@ export default class vertex extends Exchange {
         // }
         //
         return response;
+    }
+
+    handlePublicAddress (methodName: string, params: Dict) {
+        let userAux = undefined;
+        [ userAux, params ] = this.handleOptionAndParams (params, methodName, 'user');
+        let user = userAux;
+        [ user, params ] = this.handleOptionAndParams (params, methodName, 'address', userAux);
+        if ((user !== undefined) && (user !== '')) {
+            return [ user, params ];
+        }
+        if ((this.walletAddress !== undefined) && (this.walletAddress !== '')) {
+            return [ this.walletAddress, params ];
+        }
+        throw new ArgumentsRequired (this.id + ' ' + methodName + '() requires a user parameter inside \'params\' or the wallet address set');
     }
 
     handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
