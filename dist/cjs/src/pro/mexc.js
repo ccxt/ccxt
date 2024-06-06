@@ -34,7 +34,7 @@ class mexc extends mexc$1 {
                 'api': {
                     'ws': {
                         'spot': 'wss://wbs.mexc.com/ws',
-                        'swap': 'wss://contract.mexc.com/ws',
+                        'swap': 'wss://contract.mexc.com/edge',
                     },
                 },
             },
