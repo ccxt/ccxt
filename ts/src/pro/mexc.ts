@@ -37,7 +37,7 @@ export default class mexc extends mexcRest {
                 'api': {
                     'ws': {
                         'spot': 'wss://wbs.mexc.com/ws',
-                        'swap': 'wss://contract.mexc.com/ws',
+                        'swap': 'wss://contract.mexc.com/edge',
                     },
                 },
             },
