@@ -1626,6 +1626,7 @@ export default class vertex extends Exchange {
          * @param {float} [params.triggerPrice] The price at which a trigger order is triggered at
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
+        this.checkRequiredCredentials ();
         const marketType = type.toLowerCase ();
         const isMarketOrder = marketType === 'market';
         if (isMarketOrder && price === undefined) {
@@ -1922,6 +1923,7 @@ export default class vertex extends Exchange {
          * @param {string} [params.user] user address, will default to this.walletAddress if not provided
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
+        this.checkRequiredCredentials ();
         await this.loadMarkets ();
         let userAddress = undefined;
         [ userAddress, params ] = this.handlePublicAddress ('fetchOpenOrders', params);
@@ -2038,6 +2040,7 @@ export default class vertex extends Exchange {
          * @param {string} [params.user] user address, will default to this.walletAddress if not provided
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
+        this.checkRequiredCredentials ();
         const stop = this.safeBool2 (params, 'stop', 'trigger');
         params = this.omit (params, [ 'stop', 'trigger' ]);
         if (!stop) {
@@ -2123,6 +2126,7 @@ export default class vertex extends Exchange {
          * @param {boolean} [params.stop] whether the order is a stop/algo order
          * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
+        this.checkRequiredCredentials ();
         await this.loadMarkets ();
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' cancelAllOrders() requires a symbol argument');
@@ -2220,6 +2224,7 @@ export default class vertex extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
+        this.checkRequiredCredentials ();
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' cancelOrders() requires a symbol argument');
         }
