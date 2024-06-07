@@ -9,12 +9,12 @@ import { implicitReturnType } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
 
 interface Exchange {
-    publicGetExchangeTicker (params?: {}): Promise<implicitReturnType>;
-    publicGetExchangeV1Markets (params?: {}): Promise<implicitReturnType>;
-    publicGetExchangeV1MarketsDetails (params?: {}): Promise<implicitReturnType>;
-    publicGetMarketDataTradeHistory (params?: {}): Promise<implicitReturnType>;
-    publicGetMarketDataOrderbook (params?: {}): Promise<implicitReturnType>;
-    publicGetMarketDataCandles (params?: {}): Promise<implicitReturnType>;
+    public1GetExchangeTicker (params?: {}): Promise<implicitReturnType>;
+    public1GetExchangeV1Markets (params?: {}): Promise<implicitReturnType>;
+    public1GetExchangeV1MarketsDetails (params?: {}): Promise<implicitReturnType>;
+    public2GetMarketDataTradeHistory (params?: {}): Promise<implicitReturnType>;
+    public2GetMarketDataOrderbook (params?: {}): Promise<implicitReturnType>;
+    public2GetMarketDataCandles (params?: {}): Promise<implicitReturnType>;
     privatePostExchangeV1UsersBalances (params?: {}): Promise<implicitReturnType>;
     privatePostExchangeV1UsersInfo (params?: {}): Promise<implicitReturnType>;
     privatePostExchangeV1OrdersCreate (params?: {}): Promise<implicitReturnType>;
