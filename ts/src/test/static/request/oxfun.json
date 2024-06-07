@@ -120,6 +120,19 @@
                     "ETH/USD:OX",
                     1716966000000
                 ]
+            },
+            {
+                "description": "Fetch my trades for swap with a limit and until arguments",
+                "method": "fetchMyTrades",
+                "url": "https://api.ox.fun/v3/trades?marketCode=ETH-USD-SWAP-LIN&startTime=1716966000000&limit=2&endTime=1717077000000",
+                "input": [
+                    "ETH/USD:OX",
+                    1716966000000,
+                    2,
+                    {
+                        "until": 1717077000000
+                    }
+                ]
             }
         ],
         "fetchTickers": [
@@ -168,6 +181,20 @@
                     "1m",
                     1717085880000
                 ]
+            },
+            {
+                "description": "Fetch candles with a limit and until arguments",
+                "method": "fetchOHLCV",
+                "url": "https://api.ox.fun/v3/candles?marketCode=ETH-USDT&timeframe=300s&startTime=1717085760000&limit=3&endTime=1717385870000",
+                "input": [
+                    "ETH/USDT",
+                    "5m",
+                    1717085760000,
+                    3,
+                    {
+                        "until": 1717385870000
+                    }
+                ]
             }
         ],
         "fetchCurrencies": [
@@ -194,6 +221,19 @@
                 "input": [
                     "ETH/USD:OX",
                     1717581601006
+                ]
+            },
+            {
+                "description": "Fetch funding rate history with a limit and until arguments",
+                "method": "fetchFundingRateHistory",
+                "url": "https://api.ox.fun/v3/funding/rates?marketCode=ETH-USD-SWAP-LIN&startTime=1717581601006&limit=3&endTime=1717681601006",
+                "input": [
+                    "ETH/USD:OX",
+                    1717581601006,
+                    3,
+                    {
+                        "until": 1717681601006
+                    }
                 ]
             }
         ],
@@ -226,6 +266,17 @@
                 "method": "fetchBalance",
                 "url": "https://api.ox.fun/v3/balances",
                 "input": []
+            },
+            {
+                "description": "Fetch balance for a specific asset and sub account",
+                "method": "fetchBalance",
+                "url": "https://api.ox.fun/v3/balances?asset=OX&subAcc=Ray",
+                "input": [
+                    {
+                        "asset": "OX",
+                        "subAcc": "Ray"
+                    }
+                ]
             }
         ],
         "fetchAccounts": [
@@ -256,6 +307,47 @@
                 "method": "fetchTransfers",
                 "url": "https://api.ox.fun/v3/transfer",
                 "input": []
+            },
+            {
+                "description": "Fetch transfers with a limit and until arguments",
+                "method": "fetchTransfers",
+                "url": "https://api.ox.fun/v3/transfer?asset=OX&startTime=1717575480000&limit=1&endTime=1717587480000",
+                "input": [
+                    "OX",
+                    1717575480000,
+                    1,
+                    {
+                        "until": 1717587480000
+                    }
+                ]
+            }
+        ],
+        "fetchDepositAddress": [
+            {
+                "description": "Fetch deposit address for a specific network",
+                "method": "fetchDepositAddress",
+                "url": "https://api.ox.fun/v3/deposit-addresses?asset=ETH&network=Ethereum",
+                "input": [
+                    "ETH",
+                    {
+                        "network": "ERC20"
+                    }
+                ]
+            }
+        ],
+        "fetchDeposits": [
+            {
+                "description": "Fetch deposits",
+                "method": "fetchDeposits",
+                "url": "https://api.ox.fun/v3/deposit?asset=USDC&startTime=1714810680000&limit=1&endTime=1714855680000",
+                "input": [
+                    "USDC",
+                    1714810680000,
+                    1,
+                    {
+                        "until": 1714855680000
+                    }
+                ]
             }
         ],
         "fetchWithdrawals": [
