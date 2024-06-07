@@ -621,10 +621,10 @@ export default class blockchaincom extends Exchange {
             'orderId': id,
         };
         const response = await this.privateDeleteOrdersOrderId (this.extend (request, params));
-        return {
+        return this.safeOrder ({
             'id': id,
             'info': response,
-        };
+        });
     }
 
     async cancelAllOrders (symbol: Str = undefined, params = {}) {
@@ -632,7 +632,7 @@ export default class blockchaincom extends Exchange {
          * @method
          * @name blockchaincom#cancelAllOrders
          * @description cancel all open orders
-         * @see https://api.blockchain.com/v3/#/trading/deleteAllOrders
+         * @see https://api.blockchain.com/v3/#deleteallorders
          * @param {string} symbol unified market symbol of the market to cancel orders in, all markets are used if undefined, default is undefined
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -648,10 +648,14 @@ export default class blockchaincom extends Exchange {
             request['symbol'] = marketId;
         }
         const response = await this.privateDeleteOrders (this.extend (request, params));
-        return {
-            'symbol': symbol,
-            'info': response,
-        };
+        //
+        // {}
+        //
+        return [
+            this.safeOrder ({
+                'info': response,
+            }),
+        ];
     }
 
     async fetchTradingFees (params = {}): Promise<TradingFees> {
