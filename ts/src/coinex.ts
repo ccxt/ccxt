@@ -5426,7 +5426,7 @@ export default class coinex extends Exchange {
         const request: Dict = {
             'ccy': currency['id'],
         };
-        const response = await this.v2PrivateGetAssetsDepositWithdrawConfig (this.extend (request, params));
+        const response = await this.v2PublicGetAssetsDepositWithdrawConfig (this.extend (request, params));
         //
         //     {
         //         "code": 0,
