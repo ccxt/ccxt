@@ -6,7 +6,8 @@
         "expiration",
         "signature",
         "subaccount",
-        "recvTime"
+        "recvTime",
+        "cancel_signature"
     ],
     "walletAddress": "0xc751489d24a33172541ea451bc253d7a9e98c781",
     "privateKey": "c33b1eb4b53108bf52e10f636d8c1236c04c33a712357ba3543ab45f48a5cb0b",
@@ -122,6 +123,22 @@
                 ],
                 "output": "{\"place_order\":{\"product_id\":12,\"order\":{\"sender\":\"0xc950889d14a3717f541ec246bc253d7a9e98c78f64656661756c740000000000\",\"priceX18\":\"172000000000000000000\",\"amount\":\"500000000000000000\",\"expiration\":\"4611687736024459077\",\"nonce\":\"1801031070277174248\"},\"trigger\":{\"last_price_above\":\"170000000000000000000\"},\"signature\":\"0x605f0d743d6ee27f173469c047d60cce7ddc8c71200e2ecda730a2fc4fa4070f0e5d70c3e0772ce4f0d00f6c0797e49b173150d79aec454c6bf172e6d551c2c21b\",\"id\":5930043274845996}}"
             }
+        ],
+        "editOrder": [
+          {
+              "description": "edit swap limit order",
+              "method": "editOrder",
+              "url": "https://gateway.prod.vertexprotocol.com/v1/execute",
+              "input": [
+                  "0x75fa35487acb72ffc55548aaad3ac70c546d63ff247a58ff70053faeaca4211d",
+                  "SOL/USDC:USDC",
+                  "limit",
+                  "buy",
+                  3,
+                  50
+              ],
+              "output": "{\"cancel_and_place\":{\"cancel_tx\":{\"sender\":\"0xc751489d24a33172541ea451bc253d7a9e98c78164656661756c740000000000\",\"productIds\":[12],\"digests\":[\"0x75fa35487acb72ffc55548aaad3ac70c546d63ff247a58ff70053faeaca4211d\"],\"nonce\":\"1801192771625681896\"},\"cancel_signature\":\"0xf706fe302936d618dcc345c743dde95494e90464b7ec5f3904627c2b7efbf03240d20069ee0bedc1e4647e15263e2736296fba23297a967614e63693ffe586ab1b\",\"place_order\":{\"product_id\":12,\"order\":{\"sender\":\"0xc751489d24a33172541ea451bc253d7a9e98c78164656661756c740000000000\",\"priceX18\":\"50000000000000000000\",\"amount\":\"3000000000000000000\",\"expiration\":\"1717751281596\",\"nonce\":\"1801192771625681896\"},\"signature\":\"0x21b1bd4c38912680d9d7f546e78ad98992b24a8b1b4fa890c6bd2a733d7c2cd55e7e8259b47f6ed37450324fff6d8aba1864567389523d810a4f26994d4b29281c\",\"id\":5930043274845996}}}"
+          }
         ],
         "cancelOrder": [
             {
