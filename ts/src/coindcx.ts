@@ -3,7 +3,8 @@
 
 import Exchange from './abstract/coindcx.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Dict, Int, Market, Num, OHLCV, OrderBook, Strings, Ticker, Tickers, Trade } from './base/types.js';
+import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
+import type { Balances, Dict, Int, Market, Num, OHLCV, OrderBook, Strings, Ticker, Tickers, Trade } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -216,6 +217,8 @@ export default class coindcx extends Exchange {
             'exceptions': {
                 'exact': {
                     // {"code":400,"message":"Invalid Request.","status":"error"}
+                    // {"code":401,"message":"Invalid credentials","status":"error"}
+                    // {"status":"error","message":"not_found","code":404}
                 },
                 'broad': {
                     // todo: add more error codes
@@ -618,6 +621,50 @@ export default class coindcx extends Exchange {
         }, market);
     }
 
+    async fetchBalance (params = {}): Promise<Balances> {
+        /**
+         * @method
+         * @name coindcx#fetchBalance
+         * @description query for balance and get the amount of funds available for trading or funds locked in orders
+         * @see https://docs.coindcx.com/?javascript#get-balances
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+         */
+        await this.loadMarkets ();
+        const response = await this.privatePostExchangeV1UsersBalances (params);
+        //
+        //     [
+        //         {
+        //             "balance": "80.0",
+        //             "locked_balance": "0.0",
+        //             "currency": "USDT"
+        //         },
+        //         {
+        //             "balance": "0.0",
+        //             "locked_balance": "0.0",
+        //             "currency":"XRP"
+        //         }
+        //     ]
+        //
+        return this.parseBalance (response);
+    }
+
+    parseBalance (balances): Balances {
+        const result: Dict = {
+            'info': balances,
+        };
+        for (let i = 0; i < balances.length; i++) {
+            const balanceEntry = this.safeDict (balances, i, {});
+            const currencyId = this.safeString (balanceEntry, 'currency');
+            const code = this.safeCurrencyCode (currencyId);
+            const account = this.account ();
+            account['total'] = this.safeString (balanceEntry, 'balance');
+            account['used'] = this.safeString (balanceEntry, 'locked_balance');
+            result[code] = account;
+        }
+        return this.safeBalance (result);
+    }
+
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'][api] + '/' + this.implodeParams (path, params);
         params = this.omit (params, this.extractParams (path));
@@ -625,6 +672,21 @@ export default class coindcx extends Exchange {
             if (Object.keys (params).length) {
                 url += '?' + this.urlencode (params);
             }
+        }
+        if (method === 'POST') {
+            this.checkRequiredCredentials ();
+            const timestamp = this.milliseconds ();
+            const secret = this.encode (this.secret);
+            url += this.urlencode (params);
+            params['timestamp'] = timestamp;
+            const payload = this.json (params);
+            const signature = this.hmac (this.encode (payload), secret, sha256);
+            headers = {
+                'Content-Type': 'application/json',
+                'X-AUTH-APIKEY': this.apiKey,
+                'X-AUTH-SIGNATURE': signature,
+            };
+            body = this.json (params);
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
