@@ -1219,8 +1219,9 @@ export default class bitmart extends Exchange {
         let open = this.safeString (ticker, 'open_24h');
         let baseVolume = this.safeString2 (ticker, 'base_volume_24h', 'v_24h');
         let quoteVolume = this.safeStringLower2 (ticker, 'quote_volume_24h', 'qv_24h');
-        if (result.length !== 0) {
-            marketId = this.safeString (result, 0);
+        const listMarketId = this.safeString (result, 0);
+        if (listMarketId !== undefined) {
+            marketId = listMarketId;
             timestamp = this.safeInteger (result, 12);
             high = this.safeString (result, 5);
             low = this.safeString (result, 6);
