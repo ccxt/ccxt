@@ -1,0 +1,571 @@
+{
+    "exchange": "vertex",
+    "skipKeys": [],
+    "methods": {
+        "fetchCurrencies": [
+            {
+                "description": "fetch Currencies",
+                "method": "fetchCurrencies",
+                "input": [],
+                "httpResponse": [
+                    {
+                        "product_id": "0",
+                        "ticker_id": null,
+                        "market_type": null,
+                        "name": "USDC",
+                        "symbol": "USDC",
+                        "maker_fee": null,
+                        "taker_fee": null,
+                        "can_withdraw": true,
+                        "can_deposit": true
+                    }
+                ],
+                "parsedResponse": {
+                    "USDC": {
+                        "id": "0",
+                        "name": "USDC",
+                        "code": "USDC",
+                        "precision": null,
+                        "info": {
+                            "product_id": "0",
+                            "ticker_id": null,
+                            "market_type": null,
+                            "name": "USDC",
+                            "symbol": "USDC",
+                            "maker_fee": null,
+                            "taker_fee": null,
+                            "can_withdraw": true,
+                            "can_deposit": true
+                        },
+                        "active": null,
+                        "deposit": true,
+                        "withdraw": true,
+                        "networks": null,
+                        "fee": null,
+                        "limits": null
+                    }
+                }
+            }
+        ],
+        "fetchMarkets": [
+            {
+                "description": "fetch Currencies",
+                "method": "fetchCurrencies",
+                "input": [],
+                "httpResponse": {
+                    "status": "success",
+                    "data": {
+                        "symbols": {
+                            "BNB-PERP": {
+                                "type": "perp",
+                                "product_id": "8",
+                                "symbol": "BNB-PERP",
+                                "price_increment_x18": "10000000000000000",
+                                "size_increment": "50000000000000000",
+                                "min_size": "1000000000000000000",
+                                "min_depth_x18": "2500000000000000000000",
+                                "max_spread_rate_x18": "5000000000000000",
+                                "maker_fee_rate_x18": "0",
+                                "taker_fee_rate_x18": "200000000000000",
+                                "long_weight_initial_x18": "900000000000000000",
+                                "long_weight_maintenance_x18": "950000000000000000"
+                            }
+                        }
+                    }
+                },
+                "parsedResponse": [
+                    {
+                        "id": "8",
+                        "symbol": "BNB/USDC:USDC",
+                        "base": "BNB-PERP",
+                        "quote": "USDC",
+                        "settle": "USDC",
+                        "baseId": "BNB-PERP",
+                        "quoteId": "USDC",
+                        "settleId": "USDC",
+                        "type": "swap",
+                        "spot": false,
+                        "margin": null,
+                        "swap": true,
+                        "future": false,
+                        "option": false,
+                        "active": true,
+                        "contract": true,
+                        "linear": true,
+                        "inverse": false,
+                        "taker": 0.0002,
+                        "maker": 0,
+                        "contractSize": 1,
+                        "expiry": null,
+                        "expiryDatetime": null,
+                        "strike": null,
+                        "optionType": null,
+                        "precision": {
+                            "amount": 0.05,
+                            "price": 0.01
+                        },
+                        "limits": {
+                            "leverage": {
+                                "min": null,
+                                "max": null
+                            },
+                            "amount": {
+                                "min": 1,
+                                "max": null
+                            },
+                            "price": {
+                                "min": null,
+                                "max": null
+                            },
+                            "cost": {
+                                "min": null,
+                                "max": null
+                            }
+                        },
+                        "created": null,
+                        "info": {
+                            "type": "perp",
+                            "product_id": "8",
+                            "symbol": "BNB-PERP",
+                            "price_increment_x18": "10000000000000000",
+                            "size_increment": "50000000000000000",
+                            "min_size": "1000000000000000000",
+                            "min_depth_x18": "2500000000000000000000",
+                            "max_spread_rate_x18": "5000000000000000",
+                            "maker_fee_rate_x18": "0",
+                            "taker_fee_rate_x18": "200000000000000",
+                            "long_weight_initial_x18": "900000000000000000",
+                            "long_weight_maintenance_x18": "950000000000000000"
+                        }
+                    }
+                ]
+            }
+        ],
+        "fetchTime": [
+            {
+                "description": "fetch Time",
+                "method": "fetchTime",
+                "input": [],
+                "httpResponse": "1717731369829",
+                "parsedResponse": 1717731369829
+            }
+        ],
+        "fetchStatus": [
+            {
+                "description": "fetch Status",
+                "method": "fetchStatus",
+                "input": [],
+                "httpResponse": {
+                    "status": "success",
+                    "data": "active",
+                    "request_type": "query_status"
+                },
+                "parsedResponse": {
+                    "status": "ok",
+                    "updated": null,
+                    "eta": null,
+                    "url": null,
+                    "info": {
+                        "status": "success",
+                        "data": "active",
+                        "request_type": "query_status"
+                    }
+                }
+            }
+        ],
+        "fetchTrades": [
+            {
+                "description": "fetch Trades",
+                "method": "fetchTrades",
+                "input": [
+                    "USDT/USDC",
+                    null,
+                    1
+                ],
+                "httpResponse": [
+                    {
+                        "ticker_id": "USDT_USDC",
+                        "trade_id": "20295068",
+                        "price": "0.99920012",
+                        "base_filled": "-600.0",
+                        "quote_filled": "599.520072",
+                        "timestamp": "1717672878",
+                        "trade_type": "sell"
+                    }
+                ],
+                "parsedResponse": [
+                    {
+                        "id": "20295068",
+                        "timestamp": 1717672878000,
+                        "datetime": "2024-06-06T11:21:18.000Z",
+                        "symbol": "USDT/USDC",
+                        "side": "sell",
+                        "price": 0.99920012,
+                        "amount": 600,
+                        "cost": 599.520072,
+                        "order": null,
+                        "takerOrMaker": null,
+                        "type": null,
+                        "fee": null,
+                        "info": {
+                            "ticker_id": "USDT_USDC",
+                            "trade_id": "20295068",
+                            "price": "0.99920012",
+                            "base_filled": "-600.0",
+                            "quote_filled": "599.520072",
+                            "timestamp": "1717672878",
+                            "trade_type": "sell"
+                        },
+                        "fees": []
+                    }
+                ]
+            }
+        ],
+        "fetchMyTrades": [
+            {
+                "description": "fetch Trades",
+                "method": "fetchTrades",
+                "input": [
+                    "USDT/USDC",
+                    null,
+                    1
+                ],
+                "httpResponse": {
+                    "matches": [
+                        {
+                            "digest": "0x6564157372747c4798048254f10ce8aa8f3b11e028c6cf9f502e5a5c12354a19",
+                            "order": {
+                                "sender": "0x754e6a9e4bc74d119263fd249fac5d876d0d10ee64656661756c740000000000",
+                                "priceX18": "999700000000000000",
+                                "amount": "250000000000000000000",
+                                "expiration": "1717497650145",
+                                "nonce": "1800926819773317349"
+                            },
+                            "base_filled": "249999999999999999999",
+                            "quote_filled": "-249925000000000000001",
+                            "fee": "0",
+                            "sequencer_fee": "0",
+                            "cumulative_fee": "0",
+                            "cumulative_base_filled": "249999999999999999999",
+                            "cumulative_quote_filled": "-249925000000000000001",
+                            "pre_balance": {
+                                "base": {
+                                    "spot": {
+                                        "product_id": "31",
+                                        "lp_balance": {
+                                            "amount": "0"
+                                        },
+                                        "balance": {
+                                            "amount": "830000000000002125639",
+                                            "last_cumulative_multiplier_x18": "1000000000003696582"
+                                        }
+                                    }
+                                },
+                                "quote": null
+                            },
+                            "post_balance": {
+                                "base": {
+                                    "spot": {
+                                        "product_id": "31",
+                                        "lp_balance": {
+                                            "amount": "0"
+                                        },
+                                        "balance": {
+                                            "amount": "1080000000000002125638",
+                                            "last_cumulative_multiplier_x18": "1000000000003696582"
+                                        }
+                                    }
+                                },
+                                "quote": null
+                            },
+                            "net_entry_unrealized": "829797000000000000011",
+                            "net_entry_cumulative": "830197190038007601531",
+                            "submission_idx": "20041479"
+                        }
+                    ]
+                },
+                "parsedResponse": [
+                    {
+                        "id": "20041479",
+                        "timestamp": null,
+                        "datetime": null,
+                        "symbol": "USDT/USDC",
+                        "side": "buy",
+                        "price": 0.9997,
+                        "amount": 250,
+                        "cost": 249.925,
+                        "order": "0x6564157372747c4798048254f10ce8aa8f3b11e028c6cf9f502e5a5c12354a19",
+                        "takerOrMaker": null,
+                        "type": null,
+                        "fee": {
+                            "cost": 0,
+                            "currency": null
+                        },
+                        "info": {
+                            "digest": "0x6564157372747c4798048254f10ce8aa8f3b11e028c6cf9f502e5a5c12354a19",
+                            "order": {
+                                "sender": "0x754e6a9e4bc74d119263fd249fac5d876d0d10ee64656661756c740000000000",
+                                "priceX18": "999700000000000000",
+                                "amount": "250000000000000000000",
+                                "expiration": "1717497650145",
+                                "nonce": "1800926819773317349"
+                            },
+                            "base_filled": "249999999999999999999",
+                            "quote_filled": "-249925000000000000001",
+                            "fee": "0",
+                            "sequencer_fee": "0",
+                            "cumulative_fee": "0",
+                            "cumulative_base_filled": "249999999999999999999",
+                            "cumulative_quote_filled": "-249925000000000000001",
+                            "pre_balance": {
+                                "base": {
+                                    "spot": {
+                                        "product_id": "31",
+                                        "lp_balance": {
+                                            "amount": "0"
+                                        },
+                                        "balance": {
+                                            "amount": "830000000000002125639",
+                                            "last_cumulative_multiplier_x18": "1000000000003696582"
+                                        }
+                                    }
+                                },
+                                "quote": null
+                            },
+                            "post_balance": {
+                                "base": {
+                                    "spot": {
+                                        "product_id": "31",
+                                        "lp_balance": {
+                                            "amount": "0"
+                                        },
+                                        "balance": {
+                                            "amount": "1080000000000002125638",
+                                            "last_cumulative_multiplier_x18": "1000000000003696582"
+                                        }
+                                    }
+                                },
+                                "quote": null
+                            },
+                            "net_entry_unrealized": "829797000000000000011",
+                            "net_entry_cumulative": "830197190038007601531",
+                            "submission_idx": "20041479"
+                        },
+                        "fees": [
+                            {
+                                "cost": 0,
+                                "currency": null
+                            }
+                        ]
+                    }
+                ]
+            }
+        ],
+        "fetchOrderBook": [
+            {
+                "description": "fetch OrderBook",
+                "method": "fetchOrderBook",
+                "input": [
+                    "USDT/USDC",
+                    1
+                ],
+                "httpResponse": {
+                    "ticker_id": "USDT_USDC",
+                    "bids": [
+                        [
+                            0.9991,
+                            1800
+                        ]
+                    ],
+                    "asks": [
+                        [
+                            0.9998,
+                            47000
+                        ]
+                    ],
+                    "timestamp": "1717732337356"
+                },
+                "parsedResponse": {
+                    "symbol": "USDT/USDC",
+                    "bids": [
+                        [
+                            0.9991,
+                            1800
+                        ]
+                    ],
+                    "asks": [
+                        [
+                            0.9998,
+                            47000
+                        ]
+                    ],
+                    "timestamp": 1717732337356,
+                    "datetime": "2024-06-07T03:52:17.356Z",
+                    "nonce": null
+                }
+            }
+        ],
+        "fetchOHLCV": [
+            {
+                "description": "fetch OHLCV",
+                "method": "fetchOHLCV",
+                "input": [
+                    "USDT/USDC",
+                    "1m",
+                    null,
+                    1
+                ],
+                "httpResponse": {
+                    "candlesticks": [
+                        {
+                            "product_id": "31",
+                            "granularity": "60",
+                            "submission_idx": "20389014",
+                            "timestamp": "1717732860",
+                            "open_x18": "999800000000000000",
+                            "high_x18": "999800000000000000",
+                            "low_x18": "999800000000000000",
+                            "close_x18": "999800000000000000",
+                            "volume": "19999999999999999999999"
+                        }
+                    ]
+                },
+                "parsedResponse": [
+                    [
+                        1717732860000,
+                        0.9998,
+                        0.9998,
+                        0.9998,
+                        0.9998,
+                        20000
+                    ]
+                ]
+            }
+        ],
+        "fetchFundingRates": [
+            {
+                "description": "fetch FundingRates",
+                "method": "fetchFundingRates",
+                "input": [
+                    [
+                        "SOL/USDC:USDC"
+                    ]
+                ],
+                "httpResponse": {
+                    "SOL-PERP_USDC": {
+                        "ticker_id": "SOL-PERP_USDC",
+                        "base_currency": "SOL-PERP",
+                        "quote_currency": "USDC",
+                        "last_price": "169.812",
+                        "base_volume": "18714.5",
+                        "quote_volume": "3216988.7085012672",
+                        "product_type": "perpetual",
+                        "contract_price": "170.51551470021332",
+                        "contract_price_currency": "USD",
+                        "open_interest": "145974.0",
+                        "open_interest_usd": "24890831.74284894",
+                        "index_price": "170.43322045028683",
+                        "mark_price": "170.02281881675358",
+                        "funding_rate": "-0.002454353266959626",
+                        "next_funding_rate_timestamp": "1717736400",
+                        "price_change_percent_24h": "-1.7922116060212385"
+                    }
+                },
+                "parsedResponse": {
+                    "SOL/USDC:USDC": {
+                        "info": {
+                            "ticker_id": "SOL-PERP_USDC",
+                            "base_currency": "SOL-PERP",
+                            "quote_currency": "USDC",
+                            "last_price": "169.812",
+                            "base_volume": "18714.5",
+                            "quote_volume": "3216988.7085012672",
+                            "product_type": "perpetual",
+                            "contract_price": "170.51551470021332",
+                            "contract_price_currency": "USD",
+                            "open_interest": "145974.0",
+                            "open_interest_usd": "24890831.74284894",
+                            "index_price": "170.43322045028683",
+                            "mark_price": "170.02281881675358",
+                            "funding_rate": "-0.002454353266959626",
+                            "next_funding_rate_timestamp": "1717736400",
+                            "price_change_percent_24h": "-1.7922116060212385"
+                        },
+                        "symbol": "SOL/USDC:USDC",
+                        "markPrice": 170.02281881675358,
+                        "indexPrice": 170.43322045028683,
+                        "interestRate": null,
+                        "estimatedSettlePrice": null,
+                        "timestamp": null,
+                        "datetime": null,
+                        "fundingRate": -0.002454353266959626,
+                        "fundingTimestamp": 1717736400000,
+                        "fundingDatetime": "2024-06-07T05:00:00.000Z",
+                        "nextFundingRate": null,
+                        "nextFundingTimestamp": null,
+                        "nextFundingDatetime": null,
+                        "previousFundingRate": null,
+                        "previousFundingTimestamp": null,
+                        "previousFundingDatetime": null
+                    }
+                }
+            }
+        ],
+        "fetchOpenInterest": [
+            {
+                "description": "fetch OpenInterest",
+                "method": "fetchOpenInterest",
+                "input": [
+                    "SOL/USDC:USDC"
+                ],
+                "httpResponse": {
+                    "SOL-PERP_USDC": {
+                        "ticker_id": "SOL-PERP_USDC",
+                        "base_currency": "SOL-PERP",
+                        "quote_currency": "USDC",
+                        "last_price": "170.512",
+                        "base_volume": "18707.0",
+                        "quote_volume": "3215648.053220067",
+                        "product_type": "perpetual",
+                        "contract_price": "170.51551470021332",
+                        "contract_price_currency": "USD",
+                        "open_interest": "145974.0",
+                        "open_interest_usd": "24890831.74284894",
+                        "index_price": "170.7464188081763",
+                        "mark_price": "170.3300719168569",
+                        "funding_rate": "-0.002440357802150754",
+                        "next_funding_rate_timestamp": "1717736400",
+                        "price_change_percent_24h": "-1.7922116060212385"
+                    }
+                },
+                "parsedResponse": {
+                    "symbol": "SOL/USDC:USDC",
+                    "openInterestAmount": null,
+                    "openInterestValue": 24890831.74284894,
+                    "timestamp": null,
+                    "datetime": null,
+                    "info": {
+                        "ticker_id": "SOL-PERP_USDC",
+                        "base_currency": "SOL-PERP",
+                        "quote_currency": "USDC",
+                        "last_price": "170.512",
+                        "base_volume": "18707.0",
+                        "quote_volume": "3215648.053220067",
+                        "product_type": "perpetual",
+                        "contract_price": "170.51551470021332",
+                        "contract_price_currency": "USD",
+                        "open_interest": "145974.0",
+                        "open_interest_usd": "24890831.74284894",
+                        "index_price": "170.7464188081763",
+                        "mark_price": "170.3300719168569",
+                        "funding_rate": "-0.002440357802150754",
+                        "next_funding_rate_timestamp": "1717736400",
+                        "price_change_percent_24h": "-1.7922116060212385"
+                    },
+                    "baseVolume": null,
+                    "quoteVolume": null
+                }
+            }
+        ]
+    }
+}
