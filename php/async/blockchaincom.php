@@ -626,10 +626,10 @@ class blockchaincom extends Exchange {
                 'orderId' => $id,
             );
             $response = Async\await($this->privateDeleteOrdersOrderId ($this->extend($request, $params)));
-            return array(
+            return $this->safe_order(array(
                 'id' => $id,
                 'info' => $response,
-            );
+            ));
         }) ();
     }
 
@@ -637,7 +637,7 @@ class blockchaincom extends Exchange {
         return Async\async(function () use ($symbol, $params) {
             /**
              * cancel all open orders
-             * @see https://api.blockchain.com/v3/#/trading/deleteAllOrders
+             * @see https://api.blockchain.com/v3/#deleteallorders
              * @param {string} $symbol unified market $symbol of the market to cancel orders in, all markets are used if null, default is null
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} an list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
@@ -653,9 +653,13 @@ class blockchaincom extends Exchange {
                 $request['symbol'] = $marketId;
             }
             $response = Async\await($this->privateDeleteOrders ($this->extend($request, $params)));
+            //
+            // array()
+            //
             return array(
-                'symbol' => $symbol,
-                'info' => $response,
+                $this->safe_order(array(
+                    'info' => $response,
+                )),
             );
         }) ();
     }
