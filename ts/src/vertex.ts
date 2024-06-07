@@ -1607,6 +1607,41 @@ export default class vertex extends Exchange {
         return Precise.stringAdd (Precise.stringMul (Precise.stringAdd (this.numberToString (now), this.numberToString (expiration)), '1048576'), '1000');
     }
 
+    getExpiration (now, timeInForce, postOnly, reduceOnly) {
+        let expiration = Precise.stringAdd (this.numberToString (now), '86400');
+        if (timeInForce === 'ioc') {
+            // 1 << 62 = 4611686018427387904
+            expiration = Precise.stringOr (expiration, '4611686018427387904');
+        } else if (timeInForce === 'fok') {
+            // 2 << 62 = 9223372036854775808
+            expiration = Precise.stringOr (expiration, '9223372036854775808');
+        } else if (postOnly) {
+            // 3 << 62 = 13835058055282163712
+            expiration = Precise.stringOr (expiration, '13835058055282163712');
+        }
+        if (reduceOnly) {
+            // 1 << 61 = 2305843009213693952
+            expiration = Precise.stringOr (expiration, '2305843009213693952');
+        }
+        return expiration;
+    }
+
+    getAmount (amount, side) {
+        let amountString = this.numberToString (amount);
+        if (side === 'sell') {
+            if (amount > 0) {
+                // amount *= -1;
+                amountString = Precise.stringMul (amountString, '-1');
+            }
+        } else {
+            if (amount < 0) {
+                // amount *= -1;
+                amountString = Precise.stringMul (amountString, '-1');
+            }
+        }
+        return amountString;
+    }
+
     async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
         /**
          * @method
@@ -1649,40 +1684,15 @@ export default class vertex extends Exchange {
         const isTrigger = (stopLossPrice || takeProfitPrice);
         const now = this.nonce ();
         let nonce = this.getNonce (now, 90000);
-        let expiration = Precise.stringAdd (this.numberToString (now), '86400');
-        if (timeInForce === 'ioc') {
-            // 1 << 62 = 4611686018427387904
-            expiration = Precise.stringOr (expiration, '4611686018427387904');
-        } else if (timeInForce === 'fok') {
-            // 2 << 62 = 9223372036854775808
-            expiration = Precise.stringOr (expiration, '9223372036854775808');
-        } else if (postOnly) {
-            // 3 << 62 = 13835058055282163712
-            expiration = Precise.stringOr (expiration, '13835058055282163712');
-            if (reduceOnly) {
-                throw new NotSupported (this.id + ' reduceOnly not supported when postOnly is enabled');
-            }
+        if (postOnly && reduceOnly) {
+            throw new NotSupported (this.id + ' reduceOnly not supported when postOnly is enabled');
         }
+        const expiration = this.getExpiration (now, timeInForce, postOnly, reduceOnly);
         if (isTrigger) {
             // 1 << 63 = 9223372036854775808
             nonce = Precise.stringOr (nonce, '9223372036854775808');
         }
-        if (reduceOnly) {
-            // 1 << 61 = 2305843009213693952
-            expiration = Precise.stringOr (expiration, '2305843009213693952');
-        }
-        let amountString = this.numberToString (amount);
-        if (side === 'sell') {
-            if (amount > 0) {
-                // amount *= -1;
-                amountString = Precise.stringMul (amountString, '-1');
-            }
-        } else {
-            if (amount < 0) {
-                // amount *= -1;
-                amountString = Precise.stringMul (amountString, '-1');
-            }
-        }
+        const amountString = this.getAmount (amount, side);
         const order = {
             'sender': this.convertAddressToSender (this.walletAddress),
             'priceX18': this.convertToX18 (this.priceToPrecision (symbol, price)),
@@ -1727,6 +1737,112 @@ export default class vertex extends Exchange {
         //     },
         //     "request_type": "execute_place_order"
         //     "id": 100
+        // }
+        //
+        const data = this.safeDict (response, 'data', {});
+        return this.safeOrder ({
+            'id': this.safeString (data, 'digest'),
+        });
+    }
+
+    async editOrder (id: string, symbol: string, type:OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params = {}) {
+        /**
+         * @method
+         * @name vertex#editOrder
+         * @description edit a trade order
+         * @see https://docs.vertexprotocol.com/developer-resources/api/gateway/executes/cancel-and-place
+         * @param {string} id cancel order id
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {string} type 'market' or 'limit'
+         * @param {string} side 'buy' or 'sell'
+         * @param {float} amount how much of currency you want to trade in units of base currency
+         * @param {float} [price] the price at which the order is to be fullfilled, in units of the base currency, ignored in market orders
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.timeInForce] ioc, fok
+         * @param {bool} [params.postOnly] true or false whether the order is post-only
+         * @param {bool} [params.reduceOnly] true or false whether the order is reduce-only, only works for ioc and fok order
+         * @param {float} [params.triggerPrice] The price at which a trigger order is triggered at
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        this.checkRequiredCredentials ();
+        const marketType = type.toLowerCase ();
+        const isMarketOrder = marketType === 'market';
+        if (isMarketOrder && price === undefined) {
+            throw new ArgumentsRequired (this.id + ' editOrder() requires a price argument for market order');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const marketId = this.parseToNumeric (market['id']);
+        const defaultTimeInForce = (isMarketOrder) ? 'fok' : undefined;
+        const timeInForce = this.safeStringLower (params, 'timeInForce', defaultTimeInForce);
+        const postOnly = this.safeBool (params, 'postOnly', false);
+        const reduceOnly = this.safeBool (params, 'reduceOnly', false);
+        const triggerPrice = this.safeString2 (params, 'triggerPrice', 'stopPrice');
+        const stopLossPrice = this.safeString (params, 'stopLossPrice', triggerPrice);
+        const takeProfitPrice = this.safeString (params, 'takeProfitPrice');
+        const isTrigger = (stopLossPrice || takeProfitPrice);
+        const contracts = await this.queryContracts ();
+        const chainId = this.safeString (contracts, 'chain_id');
+        const bookAddresses = this.safeList (contracts, 'book_addrs', []);
+        const verifyingContractAddressOrder = this.safeString (bookAddresses, marketId);
+        const verifyingContractAddressCancel = this.safeString (contracts, 'endpoint_addr');
+        const now = this.nonce ();
+        const nonce = this.getNonce (now, 90000);
+        const sender = this.convertAddressToSender (this.walletAddress);
+        if (postOnly && reduceOnly) {
+            throw new NotSupported (this.id + ' reduceOnly not supported when postOnly is enabled');
+        }
+        if (isTrigger) {
+            throw new NotSupported (this.id + ' editOrder() not supported for trigger order');
+        }
+        const expiration = this.getExpiration (now, timeInForce, postOnly, reduceOnly);
+        const amountString = this.getAmount (amount, side);
+        const order = {
+            'sender': sender,
+            'priceX18': this.convertToX18 (this.priceToPrecision (symbol, price)),
+            'amount': this.convertToX18 (this.amountToPrecision (symbol, amountString)),
+            'expiration': expiration,
+            'nonce': nonce,
+        };
+        const cancels = {
+            'sender': sender,
+            'productIds': [ marketId ],
+            'digests': [ id ],
+            'nonce': nonce,
+        };
+        const request = {
+            'cancel_and_place': {
+                'cancel_tx': {
+                    'sender': cancels['sender'],
+                    'productIds': cancels['productIds'],
+                    'digests': cancels['digests'],
+                    'nonce': this.numberToString (cancels['nonce']),
+                },
+                'cancel_signature': this.buildCancelOrdersSig (cancels, chainId, verifyingContractAddressCancel),
+                'place_order': {
+                    'product_id': marketId,
+                    'order': {
+                        'sender': order['sender'],
+                        'priceX18': order['priceX18'],
+                        'amount': order['amount'],
+                        'expiration': this.numberToString (order['expiration']),
+                        'nonce': order['nonce'],
+                    },
+                    'signature': this.buildCreateOrderSig (order, chainId, verifyingContractAddressOrder),
+                    'id': this.safeInteger (this.options, 'brokerId', 5930043274845996),
+                },
+            },
+        };
+        params = this.omit (params, [ 'timeInForce', 'reduceOnly', 'postOnly', 'triggerPrice', 'stopPrice', 'stopLossPrice', 'takeProfitPrice' ]);
+        const response = await this.v1GatewayPostExecute (this.extend (request, params));
+        //
+        // {
+        //     "status": "success",
+        //     "signature": {signature},
+        //     "data": {
+        //       "digest": {order digest}
+        //     },
+        //     "request_type": "execute_cancel_and_place"
         // }
         //
         const data = this.safeDict (response, 'data', {});
@@ -1796,7 +1912,7 @@ export default class vertex extends Exchange {
         let marketId = this.safeString (order, 'product_id');
         let timestamp = this.safeTimestamp (order, 'placed_at');
         let amount = this.safeString (order, 'amount');
-        let price = this.safeString (order, 'price_X18');
+        let price = this.safeString (order, 'price_x18');
         const remaining = this.safeString (order, 'unfilled_amount');
         let triggerPriceNum = undefined;
         const status = this.safeValue (order, 'status');
