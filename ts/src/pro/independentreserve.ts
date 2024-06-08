@@ -1,7 +1,7 @@
 //  ---------------------------------------------------------------------------
 
 import independentreserveRest from '../independentreserve.js';
-import { NotSupported } from '../base/errors.js';
+import { NotSupported, InvalidNonce } from '../base/errors.js';
 import { ArrayCache } from '../base/ws/Cache.js';
 import type { Int, OrderBook, Trade, Dict } from '../base/types.js';
 import Client from '../base/ws/Client.js';
@@ -225,7 +225,11 @@ export default class independentreserve extends independentreserveRest {
             if (calculatedChecksum !== responseChecksum) {
                 delete client.subscriptions[messageHash];
                 delete this.orderbooks[symbol];
-                this.orderBookSequenceErrorReject (client, messageHash, symbol, calculatedChecksum, responseChecksum);
+                const validate = this.safeBool2 (this.options, 'validateOrderBookSequences', 'checksum', true);
+                if (validate) {
+                    const error = new InvalidNonce (this.id + ' ' + this.orderbookChecksumMessage (symbol));
+                    client.reject (error, messageHash);
+                }
             }
         }
         if (receivedSnapshot) {

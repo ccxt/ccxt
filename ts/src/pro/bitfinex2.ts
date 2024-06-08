@@ -3,7 +3,7 @@
 
 import bitfinex2Rest from '../bitfinex2.js';
 import { Precise } from '../base/Precise.js';
-import { ExchangeError, AuthenticationError } from '../base/errors.js';
+import { InvalidNonce, ExchangeError, AuthenticationError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 import { sha384 } from '../static_dependencies/noble-hashes/sha512.js';
 import type { Int, Str, OrderBook, Order, Trade, Ticker, OHLCV, Balances, Dict } from '../base/types.js';
@@ -694,7 +694,11 @@ export default class bitfinex2 extends bitfinex2Rest {
         if (responseChecksum !== localChecksum) {
             delete client.subscriptions[messageHash];
             delete this.orderbooks[symbol];
-            this.orderBookSequenceErrorReject (client, messageHash, symbol, localChecksum, responseChecksum);
+            const validate = this.safeBool2 (this.options, 'validateOrderBookSequences', 'checksum', true);
+            if (validate) {
+                const error = new InvalidNonce (this.id + ' ' + this.orderbookChecksumMessage (symbol));
+                client.reject (error, messageHash);
+            }
         }
     }
 
