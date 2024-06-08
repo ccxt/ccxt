@@ -129,7 +129,6 @@ import {
     , RequestTimeout
     , NetworkError
     , ProxyError
-    , InvalidNonce
     , ExchangeNotAvailable
     , ArgumentsRequired
     , RateLimitExceeded,
