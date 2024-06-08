@@ -204,7 +204,8 @@ export default class independentreserve extends independentreserveRest {
             orderbook['timestamp'] = timestamp;
             orderbook['datetime'] = this.iso8601 (timestamp);
         }
-        if (receivedSnapshot) {
+        const validate = this.safeBool2 (this.options, 'validateOrderBookSequences', 'checksum', true);
+        if (validate && receivedSnapshot) {
             const storedAsks = orderbook['asks'];
             const storedBids = orderbook['bids'];
             const asksLength = storedAsks.length;
@@ -225,11 +226,8 @@ export default class independentreserve extends independentreserveRest {
             if (calculatedChecksum !== responseChecksum) {
                 delete client.subscriptions[messageHash];
                 delete this.orderbooks[symbol];
-                const validate = this.safeBool2 (this.options, 'validateOrderBookSequences', 'checksum', true);
-                if (validate) {
-                    const error = new InvalidNonce (this.id + ' ' + this.orderbookChecksumMessage (symbol));
-                    client.reject (error, messageHash);
-                }
+                const error = new InvalidNonce (this.id + ' ' + this.orderbookChecksumMessage (symbol));
+                client.reject (error, messageHash);
             }
         }
         if (receivedSnapshot) {
