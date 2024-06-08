@@ -37,6 +37,33 @@
                     "explorer_asset_url": ""
                 }
             }
+        },
+        "info": {
+            "asset": {
+                "ccy": "BTC",
+                "deposit_enabled": true,
+                "withdraw_enabled": true,
+                "inter_transfer_enabled": true,
+                "is_st": false
+            },
+            "chains": [
+                {
+                    "chain": "BTC",
+                    "min_deposit_amount": "0.001",
+                    "min_withdraw_amount": "0.001",
+                    "deposit_enabled": true,
+                    "withdraw_enabled": true,
+                    "deposit_delay_minutes": 0,
+                    "safe_confirmations": 1,
+                    "irreversible_confirmations": 6,
+                    "deflation_rate": "0",
+                    "withdrawal_fee": "0.00033",
+                    "withdrawal_precision": 8,
+                    "memo": "",
+                    "is_memo_required_for_deposit": false,
+                    "explorer_asset_url": ""
+                }
+            ]
         }
     },
     "USDT": {
@@ -125,6 +152,65 @@
                     "explorer_asset_url": "https://etherscan.io/token/0xdac17f958d2ee523a2206206994597c13d831ec7"
                 }
             }
+        },
+        "info": {
+            "asset": {
+                "ccy": "USDT",
+                "deposit_enabled": true,
+                "withdraw_enabled": true,
+                "inter_transfer_enabled": true,
+                "is_st": false
+            },
+            "chains": [
+                {
+                    "chain": "TRC20",
+                    "min_deposit_amount": "2.3",
+                    "min_withdraw_amount": "2.3",
+                    "deposit_enabled": true,
+                    "withdraw_enabled": true,
+                    "deposit_delay_minutes": 0,
+                    "safe_confirmations": 10,
+                    "irreversible_confirmations": 20,
+                    "deflation_rate": "0",
+                    "withdrawal_fee": "2.3",
+                    "withdrawal_precision": 6,
+                    "memo": "",
+                    "is_memo_required_for_deposit": false,
+                    "explorer_asset_url": "https://tronscan.org/#/token20/TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t"
+                },
+                {
+                    "chain": "BSC",
+                    "min_deposit_amount": "0.073",
+                    "min_withdraw_amount": "0.6",
+                    "deposit_enabled": true,
+                    "withdraw_enabled": true,
+                    "deposit_delay_minutes": 0,
+                    "safe_confirmations": 12,
+                    "irreversible_confirmations": 30,
+                    "deflation_rate": "0",
+                    "withdrawal_fee": "0.073",
+                    "withdrawal_precision": 8,
+                    "memo": "",
+                    "is_memo_required_for_deposit": false,
+                    "explorer_asset_url": "https://bscscan.com/token/0x55d398326f99059ff775485246999027b3197955"
+                },
+                {
+                    "chain": "ERC20",
+                    "min_deposit_amount": "3.3",
+                    "min_withdraw_amount": "3.3",
+                    "deposit_enabled": true,
+                    "withdraw_enabled": true,
+                    "deposit_delay_minutes": 0,
+                    "safe_confirmations": 12,
+                    "irreversible_confirmations": 30,
+                    "deflation_rate": "0",
+                    "withdrawal_fee": "3.3",
+                    "withdrawal_precision": 6,
+                    "memo": "",
+                    "is_memo_required_for_deposit": false,
+                    "explorer_asset_url": "https://etherscan.io/token/0xdac17f958d2ee523a2206206994597c13d831ec7"
+                }
+            ]
         }
     },
     "LTC": {
@@ -161,6 +247,33 @@
                     "explorer_asset_url": ""
                 }
             }
+        },
+        "info": {
+            "asset": {
+                "ccy": "LTC",
+                "deposit_enabled": true,
+                "withdraw_enabled": true,
+                "inter_transfer_enabled": true,
+                "is_st": false
+            },
+            "chains": [
+                {
+                    "chain": "LTC",
+                    "min_deposit_amount": "0.01",
+                    "min_withdraw_amount": "0.01",
+                    "deposit_enabled": true,
+                    "withdraw_enabled": true,
+                    "deposit_delay_minutes": 0,
+                    "safe_confirmations": 1,
+                    "irreversible_confirmations": 6,
+                    "deflation_rate": "0",
+                    "withdrawal_fee": "0.001",
+                    "withdrawal_precision": 8,
+                    "memo": "",
+                    "is_memo_required_for_deposit": false,
+                    "explorer_asset_url": ""
+                }
+            ]
         }
     },
     "ETH": {
@@ -201,6 +314,33 @@
                     "explorer_asset_url": ""
                 }
             }
+        },
+        "info": {
+            "asset": {
+                "ccy": "ETH",
+                "deposit_enabled": true,
+                "withdraw_enabled": true,
+                "inter_transfer_enabled": true,
+                "is_st": false
+            },
+            "chains": [
+                {
+                    "chain": "ERC20",
+                    "min_deposit_amount": "0.005",
+                    "min_withdraw_amount": "0.005",
+                    "deposit_enabled": true,
+                    "withdraw_enabled": true,
+                    "deposit_delay_minutes": 0,
+                    "safe_confirmations": 12,
+                    "irreversible_confirmations": 30,
+                    "deflation_rate": "0",
+                    "withdrawal_fee": "0.00032",
+                    "withdrawal_precision": 8,
+                    "memo": "",
+                    "is_memo_required_for_deposit": false,
+                    "explorer_asset_url": ""
+                }
+            ]
         }
     },
     "ADA": {
@@ -237,6 +377,33 @@
                     "explorer_asset_url": ""
                 }
             }
+        },
+        "info": {
+            "asset": {
+                "ccy": "ADA",
+                "deposit_enabled": true,
+                "withdraw_enabled": true,
+                "inter_transfer_enabled": true,
+                "is_st": false
+            },
+            "chains": [
+                {
+                    "chain": "ADA",
+                    "min_deposit_amount": "1",
+                    "min_withdraw_amount": "100",
+                    "deposit_enabled": true,
+                    "withdraw_enabled": true,
+                    "deposit_delay_minutes": 0,
+                    "safe_confirmations": 10,
+                    "irreversible_confirmations": 15,
+                    "deflation_rate": "0",
+                    "withdrawal_fee": "1",
+                    "withdrawal_precision": 6,
+                    "memo": "",
+                    "is_memo_required_for_deposit": false,
+                    "explorer_asset_url": ""
+                }
+            ]
         }
     },
     "XRP": {
@@ -273,6 +440,33 @@
                     "explorer_asset_url": ""
                 }
             }
+        },
+        "info": {
+            "asset": {
+                "ccy": "XRP",
+                "deposit_enabled": true,
+                "withdraw_enabled": true,
+                "inter_transfer_enabled": true,
+                "is_st": false
+            },
+            "chains": [
+                {
+                    "chain": "XRP",
+                    "min_deposit_amount": "0.1",
+                    "min_withdraw_amount": "20",
+                    "deposit_enabled": true,
+                    "withdraw_enabled": true,
+                    "deposit_delay_minutes": 0,
+                    "safe_confirmations": 1,
+                    "irreversible_confirmations": 1,
+                    "deflation_rate": "0",
+                    "withdrawal_fee": "0.006",
+                    "withdrawal_precision": 6,
+                    "memo": "Tag",
+                    "is_memo_required_for_deposit": true,
+                    "explorer_asset_url": ""
+                }
+            ]
         }
     },
     "USDC": {
@@ -335,6 +529,49 @@
                     "explorer_asset_url": "https://tronscan.org/#/token20/TEkxiTehnzSmSe2XqrBj4w32RUN966rdz8"
                 }
             }
+        },
+        "info": {
+            "asset": {
+                "ccy": "USDC",
+                "deposit_enabled": true,
+                "withdraw_enabled": true,
+                "inter_transfer_enabled": true,
+                "is_st": false
+            },
+            "chains": [
+                {
+                    "chain": "ERC20",
+                    "min_deposit_amount": "3.2",
+                    "min_withdraw_amount": "3.2",
+                    "deposit_enabled": true,
+                    "withdraw_enabled": true,
+                    "deposit_delay_minutes": 0,
+                    "safe_confirmations": 12,
+                    "irreversible_confirmations": 30,
+                    "deflation_rate": "0",
+                    "withdrawal_fee": "3.2",
+                    "withdrawal_precision": 6,
+                    "memo": "",
+                    "is_memo_required_for_deposit": false,
+                    "explorer_asset_url": "https://etherscan.io/token/0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48"
+                },
+                {
+                    "chain": "TRC20",
+                    "min_deposit_amount": "2.4",
+                    "min_withdraw_amount": "2.5",
+                    "deposit_enabled": false,
+                    "withdraw_enabled": false,
+                    "deposit_delay_minutes": 0,
+                    "safe_confirmations": 10,
+                    "irreversible_confirmations": 20,
+                    "deflation_rate": "0",
+                    "withdrawal_fee": "2.5",
+                    "withdrawal_precision": 8,
+                    "memo": "",
+                    "is_memo_required_for_deposit": false,
+                    "explorer_asset_url": "https://tronscan.org/#/token20/TEkxiTehnzSmSe2XqrBj4w32RUN966rdz8"
+                }
+            ]
         }
     }
 }
