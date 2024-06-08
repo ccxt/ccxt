@@ -2,7 +2,7 @@
 //  ---------------------------------------------------------------------------
 
 import gateRest from '../gate.js';
-import { AuthenticationError, BadRequest, ArgumentsRequired, InvalidNonce } from '../base/errors.js';
+import { AuthenticationError, BadRequest, ArgumentsRequired, InvalidOrderbookChecksum } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide } from '../base/ws/Cache.js';
 import { sha512 } from '../static_dependencies/noble-hashes/sha512.js';
 import type { Int, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Position, Balances, Dict } from '../base/types.js';
@@ -226,7 +226,7 @@ export default class gate extends gateRest {
             delete this.orderbooks[symbol];
             const validate = this.safeBool2 (this.options, 'validateOrderBookSequences', 'checksum', true);
             if (validate) {
-                const error = new InvalidNonce (this.id + ' ' + this.orderbookChecksumMessage (symbol));
+                const error = new InvalidOrderbookChecksum (this.id + ' ' + this.orderbookChecksumMessage (symbol));
                 client.reject (error, messageHash);
             }
         }

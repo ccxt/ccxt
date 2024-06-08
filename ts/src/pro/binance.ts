@@ -3,7 +3,7 @@
 
 import binanceRest from '../binance.js';
 import { Precise } from '../base/Precise.js';
-import { InvalidNonce, ArgumentsRequired, BadRequest, NotSupported } from '../base/errors.js';
+import { InvalidOrderbookChecksum, ArgumentsRequired, BadRequest, NotSupported } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide } from '../base/ws/Cache.js';
 import type { Int, OrderSide, OrderType, Str, Strings, Trade, OrderBook, Order, Ticker, Tickers, OHLCV, Position, Balances, Num, Dict } from '../base/types.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
@@ -518,7 +518,7 @@ export default class binance extends binanceRest {
                             // todo: client.reject from handleOrderBookMessage properly
                             const validate = this.safeBool2 (this.options, 'validateOrderBookSequences', 'checksum', true);
                             if (validate) {
-                                throw new InvalidNonce (this.id + ' ' + this.orderbookChecksumMessage (symbol));
+                                throw new InvalidOrderbookChecksum (this.id + ' ' + this.orderbookChecksumMessage (symbol));
                             }
                         }
                     }
@@ -537,7 +537,7 @@ export default class binance extends binanceRest {
                             // todo: client.reject from handleOrderBookMessage properly
                             const validate = this.safeBool2 (this.options, 'validateOrderBookSequences', 'checksum', true);
                             if (validate) {
-                                throw new InvalidNonce (this.id + ' ' + this.orderbookChecksumMessage (symbol));
+                                throw new InvalidOrderbookChecksum (this.id + ' ' + this.orderbookChecksumMessage (symbol));
                             }
                         }
                     }
