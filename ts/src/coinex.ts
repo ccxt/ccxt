@@ -589,6 +589,8 @@ export default class coinex extends Exchange {
             const code = this.safeCurrencyCode (currencyId);
             const canDeposit = this.safeBool (asset, 'deposit_enabled');
             const canWithdraw = this.safeBool (asset, 'withdraw_enabled');
+            const firstChain = this.safeDict (chains, 0, {});
+            const firstPrecisionString = this.parsePrecision (this.safeString (firstChain, 'withdrawal_precision'));
             result[code] = {
                 'id': currencyId,
                 'code': code,
@@ -597,7 +599,7 @@ export default class coinex extends Exchange {
                 'deposit': canDeposit,
                 'withdraw': canWithdraw,
                 'fee': undefined,
-                'precision': undefined,
+                'precision': this.parseNumber (firstPrecisionString),
                 'limits': {
                     'amount': {
                         'min': undefined,
