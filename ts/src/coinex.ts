@@ -613,7 +613,7 @@ export default class coinex extends Exchange {
                     },
                 },
                 'networks': {},
-                'info': undefined,
+                'info': coin,
             };
             for (let j = 0; j < chains.length; j++) {
                 const chain = chains[j];
