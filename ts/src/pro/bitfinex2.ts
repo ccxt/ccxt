@@ -3,7 +3,7 @@
 
 import bitfinex2Rest from '../bitfinex2.js';
 import { Precise } from '../base/Precise.js';
-import { InvalidNonce, ExchangeError, AuthenticationError } from '../base/errors.js';
+import { ExchangeError, AuthenticationError, InvalidNonce } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 import { sha384 } from '../static_dependencies/noble-hashes/sha512.js';
 import type { Int, Str, OrderBook, Order, Trade, Ticker, OHLCV, Balances, Dict } from '../base/types.js';
