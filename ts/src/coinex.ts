@@ -586,6 +586,9 @@ export default class coinex extends Exchange {
             const asset = this.safeDict (coin, 'asset', {});
             const chains = this.safeList (coin, 'chains', []);
             const currencyId = this.safeString (asset, 'ccy');
+            if (currencyId === undefined) {
+                continue; // coinex returns empty structures for some reason
+            }
             const code = this.safeCurrencyCode (currencyId);
             const canDeposit = this.safeBool (asset, 'deposit_enabled');
             const canWithdraw = this.safeBool (asset, 'withdraw_enabled');
