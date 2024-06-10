@@ -14,7 +14,7 @@ class Client(object):
     options = {}  # ws-specific options
     subscriptions = {}
     rejections = {}
-    message_queue = deque()
+    message_queue = {}
     on_message_callback = None
     on_error_callback = None
     on_close_callback = None
@@ -76,8 +76,8 @@ class Client(object):
             self.log(iso8601(milliseconds()), 'resolve received None messageHash')
         
         if message_hash not in self.message_queue:
-            self.message_queue[message_hash] = []
-        queue = self.messageQueue[message_hash] #check if throws an error
+            self.message_queue[message_hash] = deque()
+        queue = self.message_queue[message_hash]
         queue.append(result)
         if message_hash in self.futures:
             future = self.futures[message_hash]
