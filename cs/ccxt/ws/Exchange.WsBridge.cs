@@ -25,6 +25,7 @@ public partial class Exchange
     public virtual void onClose(WebSocketClient client, object error = null)
     {
         // var client = (WebSocketClient)client2;
+        this.clearCache();
         if (client.error)
         {
             // what do we do here?

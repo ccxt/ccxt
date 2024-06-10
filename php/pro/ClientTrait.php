@@ -215,6 +215,7 @@ trait ClientTrait {
     }
 
     public function on_close(Client $client, $message) {
+        $this->clear_cache();
         if ($client->error) {
             // connection closed by the user or due to an error, do nothing
         } else {
