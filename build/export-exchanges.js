@@ -553,6 +553,32 @@ function generateErrorsTs () {
 
 // ----------------------------------------------------------------------------
 
+function getTypesExports() {
+    const typesPath = './ts/src/base/types.ts';
+    const fileContent = fs.readFileSync(typesPath, 'utf8');
+
+    // Regular expressions to match type and interface declarations
+    const typeRegex = /export\stype\s+([A-Za-z0-9_]+)/g;
+    const interfaceRegex = /export\sinterface\s+([A-Za-z0-9_]+)/g;
+
+    const typeNames = [];
+    const interfaceNames = [];
+
+    let match;
+      // Extract type names
+    while ((match = typeRegex.exec(fileContent)) !== null) {
+      typeNames.push(match[1]);
+    }
+
+    // Extract interface names
+    while ((match = interfaceRegex.exec(fileContent)) !== null) {
+      interfaceNames.push(match[1]);
+    }
+    return typeNames.concat(interfaceNames);
+}
+
+// ----------------------------------------------------------------------------
+
 async function exportEverything () {
     const ids = getIncludedExchangeIds ('./ts/src')
 
@@ -564,7 +590,7 @@ async function exportEverything () {
     const errorsExports = [...flat];
     flat.push ('error_hierarchy')
 
-    const typeExports = ['Market', 'Trade' , 'Fee', 'Ticker', 'OrderBook', 'Order', 'Transaction', 'Tickers', 'Currency', 'Balance', 'DepositAddress', 'WithdrawalResponse', 'DepositAddressResponse', 'OHLCV', 'Balances', 'PartialBalances', 'Dictionary', 'MinMax', 'Position', 'FundingRateHistory', 'Liquidation', 'FundingHistory', 'MarginMode', 'Greeks', 'Leverage', 'Leverages', 'Option', 'OptionChain', 'Conversion' ]
+    const typeExports = getTypesExports();
     const staticExports = ['version', 'Exchange', 'exchanges', 'pro', 'Precise', 'functions', 'errors'].concat(errorsExports).concat(typeExports)
 
     const fullExports  = staticExports.concat(ids)
