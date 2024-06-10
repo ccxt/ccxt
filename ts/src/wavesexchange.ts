@@ -1895,7 +1895,7 @@ export default class wavesexchange extends Exchange {
         //   ]
         // }
         const balances = this.safeValue (totalBalance, 'balances', []);
-        const result: Dict = {};
+        let result: Dict = {};
         let timestamp = undefined;
         const assetIds = [];
         const nonStandardBalances = [];
