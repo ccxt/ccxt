@@ -60,7 +60,7 @@ public partial class mexc : ccxt.mexc
             } },
             { "streaming", new Dictionary<string, object>() {
                 { "ping", this.ping },
-                { "keepAlive", 10000 },
+                { "keepAlive", 8000 },
             } },
             { "exceptions", new Dictionary<string, object>() {} },
         });

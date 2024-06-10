@@ -67,7 +67,7 @@ class mexc(ccxt.async_support.mexc):
             },
             'streaming': {
                 'ping': self.ping,
-                'keepAlive': 10000,
+                'keepAlive': 8000,
             },
             'exceptions': {
             },
