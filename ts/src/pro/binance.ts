@@ -145,8 +145,11 @@ export default class binance extends binanceRest {
                 'listenKeyRefreshRate': 1200000, // 20 mins
                 'ws': {
                     'rateLimits': {
-                        'connections': 1000, // The WS-API now only allows 300 connections requests every 5 minutes. // 1 req per second  = 1000ms
-                        'messages': 100, // biggest limit: futures 10 message per second = 100ms
+                        'default': {
+                            'rateLimit': 1000,
+                            'connections': 1000, // The WS-API now only allows 300 connections requests every 5 minutes. // 1 req per second  = 1000ms
+                            'messages': 100, // biggest limit: futures 10 message per second = 100ms
+                        },
                         'wss://stream.binance.com:9443': {
                             'connections': 1,
                             'messages': 2, // 5 per second

@@ -68,7 +68,7 @@ export default class bitget extends bitgetRest {
                 'ws': {
                     'rateLimits': {
                         'default': {
-                            'rateLimit': 100,
+                            'rateLimit': 110,
                             'messages': 1, // 10 messages per second
                         },
                     },
