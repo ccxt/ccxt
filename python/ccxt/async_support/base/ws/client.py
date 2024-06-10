@@ -4,7 +4,7 @@ from asyncio import sleep, ensure_future, wait_for, TimeoutError
 from .functions import milliseconds, iso8601, deep_extend
 from ccxt import NetworkError, RequestTimeout, NotSupported
 from ccxt.async_support.base.ws.future import Future
-
+from collections import deque
 
 class Client(object):
 
@@ -14,6 +14,7 @@ class Client(object):
     options = {}  # ws-specific options
     subscriptions = {}
     rejections = {}
+    message_queue = deque()
     on_message_callback = None
     on_error_callback = None
     on_close_callback = None
@@ -73,9 +74,14 @@ class Client(object):
     def resolve(self, result, message_hash):
         if self.verbose and message_hash is None:
             self.log(iso8601(milliseconds()), 'resolve received None messageHash')
+        
+        if message_hash not in self.message_queue:
+            self.message_queue[message_hash] = []
+        queue = self.messageQueue[message_hash] #check if throws an error
+        queue.append(result)
         if message_hash in self.futures:
             future = self.futures[message_hash]
-            future.resolve(result)
+            future.resolve(queue.popleft())
             del self.futures[message_hash]
         return result
 

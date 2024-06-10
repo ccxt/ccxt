@@ -24,6 +24,9 @@ export default class Client {
     rejections: Dictionary<any>
 
     // @ts-ignore: 2564
+    messageQueue: Dictionary<string, any>
+
+    // @ts-ignore: 2564
     keepAlive: number
 
     connection: any
@@ -81,6 +84,7 @@ export default class Client {
             futures: {},
             subscriptions: {},
             rejections: {}, // so that we can reject things in the future
+            messageQueue: {}, // store unresolved messages per messageHash
             connected: undefined, // connection-related Future
             error: undefined, // stores low-level networking exception, if any
             connectionStarted: undefined, // initiation timestamp in milliseconds
@@ -120,9 +124,14 @@ export default class Client {
         if (this.verbose && (messageHash === undefined)) {
             this.log (new Date (), 'resolve received undefined messageHash');
         }
+        if (!(messageHash in this.messageQueue)) {
+            this.messageQueue[messageHash] = []
+        }
+        const queue = this.messageQueue[messageHash]
+        queue.push (result);
         if ((messageHash !== undefined) && (messageHash in this.futures)) {
             const promise = this.futures[messageHash]
-            promise.resolve (result)
+            promise.resolve (queue.shift ())
             delete this.futures[messageHash]
         }
         return result
