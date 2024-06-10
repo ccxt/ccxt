@@ -492,7 +492,7 @@ class blockchaincom extends Exchange {
         return $this->safe_string($states, $state, $state);
     }
 
-    public function parse_order($order, ?array $market = null): array {
+    public function parse_order(array $order, ?array $market = null): array {
         //
         //     {
         //         "clOrdId" => "00001",
@@ -626,10 +626,10 @@ class blockchaincom extends Exchange {
                 'orderId' => $id,
             );
             $response = Async\await($this->privateDeleteOrdersOrderId ($this->extend($request, $params)));
-            return array(
+            return $this->safe_order(array(
                 'id' => $id,
                 'info' => $response,
-            );
+            ));
         }) ();
     }
 
@@ -637,7 +637,7 @@ class blockchaincom extends Exchange {
         return Async\async(function () use ($symbol, $params) {
             /**
              * cancel all open orders
-             * @see https://api.blockchain.com/v3/#/trading/deleteAllOrders
+             * @see https://api.blockchain.com/v3/#deleteallorders
              * @param {string} $symbol unified market $symbol of the market to cancel orders in, all markets are used if null, default is null
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} an list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
@@ -653,9 +653,13 @@ class blockchaincom extends Exchange {
                 $request['symbol'] = $marketId;
             }
             $response = Async\await($this->privateDeleteOrders ($this->extend($request, $params)));
+            //
+            // array()
+            //
             return array(
-                'symbol' => $symbol,
-                'info' => $response,
+                $this->safe_order(array(
+                    'info' => $response,
+                )),
             );
         }) ();
     }
@@ -760,7 +764,7 @@ class blockchaincom extends Exchange {
         }) ();
     }
 
-    public function parse_trade($trade, ?array $market = null): array {
+    public function parse_trade(array $trade, ?array $market = null): array {
         //
         //     {
         //         "exOrdId":281685751028507,
@@ -878,7 +882,7 @@ class blockchaincom extends Exchange {
         return $this->safe_string($states, $state, $state);
     }
 
-    public function parse_transaction($transaction, ?array $currency = null): array {
+    public function parse_transaction(array $transaction, ?array $currency = null): array {
         //
         // deposit
         //
@@ -1191,7 +1195,7 @@ class blockchaincom extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
         // {"timestamp":"2021-10-21T15:13:58.837+00:00","status":404,"error":"Not Found","message":"","path":"/orders/505050"
         if ($response === null) {
             return null;

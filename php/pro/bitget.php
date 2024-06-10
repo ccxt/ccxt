@@ -984,7 +984,9 @@ class bitget extends \ccxt\async\bitget {
              * @param {int} [$limit] the maximum number of order structures to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {boolean} [$params->stop] *contract only* set to true for watching trigger $orders
-             * @param {string} [$params->marginMode] 'isolated' or 'cross' for watching spot margin $orders
+             * @param {string} [$params->marginMode] 'isolated' or 'cross' for watching spot margin $orders]
+             * @param {string} [$params->type] 'spot', 'swap'
+             * @param {string} [$params->subType] 'linear', 'inverse'
              * @return {array[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
              */
             Async\await($this->load_markets());
@@ -1000,10 +1002,22 @@ class bitget extends \ccxt\async\bitget {
                 $marketId = $market['id'];
                 $messageHash = $messageHash . ':' . $symbol;
             }
+            $productType = $this->safe_string($params, 'productType');
             $type = null;
             list($type, $params) = $this->handle_market_type_and_params('watchOrders', $market, $params);
-            if (($type === 'spot') && ($symbol === null)) {
+            $subType = null;
+            list($subType, $params) = $this->handle_sub_type_and_params('watchOrders', $market, $params, 'linear');
+            if (($type === 'spot' || $type === 'margin') && ($symbol === null)) {
                 throw new ArgumentsRequired($this->id . ' watchOrders requires a $symbol argument for ' . $type . ' markets.');
+            }
+            if (($productType === null) && ($type !== 'spot') && ($symbol === null)) {
+                $messageHash = $messageHash . ':' . $subType;
+            } elseif ($productType === 'USDT-FUTURES') {
+                $messageHash = $messageHash . ':linear';
+            } elseif ($productType === 'COIN-FUTURES') {
+                $messageHash = $messageHash . ':inverse';
+            } elseif ($productType === 'USDC-FUTURES') {
+                $messageHash = $messageHash . ':usdcfutures'; // non unified $channel
             }
             $instType = null;
             list($instType, $params) = $this->get_inst_type($market, $params);
@@ -1013,18 +1027,20 @@ class bitget extends \ccxt\async\bitget {
             if ($isTrigger) {
                 $subscriptionHash = $subscriptionHash . ':stop'; // we don't want to re-use the same subscription hash for stop $orders
             }
-            $instId = ($type === 'spot') ? $marketId : 'default'; // different from other streams here the 'rest' id is required for spot markets, contract markets require default here
+            $instId = ($type === 'spot' || $type === 'margin') ? $marketId : 'default'; // different from other streams here the 'rest' id is required for spot markets, contract markets require default here
             $channel = $isTrigger ? 'orders-algo' : 'orders';
             $marginMode = null;
             list($marginMode, $params) = $this->handle_margin_mode_and_params('watchOrders', $params);
             if ($marginMode !== null) {
                 $instType = 'MARGIN';
+                $messageHash = $messageHash . ':' . $marginMode;
                 if ($marginMode === 'isolated') {
                     $channel = 'orders-isolated';
                 } else {
                     $channel = 'orders-crossed';
                 }
             }
+            $subscriptionHash = $subscriptionHash . ':' . $instType;
             $args = array(
                 'instType' => $instType,
                 'channel' => $channel,
@@ -1073,9 +1089,10 @@ class bitget extends \ccxt\async\bitget {
         //         "ts" => 1701923982497
         //     }
         //
-        $arg = $this->safe_value($message, 'arg', array());
+        $arg = $this->safe_dict($message, 'arg', array());
         $channel = $this->safe_string($arg, 'channel');
         $instType = $this->safe_string($arg, 'instType');
+        $argInstId = $this->safe_string($arg, 'instId');
         $marketType = null;
         if ($instType === 'SPOT') {
             $marketType = 'spot';
@@ -1084,6 +1101,9 @@ class bitget extends \ccxt\async\bitget {
         } else {
             $marketType = 'contract';
         }
+        $isLinearSwap = ($instType === 'USDT-FUTURES');
+        $isInverseSwap = ($instType === 'COIN-FUTURES');
+        $isUSDCFutures = ($instType === 'USDC-FUTURES');
         $data = $this->safe_value($message, 'data', array());
         if ($this->orders === null) {
             $limit = $this->safe_integer($this->options, 'ordersLimit', 1000);
@@ -1096,7 +1116,7 @@ class bitget extends \ccxt\async\bitget {
         $marketSymbols = array();
         for ($i = 0; $i < count($data); $i++) {
             $order = $data[$i];
-            $marketId = $this->safe_string($order, 'instId');
+            $marketId = $this->safe_string($order, 'instId', $argInstId);
             $market = $this->safe_market($marketId, null, null, $marketType);
             $parsed = $this->parse_ws_order($order, $market);
             $stored->append ($parsed);
@@ -1107,9 +1127,23 @@ class bitget extends \ccxt\async\bitget {
         for ($i = 0; $i < count($keys); $i++) {
             $symbol = $keys[$i];
             $innerMessageHash = $messageHash . ':' . $symbol;
+            if ($channel === 'orders-crossed') {
+                $innerMessageHash = $innerMessageHash . ':cross';
+            } elseif ($channel === 'orders-isolated') {
+                $innerMessageHash = $innerMessageHash . ':isolated';
+            }
             $client->resolve ($stored, $innerMessageHash);
         }
         $client->resolve ($stored, $messageHash);
+        if ($isLinearSwap) {
+            $client->resolve ($stored, 'order:linear');
+        }
+        if ($isInverseSwap) {
+            $client->resolve ($stored, 'order:inverse');
+        }
+        if ($isUSDCFutures) {
+            $client->resolve ($stored, 'order:usdcfutures');
+        }
     }
 
     public function parse_ws_order($order, $market = null) {
@@ -1293,7 +1327,7 @@ class bitget extends \ccxt\async\bitget {
             $totalAmount = $this->safe_string($order, 'size');
             $cost = $this->safe_string($order, 'fillNotionalUsd');
         }
-        $remaining = $this->omit_zero(Precise::string_sub($totalAmount, $totalFilled));
+        $remaining = Precise::string_sub($totalAmount, $totalFilled);
         return $this->safe_order(array(
             'info' => $order,
             'symbol' => $symbol,

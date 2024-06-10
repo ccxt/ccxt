@@ -490,7 +490,7 @@ class bitget extends Exchange {
                             'v2/mix/account/set-margin' => 4,
                             'v2/mix/account/set-margin-mode' => 4,
                             'v2/mix/account/set-position-mode' => 4,
-                            'v2/mix/order/place-order' => 20,
+                            'v2/mix/order/place-order' => 2,
                             'v2/mix/order/click-backhand' => 20,
                             'v2/mix/order/batch-place-order' => 20,
                             'v2/mix/order/modify-order' => 2,
@@ -764,6 +764,7 @@ class bitget extends Exchange {
                             'v2/earn/loan/borrow-history' => 2,
                             'v2/earn/loan/debts' => 2,
                             'v2/earn/loan/reduces' => 2,
+                            'v2/earn/account/assets' => 2,
                         ),
                         'post' => array(
                             'v2/earn/savings/subscribe' => 2,
@@ -1234,6 +1235,7 @@ class bitget extends Exchange {
                     '40712' => '\\ccxt\\InsufficientFunds', // Insufficient margin
                     '40713' => '\\ccxt\\ExchangeError', // Cannot exceed the maximum transferable margin amount
                     '40714' => '\\ccxt\\ExchangeError', // No direct margin call is allowed
+                    '40762' => '\\ccxt\\InsufficientFunds', // array("code":"40762","msg":"The order amount exceeds the balance","requestTime":1716572156622,"data":null)
                     '40768' => '\\ccxt\\OrderNotFound', // Order does not exist"
                     '41114' => '\\ccxt\\OnMaintenance', // array("code":"41114","msg":"The current trading pair is under maintenance, please refer to the official announcement for the opening time","requestTime":1679196062544,"data":null)
                     '43011' => '\\ccxt\\InvalidOrder', // The parameter does not meet the specification executePrice <= 0
@@ -1568,7 +1570,7 @@ class bitget extends Exchange {
         }) ();
     }
 
-    public function parse_market($market): array {
+    public function parse_market(array $market): array {
         //
         // $spot
         //
@@ -1972,7 +1974,7 @@ class bitget extends Exchange {
         }) ();
     }
 
-    public function fetch_market_leverage_tiers(string $symbol, $params = array ()) {
+    public function fetch_market_leverage_tiers(string $symbol, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes for a single $market
@@ -2082,7 +2084,7 @@ class bitget extends Exchange {
         }) ();
     }
 
-    public function parse_market_leverage_tiers($info, ?array $market = null) {
+    public function parse_market_leverage_tiers($info, ?array $market = null): array {
         //
         // swap and future
         //
@@ -2359,7 +2361,7 @@ class bitget extends Exchange {
         }) ();
     }
 
-    public function parse_transaction($transaction, ?array $currency = null): array {
+    public function parse_transaction(array $transaction, ?array $currency = null): array {
         //
         // fetchDeposits
         //
@@ -2436,7 +2438,7 @@ class bitget extends Exchange {
         );
     }
 
-    public function parse_transaction_status($status) {
+    public function parse_transaction_status(?string $status) {
         $statuses = array(
             'success' => 'ok',
             'Pending' => 'pending',
@@ -2804,7 +2806,7 @@ class bitget extends Exchange {
             $request = array();
             $type = null;
             list($type, $params) = $this->handle_market_type_and_params('fetchTickers', $market, $params);
-            // Calls like `.fetch_tickers(null, array(subType:'inverse'))` should be supported for this exchange, so
+            // Calls like `.fetchTickers (null, array(subType:'inverse'))` should be supported for this exchange, so
             // as "options.defaultSubType" is also set in exchange options, we should consider `$params->subType`
             // with higher priority and only default to spot, if `subType` is not set in $params
             $passedSubType = $this->safe_string($params, 'subType');
@@ -2879,7 +2881,7 @@ class bitget extends Exchange {
         }) ();
     }
 
-    public function parse_trade($trade, ?array $market = null): array {
+    public function parse_trade(array $trade, ?array $market = null): array {
         //
         // spot, swap and future => fetchTrades
         //
@@ -3669,7 +3671,7 @@ class bitget extends Exchange {
         return $this->safe_balance($result);
     }
 
-    public function parse_order_status($status) {
+    public function parse_order_status(?string $status) {
         $statuses = array(
             'new' => 'open',
             'init' => 'open',
@@ -3691,7 +3693,7 @@ class bitget extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_order($order, ?array $market = null): array {
+    public function parse_order(array $order, ?array $market = null): array {
         //
         // createOrder, editOrder, closePosition
         //
@@ -4317,11 +4319,17 @@ class bitget extends Exchange {
                 }
                 $marginModeRequest = ($marginMode === 'cross') ? 'crossed' : 'isolated';
                 $request['marginMode'] = $marginModeRequest;
-                $oneWayMode = $this->safe_bool($params, 'oneWayMode', false);
-                $params = $this->omit($params, 'oneWayMode');
+                $hedged = null;
+                list($hedged, $params) = $this->handle_param_bool($params, 'hedged', false);
+                // backward compatibility for `$oneWayMode`
+                $oneWayMode = null;
+                list($oneWayMode, $params) = $this->handle_param_bool($params, 'oneWayMode');
+                if ($oneWayMode !== null) {
+                    $hedged = !$oneWayMode;
+                }
                 $requestSide = $side;
                 if ($reduceOnly) {
-                    if ($oneWayMode) {
+                    if (!$hedged) {
                         $request['reduceOnly'] = 'YES';
                     } else {
                         // on bitget hedge mode if the position is long the $side is always buy, and if the position is short the $side is always sell
@@ -4329,7 +4337,7 @@ class bitget extends Exchange {
                         $request['tradeSide'] = 'Close';
                     }
                 } else {
-                    if (!$oneWayMode) {
+                    if ($hedged) {
                         $request['tradeSide'] = 'Open';
                     }
                 }
@@ -5910,7 +5918,7 @@ class bitget extends Exchange {
         }) ();
     }
 
-    public function parse_ledger_entry($item, ?array $currency = null) {
+    public function parse_ledger_entry(array $item, ?array $currency = null) {
         //
         // spot
         //
@@ -6410,7 +6418,7 @@ class bitget extends Exchange {
         }) ();
     }
 
-    public function parse_position($position, ?array $market = null) {
+    public function parse_position(array $position, ?array $market = null) {
         //
         // fetchPosition
         //
@@ -8178,7 +8186,7 @@ class bitget extends Exchange {
         }) ();
     }
 
-    public function parse_borrow_interest($info, ?array $market = null) {
+    public function parse_borrow_interest(array $info, ?array $market = null) {
         //
         // isolated
         //
@@ -8374,7 +8382,7 @@ class bitget extends Exchange {
         }) ();
     }
 
-    public function parse_margin_mode($marginMode, $market = null): array {
+    public function parse_margin_mode(array $marginMode, $market = null): array {
         $marginType = $this->safe_string($marginMode, 'marginMode');
         $marginType = ($marginType === 'crossed') ? 'cross' : $marginType;
         return array(
@@ -8730,7 +8738,7 @@ class bitget extends Exchange {
         }) ();
     }
 
-    public function handle_errors($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
         if (!$response) {
             return null; // fallback to default error handler
         }

@@ -1650,7 +1650,9 @@ export default class woofipro extends Exchange {
         //     }
         // }
         //
-        return response;
+        return [this.safeOrder({
+                'info': response,
+            })];
     }
     async cancelAllOrders(symbol = undefined, params = {}) {
         /**
@@ -1694,7 +1696,11 @@ export default class woofipro extends Exchange {
         //     }
         // }
         //
-        return response;
+        return [
+            {
+                'info': response,
+            },
+        ];
     }
     async fetchOrder(id, symbol = undefined, params = {}) {
         /**
@@ -2280,8 +2286,10 @@ export default class woofipro extends Exchange {
     }
     signHash(hash, privateKey) {
         const signature = ecdsa(hash.slice(-64), privateKey.slice(-64), secp256k1, undefined);
+        const r = signature['r'];
+        const s = signature['s'];
         const v = this.intToBase16(this.sum(27, signature['v']));
-        return '0x' + signature['r'].padStart(64, '0') + signature['s'].padStart(64, '0') + v;
+        return '0x' + r.padStart(64, '0') + s.padStart(64, '0') + v;
     }
     signMessage(message, privateKey) {
         return this.signHash(this.hashMessage(message), privateKey.slice(-64));

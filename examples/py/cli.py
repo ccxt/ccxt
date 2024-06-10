@@ -120,14 +120,14 @@ async def main():
         print_usage()
         sys.exit()
 
-    # check here if we have a arg like this: binance.fetchOrders()
-    call_reg = "\s*(\w+)\s*\.\s*(\w+)\s*\(([^()]*)\)"
-    match = re.match(call_reg, argv.exchange_id)
-    if match is not None:
-        groups = match.groups()
-        argv.exchange_id = groups[0]
-        argv.method = groups[1]
-        argv.args = list(map(lambda x: x.strip().replace("'", "\""), groups[2].split(',')))
+    # # check here if we have a arg like this: binance.fetchOrders()
+    # call_reg = "\s*(\w+)\s*\.\s*(\w+)\s*\(([^()]*)\)"
+    # match = re.match(call_reg, argv.exchange_id)
+    # if match is not None:
+    #     groups = match.groups()
+    #     argv.exchange_id = groups[0]
+    #     argv.method = groups[1]
+    #     argv.args = list(map(lambda x: x.strip().replace("'", "\""), groups[2].split(',')))
 
     # ------------------------------------------------------------------------------
 

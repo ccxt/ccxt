@@ -2346,7 +2346,7 @@ public partial class phemex : Exchange
         {
             fee = new Dictionary<string, object>() {
                 { "cost", feeCost },
-                { "currency", null },
+                { "currency", this.safeCurrencyCode(this.safeString(order, "feeCurrency")) },
             };
         }
         object timeInForce = this.parseTimeInForce(this.safeString(order, "timeInForce"));
@@ -2498,6 +2498,7 @@ public partial class phemex : Exchange
         }
         object marketId = this.safeString(order, "symbol");
         object symbol = this.safeSymbol(marketId, market);
+        market = this.safeMarket(marketId, market);
         object status = this.parseOrderStatus(this.safeString(order, "ordStatus"));
         object side = this.parseOrderSide(this.safeStringLower(order, "side"));
         object type = this.parseOrderType(this.safeString(order, "orderType"));
@@ -2531,6 +2532,22 @@ public partial class phemex : Exchange
         }
         object takeProfit = this.safeString(order, "takeProfitRp");
         object stopLoss = this.safeString(order, "stopLossRp");
+        object feeValue = this.omitZero(this.safeString(order, "execFeeRv"));
+        object ptFeeRv = this.omitZero(this.safeString(order, "ptFeeRv"));
+        object fee = null;
+        if (isTrue(!isEqual(feeValue, null)))
+        {
+            fee = new Dictionary<string, object>() {
+                { "cost", feeValue },
+                { "currency", getValue(market, "quote") },
+            };
+        } else if (isTrue(!isEqual(ptFeeRv, null)))
+        {
+            fee = new Dictionary<string, object>() {
+                { "cost", ptFeeRv },
+                { "currency", "PT" },
+            };
+        }
         return this.safeOrder(new Dictionary<string, object>() {
             { "info", order },
             { "id", id },
@@ -2555,7 +2572,7 @@ public partial class phemex : Exchange
             { "cost", cost },
             { "average", null },
             { "status", status },
-            { "fee", null },
+            { "fee", fee },
             { "trades", null },
         });
     }

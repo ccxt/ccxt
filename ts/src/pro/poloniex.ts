@@ -3,7 +3,7 @@
 import poloniexRest from '../poloniex.js';
 import { BadRequest, AuthenticationError, ExchangeError, InvalidOrder } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
-import type { Tickers, Int, OHLCV, OrderSide, OrderType, Str, Strings, OrderBook, Order, Trade, Ticker, Balances, Num } from '../base/types.js';
+import type { Tickers, Int, OHLCV, OrderSide, OrderType, Str, Strings, OrderBook, Order, Trade, Ticker, Balances, Num, Dict } from '../base/types.js';
 import { Precise } from '../base/Precise.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
 import Client from '../base/ws/Client.js';
@@ -94,7 +94,7 @@ export default class poloniex extends poloniexRest {
             const accessPath = '/ws';
             const requestString = 'GET\n' + accessPath + '\nsignTimestamp=' + timestamp;
             const signature = this.hmac (this.encode (requestString), this.encode (this.secret), sha256, 'base64');
-            const request = {
+            const request: Dict = {
                 'event': 'subscribe',
                 'channel': [ 'auth' ],
                 'params': {
@@ -145,7 +145,7 @@ export default class poloniex extends poloniexRest {
          */
         const publicOrPrivate = isPrivate ? 'private' : 'public';
         const url = this.urls['api']['ws'][publicOrPrivate];
-        const subscribe = {
+        const subscribe: Dict = {
             'event': 'subscribe',
             'channel': [
                 name,
@@ -177,7 +177,7 @@ export default class poloniex extends poloniexRest {
          */
         const url = this.urls['api']['ws']['private'];
         const messageHash = this.nonce ().toString ();
-        const subscribe = {
+        const subscribe: Dict = {
             'id': messageHash,
             'event': name,
             'params': params,
@@ -217,7 +217,7 @@ export default class poloniex extends poloniexRest {
         if (isPostOnly) {
             uppercaseType = 'LIMIT_MAKER';
         }
-        const request = {
+        const request: Dict = {
             'symbol': market['id'],
             'side': side.toUpperCase (),
             'type': type.toUpperCase (),
@@ -286,7 +286,7 @@ export default class poloniex extends poloniexRest {
          */
         await this.loadMarkets ();
         await this.authenticate ();
-        const request = {
+        const request: Dict = {
             'orderIds': ids,
         };
         return await this.tradeRequest ('cancelOrders', this.extend (request, params));
@@ -681,7 +681,7 @@ export default class poloniex extends poloniexRest {
     }
 
     parseStatus (status) {
-        const statuses = {
+        const statuses: Dict = {
             'NEW': 'open',
             'PARTIALLY_FILLED': 'open',
             'FILLED': 'closed',
@@ -961,7 +961,7 @@ export default class poloniex extends poloniexRest {
         //    }
         //
         const data = this.safeValue (message, 'data', []);
-        const newTickers = {};
+        const newTickers: Dict = {};
         for (let i = 0; i < data.length; i++) {
             const item = data[i];
             const marketId = this.safeString (item, 'symbol');
@@ -1127,7 +1127,7 @@ export default class poloniex extends poloniexRest {
         //
         const firstBalance = this.safeValue (response, 0, {});
         const timestamp = this.safeInteger (firstBalance, 'ts');
-        const result = {
+        const result: Dict = {
             'info': response,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -1172,7 +1172,7 @@ export default class poloniex extends poloniexRest {
         if (event === 'pong') {
             client.lastPong = this.milliseconds ();
         }
-        const methods = {
+        const methods: Dict = {
             'candles_minute_1': this.handleOHLCV,
             'candles_minute_5': this.handleOHLCV,
             'candles_minute_10': this.handleOHLCV,

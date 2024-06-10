@@ -517,7 +517,7 @@ class hyperliquid extends Exchange {
         return $markets;
     }
 
-    public function parse_market($market): array {
+    public function parse_market(array $market): array {
         //
         //     {
         //         "maxLeverage" => "50",
@@ -1730,7 +1730,7 @@ class hyperliquid extends Exchange {
         return $this->parse_order($data, $market);
     }
 
-    public function parse_order($order, ?array $market = null): array {
+    public function parse_order(array $order, ?array $market = null): array {
         //
         //  fetchOpenOrders
         //
@@ -1874,7 +1874,7 @@ class hyperliquid extends Exchange {
         ), $market);
     }
 
-    public function parse_order_status($status) {
+    public function parse_order_status(?string $status) {
         $statuses = array(
             'triggered' => 'open',
             'filled' => 'closed',
@@ -1944,7 +1944,7 @@ class hyperliquid extends Exchange {
         return $this->parse_trades($response, $market, $since, $limit);
     }
 
-    public function parse_trade($trade, ?array $market = null): array {
+    public function parse_trade(array $trade, ?array $market = null): array {
         //
         //     {
         //         "closedPnl" => "0.19343",
@@ -2077,7 +2077,7 @@ class hyperliquid extends Exchange {
         return $this->filter_by_array_positions($result, 'symbol', $symbols, false);
     }
 
-    public function parse_position($position, ?array $market = null) {
+    public function parse_position(array $position, ?array $market = null) {
         //
         //     {
         //         "position" => array(
@@ -2480,7 +2480,7 @@ class hyperliquid extends Exchange {
         return $coin . '/USDC:USDC';
     }
 
-    public function handle_errors($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
         if (!$response) {
             return null; // fallback to default error handler
         }

@@ -464,7 +464,7 @@ public partial class bitget : Exchange
                             { "v2/mix/account/set-margin", 4 },
                             { "v2/mix/account/set-margin-mode", 4 },
                             { "v2/mix/account/set-position-mode", 4 },
-                            { "v2/mix/order/place-order", 20 },
+                            { "v2/mix/order/place-order", 2 },
                             { "v2/mix/order/click-backhand", 20 },
                             { "v2/mix/order/batch-place-order", 20 },
                             { "v2/mix/order/modify-order", 2 },
@@ -738,6 +738,7 @@ public partial class bitget : Exchange
                             { "v2/earn/loan/borrow-history", 2 },
                             { "v2/earn/loan/debts", 2 },
                             { "v2/earn/loan/reduces", 2 },
+                            { "v2/earn/account/assets", 2 },
                         } },
                         { "post", new Dictionary<string, object>() {
                             { "v2/earn/savings/subscribe", 2 },
@@ -1189,6 +1190,7 @@ public partial class bitget : Exchange
                     { "40712", typeof(InsufficientFunds) },
                     { "40713", typeof(ExchangeError) },
                     { "40714", typeof(ExchangeError) },
+                    { "40762", typeof(InsufficientFunds) },
                     { "40768", typeof(OrderNotFound) },
                     { "41114", typeof(OnMaintenance) },
                     { "43011", typeof(InvalidOrder) },
@@ -4570,12 +4572,23 @@ public partial class bitget : Exchange
                 }
                 object marginModeRequest = ((bool) isTrue((isEqual(marginMode, "cross")))) ? "crossed" : "isolated";
                 ((IDictionary<string,object>)request)["marginMode"] = marginModeRequest;
-                object oneWayMode = this.safeBool(parameters, "oneWayMode", false);
-                parameters = this.omit(parameters, "oneWayMode");
+                object hedged = null;
+                var hedgedparametersVariable = this.handleParamBool(parameters, "hedged", false);
+                hedged = ((IList<object>)hedgedparametersVariable)[0];
+                parameters = ((IList<object>)hedgedparametersVariable)[1];
+                // backward compatibility for `oneWayMode`
+                object oneWayMode = null;
+                var oneWayModeparametersVariable = this.handleParamBool(parameters, "oneWayMode");
+                oneWayMode = ((IList<object>)oneWayModeparametersVariable)[0];
+                parameters = ((IList<object>)oneWayModeparametersVariable)[1];
+                if (isTrue(!isEqual(oneWayMode, null)))
+                {
+                    hedged = !isTrue(oneWayMode);
+                }
                 object requestSide = side;
                 if (isTrue(reduceOnly))
                 {
-                    if (isTrue(oneWayMode))
+                    if (!isTrue(hedged))
                     {
                         ((IDictionary<string,object>)request)["reduceOnly"] = "YES";
                     } else
@@ -4586,7 +4599,7 @@ public partial class bitget : Exchange
                     }
                 } else
                 {
-                    if (!isTrue(oneWayMode))
+                    if (isTrue(hedged))
                     {
                         ((IDictionary<string,object>)request)["tradeSide"] = "Open";
                     }

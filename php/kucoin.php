@@ -424,6 +424,7 @@ class kucoin extends Exchange {
                     'The withdrawal amount is below the minimum requirement.' => '\\ccxt\\ExchangeError', // array("code":"400100","msg":"The withdrawal amount is below the minimum requirement.")
                     'Unsuccessful! Exceeded the max. funds out-transfer limit' => '\\ccxt\\InsufficientFunds', // array("code":"200000","msg":"Unsuccessful! Exceeded the max. funds out-transfer limit")
                     'The amount increment is invalid.' => '\\ccxt\\BadRequest',
+                    'The quantity is below the minimum requirement.' => '\\ccxt\\InvalidOrder', // array("msg":"The quantity is below the minimum requirement.","code":"400100")
                     '400' => '\\ccxt\\BadRequest',
                     '401' => '\\ccxt\\AuthenticationError',
                     '403' => '\\ccxt\\NotSupported',
@@ -2295,22 +2296,79 @@ class kucoin extends Exchange {
             $request['clientOid'] = $clientOrderId;
             if ($stop) {
                 $response = $this->privateDeleteStopOrderCancelOrderByClientOid ($this->extend($request, $params));
+                //
+                //    {
+                //        code => '200000',
+                //        $data => {
+                //          cancelledOrderId => 'vs8lgpiuao41iaft003khbbk',
+                //          clientOid => '123456'
+                //        }
+                //    }
+                //
             } elseif ($hf) {
                 $response = $this->privateDeleteHfOrdersClientOrderClientOid ($this->extend($request, $params));
+                //
+                //    {
+                //        "code" => "200000",
+                //        "data" => {
+                //          "clientOid" => "6d539dc614db3"
+                //        }
+                //    }
+                //
             } else {
                 $response = $this->privateDeleteOrderClientOrderClientOid ($this->extend($request, $params));
+                //
+                //    {
+                //        code => '200000',
+                //        $data => {
+                //          cancelledOrderId => '665e580f6660500007aba341',
+                //          clientOid => '1234567',
+                //          cancelledOcoOrderIds => null
+                //        }
+                //    }
+                //
             }
+            $response = $this->safe_dict($response, 'data');
+            return $this->parse_order($response);
         } else {
             $request['orderId'] = $id;
             if ($stop) {
                 $response = $this->privateDeleteStopOrderOrderId ($this->extend($request, $params));
+                //
+                //    {
+                //        code => '200000',
+                //        $data => array( cancelledOrderIds => array( 'vs8lgpiuaco91qk8003vebu9' ) )
+                //    }
+                //
             } elseif ($hf) {
                 $response = $this->privateDeleteHfOrdersOrderId ($this->extend($request, $params));
+                //
+                //    {
+                //        "code" => "200000",
+                //        "data" => {
+                //          "orderId" => "630625dbd9180300014c8d52"
+                //        }
+                //    }
+                //
+                $response = $this->safe_dict($response, 'data');
+                return $this->parse_order($response);
             } else {
                 $response = $this->privateDeleteOrdersOrderId ($this->extend($request, $params));
+                //
+                //    {
+                //        code => '200000',
+                //        $data => array( cancelledOrderIds => array( '665e4fbe28051a0007245c41' ) )
+                //    }
+                //
             }
+            $data = $this->safe_dict($response, 'data');
+            $orderIds = $this->safe_list($data, 'cancelledOrderIds', array());
+            $orderId = $this->safe_string($orderIds, 0);
+            return $this->safe_order(array(
+                'info' => $data,
+                'id' => $orderId,
+            ));
         }
-        return $response;
     }
 
     public function cancel_all_orders(?string $symbol = null, $params = array ()) {
@@ -2605,7 +2663,7 @@ class kucoin extends Exchange {
         return $this->parse_order($responseData, $market);
     }
 
-    public function parse_order($order, ?array $market = null): array {
+    public function parse_order(array $order, ?array $market = null): array {
         //
         // createOrder
         //
@@ -2760,7 +2818,7 @@ class kucoin extends Exchange {
         $stopPrice = $this->safe_number($order, 'stopPrice');
         return $this->safe_order(array(
             'info' => $order,
-            'id' => $this->safe_string_n($order, array( 'id', 'orderId', 'newOrderId' )),
+            'id' => $this->safe_string_n($order, array( 'id', 'orderId', 'newOrderId', 'cancelledOrderId' )),
             'clientOrderId' => $this->safe_string($order, 'clientOid'),
             'symbol' => $this->safe_symbol($marketId, $market, '-'),
             'type' => $this->safe_string($order, 'type'),
@@ -2951,7 +3009,7 @@ class kucoin extends Exchange {
         return $this->parse_trades($trades, $market, $since, $limit);
     }
 
-    public function parse_trade($trade, ?array $market = null): array {
+    public function parse_trade(array $trade, ?array $market = null): array {
         //
         // fetchTrades (public)
         //
@@ -3222,7 +3280,7 @@ class kucoin extends Exchange {
         }
     }
 
-    public function parse_transaction_status($status) {
+    public function parse_transaction_status(?string $status) {
         $statuses = array(
             'SUCCESS' => 'ok',
             'PROCESSING' => 'pending',
@@ -3232,7 +3290,7 @@ class kucoin extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_transaction($transaction, ?array $currency = null): array {
+    public function parse_transaction(array $transaction, ?array $currency = null): array {
         //
         // fetchDeposits
         //
@@ -3898,7 +3956,7 @@ class kucoin extends Exchange {
         return $this->safe_string($types, $type, $type);
     }
 
-    public function parse_ledger_entry($item, ?array $currency = null) {
+    public function parse_ledger_entry(array $item, ?array $currency = null) {
         //
         //     {
         //         "id" => "611a1e7c6a053300067a88d9", //unique key for each ledger entry
@@ -4237,7 +4295,7 @@ class kucoin extends Exchange {
         return $this->parse_borrow_interests($assets, null);
     }
 
-    public function parse_borrow_interest($info, ?array $market = null) {
+    public function parse_borrow_interest(array $info, ?array $market = null) {
         //
         // Cross
         //
@@ -4714,7 +4772,7 @@ class kucoin extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
         if (!$response) {
             $this->throw_broadly_matched_exception($this->exceptions['broad'], $body, $body);
             return null;

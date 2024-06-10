@@ -473,7 +473,8 @@ class bit2c extends Exchange {
             $request = array(
                 'id' => $id,
             );
-            return Async\await($this->privatePostOrderCancelOrder ($this->extend($request, $params)));
+            $response = Async\await($this->privatePostOrderCancelOrder ($this->extend($request, $params)));
+            return $this->parse_order($response);
         }) ();
     }
 
@@ -537,7 +538,7 @@ class bit2c extends Exchange {
         }) ();
     }
 
-    public function parse_order($order, ?array $market = null): array {
+    public function parse_order(array $order, ?array $market = null): array {
         //
         //      createOrder
         //      {
@@ -730,7 +731,7 @@ class bit2c extends Exchange {
         return $newString;
     }
 
-    public function parse_trade($trade, ?array $market = null): array {
+    public function parse_trade(array $trade, ?array $market = null): array {
         //
         // public fetchTrades
         //
@@ -913,7 +914,7 @@ class bit2c extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors($httpCode, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
         if ($response === null) {
             return null; // fallback to default $error handler
         }

@@ -298,7 +298,7 @@ class luno(Exchange, ImplicitAPI):
 
     def parse_balance(self, response) -> Balances:
         wallets = self.safe_value(response, 'balance', [])
-        result = {
+        result: dict = {
             'info': response,
             'timestamp': None,
             'datetime': None,
@@ -355,7 +355,7 @@ class luno(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'pair': market['id'],
         }
         response = None
@@ -366,14 +366,14 @@ class luno(Exchange, ImplicitAPI):
         timestamp = self.safe_integer(response, 'timestamp')
         return self.parse_order_book(response, market['symbol'], timestamp, 'bids', 'asks', 'price', 'volume')
 
-    def parse_order_status(self, status):
-        statuses = {
+    def parse_order_status(self, status: Str):
+        statuses: dict = {
             # todo add other statuses
             'PENDING': 'open',
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_order(self, order, market: Market = None) -> Order:
+    def parse_order(self, order: dict, market: Market = None) -> Order:
         #
         #     {
         #         "base": "string",
@@ -454,7 +454,7 @@ class luno(Exchange, ImplicitAPI):
         :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
-        request = {
+        request: dict = {
             'id': id,
         }
         response = self.privateGetOrdersId(self.extend(request, params))
@@ -462,7 +462,7 @@ class luno(Exchange, ImplicitAPI):
 
     def fetch_orders_by_state(self, state=None, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         self.load_markets()
-        request = {}
+        request: dict = {}
         market = None
         if state is not None:
             request['state'] = state
@@ -559,7 +559,7 @@ class luno(Exchange, ImplicitAPI):
         response = self.publicGetTickers(params)
         tickers = self.index_by(response['tickers'], 'pair')
         ids = list(tickers.keys())
-        result = {}
+        result: dict = {}
         for i in range(0, len(ids)):
             id = ids[i]
             market = self.safe_market(id)
@@ -578,7 +578,7 @@ class luno(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'pair': market['id'],
         }
         response = self.publicGetTicker(self.extend(request, params))
@@ -593,7 +593,7 @@ class luno(Exchange, ImplicitAPI):
         # }
         return self.parse_ticker(response, market)
 
-    def parse_trade(self, trade, market: Market = None) -> Trade:
+    def parse_trade(self, trade: dict, market: Market = None) -> Trade:
         #
         # fetchTrades(public)
         #
@@ -689,7 +689,7 @@ class luno(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'pair': market['id'],
         }
         if since is not None:
@@ -724,7 +724,7 @@ class luno(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'duration': self.safe_value(self.timeframes, timeframe, timeframe),
             'pair': market['id'],
         }
@@ -785,7 +785,7 @@ class luno(Exchange, ImplicitAPI):
             raise ArgumentsRequired(self.id + ' fetchMyTrades() requires a symbol argument')
         self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'pair': market['id'],
         }
         if since is not None:
@@ -827,7 +827,7 @@ class luno(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'pair': market['id'],
         }
         response = self.privateGetFeeInfo(self.extend(request, params))
@@ -862,7 +862,7 @@ class luno(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'pair': market['id'],
         }
         response = None
@@ -894,7 +894,7 @@ class luno(Exchange, ImplicitAPI):
         :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
-        request = {
+        request: dict = {
             'order_id': id,
         }
         return self.privatePostStoporder(self.extend(request, params))
@@ -906,7 +906,7 @@ class luno(Exchange, ImplicitAPI):
         if limit is None:
             limit = 1
         since = None
-        request = {
+        request: dict = {
             'min_row': entry,
             'max_row': self.sum(entry, limit),
         }
@@ -949,7 +949,7 @@ class luno(Exchange, ImplicitAPI):
                 max_row = min_row + limit
         if max_row - min_row > 1000:
             raise ExchangeError(self.id + " fetchLedger() requires the params 'max_row' - 'min_row' <= 1000")
-        request = {
+        request: dict = {
             'id': id,
             'min_row': min_row,
             'max_row': max_row,
@@ -960,7 +960,7 @@ class luno(Exchange, ImplicitAPI):
 
     def parse_ledger_comment(self, comment):
         words = comment.split(' ')
-        types = {
+        types: dict = {
             'Withdrawal': 'fee',
             'Trading': 'fee',
             'Payment': 'transaction',
@@ -1050,7 +1050,7 @@ class luno(Exchange, ImplicitAPI):
             }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody):
+    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response, requestHeaders, requestBody):
         if response is None:
             return None
         error = self.safe_value(response, 'error')

@@ -1008,7 +1008,7 @@ class cex extends \ccxt\async\cex {
         $symbol = $this->pair_to_symbol($pair);
         $messageHash = 'orderbook:' . $symbol;
         $timestamp = $this->safe_integer_2($data, 'timestamp_ms', 'timestamp');
-        $incrementalId = $this->safe_number($data, 'id');
+        $incrementalId = $this->safe_integer($data, 'id');
         $orderbook = $this->order_book(array());
         $snapshot = $this->parse_order_book($data, $symbol, $timestamp, 'bids', 'asks');
         $snapshot['nonce'] = $incrementalId;

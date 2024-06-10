@@ -6,7 +6,7 @@ import { BadSymbol, ExchangeError, ArgumentsRequired, ExchangeNotAvailable, Insu
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, Leverage, Num, Account, Currencies, TradingFees, Dict } from './base/types.js';
+import type { Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, Leverage, Num, Account, Currencies, TradingFees, Dict, int } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -359,7 +359,7 @@ export default class currencycom extends Exchange {
         //         },
         //     ]
         //
-        const result = {};
+        const result: Dict = {};
         for (let i = 0; i < response.length; i++) {
             const currency = response[i];
             const id = this.safeString (currency, 'displaySymbol');
@@ -503,7 +503,7 @@ export default class currencycom extends Exchange {
                 }
             }
             let precisionAmount = this.parseNumber (this.parsePrecision (this.safeString (market, 'baseAssetPrecision')));
-            let limitAmount = {
+            let limitAmount: Dict = {
                 'min': undefined,
                 'max': undefined,
             };
@@ -515,7 +515,7 @@ export default class currencycom extends Exchange {
                     'max': this.safeNumber (filter, 'maxQty'),
                 };
             }
-            let limitMarket = {
+            let limitMarket: Dict = {
                 'min': undefined,
                 'max': undefined,
             };
@@ -670,7 +670,7 @@ export default class currencycom extends Exchange {
         //
         const makerFee = this.safeNumber (response, 'makerCommission');
         const takerFee = this.safeNumber (response, 'takerCommission');
-        const result = {};
+        const result: Dict = {};
         for (let i = 0; i < this.symbols.length; i++) {
             const symbol = this.symbols[i];
             result[symbol] = {
@@ -708,7 +708,7 @@ export default class currencycom extends Exchange {
         //         ]
         //     }
         //
-        const result = { 'info': response };
+        const result: Dict = { 'info': response };
         const balances = this.safeValue (response, 'balances', []);
         for (let i = 0; i < balances.length; i++) {
             const balance = balances[i];
@@ -780,7 +780,7 @@ export default class currencycom extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'symbol': market['id'],
         };
         if (limit !== undefined) {
@@ -898,7 +898,7 @@ export default class currencycom extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'symbol': market['id'],
         };
         const response = await this.publicGetV2Ticker24hr (this.extend (request, params));
@@ -994,7 +994,7 @@ export default class currencycom extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'symbol': market['id'],
             'interval': this.safeString (this.timeframes, timeframe, timeframe),
         };
@@ -1015,7 +1015,7 @@ export default class currencycom extends Exchange {
         return this.parseOHLCVs (response, market, timeframe, since, limit);
     }
 
-    parseTrade (trade, market: Market = undefined): Trade {
+    parseTrade (trade: Dict, market: Market = undefined): Trade {
         //
         // fetchTrades (public aggregate trades)
         //
@@ -1107,7 +1107,7 @@ export default class currencycom extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'symbol': market['id'],
             // 'limit': 500, // default 500, max 1000
         };
@@ -1132,7 +1132,7 @@ export default class currencycom extends Exchange {
         return this.parseTrades (response, market, since, limit);
     }
 
-    parseOrder (order, market: Market = undefined): Order {
+    parseOrder (order: Dict, market: Market = undefined): Order {
         //
         // createOrder
         //
@@ -1237,8 +1237,8 @@ export default class currencycom extends Exchange {
         }, market);
     }
 
-    parseOrderStatus (status) {
-        const statuses = {
+    parseOrderStatus (status: Str) {
+        const statuses: Dict = {
             'NEW': 'open',
             'CREATED': 'open',
             'MODIFIED': 'open',
@@ -1253,7 +1253,7 @@ export default class currencycom extends Exchange {
     }
 
     parseOrderType (status) {
-        const statuses = {
+        const statuses: Dict = {
             'MARKET': 'market',
             'LIMIT': 'limit',
             'STOP': 'stop',
@@ -1268,7 +1268,7 @@ export default class currencycom extends Exchange {
     }
 
     parseOrderTimeInForce (status) {
-        const statuses = {
+        const statuses: Dict = {
             'GTC': 'GTC',
             'FOK': 'FOK',
             'IOC': 'IOC',
@@ -1277,7 +1277,7 @@ export default class currencycom extends Exchange {
     }
 
     parseOrderSide (status) {
-        const statuses = {
+        const statuses: Dict = {
             'BUY': 'buy',
             'SELL': 'sell',
         };
@@ -1309,7 +1309,7 @@ export default class currencycom extends Exchange {
             }
         }
         const newOrderRespType = this.safeValue (this.options['newOrderRespType'], type, 'RESULT');
-        const request = {
+        const request: Dict = {
             'symbol': market['id'],
             'quantity': this.amountToPrecision (symbol, amount),
             'type': type.toUpperCase (),
@@ -1395,7 +1395,7 @@ export default class currencycom extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'orderId': id,
             'symbol': market['id'],
         };
@@ -1439,7 +1439,7 @@ export default class currencycom extends Exchange {
          */
         await this.loadMarkets ();
         let market = undefined;
-        const request = {};
+        const request: Dict = {};
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['symbol'] = market['id'];
@@ -1489,7 +1489,7 @@ export default class currencycom extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const origClientOrderId = this.safeValue (params, 'origClientOrderId');
-        const request = {
+        const request: Dict = {
             'symbol': market['id'],
             // 'orderId': parseInt (id),
             // 'origClientOrderId': id,
@@ -1533,7 +1533,7 @@ export default class currencycom extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'symbol': market['id'],
         };
         if (limit !== undefined) {
@@ -1608,7 +1608,7 @@ export default class currencycom extends Exchange {
 
     async fetchTransactionsByMethod (method, code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         await this.loadMarkets ();
-        const request = {};
+        const request: Dict = {};
         let currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
@@ -1648,7 +1648,7 @@ export default class currencycom extends Exchange {
         return this.parseTransactions (response, currency, since, limit, params);
     }
 
-    parseTransaction (transaction, currency: Currency = undefined): Transaction {
+    parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {
         //
         //    {
         //        "id": "616769213",
@@ -1700,8 +1700,8 @@ export default class currencycom extends Exchange {
         };
     }
 
-    parseTransactionStatus (status) {
-        const statuses = {
+    parseTransactionStatus (status: Str) {
+        const statuses: Dict = {
             'APPROVAL': 'pending',
             'PROCESSED': 'ok',
         };
@@ -1709,7 +1709,7 @@ export default class currencycom extends Exchange {
     }
 
     parseTransactionType (type) {
-        const types = {
+        const types: Dict = {
             'deposit': 'deposit',
             'withdrawal': 'withdrawal',
         };
@@ -1729,7 +1729,7 @@ export default class currencycom extends Exchange {
          * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
          */
         await this.loadMarkets ();
-        const request = {};
+        const request: Dict = {};
         let currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
@@ -1771,7 +1771,7 @@ export default class currencycom extends Exchange {
         return this.parseLedger (response, currency, since, limit);
     }
 
-    parseLedgerEntry (item, currency: Currency = undefined) {
+    parseLedgerEntry (item: Dict, currency: Currency = undefined) {
         const id = this.safeString (item, 'id');
         const amountString = this.safeString (item, 'amount');
         const amount = Precise.stringAbs (amountString);
@@ -1784,7 +1784,7 @@ export default class currencycom extends Exchange {
             fee = { 'currency': code, 'cost': feeCost };
         }
         const direction = Precise.stringLt (amountString, '0') ? 'out' : 'in';
-        const result = {
+        const result: Dict = {
             'id': id,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -1805,7 +1805,7 @@ export default class currencycom extends Exchange {
     }
 
     parseLedgerEntryStatus (status) {
-        const statuses = {
+        const statuses: Dict = {
             'APPROVAL': 'pending',
             'PROCESSED': 'ok',
             'CANCELLED': 'canceled',
@@ -1814,7 +1814,7 @@ export default class currencycom extends Exchange {
     }
 
     parseLedgerEntryType (type) {
-        const types = {
+        const types: Dict = {
             'deposit': 'transaction',
             'withdrawal': 'transaction',
             'exchange_commission': 'fee',
@@ -1834,7 +1834,7 @@ export default class currencycom extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'symbol': market['id'],
         };
         const response = await this.privateGetV2LeverageSettings (this.extend (request, params));
@@ -1870,7 +1870,7 @@ export default class currencycom extends Exchange {
          */
         await this.loadMarkets ();
         const currency = this.currency (code);
-        const request = {
+        const request: Dict = {
             'coin': currency['id'],
         };
         const response = await this.privateGetV2DepositAddress (this.extend (request, params));
@@ -1974,7 +1974,7 @@ export default class currencycom extends Exchange {
         return this.parsePositions (data, symbols);
     }
 
-    parsePosition (position, market: Market = undefined) {
+    parsePosition (position: Dict, market: Market = undefined) {
         //
         //    {
         //        "accountId": "109698017416453793",
@@ -2046,7 +2046,7 @@ export default class currencycom extends Exchange {
         });
     }
 
-    handleErrors (httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+    handleErrors (httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response, requestHeaders, requestBody) {
         if ((httpCode === 418) || (httpCode === 429)) {
             throw new DDoSProtection (this.id + ' ' + httpCode.toString () + ' ' + reason + ' ' + body);
         }

@@ -1721,7 +1721,9 @@ public partial class woofipro : Exchange
         //     }
         // }
         //
-        return response;
+        return new List<object> {this.safeOrder(new Dictionary<string, object>() {
+    { "info", response },
+})};
     }
 
     public async override Task<object> cancelAllOrders(object symbol = null, object parameters = null)
@@ -1770,7 +1772,9 @@ public partial class woofipro : Exchange
         //     }
         // }
         //
-        return response;
+        return new List<object>() {new Dictionary<string, object>() {
+    { "info", response },
+}};
     }
 
     public async override Task<object> fetchOrder(object id, object symbol = null, object parameters = null)
@@ -2445,8 +2449,10 @@ public partial class woofipro : Exchange
     public virtual object signHash(object hash, object privateKey)
     {
         object signature = ecdsa(slice(hash, -64, null), slice(privateKey, -64, null), secp256k1, null);
+        object r = getValue(signature, "r");
+        object s = getValue(signature, "s");
         object v = this.intToBase16(this.sum(27, getValue(signature, "v")));
-        return add(add(add("0x", (getValue(signature, "r") as String).PadLeft(Convert.ToInt32(64), Convert.ToChar("0"))), (getValue(signature, "s") as String).PadLeft(Convert.ToInt32(64), Convert.ToChar("0"))), v);
+        return add(add(add("0x", (r as String).PadLeft(Convert.ToInt32(64), Convert.ToChar("0"))), (s as String).PadLeft(Convert.ToInt32(64), Convert.ToChar("0"))), v);
     }
 
     public virtual object signMessage(object message, object privateKey)

@@ -243,9 +243,13 @@ class binance extends Exchange {
                     // UID (sapi) request rate limit of 180 000 per minute
                     // 1 UID (sapi) => cost = 0.006667 => (1000 / (50 * 0.006667)) * 60 = 180000
                     'get' => array(
+                        // copy trading
+                        'copyTrading/futures/userStatus' => 2,
+                        'copyTrading/futures/leadSymbol' => 2,
                         'system/status' => 0.1,
                         // these endpoints require $this->apiKey
                         'accountSnapshot' => 240, // Weight(IP) => 2400 => cost = 0.1 * 2400 = 240
+                        'account/info' => 0.1,
                         'margin/asset' => 1, // Weight(IP) => 10 => cost = 0.1 * 10 = 1
                         'margin/pair' => 1,
                         'margin/allAssets' => 0.1,
@@ -849,6 +853,7 @@ class binance extends Exchange {
                         'order/asyn/id' => 10,
                         'trade/asyn' => 1000,
                         'trade/asyn/id' => 10,
+                        'feeBurn' => 1,
                     ),
                     'post' => array(
                         'batchOrders' => 5,
@@ -863,6 +868,7 @@ class binance extends Exchange {
                         // broker endpoints
                         'apiReferral/customization' => 1,
                         'apiReferral/userCustomization' => 1,
+                        'feeBurn' => 1,
                     ),
                     'put' => array(
                         'listenKey' => 1,
@@ -1228,6 +1234,7 @@ class binance extends Exchange {
                     'future' => 'UMFUTURE', // backwards compatibility
                     'delivery' => 'CMFUTURE', // backwards compatbility
                     'linear' => 'UMFUTURE',
+                    'swap' => 'UMFUTURE',
                     'inverse' => 'CMFUTURE',
                     'option' => 'OPTION',
                 ),
@@ -3073,7 +3080,7 @@ class binance extends Exchange {
         }) ();
     }
 
-    public function parse_market($market): array {
+    public function parse_market(array $market): array {
         $swap = false;
         $future = false;
         $option = false;
@@ -4308,7 +4315,7 @@ class binance extends Exchange {
         }) ();
     }
 
-    public function parse_trade($trade, ?array $market = null): array {
+    public function parse_trade(array $trade, ?array $market = null): array {
         if (is_array($trade) && array_key_exists('isDustTrade', $trade)) {
             return $this->parse_dust_trade($trade, $market);
         }
@@ -4903,7 +4910,7 @@ class binance extends Exchange {
         if ($cancelId === null) {
             $request['cancelOrderId'] = $id; // user can provide either cancelOrderId, cancelOrigClientOrderId or cancelOrigClientOrderId
         }
-        // remove timeInForce from $params because PO is only used by $this->is_post_onlyand it's not a valid value for Binance
+        // remove timeInForce from $params because PO is only used by array($this, 'is_post_only') and it's not a valid value for Binance
         if ($this->safe_string($params, 'timeInForce') === 'PO') {
             $params = $this->omit($params, array( 'timeInForce' ));
         }
@@ -5017,7 +5024,7 @@ class binance extends Exchange {
         }) ();
     }
 
-    public function parse_order_status($status) {
+    public function parse_order_status(?string $status) {
         $statuses = array(
             'NEW' => 'open',
             'PARTIALLY_FILLED' => 'open',
@@ -5033,7 +5040,7 @@ class binance extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_order($order, ?array $market = null): array {
+    public function parse_order(array $order, ?array $market = null): array {
         //
         // spot
         //
@@ -5912,6 +5919,15 @@ class binance extends Exchange {
                     $request['isIsolated'] = true;
                 }
             }
+        } else {
+            $postOnly = $this->is_post_only($isMarketOrder, $initialUppercaseType === 'LIMIT_MAKER', $params);
+            if ($postOnly) {
+                if (!$market['contract']) {
+                    $uppercaseType = 'LIMIT_MAKER'; // only this endpoint accepts GTXhttps://binance-docs.github.io/apidocs/pm/en/#new-margin-order-trade
+                } else {
+                    $request['timeInForce'] = 'GTX';
+                }
+            }
         }
         // handle newOrderRespType response $type
         if ((($marketType === 'spot') || ($marketType === 'margin')) && !$isPortfolioMargin) {
@@ -6032,13 +6048,13 @@ class binance extends Exchange {
                 $request['stopPrice'] = $this->price_to_precision($symbol, $stopPrice);
             }
         }
-        if ($timeInForceIsRequired && ($this->safe_string($params, 'timeInForce') === null)) {
+        if ($timeInForceIsRequired && ($this->safe_string($params, 'timeInForce') === null) && ($this->safe_string($request, 'timeInForce') === null)) {
             $request['timeInForce'] = $this->options['defaultTimeInForce']; // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
         }
         if (!$isPortfolioMargin && $market['contract'] && $postOnly) {
             $request['timeInForce'] = 'GTX';
         }
-        // remove timeInForce from $params because PO is only used by $this->is_post_onlyand it's not a valid value for Binance
+        // remove timeInForce from $params because PO is only used by array($this, 'is_post_only') and it's not a valid value for Binance
         if ($this->safe_string($params, 'timeInForce') === 'PO') {
             $params = $this->omit($params, 'timeInForce');
         }
@@ -7802,7 +7818,7 @@ class binance extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_transaction($transaction, ?array $currency = null): array {
+    public function parse_transaction(array $transaction, ?array $currency = null): array {
         //
         // fetchDeposits
         //
@@ -8553,7 +8569,7 @@ class binance extends Exchange {
         }) ();
     }
 
-    public function parse_trading_fee($fee, ?array $market = null): array {
+    public function parse_trading_fee(array $fee, ?array $market = null): array {
         //
         // spot
         //     array(
@@ -9595,7 +9611,7 @@ class binance extends Exchange {
         }) ();
     }
 
-    public function fetch_leverage_tiers(?array $symbols = null, $params = array ()) {
+    public function fetch_leverage_tiers(?array $symbols = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbols, $params) {
             /**
              * retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes
@@ -9674,7 +9690,7 @@ class binance extends Exchange {
         }) ();
     }
 
-    public function parse_market_leverage_tiers($info, ?array $market = null) {
+    public function parse_market_leverage_tiers($info, ?array $market = null): array {
         /**
          * @ignore
          * @param {array} $info Exchange response for 1 $market
@@ -9819,7 +9835,7 @@ class binance extends Exchange {
         }) ();
     }
 
-    public function parse_position($position, ?array $market = null) {
+    public function parse_position(array $position, ?array $market = null) {
         //
         //     {
         //         "entryPrice" => "27.70000000",
@@ -10720,7 +10736,7 @@ class binance extends Exchange {
         }) ();
     }
 
-    public function parse_ledger_entry($item, ?array $currency = null) {
+    public function parse_ledger_entry(array $item, ?array $currency = null) {
         //
         // options (eapi)
         //
@@ -10912,7 +10928,7 @@ class binance extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function get_exceptions_by_url($url, $exactOrBroad) {
+    public function get_exceptions_by_url(string $url, string $exactOrBroad) {
         $marketType = null;
         $hostname = ($this->hostname !== null) ? $this->hostname : 'binance.com';
         if (str_starts_with($url, 'https://api.' . $hostname . '/')) {
@@ -10933,7 +10949,7 @@ class binance extends Exchange {
         return array();
     }
 
-    public function handle_errors($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
         if (($code === 418) || ($code === 429)) {
             throw new DDoSProtection($this->id . ' ' . (string) $code . ' ' . $reason . ' ' . $body);
         }
@@ -11556,7 +11572,7 @@ class binance extends Exchange {
         }) ();
     }
 
-    public function parse_borrow_interest($info, ?array $market = null) {
+    public function parse_borrow_interest(array $info, ?array $market = null) {
         $symbol = $this->safe_string($info, 'isolatedSymbol');
         $timestamp = $this->safe_integer($info, 'interestAccuredTime');
         $marginMode = ($symbol === null) ? 'cross' : 'isolated';
@@ -12414,7 +12430,7 @@ class binance extends Exchange {
         }) ();
     }
 
-    public function parse_margin_mode($marginMode, $market = null): array {
+    public function parse_margin_mode(array $marginMode, $market = null): array {
         $marketId = $this->safe_string($marginMode, 'symbol');
         $market = $this->safe_market($marketId, $market);
         $isIsolated = $this->safe_bool($marginMode, 'isolated');

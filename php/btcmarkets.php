@@ -234,7 +234,7 @@ class btcmarkets extends Exchange {
         return $this->fetch_transactions_with_method('privateGetWithdrawals', $code, $since, $limit, $params);
     }
 
-    public function parse_transaction_status($status) {
+    public function parse_transaction_status(?string $status) {
         $statuses = array(
             'Accepted' => 'pending',
             'Pending Authorization' => 'pending',
@@ -253,7 +253,7 @@ class btcmarkets extends Exchange {
         return $this->safe_string($statuses, $type, $type);
     }
 
-    public function parse_transaction($transaction, ?array $currency = null): array {
+    public function parse_transaction(array $transaction, ?array $currency = null): array {
         //
         //    {
         //         "id" => "6500230339",
@@ -381,7 +381,7 @@ class btcmarkets extends Exchange {
         return $this->parse_markets($response);
     }
 
-    public function parse_market($market): array {
+    public function parse_market(array $market): array {
         $baseId = $this->safe_string($market, 'baseAssetName');
         $quoteId = $this->safe_string($market, 'quoteAssetName');
         $id = $this->safe_string($market, 'marketId');
@@ -681,7 +681,7 @@ class btcmarkets extends Exchange {
         return $this->parse_ticker($response, $market);
     }
 
-    public function parse_trade($trade, ?array $market = null): array {
+    public function parse_trade(array $trade, ?array $market = null): array {
         //
         // public fetchTrades
         //
@@ -909,7 +909,9 @@ class btcmarkets extends Exchange {
         /**
          * calculates the presumptive fee that would be charged for an order
          * @param {string} $symbol unified $market $symbol
-         * @param {string} $type not used by btcmarkets.calculate_fee         * @param {string} $side not used by btcmarkets.calculate_fee         * @param {float} $amount how much you want to trade, in units of the base $currency on most exchanges, or number of contracts
+         * @param {string} $type not used by btcmarkets.calculateFee
+         * @param {string} $side not used by btcmarkets.calculateFee
+         * @param {float} $amount how much you want to trade, in units of the base $currency on most exchanges, or number of contracts
          * @param {float} $price the $price for the order to be filled at, in units of the quote $currency
          * @param {string} $takerOrMaker 'taker' or 'maker'
          * @param {array} $params
@@ -938,7 +940,7 @@ class btcmarkets extends Exchange {
         );
     }
 
-    public function parse_order_status($status) {
+    public function parse_order_status(?string $status) {
         $statuses = array(
             'Accepted' => 'open',
             'Placed' => 'open',
@@ -951,7 +953,7 @@ class btcmarkets extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_order($order, ?array $market = null): array {
+    public function parse_order(array $order, ?array $market = null): array {
         //
         // createOrder
         //
@@ -1228,7 +1230,7 @@ class btcmarkets extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
         if ($response === null) {
             return null; // fallback to default $error handler
         }
