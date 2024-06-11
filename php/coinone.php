@@ -1049,7 +1049,7 @@ class coinone extends Exchange {
         //         "errorCode" => "0"
         //     }
         //
-        return $response;
+        return $this->safe_order($response);
     }
 
     public function fetch_deposit_addresses(?array $codes = null, $params = array ()) {

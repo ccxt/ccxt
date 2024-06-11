@@ -2330,6 +2330,8 @@ public partial class kucoin : Exchange
             {
                 response = await this.privateDeleteOrderClientOrderClientOid(this.extend(request, parameters));
             }
+            response = this.safeDict(response, "data");
+            return this.parseOrder(response);
         } else
         {
             ((IDictionary<string,object>)request)["orderId"] = id;
@@ -2339,12 +2341,28 @@ public partial class kucoin : Exchange
             } else if (isTrue(hf))
             {
                 response = await this.privateDeleteHfOrdersOrderId(this.extend(request, parameters));
+                //
+                //    {
+                //        "code": "200000",
+                //        "data": {
+                //          "orderId": "630625dbd9180300014c8d52"
+                //        }
+                //    }
+                //
+                response = this.safeDict(response, "data");
+                return this.parseOrder(response);
             } else
             {
                 response = await this.privateDeleteOrdersOrderId(this.extend(request, parameters));
             }
+            object data = this.safeDict(response, "data");
+            object orderIds = this.safeList(data, "cancelledOrderIds", new List<object>() {});
+            object orderId = this.safeString(orderIds, 0);
+            return this.safeOrder(new Dictionary<string, object>() {
+                { "info", data },
+                { "id", orderId },
+            });
         }
-        return response;
     }
 
     public async override Task<object> cancelAllOrders(object symbol = null, object parameters = null)
@@ -2867,7 +2885,7 @@ public partial class kucoin : Exchange
         object stopPrice = this.safeNumber(order, "stopPrice");
         return this.safeOrder(new Dictionary<string, object>() {
             { "info", order },
-            { "id", this.safeStringN(order, new List<object>() {"id", "orderId", "newOrderId"}) },
+            { "id", this.safeStringN(order, new List<object>() {"id", "orderId", "newOrderId", "cancelledOrderId"}) },
             { "clientOrderId", this.safeString(order, "clientOid") },
             { "symbol", this.safeSymbol(marketId, market, "-") },
             { "type", this.safeString(order, "type") },

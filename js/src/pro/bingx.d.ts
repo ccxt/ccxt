@@ -1,11 +1,16 @@
 import bingxRest from '../bingx.js';
-import type { Int, OHLCV, Str, OrderBook, Order, Trade, Balances, Ticker } from '../base/types.js';
+import type { Int, OHLCV, Str, Strings, OrderBook, Order, Trade, Balances, Ticker, Tickers } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class bingx extends bingxRest {
     describe(): any;
     watchTicker(symbol: string, params?: {}): Promise<Ticker>;
     handleTicker(client: Client, message: any): void;
     parseWsTicker(message: any, market?: any): Ticker;
+    watchTickers(symbols?: Strings, params?: {}): Promise<Tickers>;
+    watchOrderBookForSymbols(symbols: string[], limit?: Int, params?: {}): Promise<OrderBook>;
+    watchOHLCVForSymbols(symbolsAndTimeframes: string[][], since?: Int, limit?: Int, params?: {}): Promise<import("../base/types.js").Dictionary<import("../base/types.js").Dictionary<OHLCV[]>>>;
+    getOrderBookLimitByMarketType(marketType: string, limit?: Int): number;
+    getMessageHash(unifiedChannel: string, symbol?: Str, extra?: Str): string;
     watchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     handleTrades(client: Client, message: any): void;
     watchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;

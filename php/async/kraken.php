@@ -2164,6 +2164,14 @@ class kraken extends Exchange {
             $params = $this->omit($params, array( 'userref', 'clientOrderId' ));
             try {
                 $response = Async\await($this->privatePostCancelOrder ($this->extend($request, $params)));
+                //
+                //    {
+                //        error => array(),
+                //        result => {
+                //            count => '1'
+                //        }
+                //    }
+                //
             } catch (Exception $e) {
                 if ($this->last_http_response) {
                     if (mb_strpos($this->last_http_response, 'EOrder:Unknown order') !== false) {
@@ -2172,7 +2180,9 @@ class kraken extends Exchange {
                 }
                 throw $e;
             }
-            return $response;
+            return $this->safe_order(array(
+                'info' => $response,
+            ));
         }) ();
     }
 
@@ -2198,7 +2208,11 @@ class kraken extends Exchange {
             //         }
             //     }
             //
-            return $response;
+            return array(
+                $this->safe_order(array(
+                    'info' => $response,
+                )),
+            );
         }) ();
     }
 
@@ -2212,7 +2226,20 @@ class kraken extends Exchange {
              * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             Async\await($this->load_markets());
-            return Async\await($this->privatePostCancelAll ($params));
+            $response = Async\await($this->privatePostCancelAll ($params));
+            //
+            //    {
+            //        error => array(),
+            //        result => {
+            //            count => '1'
+            //        }
+            //    }
+            //
+            return array(
+                $this->safe_order(array(
+                    'info' => $response,
+                )),
+            );
         }) ();
     }
 

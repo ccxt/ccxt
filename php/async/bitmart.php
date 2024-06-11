@@ -1146,27 +1146,46 @@ class bitmart extends Exchange {
 
     public function parse_ticker(array $ticker, ?array $market = null): array {
         //
-        // spot (REST)
+        // spot (REST) fetchTickers
         //
-        //      {
-        //          "symbol" => "SOLAR_USDT",
-        //          "last_price" => "0.020342",
-        //          "quote_volume_24h" => "56817.811802",
-        //          "base_volume_24h" => "2172060",
-        //          "high_24h" => "0.256000",
-        //          "low_24h" => "0.016980",
-        //          "open_24h" => "0.022309",
-        //          "close_24h" => "0.020342",
-        //          "best_ask" => "0.020389",
-        //          "best_ask_size" => "339.000000000000000000000000000000",
-        //          "best_bid" => "0.020342",
-        //          "best_bid_size" => "3369.000000000000000000000000000000",
-        //          "fluctuation" => "-0.0882",
-        //          "url" => "https://www.bitmart.com/trade?$symbol=SOLAR_USDT",
-        //          "timestamp" => 1667403439367
-        //      }
+        //     {
+        //         'result' => array(
+        //             "AFIN_USDT",     // $symbol
+        //             "0.001047",      // $last
+        //             "11110",         // v_24h
+        //             "11.632170",     // qv_24h
+        //             "0.001048",      // open_24h
+        //             "0.001048",      // high_24h
+        //             "0.001047",      // low_24h
+        //             "-0.00095",      // price_change_24h
+        //             "0.001029",      // bid_px
+        //             "5555",          // bid_sz
+        //             "0.001041",      // ask_px
+        //             "5297",          // ask_sz
+        //             "1717122550482"  // $timestamp
+        //         )
+        //     }
+        //
+        // spot (REST) fetchTicker
+        //
+        //     {
+        //         "symbol" => "BTC_USDT",
+        //         "last" => "68500.00",
+        //         "v_24h" => "10491.65490",
+        //         "qv_24h" => "717178990.42",
+        //         "open_24h" => "68149.75",
+        //         "high_24h" => "69499.99",
+        //         "low_24h" => "67132.40",
+        //         "fluctuation" => "0.00514",
+        //         "bid_px" => "68500",
+        //         "bid_sz" => "0.00162",
+        //         "ask_px" => "68500.01",
+        //         "ask_sz" => "0.01722",
+        //         "ts" => "1717131391671"
+        //     }
         //
         // spot (WS)
+        //
         //      {
         //          "symbol":"BTC_USDT",
         //          "last_price":"146.24",
@@ -1192,21 +1211,47 @@ class bitmart extends Exchange {
         //          "legal_coin_price":"0.1302699"
         //      }
         //
-        $timestamp = $this->safe_integer($ticker, 'timestamp');
+        $result = $this->safe_list($ticker, 'result', array());
+        $average = $this->safe_string_2($ticker, 'avg_price', 'index_price');
+        $marketId = $this->safe_string_2($ticker, 'symbol', 'contract_symbol');
+        $timestamp = $this->safe_integer_2($ticker, 'timestamp', 'ts');
+        $last = $this->safe_string_2($ticker, 'last_price', 'last');
+        $percentage = $this->safe_string($ticker, 'price_change_percent_24h');
+        $change = $this->safe_string($ticker, 'fluctuation');
+        $high = $this->safe_string_2($ticker, 'high_24h', 'high_price');
+        $low = $this->safe_string_2($ticker, 'low_24h', 'low_price');
+        $bid = $this->safe_string_2($ticker, 'best_bid', 'bid_px');
+        $bidVolume = $this->safe_string_2($ticker, 'best_bid_size', 'bid_sz');
+        $ask = $this->safe_string_2($ticker, 'best_ask', 'ask_px');
+        $askVolume = $this->safe_string_2($ticker, 'best_ask_size', 'ask_sz');
+        $open = $this->safe_string($ticker, 'open_24h');
+        $baseVolume = $this->safe_string_2($ticker, 'base_volume_24h', 'v_24h');
+        $quoteVolume = $this->safe_string_lower_2($ticker, 'quote_volume_24h', 'qv_24h');
+        $listMarketId = $this->safe_string($result, 0);
+        if ($listMarketId !== null) {
+            $marketId = $listMarketId;
+            $timestamp = $this->safe_integer($result, 12);
+            $high = $this->safe_string($result, 5);
+            $low = $this->safe_string($result, 6);
+            $bid = $this->safe_string($result, 8);
+            $bidVolume = $this->safe_string($result, 9);
+            $ask = $this->safe_string($result, 10);
+            $askVolume = $this->safe_string($result, 11);
+            $open = $this->safe_string($result, 4);
+            $last = $this->safe_string($result, 1);
+            $change = $this->safe_string($result, 7);
+            $baseVolume = $this->safe_string($result, 2);
+            $quoteVolume = $this->safe_string_lower($result, 3);
+        }
+        $market = $this->safe_market($marketId, $market);
+        $symbol = $market['symbol'];
         if ($timestamp === null) {
             // $ticker from WS has a different field (in seconds)
             $timestamp = $this->safe_integer_product($ticker, 's_t', 1000);
         }
-        $marketId = $this->safe_string_2($ticker, 'symbol', 'contract_symbol');
-        $market = $this->safe_market($marketId, $market);
-        $symbol = $market['symbol'];
-        $last = $this->safe_string_2($ticker, 'close_24h', 'last_price');
-        $percentage = $this->safe_string($ticker, 'price_change_percent_24h');
         if ($percentage === null) {
-            $percentage = Precise::string_mul($this->safe_string($ticker, 'fluctuation'), '100');
+            $percentage = Precise::string_mul($change, '100');
         }
-        $baseVolume = $this->safe_string($ticker, 'base_volume_24h');
-        $quoteVolume = $this->safe_string($ticker, 'quote_volume_24h');
         if ($quoteVolume === null) {
             if ($baseVolume === null) {
                 // this is swap
@@ -1218,25 +1263,22 @@ class bitmart extends Exchange {
                 $baseVolume = null;
             }
         }
-        $average = $this->safe_string_2($ticker, 'avg_price', 'index_price');
-        $high = $this->safe_string_2($ticker, 'high_24h', 'high_price');
-        $low = $this->safe_string_2($ticker, 'low_24h', 'low_price');
         return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'high' => $high,
             'low' => $low,
-            'bid' => $this->safe_string($ticker, 'best_bid'),
-            'bidVolume' => $this->safe_string($ticker, 'best_bid_size'),
-            'ask' => $this->safe_string($ticker, 'best_ask'),
-            'askVolume' => $this->safe_string($ticker, 'best_ask_size'),
+            'bid' => $bid,
+            'bidVolume' => $bidVolume,
+            'ask' => $ask,
+            'askVolume' => $askVolume,
             'vwap' => null,
-            'open' => $this->safe_string($ticker, 'open_24h'),
+            'open' => $open,
             'close' => $last,
             'last' => $last,
             'previousClose' => null,
-            'change' => null,
+            'change' => $change,
             'percentage' => $percentage,
             'average' => $average,
             'baseVolume' => $baseVolume,
@@ -1249,6 +1291,7 @@ class bitmart extends Exchange {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
+             * @see https://developer-pro.bitmart.com/en/spot/#get-$ticker-of-a-trading-pair-v3
              * @param {string} $symbol unified $symbol of the $market to fetch the $ticker for
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=$ticker-structure $ticker structure~
@@ -1260,75 +1303,69 @@ class bitmart extends Exchange {
             if ($market['swap']) {
                 $request['contract_symbol'] = $market['id'];
                 $response = Async\await($this->publicGetContractV1Tickers ($this->extend($request, $params)));
+                //
+                //      {
+                //          "message":"OK",
+                //          "code":1000,
+                //          "trace":"4a0ebceb-d3f7-45a3-8feb-f61e230e24cd",
+                //          "data":{
+                //              "tickers":array(
+                //                  {
+                //                      "contract_symbol":"DOGEUSDT",
+                //                      "last_price":"0.130180",
+                //                      "index_price":"0.13028635",
+                //                      "last_funding_rate":"0.00002025",
+                //                      "price_change_percent_24h":"-2.326",
+                //                      "volume_24h":"116789313.01797258",
+                //                      "url":"https://futures.bitmart.com/en?$symbol=DOGEUSDT",
+                //                      "high_price":"0.134520",
+                //                      "low_price":"0.128570",
+                //                      "legal_coin_price":"0.13017401"
+                //                  }
+                //              )
+                //          }
+                //      }
+                //
             } elseif ($market['spot']) {
                 $request['symbol'] = $market['id'];
-                $response = Async\await($this->publicGetSpotV1Ticker ($this->extend($request, $params)));
+                $response = Async\await($this->publicGetSpotQuotationV3Ticker ($this->extend($request, $params)));
+                //
+                //     {
+                //         "code" => 1000,
+                //         "trace" => "f2194c2c202d2.99.1717535",
+                //         "message" => "success",
+                //         "data" => {
+                //             "symbol" => "BTC_USDT",
+                //             "last" => "68500.00",
+                //             "v_24h" => "10491.65490",
+                //             "qv_24h" => "717178990.42",
+                //             "open_24h" => "68149.75",
+                //             "high_24h" => "69499.99",
+                //             "low_24h" => "67132.40",
+                //             "fluctuation" => "0.00514",
+                //             "bid_px" => "68500",
+                //             "bid_sz" => "0.00162",
+                //             "ask_px" => "68500.01",
+                //             "ask_sz" => "0.01722",
+                //             "ts" => "1717131391671"
+                //         }
+                //     }
+                //
             } else {
                 throw new NotSupported($this->id . ' fetchTicker() does not support ' . $market['type'] . ' markets, only spot and swap markets are accepted');
             }
-            //
-            // spot
-            //
-            //     {
-            //         "message":"OK",
-            //         "code":1000,
-            //         "trace":"6aa5b923-2f57-46e3-876d-feca190e0b82",
-            //         "data":{
-            //             "tickers":array(
-            //                 {
-            //                     "symbol":"ETH_BTC",
-            //                     "last_price":"0.036037",
-            //                     "quote_volume_24h":"4380.6660000000",
-            //                     "base_volume_24h":"159.3582006712",
-            //                     "high_24h":"0.036972",
-            //                     "low_24h":"0.035524",
-            //                     "open_24h":"0.036561",
-            //                     "close_24h":"0.036037",
-            //                     "best_ask":"0.036077",
-            //                     "best_ask_size":"9.9500",
-            //                     "best_bid":"0.035983",
-            //                     "best_bid_size":"4.2792",
-            //                     "fluctuation":"-0.0143",
-            //                     "url":"https://www.bitmart.com/trade?$symbol=ETH_BTC"
-            //                 }
-            //             )
-            //         }
-            //     }
-            //
-            // swap
-            //
-            //      {
-            //          "message":"OK",
-            //          "code":1000,
-            //          "trace":"4a0ebceb-d3f7-45a3-8feb-f61e230e24cd",
-            //          "data":{
-            //              "tickers":array(
-            //                  {
-            //                      "contract_symbol":"DOGEUSDT",
-            //                      "last_price":"0.130180",
-            //                      "index_price":"0.13028635",
-            //                      "last_funding_rate":"0.00002025",
-            //                      "price_change_percent_24h":"-2.326",
-            //                      "volume_24h":"116789313.01797258",
-            //                      "url":"https://futures.bitmart.com/en?$symbol=DOGEUSDT",
-            //                      "high_price":"0.134520",
-            //                      "low_price":"0.128570",
-            //                      "legal_coin_price":"0.13017401"
-            //                  }
-            //              )
-            //          }
-            //      }
-            //
-            $data = $this->safe_value($response, 'data', array());
-            $tickers = $this->safe_value($data, 'tickers', array());
             // fails in naming for contract $tickers 'contract_symbol'
             $tickersById = null;
+            $tickers = array();
+            $ticker = array();
             if ($market['spot']) {
-                $tickersById = $this->index_by($tickers, 'symbol');
-            } elseif ($market['swap']) {
+                $ticker = $this->safe_dict($response, 'data', array());
+            } else {
+                $data = $this->safe_dict($response, 'data', array());
+                $tickers = $this->safe_list($data, 'tickers', array());
                 $tickersById = $this->index_by($tickers, 'contract_symbol');
+                $ticker = $this->safe_dict($tickersById, $market['id']);
             }
-            $ticker = $this->safe_dict($tickersById, $market['id']);
             return $this->parse_ticker($ticker, $market);
         }) ();
     }
@@ -1337,7 +1374,7 @@ class bitmart extends Exchange {
         return Async\async(function () use ($symbols, $params) {
             /**
              * fetches price $tickers for multiple markets, statistical information calculated over the past 24 hours for each $market
-             * @see https://developer-pro.bitmart.com/en/spot/#get-$ticker-of-all-pairs-v2
+             * @see https://developer-pro.bitmart.com/en/spot/#get-$ticker-of-all-pairs-v3
              * @param {string[]|null} $symbols unified $symbols of the markets to fetch the $ticker for, all $market $tickers are returned if not assigned
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=$ticker-structure $ticker structures~
@@ -1353,17 +1390,74 @@ class bitmart extends Exchange {
             list($type, $params) = $this->handle_market_type_and_params('fetchTickers', $market, $params);
             $response = null;
             if ($type === 'spot') {
-                $response = Async\await($this->publicGetSpotV2Ticker ($params));
+                $response = Async\await($this->publicGetSpotQuotationV3Tickers ($params));
+                //
+                //     {
+                //         "code" => 1000,
+                //         "trace" => "17c5e5d9ac49f9b71efca2bed55f1a.105.171225637482393",
+                //         "message" => "success",
+                //         "data" => array(
+                //             array(
+                //                 "AFIN_USDT",
+                //                 "0.001047",
+                //                 "11110",
+                //                 "11.632170",
+                //                 "0.001048",
+                //                 "0.001048",
+                //                 "0.001047",
+                //                 "-0.00095",
+                //                 "0.001029",
+                //                 "5555",
+                //                 "0.001041",
+                //                 "5297",
+                //                 "1717122550482"
+                //             ),
+                //         )
+                //     }
+                //
             } elseif ($type === 'swap') {
                 $response = Async\await($this->publicGetContractV1Tickers ($params));
+                //
+                //     {
+                //         "message" => "OK",
+                //         "code" => 1000,
+                //         "trace" => "c1dec681c24ea5d.105.171712565",
+                //         "data" => {
+                //             "tickers" => array(
+                //                 array(
+                //                     "contract_symbol" => "SNTUSDT",
+                //                     "last_price" => "0.0366600",
+                //                     "index_price" => "0.03587373",
+                //                     "last_funding_rate" => "0.00005000",
+                //                     "price_change_percent_24h" => "-2.629",
+                //                     "volume_24h" => "10102540.19909109848",
+                //                     "url" => "https://futures.bitmart.com/en?$symbol=SNTUSDT",
+                //                     "high_price" => "0.0405600",
+                //                     "low_price" => "0.0355000",
+                //                     "legal_coin_price" => "0.03666697"
+                //                 ),
+                //             )
+                //         }
+                //     }
+                //
             } else {
                 throw new NotSupported($this->id . ' fetchTickers() does not support ' . $type . ' markets, only spot and swap markets are accepted');
             }
-            $data = $this->safe_value($response, 'data', array());
-            $tickers = $this->safe_value($data, 'tickers', array());
+            $tickers = array();
+            if ($type === 'spot') {
+                $tickers = $this->safe_list($response, 'data', array());
+            } else {
+                $data = $this->safe_dict($response, 'data', array());
+                $tickers = $this->safe_list($data, 'tickers', array());
+            }
             $result = array();
             for ($i = 0; $i < count($tickers); $i++) {
-                $ticker = $this->parse_ticker($tickers[$i]);
+                $ticker = array();
+                if ($type === 'spot') {
+                    $ticker = $this->parse_ticker(array( 'result' => $tickers[$i] ));
+                } else {
+                    $ticker = $this->parse_ticker($tickers[$i]);
+                }
                 $symbol = $ticker['symbol'];
                 $result[$symbol] = $ticker;
             }

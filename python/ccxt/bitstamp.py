@@ -1376,7 +1376,17 @@ class bitstamp(Exchange, ImplicitAPI):
         request: dict = {
             'id': id,
         }
-        return self.privatePostCancelOrder(self.extend(request, params))
+        response = self.privatePostCancelOrder(self.extend(request, params))
+        #
+        #    {
+        #        "id": 1453282316578816,
+        #        "amount": "0.02035278",
+        #        "price": "2100.45",
+        #        "type": 0,
+        #        "market": "BTC/USD"
+        #    }
+        #
+        return self.parse_order(response)
 
     def cancel_all_orders(self, symbol: Str = None, params={}):
         """
@@ -1397,7 +1407,23 @@ class bitstamp(Exchange, ImplicitAPI):
             response = self.privatePostCancelAllOrdersPair(self.extend(request, params))
         else:
             response = self.privatePostCancelAllOrders(self.extend(request, params))
-        return response
+        #
+        #    {
+        #        "canceled": [
+        #            {
+        #                "id": 1453282316578816,
+        #                "amount": "0.02035278",
+        #                "price": "2100.45",
+        #                "type": 0,
+        #                "currency_pair": "BTC/USD",
+        #                "market": "BTC/USD"
+        #            }
+        #        ],
+        #        "success": True
+        #    }
+        #
+        canceled = self.safe_list(response, 'canceled')
+        return self.parse_orders(canceled)
 
     def parse_order_status(self, status: Str):
         statuses: dict = {
@@ -1742,6 +1768,16 @@ class bitstamp(Exchange, ImplicitAPI):
         #           "type": "0",
         #           "id": "2814205012"
         #       }
+        #
+        # cancelOrder
+        #
+        #    {
+        #        "id": 1453282316578816,
+        #        "amount": "0.02035278",
+        #        "price": "2100.45",
+        #        "type": 0,
+        #        "market": "BTC/USD"
+        #    }
         #
         id = self.safe_string(order, 'id')
         clientOrderId = self.safe_string(order, 'client_order_id')

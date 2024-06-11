@@ -446,6 +446,13 @@ class zonda extends Exchange {
         //         "secondBalanceId" => "ab43023b-4079-414c-b340-056e3430a3af"
         //     }
         //
+        // cancelOrder
+        //
+        //    {
+        //        status => "Ok",
+        //        errors => array()
+        //    }
+        //
         $marketId = $this->safe_string($order, 'market');
         $symbol = $this->safe_symbol($marketId, $market, '-');
         $timestamp = $this->safe_integer($order, 'time');
@@ -1509,9 +1516,10 @@ class zonda extends Exchange {
                 'side' => $side,
                 'price' => $price,
             );
+            $response = Async\await($this->v1_01PrivateDeleteTradingOfferSymbolIdSidePrice ($this->extend($request, $params)));
             // array( status => "Fail", errors => array( "NOT_RECOGNIZED_OFFER_TYPE" ) )  -- if required $params are missing
             // array( status => "Ok", errors => array() )
-            return Async\await($this->v1_01PrivateDeleteTradingOfferSymbolIdSidePrice ($this->extend($request, $params)));
+            return $this->parse_order($response);
         }) ();
     }
 

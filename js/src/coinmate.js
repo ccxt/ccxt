@@ -929,6 +929,13 @@ export default class coinmate extends Exchange {
         //         "trailing": false,
         //     }
         //
+        // cancelOrder
+        //
+        //    {
+        //        "success": true,
+        //        "remainingAmount": 0.1
+        //    }
+        //
         const id = this.safeString(order, 'id');
         const timestamp = this.safeInteger(order, 'timestamp');
         const side = this.safeStringLower(order, 'type');
@@ -1048,9 +1055,18 @@ export default class coinmate extends Exchange {
         //   {"error":false,"errorMessage":null,"data":{"success":true,"remainingAmount":0.01}}
         const request = { 'orderId': id };
         const response = await this.privatePostCancelOrderWithInfo(this.extend(request, params));
-        return {
-            'info': response,
-        };
+        //
+        //    {
+        //        "error": false,
+        //        "errorMessage": null,
+        //        "data": {
+        //          "success": true,
+        //          "remainingAmount": 0.1
+        //        }
+        //    }
+        //
+        const data = this.safeDict(response, 'data');
+        return this.parseOrder(data);
     }
     nonce() {
         return this.milliseconds();

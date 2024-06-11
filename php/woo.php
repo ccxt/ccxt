@@ -1262,7 +1262,9 @@ class woo extends Exchange {
         //         "status":"CANCEL_ALL_SENT"
         //     }
         //
-        return $response;
+        return array(
+            $this->safe_order($response),
+        );
     }
 
     public function cancel_all_orders_after(?int $timeout, $params = array ()) {
@@ -1288,7 +1290,9 @@ class woo extends Exchange {
         //         "timestamp" => 1711534302943
         //     }
         //
-        return $response;
+        return array(
+            $this->safe_order($response),
+        );
     }
 
     public function fetch_order(string $id, ?string $symbol = null, $params = array ()) {

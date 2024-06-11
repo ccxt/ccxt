@@ -904,10 +904,10 @@ class btcmarkets extends Exchange {
     public function cancel_orders($ids, ?string $symbol = null, $params = array ()) {
         return Async\async(function () use ($ids, $symbol, $params) {
             /**
-             * cancel multiple orders
+             * cancel multiple $orders
              * @see https://docs.btcmarkets.net/v3/#tag/Batch-Order-APIs/paths/{1v3}1batchorders{1}$ids~/delete
              * @param {string[]} $ids order $ids
-             * @param {string} $symbol not used by btcmarkets cancelOrders ()
+             * @param {string} $symbol not used by btcmarkets $cancelOrders ()
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} an list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
@@ -918,7 +918,29 @@ class btcmarkets extends Exchange {
             $request = array(
                 'ids' => $ids,
             );
-            return Async\await($this->privateDeleteBatchordersIds ($this->extend($request, $params)));
+            $response = Async\await($this->privateDeleteBatchordersIds ($this->extend($request, $params)));
+            //
+            //    {
+            //       "cancelOrders" => array(
+            //            array(
+            //               "orderId" => "414186",
+            //               "clientOrderId" => "6"
+            //            ),
+            //            ...
+            //        ),
+            //        "unprocessedRequests" => array(
+            //            {
+            //               "code" => "OrderAlreadyCancelled",
+            //               "message" => "order is already cancelled.",
+            //               "requestId" => "1"
+            //            }
+            //        )
+            //    }
+            //
+            $cancelOrders = $this->safe_list($response, 'cancelOrders', array());
+            $unprocessedRequests = $this->safe_list($response, 'unprocessedRequests', array());
+            $orders = $this->array_concat($cancelOrders, $unprocessedRequests);
+            return $this->parse_orders($orders);
         }) ();
     }
 
@@ -936,7 +958,14 @@ class btcmarkets extends Exchange {
             $request = array(
                 'id' => $id,
             );
-            return Async\await($this->privateDeleteOrdersId ($this->extend($request, $params)));
+            $response = Async\await($this->privateDeleteOrdersId ($this->extend($request, $params)));
+            //
+            //    {
+            //        "orderId" => "7524",
+            //        "clientOrderId" => "123-456"
+            //    }
+            //
+            return $this->parse_order($response);
         }) ();
     }
 

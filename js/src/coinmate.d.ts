@@ -28,9 +28,7 @@ export default class coinmate extends Exchange {
     parseOrder(order: Dict, market?: Market): Order;
     createOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): Promise<Order>;
     fetchOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
-    cancelOrder(id: string, symbol?: Str, params?: {}): Promise<{
-        info: any;
-    }>;
+    cancelOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
     nonce(): number;
     sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {
         url: string;

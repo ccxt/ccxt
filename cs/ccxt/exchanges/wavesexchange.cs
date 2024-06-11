@@ -1466,7 +1466,7 @@ public partial class wavesexchange : Exchange
         object firstMessage = this.safeValue(message, 0);
         object firstOrder = this.safeValue(firstMessage, 0);
         object returnedId = this.safeString(firstOrder, "orderId");
-        return new Dictionary<string, object>() {
+        return this.safeOrder(new Dictionary<string, object>() {
             { "info", response },
             { "id", returnedId },
             { "clientOrderId", null },
@@ -1485,7 +1485,7 @@ public partial class wavesexchange : Exchange
             { "status", null },
             { "fee", null },
             { "trades", null },
-        };
+        });
     }
 
     public async override Task<object> fetchOrder(object id, object symbol = null, object parameters = null)

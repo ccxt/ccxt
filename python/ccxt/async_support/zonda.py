@@ -449,6 +449,13 @@ class zonda(Exchange, ImplicitAPI):
         #         "secondBalanceId": "ab43023b-4079-414c-b340-056e3430a3af"
         #     }
         #
+        # cancelOrder
+        #
+        #    {
+        #        status: "Ok",
+        #        errors: []
+        #    }
+        #
         marketId = self.safe_string(order, 'market')
         symbol = self.safe_symbol(marketId, market, '-')
         timestamp = self.safe_integer(order, 'time')
@@ -1455,9 +1462,10 @@ class zonda(Exchange, ImplicitAPI):
             'side': side,
             'price': price,
         }
+        response = await self.v1_01PrivateDeleteTradingOfferSymbolIdSidePrice(self.extend(request, params))
         # {status: "Fail", errors: ["NOT_RECOGNIZED_OFFER_TYPE"]}  -- if required params are missing
         # {status: "Ok", errors: []}
-        return await self.v1_01PrivateDeleteTradingOfferSymbolIdSidePrice(self.extend(request, params))
+        return self.parse_order(response)
 
     def is_fiat(self, currency):
         fiatCurrencies: dict = {

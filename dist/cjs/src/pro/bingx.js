@@ -14,11 +14,13 @@ class bingx extends bingx$1 {
                 'ws': true,
                 'watchTrades': true,
                 'watchOrderBook': true,
+                'watchOrderBookForSymbols': true,
                 'watchOHLCV': true,
+                'watchOHLCVForSymbols': true,
                 'watchOrders': true,
                 'watchMyTrades': true,
                 'watchTicker': true,
-                'watchTickers': false,
+                'watchTickers': true,
                 'watchBalance': true,
             },
             'urls': {
@@ -66,6 +68,14 @@ class bingx extends bingx$1 {
                     'fetchBalanceSnapshot': true,
                     'awaitBalanceSnapshot': false, // whether to wait for the balance snapshot before providing updates
                 },
+                'watchOrderBook': {
+                    'depth': 100,
+                    'interval': 500, // 100, 200, 500, 1000
+                },
+                'watchOrderBookForSymbols': {
+                    'depth': 100,
+                    'interval': 500, // 100, 200, 500, 1000
+                },
             },
             'streaming': {
                 'keepAlive': 1800000, // 30 minutes
@@ -89,16 +99,17 @@ class bingx extends bingx$1 {
         if (url === undefined) {
             throw new errors.BadRequest(this.id + ' watchTrades is not supported for ' + marketType + ' markets.');
         }
-        const messageHash = market['id'] + '@ticker';
+        const subscriptionHash = market['id'] + '@ticker';
+        const messageHash = this.getMessageHash('ticker', market['symbol']);
         const uuid = this.uuid();
         const request = {
             'id': uuid,
-            'dataType': messageHash,
+            'dataType': subscriptionHash,
         };
         if (marketType === 'swap') {
             request['reqType'] = 'sub';
         }
-        return await this.watch(url, messageHash, this.extend(request, query), messageHash);
+        return await this.watch(url, messageHash, this.extend(request, query), subscriptionHash);
     }
     handleTicker(client, message) {
         //
@@ -164,8 +175,10 @@ class bingx extends bingx$1 {
         const symbol = market['symbol'];
         const ticker = this.parseWsTicker(data, market);
         this.tickers[symbol] = ticker;
-        const messageHash = market['id'] + '@ticker';
-        client.resolve(ticker, messageHash);
+        client.resolve(ticker, this.getMessageHash('ticker', symbol));
+        if (this.safeString(message, 'dataType') === 'all@ticker') {
+            client.resolve(ticker, this.getMessageHash('ticker'));
+        }
     }
     parseWsTicker(message, market = undefined) {
         //
@@ -216,6 +229,206 @@ class bingx extends bingx$1 {
             'quoteVolume': this.safeString(message, 'q'),
             'info': message,
         }, market);
+    }
+    async watchTickers(symbols = undefined, params = {}) {
+        /**
+         * @method
+         * @name bingx#watchTickers
+         * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+         * @see https://bingx-api.github.io/docs/#/en-us/swapV2/socket/market.html#Subscribe%20to%2024-hour%20price%20changes%20of%20all%20trading%20pairs
+         * @param {string[]} symbols unified symbol of the market to watch the tickers for
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+         */
+        await this.loadMarkets();
+        symbols = this.marketSymbols(symbols, undefined, true, true, false);
+        let firstMarket = undefined;
+        let marketType = undefined;
+        const symbolsDefined = (symbols !== undefined);
+        if (symbolsDefined) {
+            firstMarket = this.market(symbols[0]);
+        }
+        [marketType, params] = this.handleMarketTypeAndParams('watchTickers', firstMarket, params);
+        if (marketType === 'spot') {
+            throw new errors.NotSupported(this.id + ' watchTickers is not supported for spot markets yet');
+        }
+        const messageHashes = [];
+        const subscriptionHashes = ['all@ticker'];
+        if (symbolsDefined) {
+            for (let i = 0; i < symbols.length; i++) {
+                const symbol = symbols[i];
+                const market = this.market(symbol);
+                messageHashes.push(this.getMessageHash('ticker', market['symbol']));
+            }
+        }
+        else {
+            messageHashes.push(this.getMessageHash('ticker'));
+        }
+        const url = this.safeString(this.urls['api']['ws'], marketType);
+        const uuid = this.uuid();
+        const request = {
+            'id': uuid,
+            'dataType': 'all@ticker',
+        };
+        if (marketType === 'swap') {
+            request['reqType'] = 'sub';
+        }
+        const result = await this.watchMultiple(url, messageHashes, this.deepExtend(request, params), subscriptionHashes);
+        if (this.newUpdates) {
+            const newDict = {};
+            newDict[result['symbol']] = result;
+            return newDict;
+        }
+        return this.tickers;
+    }
+    async watchOrderBookForSymbols(symbols, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name bingx#watchOrderBookForSymbols
+         * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @see https://bingx-api.github.io/docs/#/en-us/swapV2/socket/market.html#Subscribe%20Market%20Depth%20Data%20of%20all%20trading%20pairs
+         * @param {string[]} symbols unified array of symbols
+         * @param {int} [limit] the maximum amount of order book entries to return
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+         */
+        symbols = this.marketSymbols(symbols, undefined, true, true, false);
+        let firstMarket = undefined;
+        let marketType = undefined;
+        const symbolsDefined = (symbols !== undefined);
+        if (symbolsDefined) {
+            firstMarket = this.market(symbols[0]);
+        }
+        [marketType, params] = this.handleMarketTypeAndParams('watchOrderBookForSymbols', firstMarket, params);
+        if (marketType === 'spot') {
+            throw new errors.NotSupported(this.id + ' watchOrderBookForSymbols is not supported for spot markets yet');
+        }
+        limit = this.getOrderBookLimitByMarketType(marketType, limit);
+        let interval = undefined;
+        [interval, params] = this.handleOptionAndParams(params, 'watchOrderBookForSymbols', 'interval', 500);
+        this.checkRequiredArgument('watchOrderBookForSymbols', interval, 'interval', [100, 200, 500, 1000]);
+        const channelName = 'depth' + limit.toString() + '@' + interval.toString() + 'ms';
+        const subscriptionHash = 'all@' + channelName;
+        const messageHashes = [];
+        if (symbolsDefined) {
+            for (let i = 0; i < symbols.length; i++) {
+                const symbol = symbols[i];
+                const market = this.market(symbol);
+                messageHashes.push(this.getMessageHash('orderbook', market['symbol']));
+            }
+        }
+        else {
+            messageHashes.push(this.getMessageHash('orderbook'));
+        }
+        const url = this.safeString(this.urls['api']['ws'], marketType);
+        const uuid = this.uuid();
+        const request = {
+            'id': uuid,
+            'dataType': subscriptionHash,
+        };
+        if (marketType === 'swap') {
+            request['reqType'] = 'sub';
+        }
+        const subscriptionArgs = {
+            'symbols': symbols,
+            'limit': limit,
+            'interval': interval,
+            'params': params,
+        };
+        const orderbook = await this.watchMultiple(url, messageHashes, this.deepExtend(request, params), [subscriptionHash], subscriptionArgs);
+        return orderbook.limit();
+    }
+    async watchOHLCVForSymbols(symbolsAndTimeframes, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name bingx#watchOHLCVForSymbols
+         * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+         * @param {string[][]} symbolsAndTimeframes array of arrays containing unified symbols and timeframes to fetch OHLCV data for, example [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]
+         * @param {int} [since] timestamp in ms of the earliest candle to fetch
+         * @param {int} [limit] the maximum amount of candles to fetch
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+         */
+        const symbolsLength = symbolsAndTimeframes.length;
+        if (symbolsLength !== 0 && !Array.isArray(symbolsAndTimeframes[0])) {
+            throw new errors.ArgumentsRequired(this.id + " watchOHLCVForSymbols() requires a an array like  [['BTC/USDT:USDT', '1m'], ['LTC/USDT:USDT', '5m']]");
+        }
+        await this.loadMarkets();
+        const messageHashes = [];
+        let marketType = undefined;
+        let chosenTimeframe = undefined;
+        if (symbolsLength !== 0) {
+            let symbols = this.getListFromObjectValues(symbolsAndTimeframes, 0);
+            symbols = this.marketSymbols(symbols, undefined, true, true, false);
+            const firstMarket = this.market(symbols[0]);
+            [marketType, params] = this.handleMarketTypeAndParams('watchOrderBookForSymbols', firstMarket, params);
+            if (marketType === 'spot') {
+                throw new errors.NotSupported(this.id + ' watchOrderBookForSymbols is not supported for spot markets yet');
+            }
+        }
+        const marketOptions = this.safeDict(this.options, marketType);
+        const timeframes = this.safeDict(marketOptions, 'timeframes', {});
+        for (let i = 0; i < symbolsAndTimeframes.length; i++) {
+            const symbolAndTimeframe = symbolsAndTimeframes[i];
+            const sym = symbolAndTimeframe[0];
+            const tf = symbolAndTimeframe[1];
+            const market = this.market(sym);
+            const rawTimeframe = this.safeString(timeframes, tf, tf);
+            if (chosenTimeframe === undefined) {
+                chosenTimeframe = rawTimeframe;
+            }
+            else if (chosenTimeframe !== rawTimeframe) {
+                throw new errors.BadRequest(this.id + ' watchOHLCVForSymbols requires all timeframes to be the same');
+            }
+            messageHashes.push(this.getMessageHash('ohlcv', market['symbol'], chosenTimeframe));
+        }
+        const subscriptionHash = 'all@kline_' + chosenTimeframe;
+        const url = this.safeString(this.urls['api']['ws'], marketType);
+        const uuid = this.uuid();
+        const request = {
+            'id': uuid,
+            'dataType': subscriptionHash,
+        };
+        if (marketType === 'swap') {
+            request['reqType'] = 'sub';
+        }
+        const subscriptionArgs = {
+            'limit': limit,
+            'params': params,
+        };
+        const [symbol, timeframe, candles] = await this.watchMultiple(url, messageHashes, request, [subscriptionHash], subscriptionArgs);
+        if (this.newUpdates) {
+            limit = candles.getLimit(symbol, limit);
+        }
+        const filtered = this.filterBySinceLimit(candles, since, limit, 0, true);
+        return this.createOHLCVObject(symbol, timeframe, filtered);
+    }
+    getOrderBookLimitByMarketType(marketType, limit = undefined) {
+        if (limit === undefined) {
+            limit = 100;
+        }
+        else {
+            if (marketType === 'swap' || marketType === 'future') {
+                limit = this.findNearestCeiling([5, 10, 20, 50, 100], limit);
+            }
+            else if (marketType === 'spot') {
+                limit = this.findNearestCeiling([20, 100], limit);
+            }
+        }
+        return limit;
+    }
+    getMessageHash(unifiedChannel, symbol = undefined, extra = undefined) {
+        let hash = unifiedChannel;
+        if (symbol !== undefined) {
+            hash += '::' + symbol;
+        }
+        else {
+            hash += 's'; // tickers, orderbooks, ohlcvs ...
+        }
+        if (extra !== undefined) {
+            hash += '::' + extra;
+        }
+        return hash;
     }
     async watchTrades(symbol, since = undefined, limit = undefined, params = {}) {
         /**
@@ -352,35 +565,34 @@ class bingx extends bingx$1 {
         await this.loadMarkets();
         const market = this.market(symbol);
         const [marketType, query] = this.handleMarketTypeAndParams('watchOrderBook', market, params);
-        if (limit === undefined) {
-            limit = 100;
-        }
-        else {
-            if (marketType === 'swap') {
-                if ((limit !== 5) && (limit !== 10) && (limit !== 20) && (limit !== 50) && (limit !== 100)) {
-                    throw new errors.BadRequest(this.id + ' watchOrderBook() (swap) only supports limit 5, 10, 20, 50, and 100');
-                }
-            }
-            else if (marketType === 'spot') {
-                if ((limit !== 20) && (limit !== 100)) {
-                    throw new errors.BadRequest(this.id + ' watchOrderBook() (spot) only supports limit 20, and 100');
-                }
-            }
-        }
+        limit = this.getOrderBookLimitByMarketType(marketType, limit);
+        let channelName = 'depth' + limit.toString();
         const url = this.safeValue(this.urls['api']['ws'], marketType);
         if (url === undefined) {
             throw new errors.BadRequest(this.id + ' watchOrderBook is not supported for ' + marketType + ' markets.');
         }
-        const messageHash = market['id'] + '@depth' + limit.toString();
+        let interval = undefined;
+        if (marketType !== 'spot') {
+            [interval, params] = this.handleOptionAndParams(params, 'watchOrderBook', 'interval', 500);
+            this.checkRequiredArgument('watchOrderBook', interval, 'interval', [100, 200, 500, 1000]);
+            channelName = channelName + '@' + interval.toString() + 'ms';
+        }
+        const subscriptionHash = market['id'] + '@' + channelName;
+        const messageHash = this.getMessageHash('orderbook', market['symbol']);
         const uuid = this.uuid();
         const request = {
             'id': uuid,
-            'dataType': messageHash,
+            'dataType': subscriptionHash,
         };
         if (marketType === 'swap') {
             request['reqType'] = 'sub';
         }
-        const orderbook = await this.watch(url, messageHash, this.deepExtend(request, query), messageHash);
+        const subscriptionArgs = {
+            'limit': limit,
+            'interval': interval,
+            'params': params,
+        };
+        const orderbook = await this.watch(url, messageHash, this.deepExtend(request, query), subscriptionHash, subscriptionArgs);
         return orderbook.limit();
     }
     handleDelta(bookside, delta) {
@@ -415,7 +627,7 @@ class bingx extends bingx$1 {
         //
         //    {
         //        "code": 0,
-        //        "dataType": "BTC-USDT@depth20",
+        //        "dataType": "BTC-USDT@depth20@100ms", //or "all@depth20@100ms"
         //        "data": {
         //          "bids": [
         //            [ '28852.9', "34.2621" ],
@@ -424,25 +636,39 @@ class bingx extends bingx$1 {
         //          "asks": [
         //            [ '28864.9', "23.4079" ],
         //            ...
-        //          ]
+        //          ],
+        //          "symbol": "BTC-USDT", // this key exists only in "all" subscription
         //        }
         //    }
         //
-        const data = this.safeValue(message, 'data', []);
-        const messageHash = this.safeString(message, 'dataType');
-        const marketId = messageHash.split('@')[0];
+        const data = this.safeDict(message, 'data', {});
+        const dataType = this.safeString(message, 'dataType');
+        const parts = dataType.split('@');
+        const firstPart = parts[0];
+        const isAllEndpoint = (firstPart === 'all');
+        const marketId = this.safeString(data, 'symbol', firstPart);
         const isSwap = client.url.indexOf('swap') >= 0;
         const marketType = isSwap ? 'swap' : 'spot';
         const market = this.safeMarket(marketId, undefined, undefined, marketType);
         const symbol = market['symbol'];
-        let orderbook = this.safeValue(this.orderbooks, symbol);
-        if (orderbook === undefined) {
-            orderbook = this.orderBook();
+        if (this.safeValue(this.orderbooks, symbol) === undefined) {
+            // const limit = [ 5, 10, 20, 50, 100 ]
+            const subscriptionHash = dataType;
+            const subscription = client.subscriptions[subscriptionHash];
+            const limit = this.safeInteger(subscription, 'limit');
+            this.orderbooks[symbol] = this.orderBook({}, limit);
         }
+        const orderbook = this.orderbooks[symbol];
         const snapshot = this.parseOrderBook(data, symbol, undefined, 'bids', 'asks', 0, 1);
         orderbook.reset(snapshot);
         this.orderbooks[symbol] = orderbook;
+        const messageHash = this.getMessageHash('orderbook', symbol);
         client.resolve(orderbook, messageHash);
+        // resolve for "all"
+        if (isAllEndpoint) {
+            const messageHashForAll = this.getMessageHash('orderbook');
+            client.resolve(orderbook, messageHashForAll);
+        }
     }
     parseWsOHLCV(ohlcv, market = undefined) {
         //
@@ -513,34 +739,48 @@ class bingx extends bingx$1 {
         //        ]
         //    }
         //
-        const data = this.safeValue(message, 'data', []);
+        const data = this.safeList(message, 'data', []);
         let candles = undefined;
         if (Array.isArray(data)) {
             candles = data;
         }
         else {
-            candles = [this.safeValue(data, 'K', [])];
+            candles = [this.safeList(data, 'K', [])];
         }
-        const messageHash = this.safeString(message, 'dataType');
-        const timeframeId = messageHash.split('_')[1];
-        const marketId = messageHash.split('@')[0];
+        const dataType = this.safeString(message, 'dataType');
         const isSwap = client.url.indexOf('swap') >= 0;
+        const parts = dataType.split('@');
+        const firstPart = parts[0];
+        const isAllEndpoint = (firstPart === 'all');
+        const marketId = this.safeString(message, 's', firstPart);
         const marketType = isSwap ? 'swap' : 'spot';
         const market = this.safeMarket(marketId, undefined, undefined, marketType);
         const symbol = market['symbol'];
         this.ohlcvs[symbol] = this.safeValue(this.ohlcvs, symbol, {});
-        let stored = this.safeValue(this.ohlcvs[symbol], timeframeId);
-        if (stored === undefined) {
-            const limit = this.safeInteger(this.options, 'OHLCVLimit', 1000);
-            stored = new Cache.ArrayCacheByTimestamp(limit);
-            this.ohlcvs[symbol][timeframeId] = stored;
+        const rawTimeframe = dataType.split('_')[1];
+        const marketOptions = this.safeDict(this.options, marketType);
+        const timeframes = this.safeDict(marketOptions, 'timeframes', {});
+        const unifiedTimeframe = this.findTimeframe(rawTimeframe, timeframes);
+        if (this.safeValue(this.ohlcvs[symbol], rawTimeframe) === undefined) {
+            const subscriptionHash = dataType;
+            const subscription = client.subscriptions[subscriptionHash];
+            const limit = this.safeInteger(subscription, 'limit');
+            this.ohlcvs[symbol][unifiedTimeframe] = new Cache.ArrayCacheByTimestamp(limit);
         }
+        const stored = this.ohlcvs[symbol][unifiedTimeframe];
         for (let i = 0; i < candles.length; i++) {
             const candle = candles[i];
             const parsed = this.parseWsOHLCV(candle, market);
             stored.append(parsed);
         }
-        client.resolve(stored, messageHash);
+        const resolveData = [symbol, unifiedTimeframe, stored];
+        const messageHash = this.getMessageHash('ohlcv', symbol, unifiedTimeframe);
+        client.resolve(resolveData, messageHash);
+        // resolve for "all"
+        if (isAllEndpoint) {
+            const messageHashForAll = this.getMessageHash('ohlcv', undefined, unifiedTimeframe);
+            client.resolve(resolveData, messageHashForAll);
+        }
     }
     async watchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         /**
@@ -565,17 +805,23 @@ class bingx extends bingx$1 {
         }
         const options = this.safeValue(this.options, marketType, {});
         const timeframes = this.safeValue(options, 'timeframes', {});
-        const interval = this.safeString(timeframes, timeframe, timeframe);
-        const messageHash = market['id'] + '@kline_' + interval;
+        const rawTimeframe = this.safeString(timeframes, timeframe, timeframe);
+        const messageHash = this.getMessageHash('ohlcv', market['symbol'], timeframe);
+        const subscriptionHash = market['id'] + '@kline_' + rawTimeframe;
         const uuid = this.uuid();
         const request = {
             'id': uuid,
-            'dataType': messageHash,
+            'dataType': subscriptionHash,
         };
         if (marketType === 'swap') {
             request['reqType'] = 'sub';
         }
-        const ohlcv = await this.watch(url, messageHash, this.extend(request, query), messageHash);
+        const subscriptionArgs = {
+            'limit': limit,
+            'params': params,
+        };
+        const result = await this.watch(url, messageHash, this.extend(request, query), subscriptionHash, subscriptionArgs);
+        const ohlcv = result[2];
         if (this.newUpdates) {
             limit = ohlcv.getLimit(symbol, limit);
         }

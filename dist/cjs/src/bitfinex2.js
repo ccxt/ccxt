@@ -1721,7 +1721,7 @@ class bitfinex2 extends bitfinex2$1 {
         }
         const orders = this.safeList(response, 4, []);
         const order = this.safeList(orders, 0);
-        return this.parseOrder(order, market);
+        return this.parseOrder(this.extend({ 'result': order }), market);
     }
     async createOrders(orders, params = {}) {
         /**

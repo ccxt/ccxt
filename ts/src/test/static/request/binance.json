@@ -457,6 +457,39 @@
                   }
                 ],
                 "output": "timestamp=1716470360382&symbol=LTCUSDT&side=BUY&newClientOrderId=x-xcKtGhcu08549492ddff403d8a6466&timeInForce=GTX&newOrderRespType=RESULT&type=LIMIT&quantity=0.41&price=50&positionSide=LONG&recvWindow=10000&signature=e9499c199ddedd7dec114f6b0491f6e41789b0fe0e6130b539b5ad6f9f0a549b"
+            },
+            {
+                "description": "swap limit bbo order",
+                "method": "createOrder",
+                "url": "https://testnet.binancefuture.com/fapi/v1/order",
+                "input": [
+                  "LTC/USDT:USDT",
+                  "limit",
+                  "buy",
+                  0.1,
+                  null,
+                  {
+                    "priceMatch": "OPPONENT"
+                  }
+                ],
+                "output": "timestamp=1717843341137&symbol=LTCUSDT&side=BUY&newClientOrderId=x-xcKtGhcud3bc1226a44e4652b326a8&newOrderRespType=RESULT&type=LIMIT&quantity=0.1&timeInForce=GTC&priceMatch=OPPONENT&recvWindow=10000&signature=0683954e1707e361a26c80395574bbf38829fb35c4a0fa634c7a56f7f2617843"
+            },
+            {
+                "description": "swap trigger bbo order",
+                "method": "createOrder",
+                "url": "https://testnet.binancefuture.com/fapi/v1/order",
+                "input": [
+                  "LTC/USDT:USDT",
+                  "limit",
+                  "buy",
+                  0.1,
+                  null,
+                  {
+                    "triggerPrice": 100,
+                    "priceMatch": "OPPONENT"
+                  }
+                ],
+                "output": "timestamp=1717843608802&symbol=LTCUSDT&side=BUY&newClientOrderId=x-xcKtGhcu918489f4e5334421a68067&newOrderRespType=RESULT&type=STOP&quantity=0.1&stopPrice=100&priceMatch=OPPONENT&recvWindow=10000&signature=1c87a4c108577d3fee3b3081295424c2ffeaf0454ca3cbff46ed7b84a1d62671"
             }
         ],
         "createOrders": [
@@ -2652,6 +2685,19 @@
                 "method": "fetchTransfers",
                 "url": "https://api.binance.com/sapi/v1/asset/transfer?timestamp=1706094571953&type=MAIN_UMFUTURE&recvWindow=10000&signature=a8edc2192088ef3aff0fd3687e8c222eb2f45ba83cd9a4c589f561202466be8f",
                 "input": []
+            },
+            {
+                "description": "internal transfers",
+                "method": "fetchTransfers",
+                "url": "https://api.binance.com/sapi/v1/pay/transactions?timestamp=1718096776515&recvWindow=10000&signature=b9fe81491ea542195571f617280e2bef60e5971926be6ce646e4bb25ac18d80e",
+                "input": [
+                  null,
+                  null,
+                  null,
+                  {
+                    "internal": true
+                  }
+                ]
             }
         ],
         "fetchMyLiquidations": [

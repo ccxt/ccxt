@@ -133,7 +133,7 @@ class bybit(ccxt.async_support.bybit):
             },
             'streaming': {
                 'ping': self.ping,
-                'keepAlive': 19000,
+                'keepAlive': 18000,
             },
         })
 

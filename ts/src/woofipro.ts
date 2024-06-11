@@ -1661,7 +1661,9 @@ export default class woofipro extends Exchange {
         //     }
         // }
         //
-        return response;
+        return [ this.safeOrder ({
+            'info': response,
+        }) ];
     }
 
     async cancelAllOrders (symbol: Str = undefined, params = {}) {
@@ -1705,7 +1707,11 @@ export default class woofipro extends Exchange {
         //     }
         // }
         //
-        return response;
+        return [
+            {
+                'info': response,
+            },
+        ];
     }
 
     async fetchOrder (id: string, symbol: Str = undefined, params = {}) {

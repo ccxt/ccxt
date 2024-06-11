@@ -1721,7 +1721,9 @@ public partial class woofipro : Exchange
         //     }
         // }
         //
-        return response;
+        return new List<object> {this.safeOrder(new Dictionary<string, object>() {
+    { "info", response },
+})};
     }
 
     public async override Task<object> cancelAllOrders(object symbol = null, object parameters = null)
@@ -1770,7 +1772,9 @@ public partial class woofipro : Exchange
         //     }
         // }
         //
-        return response;
+        return new List<object>() {new Dictionary<string, object>() {
+    { "info", response },
+}};
     }
 
     public async override Task<object> fetchOrder(object id, object symbol = null, object parameters = null)

@@ -860,8 +860,8 @@ class hitbtc(Exchange, ImplicitAPI):
                 network = self.safe_network(networkId)
                 fee = self.safe_number(rawNetwork, 'payout_fee')
                 networkPrecision = self.safe_number(rawNetwork, 'precision_payout')
-                payinEnabledNetwork = self.safe_bool(entry, 'payin_enabled', False)
-                payoutEnabledNetwork = self.safe_bool(entry, 'payout_enabled', False)
+                payinEnabledNetwork = self.safe_bool(rawNetwork, 'payin_enabled', False)
+                payoutEnabledNetwork = self.safe_bool(rawNetwork, 'payout_enabled', False)
                 activeNetwork = payinEnabledNetwork and payoutEnabledNetwork
                 if payinEnabledNetwork and not depositEnabled:
                     depositEnabled = True

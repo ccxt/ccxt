@@ -352,6 +352,9 @@ class okx extends Exchange {
                         'account/greeks' => 2,
                         'account/position-tiers' => 2,
                         'account/mmp-config' => 4,
+                        'account/fixed-loan/borrowing-limit' => 4,
+                        'account/fixed-loan/borrowing-quote' => 5,
+                        'account/fixed-loan/borrowing-orders-list' => 5,
                         // subaccount
                         'users/subaccount/list' => 10,
                         'account/subaccount/balances' => 10 / 3,
@@ -477,6 +480,10 @@ class okx extends Exchange {
                         'account/set-account-level' => 4,
                         'account/mmp-reset' => 4,
                         'account/mmp-config' => 100,
+                        'account/fixed-loan/borrowing-order' => 5,
+                        'account/fixed-loan/amend-borrowing-order' => 5,
+                        'account/fixed-loan/manual-reborrow' => 5,
+                        'account/fixed-loan/repay-borrowing-order' => 5,
                         // subaccount
                         'users/subaccount/modify-apikey' => 10,
                         'asset/subaccount/transfer' => 10,
