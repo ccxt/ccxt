@@ -74,7 +74,7 @@ class Client(object):
     def resolve(self, result, message_hash):
         if self.verbose and message_hash is None:
             self.log(iso8601(milliseconds()), 'resolve received None messageHash')
-        
+
         if message_hash not in self.message_queue:
             self.message_queue[message_hash] = deque()
         queue = self.message_queue[message_hash]
