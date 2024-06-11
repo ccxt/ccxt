@@ -38,6 +38,8 @@ export default class xt extends Exchange {
                 'cancelOrders': true,
                 'createDepositAddress': false,
                 'createOrder': true,
+                'createMarketBuyOrderWithCost': true,
+                'createMarketSellOrderWithCost': false,
                 'createPostOnlyOrder': false,
                 'createReduceOnlyOrder': true,
                 'editOrder': false,
@@ -2166,6 +2168,25 @@ export default class xt extends Exchange {
             result[code] = account;
         }
         return this.safeBalance (result);
+    }
+
+    async createMarketBuyOrderWithCost (symbol: string, cost: number, params = {}) {
+        /**
+         * @method
+         * @name xt#createMarketBuyOrderWithCost
+         * @see https://doc.xt.com/#orderorderPost
+         * @description create a market buy order by providing the symbol and cost
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {float} cost how much you want to trade in units of the quote currency
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        if (!market['spot']) {
+            throw new NotSupported (this.id + ' createMarketBuyOrderWithCost() supports spot orders only');
+        }
+        return await this.createOrder (symbol, 'market', 'buy', cost, 1, params);
     }
 
     async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
