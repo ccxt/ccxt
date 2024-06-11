@@ -2685,6 +2685,19 @@
                 "method": "fetchTransfers",
                 "url": "https://api.binance.com/sapi/v1/asset/transfer?timestamp=1706094571953&type=MAIN_UMFUTURE&recvWindow=10000&signature=a8edc2192088ef3aff0fd3687e8c222eb2f45ba83cd9a4c589f561202466be8f",
                 "input": []
+            },
+            {
+                "description": "internal transfers",
+                "method": "fetchTransfers",
+                "url": "https://api.binance.com/sapi/v1/pay/transactions?timestamp=1718096776515&recvWindow=10000&signature=b9fe81491ea542195571f617280e2bef60e5971926be6ce646e4bb25ac18d80e",
+                "input": [
+                  null,
+                  null,
+                  null,
+                  {
+                    "internal": true
+                  }
+                ]
             }
         ],
         "fetchMyLiquidations": [

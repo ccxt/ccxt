@@ -8194,6 +8194,7 @@ export default class binance extends Exchange {
          * @name binance#fetchTransfers
          * @description fetch a history of internal transfers made on an account
          * @see https://binance-docs.github.io/apidocs/spot/en/#query-user-universal-transfer-history-user_data
+         * @see https://binance-docs.github.io/apidocs/spot/en/#pay-endpoints
          * @param {string} code unified currency code of the currency transferred
          * @param {int} [since] the earliest time in ms to fetch transfers for
          * @param {int} [limit] the maximum number of transfers structures to retrieve
