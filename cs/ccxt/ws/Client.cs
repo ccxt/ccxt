@@ -19,7 +19,7 @@ public partial class Exchange
         public IDictionary<string, Future> futures = new ConcurrentDictionary<string, Future>();
         public IDictionary<string, object> subscriptions = new ConcurrentDictionary<string, object>();
         public IDictionary<string, object> rejections = new ConcurrentDictionary<string, object>(); // Currently not being used
-        public IDictionary<string, object> messageQueue = new ConcurrentDictionary<string, ConcurrentQueue>();
+        public IDictionary<string, ConcurrentQueue<object>> messageQueue = new ConcurrentDictionary<string, ConcurrentQueue<object>>();
         public bool verbose = false;
         public bool isConnected = false;
         public bool startedConnecting = false;
@@ -75,7 +75,7 @@ public partial class Exchange
         public Future future(object messageHash2)
         {
             var messageHash = messageHash2.ToString();
-            return (this.futures as ConcurrentDictionary<string, Future>).GetOrAdd (messageHash, (key) =>  new Future());
+            return (this.futures as ConcurrentDictionary<string, Future>).GetOrAdd(messageHash, (key) => new Future());
         }
 
         public void resolve(object content, object messageHash2)
@@ -85,11 +85,14 @@ public partial class Exchange
                 Console.WriteLine("resolve received undefined messageHash");
             }
             var messageHash = messageHash2.ToString();
-            var queue = this.messageQueue.GetOrAdd (messageHash, (key) => new ConcurrentQueue());
+            var queue = (this.messageQueue as ConcurrentDictionary<string, ConcurrentQueue<object>>).GetOrAdd(messageHash, (key) => new ConcurrentQueue<object>());
             queue.Enqueue(content);
             if ((this.futures as ConcurrentDictionary<string, Future>).TryRemove(messageHash, out Future future))
             {
-                future.resolve(queue.Dequeue());
+                if (queue.TryDequeue(out object result))
+                {
+                    future.resolve(result);
+                }
             }
         }
 
@@ -361,10 +364,13 @@ public partial class Exchange
                             {
                                 Console.WriteLine($"On binary message {decompressedString}");
                             }
-                            try {
+                            try
+                            {
                                 var deserializedJson = JsonHelper.Deserialize(decompressedString);
                                 this.handleMessage(this, deserializedJson);
-                            } catch (Exception e) {
+                            }
+                            catch (Exception e)
+                            {
                                 this.handleMessage(this, decompressedString);
                             }
                         }
