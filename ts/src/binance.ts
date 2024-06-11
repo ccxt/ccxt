@@ -8205,6 +8205,7 @@ export default class binance extends Exchange {
          */
         await this.loadMarkets ();
         const internal = this.safeBool (params, 'internal');
+        params = this.omit (params, 'internal');
         let paginate = false;
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchTransfers', 'paginate');
         if (paginate && !internal) {
