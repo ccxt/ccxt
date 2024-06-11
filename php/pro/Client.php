@@ -296,6 +296,7 @@ class Client {
 
     public function reset($error) {
         $this->clear_ping_interval();
+        $this->message_queue = array();
         $this->reject($error);
     }
 

@@ -176,6 +176,7 @@ export default class Client {
     reset (error: any) {
         this.clearConnectionTimeout ()
         this.clearPingInterval ()
+        this.messageQueue = {}
         this.reject (error)
     }
 

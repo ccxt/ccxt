@@ -171,6 +171,7 @@ class Client(object):
             ensure_future(self.close(code), loop=self.asyncio_loop)
 
     def reset(self, error):
+        self.message_queue = {}
         self.reject(error)
 
     async def ping_loop(self):

@@ -120,6 +120,7 @@ public partial class Exchange
         public void reset(object message2)
         {
             // stub implement this later
+            this.messageQueue = new ConcurrentDictionary<string, ConcurrentQueue<object>>();
             this.reject(error);
         }
 
