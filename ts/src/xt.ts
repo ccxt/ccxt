@@ -3796,7 +3796,7 @@ export default class xt extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    async setLeverage (leverage, symbol: string = undefined, params = {}) {
+    async setLeverage (leverage: Int, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name xt#setLeverage
@@ -4503,7 +4503,7 @@ export default class xt extends Exchange {
         });
     }
 
-    async transfer (code: string, amount, fromAccount, toAccount, params = {}): Promise<TransferEntry> {
+    async transfer (code: string, amount: number, fromAccount: string, toAccount: string, params = {}): Promise<TransferEntry> {
         /**
          * @method
          * @name xt#transfer
