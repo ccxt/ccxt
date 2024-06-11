@@ -2,7 +2,7 @@
 //  ---------------------------------------------------------------------------
 
 import Exchange from './abstract/xt.js';
-import { Currency, Dict, Int, MarginModification, Market, Num, OHLCV, OrderSide, OrderType, Transaction } from './base/types.js';
+import { Currencies, Currency, Dict, FundingHistory, FundingRateHistory, Int, LeverageTier, MarginModification, Market, Num, OHLCV, OrderSide, OrderType, Tickers, Transaction, TransferEntry } from './base/types.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { ArgumentsRequired, AuthenticationError, BadRequest, BadSymbol, ExchangeError, InsufficientFunds, InvalidOrder, NetworkError, NotSupported, OnMaintenance, PermissionDenied, RateLimitExceeded, RequestTimeout } from './base/errors.js';
@@ -695,7 +695,7 @@ export default class xt extends Exchange {
         return this.safeInteger (data, 'serverTime');
     }
 
-    async fetchCurrencies (params = {}) {
+    async fetchCurrencies (params = {}): Promise<Currencies> {
         /**
          * @method
          * @name xt#fetchCurrencies
@@ -849,7 +849,7 @@ export default class xt extends Exchange {
         return result;
     }
 
-    async fetchMarkets (params = {}) {
+    async fetchMarkets (params = {}): Promise<Market[]> {
         /**
          * @method
          * @name xt#fetchMarkets
@@ -1542,7 +1542,7 @@ export default class xt extends Exchange {
         return this.parseTicker (ticker, market);
     }
 
-    async fetchTickers (symbols: string[] = undefined, params = {}) {
+    async fetchTickers (symbols: string[] = undefined, params = {}):Promise<Tickers> {
         /**
          * @method
          * @name xt#fetchTickers
@@ -4003,7 +4003,7 @@ export default class xt extends Exchange {
         return result;
     }
 
-    async fetchMarketLeverageTiers (symbol: string, params = {}) {
+    async fetchMarketLeverageTiers (symbol: string, params = {}): Promise<LeverageTier[]> {
         /**
          * @method
          * @name xt#fetchMarketLeverageTiers
@@ -4160,7 +4160,7 @@ export default class xt extends Exchange {
             });
         }
         const sorted = this.sortBy (rates, 'timestamp');
-        return this.filterBySymbolSinceLimit (sorted, market['symbol'], since, limit);
+        return this.filterBySymbolSinceLimit (sorted, market['symbol'], since, limit) as FundingRateHistory[];
     }
 
     async fetchFundingRate (symbol: string, params = {}) {
@@ -4302,7 +4302,7 @@ export default class xt extends Exchange {
             result.push (this.parseFundingHistory (entry, market));
         }
         const sorted = this.sortBy (result, 'timestamp');
-        return this.filterBySinceLimit (sorted, since, limit);
+        return this.filterBySinceLimit (sorted, since, limit) as FundingHistory[];
     }
 
     parseFundingHistory (contract, market = undefined) {
@@ -4448,7 +4448,7 @@ export default class xt extends Exchange {
             const marketInner = this.safeMarket (marketId, undefined, undefined, 'contract');
             result.push (this.parsePosition (entry, marketInner));
         }
-        return this.filterByArray (result, 'symbol', undefined, false);
+        return this.filterByArrayPositions (result, 'symbol', undefined, false);
     }
 
     parsePosition (position, market = undefined) {
@@ -4503,7 +4503,7 @@ export default class xt extends Exchange {
         });
     }
 
-    async transfer (code: string, amount, fromAccount, toAccount, params = {}) {
+    async transfer (code: string, amount, fromAccount, toAccount, params = {}): Promise<TransferEntry> {
         /**
          * @method
          * @name xt#transfer
