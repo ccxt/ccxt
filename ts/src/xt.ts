@@ -2,10 +2,10 @@
 //  ---------------------------------------------------------------------------
 
 import Exchange from './abstract/xt.js';
-import { Int } from './base/types.js';
+import { Currency, Dict, Int, MarginModification, Market, Num, OHLCV, OrderSide, OrderType, Transaction } from './base/types.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import { AuthenticationError, BadRequest, BadSymbol, ExchangeError, InsufficientFunds, InvalidOrder, NetworkError, NotSupported, OnMaintenance, PermissionDenied, RateLimitExceeded, RequestTimeout } from './base/errors.js';
+import { ArgumentsRequired, AuthenticationError, BadRequest, BadSymbol, ExchangeError, InsufficientFunds, InvalidOrder, NetworkError, NotSupported, OnMaintenance, PermissionDenied, RateLimitExceeded, RequestTimeout } from './base/errors.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 
 //  ---------------------------------------------------------------------------
@@ -1007,7 +1007,7 @@ export default class xt extends Exchange {
         return result;
     }
 
-    parseMarket (market) {
+    parseMarket (market: Dict): Market {
         //
         // spot
         //
@@ -1204,7 +1204,7 @@ export default class xt extends Exchange {
                 isActive = true;
             }
         }
-        return {
+        return this.safeMarketStructure ({
             'id': id,
             'symbol': symbol,
             'base': base,
@@ -1255,7 +1255,7 @@ export default class xt extends Exchange {
                 },
             },
             'info': market,
-        };
+        });
     }
 
     async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}) {
@@ -1337,7 +1337,7 @@ export default class xt extends Exchange {
         return this.parseOHLCVs (ohlcvs, market, timeframe, since, limit);
     }
 
-    parseOHLCV (ohlcv, market = undefined) {
+    parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
         //
         // spot
         //
@@ -2168,7 +2168,7 @@ export default class xt extends Exchange {
         return this.safeBalance (result);
     }
 
-    async createOrder (symbol: string, type, side, amount, price = undefined, params = {}) {
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
         /**
          * @method
          * @name xt#createOrder
@@ -3662,7 +3662,7 @@ export default class xt extends Exchange {
         return this.parseTransactions (withdrawals, currency, since, limit, params);
     }
 
-    async withdraw (code: string, amount, address, tag = undefined, params = {}) {
+    async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}) {
         /**
          * @method
          * @name xt#withdraw
@@ -3707,7 +3707,7 @@ export default class xt extends Exchange {
         return this.parseTransaction (result, currency);
     }
 
-    parseTransaction (transaction, currency = undefined) {
+    parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {
         //
         // fetchDeposits
         //
@@ -3779,6 +3779,7 @@ export default class xt extends Exchange {
                 'cost': fee,
                 'rate': undefined,
             },
+            'internal': undefined,
         };
     }
 
@@ -3807,7 +3808,9 @@ export default class xt extends Exchange {
          * @param {string} params.positionSide 'LONG' or 'SHORT'
          * @returns {object} response from the exchange
          */
-        this.checkRequiredSymbol ('setLeverage', symbol);
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' setLeverage() requires a symbol argument');
+        }
         const positionSide = this.safeString (params, 'positionSide');
         this.checkRequiredArgument ('setLeverage', positionSide, 'positionSide', [ 'LONG', 'SHORT' ]);
         if ((leverage < 1) || (leverage > 125)) {
@@ -3842,7 +3845,7 @@ export default class xt extends Exchange {
         return response;
     }
 
-    async addMargin (symbol: string, amount, params = {}) {
+    async addMargin (symbol: string, amount: number, params = {}) {
         /**
          * @method
          * @name xt#addMargin
@@ -3857,7 +3860,7 @@ export default class xt extends Exchange {
         return await this.modifyMarginHelper (symbol, amount, 'ADD', params);
     }
 
-    async reduceMargin (symbol: string, amount, params = {}) {
+    async reduceMargin (symbol: string, amount: number, params = {}) {
         /**
          * @method
          * @name xt#reduceMargin
@@ -3872,7 +3875,7 @@ export default class xt extends Exchange {
         return await this.modifyMarginHelper (symbol, amount, 'SUB', params);
     }
 
-    async modifyMarginHelper (symbol: string, amount, addOrReduce, params = {}) {
+    async modifyMarginHelper (symbol: string, amount, addOrReduce, params = {}): Promise<MarginModification> {
         const positionSide = this.safeString (params, 'positionSide');
         this.checkRequiredArgument ('setLeverage', positionSide, 'positionSide', [ 'LONG', 'SHORT' ]);
         await this.loadMarkets ();
@@ -3902,7 +3905,7 @@ export default class xt extends Exchange {
         return this.parseMarginModification (response, market);
     }
 
-    parseMarginModification (data, market = undefined) {
+    parseMarginModification (data, market = undefined): MarginModification {
         return {
             'info': data,
             'type': undefined,
@@ -3910,6 +3913,10 @@ export default class xt extends Exchange {
             'code': undefined,
             'symbol': this.safeSymbol (undefined, market),
             'status': undefined,
+            'marginMode': undefined,
+            'total': undefined,
+            'timestamp': undefined,
+            'datetime': undefined,
         };
     }
 
@@ -4094,7 +4101,9 @@ export default class xt extends Exchange {
          * @param {object} params extra parameters specific to the xt api endpoint
          * @returns {[object]} a list of [funding rate structures]{@link https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure}
          */
-        this.checkRequiredSymbol ('fetchFundingRateHistory', symbol);
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchFundingRateHistory() requires a symbol argument');
+        }
         await this.loadMarkets ();
         const market = this.market (symbol);
         if (!market['swap']) {
