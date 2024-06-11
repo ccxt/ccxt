@@ -518,7 +518,10 @@ export default class tradeogre extends Exchange {
          * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
-        return await this.cancelOrder ('all', symbol, params);
+        const response = await this.cancelOrder ('all', symbol, params);
+        return [
+            response,
+        ];
     }
 
     async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
