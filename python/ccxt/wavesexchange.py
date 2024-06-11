@@ -1421,7 +1421,7 @@ class wavesexchange(Exchange, ImplicitAPI):
         firstMessage = self.safe_value(message, 0)
         firstOrder = self.safe_value(firstMessage, 0)
         returnedId = self.safe_string(firstOrder, 'orderId')
-        return {
+        return self.safe_order({
             'info': response,
             'id': returnedId,
             'clientOrderId': None,
@@ -1440,7 +1440,7 @@ class wavesexchange(Exchange, ImplicitAPI):
             'status': None,
             'fee': None,
             'trades': None,
-        }
+        })
 
     def fetch_order(self, id: str, symbol: Str = None, params={}):
         """

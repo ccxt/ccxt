@@ -1526,7 +1526,7 @@ class wavesexchange extends Exchange {
             $firstMessage = $this->safe_value($message, 0);
             $firstOrder = $this->safe_value($firstMessage, 0);
             $returnedId = $this->safe_string($firstOrder, 'orderId');
-            return array(
+            return $this->safe_order(array(
                 'info' => $response,
                 'id' => $returnedId,
                 'clientOrderId' => null,
@@ -1545,7 +1545,7 @@ class wavesexchange extends Exchange {
                 'status' => null,
                 'fee' => null,
                 'trades' => null,
-            );
+            ));
         }) ();
     }
 

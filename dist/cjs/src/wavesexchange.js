@@ -1499,7 +1499,7 @@ class wavesexchange extends wavesexchange$1 {
         const firstMessage = this.safeValue(message, 0);
         const firstOrder = this.safeValue(firstMessage, 0);
         const returnedId = this.safeString(firstOrder, 'orderId');
-        return {
+        return this.safeOrder({
             'info': response,
             'id': returnedId,
             'clientOrderId': undefined,
@@ -1518,7 +1518,7 @@ class wavesexchange extends wavesexchange$1 {
             'status': undefined,
             'fee': undefined,
             'trades': undefined,
-        };
+        });
     }
     async fetchOrder(id, symbol = undefined, params = {}) {
         /**

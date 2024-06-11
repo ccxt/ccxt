@@ -3107,6 +3107,7 @@ public partial class phemex : Exchange
         /**
         * @method
         * @name phemex#fetchOrder
+        * @see https://phemex-docs.github.io/#query-orders-by-ids
         * @description fetches information on an order made by the user
         * @param {string} symbol unified symbol of the market the order was made in
         * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -3119,10 +3120,6 @@ public partial class phemex : Exchange
         }
         await this.loadMarkets();
         object market = this.market(symbol);
-        if (isTrue(isEqual(getValue(market, "settle"), "USDT")))
-        {
-            throw new NotSupported ((string)add(this.id, "fetchOrder() is not supported yet for USDT settled swap markets")) ;
-        }
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
         };
@@ -3136,7 +3133,10 @@ public partial class phemex : Exchange
             ((IDictionary<string,object>)request)["orderID"] = id;
         }
         object response = null;
-        if (isTrue(getValue(market, "spot")))
+        if (isTrue(isEqual(getValue(market, "settle"), "USDT")))
+        {
+            response = await this.privateGetApiDataGFuturesOrdersByOrderId(this.extend(request, parameters));
+        } else if (isTrue(getValue(market, "spot")))
         {
             response = await this.privateGetSpotOrdersActive(this.extend(request, parameters));
         } else
