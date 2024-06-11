@@ -2,7 +2,7 @@
 //  ---------------------------------------------------------------------------
 
 import Exchange from './abstract/xt.js';
-import { Currencies, Currency, Dict, FundingHistory, FundingRateHistory, Int, LeverageTier, MarginModification, Market, Num, OHLCV, OrderSide, OrderType, Tickers, Transaction, TransferEntry } from './base/types.js';
+import { Currencies, Currency, Dict, FundingHistory, FundingRateHistory, Int, LeverageTier, MarginModification, Market, Num, OHLCV, OrderSide, OrderType, Str, Tickers, Transaction, TransferEntry } from './base/types.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { ArgumentsRequired, AuthenticationError, BadRequest, BadSymbol, ExchangeError, InsufficientFunds, InvalidOrder, NetworkError, NotSupported, OnMaintenance, PermissionDenied, RateLimitExceeded, RequestTimeout } from './base/errors.js';
@@ -2217,18 +2217,26 @@ export default class xt extends Exchange {
         if (type === 'market') {
             timeInForce = this.safeStringUpper (params, 'timeInForce', 'FOK');
             if (side === 'buy') {
-                const createMarketBuyOrderRequiresPrice = this.safeValue (this.options, 'createMarketBuyOrderRequiresPrice', true);
+                const cost = this.safeString (params, 'cost');
+                params = this.omit (params, 'cost');
+                const createMarketBuyOrderRequiresPrice = this.safeBool (this.options, 'createMarketBuyOrderRequiresPrice', true);
                 if (createMarketBuyOrderRequiresPrice) {
-                    if (price === undefined) {
-                        throw new InvalidOrder (this.id + ' createOrder() requires a price argument for market buy orders on spot markets to calculate the total amount to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option to false and pass in the cost to spend into the amount parameter');
+                    if (price === undefined && (cost === undefined)) {
+                        throw new InvalidOrder (this.id + ' createOrder() requires a price argument or cost in params for market buy orders on spot markets to calculate the total amount to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option to false and pass in the cost to spend into the amount parameter');
                     } else {
                         const amountString = this.numberToString (amount);
                         const priceString = this.numberToString (price);
-                        const cost = this.parseNumber (Precise.stringMul (amountString, priceString));
-                        request['quoteQty'] = this.costToPrecision (symbol, cost);
+                        let costCalculated: Str = undefined;
+                        if (price !== undefined) {
+                            costCalculated = Precise.stringMul (amountString, priceString);
+                        } else {
+                            costCalculated = cost;
+                        }
+                        request['quoteQty'] = this.costToPrecision (symbol, costCalculated);
                     }
                 } else {
-                    request['quoteQty'] = this.amountToPrecision (symbol, amount);
+                    const amountCost = (cost !== undefined) ? cost : amount;
+                    request['quoteQty'] = this.costToPrecision (symbol, amountCost);
                 }
             }
         } else {
