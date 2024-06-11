@@ -1573,6 +1573,9 @@ export default class bitmex extends bitmexRest {
             } else if (table === 'orderBook10') {
                 this.orderbooks[symbol] = this.indexedOrderBook ({}, 10);
             }
+            if (table === undefined || symbol === undefined) {
+                return;
+            }
             const orderbook = this.orderbooks[symbol];
             orderbook['symbol'] = symbol;
             for (let i = 0; i < data.length; i++) {
