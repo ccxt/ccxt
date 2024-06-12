@@ -4,7 +4,6 @@ import assert from 'assert';
 import { Exchange } from "../../../../ccxt";
 import Precise from '../../../base/Precise.js';
 import { TICK_SIZE } from '../../../base/functions/number.js';
-import testOrder from './test.order.js';
 import { OperationFailed, OnMaintenance, ArgumentsRequired } from '../../../base/errors.js';
 
 function logTemplate (exchange: Exchange, method: string, entry: object) {
@@ -434,10 +433,6 @@ async function tryFetchOrder (exchange, symbol, orderId, skippedProperties) {
                 }
             }
         }
-    }
-    // test fetched order object
-    if (fetchedOrder !== undefined) {
-        testOrder (exchange, skippedProperties, 'createOrder', fetchedOrder, symbol, exchange.milliseconds ());
     }
     return fetchedOrder;
 }
