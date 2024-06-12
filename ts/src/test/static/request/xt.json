@@ -1,0 +1,113 @@
+{
+    "exchange": "xt",
+    "skipKeys": [],
+    "outputType": "json",
+    "methods": {
+        "fetchOrders": [
+            {
+                "description": "Spot orders",
+                "method": "fetchOrders",
+                "url": "https://sapi.xt.com/v4/history-order?bizType=SPOT&symbol=ltc_usdt",
+                "input": [
+                    "LTC/USDT"
+                ]
+            },
+            {
+                "description": "Swap orders",
+                "method": "fetchOrders",
+                "url": "https://fapi.xt.com/future/trade/v1/order/list-history?symbol=ltc_usdt",
+                "input": [
+                    "LTC/USDT:USDT"
+                ]
+            }
+        ],
+        "fetchMyTrades": [
+            {
+                "description": "Spot private trades",
+                "method": "fetchMyTrades",
+                "url": "https://sapi.xt.com/v4/trade?bizType=SPOT&limit=5&startTime=1699457638000&symbol=ltc_usdt",
+                "input": [
+                    "LTC/USDT",
+                    1699457638000,
+                    5
+                ]
+            },
+            {
+                "description": "Swap private trades",
+                "method": "fetchMyTrades",
+                "url": "https://fapi.xt.com/future/trade/v1/order/trade-list?size=5&startTime=1699457638000&symbol=ltc_usdt",
+                "input": [
+                    "LTC/USDT:USDT",
+                    1699457638000,
+                    5
+                ]
+            }
+        ],
+        "fetchOpenOrders": [
+            {
+                "description": "Spot open orders",
+                "method": "fetchOpenOrders",
+                "url": "https://sapi.xt.com/v4/open-order?bizType=SPOT&symbol=ltc_usdt",
+                "input": [
+                    "LTC/USDT"
+                ]
+            },
+            {
+                "description": "Swap open orders",
+                "method": "fetchOpenOrders",
+                "url": "https://fapi.xt.com/future/trade/v1/order/list?state=NEW&symbol=ltc_usdt",
+                "input": [
+                    "LTC/USDT:USDT"
+                ]
+            }
+        ],
+        "fetchClosedOrders": [
+            {
+                "description": "Spot closed orders",
+                "method": "fetchClosedOrders",
+                "url": "https://sapi.xt.com/v4/history-order?bizType=SPOT&state=FILLED&symbol=ltc_usdt",
+                "input": [
+                    "LTC/USDT"
+                ]
+            },
+            {
+                "description": "Swap closed orders",
+                "method": "fetchClosedOrders",
+                "url": "https://fapi.xt.com/future/trade/v1/order/list?state=FILLED&symbol=ltc_usdt",
+                "input": [
+                    "LTC/USDT:USDT"
+                ]
+            }
+        ],
+        "fetchBalance": [
+            {
+                "description": "Fetch spot Balance",
+                "method": "fetchBalance",
+                "url": "https://sapi.xt.com/v4/balances",
+                "input": [
+                    {
+                        "type": "spot"
+                    }
+                ]
+            },
+            {
+                "description": "Fetch swap Balance",
+                "method": "fetchBalance",
+                "url": "https://fapi.xt.com/future/user/v1/balance/list",
+                "input": [
+                    {
+                        "type": "swap"
+                    }
+                ]
+            }
+        ],
+        "fetchDeposits": [
+            {
+                "description": "Fetch deposits",
+                "method": "fetchDeposits",
+                "url": "https://sapi.xt.com/v4/deposit/history",
+                "input": []
+            }
+        ]
+    }
+}
