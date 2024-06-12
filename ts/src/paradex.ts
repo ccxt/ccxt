@@ -310,6 +310,49 @@ export default class paradex extends Exchange {
         });
     }
 
+    async fetchTime (params = {}) {
+        /**
+         * @method
+         * @name paradex#fetchTime
+         * @description fetches the current integer timestamp in milliseconds from the exchange server
+         * @see https://docs.api.testnet.paradex.trade/#get-system-time-unix-milliseconds
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {int} the current integer timestamp in milliseconds from the exchange server
+         */
+        const response = await this.publicGetSystemTime (params);
+        //
+        //     {
+        //         "server_time": "1681493415023"
+        //     }
+        //
+        return this.safeInteger (response, 'server_time');
+    }
+
+    async fetchStatus (params = {}) {
+        /**
+         * @method
+         * @name paradex#fetchStatus
+         * @description the latest known information on the availability of the exchange API
+         * @see https://docs.api.testnet.paradex.trade/#get-system-state
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [status structure]{@link https://docs.ccxt.com/#/?id=exchange-status-structure}
+         */
+        const response = await this.publicGetSystemState (params);
+        //
+        //     {
+        //         "status": "ok"
+        //     }
+        //
+        const status = this.safeString (response, 'status');
+        return {
+            'status': (status === 'ok') ? 'ok' : 'maintenance',
+            'updated': undefined,
+            'eta': undefined,
+            'url': undefined,
+            'info': response,
+        };
+    }
+
     async fetchMarkets (params = {}): Promise<Market[]> {
         /**
          * @method
