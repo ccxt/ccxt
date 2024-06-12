@@ -1,10 +1,11 @@
 
 //  ---------------------------------------------------------------------------
 
+import { Precise } from '../ccxt.js';
 import Exchange from './abstract/paradex.js';
 import { ExchangeError, RateLimitExceeded, PermissionDenied, InsufficientFunds, AuthenticationError, InvalidOrder, BadRequest } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Dict, Market } from './base/types.js';
+import type { Dict, Market, Strings, Ticker, Tickers } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -490,6 +491,147 @@ export default class paradex extends Exchange {
             'created': undefined,
             'info': market,
         };
+    }
+
+    async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+        /**
+         * @method
+         * @name paradex#fetchTickers
+         * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+         * @see https://docs.api.testnet.paradex.trade/#list-available-markets-summary
+         * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+         */
+        await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols);
+        const request: Dict = {};
+        if (symbols !== undefined) {
+            if (Array.isArray (symbols)) {
+                request['market'] = this.marketId (symbols[0]);
+            } else {
+                request['market'] = this.marketId (symbols);
+            }
+        } else {
+            request['market'] = 'ALL';
+        }
+        const response = await this.publicGetMarketsSummary (this.extend (request, params));
+        //
+        //     {
+        //         "results": [
+        //             {
+        //                 "symbol": "BTC-USD-PERP",
+        //                 "oracle_price": "68465.17449906",
+        //                 "mark_price": "68465.17449906",
+        //                 "last_traded_price": "68495.1",
+        //                 "bid": "68477.6",
+        //                 "ask": "69578.2",
+        //                 "volume_24h": "5815541.397939004",
+        //                 "total_volume": "584031465.525259686",
+        //                 "created_at": 1718170156580,
+        //                 "underlying_price": "67367.37268422",
+        //                 "open_interest": "162.272",
+        //                 "funding_rate": "0.01629574927887",
+        //                 "price_change_rate_24h": "0.009032"
+        //             }
+        //         ]
+        //     }
+        //
+        const data = this.safeList (response, 'results', []);
+        return this.parseTickers (data, symbols);
+    }
+
+    async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
+        /**
+         * @method
+         * @name paradex#fetchTicker
+         * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+         * @see https://docs.api.testnet.paradex.trade/#list-available-markets-summary
+         * @param {string} symbol unified symbol of the market to fetch the ticker for
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request: Dict = {
+            'market': market['id'],
+        };
+        const response = await this.publicGetMarketsSummary (this.extend (request, params));
+        //
+        //     {
+        //         "results": [
+        //             {
+        //                 "symbol": "BTC-USD-PERP",
+        //                 "oracle_price": "68465.17449906",
+        //                 "mark_price": "68465.17449906",
+        //                 "last_traded_price": "68495.1",
+        //                 "bid": "68477.6",
+        //                 "ask": "69578.2",
+        //                 "volume_24h": "5815541.397939004",
+        //                 "total_volume": "584031465.525259686",
+        //                 "created_at": 1718170156580,
+        //                 "underlying_price": "67367.37268422",
+        //                 "open_interest": "162.272",
+        //                 "funding_rate": "0.01629574927887",
+        //                 "price_change_rate_24h": "0.009032"
+        //             }
+        //         ]
+        //     }
+        //
+        const data = this.safeList (response, 'results', []);
+        const ticker = this.safeDict (data, 0, {});
+        return this.parseTicker (ticker, market);
+    }
+
+    parseTicker (ticker: Dict, market: Market = undefined): Ticker {
+        //
+        //     {
+        //         "symbol": "BTC-USD-PERP",
+        //         "oracle_price": "68465.17449906",
+        //         "mark_price": "68465.17449906",
+        //         "last_traded_price": "68495.1",
+        //         "bid": "68477.6",
+        //         "ask": "69578.2",
+        //         "volume_24h": "5815541.397939004",
+        //         "total_volume": "584031465.525259686",
+        //         "created_at": 1718170156580,
+        //         "underlying_price": "67367.37268422",
+        //         "open_interest": "162.272",
+        //         "funding_rate": "0.01629574927887",
+        //         "price_change_rate_24h": "0.009032"
+        //     }
+        //
+        let percentage = this.safeString (ticker, 'price_change_rate_24h');
+        if (percentage !== undefined) {
+            percentage = Precise.stringMul (percentage, '100');
+        }
+        const last = this.safeString (ticker, 'last_traded_price');
+        const marketId = this.safeString (ticker, 'symbol');
+        market = this.safeMarket (marketId, market);
+        const symbol = market['symbol'];
+        const timestamp = this.safeInteger (ticker, 'created_at');
+        return this.safeTicker ({
+            'symbol': symbol,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'high': undefined,
+            'low': undefined,
+            'bid': this.safeString (ticker, 'bid'),
+            'bidVolume': undefined,
+            'ask': this.safeString (ticker, 'sdk'),
+            'askVolume': undefined,
+            'vwap': undefined,
+            'open': undefined,
+            'close': last,
+            'last': last,
+            'previousClose': undefined,
+            'change': undefined,
+            'percentage': percentage,
+            'average': undefined,
+            'baseVolume': undefined,
+            'quoteVolume': this.safeString (ticker, 'volume_24h'),
+            'info': ticker,
+        }, market);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
