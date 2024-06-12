@@ -1673,5 +1673,22 @@
     },
     "tradeogre": {
         "skip": "flaky"
+    },
+    "xt": {
+        "skipMethods": {
+            "fetchCurrencies": "a of lot fields are missing",
+            "loadMarkets": {
+                "taker":"is undefined",
+                "maker":"is undefined",
+                "currencyIdAndCode": "different"
+            },
+            "fetchTrades": {
+                "side": "not set"
+            },
+            "fetchTickers": {
+                "ask": "weird values",
+                "bid": "weird values"
+            }
+        }
     }
 }
