@@ -5,7 +5,7 @@ import { Precise } from '../ccxt.js';
 import Exchange from './abstract/paradex.js';
 import { ExchangeError, RateLimitExceeded, PermissionDenied, InsufficientFunds, AuthenticationError, InvalidOrder, BadRequest } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Dict, Int, Market, OrderBook, Strings, Ticker, Tickers } from './base/types.js';
+import type { Dict, Int, Market, OrderBook, Strings, Ticker, Tickers, Trade } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -668,10 +668,111 @@ export default class paradex extends Exchange {
         //         ]
         //     }
         //
+        if (limit !== undefined) {
+            request['depth'] = limit;
+        }
         const timestamp = this.safeInteger (response, 'last_updated_at');
         const orderbook = this.parseOrderBook (response, market['symbol'], timestamp);
         orderbook['nonce'] = this.safeInteger (response, 'seq_no');
         return orderbook;
+    }
+
+    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+        /**
+         * @method
+         * @name paradex#fetchTrades
+         * @description get the list of most recent trades for a particular symbol
+         * @see https://docs.api.testnet.paradex.trade/#trade-tape
+         * @param {string} symbol unified symbol of the market to fetch trades for
+         * @param {int} [since] timestamp in ms of the earliest trade to fetch
+         * @param {int} [limit] the maximum amount of trades to fetch
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {int} [params.until] the latest time in ms to fetch trades for
+         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times
+         * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+         */
+        await this.loadMarkets ();
+        let paginate = false;
+        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchTrades', 'paginate');
+        if (paginate) {
+            return await this.fetchPaginatedCallCursor ('fetchTrades', symbol, since, limit, params, 'next', 'cursor', undefined, 100) as Trade[];
+        }
+        const market = this.market (symbol);
+        let request: Dict = {
+            'market': market['id'],
+        };
+        if (limit !== undefined) {
+            request['page_size'] = limit;
+        }
+        if (since !== undefined) {
+            request['start_at'] = since;
+        }
+        [ request, params ] = this.handleUntilOption ('end_at', request, params);
+        const response = await this.publicGetTrades (this.extend (request, params));
+        //
+        //     {
+        //         "next": "...",
+        //         "prev": "...",
+        //         "results": [
+        //             {
+        //                 "id": "1718154353750201703989430001",
+        //                 "market": "BTC-USD-PERP",
+        //                 "side": "BUY",
+        //                 "size": "0.026",
+        //                 "price": "69578.2",
+        //                 "created_at": 1718154353750,
+        //                 "trade_type": "FILL"
+        //             }
+        //         ]
+        //     }
+        //
+        const trades = this.safeList (response, 'results', []);
+        for (let i = 0; i < trades.length; i++) {
+            trades[i]['next'] = this.safeString (response, 'next');
+        }
+        return this.parseTrades (trades, market, since, limit);
+    }
+
+    parseTrade (trade: Dict, market: Market = undefined): Trade {
+        //
+        // fetchTrades (public)
+        //
+        //     {
+        //         "id": "1718154353750201703989430001",
+        //         "market": "BTC-USD-PERP",
+        //         "side": "BUY",
+        //         "size": "0.026",
+        //         "price": "69578.2",
+        //         "created_at": 1718154353750,
+        //         "trade_type": "FILL"
+        //     }
+        //
+        const marketId = this.safeString (trade, 'market');
+        market = this.safeMarket (marketId, market);
+        const id = this.safeString (trade, 'id');
+        const timestamp = this.safeInteger (trade, 'created_at');
+        const priceString = this.safeString (trade, 'price');
+        const amountString = this.safeString (trade, 'size');
+        const side = this.safeString (trade, 'side');
+        return this.safeTrade ({
+            'info': trade,
+            'id': id,
+            'order': undefined,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'symbol': market['symbol'],
+            'type': undefined,
+            'takerOrMaker': 'taker',
+            'side': side,
+            'price': priceString,
+            'amount': amountString,
+            'cost': undefined,
+            'fee': {
+                'cost': undefined,
+                'currency': undefined,
+                'rate': undefined,
+            },
+        }, market);
     }
 
     async fetchOpenInterest (symbol: string, params = {}) {
