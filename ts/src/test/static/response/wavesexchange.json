@@ -1,5 +1,628 @@
 {
     "exchange": "wavesexchange",
     "skipKeys": [],
-    "methods": {}
+    "methods": {
+        "fetchTrades": [
+            {
+                "description": "one trade",
+                "method": "fetchTrades",
+                "input": [
+                  "WAVES/USDC",
+                  null,
+                  1
+                ],
+                "httpResponse": {
+                  "__type": "list",
+                  "isLastPage": false,
+                  "lastCursor": "NDIxMjA0NDAwMTAwOjpkZXNj",
+                  "data": [
+                    {
+                      "__type": "transaction",
+                      "data": {
+                        "id": "4ZG1wMCN6EyzYiuM2cxibNpfqaDuL742GJQHY3vRhFPw",
+                        "timestamp": "2024-06-11T15:40:59.289Z",
+                        "height": "4212259",
+                        "type": "7",
+                        "version": "3",
+                        "signature": "48uCn6GUXgQo46ZxzwegtrnA5CgsH3zkaHfb9mCkMHRnq3cL6y1gKSbu17tJkssAVTRetzJYiTudohJm4uXZoY4E",
+                        "proofs": [
+                          "48uCn6GUXgQo46ZxzwegtrnA5CgsH3zkaHfb9mCkMHRnq3cL6y1gKSbu17tJkssAVTRetzJYiTudohJm4uXZoY4E"
+                        ],
+                        "fee": "0.003",
+                        "applicationStatus": "succeeded",
+                        "sender": "3PEjHv3JGjcWNpYEEkif2w8NXV4kbhnoGgu",
+                        "senderPublicKey": "9cpfKN9suPNvfeUNphzxXMjcnn974eme8ZhWUjaktzU5",
+                        "buyMatcherFee": "0",
+                        "sellMatcherFee": "1.61602133",
+                        "price": "1.247053",
+                        "amount": "7.13185166",
+                        "order1": {
+                          "id": "GGj4n49dUR1qWNmivY8cH1ENXTCDupctty1cuJkBFx7L",
+                          "version": "3",
+                          "senderPublicKey": "DCxk78JaWuWM4RpCQLBdg8LuwNhUTevhsudiNgbZipD3",
+                          "matcherPublicKey": "9cpfKN9suPNvfeUNphzxXMjcnn974eme8ZhWUjaktzU5",
+                          "assetPair": {
+                            "amountAsset": "WAVES",
+                            "priceAsset": "3ayH3PhWMkhFsySsUVcC8BvFf1QyxGB5BZuTPyVtmP4v"
+                          },
+                          "orderType": "buy",
+                          "price": "1.247053",
+                          "sender": "3PBXhEZ8HGm5eZrVeyoTbyNydkCrWSrHrrj",
+                          "amount": "7.13185166",
+                          "timestamp": "2024-06-11T15:40:31.737Z",
+                          "expiration": "2024-07-10T15:40:31.737Z",
+                          "matcherFee": "0.012541",
+                          "signature": "4EhJmVv7NQiodjYzWRpFPx5szNNRYKxKMgokpSaWcQi5wQehLZMxsxCurGLHedg98fMJPgaMdzg6M49W7iCxi6BS",
+                          "matcherFeeAssetId": "3ayH3PhWMkhFsySsUVcC8BvFf1QyxGB5BZuTPyVtmP4v"
+                        },
+                        "order2": {
+                          "id": "27Q2kZGsbJoZNXnEzatteh5SD1YfXbDTAAaaapgoUGTm",
+                          "version": "3",
+                          "senderPublicKey": "C8TUigzqy8iLee3V8sfCvMFDekrFGD7XDVeNSbFkw1ot",
+                          "matcherPublicKey": "9cpfKN9suPNvfeUNphzxXMjcnn974eme8ZhWUjaktzU5",
+                          "assetPair": {
+                            "amountAsset": "WAVES",
+                            "priceAsset": "3ayH3PhWMkhFsySsUVcC8BvFf1QyxGB5BZuTPyVtmP4v"
+                          },
+                          "orderType": "sell",
+                          "price": "1.233777",
+                          "sender": "3PNUCyrXd4htoaCWuaB4LhVmc18UVHiuRMU",
+                          "amount": "14.22786484",
+                          "timestamp": "2024-06-11T15:40:59.283Z",
+                          "expiration": "2024-06-11T15:42:59.283Z",
+                          "matcherFee": "3.22540548",
+                          "signature": "5RKi6U1t4jacMLt3Va58QgvTEqSYMP2aaiAkVaEKEEQ4UVfumv9s2AUPxqtaXF4CSVdWTMHe8xhbTZooHDSKeTwY",
+                          "matcherFeeAssetId": "Atqv59EYzjFGuitKVnMRk6H8FukjoV3ktPorbEys25on"
+                        }
+                      }
+                    }
+                  ]
+                },
+                "parsedResponse": [
+                  {
+                    "timestamp": 1718107843367,
+                    "datetime": "2024-06-11T12:10:43.367Z",
+                    "symbol": "WAVES/USDC",
+                    "id": "7isK3cXFEErEcazztfsZqrxWoFpnqBvKiWasUXygxuk6",
+                    "order": "ETfjxjqAprASJg7QtCXiE3xABr43iq8bjcSHdbWaGh1f",
+                    "type": null,
+                    "side": "sell",
+                    "takerOrMaker": null,
+                    "price": 1.272375,
+                    "amount": 6.99010198,
+                    "cost": 8.8940310068025,
+                    "fee": {
+                      "cost": 0.01,
+                      "currency": "WAVES"
+                    },
+                    "fees": [
+                      {
+                        "cost": 0.01,
+                        "currency": "WAVES"
+                      }
+                    ]
+                  }
+                ]
+            }
+        ],
+        "fetchTicker": [
+            {
+                "description": "one ticker",
+                "method": "fetchTicker",
+                "input": [
+                  "WX/USDT"
+                ],
+                "httpResponse": {
+                  "__type": "list",
+                  "data": [
+                    {
+                      "__type": "pair",
+                      "data": {
+                        "firstPrice": "0.005358",
+                        "lastPrice": "0.005329",
+                        "volume": "1118.51161327",
+                        "quoteVolume": "5.97667500009871",
+                        "high": "0.005383",
+                        "low": "0.005304",
+                        "weightedAveragePrice": "0.005343",
+                        "txsCount": "4",
+                        "volumeWaves": "0.0000000000000469251261"
+                      },
+                      "amountAsset": "Atqv59EYzjFGuitKVnMRk6H8FukjoV3ktPorbEys25on",
+                      "priceAsset": "G5WWWzzVsWRyzGf32xojbnfp7gXbWrgqJT8RcVWEfLmC"
+                    }
+                  ]
+                },
+                "parsedResponse": {
+                  "symbol": "WX/USDT",
+                  "timestamp": null,
+                  "datetime": null,
+                  "high": 0.005383,
+                  "low": 0.005304,
+                  "bid": null,
+                  "bidVolume": null,
+                  "ask": null,
+                  "askVolume": null,
+                  "vwap": 0.005343,
+                  "open": 0.005358,
+                  "close": 0.005329,
+                  "last": 0.005329,
+                  "previousClose": null,
+                  "change": -0.000029,
+                  "percentage": -0.5412467338559163,
+                  "average": 0.0053435,
+                  "baseVolume": 1118.51161327,
+                  "quoteVolume": 5.97667500009871,
+                  "info": {
+                    "firstPrice": "0.005358",
+                    "lastPrice": "0.005329",
+                    "volume": "1118.51161327",
+                    "quoteVolume": "5.97667500009871",
+                    "high": "0.005383",
+                    "low": "0.005304",
+                    "weightedAveragePrice": "0.005343",
+                    "txsCount": "4",
+                    "volumeWaves": "0.0000000000000469251261"
+                  }
+                }
+            }
+        ],
+        "fetchOHLCV": [
+            {
+                "description": "Fill this with a description of the method call",
+                "method": "fetchOHLCV",
+                "input": [
+                  "ETH/USDT",
+                  "1d",
+                  null,
+                  1
+                ],
+                "httpResponse": {
+                  "__type": "list",
+                  "isLastPage": false,
+                  "data": [
+                    {
+                      "__type": "candle",
+                      "data": {
+                        "maxHeight": "4213940",
+                        "open": "3501.918137",
+                        "high": "3639.283082",
+                        "low": "3461.75026",
+                        "close": "3535.750684",
+                        "volume": "0.39846837",
+                        "quoteVolume": "1420.047128",
+                        "weightedAveragePrice": "3563.763738",
+                        "time": "2024-06-12T00:00:00.000Z",
+                        "timeClose": "2024-06-12T23:59:59.999Z",
+                        "txsCount": "102"
+                      }
+                    }
+                  ]
+                },
+                "parsedResponse": [
+                  [
+                    1718150400000,
+                    3501.918137,
+                    3639.283082,
+                    3461.75026,
+                    3535.750684,
+                    0.39846837
+                  ]
+                ]
+            }
+        ],
+        "fetchOrderBook": [
+            {
+                "description": "only symbol argument",
+                "method": "fetchOrderBook",
+                "input": [
+                  "ETH/USDT"
+                ],
+                "httpResponse": {
+                  "timestamp": "1718222050547",
+                  "pair": {
+                    "amountAsset": "3VuV5WTmDz47Dmdn3QpcYjzbSdipjQE4JMdNe1xZpX13",
+                    "priceAsset": "G5WWWzzVsWRyzGf32xojbnfp7gXbWrgqJT8RcVWEfLmC"
+                  },
+                  "bids": [
+                    {
+                      "amount": "670885",
+                      "price": "3520727306"
+                    },
+                    {
+                      "amount": "370460",
+                      "price": "3517183240"
+                    },
+                    {
+                      "amount": "2814081",
+                      "price": "3515359370"
+                    },
+                    {
+                      "amount": "671726",
+                      "price": "3511925492"
+                    },
+                    {
+                      "amount": "6481117",
+                      "price": "3505437200"
+                    },
+                    {
+                      "amount": "672567",
+                      "price": "3503145678"
+                    },
+                    {
+                      "amount": "2046806",
+                      "price": "3499000000"
+                    },
+                    {
+                      "amount": "673410",
+                      "price": "3494387825"
+                    },
+                    {
+                      "amount": "674254",
+                      "price": "3485651863"
+                    },
+                    {
+                      "amount": "675099",
+                      "price": "3476937739"
+                    },
+                    {
+                      "amount": "675945",
+                      "price": "3468245400"
+                    },
+                    {
+                      "amount": "676792",
+                      "price": "3459574792"
+                    },
+                    {
+                      "amount": "677640",
+                      "price": "3450925861"
+                    },
+                    {
+                      "amount": "678489",
+                      "price": "3442298553"
+                    },
+                    {
+                      "amount": "13661425",
+                      "price": "2456000000"
+                    },
+                    {
+                      "amount": "1337423298",
+                      "price": "9700"
+                    }
+                  ],
+                  "asks": [
+                    {
+                      "amount": "667539",
+                      "price": "3538375063"
+                    },
+                    {
+                      "amount": "370460",
+                      "price": "3540426760"
+                    },
+                    {
+                      "amount": "25000000",
+                      "price": "3544928619"
+                    },
+                    {
+                      "amount": "3607177",
+                      "price": "3544928620"
+                    },
+                    {
+                      "amount": "666706",
+                      "price": "3547220997"
+                    },
+                    {
+                      "amount": "6340382",
+                      "price": "3551441270"
+                    },
+                    {
+                      "amount": "665875",
+                      "price": "3556089037"
+                    },
+                    {
+                      "amount": "665045",
+                      "price": "3564979251"
+                    },
+                    {
+                      "amount": "664216",
+                      "price": "3573891695"
+                    },
+                    {
+                      "amount": "663387",
+                      "price": "3582826423"
+                    },
+                    {
+                      "amount": "662560",
+                      "price": "3591783476"
+                    },
+                    {
+                      "amount": "661734",
+                      "price": "3600762925"
+                    },
+                    {
+                      "amount": "660909",
+                      "price": "3609764824"
+                    },
+                    {
+                      "amount": "660085",
+                      "price": "3618789229"
+                    },
+                    {
+                      "amount": "33925",
+                      "price": "3936241988"
+                    },
+                    {
+                      "amount": "4000000",
+                      "price": "4000000000"
+                    },
+                    {
+                      "amount": "21119",
+                      "price": "4245186000"
+                    },
+                    {
+                      "amount": "100000",
+                      "price": "3000000000000"
+                    }
+                  ]
+                },
+                "parsedResponse": {
+                  "symbol": "ETH/USDT",
+                  "bids": [
+                    [
+                      3520.727306,
+                      0.00670885
+                    ],
+                    [
+                      3517.18324,
+                      0.0037046
+                    ],
+                    [
+                      3515.35937,
+                      0.02814081
+                    ],
+                    [
+                      3511.925492,
+                      0.00671726
+                    ],
+                    [
+                      3505.4372,
+                      0.06481117
+                    ],
+                    [
+                      3503.145678,
+                      0.00672567
+                    ],
+                    [
+                      3499,
+                      0.02046806
+                    ],
+                    [
+                      3494.387825,
+                      0.0067341
+                    ],
+                    [
+                      3485.651863,
+                      0.00674254
+                    ],
+                    [
+                      3476.937739,
+                      0.00675099
+                    ],
+                    [
+                      3468.2454,
+                      0.00675945
+                    ],
+                    [
+                      3459.574792,
+                      0.00676792
+                    ],
+                    [
+                      3450.925861,
+                      0.0067764
+                    ],
+                    [
+                      3442.298553,
+                      0.00678489
+                    ],
+                    [
+                      2456,
+                      0.13661425
+                    ],
+                    [
+                      0.0097,
+                      13.37423298
+                    ]
+                  ],
+                  "asks": [
+                    [
+                      3538.375063,
+                      0.00667539
+                    ],
+                    [
+                      3540.42676,
+                      0.0037046
+                    ],
+                    [
+                      3544.928619,
+                      0.25
+                    ],
+                    [
+                      3544.92862,
+                      0.03607177
+                    ],
+                    [
+                      3547.220997,
+                      0.00666706
+                    ],
+                    [
+                      3551.44127,
+                      0.06340382
+                    ],
+                    [
+                      3556.089037,
+                      0.00665875
+                    ],
+                    [
+                      3564.979251,
+                      0.00665045
+                    ],
+                    [
+                      3573.891695,
+                      0.00664216
+                    ],
+                    [
+                      3582.826423,
+                      0.00663387
+                    ],
+                    [
+                      3591.783476,
+                      0.0066256
+                    ],
+                    [
+                      3600.762925,
+                      0.00661734
+                    ],
+                    [
+                      3609.764824,
+                      0.00660909
+                    ],
+                    [
+                      3618.789229,
+                      0.00660085
+                    ],
+                    [
+                      3936.241988,
+                      0.00033925
+                    ],
+                    [
+                      4000,
+                      0.04
+                    ],
+                    [
+                      4245.186,
+                      0.00021119
+                    ],
+                    [
+                      3000000,
+                      0.001
+                    ]
+                  ],
+                  "timestamp": 1718222050547,
+                  "datetime": "2024-06-12T19:54:10.547Z",
+                  "nonce": null
+                }
+            }
+        ],
+        "fetchBalance": [
+            {
+                "description": "Fill this with a description of the method call",
+                "method": "fetchBalance",
+                "input": [],
+                "httpResponse": {
+                  "address": "3P81LLX1kk2CSJC9L8C3hnxdHB7XvnSGDXX",
+                  "confirmations": "0",
+                  "balance": "6260245"
+                },
+                "parsedResponse": {
+                  "USDT": {
+                    "free": 0.197522,
+                    "used": 0,
+                    "total": 0.197522
+                  },
+                  "WAVES": {
+                    "total": 0.06260245,
+                    "used": 0,
+                    "free": 0.06260245
+                  },
+                  "timestamp": null,
+                  "datetime": null,
+                  "free": {
+                    "USDT": 0.197522,
+                    "WAVES": 0.06260245
+                  },
+                  "used": {
+                    "USDT": 0,
+                    "WAVES": 0
+                  },
+                  "total": {
+                    "USDT": 0.197522,
+                    "WAVES": 0.06260245
+                  }
+                }
+            }
+        ],
+        "fetchOrders": [
+            {
+                "description": "Fill this with a description of the method call",
+                "method": "fetchOrders",
+                "input": [
+                  "WAVES/USDT",
+                  null,
+                  1
+                ],
+                "httpResponse": [
+                  {
+                    "id": "74YPyeb8vnkwgeDuW1C5hLTTsCrfvnuhoHt3F7zbj8QG",
+                    "type": "sell",
+                    "orderType": "limit",
+                    "amount": "1234567",
+                    "filled": "1234532",
+                    "price": "2123456",
+                    "fee": "1000000",
+                    "filledFee": "999971",
+                    "feeAsset": "WAVES",
+                    "timestamp": "1715788769446",
+                    "status": "Filled",
+                    "assetPair": {
+                      "amountAsset": "WAVES",
+                      "priceAsset": "G5WWWzzVsWRyzGf32xojbnfp7gXbWrgqJT8RcVWEfLmC"
+                    },
+                    "avgWeighedPrice": "2431044",
+                    "version": "4",
+                    "totalExecutedPriceAssets": "30012",
+                    "priceOnPlace": "2435907"
+                  }
+                ],
+                "parsedResponse": [
+                  {
+                    "id": "74YPyeb8vnkwgeDuW1C5hLTTsCrfvnuhoHt3F7zbj8QG",
+                    "clientOrderId": null,
+                    "timestamp": 1715788769446,
+                    "datetime": "2024-05-15T15:59:29.446Z",
+                    "lastTradeTimestamp": null,
+                    "symbol": "WAVES/USDT",
+                    "type": "limit",
+                    "timeInForce": null,
+                    "postOnly": null,
+                    "side": "sell",
+                    "price": 2.123456,
+                    "stopPrice": null,
+                    "triggerPrice": null,
+                    "amount": 0.01234567,
+                    "cost": 0.03001201611408,
+                    "average": 2.431044,
+                    "filled": 0.01234532,
+                    "remaining": 3.5e-7,
+                    "status": "closed",
+                    "fee": {
+                      "currency": "WAVES",
+                      "fee": 0.00999971
+                    },
+                    "trades": [],
+                    "fees": [
+                      {
+                        "currency": "WAVES",
+                        "fee": 0.00999971,
+                        "cost": null
+                      }
+                    ],
+                    "lastUpdateTimestamp": null,
+                    "reduceOnly": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null
+                  }
+                ]
+            }
+        ]
+    }
 }
