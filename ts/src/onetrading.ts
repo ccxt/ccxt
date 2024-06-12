@@ -1614,11 +1614,14 @@ export default class onetrading extends Exchange {
         } else {
             request['order_id'] = id;
         }
-        const response = await this[method] (this.extend (request, params));
+        let response = await this[method] (this.extend (request, params));
         //
         // responds with an empty body
         //
-        return response;
+        if (response === undefined) {
+            response = {};
+        }
+        return this.parseOrder (response);
     }
 
     async cancelAllOrders (symbol: Str = undefined, params = {}) {
@@ -1636,13 +1639,24 @@ export default class onetrading extends Exchange {
             const market = this.market (symbol);
             request['instrument_code'] = market['id'];
         }
-        const response = await this.privateDeleteAccountOrders (this.extend (request, params));
+        let response = await this.privateDeleteAccountOrders (this.extend (request, params));
         //
         //     [
         //         "a10e9bd1-8f72-4cfe-9f1b-7f1c8a9bd8ee"
         //     ]
         //
-        return response;
+        if (response === undefined) {
+            response = [];
+        }
+        const orders = [];
+        for (let i = 0; i < response.length; i++) {
+            const id = response[i];
+            orders.push ({
+                'info': id,
+                'id': id,
+            });
+        }
+        return orders;
     }
 
     async cancelOrders (ids, symbol: Str = undefined, params = {}) {
@@ -1659,13 +1673,24 @@ export default class onetrading extends Exchange {
         const request: Dict = {
             'ids': ids.join (','),
         };
-        const response = await this.privateDeleteAccountOrders (this.extend (request, params));
+        let response = await this.privateDeleteAccountOrders (this.extend (request, params));
         //
         //     [
         //         "a10e9bd1-8f72-4cfe-9f1b-7f1c8a9bd8ee"
         //     ]
         //
-        return response;
+        if (response === undefined) {
+            response = [];
+        }
+        const orders = [];
+        for (let i = 0; i < response.length; i++) {
+            const id = response[i];
+            orders.push ({
+                'info': id,
+                'id': id,
+            });
+        }
+        return orders;
     }
 
     async fetchOrder (id: string, symbol: Str = undefined, params = {}) {
