@@ -122,6 +122,7 @@ export default class Client {
         const queue = this.messageQueue[messageHash]
         if (queue && queue.length) {
             future.resolve (queue.shift ())
+            delete this.futures[messageHash]
         }
         return future
     }
