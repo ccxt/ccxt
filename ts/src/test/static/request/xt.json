@@ -1,8 +1,85 @@
 {
     "exchange": "xt",
     "skipKeys": [],
-    "outputType": "json",
+    "outputType": "both",
     "methods": {
+        "createOrder":[
+            {
+                "description": "limit spot order",
+                "method": "createOrder",
+                "url": "https://sapi.xt.com/v4/order",
+                "input": [
+                  "LTC/USDT",
+                  "limit",
+                  "buy",
+                  0.1,
+                  50
+                ],
+                "output": "{\"symbol\":\"ltc_usdt\",\"side\":\"BUY\",\"type\":\"LIMIT\",\"bizType\":\"SPOT\",\"price\":\"50\",\"quantity\":\"0.1\",\"timeInForce\":\"GTC\",\"media\":\"CCXT\"}"
+            },
+            {
+                "description": "create swap order",
+                "method": "createOrder",
+                "url": "https://fapi.xt.com/future/trade/v1/order/create",
+                "input": [
+                  "LTC/USDT:USDT",
+                  "limit",
+                  "buy",
+                  1,
+                  50
+                ],
+                "output": "{\"symbol\":\"ltc_usdt\",\"origQty\":\"1\",\"positionSide\":\"LONG\",\"price\":\"50\",\"orderSide\":\"BUY\",\"orderType\":\"LIMIT\",\"clientMedia\":\"CCXT\"}"
+            },
+            {
+                "description": "spot market buy",
+                "method": "createOrder",
+                "url": "https://sapi.xt.com/v4/order",
+                "input": [
+                  "LTC/USDT",
+                  "market",
+                  "buy",
+                  1,
+                  5
+                ],
+                "output": "{\"symbol\":\"ltc_usdt\",\"side\":\"BUY\",\"type\":\"MARKET\",\"bizType\":\"SPOT\",\"quoteQty\":\"5\",\"timeInForce\":\"FOK\",\"media\":\"CCXT\"}"
+            },
+            {
+                "description": "spot market sell",
+                "method": "createOrder",
+                "url": "https://sapi.xt.com/v4/order",
+                "input": [
+                  "LTC/USDT",
+                  "market",
+                  "sell",
+                  0.1
+                ],
+                "output": "{\"symbol\":\"ltc_usdt\",\"side\":\"SELL\",\"type\":\"MARKET\",\"bizType\":\"SPOT\",\"quantity\":\"0.1\",\"timeInForce\":\"FOK\",\"media\":\"CCXT\"}"
+            },
+            {
+                "description": "swap market buy",
+                "method": "createOrder",
+                "url": "https://fapi.xt.com/future/trade/v1/order/create",
+                "input": [
+                  "LTC/USDT:USDT",
+                  "market",
+                  "buy",
+                  1
+                ],
+                "output": "{\"symbol\":\"ltc_usdt\",\"origQty\":\"1\",\"positionSide\":\"LONG\",\"orderSide\":\"BUY\",\"orderType\":\"MARKET\",\"clientMedia\":\"CCXT\"}"
+            },
+            {
+                "description": "swap market sell",
+                "method": "createOrder",
+                "url": "https://fapi.xt.com/future/trade/v1/order/create",
+                "input": [
+                  "LTC/USDT:USDT",
+                  "market",
+                  "sell",
+                  1
+                ],
+                "output": "{\"symbol\":\"ltc_usdt\",\"origQty\":\"1\",\"positionSide\":\"SHORT\",\"orderSide\":\"SELL\",\"orderType\":\"MARKET\",\"clientMedia\":\"CCXT\"}"
+            }
+        ],
         "fetchOrders": [
             {
                 "description": "Spot orders",
@@ -107,6 +184,27 @@
                 "method": "fetchDeposits",
                 "url": "https://sapi.xt.com/v4/deposit/history",
                 "input": []
+            }
+        ],
+        "cancelOrder": [
+            {
+                "description": "cancel spot order",
+                "method": "cancelOrder",
+                "url": "https://sapi.xt.com/v4/order/371184502105500800",
+                "input": [
+                  "371184502105500800",
+                  "LTC/USDT"
+                ]
+            },
+            {
+                "description": "cancel swap order",
+                "method": "cancelOrder",
+                "url": "https://fapi.xt.com/future/trade/v1/order/cancel",
+                "input": [
+                  "371184779575507520",
+                  "LTC/USDT:USDT"
+                ],
+                "output": "{\"orderId\":\"371184779575507520\"}"
             }
         ]
     }
