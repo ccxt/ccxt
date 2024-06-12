@@ -21,6 +21,10 @@ public partial class gate : ccxt.gate
                 { "watchOHLCV", true },
                 { "watchBalance", true },
                 { "watchOrders", true },
+                { "watchLiquidations", false },
+                { "watchLiquidationsForSymbols", false },
+                { "watchMyLiquidations", true },
+                { "watchMyLiquidationsForSymbols", true },
                 { "watchPositions", true },
             } },
             { "urls", new Dictionary<string, object>() {
@@ -1190,6 +1194,203 @@ public partial class gate : ccxt.gate
         callDynamically(client as WebSocketClient, "resolve", new object[] {this.orders, "orders"});
     }
 
+    public async override Task<object> watchMyLiquidations(object symbol, object since = null, object limit = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name gate#watchMyLiquidations
+        * @description watch the public liquidations of a trading pair
+        * @see https://www.gate.io/docs/developers/futures/ws/en/#liquidates-api
+        * @see https://www.gate.io/docs/developers/delivery/ws/en/#liquidates-api
+        * @see https://www.gate.io/docs/developers/options/ws/en/#liquidates-channel
+        * @param {string} symbol unified CCXT market symbol
+        * @param {int} [since] the earliest time in ms to fetch liquidations for
+        * @param {int} [limit] the maximum number of liquidation structures to retrieve
+        * @param {object} [params] exchange specific parameters for the bitmex api endpoint
+        * @returns {object} an array of [liquidation structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        return this.watchMyLiquidationsForSymbols(new List<object>() {symbol}, since, limit, parameters);
+    }
+
+    public async override Task<object> watchMyLiquidationsForSymbols(object symbols, object since = null, object limit = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name gate#watchMyLiquidationsForSymbols
+        * @description watch the private liquidations of a trading pair
+        * @see https://www.gate.io/docs/developers/futures/ws/en/#liquidates-api
+        * @see https://www.gate.io/docs/developers/delivery/ws/en/#liquidates-api
+        * @see https://www.gate.io/docs/developers/options/ws/en/#liquidates-channel
+        * @param {string} symbol unified CCXT market symbol
+        * @param {int} [since] the earliest time in ms to fetch liquidations for
+        * @param {int} [limit] the maximum number of liquidation structures to retrieve
+        * @param {object} [params] exchange specific parameters for the gate api endpoint
+        * @returns {object} an array of [liquidation structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        symbols = this.marketSymbols(symbols, null, true, true);
+        object market = this.getMarketFromSymbols(symbols);
+        object type = null;
+        object query = null;
+        var typequeryVariable = this.handleMarketTypeAndParams("watchMyLiquidationsForSymbols", market, parameters);
+        type = ((IList<object>)typequeryVariable)[0];
+        query = ((IList<object>)typequeryVariable)[1];
+        object typeId = this.getSupportedMapping(type, new Dictionary<string, object>() {
+            { "future", "futures" },
+            { "swap", "futures" },
+            { "option", "options" },
+        });
+        object subType = null;
+        var subTypequeryVariable = this.handleSubTypeAndParams("watchMyLiquidationsForSymbols", market, query);
+        subType = ((IList<object>)subTypequeryVariable)[0];
+        query = ((IList<object>)subTypequeryVariable)[1];
+        object isInverse = (isEqual(subType, "inverse"));
+        object url = this.getUrlByMarketType(type, isInverse);
+        object payload = new List<object>() {};
+        object messageHash = "";
+        if (isTrue(this.isEmpty(symbols)))
+        {
+            if (isTrue(isTrue(!isEqual(typeId, "futures")) && !isTrue(isInverse)))
+            {
+                throw new BadRequest ((string)add(this.id, " watchMyLiquidationsForSymbols() does not support listening to all symbols, you must call watchMyLiquidations() instead for each symbol you wish to watch.")) ;
+            }
+            messageHash = "myLiquidations";
+            ((IList<object>)payload).Add("!all");
+        } else
+        {
+            object symbolsLength = getArrayLength(symbols);
+            if (isTrue(!isEqual(symbolsLength, 1)))
+            {
+                throw new BadRequest ((string)add(this.id, " watchMyLiquidationsForSymbols() only allows one symbol at a time. To listen to several symbols call watchMyLiquidationsForSymbols() several times.")) ;
+            }
+            messageHash = add("myLiquidations::", getValue(symbols, 0));
+            ((IList<object>)payload).Add(getValue(market, "id"));
+        }
+        object channel = add(typeId, ".liquidates");
+        object newLiquidations = await this.subscribePrivate(url, messageHash, payload, channel, query, true);
+        if (isTrue(this.newUpdates))
+        {
+            return newLiquidations;
+        }
+        return this.filterBySymbolsSinceLimit(this.liquidations, symbols, since, limit, true);
+    }
+
+    public virtual void handleLiquidation(WebSocketClient client, object message)
+    {
+        //
+        // future / delivery
+        //     {
+        //         "channel":"futures.liquidates",
+        //         "event":"update",
+        //         "time":1541505434,
+        //         "time_ms":1541505434123,
+        //         "result":[
+        //            {
+        //               "entry_price":209,
+        //               "fill_price":215.1,
+        //               "left":0,
+        //               "leverage":0.0,
+        //               "liq_price":213,
+        //               "margin":0.007816722941,
+        //               "mark_price":213,
+        //               "order_id":4093362,
+        //               "order_price":215.1,
+        //               "size":-124,
+        //               "time":1541486601,
+        //               "time_ms":1541486601123,
+        //               "contract":"BTC_USD",
+        //               "user":"1040xxxx"
+        //            }
+        //         ]
+        //     }
+        // option
+        //    {
+        //        "channel":"options.liquidates",
+        //        "event":"update",
+        //        "time":1630654851,
+        //        "result":[
+        //           {
+        //              "user":"1xxxx",
+        //              "init_margin":1190,
+        //              "maint_margin":1042.5,
+        //              "order_margin":0,
+        //              "time":1639051907,
+        //              "time_ms":1639051907000
+        //           }
+        //        ]
+        //    }
+        //
+        object rawLiquidations = this.safeList(message, "result", new List<object>() {});
+        object newLiquidations = new List<object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(rawLiquidations)); postFixIncrement(ref i))
+        {
+            object rawLiquidation = getValue(rawLiquidations, i);
+            object liquidation = this.parseWsLiquidation(rawLiquidation);
+            object symbol = this.safeString(liquidation, "symbol");
+            object liquidations = this.safeValue(this.liquidations, symbol);
+            if (isTrue(isEqual(liquidations, null)))
+            {
+                object limit = this.safeInteger(this.options, "liquidationsLimit", 1000);
+                liquidations = new ArrayCache(limit);
+            }
+            callDynamically(liquidations, "append", new object[] {liquidation});
+            ((IDictionary<string,object>)this.liquidations)[(string)symbol] = liquidations;
+            callDynamically(client as WebSocketClient, "resolve", new object[] {liquidations, add("myLiquidations::", symbol)});
+        }
+        callDynamically(client as WebSocketClient, "resolve", new object[] {newLiquidations, "myLiquidations"});
+    }
+
+    public virtual object parseWsLiquidation(object liquidation, object market = null)
+    {
+        //
+        // future / delivery
+        //    {
+        //        "entry_price": 209,
+        //        "fill_price": 215.1,
+        //        "left": 0,
+        //        "leverage": 0.0,
+        //        "liq_price": 213,
+        //        "margin": 0.007816722941,
+        //        "mark_price": 213,
+        //        "order_id": 4093362,
+        //        "order_price": 215.1,
+        //        "size": -124,
+        //        "time": 1541486601,
+        //        "time_ms": 1541486601123,
+        //        "contract": "BTC_USD",
+        //        "user": "1040xxxx"
+        //    }
+        // option
+        //    {
+        //        "user": "1xxxx",
+        //        "init_margin": 1190,
+        //        "maint_margin": 1042.5,
+        //        "order_margin": 0,
+        //        "time": 1639051907,
+        //        "time_ms": 1639051907000
+        //    }
+        //
+        object marketId = this.safeString(liquidation, "contract");
+        market = this.safeMarket(marketId, market);
+        object timestamp = this.safeInteger(liquidation, "time_ms");
+        object originalSize = this.safeString(liquidation, "size");
+        object left = this.safeString(liquidation, "left");
+        object amount = Precise.stringAbs(Precise.stringSub(originalSize, left));
+        return this.safeLiquidation(new Dictionary<string, object>() {
+            { "info", liquidation },
+            { "symbol", this.safeSymbol(marketId, market) },
+            { "contracts", this.parseNumber(amount) },
+            { "contractSize", this.safeNumber(market, "contractSize") },
+            { "price", this.safeNumber(liquidation, "fill_price") },
+            { "baseValue", null },
+            { "quoteValue", null },
+            { "timestamp", timestamp },
+            { "datetime", this.iso8601(timestamp) },
+        });
+    }
+
     public virtual object handleErrorMessage(WebSocketClient client, object message)
     {
         // {
@@ -1379,6 +1580,7 @@ public partial class gate : ccxt.gate
             { "trades", this.handleTrades },
             { "order_book_update", this.handleOrderBook },
             { "balances", this.handleBalance },
+            { "liquidates", this.handleLiquidation },
         };
         object method = this.safeValue(v4Methods, channelType);
         if (isTrue(!isEqual(method, null)))

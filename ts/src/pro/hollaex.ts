@@ -5,7 +5,7 @@ import hollaexRest from '../hollaex.js';
 import { AuthenticationError, BadSymbol, BadRequest } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
-import type { Int, Str, OrderBook, Order, Trade, Balances } from '../base/types.js';
+import type { Int, Str, OrderBook, Order, Trade, Balances, Dict } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -233,7 +233,7 @@ export default class hollaex extends hollaexRest {
             this.myTrades = new ArrayCache (limit);
         }
         const stored = this.myTrades;
-        const marketIds = {};
+        const marketIds: Dict = {};
         for (let i = 0; i < rawTrades.length; i++) {
             const trade = rawTrades[i];
             const parsed = this.parseTrade (trade);
@@ -355,7 +355,7 @@ export default class hollaex extends hollaexRest {
         } else {
             rawOrders = data;
         }
-        const marketIds = {};
+        const marketIds: Dict = {};
         for (let i = 0; i < rawOrders.length; i++) {
             const order = rawOrders[i];
             const parsed = this.parseOrder (order);
@@ -428,7 +428,7 @@ export default class hollaex extends hollaexRest {
 
     async watchPublic (messageHash, params = {}) {
         const url = this.urls['api']['ws'];
-        const request = {
+        const request: Dict = {
             'op': 'subscribe',
             'args': [ messageHash ],
         };
@@ -450,13 +450,13 @@ export default class hollaex extends hollaexRest {
         const url = this.urls['api']['ws'];
         const auth = 'CONNECT' + '/stream' + expires;
         const signature = this.hmac (this.encode (auth), this.encode (this.secret), sha256);
-        const authParams = {
+        const authParams: Dict = {
             'api-key': this.apiKey,
             'api-signature': signature,
             'api-expires': expires,
         };
         const signedUrl = url + '?' + this.urlencode (authParams);
-        const request = {
+        const request: Dict = {
             'op': 'subscribe',
             'args': [ messageHash ],
         };
@@ -577,7 +577,7 @@ export default class hollaex extends hollaexRest {
             this.handlePong (client, message);
             return;
         }
-        const methods = {
+        const methods: Dict = {
             'trade': this.handleTrades,
             'orderbook': this.handleOrderBook,
             'order': this.handleOrder,

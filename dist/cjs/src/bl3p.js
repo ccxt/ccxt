@@ -59,8 +59,11 @@ class bl3p extends bl3p$1 {
                 'fetchOpenInterestHistory': false,
                 'fetchOrderBook': true,
                 'fetchPosition': false,
+                'fetchPositionHistory': false,
                 'fetchPositionMode': false,
                 'fetchPositions': false,
+                'fetchPositionsForSymbol': false,
+                'fetchPositionsHistory': false,
                 'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchTicker': true,
@@ -425,7 +428,13 @@ class bl3p extends bl3p$1 {
         const request = {
             'order_id': id,
         };
-        return await this.privatePostMarketMoneyOrderCancel(this.extend(request, params));
+        const response = await this.privatePostMarketMoneyOrderCancel(this.extend(request, params));
+        //
+        // "success"
+        //
+        return this.safeOrder({
+            'info': response,
+        });
     }
     async createDepositAddress(code, params = {}) {
         /**

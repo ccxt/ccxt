@@ -66,8 +66,11 @@ class wavesexchange extends wavesexchange$1 {
                 'fetchOrderBook': true,
                 'fetchOrders': true,
                 'fetchPosition': false,
+                'fetchPositionHistory': false,
                 'fetchPositionMode': false,
                 'fetchPositions': false,
+                'fetchPositionsForSymbol': false,
+                'fetchPositionsHistory': false,
                 'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchTicker': true,
@@ -76,6 +79,7 @@ class wavesexchange extends wavesexchange$1 {
                 'fetchTransfer': false,
                 'fetchTransfers': false,
                 'reduceMargin': false,
+                'sandbox': true,
                 'setLeverage': false,
                 'setMarginMode': false,
                 'setPositionMode': false,
@@ -1234,7 +1238,7 @@ class wavesexchange extends wavesexchange$1 {
         const amountPrecision = this.numberToString(this.toPrecision(amount, this.numberToString(this.markets[symbol]['precision']['amount'])));
         return this.parseToInt(parseFloat(amountPrecision));
     }
-    currencyToPrecision(code, amount, networkCode = undefined) {
+    customCurrencyToPrecision(code, amount, networkCode = undefined) {
         const amountPrecision = this.numberToString(this.toPrecision(amount, this.currencies[code]['precision']));
         return this.parseToInt(parseFloat(amountPrecision));
     }
@@ -1495,7 +1499,7 @@ class wavesexchange extends wavesexchange$1 {
         const firstMessage = this.safeValue(message, 0);
         const firstOrder = this.safeValue(firstMessage, 0);
         const returnedId = this.safeString(firstOrder, 'orderId');
-        return {
+        return this.safeOrder({
             'info': response,
             'id': returnedId,
             'clientOrderId': undefined,
@@ -1514,7 +1518,7 @@ class wavesexchange extends wavesexchange$1 {
             'status': undefined,
             'fee': undefined,
             'trades': undefined,
-        };
+        });
     }
     async fetchOrder(id, symbol = undefined, params = {}) {
         /**
@@ -2519,7 +2523,7 @@ class wavesexchange extends wavesexchange$1 {
         const feeAssetId = 'WAVES';
         const type = 4; // transfer
         const version = 2;
-        const amountInteger = this.currencyToPrecision(code, amount);
+        const amountInteger = this.customCurrencyToPrecision(code, amount);
         const currency = this.currency(code);
         const timestamp = this.milliseconds();
         const byteArray = [

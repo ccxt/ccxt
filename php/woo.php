@@ -29,6 +29,7 @@ class woo extends Exchange {
                 'option' => false,
                 'addMargin' => false,
                 'cancelAllOrders' => true,
+                'cancelAllOrdersAfter' => true,
                 'cancelOrder' => true,
                 'cancelWithdraw' => false, // exchange have that endpoint disabled atm, but was once implemented in ccxt per old docs => https://kronosresearch.github.io/wootrade-documents/#cancel-withdraw-request
                 'closeAllPositions' => false,
@@ -57,6 +58,8 @@ class woo extends Exchange {
                 'fetchClosedOrders' => true,
                 'fetchConvertCurrencies' => true,
                 'fetchConvertQuote' => true,
+                'fetchConvertTrade' => true,
+                'fetchConvertTradeHistory' => true,
                 'fetchCurrencies' => true,
                 'fetchDepositAddress' => true,
                 'fetchDeposits' => true,
@@ -82,8 +85,10 @@ class woo extends Exchange {
                 'fetchOrders' => true,
                 'fetchOrderTrades' => true,
                 'fetchPosition' => true,
+                'fetchPositionHistory' => false,
                 'fetchPositionMode' => false,
                 'fetchPositions' => true,
+                'fetchPositionsHistory' => false,
                 'fetchPremiumIndexOHLCV' => false,
                 'fetchStatus' => true,
                 'fetchTicker' => false,
@@ -96,6 +101,7 @@ class woo extends Exchange {
                 'fetchTransfers' => true,
                 'fetchWithdrawals' => true,
                 'reduceMargin' => false,
+                'sandbox' => true,
                 'setLeverage' => true,
                 'setMargin' => false,
                 'setPositionMode' => true,
@@ -194,6 +200,7 @@ class woo extends Exchange {
                         ),
                         'post' => array(
                             'order' => 5, // 2 requests per 1 second per symbol
+                            'order/cancel_all_after' => 1,
                             'asset/main_sub_transfer' => 30, // 20 requests per 60 seconds
                             'asset/ltv' => 30,
                             'asset/withdraw' => 30,  // implemented in ccxt, disabled on the exchange side https://kronosresearch.github.io/wootrade-documents/#token-withdraw
@@ -386,6 +393,7 @@ class woo extends Exchange {
     public function fetch_markets($params = array ()): array {
         /**
          * retrieves $data on all markets for woo
+         * @see https://docs.woo.org/#exchange-information
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} an array of objects representing market $data
          */
@@ -415,7 +423,7 @@ class woo extends Exchange {
         return $this->parse_markets($data);
     }
 
-    public function parse_market($market): array {
+    public function parse_market(array $market): array {
         $marketId = $this->safe_string($market, 'symbol');
         $parts = explode('_', $marketId);
         $first = $this->safe_string($parts, 0);
@@ -501,6 +509,7 @@ class woo extends Exchange {
     public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * get the list of most recent trades for a particular $symbol
+         * @see https://docs.woo.org/#$market-trades-public
          * @param {string} $symbol unified $symbol of the $market to fetch trades for
          * @param {int} [$since] timestamp in ms of the earliest trade to fetch
          * @param {int} [$limit] the maximum amount of trades to fetch
@@ -515,7 +524,7 @@ class woo extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
-        $response = $this->v1PublicGetMarketTrades (array_merge($request, $params));
+        $response = $this->v1PublicGetMarketTrades ($this->extend($request, $params));
         //
         // {
         //     "success" => true,
@@ -549,7 +558,7 @@ class woo extends Exchange {
         return $this->parse_trades($resultResponse, $market, $since, $limit);
     }
 
-    public function parse_trade($trade, ?array $market = null): array {
+    public function parse_trade(array $trade, ?array $market = null): array {
         //
         // public/market_trades
         //
@@ -680,9 +689,10 @@ class woo extends Exchange {
         return $result;
     }
 
-    public function fetch_currencies($params = array ()): array {
+    public function fetch_currencies($params = array ()): ?array {
         /**
          * fetches all available currencies on an exchange
+         * @see https://docs.woo.org/#available-token-public
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an associative dictionary of currencies
          */
@@ -836,6 +846,7 @@ class woo extends Exchange {
     public function create_trailing_amount_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $trailingAmount = null, $trailingTriggerPrice = null, $params = array ()): array {
         /**
          * create a trailing order by providing the $symbol, $type, $side, $amount, $price and $trailingAmount
+         * @see https://docs.woo.org/#send-algo-order
          * @param {string} $symbol unified $symbol of the market to create an order in
          * @param {string} $type 'market' or 'limit'
          * @param {string} $side 'buy' or 'sell'
@@ -860,6 +871,7 @@ class woo extends Exchange {
     public function create_trailing_percent_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $trailingPercent = null, $trailingTriggerPrice = null, $params = array ()): array {
         /**
          * create a trailing order by providing the $symbol, $type, $side, $amount, $price and $trailingPercent
+         * @see https://docs.woo.org/#send-algo-order
          * @param {string} $symbol unified $symbol of the market to create an order in
          * @param {string} $type 'market' or 'limit'
          * @param {string} $side 'buy' or 'sell'
@@ -1035,9 +1047,9 @@ class woo extends Exchange {
         $params = $this->omit($params, array( 'clOrdID', 'clientOrderId', 'client_order_id', 'postOnly', 'timeInForce', 'stopPrice', 'triggerPrice', 'stopLoss', 'takeProfit', 'trailingPercent', 'trailingAmount', 'trailingTriggerPrice' ));
         $response = null;
         if ($isStop) {
-            $response = $this->v3PrivatePostAlgoOrder (array_merge($request, $params));
+            $response = $this->v3PrivatePostAlgoOrder ($this->extend($request, $params));
         } else {
-            $response = $this->v1PrivatePostOrder (array_merge($request, $params));
+            $response = $this->v1PrivatePostOrder ($this->extend($request, $params));
         }
         // {
         //     "success" => true,
@@ -1138,16 +1150,16 @@ class woo extends Exchange {
         if ($isByClientOrder) {
             $request['client_order_id'] = $clientOrderIdExchangeSpecific;
             if ($isStop) {
-                $response = $this->v3PrivatePutAlgoOrderClientClientOrderId (array_merge($request, $params));
+                $response = $this->v3PrivatePutAlgoOrderClientClientOrderId ($this->extend($request, $params));
             } else {
-                $response = $this->v3PrivatePutOrderClientClientOrderId (array_merge($request, $params));
+                $response = $this->v3PrivatePutOrderClientClientOrderId ($this->extend($request, $params));
             }
         } else {
             $request['oid'] = $id;
             if ($isStop) {
-                $response = $this->v3PrivatePutAlgoOrderOid (array_merge($request, $params));
+                $response = $this->v3PrivatePutAlgoOrderOid ($this->extend($request, $params));
             } else {
-                $response = $this->v3PrivatePutOrderOid (array_merge($request, $params));
+                $response = $this->v3PrivatePutOrderOid ($this->extend($request, $params));
             }
         }
         //
@@ -1195,16 +1207,16 @@ class woo extends Exchange {
         $response = null;
         if ($stop) {
             $request['order_id'] = $id;
-            $response = $this->v3PrivateDeleteAlgoOrderOrderId (array_merge($request, $params));
+            $response = $this->v3PrivateDeleteAlgoOrderOrderId ($this->extend($request, $params));
         } else {
             $request['symbol'] = $market['id'];
             if ($isByClientOrder) {
                 $request['client_order_id'] = $clientOrderIdExchangeSpecific;
                 $params = $this->omit($params, array( 'clOrdID', 'clientOrderId', 'client_order_id' ));
-                $response = $this->v1PrivateDeleteClientOrder (array_merge($request, $params));
+                $response = $this->v1PrivateDeleteClientOrder ($this->extend($request, $params));
             } else {
                 $request['order_id'] = $id;
-                $response = $this->v1PrivateDeleteOrder (array_merge($request, $params));
+                $response = $this->v1PrivateDeleteOrder ($this->extend($request, $params));
             }
         }
         //
@@ -1216,7 +1228,7 @@ class woo extends Exchange {
         } else {
             $extendParams['id'] = $id;
         }
-        return array_merge($this->parse_order($response), $extendParams);
+        return $this->extend($this->parse_order($response), $extendParams);
     }
 
     public function cancel_all_orders(?string $symbol = null, $params = array ()) {
@@ -1243,14 +1255,44 @@ class woo extends Exchange {
         $request = array(
             'symbol' => $market['id'],
         );
-        $response = $this->v1PrivateDeleteOrders (array_merge($request, $params));
+        $response = $this->v1PrivateDeleteOrders ($this->extend($request, $params));
         //
         //     {
         //         "success":true,
         //         "status":"CANCEL_ALL_SENT"
         //     }
         //
-        return $response;
+        return array(
+            $this->safe_order($response),
+        );
+    }
+
+    public function cancel_all_orders_after(?int $timeout, $params = array ()) {
+        /**
+         * dead man's switch, cancel all orders after the given $timeout
+         * @see https://docs.woo.org/#cancel-all-after
+         * @param {number} $timeout time in milliseconds, 0 represents cancel the timer
+         * @param {boolean} activated countdown
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} the api result
+         */
+        $this->load_markets();
+        $request = array(
+            'trigger_after' => ($timeout > 0) ? $timeout : 0,
+        );
+        $response = $this->v1PrivatePostOrderCancelAllAfter ($this->extend($request, $params));
+        //
+        //     {
+        //         "success" => true,
+        //         "data" => array(
+        //             "expected_trigger_time" => 1711534302938
+        //         ),
+        //         "timestamp" => 1711534302943
+        //     }
+        //
+        return array(
+            $this->safe_order($response),
+        );
     }
 
     public function fetch_order(string $id, ?string $symbol = null, $params = array ()) {
@@ -1272,13 +1314,13 @@ class woo extends Exchange {
         $response = null;
         if ($stop) {
             $request['oid'] = $id;
-            $response = $this->v3PrivateGetAlgoOrderOid (array_merge($request, $params));
+            $response = $this->v3PrivateGetAlgoOrderOid ($this->extend($request, $params));
         } elseif ($clientOrderId) {
             $request['client_order_id'] = $clientOrderId;
-            $response = $this->v1PrivateGetClientOrderClientOrderId (array_merge($request, $params));
+            $response = $this->v1PrivateGetClientOrderClientOrderId ($this->extend($request, $params));
         } else {
             $request['oid'] = $id;
-            $response = $this->v1PrivateGetOrderOid (array_merge($request, $params));
+            $response = $this->v1PrivateGetOrderOid ($this->extend($request, $params));
         }
         //
         // {
@@ -1369,9 +1411,9 @@ class woo extends Exchange {
         }
         $response = null;
         if ($stop || $trailing) {
-            $response = $this->v3PrivateGetAlgoOrders (array_merge($request, $params));
+            $response = $this->v3PrivateGetAlgoOrders ($this->extend($request, $params));
         } else {
-            $response = $this->v1PrivateGetOrders (array_merge($request, $params));
+            $response = $this->v1PrivateGetOrders ($this->extend($request, $params));
         }
         //
         //     {
@@ -1426,7 +1468,7 @@ class woo extends Exchange {
          * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
          */
         $this->load_markets();
-        $extendedParams = array_merge($params, array( 'status' => 'INCOMPLETE' ));
+        $extendedParams = $this->extend($params, array( 'status' => 'INCOMPLETE' ));
         return $this->fetch_orders($symbol, $since, $limit, $extendedParams);
     }
 
@@ -1447,11 +1489,11 @@ class woo extends Exchange {
          * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
          */
         $this->load_markets();
-        $extendedParams = array_merge($params, array( 'status' => 'COMPLETED' ));
+        $extendedParams = $this->extend($params, array( 'status' => 'COMPLETED' ));
         return $this->fetch_orders($symbol, $since, $limit, $extendedParams);
     }
 
-    public function parse_time_in_force($timeInForce) {
+    public function parse_time_in_force(?string $timeInForce) {
         $timeInForces = array(
             'ioc' => 'IOC',
             'fok' => 'FOK',
@@ -1460,7 +1502,7 @@ class woo extends Exchange {
         return $this->safe_string($timeInForces, $timeInForce, null);
     }
 
-    public function parse_order($order, ?array $market = null): array {
+    public function parse_order(array $order, ?array $market = null): array {
         //
         // Possible input functions:
         // * createOrder
@@ -1572,7 +1614,7 @@ class woo extends Exchange {
         ), $market);
     }
 
-    public function parse_order_status($status) {
+    public function parse_order_status(?string $status) {
         if ($status !== null) {
             $statuses = array(
                 'NEW' => 'open',
@@ -1593,6 +1635,7 @@ class woo extends Exchange {
     public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()): array {
         /**
          * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @see https://docs.woo.org/#orderbook-snapshot-public
          * @param {string} $symbol unified $symbol of the $market to fetch the order book for
          * @param {int} [$limit] the maximum amount of order book entries to return
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -1607,7 +1650,7 @@ class woo extends Exchange {
             $limit = min ($limit, 1000);
             $request['max_level'] = $limit;
         }
-        $response = $this->v1PublicGetOrderbookSymbol (array_merge($request, $params));
+        $response = $this->v1PublicGetOrderbookSymbol ($this->extend($request, $params));
         //
         // {
         //   "success" => true,
@@ -1659,7 +1702,7 @@ class woo extends Exchange {
         }
         $response = null;
         if (!$useHistEndpoint) {
-            $response = $this->v1PublicGetKline (array_merge($request, $params));
+            $response = $this->v1PublicGetKline ($this->extend($request, $params));
             //
             //    {
             //        "success" => true,
@@ -1681,7 +1724,7 @@ class woo extends Exchange {
             //    }
             //
         } else {
-            $response = $this->v1PubGetHistKline (array_merge($request, $params));
+            $response = $this->v1PubGetHistKline ($this->extend($request, $params));
             $response = $this->safe_dict($response, 'data');
             //
             //    {
@@ -1725,6 +1768,7 @@ class woo extends Exchange {
     public function fetch_order_trades(string $id, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch all the $trades made from a single order
+         * @see https://docs.woo.org/#get-$trades
          * @param {string} $id order $id
          * @param {string} $symbol unified $market $symbol
          * @param {int} [$since] the earliest time in ms to fetch $trades for
@@ -1740,7 +1784,7 @@ class woo extends Exchange {
         $request = array(
             'oid' => $id,
         );
-        $response = $this->v1PrivateGetOrderOidTrades (array_merge($request, $params));
+        $response = $this->v1PrivateGetOrderOidTrades ($this->extend($request, $params));
         // {
         //     "success" => true,
         //     "rows" => array(
@@ -1765,8 +1809,8 @@ class woo extends Exchange {
 
     public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
-         * @see https://docs.woo.org/#get-$trades
          * fetch all $trades made by the user
+         * @see https://docs.woo.org/#get-$trades
          * @param {string} $symbol unified $market $symbol
          * @param {int} [$since] the earliest time in ms to fetch $trades for
          * @param {int} [$limit] the maximum number of $trades structures to retrieve
@@ -1794,7 +1838,7 @@ class woo extends Exchange {
         } else {
             $request['size'] = 500;
         }
-        $response = $this->v1PrivateGetClientTrades (array_merge($request, $params));
+        $response = $this->v1PrivateGetClientTrades ($this->extend($request, $params));
         // {
         //     "success" => true,
         //     "meta" => array(
@@ -1825,6 +1869,7 @@ class woo extends Exchange {
     public function fetch_accounts($params = array ()): array {
         /**
          * fetch all the accounts associated with a profile
+         * @see https://docs.woo.org/#get-assets-of-subaccounts
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=account-structure account structures~ indexed by the account type
          */
@@ -1922,6 +1967,7 @@ class woo extends Exchange {
     public function fetch_deposit_address(string $code, $params = array ()) {
         /**
          * fetch the deposit $address for a $currency associated with this account
+         * @see https://docs.woo.org/#get-token-deposit-$address
          * @param {string} $code unified $currency $code
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an ~@link https://docs.ccxt.com/#/?id=$address-structure $address structure~
@@ -1936,7 +1982,7 @@ class woo extends Exchange {
         $request = array(
             'token' => $codeForExchange,
         );
-        $response = $this->v1PrivateGetAssetDeposit (array_merge($request, $params));
+        $response = $this->v1PrivateGetAssetDeposit ($this->extend($request, $params));
         // {
         //     "success" => true,
         //     "address" => "3Jmtjx5544T4smrit9Eroe4PCrRkpDeKjP",
@@ -1954,7 +2000,7 @@ class woo extends Exchange {
         );
     }
 
-    public function get_asset_history_rows(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function get_asset_history_rows(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): mixed {
         $this->load_markets();
         $request = array( );
         $currency = null;
@@ -1973,7 +2019,7 @@ class woo extends Exchange {
         if ($transactionType !== null) {
             $request['type'] = $transactionType;
         }
-        $response = $this->v1PrivateGetAssetHistory (array_merge($request, $params));
+        $response = $this->v1PrivateGetAssetHistory ($this->extend($request, $params));
         // {
         //     "rows" => array(
         //       {
@@ -2008,12 +2054,13 @@ class woo extends Exchange {
         //     "meta" => array( total => '1', records_per_page => "25", current_page => "1" ),
         //     "success" => true
         // }
-        return array( $currency, $this->safe_value($response, 'rows', array()) );
+        return array( $currency, $this->safe_list($response, 'rows', array()) );
     }
 
     public function fetch_ledger(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch the history of changes, actions done by the user or operations that altered balance of the user
+         * @see https://docs.woo.org/#get-asset-history
          * @param {string} $code unified $currency $code, default is null
          * @param {int} [$since] timestamp in ms of the earliest ledger entry, default is null
          * @param {int} [$limit] max number of ledger entrys to return, default is null
@@ -2024,7 +2071,7 @@ class woo extends Exchange {
         return $this->parse_ledger($rows, $currency, $since, $limit, $params);
     }
 
-    public function parse_ledger_entry($item, ?array $currency = null) {
+    public function parse_ledger_entry(array $item, ?array $currency = null) {
         $networkizedCode = $this->safe_string($item, 'token');
         $currencyDefined = $this->get_currency_from_chaincode($networkizedCode, $currency);
         $code = $currencyDefined['code'];
@@ -2079,6 +2126,7 @@ class woo extends Exchange {
     public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetch all deposits made to an account
+         * @see https://docs.woo.org/#get-asset-history
          * @param {string} $code unified currency $code
          * @param {int} [$since] the earliest time in ms to fetch deposits for
          * @param {int} [$limit] the maximum number of deposits structures to retrieve
@@ -2088,12 +2136,13 @@ class woo extends Exchange {
         $request = array(
             'token_side' => 'DEPOSIT',
         );
-        return $this->fetch_deposits_withdrawals($code, $since, $limit, array_merge($request, $params));
+        return $this->fetch_deposits_withdrawals($code, $since, $limit, $this->extend($request, $params));
     }
 
     public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetch all withdrawals made from an account
+         * @see https://docs.woo.org/#get-asset-history
          * @param {string} $code unified currency $code
          * @param {int} [$since] the earliest time in ms to fetch withdrawals for
          * @param {int} [$limit] the maximum number of withdrawals structures to retrieve
@@ -2103,12 +2152,13 @@ class woo extends Exchange {
         $request = array(
             'token_side' => 'WITHDRAW',
         );
-        return $this->fetch_deposits_withdrawals($code, $since, $limit, array_merge($request, $params));
+        return $this->fetch_deposits_withdrawals($code, $since, $limit, $this->extend($request, $params));
     }
 
     public function fetch_deposits_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetch history of deposits and withdrawals
+         * @see https://docs.woo.org/#get-asset-history
          * @param {string} [$code] unified $currency $code for the $currency of the deposit/withdrawals, default is null
          * @param {int} [$since] timestamp in ms of the earliest deposit/withdrawal, default is null
          * @param {int} [$limit] max number of deposit/withdrawals to return, default is null
@@ -2118,7 +2168,7 @@ class woo extends Exchange {
         $request = array(
             'type' => 'BALANCE',
         );
-        list($currency, $rows) = $this->get_asset_history_rows($code, $since, $limit, array_merge($request, $params));
+        list($currency, $rows) = $this->get_asset_history_rows($code, $since, $limit, $this->extend($request, $params));
         //
         //     {
         //         "rows":array(),
@@ -2133,7 +2183,7 @@ class woo extends Exchange {
         return $this->parse_transactions($rows, $currency, $since, $limit, $params);
     }
 
-    public function parse_transaction($transaction, ?array $currency = null): array {
+    public function parse_transaction(array $transaction, ?array $currency = null): array {
         // example in fetchLedger
         $networkizedCode = $this->safe_string($transaction, 'token');
         $currencyDefined = $this->get_currency_from_chaincode($networkizedCode, $currency);
@@ -2170,7 +2220,7 @@ class woo extends Exchange {
         );
     }
 
-    public function parse_transaction_status($status) {
+    public function parse_transaction_status(?string $status) {
         $statuses = array(
             'NEW' => 'pending',
             'CONFIRMING' => 'pending',
@@ -2183,8 +2233,8 @@ class woo extends Exchange {
 
     public function transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array ()): array {
         /**
-         * @see https://docs.woo.org/#get-$transfer-history
          * $transfer $currency internally between wallets on the same account
+         * @see https://docs.woo.org/#get-$transfer-history
          * @param {string} $code unified $currency $code
          * @param {float} $amount amount to $transfer
          * @param {string} $fromAccount account to $transfer from
@@ -2200,7 +2250,7 @@ class woo extends Exchange {
             'from_application_id' => $fromAccount,
             'to_application_id' => $toAccount,
         );
-        $response = $this->v1PrivatePostAssetMainSubTransfer (array_merge($request, $params));
+        $response = $this->v1PrivatePostAssetMainSubTransfer ($this->extend($request, $params));
         //
         //     {
         //         "success" => true,
@@ -2218,7 +2268,7 @@ class woo extends Exchange {
         return $transfer;
     }
 
-    public function fetch_transfers(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_transfers(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetch a history of internal transfers made on an account
          * @see https://docs.woo.org/#get-transfer-history
@@ -2236,12 +2286,12 @@ class woo extends Exchange {
         if ($since !== null) {
             $request['start_t'] = $since;
         }
-        $until = $this->safe_integer_2($params, 'until', 'till'); // unified in milliseconds
-        $params = $this->omit($params, array( 'until', 'till' ));
+        $until = $this->safe_integer($params, 'until'); // unified in milliseconds
+        $params = $this->omit($params, array( 'until' ));
         if ($until !== null) {
             $request['end_t'] = $until;
         }
-        $response = $this->v1PrivateGetAssetMainSubTransferHistory (array_merge($request, $params));
+        $response = $this->v1PrivateGetAssetMainSubTransferHistory ($this->extend($request, $params));
         //
         //     {
         //         "rows" => array(
@@ -2270,7 +2320,7 @@ class woo extends Exchange {
         return $this->parse_transfers($data, null, $since, $limit, $params);
     }
 
-    public function parse_transfer($transfer, ?array $currency = null) {
+    public function parse_transfer(array $transfer, ?array $currency = null): array {
         //
         //    fetchTransfers
         //     {
@@ -2314,7 +2364,7 @@ class woo extends Exchange {
         );
     }
 
-    public function parse_transfer_status($status) {
+    public function parse_transfer_status(?string $status): ?string {
         $statuses = array(
             'NEW' => 'pending',
             'CONFIRMING' => 'pending',
@@ -2325,9 +2375,10 @@ class woo extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function withdraw(string $code, float $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()) {
         /**
          * make a withdrawal
+         * @see https://docs.woo.org/#token-withdraw
          * @param {string} $code unified $currency $code
          * @param {float} $amount the $amount to withdraw
          * @param {string} $address the $address to withdraw to
@@ -2356,7 +2407,7 @@ class woo extends Exchange {
             throw new BadRequest($this->id . ' withdraw() require $network parameter');
         }
         $request['token'] = $coinNetworkId;
-        $response = $this->v1PrivatePostAssetWithdraw (array_merge($request, $params));
+        $response = $this->v1PrivatePostAssetWithdraw ($this->extend($request, $params));
         //
         //     {
         //         "success" => true,
@@ -2387,14 +2438,14 @@ class woo extends Exchange {
             'token' => $currency['id'], // interest token that you want to repay
             'amount' => $this->currency_to_precision($code, $amount),
         );
-        $response = $this->v1PrivatePostInterestRepay (array_merge($request, $params));
+        $response = $this->v1PrivatePostInterestRepay ($this->extend($request, $params));
         //
         //     {
         //         "success" => true,
         //     }
         //
         $transaction = $this->parse_margin_loan($response, $currency);
-        return array_merge($transaction, array(
+        return $this->extend($transaction, array(
             'amount' => $amount,
             'symbol' => $symbol,
         ));
@@ -2487,7 +2538,7 @@ class woo extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors($httpCode, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
         if (!$response) {
             return null; // fallback to default error handler
         }
@@ -2549,7 +2600,7 @@ class woo extends Exchange {
         if ($since !== null) {
             $request['start_t'] = $since;
         }
-        $response = $this->v1PrivateGetFundingFeeHistory (array_merge($request, $params));
+        $response = $this->v1PrivateGetFundingFeeHistory ($this->extend($request, $params));
         //
         //     {
         //         "rows":array(
@@ -2621,7 +2672,7 @@ class woo extends Exchange {
         $request = array(
             'symbol' => $market['id'],
         );
-        $response = $this->v1PublicGetFundingRateSymbol (array_merge($request, $params));
+        $response = $this->v1PublicGetFundingRateSymbol ($this->extend($request, $params));
         //
         //     {
         //         "success":true,
@@ -2690,7 +2741,7 @@ class woo extends Exchange {
             $request['start_t'] = $this->parse_to_int($since / 1000);
         }
         list($request, $params) = $this->handle_until_option('end_t', $request, $params, 0.001);
-        $response = $this->v1PublicGetFundingRateHistory (array_merge($request, $params));
+        $response = $this->v1PublicGetFundingRateHistory ($this->extend($request, $params));
         //
         //     {
         //         "success":true,
@@ -2746,7 +2797,7 @@ class woo extends Exchange {
         $request = array(
             'position_mode' => $hedgeMode,
         );
-        $response = $this->v1PrivatePostClientPositionMode (array_merge($request, $params));
+        $response = $this->v1PrivatePostClientPositionMode ($this->extend($request, $params));
         //
         //     {
         //         "success" => true,
@@ -2800,7 +2851,7 @@ class woo extends Exchange {
         return $this->parse_leverage($data, $market);
     }
 
-    public function parse_leverage($leverage, $market = null): array {
+    public function parse_leverage(array $leverage, ?array $market = null): array {
         $leverageValue = $this->safe_integer($leverage, 'leverage');
         return array(
             'info' => $leverage,
@@ -2819,7 +2870,7 @@ class woo extends Exchange {
         $request = array(
             'leverage' => $leverage,
         );
-        return $this->v1PrivatePostClientLeverage (array_merge($request, $params));
+        return $this->v1PrivatePostClientLeverage ($this->extend($request, $params));
     }
 
     public function fetch_position(?string $symbol = null, $params = array ()) {
@@ -2828,7 +2879,7 @@ class woo extends Exchange {
         $request = array(
             'symbol' => $market['id'],
         );
-        $response = $this->v1PrivateGetPositionSymbol (array_merge($request, $params));
+        $response = $this->v1PrivateGetPositionSymbol ($this->extend($request, $params));
         //
         //     {
         //         "symbol":"PERP_ETC_USDT",
@@ -2878,7 +2929,7 @@ class woo extends Exchange {
         return $this->parse_positions($positions, $symbols);
     }
 
-    public function parse_position($position, ?array $market = null) {
+    public function parse_position(array $position, ?array $market = null) {
         //
         //     {
         //         "symbol" => "0_symbol",
@@ -2959,7 +3010,7 @@ class woo extends Exchange {
             'buyToken' => strtoupper($toCode),
             'sellQuantity' => $this->number_to_string($amount),
         );
-        $response = $this->v3PrivateGetConvertRfq (array_merge($request, $params));
+        $response = $this->v3PrivateGetConvertRfq ($this->extend($request, $params));
         //
         //     {
         //         "success" => true,
@@ -2999,7 +3050,7 @@ class woo extends Exchange {
         $request = array(
             'quoteId' => $id,
         );
-        $response = $this->v3PrivatePostConvertRft (array_merge($request, $params));
+        $response = $this->v3PrivatePostConvertRft ($this->extend($request, $params));
         //
         //     {
         //         "success" => true,
@@ -3014,7 +3065,95 @@ class woo extends Exchange {
         return $this->parse_conversion($data);
     }
 
-    public function parse_conversion($conversion, ?array $fromCurrency = null, ?array $toCurrency = null): Conversion {
+    public function fetch_convert_trade(string $id, ?string $code = null, $params = array ()): Conversion {
+        /**
+         * fetch the $data for a conversion trade
+         * @see https://docs.woo.org/#get-quote-trade
+         * @param {string} $id the $id of the trade that you want to fetch
+         * @param {string} [$code] the unified currency $code of the conversion trade
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/#/?$id=conversion-structure conversion structure~
+         */
+        $this->load_markets();
+        $request = array(
+            'quoteId' => $id,
+        );
+        $response = $this->v3PrivateGetConvertTrade ($this->extend($request, $params));
+        //
+        //     {
+        //         "success" => true,
+        //         "data" => {
+        //             "quoteId" => 12,
+        //             "buyAsset" => "",
+        //             "sellAsset" => "",
+        //             "buyAmount" => 12.11,
+        //             "sellAmount" => 12.11,
+        //             "tradeStatus" => 12,
+        //             "createdTime" => ""
+        //         }
+        //     }
+        //
+        $data = $this->safe_dict($response, 'data', array());
+        $fromCurrencyId = $this->safe_string($data, 'sellAsset');
+        $toCurrencyId = $this->safe_string($data, 'buyAsset');
+        $fromCurrency = null;
+        $toCurrency = null;
+        if ($fromCurrencyId !== null) {
+            $fromCurrency = $this->currency($fromCurrencyId);
+        }
+        if ($toCurrencyId !== null) {
+            $toCurrency = $this->currency($toCurrencyId);
+        }
+        return $this->parse_conversion($data, $fromCurrency, $toCurrency);
+    }
+
+    public function fetch_convert_trade_history(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
+        /**
+         * fetch the users history of conversion trades
+         * @see https://docs.woo.org/#get-quote-trades
+         * @param {string} [$code] the unified currency $code
+         * @param {int} [$since] the earliest time in ms to fetch conversions for
+         * @param {int} [$limit] the maximum number of conversion structures to retrieve
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {int} [$params->until] timestamp in ms of the latest conversion to fetch
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=conversion-structure conversion structures~
+         */
+        $this->load_markets();
+        $request = array();
+        list($request, $params) = $this->handle_until_option('endTime', $request, $params);
+        if ($since !== null) {
+            $request['startTime'] = $since;
+        }
+        if ($limit !== null) {
+            $request['size'] = $limit;
+        }
+        $response = $this->v3PrivateGetConvertTrades ($this->extend($request, $params));
+        //
+        //     {
+        //         "success" => true,
+        //         "data" => {
+        //             "count" => 12,
+        //             "tradeVos":array(
+        //                 {
+        //                     "quoteId" => 12,
+        //                     "buyAsset" => "",
+        //                     "sellAsset" => "",
+        //                     "buyAmount" => 12.11,
+        //                     "sellAmount" => 12.11,
+        //                     "tradeStatus" => 12,
+        //                     "createdTime" => ""
+        //                 }
+        //                 ...
+        //             )
+        //         }
+        //     }
+        //
+        $data = $this->safe_dict($response, 'data', array());
+        $rows = $this->safe_list($data, 'tradeVos', array());
+        return $this->parse_conversions($rows, $code, 'sellAsset', 'buyAsset', $since, $limit);
+    }
+
+    public function parse_conversion(array $conversion, ?array $fromCurrency = null, ?array $toCurrency = null): Conversion {
         //
         // fetchConvertQuote
         //
@@ -3038,10 +3177,22 @@ class woo extends Exchange {
         //         "rftAccepted" => 1 // 1 -> success; 2 -> processing; 3 -> fail
         //     }
         //
-        $timestamp = $this->safe_integer($conversion, 'expireTimestamp');
-        $fromCoin = $this->safe_string($conversion, 'sellToken');
-        $fromCode = $this->safe_currency_code($fromCoin, $fromCurrency);
-        $to = $this->safe_string($conversion, 'buyToken');
+        // fetchConvertTrade, fetchConvertTradeHistory
+        //
+        //     {
+        //         "quoteId" => 12,
+        //         "buyAsset" => "",
+        //         "sellAsset" => "",
+        //         "buyAmount" => 12.11,
+        //         "sellAmount" => 12.11,
+        //         "tradeStatus" => 12,
+        //         "createdTime" => ""
+        //     }
+        //
+        $timestamp = $this->safe_integer_2($conversion, 'expireTimestamp', 'createdTime');
+        $fromCurr = $this->safe_string_2($conversion, 'sellToken', 'buyAsset');
+        $fromCode = $this->safe_currency_code($fromCurr, $fromCurrency);
+        $to = $this->safe_string_2($conversion, 'buyToken', 'sellAsset');
         $toCode = $this->safe_currency_code($to, $toCurrency);
         return array(
             'info' => $conversion,
@@ -3049,15 +3200,15 @@ class woo extends Exchange {
             'datetime' => $this->iso8601($timestamp),
             'id' => $this->safe_string($conversion, 'quoteId'),
             'fromCurrency' => $fromCode,
-            'fromAmount' => $this->safe_number($conversion, 'sellQuantity'),
+            'fromAmount' => $this->safe_number_2($conversion, 'sellQuantity', 'sellAmount'),
             'toCurrency' => $toCode,
-            'toAmount' => $this->safe_number($conversion, 'buyQuantity'),
+            'toAmount' => $this->safe_number_2($conversion, 'buyQuantity', 'buyAmount'),
             'price' => $this->safe_number($conversion, 'buyPrice'),
             'fee' => null,
         );
     }
 
-    public function fetch_convert_currencies($params = array ()): array {
+    public function fetch_convert_currencies($params = array ()): ?array {
         /**
          * fetches all available currencies that can be converted
          * @see https://docs.woo.org/#get-quote-asset-info

@@ -37,9 +37,12 @@ const json =  (data: any, params = undefined) => JSON.stringify (data)
 
     // Url-safe-base64 without equals signs, with + replaced by - and slashes replaced by underscores
 
-    , urlencodeBase64 = (base64string: string) => base64string.replace (/[=]+$/, '')
-                                                   .replace (/\+/g, '-')
-                                                   .replace (/\//g, '_')
+    , urlencodeBase64 = (payload: string | Uint8Array) => {
+        const payload64 = (typeof payload === 'string') ? stringToBase64 (payload) : binaryToBase64 (payload)
+        return payload64.replace (/[=]+$/, '')
+            .replace (/\+/g, '-')
+            .replace (/\//g, '_')
+    }
 
     , numberToLE = (n: number, padding: number) => numberToBytesLE (BigInt (n), padding)
 

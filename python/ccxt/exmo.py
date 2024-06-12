@@ -74,7 +74,12 @@ class exmo(Exchange, ImplicitAPI):
                 'fetchOrderBook': True,
                 'fetchOrderBooks': True,
                 'fetchOrderTrades': True,
+                'fetchPosition': False,
+                'fetchPositionHistory': False,
                 'fetchPositionMode': False,
+                'fetchPositions': False,
+                'fetchPositionsHistory': False,
+                'fetchPositionsRisk': False,
                 'fetchPremiumIndexOHLCV': False,
                 'fetchTicker': True,
                 'fetchTickers': True,
@@ -245,7 +250,7 @@ class exmo(Exchange, ImplicitAPI):
     def modify_margin_helper(self, symbol: str, amount, type, params={}):
         self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'position_id': market['id'],
             'quantity': amount,
         }
@@ -265,7 +270,7 @@ class exmo(Exchange, ImplicitAPI):
             margin['amount'] = amount
         return margin
 
-    def parse_margin_modification(self, data, market: Market = None) -> MarginModification:
+    def parse_margin_modification(self, data: dict, market: Market = None) -> MarginModification:
         #
         #      {}
         #
@@ -282,7 +287,7 @@ class exmo(Exchange, ImplicitAPI):
             'datetime': None,
         }
 
-    def reduce_margin(self, symbol: str, amount, params={}) -> MarginModification:
+    def reduce_margin(self, symbol: str, amount: float, params={}) -> MarginModification:
         """
         remove margin from a position
         :see: https://documenter.getpostman.com/view/10287440/SzYXWKPi#eebf9f25-0289-4946-9482-89872c738449
@@ -293,7 +298,7 @@ class exmo(Exchange, ImplicitAPI):
         """
         return self.modify_margin_helper(symbol, amount, 'reduce', params)
 
-    def add_margin(self, symbol: str, amount, params={}) -> MarginModification:
+    def add_margin(self, symbol: str, amount: float, params={}) -> MarginModification:
         """
         add margin
         :see: https://documenter.getpostman.com/view/10287440/SzYXWKPi#143ef808-79ca-4e49-9e79-a60ea4d8c0e3
@@ -354,7 +359,7 @@ class exmo(Exchange, ImplicitAPI):
         #     }
         #
         pairs = self.safe_value(response, 'pairs', [])
-        result = {}
+        result: dict = {}
         for i in range(0, len(pairs)):
             pair = pairs[i]
             marketId = self.safe_string(pair, 'name')
@@ -391,7 +396,7 @@ class exmo(Exchange, ImplicitAPI):
         #         },
         #     }
         #
-        result = {}
+        result: dict = {}
         for i in range(0, len(self.symbols)):
             symbol = self.symbols[i]
             market = self.market(symbol)
@@ -423,7 +428,7 @@ class exmo(Exchange, ImplicitAPI):
             raise ExchangeError(self.id + ' parseFixedFloatValue() detected an unsupported non-zero percentage-based fee ' + input)
         return result
 
-    def fetch_transaction_fees(self, codes: List[str] = None, params={}):
+    def fetch_transaction_fees(self, codes: Strings = None, params={}):
         """
          * @deprecated
         please use fetchDepositWithdrawFees instead
@@ -468,7 +473,7 @@ class exmo(Exchange, ImplicitAPI):
         #         ],
         #     }
         #
-        result = {}
+        result: dict = {}
         cryptoListKeys = list(cryptoList.keys())
         for i in range(0, len(cryptoListKeys)):
             code = cryptoListKeys[i]
@@ -617,7 +622,7 @@ class exmo(Exchange, ImplicitAPI):
         #         ],
         #     }
         #
-        result = {}
+        result: dict = {}
         for i in range(0, len(currencyList)):
             currency = currencyList[i]
             currencyId = self.safe_string(currency, 'name')
@@ -625,7 +630,7 @@ class exmo(Exchange, ImplicitAPI):
             providers = self.safe_value(cryptoList, currencyId)
             active = False
             type = 'crypto'
-            limits = {
+            limits: dict = {
                 'deposit': {
                     'min': None,
                     'max': None,
@@ -709,7 +714,7 @@ class exmo(Exchange, ImplicitAPI):
         #         },
         #     }
         #
-        marginPairsDict = {}
+        marginPairsDict: dict = {}
         if self.check_required_credentials(False):
             marginPairs = self.privatePostMarginPairList(params)
             #
@@ -823,7 +828,7 @@ class exmo(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'symbol': market['id'],
             'resolution': self.safe_string(self.timeframes, timeframe, timeframe),
         }
@@ -879,7 +884,7 @@ class exmo(Exchange, ImplicitAPI):
         ]
 
     def parse_balance(self, response) -> Balances:
-        result = {'info': response}
+        result: dict = {'info': response}
         wallets = self.safe_value(response, 'wallets')
         if wallets is not None:
             currencyIds = list(wallets.keys())
@@ -962,7 +967,7 @@ class exmo(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'pair': market['id'],
         }
         if limit is not None:
@@ -991,13 +996,13 @@ class exmo(Exchange, ImplicitAPI):
         else:
             ids = self.market_ids(symbols)
             ids = ','.join(ids)
-        request = {
+        request: dict = {
             'pair': ids,
         }
         if limit is not None:
             request['limit'] = limit
         response = self.publicGetOrderBook(self.extend(request, params))
-        result = {}
+        result: dict = {}
         marketIds = list(response.keys())
         for i in range(0, len(marketIds)):
             marketId = marketIds[i]
@@ -1005,7 +1010,7 @@ class exmo(Exchange, ImplicitAPI):
             result[symbol] = self.parse_order_book(response[marketId], symbol, None, 'bid', 'ask')
         return result
 
-    def parse_ticker(self, ticker, market: Market = None) -> Ticker:
+    def parse_ticker(self, ticker: dict, market: Market = None) -> Ticker:
         #
         #     {
         #         "buy_price":"0.00002996",
@@ -1071,7 +1076,7 @@ class exmo(Exchange, ImplicitAPI):
         #         }
         #     }
         #
-        result = {}
+        result: dict = {}
         marketIds = list(response.keys())
         for i in range(0, len(marketIds)):
             marketId = marketIds[i]
@@ -1094,7 +1099,7 @@ class exmo(Exchange, ImplicitAPI):
         market = self.market(symbol)
         return self.parse_ticker(response[market['id']], market)
 
-    def parse_trade(self, trade, market: Market = None) -> Trade:
+    def parse_trade(self, trade: dict, market: Market = None) -> Trade:
         #
         # fetchTrades(public)
         #
@@ -1193,7 +1198,7 @@ class exmo(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'pair': market['id'],
         }
         response = self.publicGetTrades(self.extend(request, params))
@@ -1248,7 +1253,7 @@ class exmo(Exchange, ImplicitAPI):
         isSpot = marginMode != 'isolated'
         if limit is None:
             limit = 100
-        request = {}
+        request: dict = {}
         if isSpot:
             request['pair'] = pair
         else:
@@ -1340,7 +1345,7 @@ class exmo(Exchange, ImplicitAPI):
             raise BadRequest(self.id + ' only supports isolated margin')
         isSpot = (marginMode != 'isolated')
         triggerPrice = self.safe_number_n(params, ['triggerPrice', 'stopPrice', 'stop_price'])
-        request = {
+        request: dict = {
             'pair': market['id'],
             # 'leverage': 2,
             'quantity': self.amount_to_precision(market['symbol'], amount),
@@ -1420,7 +1425,7 @@ class exmo(Exchange, ImplicitAPI):
         :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
-        request = {}
+        request: dict = {}
         stop = self.safe_value_2(params, 'trigger', 'stop')
         params = self.omit(params, ['trigger', 'stop'])
         marginMode = None
@@ -1461,7 +1466,7 @@ class exmo(Exchange, ImplicitAPI):
         :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
-        request = {
+        request: dict = {
             'order_id': str(id),
         }
         response = self.privatePostOrderTrades(self.extend(request, params))
@@ -1510,7 +1515,7 @@ class exmo(Exchange, ImplicitAPI):
         market = None
         if symbol is not None:
             market = self.market(symbol)
-        request = {
+        request: dict = {
             'order_id': str(id),
         }
         response = None
@@ -1651,7 +1656,7 @@ class exmo(Exchange, ImplicitAPI):
     def parse_status(self, status):
         if status is None:
             return None
-        statuses = {
+        statuses: dict = {
             'cancel_started': 'canceled',
         }
         if status.find('cancel') >= 0:
@@ -1659,7 +1664,7 @@ class exmo(Exchange, ImplicitAPI):
         return self.safe_string(statuses, status, status)
 
     def parse_side(self, orderType):
-        side = {
+        side: dict = {
             'limit_buy': 'buy',
             'limit_sell': 'sell',
             'market_buy': 'buy',
@@ -1677,7 +1682,7 @@ class exmo(Exchange, ImplicitAPI):
         }
         return self.safe_string(side, orderType, orderType)
 
-    def parse_order(self, order, market: Market = None) -> Order:
+    def parse_order(self, order: dict, market: Market = None) -> Order:
         #
         # fetchOrders, fetchOpenOrders, fetchClosedOrders, fetchCanceledOrders
         #
@@ -1834,7 +1839,7 @@ class exmo(Exchange, ImplicitAPI):
         if symbol is not None:
             marketInner = self.market(symbol)
             symbol = marketInner['symbol']
-        request = {
+        request: dict = {
             'limit': limit,
         }
         request['offset'] = limit if (since is not None) else 0
@@ -1926,7 +1931,7 @@ class exmo(Exchange, ImplicitAPI):
             raise BadRequest(self.id + ' editOrder() can only be used for isolated margin orders')
         triggerPrice = self.safe_number_n(params, ['triggerPrice', 'stopPrice', 'stop_price'])
         params = self.omit(params, ['triggerPrice', 'stopPrice'])
-        request = {
+        request: dict = {
             'order_id': id,  # id of the open order
         }
         if amount is not None:
@@ -1980,7 +1985,7 @@ class exmo(Exchange, ImplicitAPI):
             return self.markets[symbols[0]]
         return None
 
-    def withdraw(self, code: str, amount: float, address, tag=None, params={}):
+    def withdraw(self, code: str, amount: float, address: str, tag=None, params={}):
         """
         make a withdrawal
         :see: https://documenter.getpostman.com/view/10287440/SzYXWKPi#3ab9c34d-ad58-4f87-9c57-2e2ea88a8325
@@ -1994,7 +1999,7 @@ class exmo(Exchange, ImplicitAPI):
         tag, params = self.handle_withdraw_tag_and_params(tag, params)
         self.load_markets()
         currency = self.currency(code)
-        request = {
+        request: dict = {
             'amount': amount,
             'currency': currency['id'],
             'address': address,
@@ -2010,8 +2015,8 @@ class exmo(Exchange, ImplicitAPI):
         response = self.privatePostWithdrawCrypt(self.extend(request, params))
         return self.parse_transaction(response, currency)
 
-    def parse_transaction_status(self, status):
-        statuses = {
+    def parse_transaction_status(self, status: Str):
+        statuses: dict = {
             'transferred': 'ok',
             'paid': 'ok',
             'pending': 'pending',
@@ -2020,7 +2025,7 @@ class exmo(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_transaction(self, transaction, currency: Currency = None) -> Transaction:
+    def parse_transaction(self, transaction: dict, currency: Currency = None) -> Transaction:
         #
         # fetchDepositsWithdrawals
         #
@@ -2155,7 +2160,7 @@ class exmo(Exchange, ImplicitAPI):
         :returns dict: a list of `transaction structure <https://docs.ccxt.com/#/?id=transaction-structure>`
         """
         self.load_markets()
-        request = {}
+        request: dict = {}
         if since is not None:
             request['date'] = self.parse_to_int(since / 1000)
         currency = None
@@ -2206,7 +2211,7 @@ class exmo(Exchange, ImplicitAPI):
         """
         self.load_markets()
         currency = None
-        request = {
+        request: dict = {
             'type': 'withdraw',
         }
         if limit is not None:
@@ -2255,7 +2260,7 @@ class exmo(Exchange, ImplicitAPI):
         """
         self.load_markets()
         currency = None
-        request = {
+        request: dict = {
             'order_id': id,
             'type': 'withdraw',
         }
@@ -2304,7 +2309,7 @@ class exmo(Exchange, ImplicitAPI):
         """
         self.load_markets()
         currency = None
-        request = {
+        request: dict = {
             'order_id': id,
             'type': 'deposit',
         }
@@ -2354,7 +2359,7 @@ class exmo(Exchange, ImplicitAPI):
         """
         self.load_markets()
         currency = None
-        request = {
+        request: dict = {
             'type': 'deposit',
         }
         if limit is not None:
@@ -2414,7 +2419,7 @@ class exmo(Exchange, ImplicitAPI):
     def nonce(self):
         return self.milliseconds()
 
-    def handle_errors(self, httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody):
+    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response, requestHeaders, requestBody):
         if response is None:
             return None  # fallback to default error handler
         if ('error' in response) and not ('result' in response):

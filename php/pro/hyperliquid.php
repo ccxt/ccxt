@@ -71,10 +71,10 @@ class hyperliquid extends \ccxt\async\hyperliquid {
                 'method' => 'subscribe',
                 'subscription' => array(
                     'type' => 'l2Book',
-                    'coin' => $market['base'],
+                    'coin' => $market['swap'] ? $market['base'] : $market['id'],
                 ),
             );
-            $message = array_merge($request, $params);
+            $message = $this->extend($request, $params);
             $orderbook = Async\await($this->watch($url, $messageHash, $message, $messageHash));
             return $orderbook->limit ();
         }) ();
@@ -108,7 +108,7 @@ class hyperliquid extends \ccxt\async\hyperliquid {
         //
         $entry = $this->safe_dict($message, 'data', array());
         $coin = $this->safe_string($entry, 'coin');
-        $marketId = $coin . '/USDC:USDC';
+        $marketId = $this->coinToMarketId ($coin);
         $market = $this->market($marketId);
         $symbol = $market['symbol'];
         $rawData = $this->safe_list($entry, 'levels', array());
@@ -155,7 +155,7 @@ class hyperliquid extends \ccxt\async\hyperliquid {
                     'user' => $userAddress,
                 ),
             );
-            $message = array_merge($request, $params);
+            $message = $this->extend($request, $params);
             $trades = Async\await($this->watch($url, $messageHash, $message, $messageHash));
             if ($this->newUpdates) {
                 $limit = $trades->getLimit ($symbol, $limit);
@@ -241,10 +241,10 @@ class hyperliquid extends \ccxt\async\hyperliquid {
                 'method' => 'subscribe',
                 'subscription' => array(
                     'type' => 'trades',
-                    'coin' => $market['base'],
+                    'coin' => $market['swap'] ? $market['base'] : $market['id'],
                 ),
             );
-            $message = array_merge($request, $params);
+            $message = $this->extend($request, $params);
             $trades = Async\await($this->watch($url, $messageHash, $message, $messageHash));
             if ($this->newUpdates) {
                 $limit = $trades->getLimit ($symbol, $limit);
@@ -273,7 +273,7 @@ class hyperliquid extends \ccxt\async\hyperliquid {
         $entry = $this->safe_list($message, 'data', array());
         $first = $this->safe_dict($entry, 0, array());
         $coin = $this->safe_string($first, 'coin');
-        $marketId = $coin . '/USDC:USDC';
+        $marketId = $this->coinToMarketId ($coin);
         $market = $this->market($marketId);
         $symbol = $market['symbol'];
         if (!(is_array($this->trades) && array_key_exists($symbol, $this->trades))) {
@@ -329,7 +329,7 @@ class hyperliquid extends \ccxt\async\hyperliquid {
         $price = $this->safe_string($trade, 'px');
         $amount = $this->safe_string($trade, 'sz');
         $coin = $this->safe_string($trade, 'coin');
-        $marketId = $coin . '/USDC:USDC';
+        $marketId = $this->coinToMarketId ($coin);
         $market = $this->safe_market($marketId, null);
         $symbol = $market['symbol'];
         $id = $this->safe_string($trade, 'tid');
@@ -374,12 +374,12 @@ class hyperliquid extends \ccxt\async\hyperliquid {
                 'method' => 'subscribe',
                 'subscription' => array(
                     'type' => 'candle',
-                    'coin' => $market['base'],
+                    'coin' => $market['swap'] ? $market['base'] : $market['id'],
                     'interval' => $timeframe,
                 ),
             );
             $messageHash = 'candles:' . $timeframe . ':' . $symbol;
-            $message = array_merge($request, $params);
+            $message = $this->extend($request, $params);
             $ohlcv = Async\await($this->watch($url, $messageHash, $message, $messageHash));
             if ($this->newUpdates) {
                 $limit = $ohlcv->getLimit ($symbol, $limit);
@@ -408,7 +408,8 @@ class hyperliquid extends \ccxt\async\hyperliquid {
         //
         $data = $this->safe_dict($message, 'data', array());
         $base = $this->safe_string($data, 's');
-        $symbol = $base . '/USDC:USDC';
+        $marketId = $this->coinToMarketId ($base);
+        $symbol = $this->safe_symbol($marketId);
         $timeframe = $this->safe_string($data, 'i');
         if (!(is_array($this->ohlcvs) && array_key_exists($symbol, $this->ohlcvs))) {
             $this->ohlcvs[$symbol] = array();
@@ -454,7 +455,7 @@ class hyperliquid extends \ccxt\async\hyperliquid {
                     'user' => $userAddress,
                 ),
             );
-            $message = array_merge($request, $params);
+            $message = $this->extend($request, $params);
             $orders = Async\await($this->watch($url, $messageHash, $message, $messageHash));
             if ($this->newUpdates) {
                 $limit = $orders->getLimit ($symbol, $limit);

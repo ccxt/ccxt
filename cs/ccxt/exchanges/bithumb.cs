@@ -48,7 +48,11 @@ public partial class bithumb : Exchange
                 { "fetchOrder", true },
                 { "fetchOrderBook", true },
                 { "fetchPosition", false },
+                { "fetchPositionHistory", false },
+                { "fetchPositionMode", false },
                 { "fetchPositions", false },
+                { "fetchPositionsForSymbol", false },
+                { "fetchPositionsHistory", false },
                 { "fetchPositionsRisk", false },
                 { "fetchPremiumIndexOHLCV", false },
                 { "fetchTicker", true },
@@ -1000,7 +1004,15 @@ public partial class bithumb : Exchange
             { "order_currency", getValue(market, "base") },
             { "payment_currency", getValue(market, "quote") },
         };
-        return await this.privatePostTradeCancel(this.extend(request, parameters));
+        object response = await this.privatePostTradeCancel(this.extend(request, parameters));
+        //
+        //    {
+        //       'status': 'string',
+        //    }
+        //
+        return this.safeOrder(new Dictionary<string, object>() {
+            { "info", response },
+        });
     }
 
     public async override Task<object> cancelUnifiedOrder(object order, object parameters = null)

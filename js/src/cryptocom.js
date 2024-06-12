@@ -35,6 +35,7 @@ export default class cryptocom extends Exchange {
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'cancelOrders': true,
+                'cancelOrdersForSymbols': true,
                 'closeAllPositions': false,
                 'closePosition': true,
                 'createMarketBuyOrderWithCost': false,
@@ -82,8 +83,10 @@ export default class cryptocom extends Exchange {
                 'fetchOrderBook': true,
                 'fetchOrders': true,
                 'fetchPosition': true,
+                'fetchPositionHistory': false,
                 'fetchPositionMode': false,
                 'fetchPositions': true,
+                'fetchPositionsHistory': false,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchSettlementHistory': true,
                 'fetchStatus': false,
@@ -102,6 +105,7 @@ export default class cryptocom extends Exchange {
                 'reduceMargin': false,
                 'repayCrossMargin': false,
                 'repayIsolatedMargin': false,
+                'sandbox': true,
                 'setLeverage': false,
                 'setMarginMode': false,
                 'setPositionMode': false,
@@ -496,7 +500,8 @@ export default class cryptocom extends Exchange {
             const strike = this.safeString(market, 'strike');
             const marginBuyEnabled = this.safeValue(market, 'margin_buy_enabled');
             const marginSellEnabled = this.safeValue(market, 'margin_sell_enabled');
-            const expiry = this.omitZero(this.safeInteger(market, 'expiry_timestamp_ms'));
+            const expiryString = this.omitZero(this.safeString(market, 'expiry_timestamp_ms'));
+            const expiry = (expiryString !== undefined) ? parseInt(expiryString) : undefined;
             let symbol = base + '/' + quote;
             let type = undefined;
             let contract = undefined;
@@ -677,8 +682,8 @@ export default class cryptocom extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const until = this.safeInteger2(params, 'until', 'till');
-        params = this.omit(params, ['until', 'till']);
+        const until = this.safeInteger(params, 'until');
+        params = this.omit(params, ['until']);
         if (until !== undefined) {
             request['end_time'] = until;
         }
@@ -756,8 +761,8 @@ export default class cryptocom extends Exchange {
         if (limit !== undefined) {
             request['count'] = limit;
         }
-        const until = this.safeInteger2(params, 'until', 'till');
-        params = this.omit(params, ['until', 'till']);
+        const until = this.safeInteger(params, 'until');
+        params = this.omit(params, ['until']);
         if (until !== undefined) {
             request['end_ts'] = until;
         }
@@ -818,8 +823,8 @@ export default class cryptocom extends Exchange {
         if (limit !== undefined) {
             request['count'] = limit;
         }
-        const until = this.safeInteger2(params, 'until', 'till');
-        params = this.omit(params, ['until', 'till']);
+        const until = this.safeInteger(params, 'until');
+        params = this.omit(params, ['until']);
         if (until !== undefined) {
             request['end_ts'] = until;
         }
@@ -1467,6 +1472,37 @@ export default class cryptocom extends Exchange {
         const result = this.safeList(response, 'result', []);
         return this.parseOrders(result, market, undefined, undefined, params);
     }
+    async cancelOrdersForSymbols(orders, params = {}) {
+        /**
+         * @method
+         * @name cryptocom#cancelOrdersForSymbols
+         * @description cancel multiple orders for multiple symbols
+         * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-cancel-order-list-list
+         * @param {CancellationRequest[]} orders each order should contain the parameters required by cancelOrder namely id and symbol
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        await this.loadMarkets();
+        const orderRequests = [];
+        for (let i = 0; i < orders.length; i++) {
+            const order = orders[i];
+            const id = this.safeString(order, 'id');
+            const symbol = this.safeString(order, 'symbol');
+            const market = this.market(symbol);
+            const orderItem = {
+                'instrument_name': market['id'],
+                'order_id': id.toString(),
+            };
+            orderRequests.push(orderItem);
+        }
+        const request = {
+            'contingency_type': 'LIST',
+            'order_list': orderRequests,
+        };
+        const response = await this.v1PrivatePostPrivateCancelOrderList(this.extend(request, params));
+        const result = this.safeList(response, 'result', []);
+        return this.parseOrders(result, undefined, undefined, undefined, params);
+    }
     async fetchOpenOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
@@ -1560,8 +1596,8 @@ export default class cryptocom extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const until = this.safeInteger2(params, 'until', 'till');
-        params = this.omit(params, ['until', 'till']);
+        const until = this.safeInteger(params, 'until');
+        params = this.omit(params, ['until']);
         if (until !== undefined) {
             request['end_time'] = until;
         }
@@ -1628,7 +1664,7 @@ export default class cryptocom extends Exchange {
          */
         [tag, params] = this.handleWithdrawTagAndParams(tag, params);
         await this.loadMarkets();
-        const currency = this.currency(code);
+        const currency = this.safeCurrency(code); // for instance, USDC is not inferred from markets but it's still available
         const request = {
             'currency': currency['id'],
             'amount': amount,
@@ -1674,7 +1710,7 @@ export default class cryptocom extends Exchange {
          * @returns {object} a dictionary of [address structures]{@link https://docs.ccxt.com/#/?id=address-structure} indexed by the network
          */
         await this.loadMarkets();
-        const currency = this.currency(code);
+        const currency = this.safeCurrency(code);
         const request = {
             'currency': currency['id'],
         };
@@ -1773,7 +1809,7 @@ export default class cryptocom extends Exchange {
         let currency = undefined;
         const request = {};
         if (code !== undefined) {
-            currency = this.currency(code);
+            currency = this.safeCurrency(code);
             request['currency'] = currency['id'];
         }
         if (since !== undefined) {
@@ -1783,8 +1819,8 @@ export default class cryptocom extends Exchange {
         if (limit !== undefined) {
             request['page_size'] = limit;
         }
-        const until = this.safeInteger2(params, 'until', 'till');
-        params = this.omit(params, ['until', 'till']);
+        const until = this.safeInteger(params, 'until');
+        params = this.omit(params, ['until']);
         if (until !== undefined) {
             request['end_ts'] = until;
         }
@@ -1832,7 +1868,7 @@ export default class cryptocom extends Exchange {
         let currency = undefined;
         const request = {};
         if (code !== undefined) {
-            currency = this.currency(code);
+            currency = this.safeCurrency(code);
             request['currency'] = currency['id'];
         }
         if (since !== undefined) {
@@ -1842,8 +1878,8 @@ export default class cryptocom extends Exchange {
         if (limit !== undefined) {
             request['page_size'] = limit;
         }
-        const until = this.safeInteger2(params, 'until', 'till');
-        params = this.omit(params, ['until', 'till']);
+        const until = this.safeInteger(params, 'until');
+        params = this.omit(params, ['until']);
         if (until !== undefined) {
             request['end_ts'] = until;
         }
@@ -2348,7 +2384,7 @@ export default class cryptocom extends Exchange {
         const request = {};
         let currency = undefined;
         if (code !== undefined) {
-            currency = this.currency(code);
+            currency = this.safeCurrency(code);
         }
         if (since !== undefined) {
             request['start_time'] = since;
@@ -2356,8 +2392,8 @@ export default class cryptocom extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const until = this.safeInteger2(params, 'until', 'till');
-        params = this.omit(params, ['until', 'till']);
+        const until = this.safeInteger(params, 'until');
+        params = this.omit(params, ['until']);
         if (until !== undefined) {
             request['end_time'] = until;
         }
@@ -2679,8 +2715,8 @@ export default class cryptocom extends Exchange {
         if (limit !== undefined) {
             request['count'] = limit;
         }
-        const until = this.safeInteger2(params, 'until', 'till');
-        params = this.omit(params, ['until', 'till']);
+        const until = this.safeInteger(params, 'until');
+        params = this.omit(params, ['until']);
         if (until !== undefined) {
             request['end_ts'] = until;
         }

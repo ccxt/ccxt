@@ -2,6 +2,62 @@
     "exchange": "coinbase",
     "options": {},
     "methods": {
+      "fetchTicker": [
+        {
+          "description": "fetchTicker",
+          "method": "fetchTicker",
+          "input": [
+            "BTC/USDC"
+          ],
+          "httpResponse": {
+            "trades": [
+              {
+                "trade_id": "635541194",
+                "product_id": "BTC-USD",
+                "price": "66363.03",
+                "size": "0.03720194",
+                "time": "2024-04-24T09:56:38.063595Z",
+                "side": "BUY",
+                "bid": "",
+                "ask": ""
+              }
+            ],
+            "best_bid": "66367.58",
+            "best_ask": "66367.59"
+          },
+          "parsedResponse": {
+            "symbol": "BTC/USD",
+            "timestamp": 1713952598063,
+            "datetime": "2024-04-24T09:56:38.063595Z",
+            "bid": 66367.58,
+            "ask": 66367.59,
+            "last": 66363.03,
+            "high": null,
+            "low": null,
+            "bidVolume": null,
+            "askVolume": null,
+            "vwap": null,
+            "open": null,
+            "close": 66363.03,
+            "previousClose": null,
+            "change": null,
+            "percentage": null,
+            "average": null,
+            "baseVolume": null,
+            "quoteVolume": null,
+            "info": {
+              "trade_id": "635541194",
+              "product_id": "BTC-USD",
+              "price": "66363.03",
+              "size": "0.03720194",
+              "time": "2024-04-24T09:56:38.063595Z",
+              "side": "BUY",
+              "bid": "",
+              "ask": ""
+            }
+          }
+        }
+      ],
       "fetchMyTrades": [
         {
           "description": "Spot trade",

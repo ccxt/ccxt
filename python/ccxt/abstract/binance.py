@@ -2,8 +2,11 @@ from ccxt.base.types import Entry
 
 
 class ImplicitAPI:
+    sapi_get_copytrading_futures_userstatus = sapiGetCopyTradingFuturesUserStatus = Entry('copyTrading/futures/userStatus', 'sapi', 'GET', {'cost': 2})
+    sapi_get_copytrading_futures_leadsymbol = sapiGetCopyTradingFuturesLeadSymbol = Entry('copyTrading/futures/leadSymbol', 'sapi', 'GET', {'cost': 2})
     sapi_get_system_status = sapiGetSystemStatus = Entry('system/status', 'sapi', 'GET', {'cost': 0.1})
     sapi_get_accountsnapshot = sapiGetAccountSnapshot = Entry('accountSnapshot', 'sapi', 'GET', {'cost': 240})
+    sapi_get_account_info = sapiGetAccountInfo = Entry('account/info', 'sapi', 'GET', {'cost': 0.1})
     sapi_get_margin_asset = sapiGetMarginAsset = Entry('margin/asset', 'sapi', 'GET', {'cost': 1})
     sapi_get_margin_pair = sapiGetMarginPair = Entry('margin/pair', 'sapi', 'GET', {'cost': 1})
     sapi_get_margin_allassets = sapiGetMarginAllAssets = Entry('margin/allAssets', 'sapi', 'GET', {'cost': 0.1})
@@ -87,6 +90,7 @@ class ImplicitAPI:
     sapi_get_capital_deposit_subaddress = sapiGetCapitalDepositSubAddress = Entry('capital/deposit/subAddress', 'sapi', 'GET', {'cost': 0.1})
     sapi_get_capital_deposit_subhisrec = sapiGetCapitalDepositSubHisrec = Entry('capital/deposit/subHisrec', 'sapi', 'GET', {'cost': 0.1})
     sapi_get_capital_withdraw_history = sapiGetCapitalWithdrawHistory = Entry('capital/withdraw/history', 'sapi', 'GET', {'cost': 1800})
+    sapi_get_capital_withdraw_address_list = sapiGetCapitalWithdrawAddressList = Entry('capital/withdraw/address/list', 'sapi', 'GET', {'cost': 10})
     sapi_get_capital_contract_convertible_coins = sapiGetCapitalContractConvertibleCoins = Entry('capital/contract/convertible-coins', 'sapi', 'GET', {'cost': 4.0002})
     sapi_get_convert_tradeflow = sapiGetConvertTradeFlow = Entry('convert/tradeFlow', 'sapi', 'GET', {'cost': 20.001})
     sapi_get_convert_exchangeinfo = sapiGetConvertExchangeInfo = Entry('convert/exchangeInfo', 'sapi', 'GET', {'cost': 50})
@@ -464,6 +468,7 @@ class ImplicitAPI:
     fapipublic_get_continuousklines = fapiPublicGetContinuousKlines = Entry('continuousKlines', 'fapiPublic', 'GET', {'cost': 1, 'byLimit': [[99, 1], [499, 2], [1000, 5], [10000, 10]]})
     fapipublic_get_markpriceklines = fapiPublicGetMarkPriceKlines = Entry('markPriceKlines', 'fapiPublic', 'GET', {'cost': 1, 'byLimit': [[99, 1], [499, 2], [1000, 5], [10000, 10]]})
     fapipublic_get_indexpriceklines = fapiPublicGetIndexPriceKlines = Entry('indexPriceKlines', 'fapiPublic', 'GET', {'cost': 1, 'byLimit': [[99, 1], [499, 2], [1000, 5], [10000, 10]]})
+    fapipublic_get_premiumindexklines = fapiPublicGetPremiumIndexKlines = Entry('premiumIndexKlines', 'fapiPublic', 'GET', {'cost': 1, 'byLimit': [[99, 1], [499, 2], [1000, 5], [10000, 10]]})
     fapipublic_get_fundingrate = fapiPublicGetFundingRate = Entry('fundingRate', 'fapiPublic', 'GET', {'cost': 1})
     fapipublic_get_fundinginfo = fapiPublicGetFundingInfo = Entry('fundingInfo', 'fapiPublic', 'GET', {'cost': 1})
     fapipublic_get_premiumindex = fapiPublicGetPremiumIndex = Entry('premiumIndex', 'fapiPublic', 'GET', {'cost': 1})
@@ -517,6 +522,7 @@ class ImplicitAPI:
     fapiprivate_get_order_asyn_id = fapiPrivateGetOrderAsynId = Entry('order/asyn/id', 'fapiPrivate', 'GET', {'cost': 10})
     fapiprivate_get_trade_asyn = fapiPrivateGetTradeAsyn = Entry('trade/asyn', 'fapiPrivate', 'GET', {'cost': 1000})
     fapiprivate_get_trade_asyn_id = fapiPrivateGetTradeAsynId = Entry('trade/asyn/id', 'fapiPrivate', 'GET', {'cost': 10})
+    fapiprivate_get_feeburn = fapiPrivateGetFeeBurn = Entry('feeBurn', 'fapiPrivate', 'GET', {'cost': 1})
     fapiprivate_post_batchorders = fapiPrivatePostBatchOrders = Entry('batchOrders', 'fapiPrivate', 'POST', {'cost': 5})
     fapiprivate_post_positionside_dual = fapiPrivatePostPositionSideDual = Entry('positionSide/dual', 'fapiPrivate', 'POST', {'cost': 1})
     fapiprivate_post_positionmargin = fapiPrivatePostPositionMargin = Entry('positionMargin', 'fapiPrivate', 'POST', {'cost': 1})
@@ -528,6 +534,7 @@ class ImplicitAPI:
     fapiprivate_post_multiassetsmargin = fapiPrivatePostMultiAssetsMargin = Entry('multiAssetsMargin', 'fapiPrivate', 'POST', {'cost': 1})
     fapiprivate_post_apireferral_customization = fapiPrivatePostApiReferralCustomization = Entry('apiReferral/customization', 'fapiPrivate', 'POST', {'cost': 1})
     fapiprivate_post_apireferral_usercustomization = fapiPrivatePostApiReferralUserCustomization = Entry('apiReferral/userCustomization', 'fapiPrivate', 'POST', {'cost': 1})
+    fapiprivate_post_feeburn = fapiPrivatePostFeeBurn = Entry('feeBurn', 'fapiPrivate', 'POST', {'cost': 1})
     fapiprivate_put_listenkey = fapiPrivatePutListenKey = Entry('listenKey', 'fapiPrivate', 'PUT', {'cost': 1})
     fapiprivate_put_order = fapiPrivatePutOrder = Entry('order', 'fapiPrivate', 'PUT', {'cost': 1})
     fapiprivate_put_batchorders = fapiPrivatePutBatchOrders = Entry('batchOrders', 'fapiPrivate', 'PUT', {'cost': 5})

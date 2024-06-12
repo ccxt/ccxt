@@ -90,7 +90,11 @@ export default class coinlist extends Exchange {
                 'fetchOrders': true,
                 'fetchOrderTrades': true,
                 'fetchPosition': false,
+                'fetchPositionHistory': false,
+                'fetchPositionMode': false,
                 'fetchPositions': false,
+                'fetchPositionsForSymbol': false,
+                'fetchPositionsHistory': false,
                 'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchStatus': false,
@@ -685,9 +689,9 @@ export default class coinlist extends Exchange {
                 request['end_time'] = this.iso8601(this.milliseconds());
             }
         }
-        const until = this.safeInteger2(params, 'till', 'until');
+        const until = this.safeInteger(params, 'until');
         if (until !== undefined) {
-            params = this.omit(params, ['till', 'until']);
+            params = this.omit(params, ['until']);
             request['end_time'] = this.iso8601(until);
         }
         const response = await this.publicGetV1SymbolsSymbolCandles(this.extend(request, params));
@@ -763,9 +767,9 @@ export default class coinlist extends Exchange {
         if (limit !== undefined) {
             request['count'] = Math.min(limit, 500);
         }
-        const until = this.safeInteger2(params, 'till', 'until');
+        const until = this.safeInteger(params, 'until');
         if (until !== undefined) {
-            params = this.omit(params, ['till', 'until']);
+            params = this.omit(params, ['until']);
             request['end_time'] = this.iso8601(until);
         }
         const response = await this.publicGetV1SymbolsSymbolAuctions(this.extend(request, params));
@@ -1166,9 +1170,9 @@ export default class coinlist extends Exchange {
         if (limit !== undefined) {
             request['count'] = limit;
         }
-        const until = this.safeInteger2(params, 'till', 'until');
+        const until = this.safeInteger(params, 'until');
         if (until !== undefined) {
-            params = this.omit(params, ['till', 'until']);
+            params = this.omit(params, ['until']);
             request['end_time'] = this.iso8601(until);
         }
         const response = await this.privateGetV1Fills(this.extend(request, params));
@@ -1254,9 +1258,9 @@ export default class coinlist extends Exchange {
         if (limit !== undefined) {
             request['count'] = limit;
         }
-        const until = this.safeInteger2(params, 'till', 'until');
+        const until = this.safeInteger(params, 'until');
         if (until !== undefined) {
-            params = this.omit(params, ['till', 'until']);
+            params = this.omit(params, ['until']);
             request['end_time'] = this.iso8601(until);
         }
         const response = await this.privateGetV1Orders(this.extend(request, params));
@@ -1454,7 +1458,26 @@ export default class coinlist extends Exchange {
         await this.loadMarkets();
         params = ids;
         const response = await this.privateDeleteV1OrdersBulk(params);
-        return response;
+        //
+        //    {
+        //        "message": "Cancel order requests received.",
+        //        "order_ids": [
+        //            "ff132955-43bc-4fe5-9d9c-5ba226cc89a0"
+        //        ],
+        //        "timestamp": "2024-06-01T02:32:30.305Z"
+        //    }
+        //
+        const orderIds = this.safeList(response, 'order_ids', []);
+        const orders = [];
+        const datetime = this.safeString(response, 'timestamp');
+        for (let i = 0; i < orderIds.length; i++) {
+            orders.push(this.safeOrder({
+                'info': orderIds[i],
+                'id': orderIds[i],
+                'lastUpdateTimestamp': this.parse8601(datetime),
+            }));
+        }
+        return orders;
     }
     async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
         /**
@@ -1728,10 +1751,9 @@ export default class coinlist extends Exchange {
          */
         await this.loadMarkets();
         const currency = this.currency(code);
-        amount = this.currencyToPrecision(code, amount);
         const request = {
             'asset': currency['id'],
-            'amount': amount,
+            'amount': this.currencyToPrecision(code, amount),
         };
         const accountsByType = this.safeValue(this.options, 'accountsByType', {});
         const fromAcc = this.safeString(accountsByType, fromAccount, fromAccount);
@@ -1790,9 +1812,9 @@ export default class coinlist extends Exchange {
         if (limit !== undefined) {
             request['count'] = limit;
         }
-        const until = this.safeInteger2(params, 'till', 'until');
+        const until = this.safeInteger(params, 'until');
         if (until !== undefined) {
-            params = this.omit(params, ['till', 'until']);
+            params = this.omit(params, ['until']);
             request['end_time'] = this.iso8601(until);
         }
         const response = await this.privateGetV1Transfers(this.extend(request, params));
@@ -2092,9 +2114,9 @@ export default class coinlist extends Exchange {
         if (limit !== undefined) {
             request['count'] = limit;
         }
-        const until = this.safeInteger2(params, 'till', 'until');
+        const until = this.safeInteger(params, 'until');
         if (until !== undefined) {
-            params = this.omit(params, ['till', 'until']);
+            params = this.omit(params, ['until']);
             request['end_time'] = this.iso8601(until);
         }
         params = this.omit(params, ['trader_id', 'traderId']);
@@ -2285,17 +2307,20 @@ export default class coinlist extends Exchange {
         const request = this.omit(params, this.extractParams(path));
         const endpoint = '/' + this.implodeParams(path, params);
         let url = this.urls['api'][api] + endpoint;
-        const query = this.urlencode(request);
+        const isBulk = Array.isArray(params);
+        let query = undefined;
+        if (!isBulk) {
+            query = this.urlencode(request);
+        }
         if (api === 'private') {
             this.checkRequiredCredentials();
             const timestamp = this.seconds().toString();
             let auth = timestamp + method + endpoint;
-            const isBulk = Array.isArray(params);
             if ((method === 'POST') || (method === 'PATCH') || isBulk) {
                 body = this.json(request);
                 auth += body;
             }
-            else if (query.length !== 0) {
+            else if (query !== undefined && query.length !== 0) {
                 auth += '?' + query;
                 url += '?' + query;
             }
@@ -2307,7 +2332,7 @@ export default class coinlist extends Exchange {
                 'Content-Type': 'application/json',
             };
         }
-        else if (query.length !== 0) {
+        else if (query !== undefined && query.length !== 0) {
             url += '?' + query;
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };

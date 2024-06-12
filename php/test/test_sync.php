@@ -41,12 +41,30 @@ use React\Promise;
 //     throw $e;
 // } );
 
-$filetered_args = array_filter(array_map (function ($x) { return stripos($x,'--')===false? $x : null;} , $argv));
-$exchangeId = array_key_exists(1, $filetered_args) ? $filetered_args[1] : null; // this should be different than JS
-$exchangeSymbol = null; // todo: this should be different than JS
+// ############## detect cli arguments ############## //
+array_shift($argv); // remove first argument (which is script path "ccxt/php/test/test_async.php")
+
+function filter_argvs($argsArray, $needle, $include = true) {
+    return array_filter($argsArray, function ($x) use ($needle, $include) { return ($include && str_contains($x, $needle) || (!$include && !str_contains($x, $needle))); });
+};
+
+function select_argv ($argsArray, $needle) {
+    $foundArray = array_filter($argsArray, function ($x) use ($needle) { return str_contains($x, $needle); });
+    return count($foundArray) > 0 ? $foundArray : null;
+}
+
+$argvs = filter_argvs ($argv, '--', false);
+$argvExchange = null;
+if (count($argvs) > 0) {
+    $argvExchange = $argvs[0];
+}
+$argvSymbol   = select_argv ($argv, '/');
+$argvMethod   = select_argv ($argv, '()');
+// #################################################### //
+
+
 
 // non-transpiled part, but shared names among langs
-
 function get_cli_arg_value ($arg) {
     return in_array($arg, $GLOBALS['argv']);
 }
@@ -329,7 +347,7 @@ class testMainClass extends baseMainTestClass {
         $this->ws_tests = get_cli_arg_value('--ws');
     }
 
-    public function init($exchange_id, $symbol_argv) {
+    public function init($exchange_id, $symbol_argv, $method_argv) {
         $this->parse_cli_args();
         if ($this->request_tests && $this->response_tests) {
             $this->run_static_request_tests($exchange_id, $symbol_argv);
@@ -348,13 +366,12 @@ class testMainClass extends baseMainTestClass {
             $this->run_broker_id_tests();
             return;
         }
-        $symbol_str = $symbol_argv !== null ? $symbol_argv : 'all';
-        $exchange_object = array(
+        dump($this->new_line . '' . $this->new_line . '' . '[INFO] TESTING ', $this->ext, array(
             'exchange' => $exchange_id,
-            'symbol' => $symbol_str,
+            'symbol' => $symbol_argv,
+            'method' => $method_argv,
             'isWs' => $this->ws_tests,
-        );
-        dump($this->new_line . '' . $this->new_line . '' . '[INFO] TESTING ', $this->ext, json_stringify($exchange_object), $this->new_line);
+        ), $this->new_line);
         $exchange_args = array(
             'verbose' => $this->verbose,
             'debug' => $this->debug,
@@ -368,32 +385,28 @@ class testMainClass extends baseMainTestClass {
         $this->import_files($exchange);
         assert(count(is_array($this->test_files) ? array_keys($this->test_files) : array()) > 0, 'Test files were not loaded'); // ensure test files are found & filled
         $this->expand_settings($exchange);
-        $symbol = $this->check_if_specific_test_is_chosen($symbol_argv);
-        $this->start_test($exchange, $symbol);
+        $this->check_if_specific_test_is_chosen($method_argv);
+        $this->start_test($exchange, $symbol_argv);
         exit_script(0); // needed to be explicitly finished for WS tests
     }
 
-    public function check_if_specific_test_is_chosen($symbol_argv) {
-        if ($symbol_argv !== null) {
+    public function check_if_specific_test_is_chosen($method_argv) {
+        if ($method_argv !== null) {
             $test_file_names = is_array($this->test_files) ? array_keys($this->test_files) : array();
-            $possible_method_names = explode(',', $symbol_argv); // i.e. `test.ts binance fetchBalance,fetchDeposits`
+            $possible_method_names = explode(',', $method_argv); // i.e. `test.ts binance fetchBalance,fetchDeposits`
             if (count($possible_method_names) >= 1) {
                 for ($i = 0; $i < count($test_file_names); $i++) {
                     $test_file_name = $test_file_names[$i];
                     for ($j = 0; $j < count($possible_method_names); $j++) {
                         $method_name = $possible_method_names[$j];
+                        $method_name = str_replace('()', '', $method_name);
                         if ($test_file_name === $method_name) {
                             $this->only_specific_tests[] = $test_file_name;
                         }
                     }
                 }
             }
-            // if method names were found, then remove them from symbolArgv
-            if (count($this->only_specific_tests) > 0) {
-                return null;
-            }
         }
-        return $symbol_argv;
     }
 
     public function import_files($exchange) {
@@ -544,7 +557,7 @@ class testMainClass extends baseMainTestClass {
             return;
         }
         if ($this->info) {
-            $args_stringified = '(' . implode(',', $args) . ')';
+            $args_stringified = '(' . $exchange->json($args) . ')'; // args.join() breaks when we provide a list of symbols or multidimensional array; "args.toString()" breaks bcz of "array to string conversion"
             dump($this->add_padding('[INFO] TESTING', 25), $this->exchange_hint($exchange), $method_name, $args_stringified);
         }
         call_method($this->test_files, $method_name, $exchange, $skipped_properties_for_method, $args);
@@ -601,6 +614,9 @@ class testMainClass extends baseMainTestClass {
         }
         if ((is_array($final_skips) && array_key_exists('bid', $final_skips)) && !(is_array($final_skips) && array_key_exists('ask', $final_skips))) {
             $final_skips['ask'] = $final_skips['bid'];
+        }
+        if ((is_array($final_skips) && array_key_exists('baseVolume', $final_skips)) && !(is_array($final_skips) && array_key_exists('quoteVolume', $final_skips))) {
+            $final_skips['quoteVolume'] = $final_skips['baseVolume'];
         }
         return $final_skips;
     }
@@ -1350,6 +1366,7 @@ class testMainClass extends baseMainTestClass {
             'privateKey' => '0xff3bdd43534543d421f05aec535965b5050ad6ac15345435345435453495e771',
             'uid' => 'uid',
             'token' => 'token',
+            'accountId' => 'accountId',
             'accounts' => [array(
     'id' => 'myAccount',
     'code' => 'USDT',
@@ -1373,6 +1390,15 @@ class testMainClass extends baseMainTestClass {
         // instantiate the exchange and make sure that we sink the requests to avoid an actual request
         $exchange = $this->init_offline_exchange($exchange_name);
         $global_options = $exchange->safe_dict($exchange_data, 'options', array());
+        // read apiKey/secret from the test file
+        $api_key = $exchange->safe_string($exchange_data, 'apiKey');
+        if ($api_key) {
+            $exchange->api_key = ((string) $api_key);
+        }
+        $secret = $exchange->safe_string($exchange_data, 'secret');
+        if ($secret) {
+            $exchange->secret = ((string) $secret);
+        }
         // exchange.options = exchange.deepExtend (exchange.options, globalOptions); // custom options to be used in the tests
         $exchange->extend_exchange_options($global_options);
         $methods = $exchange->safe_value($exchange_data, 'methods', array());
@@ -1408,6 +1434,15 @@ class testMainClass extends baseMainTestClass {
 
     public function test_exchange_response_statically($exchange_name, $exchange_data, $test_name = null) {
         $exchange = $this->init_offline_exchange($exchange_name);
+        // read apiKey/secret from the test file
+        $api_key = $exchange->safe_string($exchange_data, 'apiKey');
+        if ($api_key) {
+            $exchange->api_key = ((string) $api_key);
+        }
+        $secret = $exchange->safe_string($exchange_data, 'secret');
+        if ($secret) {
+            $exchange->secret = ((string) $secret);
+        }
         $methods = $exchange->safe_value($exchange_data, 'methods', array());
         $options = $exchange->safe_value($exchange_data, 'options', array());
         // exchange.options = exchange.deepExtend (exchange.options, options); // custom options to be used in the tests
@@ -1516,7 +1551,7 @@ class testMainClass extends baseMainTestClass {
         //  -----------------------------------------------------------------------------
         //  --- Init of brokerId tests functions-----------------------------------------
         //  -----------------------------------------------------------------------------
-        $promises = [$this->test_binance(), $this->test_okx(), $this->test_cryptocom(), $this->test_bybit(), $this->test_kucoin(), $this->test_kucoinfutures(), $this->test_bitget(), $this->test_mexc(), $this->test_htx(), $this->test_woo(), $this->test_bitmart(), $this->test_coinex(), $this->test_bingx(), $this->test_phemex(), $this->test_blofin(), $this->test_hyperliquid(), $this->test_coinbaseinternational(), $this->test_coinbase_advanced()];
+        $promises = [$this->test_binance(), $this->test_okx(), $this->test_cryptocom(), $this->test_bybit(), $this->test_kucoin(), $this->test_kucoinfutures(), $this->test_bitget(), $this->test_mexc(), $this->test_htx(), $this->test_woo(), $this->test_bitmart(), $this->test_coinex(), $this->test_bingx(), $this->test_phemex(), $this->test_blofin(), $this->test_hyperliquid(), $this->test_coinbaseinternational(), $this->test_coinbase_advanced(), $this->test_woofi_pro(), $this->test_xt()];
         ($promises);
         $success_message = '[' . $this->lang . '][TEST_SUCCESS] brokerId tests passed.';
         dump('[INFO]' . $success_message);
@@ -1871,11 +1906,51 @@ class testMainClass extends baseMainTestClass {
         close($exchange);
         return true;
     }
+
+    public function test_woofi_pro() {
+        $exchange = $this->init_offline_exchange('woofipro');
+        $exchange->secret = 'secretsecretsecretsecretsecretsecretsecrets';
+        $id = 'CCXT';
+        $exchange->load_markets();
+        $request = null;
+        try {
+            $exchange->create_order('BTC/USDC:USDC', 'limit', 'buy', 1, 20000);
+        } catch(\Throwable $e) {
+            $request = json_parse($exchange->last_request_body);
+        }
+        $broker_id = $request['order_tag'];
+        assert($broker_id === $id, 'woofipro - id: ' . $id . ' different from  broker_id: ' . $broker_id);
+        close($exchange);
+        return true;
+    }
+
+    public function test_xt() {
+        $exchange = $this->init_offline_exchange('xt');
+        $id = 'CCXT';
+        $spot_order_request = null;
+        try {
+            $exchange->create_order('BTC/USDT', 'limit', 'buy', 1, 20000);
+        } catch(\Throwable $e) {
+            $spot_order_request = json_parse($exchange->last_request_body);
+        }
+        $spot_media = $spot_order_request['media'];
+        assert($spot_media === $id, 'xt - id: ' . $id . ' different from swap tag: ' . $spot_media);
+        $swap_order_request = null;
+        try {
+            $exchange->create_order('BTC/USDT:USDT', 'limit', 'buy', 1, 20000);
+        } catch(\Throwable $e) {
+            $swap_order_request = json_parse($exchange->last_request_body);
+        }
+        $swap_media = $swap_order_request['clientMedia'];
+        assert($swap_media === $id, 'xt - id: ' . $id . ' different from swap tag: ' . $swap_media);
+        close($exchange);
+        return true;
+    }
 }
 
 // ***** AUTO-TRANSPILER-END *****
 // *******************************
-$promise = (new testMainClass())->init($exchangeId, $exchangeSymbol);
+$promise = (new testMainClass())->init($argvExchange, $argvSymbol, $argvMethod);
 if (!is_synchronous) {
     Async\await($promise);
 }

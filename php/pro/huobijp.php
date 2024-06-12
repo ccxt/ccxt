@@ -77,7 +77,7 @@ class huobijp extends \ccxt\async\huobijp {
                 'symbol' => $symbol,
                 'params' => $params,
             );
-            return Async\await($this->watch($url, $messageHash, array_merge($request, $params), $messageHash, $subscription));
+            return Async\await($this->watch($url, $messageHash, $this->extend($request, $params), $messageHash, $subscription));
         }) ();
     }
 
@@ -143,7 +143,7 @@ class huobijp extends \ccxt\async\huobijp {
                 'symbol' => $symbol,
                 'params' => $params,
             );
-            $trades = Async\await($this->watch($url, $messageHash, array_merge($request, $params), $messageHash, $subscription));
+            $trades = Async\await($this->watch($url, $messageHash, $this->extend($request, $params), $messageHash, $subscription));
             if ($this->newUpdates) {
                 $limit = $trades->getLimit ($symbol, $limit);
             }
@@ -224,7 +224,7 @@ class huobijp extends \ccxt\async\huobijp {
                 'timeframe' => $timeframe,
                 'params' => $params,
             );
-            $ohlcv = Async\await($this->watch($url, $messageHash, array_merge($request, $params), $messageHash, $subscription));
+            $ohlcv = Async\await($this->watch($url, $messageHash, $this->extend($request, $params), $messageHash, $subscription));
             if ($this->newUpdates) {
                 $limit = $ohlcv->getLimit ($symbol, $limit);
             }
@@ -303,7 +303,7 @@ class huobijp extends \ccxt\async\huobijp {
                 'params' => $params,
                 'method' => array($this, 'handle_order_book_subscription'),
             );
-            $orderbook = Async\await($this->watch($url, $messageHash, array_merge($request, $params), $messageHash, $subscription));
+            $orderbook = Async\await($this->watch($url, $messageHash, $this->extend($request, $params), $messageHash, $subscription));
             return $orderbook->limit ();
         }) ();
     }

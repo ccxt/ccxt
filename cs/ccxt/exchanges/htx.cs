@@ -28,8 +28,11 @@ public partial class htx : Exchange
                 { "borrowCrossMargin", true },
                 { "borrowIsolatedMargin", true },
                 { "cancelAllOrders", true },
+                { "cancelAllOrdersAfter", true },
                 { "cancelOrder", true },
                 { "cancelOrders", true },
+                { "closeAllPositions", false },
+                { "closePosition", true },
                 { "createDepositAddress", null },
                 { "createMarketBuyOrderWithCost", true },
                 { "createMarketOrderWithCost", false },
@@ -94,7 +97,9 @@ public partial class htx : Exchange
                 { "fetchOrders", true },
                 { "fetchOrderTrades", true },
                 { "fetchPosition", true },
+                { "fetchPositionHistory", "emulated" },
                 { "fetchPositions", true },
+                { "fetchPositionsHistory", false },
                 { "fetchPositionsRisk", false },
                 { "fetchPremiumIndexOHLCV", true },
                 { "fetchSettlementHistory", true },
@@ -3304,7 +3309,7 @@ public partial class htx : Exchange
         return result;
     }
 
-    public override object networkIdToCode(object networkId, object currencyCode = null)
+    public override object networkIdToCode(object networkId = null, object currencyCode = null)
     {
         // here network-id is provided as a pair of currency & chain (i.e. trc20usdt)
         object keys = new List<object>(((IDictionary<string,object>)getValue(this.options, "networkNamesByChainIds")).Keys);
@@ -5539,7 +5544,7 @@ public partial class htx : Exchange
         * @param {float} [params.stopLossPrice] *contract only* the price a stop-loss order is triggered at
         * @param {float} [params.takeProfitPrice] *contract only* the price a take-profit order is triggered at
         * @param {string} [params.operator] *spot and margin only* gte or lte, trigger price condition
-        * @param {string} [params.offset] *contract only* 'open', 'close', or 'both', required in hedge mode
+        * @param {string} [params.offset] *contract only* 'both' (linear only), 'open', or 'close', required in hedge mode and for inverse markets
         * @param {bool} [params.postOnly] *contract only* true or false
         * @param {int} [params.leverRate] *contract only* required for all contract orders except tpsl, leverage greater than 20x requires prior approval of high-leverage agreement
         * @param {string} [params.timeInForce] supports 'IOC' and 'FOK'
@@ -5611,6 +5616,11 @@ public partial class htx : Exchange
                 }
             } else if (isTrue(getValue(market, "inverse")))
             {
+                object offset = this.safeString(parameters, "offset");
+                if (isTrue(isEqual(offset, null)))
+                {
+                    throw new ArgumentsRequired ((string)add(this.id, " createOrder () requires an extra parameter params[\"offset\"] to be set to \"open\" or \"close\" when placing orders in inverse markets")) ;
+                }
                 if (isTrue(getValue(market, "swap")))
                 {
                     if (isTrue(isStop))
@@ -6376,6 +6386,36 @@ public partial class htx : Exchange
         return response;
     }
 
+    public async override Task<object> cancelAllOrdersAfter(object timeout, object parameters = null)
+    {
+        /**
+        * @method
+        * @name huobi#cancelAllOrdersAfter
+        * @description dead man's switch, cancel all orders after the given timeout
+        * @see https://huobiapi.github.io/docs/spot/v1/en/#dead-man-s-switch
+        * @param {number} timeout time in milliseconds, 0 represents cancel the timer
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {object} the api result
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object request = new Dictionary<string, object>() {
+            { "timeout", ((bool) isTrue((isGreaterThan(timeout, 0)))) ? this.parseToInt(divide(timeout, 1000)) : 0 },
+        };
+        object response = await this.v2PrivatePostAlgoOrdersCancelAllAfter(this.extend(request, parameters));
+        //
+        //     {
+        //         "code": 200,
+        //         "message": "success",
+        //         "data": {
+        //             "currentTime": 1630491627230,
+        //             "triggerTime": 1630491637230
+        //         }
+        //     }
+        //
+        return response;
+    }
+
     public override object parseDepositAddress(object depositAddress, object currency = null)
     {
         //
@@ -6996,15 +7036,10 @@ public partial class htx : Exchange
         // }
         //
         object data = this.safeValue(response, "data", new List<object>() {});
-        object rates = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
-        {
-            ((IList<object>)rates).Add(this.parseIsolatedBorrowRate(getValue(data, i)));
-        }
-        return rates;
+        return this.parseIsolatedBorrowRates(data);
     }
 
-    public virtual object parseIsolatedBorrowRate(object info, object market = null)
+    public override object parseIsolatedBorrowRate(object info, object market = null)
     {
         //
         //     {
@@ -7913,6 +7948,9 @@ public partial class htx : Exchange
         * @description fetch all open positions
         * @param {string[]|undefined} symbols list of unified market symbols
         * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @param {string} [params.subType] 'linear' or 'inverse'
+        * @param {string} [params.type] *inverse only* 'future', or 'swap'
+        * @param {string} [params.marginMode] *linear only* 'cross' or 'isolated'
         * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
         */
         parameters ??= new Dictionary<string, object>();
@@ -7921,8 +7959,12 @@ public partial class htx : Exchange
         object market = null;
         if (isTrue(!isEqual(symbols, null)))
         {
-            object first = this.safeString(symbols, 0);
-            market = this.market(first);
+            object symbolsLength = getArrayLength(symbols);
+            if (isTrue(isGreaterThan(symbolsLength, 0)))
+            {
+                object first = this.safeString(symbols, 0);
+                market = this.market(first);
+            }
         }
         object marginMode = null;
         var marginModeparametersVariable = this.handleMarginModeAndParams("fetchPositions", parameters, "cross");
@@ -8884,8 +8926,8 @@ public partial class htx : Exchange
         {
             throw new ArgumentsRequired ((string)add(this.id, " fetchSettlementHistory() requires a symbol argument")) ;
         }
-        object until = this.safeInteger2(parameters, "until", "till");
-        parameters = this.omit(parameters, new List<object>() {"until", "till"});
+        object until = this.safeInteger(parameters, "until");
+        parameters = this.omit(parameters, new List<object>() {"until"});
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {};
         if (isTrue(getValue(market, "future")))
@@ -9311,6 +9353,81 @@ public partial class htx : Exchange
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
         });
+    }
+
+    public async override Task<object> closePosition(object symbol, object side = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name htx#closePositions
+        * @description closes open positions for a contract market, requires 'amount' in params, unlike other exchanges
+        * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-place-lightning-close-order  // USDT-M (isolated)
+        * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-place-lightning-close-position  // USDT-M (cross)
+        * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#place-lightning-close-order  // Coin-M swap
+        * @see https://huobiapi.github.io/docs/dm/v1/en/#place-flash-close-order                      // Coin-M futures
+        * @param {string} symbol unified CCXT market symbol
+        * @param {string} side 'buy' or 'sell', the side of the closing order, opposite side as position side
+        * @param {object} [params] extra parameters specific to the okx api endpoint
+        * @param {string} [params.clientOrderId] client needs to provide unique API and have to maintain the API themselves afterwards. [1, 9223372036854775807]
+        * @param {object} [params.marginMode] 'cross' or 'isolated', required for linear markets
+        *
+        * EXCHANGE SPECIFIC PARAMETERS
+        * @param {number} [params.amount] order quantity
+        * @param {string} [params.order_price_type] 'lightning' by default, 'lightning_fok': lightning fok type, 'lightning_ioc': lightning ioc type 'market' by default, 'market': market order type, 'lightning_fok': lightning
+        * @returns {object} [an order structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object market = this.market(symbol);
+        object clientOrderId = this.safeString(parameters, "clientOrderId");
+        if (!isTrue(getValue(market, "contract")))
+        {
+            throw new BadRequest ((string)add(this.id, " closePosition() symbol supports contract markets only")) ;
+        }
+        this.checkRequiredArgument("closePosition", side, "side");
+        object request = new Dictionary<string, object>() {
+            { "contract_code", getValue(market, "id") },
+            { "direction", side },
+        };
+        if (isTrue(!isEqual(clientOrderId, null)))
+        {
+            ((IDictionary<string,object>)request)["client_order_id"] = clientOrderId;
+        }
+        if (isTrue(getValue(market, "inverse")))
+        {
+            object amount = this.safeString2(parameters, "volume", "amount");
+            if (isTrue(isEqual(amount, null)))
+            {
+                throw new ArgumentsRequired ((string)add(this.id, " closePosition () requires an extra argument params[\"amount\"] for inverse markets")) ;
+            }
+            ((IDictionary<string,object>)request)["volume"] = this.amountToPrecision(symbol, amount);
+        }
+        parameters = this.omit(parameters, new List<object>() {"clientOrderId", "volume", "amount"});
+        object response = null;
+        if (isTrue(getValue(market, "inverse")))
+        {
+            if (isTrue(getValue(market, "swap")))
+            {
+                response = await this.contractPrivatePostSwapApiV1SwapLightningClosePosition(this.extend(request, parameters));
+            } else
+            {
+                response = await this.contractPrivatePostApiV1LightningClosePosition(this.extend(request, parameters));
+            }
+        } else
+        {
+            object marginMode = null;
+            var marginModeparametersVariable = this.handleMarginModeAndParams("closePosition", parameters, "cross");
+            marginMode = ((IList<object>)marginModeparametersVariable)[0];
+            parameters = ((IList<object>)marginModeparametersVariable)[1];
+            if (isTrue(isEqual(marginMode, "cross")))
+            {
+                response = await this.contractPrivatePostLinearSwapApiV1SwapCrossLightningClosePosition(this.extend(request, parameters));
+            } else
+            {
+                response = await this.contractPrivatePostLinearSwapApiV1SwapLightningClosePosition(this.extend(request, parameters));
+            }
+        }
+        return this.parseOrder(response, market);
     }
 
     public async override Task<object> setPositionMode(object hedged, object symbol = null, object parameters = null)

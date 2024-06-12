@@ -65,8 +65,11 @@ class btcmarkets extends btcmarkets$1 {
                 'fetchOrderBook': true,
                 'fetchOrders': true,
                 'fetchPosition': false,
+                'fetchPositionHistory': false,
                 'fetchPositionMode': false,
                 'fetchPositions': false,
+                'fetchPositionsForSymbol': false,
+                'fetchPositionsHistory': false,
                 'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchTicker': true,
@@ -894,7 +897,29 @@ class btcmarkets extends btcmarkets$1 {
         const request = {
             'ids': ids,
         };
-        return await this.privateDeleteBatchordersIds(this.extend(request, params));
+        const response = await this.privateDeleteBatchordersIds(this.extend(request, params));
+        //
+        //    {
+        //       "cancelOrders": [
+        //            {
+        //               "orderId": "414186",
+        //               "clientOrderId": "6"
+        //            },
+        //            ...
+        //        ],
+        //        "unprocessedRequests": [
+        //            {
+        //               "code": "OrderAlreadyCancelled",
+        //               "message": "order is already cancelled.",
+        //               "requestId": "1"
+        //            }
+        //        ]
+        //    }
+        //
+        const cancelOrders = this.safeList(response, 'cancelOrders', []);
+        const unprocessedRequests = this.safeList(response, 'unprocessedRequests', []);
+        const orders = this.arrayConcat(cancelOrders, unprocessedRequests);
+        return this.parseOrders(orders);
     }
     async cancelOrder(id, symbol = undefined, params = {}) {
         /**
@@ -911,7 +936,14 @@ class btcmarkets extends btcmarkets$1 {
         const request = {
             'id': id,
         };
-        return await this.privateDeleteOrdersId(this.extend(request, params));
+        const response = await this.privateDeleteOrdersId(this.extend(request, params));
+        //
+        //    {
+        //        "orderId": "7524",
+        //        "clientOrderId": "123-456"
+        //    }
+        //
+        return this.parseOrder(response);
     }
     calculateFee(symbol, type, side, amount, price, takerOrMaker = 'taker', params = {}) {
         /**

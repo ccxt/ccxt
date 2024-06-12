@@ -311,7 +311,7 @@ if (isMainEntry(import.meta.url)) { // called directly like `node module`
         transpiler.transpileWsTests ()
     } 
     else if (multiprocess) {
-        parallelizeTranspiling (exchanges.ws)
+        parallelizeTranspiling (exchanges.ws, undefined, force)
     } else {
         (async () => {
             await transpiler.transpileEverything (force, child)

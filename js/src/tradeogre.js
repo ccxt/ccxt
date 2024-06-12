@@ -6,7 +6,7 @@
 
 // ---------------------------------------------------------------------------
 import Exchange from './abstract/tradeogre.js';
-import { InsufficientFunds, AuthenticationError, BadRequest, ExchangeError } from './base/errors.js';
+import { InsufficientFunds, AuthenticationError, BadRequest, ExchangeError, ArgumentsRequired } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 // ---------------------------------------------------------------------------
 /**
@@ -82,8 +82,11 @@ export default class tradeogre extends Exchange {
                 'fetchOrderTrades': false,
                 'fetchPermissions': false,
                 'fetchPosition': false,
+                'fetchPositionHistory': false,
+                'fetchPositionMode': false,
                 'fetchPositions': false,
                 'fetchPositionsForSymbol': false,
+                'fetchPositionsHistory': false,
                 'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchTicker': true,
@@ -449,7 +452,7 @@ export default class tradeogre extends Exchange {
          * @name tradeogre#createOrder
          * @description create a trade order
          * @param {string} symbol unified symbol of the market to create an order in
-         * @param {string} type not used by tradeogre
+         * @param {string} type must be 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
          * @param {float} price the price at which the order is to be fullfilled, in units of the quote currency
@@ -458,14 +461,17 @@ export default class tradeogre extends Exchange {
          */
         await this.loadMarkets();
         const market = this.market(symbol);
+        if (type === 'market') {
+            throw new BadRequest(this.id + ' createOrder does not support market orders');
+        }
+        if (price === undefined) {
+            throw new ArgumentsRequired(this.id + ' createOrder requires a limit parameter');
+        }
         const request = {
             'market': market['id'],
             'quantity': this.parseToNumeric(this.amountToPrecision(symbol, amount)),
             'price': this.parseToNumeric(this.priceToPrecision(symbol, price)),
         };
-        if (type === 'market') {
-            throw new BadRequest(this.id + ' createOrder does not support market orders');
-        }
         let response = undefined;
         if (side === 'buy') {
             response = await this.privatePostOrderBuy(this.extend(request, params));
@@ -502,7 +508,10 @@ export default class tradeogre extends Exchange {
          * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
-        return await this.cancelOrder('all', symbol, params);
+        const response = await this.cancelOrder('all', symbol, params);
+        return [
+            response,
+        ];
     }
     async fetchOpenOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**

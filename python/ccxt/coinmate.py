@@ -65,8 +65,11 @@ class coinmate(Exchange, ImplicitAPI):
                 'fetchOrderBook': True,
                 'fetchOrders': True,
                 'fetchPosition': False,
+                'fetchPositionHistory': False,
                 'fetchPositionMode': False,
                 'fetchPositions': False,
+                'fetchPositionsForSymbol': False,
+                'fetchPositionsHistory': False,
                 'fetchPositionsRisk': False,
                 'fetchPremiumIndexOHLCV': False,
                 'fetchTicker': True,
@@ -320,7 +323,7 @@ class coinmate(Exchange, ImplicitAPI):
 
     def parse_balance(self, response) -> Balances:
         balances = self.safe_value(response, 'data', {})
-        result = {'info': response}
+        result: dict = {'info': response}
         currencyIds = list(balances.keys())
         for i in range(0, len(currencyIds)):
             currencyId = currencyIds[i]
@@ -355,7 +358,7 @@ class coinmate(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'currencyPair': market['id'],
             'groupByPriceLimit': 'False',
         }
@@ -374,7 +377,7 @@ class coinmate(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'currencyPair': market['id'],
         }
         response = self.publicGetTicker(self.extend(request, params))
@@ -430,14 +433,14 @@ class coinmate(Exchange, ImplicitAPI):
         #
         data = self.safe_value(response, 'data', {})
         keys = list(data.keys())
-        result = {}
+        result: dict = {}
         for i in range(0, len(keys)):
             market = self.market(keys[i])
             ticker = self.parse_ticker(self.safe_value(data, keys[i]), market)
             result[market['symbol']] = ticker
         return self.filter_by_array_tickers(result, 'symbol', symbols)
 
-    def parse_ticker(self, ticker, market: Market = None) -> Ticker:
+    def parse_ticker(self, ticker: dict, market: Market = None) -> Ticker:
         #
         #     {
         #         "last": "0.001337",
@@ -487,7 +490,7 @@ class coinmate(Exchange, ImplicitAPI):
         :returns dict: a list of `transaction structure <https://docs.ccxt.com/#/?id=transaction-structure>`
         """
         self.load_markets()
-        request = {
+        request: dict = {
             'limit': 1000,
         }
         if limit is not None:
@@ -501,8 +504,8 @@ class coinmate(Exchange, ImplicitAPI):
         items = response['data']
         return self.parse_transactions(items, None, since, limit)
 
-    def parse_transaction_status(self, status):
-        statuses = {
+    def parse_transaction_status(self, status: Str):
+        statuses: dict = {
             'COMPLETED': 'ok',
             'WAITING': 'pending',
             'SENT': 'pending',
@@ -513,7 +516,7 @@ class coinmate(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_transaction(self, transaction, currency: Currency = None) -> Transaction:
+    def parse_transaction(self, transaction: dict, currency: Currency = None) -> Transaction:
         #
         # deposits
         #
@@ -584,7 +587,7 @@ class coinmate(Exchange, ImplicitAPI):
             },
         }
 
-    def withdraw(self, code: str, amount: float, address, tag=None, params={}):
+    def withdraw(self, code: str, amount: float, address: str, tag=None, params={}):
         """
         make a withdrawal
         :see: https://coinmate.docs.apiary.io/#reference/bitcoin-withdrawal-and-deposit/withdraw-bitcoins/post
@@ -610,7 +613,7 @@ class coinmate(Exchange, ImplicitAPI):
         if method is None:
             allowedCurrencies = list(methods.keys())
             raise ExchangeError(self.id + ' withdraw() only allows withdrawing the following currencies: ' + ', '.join(allowedCurrencies))
-        request = {
+        request: dict = {
             'amount': self.currency_to_precision(code, amount),
             'address': address,
         }
@@ -651,7 +654,7 @@ class coinmate(Exchange, ImplicitAPI):
         self.load_markets()
         if limit is None:
             limit = 1000
-        request = {
+        request: dict = {
             'limit': limit,
         }
         if symbol is not None:
@@ -663,7 +666,7 @@ class coinmate(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data', [])
         return self.parse_trades(data, None, since, limit)
 
-    def parse_trade(self, trade, market: Market = None) -> Trade:
+    def parse_trade(self, trade: dict, market: Market = None) -> Trade:
         #
         # fetchMyTrades(private)
         #
@@ -737,7 +740,7 @@ class coinmate(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'currencyPair': market['id'],
             'minutesIntoHistory': 10,
         }
@@ -771,7 +774,7 @@ class coinmate(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'currencyPair': market['id'],
         }
         response = self.privatePostTraderFees(self.extend(request, params))
@@ -807,7 +810,7 @@ class coinmate(Exchange, ImplicitAPI):
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         response = self.privatePostOpenOrders(self.extend({}, params))
-        extension = {'status': 'open'}
+        extension: dict = {'status': 'open'}
         return self.parse_orders(response['data'], None, since, limit, extension)
 
     def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
@@ -824,7 +827,7 @@ class coinmate(Exchange, ImplicitAPI):
             raise ArgumentsRequired(self.id + ' fetchOrders() requires a symbol argument')
         self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'currencyPair': market['id'],
         }
         # offset param that appears in other parts of the API doesn't appear to be supported here
@@ -833,8 +836,8 @@ class coinmate(Exchange, ImplicitAPI):
         response = self.privatePostOrderHistory(self.extend(request, params))
         return self.parse_orders(response['data'], market, since, limit)
 
-    def parse_order_status(self, status):
-        statuses = {
+    def parse_order_status(self, status: Str):
+        statuses: dict = {
             'FILLED': 'closed',
             'CANCELLED': 'canceled',
             'PARTIALLY_FILLED': 'open',
@@ -842,14 +845,14 @@ class coinmate(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_order_type(self, type):
-        types = {
+    def parse_order_type(self, type: Str):
+        types: dict = {
             'LIMIT': 'limit',
             'MARKET': 'market',
         }
         return self.safe_string(types, type, type)
 
-    def parse_order(self, order, market: Market = None) -> Order:
+    def parse_order(self, order: dict, market: Market = None) -> Order:
         #
         # limit sell
         #
@@ -891,6 +894,13 @@ class coinmate(Exchange, ImplicitAPI):
         #         "avgPrice": null,
         #         "trailing": False,
         #     }
+        #
+        # cancelOrder
+        #
+        #    {
+        #        "success": True,
+        #        "remainingAmount": 0.1
+        #    }
         #
         id = self.safe_string(order, 'id')
         timestamp = self.safe_integer(order, 'timestamp')
@@ -948,7 +958,7 @@ class coinmate(Exchange, ImplicitAPI):
         self.load_markets()
         method = 'privatePost' + self.capitalize(side)
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'currencyPair': market['id'],
         }
         if type == 'market':
@@ -978,7 +988,7 @@ class coinmate(Exchange, ImplicitAPI):
         :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
-        request = {
+        request: dict = {
             'orderId': id,
         }
         market = None
@@ -998,11 +1008,20 @@ class coinmate(Exchange, ImplicitAPI):
         :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         #   {"error":false,"errorMessage":null,"data":{"success":true,"remainingAmount":0.01}}
-        request = {'orderId': id}
+        request: dict = {'orderId': id}
         response = self.privatePostCancelOrderWithInfo(self.extend(request, params))
-        return {
-            'info': response,
-        }
+        #
+        #    {
+        #        "error": False,
+        #        "errorMessage": null,
+        #        "data": {
+        #          "success": True,
+        #          "remainingAmount": 0.1
+        #        }
+        #    }
+        #
+        data = self.safe_dict(response, 'data')
+        return self.parse_order(data)
 
     def nonce(self):
         return self.milliseconds()
@@ -1028,7 +1047,7 @@ class coinmate(Exchange, ImplicitAPI):
             }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response, requestHeaders, requestBody):
         if response is not None:
             if 'error' in response:
                 # {"error":true,"errorMessage":"Minimum Order Size 0.01 ETH","data":null}

@@ -46,8 +46,11 @@ public partial class coincheck : Exchange
                 { "fetchOpenOrders", true },
                 { "fetchOrderBook", true },
                 { "fetchPosition", false },
+                { "fetchPositionHistory", false },
                 { "fetchPositionMode", false },
                 { "fetchPositions", false },
+                { "fetchPositionsForSymbol", false },
+                { "fetchPositionsHistory", false },
                 { "fetchPositionsRisk", false },
                 { "fetchPremiumIndexOHLCV", false },
                 { "fetchTicker", true },
@@ -653,7 +656,14 @@ public partial class coincheck : Exchange
         object request = new Dictionary<string, object>() {
             { "id", id },
         };
-        return await this.privateDeleteExchangeOrdersId(this.extend(request, parameters));
+        object response = await this.privateDeleteExchangeOrdersId(this.extend(request, parameters));
+        //
+        //    {
+        //        "success": true,
+        //        "id": 12345
+        //    }
+        //
+        return this.parseOrder(response);
     }
 
     public async override Task<object> fetchDeposits(object code = null, object since = null, object limit = null, object parameters = null)

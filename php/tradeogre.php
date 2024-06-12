@@ -78,8 +78,11 @@ class tradeogre extends Exchange {
                 'fetchOrderTrades' => false,
                 'fetchPermissions' => false,
                 'fetchPosition' => false,
+                'fetchPositionHistory' => false,
+                'fetchPositionMode' => false,
                 'fetchPositions' => false,
                 'fetchPositionsForSymbol' => false,
+                'fetchPositionsHistory' => false,
                 'fetchPositionsRisk' => false,
                 'fetchPremiumIndexOHLCV' => false,
                 'fetchTicker' => true,
@@ -259,7 +262,7 @@ class tradeogre extends Exchange {
         $request = array(
             'market' => $market['id'],
         );
-        $response = $this->publicGetTickerMarket (array_merge($request, $params));
+        $response = $this->publicGetTickerMarket ($this->extend($request, $params));
         //
         //   {
         //       "success":true,
@@ -325,7 +328,7 @@ class tradeogre extends Exchange {
         $request = array(
             'market' => $market['id'],
         );
-        $response = $this->publicGetOrdersMarket (array_merge($request, $params));
+        $response = $this->publicGetOrdersMarket ($this->extend($request, $params));
         //
         // {
         //     "success" => true,
@@ -373,11 +376,11 @@ class tradeogre extends Exchange {
         $request = array(
             'market' => $market['id'],
         );
-        $response = $this->publicGetHistoryMarket (array_merge($request, $params));
+        $response = $this->publicGetHistoryMarket ($this->extend($request, $params));
         return $this->parse_trades($response, $market, $since, $limit);
     }
 
-    public function parse_trade($trade, ?array $market = null) {
+    public function parse_trade(array $trade, ?array $market = null) {
         //
         //  {
         //      "date":1515128233,
@@ -445,7 +448,7 @@ class tradeogre extends Exchange {
         /**
          * create a trade order
          * @param {string} $symbol unified $symbol of the $market to create an order in
-         * @param {string} $type not used by tradeogre
+         * @param {string} $type must be 'limit'
          * @param {string} $side 'buy' or 'sell'
          * @param {float} $amount how much of currency you want to trade in units of base currency
          * @param {float} $price the $price at which the order is to be fullfilled, in units of the quote currency
@@ -454,19 +457,22 @@ class tradeogre extends Exchange {
          */
         $this->load_markets();
         $market = $this->market($symbol);
+        if ($type === 'market') {
+            throw new BadRequest($this->id . ' createOrder does not support $market orders');
+        }
+        if ($price === null) {
+            throw new ArgumentsRequired($this->id . ' createOrder requires a limit parameter');
+        }
         $request = array(
             'market' => $market['id'],
             'quantity' => $this->parse_to_numeric($this->amount_to_precision($symbol, $amount)),
             'price' => $this->parse_to_numeric($this->price_to_precision($symbol, $price)),
         );
-        if ($type === 'market') {
-            throw new BadRequest($this->id . ' createOrder does not support $market orders');
-        }
         $response = null;
         if ($side === 'buy') {
-            $response = $this->privatePostOrderBuy (array_merge($request, $params));
+            $response = $this->privatePostOrderBuy ($this->extend($request, $params));
         } else {
-            $response = $this->privatePostOrderSell (array_merge($request, $params));
+            $response = $this->privatePostOrderSell ($this->extend($request, $params));
         }
         return $this->parse_order($response, $market);
     }
@@ -483,7 +489,7 @@ class tradeogre extends Exchange {
         $request = array(
             'uuid' => $id,
         );
-        $response = $this->privatePostOrderCancel (array_merge($request, $params));
+        $response = $this->privatePostOrderCancel ($this->extend($request, $params));
         return $this->parse_order($response);
     }
 
@@ -495,7 +501,10 @@ class tradeogre extends Exchange {
          * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
          */
         $this->load_markets();
-        return $this->cancel_order('all', $symbol, $params);
+        $response = $this->cancel_order('all', $symbol, $params);
+        return array(
+            $response,
+        );
     }
 
     public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
@@ -516,7 +525,7 @@ class tradeogre extends Exchange {
         if ($symbol !== null) {
             $request['market'] = $market['id'];
         }
-        $response = $this->privatePostAccountOrders (array_merge($request, $params));
+        $response = $this->privatePostAccountOrders ($this->extend($request, $params));
         return $this->parse_orders($response, $market, $since, $limit);
     }
 
@@ -532,11 +541,11 @@ class tradeogre extends Exchange {
         $request = array(
             'uuid' => $id,
         );
-        $response = $this->privateGetAccountOrderUuid (array_merge($request, $params));
+        $response = $this->privateGetAccountOrderUuid ($this->extend($request, $params));
         return $this->parse_order($response, null);
     }
 
-    public function parse_order($order, ?array $market = null): array {
+    public function parse_order(array $order, ?array $market = null): array {
         //
         //
         // {
@@ -600,7 +609,7 @@ class tradeogre extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
         if ($response === null) {
             return null;
         }

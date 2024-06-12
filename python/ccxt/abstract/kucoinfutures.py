@@ -184,6 +184,8 @@ class ImplicitAPI:
     futuresprivate_get_withdrawal_list = futuresPrivateGetWithdrawalList = Entry('withdrawal-list', 'futuresPrivate', 'GET', {'cost': 1})
     futuresprivate_get_sub_api_key = futuresPrivateGetSubApiKey = Entry('sub/api-key', 'futuresPrivate', 'GET', {'cost': 1})
     futuresprivate_get_trade_statistics = futuresPrivateGetTradeStatistics = Entry('trade-statistics', 'futuresPrivate', 'GET', {'cost': 1})
+    futuresprivate_get_trade_fees = futuresPrivateGetTradeFees = Entry('trade-fees', 'futuresPrivate', 'GET', {'cost': 1})
+    futuresprivate_get_history_positions = futuresPrivateGetHistoryPositions = Entry('history-positions', 'futuresPrivate', 'GET', {'cost': 1})
     futuresprivate_post_transfer_out = futuresPrivatePostTransferOut = Entry('transfer-out', 'futuresPrivate', 'POST', {'cost': 1})
     futuresprivate_post_transfer_in = futuresPrivatePostTransferIn = Entry('transfer-in', 'futuresPrivate', 'POST', {'cost': 1})
     futuresprivate_post_orders = futuresPrivatePostOrders = Entry('orders', 'futuresPrivate', 'POST', {'cost': 1.33})

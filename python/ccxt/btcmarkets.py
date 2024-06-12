@@ -73,8 +73,11 @@ class btcmarkets(Exchange, ImplicitAPI):
                 'fetchOrderBook': True,
                 'fetchOrders': True,
                 'fetchPosition': False,
+                'fetchPositionHistory': False,
                 'fetchPositionMode': False,
                 'fetchPositions': False,
+                'fetchPositionsForSymbol': False,
+                'fetchPositionsHistory': False,
                 'fetchPositionsRisk': False,
                 'fetchPremiumIndexOHLCV': False,
                 'fetchTicker': True,
@@ -187,7 +190,7 @@ class btcmarkets(Exchange, ImplicitAPI):
 
     def fetch_transactions_with_method(self, method, code: Str = None, since: Int = None, limit: Int = None, params={}):
         self.load_markets()
-        request = {}
+        request: dict = {}
         if limit is not None:
             request['limit'] = limit
         if since is not None:
@@ -234,8 +237,8 @@ class btcmarkets(Exchange, ImplicitAPI):
         """
         return self.fetch_transactions_with_method('privateGetWithdrawals', code, since, limit, params)
 
-    def parse_transaction_status(self, status):
-        statuses = {
+    def parse_transaction_status(self, status: Str):
+        statuses: dict = {
             'Accepted': 'pending',
             'Pending Authorization': 'pending',
             'Complete': 'ok',
@@ -245,13 +248,13 @@ class btcmarkets(Exchange, ImplicitAPI):
         return self.safe_string(statuses, status, status)
 
     def parse_transaction_type(self, type):
-        statuses = {
+        statuses: dict = {
             'Withdraw': 'withdrawal',
             'Deposit': 'deposit',
         }
         return self.safe_string(statuses, type, type)
 
-    def parse_transaction(self, transaction, currency: Currency = None) -> Transaction:
+    def parse_transaction(self, transaction: dict, currency: Currency = None) -> Transaction:
         #
         #    {
         #         "id": "6500230339",
@@ -373,7 +376,7 @@ class btcmarkets(Exchange, ImplicitAPI):
         #
         return self.parse_markets(response)
 
-    def parse_market(self, market) -> Market:
+    def parse_market(self, market: dict) -> Market:
         baseId = self.safe_string(market, 'baseAssetName')
         quoteId = self.safe_string(market, 'quoteAssetName')
         id = self.safe_string(market, 'marketId')
@@ -455,7 +458,7 @@ class btcmarkets(Exchange, ImplicitAPI):
         return self.parse8601(self.safe_string(response, 'timestamp'))
 
     def parse_balance(self, response) -> Balances:
-        result = {'info': response}
+        result: dict = {'info': response}
         for i in range(0, len(response)):
             balance = response[i]
             currencyId = self.safe_string(balance, 'assetName')
@@ -510,7 +513,7 @@ class btcmarkets(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'marketId': market['id'],
             'timeWindow': self.safe_string(self.timeframes, timeframe, timeframe),
             # 'from': self.iso8601(since),
@@ -544,7 +547,7 @@ class btcmarkets(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'marketId': market['id'],
         }
         response = self.publicGetMarketsMarketIdOrderbook(self.extend(request, params))
@@ -569,7 +572,7 @@ class btcmarkets(Exchange, ImplicitAPI):
         orderbook['nonce'] = self.safe_integer(response, 'snapshotId')
         return orderbook
 
-    def parse_ticker(self, ticker, market: Market = None) -> Ticker:
+    def parse_ticker(self, ticker: dict, market: Market = None) -> Ticker:
         #
         # fetchTicker
         #
@@ -629,7 +632,7 @@ class btcmarkets(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'marketId': market['id'],
         }
         response = self.publicGetMarketsMarketIdTicker(self.extend(request, params))
@@ -653,13 +656,13 @@ class btcmarkets(Exchange, ImplicitAPI):
     def fetch_ticker_2(self, symbol: str, params={}):
         self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'id': market['id'],
         }
         response = self.publicGetMarketsMarketIdTicker(self.extend(request, params))
         return self.parse_ticker(response, market)
 
-    def parse_trade(self, trade, market: Market = None) -> Trade:
+    def parse_trade(self, trade: dict, market: Market = None) -> Trade:
         #
         # public fetchTrades
         #
@@ -735,7 +738,7 @@ class btcmarkets(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             # 'since': 59868345231,
             'marketId': market['id'],
         }
@@ -763,7 +766,7 @@ class btcmarkets(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'marketId': market['id'],
             # 'price': self.price_to_precision(symbol, price),
             'amount': self.amount_to_precision(symbol, amount),
@@ -849,10 +852,32 @@ class btcmarkets(Exchange, ImplicitAPI):
         self.load_markets()
         for i in range(0, len(ids)):
             ids[i] = int(ids[i])
-        request = {
+        request: dict = {
             'ids': ids,
         }
-        return self.privateDeleteBatchordersIds(self.extend(request, params))
+        response = self.privateDeleteBatchordersIds(self.extend(request, params))
+        #
+        #    {
+        #       "cancelOrders": [
+        #            {
+        #               "orderId": "414186",
+        #               "clientOrderId": "6"
+        #            },
+        #            ...
+        #        ],
+        #        "unprocessedRequests": [
+        #            {
+        #               "code": "OrderAlreadyCancelled",
+        #               "message": "order is already cancelled.",
+        #               "requestId": "1"
+        #            }
+        #        ]
+        #    }
+        #
+        cancelOrders = self.safe_list(response, 'cancelOrders', [])
+        unprocessedRequests = self.safe_list(response, 'unprocessedRequests', [])
+        orders = self.array_concat(cancelOrders, unprocessedRequests)
+        return self.parse_orders(orders)
 
     def cancel_order(self, id: str, symbol: Str = None, params={}):
         """
@@ -864,16 +889,25 @@ class btcmarkets(Exchange, ImplicitAPI):
         :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
-        request = {
+        request: dict = {
             'id': id,
         }
-        return self.privateDeleteOrdersId(self.extend(request, params))
+        response = self.privateDeleteOrdersId(self.extend(request, params))
+        #
+        #    {
+        #        "orderId": "7524",
+        #        "clientOrderId": "123-456"
+        #    }
+        #
+        return self.parse_order(response)
 
     def calculate_fee(self, symbol, type, side, amount, price, takerOrMaker='taker', params={}):
         """
         calculates the presumptive fee that would be charged for an order
         :param str symbol: unified market symbol
-        :param str type: not used by btcmarkets.calculate_fee        :param string side: not used by btcmarkets.calculate_fee        :param float amount: how much you want to trade, in units of the base currency on most exchanges, or number of contracts
+        :param str type: not used by btcmarkets.calculateFee
+        :param str side: not used by btcmarkets.calculateFee
+        :param float amount: how much you want to trade, in units of the base currency on most exchanges, or number of contracts
         :param float price: the price for the order to be filled at, in units of the quote currency
         :param str takerOrMaker: 'taker' or 'maker'
         :param dict params:
@@ -900,8 +934,8 @@ class btcmarkets(Exchange, ImplicitAPI):
             'cost': float(self.fee_to_precision(symbol, rateCost)),
         }
 
-    def parse_order_status(self, status):
-        statuses = {
+    def parse_order_status(self, status: Str):
+        statuses: dict = {
             'Accepted': 'open',
             'Placed': 'open',
             'Partially Matched': 'open',
@@ -912,7 +946,7 @@ class btcmarkets(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_order(self, order, market: Market = None) -> Order:
+    def parse_order(self, order: dict, market: Market = None) -> Order:
         #
         # createOrder
         #
@@ -986,7 +1020,7 @@ class btcmarkets(Exchange, ImplicitAPI):
         :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
-        request = {
+        request: dict = {
             'id': id,
         }
         response = self.privateGetOrdersId(self.extend(request, params))
@@ -1003,7 +1037,7 @@ class btcmarkets(Exchange, ImplicitAPI):
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
-        request = {
+        request: dict = {
             'status': 'all',
         }
         market = None
@@ -1027,7 +1061,7 @@ class btcmarkets(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
-        request = {'status': 'open'}
+        request: dict = {'status': 'open'}
         return self.fetch_orders(symbol, since, limit, self.extend(request, params))
 
     def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
@@ -1054,7 +1088,7 @@ class btcmarkets(Exchange, ImplicitAPI):
         :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
         """
         self.load_markets()
-        request = {}
+        request: dict = {}
         market = None
         if symbol is not None:
             market = self.market(symbol)
@@ -1093,7 +1127,7 @@ class btcmarkets(Exchange, ImplicitAPI):
         #
         return self.parse_trades(response, market, since, limit)
 
-    def withdraw(self, code: str, amount: float, address, tag=None, params={}):
+    def withdraw(self, code: str, amount: float, address: str, tag=None, params={}):
         """
         make a withdrawal
         :see: https://docs.btcmarkets.net/v3/#tag/Fund-Management-APIs/paths/~1v3~1withdrawals/post
@@ -1107,7 +1141,7 @@ class btcmarkets(Exchange, ImplicitAPI):
         tag, params = self.handle_withdraw_tag_and_params(tag, params)
         self.load_markets()
         currency = self.currency(code)
-        request = {
+        request: dict = {
             'currency_id': currency['id'],
             'amount': self.currency_to_precision(code, amount),
         }
@@ -1167,7 +1201,7 @@ class btcmarkets(Exchange, ImplicitAPI):
         url = self.urls['api'][api] + request
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response, requestHeaders, requestBody):
         if response is None:
             return None  # fallback to default error handler
         if 'success' in response:

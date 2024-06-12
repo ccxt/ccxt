@@ -14,8 +14,9 @@ class Precise {
             let modifier = 0;
             number = number.toLowerCase();
             if (number.indexOf('e') > -1) {
-                [number, modifier] = number.split('e');
-                modifier = parseInt(modifier.toString());
+                let modifierString = '0';
+                [number, modifierString] = number.split('e');
+                modifier = parseInt(modifierString);
             }
             const decimalIndex = number.indexOf('.');
             this.decimals = (decimalIndex > -1) ? number.length - decimalIndex - 1 : 0;

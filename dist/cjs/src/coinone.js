@@ -65,8 +65,11 @@ class coinone extends coinone$1 {
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchPosition': false,
+                'fetchPositionHistory': false,
                 'fetchPositionMode': false,
                 'fetchPositions': false,
+                'fetchPositionsForSymbol': false,
+                'fetchPositionsHistory': false,
                 'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchTicker': true,
@@ -1058,7 +1061,7 @@ class coinone extends coinone$1 {
         //         "errorCode": "0"
         //     }
         //
-        return response;
+        return this.safeOrder(response);
     }
     async fetchDepositAddresses(codes = undefined, params = {}) {
         /**

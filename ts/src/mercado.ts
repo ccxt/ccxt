@@ -5,7 +5,7 @@ import Exchange from './abstract/mercado.js';
 import { ExchangeError, ArgumentsRequired, InvalidOrder } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
-import type { Balances, Currency, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade, Transaction } from './base/types.js';
+import type { Balances, Currency, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade, Transaction, int } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -65,8 +65,11 @@ export default class mercado extends Exchange {
                 'fetchOrderBook': true,
                 'fetchOrders': true,
                 'fetchPosition': false,
+                'fetchPositionHistory': false,
                 'fetchPositionMode': false,
                 'fetchPositions': false,
+                'fetchPositionsForSymbol': false,
+                'fetchPositionsHistory': false,
                 'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchTicker': true,
@@ -264,14 +267,14 @@ export default class mercado extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'coin': market['base'],
         };
         const response = await this.publicGetCoinOrderbook (this.extend (request, params));
         return this.parseOrderBook (response, market['symbol']);
     }
 
-    parseTicker (ticker, market: Market = undefined): Ticker {
+    parseTicker (ticker: Dict, market: Market = undefined): Ticker {
         //
         //     {
         //         "high":"103.96000000",
@@ -322,7 +325,7 @@ export default class mercado extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'coin': market['base'],
         };
         const response = await this.publicGetCoinTicker (this.extend (request, params));
@@ -344,7 +347,7 @@ export default class mercado extends Exchange {
         return this.parseTicker (ticker, market);
     }
 
-    parseTrade (trade, market: Market = undefined): Trade {
+    parseTrade (trade: Dict, market: Market = undefined): Trade {
         const timestamp = this.safeTimestamp2 (trade, 'date', 'executed_timestamp');
         market = this.safeMarket (undefined, market);
         const id = this.safeString2 (trade, 'tid', 'operation_id');
@@ -391,7 +394,7 @@ export default class mercado extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         let method = 'publicGetCoinTrades';
-        const request = {
+        const request: Dict = {
             'coin': market['base'],
         };
         if (since !== undefined) {
@@ -409,7 +412,7 @@ export default class mercado extends Exchange {
     parseBalance (response): Balances {
         const data = this.safeValue (response, 'response_data', {});
         const balances = this.safeValue (data, 'balance', {});
-        const result = { 'info': response };
+        const result: Dict = { 'info': response };
         const currencyIds = Object.keys (balances);
         for (let i = 0; i < currencyIds.length; i++) {
             const currencyId = currencyIds[i];
@@ -453,7 +456,7 @@ export default class mercado extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'coin_pair': market['id'],
         };
         let method = this.capitalize (side) + 'Order';
@@ -495,7 +498,7 @@ export default class mercado extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'coin_pair': market['id'],
             'order_id': id,
         };
@@ -528,8 +531,8 @@ export default class mercado extends Exchange {
         return this.parseOrder (order, market);
     }
 
-    parseOrderStatus (status) {
-        const statuses = {
+    parseOrderStatus (status: Str) {
+        const statuses: Dict = {
             '2': 'open',
             '3': 'canceled',
             '4': 'closed',
@@ -537,7 +540,7 @@ export default class mercado extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseOrder (order, market: Market = undefined): Order {
+    parseOrder (order: Dict, market: Market = undefined): Order {
         //
         //     {
         //         "order_id": 4,
@@ -624,7 +627,7 @@ export default class mercado extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'coin_pair': market['id'],
             'order_id': parseInt (id),
         };
@@ -634,7 +637,7 @@ export default class mercado extends Exchange {
         return this.parseOrder (order, market);
     }
 
-    async withdraw (code: string, amount: number, address, tag = undefined, params = {}) {
+    async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}) {
         /**
          * @method
          * @name mercado#withdraw
@@ -650,7 +653,7 @@ export default class mercado extends Exchange {
         this.checkAddress (address);
         await this.loadMarkets ();
         const currency = this.currency (code);
-        const request = {
+        const request: Dict = {
             'coin': currency['id'],
             'quantity': amount.toFixed (10),
             'address': address,
@@ -700,7 +703,7 @@ export default class mercado extends Exchange {
         return this.parseTransaction (withdrawal, currency);
     }
 
-    parseTransaction (transaction, currency: Currency = undefined): Transaction {
+    parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {
         //
         //     {
         //         "id": 1,
@@ -764,7 +767,7 @@ export default class mercado extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'resolution': this.safeString (this.timeframes, timeframe, timeframe),
             'symbol': market['base'] + '-' + market['quote'], // exceptional endpoint, that needs custom symbol syntax
         };
@@ -799,7 +802,7 @@ export default class mercado extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'coin_pair': market['id'],
         };
         const response = await this.privatePostListOrders (this.extend (request, params));
@@ -824,7 +827,7 @@ export default class mercado extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'coin_pair': market['id'],
             'status_list': '[2]', // open only
         };
@@ -850,7 +853,7 @@ export default class mercado extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'coin_pair': market['id'],
             'has_fills': true,
         };
@@ -899,7 +902,7 @@ export default class mercado extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    handleErrors (httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+    handleErrors (httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response, requestHeaders, requestBody) {
         if (response === undefined) {
             return undefined;
         }

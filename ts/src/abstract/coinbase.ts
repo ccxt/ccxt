@@ -55,6 +55,11 @@ interface Exchange {
     v2PrivateDeleteAccountsId (params?: {}): Promise<implicitReturnType>;
     v2PrivateDeleteAccountsAccountIdTransactionsTransactionId (params?: {}): Promise<implicitReturnType>;
     v3PublicGetBrokerageTime (params?: {}): Promise<implicitReturnType>;
+    v3PublicGetBrokerageMarketProductBook (params?: {}): Promise<implicitReturnType>;
+    v3PublicGetBrokerageMarketProducts (params?: {}): Promise<implicitReturnType>;
+    v3PublicGetBrokerageMarketProductsProductId (params?: {}): Promise<implicitReturnType>;
+    v3PublicGetBrokerageMarketProductsProductIdCandles (params?: {}): Promise<implicitReturnType>;
+    v3PublicGetBrokerageMarketProductsProductIdTicker (params?: {}): Promise<implicitReturnType>;
     v3PrivateGetBrokerageAccounts (params?: {}): Promise<implicitReturnType>;
     v3PrivateGetBrokerageAccountsAccountUuid (params?: {}): Promise<implicitReturnType>;
     v3PrivateGetBrokerageOrdersHistoricalBatch (params?: {}): Promise<implicitReturnType>;

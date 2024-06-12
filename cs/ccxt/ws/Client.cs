@@ -15,11 +15,10 @@ public partial class Exchange
     {
         public string url; // Replace with your WebSocket server URL
         public ClientWebSocket webSocket = new ClientWebSocket();
-        // public ClientWebSocket webSocket;
 
         public IDictionary<string, Future> futures = new ConcurrentDictionary<string, Future>();
         public IDictionary<string, object> subscriptions = new ConcurrentDictionary<string, object>();
-        public IDictionary<string, object> rejections = new ConcurrentDictionary<string, object>();
+        public IDictionary<string, object> rejections = new ConcurrentDictionary<string, object>(); // Currently not being used
 
         public bool verbose = false;
         public bool isConnected = false;
@@ -76,27 +75,7 @@ public partial class Exchange
         public Future future(object messageHash2)
         {
             var messageHash = messageHash2.ToString();
-            // var tcs = new TaskCompletionSource<object>();
-            // this.futures[messageHash] = tcs;
-            // return tcs.Task;
-            if (!this.futures.ContainsKey(messageHash))
-            {
-                // var tcs = new TaskCompletionSource<object>();
-                var future = new Future();
-                lock (this.futures)
-                {
-                    // Console.WriteLine("Adding future, inside lock");
-                    this.futures[messageHash] = future;
-                }
-                // Console.WriteLine("outside lock");
-                // return future.task;
-                return future;
-            }
-            else
-            {
-                // return (Task<object>)this.futures[messageHash].task;
-                return this.futures[messageHash];
-            }
+            return (this.futures as ConcurrentDictionary<string, Future>).GetOrAdd (messageHash, (key) =>  new Future());
         }
 
         public void resolve(object content, object messageHash2)
@@ -106,10 +85,8 @@ public partial class Exchange
                 Console.WriteLine("resolve received undefined messageHash");
             }
             var messageHash = messageHash2.ToString();
-            if (this.futures.ContainsKey(messageHash))
+            if ((this.futures as ConcurrentDictionary<string, Future>).TryRemove(messageHash, out Future future))
             {
-                var future = this.futures[messageHash];
-                this.futures.Remove(messageHash); // this order matters
                 future.resolve(content);
             }
         }
@@ -119,10 +96,8 @@ public partial class Exchange
             if (messageHash2 != null)
             {
                 var messageHash = messageHash2.ToString();
-                if (this.futures.ContainsKey(messageHash))
+                if ((this.futures as ConcurrentDictionary<string, Future>).TryRemove(messageHash, out Future future))
                 {
-                    var future = this.futures[messageHash];
-                    this.futures.Remove(messageHash); // this order matters
                     future.reject(content);
                 }
             }
@@ -350,22 +325,20 @@ public partial class Exchange
                         var message = Encoding.UTF8.GetString(memory.ToArray(), 0, (int)memory.Length);
                         object deserializedMessages = message;
 
-                        try
-                        {
-                            deserializedMessages = JsonHelper.Deserialize(message);
-                        }
-                        catch (Exception e)
-                        {
-                            // Console.WriteLine(e);
-                        }
-
                         if (this.verbose)
                         {
                             Console.WriteLine($"On message: {message}");
                         }
-
-                        this.handleMessage(this, deserializedMessages);
-
+                        try
+                        {
+                            deserializedMessages = JsonHelper.Deserialize(message);
+                            this.handleMessage(this, deserializedMessages);
+                        }
+                        catch (Exception e)
+                        {
+                            // Console.WriteLine(e);
+                            this.handleMessage(this, message);
+                        }
                     }
                     else if (result.MessageType == WebSocketMessageType.Binary)
                     {
@@ -382,15 +355,16 @@ public partial class Exchange
 
                             string decompressedString = System.Text.Encoding.UTF8.GetString(decompressedData);
 
-                            var deserializedJson = JsonHelper.Deserialize(decompressedString);
-
                             if (this.verbose)
                             {
                                 Console.WriteLine($"On binary message {decompressedString}");
                             }
-
-                            this.handleMessage(this, deserializedJson);
-
+                            try {
+                                var deserializedJson = JsonHelper.Deserialize(decompressedString);
+                                this.handleMessage(this, deserializedJson);
+                            } catch (Exception e) {
+                                this.handleMessage(this, decompressedString);
+                            }
                         }
                         // string json = System.Text.Encoding.UTF8.GetString(buffer, 0, result.Count);
                     }

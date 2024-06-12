@@ -84,6 +84,7 @@ public partial class deribit : Exchange
                 { "fetchVolatilityHistory", true },
                 { "fetchWithdrawal", false },
                 { "fetchWithdrawals", true },
+                { "sandbox", true },
                 { "transfer", true },
                 { "withdraw", true },
             } },
@@ -2900,7 +2901,7 @@ public partial class deribit : Exchange
         return result;
     }
 
-    public async virtual Task<object> fetchTransfers(object code = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<object> fetchTransfers(object code = null, object since = null, object limit = null, object parameters = null)
     {
         /**
         * @method
@@ -3050,7 +3051,7 @@ public partial class deribit : Exchange
             { "id", this.safeString(transfer, "id") },
             { "status", this.parseTransferStatus(status) },
             { "amount", this.safeNumber(transfer, "amount") },
-            { "code", this.safeCurrencyCode(currencyId, currency) },
+            { "currency", this.safeCurrencyCode(currencyId, currency) },
             { "fromAccount", ((bool) isTrue(!isEqual(direction, "payment"))) ? account : null },
             { "toAccount", ((bool) isTrue(isEqual(direction, "payment"))) ? account : null },
             { "timestamp", timestamp },

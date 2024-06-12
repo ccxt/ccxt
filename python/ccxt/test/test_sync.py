@@ -277,7 +277,7 @@ class testMainClass(baseMainTestClass):
         self.load_keys = get_cli_arg_value('--loadKeys')
         self.ws_tests = get_cli_arg_value('--ws')
 
-    def init(self, exchange_id, symbol_argv):
+    def init(self, exchange_id, symbol_argv, method_argv):
         self.parse_cli_args()
         if self.request_tests and self.response_tests:
             self.run_static_request_tests(exchange_id, symbol_argv)
@@ -292,13 +292,12 @@ class testMainClass(baseMainTestClass):
         if self.id_tests:
             self.run_broker_id_tests()
             return
-        symbol_str = symbol_argv if symbol_argv is not None else 'all'
-        exchange_object = {
+        dump(self.new_line + '' + self.new_line + '' + '[INFO] TESTING ', self.ext, {
             'exchange': exchange_id,
-            'symbol': symbol_str,
+            'symbol': symbol_argv,
+            'method': method_argv,
             'isWs': self.ws_tests,
-        }
-        dump(self.new_line + '' + self.new_line + '' + '[INFO] TESTING ', self.ext, json_stringify(exchange_object), self.new_line)
+        }, self.new_line)
         exchange_args = {
             'verbose': self.verbose,
             'debug': self.debug,
@@ -311,25 +310,22 @@ class testMainClass(baseMainTestClass):
         self.import_files(exchange)
         assert len(list(self.test_files.keys())) > 0, 'Test files were not loaded'  # ensure test files are found & filled
         self.expand_settings(exchange)
-        symbol = self.check_if_specific_test_is_chosen(symbol_argv)
-        self.start_test(exchange, symbol)
+        self.check_if_specific_test_is_chosen(method_argv)
+        self.start_test(exchange, symbol_argv)
         exit_script(0)  # needed to be explicitly finished for WS tests
 
-    def check_if_specific_test_is_chosen(self, symbol_argv):
-        if symbol_argv is not None:
+    def check_if_specific_test_is_chosen(self, method_argv):
+        if method_argv is not None:
             test_file_names = list(self.test_files.keys())
-            possible_method_names = symbol_argv.split(',')  # i.e. `test.ts binance fetchBalance,fetchDeposits`
+            possible_method_names = method_argv.split(',')  # i.e. `test.ts binance fetchBalance,fetchDeposits`
             if len(possible_method_names) >= 1:
                 for i in range(0, len(test_file_names)):
                     test_file_name = test_file_names[i]
                     for j in range(0, len(possible_method_names)):
                         method_name = possible_method_names[j]
+                        method_name = method_name.replace('()', '')
                         if test_file_name == method_name:
                             self.only_specific_tests.append(test_file_name)
-            # if method names were found, then remove them from symbolArgv
-            if len(self.only_specific_tests) > 0:
-                return None
-        return symbol_argv
 
     def import_files(self, exchange):
         properties = list(exchange.has.keys())
@@ -452,7 +448,7 @@ class testMainClass(baseMainTestClass):
                 dump(self.add_padding(skip_message, 25), self.exchange_hint(exchange), method_name)
             return
         if self.info:
-            args_stringified = '(' + ','.join(args) + ')'
+            args_stringified = '(' + exchange.json(args) + ')'  # args.join() breaks when we provide a list of symbols or multidimensional array; "args.toString()" breaks bcz of "array to string conversion"
             dump(self.add_padding('[INFO] TESTING', 25), self.exchange_hint(exchange), method_name, args_stringified)
         call_method(self.test_files, method_name, exchange, skipped_properties_for_method, args)
         # if it was passed successfully, add to the list of successfull tests
@@ -499,6 +495,8 @@ class testMainClass(baseMainTestClass):
             final_skips['datetime'] = final_skips['timestamp']
         if ('bid' in final_skips) and not ('ask' in final_skips):
             final_skips['ask'] = final_skips['bid']
+        if ('baseVolume' in final_skips) and not ('quoteVolume' in final_skips):
+            final_skips['quoteVolume'] = final_skips['baseVolume']
         return final_skips
 
     def test_safe(self, method_name, exchange, args=[], is_public=False):
@@ -1119,6 +1117,7 @@ class testMainClass(baseMainTestClass):
             'privateKey': '0xff3bdd43534543d421f05aec535965b5050ad6ac15345435345435453495e771',
             'uid': 'uid',
             'token': 'token',
+            'accountId': 'accountId',
             'accounts': [{
     'id': 'myAccount',
     'code': 'USDT',
@@ -1141,6 +1140,13 @@ class testMainClass(baseMainTestClass):
         # instantiate the exchange and make sure that we sink the requests to avoid an actual request
         exchange = self.init_offline_exchange(exchange_name)
         global_options = exchange.safe_dict(exchange_data, 'options', {})
+        # read apiKey/secret from the test file
+        api_key = exchange.safe_string(exchange_data, 'apiKey')
+        if api_key:
+            exchange.api_key = str(api_key)
+        secret = exchange.safe_string(exchange_data, 'secret')
+        if secret:
+            exchange.secret = str(secret)
         # exchange.options = exchange.deepExtend (exchange.options, globalOptions); # custom options to be used in the tests
         exchange.extend_exchange_options(global_options)
         methods = exchange.safe_value(exchange_data, 'methods', {})
@@ -1171,6 +1177,13 @@ class testMainClass(baseMainTestClass):
 
     def test_exchange_response_statically(self, exchange_name, exchange_data, test_name=None):
         exchange = self.init_offline_exchange(exchange_name)
+        # read apiKey/secret from the test file
+        api_key = exchange.safe_string(exchange_data, 'apiKey')
+        if api_key:
+            exchange.api_key = str(api_key)
+        secret = exchange.safe_string(exchange_data, 'secret')
+        if secret:
+            exchange.secret = str(secret)
         methods = exchange.safe_value(exchange_data, 'methods', {})
         options = exchange.safe_value(exchange_data, 'options', {})
         # exchange.options = exchange.deepExtend (exchange.options, options); # custom options to be used in the tests
@@ -1260,7 +1273,7 @@ class testMainClass(baseMainTestClass):
         #  -----------------------------------------------------------------------------
         #  --- Init of brokerId tests functions-----------------------------------------
         #  -----------------------------------------------------------------------------
-        promises = [self.test_binance(), self.test_okx(), self.test_cryptocom(), self.test_bybit(), self.test_kucoin(), self.test_kucoinfutures(), self.test_bitget(), self.test_mexc(), self.test_htx(), self.test_woo(), self.test_bitmart(), self.test_coinex(), self.test_bingx(), self.test_phemex(), self.test_blofin(), self.test_hyperliquid(), self.test_coinbaseinternational(), self.test_coinbase_advanced()]
+        promises = [self.test_binance(), self.test_okx(), self.test_cryptocom(), self.test_bybit(), self.test_kucoin(), self.test_kucoinfutures(), self.test_bitget(), self.test_mexc(), self.test_htx(), self.test_woo(), self.test_bitmart(), self.test_coinex(), self.test_bingx(), self.test_phemex(), self.test_blofin(), self.test_hyperliquid(), self.test_coinbaseinternational(), self.test_coinbase_advanced(), self.test_woofi_pro(), self.test_xt()]
         (promises)
         success_message = '[' + self.lang + '][TEST_SUCCESS] brokerId tests passed.'
         dump('[INFO]' + success_message)
@@ -1573,10 +1586,47 @@ class testMainClass(baseMainTestClass):
         close(exchange)
         return True
 
+    def test_woofi_pro(self):
+        exchange = self.init_offline_exchange('woofipro')
+        exchange.secret = 'secretsecretsecretsecretsecretsecretsecrets'
+        id = 'CCXT'
+        exchange.load_markets()
+        request = None
+        try:
+            exchange.create_order('BTC/USDC:USDC', 'limit', 'buy', 1, 20000)
+        except Exception as e:
+            request = json_parse(exchange.last_request_body)
+        broker_id = request['order_tag']
+        assert broker_id == id, 'woofipro - id: ' + id + ' different from  broker_id: ' + broker_id
+        close(exchange)
+        return True
+
+    def test_xt(self):
+        exchange = self.init_offline_exchange('xt')
+        id = 'CCXT'
+        spot_order_request = None
+        try:
+            exchange.create_order('BTC/USDT', 'limit', 'buy', 1, 20000)
+        except Exception as e:
+            spot_order_request = json_parse(exchange.last_request_body)
+        spot_media = spot_order_request['media']
+        assert spot_media == id, 'xt - id: ' + id + ' different from swap tag: ' + spot_media
+        swap_order_request = None
+        try:
+            exchange.create_order('BTC/USDT:USDT', 'limit', 'buy', 1, 20000)
+        except Exception as e:
+            swap_order_request = json_parse(exchange.last_request_body)
+        swap_media = swap_order_request['clientMedia']
+        assert swap_media == id, 'xt - id: ' + id + ' different from swap tag: ' + swap_media
+        close(exchange)
+        return True
+
 # ***** AUTO-TRANSPILER-END *****
 # *******************************
 
 
 if __name__ == '__main__':
-    symbol = argv.symbol if argv.symbol else None
-    (testMainClass().init(argv.exchange, symbol))
+    argvSymbol = argv.symbol if argv.symbol and '/' in argv.symbol else None
+    # in python, we check it through "symbol" arg (as opposed to JS/PHP) because argvs were already built above
+    argvMethod = argv.symbol if argv.symbol and '()' in argv.symbol else None
+    (testMainClass().init(argv.exchange, argvSymbol, argvMethod))
