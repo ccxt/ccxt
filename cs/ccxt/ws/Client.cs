@@ -18,7 +18,7 @@ public partial class Exchange
 
         public IDictionary<string, Future> futures = new ConcurrentDictionary<string, Future>();
         public IDictionary<string, object> subscriptions = new ConcurrentDictionary<string, object>();
-        public IDictionary<string, object> rejections = new ConcurrentDictionary<string, object>(); // Currently not being used
+        public IDictionary<string, object> rejections = new ConcurrentDictionary<string, object>();
         public IDictionary<string, ConcurrentQueue<object>> messageQueue = new ConcurrentDictionary<string, ConcurrentQueue<object>>();
         public bool verbose = false;
         public bool isConnected = false;
@@ -75,7 +75,19 @@ public partial class Exchange
         public Future future(object messageHash2)
         {
             var messageHash = messageHash2.ToString();
-            return (this.futures as ConcurrentDictionary<string, Future>).GetOrAdd(messageHash, (key) => new Future());
+            var future = (this.futures as ConcurrentDictionary<string, Future>).GetOrAdd(messageHash, (key) => new Future());
+            if ((this.rejections as ConcurrentDictionary<string, object>).TryRemove(messageHash, out object rejection))
+            {
+                future.reject(rejection);
+                (this.messageQueue as ConcurrentDictionary<string, ConcurrentQueue<object>>).AddOrUpdate(messageHash, (key) => new ConcurrentQueue<object>());
+                return future;
+            }
+            var queue = (this.messageQueue as ConcurrentDictionary<string, ConcurrentQueue<object>>).GetOrAdd(messageHash, (key) => new ConcurrentQueue<object>());
+            if (queue.TryDequeue(out object result))
+            {
+                future.resolve(result);
+            }
+            return future;
         }
 
         public void resolve(object content, object messageHash2)
@@ -87,6 +99,9 @@ public partial class Exchange
             var messageHash = messageHash2.ToString();
             var queue = (this.messageQueue as ConcurrentDictionary<string, ConcurrentQueue<object>>).GetOrAdd(messageHash, (key) => new ConcurrentQueue<object>());
             queue.Enqueue(content);
+            while (queue.Count > 10) {
+                queue.TryDequeue(out object _);
+            }
             if ((this.futures as ConcurrentDictionary<string, Future>).TryRemove(messageHash, out Future future))
             {
                 if (queue.TryDequeue(out object result))
@@ -104,6 +119,10 @@ public partial class Exchange
                 if ((this.futures as ConcurrentDictionary<string, Future>).TryRemove(messageHash, out Future future))
                 {
                     future.reject(content);
+                }
+                else
+                {
+                    (this.rejections as ConcurrentDictionary<string, object>).TryAdd(messageHash, content);
                 }
             }
             else

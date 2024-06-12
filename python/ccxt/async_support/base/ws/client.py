@@ -69,6 +69,12 @@ class Client(object):
         if message_hash in self.rejections:
             future.reject(self.rejections[message_hash])
             del self.rejections[message_hash]
+            del self.message_queue[message_hash]
+            return future
+        if message_hash in self.message_queue:
+            queue = self.message_queue[message_hash]
+            if len(queue):
+                future.resolve(queue.popleft())
         return future
 
     def resolve(self, result, message_hash):
@@ -76,7 +82,7 @@ class Client(object):
             self.log(iso8601(milliseconds()), 'resolve received None messageHash')
 
         if message_hash not in self.message_queue:
-            self.message_queue[message_hash] = deque()
+            self.message_queue[message_hash] = deque(maxlen=10)
         queue = self.message_queue[message_hash]
         queue.append(result)
         if message_hash in self.futures:

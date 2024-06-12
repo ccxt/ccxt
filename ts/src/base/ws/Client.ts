@@ -116,6 +116,12 @@ export default class Client {
         if (messageHash in this.rejections) {
             future.reject (this.rejections[messageHash])
             delete this.rejections[messageHash]
+            delete this.messageQueue[messageHash]
+            return future;
+        }
+        const queue = this.messageQueue[messageHash]
+        if (queue && queue.length) {
+            future.resolve (queue.shift ())
         }
         return future
     }
@@ -129,6 +135,9 @@ export default class Client {
         }
         const queue = this.messageQueue[messageHash]
         queue.push (result);
+        while (queue.length > 10) { // limit size to 10 messages in the queue
+            queue.shift ()
+        }
         if ((messageHash !== undefined) && (messageHash in this.futures)) {
             const promise = this.futures[messageHash]
             promise.resolve (queue.shift ())
