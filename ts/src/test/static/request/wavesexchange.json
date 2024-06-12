@@ -2,14 +2,10 @@
     "exchange": "wavesexchange",
     "apiKey": "7vhqbdwotF593MRLMUtQvRkiR7aDdDf4Zp3yBrvzMYqr",
     "secret": "ASar3DL4CNiHhkDzq7qj4KEVaMfqwphaPDbvTegYFwvd",
-<<<<<<< HEAD
     "options": {
       "matcherPublicKey": "9cpfKN9suPNvfeUNphzxXMjcnn974eme8ZhWUjaktzU5"
     },
-    "skipKeys": [],
-=======
     "skipKeys": ["senderPublicKey", "proofs", "timestamp", "matcherPublicKey", "signature"],
->>>>>>> 422060a059d288176bf1e835a1357982207190d3
     "outputType": "json",
     "methods": {
         "createOrder": [
@@ -58,12 +54,8 @@
             {
                 "description": "sell limit with extreme amount",
                 "method": "createOrder",
-<<<<<<< HEAD
                 "url": "https://matcher.wx.network/matcher/orderbook/WAVES/G5WWWzzVsWRyzGf32xojbnfp7gXbWrgqJT8RcVWEfLmC/calculateFee",
-=======
                 "disabled": true,
-                "url": "https://matcher.wx.network/matcher/orderbook",
->>>>>>> 422060a059d288176bf1e835a1357982207190d3
                 "input": [
                   "WAVES/USDT",
                   "limit",
@@ -78,7 +70,6 @@
             {
                 "disabled":true,
                 "description": "simple amount",
-                "disabled": true,
                 "method": "withdraw",
                 "url": "https://nodes.wx.network/transactions/broadcast",
                 "input": [
@@ -89,7 +80,6 @@
                 "output": "{\"senderPublicKey\":\"7vhqbdwotF593MRLMUtQvRkiR7aDdDf4Zp3yBrvzMYqr\",\"amount\":2000000,\"fee\":100000,\"type\":4,\"version\":2,\"attachment\":\"\",\"feeAssetId\":\"\",\"proofs\":[\"4dU6BXPmgbivVSin4sp9unPMocrp11Kd3sceovuTDdaXLX8hrWbSFsa8VuDQ5KBmBHCi3NaDvrP8tE6p7NzbFbER\"],\"assetId\":\"\",\"recipient\":\"3P9tXxu38a8tgewNEKFzourVsdqHd11pUsX\",\"timestamp\":1715788358417,\"signature\":\"4dU6BXPmgbivVSin4sp9unPMocrp11Kd3sceovuTDdaXLX8hrWbSFsa8VuDQ5KBmBHCi3NaDvrP8tE6p7NzbFbER\"}"
             },
             {
-               "disabled":true,
                 "description": "extreme amount",
                 "disabled": true,
                 "method": "withdraw",
