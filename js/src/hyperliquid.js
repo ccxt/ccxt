@@ -931,7 +931,7 @@ export default class hyperliquid extends Exchange {
         const hash = this.actionHash(action, vaultAdress, nonce);
         const isTestnet = this.safeBool(this.options, 'sandboxMode', false);
         const phantomAgent = this.constructPhantomAgent(hash, isTestnet);
-        // const data = {
+        // const data: Dict = {
         //     'domain': {
         //         'chainId': 1337,
         //         'name': 'Exchange',

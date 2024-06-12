@@ -831,12 +831,12 @@ public partial class lbank : ccxt.lbank
         object orderBook = this.safeValue(message, "depth", message);
         object datetime = this.safeString(message, "TS");
         object timestamp = this.parse8601(datetime);
-        object orderbook = this.safeValue(this.orderbooks, symbol);
-        if (isTrue(isEqual(orderbook, null)))
+        // let orderbook = this.safeValue (this.orderbooks, symbol);
+        if (!isTrue((inOp(this.orderbooks, symbol))))
         {
-            orderbook = this.orderBook(new Dictionary<string, object>() {});
-            ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = orderbook;
+            ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.orderBook(new Dictionary<string, object>() {});
         }
+        object orderbook = getValue(this.orderbooks, symbol);
         object snapshot = this.parseOrderBook(orderBook, symbol, timestamp, "bids", "asks");
         (orderbook as IOrderBook).reset(snapshot);
         object messageHash = add("orderbook:", symbol);

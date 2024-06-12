@@ -262,7 +262,7 @@ class mercado(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'coin': market['base'],
         }
         response = await self.publicGetCoinOrderbook(self.extend(request, params))
@@ -316,7 +316,7 @@ class mercado(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'coin': market['base'],
         }
         response = await self.publicGetCoinTicker(self.extend(request, params))
@@ -337,7 +337,7 @@ class mercado(Exchange, ImplicitAPI):
         #
         return self.parse_ticker(ticker, market)
 
-    def parse_trade(self, trade, market: Market = None) -> Trade:
+    def parse_trade(self, trade: dict, market: Market = None) -> Trade:
         timestamp = self.safe_timestamp_2(trade, 'date', 'executed_timestamp')
         market = self.safe_market(None, market)
         id = self.safe_string_2(trade, 'tid', 'operation_id')
@@ -380,7 +380,7 @@ class mercado(Exchange, ImplicitAPI):
         await self.load_markets()
         market = self.market(symbol)
         method = 'publicGetCoinTrades'
-        request = {
+        request: dict = {
             'coin': market['base'],
         }
         if since is not None:
@@ -395,7 +395,7 @@ class mercado(Exchange, ImplicitAPI):
     def parse_balance(self, response) -> Balances:
         data = self.safe_value(response, 'response_data', {})
         balances = self.safe_value(data, 'balance', {})
-        result = {'info': response}
+        result: dict = {'info': response}
         currencyIds = list(balances.keys())
         for i in range(0, len(currencyIds)):
             currencyId = currencyIds[i]
@@ -431,7 +431,7 @@ class mercado(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'coin_pair': market['id'],
         }
         method = self.capitalize(side) + 'Order'
@@ -466,7 +466,7 @@ class mercado(Exchange, ImplicitAPI):
             raise ArgumentsRequired(self.id + ' cancelOrder() requires a symbol argument')
         await self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'coin_pair': market['id'],
             'order_id': id,
         }
@@ -498,15 +498,15 @@ class mercado(Exchange, ImplicitAPI):
         order = self.safe_dict(responseData, 'order', {})
         return self.parse_order(order, market)
 
-    def parse_order_status(self, status):
-        statuses = {
+    def parse_order_status(self, status: Str):
+        statuses: dict = {
             '2': 'open',
             '3': 'canceled',
             '4': 'closed',
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_order(self, order, market: Market = None) -> Order:
+    def parse_order(self, order: dict, market: Market = None) -> Order:
         #
         #     {
         #         "order_id": 4,
@@ -588,7 +588,7 @@ class mercado(Exchange, ImplicitAPI):
             raise ArgumentsRequired(self.id + ' fetchOrder() requires a symbol argument')
         await self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'coin_pair': market['id'],
             'order_id': int(id),
         }
@@ -611,7 +611,7 @@ class mercado(Exchange, ImplicitAPI):
         self.check_address(address)
         await self.load_markets()
         currency = self.currency(code)
-        request = {
+        request: dict = {
             'coin': currency['id'],
             'quantity': format(amount, '.10f'),
             'address': address,
@@ -654,7 +654,7 @@ class mercado(Exchange, ImplicitAPI):
         withdrawal = self.safe_dict(responseData, 'withdrawal')
         return self.parse_transaction(withdrawal, currency)
 
-    def parse_transaction(self, transaction, currency: Currency = None) -> Transaction:
+    def parse_transaction(self, transaction: dict, currency: Currency = None) -> Transaction:
         #
         #     {
         #         "id": 1,
@@ -714,7 +714,7 @@ class mercado(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'resolution': self.safe_string(self.timeframes, timeframe, timeframe),
             'symbol': market['base'] + '-' + market['quote'],  # exceptional endpoint, that needs custom symbol syntax
         }
@@ -743,7 +743,7 @@ class mercado(Exchange, ImplicitAPI):
             raise ArgumentsRequired(self.id + ' fetchOrders() requires a symbol argument')
         await self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'coin_pair': market['id'],
         }
         response = await self.privatePostListOrders(self.extend(request, params))
@@ -764,7 +764,7 @@ class mercado(Exchange, ImplicitAPI):
             raise ArgumentsRequired(self.id + ' fetchOpenOrders() requires a symbol argument')
         await self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'coin_pair': market['id'],
             'status_list': '[2]',  # open only
         }
@@ -786,7 +786,7 @@ class mercado(Exchange, ImplicitAPI):
             raise ArgumentsRequired(self.id + ' fetchMyTrades() requires a symbol argument')
         await self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'coin_pair': market['id'],
             'has_fills': True,
         }
@@ -828,7 +828,7 @@ class mercado(Exchange, ImplicitAPI):
             }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody):
+    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response, requestHeaders, requestBody):
         if response is None:
             return None
         #

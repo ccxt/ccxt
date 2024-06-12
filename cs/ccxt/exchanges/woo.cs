@@ -1375,7 +1375,7 @@ public partial class woo : Exchange
         //         "status":"CANCEL_ALL_SENT"
         //     }
         //
-        return response;
+        return new List<object> {this.safeOrder(response)};
     }
 
     public async override Task<object> cancelAllOrdersAfter(object timeout, object parameters = null)
@@ -1405,7 +1405,7 @@ public partial class woo : Exchange
         //         "timestamp": 1711534302943
         //     }
         //
-        return response;
+        return new List<object> {this.safeOrder(response)};
     }
 
     public async override Task<object> fetchOrder(object id, object symbol = null, object parameters = null)

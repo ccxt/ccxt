@@ -827,7 +827,7 @@ class krakenfutures extends Exchange {
         }) ();
     }
 
-    public function parse_trade($trade, ?array $market = null): array {
+    public function parse_trade(array $trade, ?array $market = null): array {
         //
         // fetchTrades (recent trades)
         //
@@ -1261,8 +1261,8 @@ class krakenfutures extends Exchange {
     public function cancel_all_orders(?string $symbol = null, $params = array ()) {
         return Async\async(function () use ($symbol, $params) {
             /**
-             * @see https://docs.futures.kraken.com/#http-api-trading-v3-api-order-management-cancel-all-orders
-             * Cancels all orders on the exchange, including trigger orders
+             * @see https://docs.futures.kraken.com/#http-api-trading-v3-api-$order-management-cancel-all-$orders
+             * Cancels all $orders on the exchange, including trigger $orders
              * @param {str} $symbol Unified market $symbol
              * @param {dict} [$params] Exchange specific $params
              * @return Response from exchange api
@@ -1272,7 +1272,46 @@ class krakenfutures extends Exchange {
                 $request['symbol'] = $this->market_id($symbol);
             }
             $response = Async\await($this->privatePostCancelallorders ($this->extend($request, $params)));
-            return $response;
+            //
+            //    {
+            //        result => 'success',
+            //        $cancelStatus => {
+            //          receivedTime => '2024-06-06T01:12:44.814Z',
+            //          cancelOnly => 'PF_XRPUSD',
+            //          status => 'cancelled',
+            //          cancelledOrders => array( array( order_id => '272fd0ac-45c0-4003-b84d-d39b9e86bd36' ) ),
+            //          $orderEvents => array(
+            //            array(
+            //              uid => '272fd0ac-45c0-4003-b84d-d39b9e86bd36',
+            //              $order => array(
+            //                orderId => '272fd0ac-45c0-4003-b84d-d39b9e86bd36',
+            //                cliOrdId => null,
+            //                type => 'lmt',
+            //                $symbol => 'PF_XRPUSD',
+            //                side => 'buy',
+            //                quantity => '10',
+            //                filled => '0',
+            //                limitPrice => '0.4',
+            //                reduceOnly => false,
+            //                timestamp => '2024-06-06T01:11:16.045Z',
+            //                lastUpdateTimestamp => '2024-06-06T01:11:16.045Z'
+            //              ),
+            //              type => 'CANCEL'
+            //            }
+            //          )
+            //        ),
+            //        serverTime => '2024-06-06T01:12:44.814Z'
+            //    }
+            //
+            $cancelStatus = $this->safe_dict($response, 'cancelStatus');
+            $orderEvents = $this->safe_list($cancelStatus, 'orderEvents', array());
+            $orders = array();
+            for ($i = 0; $i < count($orderEvents); $i++) {
+                $orderEvent = $this->safe_dict($orderEvents, 0);
+                $order = $this->safe_dict($orderEvent, 'order', array());
+                $orders[] = $order;
+            }
+            return $this->parse_orders($orders);
         }) ();
     }
 
@@ -1462,7 +1501,7 @@ class krakenfutures extends Exchange {
         }
     }
 
-    public function parse_order_status($status) {
+    public function parse_order_status(?string $status) {
         $statuses = array(
             'placed' => 'open', // the order was placed successfully
             'cancelled' => 'canceled', // the order was cancelled successfully
@@ -1494,7 +1533,7 @@ class krakenfutures extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_order($order, ?array $market = null): array {
+    public function parse_order(array $order, ?array $market = null): array {
         //
         // LIMIT
         //
@@ -1647,6 +1686,22 @@ class krakenfutures extends Exchange {
         //                "type" => "CANCEL"
         //            }
         //        )
+        //    }
+        //
+        // cancelAllOrders
+        //
+        //    {
+        //        "orderId" => "85c40002-3f20-4e87-9302-262626c3531b",
+        //        "cliOrdId" => null,
+        //        "type" => "lmt",
+        //        "symbol" => "pi_xbtusd",
+        //        "side" => "buy",
+        //        "quantity" => 1000,
+        //        "filled" => 0,
+        //        "limitPrice" => 10144,
+        //        "stopPrice" => null,
+        //        "reduceOnly" => false,
+        //        "timestamp" => "2019-08-01T15:26:27.790Z"
         //    }
         //
         // FETCH OPEN ORDERS
@@ -2249,7 +2304,7 @@ class krakenfutures extends Exchange {
     public function fetch_positions(?array $symbols = null, $params = array ()) {
         return Async\async(function () use ($symbols, $params) {
             /**
-             * @see https://docs.futures.kraken.com/#websocket-api-private-feeds-open-positions
+             * @see https://docs.futures.kraken.com/#http-api-trading-v3-api-account-information-get-open-positions
              * Fetches current contract trading positions
              * @param {string[]} $symbols List of unified $symbols
              * @param {array} [$params] Not used by krakenfutures
@@ -2289,7 +2344,7 @@ class krakenfutures extends Exchange {
         return $result;
     }
 
-    public function parse_position($position, ?array $market = null) {
+    public function parse_position(array $position, ?array $market = null) {
         // cross
         //    {
         //        "side" => "long",
@@ -2345,7 +2400,7 @@ class krakenfutures extends Exchange {
         );
     }
 
-    public function fetch_leverage_tiers(?array $symbols = null, $params = array ()) {
+    public function fetch_leverage_tiers(?array $symbols = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbols, $params) {
             /**
              * @see https://docs.futures.kraken.com/#http-api-trading-v3-api-instrument-details-get-instruments
@@ -2405,7 +2460,7 @@ class krakenfutures extends Exchange {
         }) ();
     }
 
-    public function parse_market_leverage_tiers($info, ?array $market = null) {
+    public function parse_market_leverage_tiers($info, ?array $market = null): array {
         /**
          * @ignore
          * @param $info Exchange $market response for 1 $market
@@ -2678,7 +2733,7 @@ class krakenfutures extends Exchange {
         );
     }
 
-    public function handle_errors($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
         if ($response === null) {
             return null;
         }

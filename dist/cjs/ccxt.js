@@ -51,8 +51,9 @@ var btcturk = require('./src/btcturk.js');
 var bybit = require('./src/bybit.js');
 var cex = require('./src/cex.js');
 var coinbase = require('./src/coinbase.js');
+var coinbaseadvanced = require('./src/coinbaseadvanced.js');
+var coinbaseexchange = require('./src/coinbaseexchange.js');
 var coinbaseinternational = require('./src/coinbaseinternational.js');
-var coinbasepro = require('./src/coinbasepro.js');
 var coincheck = require('./src/coincheck.js');
 var coinex = require('./src/coinex.js');
 var coinlist = require('./src/coinlist.js');
@@ -113,6 +114,7 @@ var wazirx = require('./src/wazirx.js');
 var whitebit = require('./src/whitebit.js');
 var woo = require('./src/woo.js');
 var woofipro = require('./src/woofipro.js');
+var xt = require('./src/xt.js');
 var yobit = require('./src/yobit.js');
 var zaif = require('./src/zaif.js');
 var zonda = require('./src/zonda.js');
@@ -140,8 +142,8 @@ var blockchaincom$1 = require('./src/pro/blockchaincom.js');
 var bybit$1 = require('./src/pro/bybit.js');
 var cex$1 = require('./src/pro/cex.js');
 var coinbase$1 = require('./src/pro/coinbase.js');
+var coinbaseexchange$1 = require('./src/pro/coinbaseexchange.js');
 var coinbaseinternational$1 = require('./src/pro/coinbaseinternational.js');
-var coinbasepro$1 = require('./src/pro/coinbasepro.js');
 var coincheck$1 = require('./src/pro/coincheck.js');
 var coinex$1 = require('./src/pro/coinex.js');
 var coinone$1 = require('./src/pro/coinone.js');
@@ -184,7 +186,7 @@ var woofipro$1 = require('./src/pro/woofipro.js');
 
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
-const version = '4.3.23';
+const version = '4.3.44';
 Exchange["default"].ccxtVersion = version;
 const exchanges = {
     'ace': ace,
@@ -226,8 +228,9 @@ const exchanges = {
     'bybit': bybit,
     'cex': cex,
     'coinbase': coinbase,
+    'coinbaseadvanced': coinbaseadvanced,
+    'coinbaseexchange': coinbaseexchange,
     'coinbaseinternational': coinbaseinternational,
-    'coinbasepro': coinbasepro,
     'coincheck': coincheck,
     'coinex': coinex,
     'coinlist': coinlist,
@@ -288,6 +291,7 @@ const exchanges = {
     'whitebit': whitebit,
     'woo': woo,
     'woofipro': woofipro,
+    'xt': xt,
     'yobit': yobit,
     'zaif': zaif,
     'zonda': zonda,
@@ -317,8 +321,8 @@ const pro = {
     'bybit': bybit$1,
     'cex': cex$1,
     'coinbase': coinbase$1,
+    'coinbaseexchange': coinbaseexchange$1,
     'coinbaseinternational': coinbaseinternational$1,
-    'coinbasepro': coinbasepro$1,
     'coincheck': coincheck$1,
     'coinex': coinex$1,
     'coinone': coinone$1,
@@ -445,8 +449,9 @@ exports.btcturk = btcturk;
 exports.bybit = bybit;
 exports.cex = cex;
 exports.coinbase = coinbase;
+exports.coinbaseadvanced = coinbaseadvanced;
+exports.coinbaseexchange = coinbaseexchange;
 exports.coinbaseinternational = coinbaseinternational;
-exports.coinbasepro = coinbasepro;
 exports.coincheck = coincheck;
 exports.coinex = coinex;
 exports.coinlist = coinlist;
@@ -507,6 +512,7 @@ exports.wazirx = wazirx;
 exports.whitebit = whitebit;
 exports.woo = woo;
 exports.woofipro = woofipro;
+exports.xt = xt;
 exports.yobit = yobit;
 exports.zaif = zaif;
 exports.zonda = zonda;

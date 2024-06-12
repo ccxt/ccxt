@@ -434,7 +434,7 @@ export default class testMainClass extends baseMainTestClass {
             return;
         }
         if (this.info) {
-            const argsStringified = '(' + args.join (',') + ')';
+            const argsStringified = '(' + exchange.json (args) + ')'; // args.join() breaks when we provide a list of symbols or multidimensional array; "args.toString()" breaks bcz of "array to string conversion"
             dump (this.addPadding ('[INFO] TESTING', 25), this.exchangeHint (exchange), methodName, argsStringified);
         }
         await callMethod (this.testFiles, methodName, exchange, skippedPropertiesForMethod, args);
@@ -1514,7 +1514,8 @@ export default class testMainClass extends baseMainTestClass {
             this.testHyperliquid (),
             this.testCoinbaseinternational (),
             this.testCoinbaseAdvanced (),
-            this.testWoofiPro ()
+            this.testWoofiPro (),
+            this.testXT ()
         ];
         await Promise.all (promises);
         const successMessage = '[' + this.lang + '][TEST_SUCCESS] brokerId tests passed.';
@@ -1882,6 +1883,29 @@ export default class testMainClass extends baseMainTestClass {
         }
         const brokerId = request['order_tag'];
         assert (brokerId === id, 'woofipro - id: ' + id + ' different from  broker_id: ' + brokerId);
+        await close (exchange);
+        return true;
+    }
+
+    async testXT () {
+        const exchange = this.initOfflineExchange ('xt');
+        const id = 'CCXT';
+        let spotOrderRequest = undefined;
+        try {
+            await exchange.createOrder ('BTC/USDT', 'limit', 'buy', 1, 20000);
+        } catch (e) {
+            spotOrderRequest = jsonParse (exchange.last_request_body);
+        }
+        const spotMedia = spotOrderRequest['media'];
+        assert (spotMedia === id, 'xt - id: ' + id + ' different from swap tag: ' + spotMedia);
+        let swapOrderRequest = undefined;
+        try {
+            await exchange.createOrder ('BTC/USDT:USDT', 'limit', 'buy', 1, 20000);
+        } catch (e) {
+            swapOrderRequest = jsonParse (exchange.last_request_body);
+        }
+        const swapMedia = swapOrderRequest['clientMedia'];
+        assert (swapMedia === id, 'xt - id: ' + id + ' different from swap tag: ' + swapMedia);
         await close (exchange);
         return true;
     }

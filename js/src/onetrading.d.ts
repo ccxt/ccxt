@@ -1,5 +1,5 @@
 import Exchange from './abstract/onetrading.js';
-import type { Balances, Currencies, Currency, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction } from './base/types.js';
+import type { Balances, Currencies, Currency, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction, int } from './base/types.js';
 /**
  * @class onetrading
  * @augments Exchange
@@ -9,10 +9,10 @@ export default class onetrading extends Exchange {
     fetchTime(params?: {}): Promise<number>;
     fetchCurrencies(params?: {}): Promise<Currencies>;
     fetchMarkets(params?: {}): Promise<Market[]>;
-    parseMarket(market: any): Market;
+    parseMarket(market: Dict): Market;
     fetchTradingFees(params?: {}): Promise<TradingFees>;
-    fetchPublicTradingFees(params?: {}): Promise<{}>;
-    fetchPrivateTradingFees(params?: {}): Promise<{}>;
+    fetchPublicTradingFees(params?: {}): Promise<Dict>;
+    fetchPrivateTradingFees(params?: {}): Promise<Dict>;
     parseFeeTiers(feeTiers: any, market?: Market): {
         maker: any[];
         taker: any[];
@@ -23,7 +23,7 @@ export default class onetrading extends Exchange {
     fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
     parseOHLCV(ohlcv: any, market?: Market): OHLCV;
     fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
-    parseTrade(trade: any, market?: Market): Trade;
+    parseTrade(trade: Dict, market?: Market): Trade;
     fetchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     parseBalance(response: any): Balances;
     fetchBalance(params?: {}): Promise<Balances>;
@@ -51,10 +51,10 @@ export default class onetrading extends Exchange {
     fetchDeposits(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
     fetchWithdrawals(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
     withdraw(code: string, amount: number, address: string, tag?: any, params?: {}): Promise<Transaction>;
-    parseTransaction(transaction: any, currency?: Currency): Transaction;
-    parseOrderStatus(status: any): string;
-    parseOrder(order: any, market?: Market): Order;
-    parseTimeInForce(timeInForce: any): string;
+    parseTransaction(transaction: Dict, currency?: Currency): Transaction;
+    parseOrderStatus(status: Str): string;
+    parseOrder(order: Dict, market?: Market): Order;
+    parseTimeInForce(timeInForce: Str): string;
     createOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): Promise<Order>;
     cancelOrder(id: string, symbol?: Str, params?: {}): Promise<any>;
     cancelAllOrders(symbol?: Str, params?: {}): Promise<any>;
@@ -70,5 +70,5 @@ export default class onetrading extends Exchange {
         body: any;
         headers: any;
     };
-    handleErrors(code: any, reason: any, url: any, method: any, headers: any, body: any, response: any, requestHeaders: any, requestBody: any): any;
+    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): any;
 }

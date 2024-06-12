@@ -12,6 +12,10 @@ public partial class kucoinfutures : ccxt.kucoinfutures
         return this.deepExtend(base.describe(), new Dictionary<string, object>() {
             { "has", new Dictionary<string, object>() {
                 { "ws", true },
+                { "watchLiquidations", false },
+                { "watchLiquidatinsForSymbols", false },
+                { "watchMyLiquidations", null },
+                { "watchMyLiquidationsForSymbols", null },
                 { "watchTicker", true },
                 { "watchTickers", true },
                 { "watchBidsAsks", true },

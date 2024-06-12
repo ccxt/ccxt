@@ -567,22 +567,22 @@ public partial class wazirx : ccxt.wazirx
         object market = this.safeMarket(marketId);
         object symbol = getValue(market, "symbol");
         object messageHash = add("orderbook:", symbol);
-        object currentOrderBook = this.safeValue(this.orderbooks, symbol);
-        if (isTrue(isEqual(currentOrderBook, null)))
+        // const currentOrderBook = this.safeValue (this.orderbooks, symbol);
+        if (!isTrue((inOp(this.orderbooks, symbol))))
         {
             object snapshot = this.parseOrderBook(data, symbol, timestamp, "b", "a");
-            object orderBook = this.orderBook(snapshot);
-            ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = orderBook;
+            ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.orderBook(snapshot);
         } else
         {
-            object asks = this.safeValue(data, "a", new List<object>() {});
-            object bids = this.safeValue(data, "b", new List<object>() {});
-            this.handleDeltas(getValue(currentOrderBook, "asks"), asks);
-            this.handleDeltas(getValue(currentOrderBook, "bids"), bids);
-            ((IDictionary<string,object>)currentOrderBook)["nonce"] = timestamp;
-            ((IDictionary<string,object>)currentOrderBook)["timestamp"] = timestamp;
-            ((IDictionary<string,object>)currentOrderBook)["datetime"] = this.iso8601(timestamp);
-            ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = currentOrderBook;
+            object orderbook = getValue(this.orderbooks, symbol);
+            object asks = this.safeList(data, "a", new List<object>() {});
+            object bids = this.safeList(data, "b", new List<object>() {});
+            this.handleDeltas(getValue(orderbook, "asks"), asks);
+            this.handleDeltas(getValue(orderbook, "bids"), bids);
+            ((IDictionary<string,object>)orderbook)["nonce"] = timestamp;
+            ((IDictionary<string,object>)orderbook)["timestamp"] = timestamp;
+            ((IDictionary<string,object>)orderbook)["datetime"] = this.iso8601(timestamp);
+            ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = orderbook;
         }
         callDynamically(client as WebSocketClient, "resolve", new object[] {getValue(this.orderbooks, symbol), messageHash});
     }

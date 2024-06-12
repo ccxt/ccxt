@@ -592,6 +592,32 @@
                   }
                 ]
             }
+        ],
+        "fetchTradingFees": [
+            {
+                "description": "spot trading fees",
+                "method": "fetchTradingFees",
+                "url": "https://api.coinbase.com/api/v3/brokerage/transaction_summary?product_type=SPOT",
+                "input": []
+            },
+            {
+                "description": "swap trading fees",
+                "method": "fetchTradingFees",
+                "url": "https://api.coinbase.com/api/v3/brokerage/transaction_summary?product_type=FUTURE",
+                "input": [
+                  {
+                    "type": "swap"
+                  }
+                ]
+            }
+        ],
+        "fetchAccounts": [
+            {
+                "description": "fetch accounts",
+                "method": "fetchAccounts",
+                "url": "https://api.coinbase.com/api/v3/brokerage/accounts?limit=250",
+                "input": []
+            }
         ]
     }
 }

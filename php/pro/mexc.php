@@ -38,7 +38,7 @@ class mexc extends \ccxt\async\mexc {
                 'api' => array(
                     'ws' => array(
                         'spot' => 'wss://wbs.mexc.com/ws',
-                        'swap' => 'wss://contract.mexc.com/ws',
+                        'swap' => 'wss://contract.mexc.com/edge',
                     ),
                 ),
             ),
@@ -65,7 +65,7 @@ class mexc extends \ccxt\async\mexc {
             ),
             'streaming' => array(
                 'ping' => array($this, 'ping'),
-                'keepAlive' => 10000,
+                'keepAlive' => 8000,
             ),
             'exceptions' => array(
             ),
@@ -531,8 +531,8 @@ class mexc extends \ccxt\async\mexc {
             return;
         }
         $orderbook['nonce'] = $deltaNonce;
-        $asks = $this->safe_value($delta, 'asks', array());
-        $bids = $this->safe_value($delta, 'bids', array());
+        $asks = $this->safe_list($delta, 'asks', array());
+        $bids = $this->safe_list($delta, 'bids', array());
         $asksOrderSide = $orderbook['asks'];
         $bidsOrderSide = $orderbook['bids'];
         $this->handle_bookside_delta($asksOrderSide, $asks);

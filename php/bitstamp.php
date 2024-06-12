@@ -893,7 +893,7 @@ class bitstamp extends Exchange {
         return null;
     }
 
-    public function parse_trade($trade, ?array $market = null): array {
+    public function parse_trade(array $trade, ?array $market = null): array {
         //
         // fetchTrades (public)
         //
@@ -1215,7 +1215,7 @@ class bitstamp extends Exchange {
         return $this->parse_trading_fee($tradingFee, $market);
     }
 
-    public function parse_trading_fee($fee, ?array $market = null): array {
+    public function parse_trading_fee(array $fee, ?array $market = null): array {
         $marketId = $this->safe_string($fee, 'market');
         $fees = $this->safe_dict($fee, 'fees', array());
         return array(
@@ -1426,7 +1426,17 @@ class bitstamp extends Exchange {
         $request = array(
             'id' => $id,
         );
-        return $this->privatePostCancelOrder ($this->extend($request, $params));
+        $response = $this->privatePostCancelOrder ($this->extend($request, $params));
+        //
+        //    {
+        //        "id" => 1453282316578816,
+        //        "amount" => "0.02035278",
+        //        "price" => "2100.45",
+        //        "type" => 0,
+        //        "market" => "BTC/USD"
+        //    }
+        //
+        return $this->parse_order($response);
     }
 
     public function cancel_all_orders(?string $symbol = null, $params = array ()) {
@@ -1449,10 +1459,26 @@ class bitstamp extends Exchange {
         } else {
             $response = $this->privatePostCancelAllOrders ($this->extend($request, $params));
         }
-        return $response;
+        //
+        //    {
+        //        "canceled" => array(
+        //            {
+        //                "id" => 1453282316578816,
+        //                "amount" => "0.02035278",
+        //                "price" => "2100.45",
+        //                "type" => 0,
+        //                "currency_pair" => "BTC/USD",
+        //                "market" => "BTC/USD"
+        //            }
+        //        ),
+        //        "success" => true
+        //    }
+        //
+        $canceled = $this->safe_list($response, 'canceled');
+        return $this->parse_orders($canceled);
     }
 
-    public function parse_order_status($status) {
+    public function parse_order_status(?string $status) {
         $statuses = array(
             'In Queue' => 'open',
             'Open' => 'open',
@@ -1642,7 +1668,7 @@ class bitstamp extends Exchange {
         return $this->parse_transactions($response, null, $since, $limit);
     }
 
-    public function parse_transaction($transaction, ?array $currency = null): array {
+    public function parse_transaction(array $transaction, ?array $currency = null): array {
         //
         // fetchDepositsWithdrawals
         //
@@ -1765,7 +1791,7 @@ class bitstamp extends Exchange {
         );
     }
 
-    public function parse_transaction_status($status) {
+    public function parse_transaction_status(?string $status) {
         //
         //   withdrawals:
         //   0 (open), 1 (in process), 2 (finished), 3 (canceled) or 4 (failed).
@@ -1780,7 +1806,7 @@ class bitstamp extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_order($order, ?array $market = null): array {
+    public function parse_order(array $order, ?array $market = null): array {
         //
         //   from fetch $order:
         //     { $status => "Finished",
@@ -1819,6 +1845,16 @@ class bitstamp extends Exchange {
         //           "type" => "0",
         //           "id" => "2814205012"
         //       }
+        //
+        // cancelOrder
+        //
+        //    {
+        //        "id" => 1453282316578816,
+        //        "amount" => "0.02035278",
+        //        "price" => "2100.45",
+        //        "type" => 0,
+        //        "market" => "BTC/USD"
+        //    }
         //
         $id = $this->safe_string($order, 'id');
         $clientOrderId = $this->safe_string($order, 'client_order_id');
@@ -1870,7 +1906,7 @@ class bitstamp extends Exchange {
         return $this->safe_string($types, $type, $type);
     }
 
-    public function parse_ledger_entry($item, ?array $currency = null) {
+    public function parse_ledger_entry(array $item, ?array $currency = null) {
         //
         //     array(
         //         array(
@@ -2219,7 +2255,7 @@ class bitstamp extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors($httpCode, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
         if ($response === null) {
             return null;
         }

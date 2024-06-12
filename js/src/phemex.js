@@ -6,7 +6,7 @@
 
 // ----------------------------------------------------------------------------
 import Exchange from './abstract/phemex.js';
-import { ExchangeError, BadSymbol, AuthenticationError, InsufficientFunds, InvalidOrder, ArgumentsRequired, OrderNotFound, BadRequest, PermissionDenied, AccountSuspended, CancelPending, DDoSProtection, DuplicateOrderId, RateLimitExceeded, NotSupported } from './base/errors.js';
+import { ExchangeError, BadSymbol, AuthenticationError, InsufficientFunds, InvalidOrder, ArgumentsRequired, OrderNotFound, BadRequest, PermissionDenied, AccountSuspended, CancelPending, DDoSProtection, DuplicateOrderId, RateLimitExceeded } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
@@ -2252,7 +2252,7 @@ export default class phemex extends Exchange {
         if (feeCost !== undefined) {
             fee = {
                 'cost': feeCost,
-                'currency': undefined,
+                'currency': this.safeCurrencyCode(this.safeString(order, 'feeCurrency')),
             };
         }
         const timeInForce = this.parseTimeInForce(this.safeString(order, 'timeInForce'));
@@ -2399,6 +2399,7 @@ export default class phemex extends Exchange {
         }
         const marketId = this.safeString(order, 'symbol');
         const symbol = this.safeSymbol(marketId, market);
+        market = this.safeMarket(marketId, market);
         const status = this.parseOrderStatus(this.safeString(order, 'ordStatus'));
         const side = this.parseOrderSide(this.safeStringLower(order, 'side'));
         const type = this.parseOrderType(this.safeString(order, 'orderType'));
@@ -2428,6 +2429,21 @@ export default class phemex extends Exchange {
         }
         const takeProfit = this.safeString(order, 'takeProfitRp');
         const stopLoss = this.safeString(order, 'stopLossRp');
+        const feeValue = this.omitZero(this.safeString(order, 'execFeeRv'));
+        const ptFeeRv = this.omitZero(this.safeString(order, 'ptFeeRv'));
+        let fee = undefined;
+        if (feeValue !== undefined) {
+            fee = {
+                'cost': feeValue,
+                'currency': market['quote'],
+            };
+        }
+        else if (ptFeeRv !== undefined) {
+            fee = {
+                'cost': ptFeeRv,
+                'currency': 'PT',
+            };
+        }
         return this.safeOrder({
             'info': order,
             'id': id,
@@ -2452,7 +2468,7 @@ export default class phemex extends Exchange {
             'cost': cost,
             'average': undefined,
             'status': status,
-            'fee': undefined,
+            'fee': fee,
             'trades': undefined,
         });
     }
@@ -2941,6 +2957,7 @@ export default class phemex extends Exchange {
         /**
          * @method
          * @name phemex#fetchOrder
+         * @see https://phemex-docs.github.io/#query-orders-by-ids
          * @description fetches information on an order made by the user
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -2951,9 +2968,6 @@ export default class phemex extends Exchange {
         }
         await this.loadMarkets();
         const market = this.market(symbol);
-        if (market['settle'] === 'USDT') {
-            throw new NotSupported(this.id + 'fetchOrder() is not supported yet for USDT settled swap markets'); // https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#query-user-order-by-orderid-or-query-user-order-by-client-order-id
-        }
         const request = {
             'symbol': market['id'],
         };
@@ -2966,7 +2980,10 @@ export default class phemex extends Exchange {
             request['orderID'] = id;
         }
         let response = undefined;
-        if (market['spot']) {
+        if (market['settle'] === 'USDT') {
+            response = await this.privateGetApiDataGFuturesOrdersByOrderId(this.extend(request, params));
+        }
+        else if (market['spot']) {
             response = await this.privateGetSpotOrdersActive(this.extend(request, params));
         }
         else {

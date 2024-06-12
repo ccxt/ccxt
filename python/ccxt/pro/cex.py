@@ -68,7 +68,7 @@ class cex(ccxt.async_support.cex):
         await self.authenticate(params)
         messageHash = self.request_id()
         url = self.urls['api']['ws']
-        subscribe = {
+        subscribe: dict = {
             'e': 'get-balance',
             'data': {},
             'oid': self.request_id(),
@@ -100,7 +100,7 @@ class cex(ccxt.async_support.cex):
         data = self.safe_value(message, 'data', {})
         freeBalance = self.safe_value(data, 'balance', {})
         usedBalance = self.safe_value(data, 'obalance', {})
-        result = {
+        result: dict = {
             'info': data,
         }
         currencyIds = list(freeBalance.keys())
@@ -142,7 +142,7 @@ class cex(ccxt.async_support.cex):
                 subscriptionKey = subscriptionKey[0:3]
                 if subscriptionKey == 'old':
                     raise ExchangeError(self.id + ' watchTrades() only supports watching one symbol at a time.')
-        message = {
+        message: dict = {
             'e': 'subscribe',
             'rooms': ['pair-' + market['base'] + '-' + market['quote']],
         }
@@ -280,7 +280,7 @@ class cex(ccxt.async_support.cex):
         symbols = self.market_symbols(symbols)
         url = self.urls['api']['ws']
         messageHash = 'tickers'
-        message = {
+        message: dict = {
             'e': 'subscribe',
             'rooms': [
                 'tickers',
@@ -292,7 +292,7 @@ class cex(ccxt.async_support.cex):
         if symbols is not None and not self.in_array(tickerSymbol, symbols):
             return await self.watch_tickers(symbols, params)
         if self.newUpdates:
-            result = {}
+            result: dict = {}
             result[tickerSymbol] = ticker
             return result
         return self.filter_by_array(self.tickers, 'symbol', symbols)
@@ -437,7 +437,7 @@ class cex(ccxt.async_support.cex):
         market = self.market(symbol)
         symbol = market['symbol']
         messageHash = 'orders:' + symbol
-        message = {
+        message: dict = {
             'e': 'open-orders',
             'data': {
                 'pair': [
@@ -471,7 +471,7 @@ class cex(ccxt.async_support.cex):
         market = self.market(symbol)
         messageHash = 'myTrades:' + market['symbol']
         subscriptionHash = 'orders:' + market['symbol']
-        message = {
+        message: dict = {
             'e': 'open-orders',
             'data': {
                 'pair': [
@@ -583,7 +583,7 @@ class cex(ccxt.async_support.cex):
         if side == 'sell':
             symbol = quote + '/' + base
             amount = Precise.string_div(amount, price)  # due to rounding errors amount in not exact to trade
-        parsedTrade = {
+        parsedTrade: dict = {
             'id': self.safe_string(trade, 'id'),
             'order': self.safe_string(trade, 'order'),
             'info': trade,
@@ -787,7 +787,7 @@ class cex(ccxt.async_support.cex):
             status = 'canceled'
         elif isTransaction:
             status = 'closed'
-        parsedOrder = {
+        parsedOrder: dict = {
             'id': self.safe_string_2(order, 'id', 'order'),
             'clientOrderId': None,
             'info': order,
@@ -881,7 +881,7 @@ class cex(ccxt.async_support.cex):
         url = self.urls['api']['ws']
         messageHash = 'orderbook:' + symbol
         depth = 0 if (limit is None) else limit
-        subscribe = {
+        subscribe: dict = {
             'e': 'order-book-subscribe',
             'data': {
                 'pair': [
@@ -925,7 +925,7 @@ class cex(ccxt.async_support.cex):
         symbol = self.pair_to_symbol(pair)
         messageHash = 'orderbook:' + symbol
         timestamp = self.safe_integer_2(data, 'timestamp_ms', 'timestamp')
-        incrementalId = self.safe_number(data, 'id')
+        incrementalId = self.safe_integer(data, 'id')
         orderbook = self.order_book({})
         snapshot = self.parse_order_book(data, symbol, timestamp, 'bids', 'asks')
         snapshot['nonce'] = incrementalId
@@ -1003,7 +1003,7 @@ class cex(ccxt.async_support.cex):
         symbol = market['symbol']
         messageHash = 'ohlcv:' + symbol
         url = self.urls['api']['ws']
-        request = {
+        request: dict = {
             'e': 'init-ohlcv',
             'i': timeframe,
             'rooms': [
@@ -1143,7 +1143,7 @@ class cex(ccxt.async_support.cex):
         }, params)
         url = self.urls['api']['ws']
         messageHash = self.request_id()
-        request = {
+        request: dict = {
             'e': 'get-order',
             'oid': messageHash,
             'data': data,
@@ -1171,7 +1171,7 @@ class cex(ccxt.async_support.cex):
         data = self.extend({
             'pair': [market['baseId'], market['quoteId']],
         }, params)
-        request = {
+        request: dict = {
             'e': 'open-orders',
             'oid': messageHash,
             'data': data,
@@ -1205,7 +1205,7 @@ class cex(ccxt.async_support.cex):
             'price': price,
             'type': side,
         }, params)
-        request = {
+        request: dict = {
             'e': 'place-order',
             'oid': messageHash,
             'data': data,
@@ -1242,7 +1242,7 @@ class cex(ccxt.async_support.cex):
         }, params)
         messageHash = self.request_id()
         url = self.urls['api']['ws']
-        request = {
+        request: dict = {
             'e': 'cancel-replace-order',
             'oid': messageHash,
             'data': data,
@@ -1269,7 +1269,7 @@ class cex(ccxt.async_support.cex):
         }, params)
         messageHash = self.request_id()
         url = self.urls['api']['ws']
-        request = {
+        request: dict = {
             'e': 'cancel-order',
             'oid': messageHash,
             'data': data,
@@ -1295,7 +1295,7 @@ class cex(ccxt.async_support.cex):
             'cancel-orders': ids,
         }, params)
         url = self.urls['api']['ws']
-        request = {
+        request: dict = {
             'e': 'mass-cancel-place-orders',
             'oid': messageHash,
             'data': data,
@@ -1375,7 +1375,7 @@ class cex(ccxt.async_support.cex):
             self.handle_error_message(client, message)
             return
         event = self.safe_string(message, 'e')
-        handlers = {
+        handlers: dict = {
             'auth': self.handle_authentication_message,
             'connected': self.handle_connected,
             'tick': self.handle_ticker,
@@ -1428,7 +1428,7 @@ class cex(ccxt.async_support.cex):
             nonce = str(self.seconds())
             auth = nonce + self.apiKey
             signature = self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha256)
-            request = {
+            request: dict = {
                 'e': 'auth',
                 'auth': {
                     'key': self.apiKey,

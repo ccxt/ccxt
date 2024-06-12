@@ -42,7 +42,7 @@ assert hash(encode('sexyfish'), 'md5', 'hex') == 'c8a35464aa9d5683585786f44d5889
 assert hash(encode(''), 'sha1', 'hex') == 'da39a3ee5e6b4b0d3255bfef95601890afd80709'
 assert hash(encode('nutella'), 'sha1', 'hex') == 'b3d60a34b744159793c483b067c56d8affc5111a'
 assert hmac(encode('hello'), encode('there'), hashlib.sha256, 'hex') == '551e1c1ecbce0fe9b643745a376584a6289f5f43a46861b315fac9edc8d52a26'
-assert hmac(encode('a message'), encode('a secret'), 'md5', 'hex') == '0bfa503bdbc7358185fcd49b4869e23d'
+assert hmac(encode('a message'), encode('a secret'), hashlib.md5, 'hex') == '0bfa503bdbc7358185fcd49b4869e23d'
 
 # ---------------------------------------------------------------------------------------------------------------------
 

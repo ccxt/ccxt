@@ -362,7 +362,7 @@ class currencycom(Exchange, ImplicitAPI):
         #         },
         #     ]
         #
-        result = {}
+        result: dict = {}
         for i in range(0, len(response)):
             currency = response[i]
             id = self.safe_string(currency, 'displaySymbol')
@@ -498,7 +498,7 @@ class currencycom(Exchange, ImplicitAPI):
                 if (maxPrice is not None) and (Precise.string_gt(maxPrice, '0')):
                     limitPriceMax = maxPrice
             precisionAmount = self.parse_number(self.parse_precision(self.safe_string(market, 'baseAssetPrecision')))
-            limitAmount = {
+            limitAmount: dict = {
                 'min': None,
                 'max': None,
             }
@@ -509,7 +509,7 @@ class currencycom(Exchange, ImplicitAPI):
                     'min': self.safe_number(filter, 'minQty'),
                     'max': self.safe_number(filter, 'maxQty'),
                 }
-            limitMarket = {
+            limitMarket: dict = {
                 'min': None,
                 'max': None,
             }
@@ -654,7 +654,7 @@ class currencycom(Exchange, ImplicitAPI):
         #
         makerFee = self.safe_number(response, 'makerCommission')
         takerFee = self.safe_number(response, 'takerCommission')
-        result = {}
+        result: dict = {}
         for i in range(0, len(self.symbols)):
             symbol = self.symbols[i]
             result[symbol] = {
@@ -690,7 +690,7 @@ class currencycom(Exchange, ImplicitAPI):
         #         ]
         #     }
         #
-        result = {'info': response}
+        result: dict = {'info': response}
         balances = self.safe_value(response, 'balances', [])
         for i in range(0, len(balances)):
             balance = balances[i]
@@ -755,7 +755,7 @@ class currencycom(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'symbol': market['id'],
         }
         if limit is not None:
@@ -868,7 +868,7 @@ class currencycom(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'symbol': market['id'],
         }
         response = await self.publicGetV2Ticker24hr(self.extend(request, params))
@@ -957,7 +957,7 @@ class currencycom(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'symbol': market['id'],
             'interval': self.safe_string(self.timeframes, timeframe, timeframe),
         }
@@ -975,7 +975,7 @@ class currencycom(Exchange, ImplicitAPI):
         #
         return self.parse_ohlcvs(response, market, timeframe, since, limit)
 
-    def parse_trade(self, trade, market: Market = None) -> Trade:
+    def parse_trade(self, trade: dict, market: Market = None) -> Trade:
         #
         # fetchTrades(public aggregate trades)
         #
@@ -1062,7 +1062,7 @@ class currencycom(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'symbol': market['id'],
             # 'limit': 500,  # default 500, max 1000
         }
@@ -1084,7 +1084,7 @@ class currencycom(Exchange, ImplicitAPI):
         #
         return self.parse_trades(response, market, since, limit)
 
-    def parse_order(self, order, market: Market = None) -> Order:
+    def parse_order(self, order: dict, market: Market = None) -> Order:
         #
         # createOrder
         #
@@ -1188,8 +1188,8 @@ class currencycom(Exchange, ImplicitAPI):
             'trades': fills,
         }, market)
 
-    def parse_order_status(self, status):
-        statuses = {
+    def parse_order_status(self, status: Str):
+        statuses: dict = {
             'NEW': 'open',
             'CREATED': 'open',
             'MODIFIED': 'open',
@@ -1203,7 +1203,7 @@ class currencycom(Exchange, ImplicitAPI):
         return self.safe_string(statuses, status, status)
 
     def parse_order_type(self, status):
-        statuses = {
+        statuses: dict = {
             'MARKET': 'market',
             'LIMIT': 'limit',
             'STOP': 'stop',
@@ -1217,7 +1217,7 @@ class currencycom(Exchange, ImplicitAPI):
         return self.safe_string(statuses, status, status)
 
     def parse_order_time_in_force(self, status):
-        statuses = {
+        statuses: dict = {
             'GTC': 'GTC',
             'FOK': 'FOK',
             'IOC': 'IOC',
@@ -1225,7 +1225,7 @@ class currencycom(Exchange, ImplicitAPI):
         return self.safe_string(statuses, status, status)
 
     def parse_order_side(self, status):
-        statuses = {
+        statuses: dict = {
             'BUY': 'buy',
             'SELL': 'sell',
         }
@@ -1252,7 +1252,7 @@ class currencycom(Exchange, ImplicitAPI):
             if accountId is None:
                 raise ArgumentsRequired(self.id + " createOrder() requires an accountId parameter or an exchange.options['accountId'] option for " + market['type'] + ' markets')
         newOrderRespType = self.safe_value(self.options['newOrderRespType'], type, 'RESULT')
-        request = {
+        request: dict = {
             'symbol': market['id'],
             'quantity': self.amount_to_precision(symbol, amount),
             'type': type.upper(),
@@ -1331,7 +1331,7 @@ class currencycom(Exchange, ImplicitAPI):
             raise ArgumentsRequired(self.id + ' fetchOrder() requires a symbol argument')
         await self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'orderId': id,
             'symbol': market['id'],
         }
@@ -1372,7 +1372,7 @@ class currencycom(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         market = None
-        request = {}
+        request: dict = {}
         if symbol is not None:
             market = self.market(symbol)
             request['symbol'] = market['id']
@@ -1417,7 +1417,7 @@ class currencycom(Exchange, ImplicitAPI):
         await self.load_markets()
         market = self.market(symbol)
         origClientOrderId = self.safe_value(params, 'origClientOrderId')
-        request = {
+        request: dict = {
             'symbol': market['id'],
             # 'orderId': int(id),
             # 'origClientOrderId': id,
@@ -1456,7 +1456,7 @@ class currencycom(Exchange, ImplicitAPI):
             raise ArgumentsRequired(self.id + ' fetchMyTrades() requires a symbol argument')
         await self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'symbol': market['id'],
         }
         if limit is not None:
@@ -1520,7 +1520,7 @@ class currencycom(Exchange, ImplicitAPI):
 
     async def fetch_transactions_by_method(self, method, code: Str = None, since: Int = None, limit: Int = None, params={}):
         await self.load_markets()
-        request = {}
+        request: dict = {}
         currency = None
         if code is not None:
             currency = self.currency(code)
@@ -1555,7 +1555,7 @@ class currencycom(Exchange, ImplicitAPI):
         #
         return self.parse_transactions(response, currency, since, limit, params)
 
-    def parse_transaction(self, transaction, currency: Currency = None) -> Transaction:
+    def parse_transaction(self, transaction: dict, currency: Currency = None) -> Transaction:
         #
         #    {
         #        "id": "616769213",
@@ -1605,15 +1605,15 @@ class currencycom(Exchange, ImplicitAPI):
             'fee': fee,
         }
 
-    def parse_transaction_status(self, status):
-        statuses = {
+    def parse_transaction_status(self, status: Str):
+        statuses: dict = {
             'APPROVAL': 'pending',
             'PROCESSED': 'ok',
         }
         return self.safe_string(statuses, status, status)
 
     def parse_transaction_type(self, type):
-        types = {
+        types: dict = {
             'deposit': 'deposit',
             'withdrawal': 'withdrawal',
         }
@@ -1630,7 +1630,7 @@ class currencycom(Exchange, ImplicitAPI):
         :returns dict: a `ledger structure <https://docs.ccxt.com/#/?id=ledger-structure>`
         """
         await self.load_markets()
-        request = {}
+        request: dict = {}
         currency = None
         if code is not None:
             currency = self.currency(code)
@@ -1668,7 +1668,7 @@ class currencycom(Exchange, ImplicitAPI):
         #
         return self.parse_ledger(response, currency, since, limit)
 
-    def parse_ledger_entry(self, item, currency: Currency = None):
+    def parse_ledger_entry(self, item: dict, currency: Currency = None):
         id = self.safe_string(item, 'id')
         amountString = self.safe_string(item, 'amount')
         amount = Precise.string_abs(amountString)
@@ -1680,7 +1680,7 @@ class currencycom(Exchange, ImplicitAPI):
         if feeCost is not None:
             fee = {'currency': code, 'cost': feeCost}
         direction = 'out' if Precise.string_lt(amountString, '0') else 'in'
-        result = {
+        result: dict = {
             'id': id,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
@@ -1700,7 +1700,7 @@ class currencycom(Exchange, ImplicitAPI):
         return result
 
     def parse_ledger_entry_status(self, status):
-        statuses = {
+        statuses: dict = {
             'APPROVAL': 'pending',
             'PROCESSED': 'ok',
             'CANCELLED': 'canceled',
@@ -1708,7 +1708,7 @@ class currencycom(Exchange, ImplicitAPI):
         return self.safe_string(statuses, status, status)
 
     def parse_ledger_entry_type(self, type):
-        types = {
+        types: dict = {
             'deposit': 'transaction',
             'withdrawal': 'transaction',
             'exchange_commission': 'fee',
@@ -1725,7 +1725,7 @@ class currencycom(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'symbol': market['id'],
         }
         response = await self.privateGetV2LeverageSettings(self.extend(request, params))
@@ -1757,7 +1757,7 @@ class currencycom(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         currency = self.currency(code)
-        request = {
+        request: dict = {
             'coin': currency['id'],
         }
         response = await self.privateGetV2DepositAddress(self.extend(request, params))
@@ -1851,7 +1851,7 @@ class currencycom(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'positions', [])
         return self.parse_positions(data, symbols)
 
-    def parse_position(self, position, market: Market = None):
+    def parse_position(self, position: dict, market: Market = None):
         #
         #    {
         #        "accountId": "109698017416453793",
@@ -1922,7 +1922,7 @@ class currencycom(Exchange, ImplicitAPI):
             'takeProfitPrice': None,
         })
 
-    def handle_errors(self, httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody):
+    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response, requestHeaders, requestBody):
         if (httpCode == 418) or (httpCode == 429):
             raise DDoSProtection(self.id + ' ' + str(httpCode) + ' ' + reason + ' ' + body)
         # error response in a form: {"code": -1013, "msg": "Invalid quantity."}

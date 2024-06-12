@@ -146,7 +146,7 @@ public partial class woo
         return ((Dictionary<string, object>)res);
     }
     /// <summary>
-    /// watches information on multiple trades made by the user
+    /// watches information on multiple orders made by the user
     /// </summary>
     /// <remarks>
     /// See <see href="https://docs.woo.org/#executionreport"/>  <br/>
@@ -186,6 +186,40 @@ public partial class woo
         var res = await this.watchOrders(symbol, since, limit, parameters);
         return ((IList<object>)res).Select(item => new Order(item)).ToList<Order>();
     }
+    /// <summary>
+    /// watches information on multiple trades made by the user
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://docs.woo.org/#executionreport"/>  <br/>
+    /// See <see href="https://docs.woo.org/#algoexecutionreportv2"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>since</term>
+    /// <description>
+    /// int : the earliest time in ms to fetch orders for
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>limit</term>
+    /// <description>
+    /// int : the maximum number of order structures to retrieve
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.trigger</term>
+    /// <description>
+    /// bool : true if trigger order
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object[]</term> a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}.</returns>
     public async Task<List<Trade>> WatchMyTrades(string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;

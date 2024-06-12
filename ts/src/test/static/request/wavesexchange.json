@@ -2,15 +2,20 @@
     "exchange": "wavesexchange",
     "apiKey": "7vhqbdwotF593MRLMUtQvRkiR7aDdDf4Zp3yBrvzMYqr",
     "secret": "ASar3DL4CNiHhkDzq7qj4KEVaMfqwphaPDbvTegYFwvd",
+<<<<<<< HEAD
     "options": {
       "matcherPublicKey": "9cpfKN9suPNvfeUNphzxXMjcnn974eme8ZhWUjaktzU5"
     },
     "skipKeys": [],
+=======
+    "skipKeys": ["senderPublicKey", "proofs", "timestamp", "matcherPublicKey", "signature"],
+>>>>>>> 422060a059d288176bf1e835a1357982207190d3
     "outputType": "json",
     "methods": {
         "createOrder": [
             {
                 "description": "limit buy",
+                "disabled": true,
                 "method": "createOrder",
                 "url": "https://matcher.wx.network/matcher/orderbook/WAVES/G5WWWzzVsWRyzGf32xojbnfp7gXbWrgqJT8RcVWEfLmC/calculateFee",
                 "input": [
@@ -24,6 +29,7 @@
             },
             {
                 "description": "limit buy with exteme amounts",
+                "disabled": true,
                 "method": "createOrder",
                 "url": "https://matcher.wx.network/matcher/orderbook/WAVES/G5WWWzzVsWRyzGf32xojbnfp7gXbWrgqJT8RcVWEfLmC/calculateFee",
                 "input": [
@@ -37,6 +43,7 @@
             },
             {
                 "description": "sell limit",
+                "disabled": true,
                 "method": "createOrder",
                 "url": "https://matcher.wx.network/matcher/orderbook/WAVES/G5WWWzzVsWRyzGf32xojbnfp7gXbWrgqJT8RcVWEfLmC/calculateFee",
                 "input": [
@@ -51,7 +58,12 @@
             {
                 "description": "sell limit with extreme amount",
                 "method": "createOrder",
+<<<<<<< HEAD
                 "url": "https://matcher.wx.network/matcher/orderbook/WAVES/G5WWWzzVsWRyzGf32xojbnfp7gXbWrgqJT8RcVWEfLmC/calculateFee",
+=======
+                "disabled": true,
+                "url": "https://matcher.wx.network/matcher/orderbook",
+>>>>>>> 422060a059d288176bf1e835a1357982207190d3
                 "input": [
                   "WAVES/USDT",
                   "limit",
@@ -66,6 +78,7 @@
             {
                 "disabled":true,
                 "description": "simple amount",
+                "disabled": true,
                 "method": "withdraw",
                 "url": "https://nodes.wx.network/transactions/broadcast",
                 "input": [
@@ -78,6 +91,7 @@
             {
                "disabled":true,
                 "description": "extreme amount",
+                "disabled": true,
                 "method": "withdraw",
                 "url": "https://nodes.wx.network/transactions/broadcast",
                 "input": [

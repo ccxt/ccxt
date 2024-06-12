@@ -340,7 +340,7 @@ class bitteam extends Exchange {
         return $this->parse_markets($markets);
     }
 
-    public function parse_market($market): array {
+    public function parse_market(array $market): array {
         $id = $this->safe_string($market, 'name');
         $numericId = $this->safe_integer($market, 'id');
         $parts = explode('_', $id);
@@ -1076,7 +1076,7 @@ class bitteam extends Exchange {
         return $this->parse_orders($orders, $market);
     }
 
-    public function parse_order($order, ?array $market = null): array {
+    public function parse_order(array $order, ?array $market = null): array {
         //
         // fetchOrders
         //     array(
@@ -1220,7 +1220,7 @@ class bitteam extends Exchange {
         ), $market);
     }
 
-    public function parse_order_status($status) {
+    public function parse_order_status(?string $status) {
         $statuses = array(
             'accepted' => 'open',
             'executed' => 'closed',
@@ -1834,7 +1834,7 @@ class bitteam extends Exchange {
         return $this->parse_trades($trades, $market, $since, $limit);
     }
 
-    public function parse_trade($trade, ?array $market = null): array {
+    public function parse_trade(array $trade, ?array $market = null): array {
         //
         // fetchTrades
         //     array(
@@ -2135,7 +2135,7 @@ class bitteam extends Exchange {
         return $this->parse_transactions($transactions, $currency, $since, $limit);
     }
 
-    public function parse_transaction($transaction, ?array $currency = null): array {
+    public function parse_transaction(array $transaction, ?array $currency = null): array {
         //
         //     {
         //         "id" => 1329229,
@@ -2234,7 +2234,7 @@ class bitteam extends Exchange {
         return $this->safe_string($types, $type, $type);
     }
 
-    public function parse_transaction_status($status) {
+    public function parse_transaction_status(?string $status) {
         $statuses = array(
             'approving' => 'pending',
             'success' => 'ok',
@@ -2267,7 +2267,7 @@ class bitteam extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
         if ($response === null) {
             return null;
         }

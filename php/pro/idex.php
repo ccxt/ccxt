@@ -502,7 +502,7 @@ class idex extends \ccxt\async\idex {
         $price = $this->safe_float($delta, 0);
         $amount = $this->safe_float($delta, 1);
         $count = $this->safe_integer($delta, 2);
-        $bookside->store ($price, $amount, $count);
+        $bookside->storeArray (array( $price, $amount, $count ));
     }
 
     public function handle_deltas($bookside, $deltas) {

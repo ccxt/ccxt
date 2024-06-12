@@ -288,20 +288,20 @@ indexedOrderBook.limit ();
 assert (equals (indexedOrderBook, indexedOrderBookTarget));
 
 const indexedBids = indexedOrderBook['bids'];
-indexedBids.store (1000, 0, '12345');
+indexedBids.storeArray ([ 1000, 0, '12345' ]);
 assert (equals (indexedOrderBook, indexedOrderBookTarget));
-indexedBids.store (10, 0, '1234');
-indexedBids.store (10, 2, '1231');
-indexedBids.store (10, 1, '1232');
-indexedBids.store (4, 2, '12399');
-indexedBids.store (9, 2, '1231');
-indexedBids.store (9, 3, '1231');
-indexedBids.store (9, 1, '1232');
+indexedBids.storeArray ([ 10, 0, '1234' ]);
+indexedBids.storeArray ([ 10, 2, '1231' ]);
+indexedBids.storeArray ([ 10, 1, '1232' ]);
+indexedBids.storeArray ([ 4, 2, '12399' ]);
+indexedBids.storeArray ([ 9, 2, '1231' ]);
+indexedBids.storeArray ([ 9, 3, '1231' ]);
+indexedBids.storeArray ([ 9, 1, '1232' ]);
 indexedOrderBook.limit ();
 assert (equals (indexedOrderBook, overwrite1234));
 indexedOrderBook = new IndexedOrderBook (indexedOrderBookInput);
 const indexedAsks = indexedOrderBook['asks'];
-indexedAsks.store (13.5, 13, '1244');
+indexedAsks.storeArray ([ 13.5, 13, '1244' ]);
 indexedOrderBook.limit ();
 assert (equals (indexedOrderBook, overwrite1244));
 
@@ -318,10 +318,10 @@ countedOrderBook.limit ();
 assert (equals (countedOrderBook, countedOrderBookTarget));
 
 const countedBids = countedOrderBook['bids'];
-countedBids.store (5, 0, 6);
+countedBids.storeArray ([ 5, 0, 6 ]);
 countedOrderBook.limit ();
 assert (equals (countedOrderBook, countedOrderBookTarget));
-countedBids.store (1, 1, 6);
+countedBids.storeArray ([ 1, 1, 6 ]);
 countedOrderBook.limit ();
 assert (equals (countedOrderBook, storedCountedOrderbookTarget));
 

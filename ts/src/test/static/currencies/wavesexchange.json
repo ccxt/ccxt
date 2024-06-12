@@ -43,6 +43,7 @@
             "withdraw": {}
         }
     },
+<<<<<<< HEAD
     "SWAVES": {
         "id": "YiNbofFzC17jEHHCMwrRcpy9MrrjabMMLZxg8g5xmf7",
         "code": "SWAVES",
@@ -87,6 +88,8 @@
             "withdraw": {}
         }
     },
+=======
+>>>>>>> 422060a059d288176bf1e835a1357982207190d3
     "WAVES": {
         "id": "WAVES",
         "code": "WAVES",
@@ -97,6 +100,7 @@
             "deposit": {},
             "withdraw": {}
         }
+<<<<<<< HEAD
     },
     "WBTC": {
         "id": "2Fge5HEBRD3XTeg7Xg3FW5yiB9HVJFQtMXiWMQo72Up6",
@@ -108,5 +112,7 @@
             "deposit": {},
             "withdraw": {}
         }
+=======
+>>>>>>> 422060a059d288176bf1e835a1357982207190d3
     }
 }
