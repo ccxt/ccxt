@@ -93,5 +93,6 @@ export default class testMainClass extends baseMainTestClass {
     testCoinbaseinternational(): Promise<boolean>;
     testCoinbaseAdvanced(): Promise<boolean>;
     testWoofiPro(): Promise<boolean>;
+    testXT(): Promise<boolean>;
 }
 export {};
