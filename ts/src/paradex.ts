@@ -4,6 +4,7 @@
 import Exchange from './abstract/paradex.js';
 import { ExchangeError, RateLimitExceeded, PermissionDenied, InsufficientFunds, AuthenticationError, InvalidOrder, BadRequest } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
+import type { Dict, Market } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -124,7 +125,7 @@ export default class paradex extends Exchange {
             },
             'hostname': 'paradex.trade',
             'urls': {
-                'logo': 'https://github.com/ccxt/ccxt/assets/43336371/bd04a0fa-3b48-47b6-9d8b-124954d520a8',
+                'logo': 'https://x.com/tradeparadex/photo',
                 'api': {
                     'v1': 'https://api.prod.{hostname}/v1',
                 },
@@ -309,8 +310,147 @@ export default class paradex extends Exchange {
         });
     }
 
+    async fetchMarkets (params = {}): Promise<Market[]> {
+        /**
+         * @method
+         * @name paradex#fetchMarkets
+         * @description retrieves data on all markets for bitget
+         * @see https://docs.api.testnet.paradex.trade/#list-available-markets
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object[]} an array of objects representing market data
+         */
+        const response = await this.publicGetMarkets (params);
+        //
+        //     {
+        //         "results": [
+        //             {
+        //                 "symbol": "BODEN-USD-PERP",
+        //                 "base_currency": "BODEN",
+        //                 "quote_currency": "USD",
+        //                 "settlement_currency": "USDC",
+        //                 "order_size_increment": "1",
+        //                 "price_tick_size": "0.00001",
+        //                 "min_notional": "200",
+        //                 "open_at": 1717065600000,
+        //                 "expiry_at": 0,
+        //                 "asset_kind": "PERP",
+        //                 "position_limit": "2000000",
+        //                 "price_bands_width": "0.2",
+        //                 "max_open_orders": 50,
+        //                 "max_funding_rate": "0.05",
+        //                 "delta1_cross_margin_params": {
+        //                     "imf_base": "0.2",
+        //                     "imf_shift": "180000",
+        //                     "imf_factor": "0.00071",
+        //                     "mmf_factor": "0.5"
+        //                 },
+        //                 "price_feed_id": "9LScEHse1ioZt2rUuhwiN6bmYnqpMqvZkQJDNUpxVHN5",
+        //                 "oracle_ewma_factor": "0.14999987905913592",
+        //                 "max_order_size": "520000",
+        //                 "max_funding_rate_change": "0.0005",
+        //                 "max_tob_spread": "0.2"
+        //             }
+        //         ]
+        //     }
+        //
+        const data = this.safeList (response, 'results');
+        return this.parseMarkets (data);
+    }
+
+    parseMarket (market: Dict): Market {
+        //
+        //     {
+        //         "symbol": "BODEN-USD-PERP",
+        //         "base_currency": "BODEN",
+        //         "quote_currency": "USD",
+        //         "settlement_currency": "USDC",
+        //         "order_size_increment": "1",
+        //         "price_tick_size": "0.00001",
+        //         "min_notional": "200",
+        //         "open_at": 1717065600000,
+        //         "expiry_at": 0,
+        //         "asset_kind": "PERP",
+        //         "position_limit": "2000000",
+        //         "price_bands_width": "0.2",
+        //         "max_open_orders": 50,
+        //         "max_funding_rate": "0.05",
+        //         "delta1_cross_margin_params": {
+        //             "imf_base": "0.2",
+        //             "imf_shift": "180000",
+        //             "imf_factor": "0.00071",
+        //             "mmf_factor": "0.5"
+        //         },
+        //         "price_feed_id": "9LScEHse1ioZt2rUuhwiN6bmYnqpMqvZkQJDNUpxVHN5",
+        //         "oracle_ewma_factor": "0.14999987905913592",
+        //         "max_order_size": "520000",
+        //         "max_funding_rate_change": "0.0005",
+        //         "max_tob_spread": "0.2"
+        //     }
+        //
+        const marketId = this.safeString (market, 'symbol');
+        const quoteId = this.safeString (market, 'quote_currency');
+        const baseId = this.safeString (market, 'base_currency');
+        const quote = this.safeCurrencyCode (quoteId);
+        const base = this.safeCurrencyCode (baseId);
+        const settleId = this.safeString (market, 'settlement_currency');
+        const settle = this.safeCurrencyCode (settleId);
+        const symbol = base + '/' + quote + ':' + settle;
+        const expiry = this.safeInteger (market, 'expiry_at');
+        return {
+            'id': marketId,
+            'symbol': symbol,
+            'base': base,
+            'quote': quote,
+            'settle': settle,
+            'baseId': baseId,
+            'quoteId': quoteId,
+            'settleId': settleId,
+            'type': 'swap',
+            'spot': false,
+            'margin': true,
+            'swap': true,
+            'future': false,
+            'option': false,
+            'active': this.safeBool (market, 'enableTrading'),
+            'contract': true,
+            'linear': undefined,
+            'inverse': undefined,
+            'taker': undefined,
+            'maker': undefined,
+            'contractSize': undefined,
+            'expiry': (expiry === 0) ? undefined : expiry,
+            'expiryDatetime': (expiry === 0) ? undefined : this.iso8601 (expiry),
+            'strike': undefined,
+            'optionType': undefined,
+            'precision': {
+                'amount': undefined,
+                'price': undefined,
+            },
+            'limits': {
+                'leverage': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'amount': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'price': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'cost': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+            },
+            'created': undefined,
+            'info': market,
+        };
+    }
+
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let url = this.urls['api'][this.version] + '/' + this.implodeParams (path, params);
+        let url = this.implodeHostname (this.urls['api'][this.version]) + '/' + this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
         if (api === 'public') {
             if (Object.keys (query).length) {
