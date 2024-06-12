@@ -60,7 +60,7 @@ class woo(ccxt.async_support.woo):
             },
             'streaming': {
                 'ping': self.ping,
-                'keepAlive': 10000,
+                'keepAlive': 9000,
             },
             'exceptions': {
                 'ws': {
