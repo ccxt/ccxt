@@ -1526,7 +1526,7 @@ class wavesexchange extends Exchange {
             $firstMessage = $this->safe_value($message, 0);
             $firstOrder = $this->safe_value($firstMessage, 0);
             $returnedId = $this->safe_string($firstOrder, 'orderId');
-            return array(
+            return $this->safe_order(array(
                 'info' => $response,
                 'id' => $returnedId,
                 'clientOrderId' => null,
@@ -1545,7 +1545,7 @@ class wavesexchange extends Exchange {
                 'status' => null,
                 'fee' => null,
                 'trades' => null,
-            );
+            ));
         }) ();
     }
 
@@ -1708,7 +1708,7 @@ class wavesexchange extends Exchange {
         }) ();
     }
 
-    public function parse_order_status($status) {
+    public function parse_order_status(?string $status) {
         $statuses = array(
             'Cancelled' => 'canceled',
             'Accepted' => 'open',
@@ -1725,7 +1725,7 @@ class wavesexchange extends Exchange {
         return $this->safe_currency_code($baseId) . '/' . $this->safe_currency_code($quoteId);
     }
 
-    public function parse_order($order, ?array $market = null): array {
+    public function parse_order(array $order, ?array $market = null): array {
         //
         // createOrder
         //
@@ -2210,7 +2210,7 @@ class wavesexchange extends Exchange {
         }) ();
     }
 
-    public function parse_trade($trade, ?array $market = null): array {
+    public function parse_trade(array $trade, ?array $market = null): array {
         //
         // { __type => "transaction",
         //   "data":
@@ -2453,7 +2453,7 @@ class wavesexchange extends Exchange {
         }) ();
     }
 
-    public function handle_errors($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
         $errorCode = $this->safe_string($response, 'error');
         $success = $this->safe_bool($response, 'success', true);
         $Exception = $this->safe_value($this->exceptions, $errorCode);
@@ -2609,7 +2609,7 @@ class wavesexchange extends Exchange {
         }) ();
     }
 
-    public function parse_transaction($transaction, ?array $currency = null): array {
+    public function parse_transaction(array $transaction, ?array $currency = null): array {
         //
         // withdraw
         //

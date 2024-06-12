@@ -262,6 +262,33 @@ abstract class whitebit extends \ccxt\Exchange {
     public function v4_private_post_convert_history($params = array()) {
         return $this->request('convert/history', array('v4', 'private'), 'POST', $params, null, null, array());
     }
+    public function v4_private_post_sub_account_create($params = array()) {
+        return $this->request('sub-account/create', array('v4', 'private'), 'POST', $params, null, null, array());
+    }
+    public function v4_private_post_sub_account_delete($params = array()) {
+        return $this->request('sub-account/delete', array('v4', 'private'), 'POST', $params, null, null, array());
+    }
+    public function v4_private_post_sub_account_edit($params = array()) {
+        return $this->request('sub-account/edit', array('v4', 'private'), 'POST', $params, null, null, array());
+    }
+    public function v4_private_post_sub_account_list($params = array()) {
+        return $this->request('sub-account/list', array('v4', 'private'), 'POST', $params, null, null, array());
+    }
+    public function v4_private_post_sub_account_transfer($params = array()) {
+        return $this->request('sub-account/transfer', array('v4', 'private'), 'POST', $params, null, null, array());
+    }
+    public function v4_private_post_sub_account_block($params = array()) {
+        return $this->request('sub-account/block', array('v4', 'private'), 'POST', $params, null, null, array());
+    }
+    public function v4_private_post_sub_account_unblock($params = array()) {
+        return $this->request('sub-account/unblock', array('v4', 'private'), 'POST', $params, null, null, array());
+    }
+    public function v4_private_post_sub_account_balances($params = array()) {
+        return $this->request('sub-account/balances', array('v4', 'private'), 'POST', $params, null, null, array());
+    }
+    public function v4_private_post_sub_account_transfer_history($params = array()) {
+        return $this->request('sub-account/transfer/history', array('v4', 'private'), 'POST', $params, null, null, array());
+    }
     public function webGetV1Healthcheck($params = array()) {
         return $this->request('v1/healthcheck', 'web', 'GET', $params, null, null, array());
     }
@@ -516,5 +543,32 @@ abstract class whitebit extends \ccxt\Exchange {
     }
     public function v4PrivatePostConvertHistory($params = array()) {
         return $this->request('convert/history', array('v4', 'private'), 'POST', $params, null, null, array());
+    }
+    public function v4PrivatePostSubAccountCreate($params = array()) {
+        return $this->request('sub-account/create', array('v4', 'private'), 'POST', $params, null, null, array());
+    }
+    public function v4PrivatePostSubAccountDelete($params = array()) {
+        return $this->request('sub-account/delete', array('v4', 'private'), 'POST', $params, null, null, array());
+    }
+    public function v4PrivatePostSubAccountEdit($params = array()) {
+        return $this->request('sub-account/edit', array('v4', 'private'), 'POST', $params, null, null, array());
+    }
+    public function v4PrivatePostSubAccountList($params = array()) {
+        return $this->request('sub-account/list', array('v4', 'private'), 'POST', $params, null, null, array());
+    }
+    public function v4PrivatePostSubAccountTransfer($params = array()) {
+        return $this->request('sub-account/transfer', array('v4', 'private'), 'POST', $params, null, null, array());
+    }
+    public function v4PrivatePostSubAccountBlock($params = array()) {
+        return $this->request('sub-account/block', array('v4', 'private'), 'POST', $params, null, null, array());
+    }
+    public function v4PrivatePostSubAccountUnblock($params = array()) {
+        return $this->request('sub-account/unblock', array('v4', 'private'), 'POST', $params, null, null, array());
+    }
+    public function v4PrivatePostSubAccountBalances($params = array()) {
+        return $this->request('sub-account/balances', array('v4', 'private'), 'POST', $params, null, null, array());
+    }
+    public function v4PrivatePostSubAccountTransferHistory($params = array()) {
+        return $this->request('sub-account/transfer/history', array('v4', 'private'), 'POST', $params, null, null, array());
     }
 }

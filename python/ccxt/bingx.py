@@ -32,8 +32,7 @@ class bingx(Exchange, ImplicitAPI):
             'id': 'bingx',
             'name': 'BingX',
             'countries': ['US'],  # North America, Canada, the EU, Hong Kong and Taiwan
-            # cheapest is 60 requests a minute = 1 requests per second on average =>( 1000ms / 1) = 1000 ms between requests on average
-            'rateLimit': 1000,
+            'rateLimit': 100,
             'version': 'v1',
             'certified': True,
             'pro': True,
@@ -146,44 +145,54 @@ class bingx(Exchange, ImplicitAPI):
                     'v1': {
                         'public': {
                             'get': {
-                                'server/time': 3,
-                                'common/symbols': 3,
-                                'market/trades': 3,
-                                'market/depth': 3,
-                                'market/kline': 3,
+                                'server/time': 1,
+                                'common/symbols': 1,
+                                'market/trades': 1,
+                                'market/depth': 1,
+                                'market/kline': 1,
                                 'ticker/24hr': 1,
+                                'ticker/price': 1,
+                                'ticker/bookTicker': 1,
                             },
                         },
                         'private': {
                             'get': {
-                                'trade/query': 3,
-                                'trade/openOrders': 3,
-                                'trade/historyOrders': 3,
-                                'trade/myTrades': 3,
-                                'user/commissionRate': 3,
-                                'account/balance': 3,
+                                'trade/query': 1,
+                                'trade/openOrders': 1,
+                                'trade/historyOrders': 1,
+                                'trade/myTrades': 2,
+                                'user/commissionRate': 5,
+                                'account/balance': 2,
                             },
                             'post': {
-                                'trade/order': 3,
-                                'trade/cancel': 3,
-                                'trade/batchOrders': 3,
-                                'trade/order/cancelReplace': 3,
-                                'trade/cancelOrders': 3,
-                                'trade/cancelOpenOrders': 3,
-                                'trade/cancelAllAfter': 1,
+                                'trade/order': 2,
+                                'trade/cancel': 2,
+                                'trade/batchOrders': 5,
+                                'trade/order/cancelReplace': 5,
+                                'trade/cancelOrders': 5,
+                                'trade/cancelOpenOrders': 5,
+                                'trade/cancelAllAfter': 5,
+                            },
+                        },
+                    },
+                    'v2': {
+                        'public': {
+                            'get': {
+                                'market/depth': 1,
+                                'market/kline': 1,
                             },
                         },
                     },
                     'v3': {
                         'private': {
                             'get': {
-                                'get/asset/transfer': 3,
-                                'asset/transfer': 3,
-                                'capital/deposit/hisrec': 3,
-                                'capital/withdraw/history': 3,
+                                'get/asset/transfer': 1,
+                                'asset/transfer': 1,
+                                'capital/deposit/hisrec': 1,
+                                'capital/withdraw/history': 1,
                             },
                             'post': {
-                                'post/asset/transfer': 3,
+                                'post/asset/transfer': 5,
                             },
                         },
                     },
@@ -193,26 +202,27 @@ class bingx(Exchange, ImplicitAPI):
                         'public': {
                             'get': {
                                 'ticker/price': 1,
+                                'market/historicalTrades': 1,
                             },
                         },
                         'private': {
                             'get': {
-                                'positionSide/dual': 1,
+                                'positionSide/dual': 5,
                                 'market/markPriceKlines': 1,
-                                'trade/batchCancelReplace': 1,
-                                'trade/fullOrder': 1,
+                                'trade/batchCancelReplace': 5,
+                                'trade/fullOrder': 2,
                             },
                             'post': {
-                                'trade/cancelReplace': 1,
-                                'positionSide/dual': 1,
-                                'trade/closePosition': 1,
+                                'trade/cancelReplace': 2,
+                                'positionSide/dual': 5,
+                                'trade/closePosition': 2,
                             },
                         },
                     },
                     'v2': {
                         'public': {
                             'get': {
-                                'server/time': 3,
+                                'server/time': 1,
                                 'quote/contracts': 1,
                                 'quote/price': 1,
                                 'quote/depth': 1,
@@ -227,35 +237,35 @@ class bingx(Exchange, ImplicitAPI):
                         },
                         'private': {
                             'get': {
-                                'user/balance': 3,
-                                'user/positions': 3,
-                                'user/income': 3,
-                                'trade/openOrders': 3,
-                                'trade/openOrder': 3,
-                                'trade/order': 3,
-                                'trade/marginType': 3,
-                                'trade/leverage': 3,
-                                'trade/forceOrders': 3,
-                                'trade/allOrders': 3,
-                                'trade/allFillOrders': 3,
-                                'user/income/export': 3,
-                                'user/commissionRate': 3,
-                                'quote/bookTicker': 3,
+                                'user/balance': 2,
+                                'user/positions': 2,
+                                'user/income': 2,
+                                'trade/openOrders': 2,
+                                'trade/openOrder': 2,
+                                'trade/order': 2,
+                                'trade/marginType': 5,
+                                'trade/leverage': 2,
+                                'trade/forceOrders': 1,
+                                'trade/allOrders': 2,
+                                'trade/allFillOrders': 2,
+                                'user/income/export': 2,
+                                'user/commissionRate': 2,
+                                'quote/bookTicker': 1,
                             },
                             'post': {
-                                'trade/order': 3,
-                                'trade/batchOrders': 3,
-                                'trade/closeAllPositions': 3,
-                                'trade/cancelAllAfter': 3,
-                                'trade/marginType': 3,
-                                'trade/leverage': 3,
-                                'trade/positionMargin': 3,
-                                'trade/order/test': 3,
+                                'trade/order': 2,
+                                'trade/batchOrders': 2,
+                                'trade/closeAllPositions': 2,
+                                'trade/cancelAllAfter': 5,
+                                'trade/marginType': 5,
+                                'trade/leverage': 5,
+                                'trade/positionMargin': 5,
+                                'trade/order/test': 2,
                             },
                             'delete': {
-                                'trade/order': 3,
-                                'trade/batchOrders': 3,
-                                'trade/allOpenOrders': 3,
+                                'trade/order': 2,
+                                'trade/batchOrders': 2,
+                                'trade/allOpenOrders': 2,
                             },
                         },
                     },
@@ -271,9 +281,9 @@ class bingx(Exchange, ImplicitAPI):
                     'v1': {
                         'private': {
                             'get': {
-                                'allPosition': 3,
-                                'allOrders': 3,
-                                'balance': 3,
+                                'allPosition': 2,
+                                'allOrders': 2,
+                                'balance': 2,
                             },
                         },
                     },
@@ -282,18 +292,19 @@ class bingx(Exchange, ImplicitAPI):
                     'v1': {
                         'private': {
                             'get': {
-                                'capital/config/getall': 3,
-                                'capital/deposit/address': 1,
+                                'capital/config/getall': 5,
+                                'capital/deposit/address': 5,
                                 'capital/innerTransfer/records': 1,
-                                'capital/subAccount/deposit/address': 1,
-                                'capital/deposit/subHisrec': 1,
+                                'capital/subAccount/deposit/address': 5,
+                                'capital/deposit/subHisrec': 2,
                                 'capital/subAccount/innerTransfer/records': 1,
+                                'capital/deposit/riskRecords': 5,
                             },
                             'post': {
-                                'capital/withdraw/apply': 3,
-                                'capital/innerTransfer/apply': 3,
-                                'capital/subAccountInnerTransfer/apply': 3,
-                                'capital/deposit/createSubAddress': 1,
+                                'capital/withdraw/apply': 5,
+                                'capital/innerTransfer/apply': 5,
+                                'capital/subAccountInnerTransfer/apply': 2,
+                                'capital/deposit/createSubAddress': 2,
                             },
                         },
                     },
@@ -302,15 +313,15 @@ class bingx(Exchange, ImplicitAPI):
                     'v1': {
                         'private': {
                             'get': {
-                                'list': 3,
-                                'assets': 3,
+                                'list': 10,
+                                'assets': 2,
                             },
                             'post': {
-                                'create': 3,
-                                'apiKey/create': 3,
-                                'apiKey/edit': 3,
-                                'apiKey/del': 3,
-                                'updateStatus': 3,
+                                'create': 10,
+                                'apiKey/create': 2,
+                                'apiKey/edit': 2,
+                                'apiKey/del': 2,
+                                'updateStatus': 10,
                             },
                         },
                     },
@@ -320,10 +331,10 @@ class bingx(Exchange, ImplicitAPI):
                         'private': {
                             'get': {
                                 'uid': 1,
-                                'apiKey/query': 1,
+                                'apiKey/query': 2,
                             },
                             'post': {
-                                'innerTransfer/authorizeSubAccount': 3,
+                                'innerTransfer/authorizeSubAccount': 1,
                             },
                         },
                     },
@@ -332,10 +343,13 @@ class bingx(Exchange, ImplicitAPI):
                     'auth': {
                         'private': {
                             'post': {
-                                'userDataStream': 1,
+                                'userDataStream': 2,
                             },
                             'put': {
-                                'userDataStream': 1,
+                                'userDataStream': 2,
+                            },
+                            'delete': {
+                                'userDataStream': 2,
                             },
                         },
                     },
@@ -344,12 +358,12 @@ class bingx(Exchange, ImplicitAPI):
                     'v1': {
                         'private': {
                             'get': {
-                                'swap/trace/currentTrack': 1,
+                                'swap/trace/currentTrack': 2,
                             },
                             'post': {
-                                'swap/trace/closeTrackOrder': 1,
-                                'swap/trace/setTPSL': 1,
-                                'spot/trader/sellOrder': 1,
+                                'swap/trace/closeTrackOrder': 2,
+                                'swap/trace/setTPSL': 2,
+                                'spot/trader/sellOrder': 10,
                             },
                         },
                     },
@@ -514,25 +528,25 @@ class bingx(Exchange, ImplicitAPI):
         #    }
         #
         data = self.safe_list(response, 'data', [])
-        result = {}
+        result: dict = {}
         for i in range(0, len(data)):
             entry = data[i]
             currencyId = self.safe_string(entry, 'coin')
             code = self.safe_currency_code(currencyId)
             name = self.safe_string(entry, 'name')
             networkList = self.safe_list(entry, 'networkList')
-            networks = {}
+            networks: dict = {}
             fee = None
             active = None
             withdrawEnabled = None
-            defaultLimits = {}
+            defaultLimits: dict = {}
             for j in range(0, len(networkList)):
                 rawNetwork = networkList[j]
                 network = self.safe_string(rawNetwork, 'network')
                 networkCode = self.network_id_to_code(network)
                 isDefault = self.safe_bool(rawNetwork, 'isDefault')
                 withdrawEnabled = self.safe_bool(rawNetwork, 'withdrawEnable')
-                limits = {
+                limits: dict = {
                     'amounts': {'min': self.safe_number(rawNetwork, 'withdrawMin'), 'max': self.safe_number(rawNetwork, 'withdrawMax')},
                 }
                 if isDefault:
@@ -621,7 +635,7 @@ class bingx(Exchange, ImplicitAPI):
         markets = self.safe_list(response, 'data', [])
         return self.parse_markets(markets)
 
-    def parse_market(self, market) -> Market:
+    def parse_market(self, market: dict) -> Market:
         id = self.safe_string(market, 'symbol')
         symbolParts = id.split('-')
         baseId = symbolParts[0]
@@ -914,7 +928,7 @@ class bingx(Exchange, ImplicitAPI):
         trades = self.safe_list(response, 'data', [])
         return self.parse_trades(trades, market, since, limit)
 
-    def parse_trade(self, trade, market: Market = None) -> Trade:
+    def parse_trade(self, trade: dict, market: Market = None) -> Trade:
         #
         # spot
         # fetchTrades
@@ -1002,7 +1016,7 @@ class bingx(Exchange, ImplicitAPI):
         if time == 0:
             time = None
         cost = self.safe_string(trade, 'quoteQty')
-        type = 'spot' if (cost is None) else 'swap'
+        # type = 'spot' if (cost is None) else 'swap'; self is not reliable
         currencyId = self.safe_string_n(trade, ['currency', 'N', 'commissionAsset'])
         currencyCode = self.safe_currency_code(currencyId)
         m = self.safe_bool(trade, 'm')
@@ -1033,7 +1047,7 @@ class bingx(Exchange, ImplicitAPI):
             'info': trade,
             'timestamp': time,
             'datetime': self.iso8601(time),
-            'symbol': self.safe_symbol(marketId, market, '-', type),
+            'symbol': self.safe_symbol(marketId, market, '-'),
             'order': self.safe_string_2(trade, 'orderId', 'i'),
             'type': self.safe_string_lower(trade, 'o'),
             'side': self.parse_order_side(side),
@@ -1561,7 +1575,7 @@ class bingx(Exchange, ImplicitAPI):
     def parse_balance(self, response) -> Balances:
         data = self.safe_value(response, 'data')
         balances = self.safe_value_2(data, 'balance', 'balances', data)
-        result = {'info': response}
+        result: dict = {'info': response}
         if isinstance(balances, list):
             for i in range(0, len(balances)):
                 balance = balances[i]
@@ -1624,7 +1638,7 @@ class bingx(Exchange, ImplicitAPI):
         positions = self.safe_list(response, 'data', [])
         return self.parse_positions(positions, symbols)
 
-    def parse_position(self, position, market: Market = None):
+    def parse_position(self, position: dict, market: Market = None):
         #
         #    {
         #        "positionId":"1773122376147623936",
@@ -1971,7 +1985,8 @@ class bingx(Exchange, ImplicitAPI):
         #
         if isinstance(response, str):
             # broken api engine : order-ids are too long numbers(i.e. 1742930526912864656)
-            # and json.loadscan not handle them in JS, so we have to use .parse_json            # however, when order has an attached SL/TP, their value types need extra parsing
+            # and json.loadscan not handle them in JS, so we have to use .parseJson
+            # however, when order has an attached SL/TP, their value types need extra parsing
             response = self.fix_stringified_json_members(response)
             response = self.parse_json(response)
         data = self.safe_value(response, 'data', {})
@@ -2064,7 +2079,7 @@ class bingx(Exchange, ImplicitAPI):
         return self.parse_orders(result, market)
 
     def parse_order_side(self, side):
-        sides = {
+        sides: dict = {
             'BUY': 'buy',
             'SELL': 'sell',
             'SHORT': 'sell',
@@ -2074,14 +2089,18 @@ class bingx(Exchange, ImplicitAPI):
         }
         return self.safe_string(sides, side, side)
 
-    def parse_order_type(self, type):
-        types = {
+    def parse_order_type(self, type: Str):
+        types: dict = {
             'trigger_market': 'market',
             'trigger_limit': 'limit',
+            'stop_limit': 'limit',
+            'stop_market': 'market',
+            'take_profit_market': 'market',
+            'stop': 'limit',
         }
         return self.safe_string(types, type, type)
 
-    def parse_order(self, order, market: Market = None) -> Order:
+    def parse_order(self, order: dict, market: Market = None) -> Order:
         #
         # spot
         # createOrder, createOrders, cancelOrder
@@ -2281,6 +2300,25 @@ class bingx(Exchange, ImplicitAPI):
         #            side: 'SELL'
         #        }
         #    }
+        # stop loss order
+        #    {
+        #        "symbol": "ETH-USDT",
+        #        "orderId": "1792461744476422144",
+        #        "price": "2775.65",
+        #        "StopPrice": "2778.42",
+        #        "origQty": "0.032359",
+        #        "executedQty": "0",
+        #        "cummulativeQuoteQty": "0",
+        #        "status": "NEW",
+        #        "type": "TAKE_STOP_LIMIT",
+        #        "side": "SELL",
+        #        "time": "1716191156868",
+        #        "updateTime": "1716191156868",
+        #        "origQuoteOrderQty": "0",
+        #        "fee": "0",
+        #        "feeAsset": "USDT",
+        #        "clientOrderID": ""
+        #    }
         #
         info = order
         newOrder = self.safe_dict_2(order, 'newOrderResponse', 'orderOpenResponse')
@@ -2308,21 +2346,31 @@ class bingx(Exchange, ImplicitAPI):
         stopLoss = self.safe_value(order, 'stopLoss')
         stopLossPrice = None
         if (stopLoss is not None) and (stopLoss != ''):
-            stopLossPrice = self.safe_number(stopLoss, 'stopLoss')
+            stopLossPrice = self.omit_zero(self.safe_string(stopLoss, 'stopLoss'))
         if (stopLoss is not None) and ((not isinstance(stopLoss, numbers.Real))) and (stopLoss != ''):
             #  stopLoss: '{"stopPrice":50,"workingType":"MARK_PRICE","type":"STOP_MARKET","quantity":1}',
             if isinstance(stopLoss, str):
                 stopLoss = self.parse_json(stopLoss)
-            stopLossPrice = self.safe_number(stopLoss, 'stopPrice')
+            stopLossPrice = self.omit_zero(self.safe_string(stopLoss, 'stopPrice'))
         takeProfit = self.safe_value(order, 'takeProfit')
         takeProfitPrice = None
         if takeProfit is not None and (takeProfit != ''):
-            takeProfitPrice = self.safe_number(takeProfit, 'takeProfit')
+            takeProfitPrice = self.omit_zero(self.safe_string(takeProfit, 'takeProfit'))
         if (takeProfit is not None) and ((not isinstance(takeProfit, numbers.Real))) and (takeProfit != ''):
             #  takeProfit: '{"stopPrice":150,"workingType":"MARK_PRICE","type":"TAKE_PROFIT_MARKET","quantity":1}',
             if isinstance(takeProfit, str):
                 takeProfit = self.parse_json(takeProfit)
-            takeProfitPrice = self.safe_number(takeProfit, 'stopPrice')
+            takeProfitPrice = self.omit_zero(self.safe_string(takeProfit, 'stopPrice'))
+        rawType = self.safe_string_lower_2(order, 'type', 'o')
+        stopPrice = self.omit_zero(self.safe_string_2(order, 'StopPrice', 'stopPrice'))
+        triggerPrice = stopPrice
+        if stopPrice is not None:
+            if (rawType.find('stop') > -1) and (stopLossPrice is None):
+                stopLossPrice = stopPrice
+                triggerPrice = None
+            if (rawType.find('take') > -1) and (takeProfitPrice is None):
+                takeProfitPrice = stopPrice
+                triggerPrice = None
         return self.safe_order({
             'info': info,
             'id': self.safe_string_2(order, 'orderId', 'i'),
@@ -2332,17 +2380,17 @@ class bingx(Exchange, ImplicitAPI):
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,
             'lastUpdateTimestamp': self.safe_integer(order, 'updateTime'),
-            'type': self.parse_order_type(self.safe_string_lower_2(order, 'type', 'o')),
+            'type': self.parse_order_type(rawType),
             'timeInForce': self.safe_string(order, 'timeInForce'),
             'postOnly': None,
             'side': self.parse_order_side(side),
             'price': self.safe_string_2(order, 'price', 'p'),
-            'stopPrice': self.safe_number(order, 'stopPrice'),
-            'triggerPrice': self.safe_number(order, 'stopPrice'),
+            'stopPrice': triggerPrice,
+            'triggerPrice': triggerPrice,
             'stopLossPrice': stopLossPrice,
             'takeProfitPrice': takeProfitPrice,
             'average': self.safe_string_2(order, 'avgPrice', 'ap'),
-            'cost': None,
+            'cost': self.safe_string(order, 'cummulativeQuoteQty'),
             'amount': self.safe_string_n(order, ['origQty', 'q', 'quantity']),
             'filled': self.safe_string_2(order, 'executedQty', 'z'),
             'remaining': None,
@@ -2355,8 +2403,8 @@ class bingx(Exchange, ImplicitAPI):
             'reduceOnly': self.safe_bool(order, 'reduceOnly'),
         }, market)
 
-    def parse_order_status(self, status):
-        statuses = {
+    def parse_order_status(self, status: Str):
+        statuses: dict = {
             'NEW': 'open',
             'PENDING': 'open',
             'PARTIALLY_FILLED': 'open',
@@ -2521,7 +2569,9 @@ class bingx(Exchange, ImplicitAPI):
             #
         else:
             raise BadRequest(self.id + ' cancelAllOrders is only supported for spot and swap markets.')
-        return response
+        data = self.safe_dict(response, 'data', {})
+        orders = self.safe_list_2(data, 'success', 'orders', [])
+        return self.parse_orders(orders)
 
     def cancel_orders(self, ids: List[str], symbol: Str = None, params={}):
         """
@@ -2557,42 +2607,70 @@ class bingx(Exchange, ImplicitAPI):
             spotReqKey = 'clientOrderIDs' if areClientOrderIds else 'orderIds'
             request[spotReqKey] = ','.join(parsedIds)
             response = self.spotV1PrivatePostTradeCancelOrders(self.extend(request, params))
+            #
+            #    {
+            #       "code": 0,
+            #       "msg": "",
+            #       "debugMsg": "",
+            #       "data": {
+            #           "orders": [
+            #                {
+            #                    "symbol": "SOL-USDT",
+            #                    "orderId": 1795970045910614016,
+            #                    "transactTime": 1717027601111,
+            #                    "price": "180.25",
+            #                    "stopPrice": "0",
+            #                    "origQty": "0.03",
+            #                    "executedQty": "0",
+            #                    "cummulativeQuoteQty": "0",
+            #                    "status": "CANCELED",
+            #                    "type": "LIMIT",
+            #                    "side": "SELL",
+            #                    "clientOrderID": ""
+            #                },
+            #                ...
+            #            ]
+            #        }
+            #    }
+            #
         else:
             if areClientOrderIds:
                 request['clientOrderIDList'] = self.json(parsedIds)
             else:
                 request['orderIdList'] = parsedIds
             response = self.swapV2PrivateDeleteTradeBatchOrders(self.extend(request, params))
-        #
-        #    {
-        #        "code": 0,
-        #        "msg": "",
-        #        "data": {
-        #          "success": [
-        #            {
-        #              "symbol": "LINK-USDT",
-        #              "orderId": 1597783850786750464,
-        #              "side": "BUY",
-        #              "positionSide": "LONG",
-        #              "type": "TRIGGER_MARKET",
-        #              "origQty": "5.0",
-        #              "price": "5.5710",
-        #              "executedQty": "0.0",
-        #              "avgPrice": "0.0000",
-        #              "cumQuote": "0",
-        #              "stopPrice": "5.0000",
-        #              "profit": "0.0000",
-        #              "commission": "0.000000",
-        #              "status": "CANCELLED",
-        #              "time": 1669776330000,
-        #              "updateTime": 1672370837000
-        #            }
-        #          ],
-        #          "failed": null
-        #        }
-        #    }
-        #
-        return response
+            #
+            #    {
+            #        "code": 0,
+            #        "msg": "",
+            #        "data": {
+            #          "success": [
+            #            {
+            #              "symbol": "LINK-USDT",
+            #              "orderId": 1597783850786750464,
+            #              "side": "BUY",
+            #              "positionSide": "LONG",
+            #              "type": "TRIGGER_MARKET",
+            #              "origQty": "5.0",
+            #              "price": "5.5710",
+            #              "executedQty": "0.0",
+            #              "avgPrice": "0.0000",
+            #              "cumQuote": "0",
+            #              "stopPrice": "5.0000",
+            #              "profit": "0.0000",
+            #              "commission": "0.000000",
+            #              "status": "CANCELLED",
+            #              "time": 1669776330000,
+            #              "updateTime": 1672370837000
+            #            }
+            #          ],
+            #          "failed": null
+            #        }
+            #    }
+            #
+        data = self.safe_dict(response, 'data', {})
+        success = self.safe_list_2(data, 'success', 'orders', [])
+        return self.parse_orders(success)
 
     def cancel_all_orders_after(self, timeout: Int, params={}):
         """
@@ -2723,7 +2801,7 @@ class bingx(Exchange, ImplicitAPI):
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
-        request = {}
+        request: dict = {}
         market = None
         if symbol is not None:
             market = self.market(symbol)
@@ -3254,7 +3332,7 @@ class bingx(Exchange, ImplicitAPI):
         #
         return self.parse_transactions(response, currency, since, limit)
 
-    def parse_transaction(self, transaction, currency: Currency = None) -> Transaction:
+    def parse_transaction(self, transaction: dict, currency: Currency = None) -> Transaction:
         #
         # fetchDeposits
         #
@@ -3348,7 +3426,7 @@ class bingx(Exchange, ImplicitAPI):
         }
 
     def parse_transaction_status(self, status: str):
-        statuses = {
+        statuses: dict = {
             '0': 'pending',
             '1': 'ok',
             '10': 'pending',
@@ -3393,13 +3471,13 @@ class bingx(Exchange, ImplicitAPI):
         return self.swapV2PrivatePostTradeMarginType(self.extend(request, params))
 
     def add_margin(self, symbol: str, amount: float, params={}) -> MarginModification:
-        request = {
+        request: dict = {
             'type': 1,
         }
         return self.set_margin(symbol, amount, self.extend(request, params))
 
     def reduce_margin(self, symbol: str, amount: float, params={}) -> MarginModification:
-        request = {
+        request: dict = {
             'type': 2,
         }
         return self.set_margin(symbol, amount, self.extend(request, params))
@@ -3652,7 +3730,7 @@ class bingx(Exchange, ImplicitAPI):
         #
         networkList = self.safe_list(fee, 'networkList', [])
         networkListLength = len(networkList)
-        result = {
+        result: dict = {
             'info': fee,
             'withdraw': {
                 'fee': None,
@@ -3762,7 +3840,7 @@ class bingx(Exchange, ImplicitAPI):
         :returns dict: an array of `liquidation structures <https://docs.ccxt.com/#/?id=liquidation-structure>`
         """
         self.load_markets()
-        request = {
+        request: dict = {
             'autoCloseType': 'LIQUIDATION',
         }
         request, params = self.handle_until_option('endTime', request, params)
@@ -4161,7 +4239,7 @@ class bingx(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 'data', {})
         return self.parse_margin_mode(data, market)
 
-    def parse_margin_mode(self, marginMode, market=None) -> MarginMode:
+    def parse_margin_mode(self, marginMode: dict, market=None) -> MarginMode:
         marginType = self.safe_string_lower(marginMode, 'marginType')
         marginType = 'cross' if (marginType == 'crossed') else marginType
         return {
@@ -4216,7 +4294,7 @@ class bingx(Exchange, ImplicitAPI):
         super(bingx, self).set_sandbox_mode(enable)
         self.options['sandboxMode'] = enable
 
-    def handle_errors(self, httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody):
+    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response, requestHeaders, requestBody):
         if response is None:
             return None  # fallback to default error handler
         #

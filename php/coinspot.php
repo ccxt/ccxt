@@ -412,7 +412,7 @@ class coinspot extends Exchange {
         return $this->parse_trades($trades, $market, $since, $limit);
     }
 
-    public function parse_trade($trade, ?array $market = null): array {
+    public function parse_trade(array $trade, ?array $market = null): array {
         //
         // public fetchTrades
         //
@@ -523,11 +523,21 @@ class coinspot extends Exchange {
             throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $side parameter, "buy" or "sell"');
         }
         $params = $this->omit($params, 'side');
-        $method = 'privatePostMy' . $this->capitalize($side) . 'Cancel';
         $request = array(
             'id' => $id,
         );
-        return $this->$method ($this->extend($request, $params));
+        $response = null;
+        if ($side === 'buy') {
+            $response = $this->privatePostMyBuyCancel ($this->extend($request, $params));
+        } else {
+            $response = $this->privatePostMySellCancel ($this->extend($request, $params));
+        }
+        //
+        // status - ok, error
+        //
+        return $this->safe_order(array(
+            'info' => $response,
+        ));
     }
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {

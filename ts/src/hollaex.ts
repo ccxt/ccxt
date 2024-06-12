@@ -6,7 +6,7 @@ import { BadRequest, AuthenticationError, NetworkError, ArgumentsRequired, Order
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { Balances, Currencies, Currency, Dict, Dictionary, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction } from './base/types.js';
+import type { Balances, Currencies, Currency, Dict, Dictionary, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction, int } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -375,7 +375,7 @@ export default class hollaex extends Exchange {
         //
         const coins = this.safeValue (response, 'coins', {});
         const keys = Object.keys (coins);
-        const result = {};
+        const result: Dict = {};
         for (let i = 0; i < keys.length; i++) {
             const key = keys[i];
             const currency = coins[key];
@@ -429,7 +429,7 @@ export default class hollaex extends Exchange {
          */
         await this.loadMarkets ();
         const response = await this.publicGetOrderbooks (params);
-        const result = {};
+        const result: Dict = {};
         const marketIds = Object.keys (response);
         for (let i = 0; i < marketIds.length; i++) {
             const marketId = marketIds[i];
@@ -454,7 +454,7 @@ export default class hollaex extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'symbol': market['id'],
         };
         const response = await this.publicGetOrderbook (this.extend (request, params));
@@ -494,7 +494,7 @@ export default class hollaex extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'symbol': market['id'],
         };
         const response = await this.publicGetTicker (this.extend (request, params));
@@ -544,7 +544,7 @@ export default class hollaex extends Exchange {
     }
 
     parseTickers (tickers, symbols: Strings = undefined, params = {}): Tickers {
-        const result = {};
+        const result: Dict = {};
         const keys = Object.keys (tickers);
         for (let i = 0; i < keys.length; i++) {
             const key = keys[i];
@@ -627,7 +627,7 @@ export default class hollaex extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'symbol': market['id'],
         };
         const response = await this.publicGetTrades (this.extend (request, params));
@@ -648,7 +648,7 @@ export default class hollaex extends Exchange {
         return this.parseTrades (trades, market, since, limit);
     }
 
-    parseTrade (trade, market: Market = undefined): Trade {
+    parseTrade (trade: Dict, market: Market = undefined): Trade {
         //
         // fetchTrades (public)
         //
@@ -747,7 +747,7 @@ export default class hollaex extends Exchange {
         const fees = this.safeValue (firstTier, 'fees', {});
         const makerFees = this.safeValue (fees, 'maker', {});
         const takerFees = this.safeValue (fees, 'taker', {});
-        const result = {};
+        const result: Dict = {};
         for (let i = 0; i < this.symbols.length; i++) {
             const symbol = this.symbols[i];
             const market = this.market (symbol);
@@ -780,7 +780,7 @@ export default class hollaex extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'symbol': market['id'],
             'resolution': this.safeString (this.timeframes, timeframe, timeframe),
         };
@@ -844,7 +844,7 @@ export default class hollaex extends Exchange {
 
     parseBalance (response): Balances {
         const timestamp = this.parse8601 (this.safeString (response, 'updated_at'));
-        const result = {
+        const result: Dict = {
             'info': response,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -899,7 +899,7 @@ export default class hollaex extends Exchange {
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
-        const request = {
+        const request: Dict = {
             'order_id': id,
         };
         const response = await this.privateGetOrder (this.extend (request, params));
@@ -942,7 +942,7 @@ export default class hollaex extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
-        const request = {
+        const request: Dict = {
             'open': true,
         };
         return await this.fetchOrders (symbol, since, limit, this.extend (request, params));
@@ -960,7 +960,7 @@ export default class hollaex extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
-        const request = {
+        const request: Dict = {
             'open': false,
         };
         return await this.fetchOrders (symbol, since, limit, this.extend (request, params));
@@ -977,7 +977,7 @@ export default class hollaex extends Exchange {
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
-        const request = {
+        const request: Dict = {
             'order_id': id,
         };
         const response = await this.privateGetOrder (this.extend (request, params));
@@ -1024,7 +1024,7 @@ export default class hollaex extends Exchange {
          */
         await this.loadMarkets ();
         let market = undefined;
-        const request = {
+        const request: Dict = {
             // 'symbol': market['id'],
             // 'side': 'buy', // 'sell'
             // 'status': 'new', // 'filled', 'pfilled', 'canceled'
@@ -1080,8 +1080,8 @@ export default class hollaex extends Exchange {
         return this.parseOrders (data, market, since, limit);
     }
 
-    parseOrderStatus (status) {
-        const statuses = {
+    parseOrderStatus (status: Str) {
+        const statuses: Dict = {
             'new': 'open',
             'pfilled': 'open',
             'filled': 'closed',
@@ -1090,7 +1090,7 @@ export default class hollaex extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseOrder (order, market: Market = undefined): Order {
+    parseOrder (order: Dict, market: Market = undefined): Order {
         //
         // createOrder, fetchOpenOrder, fetchOpenOrders
         //
@@ -1177,7 +1177,7 @@ export default class hollaex extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const convertedAmount = parseFloat (this.amountToPrecision (symbol, amount));
-        const request = {
+        const request: Dict = {
             'symbol': market['id'],
             'side': side,
             'size': this.normalizeNumberIfNeeded (convertedAmount),
@@ -1240,7 +1240,7 @@ export default class hollaex extends Exchange {
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
-        const request = {
+        const request: Dict = {
             'order_id': id,
         };
         const response = await this.privateDeleteOrder (this.extend (request, params));
@@ -1274,7 +1274,7 @@ export default class hollaex extends Exchange {
             throw new ArgumentsRequired (this.id + ' cancelAllOrders() requires a symbol argument');
         }
         await this.loadMarkets ();
-        const request = {};
+        const request: Dict = {};
         let market = undefined;
         market = this.market (symbol);
         request['symbol'] = market['id'];
@@ -1310,7 +1310,7 @@ export default class hollaex extends Exchange {
          * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
          */
         await this.loadMarkets ();
-        const request = {
+        const request: Dict = {
             // 'symbol': market['id'],
             // 'limit': 50, // default 50, max 100
             // 'page': 1, // page of data to retrieve
@@ -1381,7 +1381,7 @@ export default class hollaex extends Exchange {
         };
     }
 
-    async fetchDepositAddresses (codes: string[] = undefined, params = {}) {
+    async fetchDepositAddresses (codes: Strings = undefined, params = {}) {
         /**
          * @method
          * @name hollaex#fetchDepositAddresses
@@ -1458,7 +1458,7 @@ export default class hollaex extends Exchange {
          * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         await this.loadMarkets ();
-        const request = {
+        const request: Dict = {
             // 'currency': currency['id'],
             // 'limit': 50, // default 50, max 100
             // 'page': 1, // page of data to retrieve
@@ -1518,7 +1518,7 @@ export default class hollaex extends Exchange {
          * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         await this.loadMarkets ();
-        const request = {
+        const request: Dict = {
             'transaction_id': id,
         };
         let currency = undefined;
@@ -1568,7 +1568,7 @@ export default class hollaex extends Exchange {
          * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         await this.loadMarkets ();
-        const request = {
+        const request: Dict = {
             // 'currency': currency['id'],
             // 'limit': 50, // default 50, max 100
             // 'page': 1, // page of data to retrieve
@@ -1616,7 +1616,7 @@ export default class hollaex extends Exchange {
         return this.parseTransactions (data, currency, since, limit);
     }
 
-    parseTransaction (transaction, currency: Currency = undefined): Transaction {
+    parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {
         //
         // fetchWithdrawals, fetchDeposits
         //
@@ -1740,7 +1740,7 @@ export default class hollaex extends Exchange {
             throw new ArgumentsRequired (this.id + ' withdraw() requires a network parameter');
         }
         params = this.omit (params, 'network');
-        const request = {
+        const request: Dict = {
             'currency': currency['id'],
             'amount': amount,
             'address': address,
@@ -1791,7 +1791,7 @@ export default class hollaex extends Exchange {
         //        "owner_id":1
         //    }
         //
-        const result = {
+        const result: Dict = {
             'info': fee,
             'withdraw': {
                 'fee': undefined,
@@ -1917,7 +1917,7 @@ export default class hollaex extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+    handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response, requestHeaders, requestBody) {
         if (response === undefined) {
             return undefined;
         }

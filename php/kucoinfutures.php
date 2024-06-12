@@ -1195,7 +1195,7 @@ class kucoinfutures extends kucoin {
         return $this->parse_positions($items, $symbols);
     }
 
-    public function parse_position($position, ?array $market = null) {
+    public function parse_position(array $position, ?array $market = null) {
         //
         //    {
         //        "code" => "200000",
@@ -1943,7 +1943,7 @@ class kucoinfutures extends kucoin {
         return $this->parse_order($responseData, $market);
     }
 
-    public function parse_order($order, ?array $market = null): array {
+    public function parse_order(array $order, ?array $market = null): array {
         //
         // fetchOrder, fetchOrdersByStatus
         //
@@ -2359,7 +2359,7 @@ class kucoinfutures extends kucoin {
         return $this->parse_trades($trades, $market, $since, $limit);
     }
 
-    public function parse_trade($trade, ?array $market = null): array {
+    public function parse_trade(array $trade, ?array $market = null): array {
         //
         // fetchTrades (public)
         //
@@ -2602,7 +2602,7 @@ class kucoinfutures extends kucoin {
         return $this->parse_transactions($responseData, $currency, $since, $limit, array( 'type' => 'withdrawal' ));
     }
 
-    public function fetch_market_leverage_tiers(string $symbol, $params = array ()) {
+    public function fetch_market_leverage_tiers(string $symbol, $params = array ()): array {
         /**
          * retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes for a single $market
          * @see https://www.kucoin.com/docs/rest/futures-trading/risk-limit/get-futures-risk-limit-level
@@ -2640,7 +2640,7 @@ class kucoinfutures extends kucoin {
         return $this->parse_market_leverage_tiers($data, $market);
     }
 
-    public function parse_market_leverage_tiers($info, ?array $market = null) {
+    public function parse_market_leverage_tiers($info, ?array $market = null): array {
         /**
          * @ignore
          * @param {array} $info Exchange $market response for 1 $market

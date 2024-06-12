@@ -1,5 +1,5 @@
 import kucoin from './abstract/kucoinfutures.js';
-import type { TransferEntry, Int, OrderSide, OrderType, OHLCV, Order, Trade, OrderRequest, FundingHistory, Balances, Str, Ticker, Tickers, OrderBook, Transaction, Strings, Market, Currency, Num, MarginModification, TradingFeeInterface, Dict } from './base/types.js';
+import type { TransferEntry, Int, OrderSide, OrderType, OHLCV, Order, Trade, OrderRequest, FundingHistory, Balances, Str, Ticker, Tickers, OrderBook, Transaction, Strings, Market, Currency, Num, MarginModification, TradingFeeInterface, Dict, LeverageTier } from './base/types.js';
 /**
  * @class kucoinfutures
  * @augments Exchange
@@ -32,7 +32,7 @@ export default class kucoinfutures extends kucoin {
     fetchPosition(symbol: string, params?: {}): Promise<import("./base/types.js").Position>;
     fetchPositions(symbols?: Strings, params?: {}): Promise<import("./base/types.js").Position[]>;
     fetchPositionsHistory(symbols?: Strings, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Position[]>;
-    parsePosition(position: any, market?: Market): import("./base/types.js").Position;
+    parsePosition(position: Dict, market?: Market): import("./base/types.js").Position;
     createOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): Promise<Order>;
     createOrders(orders: OrderRequest[], params?: {}): Promise<Order[]>;
     createContractOrderRequest(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): any;
@@ -44,7 +44,7 @@ export default class kucoinfutures extends kucoin {
     fetchClosedOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     fetchOpenOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     fetchOrder(id?: Str, symbol?: Str, params?: {}): Promise<Order>;
-    parseOrder(order: any, market?: Market): Order;
+    parseOrder(order: Dict, market?: Market): Order;
     fetchFundingRate(symbol: string, params?: {}): Promise<{
         info: any;
         symbol: string;
@@ -71,11 +71,11 @@ export default class kucoinfutures extends kucoin {
     parseTransferStatus(status: Str): Str;
     fetchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     fetchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
-    parseTrade(trade: any, market?: Market): Trade;
+    parseTrade(trade: Dict, market?: Market): Trade;
     fetchDeposits(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
     fetchWithdrawals(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
-    fetchMarketLeverageTiers(symbol: string, params?: {}): Promise<any[]>;
-    parseMarketLeverageTiers(info: any, market?: Market): any[];
+    fetchMarketLeverageTiers(symbol: string, params?: {}): Promise<LeverageTier[]>;
+    parseMarketLeverageTiers(info: any, market?: Market): LeverageTier[];
     fetchFundingRateHistory(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").FundingRateHistory[]>;
     parseFundingRateHistory(info: any, market?: Market): {
         info: any;

@@ -317,10 +317,10 @@ class ascendex extends \ccxt\async\ascendex {
         $marketId = $this->safe_string($message, 'symbol');
         $symbol = $this->safe_symbol($marketId);
         $messageHash = $channel . ':' . $marketId;
-        $orderbook = $this->safe_value($this->orderbooks, $symbol);
-        if ($orderbook === null) {
-            $orderbook = $this->order_book(array());
+        if (!(is_array($this->orderbooks) && array_key_exists($symbol, $this->orderbooks))) {
+            $this->orderbooks[$symbol] = $this->order_book(array());
         }
+        $orderbook = $this->orderbooks[$symbol];
         if ($orderbook['nonce'] === null) {
             $orderbook->cache[] = $message;
         } else {

@@ -700,7 +700,7 @@ class coinbaseinternational extends Exchange {
         return $this->parse_position($position);
     }
 
-    public function parse_position($position, ?array $market = null) {
+    public function parse_position(array $position, ?array $market = null) {
         //
         //    {
         //       "symbol":"BTC-PERP",
@@ -831,7 +831,7 @@ class coinbaseinternational extends Exchange {
         return $this->fetch_deposits_withdrawals($code, $since, $limit, $params);
     }
 
-    public function parse_transaction_status($status) {
+    public function parse_transaction_status(?string $status) {
         $statuses = array(
             'PROCESSED' => 'ok',
             'NEW' => 'pending',
@@ -841,7 +841,7 @@ class coinbaseinternational extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_transaction($transaction, ?array $currency = null): array {
+    public function parse_transaction(array $transaction, ?array $currency = null): array {
         //
         //    {
         //        "idem":"8e471d77-4208-45a8-9e5b-f3bd8a2c1fc3"
@@ -877,7 +877,7 @@ class coinbaseinternational extends Exchange {
         );
     }
 
-    public function parse_trade($trade, ?array $market = null): array {
+    public function parse_trade(array $trade, ?array $market = null): array {
         //
         //    {
         //       "portfolio_id":"1wp37qsc-1-0",
@@ -992,7 +992,7 @@ class coinbaseinternational extends Exchange {
         return $this->parse_markets($response);
     }
 
-    public function parse_market($market): array {
+    public function parse_market(array $market): array {
         //
         //   {
         //       "instrument_id":"149264164756389888",
@@ -1135,7 +1135,7 @@ class coinbaseinternational extends Exchange {
         return $result;
     }
 
-    public function parse_currency($currency) {
+    public function parse_currency(array $currency) {
         //
         //    {
         //       "asset_id":"1",
@@ -1442,7 +1442,7 @@ class coinbaseinternational extends Exchange {
         return $this->parse_order($response, $market);
     }
 
-    public function parse_order($order, ?array $market = null): array {
+    public function parse_order(array $order, ?array $market = null): array {
         //
         //    {
         //        "order_id":"1x96skvg-1-0",
@@ -1501,7 +1501,7 @@ class coinbaseinternational extends Exchange {
         ), $market);
     }
 
-    public function parse_order_status($status) {
+    public function parse_order_status(?string $status) {
         $statuses = array(
             'NEW' => 'open',
             'PARTIAL_FILLED' => 'open',
@@ -1517,7 +1517,7 @@ class coinbaseinternational extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_order_type($type) {
+    public function parse_order_type(?string $type) {
         if ($type === 'UNKNOWN_ORDER_TYPE') {
             return null;
         }
@@ -1978,7 +1978,7 @@ class coinbaseinternational extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
         //
         //    {
         //        "title":"io.javalin.http.BadRequestResponse => Order rejected (DUPLICATE_CLIENT_ORDER_ID - duplicate client order id detected)",

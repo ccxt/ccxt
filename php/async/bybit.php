@@ -2150,7 +2150,7 @@ class bybit extends Exchange {
             );
             $type = null;
             list($type, $params) = $this->handle_market_type_and_params('fetchTickers', $market, $params);
-            // Calls like `.fetch_tickers(null, array($subType:'inverse'))` should be supported for this exchange, so
+            // Calls like `.fetchTickers (null, array($subType:'inverse'))` should be supported for this exchange, so
             // as "options.defaultSubType" is also set in exchange options, we should consider `$params->subType`
             // with higher priority and only default to spot, if `$subType` is not set in $params
             $passedSubType = $this->safe_string($params, 'subType');
@@ -2496,13 +2496,13 @@ class bybit extends Exchange {
                 throw new ArgumentsRequired($this->id . ' fetchFundingRateHistory() requires a $symbol argument');
             }
             Async\await($this->load_markets());
-            if ($limit === null) {
-                $limit = 200;
-            }
             $paginate = false;
             list($paginate, $params) = $this->handle_option_and_params($params, 'fetchFundingRateHistory', 'paginate');
             if ($paginate) {
                 return Async\await($this->fetch_paginated_call_deterministic('fetchFundingRateHistory', $symbol, $since, $limit, '8h', $params, 200));
+            }
+            if ($limit === null) {
+                $limit = 200;
             }
             $request = array(
                 // 'category' => '', // Product $type-> linear,inverse
@@ -2573,7 +2573,7 @@ class bybit extends Exchange {
         }) ();
     }
 
-    public function parse_trade($trade, ?array $market = null): array {
+    public function parse_trade(array $trade, ?array $market = null): array {
         //
         // public https://bybit-exchange.github.io/docs/v5/market/recent-$trade
         //
@@ -3194,7 +3194,7 @@ class bybit extends Exchange {
         }) ();
     }
 
-    public function parse_order_status($status) {
+    public function parse_order_status(?string $status) {
         $statuses = array(
             // v3 spot
             'NEW' => 'open',
@@ -3223,7 +3223,7 @@ class bybit extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_time_in_force($timeInForce) {
+    public function parse_time_in_force(?string $timeInForce) {
         $timeInForces = array(
             'GoodTillCancel' => 'GTC',
             'ImmediateOrCancel' => 'IOC',
@@ -3233,7 +3233,7 @@ class bybit extends Exchange {
         return $this->safe_string($timeInForces, $timeInForce, $timeInForce);
     }
 
-    public function parse_order($order, ?array $market = null): array {
+    public function parse_order(array $order, ?array $market = null): array {
         //
         // v1 for usdc normal account
         //     {
@@ -5694,7 +5694,7 @@ class bybit extends Exchange {
         }) ();
     }
 
-    public function parse_transaction_status($status) {
+    public function parse_transaction_status(?string $status) {
         $statuses = array(
             // v3 deposit $status
             '0' => 'unknown',
@@ -5714,7 +5714,7 @@ class bybit extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_transaction($transaction, ?array $currency = null): array {
+    public function parse_transaction(array $transaction, ?array $currency = null): array {
         //
         // fetchWithdrawals
         //
@@ -5959,7 +5959,7 @@ class bybit extends Exchange {
         }) ();
     }
 
-    public function parse_ledger_entry($item, ?array $currency = null) {
+    public function parse_ledger_entry(array $item, ?array $currency = null) {
         //
         //     {
         //         "id" => 234467,
@@ -6374,7 +6374,7 @@ class bybit extends Exchange {
         }) ();
     }
 
-    public function parse_position($position, ?array $market = null) {
+    public function parse_position(array $position, ?array $market = null) {
         //
         // linear swap
         //
@@ -7116,7 +7116,7 @@ class bybit extends Exchange {
         }) ();
     }
 
-    public function parse_borrow_interest($info, ?array $market = null) {
+    public function parse_borrow_interest(array $info, ?array $market = null) {
         //
         //     array(
         //         "tokenId" => "BTC",
@@ -7444,7 +7444,7 @@ class bybit extends Exchange {
         }) ();
     }
 
-    public function fetch_market_leverage_tiers(string $symbol, $params = array ()) {
+    public function fetch_market_leverage_tiers(string $symbol, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes for a single $market
@@ -7465,7 +7465,7 @@ class bybit extends Exchange {
         }) ();
     }
 
-    public function parse_trading_fee($fee, ?array $market = null): array {
+    public function parse_trading_fee(array $fee, ?array $market = null): array {
         //
         //     {
         //         "symbol" => "ETHUSDT",
@@ -8215,7 +8215,7 @@ class bybit extends Exchange {
         }) ();
     }
 
-    public function fetch_leverage_tiers(?array $symbols = null, $params = array ()) {
+    public function fetch_leverage_tiers(?array $symbols = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbols, $params) {
             /**
              * @see https://bybit-exchange.github.io/docs/v5/market/risk-limit
@@ -8275,7 +8275,7 @@ class bybit extends Exchange {
         return $tiers;
     }
 
-    public function parse_market_leverage_tiers($info, ?array $market = null) {
+    public function parse_market_leverage_tiers($info, ?array $market = null): array {
         //
         //  array(
         //      {
@@ -8774,7 +8774,7 @@ class bybit extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors($httpCode, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
         if (!$response) {
             return null; // fallback to default error handler
         }

@@ -461,7 +461,7 @@ class kuna extends Exchange {
         return $result;
     }
 
-    public function parse_currency($currency) {
+    public function parse_currency(array $currency) {
         //
         //    {
         //        "code" => "BTC",
@@ -822,7 +822,7 @@ class kuna extends Exchange {
         return $this->parse_trades($data, $market, $since, $limit);
     }
 
-    public function parse_trade($trade, ?array $market = null): array {
+    public function parse_trade(array $trade, ?array $market = null): array {
         //
         // fetchTrades (public)
         //
@@ -1044,7 +1044,7 @@ class kuna extends Exchange {
         return $this->parse_orders($data);
     }
 
-    public function parse_order_status($status) {
+    public function parse_order_status(?string $status) {
         $statuses = array(
             'Canceled' => 'canceled',
             'Closed' => 'filled',
@@ -1057,7 +1057,7 @@ class kuna extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_order($order, ?array $market = null): array {
+    public function parse_order(array $order, ?array $market = null): array {
         //
         // createOrder, fetchOrder, fetchOpenOrders, fetchOrdersByStatus
         //
@@ -1605,7 +1605,7 @@ class kuna extends Exchange {
         );
     }
 
-    public function parse_transaction_status($status) {
+    public function parse_transaction_status(?string $status) {
         $statuses = array(
             'Created' => 'pending',
             'Canceled' => 'canceled',
@@ -1729,7 +1729,7 @@ class kuna extends Exchange {
         return $this->parse_transaction($data, $currency);
     }
 
-    public function parse_transaction($transaction, ?array $currency = null): array {
+    public function parse_transaction(array $transaction, ?array $currency = null): array {
         //
         //    {
         //        "id" => "a201cb3c-5830-57ac-ad2c-f6a588dd55eb",                               // Unique ID of deposit
@@ -1895,7 +1895,7 @@ class kuna extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
         //
         //    {
         //        "errors" => array(

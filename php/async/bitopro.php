@@ -319,7 +319,7 @@ class bitopro extends Exchange {
         }) ();
     }
 
-    public function parse_market($market): array {
+    public function parse_market(array $market): array {
         $active = !$this->safe_value($market, 'maintain');
         $id = $this->safe_string($market, 'pair');
         $uppercaseId = strtoupper($id);
@@ -527,7 +527,7 @@ class bitopro extends Exchange {
         }) ();
     }
 
-    public function parse_trade($trade, ?array $market = null): array {
+    public function parse_trade(array $trade, ?array $market = null): array {
         //
         // fetchTrades
         //         {
@@ -903,7 +903,7 @@ class bitopro extends Exchange {
         }) ();
     }
 
-    public function parse_order_status($status) {
+    public function parse_order_status(?string $status) {
         $statuses = array(
             '-1' => 'open',
             '0' => 'open',
@@ -916,7 +916,7 @@ class bitopro extends Exchange {
         return $this->safe_string($statuses, $status, null);
     }
 
-    public function parse_order($order, ?array $market = null): array {
+    public function parse_order(array $order, ?array $market = null): array {
         //
         // createOrder
         //         {
@@ -1348,7 +1348,7 @@ class bitopro extends Exchange {
         }) ();
     }
 
-    public function parse_transaction_status($status) {
+    public function parse_transaction_status(?string $status) {
         $states = array(
             'COMPLETE' => 'ok',
             'INVALID' => 'failed',
@@ -1363,7 +1363,7 @@ class bitopro extends Exchange {
         return $this->safe_string($states, $status, $status);
     }
 
-    public function parse_transaction($transaction, ?array $currency = null): array {
+    public function parse_transaction(array $transaction, ?array $currency = null): array {
         //
         // fetchDeposits
         //
@@ -1742,7 +1742,7 @@ class bitopro extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
         if ($response === null) {
             return null; // fallback to the default $error handler
         }

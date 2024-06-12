@@ -464,7 +464,8 @@ class bit2c extends bit2c$1 {
         const request = {
             'id': id,
         };
-        return await this.privatePostOrderCancelOrder(this.extend(request, params));
+        const response = await this.privatePostOrderCancelOrder(this.extend(request, params));
+        return this.parseOrder(response);
     }
     async fetchOpenOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**

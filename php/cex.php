@@ -642,7 +642,7 @@ class cex extends Exchange {
         return $this->parse_ticker($ticker, $market);
     }
 
-    public function parse_trade($trade, ?array $market = null): array {
+    public function parse_trade(array $trade, ?array $market = null): array {
         //
         // fetchTrades (public)
         //
@@ -878,7 +878,7 @@ class cex extends Exchange {
         return $orders;
     }
 
-    public function parse_order($order, ?array $market = null): array {
+    public function parse_order(array $order, ?array $market = null): array {
         // Depending on the call, 'time' can be a unix int, unix string or ISO string
         // Yes, really
         $timestamp = $this->safe_value($order, 'time');
@@ -1525,7 +1525,7 @@ class cex extends Exchange {
         return $results;
     }
 
-    public function parse_order_status($status) {
+    public function parse_order_status(?string $status) {
         return $this->safe_string($this->options['order']['status'], $status, $status);
     }
 
@@ -1642,7 +1642,7 @@ class cex extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
         if (gettype($response) === 'array' && array_keys($response) === array_keys(array_keys($response))) {
             return $response; // public endpoints may return array()-arrays
         }

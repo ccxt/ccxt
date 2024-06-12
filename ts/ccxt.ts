@@ -33,14 +33,14 @@ import { Exchange }  from './src/base/Exchange.js'
 import { Precise }   from './src/base/Precise.js'
 import * as functions from './src/base/functions.js'
 import * as errors   from './src/base/errors.js'
-import type { Market, Trade , Fee, Ticker, OrderBook, Order, Transaction, Tickers, Currency, Balance, DepositAddress, WithdrawalResponse, DepositAddressResponse, OHLCV, Balances, PartialBalances, Dictionary, MinMax, Position, FundingRateHistory, Liquidation, FundingHistory, MarginMode, Greeks, Leverage, Leverages, Option, OptionChain, Conversion } from './src/base/types.js'
+import type { Int, int, Str, Strings, Num, Bool, IndexType, OrderSide, OrderType, MarketType, SubType, Dict, NullableDict, List, NullableList, Fee, OHLCV, OHLCVC, implicitReturnType, Market, Currency, Dictionary, MinMax, FeeInterface, TradingFeeInterface, MarketInterface, Trade, Order, OrderBook, Ticker, Transaction, Tickers, CurrencyInterface, Balance, BalanceAccount, Account, PartialBalances, Balances, DepositAddress, WithdrawalResponse, DepositAddressResponse, FundingRate, FundingRates, Position, BorrowInterest, LeverageTier, LedgerEntry, DepositWithdrawFeeNetwork, DepositWithdrawFee, TransferEntry, CrossBorrowRate, IsolatedBorrowRate, FundingRateHistory, OpenInterest, Liquidation, OrderRequest, CancellationRequest, FundingHistory, MarginMode, Greeks, Conversion, Option, LastPrice, Leverage, MarginModification, Leverages, LastPrices, Currencies, TradingFees, MarginModes, OptionChain, IsolatedBorrowRates, CrossBorrowRates, TransferEntries, LeverageTiers } from './src/base/types.js'
 import {BaseError, ExchangeError, AuthenticationError, PermissionDenied, AccountNotEnabled, AccountSuspended, ArgumentsRequired, BadRequest, BadSymbol, OperationRejected, NoChange, MarginModeAlreadySet, MarketClosed, BadResponse, NullResponse, InsufficientFunds, InvalidAddress, AddressPending, InvalidOrder, OrderNotFound, OrderNotCached, CancelPending, OrderImmediatelyFillable, OrderNotFillable, DuplicateOrderId, ContractUnavailable, NotSupported, ProxyError, ExchangeClosedByUser, OperationFailed, NetworkError, DDoSProtection, RateLimitExceeded, ExchangeNotAvailable, OnMaintenance, InvalidNonce, RequestTimeout}  from './src/base/errors.js'
 
 
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '4.3.22';
+const version = '4.3.43';
 
 (Exchange as any).ccxtVersion = version
 
@@ -85,8 +85,9 @@ import btcturk from  './src/btcturk.js'
 import bybit from  './src/bybit.js'
 import cex from  './src/cex.js'
 import coinbase from  './src/coinbase.js'
+import coinbaseadvanced from  './src/coinbaseadvanced.js'
+import coinbaseexchange from  './src/coinbaseexchange.js'
 import coinbaseinternational from  './src/coinbaseinternational.js'
-import coinbasepro from  './src/coinbasepro.js'
 import coincheck from  './src/coincheck.js'
 import coinex from  './src/coinex.js'
 import coinlist from  './src/coinlist.js'
@@ -177,8 +178,8 @@ import blockchaincomPro from  './src/pro/blockchaincom.js'
 import bybitPro from  './src/pro/bybit.js'
 import cexPro from  './src/pro/cex.js'
 import coinbasePro from  './src/pro/coinbase.js'
+import coinbaseexchangePro from  './src/pro/coinbaseexchange.js'
 import coinbaseinternationalPro from  './src/pro/coinbaseinternational.js'
-import coinbaseproPro from  './src/pro/coinbasepro.js'
 import coincheckPro from  './src/pro/coincheck.js'
 import coinexPro from  './src/pro/coinex.js'
 import coinonePro from  './src/pro/coinone.js'
@@ -259,8 +260,9 @@ const exchanges = {
     'bybit':                  bybit,
     'cex':                    cex,
     'coinbase':               coinbase,
+    'coinbaseadvanced':       coinbaseadvanced,
+    'coinbaseexchange':       coinbaseexchange,
     'coinbaseinternational':  coinbaseinternational,
-    'coinbasepro':            coinbasepro,
     'coincheck':              coincheck,
     'coinex':                 coinex,
     'coinlist':               coinlist,
@@ -351,8 +353,8 @@ const pro = {
     'bybit':                  bybitPro,
     'cex':                    cexPro,
     'coinbase':               coinbasePro,
+    'coinbaseexchange':       coinbaseexchangePro,
     'coinbaseinternational':  coinbaseinternationalPro,
-    'coinbasepro':            coinbaseproPro,
     'coincheck':              coincheckPro,
     'coinex':                 coinexPro,
     'coinone':                coinonePro,
@@ -454,35 +456,81 @@ export {
     OnMaintenance,
     InvalidNonce,
     RequestTimeout,
-    Market,
-    Trade,
+    Int,
+    int,
+    Str,
+    Strings,
+    Num,
+    Bool,
+    IndexType,
+    OrderSide,
+    OrderType,
+    MarketType,
+    SubType,
+    Dict,
+    NullableDict,
+    List,
+    NullableList,
     Fee,
-    Ticker,
-    OrderBook,
+    OHLCV,
+    OHLCVC,
+    implicitReturnType,
+    Market,
+    Currency,
+    Dictionary,
+    MinMax,
+    FeeInterface,
+    TradingFeeInterface,
+    MarketInterface,
+    Trade,
     Order,
+    OrderBook,
+    Ticker,
     Transaction,
     Tickers,
-    Currency,
+    CurrencyInterface,
     Balance,
+    BalanceAccount,
+    Account,
+    PartialBalances,
+    Balances,
     DepositAddress,
     WithdrawalResponse,
     DepositAddressResponse,
-    OHLCV,
-    Balances,
-    PartialBalances,
-    Dictionary,
-    MinMax,
+    FundingRate,
+    FundingRates,
     Position,
+    BorrowInterest,
+    LeverageTier,
+    LedgerEntry,
+    DepositWithdrawFeeNetwork,
+    DepositWithdrawFee,
+    TransferEntry,
+    CrossBorrowRate,
+    IsolatedBorrowRate,
     FundingRateHistory,
+    OpenInterest,
     Liquidation,
+    OrderRequest,
+    CancellationRequest,
     FundingHistory,
     MarginMode,
     Greeks,
-    Leverage,
-    Leverages,
-    Option,
-    OptionChain,
     Conversion,
+    Option,
+    LastPrice,
+    Leverage,
+    MarginModification,
+    Leverages,
+    LastPrices,
+    Currencies,
+    TradingFees,
+    MarginModes,
+    OptionChain,
+    IsolatedBorrowRates,
+    CrossBorrowRates,
+    TransferEntries,
+    LeverageTiers,
     ace,
     alpaca,
     ascendex,
@@ -522,8 +570,9 @@ export {
     bybit,
     cex,
     coinbase,
+    coinbaseadvanced,
+    coinbaseexchange,
     coinbaseinternational,
-    coinbasepro,
     coincheck,
     coinex,
     coinlist,

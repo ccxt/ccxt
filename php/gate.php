@@ -3311,7 +3311,7 @@ class gate extends Exchange {
         return $this->parse_trades($response, $market, $since, $limit);
     }
 
-    public function parse_trade($trade, ?array $market = null): array {
+    public function parse_trade(array $trade, ?array $market = null): array {
         //
         // public
         //
@@ -3577,7 +3577,7 @@ class gate extends Exchange {
         return $this->parse_transaction($response, $currency);
     }
 
-    public function parse_transaction_status($status) {
+    public function parse_transaction_status(?string $status) {
         $statuses = array(
             'PEND' => 'pending',
             'REQUEST' => 'pending',
@@ -3604,7 +3604,7 @@ class gate extends Exchange {
         return $this->safe_string($types, $type, $type);
     }
 
-    public function parse_transaction($transaction, ?array $currency = null): array {
+    public function parse_transaction(array $transaction, ?array $currency = null): array {
         //
         // deposits
         //
@@ -4209,7 +4209,7 @@ class gate extends Exchange {
         return $this->parse_order($response, $market);
     }
 
-    public function parse_order_status($status) {
+    public function parse_order_status(?string $status) {
         $statuses = array(
             'open' => 'open',
             '_new' => 'open',
@@ -4226,7 +4226,7 @@ class gate extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_order($order, ?array $market = null): array {
+    public function parse_order(array $order, ?array $market = null): array {
         //
         // SPOT
         // createOrder/cancelOrder/fetchOrder/editOrder
@@ -5151,7 +5151,7 @@ class gate extends Exchange {
         return $response;
     }
 
-    public function parse_position($position, ?array $market = null) {
+    public function parse_position(array $position, ?array $market = null) {
         //
         // swap and future
         //
@@ -5485,7 +5485,7 @@ class gate extends Exchange {
         return $this->parse_positions($response, $symbols);
     }
 
-    public function fetch_leverage_tiers(?array $symbols = null, $params = array ()) {
+    public function fetch_leverage_tiers(?array $symbols = null, $params = array ()): array {
         /**
          * retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes
          * @see https://www.gate.io/docs/developers/apiv4/en/#list-all-futures-contracts
@@ -5603,7 +5603,7 @@ class gate extends Exchange {
         return $this->parse_leverage_tiers($response, $symbols, 'name');
     }
 
-    public function fetch_market_leverage_tiers(string $symbol, $params = array ()) {
+    public function fetch_market_leverage_tiers(string $symbol, $params = array ()): array {
         /**
          * retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes for a single $market
          * @see https://www.gate.io/docs/developers/apiv4/en/#list-risk-limit-tiers
@@ -5661,7 +5661,7 @@ class gate extends Exchange {
         return $tiers;
     }
 
-    public function parse_market_leverage_tiers($info, ?array $market = null) {
+    public function parse_market_leverage_tiers($info, ?array $market = null): array {
         //
         //     array(
         //         {
@@ -6435,7 +6435,7 @@ class gate extends Exchange {
         return $this->parse_ledger($response, $currency, $since, $limit);
     }
 
-    public function parse_ledger_entry($item, ?array $currency = null) {
+    public function parse_ledger_entry(array $item, ?array $currency = null) {
         //
         // spot
         //
@@ -7337,7 +7337,7 @@ class gate extends Exchange {
         return $this->parse_positions($response, $symbols, $params);
     }
 
-    public function handle_errors($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
         if ($response === null) {
             return null;
         }

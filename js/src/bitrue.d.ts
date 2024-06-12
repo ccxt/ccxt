@@ -1,5 +1,5 @@
 import Exchange from './abstract/bitrue.js';
-import type { Balances, Currencies, Currency, Dict, Int, MarginModification, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntries, TransferEntry } from './base/types.js';
+import type { Balances, Currencies, Currency, Dict, Int, MarginModification, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntries, TransferEntry, int } from './base/types.js';
 /**
  * @class bitrue
  * @augments Exchange
@@ -19,7 +19,7 @@ export default class bitrue extends Exchange {
     safeNetwork(networkId: any): string;
     fetchCurrencies(params?: {}): Promise<Currencies>;
     fetchMarkets(params?: {}): Promise<Market[]>;
-    parseMarket(market: any): Market;
+    parseMarket(market: Dict): Market;
     parseBalance(response: any): Balances;
     fetchBalance(params?: {}): Promise<Balances>;
     fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
@@ -29,10 +29,10 @@ export default class bitrue extends Exchange {
     parseOHLCV(ohlcv: any, market?: Market): OHLCV;
     fetchBidsAsks(symbols?: Strings, params?: {}): Promise<Tickers>;
     fetchTickers(symbols?: Strings, params?: {}): Promise<Tickers>;
-    parseTrade(trade: any, market?: Market): Trade;
+    parseTrade(trade: Dict, market?: Market): Trade;
     fetchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
-    parseOrderStatus(status: any): string;
-    parseOrder(order: any, market?: Market): Order;
+    parseOrderStatus(status: Str): string;
+    parseOrder(order: Dict, market?: Market): Order;
     createMarketBuyOrderWithCost(symbol: string, cost: number, params?: {}): Promise<Order>;
     createOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): Promise<Order>;
     fetchOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
@@ -44,20 +44,9 @@ export default class bitrue extends Exchange {
     fetchDeposits(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
     fetchWithdrawals(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
     parseTransactionStatusByType(status: any, type?: any): string;
-    parseTransaction(transaction: any, currency?: Currency): Transaction;
+    parseTransaction(transaction: Dict, currency?: Currency): Transaction;
     withdraw(code: string, amount: number, address: string, tag?: any, params?: {}): Promise<Transaction>;
-    parseDepositWithdrawFee(fee: any, currency?: Currency): {
-        info: any;
-        withdraw: {
-            fee: any;
-            percentage: any;
-        };
-        deposit: {
-            fee: any;
-            percentage: any;
-        };
-        networks: {};
-    };
+    parseDepositWithdrawFee(fee: any, currency?: Currency): Dict;
     fetchDepositWithdrawFees(codes?: Strings, params?: {}): Promise<any>;
     parseTransfer(transfer: any, currency?: any): {
         info: any;
@@ -81,6 +70,6 @@ export default class bitrue extends Exchange {
         body: any;
         headers: any;
     };
-    handleErrors(code: any, reason: any, url: any, method: any, headers: any, body: any, response: any, requestHeaders: any, requestBody: any): any;
+    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): any;
     calculateRateLimiterCost(api: any, method: any, path: any, params: any, config?: {}): any;
 }

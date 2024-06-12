@@ -649,20 +649,19 @@ class htx extends \ccxt\async\htx {
         //     }
         //
         $messageHash = $this->safe_string($message, 'ch');
-        $tick = $this->safe_value($message, 'tick');
+        $tick = $this->safe_dict($message, 'tick');
         $event = $this->safe_string($tick, 'event');
-        $ch = $this->safe_value($message, 'ch');
+        $ch = $this->safe_string($message, 'ch');
         $parts = explode('.', $ch);
         $marketId = $this->safe_string($parts, 1);
         $symbol = $this->safe_symbol($marketId);
-        $orderbook = $this->safe_value($this->orderbooks, $symbol);
-        if ($orderbook === null) {
+        if (!(is_array($this->orderbooks) && array_key_exists($symbol, $this->orderbooks))) {
             $size = $this->safe_string($parts, 3);
             $sizeParts = explode('_', $size);
             $limit = $this->safe_integer($sizeParts, 1);
-            $orderbook = $this->order_book(array(), $limit);
-            $this->orderbooks[$symbol] = $orderbook;
+            $this->orderbooks[$symbol] = $this->order_book(array(), $limit);
         }
+        $orderbook = $this->orderbooks[$symbol];
         if (($event === null) && ($orderbook['nonce'] === null)) {
             $orderbook->cache[] = $message;
         } else {

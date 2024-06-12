@@ -288,6 +288,7 @@ public partial class independentreserve
     /// cancels an open order
     /// </summary>
     /// <remarks>
+    /// See <see href="https://www.independentreserve.com/features/api#CancelOrder"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -298,10 +299,10 @@ public partial class independentreserve
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
-    public async Task<Dictionary<string, object>> CancelOrder(string id, string symbol = null, Dictionary<string, object> parameters = null)
+    public async Task<Order> CancelOrder(string id, string symbol = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.cancelOrder(id, symbol, parameters);
-        return ((Dictionary<string, object>)res);
+        return new Order(res);
     }
     /// <summary>
     /// fetch the deposit address for a currency associated with this account

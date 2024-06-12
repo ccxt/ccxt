@@ -202,7 +202,7 @@ class ace extends Exchange {
         }) ();
     }
 
-    public function parse_market($market): array {
+    public function parse_market(array $market): array {
         $baseId = $this->safe_string($market, 'base');
         $base = $this->safe_currency_code($baseId);
         $quoteId = $this->safe_string($market, 'quote');
@@ -495,7 +495,7 @@ class ace extends Exchange {
         }) ();
     }
 
-    public function parse_order_status($status) {
+    public function parse_order_status(?string $status) {
         $statuses = array(
             '0' => 'open',
             '1' => 'open',
@@ -506,7 +506,7 @@ class ace extends Exchange {
         return $this->safe_string($statuses, $status, null);
     }
 
-    public function parse_order($order, ?array $market = null): array {
+    public function parse_order(array $order, ?array $market = null): array {
         //
         // createOrder
         //         "15697850529570392100421100482693"
@@ -768,7 +768,7 @@ class ace extends Exchange {
         }) ();
     }
 
-    public function parse_trade($trade, ?array $market = null): array {
+    public function parse_trade(array $trade, ?array $market = null): array {
         //
         // fetchOrderTrades
         //         {
@@ -1067,7 +1067,7 @@ class ace extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
         if ($response === null) {
             return null; // fallback to the default error handler
         }

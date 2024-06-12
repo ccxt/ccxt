@@ -814,7 +814,7 @@ class lbank extends Exchange {
         }) ();
     }
 
-    public function parse_trade($trade, ?array $market = null): array {
+    public function parse_trade(array $trade, ?array $market = null): array {
         //
         // fetchTrades (old) spotPublicGetTrades
         //
@@ -1239,7 +1239,7 @@ class lbank extends Exchange {
         }) ();
     }
 
-    public function parse_trading_fee($fee, ?array $market = null): array {
+    public function parse_trading_fee(array $fee, ?array $market = null): array {
         //
         //      {
         //          "symbol":"skt_usdt",
@@ -1418,7 +1418,7 @@ class lbank extends Exchange {
         }) ();
     }
 
-    public function parse_order_status($status) {
+    public function parse_order_status(?string $status) {
         $statuses = array(
             '-1' => 'canceled', // canceled
             '0' => 'open', // not traded
@@ -1430,7 +1430,7 @@ class lbank extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_order($order, ?array $market = null): array {
+    public function parse_order(array $order, ?array $market = null): array {
         //
         // fetchOrderSupplement (private)
         //
@@ -2128,7 +2128,7 @@ class lbank extends Exchange {
         return $this->safe_string($this->safe_value($statuses, $type, array()), $status, $status);
     }
 
-    public function parse_transaction($transaction, ?array $currency = null): array {
+    public function parse_transaction(array $transaction, ?array $currency = null): array {
         //
         // fetchDeposits (private)
         //
@@ -2777,7 +2777,7 @@ class lbank extends Exchange {
         return $pem . '-----END PRIVATE KEY-----';
     }
 
-    public function handle_errors($httpCode, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
         if ($response === null) {
             return null;
         }

@@ -1,5 +1,5 @@
 import Exchange from './abstract/bitopro.js';
-import type { Balances, Currencies, Currency, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction } from './base/types.js';
+import type { Balances, Currencies, Currency, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction, int } from './base/types.js';
 /**
  * @class bitopro
  * @augments Exchange
@@ -8,12 +8,12 @@ export default class bitopro extends Exchange {
     describe(): any;
     fetchCurrencies(params?: {}): Promise<Currencies>;
     fetchMarkets(params?: {}): Promise<Market[]>;
-    parseMarket(market: any): Market;
+    parseMarket(market: Dict): Market;
     parseTicker(ticker: Dict, market?: Market): Ticker;
     fetchTicker(symbol: string, params?: {}): Promise<Ticker>;
     fetchTickers(symbols?: Strings, params?: {}): Promise<Tickers>;
     fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
-    parseTrade(trade: any, market?: Market): Trade;
+    parseTrade(trade: Dict, market?: Market): Trade;
     fetchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     fetchTradingFees(params?: {}): Promise<TradingFees>;
     parseOHLCV(ohlcv: any, market?: Market): OHLCV;
@@ -21,8 +21,8 @@ export default class bitopro extends Exchange {
     insertMissingCandles(candles: any, distance: any, since: any, limit: any): any;
     parseBalance(response: any): Balances;
     fetchBalance(params?: {}): Promise<Balances>;
-    parseOrderStatus(status: any): string;
-    parseOrder(order: any, market?: Market): Order;
+    parseOrderStatus(status: Str): string;
+    parseOrder(order: Dict, market?: Market): Order;
     createOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): Promise<Order>;
     cancelOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
     cancelOrders(ids: any, symbol?: Str, params?: {}): Promise<any>;
@@ -32,8 +32,8 @@ export default class bitopro extends Exchange {
     fetchOpenOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     fetchClosedOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     fetchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
-    parseTransactionStatus(status: any): string;
-    parseTransaction(transaction: any, currency?: Currency): Transaction;
+    parseTransactionStatus(status: Str): string;
+    parseTransaction(transaction: Dict, currency?: Currency): Transaction;
     fetchDeposits(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
     fetchWithdrawals(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
     fetchWithdrawal(id: string, code?: Str, params?: {}): Promise<Transaction>;
@@ -57,5 +57,5 @@ export default class bitopro extends Exchange {
         body: any;
         headers: any;
     };
-    handleErrors(code: any, reason: any, url: any, method: any, headers: any, body: any, response: any, requestHeaders: any, requestBody: any): any;
+    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): any;
 }

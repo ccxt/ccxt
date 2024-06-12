@@ -486,7 +486,7 @@ export default class bitget extends Exchange {
                             'v2/mix/account/set-margin': 4,
                             'v2/mix/account/set-margin-mode': 4,
                             'v2/mix/account/set-position-mode': 4,
-                            'v2/mix/order/place-order': 20,
+                            'v2/mix/order/place-order': 2,
                             'v2/mix/order/click-backhand': 20,
                             'v2/mix/order/batch-place-order': 20,
                             'v2/mix/order/modify-order': 2,
@@ -760,6 +760,7 @@ export default class bitget extends Exchange {
                             'v2/earn/loan/borrow-history': 2,
                             'v2/earn/loan/debts': 2,
                             'v2/earn/loan/reduces': 2,
+                            'v2/earn/account/assets': 2,
                         },
                         'post': {
                             'v2/earn/savings/subscribe': 2,
@@ -1230,6 +1231,7 @@ export default class bitget extends Exchange {
                     '40712': InsufficientFunds,
                     '40713': ExchangeError,
                     '40714': ExchangeError,
+                    '40762': InsufficientFunds,
                     '40768': OrderNotFound,
                     '41114': OnMaintenance,
                     '43011': InvalidOrder,
@@ -4345,11 +4347,17 @@ export default class bitget extends Exchange {
                 }
                 const marginModeRequest = (marginMode === 'cross') ? 'crossed' : 'isolated';
                 request['marginMode'] = marginModeRequest;
-                const oneWayMode = this.safeBool(params, 'oneWayMode', false);
-                params = this.omit(params, 'oneWayMode');
+                let hedged = undefined;
+                [hedged, params] = this.handleParamBool(params, 'hedged', false);
+                // backward compatibility for `oneWayMode`
+                let oneWayMode = undefined;
+                [oneWayMode, params] = this.handleParamBool(params, 'oneWayMode');
+                if (oneWayMode !== undefined) {
+                    hedged = !oneWayMode;
+                }
                 let requestSide = side;
                 if (reduceOnly) {
-                    if (oneWayMode) {
+                    if (!hedged) {
                         request['reduceOnly'] = 'YES';
                     }
                     else {
@@ -4359,7 +4367,7 @@ export default class bitget extends Exchange {
                     }
                 }
                 else {
-                    if (!oneWayMode) {
+                    if (hedged) {
                         request['tradeSide'] = 'Open';
                     }
                 }

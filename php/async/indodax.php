@@ -525,7 +525,7 @@ class indodax extends Exchange {
         }) ();
     }
 
-    public function parse_trade($trade, ?array $market = null): array {
+    public function parse_trade(array $trade, ?array $market = null): array {
         $timestamp = $this->safe_timestamp($trade, 'date');
         return $this->safe_trade(array(
             'id' => $this->safe_string($trade, 'tid'),
@@ -636,7 +636,7 @@ class indodax extends Exchange {
         }) ();
     }
 
-    public function parse_order_status($status) {
+    public function parse_order_status(?string $status) {
         $statuses = array(
             'open' => 'open',
             'filled' => 'closed',
@@ -645,7 +645,7 @@ class indodax extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_order($order, ?array $market = null): array {
+    public function parse_order(array $order, ?array $market = null): array {
         //
         //     {
         //         "order_id" => "12345",
@@ -669,6 +669,24 @@ class indodax extends Exchange {
         //       "order_xrp" => "30.45000000",
         //       "remain_xrp" => "0.00000000"
         //     }
+        //
+        // cancelOrder
+        //
+        //    {
+        //        "order_id" => 666883,
+        //        "client_order_id" => "clientx-sj82ks82j",
+        //        "type" => "sell",
+        //        "pair" => "btc_idr",
+        //        "balance" => {
+        //            "idr" => "33605800",
+        //            "btc" => "0.00000000",
+        //            ...
+        //            "frozen_idr" => "0",
+        //            "frozen_btc" => "0.00000000",
+        //            ...
+        //        }
+        //    }
+        //
         $side = null;
         if (is_array($order) && array_key_exists('type', $order)) {
             $side = $order['type'];
@@ -679,6 +697,8 @@ class indodax extends Exchange {
         $price = $this->safe_string($order, 'price');
         $amount = null;
         $remaining = null;
+        $marketId = $this->safe_string($order, 'pair');
+        $market = $this->safe_market($marketId, $market);
         if ($market !== null) {
             $symbol = $market['symbol'];
             $quoteId = $market['quoteId'];
@@ -701,7 +721,7 @@ class indodax extends Exchange {
         return $this->safe_order(array(
             'info' => $order,
             'id' => $id,
-            'clientOrderId' => null,
+            'clientOrderId' => $this->safe_string($order, 'client_order_id'),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'lastTradeTimestamp' => null,
@@ -882,7 +902,28 @@ class indodax extends Exchange {
                 'pair' => $market['id'],
                 'type' => $side,
             );
-            return Async\await($this->privatePostCancelOrder ($this->extend($request, $params)));
+            $response = Async\await($this->privatePostCancelOrder ($this->extend($request, $params)));
+            //
+            //    {
+            //        "success" => 1,
+            //        "return" => {
+            //            "order_id" => 666883,
+            //            "client_order_id" => "clientx-sj82ks82j",
+            //            "type" => "sell",
+            //            "pair" => "btc_idr",
+            //            "balance" => {
+            //                "idr" => "33605800",
+            //                "btc" => "0.00000000",
+            //                ...
+            //                "frozen_idr" => "0",
+            //                "frozen_btc" => "0.00000000",
+            //                ...
+            //            }
+            //        }
+            //    }
+            //
+            $data = $this->safe_dict($response, 'return');
+            return $this->parse_order($data);
         }) ();
     }
 
@@ -1075,7 +1116,7 @@ class indodax extends Exchange {
         }) ();
     }
 
-    public function parse_transaction($transaction, ?array $currency = null): array {
+    public function parse_transaction(array $transaction, ?array $currency = null): array {
         //
         // withdraw
         //
@@ -1153,7 +1194,7 @@ class indodax extends Exchange {
         );
     }
 
-    public function parse_transaction_status($status) {
+    public function parse_transaction_status(?string $status) {
         $statuses = array(
             'success' => 'ok',
         );
@@ -1270,7 +1311,7 @@ class indodax extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
         if ($response === null) {
             return null;
         }

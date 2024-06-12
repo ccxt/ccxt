@@ -308,7 +308,7 @@ class coinmetro(Exchange, ImplicitAPI):
         #         ...
         #     ]
         #
-        result = {}
+        result: dict = {}
         for i in range(0, len(response)):
             currency = response[i]
             id = self.safe_string(currency, 'symbol')
@@ -373,7 +373,7 @@ class coinmetro(Exchange, ImplicitAPI):
         #
         return self.parse_markets(response)
 
-    def parse_market(self, market) -> Market:
+    def parse_market(self, market: dict) -> Market:
         id = self.safe_string(market, 'pair')
         parsedMarketId = self.parse_market_id(id)
         baseId = self.safe_string(parsedMarketId, 'baseId')
@@ -455,7 +455,7 @@ class coinmetro(Exchange, ImplicitAPI):
                         baseId = restId
                         quoteId = currencyId
                     break
-        result = {
+        result: dict = {
             'baseId': baseId,
             'quoteId': quoteId,
         }
@@ -468,7 +468,7 @@ class coinmetro(Exchange, ImplicitAPI):
         limits = self.safe_value(currency, 'limits', {})
         amountLimits = self.safe_value(limits, 'amount', {})
         minLimit = self.safe_number(amountLimits, 'min')
-        result = {
+        result: dict = {
             'precision': precision,
             'minLimit': minLimit,
         }
@@ -488,7 +488,7 @@ class coinmetro(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'pair': market['id'],
             'timeframe': self.safe_string(self.timeframes, timeframe, timeframe),
         }
@@ -559,7 +559,7 @@ class coinmetro(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'pair': market['id'],
         }
         if since is not None:
@@ -613,7 +613,7 @@ class coinmetro(Exchange, ImplicitAPI):
         market = None
         if symbol is not None:
             market = self.market(symbol)
-        request = {}
+        request: dict = {}
         if since is not None:
             request['since'] = since
         else:
@@ -636,7 +636,7 @@ class coinmetro(Exchange, ImplicitAPI):
         #
         return self.parse_trades(response, market, since, limit)
 
-    def parse_trade(self, trade, market: Market = None) -> Trade:
+    def parse_trade(self, trade: dict, market: Market = None) -> Trade:
         #
         # fetchTrades
         #     {
@@ -715,7 +715,7 @@ class coinmetro(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'pair': market['id'],
         }
         response = await self.publicGetExchangeBookPair(self.extend(request, params))
@@ -749,7 +749,7 @@ class coinmetro(Exchange, ImplicitAPI):
         book = self.safe_value(response, 'book', {})
         rawBids = self.safe_value(book, 'bid', {})
         rawAsks = self.safe_value(book, 'ask', {})
-        rawOrderbook = {
+        rawOrderbook: dict = {
             'bids': rawBids,
             'asks': rawAsks,
         }
@@ -827,7 +827,7 @@ class coinmetro(Exchange, ImplicitAPI):
         #
         latestPrices = self.safe_value(response, 'latestPrices', [])
         twentyFourHInfos = self.safe_value(response, '24hInfo', [])
-        tickersObject = {}
+        tickersObject: dict = {}
         # merging info from two lists into one
         for i in range(0, len(latestPrices)):
             latestPrice = latestPrices[i]
@@ -944,7 +944,7 @@ class coinmetro(Exchange, ImplicitAPI):
         #         ...
         #     ]
         #
-        result = {
+        result: dict = {
             'info': balances,
         }
         for i in range(0, len(balances)):
@@ -969,7 +969,7 @@ class coinmetro(Exchange, ImplicitAPI):
         :returns dict: a `ledger structure <https://docs.ccxt.com/#/?id=ledger-structure>`
         """
         await self.load_markets()
-        request = {}
+        request: dict = {}
         if since is not None:
             request['since'] = since
         else:
@@ -1079,7 +1079,7 @@ class coinmetro(Exchange, ImplicitAPI):
                 ledger.append(rawLedgerEntry)
         return self.parse_ledger(ledger, currency, since, limit)
 
-    def parse_ledger_entry(self, item, currency: Currency = None):
+    def parse_ledger_entry(self, item: dict, currency: Currency = None):
         datetime = self.safe_string(item, 'timestamp')
         currencyId = self.safe_string(item, 'currencyId')
         item = self.omit(item, 'currencyId')
@@ -1134,7 +1134,7 @@ class coinmetro(Exchange, ImplicitAPI):
         return [type, referenceId]
 
     def parse_ledger_entry_type(self, type):
-        types = {
+        types: dict = {
             'Deposit': 'transaction',
             'Withdraw': 'transaction',
             'Order': 'trade',
@@ -1164,7 +1164,7 @@ class coinmetro(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
         }
         request['orderType'] = type
         precisedAmount = None
@@ -1249,7 +1249,7 @@ class coinmetro(Exchange, ImplicitAPI):
         return request
 
     def encode_order_time_in_force(self, timeInForce):
-        timeInForceTypes = {
+        timeInForceTypes: dict = {
             'GTC': 1,
             'IOC': 2,
             'GTD': 3,
@@ -1269,7 +1269,7 @@ class coinmetro(Exchange, ImplicitAPI):
         :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
-        request = {
+        request: dict = {
             'orderID': id,
         }
         marginMode = None
@@ -1317,7 +1317,7 @@ class coinmetro(Exchange, ImplicitAPI):
         orderId = self.safe_string(params, 'orderId')
         if orderId is None:
             raise ArgumentsRequired(self.id + ' closePosition() requires a orderId parameter')
-        request = {
+        request: dict = {
             'orderID': orderId,
         }
         response = await self.privatePostExchangeOrdersCloseOrderID(self.extend(request, params))
@@ -1387,7 +1387,7 @@ class coinmetro(Exchange, ImplicitAPI):
         market = None
         if symbol is not None:
             market = self.market(symbol)
-        request = {}
+        request: dict = {}
         if since is not None:
             request['since'] = since
         response = await self.privateGetExchangeOrdersHistorySince(self.extend(request, params))
@@ -1403,7 +1403,7 @@ class coinmetro(Exchange, ImplicitAPI):
         :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
-        request = {
+        request: dict = {
             'orderID': id,
         }
         response = await self.privateGetExchangeOrdersStatusOrderID(self.extend(request, params))
@@ -1444,7 +1444,7 @@ class coinmetro(Exchange, ImplicitAPI):
         #
         return self.parse_order(response)
 
-    def parse_order(self, order, market: Market = None) -> Order:
+    def parse_order(self, order: dict, market: Market = None) -> Order:
         #
         # createOrder market
         #     {
@@ -1735,7 +1735,7 @@ class coinmetro(Exchange, ImplicitAPI):
         await self.load_markets()
         currency = self.currency(code)
         currencyId = currency['id']
-        request = {}
+        request: dict = {}
         request[currencyId] = self.currency_to_precision(code, amount)
         response = await self.privatePutUsersMarginCollateral(self.extend(request, params))
         #
@@ -1794,7 +1794,7 @@ class coinmetro(Exchange, ImplicitAPI):
             url = url[0:len(url) - 1]
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response, requestHeaders, requestBody):
         if response is None:
             return None
         if (code != 200) and (code != 201) and (code != 202):

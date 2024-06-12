@@ -5,7 +5,7 @@ import whitebitRest from '../whitebit.js';
 import { Precise } from '../base/Precise.js';
 import { ArgumentsRequired, AuthenticationError, BadRequest } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
-import type { Int, Str, OrderBook, Order, Trade, Ticker, OHLCV, Balances } from '../base/types.js';
+import type { Int, Str, OrderBook, Order, Trade, Ticker, OHLCV, Balances, Dict } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -644,7 +644,7 @@ export default class whitebit extends whitebitRest {
     }
 
     parseWsOrderType (status) {
-        const statuses = {
+        const statuses: Dict = {
             '1': 'limit',
             '2': 'market',
             '202': 'market',
@@ -723,7 +723,7 @@ export default class whitebit extends whitebitRest {
     async watchPublic (messageHash, method, reqParams = [], params = {}) {
         const url = this.urls['api']['ws'];
         const id = this.nonce ();
-        const request = {
+        const request: Dict = {
             'id': id,
             'method': method,
             'params': reqParams,
@@ -740,7 +740,7 @@ export default class whitebit extends whitebitRest {
         let request = undefined;
         let marketIds = [];
         if (client === undefined) {
-            const subscription = {};
+            const subscription: Dict = {};
             const market = this.market (symbol);
             const marketId = market['id'];
             subscription[marketId] = true;
@@ -775,7 +775,7 @@ export default class whitebit extends whitebitRest {
                 if (isNested) {
                     marketIdsNew = [ marketIdsNew ];
                 }
-                const resubRequest = {
+                const resubRequest: Dict = {
                     'id': id,
                     'method': method,
                     'params': marketIdsNew,
@@ -793,7 +793,7 @@ export default class whitebit extends whitebitRest {
         await this.authenticate ();
         const url = this.urls['api']['ws'];
         const id = this.nonce ();
-        const request = {
+        const request: Dict = {
             'id': id,
             'method': method,
             'params': reqParams,
@@ -818,7 +818,7 @@ export default class whitebit extends whitebitRest {
             //
             const token = this.safeString (authToken, 'websocket_token');
             const id = this.nonce ();
-            const request = {
+            const request: Dict = {
                 'id': id,
                 'method': 'authorize',
                 'params': [
@@ -826,7 +826,7 @@ export default class whitebit extends whitebitRest {
                     'public',
                 ],
             };
-            const subscription = {
+            const subscription: Dict = {
                 'id': id,
                 'method': this.handleAuthenticate,
             };
@@ -897,7 +897,7 @@ export default class whitebit extends whitebitRest {
             this.handleSubscriptionStatus (client, message, id);
             return;
         }
-        const methods = {
+        const methods: Dict = {
             'market_update': this.handleTicker,
             'trades_update': this.handleTrades,
             'depth_update': this.handleOrderBook,

@@ -239,9 +239,13 @@ export default class binance extends Exchange {
                     // UID (sapi) request rate limit of 180 000 per minute
                     // 1 UID (sapi) => cost = 0.006667 => (1000 / (50 * 0.006667)) * 60 = 180000
                     'get': {
+                        // copy trading
+                        'copyTrading/futures/userStatus': 2,
+                        'copyTrading/futures/leadSymbol': 2,
                         'system/status': 0.1,
                         // these endpoints require this.apiKey
                         'accountSnapshot': 240,
+                        'account/info': 0.1,
                         'margin/asset': 1,
                         'margin/pair': 1,
                         'margin/allAssets': 0.1,
@@ -845,6 +849,7 @@ export default class binance extends Exchange {
                         'order/asyn/id': 10,
                         'trade/asyn': 1000,
                         'trade/asyn/id': 10,
+                        'feeBurn': 1,
                     },
                     'post': {
                         'batchOrders': 5,
@@ -859,6 +864,7 @@ export default class binance extends Exchange {
                         // broker endpoints
                         'apiReferral/customization': 1,
                         'apiReferral/userCustomization': 1,
+                        'feeBurn': 1,
                     },
                     'put': {
                         'listenKey': 1,
@@ -1224,6 +1230,7 @@ export default class binance extends Exchange {
                     'future': 'UMFUTURE',
                     'delivery': 'CMFUTURE',
                     'linear': 'UMFUTURE',
+                    'swap': 'UMFUTURE',
                     'inverse': 'CMFUTURE',
                     'option': 'OPTION',
                 },
@@ -5986,6 +5993,17 @@ export default class binance extends Exchange {
                 }
             }
         }
+        else {
+            postOnly = this.isPostOnly(isMarketOrder, initialUppercaseType === 'LIMIT_MAKER', params);
+            if (postOnly) {
+                if (!market['contract']) {
+                    uppercaseType = 'LIMIT_MAKER'; // only this endpoint accepts GTXhttps://binance-docs.github.io/apidocs/pm/en/#new-margin-order-trade
+                }
+                else {
+                    request['timeInForce'] = 'GTX';
+                }
+            }
+        }
         // handle newOrderRespType response type
         if (((marketType === 'spot') || (marketType === 'margin')) && !isPortfolioMargin) {
             request['newOrderRespType'] = this.safeString(this.options['newOrderRespType'], type, 'FULL'); // 'ACK' for order id, 'RESULT' for full order or 'FULL' for order with fills
@@ -6119,7 +6137,7 @@ export default class binance extends Exchange {
                 request['stopPrice'] = this.priceToPrecision(symbol, stopPrice);
             }
         }
-        if (timeInForceIsRequired && (this.safeString(params, 'timeInForce') === undefined)) {
+        if (timeInForceIsRequired && (this.safeString(params, 'timeInForce') === undefined) && (this.safeString(request, 'timeInForce') === undefined)) {
             request['timeInForce'] = this.options['defaultTimeInForce']; // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
         }
         if (!isPortfolioMargin && market['contract'] && postOnly) {
@@ -8093,8 +8111,56 @@ export default class binance extends Exchange {
         //         "tranId": 43000126248
         //     }
         //
-        const id = this.safeString(transfer, 'tranId');
-        const currencyId = this.safeString(transfer, 'asset');
+        //     {
+        //             "orderType": "C2C", // Enum：PAY(C2B Merchant Acquiring Payment), PAY_REFUND(C2B Merchant Acquiring Payment,refund), C2C(C2C Transfer Payment),CRYPTO_BOX(Crypto box), CRYPTO_BOX_RF(Crypto Box, refund), C2C_HOLDING(Transfer to new Binance user), C2C_HOLDING_RF(Transfer to new Binance user,refund), PAYOUT(B2C Disbursement Payment), REMITTANCE（Send cash)
+        //             "transactionId": "M_P_71505104267788288",
+        //             "transactionTime": 1610090460133, //trade timestamp
+        //             "amount": "23.72469206", //order amount(up to 8 decimal places), positive is income, negative is expenditure
+        //             "currency": "BNB",
+        //             "walletType": 1, //main wallet type, 1 for funding wallet, 2 for spot wallet, 3 for fiat wallet, 4 or 6 for card payment, 5 for earn wallet
+        //             "walletTypes": [1,2], //array format，there are multiple values when using combination payment
+        //             "fundsDetail": [ // details
+        //                     {
+        //                         "currency": "USDT", //asset
+        //                         "amount": "1.2",
+        //                         "walletAssetCost":[ //details of asset cost per wallet
+        //                             {"1":"0.6"},
+        //                             {"2":"0.6"}
+        //                         ]
+        //                     },
+        //                     {
+        //                         "currency": "ETH",
+        //                         "amount": "0.0001",
+        //                         "walletAssetCost":[
+        //                             {"1":"0.00005"},
+        //                             {"2":"0.00005"}
+        //                         ]
+        //                     }
+        //                 ],
+        //             "payerInfo":{
+        //                     "name":"Jack", //nickname or merchant name
+        //                     "type":"USER", //account type，USER for personal，MERCHANT for merchant
+        //                     "binanceId":"12345678", //binance uid
+        //                     "accountId":"67736251" //binance pay id
+        //                 },
+        //             "receiverInfo":{
+        //                     "name":"Alan", //nickname or merchant name
+        //                     "type":"MERCHANT", //account type，USER for personal，MERCHANT for merchant
+        //                     "email":"alan@binance.com", //email
+        //                     "binanceId":"34355667", //binance uid
+        //                     "accountId":"21326891", //binance pay id
+        //                     "countryCode":"1", //International area code
+        //                     "phoneNumber":"8057651210",
+        //                     "mobileCode":"US", //country code
+        //                     "extend":[ //extension field
+        //                             "institutionName": "",
+        //                             "cardNumber": "",
+        //                             "digitalWalletId": ""
+        //                     ]
+        //                 }
+        //             }
+        const id = this.safeString2(transfer, 'tranId', 'transactionId');
+        const currencyId = this.safeString2(transfer, 'asset', 'currency');
         const code = this.safeCurrencyCode(currencyId, currency);
         const amount = this.safeNumber(transfer, 'amount');
         const type = this.safeString(transfer, 'type');
@@ -8108,7 +8174,14 @@ export default class binance extends Exchange {
             fromAccount = this.safeString(accountsById, fromAccount, fromAccount);
             toAccount = this.safeString(accountsById, toAccount, toAccount);
         }
-        const timestamp = this.safeInteger(transfer, 'timestamp');
+        const walletType = this.safeInteger(transfer, 'walletType');
+        if (walletType !== undefined) {
+            const payer = this.safeDict(transfer, 'payerInfo', {});
+            const receiver = this.safeDict(transfer, 'receiverInfo', {});
+            fromAccount = this.safeString(payer, 'accountId');
+            toAccount = this.safeString(receiver, 'accountId');
+        }
+        const timestamp = this.safeInteger2(transfer, 'timestamp', 'transactionTime');
         const status = this.parseTransferStatus(this.safeString(transfer, 'status'));
         return {
             'info': transfer,
@@ -8260,74 +8333,144 @@ export default class binance extends Exchange {
          * @name binance#fetchTransfers
          * @description fetch a history of internal transfers made on an account
          * @see https://binance-docs.github.io/apidocs/spot/en/#query-user-universal-transfer-history-user_data
+         * @see https://binance-docs.github.io/apidocs/spot/en/#pay-endpoints
          * @param {string} code unified currency code of the currency transferred
          * @param {int} [since] the earliest time in ms to fetch transfers for
          * @param {int} [limit] the maximum number of transfers structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {int} [params.until] the latest time in ms to fetch transfers for
          * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+         * @param {boolean} [params.internal] default false, when true will fetch pay trade history
          * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/#/?id=transfer-structure}
          */
         await this.loadMarkets();
+        const internal = this.safeBool(params, 'internal');
+        params = this.omit(params, 'internal');
         let paginate = false;
         [paginate, params] = this.handleOptionAndParams(params, 'fetchTransfers', 'paginate');
-        if (paginate) {
+        if (paginate && !internal) {
             return await this.fetchPaginatedCallDynamic('fetchTransfers', code, since, limit, params);
         }
         let currency = undefined;
         if (code !== undefined) {
             currency = this.currency(code);
         }
-        const defaultType = this.safeString2(this.options, 'fetchTransfers', 'defaultType', 'spot');
-        const fromAccount = this.safeString(params, 'fromAccount', defaultType);
-        const defaultTo = (fromAccount === 'future') ? 'spot' : 'future';
-        const toAccount = this.safeString(params, 'toAccount', defaultTo);
-        let type = this.safeString(params, 'type');
-        const accountsByType = this.safeDict(this.options, 'accountsByType', {});
-        const fromId = this.safeString(accountsByType, fromAccount);
-        const toId = this.safeString(accountsByType, toAccount);
-        if (type === undefined) {
-            if (fromId === undefined) {
-                const keys = Object.keys(accountsByType);
-                throw new ExchangeError(this.id + ' fromAccount parameter must be one of ' + keys.join(', '));
+        const request = {};
+        let limitKey = 'limit';
+        if (!internal) {
+            const defaultType = this.safeString2(this.options, 'fetchTransfers', 'defaultType', 'spot');
+            const fromAccount = this.safeString(params, 'fromAccount', defaultType);
+            const defaultTo = (fromAccount === 'future') ? 'spot' : 'future';
+            const toAccount = this.safeString(params, 'toAccount', defaultTo);
+            let type = this.safeString(params, 'type');
+            const accountsByType = this.safeDict(this.options, 'accountsByType', {});
+            const fromId = this.safeString(accountsByType, fromAccount);
+            const toId = this.safeString(accountsByType, toAccount);
+            if (type === undefined) {
+                if (fromId === undefined) {
+                    const keys = Object.keys(accountsByType);
+                    throw new ExchangeError(this.id + ' fromAccount parameter must be one of ' + keys.join(', '));
+                }
+                if (toId === undefined) {
+                    const keys = Object.keys(accountsByType);
+                    throw new ExchangeError(this.id + ' toAccount parameter must be one of ' + keys.join(', '));
+                }
+                type = fromId + '_' + toId;
             }
-            if (toId === undefined) {
-                const keys = Object.keys(accountsByType);
-                throw new ExchangeError(this.id + ' toAccount parameter must be one of ' + keys.join(', '));
-            }
-            type = fromId + '_' + toId;
-        }
-        const request = {
-            'type': type,
-        };
-        if (since !== undefined) {
-            request['startTime'] = since;
+            request['type'] = type;
+            limitKey = 'size';
         }
         if (limit !== undefined) {
-            request['size'] = limit;
+            request[limitKey] = limit;
+        }
+        if (since !== undefined) {
+            request['startTime'] = since;
         }
         const until = this.safeInteger(params, 'until');
         if (until !== undefined) {
             params = this.omit(params, 'until');
             request['endTime'] = until;
         }
-        const response = await this.sapiGetAssetTransfer(this.extend(request, params));
-        //
-        //     {
-        //         "total": 3,
-        //         "rows": [
-        //             {
-        //                 "timestamp": 1614640878000,
-        //                 "asset": "USDT",
-        //                 "amount": "25",
-        //                 "type": "MAIN_UMFUTURE",
-        //                 "status": "CONFIRMED",
-        //                 "tranId": 43000126248
-        //             },
-        //         ]
-        //     }
-        //
-        const rows = this.safeList(response, 'rows', []);
+        let response = undefined;
+        if (internal) {
+            response = await this.sapiGetPayTransactions(this.extend(request, params));
+            //
+            // {
+            //     "code": "000000",
+            //     "message": "success",
+            //     "data": [
+            //     {
+            //         "orderType": "C2C", // Enum：PAY(C2B Merchant Acquiring Payment), PAY_REFUND(C2B Merchant Acquiring Payment,refund), C2C(C2C Transfer Payment),CRYPTO_BOX(Crypto box), CRYPTO_BOX_RF(Crypto Box, refund), C2C_HOLDING(Transfer to new Binance user), C2C_HOLDING_RF(Transfer to new Binance user,refund), PAYOUT(B2C Disbursement Payment), REMITTANCE（Send cash)
+            //         "transactionId": "M_P_71505104267788288",
+            //         "transactionTime": 1610090460133, //trade timestamp
+            //         "amount": "23.72469206", //order amount(up to 8 decimal places), positive is income, negative is expenditure
+            //         "currency": "BNB",
+            //         "walletType": 1, //main wallet type, 1 for funding wallet, 2 for spot wallet, 3 for fiat wallet, 4 or 6 for card payment, 5 for earn wallet
+            //         "walletTypes": [1,2], //array format，there are multiple values when using combination payment
+            //         "fundsDetail": [ // details
+            //                 {
+            //                  "currency": "USDT", //asset
+            //                  "amount": "1.2",
+            //                  "walletAssetCost":[ //details of asset cost per wallet
+            //                      {"1":"0.6"},
+            //                      {"2":"0.6"}
+            //                  ]
+            //                 },
+            //                 {
+            //                   "currency": "ETH",
+            //                   "amount": "0.0001",
+            //                   "walletAssetCost":[
+            //                      {"1":"0.00005"},
+            //                      {"2":"0.00005"}
+            //                   ]
+            //                 }
+            //            ],
+            //         "payerInfo":{
+            //                 "name":"Jack", //nickname or merchant name
+            //                 "type":"USER", //account type，USER for personal，MERCHANT for merchant
+            //                 "binanceId":"12345678", //binance uid
+            //                 "accountId":"67736251" //binance pay id
+            //             },
+            //         "receiverInfo":{
+            //                 "name":"Alan", //nickname or merchant name
+            //                 "type":"MERCHANT", //account type，USER for personal，MERCHANT for merchant
+            //                 "email":"alan@binance.com", //email
+            //                 "binanceId":"34355667", //binance uid
+            //                 "accountId":"21326891", //binance pay id
+            //                 "countryCode":"1", //International area code
+            //                 "phoneNumber":"8057651210",
+            //                 "mobileCode":"US", //country code
+            //                 "extend":[ //extension field
+            //                      "institutionName": "",
+            //                      "cardNumber": "",
+            //                      "digitalWalletId": ""
+            //                 ]
+            //             }
+            //       }
+            //    ],
+            //    "success": true
+            // }
+            //
+        }
+        else {
+            response = await this.sapiGetAssetTransfer(this.extend(request, params));
+            //
+            //     {
+            //         "total": 3,
+            //         "rows": [
+            //             {
+            //                 "timestamp": 1614640878000,
+            //                 "asset": "USDT",
+            //                 "amount": "25",
+            //                 "type": "MAIN_UMFUTURE",
+            //                 "status": "CONFIRMED",
+            //                 "tranId": 43000126248
+            //             },
+            //         ]
+            //     }
+            //
+        }
+        const rows = this.safeList2(response, 'rows', 'data', []);
         return this.parseTransfers(rows, currency, since, limit);
     }
     async fetchDepositAddress(code, params = {}) {
@@ -9692,7 +9835,7 @@ export default class binance extends Exchange {
         await this.loadMarkets();
         // by default cache the leverage bracket
         // it contains useful stuff like the maintenance margin and initial margin for positions
-        const leverageBrackets = this.safeDict(this.options, 'leverageBrackets', {});
+        const leverageBrackets = this.safeDict(this.options, 'leverageBrackets');
         if ((leverageBrackets === undefined) || (reload)) {
             const defaultType = this.safeString(this.options, 'defaultType', 'future');
             const type = this.safeString(params, 'type', defaultType);

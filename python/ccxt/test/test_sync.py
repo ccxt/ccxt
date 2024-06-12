@@ -448,7 +448,7 @@ class testMainClass(baseMainTestClass):
                 dump(self.add_padding(skip_message, 25), self.exchange_hint(exchange), method_name)
             return
         if self.info:
-            args_stringified = '(' + ','.join(args) + ')'
+            args_stringified = '(' + exchange.json(args) + ')'  # args.join() breaks when we provide a list of symbols or multidimensional array; "args.toString()" breaks bcz of "array to string conversion"
             dump(self.add_padding('[INFO] TESTING', 25), self.exchange_hint(exchange), method_name, args_stringified)
         call_method(self.test_files, method_name, exchange, skipped_properties_for_method, args)
         # if it was passed successfully, add to the list of successfull tests

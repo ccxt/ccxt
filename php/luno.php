@@ -372,7 +372,7 @@ class luno extends Exchange {
         return $this->parse_order_book($response, $market['symbol'], $timestamp, 'bids', 'asks', 'price', 'volume');
     }
 
-    public function parse_order_status($status) {
+    public function parse_order_status(?string $status) {
         $statuses = array(
             // todo add other $statuses
             'PENDING' => 'open',
@@ -380,7 +380,7 @@ class luno extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_order($order, ?array $market = null): array {
+    public function parse_order(array $order, ?array $market = null): array {
         //
         //     {
         //         "base" => "string",
@@ -614,7 +614,7 @@ class luno extends Exchange {
         return $this->parse_ticker($response, $market);
     }
 
-    public function parse_trade($trade, ?array $market = null): array {
+    public function parse_trade(array $trade, ?array $market = null): array {
         //
         // fetchTrades (public)
         //
@@ -1112,7 +1112,7 @@ class luno extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors($httpCode, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
         if ($response === null) {
             return null;
         }

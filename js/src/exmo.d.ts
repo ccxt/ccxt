@@ -1,5 +1,5 @@
 import Exchange from './abstract/exmo.js';
-import type { Dict, Int, Order, OrderSide, OrderType, Trade, OrderBook, OHLCV, Balances, Str, Transaction, Ticker, Tickers, Strings, Market, Currency, Num, MarginModification, Currencies, TradingFees, Dictionary } from './base/types.js';
+import type { Dict, Int, Order, OrderSide, OrderType, Trade, OrderBook, OHLCV, Balances, Str, Transaction, Ticker, Tickers, Strings, Market, Currency, Num, MarginModification, Currencies, TradingFees, Dictionary, int } from './base/types.js';
 /**
  * @class exmo
  * @augments Exchange
@@ -11,10 +11,10 @@ export default class exmo extends Exchange {
     reduceMargin(symbol: string, amount: number, params?: {}): Promise<MarginModification>;
     addMargin(symbol: string, amount: number, params?: {}): Promise<MarginModification>;
     fetchTradingFees(params?: {}): Promise<TradingFees>;
-    fetchPrivateTradingFees(params?: {}): Promise<{}>;
-    fetchPublicTradingFees(params?: {}): Promise<{}>;
+    fetchPrivateTradingFees(params?: {}): Promise<Dict>;
+    fetchPublicTradingFees(params?: {}): Promise<Dict>;
     parseFixedFloatValue(input: any): number;
-    fetchTransactionFees(codes?: string[], params?: {}): Promise<{}>;
+    fetchTransactionFees(codes?: Strings, params?: {}): Promise<Dict>;
     fetchDepositWithdrawFees(codes?: Strings, params?: {}): Promise<any>;
     parseDepositWithdrawFee(fee: any, currency?: Currency): any;
     fetchCurrencies(params?: {}): Promise<Currencies>;
@@ -28,7 +28,7 @@ export default class exmo extends Exchange {
     parseTicker(ticker: Dict, market?: Market): Ticker;
     fetchTickers(symbols?: Strings, params?: {}): Promise<Tickers>;
     fetchTicker(symbol: string, params?: {}): Promise<Ticker>;
-    parseTrade(trade: any, market?: Market): Trade;
+    parseTrade(trade: Dict, market?: Market): Trade;
     fetchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     fetchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     createOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): Promise<Order>;
@@ -38,7 +38,7 @@ export default class exmo extends Exchange {
     fetchOpenOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     parseStatus(status: any): string;
     parseSide(orderType: any): string;
-    parseOrder(order: any, market?: Market): Order;
+    parseOrder(order: Dict, market?: Market): Order;
     fetchCanceledOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<any[]>;
     editOrder(id: string, symbol: string, type: OrderType, side: OrderSide, amount?: Num, price?: Num, params?: {}): Promise<Order>;
     fetchDepositAddress(code: string, params?: {}): Promise<{
@@ -50,8 +50,8 @@ export default class exmo extends Exchange {
     }>;
     getMarketFromTrades(trades: any): any;
     withdraw(code: string, amount: number, address: string, tag?: any, params?: {}): Promise<Transaction>;
-    parseTransactionStatus(status: any): string;
-    parseTransaction(transaction: any, currency?: Currency): Transaction;
+    parseTransactionStatus(status: Str): string;
+    parseTransaction(transaction: Dict, currency?: Currency): Transaction;
     fetchDepositsWithdrawals(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
     fetchWithdrawals(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
     fetchWithdrawal(id: string, code?: Str, params?: {}): Promise<Transaction>;
@@ -64,5 +64,5 @@ export default class exmo extends Exchange {
         headers: any;
     };
     nonce(): number;
-    handleErrors(httpCode: any, reason: any, url: any, method: any, headers: any, body: any, response: any, requestHeaders: any, requestBody: any): any;
+    handleErrors(httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): any;
 }

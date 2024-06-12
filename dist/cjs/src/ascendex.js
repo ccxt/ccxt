@@ -1403,7 +1403,7 @@ class ascendex extends ascendex$1 {
                 'currency': feeCurrencyCode,
             };
         }
-        const stopPrice = this.safeNumber(order, 'stopPrice');
+        const stopPrice = this.omitZero(this.safeString(order, 'stopPrice'));
         let reduceOnly = undefined;
         const execInst = this.safeString(order, 'execInst');
         if (execInst === 'reduceOnly') {
