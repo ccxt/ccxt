@@ -4268,7 +4268,7 @@ export default class xt extends Exchange {
         };
     }
 
-    async fetchFundingHistory (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchFundingHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name xt#fetchFundingHistory
