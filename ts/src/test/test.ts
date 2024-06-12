@@ -1890,7 +1890,6 @@ export default class testMainClass extends baseMainTestClass {
     async testXT () {
         const exchange = this.initOfflineExchange ('xt');
         const id = 'CCXT';
-        const idString = id.toString ();
         let spotOrderRequest = undefined;
         try {
             await exchange.createOrder ('BTC/USDT', 'limit', 'buy', 1, 20000);
