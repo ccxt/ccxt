@@ -12,6 +12,8 @@ interface Exchange {
     public1GetExchangeTicker (params?: {}): Promise<implicitReturnType>;
     public1GetExchangeV1Markets (params?: {}): Promise<implicitReturnType>;
     public1GetExchangeV1MarketsDetails (params?: {}): Promise<implicitReturnType>;
+    public1GetExchangeV1DerivativesFuturesDataActiveInstruments (params?: {}): Promise<implicitReturnType>;
+    public1GetExchangeV1DerivativesFuturesDataInstrument (params?: {}): Promise<implicitReturnType>;
     public2GetMarketDataTradeHistory (params?: {}): Promise<implicitReturnType>;
     public2GetMarketDataOrderbook (params?: {}): Promise<implicitReturnType>;
     public2GetMarketDataCandles (params?: {}): Promise<implicitReturnType>;
