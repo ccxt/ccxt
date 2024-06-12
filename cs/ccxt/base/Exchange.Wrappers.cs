@@ -1244,6 +1244,7 @@ public class  Wazirx: wazirx { public Wazirx(object args = null) : base(args) { 
 public class  Whitebit: whitebit { public Whitebit(object args = null) : base(args) { } }
 public class  Woo: woo { public Woo(object args = null) : base(args) { } }
 public class  Woofipro: woofipro { public Woofipro(object args = null) : base(args) { } }
+public class  Xt: xt { public Xt(object args = null) : base(args) { } }
 public class  Yobit: yobit { public Yobit(object args = null) : base(args) { } }
 public class  Zaif: zaif { public Zaif(object args = null) : base(args) { } }
 public class  Zonda: zonda { public Zonda(object args = null) : base(args) { } }

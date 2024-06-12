@@ -488,6 +488,7 @@ class Exchange {
         'whitebit',
         'woo',
         'woofipro',
+        'xt',
         'yobit',
         'zaif',
         'zonda',
