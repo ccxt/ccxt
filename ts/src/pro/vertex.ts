@@ -154,6 +154,9 @@ export default class vertex extends vertexRest {
          * @param {string} [params.user] user address, will default to this.walletAddress if not provided
          * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
          */
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' watchMyTrades requires a symbol.');
+        }
         await this.loadMarkets ();
         let userAddress = undefined;
         [ userAddress, params ] = this.handlePublicAddress ('watchMyTrades', params);
@@ -706,6 +709,9 @@ export default class vertex extends vertexRest {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' watchOrders requires a symbol.');
+        }
         this.checkRequiredCredentials ();
         await this.loadMarkets ();
         const name = 'order_update';
