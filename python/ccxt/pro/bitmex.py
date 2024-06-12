@@ -1469,11 +1469,15 @@ class bitmex(ccxt.async_support.bitmex):
         #
         action = self.safe_string(message, 'action')
         table = self.safe_string(message, 'table')
+        if table is None:
+            return  # protecting from weird updates
         data = self.safe_value(message, 'data', [])
         # if it's an initial snapshot
         if action == 'partial':
             filter = self.safe_dict(message, 'filter', {})
             marketId = self.safe_value(filter, 'symbol')
+            if marketId is None:
+                return  # protecting from weird update
             market = self.safe_market(marketId)
             symbol = market['symbol']
             if table == 'orderBookL2':
@@ -1501,6 +1505,8 @@ class bitmex(ccxt.async_support.bitmex):
             numUpdatesByMarketId: dict = {}
             for i in range(0, len(data)):
                 marketId = self.safe_value(data[i], 'symbol')
+                if marketId is None:
+                    return  # protecting from weird update
                 if not (marketId in numUpdatesByMarketId):
                     numUpdatesByMarketId[marketId] = 0
                 numUpdatesByMarketId[marketId] = self.sum(numUpdatesByMarketId, 1)
