@@ -4,7 +4,7 @@
 import Exchange from './abstract/coindcx.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { Balances, Dict, Int, Market, Num, OHLCV, OrderBook, Strings, Ticker, Tickers, Trade } from './base/types.js';
+import type { Balances, Dict, Int, Market, Num, OHLCV, OrderBook, Str, Strings, Ticker, Tickers, Trade } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -19,7 +19,7 @@ export default class coindcx extends Exchange {
             'name': 'CoinDCX',
             'countries': [ 'IN' ], // India
             'version': 'v1',
-            'rateLimit': 960, // 960 per minute
+            'rateLimit': 30, // 2000 per minute
             'certified': false,
             'pro': true,
             'has': {
@@ -102,7 +102,7 @@ export default class coindcx extends Exchange {
                 'fetchTicker': false,
                 'fetchTickers': false,
                 'fetchTime': false,
-                'fetchTrades': false,
+                'fetchTrades': true,
                 'fetchTradingFee': false,
                 'fetchTradingFees': false,
                 'fetchTradingLimits': false,
@@ -145,7 +145,7 @@ export default class coindcx extends Exchange {
                 'api': {
                     'public1': 'https://api.coindcx.com', // base URL for some public endpoint is https://public.coindcx.com. However, it will only be used where it is exclusively mentioned in the documentation.
                     'private': 'https://api.coindcx.com',
-                    'public2': 'https://public.coindcx.com',
+                    'public2': 'https://public.coindcx.com', // todo should we rename it?
                 },
                 'www': 'https://coindcx.com/',
                 'doc': [
@@ -159,6 +159,8 @@ export default class coindcx extends Exchange {
                         'exchange/ticker': 1,
                         'exchange/v1/markets': 1,
                         'exchange/v1/markets_details': 1,
+                        'exchange/v1/derivatives/futures/data/active_instruments': 1,
+                        'exchange/v1/derivatives/futures/data/instrument': 1,
                     },
                 },
                 'public2': {
@@ -169,8 +171,6 @@ export default class coindcx extends Exchange {
                     },
                 },
                 'private': {
-                    'get': {
-                    },
                     'post': {
                         'exchange/v1/users/balances': 1,
                         'exchange/v1/users/info': 1,
@@ -199,8 +199,6 @@ export default class coindcx extends Exchange {
                         'exchange/v1/margin/remove_margin': 1,
                         'exchange/v1/margin/fetch_orders': 1,
                         'exchange/v1/margin/order': 1,
-                    },
-                    'delete': {
                     },
                 },
             },
@@ -272,7 +270,7 @@ export default class coindcx extends Exchange {
     }
 
     parseMarket (market: Dict): Market {
-        const marketId = this.safeString (market, 'pair'); // todo how to set encode
+        const marketId = this.safeString (market, 'coindcx_name'); // todo how to set encode
         const baseId = this.safeString (market, 'target_currency_short_name');
         const quoteId = this.safeString (market, 'base_currency_short_name');
         const base = this.safeCurrencyCode (baseId);
@@ -403,11 +401,11 @@ export default class coindcx extends Exchange {
             'close': last,
             'last': last,
             'previousClose': undefined,
-            'change': undefined,
+            'change': this.safeString (ticker, 'change_24_hour'),
             'percentage': undefined,
             'average': undefined,
-            'baseVolume': this.safeString (ticker, 'change_24_hour'),
-            'quoteVolume': undefined,
+            'baseVolume': undefined,
+            'quoteVolume': this.safeString (ticker, 'volume'),
             'info': ticker,
         }, market);
     }
@@ -420,21 +418,23 @@ export default class coindcx extends Exchange {
          * @see https://docs.coindcx.com/?javascript#candles
          * @param {string} symbol unified symbol of the market to fetch OHLCV data for
          * @param {string} timeframe the length of time each candle represents
-         * @param {int} [since] timestamp in ms of the earliest candle to fetch (default 24 hours ago)
+         * @param {int} [since] timestamp in ms of the earliest candle to fetch
          * @param {int} [limit] the maximum amount of candles to fetch (default 500, max 1000)
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {int} [params.until] timestamp in ms of the latest candle to fetch (default now)
+         * @param {int} [params.until] timestamp in ms of the latest candle to fetch (works only if since is also defined)
          * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
         timeframe = this.safeString (this.timeframes, timeframe, timeframe);
+        const marketInfo = this.safeDict (market, 'info');
+        const pair = this.safeString (marketInfo, 'pair');
         const request: Dict = {
-            'pair': market['id'],
+            'pair': pair,
             'interval': timeframe,
         };
         if (since !== undefined) {
-            request['startTime'] = since; // startTime and endTime must be within 7 days of each other
+            request['startTime'] = since;
         }
         if (limit !== undefined) {
             request['limit'] = limit;
@@ -484,8 +484,10 @@ export default class coindcx extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
+        const marketInfo = this.safeDict (market, 'info');
+        const pair = this.safeString (marketInfo, 'pair');
         const request: Dict = {
-            'pair': market['id'],
+            'pair': pair,
         };
         const response = await this.public2GetMarketDataOrderbook (this.extend (request, params));
         //
@@ -517,8 +519,7 @@ export default class coindcx extends Exchange {
         //         }
         //     }
         //
-        const timestamp = this.safeInteger (response, 'timestamp');
-        return this.parseOrderBook (response, market['symbol'], timestamp);
+        return this.parseOrderBook (response, market['symbol'], limit);
     }
 
     parseBidsAsks (bidsAsks) {
@@ -533,6 +534,7 @@ export default class coindcx extends Exchange {
     }
 
     parseOrderBook (orderbook: object, symbol: string, limit: Int = undefined): OrderBook {
+        // todo check signature of this method
         const responseBids = this.safeDict (orderbook, 'bids');
         const responseAsks = this.safeDict (orderbook, 'asks');
         const bids = this.parseBidsAsks (responseBids);
@@ -555,15 +557,17 @@ export default class coindcx extends Exchange {
          * @description get the list of most recent trades for a particular symbol
          * @see https://docs.coindcx.com/#trades
          * @param {string} symbol unified symbol of the market to fetch trades for
-         * @param {int} [since] timestamp in ms of the earliest trade to fetch (default 24 hours ago)
+         * @param {int} [since] timestamp in ms of the earliest trade to fetch
          * @param {int} [limit] the maximum amount of trades to fetch (default 30, max 500)
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
+        const marketInfo = this.safeDict (market, 'info');
+        const pair = this.safeString (marketInfo, 'pair');
         const request: Dict = {
-            'pair': market['id'],
+            'pair': pair,
         };
         if (limit !== undefined) {
             request['limit'] = limit;
@@ -599,10 +603,12 @@ export default class coindcx extends Exchange {
         market = this.safeMarket (marketId, market);
         const symbol = market['symbol'];
         const timestamp = this.safeInteger (trade, 'T');
-        const maker = this.safeBool (trade, 'm');
-        let isMaker = 'maker';
-        if (!maker) {
-            isMaker = 'taker';
+        const isMaker = this.safeBool (trade, 'm');
+        let takerOrMaker: Str = undefined;
+        if (isMaker) {
+            takerOrMaker = 'maker';
+        } else if (isMaker === false) {
+            takerOrMaker = 'taker';
         }
         return this.safeTrade ({
             'id': undefined,
@@ -612,7 +618,7 @@ export default class coindcx extends Exchange {
             'type': undefined,
             'order': undefined,
             'side': undefined,
-            'takerOrMaker': isMaker,
+            'takerOrMaker': takerOrMaker,
             'price': this.safeString (trade, 'p'),
             'amount': this.safeString (trade, 'q'),
             'cost': undefined,
