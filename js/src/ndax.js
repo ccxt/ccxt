@@ -1575,7 +1575,11 @@ export default class ndax extends Exchange {
         //         "detail":null
         //     }
         //
-        return response;
+        return [
+            this.safeOrder({
+                'info': response,
+            }),
+        ];
     }
     async cancelOrder(id, symbol = undefined, params = {}) {
         /**

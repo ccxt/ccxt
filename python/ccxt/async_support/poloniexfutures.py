@@ -1180,7 +1180,7 @@ class poloniexfutures(Exchange, ImplicitAPI):
         cancelledOrderIdsLength = len(cancelledOrderIds)
         for i in range(0, cancelledOrderIdsLength):
             cancelledOrderId = self.safe_string(cancelledOrderIds, i)
-            result.append({
+            result.append(self.safe_order({
                 'id': cancelledOrderId,
                 'clientOrderId': None,
                 'timestamp': None,
@@ -1202,7 +1202,7 @@ class poloniexfutures(Exchange, ImplicitAPI):
                 'postOnly': None,
                 'stopPrice': None,
                 'info': response,
-            })
+            }))
         return result
 
     async def fetch_orders_by_status(self, status, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
