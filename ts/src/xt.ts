@@ -2,7 +2,7 @@
 //  ---------------------------------------------------------------------------
 
 import Exchange from './abstract/xt.js';
-import { Currencies, Currency, Dict, FundingHistory, FundingRateHistory, Int, LeverageTier, MarginModification, Market, Num, OHLCV, OrderSide, OrderType, Str, Tickers, Transaction, TransferEntry } from './base/types.js';
+import { Currencies, Currency, Dict, FundingHistory, FundingRateHistory, Int, LeverageTier, MarginModification, Market, Num, OHLCV, Order, OrderSide, OrderType, Str, Tickers, Transaction, TransferEntry } from './base/types.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { ArgumentsRequired, AuthenticationError, BadRequest, BadSymbol, ExchangeError, InsufficientFunds, InvalidOrder, NetworkError, NotSupported, OnMaintenance, PermissionDenied, RateLimitExceeded, RequestTimeout } from './base/errors.js';
@@ -3185,10 +3185,12 @@ export default class xt extends Exchange {
         //         "result": true
         //     }
         //
-        return response;
+        return [
+            this.safeOrder (response),
+        ];
     }
 
-    async cancelOrders (ids: string[], symbol: string = undefined, params = {}) {
+    async cancelOrders (ids: string[], symbol: string = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name xt#cancelOrders
@@ -3223,7 +3225,9 @@ export default class xt extends Exchange {
         //         "result": null
         //     }
         //
-        return response;
+        return [
+            this.safeOrder (response),
+        ];
     }
 
     parseOrder (order, market = undefined) {
@@ -4433,9 +4437,6 @@ export default class xt extends Exchange {
          * @returns {[object]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
          */
         await this.loadMarkets ();
-        if (symbols !== undefined) {
-            throw new BadRequest (this.id + ' fetchPositions() only supports the symbols argument as undefined');
-        }
         let subType = undefined;
         [ subType, params ] = this.handleSubTypeAndParams ('fetchPositions', undefined, params);
         let response = undefined;
@@ -4477,7 +4478,7 @@ export default class xt extends Exchange {
             const marketInner = this.safeMarket (marketId, undefined, undefined, 'contract');
             result.push (this.parsePosition (entry, marketInner));
         }
-        return this.filterByArrayPositions (result, 'symbol', undefined, false);
+        return this.filterByArrayPositions (result, 'symbol', symbols, false);
     }
 
     parsePosition (position, market = undefined) {
