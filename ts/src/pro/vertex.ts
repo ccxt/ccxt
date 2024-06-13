@@ -4,7 +4,7 @@ import vertexRest from '../vertex.js';
 import { AuthenticationError, NotSupported, ArgumentsRequired } from '../base/errors.js';
 import { ArrayCacheBySymbolById, ArrayCache, ArrayCacheBySymbolBySide } from '../base/ws/Cache.js';
 import { Precise } from '../base/Precise.js';
-import type { Int, Str, Strings, OrderBook, Order, Trade, Ticker, Market, Position } from '../base/types.js';
+import type { Int, Str, Strings, OrderBook, Order, Trade, Ticker, Market, Position, Dict } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 // ----------------------------------------------------------------------------
@@ -395,20 +395,66 @@ export default class vertex extends vertexRest {
         await this.loadMarkets ();
         const name = 'book_depth';
         const market = this.market (symbol);
-        const topic = market['id'] + '@' + name;
-        const request = {
+        const messageHash = market['id'] + '@' + name;
+        const url = this.urls['api']['ws'];
+        const requestId = this.requestId (url);
+        const request: Dict = {
+            'id': requestId,
             'method': 'subscribe',
             'stream': {
                 'type': name,
                 'product_id': this.parseToNumeric (market['id']),
             },
         };
+        const subscription: Dict = {
+            'id': requestId.toString (),
+            'name': name,
+            'symbol': symbol,
+            'method': this.handleOrderBookSubscription,
+            'limit': limit,
+            'params': params,
+        };
         const message = this.extend (request, params);
-        const orderbook = await this.watchPublic (topic, message);
+        const orderbook = await this.watch (url, messageHash, message, messageHash, subscription);
         return orderbook.limit ();
     }
 
+    handleOrderBookSubscription (client: Client, message, subscription) {
+        const defaultLimit = this.safeInteger (this.options, 'watchOrderBookLimit', 1000);
+        const limit = this.safeInteger (subscription, 'limit', defaultLimit);
+        const symbol = this.safeString (subscription, 'symbol'); // watchOrderBook
+        if (symbol in this.orderbooks) {
+            delete this.orderbooks[symbol];
+        }
+        this.orderbooks[symbol] = this.orderBook ({}, limit);
+        this.spawn (this.fetchOrderBookSnapshot, client, message, subscription);
+    }
+
+    async fetchOrderBookSnapshot (client, message, subscription) {
+        const symbol = this.safeString (subscription, 'symbol');
+        try {
+            const defaultLimit = this.safeInteger (this.options, 'watchOrderBookLimit', 1000);
+            const limit = this.safeInteger (subscription, 'limit', defaultLimit);
+            const params = this.safeValue (subscription, 'params');
+            const snapshot = await this.fetchOrderBook (symbol, limit, params);
+            if (this.safeValue (this.orderbooks, symbol) === undefined) {
+                // if the orderbook is dropped before the snapshot is received
+                return;
+            }
+            const orderbook = this.orderbooks[symbol];
+            orderbook.reset (snapshot);
+            this.orderbooks[symbol] = orderbook;
+            client.resolve (orderbook, message);
+        } catch (e) {
+            delete client.subscriptions[message];
+            client.reject (e, message);
+        }
+    }
+
     handleOrderBook (client: Client, message) {
+        //
+        //
+        // the feed does not include a snapshot, just the deltas
         //
         // {
         //     "type":"book_depth",
@@ -433,6 +479,11 @@ export default class vertex extends vertexRest {
             this.orderbooks[symbol] = this.orderBook ();
         }
         const orderbook = this.orderbooks[symbol];
+        this.handleOrderBookMessage (client, message, orderbook);
+        client.resolve (orderbook, marketId + '@book_depth');
+    }
+
+    handleOrderBookMessage (client: Client, message, orderbook) {
         const timestamp = this.parseToNumeric (Precise.stringDiv (this.safeString (message, 'last_max_timestamp'), '1000000'));
         // convert from X18
         const data = {
@@ -455,9 +506,40 @@ export default class vertex extends vertexRest {
                 this.convertFromX18 (ask[1]),
             ]);
         }
-        const snapshot = this.parseOrderBook (data, symbol, timestamp, 'bids', 'asks');
-        orderbook.reset (snapshot);
-        client.resolve (orderbook, marketId + '@book_depth');
+        this.handleDeltas (orderbook['asks'], this.safeList (data, 'asks', []));
+        this.handleDeltas (orderbook['bids'], this.safeList (data, 'bids', []));
+        orderbook['timestamp'] = timestamp;
+        orderbook['datetime'] = this.iso8601 (timestamp);
+        return orderbook;
+    }
+
+    handleDelta (bookside, delta) {
+        const price = this.safeFloat (delta, 0);
+        const amount = this.safeFloat (delta, 1);
+        bookside.store (price, amount);
+    }
+
+    handleDeltas (bookside, deltas) {
+        for (let i = 0; i < deltas.length; i++) {
+            this.handleDelta (bookside, deltas[i]);
+        }
+    }
+
+    handleSubscriptionStatus (client: Client, message) {
+        //
+        //     {
+        //         "result": null,
+        //         "id": 1574649734450
+        //     }
+        //
+        const id = this.safeString (message, 'id');
+        const subscriptionsById = this.indexBy (client.subscriptions, 'id');
+        const subscription = this.safeValue (subscriptionsById, id, {});
+        const method = this.safeValue (subscription, 'method');
+        if (method !== undefined) {
+            method.call (this, client, message, subscription);
+        }
+        return message;
     }
 
     async watchPositions (symbols: Strings = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Position[]> {
@@ -884,6 +966,11 @@ export default class vertex extends vertexRest {
         const method = this.safeValue (methods, event);
         if (method !== undefined) {
             method.call (this, client, message);
+            return;
+        }
+        const requestId = this.safeString (message, 'id');
+        if (requestId !== undefined) {
+            this.handleSubscriptionStatus (client, message);
             return;
         }
         // check whether it's authentication
