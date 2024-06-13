@@ -938,7 +938,15 @@ class luno extends Exchange {
         $request = array(
             'order_id' => $id,
         );
-        return $this->privatePostStoporder ($this->extend($request, $params));
+        $response = $this->privatePostStoporder ($this->extend($request, $params));
+        //
+        //    {
+        //        "success" => true
+        //    }
+        //
+        return $this->safe_order(array(
+            'info' => $response,
+        ));
     }
 
     public function fetch_ledger_by_entries(?string $code = null, $entry = null, $limit = null, $params = array ()) {

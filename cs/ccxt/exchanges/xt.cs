@@ -13,7 +13,7 @@ public partial class xt : Exchange
             { "countries", new List<object>() {"SC"} },
             { "rateLimit", 100 },
             { "version", "v4" },
-            { "certified", true },
+            { "certified", false },
             { "pro", false },
             { "has", new Dictionary<string, object>() {
                 { "CORS", false },

@@ -39,7 +39,7 @@ class xt(Exchange, ImplicitAPI):
             # futures 1000 times per minute for each single IP -> Otherwise account locked for 10min
             'rateLimit': 100,
             'version': 'v4',
-            'certified': True,
+            'certified': False,
             'pro': False,
             'has': {
                 'CORS': False,
