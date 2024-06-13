@@ -1534,11 +1534,17 @@ class bitmex extends bitmex$1 {
         //
         const action = this.safeString(message, 'action');
         const table = this.safeString(message, 'table');
+        if (table === undefined) {
+            return; // protecting from weird updates
+        }
         const data = this.safeValue(message, 'data', []);
         // if it's an initial snapshot
         if (action === 'partial') {
             const filter = this.safeDict(message, 'filter', {});
             const marketId = this.safeValue(filter, 'symbol');
+            if (marketId === undefined) {
+                return; // protecting from weird update
+            }
             const market = this.safeMarket(marketId);
             const symbol = market['symbol'];
             if (table === 'orderBookL2') {
@@ -1571,6 +1577,9 @@ class bitmex extends bitmex$1 {
             const numUpdatesByMarketId = {};
             for (let i = 0; i < data.length; i++) {
                 const marketId = this.safeValue(data[i], 'symbol');
+                if (marketId === undefined) {
+                    return; // protecting from weird update
+                }
                 if (!(marketId in numUpdatesByMarketId)) {
                     numUpdatesByMarketId[marketId] = 0;
                 }

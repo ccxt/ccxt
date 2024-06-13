@@ -897,7 +897,15 @@ class luno(Exchange, ImplicitAPI):
         request: dict = {
             'order_id': id,
         }
-        return await self.privatePostStoporder(self.extend(request, params))
+        response = await self.privatePostStoporder(self.extend(request, params))
+        #
+        #    {
+        #        "success": True
+        #    }
+        #
+        return self.safe_order({
+            'info': response,
+        })
 
     async def fetch_ledger_by_entries(self, code: Str = None, entry=None, limit=None, params={}):
         # by default without entry number or limit number, return most recent entry

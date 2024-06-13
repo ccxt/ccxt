@@ -58,7 +58,7 @@ class woo extends \ccxt\async\woo {
             ),
             'streaming' => array(
                 'ping' => array($this, 'ping'),
-                'keepAlive' => 10000,
+                'keepAlive' => 9000,
             ),
             'exceptions' => array(
                 'ws' => array(

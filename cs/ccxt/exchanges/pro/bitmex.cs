@@ -1622,12 +1622,20 @@ public partial class bitmex : ccxt.bitmex
         //
         object action = this.safeString(message, "action");
         object table = this.safeString(message, "table");
+        if (isTrue(isEqual(table, null)))
+        {
+            return;  // protecting from weird updates
+        }
         object data = this.safeValue(message, "data", new List<object>() {});
         // if it's an initial snapshot
         if (isTrue(isEqual(action, "partial")))
         {
             object filter = this.safeDict(message, "filter", new Dictionary<string, object>() {});
             object marketId = this.safeValue(filter, "symbol");
+            if (isTrue(isEqual(marketId, null)))
+            {
+                return;  // protecting from weird update
+            }
             object market = this.safeMarket(marketId);
             object symbol = getValue(market, "symbol");
             if (isTrue(isEqual(table, "orderBookL2")))
@@ -1663,6 +1671,10 @@ public partial class bitmex : ccxt.bitmex
             for (object i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
             {
                 object marketId = this.safeValue(getValue(data, i), "symbol");
+                if (isTrue(isEqual(marketId, null)))
+                {
+                    return;  // protecting from weird update
+                }
                 if (!isTrue((inOp(numUpdatesByMarketId, marketId))))
                 {
                     ((IDictionary<string,object>)numUpdatesByMarketId)[(string)marketId] = 0;
