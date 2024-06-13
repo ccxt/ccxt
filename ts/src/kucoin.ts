@@ -123,6 +123,7 @@ export default class kucoin extends Exchange {
                     'futuresPublic': 'https://api-futures.kucoin.com',
                     'webExchange': 'https://kucoin.com/_api',
                     'broker': 'https://api-broker.kucoin.com',
+                    'earn': 'https://api.kucoin.com',
                 },
                 'www': 'https://www.kucoin.com',
                 'doc': [
@@ -390,6 +391,9 @@ export default class kucoin extends Exchange {
                         'broker/nd/account': 2,
                         'broker/nd/account/apikey': 2,
                         'broker/nd/rebase/download': 3,
+                        'broker/nd/transfer/detail': 1,
+                        'broker/nd/deposit/detail': 1,
+                        'broker/nd/withdraw/detail': 1,
                     },
                     'post': {
                         'broker/nd/transfer': 1,
@@ -399,6 +403,25 @@ export default class kucoin extends Exchange {
                     },
                     'delete': {
                         'broker/nd/account/apikey': 3,
+                    },
+                },
+                'earn': {
+                    'get': {
+                        'otc-loan/loan': 1,
+                        'otc-loan/accounts': 1,
+                        'earn/redeem-preview': 7.5, // 5EW
+                        'earn/saving/products': 7.5, // 5EW
+                        'earn/hold-assets': 7.5, // 5EW
+                        'earn/promotion/products': 7.5, // 5EW
+                        'earn/kcs-staking/products': 7.5, // 5EW
+                        'earn/staking/products': 7.5, // 5EW
+                        'earn/eth-staking/products': 7.5, // 5EW
+                    },
+                    'post': {
+                        'earn/orders': 7.5, // 5EW
+                    },
+                    'delete': {
+                        'earn/orders': 7.5, // 5EW
                     },
                 },
             },
@@ -4809,6 +4832,9 @@ export default class kucoin extends Exchange {
         if (api === 'webExchange') {
             endpoint = '/' + this.implodeParams (path, params);
         }
+        if (api === 'earn') {
+            endpoint = '/api/v1/' + this.implodeParams (path, params);
+        }
         const query = this.omit (params, this.extractParams (path));
         let endpart = '';
         headers = (headers !== undefined) ? headers : {};
@@ -4826,7 +4852,8 @@ export default class kucoin extends Exchange {
         const isFuturePrivate = (api === 'futuresPrivate');
         const isPrivate = (api === 'private');
         const isBroker = (api === 'broker');
-        if (isPrivate || isFuturePrivate || isBroker) {
+        const isEarn = (api === 'earn');
+        if (isPrivate || isFuturePrivate || isBroker || isEarn) {
             this.checkRequiredCredentials ();
             const timestamp = this.nonce ().toString ();
             headers = this.extend ({
