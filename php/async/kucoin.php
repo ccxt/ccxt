@@ -126,6 +126,7 @@ class kucoin extends Exchange {
                     'futuresPublic' => 'https://api-futures.kucoin.com',
                     'webExchange' => 'https://kucoin.com/_api',
                     'broker' => 'https://api-broker.kucoin.com',
+                    'earn' => 'https://api.kucoin.com',
                 ),
                 'www' => 'https://www.kucoin.com',
                 'doc' => array(
@@ -393,6 +394,9 @@ class kucoin extends Exchange {
                         'broker/nd/account' => 2,
                         'broker/nd/account/apikey' => 2,
                         'broker/nd/rebase/download' => 3,
+                        'broker/nd/transfer/detail' => 1,
+                        'broker/nd/deposit/detail' => 1,
+                        'broker/nd/withdraw/detail' => 1,
                     ),
                     'post' => array(
                         'broker/nd/transfer' => 1,
@@ -402,6 +406,25 @@ class kucoin extends Exchange {
                     ),
                     'delete' => array(
                         'broker/nd/account/apikey' => 3,
+                    ),
+                ),
+                'earn' => array(
+                    'get' => array(
+                        'otc-loan/loan' => 1,
+                        'otc-loan/accounts' => 1,
+                        'earn/redeem-preview' => 7.5, // 5EW
+                        'earn/saving/products' => 7.5, // 5EW
+                        'earn/hold-assets' => 7.5, // 5EW
+                        'earn/promotion/products' => 7.5, // 5EW
+                        'earn/kcs-staking/products' => 7.5, // 5EW
+                        'earn/staking/products' => 7.5, // 5EW
+                        'earn/eth-staking/products' => 7.5, // 5EW
+                    ),
+                    'post' => array(
+                        'earn/orders' => 7.5, // 5EW
+                    ),
+                    'delete' => array(
+                        'earn/orders' => 7.5, // 5EW
                     ),
                 ),
             ),
@@ -4814,6 +4837,9 @@ class kucoin extends Exchange {
         if ($api === 'webExchange') {
             $endpoint = '/' . $this->implode_params($path, $params);
         }
+        if ($api === 'earn') {
+            $endpoint = '/api/v1/' . $this->implode_params($path, $params);
+        }
         $query = $this->omit($params, $this->extract_params($path));
         $endpart = '';
         $headers = ($headers !== null) ? $headers : array();
@@ -4831,7 +4857,8 @@ class kucoin extends Exchange {
         $isFuturePrivate = ($api === 'futuresPrivate');
         $isPrivate = ($api === 'private');
         $isBroker = ($api === 'broker');
-        if ($isPrivate || $isFuturePrivate || $isBroker) {
+        $isEarn = ($api === 'earn');
+        if ($isPrivate || $isFuturePrivate || $isBroker || $isEarn) {
             $this->check_required_credentials();
             $timestamp = (string) $this->nonce();
             $headers = $this->extend(array(

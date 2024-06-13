@@ -141,6 +141,7 @@ class kucoin(Exchange, ImplicitAPI):
                     'futuresPublic': 'https://api-futures.kucoin.com',
                     'webExchange': 'https://kucoin.com/_api',
                     'broker': 'https://api-broker.kucoin.com',
+                    'earn': 'https://api.kucoin.com',
                 },
                 'www': 'https://www.kucoin.com',
                 'doc': [
@@ -408,6 +409,9 @@ class kucoin(Exchange, ImplicitAPI):
                         'broker/nd/account': 2,
                         'broker/nd/account/apikey': 2,
                         'broker/nd/rebase/download': 3,
+                        'broker/nd/transfer/detail': 1,
+                        'broker/nd/deposit/detail': 1,
+                        'broker/nd/withdraw/detail': 1,
                     },
                     'post': {
                         'broker/nd/transfer': 1,
@@ -417,6 +421,25 @@ class kucoin(Exchange, ImplicitAPI):
                     },
                     'delete': {
                         'broker/nd/account/apikey': 3,
+                    },
+                },
+                'earn': {
+                    'get': {
+                        'otc-loan/loan': 1,
+                        'otc-loan/accounts': 1,
+                        'earn/redeem-preview': 7.5,  # 5EW
+                        'earn/saving/products': 7.5,  # 5EW
+                        'earn/hold-assets': 7.5,  # 5EW
+                        'earn/promotion/products': 7.5,  # 5EW
+                        'earn/kcs-staking/products': 7.5,  # 5EW
+                        'earn/staking/products': 7.5,  # 5EW
+                        'earn/eth-staking/products': 7.5,  # 5EW
+                    },
+                    'post': {
+                        'earn/orders': 7.5,  # 5EW
+                    },
+                    'delete': {
+                        'earn/orders': 7.5,  # 5EW
                     },
                 },
             },
@@ -4507,6 +4530,8 @@ class kucoin(Exchange, ImplicitAPI):
         endpoint = '/api/' + version + '/' + self.implode_params(path, params)
         if api == 'webExchange':
             endpoint = '/' + self.implode_params(path, params)
+        if api == 'earn':
+            endpoint = '/api/v1/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
         endpart = ''
         headers = headers if (headers is not None) else {}
@@ -4522,7 +4547,8 @@ class kucoin(Exchange, ImplicitAPI):
         isFuturePrivate = (api == 'futuresPrivate')
         isPrivate = (api == 'private')
         isBroker = (api == 'broker')
-        if isPrivate or isFuturePrivate or isBroker:
+        isEarn = (api == 'earn')
+        if isPrivate or isFuturePrivate or isBroker or isEarn:
             self.check_required_credentials()
             timestamp = str(self.nonce())
             headers = self.extend({
