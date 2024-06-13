@@ -295,10 +295,10 @@
                 "input": [
                     "OX",
                     10,
-                    106464,
-                    106570
+                    "106464",
+                    "106570"
                 ],
-                "output": "{\"asset\":\"OX\",\"quantity\":\"10\",\"fromAccount\":106464,\"toAccount\":106570}"
+                "output": "{\"asset\":\"OX\",\"quantity\":\"10\",\"fromAccount\":\"106464\",\"toAccount\":\"106570\"}"
             }
         ],
         "fetchTransfers": [
