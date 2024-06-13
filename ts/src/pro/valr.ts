@@ -641,21 +641,17 @@ export default class valr extends valrRest {
             'price': this.safeNumber (tradeMessage, 'price'),
         });
         // watch All symbols
-        let cachedTrades = this.myTrades;
-        if (cachedTrades === undefined) {
+        if (this.myTrades === undefined) {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
-            cachedTrades = new ArrayCacheBySymbolById (limit);
-            this.myTrades = cachedTrades;
+            this.myTrades = new ArrayCacheBySymbolById (limit);
         }
+        const cachedTrades = this.myTrades;
         const updateType = this.safeString (message, 'type');
         const messageHashSymbol = updateType + ':' + symbol;
         cachedTrades.append (myTrade);
         client.resolve (cachedTrades, updateType);
         // watch specific symbol
         client.resolve (cachedTrades, messageHashSymbol);
-        // if (this.verbose) {
-        //     this.log (this.iso8601 (this.milliseconds ()), 'handleMyTrades', myTrade);
-        // }
     }
 
     async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
@@ -709,6 +705,10 @@ export default class valr extends valrRest {
         const results = [];
         const messageHashesSymbol = [];
         let ordersMessage = [];
+        if (this.orders === undefined) {
+            const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
+            this.orders = new ArrayCacheBySymbolById (limit);
+        }
         if (Array.isArray (data)) {
             ordersMessage = this.arrayConcat (ordersMessage, data);
         } else {
@@ -723,10 +723,6 @@ export default class valr extends valrRest {
                 const messageHashSymbol = messageHash + ':' + symbol;
                 if (!this.inArray (messageHashesSymbol, messageHashesSymbol)) {
                     messageHashesSymbol.push (messageHashSymbol);
-                }
-                if (this.orders === undefined) {
-                    const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
-                    this.orders = new ArrayCacheBySymbolById (limit);
                 }
                 const cachedOrders = this.orders;
                 // const orders = this.safeValue (cachedOrders.hashmap, symbol, {});
