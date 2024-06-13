@@ -21,7 +21,7 @@ interface Exchange {
     publicGetV3LeverageTiers (params?: {}): Promise<implicitReturnType>;
     privateGetV3Account (params?: {}): Promise<implicitReturnType>;
     privateGetV3AccountNames (params?: {}): Promise<implicitReturnType>;
-    privateGetV3Wallets (params?: {}): Promise<implicitReturnType>;
+    privateGetV3Wallet (params?: {}): Promise<implicitReturnType>;
     privateGetV3Transfer (params?: {}): Promise<implicitReturnType>;
     privateGetV3Balances (params?: {}): Promise<implicitReturnType>;
     privateGetV3Positions (params?: {}): Promise<implicitReturnType>;

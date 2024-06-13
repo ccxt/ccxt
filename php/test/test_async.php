@@ -1590,7 +1590,7 @@ class testMainClass extends baseMainTestClass {
         //  --- Init of brokerId tests functions-----------------------------------------
         //  -----------------------------------------------------------------------------
         return Async\async(function () {
-            $promises = [$this->test_binance(), $this->test_okx(), $this->test_cryptocom(), $this->test_bybit(), $this->test_kucoin(), $this->test_kucoinfutures(), $this->test_bitget(), $this->test_mexc(), $this->test_htx(), $this->test_woo(), $this->test_bitmart(), $this->test_coinex(), $this->test_bingx(), $this->test_phemex(), $this->test_blofin(), $this->test_hyperliquid(), $this->test_coinbaseinternational(), $this->test_coinbase_advanced(), $this->test_woofi_pro(), $this->test_xt()];
+            $promises = [$this->test_binance(), $this->test_okx(), $this->test_cryptocom(), $this->test_bybit(), $this->test_kucoin(), $this->test_kucoinfutures(), $this->test_bitget(), $this->test_mexc(), $this->test_htx(), $this->test_woo(), $this->test_bitmart(), $this->test_coinex(), $this->test_bingx(), $this->test_phemex(), $this->test_blofin(), $this->test_hyperliquid(), $this->test_coinbaseinternational(), $this->test_coinbase_advanced(), $this->test_woofi_pro(), $this->test_oxfun(), $this->test_xt()];
             Async\await(Promise\all($promises));
             $success_message = '[' . $this->lang . '][TEST_SUCCESS] brokerId tests passed.';
             dump('[INFO]' . $success_message);
@@ -1998,6 +1998,26 @@ class testMainClass extends baseMainTestClass {
             $broker_id = $request['order_tag'];
             assert($broker_id === $id, 'woofipro - id: ' . $id . ' different from  broker_id: ' . $broker_id);
             Async\await(close($exchange));
+            return true;
+        }) ();
+    }
+
+    public function test_oxfun() {
+        return Async\async(function () {
+            $exchange = $this->init_offline_exchange('oxfun');
+            $exchange->secret = 'secretsecretsecretsecretsecretsecretsecrets';
+            $id = 1000;
+            Async\await($exchange->load_markets());
+            $request = null;
+            try {
+                Async\await($exchange->create_order('BTC/USD:OX', 'limit', 'buy', 1, 20000));
+            } catch(\Throwable $e) {
+                $request = json_parse($exchange->last_request_body);
+            }
+            $orders = $request['orders'];
+            $first = $orders[0];
+            $broker_id = $first['source'];
+            assert($broker_id === $id, 'oxfun - id: ' . ((string) $id) . ' different from  broker_id: ' . ((string) $broker_id));
             return true;
         }) ();
     }

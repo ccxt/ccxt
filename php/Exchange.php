@@ -473,6 +473,7 @@ class Exchange {
         'okcoin',
         'okx',
         'onetrading',
+        'oxfun',
         'p2b',
         'paymium',
         'phemex',
