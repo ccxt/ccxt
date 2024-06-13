@@ -1068,27 +1068,46 @@ public partial class bitmart : Exchange
     public override object parseTicker(object ticker, object market = null)
     {
         //
-        // spot (REST)
+        // spot (REST) fetchTickers
         //
-        //      {
-        //          "symbol": "SOLAR_USDT",
-        //          "last_price": "0.020342",
-        //          "quote_volume_24h": "56817.811802",
-        //          "base_volume_24h": "2172060",
-        //          "high_24h": "0.256000",
-        //          "low_24h": "0.016980",
-        //          "open_24h": "0.022309",
-        //          "close_24h": "0.020342",
-        //          "best_ask": "0.020389",
-        //          "best_ask_size": "339.000000000000000000000000000000",
-        //          "best_bid": "0.020342",
-        //          "best_bid_size": "3369.000000000000000000000000000000",
-        //          "fluctuation": "-0.0882",
-        //          "url": "https://www.bitmart.com/trade?symbol=SOLAR_USDT",
-        //          "timestamp": 1667403439367
-        //      }
+        //     {
+        //         'result': [
+        //             "AFIN_USDT",     // symbol
+        //             "0.001047",      // last
+        //             "11110",         // v_24h
+        //             "11.632170",     // qv_24h
+        //             "0.001048",      // open_24h
+        //             "0.001048",      // high_24h
+        //             "0.001047",      // low_24h
+        //             "-0.00095",      // price_change_24h
+        //             "0.001029",      // bid_px
+        //             "5555",          // bid_sz
+        //             "0.001041",      // ask_px
+        //             "5297",          // ask_sz
+        //             "1717122550482"  // timestamp
+        //         ]
+        //     }
+        //
+        // spot (REST) fetchTicker
+        //
+        //     {
+        //         "symbol": "BTC_USDT",
+        //         "last": "68500.00",
+        //         "v_24h": "10491.65490",
+        //         "qv_24h": "717178990.42",
+        //         "open_24h": "68149.75",
+        //         "high_24h": "69499.99",
+        //         "low_24h": "67132.40",
+        //         "fluctuation": "0.00514",
+        //         "bid_px": "68500",
+        //         "bid_sz": "0.00162",
+        //         "ask_px": "68500.01",
+        //         "ask_sz": "0.01722",
+        //         "ts": "1717131391671"
+        //     }
         //
         // spot (WS)
+        //
         //      {
         //          "symbol":"BTC_USDT",
         //          "last_price":"146.24",
@@ -1114,23 +1133,50 @@ public partial class bitmart : Exchange
         //          "legal_coin_price":"0.1302699"
         //      }
         //
-        object timestamp = this.safeInteger(ticker, "timestamp");
+        object result = this.safeList(ticker, "result", new List<object>() {});
+        object average = this.safeString2(ticker, "avg_price", "index_price");
+        object marketId = this.safeString2(ticker, "symbol", "contract_symbol");
+        object timestamp = this.safeInteger2(ticker, "timestamp", "ts");
+        object last = this.safeString2(ticker, "last_price", "last");
+        object percentage = this.safeString(ticker, "price_change_percent_24h");
+        object change = this.safeString(ticker, "fluctuation");
+        object high = this.safeString2(ticker, "high_24h", "high_price");
+        object low = this.safeString2(ticker, "low_24h", "low_price");
+        object bid = this.safeString2(ticker, "best_bid", "bid_px");
+        object bidVolume = this.safeString2(ticker, "best_bid_size", "bid_sz");
+        object ask = this.safeString2(ticker, "best_ask", "ask_px");
+        object askVolume = this.safeString2(ticker, "best_ask_size", "ask_sz");
+        object open = this.safeString(ticker, "open_24h");
+        object baseVolume = this.safeString2(ticker, "base_volume_24h", "v_24h");
+        object quoteVolume = this.safeStringLower2(ticker, "quote_volume_24h", "qv_24h");
+        object listMarketId = this.safeString(result, 0);
+        if (isTrue(!isEqual(listMarketId, null)))
+        {
+            marketId = listMarketId;
+            timestamp = this.safeInteger(result, 12);
+            high = this.safeString(result, 5);
+            low = this.safeString(result, 6);
+            bid = this.safeString(result, 8);
+            bidVolume = this.safeString(result, 9);
+            ask = this.safeString(result, 10);
+            askVolume = this.safeString(result, 11);
+            open = this.safeString(result, 4);
+            last = this.safeString(result, 1);
+            change = this.safeString(result, 7);
+            baseVolume = this.safeString(result, 2);
+            quoteVolume = this.safeStringLower(result, 3);
+        }
+        market = this.safeMarket(marketId, market);
+        object symbol = getValue(market, "symbol");
         if (isTrue(isEqual(timestamp, null)))
         {
             // ticker from WS has a different field (in seconds)
             timestamp = this.safeIntegerProduct(ticker, "s_t", 1000);
         }
-        object marketId = this.safeString2(ticker, "symbol", "contract_symbol");
-        market = this.safeMarket(marketId, market);
-        object symbol = getValue(market, "symbol");
-        object last = this.safeString2(ticker, "close_24h", "last_price");
-        object percentage = this.safeString(ticker, "price_change_percent_24h");
         if (isTrue(isEqual(percentage, null)))
         {
-            percentage = Precise.stringMul(this.safeString(ticker, "fluctuation"), "100");
+            percentage = Precise.stringMul(change, "100");
         }
-        object baseVolume = this.safeString(ticker, "base_volume_24h");
-        object quoteVolume = this.safeString(ticker, "quote_volume_24h");
         if (isTrue(isEqual(quoteVolume, null)))
         {
             if (isTrue(isEqual(baseVolume, null)))
@@ -1145,25 +1191,22 @@ public partial class bitmart : Exchange
                 baseVolume = null;
             }
         }
-        object average = this.safeString2(ticker, "avg_price", "index_price");
-        object high = this.safeString2(ticker, "high_24h", "high_price");
-        object low = this.safeString2(ticker, "low_24h", "low_price");
         return this.safeTicker(new Dictionary<string, object>() {
             { "symbol", symbol },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
             { "high", high },
             { "low", low },
-            { "bid", this.safeString(ticker, "best_bid") },
-            { "bidVolume", this.safeString(ticker, "best_bid_size") },
-            { "ask", this.safeString(ticker, "best_ask") },
-            { "askVolume", this.safeString(ticker, "best_ask_size") },
+            { "bid", bid },
+            { "bidVolume", bidVolume },
+            { "ask", ask },
+            { "askVolume", askVolume },
             { "vwap", null },
-            { "open", this.safeString(ticker, "open_24h") },
+            { "open", open },
             { "close", last },
             { "last", last },
             { "previousClose", null },
-            { "change", null },
+            { "change", change },
             { "percentage", percentage },
             { "average", average },
             { "baseVolume", baseVolume },
@@ -1178,6 +1221,7 @@ public partial class bitmart : Exchange
         * @method
         * @name bitmart#fetchTicker
         * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+        * @see https://developer-pro.bitmart.com/en/spot/#get-ticker-of-a-trading-pair-v3
         * @param {string} symbol unified symbol of the market to fetch the ticker for
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
@@ -1194,76 +1238,25 @@ public partial class bitmart : Exchange
         } else if (isTrue(getValue(market, "spot")))
         {
             ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
-            response = await this.publicGetSpotV1Ticker(this.extend(request, parameters));
+            response = await this.publicGetSpotQuotationV3Ticker(this.extend(request, parameters));
         } else
         {
             throw new NotSupported ((string)add(add(add(this.id, " fetchTicker() does not support "), getValue(market, "type")), " markets, only spot and swap markets are accepted")) ;
         }
-        //
-        // spot
-        //
-        //     {
-        //         "message":"OK",
-        //         "code":1000,
-        //         "trace":"6aa5b923-2f57-46e3-876d-feca190e0b82",
-        //         "data":{
-        //             "tickers":[
-        //                 {
-        //                     "symbol":"ETH_BTC",
-        //                     "last_price":"0.036037",
-        //                     "quote_volume_24h":"4380.6660000000",
-        //                     "base_volume_24h":"159.3582006712",
-        //                     "high_24h":"0.036972",
-        //                     "low_24h":"0.035524",
-        //                     "open_24h":"0.036561",
-        //                     "close_24h":"0.036037",
-        //                     "best_ask":"0.036077",
-        //                     "best_ask_size":"9.9500",
-        //                     "best_bid":"0.035983",
-        //                     "best_bid_size":"4.2792",
-        //                     "fluctuation":"-0.0143",
-        //                     "url":"https://www.bitmart.com/trade?symbol=ETH_BTC"
-        //                 }
-        //             ]
-        //         }
-        //     }
-        //
-        // swap
-        //
-        //      {
-        //          "message":"OK",
-        //          "code":1000,
-        //          "trace":"4a0ebceb-d3f7-45a3-8feb-f61e230e24cd",
-        //          "data":{
-        //              "tickers":[
-        //                  {
-        //                      "contract_symbol":"DOGEUSDT",
-        //                      "last_price":"0.130180",
-        //                      "index_price":"0.13028635",
-        //                      "last_funding_rate":"0.00002025",
-        //                      "price_change_percent_24h":"-2.326",
-        //                      "volume_24h":"116789313.01797258",
-        //                      "url":"https://futures.bitmart.com/en?symbol=DOGEUSDT",
-        //                      "high_price":"0.134520",
-        //                      "low_price":"0.128570",
-        //                      "legal_coin_price":"0.13017401"
-        //                  }
-        //              ]
-        //          }
-        //      }
-        //
-        object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
-        object tickers = this.safeValue(data, "tickers", new List<object>() {});
         // fails in naming for contract tickers 'contract_symbol'
         object tickersById = null;
+        object tickers = new List<object>() {};
+        object ticker = new Dictionary<string, object>() {};
         if (isTrue(getValue(market, "spot")))
         {
-            tickersById = this.indexBy(tickers, "symbol");
-        } else if (isTrue(getValue(market, "swap")))
+            ticker = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        } else
         {
+            object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+            tickers = this.safeList(data, "tickers", new List<object>() {});
             tickersById = this.indexBy(tickers, "contract_symbol");
+            ticker = this.safeDict(tickersById, getValue(market, "id"));
         }
-        object ticker = this.safeDict(tickersById, getValue(market, "id"));
         return this.parseTicker(ticker, market);
     }
 
@@ -1273,7 +1266,7 @@ public partial class bitmart : Exchange
         * @method
         * @name bitmart#fetchTickers
         * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
-        * @see https://developer-pro.bitmart.com/en/spot/#get-ticker-of-all-pairs-v2
+        * @see https://developer-pro.bitmart.com/en/spot/#get-ticker-of-all-pairs-v3
         * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
@@ -1294,7 +1287,7 @@ public partial class bitmart : Exchange
         object response = null;
         if (isTrue(isEqual(type, "spot")))
         {
-            response = await this.publicGetSpotV2Ticker(parameters);
+            response = await this.publicGetSpotQuotationV3Tickers(parameters);
         } else if (isTrue(isEqual(type, "swap")))
         {
             response = await this.publicGetContractV1Tickers(parameters);
@@ -1302,12 +1295,28 @@ public partial class bitmart : Exchange
         {
             throw new NotSupported ((string)add(add(add(this.id, " fetchTickers() does not support "), type), " markets, only spot and swap markets are accepted")) ;
         }
-        object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
-        object tickers = this.safeValue(data, "tickers", new List<object>() {});
+        object tickers = new List<object>() {};
+        if (isTrue(isEqual(type, "spot")))
+        {
+            tickers = this.safeList(response, "data", new List<object>() {});
+        } else
+        {
+            object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+            tickers = this.safeList(data, "tickers", new List<object>() {});
+        }
         object result = new Dictionary<string, object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(tickers)); postFixIncrement(ref i))
         {
-            object ticker = this.parseTicker(getValue(tickers, i));
+            object ticker = new Dictionary<string, object>() {};
+            if (isTrue(isEqual(type, "spot")))
+            {
+                ticker = this.parseTicker(new Dictionary<string, object>() {
+                    { "result", getValue(tickers, i) },
+                });
+            } else
+            {
+                ticker = this.parseTicker(getValue(tickers, i));
+            }
             object symbol = getValue(ticker, "symbol");
             ((IDictionary<string,object>)result)[(string)symbol] = ticker;
         }

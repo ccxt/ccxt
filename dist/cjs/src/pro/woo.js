@@ -53,7 +53,7 @@ class woo extends woo$1 {
             },
             'streaming': {
                 'ping': this.ping,
-                'keepAlive': 10000,
+                'keepAlive': 9000,
             },
             'exceptions': {
                 'ws': {
@@ -595,7 +595,7 @@ class woo extends woo$1 {
     async watchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
-         * @name woo#watchOrders
+         * @name woo#watchMyTrades
          * @see https://docs.woo.org/#executionreport
          * @see https://docs.woo.org/#algoexecutionreportv2
          * @description watches information on multiple trades made by the user
@@ -604,7 +604,7 @@ class woo extends woo$1 {
          * @param {int} [limit] the maximum number of order structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {bool} [params.trigger] true if trigger order
-         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
          */
         await this.loadMarkets();
         const trigger = this.safeBool2(params, 'stop', 'trigger', false);

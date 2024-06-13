@@ -33,14 +33,14 @@ import { Exchange }  from './src/base/Exchange.js'
 import { Precise }   from './src/base/Precise.js'
 import * as functions from './src/base/functions.js'
 import * as errors   from './src/base/errors.js'
-import type { Market, Trade , Fee, Ticker, OrderBook, Order, Transaction, Tickers, Currency, Balance, DepositAddress, WithdrawalResponse, DepositAddressResponse, OHLCV, Balances, PartialBalances, Dictionary, MinMax, Position, FundingRateHistory, Liquidation, FundingHistory, MarginMode, Greeks, Leverage, Leverages, Option, OptionChain, Conversion } from './src/base/types.js'
+import type { Int, int, Str, Strings, Num, Bool, IndexType, OrderSide, OrderType, MarketType, SubType, Dict, NullableDict, List, NullableList, Fee, OHLCV, OHLCVC, implicitReturnType, Market, Currency, Dictionary, MinMax, FeeInterface, TradingFeeInterface, MarketInterface, Trade, Order, OrderBook, Ticker, Transaction, Tickers, CurrencyInterface, Balance, BalanceAccount, Account, PartialBalances, Balances, DepositAddress, WithdrawalResponse, DepositAddressResponse, FundingRate, FundingRates, Position, BorrowInterest, LeverageTier, LedgerEntry, DepositWithdrawFeeNetwork, DepositWithdrawFee, TransferEntry, CrossBorrowRate, IsolatedBorrowRate, FundingRateHistory, OpenInterest, Liquidation, OrderRequest, CancellationRequest, FundingHistory, MarginMode, Greeks, Conversion, Option, LastPrice, Leverage, MarginModification, Leverages, LastPrices, Currencies, TradingFees, MarginModes, OptionChain, IsolatedBorrowRates, CrossBorrowRates, TransferEntries, LeverageTiers } from './src/base/types.js'
 import {BaseError, ExchangeError, AuthenticationError, PermissionDenied, AccountNotEnabled, AccountSuspended, ArgumentsRequired, BadRequest, BadSymbol, OperationRejected, NoChange, MarginModeAlreadySet, MarketClosed, BadResponse, NullResponse, InsufficientFunds, InvalidAddress, AddressPending, InvalidOrder, OrderNotFound, OrderNotCached, CancelPending, OrderImmediatelyFillable, OrderNotFillable, DuplicateOrderId, ContractUnavailable, NotSupported, ProxyError, ExchangeClosedByUser, OperationFailed, NetworkError, DDoSProtection, RateLimitExceeded, ExchangeNotAvailable, OnMaintenance, InvalidNonce, RequestTimeout}  from './src/base/errors.js'
 
 
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '4.3.38';
+const version = '4.3.44';
 
 (Exchange as any).ccxtVersion = version
 
@@ -148,6 +148,7 @@ import wazirx from  './src/wazirx.js'
 import whitebit from  './src/whitebit.js'
 import woo from  './src/woo.js'
 import woofipro from  './src/woofipro.js'
+import xt from  './src/xt.js'
 import yobit from  './src/yobit.js'
 import zaif from  './src/zaif.js'
 import zonda from  './src/zonda.js'
@@ -323,6 +324,7 @@ const exchanges = {
     'whitebit':               whitebit,
     'woo':                    woo,
     'woofipro':               woofipro,
+    'xt':                     xt,
     'yobit':                  yobit,
     'zaif':                   zaif,
     'zonda':                  zonda,
@@ -456,35 +458,81 @@ export {
     OnMaintenance,
     InvalidNonce,
     RequestTimeout,
-    Market,
-    Trade,
+    Int,
+    int,
+    Str,
+    Strings,
+    Num,
+    Bool,
+    IndexType,
+    OrderSide,
+    OrderType,
+    MarketType,
+    SubType,
+    Dict,
+    NullableDict,
+    List,
+    NullableList,
     Fee,
-    Ticker,
-    OrderBook,
+    OHLCV,
+    OHLCVC,
+    implicitReturnType,
+    Market,
+    Currency,
+    Dictionary,
+    MinMax,
+    FeeInterface,
+    TradingFeeInterface,
+    MarketInterface,
+    Trade,
     Order,
+    OrderBook,
+    Ticker,
     Transaction,
     Tickers,
-    Currency,
+    CurrencyInterface,
     Balance,
+    BalanceAccount,
+    Account,
+    PartialBalances,
+    Balances,
     DepositAddress,
     WithdrawalResponse,
     DepositAddressResponse,
-    OHLCV,
-    Balances,
-    PartialBalances,
-    Dictionary,
-    MinMax,
+    FundingRate,
+    FundingRates,
     Position,
+    BorrowInterest,
+    LeverageTier,
+    LedgerEntry,
+    DepositWithdrawFeeNetwork,
+    DepositWithdrawFee,
+    TransferEntry,
+    CrossBorrowRate,
+    IsolatedBorrowRate,
     FundingRateHistory,
+    OpenInterest,
     Liquidation,
+    OrderRequest,
+    CancellationRequest,
     FundingHistory,
     MarginMode,
     Greeks,
-    Leverage,
-    Leverages,
-    Option,
-    OptionChain,
     Conversion,
+    Option,
+    LastPrice,
+    Leverage,
+    MarginModification,
+    Leverages,
+    LastPrices,
+    Currencies,
+    TradingFees,
+    MarginModes,
+    OptionChain,
+    IsolatedBorrowRates,
+    CrossBorrowRates,
+    TransferEntries,
+    LeverageTiers,
     ace,
     alpaca,
     ascendex,
@@ -587,6 +635,7 @@ export {
     whitebit,
     woo,
     woofipro,
+    xt,
     yobit,
     zaif,
     zonda,    

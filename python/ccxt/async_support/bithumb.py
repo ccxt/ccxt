@@ -924,7 +924,15 @@ class bithumb(Exchange, ImplicitAPI):
             'order_currency': market['base'],
             'payment_currency': market['quote'],
         }
-        return await self.privatePostTradeCancel(self.extend(request, params))
+        response = await self.privatePostTradeCancel(self.extend(request, params))
+        #
+        #    {
+        #       'status': 'string',
+        #    }
+        #
+        return self.safe_order({
+            'info': response,
+        })
 
     async def cancel_unified_order(self, order, params={}):
         request: dict = {

@@ -895,6 +895,13 @@ class coinmate(Exchange, ImplicitAPI):
         #         "trailing": False,
         #     }
         #
+        # cancelOrder
+        #
+        #    {
+        #        "success": True,
+        #        "remainingAmount": 0.1
+        #    }
+        #
         id = self.safe_string(order, 'id')
         timestamp = self.safe_integer(order, 'timestamp')
         side = self.safe_string_lower(order, 'type')
@@ -1003,9 +1010,18 @@ class coinmate(Exchange, ImplicitAPI):
         #   {"error":false,"errorMessage":null,"data":{"success":true,"remainingAmount":0.01}}
         request: dict = {'orderId': id}
         response = self.privatePostCancelOrderWithInfo(self.extend(request, params))
-        return {
-            'info': response,
-        }
+        #
+        #    {
+        #        "error": False,
+        #        "errorMessage": null,
+        #        "data": {
+        #          "success": True,
+        #          "remainingAmount": 0.1
+        #        }
+        #    }
+        #
+        data = self.safe_dict(response, 'data')
+        return self.parse_order(data)
 
     def nonce(self):
         return self.milliseconds()

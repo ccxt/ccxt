@@ -37,7 +37,7 @@ export default class mexc extends mexcRest {
                 'api': {
                     'ws': {
                         'spot': 'wss://wbs.mexc.com/ws',
-                        'swap': 'wss://contract.mexc.com/ws',
+                        'swap': 'wss://contract.mexc.com/edge',
                     },
                 },
             },
@@ -64,7 +64,7 @@ export default class mexc extends mexcRest {
             },
             'streaming': {
                 'ping': this.ping,
-                'keepAlive': 10000,
+                'keepAlive': 8000,
             },
             'exceptions': {},
         });

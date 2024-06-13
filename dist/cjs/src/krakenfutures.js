@@ -1269,7 +1269,46 @@ class krakenfutures extends krakenfutures$1 {
             request['symbol'] = this.marketId(symbol);
         }
         const response = await this.privatePostCancelallorders(this.extend(request, params));
-        return response;
+        //
+        //    {
+        //        result: 'success',
+        //        cancelStatus: {
+        //          receivedTime: '2024-06-06T01:12:44.814Z',
+        //          cancelOnly: 'PF_XRPUSD',
+        //          status: 'cancelled',
+        //          cancelledOrders: [ { order_id: '272fd0ac-45c0-4003-b84d-d39b9e86bd36' } ],
+        //          orderEvents: [
+        //            {
+        //              uid: '272fd0ac-45c0-4003-b84d-d39b9e86bd36',
+        //              order: {
+        //                orderId: '272fd0ac-45c0-4003-b84d-d39b9e86bd36',
+        //                cliOrdId: null,
+        //                type: 'lmt',
+        //                symbol: 'PF_XRPUSD',
+        //                side: 'buy',
+        //                quantity: '10',
+        //                filled: '0',
+        //                limitPrice: '0.4',
+        //                reduceOnly: false,
+        //                timestamp: '2024-06-06T01:11:16.045Z',
+        //                lastUpdateTimestamp: '2024-06-06T01:11:16.045Z'
+        //              },
+        //              type: 'CANCEL'
+        //            }
+        //          ]
+        //        },
+        //        serverTime: '2024-06-06T01:12:44.814Z'
+        //    }
+        //
+        const cancelStatus = this.safeDict(response, 'cancelStatus');
+        const orderEvents = this.safeList(cancelStatus, 'orderEvents', []);
+        const orders = [];
+        for (let i = 0; i < orderEvents.length; i++) {
+            const orderEvent = this.safeDict(orderEvents, 0);
+            const order = this.safeDict(orderEvent, 'order', {});
+            orders.push(order);
+        }
+        return this.parseOrders(orders);
     }
     async cancelAllOrdersAfter(timeout, params = {}) {
         /**
@@ -1635,6 +1674,22 @@ class krakenfutures extends krakenfutures$1 {
         //                "type": "CANCEL"
         //            }
         //        ]
+        //    }
+        //
+        // cancelAllOrders
+        //
+        //    {
+        //        "orderId": "85c40002-3f20-4e87-9302-262626c3531b",
+        //        "cliOrdId": null,
+        //        "type": "lmt",
+        //        "symbol": "pi_xbtusd",
+        //        "side": "buy",
+        //        "quantity": 1000,
+        //        "filled": 0,
+        //        "limitPrice": 10144,
+        //        "stopPrice": null,
+        //        "reduceOnly": false,
+        //        "timestamp": "2019-08-01T15:26:27.790Z"
         //    }
         //
         // FETCH OPEN ORDERS

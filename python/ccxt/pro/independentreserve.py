@@ -176,22 +176,22 @@ class independentreserve(ccxt.async_support.independentreserve):
         base = self.safe_currency_code(baseId)
         quote = self.safe_currency_code(quoteId)
         symbol = base + '/' + quote
-        orderBook = self.safe_value(message, 'Data', {})
+        orderBook = self.safe_dict(message, 'Data', {})
         messageHash = 'orderbook:' + symbol + ':' + depth
         subscription = self.safe_value(client.subscriptions, messageHash, {})
         receivedSnapshot = self.safe_bool(subscription, 'receivedSnapshot', False)
         timestamp = self.safe_integer(message, 'Time')
-        orderbook = self.safe_value(self.orderbooks, symbol)
-        if orderbook is None:
-            orderbook = self.order_book({})
-            self.orderbooks[symbol] = orderbook
+        # orderbook = self.safe_value(self.orderbooks, symbol)
+        if not (symbol in self.orderbooks):
+            self.orderbooks[symbol] = self.order_book({})
+        orderbook = self.orderbooks[symbol]
         if event == 'OrderBookSnapshot':
             snapshot = self.parse_order_book(orderBook, symbol, timestamp, 'Bids', 'Offers', 'Price', 'Volume')
             orderbook.reset(snapshot)
             subscription['receivedSnapshot'] = True
         else:
-            asks = self.safe_value(orderBook, 'Offers', [])
-            bids = self.safe_value(orderBook, 'Bids', [])
+            asks = self.safe_list(orderBook, 'Offers', [])
+            bids = self.safe_list(orderBook, 'Bids', [])
             self.handle_deltas(orderbook['asks'], asks)
             self.handle_deltas(orderbook['bids'], bids)
             orderbook['timestamp'] = timestamp

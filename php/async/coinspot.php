@@ -543,11 +543,21 @@ class coinspot extends Exchange {
                 throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $side parameter, "buy" or "sell"');
             }
             $params = $this->omit($params, 'side');
-            $method = 'privatePostMy' . $this->capitalize($side) . 'Cancel';
             $request = array(
                 'id' => $id,
             );
-            return Async\await($this->$method ($this->extend($request, $params)));
+            $response = null;
+            if ($side === 'buy') {
+                $response = Async\await($this->privatePostMyBuyCancel ($this->extend($request, $params)));
+            } else {
+                $response = Async\await($this->privatePostMySellCancel ($this->extend($request, $params)));
+            }
+            //
+            // status - ok, error
+            //
+            return $this->safe_order(array(
+                'info' => $response,
+            ));
         }) ();
     }
 

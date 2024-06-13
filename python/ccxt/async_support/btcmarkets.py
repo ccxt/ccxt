@@ -855,7 +855,29 @@ class btcmarkets(Exchange, ImplicitAPI):
         request: dict = {
             'ids': ids,
         }
-        return await self.privateDeleteBatchordersIds(self.extend(request, params))
+        response = await self.privateDeleteBatchordersIds(self.extend(request, params))
+        #
+        #    {
+        #       "cancelOrders": [
+        #            {
+        #               "orderId": "414186",
+        #               "clientOrderId": "6"
+        #            },
+        #            ...
+        #        ],
+        #        "unprocessedRequests": [
+        #            {
+        #               "code": "OrderAlreadyCancelled",
+        #               "message": "order is already cancelled.",
+        #               "requestId": "1"
+        #            }
+        #        ]
+        #    }
+        #
+        cancelOrders = self.safe_list(response, 'cancelOrders', [])
+        unprocessedRequests = self.safe_list(response, 'unprocessedRequests', [])
+        orders = self.array_concat(cancelOrders, unprocessedRequests)
+        return self.parse_orders(orders)
 
     async def cancel_order(self, id: str, symbol: Str = None, params={}):
         """
@@ -870,7 +892,14 @@ class btcmarkets(Exchange, ImplicitAPI):
         request: dict = {
             'id': id,
         }
-        return await self.privateDeleteOrdersId(self.extend(request, params))
+        response = await self.privateDeleteOrdersId(self.extend(request, params))
+        #
+        #    {
+        #        "orderId": "7524",
+        #        "clientOrderId": "123-456"
+        #    }
+        #
+        return self.parse_order(response)
 
     def calculate_fee(self, symbol, type, side, amount, price, takerOrMaker='taker', params={}):
         """

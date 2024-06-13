@@ -1491,7 +1491,17 @@ public partial class bitstamp : Exchange
         object request = new Dictionary<string, object>() {
             { "id", id },
         };
-        return await this.privatePostCancelOrder(this.extend(request, parameters));
+        object response = await this.privatePostCancelOrder(this.extend(request, parameters));
+        //
+        //    {
+        //        "id": 1453282316578816,
+        //        "amount": "0.02035278",
+        //        "price": "2100.45",
+        //        "type": 0,
+        //        "market": "BTC/USD"
+        //    }
+        //
+        return this.parseOrder(response);
     }
 
     public async override Task<object> cancelAllOrders(object symbol = null, object parameters = null)
@@ -1520,7 +1530,23 @@ public partial class bitstamp : Exchange
         {
             response = await this.privatePostCancelAllOrders(this.extend(request, parameters));
         }
-        return response;
+        //
+        //    {
+        //        "canceled": [
+        //            {
+        //                "id": 1453282316578816,
+        //                "amount": "0.02035278",
+        //                "price": "2100.45",
+        //                "type": 0,
+        //                "currency_pair": "BTC/USD",
+        //                "market": "BTC/USD"
+        //            }
+        //        ],
+        //        "success": true
+        //    }
+        //
+        object canceled = this.safeList(response, "canceled");
+        return this.parseOrders(canceled);
     }
 
     public virtual object parseOrderStatus(object status)
@@ -1935,6 +1961,16 @@ public partial class bitstamp : Exchange
         //           "type": "0",
         //           "id": "2814205012"
         //       }
+        //
+        // cancelOrder
+        //
+        //    {
+        //        "id": 1453282316578816,
+        //        "amount": "0.02035278",
+        //        "price": "2100.45",
+        //        "type": 0,
+        //        "market": "BTC/USD"
+        //    }
         //
         object id = this.safeString(order, "id");
         object clientOrderId = this.safeString(order, "client_order_id");

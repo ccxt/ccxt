@@ -1077,7 +1077,7 @@ class coinone extends Exchange {
             //         "errorCode" => "0"
             //     }
             //
-            return $response;
+            return $this->safe_order($response);
         }) ();
     }
 

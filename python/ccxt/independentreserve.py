@@ -375,6 +375,21 @@ class independentreserve(Exchange, ImplicitAPI):
         #         "FeePercent": 0.005,
         #     }
         #
+        # cancelOrder
+        #
+        #    {
+        #        "AvgPrice": 455.48,
+        #        "CreatedTimestampUtc": "2022-08-05T06:42:11.3032208Z",
+        #        "OrderGuid": "719c495c-a39e-4884-93ac-280b37245037",
+        #        "Price": 485.76,
+        #        "PrimaryCurrencyCode": "Xbt",
+        #        "ReservedAmount": 0.358,
+        #        "SecondaryCurrencyCode": "Usd",
+        #        "Status": "Cancelled",
+        #        "Type": "LimitOffer",
+        #        "VolumeFilled": 0,
+        #        "VolumeOrdered": 0.358
+        #    }
         symbol = None
         baseId = self.safe_string(order, 'PrimaryCurrencyCode')
         quoteId = self.safe_string(order, 'SecondaryCurrencyCode')
@@ -666,6 +681,7 @@ class independentreserve(Exchange, ImplicitAPI):
     def cancel_order(self, id: str, symbol: Str = None, params={}):
         """
         cancels an open order
+        :see: https://www.independentreserve.com/features/api#CancelOrder
         :param str id: order id
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -675,7 +691,23 @@ class independentreserve(Exchange, ImplicitAPI):
         request: dict = {
             'orderGuid': id,
         }
-        return self.privatePostCancelOrder(self.extend(request, params))
+        response = self.privatePostCancelOrder(self.extend(request, params))
+        #
+        #    {
+        #        "AvgPrice": 455.48,
+        #        "CreatedTimestampUtc": "2022-08-05T06:42:11.3032208Z",
+        #        "OrderGuid": "719c495c-a39e-4884-93ac-280b37245037",
+        #        "Price": 485.76,
+        #        "PrimaryCurrencyCode": "Xbt",
+        #        "ReservedAmount": 0.358,
+        #        "SecondaryCurrencyCode": "Usd",
+        #        "Status": "Cancelled",
+        #        "Type": "LimitOffer",
+        #        "VolumeFilled": 0,
+        #        "VolumeOrdered": 0.358
+        #    }
+        #
+        return self.parse_order(response)
 
     def fetch_deposit_address(self, code: str, params={}):
         """

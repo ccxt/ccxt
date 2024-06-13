@@ -476,17 +476,18 @@ export default class currencycom extends currencycomRest {
         const destination = 'depthMarketData.subscribe';
         const messageHash = destination + ':' + symbol;
         const timestamp = this.safeInteger (data, 'ts');
-        let orderbook = this.safeValue (this.orderbooks, symbol);
-        if (orderbook === undefined) {
-            orderbook = this.orderBook ();
+        // let orderbook = this.safeValue (this.orderbooks, symbol);
+        if (!(symbol in this.orderbooks)) {
+            this.orderbooks[symbol] = this.orderBook ();
         }
+        const orderbook = this.orderbooks[symbol];
         orderbook.reset ({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
         });
-        const bids = this.safeValue (data, 'bid', {});
-        const asks = this.safeValue (data, 'ofr', {});
+        const bids = this.safeDict (data, 'bid', {});
+        const asks = this.safeDict (data, 'ofr', {});
         this.handleDeltas (orderbook['bids'], bids);
         this.handleDeltas (orderbook['asks'], asks);
         this.orderbooks[symbol] = orderbook;

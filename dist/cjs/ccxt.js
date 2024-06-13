@@ -114,6 +114,7 @@ var wazirx = require('./src/wazirx.js');
 var whitebit = require('./src/whitebit.js');
 var woo = require('./src/woo.js');
 var woofipro = require('./src/woofipro.js');
+var xt = require('./src/xt.js');
 var yobit = require('./src/yobit.js');
 var zaif = require('./src/zaif.js');
 var zonda = require('./src/zonda.js');
@@ -185,7 +186,7 @@ var woofipro$1 = require('./src/pro/woofipro.js');
 
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
-const version = '4.3.38';
+const version = '4.3.44';
 Exchange["default"].ccxtVersion = version;
 const exchanges = {
     'ace': ace,
@@ -290,6 +291,7 @@ const exchanges = {
     'whitebit': whitebit,
     'woo': woo,
     'woofipro': woofipro,
+    'xt': xt,
     'yobit': yobit,
     'zaif': zaif,
     'zonda': zonda,
@@ -510,6 +512,7 @@ exports.wazirx = wazirx;
 exports.whitebit = whitebit;
 exports.woo = woo;
 exports.woofipro = woofipro;
+exports.xt = xt;
 exports.yobit = yobit;
 exports.zaif = zaif;
 exports.zonda = zonda;

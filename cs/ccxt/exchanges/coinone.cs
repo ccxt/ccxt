@@ -1049,7 +1049,7 @@ public partial class coinone : Exchange
         //         "errorCode": "0"
         //     }
         //
-        return response;
+        return this.safeOrder(response);
     }
 
     public async override Task<object> fetchDepositAddresses(object codes = null, object parameters = null)

@@ -53,26 +53,7 @@ export default class wavesexchange extends Exchange {
     safeGetDynamic(settings: any): any;
     safeGetRates(dynamic: any): any;
     createOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): Promise<Order>;
-    cancelOrder(id: string, symbol?: Str, params?: {}): Promise<{
-        info: any;
-        id: string;
-        clientOrderId: any;
-        timestamp: any;
-        datetime: any;
-        lastTradeTimestamp: any;
-        symbol: string;
-        type: any;
-        side: any;
-        price: any;
-        amount: any;
-        cost: any;
-        average: any;
-        filled: any;
-        remaining: any;
-        status: any;
-        fee: any;
-        trades: any;
-    }>;
+    cancelOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
     fetchOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
     fetchOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     fetchOpenOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;

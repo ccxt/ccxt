@@ -136,7 +136,7 @@ public partial class mexc : Exchange
                 { "www", "https://www.mexc.com/" },
                 { "doc", new List<object>() {"https://mexcdevelop.github.io/apidocs/"} },
                 { "fees", new List<object>() {"https://www.mexc.com/fee"} },
-                { "referral", "https://m.mexc.com/auth/signup?inviteCode=1FQ1G" },
+                { "referral", "https://www.mexc.com/register?inviteCode=mexc-1FQ1GNu1" },
             } },
             { "api", new Dictionary<string, object>() {
                 { "spot", new Dictionary<string, object>() {

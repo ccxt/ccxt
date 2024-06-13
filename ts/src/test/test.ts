@@ -1515,7 +1515,8 @@ export default class testMainClass extends baseMainTestClass {
             this.testCoinbaseinternational (),
             this.testCoinbaseAdvanced (),
             this.testWoofiPro (),
-            this.testOxfun ()
+            this.testOxfun (),
+            this.testXT ()
         ];
         await Promise.all (promises);
         const successMessage = '[' + this.lang + '][TEST_SUCCESS] brokerId tests passed.';
@@ -1902,6 +1903,28 @@ export default class testMainClass extends baseMainTestClass {
         const first = orders[0];
         const brokerId = first['source'];
         assert (brokerId === id, 'oxfun - id: ' + id.toString () + ' different from  broker_id: ' + brokerId.toString ());
+        return true;
+    }
+
+    async testXT () {
+        const exchange = this.initOfflineExchange ('xt');
+        const id = 'CCXT';
+        let spotOrderRequest = undefined;
+        try {
+            await exchange.createOrder ('BTC/USDT', 'limit', 'buy', 1, 20000);
+        } catch (e) {
+            spotOrderRequest = jsonParse (exchange.last_request_body);
+        }
+        const spotMedia = spotOrderRequest['media'];
+        assert (spotMedia === id, 'xt - id: ' + id + ' different from swap tag: ' + spotMedia);
+        let swapOrderRequest = undefined;
+        try {
+            await exchange.createOrder ('BTC/USDT:USDT', 'limit', 'buy', 1, 20000);
+        } catch (e) {
+            swapOrderRequest = jsonParse (exchange.last_request_body);
+        }
+        const swapMedia = swapOrderRequest['clientMedia'];
+        assert (swapMedia === id, 'xt - id: ' + id + ' different from swap tag: ' + swapMedia);
         await close (exchange);
         return true;
     }

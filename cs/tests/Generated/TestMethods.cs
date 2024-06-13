@@ -1483,7 +1483,7 @@ public partial class testMainClass : BaseTest
         //  -----------------------------------------------------------------------------
         //  --- Init of brokerId tests functions-----------------------------------------
         //  -----------------------------------------------------------------------------
-        object promises = new List<object> {this.testBinance(), this.testOkx(), this.testCryptocom(), this.testBybit(), this.testKucoin(), this.testKucoinfutures(), this.testBitget(), this.testMexc(), this.testHtx(), this.testWoo(), this.testBitmart(), this.testCoinex(), this.testBingx(), this.testPhemex(), this.testBlofin(), this.testHyperliquid(), this.testCoinbaseinternational(), this.testCoinbaseAdvanced(), this.testWoofiPro()};
+        object promises = new List<object> {this.testBinance(), this.testOkx(), this.testCryptocom(), this.testBybit(), this.testKucoin(), this.testKucoinfutures(), this.testBitget(), this.testMexc(), this.testHtx(), this.testWoo(), this.testBitmart(), this.testCoinex(), this.testBingx(), this.testPhemex(), this.testBlofin(), this.testHyperliquid(), this.testCoinbaseinternational(), this.testCoinbaseAdvanced(), this.testWoofiPro(), this.testXT()};
         await promiseAll(promises);
         object successMessage = add(add("[", this.lang), "][TEST_SUCCESS] brokerId tests passed.");
         dump(add("[INFO]", successMessage));
@@ -1921,6 +1921,34 @@ public partial class testMainClass : BaseTest
         }
         object brokerId = getValue(request, "order_tag");
         assert(isEqual(brokerId, id), add(add(add("woofipro - id: ", id), " different from  broker_id: "), brokerId));
+        await close(exchange);
+        return true;
+    }
+
+    public async virtual Task<object> testXT()
+    {
+        Exchange exchange = this.initOfflineExchange("xt");
+        object id = "CCXT";
+        object spotOrderRequest = null;
+        try
+        {
+            await exchange.createOrder("BTC/USDT", "limit", "buy", 1, 20000);
+        } catch(Exception e)
+        {
+            spotOrderRequest = jsonParse(exchange.last_request_body);
+        }
+        object spotMedia = getValue(spotOrderRequest, "media");
+        assert(isEqual(spotMedia, id), add(add(add("xt - id: ", id), " different from swap tag: "), spotMedia));
+        object swapOrderRequest = null;
+        try
+        {
+            await exchange.createOrder("BTC/USDT:USDT", "limit", "buy", 1, 20000);
+        } catch(Exception e)
+        {
+            swapOrderRequest = jsonParse(exchange.last_request_body);
+        }
+        object swapMedia = getValue(swapOrderRequest, "clientMedia");
+        assert(isEqual(swapMedia, id), add(add(add("xt - id: ", id), " different from swap tag: "), swapMedia));
         await close(exchange);
         return true;
     }

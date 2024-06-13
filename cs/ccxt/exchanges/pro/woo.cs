@@ -52,7 +52,7 @@ public partial class woo : ccxt.woo
             } },
             { "streaming", new Dictionary<string, object>() {
                 { "ping", this.ping },
-                { "keepAlive", 10000 },
+                { "keepAlive", 9000 },
             } },
             { "exceptions", new Dictionary<string, object>() {
                 { "ws", new Dictionary<string, object>() {
@@ -656,7 +656,7 @@ public partial class woo : ccxt.woo
     {
         /**
         * @method
-        * @name woo#watchOrders
+        * @name woo#watchMyTrades
         * @see https://docs.woo.org/#executionreport
         * @see https://docs.woo.org/#algoexecutionreportv2
         * @description watches information on multiple trades made by the user
@@ -665,7 +665,7 @@ public partial class woo : ccxt.woo
         * @param {int} [limit] the maximum number of order structures to retrieve
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @param {bool} [params.trigger] true if trigger order
-        * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+        * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
         */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();

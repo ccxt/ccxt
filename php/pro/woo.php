@@ -58,7 +58,7 @@ class woo extends \ccxt\async\woo {
             ),
             'streaming' => array(
                 'ping' => array($this, 'ping'),
-                'keepAlive' => 10000,
+                'keepAlive' => 9000,
             ),
             'exceptions' => array(
                 'ws' => array(
@@ -635,7 +635,7 @@ class woo extends \ccxt\async\woo {
              * @param {int} [$limit] the maximum number of order structures to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {bool} [$params->trigger] true if $trigger order
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=trade-structure trade structures~
              */
             Async\await($this->load_markets());
             $trigger = $this->safe_bool_2($params, 'stop', 'trigger', false);

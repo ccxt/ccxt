@@ -14,11 +14,13 @@ public partial class bingx : ccxt.bingx
                 { "ws", true },
                 { "watchTrades", true },
                 { "watchOrderBook", true },
+                { "watchOrderBookForSymbols", true },
                 { "watchOHLCV", true },
+                { "watchOHLCVForSymbols", true },
                 { "watchOrders", true },
                 { "watchMyTrades", true },
                 { "watchTicker", true },
-                { "watchTickers", false },
+                { "watchTickers", true },
                 { "watchBalance", true },
             } },
             { "urls", new Dictionary<string, object>() {
@@ -66,6 +68,14 @@ public partial class bingx : ccxt.bingx
                     { "fetchBalanceSnapshot", true },
                     { "awaitBalanceSnapshot", false },
                 } },
+                { "watchOrderBook", new Dictionary<string, object>() {
+                    { "depth", 100 },
+                    { "interval", 500 },
+                } },
+                { "watchOrderBookForSymbols", new Dictionary<string, object>() {
+                    { "depth", 100 },
+                    { "interval", 500 },
+                } },
             } },
             { "streaming", new Dictionary<string, object>() {
                 { "keepAlive", 1800000 },
@@ -95,17 +105,18 @@ public partial class bingx : ccxt.bingx
         {
             throw new BadRequest ((string)add(add(add(this.id, " watchTrades is not supported for "), marketType), " markets.")) ;
         }
-        object messageHash = add(getValue(market, "id"), "@ticker");
+        object subscriptionHash = add(getValue(market, "id"), "@ticker");
+        object messageHash = this.getMessageHash("ticker", getValue(market, "symbol"));
         object uuid = this.uuid();
         object request = new Dictionary<string, object>() {
             { "id", uuid },
-            { "dataType", messageHash },
+            { "dataType", subscriptionHash },
         };
         if (isTrue(isEqual(marketType, "swap")))
         {
             ((IDictionary<string,object>)request)["reqType"] = "sub";
         }
-        return await this.watch(url, messageHash, this.extend(request, query), messageHash);
+        return await this.watch(url, messageHash, this.extend(request, query), subscriptionHash);
     }
 
     public virtual void handleTicker(WebSocketClient client, object message)
@@ -173,8 +184,11 @@ public partial class bingx : ccxt.bingx
         object symbol = getValue(market, "symbol");
         object ticker = this.parseWsTicker(data, market);
         ((IDictionary<string,object>)this.tickers)[(string)symbol] = ticker;
-        object messageHash = add(getValue(market, "id"), "@ticker");
-        callDynamically(client as WebSocketClient, "resolve", new object[] {ticker, messageHash});
+        callDynamically(client as WebSocketClient, "resolve", new object[] {ticker, this.getMessageHash("ticker", symbol)});
+        if (isTrue(isEqual(this.safeString(message, "dataType"), "all@ticker")))
+        {
+            callDynamically(client as WebSocketClient, "resolve", new object[] {ticker, this.getMessageHash("ticker")});
+        }
     }
 
     public virtual object parseWsTicker(object message, object market = null)
@@ -227,6 +241,252 @@ public partial class bingx : ccxt.bingx
             { "quoteVolume", this.safeString(message, "q") },
             { "info", message },
         }, market);
+    }
+
+    public async override Task<object> watchTickers(object symbols = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name bingx#watchTickers
+        * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+        * @see https://bingx-api.github.io/docs/#/en-us/swapV2/socket/market.html#Subscribe%20to%2024-hour%20price%20changes%20of%20all%20trading%20pairs
+        * @param {string[]} symbols unified symbol of the market to watch the tickers for
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        symbols = this.marketSymbols(symbols, null, true, true, false);
+        object firstMarket = null;
+        object marketType = null;
+        object symbolsDefined = (!isEqual(symbols, null));
+        if (isTrue(symbolsDefined))
+        {
+            firstMarket = this.market(getValue(symbols, 0));
+        }
+        var marketTypeparametersVariable = this.handleMarketTypeAndParams("watchTickers", firstMarket, parameters);
+        marketType = ((IList<object>)marketTypeparametersVariable)[0];
+        parameters = ((IList<object>)marketTypeparametersVariable)[1];
+        if (isTrue(isEqual(marketType, "spot")))
+        {
+            throw new NotSupported ((string)add(this.id, " watchTickers is not supported for spot markets yet")) ;
+        }
+        object messageHashes = new List<object>() {};
+        object subscriptionHashes = new List<object>() {"all@ticker"};
+        if (isTrue(symbolsDefined))
+        {
+            for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
+            {
+                object symbol = getValue(symbols, i);
+                object market = this.market(symbol);
+                ((IList<object>)messageHashes).Add(this.getMessageHash("ticker", getValue(market, "symbol")));
+            }
+        } else
+        {
+            ((IList<object>)messageHashes).Add(this.getMessageHash("ticker"));
+        }
+        object url = this.safeString(getValue(getValue(this.urls, "api"), "ws"), marketType);
+        object uuid = this.uuid();
+        object request = new Dictionary<string, object>() {
+            { "id", uuid },
+            { "dataType", "all@ticker" },
+        };
+        if (isTrue(isEqual(marketType, "swap")))
+        {
+            ((IDictionary<string,object>)request)["reqType"] = "sub";
+        }
+        object result = await this.watchMultiple(url, messageHashes, this.deepExtend(request, parameters), subscriptionHashes);
+        if (isTrue(this.newUpdates))
+        {
+            object newDict = new Dictionary<string, object>() {};
+            ((IDictionary<string,object>)newDict)[(string)getValue(result, "symbol")] = result;
+            return newDict;
+        }
+        return this.tickers;
+    }
+
+    public async override Task<object> watchOrderBookForSymbols(object symbols, object limit = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name bingx#watchOrderBookForSymbols
+        * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+        * @see https://bingx-api.github.io/docs/#/en-us/swapV2/socket/market.html#Subscribe%20Market%20Depth%20Data%20of%20all%20trading%20pairs
+        * @param {string[]} symbols unified array of symbols
+        * @param {int} [limit] the maximum amount of order book entries to return
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+        */
+        parameters ??= new Dictionary<string, object>();
+        symbols = this.marketSymbols(symbols, null, true, true, false);
+        object firstMarket = null;
+        object marketType = null;
+        object symbolsDefined = (!isEqual(symbols, null));
+        if (isTrue(symbolsDefined))
+        {
+            firstMarket = this.market(getValue(symbols, 0));
+        }
+        var marketTypeparametersVariable = this.handleMarketTypeAndParams("watchOrderBookForSymbols", firstMarket, parameters);
+        marketType = ((IList<object>)marketTypeparametersVariable)[0];
+        parameters = ((IList<object>)marketTypeparametersVariable)[1];
+        if (isTrue(isEqual(marketType, "spot")))
+        {
+            throw new NotSupported ((string)add(this.id, " watchOrderBookForSymbols is not supported for spot markets yet")) ;
+        }
+        limit = this.getOrderBookLimitByMarketType(marketType, limit);
+        object interval = null;
+        var intervalparametersVariable = this.handleOptionAndParams(parameters, "watchOrderBookForSymbols", "interval", 500);
+        interval = ((IList<object>)intervalparametersVariable)[0];
+        parameters = ((IList<object>)intervalparametersVariable)[1];
+        this.checkRequiredArgument("watchOrderBookForSymbols", interval, "interval", new List<object>() {100, 200, 500, 1000});
+        object channelName = add(add(add(add("depth", ((object)limit).ToString()), "@"), ((object)interval).ToString()), "ms");
+        object subscriptionHash = add("all@", channelName);
+        object messageHashes = new List<object>() {};
+        if (isTrue(symbolsDefined))
+        {
+            for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
+            {
+                object symbol = getValue(symbols, i);
+                object market = this.market(symbol);
+                ((IList<object>)messageHashes).Add(this.getMessageHash("orderbook", getValue(market, "symbol")));
+            }
+        } else
+        {
+            ((IList<object>)messageHashes).Add(this.getMessageHash("orderbook"));
+        }
+        object url = this.safeString(getValue(getValue(this.urls, "api"), "ws"), marketType);
+        object uuid = this.uuid();
+        object request = new Dictionary<string, object>() {
+            { "id", uuid },
+            { "dataType", subscriptionHash },
+        };
+        if (isTrue(isEqual(marketType, "swap")))
+        {
+            ((IDictionary<string,object>)request)["reqType"] = "sub";
+        }
+        object subscriptionArgs = new Dictionary<string, object>() {
+            { "symbols", symbols },
+            { "limit", limit },
+            { "interval", interval },
+            { "params", parameters },
+        };
+        object orderbook = await this.watchMultiple(url, messageHashes, this.deepExtend(request, parameters), new List<object>() {subscriptionHash}, subscriptionArgs);
+        return (orderbook as IOrderBook).limit();
+    }
+
+    public async override Task<object> watchOHLCVForSymbols(object symbolsAndTimeframes, object since = null, object limit = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name bingx#watchOHLCVForSymbols
+        * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+        * @param {string[][]} symbolsAndTimeframes array of arrays containing unified symbols and timeframes to fetch OHLCV data for, example [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]
+        * @param {int} [since] timestamp in ms of the earliest candle to fetch
+        * @param {int} [limit] the maximum amount of candles to fetch
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+        */
+        parameters ??= new Dictionary<string, object>();
+        object symbolsLength = getArrayLength(symbolsAndTimeframes);
+        if (isTrue(isTrue(!isEqual(symbolsLength, 0)) && !isTrue(((getValue(symbolsAndTimeframes, 0) is IList<object>) || (getValue(symbolsAndTimeframes, 0).GetType().IsGenericType && getValue(symbolsAndTimeframes, 0).GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " watchOHLCVForSymbols() requires a an array like  [[\'BTC/USDT:USDT\', \'1m\'], [\'LTC/USDT:USDT\', \'5m\']]")) ;
+        }
+        await this.loadMarkets();
+        object messageHashes = new List<object>() {};
+        object marketType = null;
+        object chosenTimeframe = null;
+        if (isTrue(!isEqual(symbolsLength, 0)))
+        {
+            object symbols = this.getListFromObjectValues(symbolsAndTimeframes, 0);
+            symbols = this.marketSymbols(symbols, null, true, true, false);
+            object firstMarket = this.market(getValue(symbols, 0));
+            var marketTypeparametersVariable = this.handleMarketTypeAndParams("watchOrderBookForSymbols", firstMarket, parameters);
+            marketType = ((IList<object>)marketTypeparametersVariable)[0];
+            parameters = ((IList<object>)marketTypeparametersVariable)[1];
+            if (isTrue(isEqual(marketType, "spot")))
+            {
+                throw new NotSupported ((string)add(this.id, " watchOrderBookForSymbols is not supported for spot markets yet")) ;
+            }
+        }
+        object marketOptions = this.safeDict(this.options, marketType);
+        object timeframes = this.safeDict(marketOptions, "timeframes", new Dictionary<string, object>() {});
+        for (object i = 0; isLessThan(i, getArrayLength(symbolsAndTimeframes)); postFixIncrement(ref i))
+        {
+            object symbolAndTimeframe = getValue(symbolsAndTimeframes, i);
+            object sym = getValue(symbolAndTimeframe, 0);
+            object tf = getValue(symbolAndTimeframe, 1);
+            object market = this.market(sym);
+            object rawTimeframe = this.safeString(timeframes, tf, tf);
+            if (isTrue(isEqual(chosenTimeframe, null)))
+            {
+                chosenTimeframe = rawTimeframe;
+            } else if (isTrue(!isEqual(chosenTimeframe, rawTimeframe)))
+            {
+                throw new BadRequest ((string)add(this.id, " watchOHLCVForSymbols requires all timeframes to be the same")) ;
+            }
+            ((IList<object>)messageHashes).Add(this.getMessageHash("ohlcv", getValue(market, "symbol"), chosenTimeframe));
+        }
+        object subscriptionHash = add("all@kline_", chosenTimeframe);
+        object url = this.safeString(getValue(getValue(this.urls, "api"), "ws"), marketType);
+        object uuid = this.uuid();
+        object request = new Dictionary<string, object>() {
+            { "id", uuid },
+            { "dataType", subscriptionHash },
+        };
+        if (isTrue(isEqual(marketType, "swap")))
+        {
+            ((IDictionary<string,object>)request)["reqType"] = "sub";
+        }
+        object subscriptionArgs = new Dictionary<string, object>() {
+            { "limit", limit },
+            { "params", parameters },
+        };
+        var symboltimeframecandlesVariable = await this.watchMultiple(url, messageHashes, request, new List<object>() {subscriptionHash}, subscriptionArgs);
+        var symbol = ((IList<object>) symboltimeframecandlesVariable)[0];
+        var timeframe = ((IList<object>) symboltimeframecandlesVariable)[1];
+        var candles = ((IList<object>) symboltimeframecandlesVariable)[2];
+        if (isTrue(this.newUpdates))
+        {
+            limit = callDynamically(candles, "getLimit", new object[] {symbol, limit});
+        }
+        object filtered = this.filterBySinceLimit(candles, since, limit, 0, true);
+        return this.createOHLCVObject(symbol, timeframe, filtered);
+    }
+
+    public virtual object getOrderBookLimitByMarketType(object marketType, object limit = null)
+    {
+        if (isTrue(isEqual(limit, null)))
+        {
+            limit = 100;
+        } else
+        {
+            if (isTrue(isTrue(isEqual(marketType, "swap")) || isTrue(isEqual(marketType, "future"))))
+            {
+                limit = this.findNearestCeiling(new List<object>() {5, 10, 20, 50, 100}, limit);
+            } else if (isTrue(isEqual(marketType, "spot")))
+            {
+                limit = this.findNearestCeiling(new List<object>() {20, 100}, limit);
+            }
+        }
+        return limit;
+    }
+
+    public virtual object getMessageHash(object unifiedChannel, object symbol = null, object extra = null)
+    {
+        object hash = unifiedChannel;
+        if (isTrue(!isEqual(symbol, null)))
+        {
+            hash = add(hash, add("::", symbol));
+        } else
+        {
+            hash = add(hash, "s"); // tickers, orderbooks, ohlcvs ...
+        }
+        if (isTrue(!isEqual(extra, null)))
+        {
+            hash = add(hash, add("::", extra));
+        }
+        return hash;
     }
 
     public async override Task<object> watchTrades(object symbol, object since = null, object limit = null, object parameters = null)
@@ -381,41 +641,39 @@ public partial class bingx : ccxt.bingx
         var marketTypequeryVariable = this.handleMarketTypeAndParams("watchOrderBook", market, parameters);
         var marketType = ((IList<object>) marketTypequeryVariable)[0];
         var query = ((IList<object>) marketTypequeryVariable)[1];
-        if (isTrue(isEqual(limit, null)))
-        {
-            limit = 100;
-        } else
-        {
-            if (isTrue(isEqual(marketType, "swap")))
-            {
-                if (isTrue(isTrue(isTrue(isTrue(isTrue((!isEqual(limit, 5))) && isTrue((!isEqual(limit, 10)))) && isTrue((!isEqual(limit, 20)))) && isTrue((!isEqual(limit, 50)))) && isTrue((!isEqual(limit, 100)))))
-                {
-                    throw new BadRequest ((string)add(this.id, " watchOrderBook() (swap) only supports limit 5, 10, 20, 50, and 100")) ;
-                }
-            } else if (isTrue(isEqual(marketType, "spot")))
-            {
-                if (isTrue(isTrue((!isEqual(limit, 20))) && isTrue((!isEqual(limit, 100)))))
-                {
-                    throw new BadRequest ((string)add(this.id, " watchOrderBook() (spot) only supports limit 20, and 100")) ;
-                }
-            }
-        }
+        limit = this.getOrderBookLimitByMarketType(marketType, limit);
+        object channelName = add("depth", ((object)limit).ToString());
         object url = this.safeValue(getValue(getValue(this.urls, "api"), "ws"), marketType);
         if (isTrue(isEqual(url, null)))
         {
             throw new BadRequest ((string)add(add(add(this.id, " watchOrderBook is not supported for "), marketType), " markets.")) ;
         }
-        object messageHash = add(add(getValue(market, "id"), "@depth"), ((object)limit).ToString());
+        object interval = null;
+        if (isTrue(!isEqual(marketType, "spot")))
+        {
+            var intervalparametersVariable = this.handleOptionAndParams(parameters, "watchOrderBook", "interval", 500);
+            interval = ((IList<object>)intervalparametersVariable)[0];
+            parameters = ((IList<object>)intervalparametersVariable)[1];
+            this.checkRequiredArgument("watchOrderBook", interval, "interval", new List<object>() {100, 200, 500, 1000});
+            channelName = add(add(add(channelName, "@"), ((object)interval).ToString()), "ms");
+        }
+        object subscriptionHash = add(add(getValue(market, "id"), "@"), channelName);
+        object messageHash = this.getMessageHash("orderbook", getValue(market, "symbol"));
         object uuid = this.uuid();
         object request = new Dictionary<string, object>() {
             { "id", uuid },
-            { "dataType", messageHash },
+            { "dataType", subscriptionHash },
         };
         if (isTrue(isEqual(marketType, "swap")))
         {
             ((IDictionary<string,object>)request)["reqType"] = "sub";
         }
-        object orderbook = await this.watch(url, messageHash, this.deepExtend(request, query), messageHash);
+        object subscriptionArgs = new Dictionary<string, object>() {
+            { "limit", limit },
+            { "interval", interval },
+            { "params", parameters },
+        };
+        object orderbook = await this.watch(url, messageHash, this.deepExtend(request, query), subscriptionHash, subscriptionArgs);
         return (orderbook as IOrderBook).limit();
     }
 
@@ -454,7 +712,7 @@ public partial class bingx : ccxt.bingx
         //
         //    {
         //        "code": 0,
-        //        "dataType": "BTC-USDT@depth20",
+        //        "dataType": "BTC-USDT@depth20@100ms", //or "all@depth20@100ms"
         //        "data": {
         //          "bids": [
         //            [ '28852.9', "34.2621" ],
@@ -463,26 +721,41 @@ public partial class bingx : ccxt.bingx
         //          "asks": [
         //            [ '28864.9', "23.4079" ],
         //            ...
-        //          ]
+        //          ],
+        //          "symbol": "BTC-USDT", // this key exists only in "all" subscription
         //        }
         //    }
         //
-        object data = this.safeValue(message, "data", new List<object>() {});
-        object messageHash = this.safeString(message, "dataType");
-        object marketId = getValue(((string)messageHash).Split(new [] {((string)"@")}, StringSplitOptions.None).ToList<object>(), 0);
+        object data = this.safeDict(message, "data", new Dictionary<string, object>() {});
+        object dataType = this.safeString(message, "dataType");
+        object parts = ((string)dataType).Split(new [] {((string)"@")}, StringSplitOptions.None).ToList<object>();
+        object firstPart = getValue(parts, 0);
+        object isAllEndpoint = (isEqual(firstPart, "all"));
+        object marketId = this.safeString(data, "symbol", firstPart);
         object isSwap = isGreaterThanOrEqual(getIndexOf(client.url, "swap"), 0);
         object marketType = ((bool) isTrue(isSwap)) ? "swap" : "spot";
         object market = this.safeMarket(marketId, null, null, marketType);
         object symbol = getValue(market, "symbol");
-        object orderbook = this.safeValue(this.orderbooks, symbol);
-        if (isTrue(isEqual(orderbook, null)))
+        if (isTrue(isEqual(this.safeValue(this.orderbooks, symbol), null)))
         {
-            orderbook = this.orderBook();
+            // const limit = [ 5, 10, 20, 50, 100 ]
+            object subscriptionHash = dataType;
+            object subscription = getValue(((WebSocketClient)client).subscriptions, subscriptionHash);
+            object limit = this.safeInteger(subscription, "limit");
+            ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.orderBook(new Dictionary<string, object>() {}, limit);
         }
+        object orderbook = getValue(this.orderbooks, symbol);
         object snapshot = this.parseOrderBook(data, symbol, null, "bids", "asks", 0, 1);
         (orderbook as IOrderBook).reset(snapshot);
         ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = orderbook;
+        object messageHash = this.getMessageHash("orderbook", symbol);
         callDynamically(client as WebSocketClient, "resolve", new object[] {orderbook, messageHash});
+        // resolve for "all"
+        if (isTrue(isAllEndpoint))
+        {
+            object messageHashForAll = this.getMessageHash("orderbook");
+            callDynamically(client as WebSocketClient, "resolve", new object[] {orderbook, messageHashForAll});
+        }
     }
 
     public override object parseWsOHLCV(object ohlcv, object market = null)
@@ -550,37 +823,52 @@ public partial class bingx : ccxt.bingx
         //        ]
         //    }
         //
-        object data = this.safeValue(message, "data", new List<object>() {});
+        object data = this.safeList(message, "data", new List<object>() {});
         object candles = null;
         if (isTrue(((data is IList<object>) || (data.GetType().IsGenericType && data.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
         {
             candles = data;
         } else
         {
-            candles = new List<object> {this.safeValue(data, "K", new List<object>() {})};
+            candles = new List<object> {this.safeList(data, "K", new List<object>() {})};
         }
-        object messageHash = this.safeString(message, "dataType");
-        object timeframeId = getValue(((string)messageHash).Split(new [] {((string)"_")}, StringSplitOptions.None).ToList<object>(), 1);
-        object marketId = getValue(((string)messageHash).Split(new [] {((string)"@")}, StringSplitOptions.None).ToList<object>(), 0);
+        object dataType = this.safeString(message, "dataType");
         object isSwap = isGreaterThanOrEqual(getIndexOf(client.url, "swap"), 0);
+        object parts = ((string)dataType).Split(new [] {((string)"@")}, StringSplitOptions.None).ToList<object>();
+        object firstPart = getValue(parts, 0);
+        object isAllEndpoint = (isEqual(firstPart, "all"));
+        object marketId = this.safeString(message, "s", firstPart);
         object marketType = ((bool) isTrue(isSwap)) ? "swap" : "spot";
         object market = this.safeMarket(marketId, null, null, marketType);
         object symbol = getValue(market, "symbol");
         ((IDictionary<string,object>)this.ohlcvs)[(string)symbol] = this.safeValue(this.ohlcvs, symbol, new Dictionary<string, object>() {});
-        object stored = this.safeValue(getValue(this.ohlcvs, symbol), timeframeId);
-        if (isTrue(isEqual(stored, null)))
+        object rawTimeframe = getValue(((string)dataType).Split(new [] {((string)"_")}, StringSplitOptions.None).ToList<object>(), 1);
+        object marketOptions = this.safeDict(this.options, marketType);
+        object timeframes = this.safeDict(marketOptions, "timeframes", new Dictionary<string, object>() {});
+        object unifiedTimeframe = this.findTimeframe(rawTimeframe, timeframes);
+        if (isTrue(isEqual(this.safeValue(getValue(this.ohlcvs, symbol), rawTimeframe), null)))
         {
-            object limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
-            stored = new ArrayCacheByTimestamp(limit);
-            ((IDictionary<string,object>)getValue(this.ohlcvs, symbol))[(string)timeframeId] = stored;
+            object subscriptionHash = dataType;
+            object subscription = getValue(((WebSocketClient)client).subscriptions, subscriptionHash);
+            object limit = this.safeInteger(subscription, "limit");
+            ((IDictionary<string,object>)getValue(this.ohlcvs, symbol))[(string)unifiedTimeframe] = new ArrayCacheByTimestamp(limit);
         }
+        object stored = getValue(getValue(this.ohlcvs, symbol), unifiedTimeframe);
         for (object i = 0; isLessThan(i, getArrayLength(candles)); postFixIncrement(ref i))
         {
             object candle = getValue(candles, i);
             object parsed = this.parseWsOHLCV(candle, market);
             callDynamically(stored, "append", new object[] {parsed});
         }
-        callDynamically(client as WebSocketClient, "resolve", new object[] {stored, messageHash});
+        object resolveData = new List<object>() {symbol, unifiedTimeframe, stored};
+        object messageHash = this.getMessageHash("ohlcv", symbol, unifiedTimeframe);
+        callDynamically(client as WebSocketClient, "resolve", new object[] {resolveData, messageHash});
+        // resolve for "all"
+        if (isTrue(isAllEndpoint))
+        {
+            object messageHashForAll = this.getMessageHash("ohlcv", null, unifiedTimeframe);
+            callDynamically(client as WebSocketClient, "resolve", new object[] {resolveData, messageHashForAll});
+        }
     }
 
     public async override Task<object> watchOHLCV(object symbol, object timeframe = null, object since = null, object limit = null, object parameters = null)
@@ -612,18 +900,24 @@ public partial class bingx : ccxt.bingx
         }
         object options = this.safeValue(this.options, marketType, new Dictionary<string, object>() {});
         object timeframes = this.safeValue(options, "timeframes", new Dictionary<string, object>() {});
-        object interval = this.safeString(timeframes, timeframe, timeframe);
-        object messageHash = add(add(getValue(market, "id"), "@kline_"), interval);
+        object rawTimeframe = this.safeString(timeframes, timeframe, timeframe);
+        object messageHash = this.getMessageHash("ohlcv", getValue(market, "symbol"), timeframe);
+        object subscriptionHash = add(add(getValue(market, "id"), "@kline_"), rawTimeframe);
         object uuid = this.uuid();
         object request = new Dictionary<string, object>() {
             { "id", uuid },
-            { "dataType", messageHash },
+            { "dataType", subscriptionHash },
         };
         if (isTrue(isEqual(marketType, "swap")))
         {
             ((IDictionary<string,object>)request)["reqType"] = "sub";
         }
-        object ohlcv = await this.watch(url, messageHash, this.extend(request, query), messageHash);
+        object subscriptionArgs = new Dictionary<string, object>() {
+            { "limit", limit },
+            { "params", parameters },
+        };
+        object result = await this.watch(url, messageHash, this.extend(request, query), subscriptionHash, subscriptionArgs);
+        object ohlcv = getValue(result, 2);
         if (isTrue(this.newUpdates))
         {
             limit = callDynamically(ohlcv, "getLimit", new object[] {symbol, limit});

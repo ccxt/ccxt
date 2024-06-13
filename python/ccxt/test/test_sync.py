@@ -1273,7 +1273,7 @@ class testMainClass(baseMainTestClass):
         #  -----------------------------------------------------------------------------
         #  --- Init of brokerId tests functions-----------------------------------------
         #  -----------------------------------------------------------------------------
-        promises = [self.test_binance(), self.test_okx(), self.test_cryptocom(), self.test_bybit(), self.test_kucoin(), self.test_kucoinfutures(), self.test_bitget(), self.test_mexc(), self.test_htx(), self.test_woo(), self.test_bitmart(), self.test_coinex(), self.test_bingx(), self.test_phemex(), self.test_blofin(), self.test_hyperliquid(), self.test_coinbaseinternational(), self.test_coinbase_advanced(), self.test_woofi_pro()]
+        promises = [self.test_binance(), self.test_okx(), self.test_cryptocom(), self.test_bybit(), self.test_kucoin(), self.test_kucoinfutures(), self.test_bitget(), self.test_mexc(), self.test_htx(), self.test_woo(), self.test_bitmart(), self.test_coinex(), self.test_bingx(), self.test_phemex(), self.test_blofin(), self.test_hyperliquid(), self.test_coinbaseinternational(), self.test_coinbase_advanced(), self.test_woofi_pro(), self.test_xt()]
         (promises)
         success_message = '[' + self.lang + '][TEST_SUCCESS] brokerId tests passed.'
         dump('[INFO]' + success_message)
@@ -1598,6 +1598,26 @@ class testMainClass(baseMainTestClass):
             request = json_parse(exchange.last_request_body)
         broker_id = request['order_tag']
         assert broker_id == id, 'woofipro - id: ' + id + ' different from  broker_id: ' + broker_id
+        close(exchange)
+        return True
+
+    def test_xt(self):
+        exchange = self.init_offline_exchange('xt')
+        id = 'CCXT'
+        spot_order_request = None
+        try:
+            exchange.create_order('BTC/USDT', 'limit', 'buy', 1, 20000)
+        except Exception as e:
+            spot_order_request = json_parse(exchange.last_request_body)
+        spot_media = spot_order_request['media']
+        assert spot_media == id, 'xt - id: ' + id + ' different from swap tag: ' + spot_media
+        swap_order_request = None
+        try:
+            exchange.create_order('BTC/USDT:USDT', 'limit', 'buy', 1, 20000)
+        except Exception as e:
+            swap_order_request = json_parse(exchange.last_request_body)
+        swap_media = swap_order_request['clientMedia']
+        assert swap_media == id, 'xt - id: ' + id + ' different from swap tag: ' + swap_media
         close(exchange)
         return True
 
