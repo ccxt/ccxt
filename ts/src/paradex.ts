@@ -3,7 +3,7 @@
 
 import { Precise } from '../ccxt.js';
 import Exchange from './abstract/paradex.js';
-import { ExchangeError, RateLimitExceeded, PermissionDenied, InsufficientFunds, AuthenticationError, InvalidOrder, BadRequest } from './base/errors.js';
+import { ExchangeError, PermissionDenied, AuthenticationError, BadRequest } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import type { Dict, Int, Market, OrderBook, Strings, Ticker, Tickers, Trade } from './base/types.js';
 
