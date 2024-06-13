@@ -139,7 +139,7 @@ export default class oxfun extends Exchange {
             },
             'urls': {
                 'logo': 'https://github.com/ccxt/ccxt/assets/43336371/9c7114b3-ec32-4cf7-a716-f807d7d071cd',
-                'referral': 'https://ox.fun/register?shareAccountId=5Z2D4aC3',
+                'referral': 'https://ox.fun/register?shareAccountId=5ZUD4a7G',
                 'api': {
                     'public': 'https://api.ox.fun',
                     'private': 'https://api.ox.fun',
