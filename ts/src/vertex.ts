@@ -155,7 +155,7 @@ export default class vertex extends Exchange {
                 'www': 'https://vertexprotocol.com/',
                 'doc': 'https://docs.vertexprotocol.com/',
                 'fees': 'https://docs.vertexprotocol.com/basics/fees',
-                'referral': '',
+                'referral': 'https://app.vertexprotocol.com?referrer=0xCfC9BaB96a2eA3d3c3F031c005e82E1D9F295aC1',
             },
             'api': {
                 'v1': {
