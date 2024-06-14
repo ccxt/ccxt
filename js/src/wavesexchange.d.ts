@@ -43,13 +43,12 @@ export default class wavesexchange extends Exchange {
     getMatcherPublicKey(): Promise<any>;
     getAssetBytes(currencyId: any): Uint8Array;
     getAssetId(currencyId: any): any;
-    customPriceToPrecision(symbol: any, price: any): number;
-    customAmountToPrecision(symbol: any, amount: any): number;
-    customCurrencyToPrecision(code: any, amount: any, networkCode?: any): number;
-    fromPrecision(amount: any, scale: any): string;
-    toPrecision(amount: any, scale: any): string;
-    currencyFromPrecision(currency: any, amount: any): string;
-    priceFromPrecision(symbol: any, price: any): string;
+    toRealCurrencyAmount(code: string, amount: number, networkCode?: any): number;
+    fromRealCurrencyAmount(code: string, amountString: string): string;
+    toRealSymbolPrice(symbol: string, price: number): number;
+    fromRealSymbolPrice(symbol: string, priceString: string): string;
+    toRealSymbolAmount(symbol: string, amount: number): number;
+    fromRealSymbolAmount(symbol: string, amountString: string): string;
     safeGetDynamic(settings: any): any;
     safeGetRates(dynamic: any): any;
     createOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): Promise<Order>;
@@ -63,6 +62,7 @@ export default class wavesexchange extends Exchange {
     parseOrder(order: Dict, market?: Market): Order;
     getWavesAddress(): Promise<any>;
     fetchBalance(params?: {}): Promise<Balances>;
+    setUndefinedBalancesToZero(balances: any, key?: string): any;
     fetchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     fetchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     parseTrade(trade: Dict, market?: Market): Trade;

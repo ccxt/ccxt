@@ -20,7 +20,7 @@ class xt extends xt$1 {
             // futures 1000 times per minute for each single IP -> Otherwise account locked for 10min
             'rateLimit': 100,
             'version': 'v4',
-            'certified': true,
+            'certified': false,
             'pro': false,
             'has': {
                 'CORS': false,

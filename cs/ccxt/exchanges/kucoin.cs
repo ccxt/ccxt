@@ -114,6 +114,7 @@ public partial class kucoin : Exchange
                     { "futuresPublic", "https://api-futures.kucoin.com" },
                     { "webExchange", "https://kucoin.com/_api" },
                     { "broker", "https://api-broker.kucoin.com" },
+                    { "earn", "https://api.kucoin.com" },
                 } },
                 { "www", "https://www.kucoin.com" },
                 { "doc", new List<object>() {"https://docs.kucoin.com"} },
@@ -349,6 +350,9 @@ public partial class kucoin : Exchange
                         { "broker/nd/account", 2 },
                         { "broker/nd/account/apikey", 2 },
                         { "broker/nd/rebase/download", 3 },
+                        { "broker/nd/transfer/detail", 1 },
+                        { "broker/nd/deposit/detail", 1 },
+                        { "broker/nd/withdraw/detail", 1 },
                     } },
                     { "post", new Dictionary<string, object>() {
                         { "broker/nd/transfer", 1 },
@@ -358,6 +362,25 @@ public partial class kucoin : Exchange
                     } },
                     { "delete", new Dictionary<string, object>() {
                         { "broker/nd/account/apikey", 3 },
+                    } },
+                } },
+                { "earn", new Dictionary<string, object>() {
+                    { "get", new Dictionary<string, object>() {
+                        { "otc-loan/loan", 1 },
+                        { "otc-loan/accounts", 1 },
+                        { "earn/redeem-preview", 7.5 },
+                        { "earn/saving/products", 7.5 },
+                        { "earn/hold-assets", 7.5 },
+                        { "earn/promotion/products", 7.5 },
+                        { "earn/kcs-staking/products", 7.5 },
+                        { "earn/staking/products", 7.5 },
+                        { "earn/eth-staking/products", 7.5 },
+                    } },
+                    { "post", new Dictionary<string, object>() {
+                        { "earn/orders", 7.5 },
+                    } },
+                    { "delete", new Dictionary<string, object>() {
+                        { "earn/orders", 7.5 },
                     } },
                 } },
             } },
@@ -4984,6 +5007,10 @@ public partial class kucoin : Exchange
         {
             endpoint = add("/", this.implodeParams(path, parameters));
         }
+        if (isTrue(isEqual(api, "earn")))
+        {
+            endpoint = add("/api/v1/", this.implodeParams(path, parameters));
+        }
         object query = this.omit(parameters, this.extractParams(path));
         object endpart = "";
         headers = ((bool) isTrue((!isEqual(headers, null)))) ? headers : new Dictionary<string, object>() {};
@@ -5004,7 +5031,8 @@ public partial class kucoin : Exchange
         object isFuturePrivate = (isEqual(api, "futuresPrivate"));
         object isPrivate = (isEqual(api, "private"));
         object isBroker = (isEqual(api, "broker"));
-        if (isTrue(isTrue(isTrue(isPrivate) || isTrue(isFuturePrivate)) || isTrue(isBroker)))
+        object isEarn = (isEqual(api, "earn"));
+        if (isTrue(isTrue(isTrue(isTrue(isPrivate) || isTrue(isFuturePrivate)) || isTrue(isBroker)) || isTrue(isEarn)))
         {
             this.checkRequiredCredentials();
             object timestamp = ((object)this.nonce()).ToString();

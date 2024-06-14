@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.3.44'
+__version__ = '4.3.45'
 
 # -----------------------------------------------------------------------------
 
@@ -147,6 +147,7 @@ from ccxt.async_support.oceanex import oceanex                                  
 from ccxt.async_support.okcoin import okcoin                                    # noqa: F401
 from ccxt.async_support.okx import okx                                          # noqa: F401
 from ccxt.async_support.onetrading import onetrading                            # noqa: F401
+from ccxt.async_support.oxfun import oxfun                                      # noqa: F401
 from ccxt.async_support.p2b import p2b                                          # noqa: F401
 from ccxt.async_support.paymium import paymium                                  # noqa: F401
 from ccxt.async_support.phemex import phemex                                    # noqa: F401
@@ -255,6 +256,7 @@ exchanges = [
     'okcoin',
     'okx',
     'onetrading',
+    'oxfun',
     'p2b',
     'paymium',
     'phemex',
