@@ -3,7 +3,7 @@
 
 import paradexRest from '../paradex.js';
 import { ArrayCache } from '../base/ws/Cache.js';
-import type { Int, Trade, Dict, OrderBook } from '../base/types.js';
+import type { Int, Trade, Dict, OrderBook, Ticker, Strings, Tickers } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -13,9 +13,9 @@ export default class paradex extends paradexRest {
         return this.deepExtend (super.describe (), {
             'has': {
                 'ws': true,
-                'watchTicker': false,
-                'watchTickers': false,
-                'watchOrderBook': false,
+                'watchTicker': true,
+                'watchTickers': true,
+                'watchOrderBook': true,
                 'watchOrders': false,
                 'watchTrades': true,
                 'watchBalance': false,
@@ -39,18 +39,6 @@ export default class paradex extends paradexRest {
         });
     }
 
-    async subscribe (messageHash, params = {}) {
-        const url = this.urls['api']['ws'];
-        const request: Dict = {
-            'jsonrpc': '2.0',
-            'method': 'subscribe',
-            'params': {
-                'channel': messageHash,
-            },
-        };
-        return await this.watch (url, messageHash, this.deepExtend (request, params), messageHash);
-    }
-
     async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         /**
          * @method
@@ -64,9 +52,22 @@ export default class paradex extends paradexRest {
          * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
          */
         await this.loadMarkets ();
-        const market = this.market (symbol);
-        const messageHash = 'trades.' + market['id'];
-        const trades = await this.subscribe (messageHash, params);
+        let messageHash = 'trades.';
+        if (symbol !== undefined) {
+            const market = this.market (symbol);
+            messageHash += market['id'];
+        } else {
+            messageHash += 'ALL';
+        }
+        const url = this.urls['api']['ws'];
+        const request: Dict = {
+            'jsonrpc': '2.0',
+            'method': 'subscribe',
+            'params': {
+                'channel': messageHash,
+            },
+        };
+        const trades = await this.watch (url, messageHash, this.deepExtend (request, params), messageHash);
         if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
         }
@@ -120,7 +121,15 @@ export default class paradex extends paradexRest {
          */
         const market = this.market (symbol);
         const messageHash = 'order_book.' + market['id'] + '.snapshot@15@100ms';
-        const orderbook = await this.subscribe (messageHash, params);
+        const url = this.urls['api']['ws'];
+        const request: Dict = {
+            'jsonrpc': '2.0',
+            'method': 'subscribe',
+            'params': {
+                'channel': messageHash,
+            },
+        };
+        const orderbook = await this.watch (url, messageHash, this.deepExtend (request, params), messageHash);
         return orderbook.limit ();
     }
 
@@ -187,6 +196,105 @@ export default class paradex extends paradexRest {
         client.resolve (orderbook, messageHash);
     }
 
+    async watchTicker (symbol: string, params = {}): Promise<Ticker> {
+        /**
+         * @method
+         * @name paradex#watchTicker
+         * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+         * @see https://docs.api.testnet.paradex.trade/#sub-markets_summary-operation
+         * @param {string} symbol unified symbol of the market to fetch the ticker for
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+         */
+        await this.loadMarkets ();
+        symbol = this.symbol (symbol);
+        const channel = 'markets_summary';
+        const url = this.urls['api']['ws'];
+        const request: Dict = {
+            'jsonrpc': '2.0',
+            'method': 'subscribe',
+            'params': {
+                'channel': channel,
+            },
+        };
+        const messageHash = channel + '.' + symbol;
+        return await this.watch (url, messageHash, this.deepExtend (request, params), messageHash);
+    }
+
+    async watchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+        /**
+         * @method
+         * @name paradex#watchTickers
+         * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+         * @param {string[]} symbols unified symbol of the market to fetch the ticker for
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+         */
+        symbols = this.marketSymbols (symbols);
+        const channel = 'markets_summary';
+        const url = this.urls['api']['ws'];
+        const request: Dict = {
+            'jsonrpc': '2.0',
+            'method': 'subscribe',
+            'params': {
+                'channel': channel,
+            },
+        };
+        const messageHashes = [];
+        if (Array.isArray (symbols)) {
+            for (let i = 0; i < symbols.length; i++) {
+                const messageHash = channel + '.' + symbols[i];
+                messageHashes.push (messageHash);
+            }
+        } else {
+            messageHashes.push (channel);
+        }
+        const newTickers = await this.watchMultiple (url, messageHashes, this.deepExtend (request, params), messageHashes);
+        if (this.newUpdates) {
+            return newTickers;
+        }
+        return this.filterByArray (this.tickers, 'symbol', symbols);
+    }
+
+    handleTicker (client: Client, message) {
+        //
+        //     {
+        //         "jsonrpc": "2.0",
+        //         "method": "subscription",
+        //         "params": {
+        //             "channel": "markets_summary",
+        //             "data": {
+        //                 "symbol": "ORDI-USD-PERP",
+        //                 "oracle_price": "49.80885481",
+        //                 "mark_price": "49.80885481",
+        //                 "last_traded_price": "62.038",
+        //                 "bid": "49.822",
+        //                 "ask": "58.167",
+        //                 "volume_24h": "0",
+        //                 "total_volume": "54542628.66054200416",
+        //                 "created_at": 1718334307698,
+        //                 "underlying_price": "47.93",
+        //                 "open_interest": "6999.5",
+        //                 "funding_rate": "0.03919997509811",
+        //                 "price_change_rate_24h": ""
+        //             }
+        //         }
+        //     }
+        //
+        const params = this.safeDict (message, 'params', {});
+        const data = this.safeDict (params, 'data', {});
+        const marketId = this.safeString (data, 'symbol');
+        const market = this.safeMarket (marketId);
+        const symbol = market['symbol'];
+        const channel = this.safeString (params, 'channel');
+        const messageHash = channel + '.' + symbol;
+        const ticker = this.parseTicker (data, market);
+        this.tickers[symbol] = ticker;
+        client.resolve (ticker, channel);
+        client.resolve (ticker, messageHash);
+        return message;
+    }
+
     handleErrorMessage (client: Client, message) {
         //
         //     {
@@ -249,6 +357,7 @@ export default class paradex extends paradexRest {
             const methods: Dict = {
                 'trades': this.handleTrade,
                 'order_book': this.handleOrderBook,
+                'markets_summary': this.handleTicker,
                 // ...
             };
             const method = this.safeValue (methods, name);
