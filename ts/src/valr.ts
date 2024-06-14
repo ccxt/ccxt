@@ -24,6 +24,8 @@ import type {
     Trade,
     TradingFees,
     Transaction,
+    TransferEntries,
+    TransferEntry,
 } from './base/types.js';
 import { Precise } from './base/Precise.js';
 import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
@@ -298,7 +300,7 @@ export default class valr extends Exchange {
                     ],
                     'post': [
                         'account/subaccount',
-                        'account/subaccounts/transfer',
+                        'account/subaccounts/transfer', // transfer
                         'wallet/crypto/{currency}/withdraw', // withdraw
                         'wallet/fiat/{currency}/accounts',
                         'wallet/fiat/{currency}/withdraw', // withdraw
@@ -382,6 +384,8 @@ export default class valr extends Exchange {
                     '-1': OrderNotFound, // {"code":-1,"message":"Invalid Order. "}
                     '-12007': InvalidOrder, // {"code":-12007,"message":"Minimum order size not met . Minimum amount: 1 USDT, minimum total: 10 ZAR"}
                     '-11502': DuplicateOrderId, // {'code': '-11502', 'message': "Duplicate customer order id's are not allowed"}
+                    '-113': BadRequest, // "code":-113,"message":"Invalid JSON payload"
+                    '-11133': BadRequest, // {"code":-11133,"message":"Internal transfer did not succeed A subaccount can only transfer funds from itself"}
                 },
                 'broad': {},
             },
@@ -903,7 +907,8 @@ export default class valr extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/#/?id=account-structure} indexed by the account type
          */
-        const response = await this.privateGetAccountSubaccounts (params);
+        const query = { 'subAccountId': '0' };
+        const response = await this.privateGetAccountSubaccounts (this.extend (query, params));
         return this.parseAccounts (response, params);
     }
 
@@ -2014,11 +2019,135 @@ export default class valr extends Exchange {
         };
     }
 
+    async transfer (code: string, amount: number, fromAccount: string, toAccount: string, params = {}): Promise<TransferEntry> {
+        await this.loadMarkets ();
+        await this.loadAccounts ();
+        const currency = this.safeCurrency (code);
+        const accountsByName = this.indexBy (this.accounts, 'name');
+        const fromAccountId = this.safeDict (accountsByName, fromAccount);
+        const toAccountId = this.safeDict (accountsByName, toAccount);
+        const query = {
+            'fromId': fromAccountId ? fromAccountId['id'] : fromAccount,
+            'toId': toAccountId ? toAccountId['id'] : toAccount,
+            'currencyCode': currency['id'],
+            'amount': amount,
+            'subAccountId': '0',
+        };
+        await this.privatePostAccountSubaccountsTransfer ((this.extend (query, params)));
+        const responseTimestamp = this.parseDate (this.safeString (this.last_response_headers, 'Date'));
+        const requestedCurrency = this.safeString (this.last_request_body, 'currencyCode');
+        return {
+            'info': undefined,
+            'id': undefined,
+            'timestamp': responseTimestamp,
+            'datetime': this.iso8601 (responseTimestamp),
+            'currency': this.safeCurrencyCode (requestedCurrency),
+            'amount': this.safeNumber (this.last_request_body, 'amount'),
+            'fromAccount': this.safeString (this.last_request_body, 'fromId'),
+            'toAccount': this.safeString (this.last_request_body, 'toId'),
+            'status': undefined,
+        };
+    }
+
+    async fetchTransfers (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<TransferEntries> {
+        /**
+         * @method
+         * @name exchange#fetchTransfer
+         * @description fetches a transfer
+         * @param {string} id transfer id
+         * @param {int} [since] timestamp in ms of the earliest transfer to fetch
+         * @param {int} [limit] the maximum amount of transfers to fetch
+         * @param {object} params extra parameters specific to the exchange api endpoint
+         * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+         */
+        await this.loadMarkets ();
+        await this.loadAccounts ();
+        const query = {
+            'transactionTypes': 'INTERNAL_TRANSFER',
+        };
+        const currency = this.safeCurrency (code);
+        if (code !== undefined) {
+            query['currency'] = currency['id'];
+        }
+        const response = await this.privateGetAccountTransactionhistory (this.extend (query, params));
+        return this.parseTransfers (response, currency, since, limit, params);
+    }
+
+    parseTransfer (transfer: Dict, currency: Currency = undefined): TransferEntry {
+        // [{'transactionType': {'type': 'INTERNAL_TRANSFER', 'description': 'Transfer'},
+        //     'debitCurrency': 'ZAR',
+        //     'debitValue': '1',
+        //     'eventAt': '2024-06-13T20:49:36.846Z',
+        //     'additionalInfo': {'reason': 'SUB_ACCOUNT',
+        //      'reasonDescription': 'Transfer between subaccounts',
+        //      'additional': 'Transfer from Primary to Development'},
+        //     'id': '723a6e23-29c6-11ef-9e76-33277cfdd873'},
+        //    {'transactionType': {'type': 'INTERNAL_TRANSFER', 'description': 'Transfer'},
+        //     'creditCurrency': 'ZAR',
+        //     'creditValue': '62629.65',
+        //     'eventAt': '2024-06-12T05:19:28.689Z',
+        //     'additionalInfo': {'reason': 'SUB_ACCOUNT',
+        //      'reasonDescription': 'Transfer between subaccounts',
+        //      'additional': 'Transfer from Trading to Primary'},]
+        const ledgerTypeInfo = this.safeDict (transfer, 'transactionType');
+        const ledgerType = this.safeString (ledgerTypeInfo, 'type');
+        const transactionTypes = {
+            'INTERNAL_TRANSFER': [ 'transfer', undefined ],
+            // 'PAYMENT_SENT': [ 'withdrawal', 'out' ],
+            // 'PAYMENT_RECEIVED': [ 'deposit', 'in' ],
+            // 'PAYMENT_REVERSED': [ 'deposit', 'in' ],
+            // 'PAYMENT_REWARD': [ 'cashback', 'in' ],
+        };
+        // const transactionDisciption = this.safeString (transactionTypeInfo, 'Deposit');
+        const entryTime = this.parseDate (this.safeString (transfer, 'eventAt'));
+        const additionalInfo = this.safeDict (transfer, 'additionalInfo');
+        const matchEventType = this.safeList (transactionTypes, ledgerType);
+        // let parseType = undefined;
+        let direction = undefined;
+        if (matchEventType !== undefined) {
+            // parseType = matchEventType[0];
+            direction = matchEventType[1];
+        }
+        if (ledgerType === 'INTERNAL_TRANSFER') {
+            direction = ('creditCurrency' in transfer) ? 'in' : 'out';
+        }
+        let amount = undefined;
+        let code = undefined;
+        if (direction === 'in') {
+            amount = this.safeNumber (transfer, 'creditValue');
+            code = this.safeCurrencyCode (this.safeString (transfer, 'creditCurrency'));
+        } else if (direction === 'out') {
+            amount = this.safeNumber (transfer, 'debitValue');
+            code = this.safeCurrencyCode (this.safeString (transfer, 'debitCurrency'));
+        }
+        const accounts = this.safeString (additionalInfo, 'additional');
+        const fromIndex = accounts.indexOf ('from');
+        const toIndex = accounts.indexOf ('to');
+        const fromAccount = accounts.slice (fromIndex + 5, toIndex - 1);
+        const toAccount = accounts.slice (toIndex + 3);
+        const accountsByName = this.indexBy (this.accounts, 'name');
+        const fromAccountId = this.safeDict (accountsByName, fromAccount);
+        const toAccountId = this.safeDict (accountsByName, toAccount);
+        return {
+            'id': this.safeString (transfer, 'id'),
+            'timestamp': entryTime,
+            'datetime': this.iso8601 (entryTime),
+            'currency': code,
+            'amount': amount,
+            'fromAccount': fromAccountId ? fromAccountId['id'] : fromAccount,
+            'toAccount': toAccountId ? toAccountId['id'] : toAccount,
+            'status': 'ok',
+            'info': transfer,
+        };
+    }
+
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let partialPath = this.implodeParams (path, params);
         let subAccountId = this.safeString (params, 'subAccountId');
         params = this.omit (params, 'subAccountId');
-        if (subAccountId === undefined) {
+        if (subAccountId === '0') {
+            subAccountId = undefined;
+        } else if (subAccountId === undefined) {
             subAccountId = this.safeString (this.options, 'subAccountId');
         }
         const query = this.omit (params, this.extractParams (path));
