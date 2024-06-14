@@ -2811,7 +2811,7 @@ export default class vertex extends Exchange {
             'leverage': undefined,
             'unrealizedPnl': undefined,
             'contracts': undefined,
-            'contractSize': this.parseNumber (contractSize),
+            'contractSize': this.parseToNumeric (contractSize),
             'marginRatio': undefined,
             'liquidationPrice': undefined,
             'markPrice': undefined,
@@ -2852,8 +2852,7 @@ export default class vertex extends Exchange {
         const result = [];
         for (let i = 0; i < positions.length; i++) {
             const position = this.extend (this.parsePosition (positions[i], undefined), params);
-            // the type would be float in php
-            if (position['contractSize'] == 0) {
+            if (position['contractSize'] === 0) {
                 continue;
             }
             result.push (position);
