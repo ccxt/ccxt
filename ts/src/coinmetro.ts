@@ -354,19 +354,14 @@ export default class coinmetro extends Exchange {
         //
         //     [
         //         {
-        //             "pair": "PERPEUR",
-        //             "precision": 5,
-        //             "margin": false
-        //         },
-        //         {
-        //             "pair": "PERPUSD",
-        //             "precision": 5,
-        //             "margin": false
-        //         },
-        //         {
         //             "pair": "YFIEUR",
         //             "precision": 5,
         //             "margin": false
+        //         },
+        //         {
+        //             "pair": "BTCEUR",
+        //             "precision": 2,
+        //             "margin": true
         //         },
         //         ...
         //     ]
