@@ -436,13 +436,23 @@ export default class vertex extends vertexRest {
             const defaultLimit = this.safeInteger (this.options, 'watchOrderBookLimit', 1000);
             const limit = this.safeInteger (subscription, 'limit', defaultLimit);
             const params = this.safeValue (subscription, 'params');
-            const snapshot = await this.fetchOrderBook (symbol, limit, params);
+            const snapshot = await this.fetchRestOrderBookSafe (symbol, limit, params);
             if (this.safeValue (this.orderbooks, symbol) === undefined) {
                 // if the orderbook is dropped before the snapshot is received
                 return;
             }
             const orderbook = this.orderbooks[symbol];
             orderbook.reset (snapshot);
+            const messages = orderbook.cache;
+            for (let i = 0; i < messages.length; i++) {
+                const messageItem = messages[i];
+                const lastTimestamp = this.parseToNumeric (Precise.stringDiv (this.safeString (messageItem, 'last_max_timestamp'), '1000000'));
+                if (lastTimestamp < orderbook['timestamp']) {
+                    continue;
+                } else {
+                    this.handleOrderBookMessage (client, messageItem, orderbook);
+                }
+            }
             this.orderbooks[symbol] = orderbook;
             client.resolve (orderbook, message);
         } catch (e) {
@@ -479,8 +489,17 @@ export default class vertex extends vertexRest {
             this.orderbooks[symbol] = this.orderBook ();
         }
         const orderbook = this.orderbooks[symbol];
-        this.handleOrderBookMessage (client, message, orderbook);
-        client.resolve (orderbook, marketId + '@book_depth');
+        const timestamp = this.safeInteger (orderbook, 'timestamp');
+        if (timestamp === undefined) {
+            // Buffer the events you receive from the stream.
+            orderbook.cache.push (message);
+        } else {
+            const lastTimestamp = this.parseToNumeric (Precise.stringDiv (this.safeString (message, 'last_max_timestamp'), '1000000'));
+            if (lastTimestamp > timestamp) {
+                this.handleOrderBookMessage (client, message, orderbook);
+                client.resolve (orderbook, marketId + '@book_depth');
+            }
+        }
     }
 
     handleOrderBookMessage (client: Client, message, orderbook) {
