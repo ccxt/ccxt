@@ -591,7 +591,7 @@ export default class coindcx extends Exchange {
         let takerOrMaker: Str = undefined;
         if (isMaker) {
             takerOrMaker = 'maker';
-        } else if (isMaker === false) {
+        } else if (isMaker !== undefined) {
             takerOrMaker = 'taker';
         }
         return this.safeTrade ({
