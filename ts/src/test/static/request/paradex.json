@@ -1,0 +1,69 @@
+{
+    "exchange": "paradex",
+    "skipKeys": [],
+    "outputType": "json",
+    "methods": {
+        "fetchMarkets": [
+            {
+                "description": "fetchMarkets",
+                "method": "fetchMarkets",
+                "url": "https://api.testnet.paradex.trade/v1/markets",
+                "input": []
+            }
+        ],
+        "fetchTickers": [
+            {
+                "description": "fetchTickers",
+                "method": "fetchTickers",
+                "url": "https://api.testnet.paradex.trade/v1/markets/summary?market=BTC-USD-PERP",
+                "input": [
+                    [
+                        "BTC/USD:USDC"
+                    ]
+                ]
+            }
+        ],
+        "fetchTicker": [
+            {
+                "description": "fetchTicker",
+                "method": "fetchTicker",
+                "url": "https://api.testnet.paradex.trade/v1/markets/summary?market=BTC-USD-PERP",
+                "input": [
+                    "BTC/USD:USDC"
+                ]
+            }
+        ],
+        "fetchOrderBook": [
+            {
+                "description": "fetchOrderBook",
+                "method": "fetchOrderBook",
+                "url": "https://api.testnet.paradex.trade/v1/orderbook/BTC-USD-PERP",
+                "input": [
+                    "BTC/USD:USDC"
+                ]
+            }
+        ],
+        "fetchTrades": [
+            {
+                "description": "fetchTrades",
+                "method": "fetchTrades",
+                "url": "https://api.testnet.paradex.trade/v1/trades?market=BTC-USD-PERP&page_size=1",
+                "input": [
+                    "BTC/USD:USDC",
+                    null,
+                    1
+                ]
+            }
+        ],
+        "fetchOpenInterest": [
+            {
+                "description": "fetchOpenInterest",
+                "method": "fetchOpenInterest",
+                "url": "https://api.testnet.paradex.trade/v1/markets/summary?market=BTC-USD-PERP",
+                "input": [
+                    "BTC/USD:USDC"
+                ]
+            }
+        ]
+    }
+}

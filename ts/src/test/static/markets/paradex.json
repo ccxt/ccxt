@@ -1,0 +1,53 @@
+{
+    "BTC/USD:USDC": {
+        "id": "BTC-USD-PERP",
+        "symbol": "BTC/USD:USDC",
+        "base": "BTC",
+        "quote": "USD",
+        "settle": "USDC",
+        "baseId": "BTC",
+        "quoteId": "USD",
+        "settleId": "USDC",
+        "type": "swap",
+        "spot": false,
+        "margin": true,
+        "swap": true,
+        "future": false,
+        "option": false,
+        "contract": true,
+        "precision": {},
+        "limits": {
+            "leverage": {},
+            "amount": {},
+            "price": {},
+            "cost": {}
+        },
+        "info": {
+            "symbol": "BTC-USD-PERP",
+            "base_currency": "BTC",
+            "quote_currency": "USD",
+            "settlement_currency": "USDC",
+            "order_size_increment": "0.001",
+            "price_tick_size": "0.1",
+            "min_notional": "500",
+            "open_at": "1698756879745",
+            "expiry_at": "0",
+            "asset_kind": "PERP",
+            "position_limit": "60",
+            "price_bands_width": "0.05",
+            "max_open_orders": "100",
+            "max_funding_rate": "0.02",
+            "delta1_cross_margin_params": {
+                "imf_base": "0.02",
+                "imf_shift": "180000",
+                "imf_factor": "0.00007",
+                "mmf_factor": "0.5"
+            },
+            "price_feed_id": "GVXRSBjFk6e6J3NbVPXohDJetcTjaeeuykUpbQF8UoMU",
+            "oracle_ewma_factor": "0.20000046249626113",
+            "max_order_size": "100",
+            "max_funding_rate_change": "0.0002",
+            "max_tob_spread": "0.1"
+        }
+    }
+}
