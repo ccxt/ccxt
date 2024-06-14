@@ -151,7 +151,7 @@ export default class coindcx extends Exchange {
                 'doc': [
                     'https://docs.coindcx.com/',
                 ],
-                'fees': '', // The User hereby agrees and acknowledges that presently no fees or charges are levied by CoinDCX for the use of CoinDCX API
+                'fees': 'https://docs.coindcx.com/?python#3-fees-and-charges',
             },
             'api': {
                 'public1': {
@@ -203,7 +203,13 @@ export default class coindcx extends Exchange {
                 },
             },
             'fees': {
-                // currently no fees
+                'trading': {
+                    'feeSide': 'quote',
+                    'tierBased': false,
+                    'percentage': true,
+                    'taker': this.parseNumber ('0'),
+                    'maker': this.parseNumber ('0'),
+                },
             },
             'precisionMode': TICK_SIZE,
             // exchange-specific options
@@ -310,6 +316,8 @@ export default class coindcx extends Exchange {
             'expiryDatetime': undefined,
             'strike': undefined,
             'optionType': undefined,
+            'taker': this.safeNumber (market, 'taker_fee', 0), // spot markets have no fees yet
+            'maker': this.safeNumber (market, 'maker_fee', 0), // spot markets have no fees yet
             'precision': {
                 'amount': this.safeNumber (market, 'target_currency_precision'),
                 'price': this.safeNumber (market, 'base_currency_precision'),
