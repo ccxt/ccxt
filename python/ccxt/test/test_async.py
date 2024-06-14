@@ -1144,10 +1144,13 @@ class testMainClass(baseMainTestClass):
         # read apiKey/secret from the test file
         api_key = exchange.safe_string(exchange_data, 'apiKey')
         if api_key:
-            exchange.api_key = str(api_key)
+            exchange.apiKey = str(api_key)
         secret = exchange.safe_string(exchange_data, 'secret')
         if secret:
             exchange.secret = str(secret)
+        wallet_address = exchange.safe_string(exchange_data, 'walletAddress')
+        if wallet_address:
+            exchange.walletAddress = str(wallet_address)
         # exchange.options = exchange.deepExtend (exchange.options, globalOptions); # custom options to be used in the tests
         exchange.extend_exchange_options(global_options)
         methods = exchange.safe_value(exchange_data, 'methods', {})
@@ -1181,10 +1184,13 @@ class testMainClass(baseMainTestClass):
         # read apiKey/secret from the test file
         api_key = exchange.safe_string(exchange_data, 'apiKey')
         if api_key:
-            exchange.api_key = str(api_key)
+            exchange.apiKey = str(api_key)
         secret = exchange.safe_string(exchange_data, 'secret')
         if secret:
             exchange.secret = str(secret)
+        wallet_address = exchange.safe_string(exchange_data, 'walletAddress')
+        if wallet_address:
+            exchange.walletAddress = str(wallet_address)
         methods = exchange.safe_value(exchange_data, 'methods', {})
         options = exchange.safe_value(exchange_data, 'options', {})
         # exchange.options = exchange.deepExtend (exchange.options, options); # custom options to be used in the tests
