@@ -4,7 +4,7 @@
 import Exchange from './abstract/coindcx.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { Balances, Dict, Int, Market, Num, OHLCV, OrderBook, Str, Strings, Ticker, Tickers, Trade } from './base/types.js';
+import type { Balances, Dict, IndexType, Int, Market, Num, OHLCV, OrderBook, Str, Strings, Ticker, Tickers, Trade } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -478,7 +478,7 @@ export default class coindcx extends Exchange {
          * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @see https://docs.coindcx.com/?javascript#order-book
          * @param {string} symbol unified symbol of the market to fetch the order book for
-         * @param {int} [limit] the maximum amount of order book entries to return
+         * @param {int} [limit] the maximum amount of order book entries to return (not used by coindcx)
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
          */
@@ -519,35 +519,19 @@ export default class coindcx extends Exchange {
         //         }
         //     }
         //
-        return this.parseOrderBook (response, market['symbol'], limit);
+        const timestamp = this.safeInteger (response, 'timestamp');
+        return this.parseOrderBook (response, symbol, timestamp);
     }
 
-    parseBidsAsks (bidsAsks) {
-        const bidsAsksKeys = Object.keys (bidsAsks);
+    parseBidsAsks (bidasks, priceKey: IndexType = 0, amountKey: IndexType = 1, countOrIdKey: IndexType = 2) {
+        const prices = Object.keys (bidasks);
         const result = [];
-        for (let i = 0; i < bidsAsksKeys.length; i++) {
-            const price = bidsAsksKeys[i];
-            const amount = bidsAsks[price];
+        for (let i = 0; i < prices.length; i++) {
+            const price = prices[i];
+            const amount = bidasks[price];
             result.push ([ this.parseNumber (price), this.parseNumber (amount) ]);
         }
         return result;
-    }
-
-    parseOrderBook (orderbook: object, symbol: string, limit: Int = undefined): OrderBook {
-        // todo check signature of this method
-        const responseBids = this.safeDict (orderbook, 'bids');
-        const responseAsks = this.safeDict (orderbook, 'asks');
-        const bids = this.parseBidsAsks (responseBids);
-        const asks = this.parseBidsAsks (responseAsks);
-        const timestamp = this.safeString (orderbook, 'timestamp');
-        return {
-            'symbol': symbol,
-            'bids': this.filterByLimit (this.sortBy (bids, 0, true), limit),
-            'asks': this.filterByLimit (this.sortBy (asks, 0), limit),
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'nonce': undefined,
-        } as any;
     }
 
     async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
