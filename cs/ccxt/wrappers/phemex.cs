@@ -333,6 +333,7 @@ public partial class phemex
     /// fetches information on an order made by the user
     /// </summary>
     /// <remarks>
+    /// See <see href="https://phemex-docs.github.io/#query-orders-by-ids"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>

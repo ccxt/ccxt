@@ -2,6 +2,8 @@ from ccxt.base.types import Entry
 
 
 class ImplicitAPI:
+    sapi_get_copytrading_futures_userstatus = sapiGetCopyTradingFuturesUserStatus = Entry('copyTrading/futures/userStatus', 'sapi', 'GET', {'cost': 2})
+    sapi_get_copytrading_futures_leadsymbol = sapiGetCopyTradingFuturesLeadSymbol = Entry('copyTrading/futures/leadSymbol', 'sapi', 'GET', {'cost': 2})
     sapi_get_system_status = sapiGetSystemStatus = Entry('system/status', 'sapi', 'GET', {'cost': 0.1})
     sapi_get_accountsnapshot = sapiGetAccountSnapshot = Entry('accountSnapshot', 'sapi', 'GET', {'cost': 240})
     sapi_get_account_info = sapiGetAccountInfo = Entry('account/info', 'sapi', 'GET', {'cost': 0.1})
@@ -666,6 +668,8 @@ class ImplicitAPI:
     private_get_account_commission = privateGetAccountCommission = Entry('account/commission', 'private', 'GET', {'cost': 4})
     private_post_order_oco = privatePostOrderOco = Entry('order/oco', 'private', 'POST', {'cost': 0.2})
     private_post_orderlist_oco = privatePostOrderListOco = Entry('orderList/oco', 'private', 'POST', {'cost': 0.2})
+    private_post_orderlist_oto = privatePostOrderListOto = Entry('orderList/oto', 'private', 'POST', {'cost': 0.2})
+    private_post_orderlist_otoco = privatePostOrderListOtoco = Entry('orderList/otoco', 'private', 'POST', {'cost': 0.2})
     private_post_sor_order = privatePostSorOrder = Entry('sor/order', 'private', 'POST', {'cost': 0.2})
     private_post_sor_order_test = privatePostSorOrderTest = Entry('sor/order/test', 'private', 'POST', {'cost': 0.2})
     private_post_order = privatePostOrder = Entry('order', 'private', 'POST', {'cost': 0.2})

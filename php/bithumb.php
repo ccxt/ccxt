@@ -957,7 +957,15 @@ class bithumb extends Exchange {
             'order_currency' => $market['base'],
             'payment_currency' => $market['quote'],
         );
-        return $this->privatePostTradeCancel ($this->extend($request, $params));
+        $response = $this->privatePostTradeCancel ($this->extend($request, $params));
+        //
+        //    {
+        //       'status' => 'string',
+        //    }
+        //
+        return $this->safe_order(array(
+            'info' => $response,
+        ));
     }
 
     public function cancel_unified_order($order, $params = array ()) {

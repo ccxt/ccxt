@@ -223,7 +223,7 @@ class bitstamp extends Exchange {
                         'uni_withdrawal/' => 1,
                         'uni_address/' => 1,
                         'yfi_withdrawal/' => 1,
-                        'yfi_address' => 1,
+                        'yfi_address/' => 1,
                         'audio_withdrawal/' => 1,
                         'audio_address/' => 1,
                         'crv_withdrawal/' => 1,
@@ -232,7 +232,7 @@ class bitstamp extends Exchange {
                         'algo_address/' => 1,
                         'comp_withdrawal/' => 1,
                         'comp_address/' => 1,
-                        'grt_withdrawal' => 1,
+                        'grt_withdrawal/' => 1,
                         'grt_address/' => 1,
                         'usdt_withdrawal/' => 1,
                         'usdt_address/' => 1,
@@ -370,6 +370,22 @@ class bitstamp extends Exchange {
                         'vchf_address/' => 1,
                         'veur_withdrawal/' => 1,
                         'veur_address/' => 1,
+                        'truf_withdrawal/' => 1,
+                        'truf_address/' => 1,
+                        'wif_withdrawal/' => 1,
+                        'wif_address/' => 1,
+                        'smt_withdrawal/' => 1,
+                        'smt_address/' => 1,
+                        'sui_withdrawal/' => 1,
+                        'sui_address/' => 1,
+                        'jup_withdrawal/' => 1,
+                        'jup_address/' => 1,
+                        'ondo_withdrawal/' => 1,
+                        'ondo_address/' => 1,
+                        'boba_withdrawal/' => 1,
+                        'boba_address/' => 1,
+                        'pyth_withdrawal/' => 1,
+                        'pyth_address/' => 1,
                     ),
                 ),
             ),
@@ -1462,7 +1478,17 @@ class bitstamp extends Exchange {
             $request = array(
                 'id' => $id,
             );
-            return Async\await($this->privatePostCancelOrder ($this->extend($request, $params)));
+            $response = Async\await($this->privatePostCancelOrder ($this->extend($request, $params)));
+            //
+            //    {
+            //        "id" => 1453282316578816,
+            //        "amount" => "0.02035278",
+            //        "price" => "2100.45",
+            //        "type" => 0,
+            //        "market" => "BTC/USD"
+            //    }
+            //
+            return $this->parse_order($response);
         }) ();
     }
 
@@ -1487,7 +1513,23 @@ class bitstamp extends Exchange {
             } else {
                 $response = Async\await($this->privatePostCancelAllOrders ($this->extend($request, $params)));
             }
-            return $response;
+            //
+            //    {
+            //        "canceled" => array(
+            //            {
+            //                "id" => 1453282316578816,
+            //                "amount" => "0.02035278",
+            //                "price" => "2100.45",
+            //                "type" => 0,
+            //                "currency_pair" => "BTC/USD",
+            //                "market" => "BTC/USD"
+            //            }
+            //        ),
+            //        "success" => true
+            //    }
+            //
+            $canceled = $this->safe_list($response, 'canceled');
+            return $this->parse_orders($canceled);
         }) ();
     }
 
@@ -1868,6 +1910,16 @@ class bitstamp extends Exchange {
         //           "type" => "0",
         //           "id" => "2814205012"
         //       }
+        //
+        // cancelOrder
+        //
+        //    {
+        //        "id" => 1453282316578816,
+        //        "amount" => "0.02035278",
+        //        "price" => "2100.45",
+        //        "type" => 0,
+        //        "market" => "BTC/USD"
+        //    }
         //
         $id = $this->safe_string($order, 'id');
         $clientOrderId = $this->safe_string($order, 'client_order_id');

@@ -1619,7 +1619,9 @@ class woofipro extends Exchange {
         //     }
         // }
         //
-        return $response;
+        return array( $this->safe_order(array(
+            'info' => $response,
+        )) );
     }
 
     public function cancel_all_orders(?string $symbol = null, $params = array ()) {
@@ -1661,7 +1663,11 @@ class woofipro extends Exchange {
         //     }
         // }
         //
-        return $response;
+        return array(
+            array(
+                'info' => $response,
+            ),
+        );
     }
 
     public function fetch_order(string $id, ?string $symbol = null, $params = array ()) {

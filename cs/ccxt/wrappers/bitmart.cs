@@ -115,6 +115,7 @@ public partial class bitmart
     /// fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
     /// </summary>
     /// <remarks>
+    /// See <see href="https://developer-pro.bitmart.com/en/spot/#get-ticker-of-a-trading-pair-v3"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -134,7 +135,7 @@ public partial class bitmart
     /// fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
     /// </summary>
     /// <remarks>
-    /// See <see href="https://developer-pro.bitmart.com/en/spot/#get-ticker-of-all-pairs-v2"/>  <br/>
+    /// See <see href="https://developer-pro.bitmart.com/en/spot/#get-ticker-of-all-pairs-v3"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>

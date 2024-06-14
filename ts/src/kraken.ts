@@ -2153,6 +2153,14 @@ export default class kraken extends Exchange {
         params = this.omit (params, [ 'userref', 'clientOrderId' ]);
         try {
             response = await this.privatePostCancelOrder (this.extend (request, params));
+            //
+            //    {
+            //        error: [],
+            //        result: {
+            //            count: '1'
+            //        }
+            //    }
+            //
         } catch (e) {
             if (this.last_http_response) {
                 if (this.last_http_response.indexOf ('EOrder:Unknown order') >= 0) {
@@ -2161,7 +2169,9 @@ export default class kraken extends Exchange {
             }
             throw e;
         }
-        return response;
+        return this.safeOrder ({
+            'info': response,
+        });
     }
 
     async cancelOrders (ids, symbol: Str = undefined, params = {}) {
@@ -2187,7 +2197,11 @@ export default class kraken extends Exchange {
         //         }
         //     }
         //
-        return response;
+        return [
+            this.safeOrder ({
+                'info': response,
+            }),
+        ];
     }
 
     async cancelAllOrders (symbol: Str = undefined, params = {}) {
@@ -2201,7 +2215,20 @@ export default class kraken extends Exchange {
          * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
-        return await this.privatePostCancelAll (params);
+        const response = await this.privatePostCancelAll (params);
+        //
+        //    {
+        //        error: [],
+        //        result: {
+        //            count: '1'
+        //        }
+        //    }
+        //
+        return [
+            this.safeOrder ({
+                'info': response,
+            }),
+        ];
     }
 
     async cancelAllOrdersAfter (timeout: Int, params = {}) {

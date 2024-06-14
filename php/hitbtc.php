@@ -849,8 +849,8 @@ class hitbtc extends Exchange {
                 $network = $this->safe_network($networkId);
                 $fee = $this->safe_number($rawNetwork, 'payout_fee');
                 $networkPrecision = $this->safe_number($rawNetwork, 'precision_payout');
-                $payinEnabledNetwork = $this->safe_bool($entry, 'payin_enabled', false);
-                $payoutEnabledNetwork = $this->safe_bool($entry, 'payout_enabled', false);
+                $payinEnabledNetwork = $this->safe_bool($rawNetwork, 'payin_enabled', false);
+                $payoutEnabledNetwork = $this->safe_bool($rawNetwork, 'payout_enabled', false);
                 $activeNetwork = $payinEnabledNetwork && $payoutEnabledNetwork;
                 if ($payinEnabledNetwork && !$depositEnabled) {
                     $depositEnabled = true;

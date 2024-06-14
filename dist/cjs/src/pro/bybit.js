@@ -123,7 +123,7 @@ class bybit extends bybit$1 {
             },
             'streaming': {
                 'ping': this.ping,
-                'keepAlive': 19000,
+                'keepAlive': 18000,
             },
         });
     }

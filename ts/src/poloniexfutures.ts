@@ -1246,7 +1246,7 @@ export default class poloniexfutures extends Exchange {
         const cancelledOrderIdsLength = cancelledOrderIds.length;
         for (let i = 0; i < cancelledOrderIdsLength; i++) {
             const cancelledOrderId = this.safeString (cancelledOrderIds, i);
-            result.push ({
+            result.push (this.safeOrder ({
                 'id': cancelledOrderId,
                 'clientOrderId': undefined,
                 'timestamp': undefined,
@@ -1268,7 +1268,7 @@ export default class poloniexfutures extends Exchange {
                 'postOnly': undefined,
                 'stopPrice': undefined,
                 'info': response,
-            });
+            }));
         }
         return result;
     }

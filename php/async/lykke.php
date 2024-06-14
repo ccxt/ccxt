@@ -894,7 +894,10 @@ class lykke extends Exchange {
             //         "error":null
             //     }
             //
-            return Async\await($this->privateDeleteOrdersOrderId ($this->extend($request, $params)));
+            $response = Async\await($this->privateDeleteOrdersOrderId ($this->extend($request, $params)));
+            return $this->safe_order(array(
+                'info' => $response,
+            ));
         }) ();
     }
 
@@ -922,7 +925,12 @@ class lykke extends Exchange {
             //         "error":null
             //     }
             //
-            return Async\await($this->privateDeleteOrders ($this->extend($request, $params)));
+            $response = Async\await($this->privateDeleteOrders ($this->extend($request, $params)));
+            return array(
+                $this->safe_order(array(
+                    'info' => $response,
+                )),
+            );
         }) ();
     }
 

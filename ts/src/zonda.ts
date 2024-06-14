@@ -446,6 +446,13 @@ export default class zonda extends Exchange {
         //         "secondBalanceId": "ab43023b-4079-414c-b340-056e3430a3af"
         //     }
         //
+        // cancelOrder
+        //
+        //    {
+        //        status: "Ok",
+        //        errors: []
+        //    }
+        //
         const marketId = this.safeString (order, 'market');
         const symbol = this.safeSymbol (marketId, market, '-');
         const timestamp = this.safeInteger (order, 'time');
@@ -1510,9 +1517,10 @@ export default class zonda extends Exchange {
             'side': side,
             'price': price,
         };
+        const response = await this.v1_01PrivateDeleteTradingOfferSymbolIdSidePrice (this.extend (request, params));
         // { status: "Fail", errors: [ "NOT_RECOGNIZED_OFFER_TYPE" ] }  -- if required params are missing
         // { status: "Ok", errors: [] }
-        return await this.v1_01PrivateDeleteTradingOfferSymbolIdSidePrice (this.extend (request, params));
+        return this.parseOrder (response);
     }
 
     isFiat (currency) {

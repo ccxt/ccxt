@@ -60,7 +60,7 @@ class woo(ccxt.async_support.woo):
             },
             'streaming': {
                 'ping': self.ping,
-                'keepAlive': 10000,
+                'keepAlive': 9000,
             },
             'exceptions': {
                 'ws': {
@@ -582,7 +582,7 @@ class woo(ccxt.async_support.woo):
         :param int [limit]: the maximum number of order structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param bool [params.trigger]: True if trigger order
-        :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
         """
         await self.load_markets()
         trigger = self.safe_bool_2(params, 'stop', 'trigger', False)

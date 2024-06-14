@@ -1207,7 +1207,45 @@ class krakenfutures(Exchange, ImplicitAPI):
         if symbol is not None:
             request['symbol'] = self.market_id(symbol)
         response = self.privatePostCancelallorders(self.extend(request, params))
-        return response
+        #
+        #    {
+        #        result: 'success',
+        #        cancelStatus: {
+        #          receivedTime: '2024-06-06T01:12:44.814Z',
+        #          cancelOnly: 'PF_XRPUSD',
+        #          status: 'cancelled',
+        #          cancelledOrders: [{order_id: '272fd0ac-45c0-4003-b84d-d39b9e86bd36'}],
+        #          orderEvents: [
+        #            {
+        #              uid: '272fd0ac-45c0-4003-b84d-d39b9e86bd36',
+        #              order: {
+        #                orderId: '272fd0ac-45c0-4003-b84d-d39b9e86bd36',
+        #                cliOrdId: null,
+        #                type: 'lmt',
+        #                symbol: 'PF_XRPUSD',
+        #                side: 'buy',
+        #                quantity: '10',
+        #                filled: '0',
+        #                limitPrice: '0.4',
+        #                reduceOnly: False,
+        #                timestamp: '2024-06-06T01:11:16.045Z',
+        #                lastUpdateTimestamp: '2024-06-06T01:11:16.045Z'
+        #              },
+        #              type: 'CANCEL'
+        #            }
+        #          ]
+        #        },
+        #        serverTime: '2024-06-06T01:12:44.814Z'
+        #    }
+        #
+        cancelStatus = self.safe_dict(response, 'cancelStatus')
+        orderEvents = self.safe_list(cancelStatus, 'orderEvents', [])
+        orders = []
+        for i in range(0, len(orderEvents)):
+            orderEvent = self.safe_dict(orderEvents, 0)
+            order = self.safe_dict(orderEvent, 'order', {})
+            orders.append(order)
+        return self.parse_orders(orders)
 
     def cancel_all_orders_after(self, timeout: Int, params={}):
         """
@@ -1549,6 +1587,22 @@ class krakenfutures(Exchange, ImplicitAPI):
         #                "type": "CANCEL"
         #            }
         #        ]
+        #    }
+        #
+        # cancelAllOrders
+        #
+        #    {
+        #        "orderId": "85c40002-3f20-4e87-9302-262626c3531b",
+        #        "cliOrdId": null,
+        #        "type": "lmt",
+        #        "symbol": "pi_xbtusd",
+        #        "side": "buy",
+        #        "quantity": 1000,
+        #        "filled": 0,
+        #        "limitPrice": 10144,
+        #        "stopPrice": null,
+        #        "reduceOnly": False,
+        #        "timestamp": "2019-08-01T15:26:27.790Z"
         #    }
         #
         # FETCH OPEN ORDERS

@@ -589,15 +589,15 @@ class blockchaincom(Exchange, ImplicitAPI):
             'orderId': id,
         }
         response = self.privateDeleteOrdersOrderId(self.extend(request, params))
-        return {
+        return self.safe_order({
             'id': id,
             'info': response,
-        }
+        })
 
     def cancel_all_orders(self, symbol: Str = None, params={}):
         """
         cancel all open orders
-        :see: https://api.blockchain.com/v3/#/trading/deleteAllOrders
+        :see: https://api.blockchain.com/v3/#deleteallorders
         :param str symbol: unified market symbol of the market to cancel orders in, all markets are used if None, default is None
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
@@ -612,10 +612,14 @@ class blockchaincom(Exchange, ImplicitAPI):
             marketId = self.market_id(symbol)
             request['symbol'] = marketId
         response = self.privateDeleteOrders(self.extend(request, params))
-        return {
-            'symbol': symbol,
-            'info': response,
-        }
+        #
+        # {}
+        #
+        return [
+            self.safe_order({
+                'info': response,
+            }),
+        ]
 
     def fetch_trading_fees(self, params={}) -> TradingFees:
         """

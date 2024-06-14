@@ -1020,7 +1020,7 @@ class coinone(Exchange, ImplicitAPI):
         #         "errorCode": "0"
         #     }
         #
-        return response
+        return self.safe_order(response)
 
     async def fetch_deposit_addresses(self, codes: Strings = None, params={}):
         """

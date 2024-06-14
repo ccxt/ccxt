@@ -2306,7 +2306,9 @@ public partial class kraken : Exchange
             }
             throw e;
         }
-        return response;
+        return this.safeOrder(new Dictionary<string, object>() {
+            { "info", response },
+        });
     }
 
     public async virtual Task<object> cancelOrders(object ids, object symbol = null, object parameters = null)
@@ -2334,7 +2336,9 @@ public partial class kraken : Exchange
         //         }
         //     }
         //
-        return response;
+        return new List<object> {this.safeOrder(new Dictionary<string, object>() {
+    { "info", response },
+})};
     }
 
     public async override Task<object> cancelAllOrders(object symbol = null, object parameters = null)
@@ -2350,7 +2354,18 @@ public partial class kraken : Exchange
         */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        return await this.privatePostCancelAll(parameters);
+        object response = await this.privatePostCancelAll(parameters);
+        //
+        //    {
+        //        error: [],
+        //        result: {
+        //            count: '1'
+        //        }
+        //    }
+        //
+        return new List<object> {this.safeOrder(new Dictionary<string, object>() {
+    { "info", response },
+})};
     }
 
     public async override Task<object> cancelAllOrdersAfter(object timeout, object parameters = null)

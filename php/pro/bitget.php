@@ -1007,7 +1007,7 @@ class bitget extends \ccxt\async\bitget {
             list($type, $params) = $this->handle_market_type_and_params('watchOrders', $market, $params);
             $subType = null;
             list($subType, $params) = $this->handle_sub_type_and_params('watchOrders', $market, $params, 'linear');
-            if (($type === 'spot') && ($symbol === null)) {
+            if (($type === 'spot' || $type === 'margin') && ($symbol === null)) {
                 throw new ArgumentsRequired($this->id . ' watchOrders requires a $symbol argument for ' . $type . ' markets.');
             }
             if (($productType === null) && ($type !== 'spot') && ($symbol === null)) {
@@ -1027,12 +1027,13 @@ class bitget extends \ccxt\async\bitget {
             if ($isTrigger) {
                 $subscriptionHash = $subscriptionHash . ':stop'; // we don't want to re-use the same subscription hash for stop $orders
             }
-            $instId = ($type === 'spot') ? $marketId : 'default'; // different from other streams here the 'rest' id is required for spot markets, contract markets require default here
+            $instId = ($type === 'spot' || $type === 'margin') ? $marketId : 'default'; // different from other streams here the 'rest' id is required for spot markets, contract markets require default here
             $channel = $isTrigger ? 'orders-algo' : 'orders';
             $marginMode = null;
             list($marginMode, $params) = $this->handle_margin_mode_and_params('watchOrders', $params);
             if ($marginMode !== null) {
                 $instType = 'MARGIN';
+                $messageHash = $messageHash . ':' . $marginMode;
                 if ($marginMode === 'isolated') {
                     $channel = 'orders-isolated';
                 } else {
@@ -1088,9 +1089,10 @@ class bitget extends \ccxt\async\bitget {
         //         "ts" => 1701923982497
         //     }
         //
-        $arg = $this->safe_value($message, 'arg', array());
+        $arg = $this->safe_dict($message, 'arg', array());
         $channel = $this->safe_string($arg, 'channel');
         $instType = $this->safe_string($arg, 'instType');
+        $argInstId = $this->safe_string($arg, 'instId');
         $marketType = null;
         if ($instType === 'SPOT') {
             $marketType = 'spot';
@@ -1114,7 +1116,7 @@ class bitget extends \ccxt\async\bitget {
         $marketSymbols = array();
         for ($i = 0; $i < count($data); $i++) {
             $order = $data[$i];
-            $marketId = $this->safe_string($order, 'instId');
+            $marketId = $this->safe_string($order, 'instId', $argInstId);
             $market = $this->safe_market($marketId, null, null, $marketType);
             $parsed = $this->parse_ws_order($order, $market);
             $stored->append ($parsed);
@@ -1125,6 +1127,11 @@ class bitget extends \ccxt\async\bitget {
         for ($i = 0; $i < count($keys); $i++) {
             $symbol = $keys[$i];
             $innerMessageHash = $messageHash . ':' . $symbol;
+            if ($channel === 'orders-crossed') {
+                $innerMessageHash = $innerMessageHash . ':cross';
+            } elseif ($channel === 'orders-isolated') {
+                $innerMessageHash = $innerMessageHash . ':isolated';
+            }
             $client->resolve ($stored, $innerMessageHash);
         }
         $client->resolve ($stored, $messageHash);
@@ -1232,23 +1239,30 @@ class bitget extends \ccxt\async\bitget {
         // isolated and cross margin
         //
         //     {
-        //         "enterPointSource" => "web",
-        //         "force" => "gtc",
-        //         "feeDetail" => array(),
-        //         "orderType" => "limit",
-        //         "price" => "35000.000000000",
-        //         "quoteSize" => "10.500000000",
-        //         "side" => "buy",
-        //         "status" => "live",
-        //         "baseSize" => "0.000300000",
-        //         "cTime" => "1701923982427",
-        //         "clientOid" => "4902047879864dc980c4840e9906db4e",
-        //         "fillPrice" => "0.000000000",
-        //         "baseVolume" => "0.000000000",
-        //         "fillTotalAmount" => "0.000000000",
-        //         "loanType" => "auto-loan-and-repay",
-        //         "orderId" => "1116515595178356737"
-        //     }
+        //         enterPointSource => "web",
+        //         feeDetail => array(
+        //           array(
+        //             feeCoin => "AAVE",
+        //             deduction => "no",
+        //             totalDeductionFee => "0",
+        //             totalFee => "-0.00010740",
+        //           ),
+        //         ),
+        //         force => "gtc",
+        //         orderType => "limit",
+        //         $price => "93.170000000",
+        //         fillPrice => "93.170000000",
+        //         baseSize => "0.110600000", // total amount of $order
+        //         quoteSize => "10.304602000", // total $cost of $order (independently if $order is filled or pending)
+        //         baseVolume => "0.107400000", // filled amount of $order (during order's lifecycle, and not for this specific incoming update)
+        //         fillTotalAmount => "10.006458000", // filled $cost of $order (during order's lifecycle, and not for this specific incoming update)
+        //         $side => "buy",
+        //         status => "partially_filled",
+        //         cTime => "1717875017306",
+        //         clientOid => "b57afe789a06454e9c560a2aab7f7201",
+        //         loanType => "auto-loan",
+        //         orderId => "1183419084588060673",
+        //       }
         //
         $isSpot = !(is_array($order) && array_key_exists('posMode', $order));
         $isMargin = (is_array($order) && array_key_exists('loanType', $order));
@@ -1291,9 +1305,9 @@ class bitget extends \ccxt\async\bitget {
         $totalFilled = $this->safe_string($order, 'accBaseVolume');
         if ($isSpot) {
             if ($isMargin) {
-                $filledAmount = $this->omit_zero($this->safe_string($order, 'fillTotalAmount'));
-                $totalAmount = $this->omit_zero($this->safe_string($order, 'baseSize')); // for margin trading
-                $cost = $this->safe_string($order, 'quoteSize');
+                $totalAmount = $this->safe_string($order, 'baseSize');
+                $totalFilled = $this->safe_string($order, 'baseVolume');
+                $cost = $this->safe_string($order, 'fillTotalAmount');
             } else {
                 $partialFillAmount = $this->safe_string($order, 'baseVolume');
                 if ($partialFillAmount !== null) {
@@ -1320,7 +1334,7 @@ class bitget extends \ccxt\async\bitget {
             $totalAmount = $this->safe_string($order, 'size');
             $cost = $this->safe_string($order, 'fillNotionalUsd');
         }
-        $remaining = $this->omit_zero(Precise::string_sub($totalAmount, $totalFilled));
+        $remaining = Precise::string_sub($totalAmount, $totalFilled);
         return $this->safe_order(array(
             'info' => $order,
             'symbol' => $symbol,

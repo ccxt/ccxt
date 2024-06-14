@@ -1297,7 +1297,9 @@ class woo extends woo$1 {
         //         "status":"CANCEL_ALL_SENT"
         //     }
         //
-        return response;
+        return [
+            this.safeOrder(response),
+        ];
     }
     async cancelAllOrdersAfter(timeout, params = {}) {
         /**
@@ -1324,7 +1326,9 @@ class woo extends woo$1 {
         //         "timestamp": 1711534302943
         //     }
         //
-        return response;
+        return [
+            this.safeOrder(response),
+        ];
     }
     async fetchOrder(id, symbol = undefined, params = {}) {
         /**

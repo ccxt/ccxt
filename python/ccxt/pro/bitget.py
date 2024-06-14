@@ -939,7 +939,7 @@ class bitget(ccxt.async_support.bitget):
         type, params = self.handle_market_type_and_params('watchOrders', market, params)
         subType = None
         subType, params = self.handle_sub_type_and_params('watchOrders', market, params, 'linear')
-        if (type == 'spot') and (symbol is None):
+        if (type == 'spot' or type == 'margin') and (symbol is None):
             raise ArgumentsRequired(self.id + ' watchOrders requires a symbol argument for ' + type + ' markets.')
         if (productType is None) and (type != 'spot') and (symbol is None):
             messageHash = messageHash + ':' + subType
@@ -955,12 +955,13 @@ class bitget(ccxt.async_support.bitget):
             subscriptionHash = subscriptionHash + ':' + symbol
         if isTrigger:
             subscriptionHash = subscriptionHash + ':stop'  # we don't want to re-use the same subscription hash for stop orders
-        instId = marketId if (type == 'spot') else 'default'  # different from other streams here the 'rest' id is required for spot markets, contract markets require default here
+        instId = marketId if (type == 'spot' or type == 'margin') else 'default'  # different from other streams here the 'rest' id is required for spot markets, contract markets require default here
         channel = 'orders-algo' if isTrigger else 'orders'
         marginMode = None
         marginMode, params = self.handle_margin_mode_and_params('watchOrders', params)
         if marginMode is not None:
             instType = 'MARGIN'
+            messageHash = messageHash + ':' + marginMode
             if marginMode == 'isolated':
                 channel = 'orders-isolated'
             else:
@@ -1011,9 +1012,10 @@ class bitget(ccxt.async_support.bitget):
         #         "ts": 1701923982497
         #     }
         #
-        arg = self.safe_value(message, 'arg', {})
+        arg = self.safe_dict(message, 'arg', {})
         channel = self.safe_string(arg, 'channel')
         instType = self.safe_string(arg, 'instType')
+        argInstId = self.safe_string(arg, 'instId')
         marketType = None
         if instType == 'SPOT':
             marketType = 'spot'
@@ -1035,7 +1037,7 @@ class bitget(ccxt.async_support.bitget):
         marketSymbols: dict = {}
         for i in range(0, len(data)):
             order = data[i]
-            marketId = self.safe_string(order, 'instId')
+            marketId = self.safe_string(order, 'instId', argInstId)
             market = self.safe_market(marketId, None, None, marketType)
             parsed = self.parse_ws_order(order, market)
             stored.append(parsed)
@@ -1045,6 +1047,10 @@ class bitget(ccxt.async_support.bitget):
         for i in range(0, len(keys)):
             symbol = keys[i]
             innerMessageHash = messageHash + ':' + symbol
+            if channel == 'orders-crossed':
+                innerMessageHash = innerMessageHash + ':cross'
+            elif channel == 'orders-isolated':
+                innerMessageHash = innerMessageHash + ':isolated'
             client.resolve(stored, innerMessageHash)
         client.resolve(stored, messageHash)
         if isLinearSwap:
@@ -1147,23 +1153,30 @@ class bitget(ccxt.async_support.bitget):
         # isolated and cross margin
         #
         #     {
-        #         "enterPointSource": "web",
-        #         "force": "gtc",
-        #         "feeDetail": [],
-        #         "orderType": "limit",
-        #         "price": "35000.000000000",
-        #         "quoteSize": "10.500000000",
-        #         "side": "buy",
-        #         "status": "live",
-        #         "baseSize": "0.000300000",
-        #         "cTime": "1701923982427",
-        #         "clientOid": "4902047879864dc980c4840e9906db4e",
-        #         "fillPrice": "0.000000000",
-        #         "baseVolume": "0.000000000",
-        #         "fillTotalAmount": "0.000000000",
-        #         "loanType": "auto-loan-and-repay",
-        #         "orderId": "1116515595178356737"
-        #     }
+        #         enterPointSource: "web",
+        #         feeDetail: [
+        #           {
+        #             feeCoin: "AAVE",
+        #             deduction: "no",
+        #             totalDeductionFee: "0",
+        #             totalFee: "-0.00010740",
+        #           },
+        #         ],
+        #         force: "gtc",
+        #         orderType: "limit",
+        #         price: "93.170000000",
+        #         fillPrice: "93.170000000",
+        #         baseSize: "0.110600000",  # total amount of order
+        #         quoteSize: "10.304602000",  # total cost of order(independently if order is filled or pending)
+        #         baseVolume: "0.107400000",  # filled amount of order(during order's lifecycle, and not for self specific incoming update)
+        #         fillTotalAmount: "10.006458000",  # filled cost of order(during order's lifecycle, and not for self specific incoming update)
+        #         side: "buy",
+        #         status: "partially_filled",
+        #         cTime: "1717875017306",
+        #         clientOid: "b57afe789a06454e9c560a2aab7f7201",
+        #         loanType: "auto-loan",
+        #         orderId: "1183419084588060673",
+        #       }
         #
         isSpot = not ('posMode' in order)
         isMargin = ('loanType' in order)
@@ -1204,9 +1217,9 @@ class bitget(ccxt.async_support.bitget):
         totalFilled = self.safe_string(order, 'accBaseVolume')
         if isSpot:
             if isMargin:
-                filledAmount = self.omit_zero(self.safe_string(order, 'fillTotalAmount'))
-                totalAmount = self.omit_zero(self.safe_string(order, 'baseSize'))  # for margin trading
-                cost = self.safe_string(order, 'quoteSize')
+                totalAmount = self.safe_string(order, 'baseSize')
+                totalFilled = self.safe_string(order, 'baseVolume')
+                cost = self.safe_string(order, 'fillTotalAmount')
             else:
                 partialFillAmount = self.safe_string(order, 'baseVolume')
                 if partialFillAmount is not None:
@@ -1228,7 +1241,7 @@ class bitget(ccxt.async_support.bitget):
             filledAmount = self.safe_string(order, 'baseVolume')
             totalAmount = self.safe_string(order, 'size')
             cost = self.safe_string(order, 'fillNotionalUsd')
-        remaining = self.omit_zero(Precise.string_sub(totalAmount, totalFilled))
+        remaining = Precise.string_sub(totalAmount, totalFilled)
         return self.safe_order({
             'info': order,
             'symbol': symbol,

@@ -1647,7 +1647,9 @@ class woofipro extends woofipro$1 {
         //     }
         // }
         //
-        return response;
+        return [this.safeOrder({
+                'info': response,
+            })];
     }
     async cancelAllOrders(symbol = undefined, params = {}) {
         /**
@@ -1691,7 +1693,11 @@ class woofipro extends woofipro$1 {
         //     }
         // }
         //
-        return response;
+        return [
+            {
+                'info': response,
+            },
+        ];
     }
     async fetchOrder(id, symbol = undefined, params = {}) {
         /**

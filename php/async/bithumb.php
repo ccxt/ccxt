@@ -984,7 +984,15 @@ class bithumb extends Exchange {
                 'order_currency' => $market['base'],
                 'payment_currency' => $market['quote'],
             );
-            return Async\await($this->privatePostTradeCancel ($this->extend($request, $params)));
+            $response = Async\await($this->privatePostTradeCancel ($this->extend($request, $params)));
+            //
+            //    {
+            //       'status' => 'string',
+            //    }
+            //
+            return $this->safe_order(array(
+                'info' => $response,
+            ));
         }) ();
     }
 

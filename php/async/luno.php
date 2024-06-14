@@ -976,7 +976,15 @@ class luno extends Exchange {
             $request = array(
                 'order_id' => $id,
             );
-            return Async\await($this->privatePostStoporder ($this->extend($request, $params)));
+            $response = Async\await($this->privatePostStoporder ($this->extend($request, $params)));
+            //
+            //    {
+            //        "success" => true
+            //    }
+            //
+            return $this->safe_order(array(
+                'info' => $response,
+            ));
         }) ();
     }
 
