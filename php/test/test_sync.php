@@ -1393,11 +1393,15 @@ class testMainClass extends baseMainTestClass {
         // read apiKey/secret from the test file
         $api_key = $exchange->safe_string($exchange_data, 'apiKey');
         if ($api_key) {
-            $exchange->api_key = ((string) $api_key);
+            $exchange->apiKey = ((string) $api_key);
         }
         $secret = $exchange->safe_string($exchange_data, 'secret');
         if ($secret) {
             $exchange->secret = ((string) $secret);
+        }
+        $wallet_address = $exchange->safe_string($exchange_data, 'walletAddress');
+        if ($wallet_address) {
+            $exchange->walletAddress = ((string) $wallet_address);
         }
         // exchange.options = exchange.deepExtend (exchange.options, globalOptions); // custom options to be used in the tests
         $exchange->extend_exchange_options($global_options);
@@ -1437,11 +1441,15 @@ class testMainClass extends baseMainTestClass {
         // read apiKey/secret from the test file
         $api_key = $exchange->safe_string($exchange_data, 'apiKey');
         if ($api_key) {
-            $exchange->api_key = ((string) $api_key);
+            $exchange->apiKey = ((string) $api_key);
         }
         $secret = $exchange->safe_string($exchange_data, 'secret');
         if ($secret) {
             $exchange->secret = ((string) $secret);
+        }
+        $wallet_address = $exchange->safe_string($exchange_data, 'walletAddress');
+        if ($wallet_address) {
+            $exchange->walletAddress = ((string) $wallet_address);
         }
         $methods = $exchange->safe_value($exchange_data, 'methods', array());
         $options = $exchange->safe_value($exchange_data, 'options', array());
