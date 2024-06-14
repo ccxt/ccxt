@@ -446,15 +446,18 @@ export default class vertex extends Exchange {
         const minSizeX18 = this.safeString (market, 'min_size');
         const takerX18 = this.safeNumber (market, 'taker_fee_rate_x18');
         const makerX18 = this.safeNumber (market, 'maker_fee_rate_x18');
+        const isInverse = (spot) ? undefined : false;
+        const isLinear = (spot) ? undefined : true;
+        const contractSize = (spot) ? undefined : this.parseNumber ('1');
         return {
             'id': this.safeString (market, 'product_id'),
             'symbol': symbol,
             'base': base,
             'quote': quote,
-            'settle': settle,
+            'settle': (spot) ? undefined : settle,
             'baseId': baseId,
             'quoteId': quoteId,
-            'settleId': settleId,
+            'settleId': (spot) ? undefined : settleId,
             'type': (spot) ? 'spot' : 'swap',
             'spot': spot,
             'margin': undefined,
@@ -463,11 +466,11 @@ export default class vertex extends Exchange {
             'option': false,
             'active': true,
             'contract': contract,
-            'linear': swap,
-            'inverse': false,
+            'linear': isLinear,
+            'inverse': isInverse,
             'taker': this.parseNumber (this.convertFromX18 (takerX18)),
             'maker': this.parseNumber (this.convertFromX18 (makerX18)),
-            'contractSize': this.parseNumber ('1'),
+            'contractSize': contractSize,
             'expiry': undefined,
             'expiryDatetime': undefined,
             'strike': undefined,

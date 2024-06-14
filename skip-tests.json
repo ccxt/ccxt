@@ -1697,5 +1697,14 @@
                 "bid": "weird values"
             }
         }
+    },
+    "vertex": {
+        "skipMethods": {
+            "loadMarkets": {
+                "currencyIdAndCode": "different",
+                "amount": "handled seperately",
+                "precision": "handled seperately"
+            }
+        }
     }
 }
