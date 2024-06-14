@@ -1,5 +1,5 @@
 import Exchange from './abstract/foxbit';
-import type { Currencies, Market, OrderBook, Ticker, TradingFees, Int, Dictionary, Trade, OHLCV } from './base/types.js';
+import type { Currencies, Market, OrderBook, Ticker, TradingFees, Int, Str, Num, Dictionary, Trade, OHLCV, Balances, Order, Account, OrderType, OrderSide } from './base/types.js';
 
 /**
  * @class foxbit
@@ -45,6 +45,38 @@ export default class foxbit extends Exchange {
     }
 
     async fetchOHLCV (symbol: string, timeframe = "1m", since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+        return [];
+    }
+
+    async fetchBalance (params = {}): Promise<Balances> {
+        return {};
+    }
+
+    async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+        return [];
+    }
+
+    async fetchAccounts (params = {}): Promise<Account[]> {
+        return [];
+    }
+
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}): Promise<Order> {
+        return {};
+    }
+
+    async cancelOrder (id: string, symbol: Str = undefined, params = {}): Promise<{}> {
+        return {};
+    }
+
+    async fetchOrder (id: string, symbol: Str = undefined, params = {}): Promise<Order> {
+        return {};
+    }
+
+    async fetchOrders (symbol?: string, since?: number, limit?: number, params?: {}): Promise<Order[]> {
+        return []; // Coinex não possui essa function
+    }
+
+    async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         return [];
     }
 }
