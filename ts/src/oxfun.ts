@@ -18,7 +18,7 @@ export default class oxfun extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'oxfun',
-            'name': 'Oxfun',
+            'name': 'OXFUN',
             'countries': [ 'PA' ], // Panama todo check
             'version': 'v3',
             'rateLimit': 120, // 100 requests per second and 25000 per 5 minutes
