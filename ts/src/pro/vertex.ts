@@ -459,7 +459,7 @@ export default class vertex extends vertexRest {
             client.resolve (orderbook, messageHash);
         } catch (e) {
             delete client.subscriptions[messageHash];
-            client.reject (e, message);
+            client.reject (e, messageHash);
         }
     }
 
