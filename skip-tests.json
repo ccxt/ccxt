@@ -1700,6 +1700,7 @@
     },
     "vertex": {
         "skipMethods": {
+            "fetchCurrencies": "incomplete",
             "loadMarkets": {
                 "currencyIdAndCode": "different",
                 "amount": "handled seperately",
