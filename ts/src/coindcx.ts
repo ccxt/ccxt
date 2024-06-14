@@ -2,9 +2,9 @@
 //  ---------------------------------------------------------------------------
 
 import Exchange from './abstract/coindcx.js';
-import { TICK_SIZE } from './base/functions/number.js';
+import { DECIMAL_PLACES } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { Balances, Dict, IndexType, Int, Market, Num, OHLCV, OrderBook, Str, Strings, Ticker, Tickers, Trade } from './base/types.js';
+import type { Balances, Dict, IndexType, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -211,7 +211,7 @@ export default class coindcx extends Exchange {
                     'maker': this.parseNumber ('0'),
                 },
             },
-            'precisionMode': TICK_SIZE,
+            'precisionMode': DECIMAL_PLACES,
             // exchange-specific options
             'options': {
                 'networks': {
@@ -663,6 +663,195 @@ export default class coindcx extends Exchange {
         return this.safeBalance (result);
     }
 
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}): Promise<Order> {
+        /**
+         * @method
+         * @name coindcx#createOrder
+         * @description create a trade order
+         * @see https://docs.coindcx.com/?python#new-order
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {string} type 'market', 'limit', 'STOP_LIMIT' or 'STOP_MARKET'
+         * @param {string} side 'buy' or 'sell'
+         * @param {float} amount how much of currency you want to trade in units of base currency
+         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {int} [params.clientOrderId] a unique id for the order
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        await this.loadMarkets ();
+        const request = this.createOrderRequest (symbol, type, side, amount, price, params);
+        const response = await this.privatePostExchangeV1OrdersCreate (request);
+        //
+        //     {
+        //         "orders": [
+        //             {
+        //                 "id": "fcaae278-2a73-11ef-a2d5-5374ccb4f829",
+        //                 "client_order_id": null,
+        //                 "order_type": "market_order",
+        //                 "side": "buy",
+        //                 "status": "open",
+        //                 "fee_amount": 0.0,
+        //                 "fee": 0.0,
+        //                 "maker_fee": 0.0,
+        //                 "taker_fee": 0.0,
+        //                 "total_quantity": 0.0001,
+        //                 "remaining_quantity": 0.0001,
+        //                 "source": "web",
+        //                 "base_currency_name": null,
+        //                 "target_currency_name": null,
+        //                 "base_currency_short_name": null,
+        //                 "target_currency_short_name": null,
+        //                 "base_currency_precision": null,
+        //                 "target_currency_precision": null,
+        //                 "avg_price": 0.0,
+        //                 "price_per_unit": 65483.14,
+        //                 "stop_price": 0.0,
+        //                 "market": "BTCUSDT",
+        //                 "time_in_force": "good_till_cancel",
+        //                 "created_at": 1718386312000,
+        //                 "updated_at": 1718386312000,
+        //                 "trades": null
+        //             }
+        //         ]
+        //     }
+        //
+        const orders = this.safeList (response, 'orders', []);
+        const parsedOrders = this.parseOrders (orders);
+        return parsedOrders[0];
+    }
+
+    createOrderRequest (symbol: string, type: string, side: string, amount, price = undefined, params = {}) {
+        /**
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {string} type 'market', 'limit'
+         * @param {string} side 'buy' or 'sell'
+         * @param {float} amount how much of currency you want to trade in units of base currency
+         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {int} [params.clientOrderId] a unique id for the order
+         */
+        const market = this.market (symbol);
+        const request: Dict = {
+            'market': market['id'],
+            'order_type': this.encodeOrderType (type),
+            'side': side,
+            'total_quantity': this.amountToPrecision (symbol, amount),
+        };
+        if (price !== undefined) {
+            request['price_per_unit'] = this.priceToPrecision (symbol, price);
+        }
+        const clientOrderId = this.safeString (params, 'clientOrderId');
+        if (clientOrderId !== undefined) {
+            request['client_order_id'] = clientOrderId;
+        }
+        return this.extend (request, params);
+    }
+
+    parseOrder (order, market: Market = undefined): Order {
+        //
+        //     {
+        //         "id": "fcaae278-2a73-11ef-a2d5-5374ccb4f829",
+        //         "client_order_id": null,
+        //         "order_type": "market_order",
+        //         "side": "buy",
+        //         "status": "open",
+        //         "fee_amount": 0.0,
+        //         "fee": 0.0,
+        //         "maker_fee": 0.0,
+        //         "taker_fee": 0.0,
+        //         "total_quantity": 0.0001,
+        //         "remaining_quantity": 0.0001,
+        //         "source": "web",
+        //         "base_currency_name": null,
+        //         "target_currency_name": null,
+        //         "base_currency_short_name": null,
+        //         "target_currency_short_name": null,
+        //         "base_currency_precision": null,
+        //         "target_currency_precision": null,
+        //         "avg_price": 0.0,
+        //         "price_per_unit": 65483.14,
+        //         "stop_price": 0.0,
+        //         "market": "BTCUSDT",
+        //         "time_in_force": "good_till_cancel",
+        //         "created_at": 1718386312000,
+        //         "updated_at": 1718386312000,
+        //         "trades": null // todo check
+        //     }
+        //
+        const marketId = this.safeString (order, 'market');
+        market = this.safeMarket (marketId, market);
+        const timestamp = this.safeInteger (order, 'created_at');
+        const fee = {
+            'currency': undefined,
+            'cost': this.safeNumber (order, 'fee_amount'),
+        };
+        const status = this.safeString (order, 'status');
+        const triggerPrice = this.omitZero (this.safeString (order, 'stop_price'));
+        return this.safeOrder ({
+            'id': this.safeString (order, 'id'),
+            'clientOrderId': this.safeString (order, 'client_order_id'),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'lastTradeTimestamp': undefined, // todo check
+            'lastUpdateTimestamp': this.safeInteger (order, 'updated_at'),
+            'status': this.parseOrderStatus (status),
+            'symbol': market['symbol'],
+            'type': this.parseOrderType (this.safeString (order, 'order_type')),
+            'timeInForce': this.parseOrderTimeInForce (this.safeString (order, 'time_in_force')), // only for limit orders
+            'side': this.safeString (order, 'side'),
+            'price': this.safeString (order, 'price_per_unit'),
+            'average': this.omitZero (this.safeString (order, 'avg_price')),
+            'amount': this.safeString (order, 'total_quantity'),
+            'filled': undefined,
+            'remaining': this.safeString (order, 'remaining_quantity'),
+            'triggerPrice': triggerPrice,
+            'takeProfitPrice': undefined, // todo check
+            'stopLossPrice': undefined, // todo check
+            'cost': undefined,
+            'trades': undefined,
+            'fee': fee,
+            'info': order,
+        }, market);
+    }
+
+    parseOrderStatus (status) {
+        const statuses: Dict = {
+            'open': 'open',
+            'init': 'open', // todo check
+            'partially_filled': 'open',
+            'filled': 'closed',
+            'cancelled': 'canceled',
+            'partially_cancelled': 'canceled',
+            'rejected': 'rejected',
+        };
+        return this.safeString (statuses, status, status);
+    }
+
+    parseOrderType (type) {
+        const types: Dict = {
+            'market_order': 'market',
+            'limit_order': 'limit',
+        };
+        return this.safeString (types, type, type);
+    }
+
+    parseOrderTimeInForce (type) {
+        const types: Dict = {
+            'good_till_cancel': 'GTC',
+            'immediate_or_cancel': 'IOC',
+            'fill_or_kill': 'FOK',
+        };
+        return this.safeString (types, type, type);
+    }
+
+    encodeOrderType (type) {
+        const types = {
+            'market': 'market_order',
+            'limit': 'limit_order',
+        };
+        return this.safeString (types, type, type);
+    }
+
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'][api] + '/' + this.implodeParams (path, params);
         params = this.omit (params, this.extractParams (path));
@@ -675,7 +864,6 @@ export default class coindcx extends Exchange {
             this.checkRequiredCredentials ();
             const timestamp = this.milliseconds ();
             const secret = this.encode (this.secret);
-            url += this.urlencode (params);
             params['timestamp'] = timestamp;
             const payload = this.json (params);
             const signature = this.hmac (this.encode (payload), secret, sha256);
