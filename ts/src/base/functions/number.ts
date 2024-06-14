@@ -83,7 +83,7 @@ const truncate = (num: number | string, precision = 0): number => parseFloat (tr
 
 function precisionFromString (str: string) {
     // support string formats like '1e-4'
-    if (str.indexOf ('e') > -1 || str.indexOf ('E') > -1{
+    if (str.indexOf ('e') > -1 || str.indexOf ('E') > -1) {
         const numStr = str.replace (/(.*?)[eE]/, '')
         return parseInt (numStr) * -1
     }
