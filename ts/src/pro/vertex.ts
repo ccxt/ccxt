@@ -432,6 +432,8 @@ export default class vertex extends vertexRest {
 
     async fetchOrderBookSnapshot (client, message, subscription) {
         const symbol = this.safeString (subscription, 'symbol');
+        const market = this.market (symbol);
+        const messageHash = market['id'] + '@book_depth';
         try {
             const defaultLimit = this.safeInteger (this.options, 'watchOrderBookLimit', 1000);
             const limit = this.safeInteger (subscription, 'limit', defaultLimit);
@@ -446,7 +448,7 @@ export default class vertex extends vertexRest {
             const messages = orderbook.cache;
             for (let i = 0; i < messages.length; i++) {
                 const messageItem = messages[i];
-                const lastTimestamp = this.parseToNumeric (Precise.stringDiv (this.safeString (messageItem, 'last_max_timestamp'), '1000000'));
+                const lastTimestamp = this.parseToInt (Precise.stringDiv (this.safeString (messageItem, 'last_max_timestamp'), '1000000'));
                 if (lastTimestamp < orderbook['timestamp']) {
                     continue;
                 } else {
@@ -454,9 +456,9 @@ export default class vertex extends vertexRest {
                 }
             }
             this.orderbooks[symbol] = orderbook;
-            client.resolve (orderbook, message);
+            client.resolve (orderbook, messageHash);
         } catch (e) {
-            delete client.subscriptions[message];
+            delete client.subscriptions[messageHash];
             client.reject (e, message);
         }
     }
@@ -494,7 +496,7 @@ export default class vertex extends vertexRest {
             // Buffer the events you receive from the stream.
             orderbook.cache.push (message);
         } else {
-            const lastTimestamp = this.parseToNumeric (Precise.stringDiv (this.safeString (message, 'last_max_timestamp'), '1000000'));
+            const lastTimestamp = this.parseToInt (Precise.stringDiv (this.safeString (message, 'last_max_timestamp'), '1000000'));
             if (lastTimestamp > timestamp) {
                 this.handleOrderBookMessage (client, message, orderbook);
                 client.resolve (orderbook, marketId + '@book_depth');
@@ -503,7 +505,7 @@ export default class vertex extends vertexRest {
     }
 
     handleOrderBookMessage (client: Client, message, orderbook) {
-        const timestamp = this.parseToNumeric (Precise.stringDiv (this.safeString (message, 'last_max_timestamp'), '1000000'));
+        const timestamp = this.parseToInt (Precise.stringDiv (this.safeString (message, 'last_max_timestamp'), '1000000'));
         // convert from X18
         const data = {
             'bids': [],
@@ -691,7 +693,7 @@ export default class vertex extends vertexRest {
         if (Precise.stringLt (contractSize, '1')) {
             side = 'sell';
         }
-        const timestamp = this.parseToNumeric (Precise.stringDiv (this.safeString (position, 'timestamp'), '1000000'));
+        const timestamp = this.parseToInt (Precise.stringDiv (this.safeString (position, 'timestamp'), '1000000'));
         return this.safePosition ({
             'info': position,
             'id': undefined,
@@ -865,7 +867,7 @@ export default class vertex extends vertexRest {
         // }
         //
         const marketId = this.safeString (order, 'product_id');
-        const timestamp = this.parseToNumeric (Precise.stringDiv (this.safeString (order, 'timestamp'), '1000000'));
+        const timestamp = this.parseToInt (Precise.stringDiv (this.safeString (order, 'timestamp'), '1000000'));
         const remaining = this.parseToNumeric (this.convertFromX18 (this.safeString (order, 'amount')));
         let status = this.parseWsOrderStatus (this.safeString (order, 'reason'));
         if (remaining === 0 && status === 'open') {
