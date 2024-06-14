@@ -133,7 +133,7 @@ class oxfun extends Exchange {
                 '1d' => '86400s',
             ),
             'urls' => array(
-                'logo' => 'https://github.com/ccxt/ccxt/assets/43336371/9c7114b3-ec32-4cf7-a716-f807d7d071cd',
+                'logo' => 'https://github.com/ccxt/ccxt/assets/43336371/6a196124-c1ee-4fae-8573-962071b61a85',
                 'referral' => 'https://ox.fun/register?shareAccountId=5ZUD4a7G',
                 'api' => array(
                     'public' => 'https://api.ox.fun',
