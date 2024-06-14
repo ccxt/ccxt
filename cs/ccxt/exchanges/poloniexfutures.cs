@@ -1313,7 +1313,7 @@ public partial class poloniexfutures : Exchange
         for (object i = 0; isLessThan(i, cancelledOrderIdsLength); postFixIncrement(ref i))
         {
             object cancelledOrderId = this.safeString(cancelledOrderIds, i);
-            ((IList<object>)result).Add(new Dictionary<string, object>() {
+            ((IList<object>)result).Add(this.safeOrder(new Dictionary<string, object>() {
                 { "id", cancelledOrderId },
                 { "clientOrderId", null },
                 { "timestamp", null },
@@ -1335,7 +1335,7 @@ public partial class poloniexfutures : Exchange
                 { "postOnly", null },
                 { "stopPrice", null },
                 { "info", response },
-            });
+            }));
         }
         return result;
     }

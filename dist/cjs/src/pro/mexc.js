@@ -61,7 +61,7 @@ class mexc extends mexc$1 {
             },
             'streaming': {
                 'ping': this.ping,
-                'keepAlive': 10000,
+                'keepAlive': 8000,
             },
             'exceptions': {},
         });

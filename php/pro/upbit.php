@@ -242,17 +242,21 @@ class upbit extends \ccxt\async\upbit {
 
     public function authenticate($params = array ()) {
         $this->check_required_credentials();
-        $authenticated = $this->options['ws']['token'];
+        $wsOptions = $this->safe_dict($this->options, 'ws', array());
+        $authenticated = $this->safe_string($wsOptions, 'token');
         if ($authenticated === null) {
             $auth = array(
                 'access_key' => $this->apiKey,
                 'nonce' => $this->uuid(),
             );
             $token = $this->jwt($auth, $this->encode($this->secret), 'sha256', false);
-            $this->options['ws']['token'] = $token;
-            $this->options['ws']['options']['headers'] = array(
-                'authorization' => 'Bearer ' . $token,
+            $wsOptions['token'] = $token;
+            $wsOptions['options'] = array(
+                'headers' => array(
+                    'authorization' => 'Bearer ' . $token,
+                ),
             );
+            $this->options['ws'] = $wsOptions;
         }
         $url = $this->urls['api']['ws'] . '/private';
         $client = $this->client($url);

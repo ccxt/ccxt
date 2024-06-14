@@ -1522,6 +1522,7 @@ public partial class binance
     /// </summary>
     /// <remarks>
     /// See <see href="https://binance-docs.github.io/apidocs/spot/en/#query-user-universal-transfer-history-user_data"/>  <br/>
+    /// See <see href="https://binance-docs.github.io/apidocs/spot/en/#pay-endpoints"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -1551,6 +1552,12 @@ public partial class binance
     /// <term>params.paginate</term>
     /// <description>
     /// boolean : default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.internal</term>
+    /// <description>
+    /// boolean : default false, when true will fetch pay trade history
     /// </description>
     /// </item>
     /// </list>

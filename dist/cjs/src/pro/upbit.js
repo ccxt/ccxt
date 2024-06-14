@@ -229,17 +229,21 @@ class upbit extends upbit$1 {
     }
     async authenticate(params = {}) {
         this.checkRequiredCredentials();
-        const authenticated = this.options['ws']['token'];
+        const wsOptions = this.safeDict(this.options, 'ws', {});
+        const authenticated = this.safeString(wsOptions, 'token');
         if (authenticated === undefined) {
             const auth = {
                 'access_key': this.apiKey,
                 'nonce': this.uuid(),
             };
             const token = rsa.jwt(auth, this.encode(this.secret), sha256.sha256, false);
-            this.options['ws']['token'] = token;
-            this.options['ws']['options']['headers'] = {
-                'authorization': 'Bearer ' + token,
+            wsOptions['token'] = token;
+            wsOptions['options'] = {
+                'headers': {
+                    'authorization': 'Bearer ' + token,
+                },
             };
+            this.options['ws'] = wsOptions;
         }
         const url = this.urls['api']['ws'] + '/private';
         const client = this.client(url);

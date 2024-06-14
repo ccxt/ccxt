@@ -763,7 +763,26 @@ class wazirx(Exchange, ImplicitAPI):
         request: dict = {
             'symbol': market['id'],
         }
-        return self.privateDeleteOpenOrders(self.extend(request, params))
+        response = self.privateDeleteOpenOrders(self.extend(request, params))
+        #
+        #    [
+        #        {
+        #            id: "4565421197",
+        #            symbol: "adausdt",
+        #            type: "limit",
+        #            side: "buy",
+        #            status: "wait",
+        #            price: "0.41",
+        #            origQty: "11.00",
+        #            executedQty: "0.00",
+        #            avgPrice: "0.00",
+        #            createdTime: "1718089507000",
+        #            updatedTime: "1718089507000",
+        #            clientOrderId: "93d2a838-e272-405d-91e7-3a7bc6d3a003"
+        #        }
+        #    ]
+        #
+        return self.parse_orders(response)
 
     def cancel_order(self, id: str, symbol: Str = None, params={}):
         """
@@ -831,18 +850,22 @@ class wazirx(Exchange, ImplicitAPI):
         return self.parse_order(response, market)
 
     def parse_order(self, order: dict, market: Market = None) -> Order:
-        # {
-        #     "id":1949417813,
-        #     "symbol":"ltcusdt",
-        #     "type":"limit",
-        #     "side":"sell",
-        #     "status":"done",
-        #     "price":"146.2",
-        #     "origQty":"0.05",
-        #     "executedQty":"0.05",
-        #     "createdTime":1641252564000,
-        #     "updatedTime":1641252564000
-        # },
+        #
+        #    {
+        #        "id": 1949417813,
+        #        "symbol": "ltcusdt",
+        #        "type": "limit",
+        #        "side": "sell",
+        #        "status": "done",
+        #        "price": "146.2",
+        #        "origQty": "0.05",
+        #        "executedQty": "0.05",
+        #        "avgPrice":  "0.00",
+        #        "createdTime": 1641252564000,
+        #        "updatedTime": 1641252564000
+        #        "clientOrderId": "93d2a838-e272-405d-91e7-3a7bc6d3a003"
+        #    }
+        #
         created = self.safe_integer(order, 'createdTime')
         updated = self.safe_integer(order, 'updatedTime')
         marketId = self.safe_string(order, 'symbol')
@@ -857,7 +880,7 @@ class wazirx(Exchange, ImplicitAPI):
         return self.safe_order({
             'info': order,
             'id': id,
-            'clientOrderId': None,
+            'clientOrderId': self.safe_string(order, 'clientOrderId'),
             'timestamp': created,
             'datetime': self.iso8601(created),
             'lastTradeTimestamp': updated,
@@ -873,7 +896,7 @@ class wazirx(Exchange, ImplicitAPI):
             'remaining': None,
             'cost': None,
             'fee': None,
-            'average': None,
+            'average': self.safe_string(order, 'avgPrice'),
             'trades': [],
         }, market)
 

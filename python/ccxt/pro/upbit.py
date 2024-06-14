@@ -223,17 +223,21 @@ class upbit(ccxt.async_support.upbit):
 
     async def authenticate(self, params={}):
         self.check_required_credentials()
-        authenticated = self.options['ws']['token']
+        wsOptions: dict = self.safe_dict(self.options, 'ws', {})
+        authenticated = self.safe_string(wsOptions, 'token')
         if authenticated is None:
             auth: dict = {
                 'access_key': self.apiKey,
                 'nonce': self.uuid(),
             }
             token = self.jwt(auth, self.encode(self.secret), 'sha256', False)
-            self.options['ws']['token'] = token
-            self.options['ws']['options']['headers'] = {
-                'authorization': 'Bearer ' + token,
+            wsOptions['token'] = token
+            wsOptions['options'] = {
+                'headers': {
+                    'authorization': 'Bearer ' + token,
+                },
             }
+            self.options['ws'] = wsOptions
         url = self.urls['api']['ws'] + '/private'
         client = self.client(url)
         return client

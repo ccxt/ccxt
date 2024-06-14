@@ -249,7 +249,8 @@ public partial class upbit : ccxt.upbit
     {
         parameters ??= new Dictionary<string, object>();
         this.checkRequiredCredentials();
-        object authenticated = getValue(getValue(this.options, "ws"), "token");
+        object wsOptions = this.safeDict(this.options, "ws", new Dictionary<string, object>() {});
+        object authenticated = this.safeString(wsOptions, "token");
         if (isTrue(isEqual(authenticated, null)))
         {
             object auth = new Dictionary<string, object>() {
@@ -257,10 +258,13 @@ public partial class upbit : ccxt.upbit
                 { "nonce", this.uuid() },
             };
             object token = jwt(auth, this.encode(this.secret), sha256, false);
-            ((IDictionary<string,object>)getValue(this.options, "ws"))["token"] = token;
-            ((IDictionary<string,object>)getValue(getValue(this.options, "ws"), "options"))["headers"] = new Dictionary<string, object>() {
-                { "authorization", add("Bearer ", token) },
+            ((IDictionary<string,object>)wsOptions)["token"] = token;
+            ((IDictionary<string,object>)wsOptions)["options"] = new Dictionary<string, object>() {
+                { "headers", new Dictionary<string, object>() {
+                    { "authorization", add("Bearer ", token) },
+                } },
             };
+            ((IDictionary<string,object>)this.options)["ws"] = wsOptions;
         }
         object url = add(getValue(getValue(this.urls, "api"), "ws"), "/private");
         var client = this.client(url);

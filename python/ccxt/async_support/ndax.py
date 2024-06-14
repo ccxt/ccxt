@@ -1510,7 +1510,11 @@ class ndax(Exchange, ImplicitAPI):
         #         "detail":null
         #     }
         #
-        return response
+        return [
+            self.safe_order({
+                'info': response,
+            }),
+        ]
 
     async def cancel_order(self, id: str, symbol: Str = None, params={}):
         """

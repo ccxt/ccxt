@@ -6,7 +6,7 @@
 
 // ----------------------------------------------------------------------------
 import Exchange from './abstract/phemex.js';
-import { ExchangeError, BadSymbol, AuthenticationError, InsufficientFunds, InvalidOrder, ArgumentsRequired, OrderNotFound, BadRequest, PermissionDenied, AccountSuspended, CancelPending, DDoSProtection, DuplicateOrderId, RateLimitExceeded, NotSupported } from './base/errors.js';
+import { ExchangeError, BadSymbol, AuthenticationError, InsufficientFunds, InvalidOrder, ArgumentsRequired, OrderNotFound, BadRequest, PermissionDenied, AccountSuspended, CancelPending, DDoSProtection, DuplicateOrderId, RateLimitExceeded } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
@@ -2957,6 +2957,7 @@ export default class phemex extends Exchange {
         /**
          * @method
          * @name phemex#fetchOrder
+         * @see https://phemex-docs.github.io/#query-orders-by-ids
          * @description fetches information on an order made by the user
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -2967,9 +2968,6 @@ export default class phemex extends Exchange {
         }
         await this.loadMarkets();
         const market = this.market(symbol);
-        if (market['settle'] === 'USDT') {
-            throw new NotSupported(this.id + 'fetchOrder() is not supported yet for USDT settled swap markets'); // https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#query-user-order-by-orderid-or-query-user-order-by-client-order-id
-        }
         const request = {
             'symbol': market['id'],
         };
@@ -2982,7 +2980,10 @@ export default class phemex extends Exchange {
             request['orderID'] = id;
         }
         let response = undefined;
-        if (market['spot']) {
+        if (market['settle'] === 'USDT') {
+            response = await this.privateGetApiDataGFuturesOrdersByOrderId(this.extend(request, params));
+        }
+        else if (market['spot']) {
             response = await this.privateGetSpotOrdersActive(this.extend(request, params));
         }
         else {
