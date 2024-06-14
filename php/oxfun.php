@@ -13,7 +13,7 @@ class oxfun extends Exchange {
     public function describe() {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'oxfun',
-            'name' => 'Oxfun',
+            'name' => 'OXFUN',
             'countries' => array( 'PA' ), // Panama todo check
             'version' => 'v3',
             'rateLimit' => 120, // 100 requests per second and 25000 per 5 minutes

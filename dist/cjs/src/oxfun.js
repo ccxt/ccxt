@@ -16,7 +16,7 @@ class oxfun extends oxfun$1 {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'oxfun',
-            'name': 'Oxfun',
+            'name': 'OXFUN',
             'countries': ['PA'],
             'version': 'v3',
             'rateLimit': 120,

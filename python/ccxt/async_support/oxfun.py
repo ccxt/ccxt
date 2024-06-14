@@ -33,7 +33,7 @@ class oxfun(Exchange, ImplicitAPI):
     def describe(self):
         return self.deep_extend(super(oxfun, self).describe(), {
             'id': 'oxfun',
-            'name': 'Oxfun',
+            'name': 'OXFUN',
             'countries': ['PA'],  # Panama todo check
             'version': 'v3',
             'rateLimit': 120,  # 100 requests per second and 25000 per 5 minutes

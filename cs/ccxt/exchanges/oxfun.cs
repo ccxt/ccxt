@@ -9,7 +9,7 @@ public partial class oxfun : Exchange
     {
         return this.deepExtend(base.describe(), new Dictionary<string, object>() {
             { "id", "oxfun" },
-            { "name", "Oxfun" },
+            { "name", "OXFUN" },
             { "countries", new List<object>() {"PA"} },
             { "version", "v3" },
             { "rateLimit", 120 },
