@@ -2852,7 +2852,8 @@ export default class vertex extends Exchange {
         const result = [];
         for (let i = 0; i < positions.length; i++) {
             const position = this.extend (this.parsePosition (positions[i], undefined), params);
-            if (position['contractSize'] === 0) {
+            // the type would be float in php
+            if (position['contractSize'] == 0) {
                 continue;
             }
             result.push (position);
