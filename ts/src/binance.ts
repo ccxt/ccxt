@@ -9601,8 +9601,7 @@ export default class binance extends Exchange {
                 }
                 const inner = Precise.stringMul (liquidationPriceString, onePlusMaintenanceMarginPercentageString);
                 const leftSide = Precise.stringAdd (inner, entryPriceSignString);
-                const pricePrecision = this.safeInteger (precision, 'price');
-                const quotePrecision = this.safeInteger (precision, 'quote', pricePrecision);
+                const quotePrecision = this.precisionFromString (this.safeString2 (precision, 'quote', 'price'));
                 if (quotePrecision !== undefined) {
                     collateralString = Precise.stringDiv (Precise.stringMul (leftSide, contractsAbs), '1', quotePrecision);
                 }
@@ -9618,7 +9617,7 @@ export default class binance extends Exchange {
                 }
                 const leftSide = Precise.stringMul (contractsAbs, contractSizeString);
                 const rightSide = Precise.stringSub (Precise.stringDiv ('1', entryPriceSignString), Precise.stringDiv (onePlusMaintenanceMarginPercentageString, liquidationPriceString));
-                const basePrecision = this.safeInteger (precision, 'base');
+                const basePrecision = this.precisionFromString (this.safeString (precision, 'base'));
                 if (basePrecision !== undefined) {
                     collateralString = Precise.stringDiv (Precise.stringMul (leftSide, rightSide), '1', basePrecision);
                 }
@@ -12740,7 +12739,7 @@ export default class binance extends Exchange {
                 'deposit': undefined,
                 'withdraw': undefined,
                 'fee': undefined,
-                'precision': this.safeInteger (entry, 'fraction'),
+                'precision': this.parseNumber (this.parsePrecision (this.safeString (entry, 'fraction'))),
                 'limits': {
                     'amount': {
                         'min': undefined,
