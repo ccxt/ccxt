@@ -2142,7 +2142,12 @@ class Transpiler {
             // remove async ccxt import
             replace (/from ccxt\.async_support(.*)/g, '').
             // add one more newline before function
-            replace (/^(async def|def) (\w)/gs, '\n$1 $2')
+            replace (/^(async def|def) (\w)/gs, '\n$1 $2').
+            // camelCase walletAddress and privateKey
+            replace(/\.wallet_address/g, '.walletAddress').
+            replace(/\.private_key/g, '.privateKey').
+            replace(/\.api_key/g, '.apiKey');
+
         const existinPythonBody = fs.readFileSync (files.pyFileAsync).toString ();
         let newPython = existinPythonBody.split(commentStartLine)[0] + commentStartLine + '\n' + python3 + '\n# ' + commentEndLine + existinPythonBody.split(commentEndLine)[1];
         newPython = snakeCaseFunctions (newPython);
@@ -2161,7 +2166,10 @@ class Transpiler {
             const partBeforClass =  existinPhpBody.split(commentStartLine)[0] + commentStartLine + '\n';
             const partAfterClass = '\n' + '// ' + commentEndLine + existinPhpBody.split(commentEndLine)[1]
             let newContent = partBeforClass + cont + partAfterClass;
-            newContent = newContent.replace (/use ccxt\\(async\\|)abstract\\testMainClass as baseMainTestClass;/g, '');
+            newContent = newContent.replace (/use ccxt\\(async\\|)abstract\\testMainClass as baseMainTestClass;/g, '').
+            replace(/\->wallet_address/g, '->walletAddress').
+            replace(/\->private_key/g, '->privateKey').
+            replace(/\->api_key/g, '->apiKey');
             newContent = snakeCaseFunctions (newContent);
             newContent = this.phpReplaceException (newContent);
             return newContent;
