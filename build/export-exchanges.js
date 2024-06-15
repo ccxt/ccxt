@@ -93,6 +93,7 @@ function createExchange (id, content) {
         const isPro = definesPro ? content.indexOf("'pro': true") > -1 : undefined;
         const definesCertified = content.indexOf("'certified': true") > -1 || content.indexOf("'certified': false") > -1;
         const isCertified = definesCertified ? content.indexOf("'certified': true") > -1 : undefined;
+        const isDex = definesCertified ? content.indexOf("'dex': true") > -1 : undefined;
         const matches = content.match(urlsRegex);
         const chunk = matches[0];
         const leftSpace = chunk.search(/\S|$/)
@@ -129,6 +130,7 @@ function createExchange (id, content) {
             'version': version,
             'countries': countries,
             'parent': parent,
+            'dex': isDex,
         }
     }
     return {
@@ -262,6 +264,7 @@ function createMarkdownExchange (exchange) {
         'id': exchange.id,
         'name': '[' + exchange.name + '](' + url + ')',
         'ver': getVersionBadge (exchange),
+        'type': exchange.dex ? 'dex' : 'cex',
         'certified': exchange.certified ? ccxtCertifiedBadge : '',
         'pro': exchange.pro ? ccxtProBadge : '',
     }

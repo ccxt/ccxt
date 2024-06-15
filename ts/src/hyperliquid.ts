@@ -26,6 +26,7 @@ export default class hyperliquid extends Exchange {
             'rateLimit': 50, // 1200 requests per minute, 20 request per second
             'certified': false,
             'pro': true,
+            'dex': true,
             'has': {
                 'CORS': undefined,
                 'spot': true,
