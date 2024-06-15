@@ -1136,7 +1136,7 @@ public partial class mexc
     /// make a withdrawal
     /// </summary>
     /// <remarks>
-    /// See <see href="https://mexcdevelop.github.io/apidocs/spot_v3_en/#withdraw"/>  <br/>
+    /// See <see href="https://mexcdevelop.github.io/apidocs/spot_v3_en/#withdraw-new"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>

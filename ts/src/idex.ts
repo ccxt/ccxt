@@ -26,6 +26,7 @@ export default class idex extends Exchange {
             'rateLimit': 1000,
             'version': 'v3',
             'pro': true,
+            'dex': true,
             'certified': false,
             'requiresWeb3': true,
             'has': {
