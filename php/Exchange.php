@@ -1684,7 +1684,7 @@ class Exchange {
     public function precision_from_string($str) {
         // support string formats like '1e-4'
         if (stripos($str, 'e') > -1) {
-            $numStr = preg_replace ('/(.*?)[eE]/', '', $str);
+            $numStr = preg_replace ('/\d\.?\d*[eE]/', '', $str);
             return ((int)$numStr) * -1;
         }
         // support integer formats (without dot) like '1', '10' etc [Note: bug in decimalToPrecision, so this should not be used atm]
