@@ -871,6 +871,69 @@ export default class coindcx extends Exchange {
         return this.parseOrder (response);
     }
 
+    async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+        /**
+         * @method
+         * @name coindcx#fetchOpenOrders
+         * @description fetch all unfilled currently open orders
+         * @see https://docs.coindcx.com/#active-orders
+         * @param {string} symbol unified market symbol
+         * @param {int} [since] not used by coindxc
+         * @param {int} [limit] not used by coindxc
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {int} [params.orderId] a unique id for the order
+         * @param {int} [params.clientOrderId] the client order id of the order
+         *
+         * EXCHANGE SPECIFIC PARAMETERS
+         * @param {int} [params.side] toggle between 'buy' or 'sell'
+         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request: Dict = {
+            'market': market['id'],
+        };
+        const response = await this.privatePostExchangeV1OrdersActiveOrders (this.extend (request, params));
+        //
+        //     {
+        //         "orders": [
+        //             {
+        //                 "id": "2614a58a-2b29-11ef-8787-833693318846",
+        //                 "user_id": "390ec282-4f54-47c2-9cc3-c842a8834b88",
+        //                 "fee": 0.0,
+        //                 "fee_amount": 0.0,
+        //                 "side": "buy",
+        //                 "order_type": "limit_order",
+        //                 "status": "open",
+        //                 "total_quantity": 0.0001,
+        //                 "remaining_quantity": 0.0001,
+        //                 "price_per_unit": 60000.0,
+        //                 "created_at": "2024-06-15T15:08:40.430Z",
+        //                 "updated_at": "2024-06-15T15:08:40.430Z",
+        //                 "market": "BTCUSDT",
+        //                 "market_order_locked": 6.0,
+        //                 "avg_price": 0.0,
+        //                 "ecode": "B",
+        //                 "stop_price": 0.0,
+        //                 "notification": "no_notification",
+        //                 "source": "web",
+        //                 "maker_fee": 0.0,
+        //                 "taker_fee": 0.0,
+        //                 "time_in_force": "good_till_cancel",
+        //                 "locked_spot_balance": true,
+        //                 "closed_at": null,
+        //                 "client_order_id": null
+        //             }
+        //         ],
+        //         "details": false,
+        //         "cp": false,
+        //         "cp_hash": {}
+        //     }
+        //
+        const orders = this.safeList (response, 'orders', []);
+        return this.parseOrders (orders, market, since, limit);
+    }
+
     parseOrder (order, market: Market = undefined): Order {
         //
         // createOrder
@@ -903,7 +966,6 @@ export default class coindcx extends Exchange {
         //         "trades": null // todo check
         //     }
         //
-        //
         const marketId = this.safeString (order, 'market');
         market = this.safeMarket (marketId, market);
         const timestamp = this.safeInteger (order, 'created_at');
@@ -915,7 +977,7 @@ export default class coindcx extends Exchange {
         const triggerPrice = this.omitZero (this.safeString (order, 'stop_price'));
         return this.safeOrder ({
             'id': this.safeString (order, 'id'),
-            'clientOrderId': this.safeString (order, 'client_order_id'),
+            'clientOrderId': this.safeString2 (order, 'client_order_id', 'user_id'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': undefined, // todo check
