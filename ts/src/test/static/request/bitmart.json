@@ -121,6 +121,22 @@
                 "output": "{\"symbol\":\"LTC_USDT\",\"side\":\"buy\",\"type\":\"limit\",\"size\":\"0.1\",\"price\":\"50\",\"marginMode\":\"isolated\"}"
             },
             {
+                "description": "spot order with clientOrderId",
+                "method": "createOrder",
+                "url": "https://api-cloud.bitmart.com/spot/v2/submit_order",
+                "input": [
+                  "ADA/USDT",
+                  "market",
+                  "sell",
+                  20,
+                  null,
+                  {
+                    "clientOrderId": "myorder"
+                  }
+                ],
+                "output": "{\"symbol\":\"ADA_USDT\",\"side\":\"sell\",\"type\":\"market\",\"size\":\"20\",\"client_order_id\":\"myorder\"}"
+            },
+            {
                 "description": "Swap market buy",
                 "method": "createOrder",
                 "url": "https://api-cloud.bitmart.com/contract/private/submit-order",
