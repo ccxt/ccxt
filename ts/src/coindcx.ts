@@ -30,9 +30,9 @@ export default class coindcx extends Exchange {
                 'future': false,
                 'option': false,
                 'addMargin': false,
-                'cancelAllOrders': false,
-                'cancelOrder': false,
-                'cancelOrders': false,
+                'cancelAllOrders': true,
+                'cancelOrder': true,
+                'cancelOrders': true,
                 'closeAllPositions': false,
                 'closePosition': false,
                 'createDepositAddress': false,
@@ -932,6 +932,87 @@ export default class coindcx extends Exchange {
         //
         const orders = this.safeList (response, 'orders', []);
         return this.parseOrders (orders, market, since, limit);
+    }
+
+
+    async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
+        /**
+         * @method
+         * @name coindcx#cancelOrder
+         * @description cancels an open order
+         * @see https://docs.coindcx.com/?javascript#cancel
+         * @param {string} id order id
+         * @param {string} symbol not used by coindcx cancelOrder
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {int} [params.client_order_id] a unique id for the order
+         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        await this.loadMarkets ();
+        const request: Dict = {
+            'id': id,
+        };
+        //
+        //     {
+        //         "message": "success",
+        //         "status": 200,
+        //         "code": 200
+        //     }
+        //
+        return await this.privatePostExchangeV1OrdersCancel (this.extend (request, params));
+    }
+
+    async cancelAllOrders (symbol: Str = undefined, params = {}) {
+        /**
+         * @method
+         * @name coindcx#cancelAllOrders
+         * @description cancel all open orders
+         * @see https://docs.coindcx.com/?javascript#cancel-all
+         * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         *
+         * EXCHANGE SPECIFIC PARAMETERS
+         * @param {int} [params.side] toggle between 'buy' or 'sell'
+         * @returns {object} response from exchange
+         */
+        const request: Dict = {};
+        if (symbol !== undefined) {
+            const market = this.market (symbol);
+            request['market'] = market['id'];
+        }
+        //
+        //     {
+        //         "message": "success",
+        //         "status": 200,
+        //         "code": 200
+        //     }
+        //
+        return await this.privatePostExchangeV1OrdersCancelAll (this.extend (request, params));
+    }
+
+    async cancelOrders (ids:string[], symbol: Str = undefined, params = {}) {
+        /**
+         * @method
+         * @name coindcx#cancelOrders
+         * @description cancel multiple orders
+         * @see https://docs.coindcx.com/?javascript#cancel-multiple-by-ids
+         * @param {string[]} ids order ids
+         * @param {string} [symbol] not used by coindcx cancelOrders
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {int} [params.client_order_ids] Array of Client Order IDs
+         * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        await this.loadMarkets ();
+        const request = {
+            'orderIds': ids,
+        };
+        //
+        //     {
+        //         "message": "success",
+        //         "status": 200,
+        //         "code": 200
+        //     }
+        //
+        return await this.privatePostExchangeV1OrdersCancelByIds (this.extend (request, params));
     }
 
     parseOrder (order, market: Market = undefined): Order {
