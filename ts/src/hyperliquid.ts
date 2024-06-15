@@ -994,8 +994,6 @@ export default class hyperliquid extends Exchange {
     }
 
     signUserSignedAction (messageTypes, message) {
-        const isTestnet = this.safeBool (this.options, 'sandboxMode', false);
-        message['hyperliquidChain'] = isTestnet ? 'Testnet' : 'Mainnet';
         const zeroAddress = this.safeString (this.options, 'zeroAddress');
         const chainId = 421614; // check this out
         const domain: Dict = {
@@ -2448,10 +2446,11 @@ export default class hyperliquid extends Exchange {
         if (code !== undefined) {
             code = code.toUpperCase ();
             if (code !== 'USDC') {
-                throw new NotSupported (this.id + 'withdraw() only support USDC');
+                throw new NotSupported (this.id + 'transfer() only support USDC');
             }
         }
         const payload: Dict = {
+            'hyperliquidChain': isSandboxMode ? 'Testnet' : 'Mainnet',
             'destination': toAccount,
             'amount': this.numberToString (amount),
             'time': nonce,
@@ -2459,9 +2458,12 @@ export default class hyperliquid extends Exchange {
         const sig = this.buildTransferSig (payload);
         const request: Dict = {
             'action': {
-                'chain': (isSandboxMode) ? 'ArbitrumTestnet' : 'Arbitrum',
-                'payload': payload,
-                'type': 'usdTransfer',
+                'hyperliquidChain': payload['hyperliquidChain'],
+                'signatureChainId': '0x66eee', // check this out
+                'destination': toAccount,
+                'amount': amount.toString (),
+                'time': nonce,
+                'type': 'usdSend',
             },
             'nonce': nonce,
             'signature': sig,
@@ -2492,8 +2494,10 @@ export default class hyperliquid extends Exchange {
                 throw new NotSupported (this.id + 'withdraw() only support USDC');
             }
         }
+        const isSandboxMode = this.safeBool (this.options, 'sandboxMode', false);
         const nonce = this.milliseconds ();
         const payload: Dict = {
+            'hyperliquidChain': isSandboxMode ? 'Testnet' : 'Mainnet',
             'destination': address,
             'amount': amount.toString (),
             'time': nonce,
