@@ -934,7 +934,6 @@ export default class coindcx extends Exchange {
         return this.parseOrders (orders, market, since, limit);
     }
 
-
     async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
         /**
          * @method
