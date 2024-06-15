@@ -2686,6 +2686,11 @@ class bitmart extends Exchange {
         if ($ioc) {
             $request['type'] = 'ioc';
         }
+        $clientOrderId = $this->safe_string($params, 'clientOrderId');
+        if ($clientOrderId !== null) {
+            $params = $this->omit($params, 'clientOrderId');
+            $request['client_order_id'] = $clientOrderId;
+        }
         return $this->extend($request, $params);
     }
 

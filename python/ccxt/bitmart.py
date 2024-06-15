@@ -2594,6 +2594,10 @@ class bitmart(Exchange, ImplicitAPI):
             request['type'] = 'limit_maker'
         if ioc:
             request['type'] = 'ioc'
+        clientOrderId = self.safe_string(params, 'clientOrderId')
+        if clientOrderId is not None:
+            params = self.omit(params, 'clientOrderId')
+            request['client_order_id'] = clientOrderId
         return self.extend(request, params)
 
     def cancel_order(self, id: str, symbol: Str = None, params={}):

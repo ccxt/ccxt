@@ -368,6 +368,7 @@ class Exchange {
             'certified': false,
             'pro': false,
             'alias': false,
+            'dex': false,
             'has': {
                 'publicAPI': true,
                 'privateAPI': true,

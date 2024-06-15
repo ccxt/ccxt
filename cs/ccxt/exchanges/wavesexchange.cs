@@ -13,6 +13,7 @@ public partial class wavesexchange : Exchange
             { "countries", new List<object>() {"CH"} },
             { "certified", false },
             { "pro", false },
+            { "dex", true },
             { "has", new Dictionary<string, object>() {
                 { "CORS", null },
                 { "spot", true },

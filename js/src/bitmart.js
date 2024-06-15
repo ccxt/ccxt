@@ -2743,6 +2743,11 @@ export default class bitmart extends Exchange {
         if (ioc) {
             request['type'] = 'ioc';
         }
+        const clientOrderId = this.safeString(params, 'clientOrderId');
+        if (clientOrderId !== undefined) {
+            params = this.omit(params, 'clientOrderId');
+            request['client_order_id'] = clientOrderId;
+        }
         return this.extend(request, params);
     }
     async cancelOrder(id, symbol = undefined, params = {}) {

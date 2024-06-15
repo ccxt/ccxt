@@ -2737,6 +2737,12 @@ public partial class bitmart : Exchange
         {
             ((IDictionary<string,object>)request)["type"] = "ioc";
         }
+        object clientOrderId = this.safeString(parameters, "clientOrderId");
+        if (isTrue(!isEqual(clientOrderId, null)))
+        {
+            parameters = this.omit(parameters, "clientOrderId");
+            ((IDictionary<string,object>)request)["client_order_id"] = clientOrderId;
+        }
         return this.extend(request, parameters);
     }
 
