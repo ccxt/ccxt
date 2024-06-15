@@ -85,7 +85,7 @@ export default class coindcx extends Exchange {
                 'fetchOpenInterestHistory': false,
                 'fetchOpenOrder': false,
                 'fetchOpenOrders': false,
-                'fetchOrder': false,
+                'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchOrderBooks': false,
                 'fetchOrders': false,
@@ -223,6 +223,8 @@ export default class coindcx extends Exchange {
                     // {"code":400,"message":"Invalid Request.","status":"error"}
                     // {"code":401,"message":"Invalid credentials","status":"error"}
                     // {"status":"error","message":"not_found","code":404}
+                    // {"code":422,"message":"Invalid Request","status":"error"}
+                    // {"code":404,"message":"Order not found","status":"error"}
                 },
                 'broad': {
                     // todo: add more error codes
@@ -819,8 +821,59 @@ export default class coindcx extends Exchange {
         return this.extend (request, params);
     }
 
+    async fetchOrder (id: string, symbol: Str = undefined, params = {}): Promise<Order> {
+        /**
+         * @method
+         * @name coindcx#fetchOrder
+         * @see https://docs.coindcx.com/?javascript#order-status
+         * @description fetches information on an order made by the user
+         * @param {string} id a unique id for the order
+         * @param {string} [symbol] not used by coindcx fetchOrder
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {int} [params.clientOrderId] the client order id of the order
+         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        await this.loadMarkets ();
+        const request: Dict = {
+            'id': id,
+        };
+        const response = await this.privatePostExchangeV1OrdersStatus (this.extend (request, params));
+        //
+        //     {
+        //         "id": "fcaae278-2a73-11ef-a2d5-5374ccb4f829",
+        //         "client_order_id": null,
+        //         "order_type": "market_order",
+        //         "side": "buy",
+        //         "status": "filled",
+        //         "fee_amount": 0.0,
+        //         "fee": 0.0,
+        //         "maker_fee": 0.0,
+        //         "taker_fee": 0.0,
+        //         "total_quantity": 0.0001,
+        //         "remaining_quantity": 0.0,
+        //         "source": "web",
+        //         "base_currency_name": null,
+        //         "target_currency_name": null,
+        //         "base_currency_short_name": null,
+        //         "target_currency_short_name": null,
+        //         "base_currency_precision": null,
+        //         "target_currency_precision": null,
+        //         "avg_price": 65483.14,
+        //         "price_per_unit": 65483.14,
+        //         "stop_price": 0.0,
+        //         "market": "BTCUSDT",
+        //         "time_in_force": "good_till_cancel",
+        //         "created_at": 1718386312000,
+        //         "updated_at": 1718386312000,
+        //         "trades": null
+        //     }
+        //
+        return this.parseOrder (response);
+    }
+
     parseOrder (order, market: Market = undefined): Order {
         //
+        // createOrder
         //     {
         //         "id": "fcaae278-2a73-11ef-a2d5-5374ccb4f829",
         //         "client_order_id": null,
@@ -849,6 +902,7 @@ export default class coindcx extends Exchange {
         //         "updated_at": 1718386312000,
         //         "trades": null // todo check
         //     }
+        //
         //
         const marketId = this.safeString (order, 'market');
         market = this.safeMarket (marketId, market);
