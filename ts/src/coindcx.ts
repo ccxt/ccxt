@@ -80,7 +80,7 @@ export default class coindcx extends Exchange {
                 'fetchMarketLeverageTiers': false,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
-                'fetchMyTrades': false,
+                'fetchMyTrades': true,
                 'fetchOHLCV': true,
                 'fetchOpenInterestHistory': false,
                 'fetchOpenOrder': false,
@@ -579,6 +579,60 @@ export default class coindcx extends Exchange {
         return this.parseTrades (response, market, since, limit);
     }
 
+    async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+        /**
+         * @method
+         * @name coindcx#fetchMyTrades
+         * @description fetch all trades made by the user
+         * @see https://docs.coindcx.com/?javascript#account-trade-history
+         * @param {string} symbol unified market symbol
+         * @param {int} [since] the earliest time in ms to fetch trades for
+         * @param {int} [limit] the maximum amount of trades to fetch (default 500, min 1, max 5000)
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {int} [params.until] timestamp in ms of the latest trade to fetch (default now)
+         *
+         * EXCHANGE SPECIFIC PARAMETERS
+         * @param {int} [params.from_id] trade ID after which you want the data. If not supplied, trades in ascending order will be returned
+         * @param {int} [params.sort] specify asc or desc to get trades in ascending or descending order, default: asc
+         * @returns {Trade[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure}
+         */
+        await this.loadMarkets ();
+        const request: Dict = {};
+        let market: Market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['symbol'] = market['id'];
+        }
+        if (since !== undefined) {
+            request['from_timestamp'] = since;
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const until = this.safeInteger (params, 'until');
+        if (until !== undefined) {
+            request['to_timestamp'] = until;
+            params = this.omit (params, 'until');
+        }
+        const response = await this.privatePostExchangeV1OrdersTradeHistory (this.extend (request, params));
+        //
+        //     [
+        //         {
+        //             "id": 113754608,
+        //             "order_id": "fcaae278-2a73-11ef-a2d5-5374ccb4f829",
+        //             "side": "buy",
+        //             "fee_amount": "0.00000000000000",
+        //             "ecode": "B",
+        //             "quantity": "0.00010000000000",
+        //             "price": "65483.14000000000000",
+        //             "symbol": "BTCUSDT",
+        //             "timestamp": 1718386312255.3608
+        //         }
+        //     ]
+        //
+        return this.parseTrades (response, market, since, limit);
+    }
+
     parseTrade (trade, market: Market = undefined): Trade {
         //
         // public fetchTrades
@@ -591,10 +645,24 @@ export default class coindcx extends Exchange {
         //         "m": true
         //     }
         //
+        // private fetchMyTrades
+        //
+        //     {
+        //         "id": 113754608,
+        //         "order_id": "fcaae278-2a73-11ef-a2d5-5374ccb4f829",
+        //         "side": "buy",
+        //         "fee_amount": "0.00000000000000",
+        //         "ecode": "B",
+        //         "quantity": "0.00010000000000",
+        //         "price": "65483.14000000000000",
+        //         "symbol": "BTCUSDT",
+        //         "timestamp": 1718386312255.3608
+        //     }
+        //
         const marketId = this.safeString (trade, 's');
         market = this.safeMarket (marketId, market);
         const symbol = market['symbol'];
-        const timestamp = this.safeInteger (trade, 'T');
+        const timestamp = this.safeInteger2 (trade, 'T', 'timestamp');
         const isMaker = this.safeBool (trade, 'm');
         let takerOrMaker: Str = undefined;
         if (isMaker) {
@@ -602,19 +670,23 @@ export default class coindcx extends Exchange {
         } else if (isMaker !== undefined) {
             takerOrMaker = 'taker';
         }
+        const fee = {
+            'cost': this.safeString (trade, 'fee_amount'),
+            'currency': undefined
+        };
         return this.safeTrade ({
-            'id': undefined,
+            'id': this.safeString (trade, 'id'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'symbol': symbol,
             'type': undefined,
-            'order': undefined,
-            'side': undefined,
+            'order': this.safeString (trade, 'order_id'),
+            'side': this.safeString (trade, 'side'),
             'takerOrMaker': takerOrMaker,
-            'price': this.safeString (trade, 'p'),
-            'amount': this.safeString (trade, 'q'),
+            'price': this.safeString2 (trade, 'p', 'price'),
+            'amount': this.safeString2 (trade, 'q', 'quantity'),
             'cost': undefined,
-            'fee': undefined,
+            'fee': fee,
             'info': trade,
         }, market);
     }
