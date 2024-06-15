@@ -672,7 +672,7 @@ export default class coindcx extends Exchange {
         }
         const fee = {
             'cost': this.safeString (trade, 'fee_amount'),
-            'currency': undefined
+            'currency': undefined,
         };
         return this.safeTrade ({
             'id': this.safeString (trade, 'id'),
