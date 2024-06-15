@@ -895,7 +895,10 @@ export default class lykke extends Exchange {
         //         "error":null
         //     }
         //
-        return await this.privateDeleteOrdersOrderId (this.extend (request, params));
+        const response = await this.privateDeleteOrdersOrderId (this.extend (request, params));
+        return this.safeOrder ({
+            'info': response,
+        });
     }
 
     async cancelAllOrders (symbol: Str = undefined, params = {}) {
@@ -923,7 +926,12 @@ export default class lykke extends Exchange {
         //         "error":null
         //     }
         //
-        return await this.privateDeleteOrders (this.extend (request, params));
+        const response = await this.privateDeleteOrders (this.extend (request, params));
+        return [
+            this.safeOrder ({
+                'info': response,
+            }),
+        ];
     }
 
     async fetchOrder (id: string, symbol: Str = undefined, params = {}) {

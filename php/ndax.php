@@ -1558,7 +1558,11 @@ class ndax extends Exchange {
         //         "detail":null
         //     }
         //
-        return $response;
+        return array(
+            $this->safe_order(array(
+                'info' => $response,
+            )),
+        );
     }
 
     public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {

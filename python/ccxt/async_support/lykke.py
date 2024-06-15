@@ -858,7 +858,10 @@ class lykke(Exchange, ImplicitAPI):
         #         "error":null
         #     }
         #
-        return await self.privateDeleteOrdersOrderId(self.extend(request, params))
+        response = await self.privateDeleteOrdersOrderId(self.extend(request, params))
+        return self.safe_order({
+            'info': response,
+        })
 
     async def cancel_all_orders(self, symbol: Str = None, params={}):
         """
@@ -882,7 +885,12 @@ class lykke(Exchange, ImplicitAPI):
         #         "error":null
         #     }
         #
-        return await self.privateDeleteOrders(self.extend(request, params))
+        response = await self.privateDeleteOrders(self.extend(request, params))
+        return [
+            self.safe_order({
+                'info': response,
+            }),
+        ]
 
     async def fetch_order(self, id: str, symbol: Str = None, params={}):
         """
