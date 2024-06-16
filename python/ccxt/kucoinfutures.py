@@ -370,7 +370,7 @@ class kucoinfutures(kucoin):
     def parse_market(self, market):
         id = self.safe_string(market, 'symbol')
         expiry = self.safe_integer(market, 'expireDate')
-        future = True if expiry else False
+        future = False
         swap = not future
         baseId = self.safe_string(market, 'baseCurrency')
         quoteId = self.safe_string(market, 'quoteCurrency')
