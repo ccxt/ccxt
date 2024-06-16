@@ -8,7 +8,7 @@ import { TICK_SIZE, ROUND, SIGNIFICANT_DIGITS, DECIMAL_PLACES } from './base/fun
 import { keccak_256 as keccak } from './static_dependencies/noble-hashes/sha3.js';
 import { secp256k1 } from './static_dependencies/noble-curves/secp256k1.js';
 import { ecdsa } from './base/functions/crypto.js';
-import type { Market, TransferEntry, Balances, Int, OrderBook, OHLCV, Str, FundingRateHistory, Order, OrderType, OrderSide, Trade, Strings, Position, OrderRequest, Dict, Num, MarginModification, Currencies, CancellationRequest, int, Transaction } from './base/types.js';
+import type { Market, TransferEntry, Balances, Int, OrderBook, OHLCV, Str, FundingRateHistory, Order, OrderType, OrderSide, Trade, Strings, Position, OrderRequest, Dict, Num, MarginModification, Currencies, CancellationRequest, int, Transaction, Currency } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -2518,6 +2518,34 @@ export default class hyperliquid extends Exchange {
         };
         const response = await this.privatePostExchange (this.extend (request, params));
         return this.parseTransaction (response);
+    }
+
+    parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {
+        //
+        // { status: 'ok', response: { type: 'default' } }
+        //
+        return {
+            'info': transaction,
+            'id': undefined,
+            'txid': undefined,
+            'timestamp': undefined,
+            'datetime': undefined,
+            'network': undefined,
+            'address': undefined,
+            'addressTo': undefined,
+            'addressFrom': undefined,
+            'tag': undefined,
+            'tagTo': undefined,
+            'tagFrom': undefined,
+            'type': undefined,
+            'amount': undefined,
+            'currency': undefined,
+            'status': this.safeString (transaction, 'status'),
+            'updated': undefined,
+            'comment': undefined,
+            'internal': undefined,
+            'fee': undefined,
+        };
     }
 
     formatVaultAddress (address: Str = undefined) {
