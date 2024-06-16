@@ -2271,7 +2271,7 @@ public partial class bitmart : Exchange
         object trailingActivationPrice = this.safeNumber(order, "activation_price");
         return this.safeOrder(new Dictionary<string, object>() {
             { "id", id },
-            { "clientOrderId", this.safeString(order, "client_order_id") },
+            { "clientOrderId", this.safeString2(order, "client_order_id", "clientOrderId") },
             { "info", order },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },

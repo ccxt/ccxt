@@ -2339,7 +2339,7 @@ class bitmart extends Exchange {
         $trailingActivationPrice = $this->safe_number($order, 'activation_price');
         return $this->safe_order(array(
             'id' => $id,
-            'clientOrderId' => $this->safe_string($order, 'client_order_id'),
+            'clientOrderId' => $this->safe_string_2($order, 'client_order_id', 'clientOrderId'),
             'info' => $order,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
