@@ -285,7 +285,10 @@ export default class coindcx extends Exchange {
         const quote = this.safeCurrencyCode (quoteId);
         const symbol = base + '/' + quote;
         let margin = false;
-        const max_leverage = this.omitZero (this.safeString (market, 'max_leverage'));
+        let max_leverage = this.safeNumber (market, 'max_leverage');
+        if (max_leverage === 0) {
+            max_leverage = undefined;
+        }
         if (max_leverage !== undefined) {
             margin = true;
         }
@@ -327,7 +330,7 @@ export default class coindcx extends Exchange {
             'limits': {
                 'leverage': {
                     'min': undefined,
-                    'max': this.parseToNumeric (max_leverage),
+                    'max': max_leverage,
                 },
                 'amount': {
                     'min': this.safeNumber (market, 'min_quantity'),
