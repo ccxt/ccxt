@@ -1664,7 +1664,11 @@ export default class Exchange {
     }
 
     onClose (client, error) {
-        this.clearCache();
+        const options = this.safeDict (this.options, 'ws');
+        const useClearCache = this.safeBool (options, 'clearCacheOnClose', true);
+        if (useClearCache) {
+            this.clearCache();
+        }
         if (client.error) {
             // connection closed due to an error, do nothing
         } else {

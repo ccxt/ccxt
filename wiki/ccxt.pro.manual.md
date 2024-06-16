@@ -350,6 +350,19 @@ limit = 2
 await exchange.watchTrades (symbol, since, limit)
 ```
 
+#### clearCacheOnClose
+By default when the streaming client closes, the cache of the ws client will be deleted.
+This is done to avoid holding a cache with missing data points.
+
+To turn off this behavior set:
+```ts
+exchange.options['ws']['clearCacheOnClose'] = false
+```
+You may also manually clear the client cache at any time using:
+```ts
+exchange.clearCache()
+``
+
 #### newUpdates mode
 
 If you want to always get just the most recent trade, **you should instantiate the exchange with the newUpdates flag set to true**.
