@@ -1010,6 +1010,8 @@ class binance(Exchange, ImplicitAPI):
                     'post': {
                         'order/oco': 0.2,
                         'orderList/oco': 0.2,
+                        'orderList/oto': 0.2,
+                        'orderList/otoco': 0.2,
                         'sor/order': 0.2,
                         'sor/order/test': 0.2,
                         'order': 0.2,
@@ -7556,8 +7558,56 @@ class binance(Exchange, ImplicitAPI):
         #         "tranId": 43000126248
         #     }
         #
-        id = self.safe_string(transfer, 'tranId')
-        currencyId = self.safe_string(transfer, 'asset')
+        #     {
+        #             "orderType": "C2C",  # Enum：PAY(C2B Merchant Acquiring Payment), PAY_REFUND(C2B Merchant Acquiring Payment,refund), C2C(C2C Transfer Payment),CRYPTO_BOX(Crypto box), CRYPTO_BOX_RF(Crypto Box, refund), C2C_HOLDING(Transfer to new Binance user), C2C_HOLDING_RF(Transfer to new Binance user,refund), PAYOUT(B2C Disbursement Payment), REMITTANCE（Send cash)
+        #             "transactionId": "M_P_71505104267788288",
+        #             "transactionTime": 1610090460133,  #trade timestamp
+        #             "amount": "23.72469206",  #order amount(up to 8 decimal places), positive is income, negative is expenditure
+        #             "currency": "BNB",
+        #             "walletType": 1,  #main wallet type, 1 for funding wallet, 2 for spot wallet, 3 for fiat wallet, 4 or 6 for card payment, 5 for earn wallet
+        #             "walletTypes": [1,2],  #array format，there are multiple values when using combination payment
+        #             "fundsDetail": [ # details
+        #                     {
+        #                         "currency": "USDT",  #asset
+        #                         "amount": "1.2",
+        #                         "walletAssetCost":[ #details of asset cost per wallet
+        #                             {"1":"0.6"},
+        #                             {"2":"0.6"}
+        #                         ]
+        #                     },
+        #                     {
+        #                         "currency": "ETH",
+        #                         "amount": "0.0001",
+        #                         "walletAssetCost":[
+        #                             {"1":"0.00005"},
+        #                             {"2":"0.00005"}
+        #                         ]
+        #                     }
+        #                 ],
+        #             "payerInfo":{
+        #                     "name":"Jack",  #nickname or merchant name
+        #                     "type":"USER",  #account type，USER for personal，MERCHANT for merchant
+        #                     "binanceId":"12345678",  #binance uid
+        #                     "accountId":"67736251"  #binance pay id
+        #                 },
+        #             "receiverInfo":{
+        #                     "name":"Alan",  #nickname or merchant name
+        #                     "type":"MERCHANT",  #account type，USER for personal，MERCHANT for merchant
+        #                     "email":"alan@binance.com",  #email
+        #                     "binanceId":"34355667",  #binance uid
+        #                     "accountId":"21326891",  #binance pay id
+        #                     "countryCode":"1",  #International area code
+        #                     "phoneNumber":"8057651210",
+        #                     "mobileCode":"US",  #country code
+        #                     "extend":[ #extension field
+        #                             "institutionName": "",
+        #                             "cardNumber": "",
+        #                             "digitalWalletId": ""
+        #                     ]
+        #                 }
+        #             }
+        id = self.safe_string_2(transfer, 'tranId', 'transactionId')
+        currencyId = self.safe_string_2(transfer, 'asset', 'currency')
         code = self.safe_currency_code(currencyId, currency)
         amount = self.safe_number(transfer, 'amount')
         type = self.safe_string(transfer, 'type')
@@ -7570,7 +7620,13 @@ class binance(Exchange, ImplicitAPI):
             toAccount = self.safe_value(parts, 1)
             fromAccount = self.safe_string(accountsById, fromAccount, fromAccount)
             toAccount = self.safe_string(accountsById, toAccount, toAccount)
-        timestamp = self.safe_integer(transfer, 'timestamp')
+        walletType = self.safe_integer(transfer, 'walletType')
+        if walletType is not None:
+            payer = self.safe_dict(transfer, 'payerInfo', {})
+            receiver = self.safe_dict(transfer, 'receiverInfo', {})
+            fromAccount = self.safe_string(payer, 'accountId')
+            toAccount = self.safe_string(receiver, 'accountId')
+        timestamp = self.safe_integer_2(transfer, 'timestamp', 'transactionTime')
         status = self.parse_transfer_status(self.safe_string(transfer, 'status'))
         return {
             'info': transfer,
@@ -7699,66 +7755,133 @@ class binance(Exchange, ImplicitAPI):
         """
         fetch a history of internal transfers made on an account
         :see: https://binance-docs.github.io/apidocs/spot/en/#query-user-universal-transfer-history-user_data
+        :see: https://binance-docs.github.io/apidocs/spot/en/#pay-endpoints
         :param str code: unified currency code of the currency transferred
         :param int [since]: the earliest time in ms to fetch transfers for
         :param int [limit]: the maximum number of transfers structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: the latest time in ms to fetch transfers for
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+        :param boolean [params.internal]: default False, when True will fetch pay trade history
         :returns dict[]: a list of `transfer structures <https://docs.ccxt.com/#/?id=transfer-structure>`
         """
         self.load_markets()
+        internal = self.safe_bool(params, 'internal')
+        params = self.omit(params, 'internal')
         paginate = False
         paginate, params = self.handle_option_and_params(params, 'fetchTransfers', 'paginate')
-        if paginate:
+        if paginate and not internal:
             return self.fetch_paginated_call_dynamic('fetchTransfers', code, since, limit, params)
         currency = None
         if code is not None:
             currency = self.currency(code)
-        defaultType = self.safe_string_2(self.options, 'fetchTransfers', 'defaultType', 'spot')
-        fromAccount = self.safe_string(params, 'fromAccount', defaultType)
-        defaultTo = 'spot' if (fromAccount == 'future') else 'future'
-        toAccount = self.safe_string(params, 'toAccount', defaultTo)
-        type = self.safe_string(params, 'type')
-        accountsByType = self.safe_dict(self.options, 'accountsByType', {})
-        fromId = self.safe_string(accountsByType, fromAccount)
-        toId = self.safe_string(accountsByType, toAccount)
-        if type is None:
-            if fromId is None:
-                keys = list(accountsByType.keys())
-                raise ExchangeError(self.id + ' fromAccount parameter must be one of ' + ', '.join(keys))
-            if toId is None:
-                keys = list(accountsByType.keys())
-                raise ExchangeError(self.id + ' toAccount parameter must be one of ' + ', '.join(keys))
-            type = fromId + '_' + toId
-        request: dict = {
-            'type': type,
-        }
+        request: dict = {}
+        limitKey = 'limit'
+        if not internal:
+            defaultType = self.safe_string_2(self.options, 'fetchTransfers', 'defaultType', 'spot')
+            fromAccount = self.safe_string(params, 'fromAccount', defaultType)
+            defaultTo = 'spot' if (fromAccount == 'future') else 'future'
+            toAccount = self.safe_string(params, 'toAccount', defaultTo)
+            type = self.safe_string(params, 'type')
+            accountsByType = self.safe_dict(self.options, 'accountsByType', {})
+            fromId = self.safe_string(accountsByType, fromAccount)
+            toId = self.safe_string(accountsByType, toAccount)
+            if type is None:
+                if fromId is None:
+                    keys = list(accountsByType.keys())
+                    raise ExchangeError(self.id + ' fromAccount parameter must be one of ' + ', '.join(keys))
+                if toId is None:
+                    keys = list(accountsByType.keys())
+                    raise ExchangeError(self.id + ' toAccount parameter must be one of ' + ', '.join(keys))
+                type = fromId + '_' + toId
+            request['type'] = type
+            limitKey = 'size'
+        if limit is not None:
+            request[limitKey] = limit
         if since is not None:
             request['startTime'] = since
-        if limit is not None:
-            request['size'] = limit
         until = self.safe_integer(params, 'until')
         if until is not None:
             params = self.omit(params, 'until')
             request['endTime'] = until
-        response = self.sapiGetAssetTransfer(self.extend(request, params))
-        #
-        #     {
-        #         "total": 3,
-        #         "rows": [
-        #             {
-        #                 "timestamp": 1614640878000,
-        #                 "asset": "USDT",
-        #                 "amount": "25",
-        #                 "type": "MAIN_UMFUTURE",
-        #                 "status": "CONFIRMED",
-        #                 "tranId": 43000126248
-        #             },
-        #         ]
-        #     }
-        #
-        rows = self.safe_list(response, 'rows', [])
+        response = None
+        if internal:
+            response = self.sapiGetPayTransactions(self.extend(request, params))
+            #
+            # {
+            #     "code": "000000",
+            #     "message": "success",
+            #     "data": [
+            #     {
+            #         "orderType": "C2C",  # Enum：PAY(C2B Merchant Acquiring Payment), PAY_REFUND(C2B Merchant Acquiring Payment,refund), C2C(C2C Transfer Payment),CRYPTO_BOX(Crypto box), CRYPTO_BOX_RF(Crypto Box, refund), C2C_HOLDING(Transfer to new Binance user), C2C_HOLDING_RF(Transfer to new Binance user,refund), PAYOUT(B2C Disbursement Payment), REMITTANCE（Send cash)
+            #         "transactionId": "M_P_71505104267788288",
+            #         "transactionTime": 1610090460133,  #trade timestamp
+            #         "amount": "23.72469206",  #order amount(up to 8 decimal places), positive is income, negative is expenditure
+            #         "currency": "BNB",
+            #         "walletType": 1,  #main wallet type, 1 for funding wallet, 2 for spot wallet, 3 for fiat wallet, 4 or 6 for card payment, 5 for earn wallet
+            #         "walletTypes": [1,2],  #array format，there are multiple values when using combination payment
+            #         "fundsDetail": [ # details
+            #                 {
+            #                  "currency": "USDT",  #asset
+            #                  "amount": "1.2",
+            #                  "walletAssetCost":[ #details of asset cost per wallet
+            #                      {"1":"0.6"},
+            #                      {"2":"0.6"}
+            #                  ]
+            #                 },
+            #                 {
+            #                   "currency": "ETH",
+            #                   "amount": "0.0001",
+            #                   "walletAssetCost":[
+            #                      {"1":"0.00005"},
+            #                      {"2":"0.00005"}
+            #                   ]
+            #                 }
+            #            ],
+            #         "payerInfo":{
+            #                 "name":"Jack",  #nickname or merchant name
+            #                 "type":"USER",  #account type，USER for personal，MERCHANT for merchant
+            #                 "binanceId":"12345678",  #binance uid
+            #                 "accountId":"67736251"  #binance pay id
+            #             },
+            #         "receiverInfo":{
+            #                 "name":"Alan",  #nickname or merchant name
+            #                 "type":"MERCHANT",  #account type，USER for personal，MERCHANT for merchant
+            #                 "email":"alan@binance.com",  #email
+            #                 "binanceId":"34355667",  #binance uid
+            #                 "accountId":"21326891",  #binance pay id
+            #                 "countryCode":"1",  #International area code
+            #                 "phoneNumber":"8057651210",
+            #                 "mobileCode":"US",  #country code
+            #                 "extend":[ #extension field
+            #                      "institutionName": "",
+            #                      "cardNumber": "",
+            #                      "digitalWalletId": ""
+            #                 ]
+            #             }
+            #       }
+            #    ],
+            #    "success": True
+            # }
+            #
+        else:
+            response = self.sapiGetAssetTransfer(self.extend(request, params))
+            #
+            #     {
+            #         "total": 3,
+            #         "rows": [
+            #             {
+            #                 "timestamp": 1614640878000,
+            #                 "asset": "USDT",
+            #                 "amount": "25",
+            #                 "type": "MAIN_UMFUTURE",
+            #                 "status": "CONFIRMED",
+            #                 "tranId": 43000126248
+            #             },
+            #         ]
+            #     }
+            #
+        rows = self.safe_list_2(response, 'rows', 'data', [])
         return self.parse_transfers(rows, currency, since, limit)
 
     def fetch_deposit_address(self, code: str, params={}):

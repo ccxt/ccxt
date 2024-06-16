@@ -2333,7 +2333,7 @@ export default class bitmart extends Exchange {
         const trailingActivationPrice = this.safeNumber(order, 'activation_price');
         return this.safeOrder({
             'id': id,
-            'clientOrderId': this.safeString(order, 'client_order_id'),
+            'clientOrderId': this.safeString2(order, 'client_order_id', 'clientOrderId'),
             'info': order,
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
@@ -2742,6 +2742,11 @@ export default class bitmart extends Exchange {
         }
         if (ioc) {
             request['type'] = 'ioc';
+        }
+        const clientOrderId = this.safeString(params, 'clientOrderId');
+        if (clientOrderId !== undefined) {
+            params = this.omit(params, 'clientOrderId');
+            request['client_order_id'] = clientOrderId;
         }
         return this.extend(request, params);
     }

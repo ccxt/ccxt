@@ -1036,6 +1036,8 @@ public partial class binance : Exchange
                     { "post", new Dictionary<string, object>() {
                         { "order/oco", 0.2 },
                         { "orderList/oco", 0.2 },
+                        { "orderList/oto", 0.2 },
+                        { "orderList/otoco", 0.2 },
                         { "sor/order", 0.2 },
                         { "sor/order/test", 0.2 },
                         { "order", 0.2 },
@@ -8383,8 +8385,56 @@ public partial class binance : Exchange
         //         "tranId": 43000126248
         //     }
         //
-        object id = this.safeString(transfer, "tranId");
-        object currencyId = this.safeString(transfer, "asset");
+        //     {
+        //             "orderType": "C2C", // Enum：PAY(C2B Merchant Acquiring Payment), PAY_REFUND(C2B Merchant Acquiring Payment,refund), C2C(C2C Transfer Payment),CRYPTO_BOX(Crypto box), CRYPTO_BOX_RF(Crypto Box, refund), C2C_HOLDING(Transfer to new Binance user), C2C_HOLDING_RF(Transfer to new Binance user,refund), PAYOUT(B2C Disbursement Payment), REMITTANCE（Send cash)
+        //             "transactionId": "M_P_71505104267788288",
+        //             "transactionTime": 1610090460133, //trade timestamp
+        //             "amount": "23.72469206", //order amount(up to 8 decimal places), positive is income, negative is expenditure
+        //             "currency": "BNB",
+        //             "walletType": 1, //main wallet type, 1 for funding wallet, 2 for spot wallet, 3 for fiat wallet, 4 or 6 for card payment, 5 for earn wallet
+        //             "walletTypes": [1,2], //array format，there are multiple values when using combination payment
+        //             "fundsDetail": [ // details
+        //                     {
+        //                         "currency": "USDT", //asset
+        //                         "amount": "1.2",
+        //                         "walletAssetCost":[ //details of asset cost per wallet
+        //                             {"1":"0.6"},
+        //                             {"2":"0.6"}
+        //                         ]
+        //                     },
+        //                     {
+        //                         "currency": "ETH",
+        //                         "amount": "0.0001",
+        //                         "walletAssetCost":[
+        //                             {"1":"0.00005"},
+        //                             {"2":"0.00005"}
+        //                         ]
+        //                     }
+        //                 ],
+        //             "payerInfo":{
+        //                     "name":"Jack", //nickname or merchant name
+        //                     "type":"USER", //account type，USER for personal，MERCHANT for merchant
+        //                     "binanceId":"12345678", //binance uid
+        //                     "accountId":"67736251" //binance pay id
+        //                 },
+        //             "receiverInfo":{
+        //                     "name":"Alan", //nickname or merchant name
+        //                     "type":"MERCHANT", //account type，USER for personal，MERCHANT for merchant
+        //                     "email":"alan@binance.com", //email
+        //                     "binanceId":"34355667", //binance uid
+        //                     "accountId":"21326891", //binance pay id
+        //                     "countryCode":"1", //International area code
+        //                     "phoneNumber":"8057651210",
+        //                     "mobileCode":"US", //country code
+        //                     "extend":[ //extension field
+        //                             "institutionName": "",
+        //                             "cardNumber": "",
+        //                             "digitalWalletId": ""
+        //                     ]
+        //                 }
+        //             }
+        object id = this.safeString2(transfer, "tranId", "transactionId");
+        object currencyId = this.safeString2(transfer, "asset", "currency");
         object code = this.safeCurrencyCode(currencyId, currency);
         object amount = this.safeNumber(transfer, "amount");
         object type = this.safeString(transfer, "type");
@@ -8399,7 +8449,15 @@ public partial class binance : Exchange
             fromAccount = this.safeString(accountsById, fromAccount, fromAccount);
             toAccount = this.safeString(accountsById, toAccount, toAccount);
         }
-        object timestamp = this.safeInteger(transfer, "timestamp");
+        object walletType = this.safeInteger(transfer, "walletType");
+        if (isTrue(!isEqual(walletType, null)))
+        {
+            object payer = this.safeDict(transfer, "payerInfo", new Dictionary<string, object>() {});
+            object receiver = this.safeDict(transfer, "receiverInfo", new Dictionary<string, object>() {});
+            fromAccount = this.safeString(payer, "accountId");
+            toAccount = this.safeString(receiver, "accountId");
+        }
+        object timestamp = this.safeInteger2(transfer, "timestamp", "transactionTime");
         object status = this.parseTransferStatus(this.safeString(transfer, "status"));
         return new Dictionary<string, object>() {
             { "info", transfer },
@@ -8572,21 +8630,25 @@ public partial class binance : Exchange
         * @name binance#fetchTransfers
         * @description fetch a history of internal transfers made on an account
         * @see https://binance-docs.github.io/apidocs/spot/en/#query-user-universal-transfer-history-user_data
+        * @see https://binance-docs.github.io/apidocs/spot/en/#pay-endpoints
         * @param {string} code unified currency code of the currency transferred
         * @param {int} [since] the earliest time in ms to fetch transfers for
         * @param {int} [limit] the maximum number of transfers structures to retrieve
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @param {int} [params.until] the latest time in ms to fetch transfers for
         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+        * @param {boolean} [params.internal] default false, when true will fetch pay trade history
         * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/#/?id=transfer-structure}
         */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
+        object intern = this.safeBool(parameters, "internal");
+        parameters = this.omit(parameters, "internal");
         object paginate = false;
         var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchTransfers", "paginate");
         paginate = ((IList<object>)paginateparametersVariable)[0];
         parameters = ((IList<object>)paginateparametersVariable)[1];
-        if (isTrue(paginate))
+        if (isTrue(isTrue(paginate) && !isTrue(intern)))
         {
             return await this.fetchPaginatedCallDynamic("fetchTransfers", code, since, limit, parameters);
         }
@@ -8595,38 +8657,42 @@ public partial class binance : Exchange
         {
             currency = this.currency(code);
         }
-        object defaultType = this.safeString2(this.options, "fetchTransfers", "defaultType", "spot");
-        object fromAccount = this.safeString(parameters, "fromAccount", defaultType);
-        object defaultTo = ((bool) isTrue((isEqual(fromAccount, "future")))) ? "spot" : "future";
-        object toAccount = this.safeString(parameters, "toAccount", defaultTo);
-        object type = this.safeString(parameters, "type");
-        object accountsByType = this.safeDict(this.options, "accountsByType", new Dictionary<string, object>() {});
-        object fromId = this.safeString(accountsByType, fromAccount);
-        object toId = this.safeString(accountsByType, toAccount);
-        if (isTrue(isEqual(type, null)))
+        object request = new Dictionary<string, object>() {};
+        object limitKey = "limit";
+        if (!isTrue(intern))
         {
-            if (isTrue(isEqual(fromId, null)))
+            object defaultType = this.safeString2(this.options, "fetchTransfers", "defaultType", "spot");
+            object fromAccount = this.safeString(parameters, "fromAccount", defaultType);
+            object defaultTo = ((bool) isTrue((isEqual(fromAccount, "future")))) ? "spot" : "future";
+            object toAccount = this.safeString(parameters, "toAccount", defaultTo);
+            object type = this.safeString(parameters, "type");
+            object accountsByType = this.safeDict(this.options, "accountsByType", new Dictionary<string, object>() {});
+            object fromId = this.safeString(accountsByType, fromAccount);
+            object toId = this.safeString(accountsByType, toAccount);
+            if (isTrue(isEqual(type, null)))
             {
-                object keys = new List<object>(((IDictionary<string,object>)accountsByType).Keys);
-                throw new ExchangeError ((string)add(add(this.id, " fromAccount parameter must be one of "), String.Join(", ", ((IList<object>)keys).ToArray()))) ;
+                if (isTrue(isEqual(fromId, null)))
+                {
+                    object keys = new List<object>(((IDictionary<string,object>)accountsByType).Keys);
+                    throw new ExchangeError ((string)add(add(this.id, " fromAccount parameter must be one of "), String.Join(", ", ((IList<object>)keys).ToArray()))) ;
+                }
+                if (isTrue(isEqual(toId, null)))
+                {
+                    object keys = new List<object>(((IDictionary<string,object>)accountsByType).Keys);
+                    throw new ExchangeError ((string)add(add(this.id, " toAccount parameter must be one of "), String.Join(", ", ((IList<object>)keys).ToArray()))) ;
+                }
+                type = add(add(fromId, "_"), toId);
             }
-            if (isTrue(isEqual(toId, null)))
-            {
-                object keys = new List<object>(((IDictionary<string,object>)accountsByType).Keys);
-                throw new ExchangeError ((string)add(add(this.id, " toAccount parameter must be one of "), String.Join(", ", ((IList<object>)keys).ToArray()))) ;
-            }
-            type = add(add(fromId, "_"), toId);
-        }
-        object request = new Dictionary<string, object>() {
-            { "type", type },
-        };
-        if (isTrue(!isEqual(since, null)))
-        {
-            ((IDictionary<string,object>)request)["startTime"] = since;
+            ((IDictionary<string,object>)request)["type"] = type;
+            limitKey = "size";
         }
         if (isTrue(!isEqual(limit, null)))
         {
-            ((IDictionary<string,object>)request)["size"] = limit;
+            ((IDictionary<string,object>)request)[(string)limitKey] = limit;
+        }
+        if (isTrue(!isEqual(since, null)))
+        {
+            ((IDictionary<string,object>)request)["startTime"] = since;
         }
         object until = this.safeInteger(parameters, "until");
         if (isTrue(!isEqual(until, null)))
@@ -8634,23 +8700,15 @@ public partial class binance : Exchange
             parameters = this.omit(parameters, "until");
             ((IDictionary<string,object>)request)["endTime"] = until;
         }
-        object response = await this.sapiGetAssetTransfer(this.extend(request, parameters));
-        //
-        //     {
-        //         "total": 3,
-        //         "rows": [
-        //             {
-        //                 "timestamp": 1614640878000,
-        //                 "asset": "USDT",
-        //                 "amount": "25",
-        //                 "type": "MAIN_UMFUTURE",
-        //                 "status": "CONFIRMED",
-        //                 "tranId": 43000126248
-        //             },
-        //         ]
-        //     }
-        //
-        object rows = this.safeList(response, "rows", new List<object>() {});
+        object response = null;
+        if (isTrue(intern))
+        {
+            response = await this.sapiGetPayTransactions(this.extend(request, parameters));
+        } else
+        {
+            response = await this.sapiGetAssetTransfer(this.extend(request, parameters));
+        }
+        object rows = this.safeList2(response, "rows", "data", new List<object>() {});
         return this.parseTransfers(rows, currency, since, limit);
     }
 

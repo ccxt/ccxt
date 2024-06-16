@@ -475,6 +475,7 @@ export default class Exchange {
             'certified': false, // if certified by the CCXT dev team
             'pro': false, // if it is integrated with CCXT Pro for WebSocket support
             'alias': false, // whether this exchange is an alias to another exchange
+            'dex': false,
             'has': {
                 'publicAPI': true,
                 'privateAPI': true,

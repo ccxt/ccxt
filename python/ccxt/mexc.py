@@ -235,6 +235,7 @@ class mexc(Exchange, ImplicitAPI):
                             'sub-account/margin': 1,
                             'batchOrders': 10,
                             'capital/withdraw/apply': 1,
+                            'capital/withdraw': 1,
                             'capital/transfer': 1,
                             'capital/transfer/internal': 1,
                             'capital/deposit/address': 1,
@@ -253,6 +254,7 @@ class mexc(Exchange, ImplicitAPI):
                             'margin/order': 1,
                             'margin/openOrders': 1,
                             'userDataStream': 1,
+                            'capital/withdraw': 1,
                         },
                     },
                 },
@@ -1069,7 +1071,7 @@ class mexc(Exchange, ImplicitAPI):
             chains = self.safe_value(currency, 'networkList', [])
             for j in range(0, len(chains)):
                 chain = chains[j]
-                networkId = self.safe_string(chain, 'network')
+                networkId = self.safe_string_2(chain, 'network', 'netWork')
                 network = self.network_id_to_code(networkId)
                 isDepositEnabled = self.safe_bool(chain, 'depositEnable', False)
                 isWithdrawEnabled = self.safe_bool(chain, 'withdrawEnable', False)
@@ -4894,7 +4896,7 @@ class mexc(Exchange, ImplicitAPI):
     def withdraw(self, code: str, amount: float, address: str, tag=None, params={}):
         """
         make a withdrawal
-        :see: https://mexcdevelop.github.io/apidocs/spot_v3_en/#withdraw
+        :see: https://mexcdevelop.github.io/apidocs/spot_v3_en/#withdraw-new
         :param str code: unified currency code
         :param float amount: the amount to withdraw
         :param str address: the address to withdraw to
@@ -4904,7 +4906,7 @@ class mexc(Exchange, ImplicitAPI):
         """
         tag, params = self.handle_withdraw_tag_and_params(tag, params)
         networks = self.safe_value(self.options, 'networks', {})
-        network = self.safe_string_2(params, 'network', 'chain')  # self line allows the user to specify either ERC20 or ETH
+        network = self.safe_string_2(params, 'network', 'netWork')  # self line allows the user to specify either ERC20 or ETH
         network = self.safe_string(networks, network, network)  # handle ETH > ERC-20 alias
         self.check_address(address)
         self.load_markets()
@@ -4917,9 +4919,9 @@ class mexc(Exchange, ImplicitAPI):
         if tag is not None:
             request['memo'] = tag
         if network is not None:
-            request['network'] = network
-            params = self.omit(params, ['network', 'chain'])
-        response = self.spotPrivatePostCapitalWithdrawApply(self.extend(request, params))
+            request['netWork'] = network
+            params = self.omit(params, ['network', 'netWork'])
+        response = self.spotPrivatePostCapitalWithdraw(self.extend(request, params))
         #
         #     {
         #       "id":"7213fea8e94b4a5593d507237e5a555b"

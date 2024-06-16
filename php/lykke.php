@@ -873,7 +873,10 @@ class lykke extends Exchange {
         //         "error":null
         //     }
         //
-        return $this->privateDeleteOrdersOrderId ($this->extend($request, $params));
+        $response = $this->privateDeleteOrdersOrderId ($this->extend($request, $params));
+        return $this->safe_order(array(
+            'info' => $response,
+        ));
     }
 
     public function cancel_all_orders(?string $symbol = null, $params = array ()) {
@@ -899,7 +902,12 @@ class lykke extends Exchange {
         //         "error":null
         //     }
         //
-        return $this->privateDeleteOrders ($this->extend($request, $params));
+        $response = $this->privateDeleteOrders ($this->extend($request, $params));
+        return array(
+            $this->safe_order(array(
+                'info' => $response,
+            )),
+        );
     }
 
     public function fetch_order(string $id, ?string $symbol = null, $params = array ()) {

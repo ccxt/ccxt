@@ -21,7 +21,7 @@ from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import DuplicateOrderId
 from ccxt.base.errors import ExchangeNotAvailable
-from ccxt.base.decimal_to_precision import DECIMAL_PLACES
+from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
 
@@ -34,6 +34,7 @@ class wavesexchange(Exchange, ImplicitAPI):
             'countries': ['CH'],  # Switzerland
             'certified': False,
             'pro': False,
+            'dex': True,
             'has': {
                 'CORS': None,
                 'spot': True,
@@ -329,9 +330,9 @@ class wavesexchange(Exchange, ImplicitAPI):
                 },
             },
             'currencies': {
-                'WX': self.safe_currency_structure({'id': 'EMAMLxDnv3xiz8RXg8Btj33jcEw3wLczL3JKYYmuubpc', 'numericId': None, 'code': 'WX', 'precision': self.parse_to_int('8')}),
+                'WX': self.safe_currency_structure({'id': 'EMAMLxDnv3xiz8RXg8Btj33jcEw3wLczL3JKYYmuubpc', 'numericId': None, 'code': 'WX', 'precision': self.parse_number('1e-8')}),
             },
-            'precisionMode': DECIMAL_PLACES,
+            'precisionMode': TICK_SIZE,
             'options': {
                 'allowedCandles': 1440,
                 'accessToken': None,
@@ -342,7 +343,7 @@ class wavesexchange(Exchange, ImplicitAPI):
                 'wavesAddress': None,
                 'withdrawFeeUSDN': 7420,
                 'withdrawFeeWAVES': 100000,
-                'wavesPrecision': 8,
+                'wavesPrecision': 1e-8,
                 'messagePrefix': 'W',  # W for production, T for testnet
                 'networks': {
                     'ERC20': 'ETH',
@@ -390,8 +391,8 @@ class wavesexchange(Exchange, ImplicitAPI):
     async def get_fees_for_asset(self, symbol: str, side, amount, price, params={}):
         await self.load_markets()
         market = self.market(symbol)
-        amount = self.custom_amount_to_precision(symbol, amount)
-        price = self.custom_price_to_precision(symbol, price)
+        amount = self.to_real_symbol_amount(symbol, amount)
+        price = self.to_real_symbol_price(symbol, price)
         request = self.extend({
             'baseId': market['baseId'],
             'quoteId': market['quoteId'],
@@ -422,7 +423,7 @@ class wavesexchange(Exchange, ImplicitAPI):
         matcherFee = self.safe_string(mode, 'matcherFee')
         feeAssetId = self.safe_string(mode, 'feeAssetId')
         feeAsset = self.safe_currency_code(feeAssetId)
-        adjustedMatcherFee = self.currency_from_precision(feeAsset, matcherFee)
+        adjustedMatcherFee = self.from_real_currency_amount(feeAsset, matcherFee)
         amountAsString = self.number_to_string(amount)
         priceAsString = self.number_to_string(price)
         feeCost = self.fee_to_precision(symbol, self.parse_number(adjustedMatcherFee))
@@ -570,8 +571,8 @@ class wavesexchange(Exchange, ImplicitAPI):
                 'strike': None,
                 'optionType': None,
                 'precision': {
-                    'amount': self.safe_integer(entry, 'amountAssetDecimals'),
-                    'price': self.safe_integer(entry, 'priceAssetDecimals'),
+                    'amount': self.parse_number(self.parse_precision(self.safe_string(entry, 'amountAssetDecimals'))),
+                    'price': self.parse_number(self.parse_precision(self.safe_string(entry, 'priceAssetDecimals'))),
                 },
                 'limits': {
                     'leverage': {
@@ -625,12 +626,11 @@ class wavesexchange(Exchange, ImplicitAPI):
 
     def parse_order_book_side(self, bookSide, market=None, limit: Int = None):
         precision = market['precision']
-        wavesPrecision = self.safe_string(self.options, 'wavesPrecision', '8')
-        amountPrecision = '1e' + self.number_to_string(precision['amount'])
-        amountPrecisionString = self.number_to_string(precision['amount'])
-        pricePrecisionString = self.number_to_string(precision['price'])
-        difference = Precise.string_sub(amountPrecisionString, pricePrecisionString)
-        pricePrecision = '1e' + Precise.string_sub(wavesPrecision, difference)
+        wavesPrecision = self.safe_string(self.options, 'wavesPrecision', '1e-8')
+        amountPrecisionString = self.safe_string(precision, 'amount')
+        pricePrecisionString = self.safe_string(precision, 'price')
+        difference = Precise.string_div(amountPrecisionString, pricePrecisionString)
+        pricePrecision = Precise.string_div(wavesPrecision, difference)
         result = []
         for i in range(0, len(bookSide)):
             entry = bookSide[i]
@@ -639,9 +639,9 @@ class wavesexchange(Exchange, ImplicitAPI):
             price = None
             amount = None
             if (pricePrecision is not None) and (entryPrice is not None):
-                price = Precise.string_div(entryPrice, pricePrecision)
-            if (amountPrecision is not None) and (entryAmount is not None):
-                amount = Precise.string_div(entryAmount, amountPrecision)
+                price = Precise.string_mul(entryPrice, pricePrecision)
+            if (amountPrecisionString is not None) and (entryAmount is not None):
+                amount = Precise.string_mul(entryAmount, amountPrecisionString)
             if (limit is not None) and (i > limit):
                 break
             result.append([
@@ -1171,50 +1171,35 @@ class wavesexchange(Exchange, ImplicitAPI):
             return ''
         return currencyId
 
-    def custom_price_to_precision(self, symbol, price):
+    def to_real_currency_amount(self, code: str, amount: float, networkCode=None):
+        currency = self.currency(code)
+        stringValue = Precise.string_div(self.number_to_string(amount), self.safe_string(currency, 'precision'))
+        return int(stringValue)
+
+    def from_real_currency_amount(self, code: str, amountString: str):
+        if not (code in self.currencies):
+            return amountString
+        currency = self.currency(code)
+        precisionAmount = self.safe_string(currency, 'precision')
+        return Precise.string_mul(amountString, precisionAmount)
+
+    def to_real_symbol_price(self, symbol: str, price: float):
+        market = self.market(symbol)
+        stringValue = Precise.string_div(self.number_to_string(price), self.safe_string(market['precision'], 'price'))
+        return int(stringValue)
+
+    def from_real_symbol_price(self, symbol: str, priceString: str):
         market = self.markets[symbol]
-        wavesPrecision = self.safe_string(self.options, 'wavesPrecision', '8')
-        amount = self.number_to_string(market['precision']['amount'])
-        precisionPrice = self.number_to_string(market['precision']['price'])
-        difference = Precise.string_sub(amount, precisionPrice)
-        precision = Precise.string_sub(wavesPrecision, difference)
-        pricePrecision = self.to_precision(price, str(precision))
-        return self.parse_to_int(float(pricePrecision))
+        return Precise.string_mul(priceString, self.safe_string(market['precision'], 'price'))
 
-    def custom_amount_to_precision(self, symbol, amount):
-        amountPrecision = self.number_to_string(self.to_precision(amount, self.number_to_string(self.markets[symbol]['precision']['amount'])))
-        return self.parse_to_int(float(amountPrecision))
+    def to_real_symbol_amount(self, symbol: str, amount: float):
+        market = self.market(symbol)
+        stringValue = Precise.string_div(self.number_to_string(amount), self.safe_string(market['precision'], 'amount'))
+        return int(stringValue)
 
-    def custom_currency_to_precision(self, code, amount, networkCode=None):
-        amountPrecision = self.number_to_string(self.to_precision(amount, self.currencies[code]['precision']))
-        return self.parse_to_int(float(amountPrecision))
-
-    def from_precision(self, amount, scale):
-        if amount is None:
-            return None
-        precise = Precise(amount)
-        precise.decimals = self.sum(precise.decimals, scale)
-        precise.reduce()
-        return str(precise)
-
-    def to_precision(self, amount, scale):
-        amountString = self.number_to_string(amount)
-        precise = Precise(amountString)
-        # precise.decimals should be integer
-        precise.decimals = self.parse_to_int(Precise.string_sub(self.number_to_string(precise.decimals), self.number_to_string(scale)))
-        precise.reduce()
-        stringValue = str(precise)
-        return stringValue
-
-    def currency_from_precision(self, currency, amount):
-        scale = self.currencies[currency]['precision']
-        return self.from_precision(amount, scale)
-
-    def price_from_precision(self, symbol, price):
+    def from_real_symbol_amount(self, symbol: str, amountString: str):
         market = self.markets[symbol]
-        wavesPrecision = self.safe_integer(self.options, 'wavesPrecision', 8)
-        scale = self.sum(wavesPrecision, market['precision']['price']) - market['precision']['amount']
-        return self.from_precision(price, scale)
+        return Precise.string_mul(amountString, market['precision']['amount'])
 
     def safe_get_dynamic(self, settings):
         orderFee = self.safe_value(settings, 'orderFee')
@@ -1288,26 +1273,26 @@ class wavesexchange(Exchange, ImplicitAPI):
                 raise InvalidOrder(self.id + ' asset fee must be ' + baseFeeAsset + ' or ' + discountFeeAsset)
             matcherFeeAsset = self.safe_currency_code(matcherFeeAssetId)
             rawMatcherFee = baseMatcherFee if (matcherFeeAssetId == baseFeeAssetId) else discountMatcherFee
-            floatMatcherFee = float(self.currency_from_precision(matcherFeeAsset, rawMatcherFee))
+            floatMatcherFee = float(self.from_real_currency_amount(matcherFeeAsset, rawMatcherFee))
             if (matcherFeeAsset in balances) and (balances[matcherFeeAsset]['free'] >= floatMatcherFee):
                 matcherFee = int(rawMatcherFee)
             else:
                 raise InsufficientFunds(self.id + ' not enough funds of the selected asset fee')
+        floatBaseMatcherFee = self.from_real_currency_amount(baseFeeAsset, baseMatcherFee)
+        floatDiscountMatcherFee = self.from_real_currency_amount(discountFeeAsset, discountMatcherFee)
         if matcherFeeAssetId is None:
             # try to the pay the fee using the base first then discount asset
-            floatBaseMatcherFee = float(self.currency_from_precision(baseFeeAsset, baseMatcherFee))
-            if (baseFeeAsset in balances) and (balances[baseFeeAsset]['free'] >= floatBaseMatcherFee):
+            if (baseFeeAsset in balances) and (balances[baseFeeAsset]['free'] >= float(floatBaseMatcherFee)):
                 matcherFeeAssetId = baseFeeAssetId
                 matcherFee = int(baseMatcherFee)
             else:
-                floatDiscountMatcherFee = float(self.currency_from_precision(discountFeeAsset, discountMatcherFee))
-                if (discountFeeAsset in balances) and (balances[discountFeeAsset]['free'] >= floatDiscountMatcherFee):
+                if (discountFeeAsset in balances) and (balances[discountFeeAsset]['free'] >= float(floatDiscountMatcherFee)):
                     matcherFeeAssetId = discountFeeAssetId
                     matcherFee = int(discountMatcherFee)
         if matcherFeeAssetId is None:
-            raise InsufficientFunds(self.id + ' not enough funds on none of the eligible asset fees')
-        amount = self.custom_amount_to_precision(symbol, amount)
-        price = self.custom_price_to_precision(symbol, price)
+            raise InsufficientFunds(self.id + ' not enough funds on none of the eligible asset fees: ' + baseFeeAsset + ' ' + floatBaseMatcherFee + ' or ' + discountFeeAsset + ' ' + floatDiscountMatcherFee)
+        amount = self.to_real_symbol_amount(symbol, amount)
+        price = self.to_real_symbol_price(symbol, price)
         assetPair: dict = {
             'amountAsset': amountAsset,
             'priceAsset': priceAsset,
@@ -1345,7 +1330,7 @@ class wavesexchange(Exchange, ImplicitAPI):
                 'c': {
                     't': 'sp',
                     'v': {
-                        'p': self.custom_price_to_precision(symbol, stopPrice),
+                        'p': self.to_real_symbol_price(symbol, stopPrice),
                     },
                 },
             }
@@ -1422,7 +1407,7 @@ class wavesexchange(Exchange, ImplicitAPI):
         firstMessage = self.safe_value(message, 0)
         firstOrder = self.safe_value(firstMessage, 0)
         returnedId = self.safe_string(firstOrder, 'orderId')
-        return {
+        return self.safe_order({
             'info': response,
             'id': returnedId,
             'clientOrderId': None,
@@ -1441,7 +1426,7 @@ class wavesexchange(Exchange, ImplicitAPI):
             'status': None,
             'fee': None,
             'trades': None,
-        }
+        })
 
     async def fetch_order(self, id: str, symbol: Str = None, params={}):
         """
@@ -1671,23 +1656,23 @@ class wavesexchange(Exchange, ImplicitAPI):
         elif market is not None:
             symbol = market['symbol']
         amountCurrency = self.safe_currency_code(self.safe_string(assetPair, 'amountAsset', 'WAVES'))
-        price = self.price_from_precision(symbol, priceString)
-        amount = self.currency_from_precision(amountCurrency, amountString)
-        filled = self.currency_from_precision(amountCurrency, filledString)
-        average = self.price_from_precision(symbol, self.safe_string(order, 'avgWeighedPrice'))
+        price = self.from_real_symbol_price(symbol, priceString)
+        amount = self.from_real_currency_amount(amountCurrency, amountString)
+        filled = self.from_real_currency_amount(amountCurrency, filledString)
+        average = self.from_real_symbol_price(symbol, self.safe_string(order, 'avgWeighedPrice'))
         status = self.parse_order_status(self.safe_string(order, 'status'))
         fee = None
         if 'type' in order:
-            currency = self.safe_currency_code(self.safe_string(order, 'feeAsset'))
+            code = self.safe_currency_code(self.safe_string(order, 'feeAsset'))
             fee = {
-                'currency': currency,
-                'fee': self.parse_number(self.currency_from_precision(currency, self.safe_string(order, 'filledFee'))),
+                'currency': code,
+                'fee': self.parse_number(self.from_real_currency_amount(code, self.safe_string(order, 'filledFee'))),
             }
         else:
-            currency = self.safe_currency_code(self.safe_string(order, 'matcherFeeAssetId', 'WAVES'))
+            code = self.safe_currency_code(self.safe_string(order, 'matcherFeeAssetId', 'WAVES'))
             fee = {
-                'currency': currency,
-                'fee': self.parse_number(self.currency_from_precision(currency, self.safe_string(order, 'matcherFee'))),
+                'currency': code,
+                'fee': self.parse_number(self.from_real_currency_amount(code, self.safe_string(order, 'matcherFee'))),
             }
         triggerPrice = None
         attachment = self.safe_string(order, 'attachment')
@@ -1802,16 +1787,14 @@ class wavesexchange(Exchange, ImplicitAPI):
             issueTransaction = self.safe_value(entry, 'issueTransaction')
             currencyId = self.safe_string(entry, 'assetId')
             balance = self.safe_string(entry, 'balance')
-            if issueTransaction is None:
-                assetIds.append(currencyId)
-                nonStandardBalances.append(balance)
-                continue
-            decimals = self.safe_integer(issueTransaction, 'decimals')
-            code = None
-            if currencyId in self.currencies_by_id:
+            currencyExists = (currencyId in self.currencies_by_id)
+            if currencyExists:
                 code = self.safe_currency_code(currencyId)
                 result[code] = self.account()
-                result[code]['total'] = self.from_precision(balance, decimals)
+                result[code]['total'] = self.from_real_currency_amount(code, balance)
+            elif issueTransaction is None:
+                assetIds.append(currencyId)
+                nonStandardBalances.append(balance)
         nonStandardAssets = len(assetIds)
         if nonStandardAssets:
             requestInner: dict = {
@@ -1823,11 +1806,11 @@ class wavesexchange(Exchange, ImplicitAPI):
                 entry = data[i]
                 balance = nonStandardBalances[i]
                 inner = self.safe_value(entry, 'data')
-                decimals = self.safe_integer(inner, 'precision')
+                precision = self.parse_precision(self.safe_string(inner, 'precision'))
                 ticker = self.safe_string(inner, 'ticker')
                 code = self.safe_currency_code(ticker)
                 result[code] = self.account()
-                result[code]['total'] = self.from_precision(balance, decimals)
+                result[code]['total'] = Precise.string_mul(balance, precision)
         currentTimestamp = self.milliseconds()
         byteArray = [
             self.base58_to_binary(self.apiKey),
@@ -1850,10 +1833,7 @@ class wavesexchange(Exchange, ImplicitAPI):
             if not (code in result):
                 result[code] = self.account()
             amount = self.safe_string(reservedBalance, currencyId)
-            if code in self.currencies:
-                result[code]['used'] = self.currency_from_precision(code, amount)
-            else:
-                result[code]['used'] = amount
+            result[code]['used'] = self.from_real_currency_amount(code, amount)
         wavesRequest: dict = {
             'address': wavesAddress,
         }
@@ -1863,16 +1843,20 @@ class wavesexchange(Exchange, ImplicitAPI):
         #   "confirmations": 0,
         #   "balance": 909085978
         # }
-        result['WAVES'] = self.safe_value(result, 'WAVES', {})
-        result['WAVES']['total'] = self.currency_from_precision('WAVES', self.safe_string(wavesTotal, 'balance'))
-        codes = list(result.keys())
-        for i in range(0, len(codes)):
-            code = codes[i]
-            if self.safe_value(result[code], 'used') is None:
-                result[code]['used'] = '0'
+        result['WAVES'] = self.safe_value(result, 'WAVES', self.account())
+        result['WAVES']['total'] = self.from_real_currency_amount('WAVES', self.safe_string(wavesTotal, 'balance'))
+        result = self.set_undefined_balances_to_zero(result)
         result['timestamp'] = timestamp
         result['datetime'] = self.iso8601(timestamp)
         return self.safe_balance(result)
+
+    def set_undefined_balances_to_zero(self, balances, key='used'):
+        codes = list(balances.keys())
+        for i in range(0, len(codes)):
+            code = codes[i]
+            if self.safe_value(balances[code], 'used') is None:
+                balances[code][key] = '0'
+        return balances
 
     async def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
@@ -2374,7 +2358,7 @@ class wavesexchange(Exchange, ImplicitAPI):
         feeAssetId = 'WAVES'
         type = 4  # transfer
         version = 2
-        amountInteger = self.custom_currency_to_precision(code, amount)
+        amountInteger = self.to_real_currency_amount(code, amount)
         currency = self.currency(code)
         timestamp = self.milliseconds()
         byteArray = [
@@ -2434,18 +2418,45 @@ class wavesexchange(Exchange, ImplicitAPI):
         #         "amount": 0
         #     }
         #
+        # withdraw new:
+        #     {
+        #         type: "4",
+        #         id: "2xnWTqG9ar7jEDrLxfbVyyspPZ6XZNrrw9ai9sQ81Eya",
+        #         fee: "100000",
+        #         feeAssetId: null,
+        #         timestamp: "1715786263807",
+        #         version: "2",
+        #         sender: "3P81LLX1kk2CSJC9L8C2enxdHB7XvnSGAEE",
+        #         senderPublicKey: "DdmzmXf9mty1FBE8AdVGnrncVLEAzP4gR4nWoTFAJoXz",
+        #         proofs: ["RyoKwdSYv3EqotJCYftfFM9JE2j1ZpDRxKwYfiRhLAFeyNp6VfJUXNDS884XfeCeHeNypNmTCZt5NYR1ekyjCX3",],
+        #         recipient: "3P9tXxu38a8tgewNEKFzourVxeqHd11ppOc",
+        #         assetId: null,
+        #         feeAsset: null,
+        #         amount: "2000000",
+        #         attachment: "",
+        #     }
+        #
         currency = self.safe_currency(None, currency)
+        code = currency['code']
+        typeRaw = self.safe_string(transaction, 'type')
+        type = 'withdraw' if (typeRaw == '4') else 'deposit'
+        amount = self.parse_number(self.from_real_currency_amount(code, self.safe_string(transaction, 'amount')))
+        feeString = self.safe_string(transaction, 'fee')
+        feeAssetId = self.safe_string(transaction, 'feeAssetId', 'WAVES')
+        feeCode = self.safe_currency_code(feeAssetId)
+        feeAmount = self.parse_number(self.from_real_currency_amount(feeCode, feeString))
+        timestamp = self.safe_integer(transaction, 'timestamp')
         return {
-            'id': None,
+            'id': self.safe_string(transaction, 'id'),
             'txid': None,
-            'timestamp': None,
-            'datetime': None,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
             'network': None,
-            'addressFrom': None,
+            'addressFrom': self.safe_string(transaction, 'sender'),
             'address': None,
-            'addressTo': None,
-            'amount': None,
-            'type': None,
+            'addressTo': self.safe_string(transaction, 'recipient'),
+            'amount': amount,
+            'type': type,
             'currency': currency['code'],
             'status': None,
             'updated': None,
@@ -2454,6 +2465,9 @@ class wavesexchange(Exchange, ImplicitAPI):
             'tagTo': None,
             'comment': None,
             'internal': None,
-            'fee': None,
+            'fee': {
+                'currency': feeCode,
+                'cost': feeAmount,
+            },
             'info': transaction,
         }

@@ -33,14 +33,14 @@ import { Exchange }  from './src/base/Exchange.js'
 import { Precise }   from './src/base/Precise.js'
 import * as functions from './src/base/functions.js'
 import * as errors   from './src/base/errors.js'
-import type { Market, Trade , Fee, Ticker, OrderBook, Order, Transaction, Tickers, Currency, Balance, DepositAddress, WithdrawalResponse, DepositAddressResponse, OHLCV, Balances, PartialBalances, Dictionary, MinMax, Position, FundingRateHistory, Liquidation, FundingHistory, MarginMode, Greeks, Leverage, Leverages, Option, OptionChain, Conversion } from './src/base/types.js'
+import type { Int, int, Str, Strings, Num, Bool, IndexType, OrderSide, OrderType, MarketType, SubType, Dict, NullableDict, List, NullableList, Fee, OHLCV, OHLCVC, implicitReturnType, Market, Currency, Dictionary, MinMax, FeeInterface, TradingFeeInterface, MarketInterface, Trade, Order, OrderBook, Ticker, Transaction, Tickers, CurrencyInterface, Balance, BalanceAccount, Account, PartialBalances, Balances, DepositAddress, WithdrawalResponse, DepositAddressResponse, FundingRate, FundingRates, Position, BorrowInterest, LeverageTier, LedgerEntry, DepositWithdrawFeeNetwork, DepositWithdrawFee, TransferEntry, CrossBorrowRate, IsolatedBorrowRate, FundingRateHistory, OpenInterest, Liquidation, OrderRequest, CancellationRequest, FundingHistory, MarginMode, Greeks, Conversion, Option, LastPrice, Leverage, MarginModification, Leverages, LastPrices, Currencies, TradingFees, MarginModes, OptionChain, IsolatedBorrowRates, CrossBorrowRates, TransferEntries, LeverageTiers } from './src/base/types.js'
 import {BaseError, ExchangeError, AuthenticationError, PermissionDenied, AccountNotEnabled, AccountSuspended, ArgumentsRequired, BadRequest, BadSymbol, OperationRejected, NoChange, MarginModeAlreadySet, MarketClosed, BadResponse, NullResponse, InsufficientFunds, InvalidAddress, AddressPending, InvalidOrder, OrderNotFound, OrderNotCached, CancelPending, OrderImmediatelyFillable, OrderNotFillable, DuplicateOrderId, ContractUnavailable, NotSupported, ProxyError, ExchangeClosedByUser, OperationFailed, NetworkError, DDoSProtection, RateLimitExceeded, ExchangeNotAvailable, OnMaintenance, InvalidNonce, RequestTimeout}  from './src/base/errors.js'
 
 
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '4.3.42';
+const version = '4.3.46';
 
 (Exchange as any).ccxtVersion = version
 
@@ -133,6 +133,7 @@ import oceanex from  './src/oceanex.js'
 import okcoin from  './src/okcoin.js'
 import okx from  './src/okx.js'
 import onetrading from  './src/onetrading.js'
+import oxfun from  './src/oxfun.js'
 import p2b from  './src/p2b.js'
 import paymium from  './src/paymium.js'
 import phemex from  './src/phemex.js'
@@ -148,6 +149,7 @@ import wazirx from  './src/wazirx.js'
 import whitebit from  './src/whitebit.js'
 import woo from  './src/woo.js'
 import woofipro from  './src/woofipro.js'
+import xt from  './src/xt.js'
 import yobit from  './src/yobit.js'
 import zaif from  './src/zaif.js'
 import zonda from  './src/zonda.js'
@@ -209,6 +211,7 @@ import ndaxPro from  './src/pro/ndax.js'
 import okcoinPro from  './src/pro/okcoin.js'
 import okxPro from  './src/pro/okx.js'
 import onetradingPro from  './src/pro/onetrading.js'
+import oxfunPro from  './src/pro/oxfun.js'
 import p2bPro from  './src/pro/p2b.js'
 import phemexPro from  './src/pro/phemex.js'
 import poloniexPro from  './src/pro/poloniex.js'
@@ -308,6 +311,7 @@ const exchanges = {
     'okcoin':                 okcoin,
     'okx':                    okx,
     'onetrading':             onetrading,
+    'oxfun':                  oxfun,
     'p2b':                    p2b,
     'paymium':                paymium,
     'phemex':                 phemex,
@@ -323,6 +327,7 @@ const exchanges = {
     'whitebit':               whitebit,
     'woo':                    woo,
     'woofipro':               woofipro,
+    'xt':                     xt,
     'yobit':                  yobit,
     'zaif':                   zaif,
     'zonda':                  zonda,
@@ -384,6 +389,7 @@ const pro = {
     'okcoin':                 okcoinPro,
     'okx':                    okxPro,
     'onetrading':             onetradingPro,
+    'oxfun':                  oxfunPro,
     'p2b':                    p2bPro,
     'phemex':                 phemexPro,
     'poloniex':               poloniexPro,
@@ -456,35 +462,81 @@ export {
     OnMaintenance,
     InvalidNonce,
     RequestTimeout,
-    Market,
-    Trade,
+    Int,
+    int,
+    Str,
+    Strings,
+    Num,
+    Bool,
+    IndexType,
+    OrderSide,
+    OrderType,
+    MarketType,
+    SubType,
+    Dict,
+    NullableDict,
+    List,
+    NullableList,
     Fee,
-    Ticker,
-    OrderBook,
+    OHLCV,
+    OHLCVC,
+    implicitReturnType,
+    Market,
+    Currency,
+    Dictionary,
+    MinMax,
+    FeeInterface,
+    TradingFeeInterface,
+    MarketInterface,
+    Trade,
     Order,
+    OrderBook,
+    Ticker,
     Transaction,
     Tickers,
-    Currency,
+    CurrencyInterface,
     Balance,
+    BalanceAccount,
+    Account,
+    PartialBalances,
+    Balances,
     DepositAddress,
     WithdrawalResponse,
     DepositAddressResponse,
-    OHLCV,
-    Balances,
-    PartialBalances,
-    Dictionary,
-    MinMax,
+    FundingRate,
+    FundingRates,
     Position,
+    BorrowInterest,
+    LeverageTier,
+    LedgerEntry,
+    DepositWithdrawFeeNetwork,
+    DepositWithdrawFee,
+    TransferEntry,
+    CrossBorrowRate,
+    IsolatedBorrowRate,
     FundingRateHistory,
+    OpenInterest,
     Liquidation,
+    OrderRequest,
+    CancellationRequest,
     FundingHistory,
     MarginMode,
     Greeks,
-    Leverage,
-    Leverages,
-    Option,
-    OptionChain,
     Conversion,
+    Option,
+    LastPrice,
+    Leverage,
+    MarginModification,
+    Leverages,
+    LastPrices,
+    Currencies,
+    TradingFees,
+    MarginModes,
+    OptionChain,
+    IsolatedBorrowRates,
+    CrossBorrowRates,
+    TransferEntries,
+    LeverageTiers,
     ace,
     alpaca,
     ascendex,
@@ -572,6 +624,7 @@ export {
     okcoin,
     okx,
     onetrading,
+    oxfun,
     p2b,
     paymium,
     phemex,
@@ -587,6 +640,7 @@ export {
     whitebit,
     woo,
     woofipro,
+    xt,
     yobit,
     zaif,
     zonda,    

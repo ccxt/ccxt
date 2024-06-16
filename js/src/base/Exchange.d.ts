@@ -291,6 +291,7 @@ export default class Exchange {
         certified: boolean;
         pro: boolean;
         alias: boolean;
+        dex: boolean;
         has: {
             publicAPI: boolean;
             privateAPI: boolean;

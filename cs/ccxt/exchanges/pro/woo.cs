@@ -52,7 +52,7 @@ public partial class woo : ccxt.woo
             } },
             { "streaming", new Dictionary<string, object>() {
                 { "ping", this.ping },
-                { "keepAlive", 10000 },
+                { "keepAlive", 9000 },
             } },
             { "exceptions", new Dictionary<string, object>() {
                 { "ws", new Dictionary<string, object>() {

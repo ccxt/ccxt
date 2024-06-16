@@ -981,6 +981,8 @@ class binance extends Exchange {
                     'post' => array(
                         'order/oco' => 0.2,
                         'orderList/oco' => 0.2,
+                        'orderList/oto' => 0.2,
+                        'orderList/otoco' => 0.2,
                         'sor/order' => 0.2,
                         'sor/order/test' => 0.2,
                         'order' => 0.2,
@@ -7892,8 +7894,56 @@ class binance extends Exchange {
         //         "tranId" => 43000126248
         //     }
         //
-        $id = $this->safe_string($transfer, 'tranId');
-        $currencyId = $this->safe_string($transfer, 'asset');
+        //     {
+        //             "orderType" => "C2C", // Enum：PAY(C2B Merchant Acquiring Payment), PAY_REFUND(C2B Merchant Acquiring Payment,refund), C2C(C2C Transfer Payment),CRYPTO_BOX(Crypto box), CRYPTO_BOX_RF(Crypto Box, refund), C2C_HOLDING(Transfer to new Binance user), C2C_HOLDING_RF(Transfer to new Binance user,refund), PAYOUT(B2C Disbursement Payment), REMITTANCE（Send cash)
+        //             "transactionId" => "M_P_71505104267788288",
+        //             "transactionTime" => 1610090460133, //trade $timestamp
+        //             "amount" => "23.72469206", //order $amount(up to 8 decimal places), positive is income, negative is expenditure
+        //             "currency" => "BNB",
+        //             "walletType" => 1, //main wallet $type, 1 for funding wallet, 2 for spot wallet, 3 for fiat wallet, 4 or 6 for card payment, 5 for earn wallet
+        //             "walletTypes" => [1,2], //array format，there are multiple values when using combination payment
+        //             "fundsDetail" => array( // details
+        //                     array(
+        //                         "currency" => "USDT", //asset
+        //                         "amount" => "1.2",
+        //                         "walletAssetCost":array( //details of asset cost per wallet
+        //                             array("1":"0.6"),
+        //                             array("2":"0.6")
+        //                         )
+        //                     ),
+        //                     {
+        //                         "currency" => "ETH",
+        //                         "amount" => "0.0001",
+        //                         "walletAssetCost":array(
+        //                             array("1":"0.00005"),
+        //                             array("2":"0.00005")
+        //                         )
+        //                     }
+        //                 ),
+        //             "payerInfo":array(
+        //                     "name":"Jack", //nickname or merchant name
+        //                     "type":"USER", //account $type，USER for personal，MERCHANT for merchant
+        //                     "binanceId":"12345678", //binance uid
+        //                     "accountId":"67736251" //binance pay $id
+        //                 ),
+        //             "receiverInfo":{
+        //                     "name":"Alan", //nickname or merchant name
+        //                     "type":"MERCHANT", //account $type，USER for personal，MERCHANT for merchant
+        //                     "email":"alan@binance.com", //email
+        //                     "binanceId":"34355667", //binance uid
+        //                     "accountId":"21326891", //binance pay $id
+        //                     "countryCode":"1", //International area $code
+        //                     "phoneNumber":"8057651210",
+        //                     "mobileCode":"US", //country $code
+        //                     "extend":array( //extension field
+        //                             "institutionName" => "",
+        //                             "cardNumber" => "",
+        //                             "digitalWalletId" => ""
+        //                     )
+        //                 }
+        //             }
+        $id = $this->safe_string_2($transfer, 'tranId', 'transactionId');
+        $currencyId = $this->safe_string_2($transfer, 'asset', 'currency');
         $code = $this->safe_currency_code($currencyId, $currency);
         $amount = $this->safe_number($transfer, 'amount');
         $type = $this->safe_string($transfer, 'type');
@@ -7907,7 +7957,14 @@ class binance extends Exchange {
             $fromAccount = $this->safe_string($accountsById, $fromAccount, $fromAccount);
             $toAccount = $this->safe_string($accountsById, $toAccount, $toAccount);
         }
-        $timestamp = $this->safe_integer($transfer, 'timestamp');
+        $walletType = $this->safe_integer($transfer, 'walletType');
+        if ($walletType !== null) {
+            $payer = $this->safe_dict($transfer, 'payerInfo', array());
+            $receiver = $this->safe_dict($transfer, 'receiverInfo', array());
+            $fromAccount = $this->safe_string($payer, 'accountId');
+            $toAccount = $this->safe_string($receiver, 'accountId');
+        }
+        $timestamp = $this->safe_integer_2($transfer, 'timestamp', 'transactionTime');
         $status = $this->parse_transfer_status($this->safe_string($transfer, 'status'));
         return array(
             'info' => $transfer,
@@ -8051,76 +8108,145 @@ class binance extends Exchange {
 
     public function fetch_transfers(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
-         * fetch a history of internal transfers made on an account
+         * fetch a history of $internal transfers made on an account
          * @see https://binance-docs.github.io/apidocs/spot/en/#query-user-universal-transfer-history-user_data
+         * @see https://binance-docs.github.io/apidocs/spot/en/#pay-endpoints
          * @param {string} $code unified $currency $code of the $currency transferred
          * @param {int} [$since] the earliest time in ms to fetch transfers for
          * @param {int} [$limit] the maximum number of transfers structures to retrieve
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {int} [$params->until] the latest time in ms to fetch transfers for
          * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
+         * @param {boolean} [$params->internal] default false, when true will fetch pay trade history
          * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=transfer-structure transfer structures~
          */
         $this->load_markets();
+        $internal = $this->safe_bool($params, 'internal');
+        $params = $this->omit($params, 'internal');
         $paginate = false;
         list($paginate, $params) = $this->handle_option_and_params($params, 'fetchTransfers', 'paginate');
-        if ($paginate) {
+        if ($paginate && !$internal) {
             return $this->fetch_paginated_call_dynamic('fetchTransfers', $code, $since, $limit, $params);
         }
         $currency = null;
         if ($code !== null) {
             $currency = $this->currency($code);
         }
-        $defaultType = $this->safe_string_2($this->options, 'fetchTransfers', 'defaultType', 'spot');
-        $fromAccount = $this->safe_string($params, 'fromAccount', $defaultType);
-        $defaultTo = ($fromAccount === 'future') ? 'spot' : 'future';
-        $toAccount = $this->safe_string($params, 'toAccount', $defaultTo);
-        $type = $this->safe_string($params, 'type');
-        $accountsByType = $this->safe_dict($this->options, 'accountsByType', array());
-        $fromId = $this->safe_string($accountsByType, $fromAccount);
-        $toId = $this->safe_string($accountsByType, $toAccount);
-        if ($type === null) {
-            if ($fromId === null) {
-                $keys = is_array($accountsByType) ? array_keys($accountsByType) : array();
-                throw new ExchangeError($this->id . ' $fromAccount parameter must be one of ' . implode(', ', $keys));
+        $request = array();
+        $limitKey = 'limit';
+        if (!$internal) {
+            $defaultType = $this->safe_string_2($this->options, 'fetchTransfers', 'defaultType', 'spot');
+            $fromAccount = $this->safe_string($params, 'fromAccount', $defaultType);
+            $defaultTo = ($fromAccount === 'future') ? 'spot' : 'future';
+            $toAccount = $this->safe_string($params, 'toAccount', $defaultTo);
+            $type = $this->safe_string($params, 'type');
+            $accountsByType = $this->safe_dict($this->options, 'accountsByType', array());
+            $fromId = $this->safe_string($accountsByType, $fromAccount);
+            $toId = $this->safe_string($accountsByType, $toAccount);
+            if ($type === null) {
+                if ($fromId === null) {
+                    $keys = is_array($accountsByType) ? array_keys($accountsByType) : array();
+                    throw new ExchangeError($this->id . ' $fromAccount parameter must be one of ' . implode(', ', $keys));
+                }
+                if ($toId === null) {
+                    $keys = is_array($accountsByType) ? array_keys($accountsByType) : array();
+                    throw new ExchangeError($this->id . ' $toAccount parameter must be one of ' . implode(', ', $keys));
+                }
+                $type = $fromId . '_' . $toId;
             }
-            if ($toId === null) {
-                $keys = is_array($accountsByType) ? array_keys($accountsByType) : array();
-                throw new ExchangeError($this->id . ' $toAccount parameter must be one of ' . implode(', ', $keys));
-            }
-            $type = $fromId . '_' . $toId;
-        }
-        $request = array(
-            'type' => $type,
-        );
-        if ($since !== null) {
-            $request['startTime'] = $since;
+            $request['type'] = $type;
+            $limitKey = 'size';
         }
         if ($limit !== null) {
-            $request['size'] = $limit;
+            $request[$limitKey] = $limit;
+        }
+        if ($since !== null) {
+            $request['startTime'] = $since;
         }
         $until = $this->safe_integer($params, 'until');
         if ($until !== null) {
             $params = $this->omit($params, 'until');
             $request['endTime'] = $until;
         }
-        $response = $this->sapiGetAssetTransfer ($this->extend($request, $params));
-        //
-        //     {
-        //         "total" => 3,
-        //         "rows" => array(
-        //             array(
-        //                 "timestamp" => 1614640878000,
-        //                 "asset" => "USDT",
-        //                 "amount" => "25",
-        //                 "type" => "MAIN_UMFUTURE",
-        //                 "status" => "CONFIRMED",
-        //                 "tranId" => 43000126248
-        //             ),
-        //         )
-        //     }
-        //
-        $rows = $this->safe_list($response, 'rows', array());
+        $response = null;
+        if ($internal) {
+            $response = $this->sapiGetPayTransactions ($this->extend($request, $params));
+            //
+            // {
+            //     "code" => "000000",
+            //     "message" => "success",
+            //     "data" => [
+            //     {
+            //         "orderType" => "C2C", // Enum：PAY(C2B Merchant Acquiring Payment), PAY_REFUND(C2B Merchant Acquiring Payment,refund), C2C(C2C Transfer Payment),CRYPTO_BOX(Crypto box), CRYPTO_BOX_RF(Crypto Box, refund), C2C_HOLDING(Transfer to new Binance user), C2C_HOLDING_RF(Transfer to new Binance user,refund), PAYOUT(B2C Disbursement Payment), REMITTANCE（Send cash)
+            //         "transactionId" => "M_P_71505104267788288",
+            //         "transactionTime" => 1610090460133, //trade timestamp
+            //         "amount" => "23.72469206", //order amount(up to 8 decimal places), positive is income, negative is expenditure
+            //         "currency" => "BNB",
+            //         "walletType" => 1, //main wallet $type, 1 for funding wallet, 2 for spot wallet, 3 for fiat wallet, 4 or 6 for card payment, 5 for earn wallet
+            //         "walletTypes" => [1,2], //array format，there are multiple values when using combination payment
+            //         "fundsDetail" => array( // details
+            //                 array(
+            //                  "currency" => "USDT", //asset
+            //                  "amount" => "1.2",
+            //                  "walletAssetCost":array( //details of asset cost per wallet
+            //                      array("1":"0.6"),
+            //                      array("2":"0.6")
+            //                  )
+            //                 ),
+            //                 {
+            //                   "currency" => "ETH",
+            //                   "amount" => "0.0001",
+            //                   "walletAssetCost":array(
+            //                      array("1":"0.00005"),
+            //                      array("2":"0.00005")
+            //                   )
+            //                 }
+            //            ),
+            //         "payerInfo":array(
+            //                 "name":"Jack", //nickname or merchant name
+            //                 "type":"USER", //account $type，USER for personal，MERCHANT for merchant
+            //                 "binanceId":"12345678", //binance uid
+            //                 "accountId":"67736251" //binance pay id
+            //             ),
+            //         "receiverInfo":{
+            //                 "name":"Alan", //nickname or merchant name
+            //                 "type":"MERCHANT", //account $type，USER for personal，MERCHANT for merchant
+            //                 "email":"alan@binance.com", //email
+            //                 "binanceId":"34355667", //binance uid
+            //                 "accountId":"21326891", //binance pay id
+            //                 "countryCode":"1", //International area $code
+            //                 "phoneNumber":"8057651210",
+            //                 "mobileCode":"US", //country $code
+            //                 "extend":array( //extension field
+            //                      "institutionName" => "",
+            //                      "cardNumber" => "",
+            //                      "digitalWalletId" => ""
+            //                 )
+            //             }
+            //       }
+            //    ],
+            //    "success" => true
+            // }
+            //
+        } else {
+            $response = $this->sapiGetAssetTransfer ($this->extend($request, $params));
+            //
+            //     {
+            //         "total" => 3,
+            //         "rows" => array(
+            //             array(
+            //                 "timestamp" => 1614640878000,
+            //                 "asset" => "USDT",
+            //                 "amount" => "25",
+            //                 "type" => "MAIN_UMFUTURE",
+            //                 "status" => "CONFIRMED",
+            //                 "tranId" => 43000126248
+            //             ),
+            //         )
+            //     }
+            //
+        }
+        $rows = $this->safe_list_2($response, 'rows', 'data', array());
         return $this->parse_transfers($rows, $currency, $since, $limit);
     }
 

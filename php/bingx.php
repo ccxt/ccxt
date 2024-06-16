@@ -382,7 +382,7 @@ class bingx extends Exchange {
                 '1w' => '1w',
                 '1M' => '1M',
             ),
-            'precisionMode' => DECIMAL_PLACES,
+            'precisionMode' => TICK_SIZE,
             'exceptions' => array(
                 'exact' => array(
                     '400' => '\\ccxt\\BadRequest',
@@ -607,18 +607,26 @@ class bingx extends Exchange {
         //        "msg" => "",
         //        "data" => array(
         //            array(
-        //              "contractId" => "100",
-        //              "symbol" => "BTC-USDT",
-        //              "size" => "0.0001",
-        //              "quantityPrecision" => 4,
-        //              "pricePrecision" => 1,
-        //              "feeRate" => 0.0005,
-        //              "tradeMinLimit" => 1,
-        //              "maxLongLeverage" => 150,
-        //              "maxShortLeverage" => 150,
-        //              "currency" => "USDT",
-        //              "asset" => "BTC",
-        //              "status" => 1
+        //                "contractId" => "100",
+        //                "symbol" => "BTC-USDT",
+        //                "size" => "0.0001",
+        //                "quantityPrecision" => "4",
+        //                "pricePrecision" => "1",
+        //                "feeRate" => "0.0005",
+        //                "makerFeeRate" => "0.0002",
+        //                "takerFeeRate" => "0.0005",
+        //                "tradeMinLimit" => "0",
+        //                "tradeMinQuantity" => "0.0001",
+        //                "tradeMinUSDT" => "2",
+        //                "maxLongLeverage" => "125",
+        //                "maxShortLeverage" => "125",
+        //                "currency" => "USDT",
+        //                "asset" => "BTC",
+        //                "status" => "1",
+        //                "apiStateOpen" => "true",
+        //                "apiStateClose" => "true",
+        //                "ensureTrigger" => true,
+        //                "triggerFeeRate" => "0.00020000"
         //            ),
         //            ...
         //        )
@@ -637,13 +645,13 @@ class bingx extends Exchange {
         $quote = $this->safe_currency_code($quoteId);
         $currency = $this->safe_string($market, 'currency');
         $settle = $this->safe_currency_code($currency);
-        $pricePrecision = $this->safe_integer($market, 'pricePrecision');
+        $pricePrecision = $this->safe_number($market, 'tickSize');
         if ($pricePrecision === null) {
-            $pricePrecision = $this->precision_from_string($this->safe_string($market, 'tickSize'));
+            $pricePrecision = $this->parse_number($this->parse_precision($this->safe_string($market, 'pricePrecision')));
         }
-        $quantityPrecision = $this->safe_integer($market, 'quantityPrecision');
+        $quantityPrecision = $this->safe_number($market, 'stepSize');
         if ($quantityPrecision === null) {
-            $quantityPrecision = $this->precision_from_string($this->safe_string($market, 'stepSize'));
+            $quantityPrecision = $this->parse_number($this->parse_precision($this->safe_string($market, 'quantityPrecision')));
         }
         $type = ($settle !== null) ? 'swap' : 'spot';
         $spot = $type === 'spot';

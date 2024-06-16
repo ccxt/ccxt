@@ -9,7 +9,7 @@ import Exchange from './abstract/bingx.js';
 import { AuthenticationError, PermissionDenied, AccountSuspended, ExchangeError, InsufficientFunds, BadRequest, OrderNotFound, DDoSProtection, BadSymbol, ArgumentsRequired, NotSupported, OperationFailed } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { DECIMAL_PLACES } from './base/functions/number.js';
+import { TICK_SIZE } from './base/functions/number.js';
 //  ---------------------------------------------------------------------------
 /**
  * @class bingx
@@ -388,7 +388,7 @@ export default class bingx extends Exchange {
                 '1w': '1w',
                 '1M': '1M',
             },
-            'precisionMode': DECIMAL_PLACES,
+            'precisionMode': TICK_SIZE,
             'exceptions': {
                 'exact': {
                     '400': BadRequest,
@@ -613,18 +613,26 @@ export default class bingx extends Exchange {
         //        "msg": "",
         //        "data": [
         //            {
-        //              "contractId": "100",
-        //              "symbol": "BTC-USDT",
-        //              "size": "0.0001",
-        //              "quantityPrecision": 4,
-        //              "pricePrecision": 1,
-        //              "feeRate": 0.0005,
-        //              "tradeMinLimit": 1,
-        //              "maxLongLeverage": 150,
-        //              "maxShortLeverage": 150,
-        //              "currency": "USDT",
-        //              "asset": "BTC",
-        //              "status": 1
+        //                "contractId": "100",
+        //                "symbol": "BTC-USDT",
+        //                "size": "0.0001",
+        //                "quantityPrecision": "4",
+        //                "pricePrecision": "1",
+        //                "feeRate": "0.0005",
+        //                "makerFeeRate": "0.0002",
+        //                "takerFeeRate": "0.0005",
+        //                "tradeMinLimit": "0",
+        //                "tradeMinQuantity": "0.0001",
+        //                "tradeMinUSDT": "2",
+        //                "maxLongLeverage": "125",
+        //                "maxShortLeverage": "125",
+        //                "currency": "USDT",
+        //                "asset": "BTC",
+        //                "status": "1",
+        //                "apiStateOpen": "true",
+        //                "apiStateClose": "true",
+        //                "ensureTrigger": true,
+        //                "triggerFeeRate": "0.00020000"
         //            },
         //            ...
         //        ]
@@ -642,13 +650,13 @@ export default class bingx extends Exchange {
         const quote = this.safeCurrencyCode(quoteId);
         const currency = this.safeString(market, 'currency');
         const settle = this.safeCurrencyCode(currency);
-        let pricePrecision = this.safeInteger(market, 'pricePrecision');
+        let pricePrecision = this.safeNumber(market, 'tickSize');
         if (pricePrecision === undefined) {
-            pricePrecision = this.precisionFromString(this.safeString(market, 'tickSize'));
+            pricePrecision = this.parseNumber(this.parsePrecision(this.safeString(market, 'pricePrecision')));
         }
-        let quantityPrecision = this.safeInteger(market, 'quantityPrecision');
+        let quantityPrecision = this.safeNumber(market, 'stepSize');
         if (quantityPrecision === undefined) {
-            quantityPrecision = this.precisionFromString(this.safeString(market, 'stepSize'));
+            quantityPrecision = this.parseNumber(this.parsePrecision(this.safeString(market, 'quantityPrecision')));
         }
         const type = (settle !== undefined) ? 'swap' : 'spot';
         const spot = type === 'spot';

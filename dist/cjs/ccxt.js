@@ -99,6 +99,7 @@ var oceanex = require('./src/oceanex.js');
 var okcoin = require('./src/okcoin.js');
 var okx = require('./src/okx.js');
 var onetrading = require('./src/onetrading.js');
+var oxfun = require('./src/oxfun.js');
 var p2b = require('./src/p2b.js');
 var paymium = require('./src/paymium.js');
 var phemex = require('./src/phemex.js');
@@ -114,6 +115,7 @@ var wazirx = require('./src/wazirx.js');
 var whitebit = require('./src/whitebit.js');
 var woo = require('./src/woo.js');
 var woofipro = require('./src/woofipro.js');
+var xt = require('./src/xt.js');
 var yobit = require('./src/yobit.js');
 var zaif = require('./src/zaif.js');
 var zonda = require('./src/zonda.js');
@@ -172,6 +174,7 @@ var ndax$1 = require('./src/pro/ndax.js');
 var okcoin$1 = require('./src/pro/okcoin.js');
 var okx$1 = require('./src/pro/okx.js');
 var onetrading$1 = require('./src/pro/onetrading.js');
+var oxfun$1 = require('./src/pro/oxfun.js');
 var p2b$1 = require('./src/pro/p2b.js');
 var phemex$1 = require('./src/pro/phemex.js');
 var poloniex$1 = require('./src/pro/poloniex.js');
@@ -185,7 +188,7 @@ var woofipro$1 = require('./src/pro/woofipro.js');
 
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
-const version = '4.3.42';
+const version = '4.3.46';
 Exchange["default"].ccxtVersion = version;
 const exchanges = {
     'ace': ace,
@@ -275,6 +278,7 @@ const exchanges = {
     'okcoin': okcoin,
     'okx': okx,
     'onetrading': onetrading,
+    'oxfun': oxfun,
     'p2b': p2b,
     'paymium': paymium,
     'phemex': phemex,
@@ -290,6 +294,7 @@ const exchanges = {
     'whitebit': whitebit,
     'woo': woo,
     'woofipro': woofipro,
+    'xt': xt,
     'yobit': yobit,
     'zaif': zaif,
     'zonda': zonda,
@@ -350,6 +355,7 @@ const pro = {
     'okcoin': okcoin$1,
     'okx': okx$1,
     'onetrading': onetrading$1,
+    'oxfun': oxfun$1,
     'p2b': p2b$1,
     'phemex': phemex$1,
     'poloniex': poloniex$1,
@@ -495,6 +501,7 @@ exports.oceanex = oceanex;
 exports.okcoin = okcoin;
 exports.okx = okx;
 exports.onetrading = onetrading;
+exports.oxfun = oxfun;
 exports.p2b = p2b;
 exports.paymium = paymium;
 exports.phemex = phemex;
@@ -510,6 +517,7 @@ exports.wazirx = wazirx;
 exports.whitebit = whitebit;
 exports.woo = woo;
 exports.woofipro = woofipro;
+exports.xt = xt;
 exports.yobit = yobit;
 exports.zaif = zaif;
 exports.zonda = zonda;

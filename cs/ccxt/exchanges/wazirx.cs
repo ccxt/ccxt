@@ -844,7 +844,26 @@ public partial class wazirx : Exchange
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
         };
-        return await this.privateDeleteOpenOrders(this.extend(request, parameters));
+        object response = await this.privateDeleteOpenOrders(this.extend(request, parameters));
+        //
+        //    [
+        //        {
+        //            id: "4565421197",
+        //            symbol: "adausdt",
+        //            type: "limit",
+        //            side: "buy",
+        //            status: "wait",
+        //            price: "0.41",
+        //            origQty: "11.00",
+        //            executedQty: "0.00",
+        //            avgPrice: "0.00",
+        //            createdTime: "1718089507000",
+        //            updatedTime: "1718089507000",
+        //            clientOrderId: "93d2a838-e272-405d-91e7-3a7bc6d3a003"
+        //        }
+        //    ]
+        //
+        return this.parseOrders(response);
     }
 
     public async override Task<object> cancelOrder(object id, object symbol = null, object parameters = null)
@@ -932,18 +951,22 @@ public partial class wazirx : Exchange
 
     public override object parseOrder(object order, object market = null)
     {
-        // {
-        //     "id":1949417813,
-        //     "symbol":"ltcusdt",
-        //     "type":"limit",
-        //     "side":"sell",
-        //     "status":"done",
-        //     "price":"146.2",
-        //     "origQty":"0.05",
-        //     "executedQty":"0.05",
-        //     "createdTime":1641252564000,
-        //     "updatedTime":1641252564000
-        // },
+        //
+        //    {
+        //        "id": 1949417813,
+        //        "symbol": "ltcusdt",
+        //        "type": "limit",
+        //        "side": "sell",
+        //        "status": "done",
+        //        "price": "146.2",
+        //        "origQty": "0.05",
+        //        "executedQty": "0.05",
+        //        "avgPrice":  "0.00",
+        //        "createdTime": 1641252564000,
+        //        "updatedTime": 1641252564000
+        //        "clientOrderId": "93d2a838-e272-405d-91e7-3a7bc6d3a003"
+        //    }
+        //
         object created = this.safeInteger(order, "createdTime");
         object updated = this.safeInteger(order, "updatedTime");
         object marketId = this.safeString(order, "symbol");
@@ -958,7 +981,7 @@ public partial class wazirx : Exchange
         return this.safeOrder(new Dictionary<string, object>() {
             { "info", order },
             { "id", id },
-            { "clientOrderId", null },
+            { "clientOrderId", this.safeString(order, "clientOrderId") },
             { "timestamp", created },
             { "datetime", this.iso8601(created) },
             { "lastTradeTimestamp", updated },
@@ -974,7 +997,7 @@ public partial class wazirx : Exchange
             { "remaining", null },
             { "cost", null },
             { "fee", null },
-            { "average", null },
+            { "average", this.safeString(order, "avgPrice") },
             { "trades", new List<object>() {} },
         }, market);
     }

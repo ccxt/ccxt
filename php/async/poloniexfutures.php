@@ -1246,7 +1246,7 @@ class poloniexfutures extends Exchange {
             $cancelledOrderIdsLength = count($cancelledOrderIds);
             for ($i = 0; $i < $cancelledOrderIdsLength; $i++) {
                 $cancelledOrderId = $this->safe_string($cancelledOrderIds, $i);
-                $result[] = array(
+                $result[] = $this->safe_order(array(
                     'id' => $cancelledOrderId,
                     'clientOrderId' => null,
                     'timestamp' => null,
@@ -1268,7 +1268,7 @@ class poloniexfutures extends Exchange {
                     'postOnly' => null,
                     'stopPrice' => null,
                     'info' => $response,
-                );
+                ));
             }
             return $result;
         }) ();
