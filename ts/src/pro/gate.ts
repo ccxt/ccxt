@@ -358,7 +358,8 @@ export default class gate extends gateRest {
         const url = this.getUrlByMarket (market);
         await this.authenticate (url, messageType);
         const rawOrders = await this.requestPrivate (url, this.extend (request, requestParams), channel);
-        return this.parseOrders (rawOrders, market);
+        const orders = this.parseOrders (rawOrders, market);
+        return this.filterBySymbolSinceLimit (orders, symbol, since, limit);
     }
 
     async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
@@ -1709,7 +1710,8 @@ export default class gate extends gateRest {
         }
         const requestId = this.safeString (message, 'request_id');
         if (requestId === 'authenticated') {
-            return this.handleAuthenticationMessage (client, message);
+            this.handleAuthenticationMessage (client, message);
+            return;
         }
         if (requestId !== undefined) {
             const data = this.safeDict (message, 'data');
@@ -1837,7 +1839,8 @@ export default class gate extends gateRest {
         }
         const messageHash = requestId;
         const time = this.seconds ();
-        const signatureString = event + '\n' + channel + '\n' + this.json (reqParams) + '\n' + time.toString ();
+        // unfortunately, PHP demands double quotes for the escaped newline symbol
+        const signatureString = [ event, channel, this.json (reqParams), time.toString () ].join ("\n"); // eslint-disable-line quotes
         const signature = this.hmac (this.encode (signatureString), this.encode (this.secret), sha512, 'hex');
         const payload: Dict = {
             'req_id': requestId,
