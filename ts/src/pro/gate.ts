@@ -348,9 +348,9 @@ export default class gate extends gateRest {
         if (symbol !== undefined) {
             market = this.market (symbol);
             symbol = market['symbol'];
-        }
-        if (market['swap'] !== true) {
-            throw new NotSupported (this.id + ' fetchOrdersByStatusWs is only supported by swap markets. Use rest API for other markets');
+            if (market['swap'] !== true) {
+                throw new NotSupported (this.id + ' fetchOrdersByStatusWs is only supported by swap markets. Use rest API for other markets');
+            }
         }
         const [ request, requestParams ] = this.fetchOrdersByStatusRequest (status, symbol, since, limit, params);
         const messageType = this.getTypeByMarket (market);
@@ -1555,7 +1555,7 @@ export default class gate extends gateRest {
                 throw new ExchangeError (this.json (message));
             } catch (e) {
                 client.reject (e, messageHash);
-                if (messageHash !== undefined && messageHash in client.subscriptions) {
+                if ((messageHash !== undefined) && (messageHash in client.subscriptions)) {
                     delete client.subscriptions[messageHash];
                 }
             }
