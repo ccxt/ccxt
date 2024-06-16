@@ -79,7 +79,7 @@ public partial class Exchange
             if ((this.rejections as ConcurrentDictionary<string, object>).TryRemove(messageHash, out object rejection))
             {
                 future.reject(rejection);
-                (this.messageQueue as ConcurrentDictionary<string, ConcurrentQueue<object>>).AddOrUpdate(messageHash, (key) => new ConcurrentQueue<object>());
+                (this.messageQueue as ConcurrentDictionary<string, ConcurrentQueue<object>>).AddOrUpdate(messageHash, new ConcurrentQueue<object>(), (key, value) => new ConcurrentQueue<object>());
                 return future;
             }
             var queue = (this.messageQueue as ConcurrentDictionary<string, ConcurrentQueue<object>>).GetOrAdd(messageHash, (key) => new ConcurrentQueue<object>());
