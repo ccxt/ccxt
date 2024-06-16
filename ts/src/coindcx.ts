@@ -324,8 +324,8 @@ export default class coindcx extends Exchange {
             'taker': this.safeNumber (market, 'taker_fee', 0), // spot markets have no fees yet
             'maker': this.safeNumber (market, 'maker_fee', 0), // spot markets have no fees yet
             'precision': {
-                'amount': this.safeNumber (market, 'target_currency_precision'),
-                'price': this.safeNumber (market, 'base_currency_precision'),
+                'amount': this.safeInteger (market, 'target_currency_precision'),
+                'price': this.safeInteger (market, 'base_currency_precision'),
             },
             'limits': {
                 'leverage': {
@@ -440,7 +440,7 @@ export default class coindcx extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         timeframe = this.safeString (this.timeframes, timeframe, timeframe);
-        const marketInfo = this.safeDict (market, 'info');
+        const marketInfo = this.safeDict (market, 'info', {});
         const pair = this.safeString (marketInfo, 'pair');
         const request: Dict = {
             'pair': pair,
@@ -497,7 +497,7 @@ export default class coindcx extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const marketInfo = this.safeDict (market, 'info');
+        const marketInfo = this.safeDict (market, 'info', {});
         const pair = this.safeString (marketInfo, 'pair');
         const request: Dict = {
             'pair': pair,
@@ -561,7 +561,7 @@ export default class coindcx extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const marketInfo = this.safeDict (market, 'info');
+        const marketInfo = this.safeDict (market, 'info', {});
         const pair = this.safeString (marketInfo, 'pair');
         const request: Dict = {
             'pair': pair,
@@ -747,17 +747,166 @@ export default class coindcx extends Exchange {
          * @description create a trade order
          * @see https://docs.coindcx.com/?python#new-order
          * @param {string} symbol unified symbol of the market to create an order in
-         * @param {string} type 'market', 'limit', 'STOP_LIMIT' or 'STOP_MARKET'
+         * @param {string} type 'market', 'limit', 'stop_limit', 'stop_market', 'take_profit_limit', 'take_profit_market'
+         * @param {string} side 'buy' or 'sell'
+         * @param {float} amount how much of currency you want to trade in units of base currency
+         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {int} [params.clientOrderId] *for spot markets without margin only* a unique id for the order
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const isSpot = market['spot'];
+        if (isSpot) {
+            const isMargin = market['margin'];
+            if (isMargin) {
+                return this.createSpotMarginOrder (symbol, type, side, amount, price, params);
+            } else {
+                return this.createSpotOrderWithoutMargin (symbol, type, side, amount, price, params);
+            }
+        }
+    }
+
+    async createSpotMarginOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}): Promise<Order> {
+        /**
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {string} type 'market', 'limit', 'stop_limit', 'take_profit'
+         * @param {string} side 'buy' or 'sell'
+         * @param {float} amount how much of currency you want to trade in units of base currency
+         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {int} [params.leverage] the rate of leverage
+         * @param {float} [params.triggerPrice] triggerPrice at which the attached take profit / stop loss order will be triggered
+         * @param {float} [params.stopLossPrice] stop loss trigger price
+         * @param {float} [params.takeProfitPrice] take profit trigger price
+         */
+        const market = this.market (symbol);
+        // todo check and add trailing_sl and target_price
+        const marketInfo = this.safeDict (market, 'info', {});
+        const request: Dict = {
+            'market': market['id'],
+            'order_type': this.encodeOrderType (type),
+            'side': side,
+            'quantity': this.amountToPrecision (symbol, amount),
+            'ecode': this.safeString (marketInfo, 'ecode'),
+        };
+        if (price !== undefined) {
+            request['price'] = this.priceToPrecision (symbol, price);
+        }
+        const stopLossPrice = this.safeString (params, 'stopLossPrice');
+        const takeProfitPrice = this.safeString (params, 'takeProfitPrice');
+        if ((type === 'market') || (type === 'limit')) {
+            if (stopLossPrice !== undefined) {
+                request['order_type'] = 'stop_limit';
+            } else if (takeProfitPrice !== undefined) {
+                request['order_type'] = 'take_profit';
+            }
+        }
+        const triggerPrice = this.safeStringN (params, [ 'triggerPrice', 'stopLossPrice', 'takeProfitPrice' ]);
+        if (triggerPrice !== undefined) {
+            request['stop_price'] = this.priceToPrecision (symbol, triggerPrice);
+        }
+        const response = this.privatePostExchangeV1MarginCreate (this.extend (request, params));
+        //
+        //     [
+        //         {
+        //             "id": "93c5ecee-2bdb-11ef-8777-0bea7a6ac553",
+        //             "side": "buy",
+        //             "status": "init",
+        //             "market": "ACHUSDT",
+        //             "order_type": "market_order",
+        //             "base_currency_name": null,
+        //             "target_currency_name": null,
+        //             "base_currency_short_name": null,
+        //             "target_currency_short_name": null,
+        //             "base_currency_precision": null,
+        //             "target_currency_precision": null,
+        //             "trailing_sl": false,
+        //             "trail_percent": null,
+        //             "avg_entry": 0.0,
+        //             "avg_exit": 0.0,
+        //             "maker_fee": 0.1,
+        //             "taker_fee": 0.1,
+        //             "fee": 0.1,
+        //             "entry_fee": 0.0,
+        //             "exit_fee": 0.0,
+        //             "active_pos": 0.0,
+        //             "exit_pos": 0.0,
+        //             "total_pos": 0.0,
+        //             "quantity": 1.0,
+        //             "price": 0.02414,
+        //             "sl_price": 0.00483,
+        //             "target_price": 0.0,
+        //             "stop_price": 0.0,
+        //             "pnl": 0.0,
+        //             "initial_margin": 0.02418828,
+        //             "interest": 0.0667,
+        //             "interest_amount": 0.0,
+        //             "interest_amount_updated_at": 0,
+        //             "interest_free_hours": 1.0,
+        //             "leverage": 1.0,
+        //             "result": null,
+        //             "tds_amount": null,
+        //             "margin_tds_records": [],
+        //             "created_at": 1718540754877,
+        //             "updated_at": 1718540754877,
+        //             "orders": [
+        //                 {
+        //                     "id": 104430986,
+        //                     "order_type": "market_order",
+        //                     "status": "initial",
+        //                     "market": "ACHUSDT",
+        //                     "side": "buy",
+        //                     "avg_price": 0.0,
+        //                     "total_quantity": 1.0,
+        //                     "remaining_quantity": 1.0,
+        //                     "price_per_unit": 0.0,
+        //                     "timestamp": 1718540754920.9573,
+        //                     "maker_fee": 0.1,
+        //                     "taker_fee": 0.1,
+        //                     "fee": 0.1,
+        //                     "fee_amount": 0.0,
+        //                     "filled_quantity": 0.0,
+        //                     "bo_stage": "stage_entry",
+        //                     "cancelled_quantity": 0.0,
+        //                     "stop_price": 0.0
+        //                 }
+        //             ]
+        //         }
+        //     ]
+        //
+        const order = this.safeDict (response, 0, {});
+        return this.parseOrder (order, market);
+    }
+
+    async createSpotOrderWithoutMargin (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}): Promise<Order> {
+        /**
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {string} type 'market', 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
          * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {int} [params.clientOrderId] a unique id for the order
-         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
-        await this.loadMarkets ();
-        const request = this.createOrderRequest (symbol, type, side, amount, price, params);
-        const response = await this.privatePostExchangeV1OrdersCreate (request);
+        const market = this.market (symbol);
+        // todo throw an exception for margin params
+        const request: Dict = {
+            'market': market['id'],
+            'order_type': this.encodeOrderType (type),
+            'side': side,
+            'total_quantity': this.amountToPrecision (symbol, amount),
+        };
+        if (price !== undefined) {
+            request['price_per_unit'] = this.priceToPrecision (symbol, price);
+        }
+        const clientOrderId = this.safeString (params, 'clientOrderId');
+        if (clientOrderId !== undefined) {
+            request['client_order_id'] = clientOrderId;
+            params = this.omit (params, 'clientOrderId');
+        }
+        const response = await this.privatePostExchangeV1OrdersCreate (this.extend (request, params));
         //
         //     {
         //         "orders": [
@@ -793,35 +942,8 @@ export default class coindcx extends Exchange {
         //     }
         //
         const orders = this.safeList (response, 'orders', []);
-        const parsedOrders = this.parseOrders (orders);
-        return parsedOrders[0];
-    }
-
-    createOrderRequest (symbol: string, type: string, side: string, amount, price = undefined, params = {}) {
-        /**
-         * @param {string} symbol unified symbol of the market to create an order in
-         * @param {string} type 'market', 'limit'
-         * @param {string} side 'buy' or 'sell'
-         * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {int} [params.clientOrderId] a unique id for the order
-         */
-        const market = this.market (symbol);
-        const request: Dict = {
-            'market': market['id'],
-            'order_type': this.encodeOrderType (type),
-            'side': side,
-            'total_quantity': this.amountToPrecision (symbol, amount),
-        };
-        if (price !== undefined) {
-            request['price_per_unit'] = this.priceToPrecision (symbol, price);
-        }
-        const clientOrderId = this.safeString (params, 'clientOrderId');
-        if (clientOrderId !== undefined) {
-            request['client_order_id'] = clientOrderId;
-        }
-        return this.extend (request, params);
+        const order = this.safeDict (orders, 0, {});
+        return this.parseOrder (order, market);
     }
 
     async fetchOrder (id: string, symbol: Str = undefined, params = {}): Promise<Order> {
@@ -840,6 +962,11 @@ export default class coindcx extends Exchange {
         const request: Dict = {
             'id': id,
         };
+        const clientOrderId = this.safeString (params, 'clientOrderId');
+        if (clientOrderId !== undefined) {
+            request['client_order_id'] = clientOrderId;
+            params = this.omit (params, 'clientOrderId');
+        }
         const response = await this.privatePostExchangeV1OrdersStatus (this.extend (request, params));
         //
         //     {
@@ -1019,7 +1146,7 @@ export default class coindcx extends Exchange {
 
     parseOrder (order, market: Market = undefined): Order {
         //
-        // createOrder
+        // createOrder, fetchOrder
         //     {
         //         "id": "fcaae278-2a73-11ef-a2d5-5374ccb4f829",
         //         "client_order_id": null,
@@ -1060,7 +1187,7 @@ export default class coindcx extends Exchange {
         const triggerPrice = this.omitZero (this.safeString (order, 'stop_price'));
         return this.safeOrder ({
             'id': this.safeString (order, 'id'),
-            'clientOrderId': this.safeString2 (order, 'client_order_id', 'user_id'),
+            'clientOrderId': this.safeString (order, 'client_order_id'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': undefined, // todo check
