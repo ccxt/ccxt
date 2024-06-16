@@ -2479,6 +2479,33 @@ export default class hyperliquid extends Exchange {
         const response = await this.privatePostExchange(this.extend(request, params));
         return this.parseTransaction(response);
     }
+    parseTransaction(transaction, currency = undefined) {
+        //
+        // { status: 'ok', response: { type: 'default' } }
+        //
+        return {
+            'info': transaction,
+            'id': undefined,
+            'txid': undefined,
+            'timestamp': undefined,
+            'datetime': undefined,
+            'network': undefined,
+            'address': undefined,
+            'addressTo': undefined,
+            'addressFrom': undefined,
+            'tag': undefined,
+            'tagTo': undefined,
+            'tagFrom': undefined,
+            'type': undefined,
+            'amount': undefined,
+            'currency': undefined,
+            'status': this.safeString(transaction, 'status'),
+            'updated': undefined,
+            'comment': undefined,
+            'internal': undefined,
+            'fee': undefined,
+        };
+    }
     formatVaultAddress(address = undefined) {
         if (address === undefined) {
             return undefined;

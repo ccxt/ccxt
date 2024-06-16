@@ -2692,6 +2692,35 @@ public partial class hyperliquid : Exchange
         return this.parseTransaction(response);
     }
 
+    public override object parseTransaction(object transaction, object currency = null)
+    {
+        //
+        // { status: 'ok', response: { type: 'default' } }
+        //
+        return new Dictionary<string, object>() {
+            { "info", transaction },
+            { "id", null },
+            { "txid", null },
+            { "timestamp", null },
+            { "datetime", null },
+            { "network", null },
+            { "address", null },
+            { "addressTo", null },
+            { "addressFrom", null },
+            { "tag", null },
+            { "tagTo", null },
+            { "tagFrom", null },
+            { "type", null },
+            { "amount", null },
+            { "currency", null },
+            { "status", this.safeString(transaction, "status") },
+            { "updated", null },
+            { "comment", null },
+            { "internal", null },
+            { "fee", null },
+        };
+    }
+
     public virtual object formatVaultAddress(object address = null)
     {
         if (isTrue(isEqual(address, null)))

@@ -2523,6 +2523,34 @@ class hyperliquid extends Exchange {
         }) ();
     }
 
+    public function parse_transaction(array $transaction, ?array $currency = null): array {
+        //
+        // array( status => 'ok', response => array( type => 'default' ) )
+        //
+        return array(
+            'info' => $transaction,
+            'id' => null,
+            'txid' => null,
+            'timestamp' => null,
+            'datetime' => null,
+            'network' => null,
+            'address' => null,
+            'addressTo' => null,
+            'addressFrom' => null,
+            'tag' => null,
+            'tagTo' => null,
+            'tagFrom' => null,
+            'type' => null,
+            'amount' => null,
+            'currency' => null,
+            'status' => $this->safe_string($transaction, 'status'),
+            'updated' => null,
+            'comment' => null,
+            'internal' => null,
+            'fee' => null,
+        );
+    }
+
     public function format_vault_address(?string $address = null) {
         if ($address === null) {
             return null;
