@@ -631,12 +631,13 @@ class coinex(ccxt.async_support.coinex):
         #         "id": null
         #     }
         #
+        isSwap = client.url.find('perpetual') >= 0
+        marketType = 'swap' if isSwap else 'spot'
         params = self.safe_value(message, 'params', [])
         fullOrderBook = self.safe_value(params, 0)
         orderbook = self.safe_value(params, 1)
         marketId = self.safe_string(params, 2)
-        defaultType = self.safe_string(self.options, 'defaultType')
-        market = self.safe_market(marketId, None, None, defaultType)
+        market = self.safe_market(marketId, None, None, marketType)
         symbol = market['symbol']
         name = 'orderbook'
         messageHash = name + ':' + symbol
