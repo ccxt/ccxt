@@ -380,6 +380,9 @@ class kucoinfutures(kucoin):
         settle = self.safe_currency_code(settleId)
         symbol = base + '/' + quote
         type = 'swap'
+        # if future:
+        #     symbol = symbol + '-' + self.yymmdd(expiry, '')
+        #     type = 'future'
         is_inverse = self.safe_value(market, 'isInverse')
         status = self.safe_string(market, 'status')
         multiplier = self.safe_string(market, 'multiplier')
