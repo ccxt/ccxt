@@ -884,8 +884,8 @@ export default class poloniexfutures extends poloniexfuturesRest {
             return;
         }
         if (nonce !== lastSequence) {
-            const validate = this.handleOption ('watchOrderBook', 'checksum', true);
-            if (validate) {
+            const checksum = this.handleOption ('watchOrderBook', 'checksum', true);
+            if (checksum) {
                 throw new InvalidOrderbookChecksum (this.id + ' ' + this.orderbookChecksumMessage (''));
             }
         }

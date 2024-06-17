@@ -123,6 +123,7 @@ export default class binance extends binanceRest {
                 },
                 'watchOrderBook': {
                     'maxRetries': 3,
+                    'checksum': true,
                 },
                 'watchBalance': {
                     'fetchBalanceSnapshot': false, // or true
@@ -515,9 +516,9 @@ export default class binance extends binanceRest {
                                 client.resolve (orderbook, messageHash);
                             }
                         } else {
-                            // todo: client.reject from handleOrderBookMessage properly
-                            const validate = this.handleOption ('watchOrderBook', 'checksum', true);
-                            if (validate) {
+                            const checksum = this.handleOption ('watchOrderBook', 'checksum', true);
+                            if (checksum) {
+                                // todo: client.reject from handleOrderBookMessage properly
                                 throw new InvalidOrderbookChecksum (this.id + ' ' + this.orderbookChecksumMessage (symbol));
                             }
                         }
@@ -534,9 +535,9 @@ export default class binance extends binanceRest {
                                 client.resolve (orderbook, messageHash);
                             }
                         } else {
-                            // todo: client.reject from handleOrderBookMessage properly
-                            const validate = this.handleOption ('watchOrderBook', 'checksum', true);
-                            if (validate) {
+                            const checksum = this.handleOption ('watchOrderBook', 'checksum', true);
+                            if (checksum) {
+                                // todo: client.reject from handleOrderBookMessage properly
                                 throw new InvalidOrderbookChecksum (this.id + ' ' + this.orderbookChecksumMessage (symbol));
                             }
                         }

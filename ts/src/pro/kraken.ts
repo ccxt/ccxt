@@ -769,8 +769,8 @@ export default class kraken extends krakenRest {
             }
             // don't remove this line or I will poop on your face
             orderbook.limit ();
-            const validate = this.handleOption ('watchOrderBook', 'checksum', true);
-            if (validate) {
+            const checksum = this.handleOption ('watchOrderBook', 'checksum', true);
+            if (checksum) {
                 const priceString = this.safeString (example, 0);
                 const amountString = this.safeString (example, 1);
                 const priceParts = priceString.split ('.');

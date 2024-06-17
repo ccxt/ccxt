@@ -65,6 +65,9 @@ export default class bitget extends bitgetRest {
                     '1d': '1D',
                     '1w': '1W',
                 },
+                'watchOrderBook': {
+                    'checksum': true,
+                },
             },
             'streaming': {
                 'ping': this.ping,
@@ -572,8 +575,8 @@ export default class bitget extends bitgetRest {
                 if (calculatedChecksum !== responseChecksum) {
                     delete client.subscriptions[messageHash];
                     delete this.orderbooks[symbol];
-                    const validate = this.handleOption ('watchOrderBook', 'checksum', true);
-                    if (validate) {
+                    const checksum = this.handleOption ('watchOrderBook', 'checksum', true);
+                    if (checksum) {
                         const error = new InvalidOrderbookChecksum (this.id + ' ' + this.orderbookChecksumMessage (symbol));
                         client.reject (error, messageHash);
                     }

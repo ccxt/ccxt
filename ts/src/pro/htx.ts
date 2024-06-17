@@ -100,6 +100,7 @@ export default class htx extends htxRest {
                 'api': 'api', // or api-aws for clients hosted on AWS
                 'watchOrderBook': {
                     'maxRetries': 3,
+                    'checksum': true,
                 },
                 'ws': {
                     'gunzip': true,
@@ -579,8 +580,8 @@ export default class htx extends htxRest {
             orderbook['nonce'] = version;
         }
         if ((prevSeqNum !== undefined) && prevSeqNum > orderbook['nonce']) {
-            const validate = this.handleOption ('watchOrderBook', 'checksum', true);
-            if (validate) {
+            const checksum = this.handleOption ('watchOrderBook', 'checksum', true);
+            if (checksum) {
                 throw new InvalidOrderbookChecksum (this.id + ' ' + this.orderbookChecksumMessage (symbol));
             }
         }

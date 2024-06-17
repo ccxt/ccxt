@@ -71,6 +71,7 @@ export default class gate extends gateRest {
                     'interval': '100ms',
                     'snapshotDelay': 10, // how many deltas to cache before fetching a snapshot
                     'snapshotMaxRetries': 3,
+                    'checksum': true,
                 },
                 'watchBalance': {
                     'settle': 'usdt', // or btc
@@ -224,8 +225,8 @@ export default class gate extends gateRest {
         } else {
             delete client.subscriptions[messageHash];
             delete this.orderbooks[symbol];
-            const validate = this.handleOption ('watchOrderBook', 'checksum', true);
-            if (validate) {
+            const checksum = this.handleOption ('watchOrderBook', 'checksum', true);
+            if (checksum) {
                 const error = new InvalidOrderbookChecksum (this.id + ' ' + this.orderbookChecksumMessage (symbol));
                 client.reject (error, messageHash);
             }

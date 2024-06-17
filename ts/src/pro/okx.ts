@@ -685,8 +685,8 @@ export default class okx extends okxRest {
         this.handleDeltas (storedBids, bids);
         const marketId = this.safeString (message, 'instId');
         const symbol = this.safeSymbol (marketId);
-        const validate = this.handleOption ('watchOrderBook', 'checksum', true);
-        if (validate) {
+        const checksum = this.handleOption ('watchOrderBook', 'checksum', true);
+        if (checksum) {
             const asksLength = storedAsks.length;
             const bidsLength = storedBids.length;
             const payloadArray = [];

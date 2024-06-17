@@ -47,6 +47,9 @@ export default class cryptocom extends cryptocomRest {
                     'fetchPositionsSnapshot': true, // or false
                     'awaitPositionsSnapshot': true, // whether to wait for the positions snapshot before providing updates
                 },
+                'watchOrderBook': {
+                    'checksum': true,
+                },
             },
             'streaming': {
             },
@@ -225,8 +228,8 @@ export default class cryptocom extends cryptocomRest {
             const previousNonce = this.safeInteger (data, 'pu');
             const currentNonce = orderbook['nonce'];
             if (currentNonce !== previousNonce) {
-                const validate = this.handleOption ('watchOrderBook', 'checksum', true);
-                if (validate) {
+                const checksum = this.handleOption ('watchOrderBook', 'checksum', true);
+                if (checksum) {
                     throw new InvalidOrderbookChecksum (this.id + ' ' + this.orderbookChecksumMessage (symbol));
                 }
             }
