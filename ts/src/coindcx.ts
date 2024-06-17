@@ -765,6 +765,8 @@ export default class coindcx extends Exchange {
             } else {
                 return this.createSpotOrderWithoutMargin (symbol, type, side, amount, price, params);
             }
+        } else {
+            return this.createContractOrder (symbol, type, side, amount, price, params);
         }
     }
 
@@ -944,6 +946,12 @@ export default class coindcx extends Exchange {
         const orders = this.safeList (response, 'orders', []);
         const order = this.safeDict (orders, 0, {});
         return this.parseOrder (order, market);
+    }
+
+    async createContractOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}): Promise<Order> {
+        const market = this.market (symbol);
+        // todo implement this method
+        return this.parseOrder ({}, market);
     }
 
     async fetchOrder (id: string, symbol: Str = undefined, params = {}): Promise<Order> {
