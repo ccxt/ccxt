@@ -285,7 +285,7 @@ public partial class Exchange
         var value = (string)value2;
         if (value.IndexOf('e') > -1 || value.IndexOf('E') > -1)
         {
-            var numStr = Regex.Replace(value, @"/\d\.?\d*[eE]/", "");
+            var numStr = Regex.Replace(value, @"\d\.?\d*[eE]", "");
             return (Int32.Parse(numStr) * -1);
         }
         value = value.TrimEnd('0');
