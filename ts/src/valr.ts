@@ -1805,8 +1805,8 @@ export default class valr extends Exchange {
             'after': 0,
             'status': 'ok',
             'fee': {
-                'currency': undefined,
-                'cost': undefined,
+                'currency': this.safeString (item, 'feeCurrency'),
+                'cost': this.safeNumber (item, 'feeValue'),
                 'rate': undefined,
             },
             'info': item,
