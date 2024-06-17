@@ -2,7 +2,7 @@
 //  ---------------------------------------------------------------------------
 
 import Exchange from './abstract/coindcx.js';
-import { BadRequest } from './base/errors.js';
+import { ArgumentsRequired, NotSupported } from './base/errors.js';
 import { DECIMAL_PLACES } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import type { Balances, Dict, IndexType, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade } from './base/types.js';
@@ -770,18 +770,18 @@ export default class coindcx extends Exchange {
                 params['client_order_id'] = clientOrderId;
                 params = this.omit (params, 'clientOrderId');
             } else {
-                throw new BadRequest (this.id + ' createOrder() supports params.clientOrderId only for spot markets without margin');
+                throw new NotSupported (this.id + ' createOrder() supports params.clientOrderId only for spot markets without margin');
             }
         }
         if (isSpot) {
             if ((type === 'stop_market') || (type === 'take_profit_market')) {
-                throw new BadRequest (this.id + ' createOrder() supports only market, limit, stop_limit, take_profit and take_profit_limit types of orders for spot markets');
+                throw new NotSupported (this.id + ' createOrder() supports only market, limit, stop_limit, take_profit and take_profit_limit types of orders for spot markets');
             }
             if (isMargin) {
                 return this.createSpotMarginOrder (symbol, type, side, amount, price, params);
             } else {
                 if ((type === 'stop_limit') || (type === 'take_profit')) {
-                    throw new BadRequest (this.id + ' createOrder() supports only market and limit types of orders for spot markets without margin');
+                    throw new NotSupported (this.id + ' createOrder() supports only market and limit types of orders for spot markets without margin');
                 }
                 return this.createSpotNoMarginOrder (symbol, type, side, amount, price, params);
             }
@@ -821,7 +821,7 @@ export default class coindcx extends Exchange {
         const triggerPrice = this.safeStringN (params, [ 'triggerPrice', 'stopLossPrice', 'takeProfitPrice' ]);
         if (triggerPrice !== undefined) {
             if (type === 'market') {
-                throw new BadRequest (this.id + ' createOrder() supports only limit type for takeProfit and stopLoss orders for spot markets with margin');
+                throw new NotSupported (this.id + ' createOrder() supports only limit type for takeProfit and stopLoss orders for spot markets with margin');
             }
             request['stop_price'] = this.priceToPrecision (symbol, triggerPrice);
             if (type === 'limit') {
@@ -991,50 +991,118 @@ export default class coindcx extends Exchange {
          * @param {string} id a unique id for the order
          * @param {string} [symbol] not used by coindcx fetchOrder
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {int} [params.clientOrderId] the client order id of the order
+         * @param {int} [params.clientOrderId] *for spot markets without margin only* the client order id of the order
+         * @param {bool} [params.details] *for spot margin markets only* whether user wants detailed information or not, default: false
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchOrder requires a symbol argument');
+        }
         await this.loadMarkets ();
+        const market = this.market (symbol);
         const request: Dict = {
             'id': id,
         };
-        const clientOrderId = this.safeString (params, 'clientOrderId');
+        const isSpot = market['spot'];
+        const isMargin = market['margin'];
+        const clientOrderId = this.safeString2 (params, 'clientOrderId', 'client_order_id');
         if (clientOrderId !== undefined) {
-            request['client_order_id'] = clientOrderId;
-            params = this.omit (params, 'clientOrderId');
+            if (isSpot && (!isMargin)) {
+                request['client_order_id'] = clientOrderId;
+                params = this.omit (params, 'clientOrderId');
+            } else {
+                throw new NotSupported (this.id + ' fetchOrder() supports params.clientOrderId only for spot markets without margin');
+            }
         }
-        const response = await this.privatePostExchangeV1OrdersStatus (this.extend (request, params));
-        //
-        //     {
-        //         "id": "fcaae278-2a73-11ef-a2d5-5374ccb4f829",
-        //         "client_order_id": null,
-        //         "order_type": "market_order",
-        //         "side": "buy",
-        //         "status": "filled",
-        //         "fee_amount": 0.0,
-        //         "fee": 0.0,
-        //         "maker_fee": 0.0,
-        //         "taker_fee": 0.0,
-        //         "total_quantity": 0.0001,
-        //         "remaining_quantity": 0.0,
-        //         "source": "web",
-        //         "base_currency_name": null,
-        //         "target_currency_name": null,
-        //         "base_currency_short_name": null,
-        //         "target_currency_short_name": null,
-        //         "base_currency_precision": null,
-        //         "target_currency_precision": null,
-        //         "avg_price": 65483.14,
-        //         "price_per_unit": 65483.14,
-        //         "stop_price": 0.0,
-        //         "market": "BTCUSDT",
-        //         "time_in_force": "good_till_cancel",
-        //         "created_at": 1718386312000,
-        //         "updated_at": 1718386312000,
-        //         "trades": null
-        //     }
-        //
-        return this.parseOrder (response);
+        if (isSpot) {
+            if (isMargin) {
+                const response = await this.privatePostExchangeV1MarginOrder (this.extend (request, params));
+                //
+                //     [
+                //         {
+                //             "id": "2ef3f9ca-2c29-11ef-980a-830ce40e43f5",
+                //             "side": "buy",
+                //             "status": "rejected",
+                //             "market": "BTCUSDT",
+                //             "order_type": "take_profit",
+                //             "base_currency_name": null,
+                //             "target_currency_name": null,
+                //             "base_currency_short_name": null,
+                //             "target_currency_short_name": null,
+                //             "base_currency_precision": null,
+                //             "target_currency_precision": null,
+                //             "trailing_sl": false,
+                //             "trail_percent": null,
+                //             "avg_entry": 0.0,
+                //             "avg_exit": 0.0,
+                //             "maker_fee": 0.1,
+                //             "taker_fee": 0.1,
+                //             "fee": 0.1,
+                //             "entry_fee": 0.0,
+                //             "exit_fee": 0.0,
+                //             "active_pos": 0.0,
+                //             "exit_pos": 0.0,
+                //             "total_pos": 0.0,
+                //             "quantity": 0.0001,
+                //             "price": 49000.0,
+                //             "sl_price": 13304.39,
+                //             "target_price": 0.0,
+                //             "stop_price": 50000.0,
+                //             "pnl": 0.0,
+                //             "initial_margin": 0.0,
+                //             "interest": 0.0667,
+                //             "interest_amount": 0.0,
+                //             "interest_amount_updated_at": 0,
+                //             "interest_free_hours": 1.0,
+                //             "leverage": 1.0,
+                //             "result": null,
+                //             "tds_amount": null,
+                //             "margin_tds_records": [],
+                //             "created_at": 1718574086469,
+                //             "updated_at": 1718574086842,
+                //             "orders": []
+                //         }
+                //     ]
+                //
+                const order = this.safeDict (response, 0, {});
+                return this.parseOrder (order, market);
+            } else {
+                const response = await this.privatePostExchangeV1OrdersStatus (this.extend (request, params));
+                //
+                //     {
+                //         "id": "fcaae278-2a73-11ef-a2d5-5374ccb4f829",
+                //         "client_order_id": null,
+                //         "order_type": "market_order",
+                //         "side": "buy",
+                //         "status": "filled",
+                //         "fee_amount": 0.0,
+                //         "fee": 0.0,
+                //         "maker_fee": 0.0,
+                //         "taker_fee": 0.0,
+                //         "total_quantity": 0.0001,
+                //         "remaining_quantity": 0.0,
+                //         "source": "web",
+                //         "base_currency_name": null,
+                //         "target_currency_name": null,
+                //         "base_currency_short_name": null,
+                //         "target_currency_short_name": null,
+                //         "base_currency_precision": null,
+                //         "target_currency_precision": null,
+                //         "avg_price": 65483.14,
+                //         "price_per_unit": 65483.14,
+                //         "stop_price": 0.0,
+                //         "market": "BTCUSDT",
+                //         "time_in_force": "good_till_cancel",
+                //         "created_at": 1718386312000,
+                //         "updated_at": 1718386312000,
+                //         "trades": null
+                //     }
+                //
+                return this.parseOrder (response);
+            }
+        } else {
+            throw new NotSupported (this.id + ' fetchOrder() supports only spot markets');
+        }
     }
 
     async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
