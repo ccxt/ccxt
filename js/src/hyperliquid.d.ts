@@ -1,5 +1,5 @@
 import Exchange from './abstract/hyperliquid.js';
-import type { Market, TransferEntry, Balances, Int, OrderBook, OHLCV, Str, FundingRateHistory, Order, OrderType, OrderSide, Trade, Strings, Position, OrderRequest, Dict, Num, MarginModification, Currencies, CancellationRequest, int } from './base/types.js';
+import type { Market, TransferEntry, Balances, Int, OrderBook, OHLCV, Str, FundingRateHistory, Order, OrderType, OrderSide, Trade, Strings, Position, OrderRequest, Dict, Num, MarginModification, Currencies, CancellationRequest, int, Transaction, Currency } from './base/types.js';
 /**
  * @class hyperliquid
  * @augments Exchange
@@ -36,7 +36,7 @@ export default class hyperliquid extends Exchange {
     };
     actionHash(action: any, vaultAddress: any, nonce: any): any;
     signL1Action(action: any, nonce: any, vaultAdress?: any): object;
-    buildSig(chainId: any, messageTypes: any, message: any): {
+    signUserSignedAction(messageTypes: any, message: any): {
         r: string;
         s: string;
         v: any;
@@ -77,7 +77,8 @@ export default class hyperliquid extends Exchange {
     modifyMarginHelper(symbol: string, amount: any, type: any, params?: {}): Promise<MarginModification>;
     parseMarginModification(data: Dict, market?: Market): MarginModification;
     transfer(code: string, amount: number, fromAccount: string, toAccount: string, params?: {}): Promise<TransferEntry>;
-    withdraw(code: string, amount: any, address: any, tag?: any, params?: {}): Promise<any>;
+    withdraw(code: string, amount: number, address: string, tag?: any, params?: {}): Promise<Transaction>;
+    parseTransaction(transaction: Dict, currency?: Currency): Transaction;
     formatVaultAddress(address?: Str): string;
     handlePublicAddress(methodName: string, params: Dict): any[];
     coinToMarketId(coin: Str): string;

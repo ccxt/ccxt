@@ -218,6 +218,7 @@ class mexc extends Exchange {
                             'sub-account/margin' => 1,
                             'batchOrders' => 10,
                             'capital/withdraw/apply' => 1,
+                            'capital/withdraw' => 1,
                             'capital/transfer' => 1,
                             'capital/transfer/internal' => 1,
                             'capital/deposit/address' => 1,
@@ -236,6 +237,7 @@ class mexc extends Exchange {
                             'margin/order' => 1,
                             'margin/openOrders' => 1,
                             'userDataStream' => 1,
+                            'capital/withdraw' => 1,
                         ),
                     ),
                 ),
@@ -1058,7 +1060,7 @@ class mexc extends Exchange {
             $chains = $this->safe_value($currency, 'networkList', array());
             for ($j = 0; $j < count($chains); $j++) {
                 $chain = $chains[$j];
-                $networkId = $this->safe_string($chain, 'network');
+                $networkId = $this->safe_string_2($chain, 'network', 'netWork');
                 $network = $this->network_id_to_code($networkId);
                 $isDepositEnabled = $this->safe_bool($chain, 'depositEnable', false);
                 $isWithdrawEnabled = $this->safe_bool($chain, 'withdrawEnable', false);
@@ -5140,7 +5142,7 @@ class mexc extends Exchange {
     public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()) {
         /**
          * make a withdrawal
-         * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#withdraw
+         * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#withdraw-new
          * @param {string} $code unified $currency $code
          * @param {float} $amount the $amount to withdraw
          * @param {string} $address the $address to withdraw to
@@ -5150,7 +5152,7 @@ class mexc extends Exchange {
          */
         list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
         $networks = $this->safe_value($this->options, 'networks', array());
-        $network = $this->safe_string_2($params, 'network', 'chain'); // this line allows the user to specify either ERC20 or ETH
+        $network = $this->safe_string_2($params, 'network', 'netWork'); // this line allows the user to specify either ERC20 or ETH
         $network = $this->safe_string($networks, $network, $network); // handle ETH > ERC-20 alias
         $this->check_address($address);
         $this->load_markets();
@@ -5164,10 +5166,10 @@ class mexc extends Exchange {
             $request['memo'] = $tag;
         }
         if ($network !== null) {
-            $request['network'] = $network;
-            $params = $this->omit($params, array( 'network', 'chain' ));
+            $request['netWork'] = $network;
+            $params = $this->omit($params, array( 'network', 'netWork' ));
         }
-        $response = $this->spotPrivatePostCapitalWithdrawApply ($this->extend($request, $params));
+        $response = $this->spotPrivatePostCapitalWithdraw ($this->extend($request, $params));
         //
         //     {
         //       "id":"7213fea8e94b4a5593d507237e5a555b"

@@ -32,6 +32,7 @@ class woofipro(Exchange, ImplicitAPI):
             'version': 'v1',
             'certified': True,
             'pro': True,
+            'dex': True,
             'hostname': 'dex.woo.org',
             'has': {
                 'CORS': None,

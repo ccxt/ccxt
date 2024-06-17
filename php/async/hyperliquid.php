@@ -27,6 +27,7 @@ class hyperliquid extends Exchange {
             'rateLimit' => 50, // 1200 requests per minute, 20 request per second
             'certified' => false,
             'pro' => true,
+            'dex' => true,
             'has' => array(
                 'CORS' => null,
                 'spot' => true,
@@ -994,11 +995,12 @@ class hyperliquid extends Exchange {
         return $signature;
     }
 
-    public function build_sig($chainId, $messageTypes, $message) {
+    public function sign_user_signed_action($messageTypes, $message) {
         $zeroAddress = $this->safe_string($this->options, 'zeroAddress');
+        $chainId = 421614; // check this out
         $domain = array(
             'chainId' => $chainId,
-            'name' => 'Exchange',
+            'name' => 'HyperliquidSignTransaction',
             'verifyingContract' => $zeroAddress,
             'version' => '1',
         );
@@ -1008,29 +1010,27 @@ class hyperliquid extends Exchange {
     }
 
     public function build_transfer_sig($message) {
-        $isSandboxMode = $this->safe_bool($this->options, 'sandboxMode');
-        $chainId = ($isSandboxMode) ? 421614 : 42161;
         $messageTypes = array(
-            'UsdTransferSignPayload' => array(
+            'HyperliquidTransaction:UsdSend' => array(
+                array( 'name' => 'hyperliquidChain', 'type' => 'string' ),
                 array( 'name' => 'destination', 'type' => 'string' ),
                 array( 'name' => 'amount', 'type' => 'string' ),
                 array( 'name' => 'time', 'type' => 'uint64' ),
             ),
         );
-        return $this->build_sig($chainId, $messageTypes, $message);
+        return $this->sign_user_signed_action($messageTypes, $message);
     }
 
     public function build_withdraw_sig($message) {
-        $isSandboxMode = $this->safe_bool($this->options, 'sandboxMode');
-        $chainId = ($isSandboxMode) ? 421614 : 42161;
         $messageTypes = array(
-            'WithdrawFromBridge2SignPayload' => array(
+            'HyperliquidTransaction:Withdraw' => array(
+                array( 'name' => 'hyperliquidChain', 'type' => 'string' ),
                 array( 'name' => 'destination', 'type' => 'string' ),
-                array( 'name' => 'usd', 'type' => 'string' ),
+                array( 'name' => 'amount', 'type' => 'string' ),
                 array( 'name' => 'time', 'type' => 'uint64' ),
             ),
         );
-        return $this->build_sig($chainId, $messageTypes, $message);
+        return $this->sign_user_signed_action($messageTypes, $message);
     }
 
     public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
@@ -2449,10 +2449,11 @@ class hyperliquid extends Exchange {
             if ($code !== null) {
                 $code = strtoupper($code);
                 if ($code !== 'USDC') {
-                    throw new NotSupported($this->id . 'withdraw() only support USDC');
+                    throw new NotSupported($this->id . 'transfer() only support USDC');
                 }
             }
             $payload = array(
+                'hyperliquidChain' => $isSandboxMode ? 'Testnet' : 'Mainnet',
                 'destination' => $toAccount,
                 'amount' => $this->number_to_string($amount),
                 'time' => $nonce,
@@ -2460,9 +2461,12 @@ class hyperliquid extends Exchange {
             $sig = $this->build_transfer_sig($payload);
             $request = array(
                 'action' => array(
-                    'chain' => ($isSandboxMode) ? 'ArbitrumTestnet' : 'Arbitrum',
-                    'payload' => $payload,
-                    'type' => 'usdTransfer',
+                    'hyperliquidChain' => $payload['hyperliquidChain'],
+                    'signatureChainId' => '0x66eee', // check this out
+                    'destination' => $toAccount,
+                    'amount' => (string) $amount,
+                    'time' => $nonce,
+                    'type' => 'usdSend',
                 ),
                 'nonce' => $nonce,
                 'signature' => $sig,
@@ -2472,7 +2476,7 @@ class hyperliquid extends Exchange {
         }) ();
     }
 
-    public function withdraw(string $code, $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $amount, $address, $tag, $params) {
             /**
              * make a withdrawal (only support USDC)
@@ -2493,26 +2497,58 @@ class hyperliquid extends Exchange {
                     throw new NotSupported($this->id . 'withdraw() only support USDC');
                 }
             }
-            $isSandboxMode = $this->safe_bool($this->options, 'sandboxMode');
+            $isSandboxMode = $this->safe_bool($this->options, 'sandboxMode', false);
             $nonce = $this->milliseconds();
             $payload = array(
+                'hyperliquidChain' => $isSandboxMode ? 'Testnet' : 'Mainnet',
                 'destination' => $address,
-                'usd' => (string) $amount,
+                'amount' => (string) $amount,
                 'time' => $nonce,
             );
             $sig = $this->build_withdraw_sig($payload);
             $request = array(
                 'action' => array(
-                    'chain' => ($isSandboxMode) ? 'ArbitrumTestnet' : 'Arbitrum',
-                    'payload' => $payload,
-                    'type' => 'withdraw2',
+                    'hyperliquidChain' => $payload['hyperliquidChain'],
+                    'signatureChainId' => '0x66eee', // check this out
+                    'destination' => $address,
+                    'amount' => (string) $amount,
+                    'time' => $nonce,
+                    'type' => 'withdraw3',
                 ),
                 'nonce' => $nonce,
                 'signature' => $sig,
             );
             $response = Async\await($this->privatePostExchange ($this->extend($request, $params)));
-            return $response;
+            return $this->parse_transaction($response);
         }) ();
+    }
+
+    public function parse_transaction(array $transaction, ?array $currency = null): array {
+        //
+        // array( status => 'ok', response => array( type => 'default' ) )
+        //
+        return array(
+            'info' => $transaction,
+            'id' => null,
+            'txid' => null,
+            'timestamp' => null,
+            'datetime' => null,
+            'network' => null,
+            'address' => null,
+            'addressTo' => null,
+            'addressFrom' => null,
+            'tag' => null,
+            'tagTo' => null,
+            'tagFrom' => null,
+            'type' => null,
+            'amount' => null,
+            'currency' => null,
+            'status' => $this->safe_string($transaction, 'status'),
+            'updated' => null,
+            'comment' => null,
+            'internal' => null,
+            'fee' => null,
+        );
     }
 
     public function format_vault_address(?string $address = null) {

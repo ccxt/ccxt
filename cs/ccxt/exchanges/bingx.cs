@@ -378,7 +378,7 @@ public partial class bingx : Exchange
                 { "1w", "1w" },
                 { "1M", "1M" },
             } },
-            { "precisionMode", DECIMAL_PLACES },
+            { "precisionMode", TICK_SIZE },
             { "exceptions", new Dictionary<string, object>() {
                 { "exact", new Dictionary<string, object>() {
                     { "400", typeof(BadRequest) },
@@ -621,18 +621,26 @@ public partial class bingx : Exchange
         //        "msg": "",
         //        "data": [
         //            {
-        //              "contractId": "100",
-        //              "symbol": "BTC-USDT",
-        //              "size": "0.0001",
-        //              "quantityPrecision": 4,
-        //              "pricePrecision": 1,
-        //              "feeRate": 0.0005,
-        //              "tradeMinLimit": 1,
-        //              "maxLongLeverage": 150,
-        //              "maxShortLeverage": 150,
-        //              "currency": "USDT",
-        //              "asset": "BTC",
-        //              "status": 1
+        //                "contractId": "100",
+        //                "symbol": "BTC-USDT",
+        //                "size": "0.0001",
+        //                "quantityPrecision": "4",
+        //                "pricePrecision": "1",
+        //                "feeRate": "0.0005",
+        //                "makerFeeRate": "0.0002",
+        //                "takerFeeRate": "0.0005",
+        //                "tradeMinLimit": "0",
+        //                "tradeMinQuantity": "0.0001",
+        //                "tradeMinUSDT": "2",
+        //                "maxLongLeverage": "125",
+        //                "maxShortLeverage": "125",
+        //                "currency": "USDT",
+        //                "asset": "BTC",
+        //                "status": "1",
+        //                "apiStateOpen": "true",
+        //                "apiStateClose": "true",
+        //                "ensureTrigger": true,
+        //                "triggerFeeRate": "0.00020000"
         //            },
         //            ...
         //        ]
@@ -652,15 +660,15 @@ public partial class bingx : Exchange
         object quote = this.safeCurrencyCode(quoteId);
         object currency = this.safeString(market, "currency");
         object settle = this.safeCurrencyCode(currency);
-        object pricePrecision = this.safeInteger(market, "pricePrecision");
+        object pricePrecision = this.safeNumber(market, "tickSize");
         if (isTrue(isEqual(pricePrecision, null)))
         {
-            pricePrecision = this.precisionFromString(this.safeString(market, "tickSize"));
+            pricePrecision = this.parseNumber(this.parsePrecision(this.safeString(market, "pricePrecision")));
         }
-        object quantityPrecision = this.safeInteger(market, "quantityPrecision");
+        object quantityPrecision = this.safeNumber(market, "stepSize");
         if (isTrue(isEqual(quantityPrecision, null)))
         {
-            quantityPrecision = this.precisionFromString(this.safeString(market, "stepSize"));
+            quantityPrecision = this.parseNumber(this.parsePrecision(this.safeString(market, "quantityPrecision")));
         }
         object type = ((bool) isTrue((!isEqual(settle, null)))) ? "swap" : "spot";
         object spot = isEqual(type, "spot");

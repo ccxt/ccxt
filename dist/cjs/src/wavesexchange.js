@@ -20,6 +20,7 @@ class wavesexchange extends wavesexchange$1 {
             'countries': ['CH'],
             'certified': false,
             'pro': false,
+            'dex': true,
             'has': {
                 'CORS': undefined,
                 'spot': true,

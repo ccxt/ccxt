@@ -1849,6 +1849,12 @@ abstract class binancecoinm extends \ccxt\async\binance {
     public function private_post_orderlist_oco($params = array()) {
         return $this->request('orderList/oco', 'private', 'POST', $params, null, null, array("cost" => 0.2));
     }
+    public function private_post_orderlist_oto($params = array()) {
+        return $this->request('orderList/oto', 'private', 'POST', $params, null, null, array("cost" => 0.2));
+    }
+    public function private_post_orderlist_otoco($params = array()) {
+        return $this->request('orderList/otoco', 'private', 'POST', $params, null, null, array("cost" => 0.2));
+    }
     public function private_post_sor_order($params = array()) {
         return $this->request('sor/order', 'private', 'POST', $params, null, null, array("cost" => 0.2));
     }
@@ -3966,6 +3972,12 @@ abstract class binancecoinm extends \ccxt\async\binance {
     }
     public function privatePostOrderListOco($params = array()) {
         return $this->request('orderList/oco', 'private', 'POST', $params, null, null, array("cost" => 0.2));
+    }
+    public function privatePostOrderListOto($params = array()) {
+        return $this->request('orderList/oto', 'private', 'POST', $params, null, null, array("cost" => 0.2));
+    }
+    public function privatePostOrderListOtoco($params = array()) {
+        return $this->request('orderList/otoco', 'private', 'POST', $params, null, null, array("cost" => 0.2));
     }
     public function privatePostSorOrder($params = array()) {
         return $this->request('sor/order', 'private', 'POST', $params, null, null, array("cost" => 0.2));

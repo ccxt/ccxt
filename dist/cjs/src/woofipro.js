@@ -25,6 +25,7 @@ class woofipro extends woofipro$1 {
             'version': 'v1',
             'certified': true,
             'pro': true,
+            'dex': true,
             'hostname': 'dex.woo.org',
             'has': {
                 'CORS': undefined,
