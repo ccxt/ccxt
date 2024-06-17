@@ -382,7 +382,7 @@ class kucoinfutures(kucoin):
         type = 'swap'
         if future:
             expire_date = self.yymmdd(expiry, '')
-            if expire_date[0:2] == id[-2:]:
+            if expire_date[0:2] == id[-2:]:  # if the symbol is a quarterly future
                 symbol = symbol + '-' + expire_date
             type = 'future'
         is_inverse = self.safe_value(market, 'isInverse')
