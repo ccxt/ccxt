@@ -45,6 +45,7 @@ export default class okx extends okxRest {
             },
             'options': {
                 'watchOrderBook': {
+                    'checksum': true,
                     //
                     // bbo-tbt
                     // 1. Newly added channel that sends tick-by-tick Level 1 data
@@ -92,7 +93,6 @@ export default class okx extends okxRest {
                 'ws': {
                     // 'inflate': true,
                 },
-                'validateOrderBookSequences': true,
             },
             'streaming': {
                 // okex does not support built-in ws protocol-level ping-pong
@@ -685,7 +685,7 @@ export default class okx extends okxRest {
         this.handleDeltas (storedBids, bids);
         const marketId = this.safeString (message, 'instId');
         const symbol = this.safeSymbol (marketId);
-        const validate = this.safeBool2 (this.options, 'validateOrderBookSequences', 'checksum', true);
+        const validate = this.handleOption ('watchOrderBook', 'checksum', true);
         if (validate) {
             const asksLength = storedAsks.length;
             const bidsLength = storedBids.length;

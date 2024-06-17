@@ -579,7 +579,7 @@ export default class htx extends htxRest {
             orderbook['nonce'] = version;
         }
         if ((prevSeqNum !== undefined) && prevSeqNum > orderbook['nonce']) {
-            const validate = this.safeBool2 (this.options, 'validateOrderBookSequences', 'checksum', true);
+            const validate = this.handleOption ('watchOrderBook', 'checksum', true);
             if (validate) {
                 throw new InvalidOrderbookChecksum (this.id + ' ' + this.orderbookChecksumMessage (symbol));
             }

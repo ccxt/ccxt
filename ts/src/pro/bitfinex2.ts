@@ -37,9 +37,9 @@ export default class bitfinex2 extends bitfinex2Rest {
                 'watchOrderBook': {
                     'prec': 'P0',
                     'freq': 'F0',
+                    'checksm': true,
                 },
                 'ordersLimit': 1000,
-                'validateOrderBookSequences': true,
             },
         });
     }
@@ -694,7 +694,7 @@ export default class bitfinex2 extends bitfinex2Rest {
         if (responseChecksum !== localChecksum) {
             delete client.subscriptions[messageHash];
             delete this.orderbooks[symbol];
-            const validate = this.safeBool2 (this.options, 'validateOrderBookSequences', 'checksum', true);
+            const validate = this.handleOption ('watchOrderBook', 'checksum', true);
             if (validate) {
                 const error = new InvalidOrderbookChecksum (this.id + ' ' + this.orderbookChecksumMessage (symbol));
                 client.reject (error, messageHash);

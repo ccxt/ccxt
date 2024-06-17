@@ -28,7 +28,9 @@ export default class independentreserve extends independentreserveRest {
                 },
             },
             'options': {
-                'validateOrderBookSequences': false, // TODO: currently only working for snapshot
+                'watchOrderBook': {
+                    'checksum': true, // TODO: currently only working for snapshot
+                },
             },
             'streaming': {
             },
@@ -204,7 +206,7 @@ export default class independentreserve extends independentreserveRest {
             orderbook['timestamp'] = timestamp;
             orderbook['datetime'] = this.iso8601 (timestamp);
         }
-        const validate = this.safeBool2 (this.options, 'validateOrderBookSequences', 'checksum', true);
+        const validate = this.handleOption ('watchOrderBook', 'checksum', true);
         if (validate && receivedSnapshot) {
             const storedAsks = orderbook['asks'];
             const storedBids = orderbook['bids'];

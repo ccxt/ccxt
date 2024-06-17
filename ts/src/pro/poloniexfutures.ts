@@ -51,11 +51,11 @@ export default class poloniexfutures extends poloniexfuturesRest {
                     'method': '/contractMarket/level2', // can also be '/contractMarket/level3v2'
                     'snapshotDelay': 5,
                     'snapshotMaxRetries': 3,
+                    'checksum': true,
                 },
                 'streamLimit': 5, // called tunnels by poloniexfutures docs
                 'streamBySubscriptionsHash': {},
                 'streamIndex': -1,
-                'validateOrderBookSequences': true,
             },
             'streaming': {
                 'keepAlive': 30000,
@@ -884,7 +884,7 @@ export default class poloniexfutures extends poloniexfuturesRest {
             return;
         }
         if (nonce !== lastSequence) {
-            const validate = this.safeBool2 (this.options, 'validateOrderBookSequences', 'checksum', true);
+            const validate = this.handleOption ('watchOrderBook', 'checksum', true);
             if (validate) {
                 throw new InvalidOrderbookChecksum (this.id + ' ' + this.orderbookChecksumMessage (''));
             }

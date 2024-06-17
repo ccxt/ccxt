@@ -225,7 +225,7 @@ export default class cryptocom extends cryptocomRest {
             const previousNonce = this.safeInteger (data, 'pu');
             const currentNonce = orderbook['nonce'];
             if (currentNonce !== previousNonce) {
-                const validate = this.safeBool2 (this.options, 'validateOrderBookSequences', 'checksum', true);
+                const validate = this.handleOption ('watchOrderBook', 'checksum', true);
                 if (validate) {
                     throw new InvalidOrderbookChecksum (this.id + ' ' + this.orderbookChecksumMessage (symbol));
                 }

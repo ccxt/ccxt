@@ -516,7 +516,7 @@ export default class binance extends binanceRest {
                             }
                         } else {
                             // todo: client.reject from handleOrderBookMessage properly
-                            const validate = this.safeBool2 (this.options, 'validateOrderBookSequences', 'checksum', true);
+                            const validate = this.handleOption ('watchOrderBook', 'checksum', true);
                             if (validate) {
                                 throw new InvalidOrderbookChecksum (this.id + ' ' + this.orderbookChecksumMessage (symbol));
                             }
@@ -535,7 +535,7 @@ export default class binance extends binanceRest {
                             }
                         } else {
                             // todo: client.reject from handleOrderBookMessage properly
-                            const validate = this.safeBool2 (this.options, 'validateOrderBookSequences', 'checksum', true);
+                            const validate = this.handleOption ('watchOrderBook', 'checksum', true);
                             if (validate) {
                                 throw new InvalidOrderbookChecksum (this.id + ' ' + this.orderbookChecksumMessage (symbol));
                             }

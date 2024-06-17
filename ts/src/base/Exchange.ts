@@ -2542,7 +2542,7 @@ export default class Exchange {
     }
 
     orderbookChecksumMessage (symbol:Str) {
-        return symbol + ' : ' + 'incoming orderbook data checksum/nonce validation failed. You can make your own reconnection logic or temporarily you can mute the error by setting exhcange.options["validateOrderBookSequences"] = false';
+        return symbol + ' : ' + 'incoming orderbook data checksum/nonce validation failed. You can make your own reconnection logic or temporarily you can mute the error by setting exhcange.options["watchOrderBook"]["checksum"] = false';
     }
 
     createNetworksByIdObject () {
