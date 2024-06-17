@@ -26,6 +26,7 @@ export default class vertex extends Exchange {
             'rateLimit': 50,
             'certified': false,
             'pro': true,
+            'dex': true,
             'has': {
                 'CORS': undefined,
                 'spot': true,
