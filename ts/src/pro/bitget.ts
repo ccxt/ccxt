@@ -575,11 +575,8 @@ export default class bitget extends bitgetRest {
                 if (calculatedChecksum !== responseChecksum) {
                     delete client.subscriptions[messageHash];
                     delete this.orderbooks[symbol];
-                    const checksum = this.handleOption ('watchOrderBook', 'checksum', true);
-                    if (checksum) {
-                        const error = new InvalidOrderbookChecksum (this.id + ' ' + this.orderbookChecksumMessage (symbol));
-                        client.reject (error, messageHash);
-                    }
+                    const error = new InvalidOrderbookChecksum (this.id + ' ' + this.orderbookChecksumMessage (symbol));
+                    client.reject (error, messageHash);
                     return;
                 }
             }
