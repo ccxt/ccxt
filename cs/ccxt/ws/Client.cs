@@ -20,6 +20,7 @@ public partial class Exchange
         public IDictionary<string, object> subscriptions = new ConcurrentDictionary<string, object>();
         public IDictionary<string, object> rejections = new ConcurrentDictionary<string, object>();
         public IDictionary<string, ConcurrentQueue<object>> messageQueue = new ConcurrentDictionary<string, ConcurrentQueue<object>>();
+        public bool useMessageQueue = true;
         public bool verbose = false;
         public bool isConnected = false;
         public bool startedConnecting = false;
@@ -53,7 +54,7 @@ public partial class Exchange
 
         public bool error = false;
 
-        public WebSocketClient(string url, string proxy, handleMessageDelegate handleMessage, pingDelegate ping = null, onCloseDelegate onClose = null, onErrorDelegate onError = null, bool isVerbose = false, Int64 keepA = 30000)
+        public WebSocketClient(string url, string proxy, handleMessageDelegate handleMessage, pingDelegate ping = null, onCloseDelegate onClose = null, onErrorDelegate onError = null, bool isVerbose = false, Int64 keepA = 30000, bool useMessageQueue = true)
         {
             this.url = url;
             var tcs = new TaskCompletionSource<bool>();
@@ -64,6 +65,7 @@ public partial class Exchange
             this.onClose = onClose;
             this.onError = onError;
             this.keepAlive = keepA;
+            this.useMessageQueue = useMessageQueue;
 
             if (proxy != null)
             {
@@ -82,10 +84,13 @@ public partial class Exchange
                 (this.messageQueue as ConcurrentDictionary<string, ConcurrentQueue<object>>).AddOrUpdate(messageHash, new ConcurrentQueue<object>(), (key, value) => new ConcurrentQueue<object>());
                 return future;
             }
-            var queue = (this.messageQueue as ConcurrentDictionary<string, ConcurrentQueue<object>>).GetOrAdd(messageHash, (key) => new ConcurrentQueue<object>());
-            if (queue.TryDequeue(out object result))
+            if (this.useMessageQueue)
             {
-                future.resolve(result);
+                var queue = (this.messageQueue as ConcurrentDictionary<string, ConcurrentQueue<object>>).GetOrAdd(messageHash, (key) => new ConcurrentQueue<object>());
+                if (queue.TryDequeue(out object result))
+                {
+                    future.resolve(result);
+                }
             }
             return future;
         }
@@ -97,16 +102,26 @@ public partial class Exchange
                 Console.WriteLine("resolve received undefined messageHash");
             }
             var messageHash = messageHash2.ToString();
-            var queue = (this.messageQueue as ConcurrentDictionary<string, ConcurrentQueue<object>>).GetOrAdd(messageHash, (key) => new ConcurrentQueue<object>());
-            queue.Enqueue(content);
-            while (queue.Count > 10) {
-                queue.TryDequeue(out object _);
-            }
-            if ((this.futures as ConcurrentDictionary<string, Future>).TryRemove(messageHash, out Future future))
+            if (this.useMessageQueue)
             {
-                if (queue.TryDequeue(out object result))
+                var queue = (this.messageQueue as ConcurrentDictionary<string, ConcurrentQueue<object>>).GetOrAdd(messageHash, (key) => new ConcurrentQueue<object>());
+                queue.Enqueue(content);
+                while (queue.Count > 10) {
+                    queue.TryDequeue(out object _);
+                }
+                if ((this.futures as ConcurrentDictionary<string, Future>).TryRemove(messageHash, out Future future))
                 {
-                    future.resolve(result);
+                    if (queue.TryDequeue(out object result))
+                    {
+                        future.resolve(result);
+                    }
+                }
+            }
+            else
+            {
+                if ((this.futures as ConcurrentDictionary<string, Future>).TryRemove(messageHash, out Future future))
+                {
+                    future.resolve(content);
                 }
             }
         }

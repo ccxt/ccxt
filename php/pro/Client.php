@@ -31,6 +31,7 @@ class Client {
     public $subscriptions = array();
     public $rejections = array();
     public $message_queue = array();
+    public $use_message_queue = true;
     public $options = array();
 
     public $on_message_callback;
@@ -78,7 +79,7 @@ class Client {
             unset($this->message_queue[$message_hash]);
             return $future;
         }
-        if (array_key_exists($message_hash, $this->message_queue)) {
+        if ($this->use_message_queue && array_key_exists($message_hash, $this->message_queue)) {
             $queue = $this->message_queue[$message_hash];
             if (count($queue) > 0) {
                 $future->resolve(array_shift($queue));
@@ -91,18 +92,26 @@ class Client {
         if ($this->verbose && ($message_hash === null)) {
             $this->log(date('c'), 'resolve received null messageHash');
         }
-        if (!array_key_exists($message_hash, $this->message_queue)) {
-            $this->message_queue[$message_hash] = array();
-        }
-        $queue = $this->message_queue[$message_hash];
-        array_push($queue, $result);
-        while (count($queue) > 10) {
-            array_shift($queue);
-        }
-        if (array_key_exists($message_hash, $this->futures)) {
-            $promise = $this->futures[$message_hash];
-            $promise->resolve(array_shift($queue));
-            unset($this->futures[$message_hash]);
+        if ($this->use_message_queue) {
+            if (!array_key_exists($message_hash, $this->message_queue)) {
+                $this->message_queue[$message_hash] = array();
+            }
+            $queue = $this->message_queue[$message_hash];
+            array_push($queue, $result);
+            while (count($queue) > 10) {
+                array_shift($queue);
+            }
+            if (array_key_exists($message_hash, $this->futures)) {
+                $promise = $this->futures[$message_hash];
+                $promise->resolve(array_shift($queue));
+                unset($this->futures[$message_hash]);
+            }
+        } else {
+            if (array_key_exists($message_hash, $this->futures)) {
+                $promise = $this->futures[$message_hash];
+                $promise->resolve($result);
+                unset($this->futures[$message_hash]);
+            }
         }
         return $result;
     }

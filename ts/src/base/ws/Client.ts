@@ -26,6 +26,8 @@ export default class Client {
     // @ts-ignore: 2564
     messageQueue: Dictionary<string, any>
 
+    useMessageQueue: boolean = true
+
     // @ts-ignore: 2564
     keepAlive: number
 
@@ -85,6 +87,7 @@ export default class Client {
             subscriptions: {},
             rejections: {}, // so that we can reject things in the future
             messageQueue: {}, // store unresolved messages per messageHash
+            useMessageQueue: true, // if false, messageQueue logic won't be used
             connected: undefined, // connection-related Future
             error: undefined, // stores low-level networking exception, if any
             connectionStarted: undefined, // initiation timestamp in milliseconds
@@ -119,10 +122,12 @@ export default class Client {
             delete this.messageQueue[messageHash]
             return future;
         }
-        const queue = this.messageQueue[messageHash]
-        if (queue && queue.length) {
-            future.resolve (queue.shift ())
-            delete this.futures[messageHash]
+        if (this.useMessageQueue) {
+            const queue = this.messageQueue[messageHash]
+            if (queue && queue.length) {
+                future.resolve (queue.shift ())
+                delete this.futures[messageHash]
+            }
         }
         return future
     }
@@ -131,18 +136,26 @@ export default class Client {
         if (this.verbose && (messageHash === undefined)) {
             this.log (new Date (), 'resolve received undefined messageHash');
         }
-        if (!(messageHash in this.messageQueue)) {
-            this.messageQueue[messageHash] = []
-        }
-        const queue = this.messageQueue[messageHash]
-        queue.push (result);
-        while (queue.length > 10) { // limit size to 10 messages in the queue
-            queue.shift ()
-        }
-        if ((messageHash !== undefined) && (messageHash in this.futures)) {
-            const promise = this.futures[messageHash]
-            promise.resolve (queue.shift ())
-            delete this.futures[messageHash]
+        if (this.useMessageQueue === true) {
+            if (!(messageHash in this.messageQueue)) {
+                this.messageQueue[messageHash] = []
+            }
+            const queue = this.messageQueue[messageHash]
+            queue.push (result);
+            while (queue.length > 10) { // limit size to 10 messages in the queue
+                queue.shift ()
+            }
+            if ((messageHash !== undefined) && (messageHash in this.futures)) {
+                const promise = this.futures[messageHash]
+                promise.resolve (queue.shift ())
+                delete this.futures[messageHash]
+            }
+        } else {
+            if (messageHash in this.futures) {
+                const promise = this.futures[messageHash]
+                promise.resolve (result)
+                delete this.futures[messageHash]
+            }
         }
         return result
     }
