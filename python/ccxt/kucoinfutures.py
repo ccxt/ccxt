@@ -371,7 +371,7 @@ class kucoinfutures(kucoin):
         id = self.safe_string(market, 'symbol')
         expiry = self.safe_integer(market, 'expireDate')
         future = False
-        swap = not future
+        swap = True
         baseId = self.safe_string(market, 'baseCurrency')
         quoteId = self.safe_string(market, 'quoteCurrency')
         settleId = self.safe_string(market, 'settleCurrency')
