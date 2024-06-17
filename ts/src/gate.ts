@@ -4219,9 +4219,9 @@ export default class gate extends Exchange {
                 request['amount'] = this.amountToPrecision (symbol, amount);
             } else {
                 if (side === 'sell') {
-                    request['size'] = this.parseNumber (Precise.stringNeg (this.amountToPrecision (symbol, amount)));
+                    request['size'] = Precise.stringNeg (this.amountToPrecision (symbol, amount));
                 } else {
-                    request['size'] = this.parseNumber (this.amountToPrecision (symbol, amount));
+                    request['size'] = this.amountToPrecision (symbol, amount);
                 }
             }
         }
