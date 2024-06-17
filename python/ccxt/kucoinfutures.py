@@ -370,8 +370,8 @@ class kucoinfutures(kucoin):
     def parse_market(self, market):
         id = self.safe_string(market, 'symbol')
         expiry = self.safe_integer(market, 'expireDate')
-        future = False
-        swap = True
+        future = True if expiry else False
+        swap = not future
         baseId = self.safe_string(market, 'baseCurrency')
         quoteId = self.safe_string(market, 'quoteCurrency')
         settleId = self.safe_string(market, 'settleCurrency')
@@ -380,9 +380,11 @@ class kucoinfutures(kucoin):
         settle = self.safe_currency_code(settleId)
         symbol = base + '/' + quote
         type = 'swap'
-        # if future:
-        #     symbol = symbol + '-' + self.yymmdd(expiry, '')
-        #     type = 'future'
+        if future:
+            expire_date = self.yymmdd(expiry, '')
+            if expire_date[0:2] == id[-2:]:
+                symbol = symbol + '-' + expire_date
+            type = 'future'
         is_inverse = self.safe_value(market, 'isInverse')
         status = self.safe_string(market, 'status')
         multiplier = self.safe_string(market, 'multiplier')
