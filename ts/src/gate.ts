@@ -4231,7 +4231,7 @@ export default class gate extends Exchange {
         if (!market['spot']) {
             request['settle'] = market['settleId'];
         }
-        return [ request, query ];
+        return this.extend (request, query);
     }
 
     async editOrder (id: string, symbol: string, type:OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params = {}) {
@@ -4252,12 +4252,12 @@ export default class gate extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const [ request, query ] = this.editOrderRequest (id, symbol, type, side, amount, price, params);
+        const extendedRequest = this.editOrderRequest (id, symbol, type, side, amount, price, params);
         let response = undefined;
         if (market['spot']) {
-            response = await this.privateSpotPatchOrdersOrderId (this.extend (request, query));
+            response = await this.privateSpotPatchOrdersOrderId (extendedRequest);
         } else {
-            response = await this.privateFuturesPutSettleOrdersOrderId (this.extend (request, query));
+            response = await this.privateFuturesPutSettleOrdersOrderId (extendedRequest);
         }
         //
         //     {

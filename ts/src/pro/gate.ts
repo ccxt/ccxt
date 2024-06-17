@@ -263,12 +263,12 @@ export default class gate extends gateRest {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const [ request, query ] = this.editOrderRequest (id, symbol, type, side, amount, price, params);
+        const extendedRequest = this.editOrderRequest (id, symbol, type, side, amount, price, params);
         const messageType = this.getTypeByMarket (market);
         const channel = messageType + '.order_amend';
         const url = this.getUrlByMarket (market);
         await this.authenticate (url, messageType);
-        const rawOrder = await this.requestPrivate (url, this.extend (request, query), channel);
+        const rawOrder = await this.requestPrivate (url, extendedRequest, channel);
         return this.parseOrder (rawOrder, market);
     }
 
