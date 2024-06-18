@@ -4614,7 +4614,8 @@ export default class gate extends Exchange {
          */
         await this.loadMarkets ();
         const market = (symbol === undefined) ? undefined : this.market (symbol);
-        const [ type ] = this.handleMarketTypeAndParams ('fetchOrder', market, params);
+        const result = this.handleMarketTypeAndParams ('fetchOrder', market, params);
+        const type = this.safeString (result, 0);
         const stop = this.safeValue2 (params, 'is_stop_order', 'stop', false);
         const [ request, requestParams ] = this.fetchOrderRequest (id, symbol, params);
         let response = undefined;
