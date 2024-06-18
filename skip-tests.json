@@ -1343,11 +1343,14 @@
         }
     },
     "oxfun": {
-	"skipMethods": {
-	    "loadMarkets": {
-		"currencyIdAndCode": "messed https://app.travis-ci.com/github/ccxt/ccxt/builds/270314325"
-	    }
-	}
+        "skipMethods": {
+            "loadMarkets": {
+                "currencyIdAndCode": "messed https://app.travis-ci.com/github/ccxt/ccxt/builds/270314325"
+            },
+            "orderBook": { 
+                "spread": "bid ask crossing, https://app.travis-ci.com/github/ccxt/ccxt/builds/270991459#L5901"
+            }
+        }
     },
     "exmo": {
         "skipMethods": {
