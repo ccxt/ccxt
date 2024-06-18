@@ -4576,8 +4576,8 @@ export default class gate extends Exchange {
 
     fetchOrderRequest (id: string, symbol: Str = undefined, params = {}) {
         const market = (symbol === undefined) ? undefined : this.market (symbol);
-        const stop = this.safeValue2 (params, 'is_stop_order', 'stop', false);
-        params = this.omit (params, [ 'is_stop_order', 'stop' ]);
+        const stop = this.safeBoolN (params, [ 'trigger', 'is_stop_order', 'stop' ], false);
+        params = this.omit (params, [ 'is_stop_order', 'stop', 'trigger' ]);
         let clientOrderId = this.safeString2 (params, 'text', 'clientOrderId');
         let orderId = id;
         if (clientOrderId !== undefined) {
@@ -4606,7 +4606,7 @@ export default class gate extends Exchange {
          * @param {string} id Order id
          * @param {string} symbol Unified market symbol, *required for spot and margin*
          * @param {object} [params] Parameters specified by the exchange api
-         * @param {bool} [params.stop] True if the order being fetched is a trigger order
+         * @param {bool} [params.trigger] True if the order being fetched is a trigger order
          * @param {string} [params.marginMode] 'cross' or 'isolated' - marginMode for margin trading if not provided this.options['defaultMarginMode'] is used
          * @param {string} [params.type] 'spot', 'swap', or 'future', if not provided this.options['defaultMarginMode'] is used
          * @param {string} [params.settle] 'btc' or 'usdt' - settle currency for perpetual swap and future - market settle currency is used if symbol !== undefined, default="usdt" for swap and "btc" for future
@@ -4616,7 +4616,7 @@ export default class gate extends Exchange {
         const market = (symbol === undefined) ? undefined : this.market (symbol);
         const result = this.handleMarketTypeAndParams ('fetchOrder', market, params);
         const type = this.safeString (result, 0);
-        const stop = this.safeValue2 (params, 'is_stop_order', 'stop', false);
+        const stop = this.safeBoolN (params, [ 'trigger', 'is_stop_order', 'stop' ], false);
         const [ request, requestParams ] = this.fetchOrderRequest (id, symbol, params);
         let response = undefined;
         if (type === 'spot' || type === 'margin') {
