@@ -4931,8 +4931,8 @@ export default class gate extends Exchange {
          */
         await this.loadMarkets ();
         const market = (symbol === undefined) ? undefined : this.market (symbol);
-        const stop = this.safeValue2 (params, 'is_stop_order', 'stop', false);
-        params = this.omit (params, [ 'is_stop_order', 'stop' ]);
+        const stop = this.safeBoolN (params, [ 'is_stop_order', 'stop', 'trigger' ], false);
+        params = this.omit (params, [ 'is_stop_order', 'stop', 'trigger' ]);
         const [ type, query ] = this.handleMarketTypeAndParams ('cancelOrder', market, params);
         const [ request, requestParams ] = (type === 'spot' || type === 'margin') ? this.spotOrderPrepareRequest (market, stop, query) : this.prepareRequest (market, type, query);
         request['order_id'] = id;
