@@ -4693,8 +4693,8 @@ export default class gate extends Exchange {
             market = this.market (symbol);
             symbol = market['symbol'];
         }
-        const stop = this.safeValue (params, 'stop');
-        params = this.omit (params, 'stop');
+        const stop = this.safeBool2 (params, 'stop', 'trigger');
+        params = this.omit (params, [ 'stop', 'trigger' ]);
         const [ type, query ] = this.handleMarketTypeAndParams ('fetchOrdersByStatus', market, params);
         const spot = (type === 'spot') || (type === 'margin');
         const [ request, requestParams ] = spot ? this.multiOrderSpotPrepareRequest (market, stop, query) : this.prepareRequest (market, type, query);
@@ -4722,9 +4722,10 @@ export default class gate extends Exchange {
             market = this.market (symbol);
             symbol = market['symbol'];
         }
-        const stop = this.safeValue (params, 'stop');
-        params = this.omit (params, 'stop');
-        const [ type ] = this.handleMarketTypeAndParams ('fetchOrdersByStatus', market, params);
+        const stop = this.safeBool2 (params, 'stop', 'trigger');
+        params = this.omit (params, [ 'trigger', 'stop' ]);
+        const res = this.handleMarketTypeAndParams ('fetchOrdersByStatus', market, params);
+        const type = this.safeString (res, 0);
         params['type'] = type;
         const [ request, requestParams ] = this.fetchOrdersByStatusRequest (status, symbol, since, limit, params);
         const spot = (type === 'spot') || (type === 'margin');
