@@ -124,6 +124,8 @@ export default class krakenfutures extends Exchange {
                         'transfers',
                         'leveragepreferences',
                         'pnlpreferences',
+                        'assignmentprogram/current',
+                        'assignmentprogram/history',
                     ],
                     'post': [
                         'sendorder',
@@ -133,7 +135,9 @@ export default class krakenfutures extends Exchange {
                         'batchorder',
                         'cancelallorders',
                         'cancelallordersafter',
-                        'withdrawal', // for futures wallet -> kraken spot wallet
+                        'withdrawal',
+                        'assignmentprogram/add',
+                        'assignmentprogram/delete',
                     ],
                     'put': [
                         'leveragepreferences',

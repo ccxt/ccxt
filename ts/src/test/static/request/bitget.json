@@ -80,6 +80,39 @@
                 "output": "{\"symbol\":\"BTCUSDT\",\"orderType\":\"market\",\"force\":\"GTC\",\"side\":\"sell\",\"size\":\"0.0002\"}"
             },
             {
+                "description": "spot margin market buy with createMarketBuyOrderRequiresPrice = false",
+                "method": "createOrder",
+                "url": "https://api.bitget.com/api/v2/margin/crossed/place-order",
+                "input": [
+                  "LTC/USDT",
+                  "market",
+                  "buy",
+                  10,
+                  null,
+                  {
+                    "createMarketBuyOrderRequiresPrice": false,
+                    "marginMode": "cross"
+                  }
+                ],
+                "output": "{\"symbol\":\"LTCUSDT\",\"orderType\":\"market\",\"force\":\"GTC\",\"side\":\"buy\",\"loanType\":\"normal\",\"quoteSize\":\"10\"}"
+            },
+            {
+                "description": "spot margin market buy",
+                "method": "createOrder",
+                "url": "https://api.bitget.com/api/v2/margin/crossed/place-order",
+                "input": [
+                  "LTC/USDT",
+                  "market",
+                  "buy",
+                  5.1,
+                  1,
+                  {
+                    "marginMode": "cross"
+                  }
+                ],
+                "output": "{\"symbol\":\"LTCUSDT\",\"orderType\":\"market\",\"force\":\"GTC\",\"side\":\"buy\",\"loanType\":\"normal\",\"quoteSize\":\"5.1\"}"
+            },
+            {
                 "description": "Spot market buy with trigger price",
                 "method": "createOrder",
                 "url": "https://api.bitget.com/api/v2/spot/trade/place-plan-order",

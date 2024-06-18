@@ -4655,7 +4655,7 @@ public partial class bitget : Exchange
             if (isTrue(!isEqual(marginMode, null)))
             {
                 ((IDictionary<string,object>)request)["loanType"] = "normal";
-                if (isTrue(isTrue(isTrue(createMarketBuyOrderRequiresPrice) && isTrue(isMarketOrder)) && isTrue((isEqual(side, "buy")))))
+                if (isTrue(isTrue(isMarketOrder) && isTrue((isEqual(side, "buy")))))
                 {
                     ((IDictionary<string,object>)request)["quoteSize"] = quantity;
                 } else

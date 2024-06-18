@@ -6,7 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.hyperliquid import ImplicitAPI
 import asyncio
-from ccxt.base.types import Balances, Currencies, Int, MarginModification, Market, Num, Order, OrderBook, OrderRequest, CancellationRequest, OrderSide, OrderType, Str, Strings, Trade, TransferEntry
+from ccxt.base.types import Balances, Currencies, Currency, Int, MarginModification, Market, Num, Order, OrderBook, OrderRequest, CancellationRequest, OrderSide, OrderType, Str, Strings, Trade, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
@@ -32,6 +32,7 @@ class hyperliquid(Exchange, ImplicitAPI):
             'rateLimit': 50,  # 1200 requests per minute, 20 request per second
             'certified': False,
             'pro': True,
+            'dex': True,
             'has': {
                 'CORS': None,
                 'spot': True,
@@ -949,11 +950,12 @@ class hyperliquid(Exchange, ImplicitAPI):
         signature = self.sign_message(msg, self.privateKey)
         return signature
 
-    def build_sig(self, chainId, messageTypes, message):
+    def sign_user_signed_action(self, messageTypes, message):
         zeroAddress = self.safe_string(self.options, 'zeroAddress')
+        chainId = 421614  # check self out
         domain: dict = {
             'chainId': chainId,
-            'name': 'Exchange',
+            'name': 'HyperliquidSignTransaction',
             'verifyingContract': zeroAddress,
             'version': '1',
         }
@@ -962,28 +964,26 @@ class hyperliquid(Exchange, ImplicitAPI):
         return signature
 
     def build_transfer_sig(self, message):
-        isSandboxMode = self.safe_bool(self.options, 'sandboxMode')
-        chainId = 421614 if (isSandboxMode) else 42161
         messageTypes: dict = {
-            'UsdTransferSignPayload': [
+            'HyperliquidTransaction:UsdSend': [
+                {'name': 'hyperliquidChain', 'type': 'string'},
                 {'name': 'destination', 'type': 'string'},
                 {'name': 'amount', 'type': 'string'},
                 {'name': 'time', 'type': 'uint64'},
             ],
         }
-        return self.build_sig(chainId, messageTypes, message)
+        return self.sign_user_signed_action(messageTypes, message)
 
     def build_withdraw_sig(self, message):
-        isSandboxMode = self.safe_bool(self.options, 'sandboxMode')
-        chainId = 421614 if (isSandboxMode) else 42161
         messageTypes: dict = {
-            'WithdrawFromBridge2SignPayload': [
+            'HyperliquidTransaction:Withdraw': [
+                {'name': 'hyperliquidChain', 'type': 'string'},
                 {'name': 'destination', 'type': 'string'},
-                {'name': 'usd', 'type': 'string'},
+                {'name': 'amount', 'type': 'string'},
                 {'name': 'time', 'type': 'uint64'},
             ],
         }
-        return self.build_sig(chainId, messageTypes, message)
+        return self.sign_user_signed_action(messageTypes, message)
 
     async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         """
@@ -2277,8 +2277,9 @@ class hyperliquid(Exchange, ImplicitAPI):
         if code is not None:
             code = code.upper()
             if code != 'USDC':
-                raise NotSupported(self.id + 'withdraw() only support USDC')
+                raise NotSupported(self.id + 'transfer() only support USDC')
         payload: dict = {
+            'hyperliquidChain': 'Testnet' if isSandboxMode else 'Mainnet',
             'destination': toAccount,
             'amount': self.number_to_string(amount),
             'time': nonce,
@@ -2286,9 +2287,12 @@ class hyperliquid(Exchange, ImplicitAPI):
         sig = self.build_transfer_sig(payload)
         request: dict = {
             'action': {
-                'chain': 'ArbitrumTestnet' if (isSandboxMode) else 'Arbitrum',
-                'payload': payload,
-                'type': 'usdTransfer',
+                'hyperliquidChain': payload['hyperliquidChain'],
+                'signatureChainId': '0x66eee',  # check self out
+                'destination': toAccount,
+                'amount': str(amount),
+                'time': nonce,
+                'type': 'usdSend',
             },
             'nonce': nonce,
             'signature': sig,
@@ -2296,7 +2300,7 @@ class hyperliquid(Exchange, ImplicitAPI):
         response = await self.privatePostExchange(self.extend(request, params))
         return response
 
-    async def withdraw(self, code: str, amount, address, tag=None, params={}):
+    async def withdraw(self, code: str, amount: float, address: str, tag=None, params={}) -> Transaction:
         """
         make a withdrawal(only support USDC)
         :see: https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#initiate-a-withdrawal-request
@@ -2314,25 +2318,56 @@ class hyperliquid(Exchange, ImplicitAPI):
             code = code.upper()
             if code != 'USDC':
                 raise NotSupported(self.id + 'withdraw() only support USDC')
-        isSandboxMode = self.safe_bool(self.options, 'sandboxMode')
+        isSandboxMode = self.safe_bool(self.options, 'sandboxMode', False)
         nonce = self.milliseconds()
         payload: dict = {
+            'hyperliquidChain': 'Testnet' if isSandboxMode else 'Mainnet',
             'destination': address,
-            'usd': str(amount),
+            'amount': str(amount),
             'time': nonce,
         }
         sig = self.build_withdraw_sig(payload)
         request: dict = {
             'action': {
-                'chain': 'ArbitrumTestnet' if (isSandboxMode) else 'Arbitrum',
-                'payload': payload,
-                'type': 'withdraw2',
+                'hyperliquidChain': payload['hyperliquidChain'],
+                'signatureChainId': '0x66eee',  # check self out
+                'destination': address,
+                'amount': str(amount),
+                'time': nonce,
+                'type': 'withdraw3',
             },
             'nonce': nonce,
             'signature': sig,
         }
         response = await self.privatePostExchange(self.extend(request, params))
-        return response
+        return self.parse_transaction(response)
+
+    def parse_transaction(self, transaction: dict, currency: Currency = None) -> Transaction:
+        #
+        # {status: 'ok', response: {type: 'default'}}
+        #
+        return {
+            'info': transaction,
+            'id': None,
+            'txid': None,
+            'timestamp': None,
+            'datetime': None,
+            'network': None,
+            'address': None,
+            'addressTo': None,
+            'addressFrom': None,
+            'tag': None,
+            'tagTo': None,
+            'tagFrom': None,
+            'type': None,
+            'amount': None,
+            'currency': None,
+            'status': self.safe_string(transaction, 'status'),
+            'updated': None,
+            'comment': None,
+            'internal': None,
+            'fee': None,
+        }
 
     def format_vault_address(self, address: Str = None):
         if address is None:

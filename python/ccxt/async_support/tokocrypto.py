@@ -31,7 +31,7 @@ from ccxt.base.errors import OnMaintenance
 from ccxt.base.errors import InvalidNonce
 from ccxt.base.errors import RequestTimeout
 from ccxt.base.decimal_to_precision import TRUNCATE
-from ccxt.base.decimal_to_precision import DECIMAL_PLACES
+from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
 
@@ -234,7 +234,7 @@ class tokocrypto(Exchange, ImplicitAPI):
                     'maker': self.parse_number('0.0075'),  # 0.1% trading fee, zero fees for all trading pairs before November 1
                 },
             },
-            'precisionMode': DECIMAL_PLACES,
+            'precisionMode': TICK_SIZE,
             'options': {
                 # 'fetchTradesMethod': 'binanceGetTrades',  # binanceGetTrades, binanceGetAggTrades
                 'createMarketBuyOrderRequiresPrice': True,
@@ -734,10 +734,10 @@ class tokocrypto(Exchange, ImplicitAPI):
                 'strike': None,
                 'optionType': None,
                 'precision': {
-                    'amount': self.safe_integer(market, 'quantityPrecision'),
-                    'price': self.safe_integer(market, 'pricePrecision'),
-                    'base': self.safe_integer(market, 'baseAssetPrecision'),
-                    'quote': self.safe_integer(market, 'quotePrecision'),
+                    'amount': self.parse_number(self.parse_precision(self.safe_string(market, 'quantityPrecision'))),
+                    'price': self.parse_number(self.parse_precision(self.safe_string(market, 'pricePrecision'))),
+                    'base': self.parse_number(self.parse_precision(self.safe_string(market, 'baseAssetPrecision'))),
+                    'quote': self.parse_number(self.parse_precision(self.safe_string(market, 'quotePrecision'))),
                 },
                 'limits': {
                     'leverage': {
@@ -762,8 +762,7 @@ class tokocrypto(Exchange, ImplicitAPI):
             }
             if 'PRICE_FILTER' in filtersByType:
                 filter = self.safe_value(filtersByType, 'PRICE_FILTER', {})
-                tickSize = self.safe_string(filter, 'tickSize')
-                entry['precision']['price'] = self.precision_from_string(tickSize)
+                entry['precision']['price'] = self.safe_number(filter, 'tickSize')
                 # PRICE_FILTER reports zero values for maxPrice
                 # since they updated filter types in November 2018
                 # https://github.com/ccxt/ccxt/issues/4286
@@ -772,11 +771,10 @@ class tokocrypto(Exchange, ImplicitAPI):
                     'min': self.safe_number(filter, 'minPrice'),
                     'max': self.safe_number(filter, 'maxPrice'),
                 }
-                entry['precision']['price'] = self.precision_from_string(filter['tickSize'])
+                entry['precision']['price'] = filter['tickSize']
             if 'LOT_SIZE' in filtersByType:
                 filter = self.safe_value(filtersByType, 'LOT_SIZE', {})
-                stepSize = self.safe_string(filter, 'stepSize')
-                entry['precision']['amount'] = self.precision_from_string(stepSize)
+                entry['precision']['amount'] = self.safe_number(filter, 'stepSize')
                 entry['limits']['amount'] = {
                     'min': self.safe_number(filter, 'minQty'),
                     'max': self.safe_number(filter, 'maxQty'),

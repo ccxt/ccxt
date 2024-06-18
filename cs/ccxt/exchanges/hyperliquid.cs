@@ -15,6 +15,7 @@ public partial class hyperliquid : Exchange
             { "rateLimit", 50 },
             { "certified", false },
             { "pro", true },
+            { "dex", true },
             { "has", new Dictionary<string, object>() {
                 { "CORS", null },
                 { "spot", true },
@@ -1021,12 +1022,13 @@ public partial class hyperliquid : Exchange
         return signature;
     }
 
-    public virtual object buildSig(object chainId, object messageTypes, object message)
+    public virtual object signUserSignedAction(object messageTypes, object message)
     {
         object zeroAddress = this.safeString(this.options, "zeroAddress");
+        object chainId = 421614; // check this out
         object domain = new Dictionary<string, object>() {
             { "chainId", chainId },
-            { "name", "Exchange" },
+            { "name", "HyperliquidSignTransaction" },
             { "verifyingContract", zeroAddress },
             { "version", "1" },
         };
@@ -1037,10 +1039,11 @@ public partial class hyperliquid : Exchange
 
     public virtual object buildTransferSig(object message)
     {
-        object isSandboxMode = this.safeBool(this.options, "sandboxMode");
-        object chainId = ((bool) isTrue((isSandboxMode))) ? 421614 : 42161;
         object messageTypes = new Dictionary<string, object>() {
-            { "UsdTransferSignPayload", new List<object>() {new Dictionary<string, object>() {
+            { "HyperliquidTransaction:UsdSend", new List<object>() {new Dictionary<string, object>() {
+    { "name", "hyperliquidChain" },
+    { "type", "string" },
+}, new Dictionary<string, object>() {
     { "name", "destination" },
     { "type", "string" },
 }, new Dictionary<string, object>() {
@@ -1051,26 +1054,27 @@ public partial class hyperliquid : Exchange
     { "type", "uint64" },
 }} },
         };
-        return this.buildSig(chainId, messageTypes, message);
+        return this.signUserSignedAction(messageTypes, message);
     }
 
     public virtual object buildWithdrawSig(object message)
     {
-        object isSandboxMode = this.safeBool(this.options, "sandboxMode");
-        object chainId = ((bool) isTrue((isSandboxMode))) ? 421614 : 42161;
         object messageTypes = new Dictionary<string, object>() {
-            { "WithdrawFromBridge2SignPayload", new List<object>() {new Dictionary<string, object>() {
+            { "HyperliquidTransaction:Withdraw", new List<object>() {new Dictionary<string, object>() {
+    { "name", "hyperliquidChain" },
+    { "type", "string" },
+}, new Dictionary<string, object>() {
     { "name", "destination" },
     { "type", "string" },
 }, new Dictionary<string, object>() {
-    { "name", "usd" },
+    { "name", "amount" },
     { "type", "string" },
 }, new Dictionary<string, object>() {
     { "name", "time" },
     { "type", "uint64" },
 }} },
         };
-        return this.buildSig(chainId, messageTypes, message);
+        return this.signUserSignedAction(messageTypes, message);
     }
 
     public async override Task<object> createOrder(object symbol, object type, object side, object amount, object price = null, object parameters = null)
@@ -2611,10 +2615,11 @@ public partial class hyperliquid : Exchange
             code = ((string)code).ToUpper();
             if (isTrue(!isEqual(code, "USDC")))
             {
-                throw new NotSupported ((string)add(this.id, "withdraw() only support USDC")) ;
+                throw new NotSupported ((string)add(this.id, "transfer() only support USDC")) ;
             }
         }
         object payload = new Dictionary<string, object>() {
+            { "hyperliquidChain", ((bool) isTrue(isSandboxMode)) ? "Testnet" : "Mainnet" },
             { "destination", toAccount },
             { "amount", this.numberToString(amount) },
             { "time", nonce },
@@ -2622,9 +2627,12 @@ public partial class hyperliquid : Exchange
         object sig = this.buildTransferSig(payload);
         object request = new Dictionary<string, object>() {
             { "action", new Dictionary<string, object>() {
-                { "chain", ((bool) isTrue((isSandboxMode))) ? "ArbitrumTestnet" : "Arbitrum" },
-                { "payload", payload },
-                { "type", "usdTransfer" },
+                { "hyperliquidChain", getValue(payload, "hyperliquidChain") },
+                { "signatureChainId", "0x66eee" },
+                { "destination", toAccount },
+                { "amount", ((object)amount).ToString() },
+                { "time", nonce },
+                { "type", "usdSend" },
             } },
             { "nonce", nonce },
             { "signature", sig },
@@ -2659,25 +2667,58 @@ public partial class hyperliquid : Exchange
                 throw new NotSupported ((string)add(this.id, "withdraw() only support USDC")) ;
             }
         }
-        object isSandboxMode = this.safeBool(this.options, "sandboxMode");
+        object isSandboxMode = this.safeBool(this.options, "sandboxMode", false);
         object nonce = this.milliseconds();
         object payload = new Dictionary<string, object>() {
+            { "hyperliquidChain", ((bool) isTrue(isSandboxMode)) ? "Testnet" : "Mainnet" },
             { "destination", address },
-            { "usd", ((object)amount).ToString() },
+            { "amount", ((object)amount).ToString() },
             { "time", nonce },
         };
         object sig = this.buildWithdrawSig(payload);
         object request = new Dictionary<string, object>() {
             { "action", new Dictionary<string, object>() {
-                { "chain", ((bool) isTrue((isSandboxMode))) ? "ArbitrumTestnet" : "Arbitrum" },
-                { "payload", payload },
-                { "type", "withdraw2" },
+                { "hyperliquidChain", getValue(payload, "hyperliquidChain") },
+                { "signatureChainId", "0x66eee" },
+                { "destination", address },
+                { "amount", ((object)amount).ToString() },
+                { "time", nonce },
+                { "type", "withdraw3" },
             } },
             { "nonce", nonce },
             { "signature", sig },
         };
         object response = await this.privatePostExchange(this.extend(request, parameters));
-        return response;
+        return this.parseTransaction(response);
+    }
+
+    public override object parseTransaction(object transaction, object currency = null)
+    {
+        //
+        // { status: 'ok', response: { type: 'default' } }
+        //
+        return new Dictionary<string, object>() {
+            { "info", transaction },
+            { "id", null },
+            { "txid", null },
+            { "timestamp", null },
+            { "datetime", null },
+            { "network", null },
+            { "address", null },
+            { "addressTo", null },
+            { "addressFrom", null },
+            { "tag", null },
+            { "tagTo", null },
+            { "tagFrom", null },
+            { "type", null },
+            { "amount", null },
+            { "currency", null },
+            { "status", this.safeString(transaction, "status") },
+            { "updated", null },
+            { "comment", null },
+            { "internal", null },
+            { "fee", null },
+        };
     }
 
     public virtual object formatVaultAddress(object address = null)

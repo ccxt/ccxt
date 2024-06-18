@@ -750,12 +750,12 @@ export default class bingx extends bingxRest {
         //        ]
         //    }
         //
-        const data = this.safeList (message, 'data', []);
+        const data = this.safeValue (message, 'data', []);
         let candles = undefined;
         if (Array.isArray (data)) {
             candles = data;
         } else {
-            candles = [ this.safeList (data, 'K', []) ];
+            candles = [ this.safeDict (data, 'K', {}) ];
         }
         const dataType = this.safeString (message, 'dataType');
         const isSwap = client.url.indexOf ('swap') >= 0;

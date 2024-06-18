@@ -33,6 +33,7 @@ class wavesexchange(Exchange, ImplicitAPI):
             'countries': ['CH'],  # Switzerland
             'certified': False,
             'pro': False,
+            'dex': True,
             'has': {
                 'CORS': None,
                 'spot': True,

@@ -93,8 +93,8 @@ public partial class krakenfutures : Exchange
                     { "get", new List<object>() {"feeschedules", "instruments", "orderbook", "tickers", "history", "historicalfundingrates"} },
                 } },
                 { "private", new Dictionary<string, object>() {
-                    { "get", new List<object>() {"feeschedules/volumes", "openpositions", "notifications", "accounts", "openorders", "recentorders", "fills", "transfers", "leveragepreferences", "pnlpreferences"} },
-                    { "post", new List<object>() {"sendorder", "editorder", "cancelorder", "transfer", "batchorder", "cancelallorders", "cancelallordersafter", "withdrawal"} },
+                    { "get", new List<object>() {"feeschedules/volumes", "openpositions", "notifications", "accounts", "openorders", "recentorders", "fills", "transfers", "leveragepreferences", "pnlpreferences", "assignmentprogram/current", "assignmentprogram/history"} },
+                    { "post", new List<object>() {"sendorder", "editorder", "cancelorder", "transfer", "batchorder", "cancelallorders", "cancelallordersafter", "withdrawal", "assignmentprogram/add", "assignmentprogram/delete"} },
                     { "put", new List<object>() {"leveragepreferences", "pnlpreferences"} },
                 } },
                 { "charts", new Dictionary<string, object>() {
