@@ -2,7 +2,7 @@
 //  ---------------------------------------------------------------------------
 
 import Exchange from './abstract/coindcx.js';
-import { NotSupported } from './base/errors.js';
+import { ArgumentsRequired, NotSupported } from './base/errors.js';
 import { DECIMAL_PLACES } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import type { Balances, Dict, IndexType, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade } from './base/types.js';
@@ -40,14 +40,14 @@ export default class coindcx extends Exchange {
                 'createMarketBuyOrderWithCost': false,
                 'createMarketOrderWithCost': false,
                 'createMarketSellOrderWithCost': false,
-                'createOrder': false,
+                'createOrder': true,
                 'createPostOnlyOrder': false,
                 'createReduceOnlyOrder': false,
                 'createStopLimitOrder': false,
                 'createStopMarketOrder': false,
                 'createStopOrder': false,
                 'deposit': false,
-                'editOrder': false,
+                'editOrder': true,
                 'fetchAccounts': false,
                 'fetchBalance': true,
                 'fetchBidsAsks': false,
@@ -85,11 +85,11 @@ export default class coindcx extends Exchange {
                 'fetchOHLCV': true,
                 'fetchOpenInterestHistory': false,
                 'fetchOpenOrder': false,
-                'fetchOpenOrders': false,
+                'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchOrderBooks': false,
-                'fetchOrders': false,
+                'fetchOrders': true,
                 'fetchOrderTrades': false,
                 'fetchPosition': false,
                 'fetchPositionHistory': false,
@@ -152,7 +152,7 @@ export default class coindcx extends Exchange {
                 'doc': [
                     'https://docs.coindcx.com/',
                 ],
-                'fees': 'https://docs.coindcx.com/?python#3-fees-and-charges',
+                'fees': 'https://docs.coindcx.com/#3-fees-and-charges',
             },
             'api': {
                 'public1': {
@@ -240,7 +240,7 @@ export default class coindcx extends Exchange {
          * @method
          * @name coindcx#fetchMarkets
          * @description retrieves data on all markets for coindcx
-         * @see https://docs.coindcx.com/?javascript#markets-details
+         * @see https://docs.coindcx.com/#markets-details
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} an array of objects representing market data
          */
@@ -357,7 +357,7 @@ export default class coindcx extends Exchange {
          * @method
          * @name coindcx#fetchTickers
          * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
-         * @see https://docs.coindcx.com/?javascript#ticker
+         * @see https://docs.coindcx.com/#ticker
          * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
@@ -430,7 +430,7 @@ export default class coindcx extends Exchange {
          * @method
          * @name coindcx#fetchOHLCV
          * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-         * @see https://docs.coindcx.com/?javascript#candles
+         * @see https://docs.coindcx.com/#candles
          * @param {string} symbol unified symbol of the market to fetch OHLCV data for
          * @param {string} timeframe the length of time each candle represents
          * @param {int} [since] timestamp in ms of the earliest candle to fetch
@@ -491,7 +491,7 @@ export default class coindcx extends Exchange {
          * @method
          * @name coindcx#fetchOrderBook
          * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-         * @see https://docs.coindcx.com/?javascript#order-book
+         * @see https://docs.coindcx.com/#order-book
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int} [limit] the maximum amount of order book entries to return (not used by coindcx)
          * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -591,7 +591,7 @@ export default class coindcx extends Exchange {
          * @method
          * @name coindcx#fetchMyTrades
          * @description fetch all trades made by the user
-         * @see https://docs.coindcx.com/?javascript#account-trade-history
+         * @see https://docs.coindcx.com/#account-trade-history
          * @param {string} symbol unified market symbol
          * @param {int} [since] the earliest time in ms to fetch trades for
          * @param {int} [limit] the maximum amount of trades to fetch (default 500, min 1, max 5000)
@@ -703,7 +703,7 @@ export default class coindcx extends Exchange {
          * @method
          * @name coindcx#fetchBalance
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
-         * @see https://docs.coindcx.com/?javascript#get-balances
+         * @see https://docs.coindcx.com/#get-balances
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
          */
@@ -747,7 +747,9 @@ export default class coindcx extends Exchange {
          * @method
          * @name coindcx#createOrder
          * @description create a trade order
-         * @see https://docs.coindcx.com/?python#new-order
+         * @see https://docs.coindcx.com/#new-order
+         * @see https://docs.coindcx.com/#place-order
+         * @see https://docs.coindcx.com/#create-order
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {string} type 'market', 'limit', 'stop_limit', 'take_profit', 'stop_market', 'take_profit_limit', 'take_profit_market'
          * @param {string} side 'buy' or 'sell'
@@ -755,6 +757,7 @@ export default class coindcx extends Exchange {
          * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {string} [params.type] 'spot', 'margin', 'future' or 'swap'
+         * @param {bool} [params.margin] *for spot markets only* true for creating a margin order
          * @param {int} [params.clientOrderId] *for spot markets without margin only* a unique id for the order
          * @param {float} [params.triggerPrice] *for spot margin markets only* triggerPrice at which the attached take profit / stop loss order will be triggered
          * @param {float} [params.stopLossPrice] *for spot margin markets only* stop loss trigger price
@@ -766,6 +769,10 @@ export default class coindcx extends Exchange {
         const market = this.market (symbol);
         let marketType = 'spot';
         [ marketType, params ] = this.handleMarketTypeAndParams ('createOrder', market, params);
+        const isMargin = this.safeBool (params, 'margin', false);
+        if ((isMargin) && (marketType === 'spot')) {
+            marketType = 'margin';
+        }
         const clientOrderId = this.safeString2 (params, 'clientOrderId', 'client_order_id');
         if (clientOrderId !== undefined) {
             if (marketType === 'spot') {
@@ -1030,11 +1037,14 @@ export default class coindcx extends Exchange {
         /**
          * @method
          * @name coindcx#fetchOrder
-         * @see https://docs.coindcx.com/?javascript#order-status
+         * @see https://docs.coindcx.com/#order-status
+         * @see https://docs.coindcx.com/#query-order
          * @description fetches information on an order made by the user
          * @param {string} id a unique id for the order
          * @param {string} [symbol] not used by coindcx fetchOrder (not used by coindcx)
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.type] 'spot', 'margin', 'future' or 'swap'
+         * @param {bool} [params.margin] *for spot markets only* true for fetching a margin order
          * @param {int} [params.clientOrderId] *for spot markets without margin only* the client order id of the order
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
@@ -1044,11 +1054,15 @@ export default class coindcx extends Exchange {
             market = this.safeMarket (symbol);
         }
         const request: Dict = {};
-        let type = 'spot';
-        [ type, params ] = this.handleMarketTypeAndParams ('fetchOrder', market, params, 'spot');
+        let marketType = 'spot';
+        [ marketType, params ] = this.handleMarketTypeAndParams ('fetchOrder', market, params, 'spot');
+        const isMargin = this.safeBool (params, 'margin', false);
+        if ((isMargin) && (marketType === 'spot')) {
+            marketType = 'margin';
+        }
         const clientOrderId = this.safeString2 (params, 'clientOrderId', 'client_order_id');
         if (clientOrderId !== undefined) {
-            if (type === 'spot') {
+            if (marketType === 'spot') {
                 request['client_order_id'] = clientOrderId;
                 params = this.omit (params, 'clientOrderId');
             } else {
@@ -1057,7 +1071,7 @@ export default class coindcx extends Exchange {
         } else {
             request['id'] = id;
         }
-        if (type === 'spot') {
+        if (marketType === 'spot') {
             const response = await this.privatePostExchangeV1OrdersStatus (this.extend (request, params));
             //
             //     {
@@ -1090,7 +1104,7 @@ export default class coindcx extends Exchange {
             //     }
             //
             return this.parseOrder (response);
-        } else if (type === 'margin') {
+        } else if (marketType === 'margin') {
             request['details'] = true;
             const response = await this.privatePostExchangeV1MarginOrder (this.extend (request, params));
             //
@@ -1186,10 +1200,140 @@ export default class coindcx extends Exchange {
             orders = this.sortBy (orders, 'timestamp');
             const firstOrder = this.safeDict (orders, 0, {});
             const parsedOrder = this.parseOrder (firstOrder, market);
+            const positionId = this.safeString (position, 'id'); // using id of the position as id of the order for user could fetch or cancel it
+            if (positionId !== undefined) {
+                parsedOrder['id'] = positionId;
+            }
             parsedOrder['info'] = position;
             return parsedOrder;
         } else {
             throw new NotSupported (this.id + ' fetchOrder() supports only spot markets');
+        }
+    }
+
+    async fetchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+        /**
+         * @method
+         * @name coindcx#fetchOrders
+         * @description fetches information on multiple orders made by the user
+         * @see https://docs.coindcx.com/#fetch-orders-2
+         * @param {string} symbol unified market symbol
+         * @param {int} [since] not used by coindxc
+         * @param {int} [limit] the maximum number of order structures to retrieve (default 10)
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.type] 'spot', 'margin', 'future' or 'swap'
+         * @param {bool} [params.margin] *for spot markets only* true for fetching a margin orders
+         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        await this.loadMarkets ();
+        let market: Market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
+        let marketType = 'spot';
+        [ marketType, params ] = this.handleMarketTypeAndParams ('fetchOpenOrders', market, params);
+        const isMargin = this.safeBool (params, 'margin', false);
+        if ((isMargin) && (marketType === 'spot')) {
+            marketType = 'margin';
+        }
+        const request: Dict = {};
+        if (marketType === 'spot') {
+            throw new NotSupported (this.id + ' fetchOpenOrders is not supported for spot markets without margin');
+        } else if (marketType === 'margin') {
+            request['details'] = true;
+            if (market !== undefined) {
+                request['market'] = market['id'];
+            }
+            if (limit !== undefined) {
+                request['size'] = limit;
+            }
+            const response = await this.privatePostExchangeV1MarginFetchOrders (this.extend (request, params));
+            //
+            //     [
+            //         {
+            //             "id": "ae077a5e-2cf4-11ef-8851-77a95a586a3a",
+            //             "side": "buy",
+            //             "status": "close",
+            //             "market": "ETHUSDT",
+            //             "order_type": "market_order",
+            //             "base_currency_name": null,
+            //             "target_currency_name": null,
+            //             "base_currency_short_name": null,
+            //             "target_currency_short_name": null,
+            //             "base_currency_precision": null,
+            //             "target_currency_precision": null,
+            //             "trailing_sl": false,
+            //             "trail_percent": null,
+            //             "avg_entry": 3525.41,
+            //             "avg_exit": 3522.87,
+            //             "maker_fee": 0.1,
+            //             "taker_fee": 0.1,
+            //             "fee": 0.1,
+            //             "entry_fee": 0.01057623,
+            //             "exit_fee": 0.01056861,
+            //             "active_pos": 0.0,
+            //             "exit_pos": 0.003,
+            //             "total_pos": 0.003,
+            //             "quantity": 0.003,
+            //             "price": 3525.41,
+            //             "sl_price": 704.5,
+            //             "target_price": 0.0,
+            //             "stop_price": 0.0,
+            //             "pnl": -0.02876484,
+            //             "initial_margin": 0.0,
+            //             "interest": 0.0667,
+            //             "interest_amount": 0.0,
+            //             "interest_amount_updated_at": 0,
+            //             "interest_free_hours": 1.0,
+            //             "leverage": 1.0,
+            //             "result": "exit",
+            //             "tds_amount": 0.0,
+            //             "margin_tds_records": [],
+            //             "created_at": 1718661487503,
+            //             "updated_at": 1718661890487,
+            //             "orders": [
+            //                 {
+            //                     "id": 104528544,
+            //                     "order_type": "market_order",
+            //                     "status": "filled",
+            //                     "market": "ETHUSDT",
+            //                     "side": "sell",
+            //                     "avg_price": 3522.87,
+            //                     "total_quantity": 0.003,
+            //                     "remaining_quantity": 0.0,
+            //                     "price_per_unit": 0.0,
+            //                     "timestamp": 1718661890114.6968,
+            //                     "maker_fee": 0.1,
+            //                     "taker_fee": 0.1,
+            //                     "fee": 0.1,
+            //                     "fee_amount": 0.01056861,
+            //                     "filled_quantity": 0.003,
+            //                     "bo_stage": "stage_exit",
+            //                     "cancelled_quantity": 0.0,
+            //                     "stop_price": null
+            //                 },
+            //                 ...
+            //             ]
+            //         },
+            //         ...
+            //     ]
+            //
+            const responseList = this.toArray (response); // convertin type any into any[]
+            let result = [];
+            for (let i = 0; i < responseList.length; i++) {
+                const position = this.safeDict (responseList, i, {});
+                const orders = this.safeList (position, 'orders', []);
+                const positionId = this.safeString (position, 'id');
+                const parsingParams: Dict = {
+                    'id': positionId,
+                    'info': position,
+                };
+                const parsedOrders = this.parseOrders (orders, market, since, limit, parsingParams);
+                result = this.arrayConcat (result, parsedOrders);
+            }
+            return this.sortBy (result, 'timestamp');
+        } else {
+            throw new NotSupported (this.id + ' fetchOpenOrders is not supported for ' + marketType + ' markets'); // todo implement this method for contract markets
         }
     }
 
@@ -1203,57 +1347,72 @@ export default class coindcx extends Exchange {
          * @param {int} [since] not used by coindxc
          * @param {int} [limit] not used by coindxc
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {int} [params.orderId] a unique id for the order
-         * @param {int} [params.clientOrderId] the client order id of the order
-         *
-         * EXCHANGE SPECIFIC PARAMETERS
+         * @param {string} [params.type] 'spot', 'margin', 'future' or 'swap'
+         * @param {bool} [params.margin] *for spot markets only* true for fetching a margin orders
          * @param {int} [params.side] toggle between 'buy' or 'sell'
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
-        const market = this.market (symbol);
-        const request: Dict = {
-            'market': market['id'],
-        };
-        const response = await this.privatePostExchangeV1OrdersActiveOrders (this.extend (request, params));
-        //
-        //     {
-        //         "orders": [
-        //             {
-        //                 "id": "2614a58a-2b29-11ef-8787-833693318846",
-        //                 "user_id": "390ec282-4f54-47c2-9cc3-c842a8834b88",
-        //                 "fee": 0.0,
-        //                 "fee_amount": 0.0,
-        //                 "side": "buy",
-        //                 "order_type": "limit_order",
-        //                 "status": "open",
-        //                 "total_quantity": 0.0001,
-        //                 "remaining_quantity": 0.0001,
-        //                 "price_per_unit": 60000.0,
-        //                 "created_at": "2024-06-15T15:08:40.430Z",
-        //                 "updated_at": "2024-06-15T15:08:40.430Z",
-        //                 "market": "BTCUSDT",
-        //                 "market_order_locked": 6.0,
-        //                 "avg_price": 0.0,
-        //                 "ecode": "B",
-        //                 "stop_price": 0.0,
-        //                 "notification": "no_notification",
-        //                 "source": "web",
-        //                 "maker_fee": 0.0,
-        //                 "taker_fee": 0.0,
-        //                 "time_in_force": "good_till_cancel",
-        //                 "locked_spot_balance": true,
-        //                 "closed_at": null,
-        //                 "client_order_id": null
-        //             }
-        //         ],
-        //         "details": false,
-        //         "cp": false,
-        //         "cp_hash": {}
-        //     }
-        //
-        const orders = this.safeList (response, 'orders', []);
-        return this.parseOrders (orders, market, since, limit);
+        let market: Market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
+        let marketType = 'spot';
+        [ marketType, params ] = this.handleMarketTypeAndParams ('fetchOpenOrders', market, params);
+        const isMargin = this.safeBool (params, 'margin', false);
+        if ((isMargin) && (marketType === 'spot')) {
+            marketType = 'margin';
+        }
+        const request: Dict = {};
+        if (marketType === 'spot') {
+            if (market === undefined) {
+                throw new ArgumentsRequired (this.id + ' fetchOpenOrders requires a symbol param for spot type of markets');
+            }
+            request['market'] = market['id'];
+            const response = await this.privatePostExchangeV1OrdersActiveOrders (this.extend (request, params));
+            //
+            //     {
+            //         "orders": [
+            //             {
+            //                 "id": "2614a58a-2b29-11ef-8787-833693318846",
+            //                 "user_id": "390ec282-4f54-47c2-9cc3-c842a8834b88",
+            //                 "fee": 0.0,
+            //                 "fee_amount": 0.0,
+            //                 "side": "buy",
+            //                 "order_type": "limit_order",
+            //                 "status": "open",
+            //                 "total_quantity": 0.0001,
+            //                 "remaining_quantity": 0.0001,
+            //                 "price_per_unit": 60000.0,
+            //                 "created_at": "2024-06-15T15:08:40.430Z",
+            //                 "updated_at": "2024-06-15T15:08:40.430Z",
+            //                 "market": "BTCUSDT",
+            //                 "market_order_locked": 6.0,
+            //                 "avg_price": 0.0,
+            //                 "ecode": "B",
+            //                 "stop_price": 0.0,
+            //                 "notification": "no_notification",
+            //                 "source": "web",
+            //                 "maker_fee": 0.0,
+            //                 "taker_fee": 0.0,
+            //                 "time_in_force": "good_till_cancel",
+            //                 "locked_spot_balance": true,
+            //                 "closed_at": null,
+            //                 "client_order_id": null
+            //             }
+            //         ],
+            //         "details": false,
+            //         "cp": false,
+            //         "cp_hash": {}
+            //     }
+            //
+            const orders = this.safeList (response, 'orders', []);
+            return this.parseOrders (orders, market, since, limit);
+        } else if (marketType === 'margin') {
+            throw new NotSupported (this.id + ' fetchOpenOrders is not supported for margin markets');
+        } else {
+            throw new NotSupported (this.id + ' fetchOpenOrders is not supported for ' + marketType + ' markets'); // todo implement this method for contract markets
+        }
     }
 
     async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
@@ -1261,7 +1420,7 @@ export default class coindcx extends Exchange {
          * @method
          * @name coindcx#cancelOrder
          * @description cancels an open order
-         * @see https://docs.coindcx.com/?javascript#cancel
+         * @see https://docs.coindcx.com/#cancel
          * @param {string} id order id
          * @param {string} symbol not used by coindcx cancelOrder
          * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -1287,7 +1446,7 @@ export default class coindcx extends Exchange {
          * @method
          * @name coindcx#cancelAllOrders
          * @description cancel all open orders
-         * @see https://docs.coindcx.com/?javascript#cancel-all
+         * @see https://docs.coindcx.com/#cancel-all
          * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          *
@@ -1315,7 +1474,7 @@ export default class coindcx extends Exchange {
          * @method
          * @name coindcx#cancelOrders
          * @description cancel multiple orders
-         * @see https://docs.coindcx.com/?javascript#cancel-multiple-by-ids
+         * @see https://docs.coindcx.com/#cancel-multiple-by-ids
          * @param {string[]} ids order ids
          * @param {string} [symbol] not used by coindcx cancelOrders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -1413,8 +1572,18 @@ export default class coindcx extends Exchange {
             'currency': undefined, // todo check
             'cost': this.safeNumber (order, 'fee_amount'),
         };
+        const type = this.safeString (order, 'order_type');
         const status = this.safeString (order, 'status');
         const triggerPrice = this.omitZero (this.safeString (order, 'stop_price'));
+        let takeProfitPrice: String = undefined;
+        let stopLossPrice: String = undefined;
+        if ((triggerPrice !== undefined) && (type !== undefined)) {
+            if (type.indexOf ('take_profit') !== -1) {
+                takeProfitPrice = triggerPrice;
+            } else if (type.indexOf ('stop') !== -1) {
+                stopLossPrice = triggerPrice;
+            }
+        }
         return this.safeOrder ({
             'id': this.safeString (order, 'id'),
             'clientOrderId': this.safeString (order, 'client_order_id'),
@@ -1424,7 +1593,7 @@ export default class coindcx extends Exchange {
             'lastUpdateTimestamp': lastUpdateTimestamp,
             'status': this.parseOrderStatus (status),
             'symbol': market['symbol'],
-            'type': this.parseOrderType (this.safeString (order, 'order_type')),
+            'type': this.parseOrderType (type),
             'timeInForce': this.parseOrderTimeInForce (this.safeString (order, 'time_in_force')), // only for limit orders
             'side': this.safeString (order, 'side'),
             'price': this.omitZero (this.safeString (order, 'price_per_unit')),
@@ -1433,8 +1602,8 @@ export default class coindcx extends Exchange {
             'filled': this.safeString (order, 'filled_quantity'),
             'remaining': this.safeString (order, 'remaining_quantity'),
             'triggerPrice': triggerPrice,
-            'takeProfitPrice': undefined, // todo check
-            'stopLossPrice': undefined, // todo check
+            'takeProfitPrice': takeProfitPrice,
+            'stopLossPrice': stopLossPrice,
             'cost': undefined,
             'trades': undefined,
             'fee': fee,
@@ -1461,6 +1630,11 @@ export default class coindcx extends Exchange {
         const types: Dict = {
             'market_order': 'market',
             'limit_order': 'limit',
+            'stop_limit': 'limit',
+            'stop_market': 'market',
+            'take_profit': 'limit',
+            'take_profit_limit': 'limit',
+            'take_profit_market': 'market',
         };
         return this.safeString (types, type, type);
     }
