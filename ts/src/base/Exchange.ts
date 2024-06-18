@@ -161,6 +161,8 @@ import totp from './functions/totp.js';
 import ethers from '../static_dependencies/ethers/index.js';
 import { TypedDataEncoder } from '../static_dependencies/ethers/hash/index.js';
 import {SecureRandom} from "../static_dependencies/jsencrypt/lib/jsbn/rng.js";
+import {getStarkKey, ethSigToPrivate} from '../static_dependencies/scure-starknet/index.js';
+import * as Starknet from '../static_dependencies/starknet/index.js';
 // ----------------------------------------------------------------------------
 /**
  * @class Exchange
@@ -1769,6 +1771,31 @@ export default class Exchange {
 
     ethEncodeStructuredData (domain, messageTypes, messageData) {
         return this.base16ToBinary (TypedDataEncoder.encode (domain, messageTypes, messageData).slice (-132));
+    }
+
+    retrieveStarkAccount (signature, accountClassHash, accountProxyClassHash) {
+        const pri = ethSigToPrivate (signature)
+        const pub = getStarkKey (pri)
+        const callData = Starknet.CallData.compile({
+            implementation: accountClassHash,
+            selector: Starknet.hash.getSelectorFromName('initialize'),
+            calldata: Starknet.CallData.compile({
+              signer: pub,
+              guardian: '0',
+            }),
+        });
+        
+        const address = Starknet.hash.calculateContractAddressFromHash(
+            pub,
+            accountProxyClassHash,
+            callData,
+            0,
+        );
+        return {
+            pri,
+            pub,
+            address
+        }
     }
 
     intToBase16(elem): string {

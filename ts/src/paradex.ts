@@ -6,7 +6,9 @@ import Exchange from './abstract/paradex.js';
 import { ExchangeError, PermissionDenied, AuthenticationError, BadRequest } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import type { Dict, Int, Market, OrderBook, Strings, Ticker, Tickers, Trade } from './base/types.js';
-
+import { ecdsa } from './base/functions/crypto.js';
+import { keccak_256 as keccak } from './static_dependencies/noble-hashes/sha3.js';
+import { secp256k1 } from './static_dependencies/noble-curves/secp256k1.js';
 //  ---------------------------------------------------------------------------
 
 /**
@@ -764,6 +766,73 @@ export default class paradex extends Exchange {
             'datetime': this.iso8601 (timestamp),
             'info': interest,
         }, market);
+    }
+
+    hashMessage (message) {
+        return '0x' + this.hash (message, keccak, 'hex');
+    }
+
+    signHash (hash, privateKey) {
+        const signature = ecdsa (hash.slice (-64), privateKey.slice (-64), secp256k1, undefined);
+        const r = signature['r'];
+        const s = signature['s'];
+        const v = this.intToBase16 (this.sum (27, signature['v']));
+        return '0x' + r.padStart (64, '0') + s.padStart (64, '0') + v;
+    }
+
+    signMessage (message, privateKey) {
+        return this.signHash (this.hashMessage (message), privateKey.slice (-64));
+    }
+
+    retrieveAccount () {
+        const domain = {
+            'name': 'Paradex',
+            'chainId': 11155111,
+            'version': '1',
+        };
+        const messageTypes = {
+            'Constant': [
+                { 'name': 'action', 'type': 'string' },
+            ],
+        };
+        const message = {
+            'action': 'STARK Key',
+        };
+        const msg = this.ethEncodeStructuredData (domain, messageTypes, message);
+        const signature = this.signMessage (msg, this.privateKey);
+        return this.retrieveStarkAccount (signature, 
+            '0x41cb0280ebadaa75f996d8d92c6f265f6d040bb3ba442e5f86a554f1765244e',
+            '0x3530cc4759d78042f1b543bf797f5f3d647cde0388c33734cf91b7f7b9314a9'
+        );
+    }
+
+    auth () {
+        const now = this.nonce ();
+        const req = {
+            'method': 'POST',
+            'path': '/v1/auth',
+            'body': '',
+            'timestamp': now,
+            'expiration': now + 86400000 * 7,
+        };
+        // PRIVATE_SN_POTC_SEPOLIA
+        const domain = {
+            'name': 'Paradex',
+            'chainId': 'PRIVATE_SN_POTC_SEPOLIA',
+            'version': '1',
+        }
+        const messageTypes = {
+            'Request': [
+                { 'name': 'method', 'type': 'felt' }, // string
+                { 'name': 'path', 'type': 'felt' }, // string
+                { 'name': 'body', 'type': 'felt' }, // string
+                { 'name': 'timestamp', 'type': 'felt' }, // number
+                { 'name': 'expiration', 'type': 'felt' }, // number
+            ],
+        };
+        const msg = this.ethEncodeStructuredData (domain, messageTypes, req);
+        const signature = this.signMessage (msg, this.privateKey);
+        console.log (signature);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
