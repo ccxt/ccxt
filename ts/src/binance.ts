@@ -7783,6 +7783,9 @@ export default class binance extends Exchange {
     }
 
     parseTransactionStatusByType (status, type = undefined) {
+        if (type === undefined) {
+            return status;
+        }
         const statusesByType: Dict = {
             'deposit': {
                 '0': 'pending',
