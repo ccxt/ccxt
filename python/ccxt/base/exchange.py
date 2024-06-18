@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.3.46'
+__version__ = '4.3.47'
 
 # -----------------------------------------------------------------------------
 
@@ -1518,8 +1518,8 @@ class Exchange(object):
 
     def precision_from_string(self, str):
         # support string formats like '1e-4'
-        if 'e' in str:
-            numStr = re.sub(r'\de', '', str)
+        if 'e' in str or 'E' in str:
+            numStr = re.sub(r'\d\.?\d*[eE]', '', str)
             return int(numStr) * -1
         # support integer formats (without dot) like '1', '10' etc [Note: bug in decimalToPrecision, so this should not be used atm]
         # if not ('.' in str):

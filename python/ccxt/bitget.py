@@ -4189,7 +4189,7 @@ class bitget(Exchange, ImplicitAPI):
                 request['clientOid'] = clientOrderId
             if marginMode is not None:
                 request['loanType'] = 'normal'
-                if createMarketBuyOrderRequiresPrice and isMarketOrder and (side == 'buy'):
+                if isMarketOrder and (side == 'buy'):
                     request['quoteSize'] = quantity
                 else:
                     request['baseSize'] = quantity
