@@ -329,7 +329,7 @@ export default class gate extends gateRest {
         return await this.fetchOrdersByStatusWs ('finished', symbol, since, limit, params) as Order[];
     }
 
-    async fetchOrdersByStatusWs (status, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchOrdersByStatusWs (status: string, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name gate#fetchOrdersWs
@@ -353,11 +353,12 @@ export default class gate extends gateRest {
             }
         }
         const [ request, requestParams ] = this.fetchOrdersByStatusRequest (status, symbol, since, limit, params);
+        const newRequest = this.omit (request, [ 'settle' ]);
         const messageType = this.getTypeByMarket (market);
         const channel = messageType + '.order_list';
         const url = this.getUrlByMarket (market);
         await this.authenticate (url, messageType);
-        const rawOrders = await this.requestPrivate (url, this.extend (request, requestParams), channel);
+        const rawOrders = await this.requestPrivate (url, this.extend (newRequest, requestParams), channel);
         const orders = this.parseOrders (rawOrders, market);
         return this.filterBySymbolSinceLimit (orders, symbol, since, limit);
     }
