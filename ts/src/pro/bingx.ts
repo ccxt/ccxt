@@ -755,7 +755,7 @@ export default class bingx extends bingxRest {
         if (Array.isArray (data)) {
             candles = data;
         } else {
-            candles = [ this.safeList (data, 'K', []) ];
+            candles = [ this.safeDict (data, 'K', {}) ];
         }
         const dataType = this.safeString (message, 'dataType');
         const isSwap = client.url.indexOf ('swap') >= 0;
