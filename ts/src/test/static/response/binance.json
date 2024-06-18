@@ -2552,6 +2552,42 @@
                   "fee": null
                 }
             }
+        ],
+        "fetchConvertQuote": [
+            {
+                "description": "fetchConvertQuote",
+                "method": "fetchConvertQuote",
+                "input": [
+                  "USDC",
+                  "USDT",
+                  5
+                ],
+                "httpResponse": {
+                  "ratio": "0.999351",
+                  "inverseRatio": "1.00065",
+                  "validTimestamp": "1718724795211",
+                  "toAmount": "4.99675625",
+                  "fromAmount": "5"
+                },
+                "parsedResponse": {
+                  "info": {
+                    "ratio": "0.999351",
+                    "inverseRatio": "1.00065",
+                    "validTimestamp": "1718724795211",
+                    "toAmount": "4.99675625",
+                    "fromAmount": "5"
+                  },
+                  "timestamp": 1718724795211,
+                  "datetime": "2024-06-18T15:33:15.211Z",
+                  "id": null,
+                  "fromCurrency": "USDC",
+                  "fromAmount": 5,
+                  "toCurrency": "USDT",
+                  "toAmount": 4.99675625,
+                  "price": null,
+                  "fee": null
+                }
+            }
         ]
     }
 }
