@@ -823,14 +823,14 @@ public partial class bingx : ccxt.bingx
         //        ]
         //    }
         //
-        object data = this.safeList(message, "data", new List<object>() {});
+        object data = this.safeValue(message, "data", new List<object>() {});
         object candles = null;
         if (isTrue(((data is IList<object>) || (data.GetType().IsGenericType && data.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
         {
             candles = data;
         } else
         {
-            candles = new List<object> {this.safeList(data, "K", new List<object>() {})};
+            candles = new List<object> {this.safeDict(data, "K", new Dictionary<string, object>() {})};
         }
         object dataType = this.safeString(message, "dataType");
         object isSwap = isGreaterThanOrEqual(getIndexOf(client.url, "swap"), 0);
