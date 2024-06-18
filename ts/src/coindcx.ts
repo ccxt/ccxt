@@ -1,26 +1,21 @@
-
 //  ---------------------------------------------------------------------------
-
 import Exchange from './abstract/coindcx.js';
 import { ArgumentsRequired, NotSupported } from './base/errors.js';
 import { DECIMAL_PLACES } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { Balances, Dict, IndexType, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade } from './base/types.js';
-
 //  ---------------------------------------------------------------------------
-
 /**
  * @class coindcx
  * @augments Exchange
  */
 export default class coindcx extends Exchange {
-    describe () {
-        return this.deepExtend (super.describe (), {
+    describe() {
+        return this.deepExtend(super.describe(), {
             'id': 'coindcx',
             'name': 'CoinDCX',
-            'countries': [ 'IN' ], // India
+            'countries': ['IN'],
             'version': 'v1',
-            'rateLimit': 30, // 2000 per minute
+            'rateLimit': 30,
             'certified': false,
             'pro': true,
             'has': {
@@ -142,9 +137,9 @@ export default class coindcx extends Exchange {
                 '1M': '1M',
             },
             'urls': {
-                'logo': '', // todo: add a logo
+                'logo': '',
                 'api': {
-                    'public1': 'https://api.coindcx.com', // base URL for some public endpoint is https://public.coindcx.com. However, it will only be used where it is exclusively mentioned in the documentation.
+                    'public1': 'https://api.coindcx.com',
                     'private': 'https://api.coindcx.com',
                     'public2': 'https://public.coindcx.com', // todo should we rename it?
                 },
@@ -208,34 +203,34 @@ export default class coindcx extends Exchange {
                     'feeSide': 'quote',
                     'tierBased': false,
                     'percentage': true,
-                    'taker': this.parseNumber ('0'),
-                    'maker': this.parseNumber ('0'),
+                    'taker': this.parseNumber('0'),
+                    'maker': this.parseNumber('0'),
                 },
             },
             'precisionMode': DECIMAL_PLACES,
             // exchange-specific options
             'options': {
+                'defaultType': 'spot',
                 'networks': {
-                    // todo: complete list of networks
+                // todo: complete list of networks
                 },
             },
             'exceptions': {
                 'exact': {
-                    // {"code":400,"message":"Invalid Request.","status":"error"}
-                    // {"code":401,"message":"Invalid credentials","status":"error"}
-                    // {"status":"error","message":"not_found","code":404}
-                    // {"code":422,"message":"Invalid Request","status":"error"}
-                    // {"code":404,"message":"Order not found","status":"error"}
-                    // {"code":422,"message":"Cannot exit this order","status":"error"}
+                // {"code":400,"message":"Invalid Request.","status":"error"}
+                // {"code":401,"message":"Invalid credentials","status":"error"}
+                // {"status":"error","message":"not_found","code":404}
+                // {"code":422,"message":"Invalid Request","status":"error"}
+                // {"code":404,"message":"Order not found","status":"error"}
+                // {"code":422,"message":"Cannot exit this order","status":"error"}
                 },
                 'broad': {
-                    // todo: add more error codes
+                // todo: add more error codes
                 },
             },
         });
     }
-
-    async fetchMarkets (params = {}): Promise<Market[]> {
+    async fetchMarkets(params = {}) {
         /**
          * @method
          * @name coindcx#fetchMarkets
@@ -244,7 +239,7 @@ export default class coindcx extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} an array of objects representing market data
          */
-        const response = await this.public1GetExchangeV1MarketsDetails (params);
+        const response = await this.public1GetExchangeV1MarketsDetails(params);
         //
         //     [
         //         {
@@ -276,25 +271,24 @@ export default class coindcx extends Exchange {
         //         }
         //     ]
         //
-        return this.parseMarkets (response);
+        return this.parseMarkets(response);
     }
-
-    parseMarket (market: Dict): Market {
-        const marketId = this.safeString (market, 'coindcx_name'); // todo how to set encode
-        const baseId = this.safeString (market, 'target_currency_short_name');
-        const quoteId = this.safeString (market, 'base_currency_short_name');
-        const base = this.safeCurrencyCode (baseId);
-        const quote = this.safeCurrencyCode (quoteId);
+    parseMarket(market) {
+        const marketId = this.safeString(market, 'coindcx_name'); // todo how to set encode
+        const baseId = this.safeString(market, 'target_currency_short_name');
+        const quoteId = this.safeString(market, 'base_currency_short_name');
+        const base = this.safeCurrencyCode(baseId);
+        const quote = this.safeCurrencyCode(quoteId);
         const symbol = base + '/' + quote;
         let margin = false;
-        let max_leverage = this.safeNumber (market, 'max_leverage');
+        let max_leverage = this.safeNumber(market, 'max_leverage');
         if (max_leverage === 0) {
             max_leverage = undefined;
         }
         if (max_leverage !== undefined) {
             margin = true;
         }
-        const active = this.safeString (market, 'status');
+        const active = this.safeString(market, 'status');
         let isActive = false;
         if (active === 'active') {
             isActive = true;
@@ -308,7 +302,7 @@ export default class coindcx extends Exchange {
             'baseId': baseId,
             'quoteId': quoteId,
             'settleId': undefined,
-            'type': 'spot', // todo check
+            'type': 'spot',
             'spot': true,
             'margin': margin,
             'swap': false,
@@ -323,11 +317,11 @@ export default class coindcx extends Exchange {
             'expiryDatetime': undefined,
             'strike': undefined,
             'optionType': undefined,
-            'taker': this.safeNumber (market, 'taker_fee', 0), // spot markets have no fees yet
-            'maker': this.safeNumber (market, 'maker_fee', 0), // spot markets have no fees yet
+            'taker': this.safeNumber(market, 'taker_fee', 0),
+            'maker': this.safeNumber(market, 'maker_fee', 0),
             'precision': {
-                'amount': this.safeInteger (market, 'target_currency_precision'),
-                'price': this.safeInteger (market, 'base_currency_precision'),
+                'amount': this.safeInteger(market, 'target_currency_precision'),
+                'price': this.safeInteger(market, 'base_currency_precision'),
             },
             'limits': {
                 'leverage': {
@@ -335,15 +329,15 @@ export default class coindcx extends Exchange {
                     'max': max_leverage,
                 },
                 'amount': {
-                    'min': this.safeNumber (market, 'min_quantity'),
-                    'max': this.safeNumber (market, 'max_quantity'),
+                    'min': this.safeNumber(market, 'min_quantity'),
+                    'max': this.safeNumber(market, 'max_quantity'),
                 },
                 'price': {
-                    'min': this.safeNumber (market, 'min_price'),
-                    'max': this.safeNumber (market, 'max_price'),
+                    'min': this.safeNumber(market, 'min_price'),
+                    'max': this.safeNumber(market, 'max_price'),
                 },
                 'cost': {
-                    'min': this.safeNumber (market, 'min_notional'),
+                    'min': this.safeNumber(market, 'min_notional'),
                     'max': undefined,
                 },
             },
@@ -351,8 +345,7 @@ export default class coindcx extends Exchange {
             'info': market,
         };
     }
-
-    async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+    async fetchTickers(symbols = undefined, params = {}) {
         /**
          * @method
          * @name coindcx#fetchTickers
@@ -362,8 +355,8 @@ export default class coindcx extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
-        await this.loadMarkets ();
-        const response = await this.public1GetExchangeTicker (params);
+        await this.loadMarkets();
+        const response = await this.public1GetExchangeTicker(params);
         //
         // [
         //     {
@@ -379,10 +372,9 @@ export default class coindcx extends Exchange {
         //     }
         // ]
         //
-        return this.parseTickers (response, symbols);
+        return this.parseTickers(response, symbols);
     }
-
-    parseTicker (ticker, market: Market = undefined): Ticker {
+    parseTicker(ticker, market = undefined) {
         //
         //  {
         //      "market": "BTCINR",
@@ -396,36 +388,35 @@ export default class coindcx extends Exchange {
         //      "timestamp": 1717616755
         //  }
         //
-        const timestamp = this.safeInteger (ticker, 'timestamp');
-        const marketId = this.safeString (ticker, 'market');
-        market = this.safeMarket (marketId, market);
+        const timestamp = this.safeInteger(ticker, 'timestamp');
+        const marketId = this.safeString(ticker, 'market');
+        market = this.safeMarket(marketId, market);
         const symbol = market['symbol'];
-        const last = this.safeString (ticker, 'last_price');
-        return this.safeTicker ({
+        const last = this.safeString(ticker, 'last_price');
+        return this.safeTicker({
             'symbol': symbol,
             'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'high': this.safeString (ticker, 'high'),
-            'low': this.safeString (ticker, 'low'),
+            'datetime': this.iso8601(timestamp),
+            'high': this.safeString(ticker, 'high'),
+            'low': this.safeString(ticker, 'low'),
             'bid': undefined,
-            'bidVolume': this.safeString (ticker, 'bid'),
+            'bidVolume': this.safeString(ticker, 'bid'),
             'ask': undefined,
-            'askVolume': this.safeString (ticker, 'ask'),
+            'askVolume': this.safeString(ticker, 'ask'),
             'vwap': undefined,
             'open': undefined,
             'close': last,
             'last': last,
             'previousClose': undefined,
-            'change': this.safeString (ticker, 'change_24_hour'),
+            'change': this.safeString(ticker, 'change_24_hour'),
             'percentage': undefined,
             'average': undefined,
             'baseVolume': undefined,
-            'quoteVolume': this.safeString (ticker, 'volume'),
+            'quoteVolume': this.safeString(ticker, 'volume'),
             'info': ticker,
         }, market);
     }
-
-    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+    async fetchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name coindcx#fetchOHLCV
@@ -439,12 +430,12 @@ export default class coindcx extends Exchange {
          * @param {int} [params.until] timestamp in ms of the latest candle to fetch (works only if since is also defined)
          * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
-        await this.loadMarkets ();
-        const market = this.market (symbol);
-        timeframe = this.safeString (this.timeframes, timeframe, timeframe);
-        const marketInfo = this.safeDict (market, 'info', {});
-        const pair = this.safeString (marketInfo, 'pair');
-        const request: Dict = {
+        await this.loadMarkets();
+        const market = this.market(symbol);
+        timeframe = this.safeString(this.timeframes, timeframe, timeframe);
+        const marketInfo = this.safeDict(market, 'info', {});
+        const pair = this.safeString(marketInfo, 'pair');
+        const request = {
             'pair': pair,
             'interval': timeframe,
         };
@@ -454,12 +445,12 @@ export default class coindcx extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const until = this.safeInteger (params, 'until');
+        const until = this.safeInteger(params, 'until');
         if (until !== undefined) {
             request['endTime'] = until;
-            params = this.omit (params, 'until');
+            params = this.omit(params, 'until');
         }
-        const response = await this.public2GetMarketDataCandles (this.extend (request, params));
+        const response = await this.public2GetMarketDataCandles(this.extend(request, params));
         //
         //     [
         //         {
@@ -472,21 +463,19 @@ export default class coindcx extends Exchange {
         //         }
         //     ]
         //
-        return this.parseOHLCVs (response, market, timeframe, since, limit);
+        return this.parseOHLCVs(response, market, timeframe, since, limit);
     }
-
-    parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
+    parseOHLCV(ohlcv, market = undefined) {
         return [
-            this.safeInteger (ohlcv, 'time'),
-            this.safeNumber (ohlcv, 'open'),
-            this.safeNumber (ohlcv, 'high'),
-            this.safeNumber (ohlcv, 'low'),
-            this.safeNumber (ohlcv, 'close'),
-            this.safeNumber (ohlcv, 'volume'),
+            this.safeInteger(ohlcv, 'time'),
+            this.safeNumber(ohlcv, 'open'),
+            this.safeNumber(ohlcv, 'high'),
+            this.safeNumber(ohlcv, 'low'),
+            this.safeNumber(ohlcv, 'close'),
+            this.safeNumber(ohlcv, 'volume'),
         ];
     }
-
-    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
+    async fetchOrderBook(symbol, limit = undefined, params = {}) {
         /**
          * @method
          * @name coindcx#fetchOrderBook
@@ -497,14 +486,14 @@ export default class coindcx extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
          */
-        await this.loadMarkets ();
-        const market = this.market (symbol);
-        const marketInfo = this.safeDict (market, 'info', {});
-        const pair = this.safeString (marketInfo, 'pair');
-        const request: Dict = {
+        await this.loadMarkets();
+        const market = this.market(symbol);
+        const marketInfo = this.safeDict(market, 'info', {});
+        const pair = this.safeString(marketInfo, 'pair');
+        const request = {
             'pair': pair,
         };
-        const response = await this.public2GetMarketDataOrderbook (this.extend (request, params));
+        const response = await this.public2GetMarketDataOrderbook(this.extend(request, params));
         //
         //     {
         //         "timestamp": 1717694482206,
@@ -534,22 +523,20 @@ export default class coindcx extends Exchange {
         //         }
         //     }
         //
-        const timestamp = this.safeInteger (response, 'timestamp');
-        return this.parseOrderBook (response, symbol, timestamp);
+        const timestamp = this.safeInteger(response, 'timestamp');
+        return this.parseOrderBook(response, symbol, timestamp);
     }
-
-    parseBidsAsks (bidasks, priceKey: IndexType = 0, amountKey: IndexType = 1, countOrIdKey: IndexType = 2) {
-        const prices = Object.keys (bidasks);
+    parseBidsAsks(bidasks, priceKey = 0, amountKey = 1, countOrIdKey = 2) {
+        const prices = Object.keys(bidasks);
         const result = [];
         for (let i = 0; i < prices.length; i++) {
             const price = prices[i];
             const amount = bidasks[price];
-            result.push ([ this.parseNumber (price), this.parseNumber (amount) ]);
+            result.push([this.parseNumber(price), this.parseNumber(amount)]);
         }
         return result;
     }
-
-    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    async fetchTrades(symbol, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name coindcx#fetchTrades
@@ -561,17 +548,17 @@ export default class coindcx extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
          */
-        await this.loadMarkets ();
-        const market = this.market (symbol);
-        const marketInfo = this.safeDict (market, 'info', {});
-        const pair = this.safeString (marketInfo, 'pair');
-        const request: Dict = {
+        await this.loadMarkets();
+        const market = this.market(symbol);
+        const marketInfo = this.safeDict(market, 'info', {});
+        const pair = this.safeString(marketInfo, 'pair');
+        const request = {
             'pair': pair,
         };
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this.public2GetMarketDataTradeHistory (this.extend (request, params));
+        const response = await this.public2GetMarketDataTradeHistory(this.extend(request, params));
         //
         //     [
         //         {
@@ -583,10 +570,9 @@ export default class coindcx extends Exchange {
         //         }
         //     ]
         //
-        return this.parseTrades (response, market, since, limit);
+        return this.parseTrades(response, market, since, limit);
     }
-
-    async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name coindcx#fetchMyTrades
@@ -594,21 +580,30 @@ export default class coindcx extends Exchange {
          * @see https://docs.coindcx.com/#account-trade-history
          * @param {string} symbol unified market symbol
          * @param {int} [since] the earliest time in ms to fetch trades for
-         * @param {int} [limit] the maximum amount of trades to fetch (default 500, min 1, max 5000)
+         * @param {int} [limit] the maximum amount of trades to fetch (default 500, max 5000)
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.type] 'spot', 'margin', 'future' or 'swap'
+         * @param {bool} [params.margin] *for spot markets only* true for creating a margin order
          * @param {int} [params.until] timestamp in ms of the latest trade to fetch (default now)
-         *
-         * EXCHANGE SPECIFIC PARAMETERS
          * @param {int} [params.from_id] trade ID after which you want the data. If not supplied, trades in ascending order will be returned
-         * @param {int} [params.sort] specify asc or desc to get trades in ascending or descending order, default: asc
+         * @param {string} [params.sort] asc or desc to get trades in ascending or descending order, default: asc
          * @returns {Trade[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure}
          */
-        await this.loadMarkets ();
-        const request: Dict = {};
-        let market: Market = undefined;
+        await this.loadMarkets();
+        const request = {};
+        let market = undefined;
         if (symbol !== undefined) {
-            market = this.market (symbol);
+            market = this.market(symbol);
             request['symbol'] = market['id'];
+        }
+        let marketType = 'spot';
+        [marketType, params] = this.handleMarketTypeAndParams('createOrder', market, params);
+        const isMargin = this.safeBool(params, 'margin', false);
+        if ((isMargin) && (marketType === 'spot')) {
+            marketType = 'margin';
+        }
+        if (marketType !== 'spot') {
+            throw new NotSupported(this.id + ' fetchMyTrades() does not support ' + marketType + ' markets');
         }
         if (since !== undefined) {
             request['from_timestamp'] = since;
@@ -616,12 +611,12 @@ export default class coindcx extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const until = this.safeInteger (params, 'until');
+        const until = this.safeInteger(params, 'until');
         if (until !== undefined) {
             request['to_timestamp'] = until;
-            params = this.omit (params, 'until');
+            params = this.omit(params, 'until');
         }
-        const response = await this.privatePostExchangeV1OrdersTradeHistory (this.extend (request, params));
+        const response = await this.privatePostExchangeV1OrdersTradeHistory(this.extend(request, params));
         //
         //     [
         //         {
@@ -637,10 +632,9 @@ export default class coindcx extends Exchange {
         //         }
         //     ]
         //
-        return this.parseTrades (response, market, since, limit);
+        return this.parseTrades(response, market, since, limit);
     }
-
-    parseTrade (trade, market: Market = undefined): Trade {
+    parseTrade(trade, market = undefined) {
         //
         // public fetchTrades
         //
@@ -666,39 +660,39 @@ export default class coindcx extends Exchange {
         //         "timestamp": 1718386312255.3608
         //     }
         //
-        const marketId = this.safeString (trade, 's');
-        market = this.safeMarket (marketId, market);
+        const marketId = this.safeString2(trade, 's', 'symbol');
+        market = this.safeMarket(marketId, market);
         const symbol = market['symbol'];
-        const timestamp = this.safeInteger2 (trade, 'T', 'timestamp');
-        const isMaker = this.safeBool (trade, 'm');
-        let takerOrMaker: Str = undefined;
+        const timestamp = this.safeInteger2(trade, 'T', 'timestamp');
+        const isMaker = this.safeBool(trade, 'm');
+        let takerOrMaker = undefined;
         if (isMaker) {
             takerOrMaker = 'maker';
-        } else if (isMaker !== undefined) {
+        }
+        else if (isMaker !== undefined) {
             takerOrMaker = 'taker';
         }
         const fee = {
-            'cost': this.safeString (trade, 'fee_amount'),
+            'cost': this.safeString(trade, 'fee_amount'),
             'currency': undefined,
         };
-        return this.safeTrade ({
-            'id': this.safeString (trade, 'id'),
+        return this.safeTrade({
+            'id': this.safeString(trade, 'id'),
             'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
+            'datetime': this.iso8601(timestamp),
             'symbol': symbol,
             'type': undefined,
-            'order': this.safeString (trade, 'order_id'),
-            'side': this.safeString (trade, 'side'),
+            'order': this.safeString(trade, 'order_id'),
+            'side': this.safeString(trade, 'side'),
             'takerOrMaker': takerOrMaker,
-            'price': this.safeString2 (trade, 'p', 'price'),
-            'amount': this.safeString2 (trade, 'q', 'quantity'),
+            'price': this.safeString2(trade, 'p', 'price'),
+            'amount': this.safeString2(trade, 'q', 'quantity'),
             'cost': undefined,
             'fee': fee,
             'info': trade,
         }, market);
     }
-
-    async fetchBalance (params = {}): Promise<Balances> {
+    async fetchBalance(params = {}) {
         /**
          * @method
          * @name coindcx#fetchBalance
@@ -707,8 +701,8 @@ export default class coindcx extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
          */
-        await this.loadMarkets ();
-        const response = await this.privatePostExchangeV1UsersBalances (params);
+        await this.loadMarkets();
+        const response = await this.privatePostExchangeV1UsersBalances(params);
         //
         //     [
         //         {
@@ -723,26 +717,24 @@ export default class coindcx extends Exchange {
         //         }
         //     ]
         //
-        return this.parseBalance (response);
+        return this.parseBalance(response);
     }
-
-    parseBalance (balances): Balances {
-        const result: Dict = {
+    parseBalance(balances) {
+        const result = {
             'info': balances,
         };
         for (let i = 0; i < balances.length; i++) {
-            const balanceEntry = this.safeDict (balances, i, {});
-            const currencyId = this.safeString (balanceEntry, 'currency');
-            const code = this.safeCurrencyCode (currencyId);
-            const account = this.account ();
-            account['free'] = this.safeString (balanceEntry, 'balance');
-            account['used'] = this.safeString (balanceEntry, 'locked_balance');
+            const balanceEntry = this.safeDict(balances, i, {});
+            const currencyId = this.safeString(balanceEntry, 'currency');
+            const code = this.safeCurrencyCode(currencyId);
+            const account = this.account();
+            account['free'] = this.safeString(balanceEntry, 'balance');
+            account['used'] = this.safeString(balanceEntry, 'locked_balance');
             result[code] = account;
         }
-        return this.safeBalance (result);
+        return this.safeBalance(result);
     }
-
-    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}): Promise<Order> {
+    async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
         /**
          * @method
          * @name coindcx#createOrder
@@ -765,47 +757,50 @@ export default class coindcx extends Exchange {
          * @param {int} [params.leverage] *for contract and spot margin markets only* the rate of leverage
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
-        await this.loadMarkets ();
-        const market = this.market (symbol);
+        await this.loadMarkets();
+        const market = this.market(symbol);
         let marketType = 'spot';
-        [ marketType, params ] = this.handleMarketTypeAndParams ('createOrder', market, params);
-        const isMargin = this.safeBool (params, 'margin', false);
+        [marketType, params] = this.handleMarketTypeAndParams('createOrder', market, params);
+        const isMargin = this.safeBool(params, 'margin', false);
         if ((isMargin) && (marketType === 'spot')) {
             marketType = 'margin';
         }
-        const clientOrderId = this.safeString2 (params, 'clientOrderId', 'client_order_id');
+        const clientOrderId = this.safeString2(params, 'clientOrderId', 'client_order_id');
         if (clientOrderId !== undefined) {
             if (marketType === 'spot') {
                 params['client_order_id'] = clientOrderId;
-                params = this.omit (params, 'clientOrderId');
-            } else {
-                throw new NotSupported (this.id + ' createOrder() supports params.clientOrderId for spot markets without margin only');
+                params = this.omit(params, 'clientOrderId');
+            }
+            else {
+                throw new NotSupported(this.id + ' createOrder() supports params.clientOrderId for spot markets without margin only');
             }
         }
         if (marketType === 'spot') {
-            type = this.encodeSpotOrderType (type);
+            type = this.encodeSpotOrderType(type);
             if (type === undefined) {
-                throw new NotSupported (this.id + ' createOrder() does not support ' + type + ' type of orders for spot markets without margin (market and limit types are supported only)');
+                throw new NotSupported(this.id + ' createOrder() does not support ' + type + ' type of orders for spot markets without margin (market and limit types are supported only)');
             }
-            return this.createSpotOrder (symbol, type, side, amount, price, params);
-        } else if (marketType === 'margin') {
-            type = this.encodeMarginOrderType (type);
+            return this.createSpotOrder(symbol, type, side, amount, price, params);
+        }
+        else if (marketType === 'margin') {
+            type = this.encodeMarginOrderType(type);
             if (type === undefined) {
-                throw new NotSupported (this.id + ' createOrder() does not support ' + type + ' type of orders for spot margin markets (market, limit, stop_limit, take_profit and take_profit_limit types are supported only)');
+                throw new NotSupported(this.id + ' createOrder() does not support ' + type + ' type of orders for spot margin markets (market, limit, stop_limit, take_profit and take_profit_limit types are supported only)');
             }
-            return this.createMarginOrder (symbol, type, side, amount, price, params);
-        } else if ((marketType === 'future') || ((marketType === 'swap'))) {
-            type = this.encodeContractOrderType (type);
+            return this.createMarginOrder(symbol, type, side, amount, price, params);
+        }
+        else if ((marketType === 'future') || ((marketType === 'swap'))) {
+            type = this.encodeContractOrderType(type);
             if (type === undefined) {
-                throw new NotSupported (this.id + ' createOrder() does not support ' + type + ' type of orders for contract markets (market, limit, stop_limit, stop_market, take_profit_limit and take_profit_market types are supported only)');
+                throw new NotSupported(this.id + ' createOrder() does not support ' + type + ' type of orders for contract markets (market, limit, stop_limit, stop_market, take_profit_limit and take_profit_market types are supported only)');
             }
-            return this.createContractOrder (symbol, type, side, amount, price, params);
-        } else {
-            throw new NotSupported (this.id + ' createOrder() does not support ' + marketType + ' orders');
+            return this.createContractOrder(symbol, type, side, amount, price, params);
+        }
+        else {
+            throw new NotSupported(this.id + ' createOrder() does not support ' + marketType + ' orders');
         }
     }
-
-    async createSpotOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}): Promise<Order> {
+    async createSpotOrder(symbol, type, side, amount, price = undefined, params = {}) {
         /**
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {string} type 'market', 'limit'
@@ -815,18 +810,18 @@ export default class coindcx extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {int} [params.clientOrderId] a unique id for the order
          */
-        const market = this.market (symbol);
+        const market = this.market(symbol);
         // todo throw an exception for margin params
-        const request: Dict = {
+        const request = {
             'market': market['id'],
             'order_type': type,
             'side': side,
-            'total_quantity': this.amountToPrecision (symbol, amount),
+            'total_quantity': this.amountToPrecision(symbol, amount),
         };
         if (price !== undefined) {
-            request['price_per_unit'] = this.priceToPrecision (symbol, price);
+            request['price_per_unit'] = this.priceToPrecision(symbol, price);
         }
-        const response = await this.privatePostExchangeV1OrdersCreate (this.extend (request, params));
+        const response = await this.privatePostExchangeV1OrdersCreate(this.extend(request, params));
         //
         //     {
         //         "orders": [
@@ -861,12 +856,11 @@ export default class coindcx extends Exchange {
         //         ]
         //     }
         //
-        const orders = this.safeList (response, 'orders', []);
-        const order = this.safeDict (orders, 0, {});
-        return this.parseOrder (order, market);
+        const orders = this.safeList(response, 'orders', []);
+        const order = this.safeDict(orders, 0, {});
+        return this.parseOrder(order, market);
     }
-
-    async createMarginOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}): Promise<Order> {
+    async createMarginOrder(symbol, type, side, amount, price = undefined, params = {}) {
         /**
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {string} type 'market', 'limit', 'stop_limit', 'take_profit', 'take_profit_limit'
@@ -879,37 +873,38 @@ export default class coindcx extends Exchange {
          * @param {float} [params.stopLossPrice] stop loss trigger price
          * @param {float} [params.takeProfitPrice] take profit trigger price
          */
-        const market = this.market (symbol);
+        const market = this.market(symbol);
         // todo check and add trailing_sl and target_price
-        const marketInfo = this.safeDict (market, 'info', {});
-        const request: Dict = {
+        const marketInfo = this.safeDict(market, 'info', {});
+        const request = {
             'market': market['id'],
             'order_type': type,
             'side': side,
-            'quantity': this.amountToPrecision (symbol, amount),
-            'ecode': this.safeString (marketInfo, 'ecode'),
+            'quantity': this.amountToPrecision(symbol, amount),
+            'ecode': this.safeString(marketInfo, 'ecode'),
         };
         if (price !== undefined) {
-            request['price'] = this.priceToPrecision (symbol, price);
+            request['price'] = this.priceToPrecision(symbol, price);
         }
-        const stopLossPrice = this.safeString (params, 'stopLossPrice');
-        const takeProfitPrice = this.safeString (params, 'takeProfitPrice');
-        const triggerPrice = this.safeStringN (params, [ 'triggerPrice', 'stopLossPrice', 'takeProfitPrice' ]);
+        const stopLossPrice = this.safeString(params, 'stopLossPrice');
+        const takeProfitPrice = this.safeString(params, 'takeProfitPrice');
+        const triggerPrice = this.safeStringN(params, ['triggerPrice', 'stopLossPrice', 'takeProfitPrice']);
         if (triggerPrice !== undefined) {
             if (type === 'market_order') {
-                throw new NotSupported (this.id + ' createOrder() supports only limit type for takeProfit and stopLoss orders for spot markets with margin');
+                throw new NotSupported(this.id + ' createOrder() supports only limit type for takeProfit and stopLoss orders for spot markets with margin');
             }
-            request['stop_price'] = this.priceToPrecision (symbol, triggerPrice);
+            request['stop_price'] = this.priceToPrecision(symbol, triggerPrice);
             if (type === 'limit_order') {
                 if (stopLossPrice !== undefined) {
                     request['order_type'] = 'stop_limit';
-                } else if (takeProfitPrice !== undefined) {
+                }
+                else if (takeProfitPrice !== undefined) {
                     request['order_type'] = 'take_profit';
                 }
             }
-            params = this.omit (params, [ 'triggerPrice', 'stopLossPrice', 'takeProfitPrice' ]);
+            params = this.omit(params, ['triggerPrice', 'stopLossPrice', 'takeProfitPrice']);
         }
-        const response = await this.privatePostExchangeV1MarginCreate (this.extend (request, params));
+        const response = await this.privatePostExchangeV1MarginCreate(this.extend(request, params));
         //
         //     [
         //         {
@@ -978,29 +973,27 @@ export default class coindcx extends Exchange {
         //         }
         //     ]
         //
-        const position = this.safeDict (response, 0, {});
-        const orders = this.safeList (position, 'orders', []);
-        const order = this.safeDict (orders, 0, {});
-        const parsedOrder = this.parseOrder (order, market);
-        const id = this.safeString (position, 'id'); // using id of the position as id of the order for user could fetch or cancel it
+        const position = this.safeDict(response, 0, {});
+        const orders = this.safeList(position, 'orders', []);
+        const order = this.safeDict(orders, 0, {});
+        const parsedOrder = this.parseOrder(order, market);
+        const id = this.safeString(position, 'id'); // using id of the position as id of the order for user could fetch or cancel it
         if (id !== undefined) {
             parsedOrder['id'] = id;
         }
         parsedOrder['info'] = position;
         return parsedOrder;
     }
-
-    encodeSpotOrderType (type) {
+    encodeSpotOrderType(type) {
         const types = {
             'market': 'market_order',
             'limit': 'limit_order',
             'market_order': 'market_order',
             'limit_order': 'limit_order',
         };
-        return this.safeString (types, type, undefined);
+        return this.safeString(types, type, undefined);
     }
-
-    encodeMarginOrderType (type) {
+    encodeMarginOrderType(type) {
         const types = {
             'market': 'market_order',
             'limit': 'limit_order',
@@ -1010,10 +1003,9 @@ export default class coindcx extends Exchange {
             'take_profit': 'take_profit',
             'take_profit_limit': 'take_profit',
         };
-        return this.safeString (types, type, undefined);
+        return this.safeString(types, type, undefined);
     }
-
-    encodeContractOrderType (type) {
+    encodeContractOrderType(type) {
         const types = {
             'market': 'market_order',
             'limit': 'limit_order',
@@ -1024,16 +1016,14 @@ export default class coindcx extends Exchange {
             'take_profit_limit': 'take_profit_limit',
             'take_profit_market': 'take_profit_market',
         };
-        return this.safeString (types, type, undefined);
+        return this.safeString(types, type, undefined);
     }
-
-    async createContractOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}): Promise<Order> {
-        const market = this.market (symbol);
+    async createContractOrder(symbol, type, side, amount, price = undefined, params = {}) {
+        const market = this.market(symbol);
         // todo implement this method
-        return this.parseOrder ({}, market);
+        return this.parseOrder({}, market);
     }
-
-    async fetchOrder (id: string, symbol: Str = undefined, params = {}): Promise<Order> {
+    async fetchOrder(id, symbol = undefined, params = {}) {
         /**
          * @method
          * @name coindcx#fetchOrder
@@ -1041,38 +1031,41 @@ export default class coindcx extends Exchange {
          * @see https://docs.coindcx.com/#query-order
          * @description fetches information on an order made by the user
          * @param {string} id a unique id for the order
-         * @param {string} [symbol] not used by coindcx fetchOrder (not used by coindcx)
+         * @param {string} [symbol] not used by coindcx fetchOrder
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {string} [params.type] 'spot', 'margin', 'future' or 'swap'
          * @param {bool} [params.margin] *for spot markets only* true for fetching a margin order
          * @param {int} [params.clientOrderId] *for spot markets without margin only* the client order id of the order
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
-        await this.loadMarkets ();
-        let market: Market = undefined;
+        await this.loadMarkets();
+        let market = undefined;
         if (symbol !== undefined) {
-            market = this.safeMarket (symbol);
+            market = this.safeMarket(symbol);
         }
-        const request: Dict = {};
+        const request = {};
         let marketType = 'spot';
-        [ marketType, params ] = this.handleMarketTypeAndParams ('fetchOrder', market, params, 'spot');
-        const isMargin = this.safeBool (params, 'margin', false);
+        [marketType, params] = this.handleMarketTypeAndParams('fetchOrder', market, params, 'spot');
+        const isMargin = this.safeBool(params, 'margin', false);
         if ((isMargin) && (marketType === 'spot')) {
             marketType = 'margin';
         }
-        const clientOrderId = this.safeString2 (params, 'clientOrderId', 'client_order_id');
+        const clientOrderId = this.safeString2(params, 'clientOrderId', 'client_order_id');
         if (clientOrderId !== undefined) {
             if (marketType === 'spot') {
                 request['client_order_id'] = clientOrderId;
-                params = this.omit (params, 'clientOrderId');
-            } else {
-                throw new NotSupported (this.id + ' fetchOrder() supports params.clientOrderId only for spot markets without margin');
+                params = this.omit(params, 'clientOrderId');
             }
-        } else {
+            else {
+                throw new NotSupported(this.id + ' fetchOrder() supports params.clientOrderId only for spot markets without margin');
+            }
+        }
+        else {
             request['id'] = id;
         }
+        console.log (marketType)
         if (marketType === 'spot') {
-            const response = await this.privatePostExchangeV1OrdersStatus (this.extend (request, params));
+            const response = await this.privatePostExchangeV1OrdersStatus(this.extend(request, params));
             //
             //     {
             //         "id": "fcaae278-2a73-11ef-a2d5-5374ccb4f829",
@@ -1103,10 +1096,11 @@ export default class coindcx extends Exchange {
             //         "trades": null
             //     }
             //
-            return this.parseOrder (response);
-        } else if (marketType === 'margin') {
+            return this.parseOrder(response);
+        }
+        else if (marketType === 'margin') {
             request['details'] = true;
-            const response = await this.privatePostExchangeV1MarginOrder (this.extend (request, params));
+            const response = await this.privatePostExchangeV1MarginOrder(this.extend(request, params));
             //
             //     [
             //         {
@@ -1195,23 +1189,23 @@ export default class coindcx extends Exchange {
             //         }
             //     ]
             //
-            const position = this.safeDict (response, 0, {});
-            let orders = this.safeList (position, 'orders', []);
-            orders = this.sortBy (orders, 'timestamp');
-            const firstOrder = this.safeDict (orders, 0, {});
-            const parsedOrder = this.parseOrder (firstOrder, market);
-            const positionId = this.safeString (position, 'id'); // using id of the position as id of the order for user could fetch or cancel it
+            const position = this.safeDict(response, 0, {});
+            let orders = this.safeList(position, 'orders', []);
+            orders = this.sortBy(orders, 'timestamp');
+            const firstOrder = this.safeDict(orders, 0, {});
+            const parsedOrder = this.parseOrder(firstOrder, market);
+            const positionId = this.safeString(position, 'id'); // using id of the position as id of the order for user could fetch or cancel it
             if (positionId !== undefined) {
                 parsedOrder['id'] = positionId;
             }
             parsedOrder['info'] = position;
             return parsedOrder;
-        } else {
-            throw new NotSupported (this.id + ' fetchOrder() supports only spot markets');
+        }
+        else {
+            throw new NotSupported(this.id + ' fetchOrder() supports only spot markets');
         }
     }
-
-    async fetchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    async fetchOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name coindcx#fetchOrders
@@ -1225,21 +1219,22 @@ export default class coindcx extends Exchange {
          * @param {bool} [params.margin] *for spot markets only* true for fetching a margin orders
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
-        await this.loadMarkets ();
-        let market: Market = undefined;
+        await this.loadMarkets();
+        let market = undefined;
         if (symbol !== undefined) {
-            market = this.market (symbol);
+            market = this.market(symbol);
         }
         let marketType = 'spot';
-        [ marketType, params ] = this.handleMarketTypeAndParams ('fetchOpenOrders', market, params);
-        const isMargin = this.safeBool (params, 'margin', false);
+        [marketType, params] = this.handleMarketTypeAndParams('fetchOpenOrders', market, params);
+        const isMargin = this.safeBool(params, 'margin', false);
         if ((isMargin) && (marketType === 'spot')) {
             marketType = 'margin';
         }
-        const request: Dict = {};
+        const request = {};
         if (marketType === 'spot') {
-            throw new NotSupported (this.id + ' fetchOpenOrders is not supported for spot markets without margin');
-        } else if (marketType === 'margin') {
+            throw new NotSupported(this.id + ' fetchOpenOrders is not supported for spot markets without margin');
+        }
+        else if (marketType === 'margin') {
             request['details'] = true;
             if (market !== undefined) {
                 request['market'] = market['id'];
@@ -1247,7 +1242,7 @@ export default class coindcx extends Exchange {
             if (limit !== undefined) {
                 request['size'] = limit;
             }
-            const response = await this.privatePostExchangeV1MarginFetchOrders (this.extend (request, params));
+            const response = await this.privatePostExchangeV1MarginFetchOrders(this.extend(request, params));
             //
             //     [
             //         {
@@ -1318,26 +1313,26 @@ export default class coindcx extends Exchange {
             //         ...
             //     ]
             //
-            const responseList = this.toArray (response); // convertin type any into any[]
+            const responseList = this.toArray(response); // convertin type any into any[]
             let result = [];
             for (let i = 0; i < responseList.length; i++) {
-                const position = this.safeDict (responseList, i, {});
-                const orders = this.safeList (position, 'orders', []);
-                const positionId = this.safeString (position, 'id');
-                const parsingParams: Dict = {
+                const position = this.safeDict(responseList, i, {});
+                const orders = this.safeList(position, 'orders', []);
+                const positionId = this.safeString(position, 'id');
+                const parsingParams = {
                     'id': positionId,
                     'info': position,
                 };
-                const parsedOrders = this.parseOrders (orders, market, since, limit, parsingParams);
-                result = this.arrayConcat (result, parsedOrders);
+                const parsedOrders = this.parseOrders(orders, market, since, limit, parsingParams);
+                result = this.arrayConcat(result, parsedOrders);
             }
-            return this.sortBy (result, 'timestamp');
-        } else {
-            throw new NotSupported (this.id + ' fetchOpenOrders is not supported for ' + marketType + ' markets'); // todo implement this method for contract markets
+            return this.sortBy(result, 'timestamp');
+        }
+        else {
+            throw new NotSupported(this.id + ' fetchOpenOrders is not supported for ' + marketType + ' markets'); // todo implement this method for contract markets
         }
     }
-
-    async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    async fetchOpenOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name coindcx#fetchOpenOrders
@@ -1352,24 +1347,24 @@ export default class coindcx extends Exchange {
          * @param {int} [params.side] toggle between 'buy' or 'sell'
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
-        await this.loadMarkets ();
-        let market: Market = undefined;
+        await this.loadMarkets();
+        let market = undefined;
         if (symbol !== undefined) {
-            market = this.market (symbol);
+            market = this.market(symbol);
         }
         let marketType = 'spot';
-        [ marketType, params ] = this.handleMarketTypeAndParams ('fetchOpenOrders', market, params);
-        const isMargin = this.safeBool (params, 'margin', false);
+        [marketType, params] = this.handleMarketTypeAndParams('fetchOpenOrders', market, params);
+        const isMargin = this.safeBool(params, 'margin', false);
         if ((isMargin) && (marketType === 'spot')) {
             marketType = 'margin';
         }
-        const request: Dict = {};
+        const request = {};
         if (marketType === 'spot') {
             if (market === undefined) {
-                throw new ArgumentsRequired (this.id + ' fetchOpenOrders requires a symbol param for spot type of markets');
+                throw new ArgumentsRequired(this.id + ' fetchOpenOrders requires a symbol param for spot type of markets');
             }
             request['market'] = market['id'];
-            const response = await this.privatePostExchangeV1OrdersActiveOrders (this.extend (request, params));
+            const response = await this.privatePostExchangeV1OrdersActiveOrders(this.extend(request, params));
             //
             //     {
             //         "orders": [
@@ -1406,42 +1401,81 @@ export default class coindcx extends Exchange {
             //         "cp_hash": {}
             //     }
             //
-            const orders = this.safeList (response, 'orders', []);
-            return this.parseOrders (orders, market, since, limit);
-        } else if (marketType === 'margin') {
-            throw new NotSupported (this.id + ' fetchOpenOrders is not supported for margin markets');
-        } else {
-            throw new NotSupported (this.id + ' fetchOpenOrders is not supported for ' + marketType + ' markets'); // todo implement this method for contract markets
+            const orders = this.safeList(response, 'orders', []);
+            return this.parseOrders(orders, market, since, limit);
+        }
+        else if (marketType === 'margin') {
+            throw new NotSupported(this.id + ' fetchOpenOrders is not supported for spot margin markets');
+        }
+        else {
+            throw new NotSupported(this.id + ' fetchOpenOrders is not supported for ' + marketType + ' markets'); // todo implement this method for contract markets
         }
     }
-
-    async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
+    async cancelOrder(id, symbol = undefined, params = {}) {
         /**
          * @method
          * @name coindcx#cancelOrder
          * @description cancels an open order
          * @see https://docs.coindcx.com/#cancel
+         * @see https://docs.coindcx.com/#cancel-order
          * @param {string} id order id
          * @param {string} symbol not used by coindcx cancelOrder
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {int} [params.client_order_id] a unique id for the order
+         * @param {string} [params.type] 'spot', 'margin', 'future' or 'swap'
+         * @param {bool} [params.margin] *for spot markets only* true for fetching a margin orders
+         * @param {int} [params.client_order_id] *for spot markets without margin only* a unique id for the order
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
-        await this.loadMarkets ();
-        const request: Dict = {
-            'id': id,
-        };
-        //
-        //     {
-        //         "message": "success",
-        //         "status": 200,
-        //         "code": 200
-        //     }
-        //
-        return await this.privatePostExchangeV1OrdersCancel (this.extend (request, params));
+        await this.loadMarkets();
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market(symbol);
+        }
+        let marketType = 'spot';
+        [marketType, params] = this.handleMarketTypeAndParams('fetchOpenOrders', market, params);
+        const isMargin = this.safeBool(params, 'margin', false);
+        if ((isMargin) && (marketType === 'spot')) {
+            marketType = 'margin';
+        }
+        const request = {};
+        const clientOrderId = this.safeString2(params, 'clientOrderId', 'client_order_id');
+        if (clientOrderId !== undefined) {
+            if (marketType === 'spot') {
+                request['client_order_id'] = clientOrderId;
+                params = this.omit(params, 'clientOrderId');
+            }
+            else {
+                throw new NotSupported(this.id + ' fetchOrder() supports params.clientOrderId only for spot markets without margin');
+            }
+        }
+        else {
+            request['id'] = id;
+        }
+        if (marketType === 'spot') {
+            return await this.privatePostExchangeV1OrdersCancel(this.extend(request, params));
+            //
+            //     {
+            //         "message": "success",
+            //         "status": 200,
+            //         "code": 200
+            //     }
+            //
+        }
+        else if (marketType === 'margin') {
+            return await this.privatePostExchangeV1MarginCancel(this.extend(request, params));
+            //
+            //     {
+            //         "message": "Cancellation accepted",
+            //         "status": 200,
+            //         "code": 200
+            //     }
+            //
+        }
+        else {
+            throw new NotSupported(this.id + ' fetchOpenOrders is not supported for ' + marketType + ' markets'); // todo implement this method for contract markets
+        }
     }
-
-    async cancelAllOrders (symbol: Str = undefined, params = {}) {
+    async cancelAllOrders(symbol = undefined, params = {}) {
         /**
          * @method
          * @name coindcx#cancelAllOrders
@@ -1454,9 +1488,9 @@ export default class coindcx extends Exchange {
          * @param {int} [params.side] toggle between 'buy' or 'sell'
          * @returns {object} response from exchange
          */
-        const request: Dict = {};
+        const request = {};
         if (symbol !== undefined) {
-            const market = this.market (symbol);
+            const market = this.market(symbol);
             request['market'] = market['id'];
         }
         //
@@ -1466,10 +1500,9 @@ export default class coindcx extends Exchange {
         //         "code": 200
         //     }
         //
-        return await this.privatePostExchangeV1OrdersCancelAll (this.extend (request, params));
+        return await this.privatePostExchangeV1OrdersCancelAll(this.extend(request, params));
     }
-
-    async cancelOrders (ids:string[], symbol: Str = undefined, params = {}) {
+    async cancelOrders(ids, symbol = undefined, params = {}) {
         /**
          * @method
          * @name coindcx#cancelOrders
@@ -1481,7 +1514,7 @@ export default class coindcx extends Exchange {
          * @param {int} [params.client_order_ids] Array of Client Order IDs
          * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
-        await this.loadMarkets ();
+        await this.loadMarkets();
         const request = {
             'orderIds': ids,
         };
@@ -1492,10 +1525,9 @@ export default class coindcx extends Exchange {
         //         "code": 200
         //     }
         //
-        return await this.privatePostExchangeV1OrdersCancelByIds (this.extend (request, params));
+        return await this.privatePostExchangeV1OrdersCancelByIds(this.extend(request, params));
     }
-
-    parseOrder (order, market: Market = undefined): Order {
+    parseOrder(order, market = undefined) {
         //
         // privatePostExchangeV1OrdersCreate
         //     {
@@ -1549,58 +1581,60 @@ export default class coindcx extends Exchange {
         //         "stop_price": 0.0
         //     }
         //
-        const marketId = this.safeString (order, 'market');
-        market = this.safeMarket (marketId, market);
-        let timestamp = this.safeInteger (order, 'created_at');
-        let datetime: Str = undefined;
+        const marketId = this.safeString(order, 'market');
+        market = this.safeMarket(marketId, market);
+        let timestamp = this.safeInteger(order, 'created_at');
+        let datetime = undefined;
         if (timestamp === undefined) {
-            datetime = this.safeString (order, 'created_at');
+            datetime = this.safeString(order, 'created_at');
             if (datetime !== undefined) {
-                timestamp = this.parse8601 (datetime);
-            } else {
-                const timestampString = this.safeString (order, 'timestamp', '');
-                const parts = timestampString.split ('.');
-                timestamp = this.parseNumber (parts[0]);
+                timestamp = this.parse8601(datetime);
+            }
+            else {
+                const timestampString = this.safeString(order, 'timestamp', '');
+                const parts = timestampString.split('.');
+                timestamp = this.parseNumber(parts[0]);
             }
         }
-        let lastUpdateTimestamp = this.safeInteger (order, 'updated_at');
+        let lastUpdateTimestamp = this.safeInteger(order, 'updated_at');
         if (lastUpdateTimestamp === undefined) {
-            datetime = this.safeString (order, 'updated_at');
-            lastUpdateTimestamp = this.parse8601 (datetime);
+            datetime = this.safeString(order, 'updated_at');
+            lastUpdateTimestamp = this.parse8601(datetime);
         }
         const fee = {
-            'currency': undefined, // todo check
-            'cost': this.safeNumber (order, 'fee_amount'),
+            'currency': undefined,
+            'cost': this.safeNumber(order, 'fee_amount'),
         };
-        const type = this.safeString (order, 'order_type');
-        const status = this.safeString (order, 'status');
-        const triggerPrice = this.omitZero (this.safeString (order, 'stop_price'));
-        let takeProfitPrice: String = undefined;
-        let stopLossPrice: String = undefined;
+        const type = this.safeString(order, 'order_type');
+        const status = this.safeString(order, 'status');
+        const triggerPrice = this.omitZero(this.safeString(order, 'stop_price'));
+        let takeProfitPrice = undefined;
+        let stopLossPrice = undefined;
         if ((triggerPrice !== undefined) && (type !== undefined)) {
-            if (type.indexOf ('take_profit') !== -1) {
+            if (type.indexOf('take_profit') !== -1) {
                 takeProfitPrice = triggerPrice;
-            } else if (type.indexOf ('stop') !== -1) {
+            }
+            else if (type.indexOf('stop') !== -1) {
                 stopLossPrice = triggerPrice;
             }
         }
-        return this.safeOrder ({
-            'id': this.safeString (order, 'id'),
-            'clientOrderId': this.safeString (order, 'client_order_id'),
+        return this.safeOrder({
+            'id': this.safeString(order, 'id'),
+            'clientOrderId': this.safeString(order, 'client_order_id'),
             'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'lastTradeTimestamp': undefined, // todo check
+            'datetime': this.iso8601(timestamp),
+            'lastTradeTimestamp': undefined,
             'lastUpdateTimestamp': lastUpdateTimestamp,
-            'status': this.parseOrderStatus (status),
+            'status': this.parseOrderStatus(status),
             'symbol': market['symbol'],
-            'type': this.parseOrderType (type),
-            'timeInForce': this.parseOrderTimeInForce (this.safeString (order, 'time_in_force')), // only for limit orders
-            'side': this.safeString (order, 'side'),
-            'price': this.omitZero (this.safeString (order, 'price_per_unit')),
-            'average': this.omitZero (this.safeString (order, 'avg_price')),
-            'amount': this.safeString (order, 'total_quantity'),
-            'filled': this.safeString (order, 'filled_quantity'),
-            'remaining': this.safeString (order, 'remaining_quantity'),
+            'type': this.parseOrderType(type),
+            'timeInForce': this.parseOrderTimeInForce(this.safeString(order, 'time_in_force')),
+            'side': this.safeString(order, 'side'),
+            'price': this.omitZero(this.safeString(order, 'price_per_unit')),
+            'average': this.omitZero(this.safeString(order, 'avg_price')),
+            'amount': this.safeString(order, 'total_quantity'),
+            'filled': this.safeString(order, 'filled_quantity'),
+            'remaining': this.safeString(order, 'remaining_quantity'),
             'triggerPrice': triggerPrice,
             'takeProfitPrice': takeProfitPrice,
             'stopLossPrice': stopLossPrice,
@@ -1610,24 +1644,25 @@ export default class coindcx extends Exchange {
             'info': order,
         }, market);
     }
-
-    parseOrderStatus (status) {
-        const statuses: Dict = {
+    parseOrderStatus(status) {
+        const statuses = {
             'open': 'open',
-            'init': 'open', // todo check
-            'initial': 'open', // todo check
+            'init': 'open',
+            'initial': 'open',
             'partially_filled': 'open',
             'filled': 'closed',
             'cancelled': 'canceled',
             'close': 'canceled',
             'partially_cancelled': 'canceled',
             'rejected': 'rejected',
+            'partial_entry': 'open',
+            'triggered': 'open',
+            'partial_close': 'open',
         };
-        return this.safeString (statuses, status, status);
+        return this.safeString(statuses, status, status);
     }
-
-    parseOrderType (type) {
-        const types: Dict = {
+    parseOrderType(type) {
+        const types = {
             'market_order': 'market',
             'limit_order': 'limit',
             'stop_limit': 'limit',
@@ -1636,39 +1671,37 @@ export default class coindcx extends Exchange {
             'take_profit_limit': 'limit',
             'take_profit_market': 'market',
         };
-        return this.safeString (types, type, type);
+        return this.safeString(types, type, type);
     }
-
-    parseOrderTimeInForce (type) {
-        const types: Dict = {
+    parseOrderTimeInForce(type) {
+        const types = {
             'good_till_cancel': 'GTC',
             'immediate_or_cancel': 'IOC',
             'fill_or_kill': 'FOK',
         };
-        return this.safeString (types, type, type);
+        return this.safeString(types, type, type);
     }
-
-    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let url = this.urls['api'][api] + '/' + this.implodeParams (path, params);
-        params = this.omit (params, this.extractParams (path));
+    sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+        let url = this.urls['api'][api] + '/' + this.implodeParams(path, params);
+        params = this.omit(params, this.extractParams(path));
         if (method === 'GET') {
-            if (Object.keys (params).length) {
-                url += '?' + this.urlencode (params);
+            if (Object.keys(params).length) {
+                url += '?' + this.urlencode(params);
             }
         }
         if (method === 'POST') {
-            this.checkRequiredCredentials ();
-            const timestamp = this.milliseconds ();
-            const secret = this.encode (this.secret);
+            this.checkRequiredCredentials();
+            const timestamp = this.milliseconds();
+            const secret = this.encode(this.secret);
             params['timestamp'] = timestamp;
-            const payload = this.json (params);
-            const signature = this.hmac (this.encode (payload), secret, sha256);
+            const payload = this.json(params);
+            const signature = this.hmac(this.encode(payload), secret, sha256);
             headers = {
                 'Content-Type': 'application/json',
                 'X-AUTH-APIKEY': this.apiKey,
                 'X-AUTH-SIGNATURE': signature,
             };
-            body = this.json (params);
+            body = this.json(params);
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
