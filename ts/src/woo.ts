@@ -2552,7 +2552,7 @@ export default class woo extends Exchange {
         url += '/' + version + '/';
         params = this.omit (params, this.extractParams (path));
         params = this.keysort (params);
-        if (access === 'public') {
+        if (access === 'public' || access === 'pub') {
             url += access + '/' + pathWithParams;
             if (Object.keys (params).length) {
                 url += '?' + this.urlencode (params);
