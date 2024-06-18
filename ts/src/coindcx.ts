@@ -759,13 +759,13 @@ export default class coindcx extends Exchange {
          * @param {float} [params.triggerPrice] *for spot margin markets only* triggerPrice at which the attached take profit / stop loss order will be triggered
          * @param {float} [params.stopLossPrice] *for spot margin markets only* stop loss trigger price
          * @param {float} [params.takeProfitPrice] *for spot margin markets only* take profit trigger price
-         * @param {int} [params.leverage] *for for contract and spot margin markets only* the rate of leverage
+         * @param {int} [params.leverage] *for contract and spot margin markets only* the rate of leverage
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        let marketType: string = undefined;
-        [ marketType, params ] = this.handleMarketTypeAndParams ('createOrder', market, params, 'spot');
+        let marketType = 'spot';
+        [ marketType, params ] = this.handleMarketTypeAndParams ('createOrder', market, params);
         const clientOrderId = this.safeString2 (params, 'clientOrderId', 'client_order_id');
         if (clientOrderId !== undefined) {
             if (marketType === 'spot') {
@@ -812,7 +812,7 @@ export default class coindcx extends Exchange {
         // todo throw an exception for margin params
         const request: Dict = {
             'market': market['id'],
-            'order_type': this.encodeSpotOrderType (type),
+            'order_type': type,
             'side': side,
             'total_quantity': this.amountToPrecision (symbol, amount),
         };
@@ -877,7 +877,7 @@ export default class coindcx extends Exchange {
         const marketInfo = this.safeDict (market, 'info', {});
         const request: Dict = {
             'market': market['id'],
-            'order_type': this.encodeSpotOrderType (type),
+            'order_type': type,
             'side': side,
             'quantity': this.amountToPrecision (symbol, amount),
             'ecode': this.safeString (marketInfo, 'ecode'),
@@ -889,11 +889,11 @@ export default class coindcx extends Exchange {
         const takeProfitPrice = this.safeString (params, 'takeProfitPrice');
         const triggerPrice = this.safeStringN (params, [ 'triggerPrice', 'stopLossPrice', 'takeProfitPrice' ]);
         if (triggerPrice !== undefined) {
-            if (type === 'market') {
+            if (type === 'market_order') {
                 throw new NotSupported (this.id + ' createOrder() supports only limit type for takeProfit and stopLoss orders for spot markets with margin');
             }
             request['stop_price'] = this.priceToPrecision (symbol, triggerPrice);
-            if (type === 'limit') {
+            if (type === 'limit_order') {
                 if (stopLossPrice !== undefined) {
                     request['order_type'] = 'stop_limit';
                 } else if (takeProfitPrice !== undefined) {
