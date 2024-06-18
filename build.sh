@@ -34,14 +34,14 @@ function run_tests {
   if [ -z "$rest_pid" ]; then
     if [ -z "$rest_args" ] || { [ -n "$rest_args" ] && [ "$rest_args" != "skip" ]; }; then
       # shellcheck disable=SC2086
-      node run-tests --js --python-async --php-async --csharp --useProxy $rest_args &
+      npm run RT -- --js --python-async --php-async --csharp $rest_args &
       local rest_pid=$!
     fi
   fi
   if [ -z "$ws_pid" ]; then
     if [ -z "$ws_args" ] || { [ -n "$ws_args" ] && [ "$ws_args" != "skip" ]; }; then
       # shellcheck disable=SC2086
-      node run-tests --ws --js --python-async --php-async --csharp --useProxy $ws_args &
+      npm run RT -- --js --python-async --php-async --csharp --ws $ws_args &
       local ws_pid=$!
     fi
   fi
@@ -82,6 +82,9 @@ build_and_test_all () {
     fi
     npm run test-base
     npm run test-base-ws
+    npm run test-id-tests
+    npm run request-all
+    npm run response-all
     node ./utils/test-commonjs.cjs
     npm run package-test
     npm run test-freshness
@@ -197,7 +200,7 @@ npm run buildCS
 
 # run base tests (base js,py,php, brokerId )
 # npm run test-base
-npm run test-base-js && npm run test-base-py && npm run test-base-php && npm run id-tests
+npm run test-base && npm run test-base-ws && npm run id-tests
 
 # rest_args=${REST_EXCHANGES[*]} || "skip"
 rest_args=$(IFS=" " ; echo "${REST_EXCHANGES[*]}") || "skip"
