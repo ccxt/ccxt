@@ -2361,6 +2361,10 @@ class woo(Exchange, ImplicitAPI):
             url += access + '/' + pathWithParams
             if params:
                 url += '?' + self.urlencode(params)
+        elif access == 'pub':
+            url += pathWithParams
+            if params:
+                url += '?' + self.urlencode(params)
         else:
             self.check_required_credentials()
             if method == 'POST' and (path == 'algo/order' or path == 'order'):

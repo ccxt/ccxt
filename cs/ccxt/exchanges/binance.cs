@@ -6337,7 +6337,7 @@ public partial class binance : Exchange
         {
             throw new NotSupported ((string)add(this.id, " createMarketOrderWithCost() supports spot orders only")) ;
         }
-        ((IDictionary<string,object>)parameters)["quoteOrderQty"] = cost;
+        ((IDictionary<string,object>)parameters)["cost"] = cost;
         return await this.createOrder(symbol, "market", side, cost, null, parameters);
     }
 
@@ -6360,7 +6360,7 @@ public partial class binance : Exchange
         {
             throw new NotSupported ((string)add(this.id, " createMarketBuyOrderWithCost() supports spot orders only")) ;
         }
-        ((IDictionary<string,object>)parameters)["quoteOrderQty"] = cost;
+        ((IDictionary<string,object>)parameters)["cost"] = cost;
         return await this.createOrder(symbol, "market", "buy", cost, null, parameters);
     }
 
@@ -8182,6 +8182,10 @@ public partial class binance : Exchange
 
     public virtual object parseTransactionStatusByType(object status, object type = null)
     {
+        if (isTrue(isEqual(type, null)))
+        {
+            return status;
+        }
         object statusesByType = new Dictionary<string, object>() {
             { "deposit", new Dictionary<string, object>() {
                 { "0", "pending" },
@@ -9074,7 +9078,7 @@ public partial class binance : Exchange
         object request = new Dictionary<string, object>() {
             { "coin", getValue(currency, "id") },
             { "address", address },
-            { "amount", amount },
+            { "amount", this.currencyToPrecision(code, amount) },
         };
         if (isTrue(!isEqual(tag, null)))
         {

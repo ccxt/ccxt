@@ -6080,7 +6080,7 @@ class binance extends Exchange {
             if (!$market['spot']) {
                 throw new NotSupported($this->id . ' createMarketOrderWithCost() supports spot orders only');
             }
-            $params['quoteOrderQty'] = $cost;
+            $params['cost'] = $cost;
             return Async\await($this->create_order($symbol, 'market', $side, $cost, null, $params));
         }) ();
     }
@@ -6100,7 +6100,7 @@ class binance extends Exchange {
             if (!$market['spot']) {
                 throw new NotSupported($this->id . ' createMarketBuyOrderWithCost() supports spot orders only');
             }
-            $params['quoteOrderQty'] = $cost;
+            $params['cost'] = $cost;
             return Async\await($this->create_order($symbol, 'market', 'buy', $cost, null, $params));
         }) ();
     }
@@ -7784,6 +7784,9 @@ class binance extends Exchange {
     }
 
     public function parse_transaction_status_by_type($status, $type = null) {
+        if ($type === null) {
+            return $status;
+        }
         $statusesByType = array(
             'deposit' => array(
                 '0' => 'pending',
@@ -8674,7 +8677,7 @@ class binance extends Exchange {
             $request = array(
                 'coin' => $currency['id'],
                 'address' => $address,
-                'amount' => $amount,
+                'amount' => $this->currency_to_precision($code, $amount),
                 // https://binance-docs.github.io/apidocs/spot/en/#withdraw-sapi
                 // issue sapiGetCapitalConfigGetall () to get $networks for withdrawing USDT ERC20 vs USDT Omni
                 // 'network' => 'ETH', // 'BTC', 'TRX', etc, optional
@@ -13039,7 +13042,7 @@ class binance extends Exchange {
         }) ();
     }
 
-    public function parse_conversion(array $conversion, ?array $fromCurrency = null, ?array $toCurrency = null): Conversion {
+    public function parse_conversion(array $conversion, ?array $fromCurrency = null, ?array $toCurrency = null): array {
         //
         // fetchConvertQuote
         //

@@ -755,15 +755,15 @@ class bingx extends \ccxt\async\bingx {
         //        )
         //    }
         //
-        $data = $this->safe_value($message, 'data', array());
+        $isSwap = mb_strpos($client->url, 'swap') !== false;
         $candles = null;
-        if (gettype($data) === 'array' && array_keys($data) === array_keys(array_keys($data))) {
-            $candles = $data;
+        if ($isSwap) {
+            $candles = $this->safe_list($message, 'data', array());
         } else {
+            $data = $this->safe_dict($message, 'data', array());
             $candles = array( $this->safe_dict($data, 'K', array()) );
         }
         $dataType = $this->safe_string($message, 'dataType');
-        $isSwap = mb_strpos($client->url, 'swap') !== false;
         $parts = explode('@', $dataType);
         $firstPart = $parts[0];
         $isAllEndpoint = ($firstPart === 'all');

@@ -823,17 +823,17 @@ public partial class bingx : ccxt.bingx
         //        ]
         //    }
         //
-        object data = this.safeValue(message, "data", new List<object>() {});
+        object isSwap = isGreaterThanOrEqual(getIndexOf(client.url, "swap"), 0);
         object candles = null;
-        if (isTrue(((data is IList<object>) || (data.GetType().IsGenericType && data.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
+        if (isTrue(isSwap))
         {
-            candles = data;
+            candles = this.safeList(message, "data", new List<object>() {});
         } else
         {
+            object data = this.safeDict(message, "data", new Dictionary<string, object>() {});
             candles = new List<object> {this.safeDict(data, "K", new Dictionary<string, object>() {})};
         }
         object dataType = this.safeString(message, "dataType");
-        object isSwap = isGreaterThanOrEqual(getIndexOf(client.url, "swap"), 0);
         object parts = ((string)dataType).Split(new [] {((string)"@")}, StringSplitOptions.None).ToList<object>();
         object firstPart = getValue(parts, 0);
         object isAllEndpoint = (isEqual(firstPart, "all"));

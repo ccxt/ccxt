@@ -6169,7 +6169,7 @@ export default class binance extends Exchange {
         if (!market['spot']) {
             throw new NotSupported(this.id + ' createMarketOrderWithCost() supports spot orders only');
         }
-        params['quoteOrderQty'] = cost;
+        params['cost'] = cost;
         return await this.createOrder(symbol, 'market', side, cost, undefined, params);
     }
     async createMarketBuyOrderWithCost(symbol, cost, params = {}) {
@@ -6188,7 +6188,7 @@ export default class binance extends Exchange {
         if (!market['spot']) {
             throw new NotSupported(this.id + ' createMarketBuyOrderWithCost() supports spot orders only');
         }
-        params['quoteOrderQty'] = cost;
+        params['cost'] = cost;
         return await this.createOrder(symbol, 'market', 'buy', cost, undefined, params);
     }
     async createMarketSellOrderWithCost(symbol, cost, params = {}) {
@@ -7923,6 +7923,9 @@ export default class binance extends Exchange {
         return this.parseTransactions(response, currency, since, limit);
     }
     parseTransactionStatusByType(status, type = undefined) {
+        if (type === undefined) {
+            return status;
+        }
         const statusesByType = {
             'deposit': {
                 '0': 'pending',
@@ -8809,7 +8812,7 @@ export default class binance extends Exchange {
         const request = {
             'coin': currency['id'],
             'address': address,
-            'amount': amount,
+            'amount': this.currencyToPrecision(code, amount),
             // https://binance-docs.github.io/apidocs/spot/en/#withdraw-sapi
             // issue sapiGetCapitalConfigGetall () to get networks for withdrawing USDT ERC20 vs USDT Omni
             // 'network': 'ETH', // 'BTC', 'TRX', etc, optional

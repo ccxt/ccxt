@@ -6032,7 +6032,7 @@ class binance extends Exchange {
         if (!$market['spot']) {
             throw new NotSupported($this->id . ' createMarketOrderWithCost() supports spot orders only');
         }
-        $params['quoteOrderQty'] = $cost;
+        $params['cost'] = $cost;
         return $this->create_order($symbol, 'market', $side, $cost, null, $params);
     }
 
@@ -6050,7 +6050,7 @@ class binance extends Exchange {
         if (!$market['spot']) {
             throw new NotSupported($this->id . ' createMarketBuyOrderWithCost() supports spot orders only');
         }
-        $params['quoteOrderQty'] = $cost;
+        $params['cost'] = $cost;
         return $this->create_order($symbol, 'market', 'buy', $cost, null, $params);
     }
 
@@ -7701,6 +7701,9 @@ class binance extends Exchange {
     }
 
     public function parse_transaction_status_by_type($status, $type = null) {
+        if ($type === null) {
+            return $status;
+        }
         $statusesByType = array(
             'deposit' => array(
                 '0' => 'pending',
@@ -8580,7 +8583,7 @@ class binance extends Exchange {
         $request = array(
             'coin' => $currency['id'],
             'address' => $address,
-            'amount' => $amount,
+            'amount' => $this->currency_to_precision($code, $amount),
             // https://binance-docs.github.io/apidocs/spot/en/#withdraw-sapi
             // issue sapiGetCapitalConfigGetall () to get $networks for withdrawing USDT ERC20 vs USDT Omni
             // 'network' => 'ETH', // 'BTC', 'TRX', etc, optional
@@ -12586,7 +12589,7 @@ class binance extends Exchange {
         return $result;
     }
 
-    public function fetch_convert_quote(string $fromCode, string $toCode, ?float $amount = null, $params = array ()): Conversion {
+    public function fetch_convert_quote(string $fromCode, string $toCode, ?float $amount = null, $params = array ()): array {
         /**
          * fetch a quote for converting from one currency to another
          * @see https://binance-docs.github.io/apidocs/spot/en/#send-quote-$request-user_data
@@ -12622,7 +12625,7 @@ class binance extends Exchange {
         return $this->parse_conversion($response, $fromCurrency, $toCurrency);
     }
 
-    public function create_convert_trade(string $id, string $fromCode, string $toCode, ?float $amount = null, $params = array ()): Conversion {
+    public function create_convert_trade(string $id, string $fromCode, string $toCode, ?float $amount = null, $params = array ()): array {
         /**
          * convert from one currency to another
          * @see https://binance-docs.github.io/apidocs/spot/en/#busd-convert-trade
@@ -12668,7 +12671,7 @@ class binance extends Exchange {
         return $this->parse_conversion($response, $fromCurrency, $toCurrency);
     }
 
-    public function fetch_convert_trade(string $id, ?string $code = null, $params = array ()): Conversion {
+    public function fetch_convert_trade(string $id, ?string $code = null, $params = array ()): array {
         /**
          * fetch the $data for a conversion trade
          * @see https://binance-docs.github.io/apidocs/spot/en/#busd-convert-history-user_data
@@ -12840,7 +12843,7 @@ class binance extends Exchange {
         return $this->parse_conversions($rows, $code, $fromCurrencyKey, $toCurrencyKey, $since, $limit);
     }
 
-    public function parse_conversion(array $conversion, ?array $fromCurrency = null, ?array $toCurrency = null): Conversion {
+    public function parse_conversion(array $conversion, ?array $fromCurrency = null, ?array $toCurrency = null): array {
         //
         // fetchConvertQuote
         //

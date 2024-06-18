@@ -5837,7 +5837,7 @@ class binance(Exchange, ImplicitAPI):
         market = self.market(symbol)
         if not market['spot']:
             raise NotSupported(self.id + ' createMarketOrderWithCost() supports spot orders only')
-        params['quoteOrderQty'] = cost
+        params['cost'] = cost
         return await self.create_order(symbol, 'market', side, cost, None, params)
 
     async def create_market_buy_order_with_cost(self, symbol: str, cost: float, params={}):
@@ -5853,7 +5853,7 @@ class binance(Exchange, ImplicitAPI):
         market = self.market(symbol)
         if not market['spot']:
             raise NotSupported(self.id + ' createMarketBuyOrderWithCost() supports spot orders only')
-        params['quoteOrderQty'] = cost
+        params['cost'] = cost
         return await self.create_order(symbol, 'market', 'buy', cost, None, params)
 
     async def create_market_sell_order_with_cost(self, symbol: str, cost: float, params={}):
@@ -7377,6 +7377,8 @@ class binance(Exchange, ImplicitAPI):
         return self.parse_transactions(response, currency, since, limit)
 
     def parse_transaction_status_by_type(self, status, type=None):
+        if type is None:
+            return status
         statusesByType: dict = {
             'deposit': {
                 '0': 'pending',
@@ -8201,7 +8203,7 @@ class binance(Exchange, ImplicitAPI):
         request: dict = {
             'coin': currency['id'],
             'address': address,
-            'amount': amount,
+            'amount': self.currency_to_precision(code, amount),
             # https://binance-docs.github.io/apidocs/spot/en/#withdraw-sapi
             # issue sapiGetCapitalConfigGetall() to get networks for withdrawing USDT ERC20 vs USDT Omni
             # 'network': 'ETH',  # 'BTC', 'TRX', etc, optional
