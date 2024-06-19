@@ -10,6 +10,8 @@ import { secp256k1 } from '../../static_dependencies/noble-curves/secp256k1.js';
 import { ed25519 } from '../../static_dependencies/noble-curves/ed25519.js';
 import { rsa, jwt } from '../../base/functions/rsa.js';
 
+// even though no AUTO_TRANSP flag here, this file is manually transpiled
+
 function equals (a, b) {
     // does not check if b has more properties than a
     // eslint-disable-next-line no-restricted-syntax
