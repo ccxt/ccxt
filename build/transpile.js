@@ -2036,17 +2036,13 @@ class Transpiler {
             [/^const\s+{.*}\s+=.*$/gm, ''],
             [ /function equals \([\S\s]+?return true;?\n}\n/g, '' ],
             [ /(export default .*)/g, '' ],
-            [ /testBaseCryptography/g, 'test_base_cryptography' ],
+            [ /testCryptography/g, 'test_cryptography' ],
         ])
 
         let { python2Body, phpBody } = this.transpileJavaScriptToPythonAndPHP ({ js, removeEmptyLines: false })
 
         python2Body = this.regexAll (python2Body, [
             [ /function (\w+)\(\) \{/g, 'def $1():' ],
-            [ /def testCryptography/g, 'def test_cryptography' ],
-        ])
-        phpBody = this.regexAll (phpBody, [
-            [ /function testCryptography/g, 'function test_cryptography' ],
         ])
 
         const pythonHeader = [

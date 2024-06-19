@@ -133,7 +133,7 @@ public class Tests
 
     static void RestBaseTests()
     {
-        tests.testBaseCryptography();
+        tests.testCryptography();
         Helper.Green(" [C#] Crypto tests passed");
         // run auto-transpiled tests (all of them start by 'testBaseFunction')
         RunAutoTranspiledBaseTests (tests);
