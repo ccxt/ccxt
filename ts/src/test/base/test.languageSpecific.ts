@@ -12,6 +12,7 @@ import testCalculateFee from './test.calculateFee.js';
 import testAggregate from './test.aggregate.js';
 import testSafeBalance from './test.safeBalance.js';
 import testLegacyHas from './test.legacyHas.js';
+import testTypes from './test.type.js';
 // import './test.time.js' :todo
 // import './test.timeout_hang.js' :todo
 
@@ -24,6 +25,7 @@ function testLanguageSpecific () {
     testAggregate ();
     testSafeBalance ();
     testLegacyHas ();
+    testTypes ();
 }
 
 export default testLanguageSpecific;

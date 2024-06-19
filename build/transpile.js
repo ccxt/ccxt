@@ -2022,9 +2022,9 @@ class Transpiler {
     //-------------------------------------------------------------------------
 
     transpileCryptoTests () {
-        const jsFile = './ts/src/test/base/test.crypto.ts' // using ts version to avoid formatting issues
-        const pyFile = './python/ccxt/test/base/test_crypto.py'
-        const phpFile = './php/test/base/test_crypto.php'
+        const jsFile = './ts/src/test/base/test.cryptography.ts' // using ts version to avoid formatting issues
+        const pyFile = './python/ccxt/test/base/test_cryptography.py'
+        const phpFile = './php/test/base/test_cryptography.php'
 
         log.magenta ('Transpiling from', jsFile.yellow)
         let js = fs.readFileSync (jsFile).toString ()
@@ -2543,7 +2543,11 @@ class Transpiler {
                 } else {
                     if (test.base) {
                         phpHeaderSync.push (`include_once __DIR__ . '/${snake_case}.php';`)
-                        pythonHeaderSync.push (`from ccxt.test.exchange.base.${snake_case} import ${snake_case}  # noqa E402`)
+                        if (test.tsFile.includes('Exchange/base')) {
+                            pythonHeaderSync.push (`from ccxt.test.exchange.base.${snake_case} import ${snake_case}  # noqa E402`)
+                        } else {
+                            pythonHeaderSync.push (`from ccxt.test.base.${snake_case} import ${snake_case}  # noqa E402`)
+                        }
                     } else {
                         phpHeaderSync.push (`include_once ${phpPrefix}${snake_case}.php';`)
                         phpHeaderAsync.push (`include_once ${phpPrefix}${snake_case}.php';`)

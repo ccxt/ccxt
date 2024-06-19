@@ -1,17 +1,17 @@
-import testTypes from './test.type.js';
+// AUTO_TRANSPILE_ENABLED
+
 import testNumber from './test.number.js';
 import testDatetime from './test.datetime.js';
-import testCrypto from './test.crypto.js';
+import testCryptography from './test.cryptography.js';
 import testExtend from './test.extend.js';
-import languageSpecific from './test.languageSpecific.js';
+import testLanguageSpecific from './test.languageSpecific.js';
 
 function baseTestsInit (exchange) {
-    languageSpecific ();
+    testLanguageSpecific ();
     testExtend ();
-    testCrypto ();
+    testCryptography ();
     testDatetime ();
     testNumber ();
-    testTypes ();
     console.log ('base tests passed!');
 }
 
