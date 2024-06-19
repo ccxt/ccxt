@@ -1964,7 +1964,7 @@ public partial class krakenfutures : Exchange
             { "type", this.parseOrderType(type) },
             { "timeInForce", timeInForce },
             { "postOnly", isEqual(type, "post") },
-            { "reduceOnly", this.safeValue(details, "reduceOnly") },
+            { "reduceOnly", this.safeBool2(details, "reduceOnly", "reduce_only") },
             { "side", this.safeString(details, "side") },
             { "price", price },
             { "stopPrice", this.safeString(details, "triggerPrice") },

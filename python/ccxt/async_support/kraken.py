@@ -1639,6 +1639,7 @@ class kraken(Exchange, ImplicitAPI):
             'filled': filled,
             'average': average,
             'remaining': None,
+            'reduceOnly': self.safe_bool_2(order, 'reduceOnly', 'reduce_only'),
             'fee': fee,
             'trades': trades,
         }, market)

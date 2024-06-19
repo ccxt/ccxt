@@ -1700,6 +1700,7 @@ class kraken extends Exchange {
             'filled' => $filled,
             'average' => $average,
             'remaining' => null,
+            'reduceOnly' => $this->safe_bool_2($order, 'reduceOnly', 'reduce_only'),
             'fee' => $fee,
             'trades' => $trades,
         ), $market);

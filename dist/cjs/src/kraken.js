@@ -1713,6 +1713,7 @@ class kraken extends kraken$1 {
             'filled': filled,
             'average': average,
             'remaining': undefined,
+            'reduceOnly': this.safeBool2(order, 'reduceOnly', 'reduce_only'),
             'fee': fee,
             'trades': trades,
         }, market);

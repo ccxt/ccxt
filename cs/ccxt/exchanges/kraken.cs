@@ -1819,6 +1819,7 @@ public partial class kraken : Exchange
             { "filled", filled },
             { "average", average },
             { "remaining", null },
+            { "reduceOnly", this.safeBool2(order, "reduceOnly", "reduce_only") },
             { "fee", fee },
             { "trades", trades },
         }, market);
