@@ -12,7 +12,8 @@ sys.path.append(root)
 # ----------------------------------------------------------------------------
 # -*- coding: utf-8 -*-
 
-import ccxt  # noqa: F402
+
+from ccxt.test.base.test_deep_extend import test_deep_extend # noqa E402
 
 def test_language_specific():
-    pass
+    test_deep_extend()
