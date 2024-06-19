@@ -129,6 +129,7 @@ class Exchange {
     public $certified = false; // if certified by the CCXT dev team
     public $pro = false; // if it is integrated with CCXT Pro for WebSocket support
     public $alias = false; // whether this exchange is an alias to another exchange
+    public $dex = false;
 
     public $debug = false;
 
