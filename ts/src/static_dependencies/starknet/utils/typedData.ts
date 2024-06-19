@@ -17,7 +17,7 @@ import {
   computePoseidonHashOnElements,
   getSelectorFromName,
 } from './hash/index.js';
-import { MerkleTree } from './merkle';
+import { MerkleTree } from './merkle.js';
 import { isHex, toHex } from './num.js';
 import { encodeShortString, isString } from './shortString.js';
 

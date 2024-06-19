@@ -1798,6 +1798,29 @@ export default class Exchange {
         }
     }
 
+    starknetEncodeStructuredData (domain, messageTypes, messageData, address) {
+        const types = Object.keys (messageTypes);
+        const request = {
+            'domain': domain,
+            'primaryType': types[0],
+            'types': this.extend ({
+                'StarkNetDomain': [
+                    { 'name': "name", 'type': "felt" },
+                    { 'name': "chainId", 'type': "felt" },
+                    { 'name': "version", 'type': "felt" },
+                ],
+            }, messageTypes),
+            'message': messageData,
+        };
+        const msgHash = Starknet.typedData.getMessageHash (request, address);
+        return msgHash;
+    }
+
+    starknetSign (hash, pri) {
+        const signature = Starknet.ec.starkCurve.sign (hash.replace ('0x', ''), pri.slice (-64));
+        return JSON.stringify([ signature.r.toString (), signature.s.toString () ]);
+    }
+
     intToBase16(elem): string {
         return elem.toString(16);
 

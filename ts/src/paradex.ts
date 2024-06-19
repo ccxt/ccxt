@@ -806,14 +806,40 @@ export default class paradex extends Exchange {
         );
     }
 
-    auth () {
+    async onboarding (params = {}) {
+        const account = this.retrieveAccount ();
+        const req = {
+            'action': 'Onboarding',
+        };
+        // PRIVATE_SN_POTC_SEPOLIA
+        const domain = {
+            'name': 'Paradex',
+            'chainId': 'PRIVATE_SN_POTC_SEPOLIA',
+            'version': '1',
+        }
+        const messageTypes = {
+            'Constant': [
+                { 'name': 'action', 'type': 'felt' }, // string
+            ],
+        };
+        const msg = this.starknetEncodeStructuredData (domain, messageTypes, req, account.address);
+        const signature = this.starknetSign (msg, account.pri);
+        params['signature'] = signature;
+        params['account'] = account.address;
+        params['public_key'] = account.pub;
+        const response = await this.privatePostOnboarding (params);
+        console.log(response)
+    }
+
+    async auth (params = {}) {
+        const account = this.retrieveAccount ();
         const now = this.nonce ();
         const req = {
             'method': 'POST',
             'path': '/v1/auth',
             'body': '',
             'timestamp': now,
-            'expiration': now + 86400000 * 7,
+            'expiration': now + 86400 * 7,
         };
         // PRIVATE_SN_POTC_SEPOLIA
         const domain = {
@@ -830,9 +856,14 @@ export default class paradex extends Exchange {
                 { 'name': 'expiration', 'type': 'felt' }, // number
             ],
         };
-        const msg = this.ethEncodeStructuredData (domain, messageTypes, req);
-        const signature = this.signMessage (msg, this.privateKey);
-        console.log (signature);
+        const msg = this.starknetEncodeStructuredData (domain, messageTypes, req, account.address);
+        const signature = this.starknetSign (msg, account.pri);
+        params['signature'] = signature;
+        params['account'] = account.address;
+        params['timestamp'] = req['timestamp'];
+        params['expiration'] = req['expiration'];
+        const response = await this.privatePostAuth (params);
+        console.log(response)
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
@@ -843,7 +874,25 @@ export default class paradex extends Exchange {
                 url += '?' + this.urlencode (query);
             }
         } else if (api === 'private') {
-            // this.checkRequiredCredentials ();
+            this.checkRequiredCredentials ();
+            headers = {
+                'Accept': 'application/json'
+            };
+            if (path === 'auth') {
+                headers['PARADEX-STARKNET-ACCOUNT'] = params['account'];
+                headers['PARADEX-STARKNET-SIGNATURE'] = params['signature'];
+                headers['PARADEX-TIMESTAMP'] = params['timestamp'];
+                headers['PARADEX-SIGNATURE-EXPIRATION'] = params['expiration'];
+            } else if (path === 'onboarding') {
+                headers['PARADEX-ETHEREUM-ACCOUNT'] = this.walletAddress;
+                headers['PARADEX-STARKNET-ACCOUNT'] = params['account'];
+                headers['PARADEX-STARKNET-SIGNATURE'] = params['signature'];
+                headers['PARADEX-TIMESTAMP'] = this.nonce ();
+                headers['Content-Type'] = 'application/json';
+                body = this.json ({
+                    'public_key': params['public_key'],
+                });
+            }
             // headers = {
             //     'Accept': 'application/json',
             //     'Authorization': 'Bearer ' + this.apiKey,

@@ -1,6 +1,7 @@
 export * as hash from './utils/hash/index.js';
 export * from './utils/calldata/index.js';
-
+export * as typedData from './utils/typedData.js';
+export * as ec from './utils/ec.js';
 // /**
 //  * Main
 //  */
@@ -22,8 +23,6 @@ export * from './utils/calldata/index.js';
 // export * as merkle from './utils/merkle.js';
 // export * as uint256 from './utils/uint256.js';
 // export * as shortString from './utils/shortString.js';
-// export * as typedData from './utils/typedData.js';
-// export * as ec from './utils/ec.js';
 // export * as starknetId from './utils/starknetId.js';
 // export * as events from './utils/events/index.js';
 // export * from './utils/cairoDataTypes/uint256.js';
