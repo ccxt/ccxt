@@ -2043,6 +2043,10 @@ class Transpiler {
 
         python2Body = this.regexAll (python2Body, [
             [ /function (\w+)\(\) \{/g, 'def $1():' ],
+            [ /def testCryptography/g, 'def test_cryptography' ],
+        ])
+        phpBody = this.regexAll (phpBody, [
+            [ /function testCryptography/g, 'function test_cryptography' ],
         ])
 
         const pythonHeader = [

@@ -4,7 +4,7 @@
 import assert from 'assert';
 import ccxt from '../../../ccxt.js';
 
-function testBaseExtend () {
+function testExtend () {
 
     const exchange = new ccxt.Exchange ({
         'id': 'regirock',
@@ -70,4 +70,4 @@ function tbfeCheckExtended (extended: any, hasSub: boolean) {
     }
 }
 
-export default testBaseExtend;
+export default testExtend;

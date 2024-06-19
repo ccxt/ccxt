@@ -23,7 +23,7 @@ function equals (a, b) {
     return true;
 }
 
-function testBaseCryptography () {
+function testCryptography () {
 
     const exchange = new Exchange ();
 
@@ -123,4 +123,4 @@ function testBaseCryptography () {
     // assert (eddsa ('1b1b', privateKey, ed25519) === '3DBaaz8z4Pq9n6ncNCjB4pFLWaWTXbjaCUqKQmBgS3w7AP6opeDqANBhPssbV3jyfJB4LfK8kGR6pu6GU8fbjMuy');
 }
 
-export default testBaseCryptography;
+export default testCryptography;

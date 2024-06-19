@@ -7,7 +7,7 @@ import { numberToString, decimalToPrecision, ROUND, TRUNCATE, DECIMAL_PLACES, TI
 import Precise from '../../base/Precise.js';
 
 
-function testBaseNumber () {
+function testNumber () {
     const exchange = new ccxt.Exchange ({
         'id': 'regirock',
     });
@@ -396,4 +396,4 @@ function testBaseNumber () {
     // $this->assertSame (439, Exchange::sum (2, null, [88], 30, '7', 400, null));
 }
 
-export default testBaseNumber;
+export default testNumber;
