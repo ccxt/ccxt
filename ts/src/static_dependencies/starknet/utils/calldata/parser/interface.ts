@@ -1,4 +1,4 @@
-import { Abi, FunctionAbi } from '../../../types';
+import { Abi, FunctionAbi } from '../../../types/index.js';
 
 export abstract class AbiParserInterface {
   /**

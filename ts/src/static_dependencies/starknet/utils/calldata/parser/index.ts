@@ -1,8 +1,8 @@
-import { Abi, FunctionAbi, RawArgs } from '../../../types';
-import { isCairo1Abi } from '../cairo';
-import { AbiParserInterface } from './interface';
-import { AbiParser1 } from './parser-0-1.1.0';
-import { AbiParser2 } from './parser-2.0.0';
+import { Abi, FunctionAbi, RawArgs } from '../../../types/index.js';
+import { isCairo1Abi } from '../cairo.js';
+import { AbiParserInterface } from './interface.js';
+import { AbiParser1 } from './parser-0-1.1.0.js';
+import { AbiParser2 } from './parser-2.0.0.js';
 
 export function createAbiParser(abi: Abi): AbiParserInterface {
   const version = getAbiVersion(abi);

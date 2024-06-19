@@ -1,4 +1,4 @@
-import urljoin from 'url-join';
+// import urljoin from 'url-join';
 
 /**
  * Inspired from https://github.com/segmentio/is-url
@@ -71,5 +71,6 @@ export function isUrl(s?: string): boolean {
  * result = "https://starknetjs.com/docs"
  */
 export function buildUrl(baseUrl: string, defaultPath: string, urlOrPath?: string) {
-  return isUrl(urlOrPath) ? urlOrPath! : urljoin(baseUrl, urlOrPath ?? defaultPath);
+  return urlOrPath;
+  // return isUrl(urlOrPath) ? urlOrPath! : urljoin(baseUrl, urlOrPath ?? defaultPath);
 }

@@ -57,7 +57,7 @@ type STRUCT_EVENT = {
 };
 
 type ENUM_EVENT = {
-  kind: 'enum.js';
+  kind: 'enum/index.js';
   variants: Array<EVENT_FIELD>;
 };
 
@@ -71,7 +71,7 @@ type STRUCT = {
 };
 
 type ENUM = {
-  type: 'enum.js';
+  type: 'enum/index.js';
   name: string;
   variants: Array<{
     name: string;
@@ -92,7 +92,7 @@ type IMPL = {
 };
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-type EVENT_KIND = 'struct' | 'enum.js';
+type EVENT_KIND = 'struct' | 'enum/index.js';
 
 type EVENT_FIELD = {
   name: string;

@@ -1,4 +1,4 @@
-import { Abi } from './abi';
+import { Abi } from './abi.js';
 
 /** LEGACY CONTRACT */
 /**

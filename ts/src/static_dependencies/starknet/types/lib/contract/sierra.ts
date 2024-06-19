@@ -1,5 +1,5 @@
-import { Abi } from './abi';
-import { EntryPointsByType } from './legacy';
+import { Abi } from './abi.js';
+import { EntryPointsByType } from './legacy.js';
 
 /** SYSTEM TYPES */
 export type CairoAssembly = {

@@ -16,8 +16,8 @@ import {
   SIMULATION_FLAG_FOR_ESTIMATE_FEE,
   STORAGE_KEY,
   TXN_HASH,
-} from './components';
-import * as Errors from './errors';
+} from './components.js';
+import * as Errors from './errors.js';
 import {
   BlockHashAndNumber,
   BlockTransactionsTraces,
@@ -37,7 +37,7 @@ import {
   TransactionStatus,
   TransactionTrace,
   TransactionWithHash,
-} from './nonspec';
+} from './nonspec.js';
 
 export type Methods = ReadMethods & WriteMethods & TraceMethods;
 

@@ -1,6 +1,6 @@
-import { Abi, FunctionAbi } from '../../../types';
-import { isLen } from '../cairo';
-import { AbiParserInterface } from './interface';
+import { Abi, FunctionAbi } from '../../../types/index.js';
+import { isLen } from '../cairo.js';
+import { AbiParserInterface } from './interface.js';
 
 export class AbiParser1 implements AbiParserInterface {
   abi: Abi;

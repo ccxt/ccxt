@@ -1,7 +1,6 @@
 import { keccak } from '../../scure-starknet/index.js';
-
 import { MASK_250 } from '../constants.js';
-import { BigNumberish } from '../types';
+import { BigNumberish } from '../types/index.js';
 import { addHexPrefix, removeHexPrefix, utf8ToArray } from './encode.js';
 import { hexToBytes, isHex, isStringWholeNumber, toHex, toHexString } from './num.js';
 

@@ -8,10 +8,10 @@ import {
   Uint,
   Uint256,
   Uint512,
-} from '../../types';
-import { CairoFelt } from '../cairoDataTypes/felt';
-import { CairoUint256 } from '../cairoDataTypes/uint256';
-import { CairoUint512 } from '../cairoDataTypes/uint512';
+} from '../../types/index.js';
+import { CairoFelt } from '../cairoDataTypes/felt.js';
+import { CairoUint256 } from '../cairoDataTypes/uint256.js';
+import { CairoUint512 } from '../cairoDataTypes/uint512.js';
 
 // Intended for internal usage, maybe should be exported somewhere else and not exported to utils
 /**
@@ -139,7 +139,7 @@ export const isTypeBytes31 = (type: string) => type === 'core::bytes_31::bytes31
  * @param {string} type - The type to check.
  * @returns - True if the given type is equal to 'core::byte_array::ByteArray', false otherwise.
  */
-export const isTypeByteArray = (type: string) => type === 'core::byte_array::ByteArray';
+export const isTypeByteArray = (type: string) => type === 'core::byte_array::byteArray.js';
 export const isTypeSecp256k1Point = (type: string) =>
   type === 'core::starknet::secp256k1::Secp256k1Point';
 export const isCairo1Type = (type: string) => type.includes('::');

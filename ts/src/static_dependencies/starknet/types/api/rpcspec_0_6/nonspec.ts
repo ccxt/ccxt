@@ -38,7 +38,7 @@ import {
   TXN_HASH,
   TXN_RECEIPT,
   TXN_STATUS,
-} from './components';
+} from './components.js';
 
 // METHOD RESPONSES
 // response starknet_getClass

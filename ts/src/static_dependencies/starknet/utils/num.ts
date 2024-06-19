@@ -1,6 +1,6 @@
 import { hexToBytes as hexToBytesNoble } from '../../noble-curves/abstract/utils.js';
 
-import { BigNumberish } from '../types';
+import { BigNumberish } from '../types/index.js';
 import assert from './assert.js';
 import { addHexPrefix, removeHexPrefix } from './encode.js';
 

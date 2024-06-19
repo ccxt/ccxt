@@ -1,5 +1,5 @@
-import { Abi, FunctionAbi, EventAbi, StructAbi, InterfaceAbi } from '../../../types';
-import { AbiParserInterface } from './interface';
+import { Abi, FunctionAbi, EventAbi, StructAbi, InterfaceAbi } from '../../../types/index.js';
+import { AbiParserInterface } from './interface.js';
 
 export class AbiParser2 implements AbiParserInterface {
   abi: Abi;

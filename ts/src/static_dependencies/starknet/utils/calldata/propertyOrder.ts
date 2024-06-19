@@ -1,6 +1,6 @@
-import { AbiEntry, AbiEnums, AbiStructs, CairoEnum, RawArgsObject } from '../../types';
-import { CairoUint256 } from '../cairoDataTypes/uint256';
-import { CairoUint512 } from '../cairoDataTypes/uint512';
+import { AbiEntry, AbiEnums, AbiStructs, CairoEnum, RawArgsObject } from '../../types/index.js';
+import { CairoUint256 } from '../cairoDataTypes/uint256.js';
+import { CairoUint512 } from '../cairoDataTypes/uint512.js';
 import {
   getArrayType,
   isCairo1Type,
@@ -14,15 +14,15 @@ import {
   isTypeSecp256k1Point,
   isTypeStruct,
   isTypeTuple,
-} from './cairo';
+} from './cairo.js';
 import {
   CairoCustomEnum,
   CairoOption,
   CairoOptionVariant,
   CairoResult,
   CairoResultVariant,
-} from './enum.js';
-import extractTupleMemberTypes from './tuple';
+} from './enum/index.js';
+import extractTupleMemberTypes from './tuple.js';
 
 import { isString } from '../shortString.js';
 

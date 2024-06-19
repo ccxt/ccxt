@@ -1,4 +1,4 @@
-import { BigNumberish } from '../types';
+import { BigNumberish } from '../types/index.js';
 import { computePedersenHash } from './hash/index.js';
 
 export class MerkleTree {

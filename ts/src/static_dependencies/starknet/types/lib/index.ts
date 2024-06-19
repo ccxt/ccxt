@@ -1,8 +1,8 @@
-import { StarknetChainId } from '../../constants';
-import { weierstrass } from '../../utils/ec';
-import { EDataAvailabilityMode, ResourceBounds } from '../api';
+import { StarknetChainId } from '../../constants.js';
+import { weierstrass } from '../../utils/ec.js';
+// import { EDataAvailabilityMode, ResourceBounds } from '../api/index.js';
 import { CairoEnum } from '../cairoEnum.js';
-import { CompiledContract, CompiledSierraCasm, ContractClass } from './contract';
+import { CompiledContract, CompiledSierraCasm, ContractClass } from './contract/index.js';
 
 export type WeierstrassSignatureType = weierstrass.SignatureType;
 export type ArraySignatureType = string[];
@@ -138,12 +138,12 @@ export type InvocationsDetails = {
 export type V3TransactionDetails = {
   nonce: BigNumberish;
   version: BigNumberish;
-  resourceBounds: ResourceBounds;
+  // resourceBounds: ResourceBounds;
   tip: BigNumberish;
   paymasterData: BigNumberish[];
   accountDeploymentData: BigNumberish[];
-  nonceDataAvailabilityMode: EDataAvailabilityMode;
-  feeDataAvailabilityMode: EDataAvailabilityMode;
+  // nonceDataAvailabilityMode: EDataAvailabilityMode;
+  // feeDataAvailabilityMode: EDataAvailabilityMode;
 };
 
 /**
@@ -295,4 +295,4 @@ export type ContractVersion = {
   compiler: CompilerVersion;
 };
 
-export * from './contract';
+export * from './contract/index.js';

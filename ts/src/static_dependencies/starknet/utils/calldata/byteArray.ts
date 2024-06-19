@@ -1,4 +1,4 @@
-import { BigNumberish, ByteArray } from '../../types/lib';
+import { BigNumberish, ByteArray } from '../../types/lib/index.js';
 import { toHex } from '../num.js';
 import { decodeShortString, encodeShortString, splitLongString } from '../shortString.js';
 

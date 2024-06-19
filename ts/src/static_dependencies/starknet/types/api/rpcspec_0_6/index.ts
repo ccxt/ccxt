@@ -2,8 +2,8 @@
  * version 0.6.0
  */
 
-export { Methods } from './methods';
-export { ABI } from './contract';
-export * as Errors from './errors';
-export * as SPEC from './components';
-export * from './nonspec';
+export { Methods } from './methods.js';
+export { ABI } from './contract.js';
+export * as Errors from './errors.js';
+export * as SPEC from './components.js';
+export * from './nonspec.js';

@@ -9,13 +9,13 @@ import {
   CairoEnum,
   EventEntry,
   ParsedStruct,
-} from '../../types';
-import { CairoUint256 } from '../cairoDataTypes/uint256';
-import { CairoUint512 } from '../cairoDataTypes/uint512';
+} from '../../types/index.js';
+import { CairoUint256 } from '../cairoDataTypes/uint256.js';
+import { CairoUint512 } from '../cairoDataTypes/uint512.js';
 import { addHexPrefix, removeHexPrefix } from '../encode.js';
 import { toHex } from '../num.js';
 import { decodeShortString } from '../shortString.js';
-import { stringFromByteArray } from './byteArray';
+import { stringFromByteArray } from './byteArray.js';
 import {
   getArrayType,
   isCairo1Type,
@@ -26,7 +26,7 @@ import {
   isTypeEnum,
   isTypeSecp256k1Point,
   isTypeTuple,
-} from './cairo';
+} from './cairo.js';
 import {
   CairoCustomEnum,
   CairoEnumRaw,
@@ -34,8 +34,8 @@ import {
   CairoOptionVariant,
   CairoResult,
   CairoResultVariant,
-} from './enum.js';
-import extractTupleMemberTypes from './tuple';
+} from './enum/index.js';
+import extractTupleMemberTypes from './tuple.js';
 
 /**
  * Parse base types

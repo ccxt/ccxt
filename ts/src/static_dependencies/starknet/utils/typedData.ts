@@ -7,9 +7,9 @@ import {
   StarknetMerkleType,
   StarknetType,
   TypedData,
-} from '../types';
+} from '../types/index.js';
 import assert from './assert.js';
-import { byteArrayFromString } from './calldata/byteArray';
+import { byteArrayFromString } from './calldata/byteArray.js';
 import {
   computePedersenHash,
   computePedersenHashOnElements,
@@ -22,7 +22,7 @@ import { isHex, toHex } from './num.js';
 import { encodeShortString, isString } from './shortString.js';
 
 /** @deprecated prefer importing from 'types' over 'typedData' */
-export * from '../types/typedData';
+// export * from '../types/typedData';
 
 interface Context {
   parent?: string;

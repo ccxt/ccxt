@@ -2,7 +2,7 @@
  * Class Hash
  */
 
-import { poseidonHashMany } from '../../scure-starknet/index.js';
+import { poseidonHashMany } from '../../../scure-starknet/index.js';
 
 import { ADDR_BOUND, API_VERSION } from '../../constants.js';
 import {
@@ -15,10 +15,10 @@ import {
   LegacyCompiledContract,
   RawArgs,
   SierraContractEntryPointFields,
-} from '../../types';
-import { CallData } from '../calldata';
-import { felt } from '../calldata/cairo';
-import { starkCurve } from '../ec';
+} from '../../types/index.js';
+import { CallData } from '../calldata/index.js';
+import { felt } from '../calldata/cairo.js';
+import { starkCurve } from '../ec.js';
 import { addHexPrefix, utf8ToArray } from '../encode.js';
 import { parse, stringify } from '../json.js';
 import { toHex } from '../num.js';

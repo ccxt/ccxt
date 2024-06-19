@@ -2,7 +2,7 @@
 import { hexToBytes } from '../../noble-curves/abstract/utils';
 
 import { ADDR_BOUND, ZERO } from '../constants.js';
-import { BigNumberish } from '../types';
+import { BigNumberish } from '../types/index.js';
 import { addHexPrefix, removeHexPrefix } from './encode.js';
 import { keccakBn } from './hash/index.js';
 import { assertInRange, toHex } from './num.js';

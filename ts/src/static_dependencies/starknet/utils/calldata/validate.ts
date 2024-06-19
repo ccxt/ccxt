@@ -10,10 +10,10 @@ import {
   FunctionAbi,
   Literal,
   Uint,
-} from '../../types';
+} from '../../types/index.js';
 import assert from '../assert.js';
-import { CairoUint256 } from '../cairoDataTypes/uint256';
-import { CairoUint512 } from '../cairoDataTypes/uint512';
+import { CairoUint256 } from '../cairoDataTypes/uint256.js';
+import { CairoUint512 } from '../cairoDataTypes/uint512.js';
 import { isBigInt, isBoolean, isHex, isNumber, toBigInt } from '../num.js';
 import { isLongText, isString } from '../shortString.js';
 import {
@@ -31,7 +31,7 @@ import {
   isTypeStruct,
   isTypeTuple,
   isTypeUint,
-} from './cairo';
+} from './cairo.js';
 
 const validateFelt = (parameter: any, input: AbiEntry) => {
   assert(

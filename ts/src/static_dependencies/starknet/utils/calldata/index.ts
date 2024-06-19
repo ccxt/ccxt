@@ -13,7 +13,7 @@ import {
   RawArgsArray,
   Result,
   ValidateType,
-} from '../../types';
+} from '../../types/index.js';
 import assert from '../assert.js';
 import { isBigInt, toHex } from '../num.js';
 import { getSelectorFromName } from '../selector.js';
@@ -26,18 +26,17 @@ import {
   CairoOptionVariant,
   CairoResult,
   CairoResultVariant,
-} from './enum.js';
-import formatter from './formatter';
-import { createAbiParser, isNoConstructorValid } from './parser';
-import { AbiParserInterface } from './parser/interface';
-import orderPropsByAbi from './propertyOrder';
-import { parseCalldataField } from './requestParser';
-import responseParser from './responseParser';
-import validateFields from './validate';
+} from './enum/index.js';
+import formatter from './formatter.js';
+import { createAbiParser, isNoConstructorValid } from './parser/index.js';
+import { AbiParserInterface } from './parser/interface.js';
+import orderPropsByAbi from './propertyOrder.js';
+import { parseCalldataField } from './requestParser.js';
+import responseParser from './responseParser.js';
+import validateFields from './validate.js';
 
-export * as cairo from './cairo';
-export * as byteArray from './byteArray';
-export { parseCalldataField } from './requestParser';
+export * as cairo from './cairo.js';
+export * as byteArray from './byteArray.js';
 
 export class CallData {
   abi: Abi;

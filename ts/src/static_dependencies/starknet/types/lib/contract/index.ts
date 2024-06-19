@@ -1,5 +1,5 @@
-import { LegacyCompiledContract, LegacyContractClass } from './legacy';
-import { CompiledSierra, SierraContractClass } from './sierra';
+import { LegacyCompiledContract, LegacyContractClass } from './legacy.js';
+import { CompiledSierra, SierraContractClass } from './sierra.js';
 
 // Final types
 /**
@@ -26,6 +26,6 @@ export enum EntryPointType {
   CONSTRUCTOR = 'CONSTRUCTOR',
 }
 
-export * from './abi';
-export * from './legacy';
-export * from './sierra';
+export * from './abi.js';
+export * from './legacy.js';
+export * from './sierra.js';

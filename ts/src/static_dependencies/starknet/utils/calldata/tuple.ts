@@ -1,5 +1,5 @@
 /* eslint-disable no-plusplus */
-import { isCairo1Type, isTypeNamedTuple } from './cairo';
+import { isCairo1Type, isTypeNamedTuple } from './cairo.js';
 
 function parseNamedTuple(namedTuple: string): any {
   const name = namedTuple.substring(0, namedTuple.indexOf(':'));

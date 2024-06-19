@@ -1,3 +1,3 @@
 export * from './CairoCustomEnum.js';
-export * from './CairoOption';
-export * from './CairoResult';
+export * from './CairoOption.js';
+export * from './CairoResult.js';

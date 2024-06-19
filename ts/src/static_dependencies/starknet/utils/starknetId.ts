@@ -1,6 +1,6 @@
 import { StarknetChainId, ZERO } from '../constants.js';
-import { BigNumberish } from '../types';
-import { tuple } from './calldata/cairo';
+import { BigNumberish } from '../types/index.js';
+import { tuple } from './calldata/cairo.js';
 import { CairoCustomEnum } from './calldata/enum/CairoCustomEnum.js';
 /* eslint-disable no-param-reassign */
 

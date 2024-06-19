@@ -43,7 +43,7 @@ export type EnumAbi = {
   variants: (AbiEntry & { offset: number })[];
   name: string;
   size: number;
-  type: 'enum.js';
+  type: 'enum/index.js';
 };
 
 export type AbiEvents = { [hash: string]: EventAbi };

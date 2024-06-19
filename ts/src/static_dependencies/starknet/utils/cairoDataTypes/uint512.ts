@@ -3,10 +3,10 @@
  * Singular class handling cairo u512 data type
  */
 
-import { BigNumberish, type Uint512 } from '../../types';
+import { BigNumberish, type Uint512 } from '../../types/index.js';
 import { addHexPrefix } from '../encode.js';
-import { CairoFelt } from './felt';
-import { UINT_128_MAX } from './uint256';
+import { CairoFelt } from './felt.js';
+import { UINT_128_MAX } from './uint256.js';
 
 export const UINT_512_MAX = (1n << 512n) - 1n;
 export const UINT_512_MIN = 0n;
