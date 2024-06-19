@@ -1576,7 +1576,7 @@ class Exchange {
         $raw_headers_array = explode("\r\n", trim($raw_headers));
         $status_line = $raw_headers_array[0];
         $parts = explode(' ', $status_line);
-        $http_status_text = count($parts) === 3 ? $parts[2] : null;
+        $http_status_text = count($parts) === 3 ? $parts[2] : '';
         $raw_headers = array_slice($raw_headers_array, 1);
         foreach ($raw_headers as $raw_header) {
             if (strlen($raw_header)) {
