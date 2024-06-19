@@ -82,7 +82,7 @@ build_and_test_all () {
     fi
     npm run test-base
     npm run test-base-ws
-    npm run test-id-tests
+    npm run id-tests
     npm run request-all
     npm run response-all
     node ./utils/test-commonjs.cjs
