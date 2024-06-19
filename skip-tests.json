@@ -1124,7 +1124,8 @@
         "skipMethods":{
             "fetchCurrencies": {
                 "depositForNonCrypto": "not provided",
-                "withdrawForNonCrypto": "not provided"
+                "withdrawForNonCrypto": "not provided",
+                "currencyIdAndCode": "messed https://app.travis-ci.com/github/ccxt/ccxt/builds/271028497#L5338"
             },
             "loadMarkets": {
                 "currencyIdAndCode": "messed"
