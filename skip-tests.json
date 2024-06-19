@@ -1171,7 +1171,9 @@
                 "low": "negative values",
                 "close": "negative values",
                 "bid": "negative values",
+                "bidVolume": "negative values https://app.travis-ci.com/github/ccxt/ccxt/builds/271032316#L5285",
                 "ask": "negative values",
+                "askVolume": "negative values https://app.travis-ci.com/github/ccxt/ccxt/builds/271032316#L5285",
                 "average": "negative values"
             },
             "orderBook":{
