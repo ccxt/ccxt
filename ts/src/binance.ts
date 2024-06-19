@@ -224,7 +224,7 @@ export default class binance extends Exchange {
                     'discount': 0.1,
                 },
                 'doc': [
-                    'https://binance-docs.github.io/apidocs/spot/en',
+                    'https://developers.binance.com/en',
                 ],
                 'api_management': 'https://www.binance.com/en/usercenter/settings/api-management',
                 'fees': 'https://www.binance.com/en/fee/schedule',
@@ -2598,9 +2598,9 @@ export default class binance extends Exchange {
          * @method
          * @name binance#fetchTime
          * @description fetches the current integer timestamp in milliseconds from the exchange server
-         * @see https://binance-docs.github.io/apidocs/spot/en/#check-server-time       // spot
-         * @see https://binance-docs.github.io/apidocs/futures/en/#check-server-time    // swap
-         * @see https://binance-docs.github.io/apidocs/delivery/en/#check-server-time   // future
+         * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api#check-server-time                            // spot
+         * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Check-Server-Time    // swap
+         * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/Check-Server-time             // future
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {string} [params.subType] "linear" or "inverse"
          * @returns {int} the current integer timestamp in milliseconds from the exchange server
@@ -2626,7 +2626,7 @@ export default class binance extends Exchange {
          * @method
          * @name binance#fetchCurrencies
          * @description fetches all available currencies on an exchange
-         * @see https://binance-docs.github.io/apidocs/spot/en/#all-coins-39-information-user_data
+         * @see https://developers.binance.com/docs/wallet/capital/all-coins-info
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} an associative dictionary of currencies
          */
@@ -2826,10 +2826,10 @@ export default class binance extends Exchange {
          * @method
          * @name binance#fetchMarkets
          * @description retrieves data on all markets for binance
-         * @see https://binance-docs.github.io/apidocs/spot/en/#exchange-information         // spot
-         * @see https://binance-docs.github.io/apidocs/futures/en/#exchange-information      // swap
-         * @see https://binance-docs.github.io/apidocs/delivery/en/#exchange-information     // future
-         * @see https://binance-docs.github.io/apidocs/voptions/en/#exchange-information     // option
+         * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api#exchange-information                             // spot
+         * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Exchange-Information     // swap
+         * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/Exchange-Information              // future
+         * @see https://developers.binance.com/docs/derivatives/option/market-data/Exchange-Information                             // option
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} an array of objects representing market data
          */

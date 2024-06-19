@@ -77,7 +77,7 @@ The CCXT library currently supports the following 104 cryptocurrency exchange ma
      - binance
      - `Binance <https://accounts.binance.com/en/register?ref=D7YA7CLY>`__
      - .. image:: https://img.shields.io/badge/*-lightgray
-          :target: https://binance-docs.github.io/apidocs/spot/en
+          :target: https://developers.binance.com/docs/binance-spot-api-docs/CHANGELOG
           :alt: API Version *
      
      - .. image:: https://img.shields.io/badge/CCXT-Certified-green.svg
@@ -95,7 +95,7 @@ The CCXT library currently supports the following 104 cryptocurrency exchange ma
      - binancecoinm
      - `Binance COIN-M <https://accounts.binance.com/en/register?ref=D7YA7CLY>`__
      - .. image:: https://img.shields.io/badge/*-lightgray
-          :target: https://binance-docs.github.io/apidocs/delivery/en/
+          :target: https://developers.binance.com/docs/derivatives/Introduction
           :alt: API Version *
      
      - .. image:: https://img.shields.io/badge/CCXT-Certified-green.svg
@@ -128,7 +128,7 @@ The CCXT library currently supports the following 104 cryptocurrency exchange ma
      - binanceusdm
      - `Binance USDⓈ-M <https://accounts.binance.com/en/register?ref=D7YA7CLY>`__
      - .. image:: https://img.shields.io/badge/*-lightgray
-          :target: https://binance-docs.github.io/apidocs/futures/en/
+          :target: https://developers.binance.com/docs/derivatives/Introduction
           :alt: API Version *
      
      - .. image:: https://img.shields.io/badge/CCXT-Certified-green.svg
