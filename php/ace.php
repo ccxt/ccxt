@@ -1010,14 +1010,11 @@ class ace extends Exchange {
             $auth = 'ACE_SIGN' . $this->secret;
             $data = $this->extend(array(
                 'apiKey' => $this->apiKey,
-                'timeStamp' => $nonce,
+                'timeStamp' => $this->number_to_string($nonce),
             ), $params);
-            $dataKeys = is_array($data) ? array_keys($data) : array();
-            $sortedDataKeys = $this->sort_by($dataKeys, 0, false, '');
-            for ($i = 0; $i < count($sortedDataKeys); $i++) {
-                $key = $sortedDataKeys[$i];
-                $auth .= $this->safe_string($data, $key);
-            }
+            $sortedData = $this->keysort($data);
+            $values = is_array($sortedData) ? array_values($sortedData) : array();
+            $auth .= implode('', $values);
             $signature = $this->hash($this->encode($auth), 'sha256', 'hex');
             $data['signKey'] = $signature;
             $headers = array(

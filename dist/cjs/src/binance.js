@@ -1180,7 +1180,7 @@ class binance extends binance$1 {
                 'BCC': 'BCC',
                 'YOYO': 'YOYOW',
             },
-            'precisionMode': number.DECIMAL_PLACES,
+            'precisionMode': number.TICK_SIZE,
             // exchange-specific options
             'options': {
                 'sandboxMode': false,
@@ -2783,7 +2783,7 @@ class binance extends binance$1 {
                     'deposit': depositEnable,
                     'withdraw': withdrawEnable,
                     'fee': this.parseNumber(fee),
-                    'precision': minPrecision,
+                    'precision': this.parseNumber(precisionTick),
                     'limits': {
                         'withdraw': {
                             'min': this.safeNumber(networkItem, 'withdrawMin'),
@@ -2798,15 +2798,11 @@ class binance extends binance$1 {
             }
             const trading = this.safeBool(entry, 'trading');
             const active = (isWithdrawEnabled && isDepositEnabled && trading);
-            let maxDecimalPlaces = undefined;
-            if (minPrecision !== undefined) {
-                maxDecimalPlaces = parseInt(this.numberToString(this.precisionFromString(minPrecision)));
-            }
             result[code] = {
                 'id': id,
                 'name': name,
                 'code': code,
-                'precision': maxDecimalPlaces,
+                'precision': this.parseNumber(minPrecision),
                 'info': entry,
                 'active': active,
                 'deposit': isDepositEnabled,
@@ -3191,10 +3187,10 @@ class binance extends binance$1 {
             'strike': parsedStrike,
             'optionType': this.safeStringLower(market, 'side'),
             'precision': {
-                'amount': this.safeInteger2(market, 'quantityPrecision', 'quantityScale'),
-                'price': this.safeInteger2(market, 'pricePrecision', 'priceScale'),
-                'base': this.safeInteger(market, 'baseAssetPrecision'),
-                'quote': this.safeInteger(market, 'quotePrecision'),
+                'amount': this.parseNumber(this.parsePrecision(this.safeString2(market, 'quantityPrecision', 'quantityScale'))),
+                'price': this.parseNumber(this.parsePrecision(this.safeString2(market, 'pricePrecision', 'priceScale'))),
+                'base': this.parseNumber(this.parsePrecision(this.safeString(market, 'baseAssetPrecision'))),
+                'quote': this.parseNumber(this.parsePrecision(this.safeString(market, 'quotePrecision'))),
             },
             'limits': {
                 'leverage': {
@@ -3227,12 +3223,11 @@ class binance extends binance$1 {
                 'min': this.safeNumber(filter, 'minPrice'),
                 'max': this.safeNumber(filter, 'maxPrice'),
             };
-            entry['precision']['price'] = this.precisionFromString(filter['tickSize']);
+            entry['precision']['price'] = this.safeNumber(filter, 'tickSize');
         }
         if ('LOT_SIZE' in filtersByType) {
             const filter = this.safeDict(filtersByType, 'LOT_SIZE', {});
-            const stepSize = this.safeString(filter, 'stepSize');
-            entry['precision']['amount'] = this.precisionFromString(stepSize);
+            entry['precision']['amount'] = this.safeNumber(filter, 'stepSize');
             entry['limits']['amount'] = {
                 'min': this.safeNumber(filter, 'minQty'),
                 'max': this.safeNumber(filter, 'maxQty'),
@@ -9578,7 +9573,7 @@ class binance extends binance$1 {
                 const rightSide = Precise["default"].stringSub(Precise["default"].stringMul(Precise["default"].stringDiv('1', entryPriceSignString), size), walletBalance);
                 liquidationPriceStringRaw = Precise["default"].stringDiv(leftSide, rightSide);
             }
-            const pricePrecision = market['precision']['price'];
+            const pricePrecision = this.precisionFromString(this.safeString(market['precision'], 'price'));
             const pricePrecisionPlusOne = pricePrecision + 1;
             const pricePrecisionPlusOneString = pricePrecisionPlusOne.toString();
             // round half up
@@ -9751,8 +9746,7 @@ class binance extends binance$1 {
                 }
                 const inner = Precise["default"].stringMul(liquidationPriceString, onePlusMaintenanceMarginPercentageString);
                 const leftSide = Precise["default"].stringAdd(inner, entryPriceSignString);
-                const pricePrecision = this.safeInteger(precision, 'price');
-                const quotePrecision = this.safeInteger(precision, 'quote', pricePrecision);
+                const quotePrecision = this.precisionFromString(this.safeString2(precision, 'quote', 'price'));
                 if (quotePrecision !== undefined) {
                     collateralString = Precise["default"].stringDiv(Precise["default"].stringMul(leftSide, contractsAbs), '1', quotePrecision);
                 }
@@ -9770,7 +9764,7 @@ class binance extends binance$1 {
                 }
                 const leftSide = Precise["default"].stringMul(contractsAbs, contractSizeString);
                 const rightSide = Precise["default"].stringSub(Precise["default"].stringDiv('1', entryPriceSignString), Precise["default"].stringDiv(onePlusMaintenanceMarginPercentageString, liquidationPriceString));
-                const basePrecision = this.safeInteger(precision, 'base');
+                const basePrecision = this.precisionFromString(this.safeString(precision, 'base'));
                 if (basePrecision !== undefined) {
                     collateralString = Precise["default"].stringDiv(Precise["default"].stringMul(leftSide, rightSide), '1', basePrecision);
                 }
@@ -12921,7 +12915,7 @@ class binance extends binance$1 {
                 'deposit': undefined,
                 'withdraw': undefined,
                 'fee': undefined,
-                'precision': this.safeInteger(entry, 'fraction'),
+                'precision': this.parseNumber(this.parsePrecision(this.safeString(entry, 'fraction'))),
                 'limits': {
                     'amount': {
                         'min': undefined,
