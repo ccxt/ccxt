@@ -123,6 +123,7 @@ import {
     , InvalidAddress
     , InvalidOrder
     , NotSupported
+    , OperationFailed
     , BadResponse
     , AuthenticationError
     , DDoSProtection
@@ -4214,7 +4215,23 @@ export default class Exchange {
         this.last_request_headers = request['headers'];
         this.last_request_body = request['body'];
         this.last_request_url = request['url'];
-        return await this.fetch (request['url'], request['method'], request['headers'], request['body']);
+        const retries = this.handleOption (path, 'retryFailedRequests', 0);
+        for (let i = 0; i <= retries; i++) {
+            try {
+                return await this.fetch (request['url'], request['method'], request['headers'], request['body']);
+            } catch (e) {
+                if (e instanceof OperationFailed) {
+                    if (i < retries) {
+                        const retryWait = this.handleOption (path, 'retryFailedRequestsDelay', 0);
+                        if (retryWait !==0) {
+                            await this.sleep (retryWait);
+                        }
+                        continue;
+                    }
+                }
+                throw e;
+            }
+        }
     }
 
     async request (path, api: any = 'public', method = 'GET', params = {}, headers: any = undefined, body: any = undefined, config = {}) {
