@@ -1795,7 +1795,7 @@ class kraken(Exchange, ImplicitAPI):
             market = self.market(symbol)
             request['pair'] = market['id']
         request['trades'] = True
-        open_orders_response = await self.privatePostOpenOrders(self.extend(request, params))
+        open_orders_response = await self.privatePostGetOpenOrders(self.extend(request, params))
         open_orders = self.parse_orders(open_orders_response['result']['open'], market, since, limit)
         # open orders request doesn't have start and count param
         if limit is not None:
