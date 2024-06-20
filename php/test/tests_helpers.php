@@ -1,6 +1,17 @@
 <?php
 
+namespace ccxt\pro;
+
+function equals($a, $b) {
+    return json_encode($a) === json_encode($b);
+}
+
+
 namespace ccxt;
+
+function equals($a, $b) {
+    return json_encode($a) === json_encode($b);
+}
 
 use Exception; // a common import
 

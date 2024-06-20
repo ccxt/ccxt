@@ -9,10 +9,6 @@ if (is_synchronous) {
     require_once __DIR__ . '/tests_async.php';
 }
 
-function equals($a, $b) {
-    return json_encode($a) === json_encode($b);
-}
-
 $isWs = get_cli_arg_value ('--ws');
 $isBaseTests = get_cli_arg_value ('--baseTests');
 $isAllTest = get_cli_arg_value ('--all'); // if neither was chosen
