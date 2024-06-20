@@ -15,10 +15,7 @@ function equals($a, $b) {
 }
 
 $isWs = get_cli_arg_value ('--ws');
-$isBaseTests = get_cli_arg_value ('--baseTests');
-$isExchangeTests = get_cli_arg_value ('--exchangeTests');
-$reqResTests = get_cli_arg_value ('--responseTests') || get_cli_arg_value ('--requestTests');
-$isAllTest = !$reqResTests && !$isBaseTests && !$isExchangeTests; // if neither was chosen
+$isAllTest = get_cli_arg_value ('--all');; // if neither was chosen
 
 
 // ####### base tests #######
@@ -30,10 +27,10 @@ if ($isBaseTests) {
         require_once (__DIR__ . '/base/tests_init.php');
     }
     print('base tests passed!');
+    if (!$isAllTest) {
+        exit(0);
+    }
 }
 
 // ####### exchange tests #######
-if ($isExchangeTests || $reqResTests || $isAllTest) {
-    // if (is_synchronous)
-    (new testMainClass ())->init($argvExchange, $argvSymbol, $argvMethod);
-}
+(new testMainClass ())->init($argvExchange, $argvSymbol, $argvMethod);
