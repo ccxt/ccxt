@@ -1799,9 +1799,12 @@ class kraken(Exchange, ImplicitAPI):
         open_orders = self.parse_orders(open_orders_response['result']['open'], market, since, limit)
         # open orders request doesn't have start and count param
         if limit is not None:
-            request['count'] = limit    
+            request['count'] = limit
+        # the division by 1000 is because kraken expect the time to be in seconds and not milliseconds as the parameter
         if since is not None:
-            request['start'] = since
+            request['start'] = since / 1000
+        else:
+            request['end'] = self.milliseconds() / 1000
         closed_orders_response = await self.privatePostClosedOrders(self.extend(request, params))
         closed_orders = self.parse_orders(closed_orders_response['result']['closed'], market, since, limit)
         return open_orders + closed_orders
