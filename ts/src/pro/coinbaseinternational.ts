@@ -72,6 +72,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} subscription to a websocket channel
          */
+        await this.loadMarkets ();
         this.checkRequiredCredentials ();
         let market = undefined;
         let messageHash = name;
@@ -120,6 +121,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} subscription to a websocket channel
          */
+        await this.loadMarkets ();
         this.checkRequiredCredentials ();
         if (this.isEmpty (symbols)) {
             symbols = this.symbols;
@@ -481,7 +483,6 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
          */
-        await this.loadMarkets ();
         return await this.subscribeMultiple ('LEVEL2', symbols, params);
     }
 
