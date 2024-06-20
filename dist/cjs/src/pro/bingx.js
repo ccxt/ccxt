@@ -739,16 +739,16 @@ class bingx extends bingx$1 {
         //        ]
         //    }
         //
-        const data = this.safeList(message, 'data', []);
+        const isSwap = client.url.indexOf('swap') >= 0;
         let candles = undefined;
-        if (Array.isArray(data)) {
-            candles = data;
+        if (isSwap) {
+            candles = this.safeList(message, 'data', []);
         }
         else {
-            candles = [this.safeList(data, 'K', [])];
+            const data = this.safeDict(message, 'data', {});
+            candles = [this.safeDict(data, 'K', {})];
         }
         const dataType = this.safeString(message, 'dataType');
-        const isSwap = client.url.indexOf('swap') >= 0;
         const parts = dataType.split('@');
         const firstPart = parts[0];
         const isAllEndpoint = (firstPart === 'all');

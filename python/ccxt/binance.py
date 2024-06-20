@@ -33,7 +33,7 @@ from ccxt.base.errors import OnMaintenance
 from ccxt.base.errors import InvalidNonce
 from ccxt.base.errors import RequestTimeout
 from ccxt.base.decimal_to_precision import TRUNCATE
-from ccxt.base.decimal_to_precision import DECIMAL_PLACES
+from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
 
@@ -1203,7 +1203,7 @@ class binance(Exchange, ImplicitAPI):
                 'BCC': 'BCC',  # kept for backward-compatibility https://github.com/ccxt/ccxt/issues/4848
                 'YOYO': 'YOYOW',
             },
-            'precisionMode': DECIMAL_PLACES,
+            'precisionMode': TICK_SIZE,
             # exchange-specific options
             'options': {
                 'sandboxMode': False,
@@ -2770,7 +2770,7 @@ class binance(Exchange, ImplicitAPI):
                     'deposit': depositEnable,
                     'withdraw': withdrawEnable,
                     'fee': self.parse_number(fee),
-                    'precision': minPrecision,
+                    'precision': self.parse_number(precisionTick),
                     'limits': {
                         'withdraw': {
                             'min': self.safe_number(networkItem, 'withdrawMin'),
@@ -2784,14 +2784,11 @@ class binance(Exchange, ImplicitAPI):
                 }
             trading = self.safe_bool(entry, 'trading')
             active = (isWithdrawEnabled and isDepositEnabled and trading)
-            maxDecimalPlaces = None
-            if minPrecision is not None:
-                maxDecimalPlaces = int(self.number_to_string(self.precision_from_string(minPrecision)))
             result[code] = {
                 'id': id,
                 'name': name,
                 'code': code,
-                'precision': maxDecimalPlaces,
+                'precision': self.parse_number(minPrecision),
                 'info': entry,
                 'active': active,
                 'deposit': isDepositEnabled,
@@ -3147,10 +3144,10 @@ class binance(Exchange, ImplicitAPI):
             'strike': parsedStrike,
             'optionType': self.safe_string_lower(market, 'side'),
             'precision': {
-                'amount': self.safe_integer_2(market, 'quantityPrecision', 'quantityScale'),
-                'price': self.safe_integer_2(market, 'pricePrecision', 'priceScale'),
-                'base': self.safe_integer(market, 'baseAssetPrecision'),
-                'quote': self.safe_integer(market, 'quotePrecision'),
+                'amount': self.parse_number(self.parse_precision(self.safe_string_2(market, 'quantityPrecision', 'quantityScale'))),
+                'price': self.parse_number(self.parse_precision(self.safe_string_2(market, 'pricePrecision', 'priceScale'))),
+                'base': self.parse_number(self.parse_precision(self.safe_string(market, 'baseAssetPrecision'))),
+                'quote': self.parse_number(self.parse_precision(self.safe_string(market, 'quotePrecision'))),
             },
             'limits': {
                 'leverage': {
@@ -3183,11 +3180,10 @@ class binance(Exchange, ImplicitAPI):
                 'min': self.safe_number(filter, 'minPrice'),
                 'max': self.safe_number(filter, 'maxPrice'),
             }
-            entry['precision']['price'] = self.precision_from_string(filter['tickSize'])
+            entry['precision']['price'] = self.safe_number(filter, 'tickSize')
         if 'LOT_SIZE' in filtersByType:
             filter = self.safe_dict(filtersByType, 'LOT_SIZE', {})
-            stepSize = self.safe_string(filter, 'stepSize')
-            entry['precision']['amount'] = self.precision_from_string(stepSize)
+            entry['precision']['amount'] = self.safe_number(filter, 'stepSize')
             entry['limits']['amount'] = {
                 'min': self.safe_number(filter, 'minQty'),
                 'max': self.safe_number(filter, 'maxQty'),
@@ -5836,7 +5832,7 @@ class binance(Exchange, ImplicitAPI):
         market = self.market(symbol)
         if not market['spot']:
             raise NotSupported(self.id + ' createMarketOrderWithCost() supports spot orders only')
-        params['quoteOrderQty'] = cost
+        params['cost'] = cost
         return self.create_order(symbol, 'market', side, cost, None, params)
 
     def create_market_buy_order_with_cost(self, symbol: str, cost: float, params={}):
@@ -5852,7 +5848,7 @@ class binance(Exchange, ImplicitAPI):
         market = self.market(symbol)
         if not market['spot']:
             raise NotSupported(self.id + ' createMarketBuyOrderWithCost() supports spot orders only')
-        params['quoteOrderQty'] = cost
+        params['cost'] = cost
         return self.create_order(symbol, 'market', 'buy', cost, None, params)
 
     def create_market_sell_order_with_cost(self, symbol: str, cost: float, params={}):
@@ -7376,6 +7372,8 @@ class binance(Exchange, ImplicitAPI):
         return self.parse_transactions(response, currency, since, limit)
 
     def parse_transaction_status_by_type(self, status, type=None):
+        if type is None:
+            return status
         statusesByType: dict = {
             'deposit': {
                 '0': 'pending',
@@ -8200,7 +8198,7 @@ class binance(Exchange, ImplicitAPI):
         request: dict = {
             'coin': currency['id'],
             'address': address,
-            'amount': amount,
+            'amount': self.currency_to_precision(code, amount),
             # https://binance-docs.github.io/apidocs/spot/en/#withdraw-sapi
             # issue sapiGetCapitalConfigGetall() to get networks for withdrawing USDT ERC20 vs USDT Omni
             # 'network': 'ETH',  # 'BTC', 'TRX', etc, optional
@@ -8900,7 +8898,7 @@ class binance(Exchange, ImplicitAPI):
                 leftSide = Precise.string_mul(size, onePlusMaintenanceMarginPercentageString)
                 rightSide = Precise.string_sub(Precise.string_mul(Precise.string_div('1', entryPriceSignString), size), walletBalance)
                 liquidationPriceStringRaw = Precise.string_div(leftSide, rightSide)
-            pricePrecision = market['precision']['price']
+            pricePrecision = self.precision_from_string(self.safe_string(market['precision'], 'price'))
             pricePrecisionPlusOne = pricePrecision + 1
             pricePrecisionPlusOneString = str(pricePrecisionPlusOne)
             # round half up
@@ -9065,8 +9063,7 @@ class binance(Exchange, ImplicitAPI):
                     onePlusMaintenanceMarginPercentageString = Precise.string_add('-1', maintenanceMarginPercentageString)
                 inner = Precise.string_mul(liquidationPriceString, onePlusMaintenanceMarginPercentageString)
                 leftSide = Precise.string_add(inner, entryPriceSignString)
-                pricePrecision = self.safe_integer(precision, 'price')
-                quotePrecision = self.safe_integer(precision, 'quote', pricePrecision)
+                quotePrecision = self.precision_from_string(self.safe_string_2(precision, 'quote', 'price'))
                 if quotePrecision is not None:
                     collateralString = Precise.string_div(Precise.string_mul(leftSide, contractsAbs), '1', quotePrecision)
             else:
@@ -9080,7 +9077,7 @@ class binance(Exchange, ImplicitAPI):
                     entryPriceSignString = Precise.string_mul('-1', entryPriceSignString)
                 leftSide = Precise.string_mul(contractsAbs, contractSizeString)
                 rightSide = Precise.string_sub(Precise.string_div('1', entryPriceSignString), Precise.string_div(onePlusMaintenanceMarginPercentageString, liquidationPriceString))
-                basePrecision = self.safe_integer(precision, 'base')
+                basePrecision = self.precision_from_string(self.safe_string(precision, 'base'))
                 if basePrecision is not None:
                     collateralString = Precise.string_div(Precise.string_mul(leftSide, rightSide), '1', basePrecision)
         else:
@@ -11887,7 +11884,7 @@ class binance(Exchange, ImplicitAPI):
                 'deposit': None,
                 'withdraw': None,
                 'fee': None,
-                'precision': self.safe_integer(entry, 'fraction'),
+                'precision': self.parse_number(self.parse_precision(self.safe_string(entry, 'fraction'))),
                 'limits': {
                     'amount': {
                         'min': None,

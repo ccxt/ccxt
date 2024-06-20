@@ -1015,7 +1015,19 @@ class bitso extends Exchange {
             $request = array(
                 'oid' => $id,
             );
-            return Async\await($this->privateDeleteOrdersOid ($this->extend($request, $params)));
+            $response = Async\await($this->privateDeleteOrdersOid ($this->extend($request, $params)));
+            //
+            //     {
+            //         "success" => true,
+            //         "payload" => ["yWTQGxDMZ0VimZgZ"]
+            //     }
+            //
+            $payload = $this->safe_list($response, 'payload', array());
+            $orderId = $this->safe_string($payload, 0);
+            return $this->safe_order(array(
+                'info' => $response,
+                'id' => $orderId,
+            ));
         }) ();
     }
 

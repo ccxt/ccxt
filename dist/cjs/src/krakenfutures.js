@@ -121,6 +121,8 @@ class krakenfutures extends krakenfutures$1 {
                         'transfers',
                         'leveragepreferences',
                         'pnlpreferences',
+                        'assignmentprogram/current',
+                        'assignmentprogram/history',
                     ],
                     'post': [
                         'sendorder',
@@ -130,7 +132,9 @@ class krakenfutures extends krakenfutures$1 {
                         'batchorder',
                         'cancelallorders',
                         'cancelallordersafter',
-                        'withdrawal', // for futures wallet -> kraken spot wallet
+                        'withdrawal',
+                        'assignmentprogram/add',
+                        'assignmentprogram/delete',
                     ],
                     'put': [
                         'leveragepreferences',
@@ -1871,7 +1875,7 @@ class krakenfutures extends krakenfutures$1 {
             'type': this.parseOrderType(type),
             'timeInForce': timeInForce,
             'postOnly': type === 'post',
-            'reduceOnly': this.safeValue(details, 'reduceOnly'),
+            'reduceOnly': this.safeBool2(details, 'reduceOnly', 'reduce_only'),
             'side': this.safeString(details, 'side'),
             'price': price,
             'stopPrice': this.safeString(details, 'triggerPrice'),

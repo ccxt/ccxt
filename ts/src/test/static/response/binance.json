@@ -2510,6 +2510,84 @@
                   }
                 ]
             }
+        ],
+        "withdraw": [
+            {
+                "description": "withdraw",
+                "method": "withdraw",
+                "input": [
+                  "USDT",
+                  10.34332,
+                  "TKRxCKea88ZvHeGsXEY33CqAQHPDqcAw4N",
+                  null,
+                  {
+                    "network": "TRC20"
+                  }
+                ],
+                "httpResponse": {
+                  "id": "0b894f44acb74b0687398205de0db2d0"
+                },
+                "parsedResponse": {
+                  "info": {
+                    "id": "0b894f44acb74b0687398205de0db2d0"
+                  },
+                  "id": "0b894f44acb74b0687398205de0db2d0",
+                  "txid": null,
+                  "timestamp": null,
+                  "datetime": null,
+                  "network": null,
+                  "address": null,
+                  "addressTo": null,
+                  "addressFrom": null,
+                  "tag": null,
+                  "tagTo": null,
+                  "tagFrom": null,
+                  "type": null,
+                  "amount": null,
+                  "currency": "USDT",
+                  "status": null,
+                  "updated": null,
+                  "internal": null,
+                  "comment": null,
+                  "fee": null
+                }
+            }
+        ],
+        "fetchConvertQuote": [
+            {
+                "description": "fetchConvertQuote",
+                "method": "fetchConvertQuote",
+                "input": [
+                  "USDC",
+                  "USDT",
+                  5
+                ],
+                "httpResponse": {
+                  "ratio": "0.999351",
+                  "inverseRatio": "1.00065",
+                  "validTimestamp": "1718724795211",
+                  "toAmount": "4.99675625",
+                  "fromAmount": "5"
+                },
+                "parsedResponse": {
+                  "info": {
+                    "ratio": "0.999351",
+                    "inverseRatio": "1.00065",
+                    "validTimestamp": "1718724795211",
+                    "toAmount": "4.99675625",
+                    "fromAmount": "5"
+                  },
+                  "timestamp": 1718724795211,
+                  "datetime": "2024-06-18T15:33:15.211Z",
+                  "id": null,
+                  "fromCurrency": "USDC",
+                  "fromAmount": 5,
+                  "toCurrency": "USDT",
+                  "toAmount": 4.99675625,
+                  "price": null,
+                  "fee": null
+                }
+            }
         ]
     }
 }

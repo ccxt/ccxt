@@ -2271,7 +2271,7 @@ public partial class bitmart : Exchange
         object trailingActivationPrice = this.safeNumber(order, "activation_price");
         return this.safeOrder(new Dictionary<string, object>() {
             { "id", id },
-            { "clientOrderId", this.safeString(order, "client_order_id") },
+            { "clientOrderId", this.safeString2(order, "client_order_id", "clientOrderId") },
             { "info", order },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
@@ -2736,6 +2736,12 @@ public partial class bitmart : Exchange
         if (isTrue(ioc))
         {
             ((IDictionary<string,object>)request)["type"] = "ioc";
+        }
+        object clientOrderId = this.safeString(parameters, "clientOrderId");
+        if (isTrue(!isEqual(clientOrderId, null)))
+        {
+            parameters = this.omit(parameters, "clientOrderId");
+            ((IDictionary<string,object>)request)["client_order_id"] = clientOrderId;
         }
         return this.extend(request, parameters);
     }

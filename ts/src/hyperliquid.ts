@@ -8,7 +8,7 @@ import { TICK_SIZE, ROUND, SIGNIFICANT_DIGITS, DECIMAL_PLACES } from './base/fun
 import { keccak_256 as keccak } from './static_dependencies/noble-hashes/sha3.js';
 import { secp256k1 } from './static_dependencies/noble-curves/secp256k1.js';
 import { ecdsa } from './base/functions/crypto.js';
-import type { Market, TransferEntry, Balances, Int, OrderBook, OHLCV, Str, FundingRateHistory, Order, OrderType, OrderSide, Trade, Strings, Position, OrderRequest, Dict, Num, MarginModification, Currencies, CancellationRequest, int, Transaction } from './base/types.js';
+import type { Market, TransferEntry, Balances, Int, OrderBook, OHLCV, Str, FundingRateHistory, Order, OrderType, OrderSide, Trade, Strings, Position, OrderRequest, Dict, Num, MarginModification, Currencies, CancellationRequest, int, Transaction, Currency } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -1240,7 +1240,8 @@ export default class hyperliquid extends Exchange {
          * @param {string} [params.vaultAddress] the vault address for order
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
-        return await this.cancelOrders ([ id ], symbol, params);
+        const orders = await this.cancelOrders ([ id ], symbol, params);
+        return this.safeDict (orders, 0);
     }
 
     async cancelOrders (ids: string[], symbol: Str = undefined, params = {}) {
@@ -1319,7 +1320,18 @@ export default class hyperliquid extends Exchange {
         //         }
         //     }
         //
-        return response;
+        const innerResponse = this.safeDict (response, 'response');
+        const data = this.safeDict (innerResponse, 'data');
+        const statuses = this.safeList (data, 'statuses');
+        const orders = [];
+        for (let i = 0; i < statuses.length; i++) {
+            const status = statuses[i];
+            orders.push (this.safeOrder ({
+                'info': status,
+                'status': status,
+            }));
+        }
+        return orders;
     }
 
     async cancelOrdersForSymbols (orders: CancellationRequest[], params = {}) {
@@ -2518,6 +2530,34 @@ export default class hyperliquid extends Exchange {
         };
         const response = await this.privatePostExchange (this.extend (request, params));
         return this.parseTransaction (response);
+    }
+
+    parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {
+        //
+        // { status: 'ok', response: { type: 'default' } }
+        //
+        return {
+            'info': transaction,
+            'id': undefined,
+            'txid': undefined,
+            'timestamp': undefined,
+            'datetime': undefined,
+            'network': undefined,
+            'address': undefined,
+            'addressTo': undefined,
+            'addressFrom': undefined,
+            'tag': undefined,
+            'tagTo': undefined,
+            'tagFrom': undefined,
+            'type': undefined,
+            'amount': undefined,
+            'currency': undefined,
+            'status': this.safeString (transaction, 'status'),
+            'updated': undefined,
+            'comment': undefined,
+            'internal': undefined,
+            'fee': undefined,
+        };
     }
 
     formatVaultAddress (address: Str = undefined) {

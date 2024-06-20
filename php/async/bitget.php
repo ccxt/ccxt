@@ -4379,7 +4379,7 @@ class bitget extends Exchange {
             }
             if ($marginMode !== null) {
                 $request['loanType'] = 'normal';
-                if ($createMarketBuyOrderRequiresPrice && $isMarketOrder && ($side === 'buy')) {
+                if ($isMarketOrder && ($side === 'buy')) {
                     $request['quoteSize'] = $quantity;
                 } else {
                     $request['baseSize'] = $quantity;
@@ -8619,7 +8619,7 @@ class bitget extends Exchange {
         }) ();
     }
 
-    public function parse_conversion(array $conversion, ?array $fromCurrency = null, ?array $toCurrency = null): Conversion {
+    public function parse_conversion(array $conversion, ?array $fromCurrency = null, ?array $toCurrency = null): array {
         //
         // fetchConvertQuote
         //

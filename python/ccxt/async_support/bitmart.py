@@ -2238,7 +2238,7 @@ class bitmart(Exchange, ImplicitAPI):
         trailingActivationPrice = self.safe_number(order, 'activation_price')
         return self.safe_order({
             'id': id,
-            'clientOrderId': self.safe_string(order, 'client_order_id'),
+            'clientOrderId': self.safe_string_2(order, 'client_order_id', 'clientOrderId'),
             'info': order,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
@@ -2594,6 +2594,10 @@ class bitmart(Exchange, ImplicitAPI):
             request['type'] = 'limit_maker'
         if ioc:
             request['type'] = 'ioc'
+        clientOrderId = self.safe_string(params, 'clientOrderId')
+        if clientOrderId is not None:
+            params = self.omit(params, 'clientOrderId')
+            request['client_order_id'] = clientOrderId
         return self.extend(request, params)
 
     async def cancel_order(self, id: str, symbol: Str = None, params={}):

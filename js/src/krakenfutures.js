@@ -124,6 +124,8 @@ export default class krakenfutures extends Exchange {
                         'transfers',
                         'leveragepreferences',
                         'pnlpreferences',
+                        'assignmentprogram/current',
+                        'assignmentprogram/history',
                     ],
                     'post': [
                         'sendorder',
@@ -133,7 +135,9 @@ export default class krakenfutures extends Exchange {
                         'batchorder',
                         'cancelallorders',
                         'cancelallordersafter',
-                        'withdrawal', // for futures wallet -> kraken spot wallet
+                        'withdrawal',
+                        'assignmentprogram/add',
+                        'assignmentprogram/delete',
                     ],
                     'put': [
                         'leveragepreferences',
@@ -1874,7 +1878,7 @@ export default class krakenfutures extends Exchange {
             'type': this.parseOrderType(type),
             'timeInForce': timeInForce,
             'postOnly': type === 'post',
-            'reduceOnly': this.safeValue(details, 'reduceOnly'),
+            'reduceOnly': this.safeBool2(details, 'reduceOnly', 'reduce_only'),
             'side': this.safeString(details, 'side'),
             'price': price,
             'stopPrice': this.safeString(details, 'triggerPrice'),

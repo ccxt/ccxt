@@ -27,6 +27,7 @@ class wavesexchange extends Exchange {
             'countries' => array( 'CH' ), // Switzerland
             'certified' => false,
             'pro' => false,
+            'dex' => true,
             'has' => array(
                 'CORS' => null,
                 'spot' => true,

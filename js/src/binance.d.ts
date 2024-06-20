@@ -93,7 +93,7 @@ export default class binance extends Exchange {
     };
     fetchDeposits(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
     fetchWithdrawals(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
-    parseTransactionStatusByType(status: any, type?: any): string;
+    parseTransactionStatusByType(status: any, type?: any): any;
     parseTransaction(transaction: Dict, currency?: Currency): Transaction;
     parseTransferStatus(status: Str): Str;
     parseTransfer(transfer: Dict, currency?: Currency): TransferEntry;
