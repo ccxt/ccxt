@@ -614,6 +614,7 @@ export default class coindcx extends Exchange {
         let marketType = 'spot';
         [ marketType, params ] = this.handleMarketTypeAndParams ('fetchMyTrades', market, params);
         const isMargin = this.safeBool (params, 'margin', false);
+        params = this.omit (params, 'margin');
         if ((isMargin) && (marketType === 'spot')) {
             marketType = 'margin';
         }
@@ -780,6 +781,7 @@ export default class coindcx extends Exchange {
         let marketType = 'spot';
         [ marketType, params ] = this.handleMarketTypeAndParams ('createOrder', market, params);
         const isMargin = this.safeBool (params, 'margin', false);
+        params = this.omit (params, 'margin');
         if ((isMargin) && (marketType === 'spot')) {
             marketType = 'margin';
         }
@@ -1067,6 +1069,7 @@ export default class coindcx extends Exchange {
         let marketType = 'spot';
         [ marketType, params ] = this.handleMarketTypeAndParams ('fetchOrder', market, params, 'spot');
         const isMargin = this.safeBool (params, 'margin', false);
+        params = this.omit (params, 'margin');
         if ((isMargin) && (marketType === 'spot')) {
             marketType = 'margin';
         }
@@ -1243,6 +1246,7 @@ export default class coindcx extends Exchange {
         let marketType = 'spot';
         [ marketType, params ] = this.handleMarketTypeAndParams ('fetchOrders', market, params);
         const isMargin = this.safeBool (params, 'margin', false);
+        params = this.omit (params, 'margin');
         if ((isMargin) && (marketType === 'spot')) {
             marketType = 'margin';
         }
@@ -1370,6 +1374,7 @@ export default class coindcx extends Exchange {
         let marketType = 'spot';
         [ marketType, params ] = this.handleMarketTypeAndParams ('fetchOpenOrders', market, params);
         const isMargin = this.safeBool (params, 'margin', false);
+        params = this.omit (params, 'margin');
         if ((isMargin) && (marketType === 'spot')) {
             marketType = 'margin';
         }
@@ -1448,6 +1453,7 @@ export default class coindcx extends Exchange {
         let marketType = 'spot';
         [ marketType, params ] = this.handleMarketTypeAndParams ('cancelOrder', market, params);
         const isMargin = this.safeBool (params, 'margin', false);
+        params = this.omit (params, 'margin');
         if ((isMargin) && (marketType === 'spot')) {
             marketType = 'margin';
         }
@@ -1508,6 +1514,7 @@ export default class coindcx extends Exchange {
         let marketType = 'spot';
         [ marketType, params ] = this.handleMarketTypeAndParams ('cancelAllOrders', market, params);
         const isMargin = this.safeBool (params, 'margin', false);
+        params = this.omit (params, 'margin');
         if ((isMargin) && (marketType === 'spot')) {
             marketType = 'margin';
         }
@@ -1636,7 +1643,7 @@ export default class coindcx extends Exchange {
             } else {
                 const timestampString = this.safeString (order, 'timestamp', '');
                 const parts = timestampString.split ('.');
-                timestamp = this.parseNumber (parts[0]);
+                timestamp = this.parseToInt (this.safeString (parts, 0));
             }
         }
         let lastUpdateTimestamp = this.safeInteger (order, 'updated_at');
@@ -1651,12 +1658,12 @@ export default class coindcx extends Exchange {
         const type = this.safeString (order, 'order_type');
         const status = this.safeString (order, 'status');
         const triggerPrice = this.omitZero (this.safeString (order, 'stop_price'));
-        let takeProfitPrice: String = undefined;
-        let stopLossPrice: String = undefined;
+        let takeProfitPrice: Str = undefined;
+        let stopLossPrice: Str = undefined;
         if ((triggerPrice !== undefined) && (type !== undefined)) {
-            if (type.indexOf ('take_profit') !== -1) {
+            if (type.indexOf ('take_profit') > 0) {
                 takeProfitPrice = triggerPrice;
-            } else if (type.indexOf ('stop') !== -1) {
+            } else if (type.indexOf ('stop') > 0) {
                 stopLossPrice = triggerPrice;
             }
         }
