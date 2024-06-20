@@ -1292,7 +1292,9 @@ class testMainClass extends baseMainTestClass {
                 exchange.extendExchangeOptions (exchange.deepExtend (oldExchangeOptions, {}));
             }
         }
-        await close (exchange);
+        if (!this.isSynchronous) {
+            await close (exchange);
+        }
         return true; // in c# methods that will be used with promiseAll need to return something
     }
 

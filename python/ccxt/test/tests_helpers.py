@@ -268,6 +268,11 @@ def is_null_value(value):
     return value is None
 
 def set_fetch_response(exchange: ccxt.Exchange, data):
+    if (is_synchronous):
+        def fetch(url, method='GET', headers=None, body=None):
+            return data
+        exchange.fetch = fetch
+        return exchange
     async def fetch(url, method='GET', headers=None, body=None):
         return data
     exchange.fetch = fetch
