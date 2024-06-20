@@ -1345,7 +1345,8 @@ class testMainClass extends baseMainTestClass {
         if (this.requestTestsFailed || this.responseTestsFailed) {
             exitScript (1);
         } else {
-            const successMessage = '[' + this.lang + '][TEST_SUCCESS] ' + sum.toString () + ' static ' + type + ' tests passed.';
+            const prefix = (this.isSynchronous) ? '[SYNC]' : '';
+            const successMessage = '[' + this.lang + ']' + prefix + '[TEST_SUCCESS] ' + sum.toString () + ' static ' + type + ' tests passed.';
             dump ('[INFO]' + successMessage);
         }
     }
