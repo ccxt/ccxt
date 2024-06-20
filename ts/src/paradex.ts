@@ -383,8 +383,8 @@ export default class paradex extends Exchange {
             'strike': undefined,
             'optionType': undefined,
             'precision': {
-                'amount': undefined,
-                'price': undefined,
+                'amount': this.safeNumber (market, 'order_size_increment'),
+                'price': this.safeNumber (market, 'price_tick_size'),
             },
             'limits': {
                 'leverage': {
@@ -393,7 +393,7 @@ export default class paradex extends Exchange {
                 },
                 'amount': {
                     'min': undefined,
-                    'max': undefined,
+                    'max': this.safeNumber (market, 'max_order_size'),
                 },
                 'price': {
                     'min': undefined,
