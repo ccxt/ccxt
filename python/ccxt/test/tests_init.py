@@ -27,10 +27,9 @@ if (isBaseTests):
         exit(0)
 
 # ###### exchange tests #######
-if (True or is_synchronous):
+if (is_synchronous):
     from tests_sync import testMainClass as testMainClassSync
     testMainClassSync().init(argv.exchange, argvSymbol, argvMethod)
 else:
     from tests_async import testMainClass as testMainClassAsync
     asyncio.run(testMainClassAsync().init(argv.exchange, argvSymbol, argvMethod))
-print('exchange tests passed!')
