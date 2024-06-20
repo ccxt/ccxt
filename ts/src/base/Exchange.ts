@@ -4223,7 +4223,7 @@ export default class Exchange {
                 if (e instanceof OperationFailed) {
                     if (i < retries) {
                         const retryWait = this.handleOption (path, 'retryFailedRequestsDelay', 0);
-                        if (retryWait !==0) {
+                        if (retryWait !== 0) {
                             await this.sleep (retryWait);
                         }
                         continue;
@@ -4232,6 +4232,7 @@ export default class Exchange {
                 throw e;
             }
         }
+        return undefined; // this line is never reached, but exists for c# value return requirement
     }
 
     async request (path, api: any = 'public', method = 'GET', params = {}, headers: any = undefined, body: any = undefined, config = {}) {
