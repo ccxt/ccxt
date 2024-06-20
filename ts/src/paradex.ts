@@ -5,7 +5,7 @@ import { Precise } from '../ccxt.js';
 import Exchange from './abstract/paradex.js';
 import { ExchangeError, PermissionDenied, AuthenticationError, BadRequest } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Dict, Int, Market, OrderBook, Strings, Ticker, Tickers, Trade } from './base/types.js';
+import type { Str, Dict, Int, Market, Order, OrderBook, Strings, Ticker, Tickers, Trade } from './base/types.js';
 import { ecdsa } from './base/functions/crypto.js';
 import { keccak_256 as keccak } from './static_dependencies/noble-hashes/sha3.js';
 import { secp256k1 } from './static_dependencies/noble-curves/secp256k1.js';
@@ -84,7 +84,7 @@ export default class paradex extends Exchange {
                 'fetchOHLCV': false,
                 'fetchOpenInterest': true,
                 'fetchOpenInterestHistory': false,
-                'fetchOpenOrders': false,
+                'fetchOpenOrders': true,
                 'fetchOrder': false,
                 'fetchOrderBook': true,
                 'fetchOrders': false,
@@ -925,6 +925,172 @@ export default class paradex extends Exchange {
         return token;
     }
 
+    parseOrder (order: Dict, market: Market = undefined): Order {
+        //
+        // {
+        //     "account": "0x4638e3041366aa71720be63e32e53e1223316c7f0d56f7aa617542ed1e7512x",
+        //     "avg_fill_price": "26000",
+        //     "client_id": "x1234",
+        //     "cancel_reason": "NOT_ENOUGH_MARGIN",
+        //     "created_at": 1681493746016,
+        //     "flags": [
+        //         "REDUCE_ONLY"
+        //     ],
+        //     "id": "123456",
+        //     "instruction": "GTC",
+        //     "last_updated_at": 1681493746016,
+        //     "market": "BTC-USD-PERP",
+        //     "price": "26000",
+        //     "published_at": 1681493746016,
+        //     "received_at": 1681493746016,
+        //     "remaining_size": "0",
+        //     "seq_no": 1681471234972000000,
+        //     "side": "BUY",
+        //     "size": "0.05",
+        //     "status": "NEW",
+        //     "stp": "EXPIRE_MAKER",
+        //     "timestamp": 1681493746016,
+        //     "trigger_price": "26000",
+        //     "type": "MARKET"
+        // }
+        //
+        const timestamp = this.safeInteger (order, 'created_at');
+        const orderId = this.safeString (order, 'id');
+        const clientOrderId = this.omitZero (this.safeString (order, 'client_id'));
+        const marketId = this.safeString (order, 'market');
+        market = this.safeMarket (marketId, market);
+        const symbol = market['symbol'];
+        const price = this.safeString (order, 'price');
+        const amount = this.safeString (order, 'size');
+        const orderType = this.safeString (order, 'type');
+        const status = this.safeString (order, 'status');
+        const side = this.safeStringLower (order, 'side');
+        const average = this.omitZero (this.safeString (order, 'avg_fill_price'));
+        const remaining = this.omitZero (this.safeString (order, 'remaining_size'));
+        const stopPrice = this.safeNumber (order, 'trigger_price');
+        const lastUpdateTimestamp = this.safeInteger (order, 'last_updated_at');
+        return this.safeOrder ({
+            'id': orderId,
+            'clientOrderId': clientOrderId,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'lastTradeTimestamp': undefined,
+            'lastUpdateTimestamp': lastUpdateTimestamp,
+            'status': this.parseOrderStatus (status),
+            'symbol': symbol,
+            'type': this.parseOrderType (orderType),
+            'timeInForce': this.parseTimeInForce (this.safeString (order, 'instrunction')),
+            'postOnly': undefined,
+            'reduceOnly': undefined,
+            'side': side,
+            'price': price,
+            'stopPrice': stopPrice,
+            'triggerPrice': stopPrice,
+            'takeProfitPrice': undefined,
+            'stopLossPrice': undefined,
+            'average': average,
+            'amount': amount,
+            'filled': undefined,
+            'remaining': remaining,
+            'cost': undefined,
+            'trades': undefined,
+            'fee': {
+                'cost': undefined,
+                'currency': undefined,
+            },
+            'info': order,
+        }, market);
+    }
+
+    parseTimeInForce (timeInForce: Str) {
+        const timeInForces: Dict = {
+            'IOC': 'IOC',
+            'GTC': 'GTC',
+            'POST_ONLY': 'PO',
+        };
+        return this.safeString (timeInForces, timeInForce, timeInForce);
+    }
+
+    parseOrderStatus (status: Str) {
+        if (status !== undefined) {
+            const statuses: Dict = {
+                'NEW': 'open',
+                'UNTRIGGERED': 'open',
+                'OPEN': 'open',
+                'CLOSED': 'closed',
+            };
+            return this.safeString (statuses, status, status);
+        }
+        return status;
+    }
+
+    parseOrderType (type: Str) {
+        const types: Dict = {
+            'LIMIT': 'limit',
+            'MARKET': 'market',
+            'STOP_LIMIT': 'limit',
+            'STOP_MARKET': 'market',
+        };
+        return this.safeStringLower (types, type, type);
+    }
+
+    async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+        /**
+         * @method
+         * @name paradex#fetchOpenOrders
+         * @description fetches information on multiple orders made by the user
+         * @see https://docs.api.prod.paradex.trade/#paradex-rest-api-orders
+         * @param {string} symbol unified market symbol of the market orders were made in
+         * @param {int} [since] the earliest time in ms to fetch orders for
+         * @param {int} [limit] the maximum number of order structures to retrieve
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        await this.authenticateRest ();
+        await this.loadMarkets ();
+        const request: Dict = {};
+        let market: Market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['market'] = market['id'];
+        }
+        const response = await this.privateGetOrders (this.extend (request, params));
+        //
+        //  {
+        //     "results": [
+        //       {
+        //         "account": "0x4638e3041366aa71720be63e32e53e1223316c7f0d56f7aa617542ed1e7512x",
+        //         "avg_fill_price": "26000",
+        //         "client_id": "x1234",
+        //         "cancel_reason": "NOT_ENOUGH_MARGIN",
+        //         "created_at": 1681493746016,
+        //         "flags": [
+        //           "REDUCE_ONLY"
+        //         ],
+        //         "id": "123456",
+        //         "instruction": "GTC",
+        //         "last_updated_at": 1681493746016,
+        //         "market": "BTC-USD-PERP",
+        //         "price": "26000",
+        //         "published_at": 1681493746016,
+        //         "received_at": 1681493746016,
+        //         "remaining_size": "0",
+        //         "seq_no": 1681471234972000000,
+        //         "side": "BUY",
+        //         "size": "0.05",
+        //         "status": "NEW",
+        //         "stp": "EXPIRE_MAKER",
+        //         "timestamp": 1681493746016,
+        //         "trigger_price": "26000",
+        //         "type": "MARKET"
+        //       }
+        //     ]
+        //   }
+        //
+        const orders: Dict = this.safeDict (response, 'results', {});
+        return this.parseOrders (orders, market, since, limit);
+    }
+
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.implodeHostname (this.urls['api'][this.version]) + '/' + this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
@@ -954,9 +1120,13 @@ export default class paradex extends Exchange {
                 });
             } else {
                 const token = this.options['authToken'];
-                headers['Content-Type'] = 'application/json';
                 headers['Authorization'] = 'Bearer ' + token;
-                body = this.json (query);
+                if (method === 'POST') {
+                    headers['Content-Type'] = 'application/json';
+                    body = this.json (query);
+                } else {
+                    url += this.urlencode (query);
+                }
             }
             // headers = {
             //     'Accept': 'application/json',
