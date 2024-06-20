@@ -6,7 +6,7 @@ import testCryptography from './test.cryptography.js';
 import testExtend from './test.extend.js';
 import testLanguageSpecific from './test.languageSpecific.js';
 
-function baseTestsInit (exchange) {
+function baseTestsInit () {
     testLanguageSpecific ();
     testExtend ();
     testCryptography ();
