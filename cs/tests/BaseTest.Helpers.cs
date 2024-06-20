@@ -227,7 +227,7 @@ public partial class testMainClass : BaseTest
         return awaittedResult;
     }
 
-    public void callExchangeMethodDynamicallySync(object exchange, object methodName, params object[] args)
+    public object callExchangeMethodDynamicallySync(object exchange, object methodName, params object[] args)
     {
         throw new Exception("This functions shouldn't be used in C#");
     }
