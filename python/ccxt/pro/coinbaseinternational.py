@@ -76,6 +76,7 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: subscription to a websocket channel
         """
+        await self.load_markets()
         self.check_required_credentials()
         market = None
         messageHash = name
@@ -119,6 +120,7 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: subscription to a websocket channel
         """
+        await self.load_markets()
         self.check_required_credentials()
         if self.is_empty(symbols):
             symbols = self.symbols
@@ -156,6 +158,7 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `funding rate structure <https://docs.ccxt.com/#/?id=funding-rate-structure>`
         """
+        await self.load_markets()
         return await self.subscribe('RISK', [symbol], params)
 
     async def watch_funding_rates(self, symbols: List[str], params={}) -> FundingRates:
@@ -166,6 +169,7 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `funding rates structures <https://docs.ccxt.com/#/?id=funding-rates-structure>`, indexe by market symbols
         """
+        await self.load_markets()
         fundingRate = await self.subscribe_multiple('RISK', symbols, params)
         symbol = self.safe_string(fundingRate, 'symbol')
         if self.newUpdates:
@@ -182,6 +186,7 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
+        await self.load_markets()
         channel = None
         channel, params = self.handle_option_and_params(params, 'watchTicker', 'channel', 'LEVEL1')
         return await self.subscribe(channel, [symbol], params)

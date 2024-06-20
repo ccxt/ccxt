@@ -53,8 +53,8 @@ export default class hyperliquid extends Exchange {
     };
     createOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): Promise<Order>;
     createOrders(orders: OrderRequest[], params?: {}): Promise<Order[]>;
-    cancelOrder(id: string, symbol?: Str, params?: {}): Promise<any>;
-    cancelOrders(ids: string[], symbol?: Str, params?: {}): Promise<any>;
+    cancelOrder(id: string, symbol?: Str, params?: {}): Promise<import("./base/types.js").Dictionary<any>>;
+    cancelOrders(ids: string[], symbol?: Str, params?: {}): Promise<any[]>;
     cancelOrdersForSymbols(orders: CancellationRequest[], params?: {}): Promise<any>;
     cancelAllOrdersAfter(timeout: Int, params?: {}): Promise<any>;
     editOrder(id: string, symbol: string, type: string, side: string, amount?: Num, price?: Num, params?: {}): Promise<Order>;
