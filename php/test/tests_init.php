@@ -1,7 +1,6 @@
 <?php
 
 namespace ccxt;
-
 use Exception; // a common import
 require_once (__DIR__ . '/helpers_for_tests.php');
 if (is_synchronous) {
@@ -23,9 +22,11 @@ $isAllTest = get_cli_arg_value ('--all'); // if neither was chosen
 if ($isBaseTests) {
     if ($isWs) {
         require_once (__DIR__ . '/../pro/test/base/tests_init.php');
+        // base_tests_init_ws();
     } else {
         // test base things
         require_once (__DIR__ . '/base/tests_init.php');
+        base_tests_init();
     }
     print('base tests passed!');
     if (!$isAllTest) {
