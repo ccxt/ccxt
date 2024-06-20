@@ -4216,7 +4216,7 @@ export default class Exchange {
         this.last_request_body = request['body'];
         this.last_request_url = request['url'];
         const retries = this.handleOption (path, 'retryFailedRequests', 0);
-        for (let i = 0; i <= retries; i++) {
+        for (let i = 0; i < retries + 1; i++) {
             try {
                 return await this.fetch (request['url'], request['method'], request['headers'], request['body']);
             } catch (e) {
