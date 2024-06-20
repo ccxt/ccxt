@@ -137,6 +137,10 @@ async function callExchangeMethodDynamically (exchange: Exchange, methodName: st
     return await exchange[methodName] (...args);
 }
 
+function callExchangeMethodDynamicallySync (exchange: Exchange, methodName: string, args) {
+    throw new Error ("This function shouldn't be called, only async functions apply here");
+}
+
 async function callOverridenMethod (exchange, methodName, args) {
     // needed in PHP here is just a bridge
     return await callExchangeMethodDynamically (exchange, methodName, args);
@@ -236,6 +240,7 @@ export {
     ioDirRead,
     callMethod,
     callExchangeMethodDynamically,
+    callExchangeMethodDynamicallySync,
     callOverridenMethod,
     exceptionMessage,
     exitScript,

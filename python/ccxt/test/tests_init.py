@@ -27,7 +27,7 @@ if (isBaseTests):
         exit(0)
 
 # ###### exchange tests #######
-if (is_synchronous):
+if (True or is_synchronous):
     from tests_sync import testMainClass as testMainClassSync
     testMainClassSync().init(argv.exchange, argvSymbol, argvMethod)
 else:

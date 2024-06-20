@@ -175,10 +175,13 @@ function call_exchange_method_dynamically($exchange, $methodName, $args) {
     return $exchange->{$methodName}(... $args);
 }
 
+function call_exchange_method_dynamically_sync($exchange, $methodName, $args) {
+    return $exchange->{$methodName}(... $args);
+}
 function exception_message($exc) {
     $full_trace = $exc->getTrace();
     // temporarily disable below line, so we dump whole array
-    // $items = array_slice($full_trace, 0, 12); // 12 members are enough for proper trace 
+    // $items = array_slice($full_trace, 0, 12); // 12 members are enough for proper trace
     $items = $full_trace;
     $output = '';
     foreach ($items as $item) {
