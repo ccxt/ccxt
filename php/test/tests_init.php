@@ -15,7 +15,8 @@ function equals($a, $b) {
 }
 
 $isWs = get_cli_arg_value ('--ws');
-$isAllTest = get_cli_arg_value ('--all');; // if neither was chosen
+$isBaseTests = get_cli_arg_value ('--baseTests');
+$isAllTest = get_cli_arg_value ('--all'); // if neither was chosen
 
 
 // ####### base tests #######
