@@ -884,7 +884,11 @@ export default class paradex extends Exchange {
         return response;
     }
 
-    async auth (params = {}) {
+    async authenticateRest (params = {}) {
+        const cachedToken: String = this.safeString (this.options, 'authToken');
+        if (cachedToken !== undefined) {
+            return cachedToken;
+        }
         const account = await this.retrieveAccount ();
         const now = this.nonce ();
         const req = {
@@ -916,7 +920,9 @@ export default class paradex extends Exchange {
         //     jwt_token: "ooooccxtooootoooootheoooomoonooooo"
         // }
         //
-        return this.safeString (response, 'jwt_token');
+        const token = this.safeString (response, 'jwt_token');
+        this.options['authToken'] = token;
+        return token;
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
@@ -933,19 +939,24 @@ export default class paradex extends Exchange {
             };
             // TODO: optimize
             if (path === 'auth') {
-                headers['PARADEX-STARKNET-ACCOUNT'] = params['account'];
-                headers['PARADEX-STARKNET-SIGNATURE'] = params['signature'];
-                headers['PARADEX-TIMESTAMP'] = params['timestamp'];
-                headers['PARADEX-SIGNATURE-EXPIRATION'] = params['expiration'];
+                headers['PARADEX-STARKNET-ACCOUNT'] = query['account'];
+                headers['PARADEX-STARKNET-SIGNATURE'] = query['signature'];
+                headers['PARADEX-TIMESTAMP'] = query['timestamp'];
+                headers['PARADEX-SIGNATURE-EXPIRATION'] = query['expiration'];
             } else if (path === 'onboarding') {
                 headers['PARADEX-ETHEREUM-ACCOUNT'] = this.walletAddress;
-                headers['PARADEX-STARKNET-ACCOUNT'] = params['account'];
-                headers['PARADEX-STARKNET-SIGNATURE'] = params['signature'];
+                headers['PARADEX-STARKNET-ACCOUNT'] = query['account'];
+                headers['PARADEX-STARKNET-SIGNATURE'] = query['signature'];
                 headers['PARADEX-TIMESTAMP'] = this.nonce ();
                 headers['Content-Type'] = 'application/json';
                 body = this.json ({
-                    'public_key': params['public_key'],
+                    'public_key': query['public_key'],
                 });
+            } else {
+                const token = this.options['authToken'];
+                headers['Content-Type'] = 'application/json';
+                headers['Authorization'] = 'Bearer ' + token;
+                body = this.json (query);
             }
             // headers = {
             //     'Accept': 'application/json',
