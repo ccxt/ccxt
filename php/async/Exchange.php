@@ -27,6 +27,7 @@ use ccxt\ProxyError;
 use ccxt\NotSupported;
 use ccxt\BadSymbol;
 use ccxt\ArgumentsRequired;
+use ccxt\OperationFailed;
 use ccxt\pro\ClientTrait;
 use ccxt\RateLimitExceeded;
 use ccxt\NullResponse;
