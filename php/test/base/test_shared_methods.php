@@ -123,7 +123,7 @@ function assert_timestamp($exchange, $skipped_properties, $method, $entry, $now_
     $ts = $entry[$key_name_or_index];
     if ($ts !== null) {
         assert((is_int($ts) || is_float($ts)), 'timestamp is not numeric' . $log_text);
-        assert(Number->is_integer($ts), 'timestamp should be an integer' . $log_text);
+        assert(is_int($ts), 'timestamp should be an integer' . $log_text);
         $min_ts = 1230940800000; // 03 Jan 2009 - first block
         $max_ts = 2147483648000; // 19 Jan 2038 - max int
         assert($ts > $min_ts, 'timestamp is impossible to be before ' . ((string) $min_ts) . ' (03.01.2009)' . $log_text); // 03 Jan 2009 - first block
@@ -348,7 +348,7 @@ function assert_integer($exchange, $skipped_properties, $method, $entry, $key) {
     if ($entry !== null) {
         $value = $exchange->safe_value($entry, $key);
         if ($value !== null) {
-            $is_integer = Number->is_integer($value);
+            $is_integer = is_int($value);
             assert($is_integer, '\"' . string_value($key) . '\" key (value \"' . string_value($value) . '\") is not an integer' . $log_text);
         }
     }
