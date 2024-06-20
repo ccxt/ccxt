@@ -784,12 +784,67 @@ export default class paradex extends Exchange {
         return this.signHash (this.hashMessage (message), privateKey.slice (-64));
     }
 
-    retrieveAccount () {
-        const domain = {
+    async getSystemConfig () {
+        const cachedConfig: Dict = this.safeDict (this.options, 'systemConfig');
+        if (cachedConfig !== undefined) {
+            return cachedConfig;
+        }
+        const response = await this.publicGetSystemConfig ();
+        //
+        // {
+        //     "starknet_gateway_url": "https://potc-testnet-sepolia.starknet.io",
+        //     "starknet_fullnode_rpc_url": "https://pathfinder.api.testnet.paradex.trade/rpc/v0_7",
+        //     "starknet_chain_id": "PRIVATE_SN_POTC_SEPOLIA",
+        //     "block_explorer_url": "https://voyager.testnet.paradex.trade/",
+        //     "paraclear_address": "0x286003f7c7bfc3f94e8f0af48b48302e7aee2fb13c23b141479ba00832ef2c6",
+        //     "paraclear_decimals": 8,
+        //     "paraclear_account_proxy_hash": "0x3530cc4759d78042f1b543bf797f5f3d647cde0388c33734cf91b7f7b9314a9",
+        //     "paraclear_account_hash": "0x41cb0280ebadaa75f996d8d92c6f265f6d040bb3ba442e5f86a554f1765244e",
+        //     "oracle_address": "0x2c6a867917ef858d6b193a0ff9e62b46d0dc760366920d631715d58baeaca1f",
+        //     "bridged_tokens": [
+        //         {
+        //             "name": "TEST USDC",
+        //             "symbol": "USDC",
+        //             "decimals": 6,
+        //             "l1_token_address": "0x29A873159D5e14AcBd63913D4A7E2df04570c666",
+        //             "l1_bridge_address": "0x8586e05adc0C35aa11609023d4Ae6075Cb813b4C",
+        //             "l2_token_address": "0x6f373b346561036d98ea10fb3e60d2f459c872b1933b50b21fe6ef4fda3b75e",
+        //             "l2_bridge_address": "0x46e9237f5408b5f899e72125dd69bd55485a287aaf24663d3ebe00d237fc7ef"
+        //         }
+        //     ],
+        //     "l1_core_contract_address": "0x582CC5d9b509391232cd544cDF9da036e55833Af",
+        //     "l1_operator_address": "0x11bACdFbBcd3Febe5e8CEAa75E0Ef6444d9B45FB",
+        //     "l1_chain_id": "11155111",
+        //     "liquidation_fee": "0.2"
+        // }
+        //
+        this.options['systemConfig'] = response;
+        return response;
+    }
+
+    async prepareParadexDomain (l1 = false) {
+        const systemConfig = await this.getSystemConfig ();
+        if (l1 === true) {
+            return {
+                'name': 'Paradex',
+                'chainId': systemConfig['l1_chain_id'],
+                'version': '1',
+            };
+        }
+        return {
             'name': 'Paradex',
-            'chainId': 11155111,
+            'chainId': systemConfig['starknet_chain_id'],
             'version': '1',
         };
+    }
+
+    async retrieveAccount () {
+        const cachedAccount: Dict = this.safeDict (this.options, 'paradexAccount');
+        if (cachedAccount !== undefined) {
+            return cachedAccount;
+        }
+        const systemConfig = await this.getSystemConfig ();
+        const domain = await this.prepareParadexDomain (true);
         const messageTypes = {
             'Constant': [
                 { 'name': 'action', 'type': 'string' },
@@ -800,26 +855,24 @@ export default class paradex extends Exchange {
         };
         const msg = this.ethEncodeStructuredData (domain, messageTypes, message);
         const signature = this.signMessage (msg, this.privateKey);
-        return this.retrieveStarkAccount (signature, 
-            '0x41cb0280ebadaa75f996d8d92c6f265f6d040bb3ba442e5f86a554f1765244e',
-            '0x3530cc4759d78042f1b543bf797f5f3d647cde0388c33734cf91b7f7b9314a9'
+        const account = this.retrieveStarkAccount (
+            signature,
+            systemConfig['paraclear_account_hash'],
+            systemConfig['paraclear_account_proxy_hash']
         );
+        this.options['paradexAccount'] = account;
+        return account;
     }
 
     async onboarding (params = {}) {
-        const account = this.retrieveAccount ();
+        const account = await this.retrieveAccount ();
         const req = {
             'action': 'Onboarding',
         };
-        // PRIVATE_SN_POTC_SEPOLIA
-        const domain = {
-            'name': 'Paradex',
-            'chainId': 'PRIVATE_SN_POTC_SEPOLIA',
-            'version': '1',
-        }
+        const domain = await this.prepareParadexDomain ();
         const messageTypes = {
             'Constant': [
-                { 'name': 'action', 'type': 'felt' }, // string
+                { 'name': 'action', 'type': 'felt' },
             ],
         };
         const msg = this.starknetEncodeStructuredData (domain, messageTypes, req, account.address);
@@ -828,11 +881,11 @@ export default class paradex extends Exchange {
         params['account'] = account.address;
         params['public_key'] = account.pub;
         const response = await this.privatePostOnboarding (params);
-        console.log(response)
+        return response;
     }
 
     async auth (params = {}) {
-        const account = this.retrieveAccount ();
+        const account = await this.retrieveAccount ();
         const now = this.nonce ();
         const req = {
             'method': 'POST',
@@ -841,19 +894,14 @@ export default class paradex extends Exchange {
             'timestamp': now,
             'expiration': now + 86400 * 7,
         };
-        // PRIVATE_SN_POTC_SEPOLIA
-        const domain = {
-            'name': 'Paradex',
-            'chainId': 'PRIVATE_SN_POTC_SEPOLIA',
-            'version': '1',
-        }
+        const domain = await this.prepareParadexDomain ();
         const messageTypes = {
             'Request': [
-                { 'name': 'method', 'type': 'felt' }, // string
-                { 'name': 'path', 'type': 'felt' }, // string
-                { 'name': 'body', 'type': 'felt' }, // string
-                { 'name': 'timestamp', 'type': 'felt' }, // number
-                { 'name': 'expiration', 'type': 'felt' }, // number
+                { 'name': 'method', 'type': 'felt' },
+                { 'name': 'path', 'type': 'felt' },
+                { 'name': 'body', 'type': 'felt' },
+                { 'name': 'timestamp', 'type': 'felt' },
+                { 'name': 'expiration', 'type': 'felt' },
             ],
         };
         const msg = this.starknetEncodeStructuredData (domain, messageTypes, req, account.address);
@@ -863,7 +911,12 @@ export default class paradex extends Exchange {
         params['timestamp'] = req['timestamp'];
         params['expiration'] = req['expiration'];
         const response = await this.privatePostAuth (params);
-        console.log(response)
+        //
+        // {
+        //     jwt_token: "ooooccxtooootoooootheoooomoonooooo"
+        // }
+        //
+        return this.safeString (response, 'jwt_token');
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
@@ -876,8 +929,9 @@ export default class paradex extends Exchange {
         } else if (api === 'private') {
             this.checkRequiredCredentials ();
             headers = {
-                'Accept': 'application/json'
+                'Accept': 'application/json',
             };
+            // TODO: optimize
             if (path === 'auth') {
                 headers['PARADEX-STARKNET-ACCOUNT'] = params['account'];
                 headers['PARADEX-STARKNET-SIGNATURE'] = params['signature'];

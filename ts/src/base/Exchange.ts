@@ -1800,6 +1800,9 @@ export default class Exchange {
 
     starknetEncodeStructuredData (domain, messageTypes, messageData, address) {
         const types = Object.keys (messageTypes);
+        if (types.length > 1) {
+            throw new NotSupported (this.id + 'starknetEncodeStructuredData only support single type');
+        }
         const request = {
             'domain': domain,
             'primaryType': types[0],
