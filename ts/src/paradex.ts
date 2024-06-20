@@ -5,7 +5,7 @@ import { Precise } from '../ccxt.js';
 import Exchange from './abstract/paradex.js';
 import { ExchangeError, PermissionDenied, AuthenticationError, BadRequest } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Str, Dict, Int, Market, Order, OrderBook, Strings, Ticker, Tickers, Trade } from './base/types.js';
+import type { Str, Dict, List, Int, Market, Order, OrderBook, Strings, Ticker, Tickers, Trade } from './base/types.js';
 import { ecdsa } from './base/functions/crypto.js';
 import { keccak_256 as keccak } from './static_dependencies/noble-hashes/sha3.js';
 import { secp256k1 } from './static_dependencies/noble-curves/secp256k1.js';
@@ -87,7 +87,7 @@ export default class paradex extends Exchange {
                 'fetchOpenOrders': true,
                 'fetchOrder': false,
                 'fetchOrderBook': true,
-                'fetchOrders': false,
+                'fetchOrders': true,
                 'fetchOrderTrades': false,
                 'fetchPosition': false,
                 'fetchPositionMode': false,
@@ -1008,7 +1008,7 @@ export default class paradex extends Exchange {
             'GTC': 'GTC',
             'POST_ONLY': 'PO',
         };
-        return this.safeString (timeInForces, timeInForce, timeInForce);
+        return this.safeString (timeInForces, timeInForce, undefined);
     }
 
     parseOrderStatus (status: Str) {
@@ -1032,6 +1032,87 @@ export default class paradex extends Exchange {
             'STOP_MARKET': 'market',
         };
         return this.safeStringLower (types, type, type);
+    }
+
+    async fetchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+        /**
+         * @method
+         * @name paradex#fetchOrders
+         * @description fetches information on multiple orders made by the user
+         * @see https://docs.api.prod.paradex.trade/#get-orders
+         * @param {string} symbol unified market symbol of the market orders were made in
+         * @param {int} [since] the earliest time in ms to fetch orders for
+         * @param {int} [limit] the maximum number of order structures to retrieve
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.side] 'buy' or 'sell'
+         * @param {boolean} [params.paginate] set to true if you want to fetch orders with pagination
+         * @param {int} params.until timestamp in ms of the latest order to fetch
+         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        await this.authenticateRest ();
+        await this.loadMarkets ();
+        let paginate = false;
+        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchOrders', 'paginate');
+        if (paginate) {
+            return await this.fetchPaginatedCallCursor ('fetchOrders', symbol, since, limit, params, 'next', 'cursor', undefined, 50) as Order[];
+        }
+        let request: Dict = {};
+        let market: Market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['market'] = market['id'];
+        }
+        if (since !== undefined) {
+            request['start_at'] = since;
+        }
+        if (limit !== undefined) {
+            request['page_size'] = limit;
+        }
+        [ request, params ] = this.handleUntilOption ('end_at', request, params);
+        const response = await this.privateGetOrdersHistory (this.extend (request, params));
+        //
+        // {
+        //     "next": "eyJmaWx0ZXIiMsIm1hcmtlciI6eyJtYXJrZXIiOiIxNjc1NjUwMDE3NDMxMTAxNjk5N=",
+        //     "prev": "eyJmaWx0ZXIiOnsiTGltaXQiOjkwfSwidGltZSI6MTY4MTY3OTgzNzk3MTMwOTk1MywibWFya2VyIjp7Im1zMjExMD==",
+        //     "results": [
+        //       {
+        //         "account": "0x4638e3041366aa71720be63e32e53e1223316c7f0d56f7aa617542ed1e7512x",
+        //         "avg_fill_price": "26000",
+        //         "cancel_reason": "NOT_ENOUGH_MARGIN",
+        //         "client_id": "x1234",
+        //         "created_at": 1681493746016,
+        //         "flags": [
+        //           "REDUCE_ONLY"
+        //         ],
+        //         "id": "123456",
+        //         "instruction": "GTC",
+        //         "last_updated_at": 1681493746016,
+        //         "market": "BTC-USD-PERP",
+        //         "price": "26000",
+        //         "published_at": 1681493746016,
+        //         "received_at": 1681493746016,
+        //         "remaining_size": "0",
+        //         "seq_no": 1681471234972000000,
+        //         "side": "BUY",
+        //         "size": "0.05",
+        //         "status": "NEW",
+        //         "stp": "EXPIRE_MAKER",
+        //         "timestamp": 1681493746016,
+        //         "trigger_price": "26000",
+        //         "type": "MARKET"
+        //       }
+        //     ]
+        //   }
+        //
+        let orders = this.safeList (response, 'results', []);
+        const paginationCursor = this.safeString (response, 'next');
+        const ordersLength = orders.length;
+        if ((paginationCursor !== undefined) && (ordersLength > 0)) {
+            const first = orders[0];
+            first['next'] = paginationCursor;
+            orders[0] = first;
+        }
+        return this.parseOrders (orders, market, since, limit);
     }
 
     async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
@@ -1087,7 +1168,7 @@ export default class paradex extends Exchange {
         //     ]
         //   }
         //
-        const orders: Dict = this.safeDict (response, 'results', {});
+        const orders: List = this.safeList (response, 'results', []);
         return this.parseOrders (orders, market, since, limit);
     }
 
@@ -1125,7 +1206,7 @@ export default class paradex extends Exchange {
                     headers['Content-Type'] = 'application/json';
                     body = this.json (query);
                 } else {
-                    url += this.urlencode (query);
+                    url = url + '?' + this.urlencode (query);
                 }
             }
             // headers = {
