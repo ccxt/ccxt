@@ -178,7 +178,7 @@ export default class coindcx extends Exchange {
                         'exchange/v1/orders/create': 1, // done
                         'exchange/v1/orders/create_multiple': 1,
                         'exchange/v1/orders/status': 1, // done
-                        'exchange/v1/orders/status_multiple': 1,
+                        'exchange/v1/orders/status_multiple': 1, // done
                         'exchange/v1/orders/active_orders': 1, // done
                         'exchange/v1/orders/trade_history': 1, // done
                         'exchange/v1/orders/active_orders_count': 1, // not implemented
@@ -1254,7 +1254,49 @@ export default class coindcx extends Exchange {
         }
         const request: Dict = {};
         if (marketType === 'spot') {
-            throw new NotSupported (this.id + ' fetchOrders is not supported for spot markets without margin');
+            const ids = this.safeList (params, 'ids');
+            const clientOrderIds = this.safeList (params, 'clientOrderIds');
+            if ((ids === undefined) && (clientOrderIds === undefined)) {
+                throw new ArgumentsRequired (this.id + ' fetchOrders requires params.ids or params.clientOrderIds argument');
+            }
+            if (clientOrderIds !== undefined) {
+                request['client_order_ids'] = clientOrderIds;
+                params = this.omit (params, 'clientOrderIds');
+            }
+            const response = await this.privatePostExchangeV1OrdersStatusMultiple (this.extend (request, params));
+            //
+            //     [
+            //         {
+            //             "id": "91422042-2b53-11ef-be1e-d7a80073e1ba",
+            //             "client_order_id": null,
+            //             "order_type": "limit_order",
+            //             "side": "buy",
+            //             "status": "cancelled",
+            //             "fee_amount": 0.0,
+            //             "fee": 0.0,
+            //             "maker_fee": 0.0,
+            //             "taker_fee": 0.0,
+            //             "total_quantity": 0.0001,
+            //             "remaining_quantity": 0.0001,
+            //             "source": "web",
+            //             "base_currency_name": null,
+            //             "target_currency_name": null,
+            //             "base_currency_short_name": null,
+            //             "target_currency_short_name": null,
+            //             "base_currency_precision": null,
+            //             "target_currency_precision": null,
+            //             "avg_price": 0.0,
+            //             "price_per_unit": 59000.0,
+            //             "stop_price": 0.0,
+            //             "market": "BTCUSDT",
+            //             "time_in_force": "good_till_cancel",
+            //             "created_at": 1718482339000,
+            //             "updated_at": 1718655228000,
+            //             "trades": null
+            //         }
+            //     ]
+            //
+            return this.parseOrders (response, market, since, limit);
         } else if (marketType === 'margin') {
             request['details'] = true;
             if (market !== undefined) {
@@ -1578,6 +1620,86 @@ export default class coindcx extends Exchange {
         //     }
         //
         return await this.privatePostExchangeV1OrdersCancelByIds (this.extend (request, params));
+    }
+
+    async editOrder (id: string, symbol: string, type:OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params = {}) {
+        /**
+         * @method
+         * @name coindcx#editOrder
+         * @description edit a trade order
+         * @see https://docs.coindcx.com/#edit-price
+         * @see https://docs.coindcx.com/#edit-target
+         * @see https://docs.coindcx.com/#edit-price-of-target-order
+         * @see https://docs.coindcx.com/#edit-sl-price
+         * @see https://docs.coindcx.com/#edit-sl-price-of-trailing-stop-loss
+         * @param {string} id cancel order id
+         * @param {string} symbol not used by coindcx
+         * @param {string} type not used by coindcx
+         * @param {string} side not used by coindcx
+         * @param {float} amount not used by coindcx
+         * @param {float} [price] the price at which the order is to be fullfilled, in units of the base currency, ignored in market orders
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.type] 'spot', 'margin', 'future' or 'swap'
+         * @param {bool} [params.margin] *for spot markets only* true for fetching a margin orders
+         * @param {string} [params.clientOrderId] *for spot markets without margin only* a unique id for the order
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        if (amount !== undefined) {
+            throw new NotSupported (this.id + ' editOrder() does not support amount argument');
+        }
+        await this.loadMarkets ();
+        let market: Market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
+        let marketType = 'spot';
+        [ marketType, params ] = this.handleMarketTypeAndParams ('editOrder', market, params, 'spot');
+        const isMargin = this.safeBool (params, 'margin', false);
+        if (isMargin && (marketType === 'spot')) {
+            marketType = 'margin';
+        }
+        if (marketType === 'spot') {
+            return await this.editSpotOrder (id, symbol, type, side, amount, price, params);
+        } else {
+            throw new NotSupported (this.id + ' EditOrder is not supported for ' + marketType + ' markets'); // todo implement this method for contract markets
+        }
+    }
+
+    async editSpotOrder (id: string, symbol: string, type:OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params = {}) {
+        /**
+         * @method
+         * @name coindcx#editSpotOrder
+         * @description edit a trade order
+         * @see https://docs.coindcx.com/#edit-price
+         * @param {string} id cancel order id
+         * @param {string} symbol not used by coindcx
+         * @param {string} type not used by coindcx
+         * @param {string} side not used by coindcx
+         * @param {float} amount not used by coindcx
+         * @param {float} [price] the price at which the order is to be fullfilled, in units of the base currency, ignored in market orders
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.clientOrderId] a unique id for the order
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        let market: Market = undefined;
+        let priceString = price.toString ();
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            priceString = this.priceToPrecision (market['symbol'], price);
+        }
+        const request: Dict = {
+            'price_per_unit': priceString,
+        };
+        if (id !== undefined) {
+            request['id'] = id;
+        }
+        const clientOrderId = this.safeString (params, 'clientOrderId');
+        if (clientOrderId !== undefined) {
+            request['client_order_id'] = clientOrderId;
+        }
+        const response = await this.privatePostExchangeV1OrdersEdit (this.extend (request, params));
+        // {"code":422,"message":"Edit order is not available yet for this exchange","status":"error"}
+        return this.parseOrder (response, market);
     }
 
     parseOrder (order, market: Market = undefined): Order {
