@@ -106,6 +106,7 @@ const {
     , NO_PADDING
     , TICK_SIZE
     , SIGNIFICANT_DIGITS
+    , sleep
 } = functions
 
 import {
@@ -172,7 +173,7 @@ export default class Exchange {
     }
 
     throttleProp = undefined
-
+    sleep = sleep;
     api = undefined
 
     // PROXY & USER-AGENTS (see "examples/proxy-usage" file for explanation)
