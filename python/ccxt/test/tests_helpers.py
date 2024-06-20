@@ -18,6 +18,7 @@ root = os.path.dirname(os.path.dirname(DIR_NAME))
 sys.path.append(root)
 
 import ccxt.async_support as ccxt  # noqa: E402
+import ccxt as ccxt_sync  # noqa: E402
 import ccxt.pro as ccxtpro  # noqa: E402
 
 # ------------------------------------------------------------------------------
@@ -233,6 +234,8 @@ def set_exchange_prop(exchange, prop, value):
 
 
 def init_exchange(exchangeId, args, is_ws=False):
+    if is_synchronous:
+        return getattr(ccxt_sync, exchangeId)(args)
     if (is_ws):
         return getattr(ccxtpro, exchangeId)(args)
     return getattr(ccxt, exchangeId)(args)
