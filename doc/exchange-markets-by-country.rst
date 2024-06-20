@@ -603,7 +603,7 @@ The ccxt library currently supports the following cryptocurrency exchange market
      - binance
      - `Binance <https://accounts.binance.com/en/register?ref=D7YA7CLY>`__
      - .. image:: https://img.shields.io/badge/*-lightgray
-          :target: https://developers.binance.com/docs/binance-spot-api-docs/CHANGELOG
+          :target: https://binance-docs.github.io/apidocs/spot/en
           :alt: API Version *
      
    * - Japan
@@ -614,7 +614,7 @@ The ccxt library currently supports the following cryptocurrency exchange market
      - binancecoinm
      - `Binance COIN-M <https://accounts.binance.com/en/register?ref=D7YA7CLY>`__
      - .. image:: https://img.shields.io/badge/*-lightgray
-          :target: https://developers.binance.com/docs/derivatives/Introduction
+          :target: https://binance-docs.github.io/apidocs/delivery/en/
           :alt: API Version *
      
    * - Japan
@@ -625,7 +625,7 @@ The ccxt library currently supports the following cryptocurrency exchange market
      - binanceusdm
      - `Binance USDⓈ-M <https://accounts.binance.com/en/register?ref=D7YA7CLY>`__
      - .. image:: https://img.shields.io/badge/*-lightgray
-          :target: https://developers.binance.com/docs/derivatives/Introduction
+          :target: https://binance-docs.github.io/apidocs/futures/en/
           :alt: API Version *
      
    * - Japan
@@ -724,7 +724,7 @@ The ccxt library currently supports the following cryptocurrency exchange market
      - binance
      - `Binance <https://accounts.binance.com/en/register?ref=D7YA7CLY>`__
      - .. image:: https://img.shields.io/badge/*-lightgray
-          :target: https://developers.binance.com/docs/binance-spot-api-docs/CHANGELOG
+          :target: https://binance-docs.github.io/apidocs/spot/en
           :alt: API Version *
      
    * - Malta
@@ -735,7 +735,7 @@ The ccxt library currently supports the following cryptocurrency exchange market
      - binancecoinm
      - `Binance COIN-M <https://accounts.binance.com/en/register?ref=D7YA7CLY>`__
      - .. image:: https://img.shields.io/badge/*-lightgray
-          :target: https://developers.binance.com/docs/derivatives/Introduction
+          :target: https://binance-docs.github.io/apidocs/delivery/en/
           :alt: API Version *
      
    * - Malta
@@ -746,7 +746,7 @@ The ccxt library currently supports the following cryptocurrency exchange market
      - binanceusdm
      - `Binance USDⓈ-M <https://accounts.binance.com/en/register?ref=D7YA7CLY>`__
      - .. image:: https://img.shields.io/badge/*-lightgray
-          :target: https://developers.binance.com/docs/derivatives/Introduction
+          :target: https://binance-docs.github.io/apidocs/futures/en/
           :alt: API Version *
      
    * - Malta
