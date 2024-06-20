@@ -23,13 +23,12 @@ const exchangeIds = exchanges.ids
 
 let __dirname = new URL('.', import.meta.url).pathname;
 
-function overwriteSafe (path, content) {
-    try {
-        overwriteFile (path, content);
-    } catch {
+function overwriteFileAndFolder (path, content) {
+    if (!(fs.existsSync(path))) {
         checkCreateFolder (path);
-        writeFile (path, content);
     }
+    overwriteFile (path, content);
+    writeFile (path, content);
 }
 
 // this is necessary because for some reason
@@ -629,7 +628,7 @@ class NewTranspiler {
         ].join('\n')
         log.magenta ('→', (path as any).yellow)
 
-        overwriteSafe (path, file);
+        overwriteFileAndFolder (path, file);
     }
 
     transpileErrorHierarchy () {
@@ -695,7 +694,7 @@ class NewTranspiler {
             log.bright.cyan (message, (ERRORS_FILE as any).yellow)
             // const csharpRegex = /(?<=public partial class Exchange\n{)((.|\n)+)(?=})/g
             // replaceInFile (ERRORS_FILE, csharpRegex, csharpBodyIntellisense)
-            overwriteSafe (ERRORS_FILE, csharpBodyIntellisense)
+            overwriteFileAndFolder (ERRORS_FILE, csharpBodyIntellisense)
         }
 
         log.bright.cyan (message, (ERRORS_FILE as any).yellow)
@@ -804,7 +803,7 @@ class NewTranspiler {
                     '}'
                 ].join('\n');
 
-                overwriteSafe (EXAMPLES_OUTPUT_FOLDER + fileName + '.cs', finalFile);
+                overwriteFileAndFolder (EXAMPLES_OUTPUT_FOLDER + fileName + '.cs', finalFile);
             }
         }
     }
@@ -992,7 +991,7 @@ class NewTranspiler {
         const csharp  = this.createCSharpClass (csharpResult, ws)
 
         if (csharpFolder) {
-            overwriteSafe (csharpFolder + csharpFilename, csharp)
+            overwriteFileAndFolder (csharpFolder + csharpFilename, csharp)
             // fs.utimesSync (csharpFolder + csharpFilename, new Date (), new Date (tsMtime))
         }
     }
@@ -1034,7 +1033,7 @@ class NewTranspiler {
 
         log.magenta ('→', (csharpFile as any).yellow)
 
-        overwriteSafe (csharpFile, file);
+        overwriteFileAndFolder (csharpFile, file);
     }
 
     // ---------------------------------------------------------------------------------------------
@@ -1074,7 +1073,7 @@ class NewTranspiler {
 
         log.magenta ('→', (csharpFile as any).yellow)
 
-        overwriteSafe (csharpFile, file);
+        overwriteFileAndFolder (csharpFile, file);
     }
 
     // ---------------------------------------------------------------------------------------------
@@ -1111,7 +1110,7 @@ class NewTranspiler {
 
         log.magenta ('→', (csharpFile as any).yellow)
 
-        overwriteSafe (csharpFile, file);
+        overwriteFileAndFolder (csharpFile, file);
     }
 
     transpileExchangeTest(name: string, path: string): [string, string] {
@@ -1213,7 +1212,7 @@ class NewTranspiler {
 
             log.magenta ('→', (csharpFile as any).yellow)
 
-            overwriteSafe (csharpFile, file);
+            overwriteFileAndFolder (csharpFile, file);
         } 
     }
 
@@ -1253,7 +1252,7 @@ class NewTranspiler {
             contentIndentend,
         ].join('\n')
 
-        overwriteSafe (files.csharpFile, file);
+        overwriteFileAndFolder (files.csharpFile, file);
     }
 
     transpileExchangeTests(){
@@ -1373,7 +1372,7 @@ class NewTranspiler {
                     '}',
                 ].join('\n');
             }
-            overwriteSafe (tests[idx].csharpFile, csharp);
+            overwriteFileAndFolder (tests[idx].csharpFile, csharp);
         });
     }
 
