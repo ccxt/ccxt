@@ -157,40 +157,40 @@ export default class coindcx extends Exchange {
             'api': {
                 'public1': {
                     'get': {
-                        'exchange/ticker': 1,
-                        'exchange/v1/markets': 1,
-                        'exchange/v1/markets_details': 1,
+                        'exchange/ticker': 1, // done
+                        'exchange/v1/markets': 1, // not unified
+                        'exchange/v1/markets_details': 1, // done
                         'exchange/v1/derivatives/futures/data/active_instruments': 1,
                         'exchange/v1/derivatives/futures/data/instrument': 1,
                     },
                 },
                 'public2': {
                     'get': {
-                        'market_data/trade_history': 1,
-                        'market_data/orderbook': 1,
-                        'market_data/candles': 1,
+                        'market_data/trade_history': 1, // done
+                        'market_data/orderbook': 1, // done
+                        'market_data/candles': 1, // done
                     },
                 },
                 'private': {
                     'post': {
-                        'exchange/v1/users/balances': 1,
-                        'exchange/v1/users/info': 1,
-                        'exchange/v1/orders/create': 1,
+                        'exchange/v1/users/balances': 1, // done
+                        'exchange/v1/users/info': 1, // not implemented
+                        'exchange/v1/orders/create': 1, // done
                         'exchange/v1/orders/create_multiple': 1,
-                        'exchange/v1/orders/status': 1,
+                        'exchange/v1/orders/status': 1, // done
                         'exchange/v1/orders/status_multiple': 1,
-                        'exchange/v1/orders/active_orders': 1,
-                        'exchange/v1/orders/trade_history': 1,
-                        'exchange/v1/orders/active_orders_count': 1,
-                        'exchange/v1/orders/cancel_all': 1,
-                        'exchange/v1/orders/cancel_by_ids': 1,
-                        'exchange/v1/orders/cancel': 1,
+                        'exchange/v1/orders/active_orders': 1, // done
+                        'exchange/v1/orders/trade_history': 1, // done
+                        'exchange/v1/orders/active_orders_count': 1, // not implemented
+                        'exchange/v1/orders/cancel_all': 1, // done
+                        'exchange/v1/orders/cancel_by_ids': 1, // done
+                        'exchange/v1/orders/cancel': 1, // done
                         'exchange/v1/orders/edit': 1,
                         'exchange/v1/funding/fetch_orders': 1,
                         'exchange/v1/funding/lend': 1,
                         'exchange/v1/funding/settle': 1,
-                        'exchange/v1/margin/create': 1,
-                        'exchange/v1/margin/cancel': 1,
+                        'exchange/v1/margin/create': 1, // done
+                        'exchange/v1/margin/cancel': 1, // done
                         'exchange/v1/margin/exit': 1,
                         'exchange/v1/margin/edit_target': 1,
                         'exchange/v1/margin/edit_price_of_target_order': 1,
@@ -198,8 +198,8 @@ export default class coindcx extends Exchange {
                         'exchange/v1/margin/edit_trailing_sl': 1,
                         'exchange/v1/margin/add_margin': 1,
                         'exchange/v1/margin/remove_margin': 1,
-                        'exchange/v1/margin/fetch_orders': 1,
-                        'exchange/v1/margin/order': 1,
+                        'exchange/v1/margin/fetch_orders': 1, // done
+                        'exchange/v1/margin/order': 1, // done
                     },
                 },
             },
@@ -769,7 +769,7 @@ export default class coindcx extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {string} [params.type] 'spot', 'margin', 'future' or 'swap'
          * @param {bool} [params.margin] *for spot markets only* true for creating a margin order
-         * @param {int} [params.clientOrderId] *for spot markets without margin only* a unique id for the order
+         * @param {string} [params.clientOrderId] *for spot markets without margin only* a unique id for the order
          * @param {float} [params.triggerPrice] *for spot margin markets only* triggerPrice at which the attached take profit / stop loss order will be triggered
          * @param {float} [params.stopLossPrice] *for spot margin markets only* stop loss trigger price
          * @param {float} [params.takeProfitPrice] *for spot margin markets only* take profit trigger price
@@ -825,7 +825,7 @@ export default class coindcx extends Exchange {
          * @param {float} amount how much of currency you want to trade in units of base currency
          * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {int} [params.clientOrderId] a unique id for the order
+         * @param {string} [params.clientOrderId] a unique id for the order
          */
         const market = this.market (symbol);
         // todo throw an exception for margin params
@@ -1057,7 +1057,7 @@ export default class coindcx extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {string} [params.type] 'spot', 'margin', 'future' or 'swap'
          * @param {bool} [params.margin] *for spot markets only* true for fetching a margin order
-         * @param {int} [params.clientOrderId] *for spot markets without margin only* the client order id of the order
+         * @param {string} [params.clientOrderId] *for spot markets without margin only* the client order id of the order
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
@@ -1236,6 +1236,8 @@ export default class coindcx extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {string} [params.type] 'spot', 'margin', 'future' or 'swap'
          * @param {bool} [params.margin] *for spot markets only* true for fetching a margin orders
+         * @param {string[]} [parsms.ids] *for spot markets without margin only* order ids
+         * @param {string[]} [params.clientOrderIds] *for spot markets without margin only* client order ids
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
@@ -1442,7 +1444,7 @@ export default class coindcx extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {string} [params.type] 'spot', 'margin', 'future' or 'swap'
          * @param {bool} [params.margin] *for spot markets only* true for fetching a margin orders
-         * @param {int} [params.clientOrderId] *for spot markets without margin only* a unique id for the order
+         * @param {string} [params.clientOrderId] *for spot markets without margin only* a unique id for the order
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
@@ -1543,7 +1545,7 @@ export default class coindcx extends Exchange {
          * @param {string[]} ids order ids
          * @param {string} [symbol] not used by coindcx cancelOrders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {int} [params.clientOrderIds] client order ids
+         * @param {string[]} [params.clientOrderIds] client order ids
          * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
