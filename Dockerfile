@@ -2,7 +2,7 @@ FROM ubuntu:20.04
 
 # Supresses unwanted user interaction (like "Please select the geographic area" when installing tzdata)
 ENV DEBIAN_FRONTEND=noninteractive
-
+# tets
 ADD ./ /ccxt
 WORKDIR /ccxt
 
