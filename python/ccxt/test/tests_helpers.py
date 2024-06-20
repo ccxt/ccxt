@@ -199,6 +199,9 @@ async def call_method(test_files, methodName, exchange, skippedProperties, args)
 async def call_exchange_method_dynamically(exchange, methodName, args):
     return await getattr(exchange, methodName)(*args)
 
+def call_exchange_method_dynamically_sync(exchange, methodName, args):
+    return getattr(exchange, methodName)(*args)
+
 async def call_overriden_method(exchange, methodName, args):
     # needed for php
     return await call_exchange_method_dynamically(exchange, methodName, args)
