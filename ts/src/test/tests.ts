@@ -29,6 +29,7 @@ import {
     ioDirRead,
     callMethod,
     callExchangeMethodDynamically,
+    callExchangeMethodDynamicallySync,
     callOverridenMethod,
     exceptionMessage,
     exitScript,
@@ -1117,7 +1118,11 @@ class testMainClass extends baseMainTestClass {
         let output = undefined;
         let requestUrl = undefined;
         try {
-            await callExchangeMethodDynamically (exchange, method, this.sanitizeDataInput (data['input']));
+            if (!this.isSynchronous) {
+                await callExchangeMethodDynamically (exchange, method, this.sanitizeDataInput (data['input']));
+            } else {
+                callExchangeMethodDynamicallySync (exchange, method, this.sanitizeDataInput (data['input']));
+            }
         } catch (e) {
             if (!(e instanceof ProxyError)) {
                 // if it's not a BadRequest, it means our request was not created succesfully
@@ -1142,8 +1147,13 @@ class testMainClass extends baseMainTestClass {
         const expectedResult = exchange.safeValue (data, 'parsedResponse');
         const mockedExchange = setFetchResponse (exchange, data['httpResponse']);
         try {
-            const unifiedResult = await callExchangeMethodDynamically (exchange, method, this.sanitizeDataInput (data['input']));
-            this.assertStaticResponseOutput (mockedExchange, skipKeys, unifiedResult, expectedResult);
+            if (!this.isSynchronous) {
+                const unifiedResult = await callExchangeMethodDynamically (exchange, method, this.sanitizeDataInput (data['input']));
+                this.assertStaticResponseOutput (mockedExchange, skipKeys, unifiedResult, expectedResult);
+            } else {
+                const unifiedResultSync = callExchangeMethodDynamicallySync (exchange, method, this.sanitizeDataInput (data['input']));
+                this.assertStaticResponseOutput (mockedExchange, skipKeys, unifiedResultSync, expectedResult);
+            }
         }
         catch (e) {
             this.requestTestsFailed = true;
