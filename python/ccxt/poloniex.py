@@ -441,7 +441,7 @@ class poloniex(Exchange, ImplicitAPI):
         if paginate:
             return self.fetch_paginated_call_deterministic('fetchOHLCV', symbol, since, limit, timeframe, params, 500)
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'symbol': market['id'],
             'interval': self.safe_string(self.timeframes, timeframe, timeframe),
         }
@@ -514,7 +514,7 @@ class poloniex(Exchange, ImplicitAPI):
         #
         return self.parse_markets(markets)
 
-    def parse_market(self, market) -> Market:
+    def parse_market(self, market: dict) -> Market:
         id = self.safe_string(market, 'symbol')
         baseId = self.safe_string(market, 'baseCurrencyName')
         quoteId = self.safe_string(market, 'quoteCurrencyName')
@@ -705,7 +705,7 @@ class poloniex(Exchange, ImplicitAPI):
         #         }
         #     ]
         #
-        result = {}
+        result: dict = {}
         for i in range(0, len(response)):
             item = self.safe_value(response, i)
             ids = list(item.keys())
@@ -789,7 +789,7 @@ class poloniex(Exchange, ImplicitAPI):
                 }
             result[code]['networks'] = networks
             info = self.safe_value(result[code], 'info', [])
-            rawInfo = {}
+            rawInfo: dict = {}
             rawInfo[id] = currency
             info.append(rawInfo)
             result[code]['info'] = info
@@ -812,7 +812,7 @@ class poloniex(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'symbol': market['id'],
         }
         response = self.publicGetMarketsSymbolTicker24h(self.extend(request, params))
@@ -840,7 +840,7 @@ class poloniex(Exchange, ImplicitAPI):
         #
         return self.parse_ticker(response, market)
 
-    def parse_trade(self, trade, market: Market = None) -> Trade:
+    def parse_trade(self, trade: dict, market: Market = None) -> Trade:
         #
         # fetchTrades
         #
@@ -942,7 +942,7 @@ class poloniex(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'symbol': market['id'],
         }
         if limit is not None:
@@ -983,7 +983,7 @@ class poloniex(Exchange, ImplicitAPI):
         market: Market = None
         if symbol is not None:
             market = self.market(symbol)
-        request = {
+        request: dict = {
             # 'from': 12345678,  # A 'trade Id'. The query begins at ‘from'.
             # 'direction': 'PRE',  # PRE, NEXT The direction before or after ‘from'.
         }
@@ -1017,8 +1017,8 @@ class poloniex(Exchange, ImplicitAPI):
         result = self.parse_trades(response, market, since, limit)
         return result
 
-    def parse_order_status(self, status):
-        statuses = {
+    def parse_order_status(self, status: Str):
+        statuses: dict = {
             'NEW': 'open',
             'PARTIALLY_FILLED': 'open',
             'FILLED': 'closed',
@@ -1029,7 +1029,7 @@ class poloniex(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_order(self, order, market: Market = None) -> Order:
+    def parse_order(self, order: dict, market: Market = None) -> Order:
         #
         # fetchOpenOrder
         #
@@ -1142,7 +1142,7 @@ class poloniex(Exchange, ImplicitAPI):
         }, market)
 
     def parse_order_type(self, status):
-        statuses = {
+        statuses: dict = {
             'MARKET': 'market',
             'LIMIT': 'limit',
             'STOP-LIMIT': 'limit',
@@ -1176,7 +1176,7 @@ class poloniex(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market: Market = None
-        request = {}
+        request: dict = {}
         if symbol is not None:
             market = self.market(symbol)
             request['symbol'] = market['id']
@@ -1212,7 +1212,7 @@ class poloniex(Exchange, ImplicitAPI):
         #         }
         #     ]
         #
-        extension = {'status': 'open'}
+        extension: dict = {'status': 'open'}
         return self.parse_orders(response, market, since, limit, extension)
 
     def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
@@ -1234,7 +1234,7 @@ class poloniex(Exchange, ImplicitAPI):
         market = self.market(symbol)
         if not market['spot']:
             raise NotSupported(self.id + ' createOrder() does not support ' + market['type'] + ' orders, only spot orders are accepted')
-        request = {
+        request: dict = {
             'symbol': market['id'],
             'side': side,
             # 'timeInForce': timeInForce,
@@ -1322,7 +1322,7 @@ class poloniex(Exchange, ImplicitAPI):
         market = self.market(symbol)
         if not market['spot']:
             raise NotSupported(self.id + ' editOrder() does not support ' + market['type'] + ' orders, only spot orders are accepted')
-        request = {
+        request: dict = {
             'id': id,
             # 'timeInForce': timeInForce,
         }
@@ -1358,7 +1358,7 @@ class poloniex(Exchange, ImplicitAPI):
         # @returns {object} An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         #
         self.load_markets()
-        request = {}
+        request: dict = {}
         clientOrderId = self.safe_value(params, 'clientOrderId')
         if clientOrderId is not None:
             id = clientOrderId
@@ -1392,7 +1392,7 @@ class poloniex(Exchange, ImplicitAPI):
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
-        request = {
+        request: dict = {
             # 'accountTypes': 'SPOT',
             'symbols': [],
         }
@@ -1441,7 +1441,7 @@ class poloniex(Exchange, ImplicitAPI):
         """
         self.load_markets()
         id = str(id)
-        request = {
+        request: dict = {
             'id': id,
         }
         isTrigger = self.safe_value_2(params, 'trigger', 'stop')
@@ -1495,7 +1495,7 @@ class poloniex(Exchange, ImplicitAPI):
         :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
         """
         self.load_markets()
-        request = {
+        request: dict = {
             'id': id,
         }
         trades = self.privateGetOrdersIdTrades(self.extend(request, params))
@@ -1523,7 +1523,7 @@ class poloniex(Exchange, ImplicitAPI):
         return self.parse_trades(trades)
 
     def parse_balance(self, response) -> Balances:
-        result = {
+        result: dict = {
             'info': response,
             'timestamp': None,
             'datetime': None,
@@ -1549,7 +1549,7 @@ class poloniex(Exchange, ImplicitAPI):
         :returns dict: a `balance structure <https://docs.ccxt.com/#/?id=balance-structure>`
         """
         self.load_markets()
-        request = {
+        request: dict = {
             'accountType': 'SPOT',
         }
         response = self.privateGetAccountsBalances(self.extend(request, params))
@@ -1588,7 +1588,7 @@ class poloniex(Exchange, ImplicitAPI):
         #         "volume30D" : "0.00"
         #     }
         #
-        result = {}
+        result: dict = {}
         for i in range(0, len(self.symbols)):
             symbol = self.symbols[i]
             result[symbol] = {
@@ -1612,7 +1612,7 @@ class poloniex(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'symbol': market['id'],
         }
         if limit is not None:
@@ -1661,7 +1661,7 @@ class poloniex(Exchange, ImplicitAPI):
         """
         self.load_markets()
         currency = self.currency(code)
-        request = {
+        request: dict = {
             'currency': currency['id'],
         }
         networks = self.safe_value(self.options, 'networks', {})
@@ -1705,7 +1705,7 @@ class poloniex(Exchange, ImplicitAPI):
         """
         self.load_markets()
         currency = self.currency(code)
-        request = {
+        request: dict = {
             'currency': currency['id'],
         }
         networks = self.safe_value(self.options, 'networks', {})
@@ -1755,7 +1755,7 @@ class poloniex(Exchange, ImplicitAPI):
         accountsByType = self.safe_value(self.options, 'accountsByType', {})
         fromId = self.safe_string(accountsByType, fromAccount, fromAccount)
         toId = self.safe_string(accountsByType, toAccount, fromAccount)
-        request = {
+        request: dict = {
             'amount': self.currency_to_precision(code, amount),
             'currency': currency['id'],
             'fromAccount': fromId,
@@ -1802,7 +1802,7 @@ class poloniex(Exchange, ImplicitAPI):
         self.check_address(address)
         self.load_markets()
         currency = self.currency(code)
-        request = {
+        request: dict = {
             'currency': currency['id'],
             'amount': amount,
             'address': address,
@@ -1830,7 +1830,7 @@ class poloniex(Exchange, ImplicitAPI):
         year = 31104000  # 60 * 60 * 24 * 30 * 12 = one year of history, why not
         now = self.seconds()
         start = self.parse_to_int(since / 1000) if (since is not None) else now - 10 * year
-        request = {
+        request: dict = {
             'start': start,  # UNIX timestamp, required
             'end': now,  # UNIX timestamp, required
         }
@@ -1981,7 +1981,7 @@ class poloniex(Exchange, ImplicitAPI):
         #         }
         #     ]
         #
-        data = {}
+        data: dict = {}
         for i in range(0, len(response)):
             entry = response[i]
             currencies = list(entry.keys())
@@ -2011,7 +2011,7 @@ class poloniex(Exchange, ImplicitAPI):
         #             },
         #         }
         #
-        depositWithdrawFees = {}
+        depositWithdrawFees: dict = {}
         codes = self.market_codes(codes)
         responseKeys = list(response.keys())
         for i in range(0, len(responseKeys)):
@@ -2029,7 +2029,7 @@ class poloniex(Exchange, ImplicitAPI):
                         networkId = networkId.replace(code, '')
                         networkCode = self.network_id_to_code(networkId)
                         networkInfo = self.safe_value(response, networkId)
-                        networkObject = {}
+                        networkObject: dict = {}
                         withdrawFee = self.safe_number(networkInfo, 'withdrawalFee')
                         networkObject[networkCode] = {
                             'withdraw': {
@@ -2049,11 +2049,11 @@ class poloniex(Exchange, ImplicitAPI):
         depositWithdrawFee['info'][currency['code']] = fee
         networkId = self.safe_string(fee, 'blockchain')
         withdrawFee = self.safe_number(fee, 'withdrawalFee')
-        withdrawResult = {
+        withdrawResult: dict = {
             'fee': withdrawFee,
             'percentage': False if (withdrawFee is not None) else None,
         }
-        depositResult = {
+        depositResult: dict = {
             'fee': None,
             'percentage': None,
         }
@@ -2084,8 +2084,8 @@ class poloniex(Exchange, ImplicitAPI):
         transactions = self.parse_transactions(deposits, currency, since, limit)
         return self.filter_by_currency_since_limit(transactions, code, since, limit)
 
-    def parse_transaction_status(self, status):
-        statuses = {
+    def parse_transaction_status(self, status: Str):
+        statuses: dict = {
             'COMPLETE': 'ok',
             'COMPLETED': 'ok',
             'AWAITING APPROVAL': 'pending',
@@ -2097,7 +2097,7 @@ class poloniex(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_transaction(self, transaction, currency: Currency = None) -> Transaction:
+    def parse_transaction(self, transaction: dict, currency: Currency = None) -> Transaction:
         #
         # deposits
         #
@@ -2212,7 +2212,7 @@ class poloniex(Exchange, ImplicitAPI):
             }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response, requestHeaders, requestBody):
         if response is None:
             return None
         #

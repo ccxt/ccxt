@@ -668,8 +668,8 @@ public partial class hitbtc : Exchange
                 object network = this.safeNetwork(networkId);
                 fee = this.safeNumber(rawNetwork, "payout_fee");
                 object networkPrecision = this.safeNumber(rawNetwork, "precision_payout");
-                object payinEnabledNetwork = this.safeBool(entry, "payin_enabled", false);
-                object payoutEnabledNetwork = this.safeBool(entry, "payout_enabled", false);
+                object payinEnabledNetwork = this.safeBool(rawNetwork, "payin_enabled", false);
+                object payoutEnabledNetwork = this.safeBool(rawNetwork, "payout_enabled", false);
                 object activeNetwork = isTrue(payinEnabledNetwork) && isTrue(payoutEnabledNetwork);
                 if (isTrue(isTrue(payinEnabledNetwork) && !isTrue(depositEnabled)))
                 {

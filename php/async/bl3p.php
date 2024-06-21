@@ -264,7 +264,7 @@ class bl3p extends Exchange {
         }) ();
     }
 
-    public function parse_trade($trade, ?array $market = null): array {
+    public function parse_trade(array $trade, ?array $market = null): array {
         //
         // fetchTrades
         //
@@ -439,7 +439,13 @@ class bl3p extends Exchange {
             $request = array(
                 'order_id' => $id,
             );
-            return Async\await($this->privatePostMarketMoneyOrderCancel ($this->extend($request, $params)));
+            $response = Async\await($this->privatePostMarketMoneyOrderCancel ($this->extend($request, $params)));
+            //
+            // "success"
+            //
+            return $this->safe_order(array(
+                'info' => $response,
+            ));
         }) ();
     }
 

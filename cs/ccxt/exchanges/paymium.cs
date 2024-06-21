@@ -436,7 +436,10 @@ public partial class paymium : Exchange
         object request = new Dictionary<string, object>() {
             { "uuid", id },
         };
-        return await this.privateDeleteUserOrdersUuidCancel(this.extend(request, parameters));
+        object response = await this.privateDeleteUserOrdersUuidCancel(this.extend(request, parameters));
+        return this.safeOrder(new Dictionary<string, object>() {
+            { "info", response },
+        });
     }
 
     public async override Task<object> transfer(object code, object amount, object fromAccount, object toAccount, object parameters = null)

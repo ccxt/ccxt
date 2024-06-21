@@ -598,8 +598,7 @@ class bitfinex2 extends \ccxt\async\bitfinex2 {
         $prec = $this->safe_string($subscription, 'prec', 'P0');
         $isRaw = ($prec === 'R0');
         // if it is an initial snapshot
-        $orderbook = $this->safe_value($this->orderbooks, $symbol);
-        if ($orderbook === null) {
+        if (!(is_array($this->orderbooks) && array_key_exists($symbol, $this->orderbooks))) {
             $limit = $this->safe_integer($subscription, 'len');
             if ($isRaw) {
                 // raw order books
@@ -619,7 +618,7 @@ class bitfinex2 extends \ccxt\async\bitfinex2 {
                     $bookside = $orderbook[$side];
                     $idString = $this->safe_string($delta, 0);
                     $price = $this->safe_float($delta, 1);
-                    $bookside->store ($price, $size, $idString);
+                    $bookside->storeArray (array( $price, $size, $idString ));
                 }
             } else {
                 $deltas = $message[1];
@@ -631,12 +630,13 @@ class bitfinex2 extends \ccxt\async\bitfinex2 {
                     $size = ($amount < 0) ? -$amount : $amount;
                     $side = ($amount < 0) ? 'asks' : 'bids';
                     $bookside = $orderbook[$side];
-                    $bookside->store ($price, $size, $counter);
+                    $bookside->storeArray (array( $price, $size, $counter ));
                 }
             }
             $orderbook['symbol'] = $symbol;
             $client->resolve ($orderbook, $messageHash);
         } else {
+            $orderbook = $this->orderbooks[$symbol];
             $deltas = $message[1];
             $orderbookItem = $this->orderbooks[$symbol];
             if ($isRaw) {

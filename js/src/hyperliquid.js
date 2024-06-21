@@ -27,6 +27,7 @@ export default class hyperliquid extends Exchange {
             'rateLimit': 50,
             'certified': false,
             'pro': true,
+            'dex': true,
             'has': {
                 'CORS': undefined,
                 'spot': true,
@@ -931,7 +932,7 @@ export default class hyperliquid extends Exchange {
         const hash = this.actionHash(action, vaultAdress, nonce);
         const isTestnet = this.safeBool(this.options, 'sandboxMode', false);
         const phantomAgent = this.constructPhantomAgent(hash, isTestnet);
-        // const data = {
+        // const data: Dict = {
         //     'domain': {
         //         'chainId': 1337,
         //         'name': 'Exchange',
@@ -971,11 +972,12 @@ export default class hyperliquid extends Exchange {
         const signature = this.signMessage(msg, this.privateKey);
         return signature;
     }
-    buildSig(chainId, messageTypes, message) {
+    signUserSignedAction(messageTypes, message) {
         const zeroAddress = this.safeString(this.options, 'zeroAddress');
+        const chainId = 421614; // check this out
         const domain = {
             'chainId': chainId,
-            'name': 'Exchange',
+            'name': 'HyperliquidSignTransaction',
             'verifyingContract': zeroAddress,
             'version': '1',
         };
@@ -984,28 +986,26 @@ export default class hyperliquid extends Exchange {
         return signature;
     }
     buildTransferSig(message) {
-        const isSandboxMode = this.safeBool(this.options, 'sandboxMode');
-        const chainId = (isSandboxMode) ? 421614 : 42161;
         const messageTypes = {
-            'UsdTransferSignPayload': [
+            'HyperliquidTransaction:UsdSend': [
+                { 'name': 'hyperliquidChain', 'type': 'string' },
                 { 'name': 'destination', 'type': 'string' },
                 { 'name': 'amount', 'type': 'string' },
                 { 'name': 'time', 'type': 'uint64' },
             ],
         };
-        return this.buildSig(chainId, messageTypes, message);
+        return this.signUserSignedAction(messageTypes, message);
     }
     buildWithdrawSig(message) {
-        const isSandboxMode = this.safeBool(this.options, 'sandboxMode');
-        const chainId = (isSandboxMode) ? 421614 : 42161;
         const messageTypes = {
-            'WithdrawFromBridge2SignPayload': [
+            'HyperliquidTransaction:Withdraw': [
+                { 'name': 'hyperliquidChain', 'type': 'string' },
                 { 'name': 'destination', 'type': 'string' },
-                { 'name': 'usd', 'type': 'string' },
+                { 'name': 'amount', 'type': 'string' },
                 { 'name': 'time', 'type': 'uint64' },
             ],
         };
-        return this.buildSig(chainId, messageTypes, message);
+        return this.signUserSignedAction(messageTypes, message);
     }
     async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
         /**
@@ -1216,7 +1216,8 @@ export default class hyperliquid extends Exchange {
          * @param {string} [params.vaultAddress] the vault address for order
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
-        return await this.cancelOrders([id], symbol, params);
+        const orders = await this.cancelOrders([id], symbol, params);
+        return this.safeDict(orders, 0);
     }
     async cancelOrders(ids, symbol = undefined, params = {}) {
         /**
@@ -1295,7 +1296,18 @@ export default class hyperliquid extends Exchange {
         //         }
         //     }
         //
-        return response;
+        const innerResponse = this.safeDict(response, 'response');
+        const data = this.safeDict(innerResponse, 'data');
+        const statuses = this.safeList(data, 'statuses');
+        const orders = [];
+        for (let i = 0; i < statuses.length; i++) {
+            const status = statuses[i];
+            orders.push(this.safeOrder({
+                'info': status,
+                'status': status,
+            }));
+        }
+        return orders;
     }
     async cancelOrdersForSymbols(orders, params = {}) {
         /**
@@ -2408,10 +2420,11 @@ export default class hyperliquid extends Exchange {
         if (code !== undefined) {
             code = code.toUpperCase();
             if (code !== 'USDC') {
-                throw new NotSupported(this.id + 'withdraw() only support USDC');
+                throw new NotSupported(this.id + 'transfer() only support USDC');
             }
         }
         const payload = {
+            'hyperliquidChain': isSandboxMode ? 'Testnet' : 'Mainnet',
             'destination': toAccount,
             'amount': this.numberToString(amount),
             'time': nonce,
@@ -2419,9 +2432,12 @@ export default class hyperliquid extends Exchange {
         const sig = this.buildTransferSig(payload);
         const request = {
             'action': {
-                'chain': (isSandboxMode) ? 'ArbitrumTestnet' : 'Arbitrum',
-                'payload': payload,
-                'type': 'usdTransfer',
+                'hyperliquidChain': payload['hyperliquidChain'],
+                'signatureChainId': '0x66eee',
+                'destination': toAccount,
+                'amount': amount.toString(),
+                'time': nonce,
+                'type': 'usdSend',
             },
             'nonce': nonce,
             'signature': sig,
@@ -2451,25 +2467,56 @@ export default class hyperliquid extends Exchange {
                 throw new NotSupported(this.id + 'withdraw() only support USDC');
             }
         }
-        const isSandboxMode = this.safeBool(this.options, 'sandboxMode');
+        const isSandboxMode = this.safeBool(this.options, 'sandboxMode', false);
         const nonce = this.milliseconds();
         const payload = {
+            'hyperliquidChain': isSandboxMode ? 'Testnet' : 'Mainnet',
             'destination': address,
-            'usd': amount.toString(),
+            'amount': amount.toString(),
             'time': nonce,
         };
         const sig = this.buildWithdrawSig(payload);
         const request = {
             'action': {
-                'chain': (isSandboxMode) ? 'ArbitrumTestnet' : 'Arbitrum',
-                'payload': payload,
-                'type': 'withdraw2',
+                'hyperliquidChain': payload['hyperliquidChain'],
+                'signatureChainId': '0x66eee',
+                'destination': address,
+                'amount': amount.toString(),
+                'time': nonce,
+                'type': 'withdraw3',
             },
             'nonce': nonce,
             'signature': sig,
         };
         const response = await this.privatePostExchange(this.extend(request, params));
-        return response;
+        return this.parseTransaction(response);
+    }
+    parseTransaction(transaction, currency = undefined) {
+        //
+        // { status: 'ok', response: { type: 'default' } }
+        //
+        return {
+            'info': transaction,
+            'id': undefined,
+            'txid': undefined,
+            'timestamp': undefined,
+            'datetime': undefined,
+            'network': undefined,
+            'address': undefined,
+            'addressTo': undefined,
+            'addressFrom': undefined,
+            'tag': undefined,
+            'tagTo': undefined,
+            'tagFrom': undefined,
+            'type': undefined,
+            'amount': undefined,
+            'currency': undefined,
+            'status': this.safeString(transaction, 'status'),
+            'updated': undefined,
+            'comment': undefined,
+            'internal': undefined,
+            'fee': undefined,
+        };
     }
     formatVaultAddress(address = undefined) {
         if (address === undefined) {

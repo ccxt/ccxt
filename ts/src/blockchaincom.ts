@@ -3,7 +3,7 @@ import Exchange from './abstract/blockchaincom.js';
 import { ExchangeError, AuthenticationError, OrderNotFound, InsufficientFunds, ArgumentsRequired } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Balances, Currency, Dict, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction } from './base/types.js';
+import type { Balances, Currency, Dict, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction, int } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -486,7 +486,7 @@ export default class blockchaincom extends Exchange {
         return this.safeString (states, state, state);
     }
 
-    parseOrder (order, market: Market = undefined): Order {
+    parseOrder (order: Dict, market: Market = undefined): Order {
         //
         //     {
         //         "clOrdId": "00001",
@@ -621,10 +621,10 @@ export default class blockchaincom extends Exchange {
             'orderId': id,
         };
         const response = await this.privateDeleteOrdersOrderId (this.extend (request, params));
-        return {
+        return this.safeOrder ({
             'id': id,
             'info': response,
-        };
+        });
     }
 
     async cancelAllOrders (symbol: Str = undefined, params = {}) {
@@ -632,7 +632,7 @@ export default class blockchaincom extends Exchange {
          * @method
          * @name blockchaincom#cancelAllOrders
          * @description cancel all open orders
-         * @see https://api.blockchain.com/v3/#/trading/deleteAllOrders
+         * @see https://api.blockchain.com/v3/#deleteallorders
          * @param {string} symbol unified market symbol of the market to cancel orders in, all markets are used if undefined, default is undefined
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -648,10 +648,14 @@ export default class blockchaincom extends Exchange {
             request['symbol'] = marketId;
         }
         const response = await this.privateDeleteOrders (this.extend (request, params));
-        return {
-            'symbol': symbol,
-            'info': response,
-        };
+        //
+        // {}
+        //
+        return [
+            this.safeOrder ({
+                'info': response,
+            }),
+        ];
     }
 
     async fetchTradingFees (params = {}): Promise<TradingFees> {
@@ -752,7 +756,7 @@ export default class blockchaincom extends Exchange {
         return this.parseOrders (response, market, since, limit);
     }
 
-    parseTrade (trade, market: Market = undefined): Trade {
+    parseTrade (trade: Dict, market: Market = undefined): Trade {
         //
         //     {
         //         "exOrdId":281685751028507,
@@ -870,7 +874,7 @@ export default class blockchaincom extends Exchange {
         return this.safeString (states, state, state);
     }
 
-    parseTransaction (transaction, currency: Currency = undefined): Transaction {
+    parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {
         //
         // deposit
         //
@@ -1183,7 +1187,7 @@ export default class blockchaincom extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+    handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response, requestHeaders, requestBody) {
         // {"timestamp":"2021-10-21T15:13:58.837+00:00","status":404,"error":"Not Found","message":"","path":"/orders/505050"
         if (response === undefined) {
             return undefined;

@@ -279,7 +279,7 @@ class coinbaseexchange(Exchange, ImplicitAPI):
         #         }
         #     ]
         #
-        result = {}
+        result: dict = {}
         for i in range(0, len(response)):
             currency = response[i]
             id = self.safe_string(currency, 'id')
@@ -482,7 +482,7 @@ class coinbaseexchange(Exchange, ImplicitAPI):
         }
 
     def parse_balance(self, response) -> Balances:
-        result = {'info': response}
+        result: dict = {'info': response}
         for i in range(0, len(response)):
             balance = response[i]
             currencyId = self.safe_string(balance, 'currency')
@@ -518,7 +518,7 @@ class coinbaseexchange(Exchange, ImplicitAPI):
         # level 1 - only the best bid and ask
         # level 2 - top 50 bids and asks(aggregated)
         # level 3 - full order book(non aggregated)
-        request = {
+        request: dict = {
             'id': self.market_id(symbol),
             'level': 2,  # 1 best bidask, 2 aggregated, 3 full
         }
@@ -631,7 +631,7 @@ class coinbaseexchange(Exchange, ImplicitAPI):
         """
         self.load_markets()
         symbols = self.market_symbols(symbols)
-        request = {}
+        request: dict = {}
         response = self.publicGetProductsSparkLines(self.extend(request, params))
         #
         #     {
@@ -653,7 +653,7 @@ class coinbaseexchange(Exchange, ImplicitAPI):
         #         ]
         #     }
         #
-        result = {}
+        result: dict = {}
         marketIds = list(response.keys())
         delimiter = '-'
         for i in range(0, len(marketIds)):
@@ -675,7 +675,7 @@ class coinbaseexchange(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'id': market['id'],
         }
         # publicGetProductsIdTicker or publicGetProductsIdStats
@@ -705,7 +705,7 @@ class coinbaseexchange(Exchange, ImplicitAPI):
         #
         return self.parse_ticker(response, market)
 
-    def parse_trade(self, trade, market: Market = None) -> Trade:
+    def parse_trade(self, trade: dict, market: Market = None) -> Trade:
         #
         #     {
         #         "type": "match",
@@ -794,7 +794,7 @@ class coinbaseexchange(Exchange, ImplicitAPI):
             return self.fetch_paginated_call_dynamic('fetchMyTrades', symbol, since, limit, params, 100)
         self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'product_id': market['id'],
         }
         if limit is not None:
@@ -820,7 +820,7 @@ class coinbaseexchange(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'id': market['id'],  # fixes issue  #2
         }
         if limit is not None:
@@ -857,7 +857,7 @@ class coinbaseexchange(Exchange, ImplicitAPI):
         #
         maker = self.safe_number(response, 'maker_fee_rate')
         taker = self.safe_number(response, 'taker_fee_rate')
-        result = {}
+        result: dict = {}
         for i in range(0, len(self.symbols)):
             symbol = self.symbols[i]
             result[symbol] = {
@@ -910,7 +910,7 @@ class coinbaseexchange(Exchange, ImplicitAPI):
             return self.fetch_paginated_call_deterministic('fetchOHLCV', symbol, since, limit, timeframe, params, 300)
         market = self.market(symbol)
         parsedTimeframe = self.safe_integer(self.timeframes, timeframe)
-        request = {
+        request: dict = {
             'id': market['id'],
         }
         if parsedTimeframe is not None:
@@ -959,8 +959,8 @@ class coinbaseexchange(Exchange, ImplicitAPI):
         #
         return self.safe_timestamp(response, 'epoch')
 
-    def parse_order_status(self, status):
-        statuses = {
+    def parse_order_status(self, status: Str):
+        statuses: dict = {
             'pending': 'open',
             'active': 'open',
             'open': 'open',
@@ -970,7 +970,7 @@ class coinbaseexchange(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_order(self, order, market: Market = None) -> Order:
+    def parse_order(self, order: dict, market: Market = None) -> Order:
         #
         # createOrder
         #
@@ -1052,7 +1052,7 @@ class coinbaseexchange(Exchange, ImplicitAPI):
         :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
-        request = {}
+        request: dict = {}
         clientOrderId = self.safe_string_2(params, 'clientOrderId', 'client_oid')
         method = None
         if clientOrderId is None:
@@ -1079,7 +1079,7 @@ class coinbaseexchange(Exchange, ImplicitAPI):
         market = None
         if symbol is not None:
             market = self.market(symbol)
-        request = {
+        request: dict = {
             'order_id': id,
         }
         response = self.privateGetFills(self.extend(request, params))
@@ -1096,7 +1096,7 @@ class coinbaseexchange(Exchange, ImplicitAPI):
         :param int [params.until]: the latest time in ms to fetch open orders for
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
-        request = {
+        request: dict = {
             'status': 'all',
         }
         return self.fetch_open_orders(symbol, since, limit, self.extend(request, params))
@@ -1118,7 +1118,7 @@ class coinbaseexchange(Exchange, ImplicitAPI):
         paginate, params = self.handle_option_and_params(params, 'fetchOpenOrders', 'paginate')
         if paginate:
             return self.fetch_paginated_call_dynamic('fetchOpenOrders', symbol, since, limit, params, 100)
-        request = {}
+        request: dict = {}
         market = None
         if symbol is not None:
             market = self.market(symbol)
@@ -1145,7 +1145,7 @@ class coinbaseexchange(Exchange, ImplicitAPI):
         :param int [params.until]: the latest time in ms to fetch open orders for
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
-        request = {
+        request: dict = {
             'status': 'done',
         }
         return self.fetch_open_orders(symbol, since, limit, self.extend(request, params))
@@ -1164,7 +1164,7 @@ class coinbaseexchange(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             # common params --------------------------------------------------
             # 'client_oid': clientOrderId,
             'type': type,
@@ -1243,7 +1243,7 @@ class coinbaseexchange(Exchange, ImplicitAPI):
         :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
-        request = {
+        request: dict = {
             # 'product_id': market['id'],  # the request will be more performant if you include it
         }
         clientOrderId = self.safe_string_2(params, 'clientOrderId', 'client_oid')
@@ -1270,7 +1270,7 @@ class coinbaseexchange(Exchange, ImplicitAPI):
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
-        request = {}
+        request: dict = {}
         market = None
         if symbol is not None:
             market = self.market(symbol)
@@ -1296,7 +1296,7 @@ class coinbaseexchange(Exchange, ImplicitAPI):
         self.check_address(address)
         self.load_markets()
         currency = self.currency(code)
-        request = {
+        request: dict = {
             'currency': currency['id'],
             'amount': amount,
         }
@@ -1316,7 +1316,7 @@ class coinbaseexchange(Exchange, ImplicitAPI):
         return self.parse_transaction(response, currency)
 
     def parse_ledger_entry_type(self, type):
-        types = {
+        types: dict = {
             'transfer': 'transfer',  # Funds moved between portfolios
             'match': 'trade',       # Funds moved result of a trade
             'fee': 'fee',           # Fee result of a trade
@@ -1325,7 +1325,7 @@ class coinbaseexchange(Exchange, ImplicitAPI):
         }
         return self.safe_string(types, type, type)
 
-    def parse_ledger_entry(self, item, currency: Currency = None):
+    def parse_ledger_entry(self, item: dict, currency: Currency = None):
         #  {
         #      "id": "12087495079",
         #      "amount": "-0.0100000000000000",
@@ -1416,7 +1416,7 @@ class coinbaseexchange(Exchange, ImplicitAPI):
         account = self.safe_value(accountsByCurrencyCode, code)
         if account is None:
             raise ExchangeError(self.id + ' fetchLedger() could not find account id for ' + code)
-        request = {
+        request: dict = {
             'id': account['id'],
             # 'start_date': self.iso8601(since),
             # 'end_date': self.iso8601(self.milliseconds()),
@@ -1462,7 +1462,7 @@ class coinbaseexchange(Exchange, ImplicitAPI):
                 if account is None:
                     raise ExchangeError(self.id + ' fetchDepositsWithdrawals() could not find account id for ' + code)
                 id = account['id']
-        request = {}
+        request: dict = {}
         if id is not None:
             request['id'] = id
         if limit is not None:
@@ -1574,7 +1574,7 @@ class coinbaseexchange(Exchange, ImplicitAPI):
         else:
             return 'pending'
 
-    def parse_transaction(self, transaction, currency: Currency = None) -> Transaction:
+    def parse_transaction(self, transaction: dict, currency: Currency = None) -> Transaction:
         #
         # privateGetTransfers
         #
@@ -1671,7 +1671,7 @@ class coinbaseexchange(Exchange, ImplicitAPI):
         if account is None:
             # eslint-disable-next-line quotes
             raise InvalidAddress(self.id + " createDepositAddress() could not find currency code " + code + " with id = " + currencyId + " in self.options['coinbaseAccountsByCurrencyId']")
-        request = {
+        request: dict = {
             'id': account['id'],
         }
         response = self.privatePostCoinbaseAccountsIdAddresses(self.extend(request, params))
@@ -1715,7 +1715,7 @@ class coinbaseexchange(Exchange, ImplicitAPI):
             }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response, requestHeaders, requestBody):
         if (code == 400) or (code == 404):
             if body[0] == '{':
                 message = self.safe_string(response, 'message')

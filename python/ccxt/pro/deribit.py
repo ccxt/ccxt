@@ -95,7 +95,7 @@ class deribit(ccxt.async_support.deribit):
         for i in range(0, len(currencies)):
             currencyCode = currencies[i]
             channels.append('user.portfolio.' + currencyCode)
-        subscribe = {
+        subscribe: dict = {
             'jsonrpc': '2.0',
             'method': 'private/subscribe',
             'params': {
@@ -178,7 +178,7 @@ class deribit(ccxt.async_support.deribit):
         if interval == 'raw':
             await self.authenticate()
         channel = 'ticker.' + market['id'] + '.' + interval
-        message = {
+        message: dict = {
             'jsonrpc': '2.0',
             'method': 'public/subscribe',
             'params': {
@@ -324,7 +324,7 @@ class deribit(ccxt.async_support.deribit):
         interval = self.safe_string(params, 'interval', 'raw')
         params = self.omit(params, 'interval')
         channel = 'user.trades.any.any.' + interval
-        message = {
+        message: dict = {
             'jsonrpc': '2.0',
             'method': 'private/subscribe',
             'params': {
@@ -377,7 +377,7 @@ class deribit(ccxt.async_support.deribit):
             limit = self.safe_integer(self.options, 'tradesLimit', 1000)
             cachedTrades = ArrayCacheBySymbolById(limit)
         parsed = self.parse_trades(trades)
-        marketIds = {}
+        marketIds: dict = {}
         for i in range(0, len(parsed)):
             trade = parsed[i]
             cachedTrades.append(trade)
@@ -549,7 +549,7 @@ class deribit(ccxt.async_support.deribit):
         kind = self.safe_string(params, 'kind', 'any')
         params = self.omit(params, 'interval', 'currency', 'kind')
         channel = 'user.orders.' + kind + '.' + currency + '.' + interval
-        message = {
+        message: dict = {
             'jsonrpc': '2.0',
             'method': 'private/subscribe',
             'params': {
@@ -735,7 +735,7 @@ class deribit(ccxt.async_support.deribit):
             message = channelName + '.' + market['id'] + '.' + channelDescriptor
             rawSubscriptions.append(message)
             messageHashes.append(channelName + '|' + market['symbol'] + '|' + channelDescriptor)
-        request = {
+        request: dict = {
             'jsonrpc': '2.0',
             'method': 'public/subscribe',
             'params': {
@@ -818,12 +818,12 @@ class deribit(ccxt.async_support.deribit):
         if channel is not None:
             parts = channel.split('.')
             channelId = self.safe_string(parts, 0)
-            userHandlers = {
+            userHandlers: dict = {
                 'trades': self.handle_my_trades,
                 'portfolio': self.handle_balance,
                 'orders': self.handle_orders,
             }
-            handlers = {
+            handlers: dict = {
                 'ticker': self.handle_ticker,
                 'book': self.handle_order_book,
                 'trades': self.handle_trades,
@@ -874,7 +874,7 @@ class deribit(ccxt.async_support.deribit):
             self.check_required_credentials()
             requestId = self.request_id()
             signature = self.hmac(self.encode(timeString + '\n' + nonce + '\n'), self.encode(self.secret), hashlib.sha256)
-            request = {
+            request: dict = {
                 'jsonrpc': '2.0',
                 'id': requestId,
                 'method': 'public/auth',

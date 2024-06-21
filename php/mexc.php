@@ -144,7 +144,7 @@ class mexc extends Exchange {
                 'fees' => array(
                     'https://www.mexc.com/fee',
                 ),
-                'referral' => 'https://m.mexc.com/auth/signup?inviteCode=1FQ1G',
+                'referral' => 'https://www.mexc.com/register?inviteCode=mexc-1FQ1GNu1',
             ),
             'api' => array(
                 'spot' => array(
@@ -218,6 +218,7 @@ class mexc extends Exchange {
                             'sub-account/margin' => 1,
                             'batchOrders' => 10,
                             'capital/withdraw/apply' => 1,
+                            'capital/withdraw' => 1,
                             'capital/transfer' => 1,
                             'capital/transfer/internal' => 1,
                             'capital/deposit/address' => 1,
@@ -236,6 +237,7 @@ class mexc extends Exchange {
                             'margin/order' => 1,
                             'margin/openOrders' => 1,
                             'userDataStream' => 1,
+                            'capital/withdraw' => 1,
                         ),
                     ),
                 ),
@@ -1058,7 +1060,7 @@ class mexc extends Exchange {
             $chains = $this->safe_value($currency, 'networkList', array());
             for ($j = 0; $j < count($chains); $j++) {
                 $chain = $chains[$j];
-                $networkId = $this->safe_string($chain, 'network');
+                $networkId = $this->safe_string_2($chain, 'network', 'netWork');
                 $network = $this->network_id_to_code($networkId);
                 $isDepositEnabled = $this->safe_bool($chain, 'depositEnable', false);
                 $isWithdrawEnabled = $this->safe_bool($chain, 'withdrawEnable', false);
@@ -1552,7 +1554,7 @@ class mexc extends Exchange {
         return $this->parse_trades($trades, $market, $since, $limit);
     }
 
-    public function parse_trade($trade, ?array $market = null): array {
+    public function parse_trade(array $trade, ?array $market = null): array {
         $id = null;
         $timestamp = null;
         $orderId = null;
@@ -2385,7 +2387,7 @@ class mexc extends Exchange {
         //     array("success":true,"code":0,"data":259208506303929856)
         //
         $data = $this->safe_string($response, 'data');
-        return $this->parse_order($data, $market);
+        return $this->safe_order(array( 'id' => $data ), $market);
     }
 
     public function create_orders(array $orders, $params = array ()) {
@@ -3158,7 +3160,7 @@ class mexc extends Exchange {
         }
     }
 
-    public function parse_order($order, ?array $market = null): array {
+    public function parse_order(array $order, ?array $market = null): array {
         //
         // spot => createOrder
         //
@@ -3389,7 +3391,7 @@ class mexc extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_order_status($status) {
+    public function parse_order_status(?string $status) {
         $statuses = array(
             'NEW' => 'open',
             'FILLED' => 'closed',
@@ -4225,7 +4227,7 @@ class mexc extends Exchange {
         return $this->filter_by_symbol_since_limit($sorted, $market['symbol'], $since, $limit);
     }
 
-    public function fetch_leverage_tiers(?array $symbols = null, $params = array ()) {
+    public function fetch_leverage_tiers(?array $symbols = null, $params = array ()): array {
         /**
          * retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes, if a market has a leverage tier of 0, then the leverage tiers cannot be obtained for this market
          * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-the-contract-information
@@ -4285,7 +4287,7 @@ class mexc extends Exchange {
         return $this->parse_leverage_tiers($data, $symbols, 'symbol');
     }
 
-    public function parse_market_leverage_tiers($info, ?array $market = null) {
+    public function parse_market_leverage_tiers($info, ?array $market = null): array {
         //
         //    {
         //        "symbol" => "BTC_USDT",
@@ -4338,8 +4340,8 @@ class mexc extends Exchange {
                 array(
                     'tier' => 0,
                     'currency' => $this->safe_currency_code($quoteId),
-                    'notionalFloor' => null,
-                    'notionalCap' => null,
+                    'minNotional' => null,
+                    'maxNotional' => null,
                     'maintenanceMarginRate' => null,
                     'maxLeverage' => $this->safe_number($info, 'maxLeverage'),
                     'info' => $info,
@@ -4351,8 +4353,8 @@ class mexc extends Exchange {
             $tiers[] = array(
                 'tier' => $this->parse_number(Precise::string_div($cap, $riskIncrVol)),
                 'currency' => $this->safe_currency_code($quoteId),
-                'notionalFloor' => $this->parse_number($floor),
-                'notionalCap' => $this->parse_number($cap),
+                'minNotional' => $this->parse_number($floor),
+                'maxNotional' => $this->parse_number($cap),
                 'maintenanceMarginRate' => $this->parse_number($maintenanceMarginRate),
                 'maxLeverage' => $this->parse_number(Precise::string_div('1', $initialMarginRate)),
                 'info' => $info,
@@ -4603,7 +4605,7 @@ class mexc extends Exchange {
         return $this->parse_transactions($response, $currency, $since, $limit);
     }
 
-    public function parse_transaction($transaction, ?array $currency = null): array {
+    public function parse_transaction(array $transaction, ?array $currency = null): array {
         //
         // fetchDeposits
         //
@@ -4785,7 +4787,7 @@ class mexc extends Exchange {
         return $this->parse_positions($data, $symbols);
     }
 
-    public function parse_position($position, ?array $market = null) {
+    public function parse_position(array $position, ?array $market = null) {
         //
         // fetchPositions
         //
@@ -5140,7 +5142,7 @@ class mexc extends Exchange {
     public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()) {
         /**
          * make a withdrawal
-         * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#withdraw
+         * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#withdraw-new
          * @param {string} $code unified $currency $code
          * @param {float} $amount the $amount to withdraw
          * @param {string} $address the $address to withdraw to
@@ -5150,7 +5152,7 @@ class mexc extends Exchange {
          */
         list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
         $networks = $this->safe_value($this->options, 'networks', array());
-        $network = $this->safe_string_2($params, 'network', 'chain'); // this line allows the user to specify either ERC20 or ETH
+        $network = $this->safe_string_2($params, 'network', 'netWork'); // this line allows the user to specify either ERC20 or ETH
         $network = $this->safe_string($networks, $network, $network); // handle ETH > ERC-20 alias
         $this->check_address($address);
         $this->load_markets();
@@ -5164,10 +5166,10 @@ class mexc extends Exchange {
             $request['memo'] = $tag;
         }
         if ($network !== null) {
-            $request['network'] = $network;
-            $params = $this->omit($params, array( 'network', 'chain' ));
+            $request['netWork'] = $network;
+            $params = $this->omit($params, array( 'network', 'netWork' ));
         }
-        $response = $this->spotPrivatePostCapitalWithdrawApply ($this->extend($request, $params));
+        $response = $this->spotPrivatePostCapitalWithdraw ($this->extend($request, $params));
         //
         //     {
         //       "id":"7213fea8e94b4a5593d507237e5a555b"
@@ -5623,7 +5625,7 @@ class mexc extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
         if ($response === null) {
             return null;
         }

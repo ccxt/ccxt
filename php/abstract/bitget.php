@@ -800,7 +800,7 @@ abstract class bitget extends \ccxt\Exchange {
         return $this->request('v2/mix/account/set-position-mode', array('private', 'mix'), 'POST', $params, null, null, array("cost" => 4));
     }
     public function private_mix_post_v2_mix_order_place_order($params = array()) {
-        return $this->request('v2/mix/order/place-order', array('private', 'mix'), 'POST', $params, null, null, array("cost" => 20));
+        return $this->request('v2/mix/order/place-order', array('private', 'mix'), 'POST', $params, null, null, array("cost" => 2));
     }
     public function private_mix_post_v2_mix_order_click_backhand($params = array()) {
         return $this->request('v2/mix/order/click-backhand', array('private', 'mix'), 'POST', $params, null, null, array("cost" => 20));
@@ -2312,7 +2312,7 @@ abstract class bitget extends \ccxt\Exchange {
         return $this->request('v2/mix/account/set-position-mode', array('private', 'mix'), 'POST', $params, null, null, array("cost" => 4));
     }
     public function privateMixPostV2MixOrderPlaceOrder($params = array()) {
-        return $this->request('v2/mix/order/place-order', array('private', 'mix'), 'POST', $params, null, null, array("cost" => 20));
+        return $this->request('v2/mix/order/place-order', array('private', 'mix'), 'POST', $params, null, null, array("cost" => 2));
     }
     public function privateMixPostV2MixOrderClickBackhand($params = array()) {
         return $this->request('v2/mix/order/click-backhand', array('private', 'mix'), 'POST', $params, null, null, array("cost" => 20));

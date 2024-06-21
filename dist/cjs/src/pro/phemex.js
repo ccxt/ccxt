@@ -706,11 +706,11 @@ class phemex extends phemex$1 {
             client.resolve(orderbook, messageHash);
         }
         else {
-            const orderbook = this.safeValue(this.orderbooks, symbol);
-            if (orderbook !== undefined) {
-                const changes = this.safeValue2(message, 'book', 'orderbook_p', {});
-                const asks = this.safeValue(changes, 'asks', []);
-                const bids = this.safeValue(changes, 'bids', []);
+            if (symbol in this.orderbooks) {
+                const orderbook = this.orderbooks[symbol];
+                const changes = this.safeDict2(message, 'book', 'orderbook_p', {});
+                const asks = this.safeList(changes, 'asks', []);
+                const bids = this.safeList(changes, 'bids', []);
                 this.customHandleDeltas(orderbook['asks'], asks, market);
                 this.customHandleDeltas(orderbook['bids'], bids, market);
                 orderbook['nonce'] = nonce;
