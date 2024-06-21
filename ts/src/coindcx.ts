@@ -5,7 +5,7 @@ import Exchange from './abstract/coindcx.js';
 import { ArgumentsRequired, NotSupported } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { Balances, Dict, IndexType, Int, Market, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade } from './base/types.js';
+import type { Balances, Dict, IndexType, Int, MarginModification, Market, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -193,14 +193,17 @@ export default class coindcx extends Exchange {
                         'exchange/v1/margin/create': 1, // done
                         'exchange/v1/margin/cancel': 1, // done
                         'exchange/v1/margin/exit': 1,
-                        'exchange/v1/margin/edit_target': 1,
+                        'exchange/v1/margin/edit_target': 1, // done todo check
                         'exchange/v1/margin/edit_price_of_target_order': 1,
                         'exchange/v1/margin/edit_sl': 1,
                         'exchange/v1/margin/edit_trailing_sl': 1,
-                        'exchange/v1/margin/add_margin': 1,
-                        'exchange/v1/margin/remove_margin': 1,
+                        'exchange/v1/margin/add_margin': 1, // done todo check
+                        'exchange/v1/margin/remove_margin': 1, // done todo check
                         'exchange/v1/margin/fetch_orders': 1, // done
                         'exchange/v1/margin/order': 1, // done
+                        'exchange/v1/derivatives/futures/positions/add_margin': 1, // done todo check
+                        'exchange/v1/derivatives/futures/positions/remove_margin': 1, // done todo check
+                        'exchange/v1/derivatives/futures/positions/exit': 1,
                     },
                 },
             },
@@ -811,7 +814,7 @@ export default class coindcx extends Exchange {
             }
             return this.createContractOrder (symbol, type, side, amount, price, params);
         } else {
-            throw new NotSupported (this.id + ' createOrder() does not support ' + marketType + ' orders');
+            throw new NotSupported (this.id + ' createOrder() does not support ' + marketType + ' markets');
         }
     }
 
@@ -1741,12 +1744,12 @@ export default class coindcx extends Exchange {
          * @see https://docs.coindcx.com/#edit-price-of-target-order
          * @see https://docs.coindcx.com/#edit-sl-price
          * @see https://docs.coindcx.com/#edit-sl-price-of-trailing-stop-loss
-         * @param {string} id cancel order id
+         * @param {string} id order id
          * @param {string} symbol not used by coindcx
          * @param {string} type not used by coindcx
          * @param {string} side not used by coindcx
          * @param {float} amount not used by coindcx
-         * @param {float} [price] the price at which the order is to be fullfilled, in units of the base currency, ignored in market orders
+         * @param {float} [price] the price at which the order is to be fullfilled, in units of the base currency
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {string} [params.type] 'spot', 'margin', 'future' or 'swap'
          * @param {bool} [params.margin] *for spot markets only* true for fetching a margin orders
@@ -1767,8 +1770,14 @@ export default class coindcx extends Exchange {
         if (isMargin && (marketType === 'spot')) {
             marketType = 'margin';
         }
+        const clientOrderId = this.safeString2 (params, 'clientOrderId', 'client_order_id');
+        if ((clientOrderId !== undefined) && (marketType !== 'spot')) {
+            throw new NotSupported (this.id + ' createOrder() supports params.clientOrderId for spot markets without margin only');
+        }
         if (marketType === 'spot') {
             return await this.editSpotOrder (id, symbol, type, side, amount, price, params);
+        } else if (marketType === 'margin') {
+            return await this.editMarginOrder (id, symbol, type, side, amount, price, params); // todo check for stopPrice
         } else {
             throw new NotSupported (this.id + ' EditOrder is not supported for ' + marketType + ' markets'); // todo implement this method for contract markets
         }
@@ -1779,13 +1788,16 @@ export default class coindcx extends Exchange {
          * @method
          * @name coindcx#editSpotOrder
          * @description edit a trade order
-         * @see https://docs.coindcx.com/#edit-price
-         * @param {string} id cancel order id
+         * @see https://docs.coindcx.com/#edit-target
+         * @see https://docs.coindcx.com/#edit-price-of-target-order
+         * @see https://docs.coindcx.com/#edit-sl-price
+         * @see https://docs.coindcx.com/#edit-sl-price-of-trailing-stop-loss
+         * @param {string} id order id
          * @param {string} symbol not used by coindcx
          * @param {string} type not used by coindcx
          * @param {string} side not used by coindcx
          * @param {float} amount not used by coindcx
-         * @param {float} [price] the price at which the order is to be fullfilled, in units of the base currency, ignored in market orders
+         * @param {float} [price] the price at which the order is to be fullfilled, in units of the base currency
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {string} [params.clientOrderId] a unique id for the order
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -1809,6 +1821,42 @@ export default class coindcx extends Exchange {
         const response = await this.privatePostExchangeV1OrdersEdit (this.extend (request, params));
         // {"code":422,"message":"Edit order is not available yet for this exchange","status":"error"}
         return this.parseOrder (response, market);
+    }
+
+    async editMarginOrder (id: string, symbol: string, type:OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params = {}) {
+        /**
+         * @method
+         * @name coindcx#editSpotOrder
+         * @description edit a trade order
+         * @see https://docs.coindcx.com/#edit-price
+         * @param {string} id order id
+         * @param {string} symbol not used by coindcx
+         * @param {string} type not used by coindcx
+         * @param {string} side not used by coindcx
+         * @param {float} amount not used by coindcx
+         * @param {float} [price] the price at which the order is to be fullfilled, in units of the base currency
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        let market: Market = undefined;
+        let priceString = price.toString ();
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            priceString = this.priceToPrecision (market['symbol'], price);
+        }
+        const request: Dict = {
+            'id': id,
+            'price_per_unit': priceString,
+        };
+        const response = await this.privatePostExchangeV1OrdersEdit (this.extend (request, params));
+        //
+        //     {
+        //         "message": "Target price updated",
+        //         "status": 200,
+        //         "code": 200
+        //     }
+        //
+        return this.parseOrder (response);
     }
 
     parseOrder (order, market: Market = undefined): Order {
@@ -1965,6 +2013,99 @@ export default class coindcx extends Exchange {
             'fill_or_kill': 'FOK',
         };
         return this.safeString (types, type, type);
+    }
+
+    async addMargin (symbol: string, amount: number, params = {}): Promise<MarginModification> {
+        /**
+         * @method
+         * @name coindcx#addMargin
+         * @description add margin
+         * @see https://docs.coindcx.com/#add-margin
+         * @see https://docs.coindcx.com/#add-margin-2
+         * @param {string} symbol unified market symbol
+         * @param {float} amount amount of margin to add
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.id] *mandatory* the ID of Margin Order (position)
+         * @returns {object} a [margin structure]{@link https://docs.ccxt.com/#/?id=add-margin-structure}
+         */
+        return await this.modifyMarginHelper (symbol, amount, 'add', params);
+    }
+
+    async reduceMargin (symbol: string, amount: number, params = {}): Promise<MarginModification> {
+        /**
+         * @method
+         * @name coindcx#reduceMargin
+         * @see https://docs.coindcx.com/?python#remove-margin
+         * @see https://docs.coindcx.com/#remove-margin-2
+         * @description remove margin from a position
+         * @param {string} symbol unified market symbol
+         * @param {float} amount the amount of margin to remove
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.id] *mandatory* the ID of Margin Order (position)
+         * @returns {object} a [margin structure]{@link https://docs.ccxt.com/#/?id=reduce-margin-structure}
+         */
+        return await this.modifyMarginHelper (symbol, amount, 'reduce', params);
+    }
+
+    async modifyMarginHelper (symbol: string, amount, type, params = {}): Promise<MarginModification> {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const id = this.safeString (params, 'id');
+        if (id === undefined) {
+            throw new ArgumentsRequired (this.id + ' addMargin() and reduceMargin() require a params.id argument');
+        }
+        const request: Dict = {
+            'amount': amount,
+        };
+        if (market['spot']) {
+            if (type === 'add') {
+                return await this.privatePostExchangeV1MarginAddMargin (this.extend (request, params));
+            } else if (type === 'reduce') {
+                return await this.privatePostExchangeV1MarginRemoveMargin (this.extend (request, params));
+            } else {
+                throw new NotSupported (this.id + ' modifyMarginHelper does not support a ' + type + ' type');
+            }
+        } else if (market['future'] || market['swap']) {
+            if (type === 'add') {
+                return await this.privatePostExchangeV1DerivativesFuturesPositionsAddMargin (this.extend (request, params));
+            } else if (type === 'reduce') {
+                return await this.privatePostExchangeV1DerivativesFuturesPositionsRemoveMargin (this.extend (request, params));
+            } else {
+                throw new NotSupported (this.id + ' modifyMarginHelper does not support a ' + type + ' type');
+            }
+        } else {
+            throw new NotSupported (this.id + ' modifyMarginHelper() does not support ' + market['type'] + ' markets');
+        }
+    }
+
+    async closePosition (symbol: string, side: OrderSide = undefined, params = {}): Promise<Order> {
+        /**
+         * @method
+         * @name coindcx#closePosition
+         * @description closes open positions for a market
+         * @see https://docs.coindcx.com/#exit
+         * @see https://docs.coindcx.com/#exit-position
+         * @param {string} symbol Unified CCXT market symbol
+         * @param {string} [side] not used by coinbase
+         * @param {object} [params] extra parameters specific to the coinbase api endpoint
+         * @param {string}  params.id *mandatory* the ID of Margin Order (position)
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const id = this.safeString (params, 'id');
+        if (id === undefined) {
+            throw new ArgumentsRequired (this.id + ' closePosition() requires a params.id argument');
+        }
+        if (market['spot']) {
+            const response = await this.privatePostExchangeV1MarginExit (params);
+            return this.parseOrder (response);
+        } else if (market['future'] || market['swap']) {
+            const response = await this.privatePostExchangeV1DerivativesFuturesPositionsExit (params);
+            return this.parseOrder (response);
+        } else {
+            throw new NotSupported (this.id + ' closePosition() does not support ' + market['type'] + ' markets');
+        }
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
