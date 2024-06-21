@@ -138,7 +138,7 @@ export default class xt extends xtRest {
         const tradeType = isContract ? 'contract' : 'spot';
         let messageHash = name + '::' + tradeType;
         if (symbols !== undefined) {
-            messageHash = messageHash + '::' + symbols.join ();
+            messageHash = messageHash + '::' + symbols.join (',');
         }
         const request = this.extend (subscribe, params);
         let tail = access;
