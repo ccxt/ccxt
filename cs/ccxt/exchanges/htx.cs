@@ -4040,10 +4040,10 @@ public partial class htx : Exchange
             { "status", "0" },
         };
         object response = null;
-        object stop = this.safeValue(parameters, "stop");
+        object stop = this.safeBool2(parameters, "stop", "trigger");
         object stopLossTakeProfit = this.safeValue(parameters, "stopLossTakeProfit");
         object trailing = this.safeBool(parameters, "trailing", false);
-        parameters = this.omit(parameters, new List<object>() {"stop", "stopLossTakeProfit", "trailing"});
+        parameters = this.omit(parameters, new List<object>() {"stop", "stopLossTakeProfit", "trailing", "trigger"});
         if (isTrue(isTrue(isTrue(stop) || isTrue(stopLossTakeProfit)) || isTrue(trailing)))
         {
             if (isTrue(!isEqual(limit, null)))
@@ -4465,10 +4465,10 @@ public partial class htx : Exchange
                 ((IDictionary<string,object>)request)["page_size"] = limit;
             }
             ((IDictionary<string,object>)request)["contract_code"] = getValue(market, "id");
-            object stop = this.safeValue(parameters, "stop");
+            object stop = this.safeBool2(parameters, "stop", "trigger");
             object stopLossTakeProfit = this.safeValue(parameters, "stopLossTakeProfit");
             object trailing = this.safeBool(parameters, "trailing", false);
-            parameters = this.omit(parameters, new List<object>() {"stop", "stopLossTakeProfit", "trailing"});
+            parameters = this.omit(parameters, new List<object>() {"stop", "stopLossTakeProfit", "trailing", "trigger"});
             if (isTrue(getValue(market, "linear")))
             {
                 object marginMode = null;
@@ -5936,10 +5936,10 @@ public partial class htx : Exchange
             {
                 ((IDictionary<string,object>)request)["contract_code"] = getValue(market, "id");
             }
-            object stop = this.safeValue(parameters, "stop");
+            object stop = this.safeBool2(parameters, "stop", "trigger");
             object stopLossTakeProfit = this.safeValue(parameters, "stopLossTakeProfit");
             object trailing = this.safeBool(parameters, "trailing", false);
-            parameters = this.omit(parameters, new List<object>() {"stop", "stopLossTakeProfit", "trailing"});
+            parameters = this.omit(parameters, new List<object>() {"stop", "stopLossTakeProfit", "trailing", "trigger"});
             if (isTrue(getValue(market, "linear")))
             {
                 object marginMode = null;
@@ -6115,9 +6115,9 @@ public partial class htx : Exchange
             {
                 ((IDictionary<string,object>)request)["contract_code"] = getValue(market, "id");
             }
-            object stop = this.safeValue(parameters, "stop");
+            object stop = this.safeBool2(parameters, "stop", "trigger");
             object stopLossTakeProfit = this.safeValue(parameters, "stopLossTakeProfit");
-            parameters = this.omit(parameters, new List<object>() {"stop", "stopLossTakeProfit"});
+            parameters = this.omit(parameters, new List<object>() {"stop", "stopLossTakeProfit", "trigger"});
             if (isTrue(getValue(market, "linear")))
             {
                 object marginMode = null;
@@ -6280,10 +6280,10 @@ public partial class htx : Exchange
                 ((IDictionary<string,object>)request)["symbol"] = getValue(market, "settleId");
             }
             ((IDictionary<string,object>)request)["contract_code"] = getValue(market, "id");
-            object stop = this.safeValue(parameters, "stop");
+            object stop = this.safeBool2(parameters, "stop", "trigger");
             object stopLossTakeProfit = this.safeValue(parameters, "stopLossTakeProfit");
             object trailing = this.safeBool(parameters, "trailing", false);
-            parameters = this.omit(parameters, new List<object>() {"stop", "stopLossTakeProfit", "trailing"});
+            parameters = this.omit(parameters, new List<object>() {"stop", "stopLossTakeProfit", "trailing", "trigger"});
             if (isTrue(getValue(market, "linear")))
             {
                 object marginMode = null;

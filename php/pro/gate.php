@@ -236,8 +236,8 @@ class gate extends \ccxt\async\gate {
              */
             Async\await($this->load_markets());
             $market = ($symbol === null) ? null : $this->market($symbol);
-            $stop = $this->safe_value_2($params, 'is_stop_order', 'stop', false);
-            $params = $this->omit($params, array( 'is_stop_order', 'stop' ));
+            $stop = $this->safe_value_n($params, array( 'is_stop_order', 'stop', 'trigger' ), false);
+            $params = $this->omit($params, array( 'is_stop_order', 'stop', 'trigger' ));
             list($type, $query) = $this->handle_market_type_and_params('cancelOrder', $market, $params);
             list($request, $requestParams) = ($type === 'spot' || $type === 'margin') ? $this->spotOrderPrepareRequest ($market, $stop, $query) : $this->prepareRequest ($market, $type, $query);
             $messageType = $this->get_type_by_market($market);

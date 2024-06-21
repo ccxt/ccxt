@@ -227,8 +227,8 @@ class gate(ccxt.async_support.gate):
         """
         await self.load_markets()
         market = None if (symbol is None) else self.market(symbol)
-        stop = self.safe_value_2(params, 'is_stop_order', 'stop', False)
-        params = self.omit(params, ['is_stop_order', 'stop'])
+        stop = self.safe_value_n(params, ['is_stop_order', 'stop', 'trigger'], False)
+        params = self.omit(params, ['is_stop_order', 'stop', 'trigger'])
         type, query = self.handle_market_type_and_params('cancelOrder', market, params)
         request, requestParams = self.spotOrderPrepareRequest(market, stop, query) if (type == 'spot' or type == 'margin') else self.prepareRequest(market, type, query)
         messageType = self.get_type_by_market(market)

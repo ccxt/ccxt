@@ -1737,7 +1737,7 @@ class kucoinfutures extends kucoin {
         if ($paginate) {
             return $this->fetch_paginated_call_dynamic('fetchOrdersByStatus', $symbol, $since, $limit, $params);
         }
-        $stop = $this->safe_value_2($params, 'stop', 'trigger');
+        $stop = $this->safe_bool_2($params, 'stop', 'trigger');
         $until = $this->safe_integer($params, 'until');
         $params = $this->omit($params, array( 'stop', 'until', 'trigger' ));
         if ($status === 'closed') {
