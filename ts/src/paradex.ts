@@ -1121,7 +1121,7 @@ export default class paradex extends Exchange {
         }
         params = this.omit (params, [ 'reduceOnly', 'reduce_only', 'clOrdID', 'clientOrderId', 'client_order_id', 'postOnly', 'timeInForce', 'stopPrice', 'triggerPrice' ]);
         const account = await this.retrieveAccount ();
-        const short = (str) => '0x' + str.replace(/./g, (char) => char.charCodeAt(0).toString(16))
+        const short = (str) => '0x' + str.replace (/./g, (char) => char.charCodeAt (0).toString (16));
         const now = this.nonce ();
         const orderReq = {
             'timestamp': now * 1000,
