@@ -1417,6 +1417,63 @@ export default class paradex extends Exchange {
         });
     }
 
+    async fetchLiquidations (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
+        /**
+         * @method
+         * @name paradex#fetchLiquidations
+         * @description retrieves the public liquidations of a trading pair
+         * @see https://docs.api.prod.paradex.trade/#list-liquidations
+         * @param {string} symbol unified CCXT market symbol
+         * @param {int} [since] the earliest time in ms to fetch liquidations for
+         * @param {int} [limit] the maximum number of liquidation structures to retrieve
+         * @param {object} [params] exchange specific parameters for the huobi api endpoint
+         * @param {int} [params.until] timestamp in ms of the latest liquidation
+         * @returns {object} an array of [liquidation structures]{@link https://docs.ccxt.com/#/?id=liquidation-structure}
+         */
+        await this.authenticateRest ();
+        let request: Dict = {};
+        if (since !== undefined) {
+            request['from'] = since;
+        } else {
+            request['from'] = 1;
+        }
+        [ request, params ] = this.handleUntilOption ('to', request, params);
+        const response = await this.privateGetLiquidations (this.extend (request, params));
+        //
+        //     {
+        //         "results": [
+        //             {
+        //                 "created_at": 1697213130097,
+        //                 "id": "0x123456789"
+        //             }
+        //         ]
+        //     }
+        //
+        const data = this.safeList (response, 'results', []);
+        return this.parseLiquidations (data, undefined, since, limit);
+    }
+
+    parseLiquidation (liquidation, market: Market = undefined) {
+        //
+        //     {
+        //         "created_at": 1697213130097,
+        //         "id": "0x123456789"
+        //     }
+        //
+        const timestamp = this.safeInteger (liquidation, 'created_at');
+        return this.safeLiquidation ({
+            'info': liquidation,
+            'symbol': undefined,
+            'contracts': undefined,
+            'contractSize': undefined,
+            'price': undefined,
+            'baseValue': undefined,
+            'quoteValue': undefined,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+        });
+    }
+
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.implodeHostname (this.urls['api'][this.version]) + '/' + this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
