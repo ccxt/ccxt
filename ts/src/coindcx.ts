@@ -41,6 +41,7 @@ export default class coindcx extends Exchange {
                 'createMarketOrderWithCost': false,
                 'createMarketSellOrderWithCost': false,
                 'createOrder': true,
+                'createOrders': true,
                 'createPostOnlyOrder': false,
                 'createReduceOnlyOrder': false,
                 'createStopLimitOrder': false,
@@ -176,7 +177,7 @@ export default class coindcx extends Exchange {
                         'exchange/v1/users/balances': 1, // done
                         'exchange/v1/users/info': 1, // not implemented
                         'exchange/v1/orders/create': 1, // done
-                        'exchange/v1/orders/create_multiple': 1,
+                        'exchange/v1/orders/create_multiple': 1, // done
                         'exchange/v1/orders/status': 1, // done
                         'exchange/v1/orders/status_multiple': 1, // done
                         'exchange/v1/orders/active_orders': 1, // done
@@ -185,7 +186,7 @@ export default class coindcx extends Exchange {
                         'exchange/v1/orders/cancel_all': 1, // done
                         'exchange/v1/orders/cancel_by_ids': 1, // done
                         'exchange/v1/orders/cancel': 1, // done
-                        'exchange/v1/orders/edit': 1,
+                        'exchange/v1/orders/edit': 1, // done
                         'exchange/v1/funding/fetch_orders': 1,
                         'exchange/v1/funding/lend': 1,
                         'exchange/v1/funding/settle': 1,
@@ -897,9 +898,7 @@ export default class coindcx extends Exchange {
         const isMultiple = this.safeBool (params, 'multiple');
         params = this.omit (params, 'multiple');
         if (isMultiple) {
-            const marketInfo = this.safeDict (market, 'info', {});
-            const ecode = this.safeString (marketInfo, 'ecode');
-            request['ecode'] = ecode;
+            request['ecode'] = 'I';
         }
         return this.extend (request, params);
     }
@@ -1075,15 +1074,84 @@ export default class coindcx extends Exchange {
         /**
          * @method
          * @name coindcx#createOrders
-         * @description create a list of trade orders
+         * @description create a list of trade orders, for spot markets without margin only
          * @see https://docs.coindcx.com/#create-multiple-orders
          * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {string} [params.type] 'spot', 'margin', 'future' or 'swap'
          * @param {bool} [params.margin] *for spot markets only* true for creating a margin order
-         * @param {string} [params.clientOrderId] *for spot markets without margin only* a unique id for the order
+         * @param {string} [params.clientOrderId] a unique id for the order
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
+        await this.loadMarkets ();
+        let marketType = 'spot';
+        [ marketType, params ] = this.handleMarketTypeAndParams ('createOrders', undefined, params, 'spot');
+        let isMargin = this.safeBool (params, 'margin', false);
+        params = this.omit (params, 'margin');
+        if ((marketType !== 'spot') || isMargin) {
+            throw new NotSupported (this.id + ' createOrders is not supported for ' + marketType + ' markets (for spot markets without margin only)');
+        }
+        const encodedOrders = [];
+        for (let i = 0; i < orders.length; i++) {
+            const order = orders[i];
+            const symbol = this.safeString (order, 'symbol');
+            let type = this.safeString (order, 'type');
+            type = this.encodeSpotOrderType (type);
+            const side = this.safeString (order, 'side');
+            const amount = this.safeNumber (order, 'amount'); // todo check
+            const price = this.safeNumber (order, 'price'); // todo check
+            let orderParams = this.safeDict (order, 'params');
+            const market = this.market (symbol);
+            [ marketType, orderParams ] = this.handleMarketTypeAndParams ('createOrders', market, orderParams, 'spot');
+            isMargin = this.safeBool (orderParams, 'margin', false);
+            orderParams = this.omit (orderParams, 'margin');
+            if ((marketType !== 'spot') || isMargin) {
+                throw new NotSupported (this.id + ' createOrders is not supported for ' + marketType + ' markets (for spot markets without margin only)');
+            }
+            const requestParams = this.extend (orderParams, { 'multiple': true });
+            const encodedOrder = this.createSpotOrderRequest (symbol, type, side, amount, price, requestParams);
+            encodedOrders.push (encodedOrder);
+        }
+        const request: Dict = {
+            'orders': encodedOrders,
+        };
+        const response = await this.privatePostExchangeV1OrdersCreateMultiple (this.extend (request, params));
+        //
+        //     {
+        //         "orders": [
+        //             {
+        //                 "id": "a00ffbfe-2fcb-11ef-bd96-e742b7985dd8",
+        //                 "client_order_id": null,
+        //                 "order_type": "market_order",
+        //                 "side": "sell",
+        //                 "status": "open",
+        //                 "fee_amount": 0.0,
+        //                 "fee": 5.0,
+        //                 "maker_fee": 5.0,
+        //                 "taker_fee": 5.0,
+        //                 "total_quantity": 10.0,
+        //                 "remaining_quantity": 10.0,
+        //                 "source": "web",
+        //                 "base_currency_name": null,
+        //                 "target_currency_name": null,
+        //                 "base_currency_short_name": null,
+        //                 "target_currency_short_name": null,
+        //                 "base_currency_precision": null,
+        //                 "target_currency_precision": null,
+        //                 "avg_price": 0.0,
+        //                 "price_per_unit": 0.0,
+        //                 "stop_price": 0.0,
+        //                 "market": "USDTINR",
+        //                 "time_in_force": "good_till_cancel",
+        //                 "created_at": 1718973708000,
+        //                 "updated_at": 1718973708000,
+        //                 "trades": null
+        //             }
+        //         ]
+        //     }
+        //
+        const ordersFromResponse = this.safeList (response, 'orders', []); // todo throw an exception for bad orders
+        return this.parseOrders (ordersFromResponse);
     }
 
     async fetchOrder (id: string, symbol: Str = undefined, params = {}): Promise<Order> {
