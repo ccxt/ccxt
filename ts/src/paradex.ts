@@ -1299,6 +1299,124 @@ export default class paradex extends Exchange {
         return this.parseTrades (trades, market, since, limit);
     }
 
+    async fetchPosition (symbol: string, params = {}) {
+        /**
+         * @method
+         * @name paradex#fetchPositions
+         * @description fetch data on an open position
+         * @see https://docs.api.prod.paradex.trade/#list-open-positions
+         * @param {string} symbol unified market symbol of the market the position is held in
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+         */
+        await this.authenticateRest ();
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const positions = await this.fetchPositions ([ market['symbol'] ], params);
+        return positions[0];
+    }
+
+    async fetchPositions (symbols: Strings = undefined, params = {}) {
+        /**
+         * @method
+         * @name paradex#fetchPositions
+         * @description fetch all open positions
+         * @see https://docs.api.prod.paradex.trade/#list-open-positions
+         * @param {string[]} [symbols] list of unified market symbols
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+         */
+        await this.authenticateRest ();
+        await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols);
+        const response = await this.privateGetPositions ();
+        //
+        //     {
+        //         "results": [
+        //             {
+        //                 "id": "0x49ddd7a564c978f6e4089ff8355b56a42b7e2d48ba282cb5aad60f04bea0ec3-BTC-USD-PERP",
+        //                 "market": "BTC-USD-PERP",
+        //                 "status": "OPEN",
+        //                 "side": "LONG",
+        //                 "size": "0.01",
+        //                 "average_entry_price": "64839.96053748",
+        //                 "average_entry_price_usd": "64852.9",
+        //                 "realized_pnl": "0",
+        //                 "unrealized_pnl": "-2.39677214",
+        //                 "unrealized_funding_pnl": "-0.11214013",
+        //                 "cost": "648.39960537",
+        //                 "cost_usd": "648.529",
+        //                 "cached_funding_index": "35202.1002351",
+        //                 "last_updated_at": 1718950074249,
+        //                 "last_fill_id": "1718947571560201703986670001",
+        //                 "seq_no": 1718950074249176253,
+        //                 "liquidation_price": ""
+        //             }
+        //         ]
+        //     }
+        //
+        const data = this.safeList (response, 'results', []);
+        return this.parsePositions (data, symbols);
+    }
+
+    parsePosition (position: Dict, market: Market = undefined) {
+        //
+        //     {
+        //         "id": "0x49ddd7a564c978f6e4089ff8355b56a42b7e2d48ba282cb5aad60f04bea0ec3-BTC-USD-PERP",
+        //         "market": "BTC-USD-PERP",
+        //         "status": "OPEN",
+        //         "side": "LONG",
+        //         "size": "0.01",
+        //         "average_entry_price": "64839.96053748",
+        //         "average_entry_price_usd": "64852.9",
+        //         "realized_pnl": "0",
+        //         "unrealized_pnl": "-2.39677214",
+        //         "unrealized_funding_pnl": "-0.11214013",
+        //         "cost": "648.39960537",
+        //         "cost_usd": "648.529",
+        //         "cached_funding_index": "35202.1002351",
+        //         "last_updated_at": 1718950074249,
+        //         "last_fill_id": "1718947571560201703986670001",
+        //         "seq_no": 1718950074249176253,
+        //         "liquidation_price": ""
+        //     }
+        //
+        const marketId = this.safeString (position, 'market');
+        market = this.safeMarket (marketId, market);
+        const symbol = market['symbol'];
+        const side = this.safeStringLower (position, 'side');
+        let quantity = this.safeString (position, 'size');
+        if (side !== 'long') {
+            quantity = Precise.stringMul ('-1', quantity);
+        }
+        const timestamp = this.safeInteger (position, 'time');
+        return this.safePosition ({
+            'info': position,
+            'id': this.safeString (position, 'id'),
+            'symbol': symbol,
+            'entryPrice': this.safeNumber (position, 'average_entry_price'),
+            'markPrice': undefined,
+            'notional': undefined,
+            'collateral': this.safeNumber (position, 'cost'),
+            'unrealizedPnl': this.safeNumber (position, 'unrealized_pnl'),
+            'side': side,
+            'contracts': this.parseNumber (quantity),
+            'contractSize': undefined,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'hedged': undefined,
+            'maintenanceMargin': undefined,
+            'maintenanceMarginPercentage': undefined,
+            'initialMargin': undefined,
+            'initialMarginPercentage': undefined,
+            'leverage': undefined,
+            'liquidationPrice': undefined,
+            'marginRatio': undefined,
+            'marginMode': undefined,
+            'percentage': undefined,
+        });
+    }
+
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.implodeHostname (this.urls['api'][this.version]) + '/' + this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
