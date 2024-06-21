@@ -3,7 +3,7 @@
 
 import Exchange from './abstract/coindcx.js';
 import { ArgumentsRequired, NotSupported } from './base/errors.js';
-import { DECIMAL_PLACES } from './base/functions/number.js';
+import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import type { Balances, Dict, IndexType, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade } from './base/types.js';
 
@@ -212,7 +212,7 @@ export default class coindcx extends Exchange {
                     'maker': this.parseNumber ('0'),
                 },
             },
-            'precisionMode': DECIMAL_PLACES,
+            'precisionMode': TICK_SIZE,
             // exchange-specific options
             'options': {
                 'defaultType': 'spot', // spot, margin, future or swap
@@ -287,6 +287,8 @@ export default class coindcx extends Exchange {
         const base = this.safeCurrencyCode (baseId);
         const quote = this.safeCurrencyCode (quoteId);
         const symbol = base + '/' + quote;
+        const amountPresicionString = this.parsePrecision (this.safeString (market, 'target_currency_precision'));
+        const pricePresicionString = this.parsePrecision (this.safeString (market, 'base_currency_precision'));
         let margin = false;
         let max_leverage = this.safeNumber (market, 'max_leverage');
         if (max_leverage === 0) {
@@ -327,8 +329,8 @@ export default class coindcx extends Exchange {
             'taker': this.safeNumber (market, 'taker_fee', 0), // spot markets have no fees yet
             'maker': this.safeNumber (market, 'maker_fee', 0), // spot markets have no fees yet
             'precision': {
-                'amount': this.safeInteger (market, 'target_currency_precision'),
-                'price': this.safeInteger (market, 'base_currency_precision'),
+                'amount': this.parseNumber (amountPresicionString),
+                'price': this.parseNumber (pricePresicionString),
             },
             'limits': {
                 'leverage': {
