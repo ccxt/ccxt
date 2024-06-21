@@ -80,12 +80,12 @@ build_and_test_all () {
       #   cd  ..
       # fi
     fi
-    npm run test-base
+    npm run test-base-rest
     npm run test-base-ws
     npm run id-tests
-    npm run request-all
-    npm run response-all
-    node ./utils/test-commonjs.cjs
+    npm run request-tests
+    npm run response-tests
+    npm run commonjs-test
     npm run package-test
     npm run test-freshness
     if [ "$IS_TRAVIS" = "TRUE" ] && [ "$TRAVIS_PULL_REQUEST" = "false" ]; then
@@ -200,7 +200,7 @@ npm run buildCS
 
 # run base tests (base js,py,php, brokerId )
 # npm run test-base
-npm run test-base && npm run test-base-ws && npm run id-tests
+npm run test-base-rest && npm run test-base-ws && npm run id-tests
 
 # rest_args=${REST_EXCHANGES[*]} || "skip"
 rest_args=$(IFS=" " ; echo "${REST_EXCHANGES[*]}") || "skip"
