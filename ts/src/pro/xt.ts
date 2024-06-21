@@ -396,12 +396,13 @@ export default class xt extends xtRest {
         const data = this.safeValue (message, 'data');
         const marketId = this.safeString (data, 's');
         if (marketId !== undefined) {
+            const cv = this.safeString (data, 'cv');
+            const isSpot = cv !== undefined;
             const ticker = this.parseTicker (data);
             const symbol = ticker['symbol'];
             this.tickers[symbol] = ticker;
             const event = this.safeString (message, 'event');
-            const market = this.market (symbol);
-            const messageHashTail = market['contract'] ? 'contract' : 'spot';
+            const messageHashTail = isSpot ? 'spot' : 'contract';
             const messageHash = event + '::' + messageHashTail;
             client.resolve (ticker, messageHash);
         }
