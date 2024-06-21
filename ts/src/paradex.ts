@@ -3,7 +3,7 @@
 
 import { Precise } from '../ccxt.js';
 import Exchange from './abstract/paradex.js';
-import { ExchangeError, PermissionDenied, AuthenticationError, BadRequest } from './base/errors.js';
+import { ExchangeError, PermissionDenied, AuthenticationError, BadRequest, ArgumentsRequired } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import type { Str, Num, Dict, List, Int, Market, OrderType, OrderSide, Order, OrderBook, Strings, Ticker, Tickers, Trade, Balances } from './base/types.js';
 import { ecdsa } from './base/functions/crypto.js';
@@ -1208,6 +1208,32 @@ export default class paradex extends Exchange {
         // if success, no response...
         //
         return this.parseOrder (response);
+    }
+
+    async cancelAllOrders (symbol: Str = undefined, params = {}) {
+        /**
+         * @method
+         * @name paradex#cancelAllOrders
+         * @description cancel all open orders in a market
+         * @see https://docs.api.prod.paradex.trade/#cancel-all-open-orders
+         * @param {string} symbol unified market symbol of the market to cancel orders in
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' cancelAllOrders() requires a symbol argument');
+        }
+        await this.authenticateRest ();
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request: Dict = {
+            'market': market['id'],
+        };
+        const response = await this.privateDeleteOrders (this.extend (request, params));
+        //
+        // if success, no response...
+        //
+        return response;
     }
 
     async fetchOrder (id: string, symbol: Str = undefined, params = {}) {
