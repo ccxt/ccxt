@@ -5,7 +5,7 @@ import { Precise } from '../ccxt.js';
 import Exchange from './abstract/paradex.js';
 import { ExchangeError, PermissionDenied, AuthenticationError, BadRequest } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Str, Dict, List, Int, Market, Order, OrderBook, Strings, Ticker, Tickers, Trade, Balances } from './base/types.js';
+import type { Str, Num, Dict, List, Int, Market, OrderType, OrderSide, Order, OrderBook, Strings, Ticker, Tickers, Trade, Balances } from './base/types.js';
 import { ecdsa } from './base/functions/crypto.js';
 import { keccak_256 as keccak } from './static_dependencies/noble-hashes/sha3.js';
 import { secp256k1 } from './static_dependencies/noble-curves/secp256k1.js';
