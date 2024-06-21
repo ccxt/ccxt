@@ -1210,6 +1210,59 @@ export default class paradex extends Exchange {
         return this.parseOrder (response);
     }
 
+    async fetchOrder (id: string, symbol: Str = undefined, params = {}) {
+        /**
+         * @method
+         * @name paradex#fetchOrder
+         * @description fetches information on an order made by the user
+         * @see https://docs.api.prod.paradex.trade/#get-order
+         * @param {string} id the order id
+         * @param {string} symbol unified symbol of the market the order was made in
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.clientOrderId] a unique id for the order
+         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        await this.authenticateRest ();
+        await this.loadMarkets ();
+        const request: Dict = {};
+        const clientOrderId = this.safeStringN (params, [ 'clOrdID', 'clientOrderId', 'client_order_id' ]);
+        let response = undefined;
+        if (clientOrderId !== undefined) {
+            request['client_id'] = clientOrderId;
+            response = await this.privateGetOrdersByClientIdClientId (this.extend (request, params));
+        } else {
+            request['order_id'] = id;
+            response = await this.privateGetOrdersOrderId (this.extend (request, params));
+        }
+        //
+        //     {
+        //         "id": "1718941725080201704028870000",
+        //         "account": "0x49ddd7a564c978f6e4089ff8355b56a42b7e2d48ba282cb5aad60f04bea0ec3",
+        //         "market": "BTC-USD-PERP",
+        //         "side": "SELL",
+        //         "type": "LIMIT",
+        //         "size": "10.153",
+        //         "remaining_size": "10.153",
+        //         "price": "70784.5",
+        //         "status": "CLOSED",
+        //         "created_at": 1718941725082,
+        //         "last_updated_at": 1718958002991,
+        //         "timestamp": 1718941724678,
+        //         "cancel_reason": "USER_CANCELED",
+        //         "client_id": "",
+        //         "seq_no": 1718958002991595738,
+        //         "instruction": "GTC",
+        //         "avg_fill_price": "",
+        //         "stp": "EXPIRE_TAKER",
+        //         "received_at": 1718958510959,
+        //         "published_at": 1718958510960,
+        //         "flags": [],
+        //         "trigger_price": "0"
+        //     }
+        //
+        return this.parseOrder (response);
+    }
+
     async fetchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
