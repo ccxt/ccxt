@@ -45,7 +45,7 @@ export default class paradex extends Exchange {
                 'createMarketBuyOrderWithCost': false,
                 'createMarketOrderWithCost': false,
                 'createMarketSellOrderWithCost': false,
-                'createOrder': false,
+                'createOrder': true,
                 'createOrders': false,
                 'createReduceOnlyOrder': false,
                 'editOrder': false,
@@ -1054,6 +1054,129 @@ export default class paradex extends Exchange {
             'STOP_MARKET': 'market',
         };
         return this.safeStringLower (types, type, type);
+    }
+
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
+        /**
+         * @method
+         * @name paradex#createOrder
+         * @description create a trade order
+         * @see https://docs.api.prod.paradex.trade/#create-order
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {string} type 'market' or 'limit'
+         * @param {string} side 'buy' or 'sell'
+         * @param {float} amount how much of currency you want to trade in units of base currency
+         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {float} [params.stopPrice] The price a trigger order is triggered at
+         * @param {float} [params.triggerPrice] The price a trigger order is triggered at
+         * @param {string} [params.timeInForce] "GTC", "IOC", or "POST_ONLY"
+         * @param {bool} [params.postOnly] true or false
+         * @param {bool} [params.reduceOnly] Ensures that the executed order does not flip the opened position.
+         * @param {string} [params.clientOrderId] a unique id for the order
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        await this.authenticateRest ();
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const reduceOnly = this.safeBool2 (params, 'reduceOnly', 'reduce_only');
+        const orderType = type.toUpperCase ();
+        const orderSide = side.toUpperCase ();
+        const request: Dict = {
+            'market': market['id'],
+            'side': orderSide,
+            'type': orderType, // LIMIT/MARKET/STOP_LIMIT/STOP_MARKET
+            'size': this.amountToPrecision (symbol, amount),
+        };
+        const stopPrice = this.safeString2 (params, 'triggerPrice', 'stopPrice');
+        const isMarket = orderType === 'MARKET';
+        const timeInForce = this.safeStringUpper (params, 'timeInForce');
+        const postOnly = this.isPostOnly (isMarket, undefined, params);
+        if (!isMarket) {
+            if (postOnly) {
+                request['instruction'] = 'POST_ONLY';
+            } else if (timeInForce === 'ioc') {
+                request['instruction'] = 'IOC';
+            }
+        }
+        if (reduceOnly) {
+            request['flags'] = [
+                'REDUCE_ONLY',
+            ];
+        }
+        if (price !== undefined) {
+            request['price'] = this.priceToPrecision (symbol, price);
+        }
+        const clientOrderId = this.safeStringN (params, [ 'clOrdID', 'clientOrderId', 'client_order_id' ]);
+        if (clientOrderId !== undefined) {
+            request['client_id'] = clientOrderId;
+        }
+        if (stopPrice !== undefined) {
+            if (isMarket) {
+                request['type'] = 'STOP_MARKET';
+            } else {
+                request['type'] = 'STOP_LIMIT';
+            }
+            request['trigger_price'] = this.priceToPrecision (symbol, stopPrice);
+        }
+        params = this.omit (params, [ 'reduceOnly', 'reduce_only', 'clOrdID', 'clientOrderId', 'client_order_id', 'postOnly', 'timeInForce', 'stopPrice', 'triggerPrice' ]);
+        const account = await this.retrieveAccount ();
+        const short = (str) => '0x' + str.replace(/./g, (char) => char.charCodeAt(0).toString(16))
+        const now = this.nonce ();
+        const orderReq = {
+            'timestamp': now * 1000,
+            'market': short (request['market']),
+            'side': (side === 'BUY') ? '1' : '2',
+            'orderType': short (request['type']),
+            'size': Precise.stringMul (request['size'], '100000000'),
+            'price': Precise.stringMul (request['price'], '100000000'),
+        };
+        const domain = await this.prepareParadexDomain ();
+        const messageTypes = {
+            'Order': [
+                { 'name': 'timestamp', 'type': 'felt' },
+                { 'name': 'market', 'type': 'felt' },
+                { 'name': 'side', 'type': 'felt' },
+                { 'name': 'orderType', 'type': 'felt' },
+                { 'name': 'size', 'type': 'felt' },
+                { 'name': 'price', 'type': 'felt' },
+            ],
+        };
+        const msg = this.starknetEncodeStructuredData (domain, messageTypes, orderReq, account.address);
+        const signature = this.starknetSign (msg, account.pri);
+        request['signature'] = signature;
+        request['signature_timestamp'] = orderReq['timestamp'];
+        const response = await this.privatePostOrders (this.extend (request, params));
+        //
+        // {
+        //     "account": "0x4638e3041366aa71720be63e32e53e1223316c7f0d56f7aa617542ed1e7512x",
+        //     "avg_fill_price": "26000",
+        //     "cancel_reason": "NOT_ENOUGH_MARGIN",
+        //     "client_id": "x1234",
+        //     "created_at": 1681493746016,
+        //     "flags": [
+        //       "REDUCE_ONLY"
+        //     ],
+        //     "id": "123456",
+        //     "instruction": "GTC",
+        //     "last_updated_at": 1681493746016,
+        //     "market": "BTC-USD-PERP",
+        //     "price": "26000",
+        //     "published_at": 1681493746016,
+        //     "received_at": 1681493746016,
+        //     "remaining_size": "0",
+        //     "seq_no": 1681471234972000000,
+        //     "side": "BUY",
+        //     "size": "0.05",
+        //     "status": "NEW",
+        //     "stp": "EXPIRE_MAKER",
+        //     "timestamp": 1681493746016,
+        //     "trigger_price": "26000",
+        //     "type": "MARKET"
+        // }
+        //
+        const order = this.parseOrder (response, market);
+        return order;
     }
 
     async fetchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
