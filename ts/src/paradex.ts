@@ -1179,6 +1179,37 @@ export default class paradex extends Exchange {
         return order;
     }
 
+    async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
+        /**
+         * @method
+         * @name paradex#cancelOrder
+         * @description cancels an open order
+         * @see https://docs.api.prod.paradex.trade/#cancel-order
+         * @see https://docs.api.prod.paradex.trade/#cancel-open-order-by-client-order-id
+         * @param {string} id order id
+         * @param {string} symbol unified symbol of the market the order was made in
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.clientOrderId] a unique id for the order
+         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        await this.authenticateRest ();
+        await this.loadMarkets ();
+        const request: Dict = {};
+        const clientOrderId = this.safeStringN (params, [ 'clOrdID', 'clientOrderId', 'client_order_id' ]);
+        let response = undefined;
+        if (clientOrderId !== undefined) {
+            request['client_id'] = clientOrderId;
+            response = await this.privateDeleteOrdersByClientIdClientId (this.extend (request, params));
+        } else {
+            request['order_id'] = id;
+            response = await this.privateDeleteOrdersOrderId (this.extend (request, params));
+        }
+        //
+        // if success, no response...
+        //
+        return this.parseOrder (response);
+    }
+
     async fetchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
