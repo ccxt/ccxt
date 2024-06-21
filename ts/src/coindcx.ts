@@ -5,7 +5,7 @@ import Exchange from './abstract/coindcx.js';
 import { ArgumentsRequired, NotSupported } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { Balances, Dict, IndexType, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade } from './base/types.js';
+import type { Balances, Dict, IndexType, Int, Market, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -788,13 +788,8 @@ export default class coindcx extends Exchange {
             marketType = 'margin';
         }
         const clientOrderId = this.safeString2 (params, 'clientOrderId', 'client_order_id');
-        if (clientOrderId !== undefined) {
-            if (marketType === 'spot') {
-                params['client_order_id'] = clientOrderId;
-                params = this.omit (params, 'clientOrderId');
-            } else {
-                throw new NotSupported (this.id + ' createOrder() supports params.clientOrderId for spot markets without margin only');
-            }
+        if ((clientOrderId !== undefined) && (marketType !== 'spot')) {
+            throw new NotSupported (this.id + ' createOrder() supports params.clientOrderId for spot markets without margin only');
         }
         if (marketType === 'spot') {
             type = this.encodeSpotOrderType (type);
@@ -831,16 +826,8 @@ export default class coindcx extends Exchange {
          */
         const market = this.market (symbol);
         // todo throw an exception for margin params
-        const request: Dict = {
-            'market': market['id'],
-            'order_type': type,
-            'side': side,
-            'total_quantity': this.amountToPrecision (symbol, amount),
-        };
-        if (price !== undefined) {
-            request['price_per_unit'] = this.priceToPrecision (symbol, price);
-        }
-        const response = await this.privatePostExchangeV1OrdersCreate (this.extend (request, params));
+        const request: Dict = this.createSpotOrderRequest (symbol, type, side, amount, price, params);
+        const response = await this.privatePostExchangeV1OrdersCreate (request);
         //
         //     {
         //         "orders": [
@@ -878,6 +865,43 @@ export default class coindcx extends Exchange {
         const orders = this.safeList (response, 'orders', []);
         const order = this.safeDict (orders, 0, {});
         return this.parseOrder (order, market);
+    }
+
+    createSpotOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
+        /**
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {string} type 'market', 'limit'
+         * @param {string} side 'buy' or 'sell'
+         * @param {float} amount how much of currency you want to trade in units of base currency
+         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.clientOrderId] a unique id for the order
+         * @param {bool} [params.multiple] true for creating a request for createOrders()
+         */
+        const market = this.market (symbol);
+        // todo throw an exception for margin params
+        const request: Dict = {
+            'market': market['id'],
+            'order_type': type,
+            'side': side,
+            'total_quantity': this.amountToPrecision (symbol, amount),
+        };
+        if (price !== undefined) {
+            request['price_per_unit'] = this.priceToPrecision (symbol, price);
+        }
+        const clientOrderId = this.safeString (params, 'clientOrderId');
+        if (clientOrderId !== undefined) {
+            request['client_order_id'] = clientOrderId;
+            params = this.omit (params, 'clientOrderId');
+        }
+        const isMultiple = this.safeBool (params, 'multiple');
+        params = this.omit (params, 'multiple');
+        if (isMultiple) {
+            const marketInfo = this.safeDict (market, 'info', {});
+            const ecode = this.safeString (marketInfo, 'ecode');
+            request['ecode'] = ecode;
+        }
+        return this.extend (request, params);
     }
 
     async createMarginOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}): Promise<Order> {
@@ -1045,6 +1069,21 @@ export default class coindcx extends Exchange {
         const market = this.market (symbol);
         // todo implement this method
         return this.parseOrder ({}, market);
+    }
+
+    async createOrders (orders: OrderRequest[], params = {}): Promise<Order[]> {
+        /**
+         * @method
+         * @name coindcx#createOrders
+         * @description create a list of trade orders
+         * @see https://docs.coindcx.com/#create-multiple-orders
+         * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.type] 'spot', 'margin', 'future' or 'swap'
+         * @param {bool} [params.margin] *for spot markets only* true for creating a margin order
+         * @param {string} [params.clientOrderId] *for spot markets without margin only* a unique id for the order
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
     }
 
     async fetchOrder (id: string, symbol: Str = undefined, params = {}): Promise<Order> {
