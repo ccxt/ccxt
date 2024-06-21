@@ -210,7 +210,7 @@ public partial class bitstamp : Exchange
                         { "uni_withdrawal/", 1 },
                         { "uni_address/", 1 },
                         { "yfi_withdrawal/", 1 },
-                        { "yfi_address", 1 },
+                        { "yfi_address/", 1 },
                         { "audio_withdrawal/", 1 },
                         { "audio_address/", 1 },
                         { "crv_withdrawal/", 1 },
@@ -219,7 +219,7 @@ public partial class bitstamp : Exchange
                         { "algo_address/", 1 },
                         { "comp_withdrawal/", 1 },
                         { "comp_address/", 1 },
-                        { "grt_withdrawal", 1 },
+                        { "grt_withdrawal/", 1 },
                         { "grt_address/", 1 },
                         { "usdt_withdrawal/", 1 },
                         { "usdt_address/", 1 },
@@ -357,6 +357,22 @@ public partial class bitstamp : Exchange
                         { "vchf_address/", 1 },
                         { "veur_withdrawal/", 1 },
                         { "veur_address/", 1 },
+                        { "truf_withdrawal/", 1 },
+                        { "truf_address/", 1 },
+                        { "wif_withdrawal/", 1 },
+                        { "wif_address/", 1 },
+                        { "smt_withdrawal/", 1 },
+                        { "smt_address/", 1 },
+                        { "sui_withdrawal/", 1 },
+                        { "sui_address/", 1 },
+                        { "jup_withdrawal/", 1 },
+                        { "jup_address/", 1 },
+                        { "ondo_withdrawal/", 1 },
+                        { "ondo_address/", 1 },
+                        { "boba_withdrawal/", 1 },
+                        { "boba_address/", 1 },
+                        { "pyth_withdrawal/", 1 },
+                        { "pyth_address/", 1 },
                     } },
                 } },
             } },
@@ -1491,7 +1507,17 @@ public partial class bitstamp : Exchange
         object request = new Dictionary<string, object>() {
             { "id", id },
         };
-        return await this.privatePostCancelOrder(this.extend(request, parameters));
+        object response = await this.privatePostCancelOrder(this.extend(request, parameters));
+        //
+        //    {
+        //        "id": 1453282316578816,
+        //        "amount": "0.02035278",
+        //        "price": "2100.45",
+        //        "type": 0,
+        //        "market": "BTC/USD"
+        //    }
+        //
+        return this.parseOrder(response);
     }
 
     public async override Task<object> cancelAllOrders(object symbol = null, object parameters = null)
@@ -1520,7 +1546,23 @@ public partial class bitstamp : Exchange
         {
             response = await this.privatePostCancelAllOrders(this.extend(request, parameters));
         }
-        return response;
+        //
+        //    {
+        //        "canceled": [
+        //            {
+        //                "id": 1453282316578816,
+        //                "amount": "0.02035278",
+        //                "price": "2100.45",
+        //                "type": 0,
+        //                "currency_pair": "BTC/USD",
+        //                "market": "BTC/USD"
+        //            }
+        //        ],
+        //        "success": true
+        //    }
+        //
+        object canceled = this.safeList(response, "canceled");
+        return this.parseOrders(canceled);
     }
 
     public virtual object parseOrderStatus(object status)
@@ -1936,6 +1978,16 @@ public partial class bitstamp : Exchange
         //           "id": "2814205012"
         //       }
         //
+        // cancelOrder
+        //
+        //    {
+        //        "id": 1453282316578816,
+        //        "amount": "0.02035278",
+        //        "price": "2100.45",
+        //        "type": 0,
+        //        "market": "BTC/USD"
+        //    }
+        //
         object id = this.safeString(order, "id");
         object clientOrderId = this.safeString(order, "client_order_id");
         object side = this.safeString(order, "type");
@@ -2281,10 +2333,8 @@ public partial class bitstamp : Exchange
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object currency = this.currency(code);
-        amount = this.currencyToPrecision(code, amount);
-        amount = this.parseToNumeric(amount);
         object request = new Dictionary<string, object>() {
-            { "amount", amount },
+            { "amount", this.parseToNumeric(this.currencyToPrecision(code, amount)) },
             { "currency", ((string)getValue(currency, "id")).ToUpper() },
         };
         object response = null;

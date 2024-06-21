@@ -77,6 +77,7 @@ public partial class ndax : Exchange
                 { "fetchTradingFees", false },
                 { "fetchWithdrawals", true },
                 { "reduceMargin", false },
+                { "sandbox", true },
                 { "setLeverage", false },
                 { "setMarginMode", false },
                 { "setPositionMode", false },
@@ -1627,7 +1628,9 @@ public partial class ndax : Exchange
         //         "detail":null
         //     }
         //
-        return response;
+        return new List<object> {this.safeOrder(new Dictionary<string, object>() {
+    { "info", response },
+})};
     }
 
     public async override Task<object> cancelOrder(object id, object symbol = null, object parameters = null)

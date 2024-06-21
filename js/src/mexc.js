@@ -150,7 +150,7 @@ export default class mexc extends Exchange {
                 'fees': [
                     'https://www.mexc.com/fee',
                 ],
-                'referral': 'https://m.mexc.com/auth/signup?inviteCode=1FQ1G',
+                'referral': 'https://www.mexc.com/register?inviteCode=mexc-1FQ1GNu1',
             },
             'api': {
                 'spot': {
@@ -224,6 +224,7 @@ export default class mexc extends Exchange {
                             'sub-account/margin': 1,
                             'batchOrders': 10,
                             'capital/withdraw/apply': 1,
+                            'capital/withdraw': 1,
                             'capital/transfer': 1,
                             'capital/transfer/internal': 1,
                             'capital/deposit/address': 1,
@@ -242,6 +243,7 @@ export default class mexc extends Exchange {
                             'margin/order': 1,
                             'margin/openOrders': 1,
                             'userDataStream': 1,
+                            'capital/withdraw': 1,
                         },
                     },
                 },
@@ -1069,7 +1071,7 @@ export default class mexc extends Exchange {
             const chains = this.safeValue(currency, 'networkList', []);
             for (let j = 0; j < chains.length; j++) {
                 const chain = chains[j];
-                const networkId = this.safeString(chain, 'network');
+                const networkId = this.safeString2(chain, 'network', 'netWork');
                 const network = this.networkIdToCode(networkId);
                 const isDepositEnabled = this.safeBool(chain, 'depositEnable', false);
                 const isWithdrawEnabled = this.safeBool(chain, 'withdrawEnable', false);
@@ -2421,7 +2423,7 @@ export default class mexc extends Exchange {
         //     {"success":true,"code":0,"data":259208506303929856}
         //
         const data = this.safeString(response, 'data');
-        return this.parseOrder(data, market);
+        return this.safeOrder({ 'id': data }, market);
     }
     async createOrders(orders, params = {}) {
         /**
@@ -4416,8 +4418,8 @@ export default class mexc extends Exchange {
                 {
                     'tier': 0,
                     'currency': this.safeCurrencyCode(quoteId),
-                    'notionalFloor': undefined,
-                    'notionalCap': undefined,
+                    'minNotional': undefined,
+                    'maxNotional': undefined,
                     'maintenanceMarginRate': undefined,
                     'maxLeverage': this.safeNumber(info, 'maxLeverage'),
                     'info': info,
@@ -4429,8 +4431,8 @@ export default class mexc extends Exchange {
             tiers.push({
                 'tier': this.parseNumber(Precise.stringDiv(cap, riskIncrVol)),
                 'currency': this.safeCurrencyCode(quoteId),
-                'notionalFloor': this.parseNumber(floor),
-                'notionalCap': this.parseNumber(cap),
+                'minNotional': this.parseNumber(floor),
+                'maxNotional': this.parseNumber(cap),
                 'maintenanceMarginRate': this.parseNumber(maintenanceMarginRate),
                 'maxLeverage': this.parseNumber(Precise.stringDiv('1', initialMarginRate)),
                 'info': info,
@@ -4971,7 +4973,7 @@ export default class mexc extends Exchange {
             'lastUpdateTimestamp': undefined,
         });
     }
-    async fetchTransfer(id, since = undefined, limit = undefined, params = {}) {
+    async fetchTransfer(id, code = undefined, params = {}) {
         const [marketType, query] = this.handleMarketTypeAndParams('fetchTransfer', undefined, params);
         await this.loadMarkets();
         if (marketType === 'spot') {
@@ -5225,7 +5227,7 @@ export default class mexc extends Exchange {
          * @method
          * @name mexc#withdraw
          * @description make a withdrawal
-         * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#withdraw
+         * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#withdraw-new
          * @param {string} code unified currency code
          * @param {float} amount the amount to withdraw
          * @param {string} address the address to withdraw to
@@ -5235,7 +5237,7 @@ export default class mexc extends Exchange {
          */
         [tag, params] = this.handleWithdrawTagAndParams(tag, params);
         const networks = this.safeValue(this.options, 'networks', {});
-        let network = this.safeString2(params, 'network', 'chain'); // this line allows the user to specify either ERC20 or ETH
+        let network = this.safeString2(params, 'network', 'netWork'); // this line allows the user to specify either ERC20 or ETH
         network = this.safeString(networks, network, network); // handle ETH > ERC-20 alias
         this.checkAddress(address);
         await this.loadMarkets();
@@ -5249,10 +5251,10 @@ export default class mexc extends Exchange {
             request['memo'] = tag;
         }
         if (network !== undefined) {
-            request['network'] = network;
-            params = this.omit(params, ['network', 'chain']);
+            request['netWork'] = network;
+            params = this.omit(params, ['network', 'netWork']);
         }
-        const response = await this.spotPrivatePostCapitalWithdrawApply(this.extend(request, params));
+        const response = await this.spotPrivatePostCapitalWithdraw(this.extend(request, params));
         //
         //     {
         //       "id":"7213fea8e94b4a5593d507237e5a555b"

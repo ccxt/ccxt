@@ -60,7 +60,7 @@ class coincheck(ccxt.async_support.coincheck):
         market = self.market(symbol)
         messageHash = 'orderbook:' + market['symbol']
         url = self.urls['api']['ws']
-        request = {
+        request: dict = {
             'type': 'subscribe',
             'channel': market['id'] + '-orderbook',
         }
@@ -118,7 +118,7 @@ class coincheck(ccxt.async_support.coincheck):
         symbol = market['symbol']
         messageHash = 'trade:' + market['symbol']
         url = self.urls['api']['ws']
-        request = {
+        request: dict = {
             'type': 'subscribe',
             'channel': market['id'] + '-trades',
         }

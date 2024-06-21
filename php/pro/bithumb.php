@@ -52,7 +52,7 @@ class bithumb extends \ccxt\async\bithumb {
                 'symbols' => [ $market['base'] . '_' . $market['quote'] ],
                 'tickTypes' => array( $this->safe_string($params, 'tickTypes', '24H') ),
             );
-            return Async\await($this->watch($url, $messageHash, array_merge($request, $params), $messageHash));
+            return Async\await($this->watch($url, $messageHash, $this->extend($request, $params), $messageHash));
         }) ();
     }
 
@@ -80,7 +80,7 @@ class bithumb extends \ccxt\async\bithumb {
                 'symbols' => $marketIds,
                 'tickTypes' => array( $this->safe_string($params, 'tickTypes', '24H') ),
             );
-            $message = array_merge($request, $params);
+            $message = $this->extend($request, $params);
             $newTicker = Async\await($this->watch_multiple($url, $messageHashes, $message, $messageHashes));
             if ($this->newUpdates) {
                 $result = array();
@@ -191,7 +191,7 @@ class bithumb extends \ccxt\async\bithumb {
                 'type' => 'orderbookdepth',
                 'symbols' => [ $market['base'] . '_' . $market['quote'] ],
             );
-            $orderbook = Async\await($this->watch($url, $messageHash, array_merge($request, $params), $messageHash));
+            $orderbook = Async\await($this->watch($url, $messageHash, $this->extend($request, $params), $messageHash));
             return $orderbook->limit ();
         }) ();
     }
@@ -282,7 +282,7 @@ class bithumb extends \ccxt\async\bithumb {
                 'type' => 'transaction',
                 'symbols' => [ $market['base'] . '_' . $market['quote'] ],
             );
-            $trades = Async\await($this->watch($url, $messageHash, array_merge($request, $params), $messageHash));
+            $trades = Async\await($this->watch($url, $messageHash, $this->extend($request, $params), $messageHash));
             if ($this->newUpdates) {
                 $limit = $trades->getLimit ($symbol, $limit);
             }

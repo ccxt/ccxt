@@ -72,6 +72,7 @@ public partial class gemini : Exchange
                 { "fetchTransactions", "emulated" },
                 { "postOnly", true },
                 { "reduceMargin", false },
+                { "sandbox", true },
                 { "setLeverage", false },
                 { "setMarginMode", false },
                 { "setPositionMode", false },

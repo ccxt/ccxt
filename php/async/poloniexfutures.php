@@ -284,7 +284,7 @@ class poloniexfutures extends Exchange {
         }) ();
     }
 
-    public function parse_market($market): array {
+    public function parse_market(array $market): array {
         $id = $this->safe_string($market, 'symbol');
         $baseId = $this->safe_string($market, 'baseCurrency');
         $quoteId = $this->safe_string($market, 'quoteCurrency');
@@ -353,7 +353,7 @@ class poloniexfutures extends Exchange {
         );
     }
 
-    public function parse_ticker($ticker, ?array $market = null): array {
+    public function parse_ticker(array $ticker, ?array $market = null): array {
         //
         //    {
         //        "symbol" => "BTCUSDTPERP",                   // Market of the $symbol
@@ -380,9 +380,12 @@ class poloniexfutures extends Exchange {
         $marketId = $this->safe_string($ticker, 'symbol');
         $symbol = $this->safe_symbol($marketId, $market);
         $timestampString = $this->safe_string($ticker, 'ts');
-        // check $timestamp bcz bug => https://app.travis-ci.com/github/ccxt/ccxt/builds/269959181#L4011 and also 17 digits occured
         $multiplier = null;
-        if (strlen($timestampString) === 17) {
+        if (strlen($timestampString) === 16) {
+            // 16 digits => https://app.travis-ci.com/github/ccxt/ccxt/builds/270587157#L5454
+            $multiplier = 0.001;
+        } elseif (strlen($timestampString) === 17) {
+            // 17 digits => https://app.travis-ci.com/github/ccxt/ccxt/builds/269959181#L4011
             $multiplier = 0.0001;
         } elseif (strlen($timestampString) === 18) {
             $multiplier = 0.00001;
@@ -431,7 +434,7 @@ class poloniexfutures extends Exchange {
             $request = array(
                 'symbol' => $market['id'],
             );
-            $response = Async\await($this->publicGetTicker (array_merge($request, $params)));
+            $response = Async\await($this->publicGetTicker ($this->extend($request, $params)));
             //
             // {
             //     "code" => "200000",
@@ -465,7 +468,8 @@ class poloniexfutures extends Exchange {
              */
             Async\await($this->load_markets());
             $response = Async\await($this->publicGetTickers ($params));
-            return $this->parse_tickers($this->safe_value($response, 'data', array()), $symbols);
+            $data = $this->safe_list($response, 'data', array());
+            return $this->parse_tickers($data, $symbols);
         }) ();
     }
 
@@ -492,9 +496,9 @@ class poloniexfutures extends Exchange {
             );
             $response = null;
             if ($level === 3) {
-                $response = Async\await($this->publicGetLevel3Snapshot (array_merge($request, $params)));
+                $response = Async\await($this->publicGetLevel3Snapshot ($this->extend($request, $params)));
             } else {
-                $response = Async\await($this->publicGetLevel2Snapshot (array_merge($request, $params)));
+                $response = Async\await($this->publicGetLevel2Snapshot ($this->extend($request, $params)));
             }
             // L2
             //
@@ -571,7 +575,7 @@ class poloniexfutures extends Exchange {
         }) ();
     }
 
-    public function parse_trade($trade, ?array $market = null): array {
+    public function parse_trade(array $trade, ?array $market = null): array {
         //
         // fetchTrades (public)
         //
@@ -679,7 +683,7 @@ class poloniexfutures extends Exchange {
             $request = array(
                 'symbol' => $market['id'],
             );
-            $response = Async\await($this->publicGetTradeHistory (array_merge($request, $params)));
+            $response = Async\await($this->publicGetTradeHistory ($this->extend($request, $params)));
             //
             //    {
             //        "code" => "200000",
@@ -758,7 +762,7 @@ class poloniexfutures extends Exchange {
                 $since = $endAt - $limit * $duration;
                 $request['from'] = $since;
             }
-            $response = Async\await($this->publicGetKlineQuery (array_merge($request, $params)));
+            $response = Async\await($this->publicGetKlineQuery ($this->extend($request, $params)));
             //
             //    {
             //        "code" => "200000",
@@ -807,7 +811,7 @@ class poloniexfutures extends Exchange {
                     'currency' => $currency['id'],
                 );
             }
-            $response = Async\await($this->privateGetAccountOverview (array_merge($request, $params)));
+            $response = Async\await($this->privateGetAccountOverview ($this->extend($request, $params)));
             //
             //     {
             //         "code" => "200000",
@@ -899,7 +903,7 @@ class poloniexfutures extends Exchange {
                 }
             }
             $params = $this->omit($params, array( 'timeInForce', 'stopPrice', 'triggerPrice' )); // Time in force only valid for limit orders, exchange error when gtc for $market orders
-            $response = Async\await($this->privatePostOrders (array_merge($request, $params)));
+            $response = Async\await($this->privatePostOrders ($this->extend($request, $params)));
             //
             //    {
             //        "code" => "200000",
@@ -949,7 +953,7 @@ class poloniexfutures extends Exchange {
             $request = array(
                 'order-id' => $id,
             );
-            $response = Async\await($this->privateDeleteOrdersOrderId (array_merge($request, $params)));
+            $response = Async\await($this->privateDeleteOrdersOrderId ($this->extend($request, $params)));
             //
             //    {
             //        "code" => "200000",
@@ -1038,7 +1042,7 @@ class poloniexfutures extends Exchange {
         }) ();
     }
 
-    public function parse_position($position, ?array $market = null) {
+    public function parse_position(array $position, ?array $market = null) {
         //
         //    {
         //        "code" => "200000",
@@ -1156,7 +1160,7 @@ class poloniexfutures extends Exchange {
                 // * Since is ignored if $limit is defined
                 $request['maxCount'] = $limit;
             }
-            $response = Async\await($this->privateGetFundingHistory (array_merge($request, $params)));
+            $response = Async\await($this->privateGetFundingHistory ($this->extend($request, $params)));
             //
             //    {
             //        "code" => "200000",
@@ -1222,9 +1226,9 @@ class poloniexfutures extends Exchange {
             $params = $this->omit($params, array( 'stop', 'trigger' ));
             $response = null;
             if ($stop) {
-                $response = Async\await($this->privateDeleteStopOrders (array_merge($request, $params)));
+                $response = Async\await($this->privateDeleteStopOrders ($this->extend($request, $params)));
             } else {
-                $response = Async\await($this->privateDeleteOrders (array_merge($request, $params)));
+                $response = Async\await($this->privateDeleteOrders ($this->extend($request, $params)));
             }
             //
             //   {
@@ -1242,7 +1246,7 @@ class poloniexfutures extends Exchange {
             $cancelledOrderIdsLength = count($cancelledOrderIds);
             for ($i = 0; $i < $cancelledOrderIdsLength; $i++) {
                 $cancelledOrderId = $this->safe_string($cancelledOrderIds, $i);
-                $result[] = array(
+                $result[] = $this->safe_order(array(
                     'id' => $cancelledOrderId,
                     'clientOrderId' => null,
                     'timestamp' => null,
@@ -1264,7 +1268,7 @@ class poloniexfutures extends Exchange {
                     'postOnly' => null,
                     'stopPrice' => null,
                     'info' => $response,
-                );
+                ));
             }
             return $result;
         }) ();
@@ -1313,9 +1317,9 @@ class poloniexfutures extends Exchange {
             }
             $response = null;
             if ($stop) {
-                $response = Async\await($this->privateGetStopOrders (array_merge($request, $params)));
+                $response = Async\await($this->privateGetStopOrders ($this->extend($request, $params)));
             } else {
-                $response = Async\await($this->privateGetOrders (array_merge($request, $params)));
+                $response = Async\await($this->privateGetOrders ($this->extend($request, $params)));
             }
             //
             //    {
@@ -1437,10 +1441,10 @@ class poloniexfutures extends Exchange {
                 }
                 $request['clientOid'] = $clientOrderId;
                 $params = $this->omit($params, array( 'clientOid', 'clientOrderId' ));
-                $response = Async\await($this->privateGetClientOrderIdClientOid (array_merge($request, $params)));
+                $response = Async\await($this->privateGetClientOrderIdClientOid ($this->extend($request, $params)));
             } else {
                 $request['order-id'] = $id;
-                $response = Async\await($this->privateGetOrdersOrderId (array_merge($request, $params)));
+                $response = Async\await($this->privateGetOrdersOrderId ($this->extend($request, $params)));
             }
             //
             //    {
@@ -1493,7 +1497,7 @@ class poloniexfutures extends Exchange {
         }) ();
     }
 
-    public function parse_order($order, ?array $market = null): array {
+    public function parse_order(array $order, ?array $market = null): array {
         //
         // createOrder
         //
@@ -1631,7 +1635,7 @@ class poloniexfutures extends Exchange {
             $request = array(
                 'symbol' => $market['id'],
             );
-            $response = Async\await($this->publicGetFundingRateSymbolCurrent (array_merge($request, $params)));
+            $response = Async\await($this->publicGetFundingRateSymbolCurrent ($this->extend($request, $params)));
             //
             //    {
             //        "symbol" => ".BTCUSDTPERPFPI8H",
@@ -1692,7 +1696,7 @@ class poloniexfutures extends Exchange {
             if ($since !== null) {
                 $request['startAt'] = $since;
             }
-            $response = Async\await($this->privateGetFills (array_merge($request, $params)));
+            $response = Async\await($this->privateGetFills ($this->extend($request, $params)));
             //
             //    {
             //        "code" => "200000",
@@ -1810,7 +1814,7 @@ class poloniexfutures extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
         if (!$response) {
             $this->throw_broadly_matched_exception($this->exceptions['broad'], $body, $body);
             return null;

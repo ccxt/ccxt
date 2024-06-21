@@ -6,7 +6,7 @@ import { ExchangeError, AuthenticationError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 import { Precise } from '../base/Precise.js';
 import { sha384 } from '../static_dependencies/noble-hashes/sha512.js';
-import type { Int, Str, Trade, OrderBook, Order, Ticker } from '../base/types.js';
+import type { Int, Str, Trade, OrderBook, Order, Ticker, Dict } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -48,7 +48,7 @@ export default class bitfinex extends bitfinexRest {
         const url = this.urls['api']['ws']['public'];
         const messageHash = channel + ':' + marketId;
         // const channel = 'trades';
-        const request = {
+        const request: Dict = {
             'event': 'subscribe',
             'channel': channel,
             'symbol': marketId,
@@ -270,7 +270,7 @@ export default class bitfinex extends bitfinexRest {
         const options = this.safeValue (this.options, 'watchOrderBook', {});
         const prec = this.safeString (options, 'prec', 'P0');
         const freq = this.safeString (options, 'freq', 'F0');
-        const request = {
+        const request: Dict = {
             // "event": "subscribe", // added in subscribe()
             // "channel": channel, // added in subscribe()
             // "symbol": marketId, // added in subscribe()
@@ -334,7 +334,7 @@ export default class bitfinex extends bitfinexRest {
                     const size = (delta2Value < 0) ? -delta2Value : delta2Value;
                     const side = (delta2Value < 0) ? 'asks' : 'bids';
                     const bookside = orderbook[side];
-                    bookside.store (price, size, id);
+                    bookside.storeArray ([ price, size, id ]);
                 }
             } else {
                 const deltas = message[1];
@@ -344,7 +344,7 @@ export default class bitfinex extends bitfinexRest {
                     const size = (delta2 < 0) ? -delta2 : delta2;
                     const side = (delta2 < 0) ? 'asks' : 'bids';
                     const countedBookSide = orderbook[side];
-                    countedBookSide.store (delta[0], size, delta[1]);
+                    countedBookSide.storeArray ([ delta[0], size, delta[1] ]);
                 }
             }
             client.resolve (orderbook, messageHash);
@@ -359,13 +359,13 @@ export default class bitfinex extends bitfinexRest {
                 const bookside = orderbook[side];
                 // price = 0 means that you have to remove the order from your book
                 const amount = Precise.stringGt (price, '0') ? size : '0';
-                bookside.store (this.parseNumber (price), this.parseNumber (amount), id);
+                bookside.storeArray ([ this.parseNumber (price), this.parseNumber (amount), id ]);
             } else {
                 const message3Value = message[3];
                 const size = (message3Value < 0) ? -message3Value : message3Value;
                 const side = (message3Value < 0) ? 'asks' : 'bids';
                 const countedBookSide = orderbook[side];
-                countedBookSide.store (message[1], size, message[2]);
+                countedBookSide.storeArray ([ message[1], size, message[2] ]);
             }
             client.resolve (orderbook, messageHash);
         }
@@ -425,7 +425,7 @@ export default class bitfinex extends bitfinexRest {
             const nonce = this.milliseconds ();
             const payload = 'AUTH' + nonce.toString ();
             const signature = this.hmac (this.encode (payload), this.encode (this.secret), sha384, 'hex');
-            const request = {
+            const request: Dict = {
                 'apiKey': this.apiKey,
                 'authSig': signature,
                 'authNonce': nonce,
@@ -551,7 +551,7 @@ export default class bitfinex extends bitfinexRest {
     }
 
     parseWsOrderStatus (status) {
-        const statuses = {
+        const statuses: Dict = {
             'ACTIVE': 'open',
             'CANCELED': 'canceled',
         };
@@ -639,7 +639,7 @@ export default class bitfinex extends bitfinexRest {
             const subscription = this.safeValue (client.subscriptions, channelId, {});
             const channel = this.safeString (subscription, 'channel');
             const name = this.safeString (message, 1);
-            const methods = {
+            const methods: Dict = {
                 'book': this.handleOrderBook,
                 // 'ohlc': this.handleOHLCV,
                 'ticker': this.handleTicker,
@@ -664,7 +664,7 @@ export default class bitfinex extends bitfinexRest {
             //
             const event = this.safeString (message, 'event');
             if (event !== undefined) {
-                const methods = {
+                const methods: Dict = {
                     'info': this.handleSystemStatus,
                     // 'book': 'handleOrderBook',
                     'subscribed': this.handleSubscriptionStatus,

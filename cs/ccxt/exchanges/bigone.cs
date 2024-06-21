@@ -2181,7 +2181,7 @@ public partial class bigone : Exchange
         //         "data": null
         //     }
         //
-        object code = this.safeNumber(transfer, "code");
+        object code = this.safeString(transfer, "code");
         return new Dictionary<string, object>() {
             { "info", transfer },
             { "id", null },

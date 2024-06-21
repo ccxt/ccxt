@@ -88,6 +88,7 @@ export default class ndax extends Exchange {
                 'fetchTradingFees': false,
                 'fetchWithdrawals': true,
                 'reduceMargin': false,
+                'sandbox': true,
                 'setLeverage': false,
                 'setMarginMode': false,
                 'setPositionMode': false,
@@ -1574,7 +1575,11 @@ export default class ndax extends Exchange {
         //         "detail":null
         //     }
         //
-        return response;
+        return [
+            this.safeOrder({
+                'info': response,
+            }),
+        ];
     }
     async cancelOrder(id, symbol = undefined, params = {}) {
         /**

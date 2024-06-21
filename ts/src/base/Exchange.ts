@@ -94,6 +94,7 @@ const {
     , safeStringLowerN
     , safeStringUpperN
     , urlencodeNested
+    , urlencodeBase64
     , parseDate
     , ymd
     , base64ToString
@@ -146,10 +147,10 @@ import { OrderBook as WsOrderBook, IndexedOrderBook, CountedOrderBook } from './
 //
 import { axolotl } from './functions/crypto.js';
 // import types
-import type { Market, Trade, Fee, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, DepositAddressResponse, Currency, MinMax, IndexType, Int, OrderType, OrderSide, Position, FundingRate, DepositWithdrawFeeNetwork, LedgerEntry, BorrowInterest, OpenInterest, LeverageTier, TransferEntry, FundingRateHistory, Liquidation, FundingHistory, OrderRequest, MarginMode, Tickers, Greeks, Option, OptionChain, Str, Num, MarketInterface, CurrencyInterface, BalanceAccount, MarginModes, MarketType, Leverage, Leverages, LastPrice, LastPrices, Account, Strings, MarginModification, TradingFeeInterface, Currencies, TradingFees, Conversion, CancellationRequest, IsolatedBorrowRate, IsolatedBorrowRates, CrossBorrowRates, CrossBorrowRate } from './types.js';
+import type { Market, Trade, Fee, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, DepositAddressResponse, Currency, MinMax, IndexType, Int, OrderType, OrderSide, Position, FundingRate, DepositWithdrawFeeNetwork, LedgerEntry, BorrowInterest, OpenInterest, LeverageTier, TransferEntry, FundingRateHistory, Liquidation, FundingHistory, OrderRequest, MarginMode, Tickers, Greeks, Option, OptionChain, Str, Num, MarketInterface, CurrencyInterface, BalanceAccount, MarginModes, MarketType, Leverage, Leverages, LastPrice, LastPrices, Account, Strings, MarginModification, TradingFeeInterface, Currencies, TradingFees, Conversion, CancellationRequest, IsolatedBorrowRate, IsolatedBorrowRates, CrossBorrowRates, CrossBorrowRate, Dict, TransferEntries, FundingRates, LeverageTiers, Bool, int}  from './types.js';
 // export {Market, Trade, Fee, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, DepositAddressResponse, Currency, MinMax, IndexType, Int, OrderType, OrderSide, Position, FundingRateHistory, Liquidation, FundingHistory} from './types.js'
 // import { Market, Trade, Fee, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, DepositAddressResponse, Currency, MinMax, IndexType, Int, OrderType, OrderSide, Position, FundingRateHistory, OpenInterest, Liquidation, OrderRequest, FundingHistory, MarginMode, Tickers, Greeks, Str, Num, MarketInterface, CurrencyInterface, Account } from './types.js';
-export type { Market, Trade, Fee, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, DepositAddressResponse, Currency, MinMax, IndexType, Int, OrderType, OrderSide, Position, LedgerEntry, BorrowInterest, OpenInterest, LeverageTier, TransferEntry, CrossBorrowRate, FundingRateHistory, Liquidation, FundingHistory, OrderRequest, MarginMode, Tickers, Greeks, Option, OptionChain, Str, Num, MarketInterface, CurrencyInterface, BalanceAccount, MarginModes, MarketType, Leverage, Leverages, LastPrice, LastPrices, Account, Strings, Conversion } from './types.js'
+export type { Market, Trade, Fee, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, DepositAddressResponse, Currency, MinMax, IndexType, Int, Bool, OrderType, OrderSide, Position, LedgerEntry, BorrowInterest, OpenInterest, LeverageTier, TransferEntry, CrossBorrowRate, FundingRateHistory, Liquidation, FundingHistory, OrderRequest, MarginMode, Tickers, Greeks, Option, OptionChain, Str, Num, MarketInterface, CurrencyInterface, BalanceAccount, MarginModes, MarketType, Leverage, Leverages, LastPrice, LastPrices, Account, Strings, Conversion } from './types.js'
 
 // ----------------------------------------------------------------------------
 // move this elsewhere.
@@ -237,6 +238,7 @@ export default class Exchange {
     apiKey: string;
     secret: string;
     uid: string;
+    accountId: string;
     login:string;
     password: string;
     privateKey: string;// a "0x"-prefixed hexstring private key for a wallet
@@ -244,14 +246,17 @@ export default class Exchange {
     token: string; // reserved for HTTP auth in some cases
 
     balance      = {}
+    liquidations: Dictionary<Liquidation> = {}
     orderbooks: Dictionary<Ob>   = {}
-    tickers: Dictionary<Ticker>      = {}
-    bidsasks: Dictionary<Ticker>     = {}
+    tickers: Dictionary<Ticker>  = {}
+    fundingRates: Dictionary<FundingRate> = {}
+    bidsasks: Dictionary<Ticker>  = {}
     orders: ArrayCache       = undefined
     triggerOrders: ArrayCache = undefined
     trades: Dictionary<ArrayCache>
     transactions = {}
     ohlcvs: Dictionary<Dictionary<ArrayCacheByTimestamp>>
+    myLiquidations: Dictionary<Liquidation> = {}
     myTrades: ArrayCache;
     positions: any;
     urls: {
@@ -294,6 +299,7 @@ export default class Exchange {
         apiKey: boolean;
         secret: boolean;
         uid: boolean;
+        accountId: boolean;
         login: boolean;
         password: boolean;
         twofa: boolean;
@@ -457,6 +463,7 @@ export default class Exchange {
     base64ToString = base64ToString
     crc32 = crc32
     packb = packb
+    urlencodeBase64 = urlencodeBase64
 
     describe () {
         return {
@@ -468,10 +475,12 @@ export default class Exchange {
             'certified': false, // if certified by the CCXT dev team
             'pro': false, // if it is integrated with CCXT Pro for WebSocket support
             'alias': false, // whether this exchange is an alias to another exchange
+            'dex': false,
             'has': {
                 'publicAPI': true,
                 'privateAPI': true,
                 'CORS': undefined,
+                'sandbox': undefined,
                 'spot': undefined,
                 'margin': undefined,
                 'swap': undefined,
@@ -676,6 +685,10 @@ export default class Exchange {
                 'watchTickers': undefined,
                 'watchTrades': undefined,
                 'watchTradesForSymbols': undefined,
+                'watchLiquidations': undefined,
+                'watchLiquidationsForSymbols': undefined,
+                'watchMyLiquidations': undefined,
+                'watchMyLiquidationsForSymbols': undefined,
                 'withdraw': undefined,
                 'ws': undefined,
             },
@@ -691,6 +704,7 @@ export default class Exchange {
                 'apiKey':     true,
                 'secret':     true,
                 'uid':        false,
+                'accountId':  false,
                 'login':      false,
                 'password':   false,
                 'twofa':      false, // 2-factor authentication (one-time password key)
@@ -777,7 +791,7 @@ export default class Exchange {
         //         }
         //     }
         //
-        this.options = this.getDefaultOptions(); // exchange-specific options, if any
+        this.options = this.getDefaultOptions(); // exchange-specific options if any
         // fetch implementation options (JS only)
         // http properties
         this.headers = {}
@@ -811,10 +825,12 @@ export default class Exchange {
         this.balance      = {}
         this.orderbooks   = {}
         this.tickers      = {}
+        this.liquidations = {}
         this.orders       = undefined
         this.trades       = {}
         this.transactions = {}
         this.ohlcvs       = {}
+        this.myLiquidations = {}
         this.myTrades     = undefined
         this.positions    = undefined
         // web3 and cryptography flags
@@ -2231,6 +2247,28 @@ export default class Exchange {
         throw new NotSupported (this.id + ' fetchTradesWs() is not supported yet');
     }
 
+    async watchLiquidations (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Liquidation[]> {
+        if (this.has['watchLiquidationsForSymbols']) {
+            return this.watchLiquidationsForSymbols ([ symbol ], since, limit, params);
+        }
+        throw new NotSupported (this.id + ' watchLiquidations() is not supported yet');
+    }
+
+    async watchLiquidationsForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params = {}): Promise<Liquidation[]> {
+        throw new NotSupported (this.id + ' watchLiquidationsForSymbols() is not supported yet');
+    }
+
+    async watchMyLiquidations (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Liquidation[]> {
+        if (this.has['watchMyLiquidationsForSymbols']) {
+            return this.watchMyLiquidationsForSymbols ([ symbol ], since, limit, params);
+        }
+        throw new NotSupported (this.id + ' watchMyLiquidations() is not supported yet');
+    }
+
+    async watchMyLiquidationsForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params = {}): Promise<Liquidation[]> {
+        throw new NotSupported (this.id + ' watchMyLiquidationsForSymbols() is not supported yet');
+    }
+
     async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         throw new NotSupported (this.id + ' watchTrades() is not supported yet');
     }
@@ -2255,7 +2293,7 @@ export default class Exchange {
         throw new NotSupported (this.id + ' watchOrderBookForSymbols() is not supported yet');
     }
 
-    async fetchDepositAddresses (codes: string[] = undefined, params = {}): Promise<{}> {
+    async fetchDepositAddresses (codes: Strings = undefined, params = {}): Promise<{}> {
         throw new NotSupported (this.id + ' fetchDepositAddresses() is not supported yet');
     }
 
@@ -2272,7 +2310,7 @@ export default class Exchange {
         }
     }
 
-    async fetchMarginModes (symbols: string[] = undefined, params = {}): Promise<MarginModes> {
+    async fetchMarginModes (symbols: Strings = undefined, params = {}): Promise<MarginModes> {
         throw new NotSupported (this.id + ' fetchMarginModes () is not supported yet');
     }
 
@@ -2299,11 +2337,11 @@ export default class Exchange {
         throw new NotSupported (this.id + ' fetchTime() is not supported yet');
     }
 
-    async fetchTradingLimits (symbols: string[] = undefined, params = {}): Promise<{}> {
+    async fetchTradingLimits (symbols: Strings = undefined, params = {}): Promise<{}> {
         throw new NotSupported (this.id + ' fetchTradingLimits() is not supported yet');
     }
 
-    parseMarket (market): Market {
+    parseMarket (market: Dict): Market {
         throw new NotSupported (this.id + ' parseMarket() is not supported yet');
     }
 
@@ -2315,7 +2353,7 @@ export default class Exchange {
         return result;
     }
 
-    parseTicker (ticker: object, market: Market = undefined): Ticker {
+    parseTicker (ticker: Dict, market: Market = undefined): Ticker {
         throw new NotSupported (this.id + ' parseTicker() is not supported yet');
     }
 
@@ -2323,15 +2361,15 @@ export default class Exchange {
         throw new NotSupported (this.id + ' parseDepositAddress() is not supported yet');
     }
 
-    parseTrade (trade: object, market: Market = undefined): Trade {
+    parseTrade (trade: Dict, market: Market = undefined): Trade {
         throw new NotSupported (this.id + ' parseTrade() is not supported yet');
     }
 
-    parseTransaction (transaction, currency: Currency = undefined): Transaction {
+    parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {
         throw new NotSupported (this.id + ' parseTransaction() is not supported yet');
     }
 
-    parseTransfer (transfer, currency: Currency = undefined): object {
+    parseTransfer (transfer: Dict, currency: Currency = undefined): TransferEntry {
         throw new NotSupported (this.id + ' parseTransfer() is not supported yet');
     }
 
@@ -2339,11 +2377,11 @@ export default class Exchange {
         throw new NotSupported (this.id + ' parseAccount() is not supported yet');
     }
 
-    parseLedgerEntry (item, currency: Currency = undefined): object {
+    parseLedgerEntry (item: Dict, currency: Currency = undefined): object {
         throw new NotSupported (this.id + ' parseLedgerEntry() is not supported yet');
     }
 
-    parseOrder (order, market: Market = undefined): Order {
+    parseOrder (order: Dict, market: Market = undefined): Order {
         throw new NotSupported (this.id + ' parseOrder() is not supported yet');
     }
 
@@ -2355,15 +2393,15 @@ export default class Exchange {
         throw new NotSupported (this.id + ' fetchIsolatedBorrowRates() is not supported yet');
     }
 
-    parseMarketLeverageTiers (info, market: Market = undefined): object {
+    parseMarketLeverageTiers (info, market: Market = undefined): LeverageTier[] {
         throw new NotSupported (this.id + ' parseMarketLeverageTiers() is not supported yet');
     }
 
-    async fetchLeverageTiers (symbols: string[] = undefined, params = {}): Promise<Dictionary<LeverageTier[]>> {
+    async fetchLeverageTiers (symbols: Strings = undefined, params = {}): Promise<LeverageTiers> {
         throw new NotSupported (this.id + ' fetchLeverageTiers() is not supported yet');
     }
 
-    parsePosition (position, market: Market = undefined): Position {
+    parsePosition (position: Dict, market: Market = undefined): Position {
         throw new NotSupported (this.id + ' parsePosition() is not supported yet');
     }
 
@@ -2371,7 +2409,7 @@ export default class Exchange {
         throw new NotSupported (this.id + ' parseFundingRateHistory() is not supported yet');
     }
 
-    parseBorrowInterest (info, market: Market = undefined): BorrowInterest {
+    parseBorrowInterest (info: Dict, market: Market = undefined): BorrowInterest {
         throw new NotSupported (this.id + ' parseBorrowInterest() is not supported yet');
     }
 
@@ -2395,15 +2433,15 @@ export default class Exchange {
         return this.parseOHLCV (ohlcv, market);
     }
 
-    async fetchFundingRates (symbols: string[] = undefined, params = {}): Promise<{}> {
+    async fetchFundingRates (symbols: Strings = undefined, params = {}): Promise<{}> {
         throw new NotSupported (this.id + ' fetchFundingRates() is not supported yet');
     }
 
-    async watchFundingRate (symbol: string, params = {}): Promise<{}> {
+    async watchFundingRate (symbol: string, params = {}): Promise<FundingRate> {
         throw new NotSupported (this.id + ' watchFundingRate() is not supported yet');
     }
 
-    async watchFundingRates (symbols: string[], params = {}): Promise<{}> {
+    async watchFundingRates (symbols: string[], params = {}): Promise<FundingRates> {
         throw new NotSupported (this.id + ' watchFundingRates() is not supported yet');
     }
 
@@ -2436,7 +2474,7 @@ export default class Exchange {
         }
     }
 
-    async fetchLeverages (symbols: string[] = undefined, params = {}): Promise<Leverages> {
+    async fetchLeverages (symbols: Strings = undefined, params = {}): Promise<Leverages> {
         throw new NotSupported (this.id + ' fetchLeverages() is not supported yet');
     }
 
@@ -2520,6 +2558,14 @@ export default class Exchange {
         // i.e. isRoundNumber(1.000) returns true, while isInteger(1.000) returns false
         const res = this.parseToNumeric ((value % 1));
         return res === 0;
+    }
+
+    safeIntegerOmitZero (obj: object, key: IndexType, defaultValue: Int = undefined): Int {
+        const timestamp = this.safeInteger (obj, key, defaultValue);
+        if (timestamp === undefined || timestamp === 0) {
+            return undefined;
+        }
+        return timestamp;
     }
 
     afterConstruct () {
@@ -2863,6 +2909,7 @@ export default class Exchange {
         const shouldParseFees = parseFee || parseFees;
         const fees = this.safeList (order, 'fees', []);
         let trades = [];
+        const isTriggerOrSLTpOrder = ((this.safeString (order, 'triggerPrice') !== undefined || (this.safeString (order, 'stopLossPrice') !== undefined)) || (this.safeString (order, 'takeProfitPrice') !== undefined));
         if (parseFilled || parseCost || shouldParseFees) {
             const rawTrades = this.safeValue (order, 'trades', trades);
             const oldNumber = this.number;
@@ -3056,7 +3103,7 @@ export default class Exchange {
         let postOnly = this.safeValue (order, 'postOnly');
         // timeInForceHandling
         if (timeInForce === undefined) {
-            if (this.safeString (order, 'type') === 'market') {
+            if (!isTriggerOrSLTpOrder && (this.safeString (order, 'type') === 'market')) {
                 timeInForce = 'IOC';
             }
             // allow postOnly override
@@ -3283,6 +3330,18 @@ export default class Exchange {
         return trade as Trade;
     }
 
+    findNearestCeiling (arr: number[], providedValue: number) {
+        //  i.e. findNearestCeiling ([ 10, 30, 50],  23) returns 30
+        const length = arr.length;
+        for (let i = 0; i < length; i++) {
+            const current = arr[i];
+            if (providedValue <= current) {
+                return current;
+            }
+        }
+        return arr[length - 1];
+    }
+
     invertFlatStringDictionary (dict) {
         const reversed = {};
         const keys = Object.keys (dict);
@@ -3417,15 +3476,15 @@ export default class Exchange {
         // timestamp and symbol operations don't belong in safeTicker
         // they should be done in the derived classes
         return this.extend (ticker, {
-            'bid': this.parseNumber (this.omitZero (this.safeNumber (ticker, 'bid'))),
+            'bid': this.parseNumber (this.omitZero (this.safeString (ticker, 'bid'))),
             'bidVolume': this.safeNumber (ticker, 'bidVolume'),
-            'ask': this.parseNumber (this.omitZero (this.safeNumber (ticker, 'ask'))),
+            'ask': this.parseNumber (this.omitZero (this.safeString (ticker, 'ask'))),
             'askVolume': this.safeNumber (ticker, 'askVolume'),
             'high': this.parseNumber (this.omitZero (this.safeString (ticker, 'high'))),
-            'low': this.parseNumber (this.omitZero (this.safeNumber (ticker, 'low'))),
-            'open': this.parseNumber (this.omitZero (this.parseNumber (open))),
-            'close': this.parseNumber (this.omitZero (this.parseNumber (close))),
-            'last': this.parseNumber (this.omitZero (this.parseNumber (last))),
+            'low': this.parseNumber (this.omitZero (this.safeString (ticker, 'low'))),
+            'open': this.parseNumber (this.omitZero (open)),
+            'close': this.parseNumber (this.omitZero (close)),
+            'last': this.parseNumber (this.omitZero (last)),
             'change': this.parseNumber (change),
             'percentage': this.parseNumber (percentage),
             'average': this.parseNumber (average),
@@ -3757,7 +3816,7 @@ export default class Exchange {
         return networkId;
     }
 
-    networkIdToCode (networkId: string, currencyCode: Str = undefined): string {
+    networkIdToCode (networkId: Str = undefined, currencyCode: Str = undefined): string {
         /**
          * @ignore
          * @method
@@ -3873,7 +3932,7 @@ export default class Exchange {
         return this.filterBySinceLimit (sorted, since, limit, 0) as any;
     }
 
-    parseLeverageTiers (response: any, symbols: string[] = undefined, marketIdKey = undefined) {
+    parseLeverageTiers (response: any, symbols: string[] = undefined, marketIdKey = undefined): LeverageTiers {
         // marketIdKey should only be undefined when response is a dictionary
         symbols = this.marketSymbols (symbols);
         const tiers = {};
@@ -3909,7 +3968,7 @@ export default class Exchange {
         return tiers;
     }
 
-    async loadTradingLimits (symbols: string[] = undefined, reload = false, params = {}) {
+    async loadTradingLimits (symbols: Strings = undefined, reload = false, params = {}) {
         if (this.has['fetchTradingLimits']) {
             if (reload || !('limitsLoaded' in this.options)) {
                 const response = await this.fetchTradingLimits (symbols);
@@ -3995,7 +4054,7 @@ export default class Exchange {
         return this.filterByCurrencySinceLimit (result, code, since, limit);
     }
 
-    parseTransfers (transfers: any[], currency: Currency = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    parseTransfers (transfers: any[], currency: Currency = undefined, since: Int = undefined, limit: Int = undefined, params = {}): TransferEntries {
         transfers = this.toArray (transfers);
         let result = [];
         for (let i = 0; i < transfers.length; i++) {
@@ -4054,10 +4113,42 @@ export default class Exchange {
         return [ value, params ];
     }
 
+    handleParamString2 (params: object, paramName1: string, paramName2: string, defaultValue: Str = undefined): [string, object] {
+        const value = this.safeString2 (params, paramName1, paramName2, defaultValue);
+        if (value !== undefined) {
+            params = this.omit (params, [ paramName1, paramName2 ]);
+        }
+        return [ value, params ];
+    }
+
     handleParamInteger (params: object, paramName: string, defaultValue: Int = undefined): [Int, object] {
         const value = this.safeInteger (params, paramName, defaultValue);
         if (value !== undefined) {
             params = this.omit (params, paramName);
+        }
+        return [ value, params ];
+    }
+
+    handleParamInteger2 (params: object, paramName1: string, paramName2: string, defaultValue: Int = undefined): [Int, object] {
+        const value = this.safeInteger2 (params, paramName1, paramName2, defaultValue);
+        if (value !== undefined) {
+            params = this.omit (params, [ paramName1, paramName2 ]);
+        }
+        return [ value, params ];
+    }
+
+    handleParamBool (params: object, paramName: string, defaultValue: Bool = undefined): [Bool, object] {
+        const value = this.safeBool (params, paramName, defaultValue);
+        if (value !== undefined) {
+            params = this.omit (params, paramName);
+        }
+        return [ value, params ];
+    }
+
+    handleParamBool2 (params: object, paramName1: string, paramName2: string, defaultValue: Bool = undefined): [Bool, object] {
+        const value = this.safeBool2 (params, paramName1, paramName2, defaultValue);
+        if (value !== undefined) {
+            params = this.omit (params, [ paramName1, paramName2 ]);
         }
         return [ value, params ];
     }
@@ -4215,7 +4306,7 @@ export default class Exchange {
         return await this.createOrder (symbol, type, side, amount, price, params);
     }
 
-    async editOrderWs (id: string, symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}): Promise<Order> {
+    async editOrderWs (id: string, symbol: string, type: OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params = {}): Promise<Order> {
         await this.cancelOrderWs (id, symbol);
         return await this.createOrderWs (symbol, type, side, amount, price, params);
     }
@@ -4236,11 +4327,11 @@ export default class Exchange {
         throw new NotSupported (this.id + ' watchPosition() is not supported yet');
     }
 
-    async watchPositions (symbols: string[] = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Position[]> {
+    async watchPositions (symbols: Strings = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Position[]> {
         throw new NotSupported (this.id + ' watchPositions() is not supported yet');
     }
 
-    async watchPositionForSymbols (symbols: string[] = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Position[]> {
+    async watchPositionForSymbols (symbols: Strings = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Position[]> {
         return await this.watchPositions (symbols, since, limit, params);
     }
 
@@ -4268,19 +4359,19 @@ export default class Exchange {
         throw new NotSupported (this.id + ' fetchPositionsForSymbol() is not supported yet');
     }
 
-    async fetchPositions (symbols: string[] = undefined, params = {}): Promise<Position[]> {
+    async fetchPositions (symbols: Strings = undefined, params = {}): Promise<Position[]> {
         throw new NotSupported (this.id + ' fetchPositions() is not supported yet');
     }
 
-    async fetchPositionsWs (symbols: string[] = undefined, params = {}): Promise<Position[]> {
+    async fetchPositionsWs (symbols: Strings = undefined, params = {}): Promise<Position[]> {
         throw new NotSupported (this.id + ' fetchPositions() is not supported yet');
     }
 
-    async fetchPositionsRisk (symbols: string[] = undefined, params = {}): Promise<Position[]> {
+    async fetchPositionsRisk (symbols: Strings = undefined, params = {}): Promise<Position[]> {
         throw new NotSupported (this.id + ' fetchPositionsRisk() is not supported yet');
     }
 
-    async fetchBidsAsks (symbols: string[] = undefined, params = {}): Promise<Dictionary<Ticker>> {
+    async fetchBidsAsks (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         throw new NotSupported (this.id + ' fetchBidsAsks() is not supported yet');
     }
 
@@ -4445,11 +4536,11 @@ export default class Exchange {
         return await this.fetchTransactionFees ([ code ], params);
     }
 
-    async fetchTransactionFees (codes: string[] = undefined, params = {}): Promise<{}> {
+    async fetchTransactionFees (codes: Strings = undefined, params = {}): Promise<{}> {
         throw new NotSupported (this.id + ' fetchTransactionFees() is not supported yet');
     }
 
-    async fetchDepositWithdrawFees (codes: string[] = undefined, params = {}): Promise<Dictionary<DepositWithdrawFeeNetwork>> {
+    async fetchDepositWithdrawFees (codes: Strings = undefined, params = {}): Promise<Dictionary<DepositWithdrawFeeNetwork>> {
         throw new NotSupported (this.id + ' fetchDepositWithdrawFees() is not supported yet');
     }
 
@@ -4521,28 +4612,13 @@ export default class Exchange {
         return [ value, params ];
     }
 
-    handleOptionAndParams2 (params: object, methodName: string, methodName2: string, optionName: string, defaultValue = undefined) {
-        // This method can be used to obtain method specific properties, i.e: this.handleOptionAndParams (params, 'fetchPosition', 'marginMode', 'isolated')
-        const defaultOptionName = 'default' + this.capitalize (optionName); // we also need to check the 'defaultXyzWhatever'
-        // check if params contain the key
-        let value = this.safeValue2 (params, optionName, defaultOptionName);
-        if (value !== undefined) {
-            params = this.omit (params, [ optionName, defaultOptionName ]);
-        } else {
-            // check if exchange has properties for this method
-            const exchangeWideMethodOptions = this.safeValue2 (this.options, methodName, methodName2);
-            if (exchangeWideMethodOptions !== undefined) {
-                // check if the option is defined inside this method's props
-                value = this.safeValue2 (exchangeWideMethodOptions, optionName, defaultOptionName);
-            }
-            if (value === undefined) {
-                // if it's still undefined, check if global exchange-wide option exists
-                value = this.safeValue2 (this.options, optionName, defaultOptionName);
-            }
-            // if it's still undefined, use the default value
-            value = (value !== undefined) ? value : defaultValue;
-        }
-        return [ value, params ];
+    handleOptionAndParams2 (params: object, methodName1: string, optionName1: string, optionName2: string, defaultValue = undefined) {
+        let value = undefined;
+        [ value, params ] = this.handleOptionAndParams (params, methodName1, optionName1, defaultValue);
+        // if still undefined, try optionName2
+        let value2 = undefined;
+        [ value2, params ] = this.handleOptionAndParams (params, methodName1, optionName2, value);
+        return [ value2, params ];
     }
 
     handleOption (methodName: string, optionName: string, defaultValue = undefined) {
@@ -4649,7 +4725,7 @@ export default class Exchange {
         return undefined;
     }
 
-    handleErrors (statusCode, statusText, url, method, responseHeaders, responseBody, response, requestHeaders, requestBody) {
+    handleErrors (statusCode: int, statusText: string, url: string, method: string, responseHeaders: Dict, responseBody: string, response, requestHeaders, requestBody) {
         // it is a stub method that must be overrided in the derived exchange classes
         // throw new NotSupported (this.id + ' handleErrors() not implemented yet');
         return undefined;
@@ -4697,15 +4773,15 @@ export default class Exchange {
         throw new NotSupported (this.id + ' watchTicker() is not supported yet');
     }
 
-    async fetchTickers (symbols: string[] = undefined, params = {}): Promise<Tickers> {
+    async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         throw new NotSupported (this.id + ' fetchTickers() is not supported yet');
     }
 
-    async fetchTickersWs (symbols: string[] = undefined, params = {}): Promise<Tickers> {
+    async fetchTickersWs (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         throw new NotSupported (this.id + ' fetchTickers() is not supported yet');
     }
 
-    async fetchOrderBooks (symbols: string[] = undefined, limit: Int = undefined, params = {}): Promise<Dictionary<OrderBook>> {
+    async fetchOrderBooks (symbols: Strings = undefined, limit: Int = undefined, params = {}): Promise<Dictionary<OrderBook>> {
         throw new NotSupported (this.id + ' fetchOrderBooks() is not supported yet');
     }
 
@@ -4713,7 +4789,7 @@ export default class Exchange {
         throw new NotSupported (this.id + ' watchBidsAsks() is not supported yet');
     }
 
-    async watchTickers (symbols: string[] = undefined, params = {}): Promise<Tickers> {
+    async watchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         throw new NotSupported (this.id + ' watchTickers() is not supported yet');
     }
 
@@ -5561,7 +5637,7 @@ export default class Exchange {
         return this.precisionMode === SIGNIFICANT_DIGITS;
     }
 
-    safeNumber (obj: object, key: IndexType, defaultNumber: Num = undefined): Num {
+    safeNumber (obj, key: IndexType, defaultNumber: Num = undefined): Num {
         const value = this.safeString (obj, key);
         return this.parseNumber (value, defaultNumber);
     }
@@ -5627,7 +5703,7 @@ export default class Exchange {
         return this.implodeParams (url, { 'hostname': this.hostname });
     }
 
-    async fetchMarketLeverageTiers (symbol: string, params = {}) {
+    async fetchMarketLeverageTiers (symbol: string, params = {}): Promise<LeverageTier[]> {
         if (this.has['fetchLeverageTiers']) {
             const market = this.market (symbol);
             if (!market['contract']) {
@@ -5783,9 +5859,10 @@ export default class Exchange {
         return this.filterByArray (results, 'symbol', symbols);
     }
 
-    parseTickers (tickers, symbols: string[] = undefined, params = {}): Dictionary<Ticker> {
+    parseTickers (tickers, symbols: Strings = undefined, params = {}): Tickers {
         //
         // the value of tickers is either a dict or a list
+        //
         //
         // dict
         //
@@ -5824,7 +5901,7 @@ export default class Exchange {
         return this.filterByArray (results, 'symbol', symbols);
     }
 
-    parseDepositAddresses (addresses, codes: string[] = undefined, indexed = true, params = {}) {
+    parseDepositAddresses (addresses, codes: Strings = undefined, indexed = true, params = {}) {
         let result = [];
         for (let i = 0; i < addresses.length; i++) {
             const address = this.extend (this.parseDepositAddress (addresses[i]), params);
@@ -5888,12 +5965,17 @@ export default class Exchange {
         return result;
     }
 
-    isTriggerOrder (params) {
+    handleTriggerAndParams (params) {
         const isTrigger = this.safeBool2 (params, 'trigger', 'stop');
         if (isTrigger) {
             params = this.omit (params, [ 'trigger', 'stop' ]);
         }
         return [ isTrigger, params ];
+    }
+
+    isTriggerOrder (params) {
+        // for backwards compatibility
+        return this.handleTriggerAndParams (params);
     }
 
     isPostOnly (isMarketOrder: boolean, exchangeSpecificParam, params = {}) {
@@ -5956,7 +6038,7 @@ export default class Exchange {
         return [ false, params ];
     }
 
-    async fetchLastPrices (symbols: string[] = undefined, params = {}): Promise<LastPrices> {
+    async fetchLastPrices (symbols: Strings = undefined, params = {}): Promise<LastPrices> {
         throw new NotSupported (this.id + ' fetchLastPrices() is not supported yet');
     }
 
@@ -6029,7 +6111,7 @@ export default class Exchange {
          * @returns {float[][]} A list of candles ordered as timestamp, open, high, low, close, undefined
          */
         if (this.has['fetchMarkOHLCV']) {
-            const request = {
+            const request: Dict = {
                 'price': 'mark',
             };
             return await this.fetchOHLCV (symbol, timeframe, since, limit, this.extend (request, params));
@@ -6051,7 +6133,7 @@ export default class Exchange {
          * @returns {} A list of candles ordered as timestamp, open, high, low, close, undefined
          */
         if (this.has['fetchIndexOHLCV']) {
-            const request = {
+            const request: Dict = {
                 'price': 'index',
             };
             return await this.fetchOHLCV (symbol, timeframe, since, limit, this.extend (request, params));
@@ -6073,7 +6155,7 @@ export default class Exchange {
          * @returns {float[][]} A list of candles ordered as timestamp, open, high, low, close, undefined
          */
         if (this.has['fetchPremiumIndexOHLCV']) {
-            const request = {
+            const request: Dict = {
                 'price': 'premiumIndex',
             };
             return await this.fetchOHLCV (symbol, timeframe, since, limit, this.extend (request, params));
@@ -6156,7 +6238,7 @@ export default class Exchange {
         }
     }
 
-    parseDepositWithdrawFees (response, codes: string[] = undefined, currencyIdKey = undefined): any {
+    parseDepositWithdrawFees (response, codes: Strings = undefined, currencyIdKey = undefined): any {
         /**
          * @ignore
          * @method
@@ -6255,7 +6337,7 @@ export default class Exchange {
         return this.filterBySinceLimit (sorted, since, limit);
     }
 
-    getMarketFromSymbols (symbols: string[] = undefined) {
+    getMarketFromSymbols (symbols: Strings = undefined) {
         if (symbols === undefined) {
             return undefined;
         }
@@ -6413,22 +6495,24 @@ export default class Exchange {
         let maxRetries = undefined;
         [ maxRetries, params ] = this.handleOptionAndParams (params, method, 'maxRetries', 3);
         let errors = 0;
-        try {
-            if (timeframe && method !== 'fetchFundingRateHistory') {
-                return await this[method] (symbol, timeframe, since, limit, params);
-            } else {
-                return await this[method] (symbol, since, limit, params);
-            }
-        } catch (e) {
-            if (e instanceof RateLimitExceeded) {
-                throw e; // if we are rate limited, we should not retry and fail fast
-            }
-            errors += 1;
-            if (errors > maxRetries) {
-                throw e;
+        while (errors <= maxRetries) {
+            try {
+                if (timeframe && method !== 'fetchFundingRateHistory') {
+                    return await this[method] (symbol, timeframe, since, limit, params);
+                } else {
+                    return await this[method] (symbol, since, limit, params);
+                }
+            } catch (e) {
+                if (e instanceof RateLimitExceeded) {
+                    throw e; // if we are rate limited, we should not retry and fail fast
+                }
+                errors += 1;
+                if (errors > maxRetries) {
+                    throw e;
+                }
             }
         }
-        return undefined;
+        return [];
     }
 
     async fetchPaginatedCallDeterministic (method: string, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, timeframe: Str = undefined, params = {}, maxEntriesPerRequest = undefined): Promise<any> {
@@ -6442,6 +6526,8 @@ export default class Exchange {
         let currentSince = current - (maxCalls * step) - 1;
         if (since !== undefined) {
             currentSince = Math.max (currentSince, since);
+        } else {
+            currentSince = Math.max (currentSince, 1241440531000); // avoid timestamps older than 2009
         }
         const until = this.safeInteger2 (params, 'until', 'till'); // do not omit it here
         if (until !== undefined) {
@@ -6452,6 +6538,9 @@ export default class Exchange {
         }
         for (let i = 0; i < maxCalls; i++) {
             if ((until !== undefined) && (currentSince >= until)) {
+                break;
+            }
+            if (currentSince >= current) {
                 break;
             }
             tasks.push (this.safeDeterministicCall (method, symbol, currentSince, maxEntriesPerRequest, timeframe, params));
@@ -6488,14 +6577,17 @@ export default class Exchange {
                 let response = undefined;
                 if (method === 'fetchAccounts') {
                     response = await this[method] (params);
+                } else if (method === 'getLeverageTiersPaginated') {
+                    response = await this[method] (symbol, params);
                 } else {
                     response = await this[method] (symbol, since, maxEntriesPerRequest, params);
                 }
                 errors = 0;
                 const responseLength = response.length;
                 if (this.verbose) {
-                    const iteration = (i + 1).toString ();
-                    const cursorMessage = 'Cursor pagination call ' + iteration + ' method ' + method + ' response length ' + responseLength.toString () + ' cursor ' + cursorValue;
+                    const cursorString = (cursorValue === undefined) ? '' : cursorValue;
+                    const iteration = (i + 1);
+                    const cursorMessage = 'Cursor pagination call ' + iteration.toString () + ' method ' + method + ' response length ' + responseLength.toString () + ' cursor ' + cursorString;
                     this.log (cursorMessage);
                 }
                 if (responseLength === 0) {
@@ -6626,7 +6718,7 @@ export default class Exchange {
         throw new NotSupported (this.id + ' parseLiquidation () is not supported yet');
     }
 
-    parseLiquidations (liquidations, market = undefined, since: Int = undefined, limit: Int = undefined): Liquidation[] {
+    parseLiquidations (liquidations: Dict[], market: Market = undefined, since: Int = undefined, limit: Int = undefined): Liquidation[] {
         /**
          * @ignore
          * @method
@@ -6648,11 +6740,11 @@ export default class Exchange {
         return this.filterBySymbolSinceLimit (sorted, symbol, since, limit);
     }
 
-    parseGreeks (greeks, market: Market = undefined): Greeks {
+    parseGreeks (greeks: Dict, market: Market = undefined): Greeks {
         throw new NotSupported (this.id + ' parseGreeks () is not supported yet');
     }
 
-    parseOption (chain, currency: Currency = undefined, market: Market = undefined): Option {
+    parseOption (chain: Dict, currency: Currency = undefined, market: Market = undefined): Option {
         throw new NotSupported (this.id + ' parseOption () is not supported yet');
     }
 
@@ -6671,6 +6763,9 @@ export default class Exchange {
 
     parseMarginModes (response: object[], symbols: string[] = undefined, symbolKey: Str = undefined, marketType: MarketType = undefined): MarginModes {
         const marginModeStructures = {};
+        if (marketType === undefined) {
+            marketType = 'swap'; // default to swap
+        }
         for (let i = 0; i < response.length; i++) {
             const info = response[i];
             const marketId = this.safeString (info, symbolKey);
@@ -6682,12 +6777,15 @@ export default class Exchange {
         return marginModeStructures;
     }
 
-    parseMarginMode (marginMode, market: Market = undefined): MarginMode {
+    parseMarginMode (marginMode: Dict, market: Market = undefined): MarginMode {
         throw new NotSupported (this.id + ' parseMarginMode () is not supported yet');
     }
 
     parseLeverages (response: object[], symbols: string[] = undefined, symbolKey: Str = undefined, marketType: MarketType = undefined): Leverages {
         const leverageStructures = {};
+        if (marketType === undefined) {
+            marketType = 'swap'; // default to swap
+        }
         for (let i = 0; i < response.length; i++) {
             const info = response[i];
             const marketId = this.safeString (info, symbolKey);
@@ -6699,7 +6797,7 @@ export default class Exchange {
         return leverageStructures;
     }
 
-    parseLeverage (leverage, market: Market = undefined): Leverage {
+    parseLeverage (leverage: Dict, market: Market = undefined): Leverage {
         throw new NotSupported (this.id + ' parseLeverage () is not supported yet');
     }
 
@@ -6736,7 +6834,7 @@ export default class Exchange {
         return this.filterBySinceLimit (both, since, limit);
     }
 
-    parseConversion (conversion, fromCurrency: Currency = undefined, toCurrency: Currency = undefined): Conversion {
+    parseConversion (conversion: Dict, fromCurrency: Currency = undefined, toCurrency: Currency = undefined): Conversion {
         throw new NotSupported (this.id + ' parseConversion () is not supported yet');
     }
 
@@ -6845,7 +6943,7 @@ export default class Exchange {
         throw new NotSupported (this.id + ' fetchPositionsHistory () is not supported yet');
     }
 
-    parseMarginModification (data, market: Market = undefined): MarginModification {
+    parseMarginModification (data: Dict, market: Market = undefined): MarginModification {
         throw new NotSupported (this.id + ' parseMarginModification() is not supported yet');
     }
 
@@ -6860,6 +6958,33 @@ export default class Exchange {
             }
         }
         return marginModifications;
+    }
+
+    async fetchTransfer (id: string, code: Str = undefined, params = {}): Promise<TransferEntry> {
+        /**
+         * @method
+         * @name exchange#fetchTransfer
+         * @description fetches a transfer
+         * @param {string} id transfer id
+         * @param {[string]} code unified currency code
+         * @param {object} params extra parameters specific to the exchange api endpoint
+         * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+         */
+        throw new NotSupported (this.id + ' fetchTransfer () is not supported yet');
+    }
+
+    async fetchTransfers (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<TransferEntries> {
+        /**
+         * @method
+         * @name exchange#fetchTransfer
+         * @description fetches a transfer
+         * @param {string} id transfer id
+         * @param {int} [since] timestamp in ms of the earliest transfer to fetch
+         * @param {int} [limit] the maximum amount of transfers to fetch
+         * @param {object} params extra parameters specific to the exchange api endpoint
+         * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+         */
+        throw new NotSupported (this.id + ' fetchTransfers () is not supported yet');
     }
 }
 

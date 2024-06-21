@@ -405,7 +405,7 @@ export default class testMainClass extends baseMainTestClass {
             return;
         }
         if (this.info) {
-            const argsStringified = '(' + args.join(',') + ')';
+            const argsStringified = '(' + exchange.json(args) + ')'; // args.join() breaks when we provide a list of symbols or multidimensional array; "args.toString()" breaks bcz of "array to string conversion"
             dump(this.addPadding('[INFO] TESTING', 25), this.exchangeHint(exchange), methodName, argsStringified);
         }
         await callMethod(this.testFiles, methodName, exchange, skippedPropertiesForMethod, args);
@@ -1288,7 +1288,7 @@ export default class testMainClass extends baseMainTestClass {
     initOfflineExchange(exchangeName) {
         const markets = this.loadMarketsFromFile(exchangeName);
         const currencies = this.loadCurrenciesFromFile(exchangeName);
-        const exchange = initExchange(exchangeName, { 'markets': markets, 'currencies': currencies, 'enableRateLimit': false, 'rateLimit': 1, 'httpProxy': 'http://fake:8080', 'httpsProxy': 'http://fake:8080', 'apiKey': 'key', 'secret': 'secretsecret', 'password': 'password', 'walletAddress': 'wallet', 'privateKey': '0xff3bdd43534543d421f05aec535965b5050ad6ac15345435345435453495e771', 'uid': 'uid', 'token': 'token', 'accounts': [{ 'id': 'myAccount', 'code': 'USDT' }, { 'id': 'myAccount', 'code': 'USDC' }], 'options': { 'enableUnifiedAccount': true, 'enableUnifiedMargin': false, 'accessToken': 'token', 'expires': 999999999999999, 'leverageBrackets': {} } });
+        const exchange = initExchange(exchangeName, { 'markets': markets, 'currencies': currencies, 'enableRateLimit': false, 'rateLimit': 1, 'httpProxy': 'http://fake:8080', 'httpsProxy': 'http://fake:8080', 'apiKey': 'key', 'secret': 'secretsecret', 'password': 'password', 'walletAddress': 'wallet', 'privateKey': '0xff3bdd43534543d421f05aec535965b5050ad6ac15345435345435453495e771', 'uid': 'uid', 'token': 'token', 'accountId': 'accountId', 'accounts': [{ 'id': 'myAccount', 'code': 'USDT' }, { 'id': 'myAccount', 'code': 'USDC' }], 'options': { 'enableUnifiedAccount': true, 'enableUnifiedMargin': false, 'accessToken': 'token', 'expires': 999999999999999, 'leverageBrackets': {} } });
         exchange.currencies = currencies; // not working in python if assigned  in the config dict
         return exchange;
     }
@@ -1296,6 +1296,17 @@ export default class testMainClass extends baseMainTestClass {
         // instantiate the exchange and make sure that we sink the requests to avoid an actual request
         const exchange = this.initOfflineExchange(exchangeName);
         const globalOptions = exchange.safeDict(exchangeData, 'options', {});
+        // read apiKey/secret from the test file
+        const apiKey = exchange.safeString(exchangeData, 'apiKey');
+        if (apiKey) {
+            // c# to string requirement
+            exchange.apiKey = apiKey.toString();
+        }
+        const secret = exchange.safeString(exchangeData, 'secret');
+        if (secret) {
+            // c# to string requirement
+            exchange.secret = secret.toString();
+        }
         // exchange.options = exchange.deepExtend (exchange.options, globalOptions); // custom options to be used in the tests
         exchange.extendExchangeOptions(globalOptions);
         const methods = exchange.safeValue(exchangeData, 'methods', {});
@@ -1330,6 +1341,17 @@ export default class testMainClass extends baseMainTestClass {
     }
     async testExchangeResponseStatically(exchangeName, exchangeData, testName = undefined) {
         const exchange = this.initOfflineExchange(exchangeName);
+        // read apiKey/secret from the test file
+        const apiKey = exchange.safeString(exchangeData, 'apiKey');
+        if (apiKey) {
+            // c# to string requirement
+            exchange.apiKey = apiKey.toString();
+        }
+        const secret = exchange.safeString(exchangeData, 'secret');
+        if (secret) {
+            // c# to string requirement
+            exchange.secret = secret.toString();
+        }
         const methods = exchange.safeValue(exchangeData, 'methods', {});
         const options = exchange.safeValue(exchangeData, 'options', {});
         // exchange.options = exchange.deepExtend (exchange.options, options); // custom options to be used in the tests
@@ -1453,7 +1475,10 @@ export default class testMainClass extends baseMainTestClass {
             this.testBlofin(),
             this.testHyperliquid(),
             this.testCoinbaseinternational(),
-            this.testCoinbaseAdvanced()
+            this.testCoinbaseAdvanced(),
+            this.testWoofiPro(),
+            this.testOxfun(),
+            this.testXT()
         ];
         await Promise.all(promises);
         const successMessage = '[' + this.lang + '][TEST_SUCCESS] brokerId tests passed.';
@@ -1810,6 +1835,65 @@ export default class testMainClass extends baseMainTestClass {
         }
         const clientOrderId = request['client_order_id'];
         assert(clientOrderId.startsWith(id.toString()), 'clientOrderId does not start with id');
+        await close(exchange);
+        return true;
+    }
+    async testWoofiPro() {
+        const exchange = this.initOfflineExchange('woofipro');
+        exchange.secret = 'secretsecretsecretsecretsecretsecretsecrets';
+        const id = 'CCXT';
+        await exchange.loadMarkets();
+        let request = undefined;
+        try {
+            await exchange.createOrder('BTC/USDC:USDC', 'limit', 'buy', 1, 20000);
+        }
+        catch (e) {
+            request = jsonParse(exchange.last_request_body);
+        }
+        const brokerId = request['order_tag'];
+        assert(brokerId === id, 'woofipro - id: ' + id + ' different from  broker_id: ' + brokerId);
+        await close(exchange);
+        return true;
+    }
+    async testOxfun() {
+        const exchange = this.initOfflineExchange('oxfun');
+        exchange.secret = 'secretsecretsecretsecretsecretsecretsecrets';
+        const id = 1000;
+        await exchange.loadMarkets();
+        let request = undefined;
+        try {
+            await exchange.createOrder('BTC/USD:OX', 'limit', 'buy', 1, 20000);
+        }
+        catch (e) {
+            request = jsonParse(exchange.last_request_body);
+        }
+        const orders = request['orders'];
+        const first = orders[0];
+        const brokerId = first['source'];
+        assert(brokerId === id, 'oxfun - id: ' + id.toString() + ' different from  broker_id: ' + brokerId.toString());
+        return true;
+    }
+    async testXT() {
+        const exchange = this.initOfflineExchange('xt');
+        const id = 'CCXT';
+        let spotOrderRequest = undefined;
+        try {
+            await exchange.createOrder('BTC/USDT', 'limit', 'buy', 1, 20000);
+        }
+        catch (e) {
+            spotOrderRequest = jsonParse(exchange.last_request_body);
+        }
+        const spotMedia = spotOrderRequest['media'];
+        assert(spotMedia === id, 'xt - id: ' + id + ' different from swap tag: ' + spotMedia);
+        let swapOrderRequest = undefined;
+        try {
+            await exchange.createOrder('BTC/USDT:USDT', 'limit', 'buy', 1, 20000);
+        }
+        catch (e) {
+            swapOrderRequest = jsonParse(exchange.last_request_body);
+        }
+        const swapMedia = swapOrderRequest['clientMedia'];
+        assert(swapMedia === id, 'xt - id: ' + id + ' different from swap tag: ' + swapMedia);
         await close(exchange);
         return true;
     }

@@ -89,6 +89,7 @@ class alpaca extends alpaca$1 {
                 'fetchTransactions': false,
                 'fetchTransfers': false,
                 'fetchWithdrawals': false,
+                'sandbox': true,
                 'setLeverage': false,
                 'setMarginMode': false,
                 'transfer': false,
@@ -790,7 +791,7 @@ class alpaca extends alpaca$1 {
         //       "message": "order is not found."
         //   }
         //
-        return this.safeValue(response, 'message', {});
+        return this.parseOrder(response);
     }
     async cancelAllOrders(symbol = undefined, params = {}) {
         /**

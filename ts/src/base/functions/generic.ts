@@ -129,7 +129,7 @@ const flatten = function flatten (x: any[], out: any[] = []) {
 
 const pluck = (x: Dictionary<any>, k: any) => values (x).filter ((v) => k in v).map ((v) => v[k]);
 
-const omit = (x: Dictionary<any>, ...args) => {
+const omit = (x: Dictionary<any>, ...args: any) => {
 
     if (!Array.isArray (x)) {
 

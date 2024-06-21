@@ -27,6 +27,7 @@ export default class idex extends Exchange {
             'rateLimit': 1000,
             'version': 'v3',
             'pro': true,
+            'dex': true,
             'certified': false,
             'requiresWeb3': true,
             'has': {
@@ -98,6 +99,7 @@ export default class idex extends Exchange {
                 'fetchWithdrawal': true,
                 'fetchWithdrawals': true,
                 'reduceMargin': false,
+                'sandbox': true,
                 'setLeverage': false,
                 'setMarginMode': false,
                 'setPositionMode': false,

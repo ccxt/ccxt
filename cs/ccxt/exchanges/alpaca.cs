@@ -81,6 +81,7 @@ public partial class alpaca : Exchange
                 { "fetchTransactions", false },
                 { "fetchTransfers", false },
                 { "fetchWithdrawals", false },
+                { "sandbox", true },
                 { "setLeverage", false },
                 { "setMarginMode", false },
                 { "transfer", false },
@@ -717,7 +718,7 @@ public partial class alpaca : Exchange
         //       "message": "order is not found."
         //   }
         //
-        return this.safeValue(response, "message", new Dictionary<string, object>() {});
+        return this.parseOrder(response);
     }
 
     public async override Task<object> cancelAllOrders(object symbol = null, object parameters = null)

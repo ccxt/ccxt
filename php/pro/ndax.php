@@ -68,7 +68,7 @@ class ndax extends \ccxt\async\ndax {
                 'n' => $name, // function $name is the $name of the function being called or that the server is responding to, the server echoes your call
                 'o' => $this->json($payload), // JSON-formatted string containing the data being sent with the $message
             );
-            $message = array_merge($request, $params);
+            $message = $this->extend($request, $params);
             return Async\await($this->watch($url, $messageHash, $message, $messageHash));
         }) ();
     }
@@ -138,7 +138,7 @@ class ndax extends \ccxt\async\ndax {
                 'n' => $name, // function $name is the $name of the function being called or that the server is responding to, the server echoes your call
                 'o' => $this->json($payload), // JSON-formatted string containing the data being sent with the $message
             );
-            $message = array_merge($request, $params);
+            $message = $this->extend($request, $params);
             $trades = Async\await($this->watch($url, $messageHash, $message, $messageHash));
             if ($this->newUpdates) {
                 $limit = $trades->getLimit ($symbol, $limit);
@@ -223,7 +223,7 @@ class ndax extends \ccxt\async\ndax {
                 'n' => $name, // function $name is the $name of the function being called or that the server is responding to, the server echoes your call
                 'o' => $this->json($payload), // JSON-formatted string containing the data being sent with the $message
             );
-            $message = array_merge($request, $params);
+            $message = $this->extend($request, $params);
             $ohlcv = Async\await($this->watch($url, $messageHash, $message, $messageHash));
             if ($this->newUpdates) {
                 $limit = $ohlcv->getLimit ($symbol, $limit);
@@ -364,7 +364,7 @@ class ndax extends \ccxt\async\ndax {
                 'limit' => $limit,
                 'params' => $params,
             );
-            $message = array_merge($request, $params);
+            $message = $this->extend($request, $params);
             $orderbook = Async\await($this->watch($url, $messageHash, $message, $messageHash, $subscription));
             return $orderbook->limit ();
         }) ();

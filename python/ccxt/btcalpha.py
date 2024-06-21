@@ -186,7 +186,7 @@ class btcalpha(Exchange, ImplicitAPI):
         #
         return self.parse_markets(response)
 
-    def parse_market(self, market) -> Market:
+    def parse_market(self, market: dict) -> Market:
         id = self.safe_string(market, 'name')
         baseId = self.safe_string(market, 'currency1')
         quoteId = self.safe_string(market, 'currency2')
@@ -283,7 +283,7 @@ class btcalpha(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'pair': market['id'],
         }
         response = self.publicGetTicker(self.extend(request, params))
@@ -302,7 +302,7 @@ class btcalpha(Exchange, ImplicitAPI):
         #
         return self.parse_ticker(response, market)
 
-    def parse_ticker(self, ticker, market: Market = None) -> Ticker:
+    def parse_ticker(self, ticker: dict, market: Market = None) -> Ticker:
         #
         #    {
         #        "timestamp": "1674658.445272",
@@ -355,7 +355,7 @@ class btcalpha(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'pair_name': market['id'],
         }
         if limit:
@@ -372,7 +372,7 @@ class btcalpha(Exchange, ImplicitAPI):
                 result.append(self.parse_bid_ask(bidask, priceKey, amountKey))
         return result
 
-    def parse_trade(self, trade, market: Market = None) -> Trade:
+    def parse_trade(self, trade: dict, market: Market = None) -> Trade:
         #
         # fetchTrades(public)
         #
@@ -433,7 +433,7 @@ class btcalpha(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = None
-        request = {}
+        request: dict = {}
         if symbol is not None:
             market = self.market(symbol)
             request['pair'] = market['id']
@@ -481,7 +481,7 @@ class btcalpha(Exchange, ImplicitAPI):
         """
         self.load_markets()
         currency = None
-        request = {}
+        request: dict = {}
         if code is not None:
             currency = self.currency(code)
             request['currency_id'] = currency['id']
@@ -499,7 +499,7 @@ class btcalpha(Exchange, ImplicitAPI):
         #
         return self.parse_transactions(response, currency, since, limit, {'type': 'withdrawal'})
 
-    def parse_transaction(self, transaction, currency: Currency = None) -> Transaction:
+    def parse_transaction(self, transaction: dict, currency: Currency = None) -> Transaction:
         #
         #  deposit
         #      {
@@ -544,8 +544,8 @@ class btcalpha(Exchange, ImplicitAPI):
             'updated': None,
         }
 
-    def parse_transaction_status(self, status):
-        statuses = {
+    def parse_transaction_status(self, status: Str):
+        statuses: dict = {
             '10': 'pending',  # New
             '20': 'pending',  # Verified, waiting for approving
             '30': 'ok',       # Approved by moderator
@@ -587,7 +587,7 @@ class btcalpha(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'pair': market['id'],
             'type': self.safe_string(self.timeframes, timeframe, timeframe),
         }
@@ -606,7 +606,7 @@ class btcalpha(Exchange, ImplicitAPI):
         return self.parse_ohlcvs(response, market, timeframe, since, limit)
 
     def parse_balance(self, response) -> Balances:
-        result = {'info': response}
+        result: dict = {'info': response}
         for i in range(0, len(response)):
             balance = response[i]
             currencyId = self.safe_string(balance, 'currency')
@@ -628,15 +628,15 @@ class btcalpha(Exchange, ImplicitAPI):
         response = self.privateGetWallets(params)
         return self.parse_balance(response)
 
-    def parse_order_status(self, status):
-        statuses = {
+    def parse_order_status(self, status: Str):
+        statuses: dict = {
             '1': 'open',
             '2': 'canceled',
             '3': 'closed',
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_order(self, order, market: Market = None) -> Order:
+    def parse_order(self, order: dict, market: Market = None) -> Order:
         #
         # fetchClosedOrders / fetchOrder
         #     {
@@ -679,7 +679,7 @@ class btcalpha(Exchange, ImplicitAPI):
         filled = self.safe_string(order, 'amount_filled')
         amount = self.safe_string(order, 'amount_original')
         status = self.parse_order_status(self.safe_string(order, 'status'))
-        id = self.safe_string_2(order, 'oid', 'id')
+        id = self.safe_string_n(order, ['oid', 'id', 'order'])
         trades = self.safe_value(order, 'trades')
         side = self.safe_string_2(order, 'my_side', 'type')
         return self.safe_order({
@@ -723,7 +723,7 @@ class btcalpha(Exchange, ImplicitAPI):
             raise InvalidOrder(self.id + ' only limits orders are supported')
         self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'pair': market['id'],
             'type': side,
             'amount': amount,
@@ -747,11 +747,16 @@ class btcalpha(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
-        request = {
+        request: dict = {
             'order': id,
         }
         response = self.privatePostOrderCancel(self.extend(request, params))
-        return response
+        #
+        #    {
+        #        "order": 63568
+        #    }
+        #
+        return self.parse_order(response)
 
     def fetch_order(self, id: str, symbol: Str = None, params={}):
         """
@@ -762,7 +767,7 @@ class btcalpha(Exchange, ImplicitAPI):
         :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
-        request = {
+        request: dict = {
             'id': id,
         }
         order = self.privateGetOrderId(self.extend(request, params))
@@ -779,7 +784,7 @@ class btcalpha(Exchange, ImplicitAPI):
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
-        request = {}
+        request: dict = {}
         market = None
         if symbol is not None:
             market = self.market(symbol)
@@ -799,7 +804,7 @@ class btcalpha(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
-        request = {
+        request: dict = {
             'status': '1',
         }
         return self.fetch_orders(symbol, since, limit, self.extend(request, params))
@@ -814,7 +819,7 @@ class btcalpha(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
-        request = {
+        request: dict = {
             'status': '3',
         }
         return self.fetch_orders(symbol, since, limit, self.extend(request, params))
@@ -830,7 +835,7 @@ class btcalpha(Exchange, ImplicitAPI):
         :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
         """
         self.load_markets()
-        request = {}
+        request: dict = {}
         if symbol is not None:
             market = self.market(symbol)
             request['pair'] = market['id']
@@ -866,7 +871,7 @@ class btcalpha(Exchange, ImplicitAPI):
             headers['X-NONCE'] = str(self.nonce())
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response, requestHeaders, requestBody):
         if response is None:
             return None  # fallback to default error handler
         #

@@ -5,7 +5,7 @@ import krakenRest from '../kraken.js';
 import { ExchangeError, BadSymbol, PermissionDenied, AccountSuspended, BadRequest, InsufficientFunds, InvalidOrder, OrderNotFound, NotSupported, RateLimitExceeded, ExchangeNotAvailable, InvalidNonce, AuthenticationError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 import { Precise } from '../base/Precise.js';
-import type { Int, Strings, OrderSide, OrderType, Str, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Num } from '../base/types.js';
+import type { Int, Strings, OrderSide, OrderType, Str, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Num, Dict } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 //  ---------------------------------------------------------------------------
 
@@ -128,7 +128,7 @@ export default class kraken extends krakenRest {
         const url = this.urls['api']['ws']['private'];
         const requestId = this.requestId ();
         const messageHash = requestId;
-        let request = {
+        let request: Dict = {
             'event': 'addOrder',
             'token': token,
             'reqid': requestId,
@@ -137,7 +137,7 @@ export default class kraken extends krakenRest {
             'pair': market['wsId'],
             'volume': this.amountToPrecision (symbol, amount),
         };
-        [ request, params ] = this.orderRequest ('createOrderWs', symbol, type, request, price, params);
+        [ request, params ] = this.orderRequest ('createOrderWs', symbol, type, request, amount, price, params);
         return await this.watch (url, messageHash, this.extend (request, params), messageHash);
     }
 
@@ -166,7 +166,7 @@ export default class kraken extends krakenRest {
         client.resolve (order, messageHash);
     }
 
-    async editOrderWs (id: string, symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}): Promise<Order> {
+    async editOrderWs (id: string, symbol: string, type: OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params = {}): Promise<Order> {
         /**
          * @method
          * @name kraken#editOrderWs
@@ -187,15 +187,17 @@ export default class kraken extends krakenRest {
         const url = this.urls['api']['ws']['private'];
         const requestId = this.requestId ();
         const messageHash = requestId;
-        let request = {
+        let request: Dict = {
             'event': 'editOrder',
             'token': token,
             'reqid': requestId,
             'orderid': id,
             'pair': market['wsId'],
-            'volume': this.amountToPrecision (symbol, amount),
         };
-        [ request, params ] = this.orderRequest ('editOrderWs', symbol, type, request, price, params);
+        if (amount !== undefined) {
+            request['volume'] = this.amountToPrecision (symbol, amount);
+        }
+        [ request, params ] = this.orderRequest ('editOrderWs', symbol, type, request, amount, price, params);
         return await this.watch (url, messageHash, this.extend (request, params), messageHash);
     }
 
@@ -215,7 +217,7 @@ export default class kraken extends krakenRest {
         const url = this.urls['api']['ws']['private'];
         const requestId = this.requestId ();
         const messageHash = requestId;
-        const request = {
+        const request: Dict = {
             'event': 'cancelOrder',
             'token': token,
             'reqid': requestId,
@@ -242,7 +244,7 @@ export default class kraken extends krakenRest {
         const messageHash = requestId;
         const clientOrderId = this.safeValue2 (params, 'userref', 'clientOrderId', id);
         params = this.omit (params, [ 'userref', 'clientOrderId' ]);
-        const request = {
+        const request: Dict = {
             'event': 'cancelOrder',
             'token': token,
             'reqid': requestId,
@@ -282,7 +284,7 @@ export default class kraken extends krakenRest {
         const url = this.urls['api']['ws']['private'];
         const requestId = this.requestId ();
         const messageHash = requestId;
-        const request = {
+        const request: Dict = {
             'event': 'cancelAll',
             'token': token,
             'reqid': requestId,
@@ -458,7 +460,7 @@ export default class kraken extends krakenRest {
         const messageHash = name + ':' + wsName;
         const url = this.urls['api']['ws']['public'];
         const requestId = this.requestId ();
-        const subscribe = {
+        const subscribe: Dict = {
             'event': 'subscribe',
             'reqid': requestId,
             'pair': [
@@ -500,7 +502,7 @@ export default class kraken extends krakenRest {
         symbols = this.marketSymbols (symbols, undefined, false);
         const ticker = await this.watchMultiHelper ('ticker', 'ticker', symbols, undefined, params);
         if (this.newUpdates) {
-            const result = {};
+            const result: Dict = {};
             result[ticker['symbol']] = ticker;
             return result;
         }
@@ -568,7 +570,7 @@ export default class kraken extends krakenRest {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
          */
-        const request = {};
+        const request: Dict = {};
         if (limit !== undefined) {
             if (this.inArray (limit, [ 10, 25, 100, 500, 1000 ])) {
                 request['subscription'] = {
@@ -602,7 +604,7 @@ export default class kraken extends krakenRest {
         const messageHash = name + ':' + timeframe + ':' + wsName;
         const url = this.urls['api']['ws']['public'];
         const requestId = this.requestId ();
-        const subscribe = {
+        const subscribe: Dict = {
             'event': 'subscribe',
             'reqid': requestId,
             'pair': [
@@ -717,7 +719,7 @@ export default class kraken extends krakenRest {
             // todo get depth from marketsByWsName
             this.orderbooks[symbol] = this.orderBook ({}, depth);
             const orderbook = this.orderbooks[symbol];
-            const sides = {
+            const sides: Dict = {
                 'as': 'asks',
                 'bs': 'bids',
             };
@@ -788,6 +790,8 @@ export default class kraken extends krakenRest {
                 const localChecksum = this.crc32 (payload, false);
                 if (localChecksum !== c) {
                     const error = new InvalidNonce (this.id + ' invalid checksum');
+                    delete client.subscriptions[messageHash];
+                    delete this.orderbooks[symbol];
                     client.reject (error, messageHash);
                     return;
                 }
@@ -878,7 +882,7 @@ export default class kraken extends krakenRest {
         }
         const url = this.urls['api']['ws']['private'];
         const requestId = this.requestId ();
-        const subscribe = {
+        const subscribe: Dict = {
             'event': 'subscribe',
             'reqid': requestId,
             'subscription': {
@@ -955,7 +959,7 @@ export default class kraken extends krakenRest {
                 this.myTrades = new ArrayCache (limit);
             }
             const stored = this.myTrades;
-            const symbols = {};
+            const symbols: Dict = {};
             for (let i = 0; i < allTrades.length; i++) {
                 const trades = this.safeValue (allTrades, i, {});
                 const ids = Object.keys (trades);
@@ -1159,7 +1163,7 @@ export default class kraken extends krakenRest {
                 this.orders = new ArrayCacheBySymbolById (limit);
             }
             const stored = this.orders;
-            const symbols = {};
+            const symbols: Dict = {};
             for (let i = 0; i < allOrders.length; i++) {
                 const orders = this.safeValue (allOrders, i, {});
                 const ids = Object.keys (orders);
@@ -1341,7 +1345,7 @@ export default class kraken extends krakenRest {
             const wsMarketId = this.safeString (markets[i]['info'], 'wsname');
             wsMarketIds.push (wsMarketId);
         }
-        const request = {
+        const request: Dict = {
             'event': 'subscribe',
             'reqid': this.requestId (),
             'pair': wsMarketIds,
@@ -1441,7 +1445,7 @@ export default class kraken extends krakenRest {
             const messageLength = message.length;
             const channelName = this.safeString (message, messageLength - 2);
             const name = this.safeString (info, 'name');
-            const methods = {
+            const methods: Dict = {
                 // public
                 'book': this.handleOrderBook,
                 'ohlc': this.handleOHLCV,
@@ -1458,7 +1462,7 @@ export default class kraken extends krakenRest {
         } else {
             if (this.handleErrorMessage (client, message)) {
                 const event = this.safeString (message, 'event');
-                const methods = {
+                const methods: Dict = {
                     'heartbeat': this.handleHeartbeat,
                     'systemStatus': this.handleSystemStatus,
                     'subscriptionStatus': this.handleSubscriptionStatus,

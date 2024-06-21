@@ -101,6 +101,7 @@ class currencycom extends currencycom$1 {
                 'fetchWithdrawal': undefined,
                 'fetchWithdrawals': true,
                 'reduceMargin': undefined,
+                'sandbox': true,
                 'setLeverage': undefined,
                 'setMarginMode': undefined,
                 'setPositionMode': undefined,

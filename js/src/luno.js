@@ -150,6 +150,7 @@ export default class luno extends Exchange {
                         'withdrawals': 1,
                         'send': 1,
                         'oauth2/grant': 1,
+                        'beneficiaries': 1,
                         // POST /api/exchange/1/move
                     },
                     'put': {
@@ -157,6 +158,7 @@ export default class luno extends Exchange {
                     },
                     'delete': {
                         'withdrawals/{id}': 1,
+                        'beneficiaries/{id}': 1,
                     },
                 },
             },
@@ -962,7 +964,15 @@ export default class luno extends Exchange {
         const request = {
             'order_id': id,
         };
-        return await this.privatePostStoporder(this.extend(request, params));
+        const response = await this.privatePostStoporder(this.extend(request, params));
+        //
+        //    {
+        //        "success": true
+        //    }
+        //
+        return this.safeOrder({
+            'info': response,
+        });
     }
     async fetchLedgerByEntries(code = undefined, entry = undefined, limit = undefined, params = {}) {
         // by default without entry number or limit number, return most recent entry

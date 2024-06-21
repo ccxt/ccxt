@@ -338,6 +338,7 @@ public partial class testMainClass : BaseTest
             object keyString = stringValue(key);
             if (isTrue(((key is int) || (key is long) || (key is Int32) || (key is Int64))))
             {
+                key = key;
                 assert(((entry is IList<object>) || (entry.GetType().IsGenericType && entry.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))), add("fee container is expected to be an array", logText));
                 assert(isLessThan(key, getArrayLength(entry)), add(add(add("fee key ", keyString), " was expected to be present in entry"), logText));
             } else

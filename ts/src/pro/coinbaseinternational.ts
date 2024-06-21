@@ -2,7 +2,7 @@
 
 import coinbaseinternationalRest from '../coinbaseinternational.js';
 import { AuthenticationError, ExchangeError, NotSupported } from '../base/errors.js';
-import { Ticker, Int, Trade, OrderBook, Market, Dict, Strings } from '../base/types.js';
+import { Ticker, Int, Trade, OrderBook, Market, Dict, Strings, FundingRate, FundingRates } from '../base/types.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
 import Client from '../base/ws/Client.js';
 import { ArrayCache } from '../base/ws/Cache.js';
@@ -72,6 +72,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} subscription to a websocket channel
          */
+        await this.loadMarkets ();
         this.checkRequiredCredentials ();
         let market = undefined;
         let messageHash = name;
@@ -97,7 +98,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         const timestamp = this.nonce ().toString ();
         const auth = timestamp + this.apiKey + 'CBINTLMD' + this.password;
         const signature = this.hmac (this.encode (auth), this.base64ToBinary (this.secret), sha256, 'base64');
-        const subscribe = {
+        const subscribe: Dict = {
             'type': 'SUBSCRIBE',
             'product_ids': productIds,
             'channels': [ name ],
@@ -120,6 +121,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} subscription to a websocket channel
          */
+        await this.loadMarkets ();
         this.checkRequiredCredentials ();
         if (this.isEmpty (symbols)) {
             symbols = this.symbols;
@@ -141,7 +143,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         const timestamp = this.numberToString (this.seconds ());
         const auth = timestamp + this.apiKey + 'CBINTLMD' + this.password;
         const signature = this.hmac (this.encode (auth), this.base64ToBinary (this.secret), sha256, 'base64');
-        const subscribe = {
+        const subscribe: Dict = {
             'type': 'SUBSCRIBE',
             'time': timestamp,
             'product_ids': productIds,
@@ -153,7 +155,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         return await this.watchMultiple (url, messageHashes, this.extend (subscribe, params), messageHashes);
     }
 
-    async watchFundingRate (symbol: string, params = {}): Promise<{}> {
+    async watchFundingRate (symbol: string, params = {}): Promise<FundingRate> {
         /**
          * @method
          * @name coinbaseinternational#watchFundingRate
@@ -163,10 +165,11 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
          */
+        await this.loadMarkets ();
         return await this.subscribe ('RISK', [ symbol ], params);
     }
 
-    async watchFundingRates (symbols: string[], params = {}): Promise<{}> {
+    async watchFundingRates (symbols: string[], params = {}): Promise<FundingRates> {
         /**
          * @method
          * @name coinbaseinternational#watchFundingRates
@@ -176,7 +179,15 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a dictionary of [funding rates structures]{@link https://docs.ccxt.com/#/?id=funding-rates-structure}, indexe by market symbols
          */
-        return await this.subscribeMultiple ('RISK', symbols, params);
+        await this.loadMarkets ();
+        const fundingRate = await this.subscribeMultiple ('RISK', symbols, params);
+        const symbol = this.safeString (fundingRate, 'symbol');
+        if (this.newUpdates) {
+            const result: Dict = {};
+            result[symbol] = fundingRate;
+            return result;
+        }
+        return this.filterByArray (this.fundingRates, 'symbol', symbols);
     }
 
     async watchTicker (symbol: string, params = {}): Promise<Ticker> {
@@ -189,6 +200,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
+        await this.loadMarkets ();
         let channel = undefined;
         [ channel, params ] = this.handleOptionAndParams (params, 'watchTicker', 'channel', 'LEVEL1');
         return await this.subscribe (channel, [ symbol ], params);
@@ -607,6 +619,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         //
         const channel = this.safeString (message, 'channel');
         const fundingRate = this.parseFundingRate (message);
+        this.fundingRates[fundingRate['symbol']] = fundingRate;
         client.resolve (fundingRate, channel + '::' + fundingRate['symbol']);
     }
 
@@ -641,7 +654,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
             return;
         }
         const channel = this.safeString (message, 'channel');
-        const methods = {
+        const methods: Dict = {
             'SUBSCRIPTIONS': this.handleSubscriptionStatus,
             'INSTRUMENTS': this.handleInstrument,
             'LEVEL1': this.handleTicker,

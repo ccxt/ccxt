@@ -24,6 +24,7 @@ class idex extends idex$1 {
             'rateLimit': 1000,
             'version': 'v3',
             'pro': true,
+            'dex': true,
             'certified': false,
             'requiresWeb3': true,
             'has': {
@@ -95,6 +96,7 @@ class idex extends idex$1 {
                 'fetchWithdrawal': true,
                 'fetchWithdrawals': true,
                 'reduceMargin': false,
+                'sandbox': true,
                 'setLeverage': false,
                 'setMarginMode': false,
                 'setPositionMode': false,

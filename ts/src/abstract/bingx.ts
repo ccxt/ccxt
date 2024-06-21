@@ -15,6 +15,8 @@ interface Exchange {
     spotV1PublicGetMarketDepth (params?: {}): Promise<implicitReturnType>;
     spotV1PublicGetMarketKline (params?: {}): Promise<implicitReturnType>;
     spotV1PublicGetTicker24hr (params?: {}): Promise<implicitReturnType>;
+    spotV1PublicGetTickerPrice (params?: {}): Promise<implicitReturnType>;
+    spotV1PublicGetTickerBookTicker (params?: {}): Promise<implicitReturnType>;
     spotV1PrivateGetTradeQuery (params?: {}): Promise<implicitReturnType>;
     spotV1PrivateGetTradeOpenOrders (params?: {}): Promise<implicitReturnType>;
     spotV1PrivateGetTradeHistoryOrders (params?: {}): Promise<implicitReturnType>;
@@ -28,12 +30,15 @@ interface Exchange {
     spotV1PrivatePostTradeCancelOrders (params?: {}): Promise<implicitReturnType>;
     spotV1PrivatePostTradeCancelOpenOrders (params?: {}): Promise<implicitReturnType>;
     spotV1PrivatePostTradeCancelAllAfter (params?: {}): Promise<implicitReturnType>;
+    spotV2PublicGetMarketDepth (params?: {}): Promise<implicitReturnType>;
+    spotV2PublicGetMarketKline (params?: {}): Promise<implicitReturnType>;
     spotV3PrivateGetGetAssetTransfer (params?: {}): Promise<implicitReturnType>;
     spotV3PrivateGetAssetTransfer (params?: {}): Promise<implicitReturnType>;
     spotV3PrivateGetCapitalDepositHisrec (params?: {}): Promise<implicitReturnType>;
     spotV3PrivateGetCapitalWithdrawHistory (params?: {}): Promise<implicitReturnType>;
     spotV3PrivatePostPostAssetTransfer (params?: {}): Promise<implicitReturnType>;
     swapV1PublicGetTickerPrice (params?: {}): Promise<implicitReturnType>;
+    swapV1PublicGetMarketHistoricalTrades (params?: {}): Promise<implicitReturnType>;
     swapV1PrivateGetPositionSideDual (params?: {}): Promise<implicitReturnType>;
     swapV1PrivateGetMarketMarkPriceKlines (params?: {}): Promise<implicitReturnType>;
     swapV1PrivateGetTradeBatchCancelReplace (params?: {}): Promise<implicitReturnType>;
@@ -87,6 +92,7 @@ interface Exchange {
     walletsV1PrivateGetCapitalSubAccountDepositAddress (params?: {}): Promise<implicitReturnType>;
     walletsV1PrivateGetCapitalDepositSubHisrec (params?: {}): Promise<implicitReturnType>;
     walletsV1PrivateGetCapitalSubAccountInnerTransferRecords (params?: {}): Promise<implicitReturnType>;
+    walletsV1PrivateGetCapitalDepositRiskRecords (params?: {}): Promise<implicitReturnType>;
     walletsV1PrivatePostCapitalWithdrawApply (params?: {}): Promise<implicitReturnType>;
     walletsV1PrivatePostCapitalInnerTransferApply (params?: {}): Promise<implicitReturnType>;
     walletsV1PrivatePostCapitalSubAccountInnerTransferApply (params?: {}): Promise<implicitReturnType>;
@@ -103,6 +109,7 @@ interface Exchange {
     accountV1PrivatePostInnerTransferAuthorizeSubAccount (params?: {}): Promise<implicitReturnType>;
     userAuthPrivatePostUserDataStream (params?: {}): Promise<implicitReturnType>;
     userAuthPrivatePutUserDataStream (params?: {}): Promise<implicitReturnType>;
+    userAuthPrivateDeleteUserDataStream (params?: {}): Promise<implicitReturnType>;
     copyTradingV1PrivateGetSwapTraceCurrentTrack (params?: {}): Promise<implicitReturnType>;
     copyTradingV1PrivatePostSwapTraceCloseTrackOrder (params?: {}): Promise<implicitReturnType>;
     copyTradingV1PrivatePostSwapTraceSetTPSL (params?: {}): Promise<implicitReturnType>;

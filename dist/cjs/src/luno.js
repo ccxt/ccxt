@@ -147,6 +147,7 @@ class luno extends luno$1 {
                         'withdrawals': 1,
                         'send': 1,
                         'oauth2/grant': 1,
+                        'beneficiaries': 1,
                         // POST /api/exchange/1/move
                     },
                     'put': {
@@ -154,6 +155,7 @@ class luno extends luno$1 {
                     },
                     'delete': {
                         'withdrawals/{id}': 1,
+                        'beneficiaries/{id}': 1,
                     },
                 },
             },
@@ -959,7 +961,15 @@ class luno extends luno$1 {
         const request = {
             'order_id': id,
         };
-        return await this.privatePostStoporder(this.extend(request, params));
+        const response = await this.privatePostStoporder(this.extend(request, params));
+        //
+        //    {
+        //        "success": true
+        //    }
+        //
+        return this.safeOrder({
+            'info': response,
+        });
     }
     async fetchLedgerByEntries(code = undefined, entry = undefined, limit = undefined, params = {}) {
         // by default without entry number or limit number, return most recent entry

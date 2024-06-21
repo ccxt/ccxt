@@ -91,6 +91,7 @@ class hitbtc extends hitbtc$1 {
                 'fetchTransactions': 'emulated',
                 'fetchWithdrawals': true,
                 'reduceMargin': true,
+                'sandbox': true,
                 'setLeverage': true,
                 'setMargin': false,
                 'setMarginMode': false,
@@ -615,6 +616,7 @@ class hitbtc extends hitbtc$1 {
                 'accountsByType': {
                     'spot': 'spot',
                     'funding': 'wallet',
+                    'swap': 'derivatives',
                     'future': 'derivatives',
                 },
                 'withdraw': {
@@ -850,8 +852,8 @@ class hitbtc extends hitbtc$1 {
                 const network = this.safeNetwork(networkId);
                 fee = this.safeNumber(rawNetwork, 'payout_fee');
                 const networkPrecision = this.safeNumber(rawNetwork, 'precision_payout');
-                const payinEnabledNetwork = this.safeBool(entry, 'payin_enabled', false);
-                const payoutEnabledNetwork = this.safeBool(entry, 'payout_enabled', false);
+                const payinEnabledNetwork = this.safeBool(rawNetwork, 'payin_enabled', false);
+                const payoutEnabledNetwork = this.safeBool(rawNetwork, 'payout_enabled', false);
                 const activeNetwork = payinEnabledNetwork && payoutEnabledNetwork;
                 if (payinEnabledNetwork && !depositEnabled) {
                     depositEnabled = true;
