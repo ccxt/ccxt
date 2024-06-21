@@ -603,8 +603,9 @@ export default class xt extends xtRest {
         const marketId = this.safeStringLower (data, 's');
         if (marketId !== undefined) {
             const trade = this.parseTrade (data);
-            const market = this.market (trade['symbol']);
-            const tradeType = market['contract'] ? 'contract' : 'spot';
+            const i = this.safeString (data, 'i');
+            const tradeType = (i !== undefined) ? 'spot' : 'contract';
+            const market = this.safeMarket (marketId, undefined, undefined, tradeType);
             const symbol = market['symbol'];
             const event = this.safeString (message, 'event');
             let tradesArray = this.safeValue (this.trades, symbol);
