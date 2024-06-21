@@ -663,6 +663,24 @@ export default class paradex extends Exchange {
         //         "trade_type": "FILL"
         //     }
         //
+        // fetchMyTrades (private)
+        //
+        //     {
+        //         "id": "1718947571560201703986670001",
+        //         "side": "BUY",
+        //         "liquidity": "TAKER",
+        //         "market": "BTC-USD-PERP",
+        //         "order_id": "1718947571540201703992340000",
+        //         "price": "64852.9",
+        //         "size": "0.01",
+        //         "fee": "0.1945587",
+        //         "fee_currency": "USDC",
+        //         "created_at": 1718947571569,
+        //         "remaining_size": "0",
+        //         "client_id": "",
+        //         "fill_type": "FILL"
+        //     }
+        //
         const marketId = this.safeString (trade, 'market');
         market = this.safeMarket (marketId, market);
         const id = this.safeString (trade, 'id');
@@ -670,22 +688,26 @@ export default class paradex extends Exchange {
         const priceString = this.safeString (trade, 'price');
         const amountString = this.safeString (trade, 'size');
         const side = this.safeString (trade, 'side');
+        const liability = this.safeString (trade, 'liquidity', 'taker');
+        const takerOrMaker = (liability.toLowerCase () === 'taker') ? 'taker' : 'maker';
+        const currencyId = this.safeString (trade, 'fee_currency');
+        const code = this.safeCurrencyCode (currencyId);
         return this.safeTrade ({
             'info': trade,
             'id': id,
-            'order': undefined,
+            'order': this.safeString (trade, 'order_id'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'symbol': market['symbol'],
             'type': undefined,
-            'takerOrMaker': 'taker',
+            'takerOrMaker': takerOrMaker,
             'side': side,
             'price': priceString,
             'amount': amountString,
             'cost': undefined,
             'fee': {
-                'cost': undefined,
-                'currency': undefined,
+                'cost': this.safeString (trade, 'fee'),
+                'currency': code,
                 'rate': undefined,
             },
         }, market);
@@ -1210,6 +1232,71 @@ export default class paradex extends Exchange {
             result[code] = account;
         }
         return this.safeBalance (result);
+    }
+
+    async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+        /**
+         * @method
+         * @name paradex#fetchMyTrades
+         * @description fetch all trades made by the user
+         * @see https://docs.api.prod.paradex.trade/#list-fills
+         * @param {string} symbol unified market symbol
+         * @param {int} [since] the earliest time in ms to fetch trades for
+         * @param {int} [limit] the maximum number of trades structures to retrieve
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+         * @param {int} [params.until] the latest time in ms to fetch entries for
+         * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+         */
+        await this.authenticateRest ();
+        await this.loadMarkets ();
+        let paginate = false;
+        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchMyTrades', 'paginate');
+        if (paginate) {
+            return await this.fetchPaginatedCallCursor ('fetchMyTrades', symbol, since, limit, params, 'next', 'cursor', undefined, 100) as Trade[];
+        }
+        let request: Dict = {};
+        let market: Market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['market'] = market['id'];
+        }
+        if (limit !== undefined) {
+            request['page_size'] = limit;
+        }
+        if (since !== undefined) {
+            request['start_at'] = since;
+        }
+        [ request, params ] = this.handleUntilOption ('end_at', request, params);
+        const response = await this.privateGetFills (this.extend (request, params));
+        //
+        //     {
+        //         "next": null,
+        //         "prev": null,
+        //         "results": [
+        //             {
+        //                 "id": "1718947571560201703986670001",
+        //                 "side": "BUY",
+        //                 "liquidity": "TAKER",
+        //                 "market": "BTC-USD-PERP",
+        //                 "order_id": "1718947571540201703992340000",
+        //                 "price": "64852.9",
+        //                 "size": "0.01",
+        //                 "fee": "0.1945587",
+        //                 "fee_currency": "USDC",
+        //                 "created_at": 1718947571569,
+        //                 "remaining_size": "0",
+        //                 "client_id": "",
+        //                 "fill_type": "FILL"
+        //             }
+        //         ]
+        //     }
+        //
+        const trades = this.safeList (response, 'results', []);
+        for (let i = 0; i < trades.length; i++) {
+            trades[i]['next'] = this.safeString (response, 'next');
+        }
+        return this.parseTrades (trades, market, since, limit);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
