@@ -102,7 +102,6 @@ const {
     , packb
     , TRUNCATE
     , ROUND
-    , DECIMAL_PLACES
     , NO_PADDING
     , TICK_SIZE
     , SIGNIFICANT_DIGITS
@@ -768,7 +767,7 @@ export default class Exchange {
                 'BCC': 'BCH',
                 'BCHSV': 'BSV',
             },
-            'precisionMode': DECIMAL_PLACES,
+            'precisionMode': TICK_SIZE,
             'paddingMode': NO_PADDING,
             'limits': {
                 'leverage': { 'min': undefined, 'max': undefined },
@@ -2786,14 +2785,14 @@ export default class Exchange {
             let quoteCurrencies = [];
             for (let i = 0; i < values.length; i++) {
                 const market = values[i];
-                const defaultCurrencyPrecision = (this.precisionMode === DECIMAL_PLACES) ? 8 : this.parseNumber ('1e-8');
+                const defaultCurrencyPrecision = (this.precisionMode === TICK_SIZE) ? this.parseNumber ('1e-8') : this.parseNumber ('8');
                 const marketPrecision = this.safeDict (market, 'precision', {});
                 if ('base' in market) {
                     const currency = this.safeCurrencyStructure ({
                         'id': this.safeString2 (market, 'baseId', 'base'),
                         'numericId': this.safeInteger (market, 'baseNumericId'),
                         'code': this.safeString (market, 'base'),
-                        'precision': this.safeValue2 (marketPrecision, 'base', 'amount', defaultCurrencyPrecision),
+                        'precision': this.safeNumber2 (marketPrecision, 'base', 'amount', defaultCurrencyPrecision),
                     });
                     baseCurrencies.push (currency);
                 }
@@ -2802,7 +2801,7 @@ export default class Exchange {
                         'id': this.safeString2 (market, 'quoteId', 'quote'),
                         'numericId': this.safeInteger (market, 'quoteNumericId'),
                         'code': this.safeString (market, 'quote'),
-                        'precision': this.safeValue2 (marketPrecision, 'quote', 'price', defaultCurrencyPrecision),
+                        'precision': this.safeNumber2 (marketPrecision, 'quote', 'price', defaultCurrencyPrecision),
                     });
                     quoteCurrencies.push (currency);
                 }
@@ -5627,10 +5626,6 @@ export default class Exchange {
 
     isTickPrecision () {
         return this.precisionMode === TICK_SIZE;
-    }
-
-    isDecimalPrecision () {
-        return this.precisionMode === DECIMAL_PLACES;
     }
 
     isSignificantPrecision () {
