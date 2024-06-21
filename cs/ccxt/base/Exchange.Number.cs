@@ -184,7 +184,7 @@ public partial class Exchange
             digitsStart = 1;
         }
 
-        var precisionStart = (countMode == DECIMAL_PLACES) ? afterDot : digitsStart;
+        var precisionStart = (countMode == DECIMAL_PLACES || countMode == SIGNIFICANT_DIGITS) ? afterDot : digitsStart;
 
         var precisionEnd = precisionStart + (int)numPrecisionDigits;
 

@@ -210,8 +210,8 @@ const _decimalToPrecision = (
 
     /*  Determine the range to cut  */
 
-    let precisionStart = (countingMode === TICK_SIZE) ? digitsStart      // 0.00(1)234567
-        : afterDot;   // 0.(0)001234567
+    let precisionStart = (countingMode === DECIMAL_PLACES || countingMode === SIGNIFICANT_DIGITS) ? afterDot      // 0.(0)001234567
+        : digitsStart;   // 0.00(1)234567
     let precisionEnd = precisionStart
                        + numPrecisionDigits;
 
