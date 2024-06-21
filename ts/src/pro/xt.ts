@@ -2,7 +2,7 @@
 
 import xtRest from '../xt.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
-import { Int } from '../base/types.js';
+import { Balances, Int, OHLCV, Order, OrderBook, Str, Strings, Ticker, Tickers, Trade } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -149,7 +149,7 @@ export default class xt extends xtRest {
         return await this.watch (url, messageHash, request, messageHash);
     }
 
-    async watchTicker (symbol: string, params = {}) {
+    async watchTicker (symbol: string, params = {}): Promise<Ticker> {
         /**
          * @method
          * @name xt#watchTicker
@@ -170,7 +170,7 @@ export default class xt extends xtRest {
         return await this.subscribe (name, 'public', 'watchTicker', market, undefined, params);
     }
 
-    async watchTickers (symbols: string[] = undefined, params = {}) {
+    async watchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         /**
          * @method
          * @name xt#watchTicker
@@ -197,7 +197,7 @@ export default class xt extends xtRest {
         return this.filterByArray (this.tickers, 'symbol', symbols);
     }
 
-    async watchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}) {
+    async watchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         /**
          * @method
          * @name hitbtc#watchOHLCV
@@ -216,7 +216,7 @@ export default class xt extends xtRest {
         return await this.subscribe (name, 'public', 'watchOHLCV', market, undefined, params);
     }
 
-    async watchTrades (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         /**
          * @method
          * @name xt#watchTrades
@@ -239,7 +239,7 @@ export default class xt extends xtRest {
         return this.filterBySinceLimit (trades, since, limit, 'timestamp');
     }
 
-    async watchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
+    async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         /**
          * @method
          * @name xt#watchOrderBook
@@ -265,7 +265,7 @@ export default class xt extends xtRest {
         return orderbook.limit ();
     }
 
-    async watchOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name xt#watchOrders
@@ -291,7 +291,7 @@ export default class xt extends xtRest {
         return this.filterBySinceLimit (orders, since, limit, 'timestamp');
     }
 
-    async watchMyTrades (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         /**
          * @method
          * @name xt#watchMyTrades
@@ -317,7 +317,7 @@ export default class xt extends xtRest {
         return this.filterBySinceLimit (trades, since, limit, 'timestamp');
     }
 
-    async watchBalance (params = {}) {
+    async watchBalance (params = {}): Promise<Balances> {
         /**
          * @method
          * @name xt#watchOrders
