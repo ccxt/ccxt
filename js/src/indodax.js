@@ -72,8 +72,11 @@ export default class indodax extends Exchange {
                 'fetchOrderBook': true,
                 'fetchOrders': false,
                 'fetchPosition': false,
+                'fetchPositionHistory': false,
                 'fetchPositionMode': false,
                 'fetchPositions': false,
+                'fetchPositionsForSymbol': false,
+                'fetchPositionsHistory': false,
                 'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchTicker': true,
@@ -479,7 +482,7 @@ export default class indodax extends Exchange {
         //         }
         //     }
         //
-        const ticker = this.safeValue(response, 'ticker', {});
+        const ticker = this.safeDict(response, 'ticker', {});
         return this.parseTicker(ticker, market);
     }
     async fetchTickers(symbols = undefined, params = {}) {
@@ -510,7 +513,7 @@ export default class indodax extends Exchange {
         // }
         //
         const response = await this.publicGetApiTickerAll(params);
-        const tickers = this.safeValue(response, 'tickers');
+        const tickers = this.safeDict(response, 'tickers', {});
         return this.parseTickers(tickers, symbols);
     }
     parseTrade(trade, market = undefined) {
@@ -589,8 +592,8 @@ export default class indodax extends Exchange {
         const timeframes = this.options['timeframes'];
         const selectedTimeframe = this.safeString(timeframes, timeframe, timeframe);
         const now = this.seconds();
-        const until = this.safeInteger2(params, 'until', 'till', now);
-        params = this.omit(params, ['until', 'till']);
+        const until = this.safeInteger(params, 'until', now);
+        params = this.omit(params, ['until']);
         const request = {
             'to': until,
             'tf': selectedTimeframe,
@@ -653,6 +656,24 @@ export default class indodax extends Exchange {
         //       "order_xrp": "30.45000000",
         //       "remain_xrp": "0.00000000"
         //     }
+        //
+        // cancelOrder
+        //
+        //    {
+        //        "order_id": 666883,
+        //        "client_order_id": "clientx-sj82ks82j",
+        //        "type": "sell",
+        //        "pair": "btc_idr",
+        //        "balance": {
+        //            "idr": "33605800",
+        //            "btc": "0.00000000",
+        //            ...
+        //            "frozen_idr": "0",
+        //            "frozen_btc": "0.00000000",
+        //            ...
+        //        }
+        //    }
+        //
         let side = undefined;
         if ('type' in order) {
             side = order['type'];
@@ -663,6 +684,8 @@ export default class indodax extends Exchange {
         const price = this.safeString(order, 'price');
         let amount = undefined;
         let remaining = undefined;
+        const marketId = this.safeString(order, 'pair');
+        market = this.safeMarket(marketId, market);
         if (market !== undefined) {
             symbol = market['symbol'];
             let quoteId = market['quoteId'];
@@ -685,7 +708,7 @@ export default class indodax extends Exchange {
         return this.safeOrder({
             'info': order,
             'id': id,
-            'clientOrderId': undefined,
+            'clientOrderId': this.safeString(order, 'client_order_id'),
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
             'lastTradeTimestamp': undefined,
@@ -863,7 +886,28 @@ export default class indodax extends Exchange {
             'pair': market['id'],
             'type': side,
         };
-        return await this.privatePostCancelOrder(this.extend(request, params));
+        const response = await this.privatePostCancelOrder(this.extend(request, params));
+        //
+        //    {
+        //        "success": 1,
+        //        "return": {
+        //            "order_id": 666883,
+        //            "client_order_id": "clientx-sj82ks82j",
+        //            "type": "sell",
+        //            "pair": "btc_idr",
+        //            "balance": {
+        //                "idr": "33605800",
+        //                "btc": "0.00000000",
+        //                ...
+        //                "frozen_idr": "0",
+        //                "frozen_btc": "0.00000000",
+        //                ...
+        //            }
+        //        }
+        //    }
+        //
+        const data = this.safeDict(response, 'return');
+        return this.parseOrder(data);
     }
     async fetchTransactionFee(code, params = {}) {
         /**

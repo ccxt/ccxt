@@ -46,8 +46,11 @@ public partial class coincheck : Exchange
                 { "fetchOpenOrders", true },
                 { "fetchOrderBook", true },
                 { "fetchPosition", false },
+                { "fetchPositionHistory", false },
                 { "fetchPositionMode", false },
                 { "fetchPositions", false },
+                { "fetchPositionsForSymbol", false },
+                { "fetchPositionsHistory", false },
                 { "fetchPositionsRisk", false },
                 { "fetchPremiumIndexOHLCV", false },
                 { "fetchTicker", true },
@@ -503,7 +506,7 @@ public partial class coincheck : Exchange
         //                  ]
         //      }
         //
-        object transactions = this.safeValue(response, "data", new List<object>() {});
+        object transactions = this.safeList(response, "data", new List<object>() {});
         return this.parseTrades(transactions, market, since, limit);
     }
 
@@ -541,7 +544,7 @@ public partial class coincheck : Exchange
         //          "created_at": "2021-12-08T14:10:33.000Z"
         //      }
         //
-        object data = this.safeValue(response, "data", new List<object>() {});
+        object data = this.safeList(response, "data", new List<object>() {});
         return this.parseTrades(data, market, since, limit);
     }
 
@@ -653,7 +656,14 @@ public partial class coincheck : Exchange
         object request = new Dictionary<string, object>() {
             { "id", id },
         };
-        return await this.privateDeleteExchangeOrdersId(this.extend(request, parameters));
+        object response = await this.privateDeleteExchangeOrdersId(this.extend(request, parameters));
+        //
+        //    {
+        //        "success": true,
+        //        "id": 12345
+        //    }
+        //
+        return this.parseOrder(response);
     }
 
     public async override Task<object> fetchDeposits(object code = null, object since = null, object limit = null, object parameters = null)
@@ -706,7 +716,7 @@ public partial class coincheck : Exchange
         //     }
         //   ]
         // }
-        object data = this.safeValue(response, "deposits", new List<object>() {});
+        object data = this.safeList(response, "deposits", new List<object>() {});
         return this.parseTransactions(data, currency, since, limit, new Dictionary<string, object>() {
             { "type", "deposit" },
         });
@@ -759,7 +769,7 @@ public partial class coincheck : Exchange
         //     }
         //   ]
         // }
-        object data = this.safeValue(response, "data", new List<object>() {});
+        object data = this.safeList(response, "data", new List<object>() {});
         return this.parseTransactions(data, currency, since, limit, new Dictionary<string, object>() {
             { "type", "withdrawal" },
         });

@@ -16,6 +16,10 @@ export default class bitmex extends bitmexRest {
             'has': {
                 'ws': true,
                 'watchBalance': true,
+                'watchLiquidations': true,
+                'watchLiquidationsForSymbols': true,
+                'watchMyLiquidations': undefined,
+                'watchMyLiquidationsForSymbols': undefined,
                 'watchMyTrades': true,
                 'watchOHLCV': true,
                 'watchOrderBook': true,
@@ -354,6 +358,109 @@ export default class bitmex extends bitmexRest {
         }
         return message;
     }
+    async watchLiquidations(symbol, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name bitmex#watchLiquidations
+         * @description watch the public liquidations of a trading pair
+         * @see https://www.bitmex.com/app/wsAPI#Liquidation
+         * @param {string} symbol unified CCXT market symbol
+         * @param {int} [since] the earliest time in ms to fetch liquidations for
+         * @param {int} [limit] the maximum number of liquidation structures to retrieve
+         * @param {object} [params] exchange specific parameters for the bitmex api endpoint
+         * @returns {object} an array of [liquidation structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure}
+         */
+        return this.watchLiquidationsForSymbols([symbol], since, limit, params);
+    }
+    async watchLiquidationsForSymbols(symbols = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name bitmex#watchLiquidationsForSymbols
+         * @description watch the public liquidations of a trading pair
+         * @see https://www.bitmex.com/app/wsAPI#Liquidation
+         * @param {string} symbol unified CCXT market symbol
+         * @param {int} [since] the earliest time in ms to fetch liquidations for
+         * @param {int} [limit] the maximum number of liquidation structures to retrieve
+         * @param {object} [params] exchange specific parameters for the bitmex api endpoint
+         * @returns {object} an array of [liquidation structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure}
+         */
+        await this.loadMarkets();
+        symbols = this.marketSymbols(symbols, undefined, true, true);
+        const messageHashes = [];
+        const subscriptionHashes = [];
+        if (this.isEmpty(symbols)) {
+            subscriptionHashes.push('liquidation');
+            messageHashes.push('liquidations');
+        }
+        else {
+            for (let i = 0; i < symbols.length; i++) {
+                const symbol = symbols[i];
+                const market = this.market(symbol);
+                subscriptionHashes.push('liquidation:' + market['id']);
+                messageHashes.push('liquidations::' + symbol);
+            }
+        }
+        const url = this.urls['api']['ws'];
+        const request = {
+            'op': 'subscribe',
+            'args': subscriptionHashes,
+        };
+        const newLiquidations = await this.watchMultiple(url, messageHashes, this.deepExtend(request, params), subscriptionHashes);
+        if (this.newUpdates) {
+            return newLiquidations;
+        }
+        return this.filterBySymbolsSinceLimit(this.liquidations, symbols, since, limit, true);
+    }
+    handleLiquidation(client, message) {
+        //
+        //    {
+        //        "table":"liquidation",
+        //        "action":"partial",
+        //        "keys":[
+        //           "orderID"
+        //        ],
+        //        "types":{
+        //           "orderID":"guid",
+        //           "symbol":"symbol",
+        //           "side":"symbol",
+        //           "price":"float",
+        //           "leavesQty":"long"
+        //        },
+        //        "filter":{},
+        //        "data":[
+        //           {
+        //              "orderID":"e0a568ee-7830-4428-92c3-73e82b9576ce",
+        //              "symbol":"XPLAUSDT",
+        //              "side":"Sell",
+        //              "price":0.206,
+        //              "leavesQty":340
+        //           }
+        //        ]
+        //    }
+        //
+        const rawLiquidations = this.safeValue(message, 'data', []);
+        const newLiquidations = [];
+        for (let i = 0; i < rawLiquidations.length; i++) {
+            const rawLiquidation = rawLiquidations[i];
+            const liquidation = this.parseLiquidation(rawLiquidation);
+            const symbol = liquidation['symbol'];
+            let liquidations = this.safeValue(this.liquidations, symbol);
+            if (liquidations === undefined) {
+                const limit = this.safeInteger(this.options, 'liquidationsLimit', 1000);
+                liquidations = new ArrayCache(limit);
+            }
+            liquidations.append(liquidation);
+            this.liquidations[symbol] = liquidations;
+            newLiquidations.push(liquidation);
+        }
+        client.resolve(newLiquidations, 'liquidations');
+        const liquidationsBySymbol = this.indexBy(newLiquidations, 'symbol');
+        const symbols = Object.keys(liquidationsBySymbol);
+        for (let i = 0; i < symbols.length; i++) {
+            const symbol = symbols[i];
+            client.resolve(liquidationsBySymbol[symbol], 'liquidations::' + symbol);
+        }
+    }
     async watchBalance(params = {}) {
         /**
          * @method
@@ -546,8 +653,8 @@ export default class bitmex extends bitmexRest {
         for (let i = 0; i < marketIds.length; i++) {
             const marketId = marketIds[i];
             const market = this.safeMarket(marketId);
-            const messageHash = table + ':' + marketId;
             const symbol = market['symbol'];
+            const messageHash = table + ':' + symbol;
             const trades = this.parseTrades(dataByMarketIds[marketId], market);
             let stored = this.safeValue(this.trades, symbol);
             if (stored === undefined) {
@@ -572,23 +679,7 @@ export default class bitmex extends bitmexRest {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
          */
-        await this.loadMarkets();
-        const market = this.market(symbol);
-        symbol = market['symbol'];
-        const table = 'trade';
-        const messageHash = table + ':' + market['id'];
-        const url = this.urls['api']['ws'];
-        const request = {
-            'op': 'subscribe',
-            'args': [
-                messageHash,
-            ],
-        };
-        const trades = await this.watch(url, messageHash, this.extend(request, params), messageHash);
-        if (this.newUpdates) {
-            limit = trades.getLimit(symbol, limit);
-        }
-        return this.filterBySinceLimit(trades, since, limit, 'timestamp', true);
+        return await this.watchTradesForSymbols([symbol], since, limit, params);
     }
     async authenticate(params = {}) {
         const url = this.urls['api']['ws'];
@@ -612,7 +703,7 @@ export default class bitmex extends bitmexRest {
             const message = this.extend(request, params);
             this.watch(url, messageHash, message, messageHash);
         }
-        return future;
+        return await future;
     }
     handleAuthenticationMessage(client, message) {
         const authenticated = this.safeBool(message, 'success', false);
@@ -1221,6 +1312,43 @@ export default class bitmex extends bitmexRest {
         const orderbook = await this.watchMultiple(url, messageHashes, this.deepExtend(request, params), topics);
         return orderbook.limit();
     }
+    async watchTradesForSymbols(symbols, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name bitmex#watchTradesForSymbols
+         * @description get the list of most recent trades for a list of symbols
+         * @param {string[]} symbols unified symbol of the market to fetch trades for
+         * @param {int} [since] timestamp in ms of the earliest trade to fetch
+         * @param {int} [limit] the maximum amount of trades to fetch
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+         */
+        await this.loadMarkets();
+        symbols = this.marketSymbols(symbols, undefined, false);
+        const table = 'trade';
+        const topics = [];
+        const messageHashes = [];
+        for (let i = 0; i < symbols.length; i++) {
+            const symbol = symbols[i];
+            const market = this.market(symbol);
+            const topic = table + ':' + market['id'];
+            topics.push(topic);
+            const messageHash = table + ':' + symbol;
+            messageHashes.push(messageHash);
+        }
+        const url = this.urls['api']['ws'];
+        const request = {
+            'op': 'subscribe',
+            'args': topics,
+        };
+        const trades = await this.watchMultiple(url, messageHashes, this.deepExtend(request, params), topics);
+        if (this.newUpdates) {
+            const first = this.safeValue(trades, 0);
+            const tradeSymbol = this.safeString(first, 'symbol');
+            limit = trades.getLimit(tradeSymbol, limit);
+        }
+        return this.filterBySinceLimit(trades, since, limit, 'timestamp', true);
+    }
     async watchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         /**
          * @method
@@ -1411,11 +1539,17 @@ export default class bitmex extends bitmexRest {
         //
         const action = this.safeString(message, 'action');
         const table = this.safeString(message, 'table');
+        if (table === undefined) {
+            return; // protecting from weird updates
+        }
         const data = this.safeValue(message, 'data', []);
         // if it's an initial snapshot
         if (action === 'partial') {
-            const filter = this.safeValue(message, 'filter', {});
+            const filter = this.safeDict(message, 'filter', {});
             const marketId = this.safeValue(filter, 'symbol');
+            if (marketId === undefined) {
+                return; // protecting from weird update
+            }
             const market = this.safeMarket(marketId);
             const symbol = market['symbol'];
             if (table === 'orderBookL2') {
@@ -1436,7 +1570,7 @@ export default class bitmex extends bitmexRest {
                 let side = this.safeString(data[i], 'side');
                 side = (side === 'Buy') ? 'bids' : 'asks';
                 const bookside = orderbook[side];
-                bookside.store(price, size, id);
+                bookside.storeArray([price, size, id]);
                 const datetime = this.safeString(data[i], 'timestamp');
                 orderbook['timestamp'] = this.parse8601(datetime);
                 orderbook['datetime'] = datetime;
@@ -1448,6 +1582,9 @@ export default class bitmex extends bitmexRest {
             const numUpdatesByMarketId = {};
             for (let i = 0; i < data.length; i++) {
                 const marketId = this.safeValue(data[i], 'symbol');
+                if (marketId === undefined) {
+                    return; // protecting from weird update
+                }
                 if (!(marketId in numUpdatesByMarketId)) {
                     numUpdatesByMarketId[marketId] = 0;
                 }
@@ -1461,7 +1598,7 @@ export default class bitmex extends bitmexRest {
                 let side = this.safeString(data[i], 'side');
                 side = (side === 'Buy') ? 'bids' : 'asks';
                 const bookside = orderbook[side];
-                bookside.store(price, size, id);
+                bookside.storeArray([price, size, id]);
                 const datetime = this.safeString(data[i], 'timestamp');
                 orderbook['timestamp'] = this.parse8601(datetime);
                 orderbook['datetime'] = datetime;
@@ -1592,6 +1729,7 @@ export default class bitmex extends bitmexRest {
                 'order': this.handleOrders,
                 'execution': this.handleMyTrades,
                 'margin': this.handleBalance,
+                'liquidation': this.handleLiquidation,
                 'position': this.handlePositions,
             };
             const method = this.safeValue(methods, table);

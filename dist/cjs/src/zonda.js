@@ -169,6 +169,10 @@ class zonda extends zonda$1 {
                         'balances/BITBAY/balance',
                         'fiat_cantor/rate/{baseId}/{quoteId}',
                         'fiat_cantor/history',
+                        'client_payments/v2/customer/crypto/{currency}/channels/deposit',
+                        'client_payments/v2/customer/crypto/{currency}/channels/withdrawal',
+                        'client_payments/v2/customer/crypto/deposit/fee',
+                        'client_payments/v2/customer/crypto/withdrawal/fee',
                     ],
                     'post': [
                         'trading/offer/{symbol}',
@@ -179,6 +183,8 @@ class zonda extends zonda$1 {
                         'fiat_cantor/exchange',
                         'api_payments/withdrawals/crypto',
                         'api_payments/withdrawals/fiat',
+                        'client_payments/v2/customer/crypto/deposit',
+                        'client_payments/v2/customer/crypto/withdrawal',
                     ],
                     'delete': [
                         'trading/offer/{symbol}/{id}/{side}/{price}',
@@ -412,7 +418,7 @@ class zonda extends zonda$1 {
         await this.loadMarkets();
         const request = {};
         const response = await this.v1_01PrivateGetTradingOffer(this.extend(request, params));
-        const items = this.safeValue(response, 'items', []);
+        const items = this.safeList(response, 'items', []);
         return this.parseOrders(items, undefined, since, limit, { 'status': 'open' });
     }
     parseOrder(order, market = undefined) {
@@ -433,6 +439,13 @@ class zonda extends zonda$1 {
         //         "firstBalanceId": "5b816c3e-437c-4e43-9bef-47814ae7ebfc",
         //         "secondBalanceId": "ab43023b-4079-414c-b340-056e3430a3af"
         //     }
+        //
+        // cancelOrder
+        //
+        //    {
+        //        status: "Ok",
+        //        errors: []
+        //    }
         //
         const marketId = this.safeString(order, 'market');
         const symbol = this.safeSymbol(marketId, market, '-');
@@ -799,7 +812,7 @@ class zonda extends zonda$1 {
         else {
             throw new errors.BadRequest(this.id + ' fetchTickers params["method"] must be "v1_01PublicGetTradingTicker" or "v1_01PublicGetTradingStats"');
         }
-        const items = this.safeValue(response, 'items');
+        const items = this.safeDict(response, 'items');
         return this.parseTickers(items, symbols);
     }
     async fetchLedger(code = undefined, since = undefined, limit = undefined, params = {}) {
@@ -1201,6 +1214,9 @@ class zonda extends zonda$1 {
         if (limit === undefined) {
             limit = 100;
         }
+        else {
+            limit = Math.min(limit, 11000); // supports up to 11k candles diapason
+        }
         const duration = this.parseTimeframe(timeframe);
         const timerange = limit * duration * 1000;
         if (since === undefined) {
@@ -1222,7 +1238,7 @@ class zonda extends zonda$1 {
         //         ]
         //     }
         //
-        const items = this.safeValue(response, 'items', []);
+        const items = this.safeList(response, 'items', []);
         return this.parseOHLCVs(items, market, timeframe, since, limit);
     }
     parseTrade(trade, market = undefined) {
@@ -1327,7 +1343,7 @@ class zonda extends zonda$1 {
             request['limit'] = limit; // default - 10, max - 300
         }
         const response = await this.v1_01PublicGetTradingTransactionsSymbol(this.extend(request, params));
-        const items = this.safeValue(response, 'items');
+        const items = this.safeList(response, 'items');
         return this.parseTrades(items, market, since, limit);
     }
     async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
@@ -1488,9 +1504,10 @@ class zonda extends zonda$1 {
             'side': side,
             'price': price,
         };
+        const response = await this.v1_01PrivateDeleteTradingOfferSymbolIdSidePrice(this.extend(request, params));
         // { status: "Fail", errors: [ "NOT_RECOGNIZED_OFFER_TYPE" ] }  -- if required params are missing
         // { status: "Ok", errors: [] }
-        return await this.v1_01PrivateDeleteTradingOfferSymbolIdSidePrice(this.extend(request, params));
+        return this.parseOrder(response);
     }
     isFiat(currency) {
         const fiatCurrencies = {
@@ -1552,7 +1569,7 @@ class zonda extends zonda$1 {
         //     }
         //
         const data = this.safeValue(response, 'data');
-        const first = this.safeValue(data, 0);
+        const first = this.safeDict(data, 0);
         return this.parseDepositAddress(first, currency);
     }
     async fetchDepositAddresses(codes = undefined, params = {}) {
@@ -1580,7 +1597,7 @@ class zonda extends zonda$1 {
         //         ]
         //     }
         //
-        const data = this.safeValue(response, 'data');
+        const data = this.safeList(response, 'data');
         return this.parseDepositAddresses(data, codes);
     }
     async transfer(code, amount, fromAccount, toAccount, params = {}) {
@@ -1737,7 +1754,7 @@ class zonda extends zonda$1 {
         //         }
         //     }
         //
-        const data = this.safeValue(response, 'data');
+        const data = this.safeDict(response, 'data');
         return this.parseTransaction(data, currency);
     }
     parseTransaction(transaction, currency = undefined) {

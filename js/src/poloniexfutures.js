@@ -375,7 +375,24 @@ export default class poloniexfutures extends Exchange {
         //
         const marketId = this.safeString(ticker, 'symbol');
         const symbol = this.safeSymbol(marketId, market);
-        const timestamp = this.safeIntegerProduct(ticker, 'ts', 0.000001);
+        const timestampString = this.safeString(ticker, 'ts');
+        let multiplier = undefined;
+        if (timestampString.length === 16) {
+            // 16 digits: https://app.travis-ci.com/github/ccxt/ccxt/builds/270587157#L5454
+            multiplier = 0.001;
+        }
+        else if (timestampString.length === 17) {
+            // 17 digits: https://app.travis-ci.com/github/ccxt/ccxt/builds/269959181#L4011
+            multiplier = 0.0001;
+        }
+        else if (timestampString.length === 18) {
+            multiplier = 0.00001;
+        }
+        else {
+            // 19 length default
+            multiplier = 0.000001;
+        }
+        const timestamp = this.safeIntegerProduct(ticker, 'ts', multiplier);
         const last = this.safeString2(ticker, 'price', 'lastPrice');
         const percentage = Precise.stringMul(this.safeString(ticker, 'priceChgPct'), '100');
         return this.safeTicker({
@@ -449,7 +466,8 @@ export default class poloniexfutures extends Exchange {
          */
         await this.loadMarkets();
         const response = await this.publicGetTickers(params);
-        return this.parseTickers(this.safeValue(response, 'data', []), symbols);
+        const data = this.safeList(response, 'data', []);
+        return this.parseTickers(data, symbols);
     }
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
         /**
@@ -679,7 +697,7 @@ export default class poloniexfutures extends Exchange {
         //        },
         //    }
         //
-        const trades = this.safeValue(response, 'data', []);
+        const trades = this.safeList(response, 'data', []);
         return this.parseTrades(trades, market, since, limit);
     }
     async fetchTime(params = {}) {
@@ -752,7 +770,7 @@ export default class poloniexfutures extends Exchange {
         //        ]
         //    }
         //
-        const data = this.safeValue(response, 'data', []);
+        const data = this.safeList(response, 'data', []);
         return this.parseOHLCVs(data, market, timeframe, since, limit);
     }
     parseBalance(response) {
@@ -1012,7 +1030,7 @@ export default class poloniexfutures extends Exchange {
         //        ]
         //    }
         //
-        const data = this.safeValue(response, 'data');
+        const data = this.safeList(response, 'data');
         return this.parsePositions(data, symbols);
     }
     parsePosition(position, market = undefined) {
@@ -1221,7 +1239,7 @@ export default class poloniexfutures extends Exchange {
         const cancelledOrderIdsLength = cancelledOrderIds.length;
         for (let i = 0; i < cancelledOrderIdsLength; i++) {
             const cancelledOrderId = this.safeString(cancelledOrderIds, i);
-            result.push({
+            result.push(this.safeOrder({
                 'id': cancelledOrderId,
                 'clientOrderId': undefined,
                 'timestamp': undefined,
@@ -1243,7 +1261,7 @@ export default class poloniexfutures extends Exchange {
                 'postOnly': undefined,
                 'stopPrice': undefined,
                 'info': response,
-            });
+            }));
         }
         return result;
     }
@@ -1267,8 +1285,8 @@ export default class poloniexfutures extends Exchange {
          */
         await this.loadMarkets();
         const stop = this.safeValue2(params, 'stop', 'trigger');
-        const until = this.safeInteger2(params, 'until', 'till');
-        params = this.omit(params, ['triger', 'stop', 'until', 'till']);
+        const until = this.safeInteger(params, 'until');
+        params = this.omit(params, ['trigger', 'stop', 'until']);
         if (status === 'closed') {
             status = 'done';
         }
@@ -1368,7 +1386,7 @@ export default class poloniexfutures extends Exchange {
          * @param {int} [since] the earliest time in ms to fetch open orders for
          * @param {int} [limit] the maximum number of  open orders structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {int} [params.till] end time in ms
+         * @param {int} [params.until] end time in ms
          * @param {string} [params.side] buy or sell
          * @param {string} [params.type] limit, or market
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -1386,7 +1404,7 @@ export default class poloniexfutures extends Exchange {
          * @param {int} [since] the earliest time in ms to fetch orders for
          * @param {int} [limit] the maximum number of order structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {int} [params.till] end time in ms
+         * @param {int} [params.until] end time in ms
          * @param {string} [params.side] buy or sell
          * @param {string} [params.type] limit, or market
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -1466,7 +1484,7 @@ export default class poloniexfutures extends Exchange {
         //    }
         //
         const market = (symbol !== undefined) ? this.market(symbol) : undefined;
-        const responseData = this.safeValue(response, 'data');
+        const responseData = this.safeDict(response, 'data');
         return this.parseOrder(responseData, market);
     }
     parseOrder(order, market = undefined) {
@@ -1702,7 +1720,7 @@ export default class poloniexfutures extends Exchange {
         //    }
         //
         const data = this.safeValue(response, 'data', {});
-        const trades = this.safeValue(data, 'items', {});
+        const trades = this.safeList(data, 'items', []);
         return this.parseTrades(trades, market, since, limit);
     }
     async setMarginMode(marginMode, symbol = undefined, params = {}) {

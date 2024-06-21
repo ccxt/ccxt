@@ -92,7 +92,11 @@ export default class coinsph extends Exchange {
                 'fetchOrders': false,
                 'fetchOrderTrades': true,
                 'fetchPosition': false,
+                'fetchPositionHistory': false,
+                'fetchPositionMode': false,
                 'fetchPositions': false,
+                'fetchPositionsForSymbol': false,
+                'fetchPositionsHistory': false,
                 'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchStatus': true,
@@ -1577,6 +1581,8 @@ export default class coinsph extends Exchange {
             'symbol': symbol,
             'maker': this.safeNumber(fee, 'makerCommission'),
             'taker': this.safeNumber(fee, 'takerCommission'),
+            'percentage': undefined,
+            'tierBased': undefined,
         };
     }
     async withdraw(code, amount, address, tag = undefined, params = {}) {

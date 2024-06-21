@@ -387,10 +387,11 @@ export default class gemini extends geminiRest {
         const market = this.safeMarket(marketId);
         const symbol = market['symbol'];
         const messageHash = 'orderbook:' + symbol;
-        let orderbook = this.safeValue(this.orderbooks, symbol);
-        if (orderbook === undefined) {
-            orderbook = this.orderBook();
+        // let orderbook = this.safeValue (this.orderbooks, symbol);
+        if (!(symbol in this.orderbooks)) {
+            this.orderbooks[symbol] = this.orderBook();
         }
+        const orderbook = this.orderbooks[symbol];
         for (let i = 0; i < changes.length; i++) {
             const delta = changes[i];
             const price = this.safeNumber(delta, 1);
@@ -418,7 +419,7 @@ export default class gemini extends geminiRest {
         const orderbook = await this.helperForWatchMultipleConstruct('orderbook', symbols, params);
         return orderbook.limit();
     }
-    async watchBidsAsks(symbols, limit = undefined, params = {}) {
+    async watchBidsAsks(symbols = undefined, params = {}) {
         /**
          * @method
          * @name gemini#watchBidsAsks
@@ -914,7 +915,8 @@ export default class gemini extends geminiRest {
                 },
             },
         };
-        this.options = this.extend(defaultOptions, this.options);
+        // this.options = this.extend (defaultOptions, this.options);
+        this.extendExchangeOptions(defaultOptions);
         const originalHeaders = this.options['ws']['options']['headers'];
         const headers = {
             'X-GEMINI-APIKEY': this.apiKey,

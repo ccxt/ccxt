@@ -68,6 +68,7 @@ public partial class upbit : Exchange
                 { "1m", "minutes" },
                 { "3m", "minutes" },
                 { "5m", "minutes" },
+                { "10m", "minutes" },
                 { "15m", "minutes" },
                 { "30m", "minutes" },
                 { "1h", "minutes" },
@@ -89,7 +90,7 @@ public partial class upbit : Exchange
             } },
             { "api", new Dictionary<string, object>() {
                 { "public", new Dictionary<string, object>() {
-                    { "get", new List<object>() {"market/all", "candles/{timeframe}", "candles/{timeframe}/{unit}", "candles/minutes/{unit}", "candles/minutes/1", "candles/minutes/3", "candles/minutes/5", "candles/minutes/15", "candles/minutes/30", "candles/minutes/60", "candles/minutes/240", "candles/days", "candles/weeks", "candles/months", "trades/ticks", "ticker", "orderbook"} },
+                    { "get", new List<object>() {"market/all", "candles/{timeframe}", "candles/{timeframe}/{unit}", "candles/minutes/{unit}", "candles/minutes/1", "candles/minutes/3", "candles/minutes/5", "candles/minutes/10", "candles/minutes/15", "candles/minutes/30", "candles/minutes/60", "candles/minutes/240", "candles/days", "candles/weeks", "candles/months", "trades/ticks", "ticker", "orderbook"} },
                 } },
                 { "private", new Dictionary<string, object>() {
                     { "get", new List<object>() {"accounts", "orders/chance", "order", "orders", "withdraws", "withdraw", "withdraws/chance", "deposits", "deposit", "deposits/coin_addresses", "deposits/coin_address"} },
@@ -1988,27 +1989,37 @@ public partial class upbit : Exchange
         if (isTrue(isEqual(api, "private")))
         {
             this.checkRequiredCredentials();
+            headers = new Dictionary<string, object>() {};
             object nonce = this.uuid();
             object request = new Dictionary<string, object>() {
                 { "access_key", this.apiKey },
                 { "nonce", nonce },
             };
-            if (isTrue(getArrayLength(new List<object>(((IDictionary<string,object>)query).Keys))))
+            object hasQuery = getArrayLength(new List<object>(((IDictionary<string,object>)query).Keys));
+            object auth = null;
+            if (isTrue(isTrue((!isEqual(method, "GET"))) && isTrue((!isEqual(method, "DELETE")))))
             {
-                object auth = this.urlencode(query);
+                body = this.json(parameters);
+                ((IDictionary<string,object>)headers)["Content-Type"] = "application/json";
+                if (isTrue(hasQuery))
+                {
+                    auth = this.urlencode(query);
+                }
+            } else
+            {
+                if (isTrue(hasQuery))
+                {
+                    auth = this.urlencode(this.keysort(query));
+                }
+            }
+            if (isTrue(!isEqual(auth, null)))
+            {
                 object hash = this.hash(this.encode(auth), sha512);
                 ((IDictionary<string,object>)request)["query_hash"] = hash;
                 ((IDictionary<string,object>)request)["query_hash_alg"] = "SHA512";
             }
             object token = jwt(request, this.encode(this.secret), sha256);
-            headers = new Dictionary<string, object>() {
-                { "Authorization", add("Bearer ", token) },
-            };
-            if (isTrue(isTrue((!isEqual(method, "GET"))) && isTrue((!isEqual(method, "DELETE")))))
-            {
-                body = this.json(parameters);
-                ((IDictionary<string,object>)headers)["Content-Type"] = "application/json";
-            }
+            ((IDictionary<string,object>)headers)["Authorization"] = add("Bearer ", token);
         }
         return new Dictionary<string, object>() {
             { "url", url },

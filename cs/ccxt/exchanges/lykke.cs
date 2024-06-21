@@ -55,8 +55,13 @@ public partial class lykke : Exchange
                 { "fetchOrderBook", true },
                 { "fetchOrders", false },
                 { "fetchOrderTrades", false },
+                { "fetchPosition", false },
+                { "fetchPositionHistory", false },
                 { "fetchPositionMode", false },
                 { "fetchPositions", false },
+                { "fetchPositionsForSymbol", false },
+                { "fetchPositionsHistory", false },
+                { "fetchPositionsRisk", false },
                 { "fetchPremiumIndexOHLCV", false },
                 { "fetchTicker", true },
                 { "fetchTickers", true },
@@ -914,7 +919,10 @@ public partial class lykke : Exchange
         //         "error":null
         //     }
         //
-        return await this.privateDeleteOrdersOrderId(this.extend(request, parameters));
+        object response = await this.privateDeleteOrdersOrderId(this.extend(request, parameters));
+        return this.safeOrder(new Dictionary<string, object>() {
+            { "info", response },
+        });
     }
 
     public async override Task<object> cancelAllOrders(object symbol = null, object parameters = null)
@@ -943,7 +951,10 @@ public partial class lykke : Exchange
         //         "error":null
         //     }
         //
-        return await this.privateDeleteOrders(this.extend(request, parameters));
+        object response = await this.privateDeleteOrders(this.extend(request, parameters));
+        return new List<object> {this.safeOrder(new Dictionary<string, object>() {
+    { "info", response },
+})};
     }
 
     public async override Task<object> fetchOrder(object id, object symbol = null, object parameters = null)

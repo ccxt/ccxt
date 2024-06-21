@@ -91,6 +91,7 @@ class ascendex extends ascendex$1 {
                 'fetchWithdrawal': false,
                 'fetchWithdrawals': true,
                 'reduceMargin': true,
+                'sandbox': true,
                 'setLeverage': true,
                 'setMarginMode': true,
                 'setPositionMode': false,
@@ -358,7 +359,7 @@ class ascendex extends ascendex$1 {
                     '300013': errors.InvalidOrder,
                     '300014': errors.InvalidOrder,
                     '300020': errors.InvalidOrder,
-                    '300021': errors.InvalidOrder,
+                    '300021': errors.AccountSuspended,
                     '300031': errors.InvalidOrder,
                     '310001': errors.InsufficientFunds,
                     '310002': errors.InvalidOrder,
@@ -750,7 +751,7 @@ class ascendex extends ascendex$1 {
             {
                 'id': accountGroup,
                 'type': undefined,
-                'currency': undefined,
+                'code': undefined,
                 'info': response,
             },
         ];
@@ -1031,7 +1032,7 @@ class ascendex extends ascendex$1 {
         //         }
         //     }
         //
-        const data = this.safeValue(response, 'data', {});
+        const data = this.safeDict(response, 'data', {});
         return this.parseTicker(data, market);
     }
     async fetchTickers(symbols = undefined, params = {}) {
@@ -1170,7 +1171,7 @@ class ascendex extends ascendex$1 {
         //         ]
         //     }
         //
-        const data = this.safeValue(response, 'data', []);
+        const data = this.safeList(response, 'data', []);
         return this.parseOHLCVs(data, market, timeframe, since, limit);
     }
     parseTrade(trade, market = undefined) {
@@ -1243,7 +1244,7 @@ class ascendex extends ascendex$1 {
         //     }
         //
         const records = this.safeValue(response, 'data', []);
-        const trades = this.safeValue(records, 'data', []);
+        const trades = this.safeList(records, 'data', []);
         return this.parseTrades(trades, market, since, limit);
     }
     parseOrderStatus(status) {
@@ -1402,7 +1403,7 @@ class ascendex extends ascendex$1 {
                 'currency': feeCurrencyCode,
             };
         }
-        const stopPrice = this.safeNumber(order, 'stopPrice');
+        const stopPrice = this.omitZero(this.safeString(order, 'stopPrice'));
         let reduceOnly = undefined;
         const execInst = this.safeString(order, 'execInst');
         if (execInst === 'reduceOnly') {
@@ -1483,6 +1484,8 @@ class ascendex extends ascendex$1 {
                 'symbol': symbol,
                 'maker': this.safeNumber(takerMaker, 'maker'),
                 'taker': this.safeNumber(takerMaker, 'taker'),
+                'percentage': undefined,
+                'tierBased': undefined,
             };
         }
         return result;
@@ -1771,7 +1774,7 @@ class ascendex extends ascendex$1 {
         //     }
         //
         const data = this.safeValue(response, 'data', {});
-        const info = this.safeValue(data, 'info', []);
+        const info = this.safeList(data, 'info', []);
         return this.parseOrders(info, market);
     }
     async fetchOrder(id, symbol = undefined, params = {}) {
@@ -1879,7 +1882,7 @@ class ascendex extends ascendex$1 {
         //         }
         //     }
         //
-        const data = this.safeValue(response, 'data', {});
+        const data = this.safeDict(response, 'data', {});
         return this.parseOrder(data, market);
     }
     async fetchOpenOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -2569,7 +2572,7 @@ class ascendex extends ascendex$1 {
         //     }
         //
         const data = this.safeValue(response, 'data', {});
-        const transactions = this.safeValue(data, 'data', []);
+        const transactions = this.safeList(data, 'data', []);
         return this.parseTransactions(transactions, currency, since, limit);
     }
     parseTransactionStatus(status) {
@@ -2730,7 +2733,8 @@ class ascendex extends ascendex$1 {
         if (Precise["default"].stringEq(notional, '0')) {
             notional = this.safeString(position, 'sellOpenOrderNotional');
         }
-        const marginMode = this.safeString(position, 'marginType');
+        const marginType = this.safeString(position, 'marginType');
+        const marginMode = (marginType === 'crossed') ? 'cross' : 'isolated';
         let collateral = undefined;
         if (marginMode === 'isolated') {
             collateral = this.safeString(position, 'isolatedMargin');
@@ -2872,15 +2876,26 @@ class ascendex extends ascendex$1 {
         });
     }
     parseMarginModification(data, market = undefined) {
+        //
+        // addMargin/reduceMargin
+        //
+        //     {
+        //          "code": 0
+        //     }
+        //
         const errorCode = this.safeString(data, 'code');
         const status = (errorCode === '0') ? 'ok' : 'failed';
         return {
             'info': data,
-            'type': undefined,
-            'amount': undefined,
-            'code': market['quote'],
             'symbol': market['symbol'],
+            'type': undefined,
+            'marginMode': 'isolated',
+            'amount': undefined,
+            'total': undefined,
+            'code': market['quote'],
             'status': status,
+            'timestamp': undefined,
+            'datetime': undefined,
         };
     }
     async reduceMargin(symbol, amount, params = {}) {
@@ -3127,7 +3142,7 @@ class ascendex extends ascendex$1 {
          */
         await this.loadMarkets();
         const response = await this.v2PublicGetAssets(params);
-        const data = this.safeValue(response, 'data');
+        const data = this.safeList(response, 'data');
         return this.parseDepositWithdrawFees(data, codes, 'assetCode');
     }
     async transfer(code, amount, fromAccount, toAccount, params = {}) {
@@ -3147,7 +3162,6 @@ class ascendex extends ascendex$1 {
         const account = this.safeValue(this.accounts, 0, {});
         const accountGroup = this.safeString(account, 'id');
         const currency = this.currency(code);
-        amount = this.currencyToPrecision(code, amount);
         const accountsByType = this.safeValue(this.options, 'accountsByType', {});
         const fromId = this.safeString(accountsByType, fromAccount, fromAccount);
         const toId = this.safeString(accountsByType, toAccount, toAccount);
@@ -3156,7 +3170,7 @@ class ascendex extends ascendex$1 {
         }
         const request = {
             'account-group': accountGroup,
-            'amount': amount,
+            'amount': this.currencyToPrecision(code, amount),
             'asset': currency['id'],
             'fromAccount': fromId,
             'toAccount': toId,
@@ -3180,7 +3194,7 @@ class ascendex extends ascendex$1 {
         //
         //    { "code": "0" }
         //
-        const status = this.safeInteger(transfer, 'code');
+        const status = this.safeString(transfer, 'code');
         const currencyCode = this.safeCurrencyCode(undefined, currency);
         return {
             'info': transfer,
@@ -3195,7 +3209,7 @@ class ascendex extends ascendex$1 {
         };
     }
     parseTransferStatus(status) {
-        if (status === 0) {
+        if (status === '0') {
             return 'ok';
         }
         return 'failed';
@@ -3253,7 +3267,7 @@ class ascendex extends ascendex$1 {
         //     }
         //
         const data = this.safeValue(response, 'data', {});
-        const rows = this.safeValue(data, 'data', []);
+        const rows = this.safeList(data, 'data', []);
         return this.parseIncomes(rows, market, since, limit);
     }
     parseIncome(income, market = undefined) {

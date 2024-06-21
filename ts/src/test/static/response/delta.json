@@ -174,6 +174,195 @@
                     ]
                 ]
             }
+        ],
+        "fetchBalance": [
+            {
+                "description": "fetch balance",
+                "method": "fetchBalance",
+                "input": [],
+                "httpResponse": {
+                  "meta": {
+                    "net_equity": "22.92011359",
+                    "robo_trading_equity": "0"
+                  },
+                  "result": [
+                    {
+                      "asset_id": "1",
+                      "asset_symbol": "ETH",
+                      "available_balance": "0",
+                      "available_balance_for_robo": "0",
+                      "balance": "0",
+                      "commission": "0",
+                      "cross_commission": "0",
+                      "cross_locked_collateral": "0",
+                      "cross_order_margin": "0",
+                      "cross_position_margin": "0",
+                      "id": "3516460",
+                      "interest_credit": "0",
+                      "order_margin": "0",
+                      "pending_referral_bonus": "0",
+                      "pending_trading_fee_credit": "0",
+                      "portfolio_margin": "0",
+                      "position_margin": "0",
+                      "trading_fee_credit": "0",
+                      "unvested_amount": "0",
+                      "user_id": "48405827"
+                    },
+                    {
+                      "asset_id": "2",
+                      "asset_symbol": "BTC",
+                      "available_balance": "0",
+                      "available_balance_for_robo": "0",
+                      "balance": "0",
+                      "commission": "0",
+                      "cross_commission": "0",
+                      "cross_locked_collateral": "0",
+                      "cross_order_margin": "0",
+                      "cross_position_margin": "0",
+                      "id": "3516461",
+                      "interest_credit": "0",
+                      "order_margin": "0",
+                      "pending_referral_bonus": "0",
+                      "pending_trading_fee_credit": "0",
+                      "portfolio_margin": "0",
+                      "position_margin": "0",
+                      "trading_fee_credit": "0",
+                      "unvested_amount": "0",
+                      "user_id": "48405827"
+                    },
+                    {
+                      "asset_id": "5",
+                      "asset_symbol": "USDT",
+                      "available_balance": "16.27058905",
+                      "available_balance_for_robo": "16.27058905",
+                      "balance": "19.29152659",
+                      "commission": "0.0056634",
+                      "cross_commission": "0",
+                      "cross_locked_collateral": "0",
+                      "cross_order_margin": "0",
+                      "cross_position_margin": "0",
+                      "id": "3516463",
+                      "interest_credit": "0",
+                      "order_margin": "0",
+                      "pending_referral_bonus": "0",
+                      "pending_trading_fee_credit": "0",
+                      "portfolio_margin": "0",
+                      "position_margin": "3.01527414",
+                      "trading_fee_credit": "0",
+                      "unvested_amount": "0",
+                      "user_id": "48405827"
+                    }
+                  ],
+                  "success": true
+                },
+                "parsedResponse": {
+                  "info": {
+                    "meta": {
+                      "net_equity": "22.92011359",
+                      "robo_trading_equity": "0"
+                    },
+                    "result": [
+                      {
+                        "asset_id": "1",
+                        "asset_symbol": "ETH",
+                        "available_balance": "0",
+                        "available_balance_for_robo": "0",
+                        "balance": "0",
+                        "commission": "0",
+                        "cross_commission": "0",
+                        "cross_locked_collateral": "0",
+                        "cross_order_margin": "0",
+                        "cross_position_margin": "0",
+                        "id": "3516460",
+                        "interest_credit": "0",
+                        "order_margin": "0",
+                        "pending_referral_bonus": "0",
+                        "pending_trading_fee_credit": "0",
+                        "portfolio_margin": "0",
+                        "position_margin": "0",
+                        "trading_fee_credit": "0",
+                        "unvested_amount": "0",
+                        "user_id": "48405827"
+                      },
+                      {
+                        "asset_id": "2",
+                        "asset_symbol": "BTC",
+                        "available_balance": "0",
+                        "available_balance_for_robo": "0",
+                        "balance": "0",
+                        "commission": "0",
+                        "cross_commission": "0",
+                        "cross_locked_collateral": "0",
+                        "cross_order_margin": "0",
+                        "cross_position_margin": "0",
+                        "id": "3516461",
+                        "interest_credit": "0",
+                        "order_margin": "0",
+                        "pending_referral_bonus": "0",
+                        "pending_trading_fee_credit": "0",
+                        "portfolio_margin": "0",
+                        "position_margin": "0",
+                        "trading_fee_credit": "0",
+                        "unvested_amount": "0",
+                        "user_id": "48405827"
+                      },
+                      {
+                        "asset_id": "5",
+                        "asset_symbol": "USDT",
+                        "available_balance": "16.27058905",
+                        "available_balance_for_robo": "16.27058905",
+                        "balance": "19.29152659",
+                        "commission": "0.0056634",
+                        "cross_commission": "0",
+                        "cross_locked_collateral": "0",
+                        "cross_order_margin": "0",
+                        "cross_position_margin": "0",
+                        "id": "3516463",
+                        "interest_credit": "0",
+                        "order_margin": "0",
+                        "pending_referral_bonus": "0",
+                        "pending_trading_fee_credit": "0",
+                        "portfolio_margin": "0",
+                        "position_margin": "3.01527414",
+                        "trading_fee_credit": "0",
+                        "unvested_amount": "0",
+                        "user_id": "48405827"
+                      }
+                    ],
+                    "success": true
+                  },
+                  "ETH": {
+                    "free": 0,
+                    "used": 0,
+                    "total": 0
+                  },
+                  "BTC": {
+                    "free": 0,
+                    "used": 0,
+                    "total": 0
+                  },
+                  "USDT": {
+                    "free": 16.27058905,
+                    "used": 3.02093754,
+                    "total": 19.29152659
+                  },
+                  "free": {
+                    "ETH": 0,
+                    "BTC": 0,
+                    "USDT": 16.27058905
+                  },
+                  "used": {
+                    "ETH": 0,
+                    "BTC": 0,
+                    "USDT": 3.02093754
+                  },
+                  "total": {
+                    "ETH": 0,
+                    "BTC": 0,
+                    "USDT": 19.29152659
+                  }
+                }
+              }
         ]
     }
 }

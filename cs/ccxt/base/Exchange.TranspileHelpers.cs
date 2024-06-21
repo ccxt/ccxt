@@ -886,6 +886,12 @@ public partial class Exchange
             else
                 return false;
         }
+        else if (obj is System.Collections.IDictionary || (obj.GetType().IsGenericType && obj.GetType().GetGenericTypeDefinition() == typeof(Dictionary<,>))) // is the second cond needed?
+        {
+            // check if this is a dictionary regardless of the value type
+            IDictionary<string, object> dict = ConvertToDictionaryOfStringObject(obj);
+            return dict.ContainsKey((string)key);
+        }
         else
         {
             return false;

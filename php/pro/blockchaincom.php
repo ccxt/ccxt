@@ -7,8 +7,8 @@ namespace ccxt\pro;
 
 use Exception; // a common import
 use ccxt\ExchangeError;
-use ccxt\NotSupported;
 use ccxt\AuthenticationError;
+use ccxt\NotSupported;
 use React\Async;
 use React\Promise\PromiseInterface;
 
@@ -310,7 +310,7 @@ class blockchaincom extends \ccxt\async\blockchaincom {
             'average' => null,
             'baseVolume' => $this->safe_string($lastTicker, 'baseVolume'),
             'quoteVolume' => null,
-            'info' => array_merge($this->safe_value($lastTicker, 'info', array()), $ticker),
+            'info' => $this->extend($this->safe_value($lastTicker, 'info', array()), $ticker),
         ), $market);
     }
 
@@ -712,8 +712,8 @@ class blockchaincom extends \ccxt\async\blockchaincom {
             $snapshot = $this->parse_order_book($message, $symbol, $timestamp, 'bids', 'asks', 'px', 'qty', 'num');
             $orderbook->reset ($snapshot);
         } elseif ($event === 'updated') {
-            $asks = $this->safe_value($message, 'asks', array());
-            $bids = $this->safe_value($message, 'bids', array());
+            $asks = $this->safe_list($message, 'asks', array());
+            $bids = $this->safe_list($message, 'bids', array());
             $this->handle_deltas($orderbook['asks'], $asks);
             $this->handle_deltas($orderbook['bids'], $bids);
             $orderbook['timestamp'] = $timestamp;
@@ -775,20 +775,22 @@ class blockchaincom extends \ccxt\async\blockchaincom {
     }
 
     public function authenticate($params = array ()) {
-        $url = $this->urls['api']['ws'];
-        $client = $this->client($url);
-        $messageHash = 'authenticated';
-        $future = $client->future ($messageHash);
-        $isAuthenticated = $this->safe_value($client->subscriptions, $messageHash);
-        if ($isAuthenticated === null) {
-            $this->check_required_credentials();
-            $request = array(
-                'action' => 'subscribe',
-                'channel' => 'auth',
-                'token' => $this->secret,
-            );
-            return $this->watch($url, $messageHash, array_merge($request, $params), $messageHash);
-        }
-        return $future;
+        return Async\async(function () use ($params) {
+            $url = $this->urls['api']['ws'];
+            $client = $this->client($url);
+            $messageHash = 'authenticated';
+            $future = $client->future ($messageHash);
+            $isAuthenticated = $this->safe_value($client->subscriptions, $messageHash);
+            if ($isAuthenticated === null) {
+                $this->check_required_credentials();
+                $request = array(
+                    'action' => 'subscribe',
+                    'channel' => 'auth',
+                    'token' => $this->secret,
+                );
+                return $this->watch($url, $messageHash, $this->extend($request, $params), $messageHash);
+            }
+            return Async\await($future);
+        }) ();
     }
 }

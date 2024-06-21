@@ -71,7 +71,7 @@ class probit extends \ccxt\async\probit {
                 'type' => 'subscribe',
                 'channel' => 'balance',
             );
-            $request = array_merge($subscribe, $params);
+            $request = $this->extend($subscribe, $params);
             return Async\await($this->watch($url, $messageHash, $request, $messageHash));
         }) ();
     }
@@ -258,7 +258,7 @@ class probit extends \ccxt\async\probit {
                 'type' => 'subscribe',
                 'channel' => $channel,
             );
-            $request = array_merge($message, $params);
+            $request = $this->extend($message, $params);
             $trades = Async\await($this->watch($url, $messageHash, $request, $channel));
             if ($this->newUpdates) {
                 $limit = $trades->getLimit ($symbol, $limit);
@@ -342,7 +342,7 @@ class probit extends \ccxt\async\probit {
                 'type' => 'subscribe',
                 'channel' => $channel,
             );
-            $request = array_merge($subscribe, $params);
+            $request = $this->extend($subscribe, $params);
             $orders = Async\await($this->watch($url, $messageHash, $request, $channel));
             if ($this->newUpdates) {
                 $limit = $orders->getLimit ($symbol, $limit);
@@ -451,7 +451,7 @@ class probit extends \ccxt\async\probit {
                 'type' => 'subscribe',
                 'filter' => $keys,
             );
-            $request = array_merge($message, $params);
+            $request = $this->extend($message, $params);
             return Async\await($this->watch($url, $messageHash, $request, $messageHash, $filters));
         }) ();
     }
@@ -474,11 +474,11 @@ class probit extends \ccxt\async\probit {
         $symbol = $this->safe_symbol($marketId);
         $dataBySide = $this->group_by($orderBook, 'side');
         $messageHash = 'orderbook:' . $symbol;
-        $orderbook = $this->safe_value($this->orderbooks, $symbol);
-        if ($orderbook === null) {
-            $orderbook = $this->order_book(array());
-            $this->orderbooks[$symbol] = $orderbook;
+        // $orderbook = $this->safe_value($this->orderbooks, $symbol);
+        if (!(is_array($this->orderbooks) && array_key_exists($symbol, $this->orderbooks))) {
+            $this->orderbooks[$symbol] = $this->order_book(array());
         }
+        $orderbook = $this->orderbooks[$symbol];
         $reset = $this->safe_bool($message, 'reset', false);
         if ($reset) {
             $snapshot = $this->parse_order_book($dataBySide, $symbol, null, 'buy', 'sell', 'price', 'quantity');
@@ -610,7 +610,7 @@ class probit extends \ccxt\async\probit {
                     'type' => 'authorization',
                     'token' => $accessToken,
                 );
-                $future = $this->watch($url, $messageHash, array_merge($request, $params));
+                $future = Async\await($this->watch($url, $messageHash, $this->extend($request, $params), $messageHash));
                 $client->subscriptions[$messageHash] = $future;
             }
             return $future;

@@ -212,7 +212,7 @@ public partial class tokocrypto : Exchange
                     { "maker", this.parseNumber("0.0075") },
                 } },
             } },
-            { "precisionMode", DECIMAL_PLACES },
+            { "precisionMode", TICK_SIZE },
             { "options", new Dictionary<string, object>() {
                 { "createMarketBuyOrderRequiresPrice", true },
                 { "defaultTimeInForce", "GTC" },
@@ -731,10 +731,10 @@ public partial class tokocrypto : Exchange
                 { "strike", null },
                 { "optionType", null },
                 { "precision", new Dictionary<string, object>() {
-                    { "amount", this.safeInteger(market, "quantityPrecision") },
-                    { "price", this.safeInteger(market, "pricePrecision") },
-                    { "base", this.safeInteger(market, "baseAssetPrecision") },
-                    { "quote", this.safeInteger(market, "quotePrecision") },
+                    { "amount", this.parseNumber(this.parsePrecision(this.safeString(market, "quantityPrecision"))) },
+                    { "price", this.parseNumber(this.parsePrecision(this.safeString(market, "pricePrecision"))) },
+                    { "base", this.parseNumber(this.parsePrecision(this.safeString(market, "baseAssetPrecision"))) },
+                    { "quote", this.parseNumber(this.parsePrecision(this.safeString(market, "quotePrecision"))) },
                 } },
                 { "limits", new Dictionary<string, object>() {
                     { "leverage", new Dictionary<string, object>() {
@@ -760,8 +760,7 @@ public partial class tokocrypto : Exchange
             if (isTrue(inOp(filtersByType, "PRICE_FILTER")))
             {
                 object filter = this.safeValue(filtersByType, "PRICE_FILTER", new Dictionary<string, object>() {});
-                object tickSize = this.safeString(filter, "tickSize");
-                ((IDictionary<string,object>)getValue(entry, "precision"))["price"] = this.precisionFromString(tickSize);
+                ((IDictionary<string,object>)getValue(entry, "precision"))["price"] = this.safeNumber(filter, "tickSize");
                 // PRICE_FILTER reports zero values for maxPrice
                 // since they updated filter types in November 2018
                 // https://github.com/ccxt/ccxt/issues/4286
@@ -770,13 +769,12 @@ public partial class tokocrypto : Exchange
                     { "min", this.safeNumber(filter, "minPrice") },
                     { "max", this.safeNumber(filter, "maxPrice") },
                 };
-                ((IDictionary<string,object>)getValue(entry, "precision"))["price"] = this.precisionFromString(getValue(filter, "tickSize"));
+                ((IDictionary<string,object>)getValue(entry, "precision"))["price"] = getValue(filter, "tickSize");
             }
             if (isTrue(inOp(filtersByType, "LOT_SIZE")))
             {
                 object filter = this.safeValue(filtersByType, "LOT_SIZE", new Dictionary<string, object>() {});
-                object stepSize = this.safeString(filter, "stepSize");
-                ((IDictionary<string,object>)getValue(entry, "precision"))["amount"] = this.precisionFromString(stepSize);
+                ((IDictionary<string,object>)getValue(entry, "precision"))["amount"] = this.safeNumber(filter, "stepSize");
                 ((IDictionary<string,object>)getValue(entry, "limits"))["amount"] = new Dictionary<string, object>() {
                     { "min", this.safeNumber(filter, "minQty") },
                     { "max", this.safeNumber(filter, "maxQty") },
@@ -1263,7 +1261,7 @@ public partial class tokocrypto : Exchange
         object response = await this.binanceGetTicker24hr(this.extend(request, parameters));
         if (isTrue(((response is IList<object>) || (response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
         {
-            object firstTicker = this.safeValue(response, 0, new Dictionary<string, object>() {});
+            object firstTicker = this.safeDict(response, 0, new Dictionary<string, object>() {});
             return this.parseTicker(firstTicker, market);
         }
         return this.parseTicker(response, market);
@@ -1388,7 +1386,7 @@ public partial class tokocrypto : Exchange
         //         [1591478640000,"0.02500800","0.02501100","0.02500300","0.02500800","154.14200000",1591478699999,"3.85405839",97,"5.32300000","0.13312641","0"],
         //     ]
         //
-        object data = this.safeValue(response, "data", response);
+        object data = this.safeList(response, "data", response);
         return this.parseOHLCVs(data, market, timeframe, since, limit);
     }
 
@@ -1867,7 +1865,7 @@ public partial class tokocrypto : Exchange
         //         "timestamp": 1662710994975
         //     }
         //
-        object rawOrder = this.safeValue(response, "data", new Dictionary<string, object>() {});
+        object rawOrder = this.safeDict(response, "data", new Dictionary<string, object>() {});
         return this.parseOrder(rawOrder, market);
     }
 
@@ -1919,7 +1917,7 @@ public partial class tokocrypto : Exchange
         //
         object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
         object list = this.safeValue(data, "list", new List<object>() {});
-        object rawOrder = this.safeValue(list, 0, new Dictionary<string, object>() {});
+        object rawOrder = this.safeDict(list, 0, new Dictionary<string, object>() {});
         return this.parseOrder(rawOrder);
     }
 
@@ -1989,7 +1987,7 @@ public partial class tokocrypto : Exchange
         //     }
         //
         object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
-        object orders = this.safeValue(data, "list", new List<object>() {});
+        object orders = this.safeList(data, "list", new List<object>() {});
         return this.parseOrders(orders, market, since, limit);
     }
 
@@ -2077,7 +2075,7 @@ public partial class tokocrypto : Exchange
         //         "timestamp": 1662710683634
         //     }
         //
-        object rawOrder = this.safeValue(response, "data", new Dictionary<string, object>() {});
+        object rawOrder = this.safeDict(response, "data", new Dictionary<string, object>() {});
         return this.parseOrder(rawOrder);
     }
 
@@ -2145,7 +2143,7 @@ public partial class tokocrypto : Exchange
         //     }
         //
         object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
-        object trades = this.safeValue(data, "list", new List<object>() {});
+        object trades = this.safeList(data, "list", new List<object>() {});
         return this.parseTrades(trades, market, since, limit);
     }
 
@@ -2273,7 +2271,7 @@ public partial class tokocrypto : Exchange
         //     }
         //
         object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
-        object deposits = this.safeValue(data, "list", new List<object>() {});
+        object deposits = this.safeList(data, "list", new List<object>() {});
         return this.parseTransactions(deposits, currency, since, limit);
     }
 
@@ -2336,7 +2334,7 @@ public partial class tokocrypto : Exchange
         //     }
         //
         object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
-        object withdrawals = this.safeValue(data, "list", new List<object>() {});
+        object withdrawals = this.safeList(data, "list", new List<object>() {});
         return this.parseTransactions(withdrawals, currency, since, limit);
     }
 

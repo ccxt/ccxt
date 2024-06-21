@@ -3,7 +3,7 @@
 import hyperliquidRest from '../hyperliquid.js';
 import { ExchangeError } from '../base/errors.js';
 import Client from '../base/ws/Client.js';
-import { Int, Str, Market, OrderBook, Trade, OHLCV, Order } from '../base/types.js';
+import { Int, Str, Market, OrderBook, Trade, OHLCV, Order, Dict } from '../base/types.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 
 //  ---------------------------------------------------------------------------
@@ -65,11 +65,11 @@ export default class hyperliquid extends hyperliquidRest {
         symbol = market['symbol'];
         const messageHash = 'orderbook:' + symbol;
         const url = this.urls['api']['ws']['public'];
-        const request = {
+        const request: Dict = {
             'method': 'subscribe',
             'subscription': {
                 'type': 'l2Book',
-                'coin': market['base'],
+                'coin': market['swap'] ? market['base'] : market['id'],
             },
         };
         const message = this.extend (request, params);
@@ -105,11 +105,11 @@ export default class hyperliquid extends hyperliquidRest {
         //
         const entry = this.safeDict (message, 'data', {});
         const coin = this.safeString (entry, 'coin');
-        const marketId = coin + '/USDC:USDC';
+        const marketId = this.coinToMarketId (coin);
         const market = this.market (marketId);
         const symbol = market['symbol'];
         const rawData = this.safeList (entry, 'levels', []);
-        const data = {
+        const data: Dict = {
             'bids': this.safeList (rawData, 0, []),
             'asks': this.safeList (rawData, 1, []),
         };
@@ -146,7 +146,7 @@ export default class hyperliquid extends hyperliquidRest {
             messageHash += ':' + symbol;
         }
         const url = this.urls['api']['ws']['public'];
-        const request = {
+        const request: Dict = {
             'method': 'subscribe',
             'subscription': {
                 'type': 'userFills',
@@ -196,7 +196,7 @@ export default class hyperliquid extends hyperliquidRest {
             this.myTrades = new ArrayCacheBySymbolById (limit);
         }
         const trades = this.myTrades;
-        const symbols = {};
+        const symbols: Dict = {};
         const data = this.safeList (entry, 'fills', []);
         const dataLength = data.length;
         if (dataLength === 0) {
@@ -235,11 +235,11 @@ export default class hyperliquid extends hyperliquidRest {
         symbol = market['symbol'];
         const messageHash = 'trade:' + symbol;
         const url = this.urls['api']['ws']['public'];
-        const request = {
+        const request: Dict = {
             'method': 'subscribe',
             'subscription': {
                 'type': 'trades',
-                'coin': market['base'],
+                'coin': market['swap'] ? market['base'] : market['id'],
             },
         };
         const message = this.extend (request, params);
@@ -270,7 +270,7 @@ export default class hyperliquid extends hyperliquidRest {
         const entry = this.safeList (message, 'data', []);
         const first = this.safeDict (entry, 0, {});
         const coin = this.safeString (first, 'coin');
-        const marketId = coin + '/USDC:USDC';
+        const marketId = this.coinToMarketId (coin);
         const market = this.market (marketId);
         const symbol = market['symbol'];
         if (!(symbol in this.trades)) {
@@ -326,7 +326,7 @@ export default class hyperliquid extends hyperliquidRest {
         const price = this.safeString (trade, 'px');
         const amount = this.safeString (trade, 'sz');
         const coin = this.safeString (trade, 'coin');
-        const marketId = coin + '/USDC:USDC';
+        const marketId = this.coinToMarketId (coin);
         market = this.safeMarket (marketId, undefined);
         const symbol = market['symbol'];
         const id = this.safeString (trade, 'tid');
@@ -368,11 +368,11 @@ export default class hyperliquid extends hyperliquidRest {
         const market = this.market (symbol);
         symbol = market['symbol'];
         const url = this.urls['api']['ws']['public'];
-        const request = {
+        const request: Dict = {
             'method': 'subscribe',
             'subscription': {
                 'type': 'candle',
-                'coin': market['base'],
+                'coin': market['swap'] ? market['base'] : market['id'],
                 'interval': timeframe,
             },
         };
@@ -405,7 +405,8 @@ export default class hyperliquid extends hyperliquidRest {
         //
         const data = this.safeDict (message, 'data', {});
         const base = this.safeString (data, 's');
-        const symbol = base + '/USDC:USDC';
+        const marketId = this.coinToMarketId (base);
+        const symbol = this.safeSymbol (marketId);
         const timeframe = this.safeString (data, 'i');
         if (!(symbol in this.ohlcvs)) {
             this.ohlcvs[symbol] = {};
@@ -445,7 +446,7 @@ export default class hyperliquid extends hyperliquidRest {
             messageHash = messageHash + ':' + symbol;
         }
         const url = this.urls['api']['ws']['public'];
-        const request = {
+        const request: Dict = {
             'method': 'subscribe',
             'subscription': {
                 'type': 'orderUpdates',
@@ -492,7 +493,7 @@ export default class hyperliquid extends hyperliquidRest {
         }
         const stored = this.orders;
         const messageHash = 'order';
-        const marketSymbols = {};
+        const marketSymbols: Dict = {};
         for (let i = 0; i < data.length; i++) {
             const rawOrder = data[i];
             const order = this.parseOrder (rawOrder);
@@ -530,7 +531,7 @@ export default class hyperliquid extends hyperliquidRest {
             return;
         }
         const topic = this.safeString (message, 'channel', '');
-        const methods = {
+        const methods: Dict = {
             'pong': this.handlePong,
             'trades': this.handleTrades,
             'l2Book': this.handleOrderBook,

@@ -50,8 +50,11 @@ public partial class coinspot : Exchange
                 { "fetchOpenInterestHistory", false },
                 { "fetchOrderBook", true },
                 { "fetchPosition", false },
+                { "fetchPositionHistory", false },
                 { "fetchPositionMode", false },
                 { "fetchPositions", false },
+                { "fetchPositionsForSymbol", false },
+                { "fetchPositionsHistory", false },
                 { "fetchPositionsRisk", false },
                 { "fetchPremiumIndexOHLCV", false },
                 { "fetchTicker", true },
@@ -394,7 +397,7 @@ public partial class coinspot : Exchange
         //         }
         //     }
         //
-        object ticker = this.safeValue(prices, id);
+        object ticker = this.safeDict(prices, id);
         return this.parseTicker(ticker, market);
     }
 
@@ -474,7 +477,7 @@ public partial class coinspot : Exchange
         //         ],
         //     }
         //
-        object trades = this.safeValue(response, "orders", new List<object>() {});
+        object trades = this.safeList(response, "orders", new List<object>() {});
         return this.parseTrades(trades, market, since, limit);
     }
 
@@ -668,11 +671,23 @@ public partial class coinspot : Exchange
             throw new ArgumentsRequired ((string)add(this.id, " cancelOrder() requires a side parameter, \"buy\" or \"sell\"")) ;
         }
         parameters = this.omit(parameters, "side");
-        object method = add(add("privatePostMy", this.capitalize(side)), "Cancel");
         object request = new Dictionary<string, object>() {
             { "id", id },
         };
-        return await ((Task<object>)callDynamically(this, method, new object[] { this.extend(request, parameters) }));
+        object response = null;
+        if (isTrue(isEqual(side, "buy")))
+        {
+            response = await this.privatePostMyBuyCancel(this.extend(request, parameters));
+        } else
+        {
+            response = await this.privatePostMySellCancel(this.extend(request, parameters));
+        }
+        //
+        // status - ok, error
+        //
+        return this.safeOrder(new Dictionary<string, object>() {
+            { "info", response },
+        });
     }
 
     public override object sign(object path, object api = null, object method = null, object parameters = null, object headers = null, object body = null)

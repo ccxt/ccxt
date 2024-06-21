@@ -66,8 +66,13 @@ export default class lykke extends Exchange {
                 'fetchOrderBook': true,
                 'fetchOrders': false,
                 'fetchOrderTrades': false,
+                'fetchPosition': false,
+                'fetchPositionHistory': false,
                 'fetchPositionMode': false,
                 'fetchPositions': false,
+                'fetchPositionsForSymbol': false,
+                'fetchPositionsHistory': false,
+                'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchTicker': true,
                 'fetchTickers': true,
@@ -878,7 +883,10 @@ export default class lykke extends Exchange {
         //         "error":null
         //     }
         //
-        return await this.privateDeleteOrdersOrderId(this.extend(request, params));
+        const response = await this.privateDeleteOrdersOrderId(this.extend(request, params));
+        return this.safeOrder({
+            'info': response,
+        });
     }
     async cancelAllOrders(symbol = undefined, params = {}) {
         /**
@@ -905,7 +913,12 @@ export default class lykke extends Exchange {
         //         "error":null
         //     }
         //
-        return await this.privateDeleteOrders(this.extend(request, params));
+        const response = await this.privateDeleteOrders(this.extend(request, params));
+        return [
+            this.safeOrder({
+                'info': response,
+            }),
+        ];
     }
     async fetchOrder(id, symbol = undefined, params = {}) {
         /**

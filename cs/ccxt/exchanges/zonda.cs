@@ -123,8 +123,8 @@ public partial class zonda : Exchange
                     { "get", new List<object>() {"trading/ticker", "trading/ticker/{symbol}", "trading/stats", "trading/stats/{symbol}", "trading/orderbook/{symbol}", "trading/transactions/{symbol}", "trading/candle/history/{symbol}/{resolution}"} },
                 } },
                 { "v1_01Private", new Dictionary<string, object>() {
-                    { "get", new List<object>() {"api_payments/deposits/crypto/addresses", "payments/withdrawal/{detailId}", "payments/deposit/{detailId}", "trading/offer", "trading/stop/offer", "trading/config/{symbol}", "trading/history/transactions", "balances/BITBAY/history", "balances/BITBAY/balance", "fiat_cantor/rate/{baseId}/{quoteId}", "fiat_cantor/history"} },
-                    { "post", new List<object>() {"trading/offer/{symbol}", "trading/stop/offer/{symbol}", "trading/config/{symbol}", "balances/BITBAY/balance", "balances/BITBAY/balance/transfer/{source}/{destination}", "fiat_cantor/exchange", "api_payments/withdrawals/crypto", "api_payments/withdrawals/fiat"} },
+                    { "get", new List<object>() {"api_payments/deposits/crypto/addresses", "payments/withdrawal/{detailId}", "payments/deposit/{detailId}", "trading/offer", "trading/stop/offer", "trading/config/{symbol}", "trading/history/transactions", "balances/BITBAY/history", "balances/BITBAY/balance", "fiat_cantor/rate/{baseId}/{quoteId}", "fiat_cantor/history", "client_payments/v2/customer/crypto/{currency}/channels/deposit", "client_payments/v2/customer/crypto/{currency}/channels/withdrawal", "client_payments/v2/customer/crypto/deposit/fee", "client_payments/v2/customer/crypto/withdrawal/fee"} },
+                    { "post", new List<object>() {"trading/offer/{symbol}", "trading/stop/offer/{symbol}", "trading/config/{symbol}", "balances/BITBAY/balance", "balances/BITBAY/balance/transfer/{source}/{destination}", "fiat_cantor/exchange", "api_payments/withdrawals/crypto", "api_payments/withdrawals/fiat", "client_payments/v2/customer/crypto/deposit", "client_payments/v2/customer/crypto/withdrawal"} },
                     { "delete", new List<object>() {"trading/offer/{symbol}/{id}/{side}/{price}", "trading/stop/offer/{symbol}/{id}/{side}/{price}"} },
                     { "put", new List<object>() {"balances/BITBAY/balance/{id}"} },
                 } },
@@ -319,7 +319,7 @@ public partial class zonda : Exchange
         await this.loadMarkets();
         object request = new Dictionary<string, object>() {};
         object response = await this.v1_01PrivateGetTradingOffer(this.extend(request, parameters));
-        object items = this.safeValue(response, "items", new List<object>() {});
+        object items = this.safeList(response, "items", new List<object>() {});
         return this.parseOrders(items, null, since, limit, new Dictionary<string, object>() {
             { "status", "open" },
         });
@@ -344,6 +344,13 @@ public partial class zonda : Exchange
         //         "firstBalanceId": "5b816c3e-437c-4e43-9bef-47814ae7ebfc",
         //         "secondBalanceId": "ab43023b-4079-414c-b340-056e3430a3af"
         //     }
+        //
+        // cancelOrder
+        //
+        //    {
+        //        status: "Ok",
+        //        errors: []
+        //    }
         //
         object marketId = this.safeString(order, "market");
         object symbol = this.safeSymbol(marketId, market, "-");
@@ -653,7 +660,7 @@ public partial class zonda : Exchange
         {
             throw new BadRequest ((string)add(this.id, " fetchTickers params[\"method\"] must be \"v1_01PublicGetTradingTicker\" or \"v1_01PublicGetTradingStats\"")) ;
         }
-        object items = this.safeValue(response, "items");
+        object items = this.safeDict(response, "items");
         return this.parseTickers(items, symbols);
     }
 
@@ -1065,6 +1072,9 @@ public partial class zonda : Exchange
         if (isTrue(isEqual(limit, null)))
         {
             limit = 100;
+        } else
+        {
+            limit = mathMin(limit, 11000); // supports up to 11k candles diapason
         }
         object duration = this.parseTimeframe(timeframe);
         object timerange = multiply(multiply(limit, duration), 1000);
@@ -1088,7 +1098,7 @@ public partial class zonda : Exchange
         //         ]
         //     }
         //
-        object items = this.safeValue(response, "items", new List<object>() {});
+        object items = this.safeList(response, "items", new List<object>() {});
         return this.parseOHLCVs(items, market, timeframe, since, limit);
     }
 
@@ -1203,7 +1213,7 @@ public partial class zonda : Exchange
             ((IDictionary<string,object>)request)["limit"] = limit; // default - 10, max - 300
         }
         object response = await this.v1_01PublicGetTradingTransactionsSymbol(this.extend(request, parameters));
-        object items = this.safeValue(response, "items");
+        object items = this.safeList(response, "items");
         return this.parseTrades(items, market, since, limit);
     }
 
@@ -1375,9 +1385,10 @@ public partial class zonda : Exchange
             { "side", side },
             { "price", price },
         };
+        object response = await this.v1_01PrivateDeleteTradingOfferSymbolIdSidePrice(this.extend(request, parameters));
         // { status: "Fail", errors: [ "NOT_RECOGNIZED_OFFER_TYPE" ] }  -- if required params are missing
         // { status: "Ok", errors: [] }
-        return await this.v1_01PrivateDeleteTradingOfferSymbolIdSidePrice(this.extend(request, parameters));
+        return this.parseOrder(response);
     }
 
     public virtual object isFiat(object currency)
@@ -1446,7 +1457,7 @@ public partial class zonda : Exchange
         //     }
         //
         object data = this.safeValue(response, "data");
-        object first = this.safeValue(data, 0);
+        object first = this.safeDict(data, 0);
         return this.parseDepositAddress(first, currency);
     }
 
@@ -1477,7 +1488,7 @@ public partial class zonda : Exchange
         //         ]
         //     }
         //
-        object data = this.safeValue(response, "data");
+        object data = this.safeList(response, "data");
         return this.parseDepositAddresses(data, codes);
     }
 
@@ -1648,7 +1659,7 @@ public partial class zonda : Exchange
         //         }
         //     }
         //
-        object data = this.safeValue(response, "data");
+        object data = this.safeDict(response, "data");
         return this.parseTransaction(data, currency);
     }
 

@@ -1,12 +1,13 @@
-
 import assert from 'assert';
+import { Exchange } from "../../../ccxt";
 import testLastPrice from './base/test.lastPrice.js';
 import testSharedMethods from './base/test.sharedMethods.js';
+import { LastPrices } from '../../base/types';
 
-async function testFetchLastPrices (exchange, skippedProperties, symbol) {
+async function testFetchLastPrices (exchange: Exchange, skippedProperties: object, symbol: string) {
     const method = 'fetchLastprices';
     // log ('fetching all tickers at once...')
-    let response = undefined;
+    let response: LastPrices = undefined;
     let checkedSymbol = undefined;
     try {
         response = await exchange.fetchLastPrices ();

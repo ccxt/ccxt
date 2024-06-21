@@ -1,9 +1,9 @@
-
 import assert from 'assert';
-import testSharedMethods from './base/test.sharedMethods.js';
+import { Exchange } from "../../../ccxt";
 import testDepositWithdrawal from './base/test.depositWithdrawal.js';
+import testSharedMethods from './base/test.sharedMethods.js';
 
-async function testFetchDepositsWithdrawals (exchange, skippedProperties, code) {
+async function testFetchDepositsWithdrawals (exchange: Exchange, skippedProperties: object, code: string) {
     const method = 'fetchTransactions';
     const transactions = await exchange.fetchTransactions (code);
     testSharedMethods.assertNonEmtpyArray (exchange, skippedProperties, method, transactions, code);

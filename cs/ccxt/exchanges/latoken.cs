@@ -49,7 +49,13 @@ public partial class latoken : Exchange
                 { "fetchOrder", true },
                 { "fetchOrderBook", true },
                 { "fetchOrders", true },
+                { "fetchPosition", false },
+                { "fetchPositionHistory", false },
                 { "fetchPositionMode", false },
+                { "fetchPositions", false },
+                { "fetchPositionsForSymbol", false },
+                { "fetchPositionsHistory", false },
+                { "fetchPositionsRisk", false },
                 { "fetchTicker", true },
                 { "fetchTickers", true },
                 { "fetchTime", true },
@@ -634,7 +640,7 @@ public partial class latoken : Exchange
         //
         object marketId = this.safeString(ticker, "symbol");
         object last = this.safeString(ticker, "lastPrice");
-        object timestamp = this.safeInteger(ticker, "updateTimestamp");
+        object timestamp = this.safeIntegerOmitZero(ticker, "updateTimestamp"); // sometimes latoken provided '0' ts from /ticker endpoint
         return this.safeTicker(new Dictionary<string, object>() {
             { "symbol", this.safeSymbol(marketId, market) },
             { "timestamp", timestamp },
@@ -920,6 +926,8 @@ public partial class latoken : Exchange
             { "symbol", getValue(market, "symbol") },
             { "maker", this.safeNumber(response, "makerFee") },
             { "taker", this.safeNumber(response, "takerFee") },
+            { "percentage", null },
+            { "tierBased", null },
         };
     }
 
@@ -946,6 +954,8 @@ public partial class latoken : Exchange
             { "symbol", getValue(market, "symbol") },
             { "maker", this.safeNumber(response, "makerFee") },
             { "taker", this.safeNumber(response, "takerFee") },
+            { "percentage", null },
+            { "tierBased", null },
         };
     }
 
@@ -1540,7 +1550,7 @@ public partial class latoken : Exchange
         {
             currency = this.currency(code);
         }
-        object content = this.safeValue(response, "content", new List<object>() {});
+        object content = this.safeList(response, "content", new List<object>() {});
         return this.parseTransactions(content, currency, since, limit);
     }
 
@@ -1629,7 +1639,7 @@ public partial class latoken : Exchange
         return this.safeString(types, type, type);
     }
 
-    public async virtual Task<object> fetchTransfers(object code = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<object> fetchTransfers(object code = null, object since = null, object limit = null, object parameters = null)
     {
         /**
         * @method
@@ -1677,7 +1687,7 @@ public partial class latoken : Exchange
         //         "hasContent": true
         //     }
         //
-        object transfers = this.safeValue(response, "content", new List<object>() {});
+        object transfers = this.safeList(response, "content", new List<object>() {});
         return this.parseTransfers(transfers, currency, since, limit);
     }
 

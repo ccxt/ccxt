@@ -10,8 +10,8 @@ export default class luno extends lunoRest {
     handleOrderBook(client: Client, message: any, subscription: any): void;
     customParseOrderBook(orderbook: any, symbol: any, timestamp?: any, bidsKey?: string, asksKey?: IndexType, priceKey?: IndexType, amountKey?: IndexType, countOrIdKey?: IndexType): {
         symbol: any;
-        bids: any;
-        asks: any;
+        bids: any[];
+        asks: any[];
         timestamp: any;
         datetime: string;
         nonce: any;

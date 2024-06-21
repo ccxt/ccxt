@@ -515,19 +515,18 @@ export default class exmo extends exmoRest {
         const orderBook = this.safeValue(message, 'data', {});
         const messageHash = 'orderbook:' + symbol;
         const timestamp = this.safeInteger(message, 'ts');
-        let orderbook = this.safeValue(this.orderbooks, symbol);
-        if (orderbook === undefined) {
-            orderbook = this.orderBook({});
-            this.orderbooks[symbol] = orderbook;
+        if (!(symbol in this.orderbooks)) {
+            this.orderbooks[symbol] = this.orderBook({});
         }
+        const orderbook = this.orderbooks[symbol];
         const event = this.safeString(message, 'event');
         if (event === 'snapshot') {
             const snapshot = this.parseOrderBook(orderBook, symbol, timestamp, 'bid', 'ask');
             orderbook.reset(snapshot);
         }
         else {
-            const asks = this.safeValue(orderBook, 'ask', []);
-            const bids = this.safeValue(orderBook, 'bid', []);
+            const asks = this.safeList(orderBook, 'ask', []);
+            const bids = this.safeList(orderBook, 'bid', []);
             this.handleDeltas(orderbook['asks'], asks);
             this.handleDeltas(orderbook['bids'], bids);
             orderbook['timestamp'] = timestamp;
@@ -653,7 +652,7 @@ export default class exmo extends exmoRest {
                 'nonce': time,
             };
             const message = this.extend(request, query);
-            future = this.watch(url, messageHash, message);
+            future = await this.watch(url, messageHash, message, messageHash);
             client.subscriptions[messageHash] = future;
         }
         return future;

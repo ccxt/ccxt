@@ -7,9 +7,8 @@ namespace ccxt\pro;
 
 use Exception; // a common import
 use ccxt\ExchangeError;
-use ccxt\ArgumentsRequired;
-use ccxt\NotSupported;
 use ccxt\AuthenticationError;
+use ccxt\NotSupported;
 use React\Async;
 use React\Promise\PromiseInterface;
 
@@ -202,7 +201,7 @@ class bitmart extends \ccxt\async\bitmart {
     public function load_balance_snapshot($client, $messageHash, $type) {
         return Async\async(function () use ($client, $messageHash, $type) {
             $response = Async\await($this->fetch_balance(array( 'type' => $type )));
-            $this->balance[$type] = array_merge($response, $this->safe_value($this->balance, $type, array()));
+            $this->balance[$type] = $this->extend($response, $this->safe_value($this->balance, $type, array()));
             // don't remove the $future from the .futures cache
             $future = $client->futures[$messageHash];
             $future->resolve ();
@@ -375,9 +374,9 @@ class bitmart extends \ccxt\async\bitmart {
     public function watch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
-             * @see https://developer-pro.bitmart.com/en/spot/#private-order-channel
-             * @see https://developer-pro.bitmart.com/en/futures/#private-order-channel
              * watches information on multiple orders made by the user
+             * @see https://developer-pro.bitmart.com/en/spot/#private-order-progress
+             * @see https://developer-pro.bitmart.com/en/futures/#private-order-channel
              * @param {string} $symbol unified $market $symbol of the $market orders were made in
              * @param {int} [$since] the earliest time in ms to fetch orders for
              * @param {int} [$limit] the maximum number of order structures to retrieve
@@ -397,12 +396,15 @@ class bitmart extends \ccxt\async\bitmart {
             Async\await($this->authenticate($type, $params));
             $request = null;
             if ($type === 'spot') {
-                if ($symbol === null) {
-                    throw new ArgumentsRequired($this->id . ' watchOrders() requires a $symbol argument for spot markets');
+                $argsRequest = 'spot/user/order:';
+                if ($symbol !== null) {
+                    $argsRequest .= $market['id'];
+                } else {
+                    $argsRequest = 'spot/user/orders:ALL_SYMBOLS';
                 }
                 $request = array(
                     'op' => 'subscribe',
-                    'args' => [ 'spot/user/order:' . $market['id'] ],
+                    'args' => array( $argsRequest ),
                 );
             } else {
                 $request = array(
@@ -560,7 +562,7 @@ class bitmart extends \ccxt\async\bitmart {
             $amount = $this->safe_string($order, 'size');
             $type = $this->safe_string($order, 'type');
             $rawState = $this->safe_string($order, 'state');
-            $status = $this->parseOrderStatusByType ($market['type'], $rawState);
+            $status = $this->parse_order_status_by_type($market['type'], $rawState);
             $timestamp = $this->safe_integer($order, 'ms_t');
             $symbol = $market['symbol'];
             $side = $this->safe_string_lower($order, 'side');
@@ -729,10 +731,10 @@ class bitmart extends \ccxt\async\bitmart {
         //    }
         //
         $data = $this->safe_value($message, 'data', array());
-        $cache = $this->positions;
         if ($this->positions === null) {
             $this->positions = new ArrayCacheBySymbolBySide ();
         }
+        $cache = $this->positions;
         $newPositions = array();
         for ($i = 0; $i < count($data); $i++) {
             $rawPosition = $data[$i];
@@ -1402,43 +1404,45 @@ class bitmart extends \ccxt\async\bitmart {
     }
 
     public function authenticate($type, $params = array ()) {
-        $this->check_required_credentials();
-        $url = $this->implode_hostname($this->urls['api']['ws'][$type]['private']);
-        $messageHash = 'authenticated';
-        $client = $this->client($url);
-        $future = $client->future ($messageHash);
-        $authenticated = $this->safe_value($client->subscriptions, $messageHash);
-        if ($authenticated === null) {
-            $timestamp = (string) $this->milliseconds();
-            $memo = $this->uid;
-            $path = 'bitmart.WebSocket';
-            $auth = $timestamp . '#' . $memo . '#' . $path;
-            $signature = $this->hmac($this->encode($auth), $this->encode($this->secret), 'sha256');
-            $request = null;
-            if ($type === 'spot') {
-                $request = array(
-                    'op' => 'login',
-                    'args' => array(
-                        $this->apiKey,
-                        $timestamp,
-                        $signature,
-                    ),
-                );
-            } else {
-                $request = array(
-                    'action' => 'access',
-                    'args' => array(
-                        $this->apiKey,
-                        $timestamp,
-                        $signature,
-                        'web',
-                    ),
-                );
+        return Async\async(function () use ($type, $params) {
+            $this->check_required_credentials();
+            $url = $this->implode_hostname($this->urls['api']['ws'][$type]['private']);
+            $messageHash = 'authenticated';
+            $client = $this->client($url);
+            $future = $client->future ($messageHash);
+            $authenticated = $this->safe_value($client->subscriptions, $messageHash);
+            if ($authenticated === null) {
+                $timestamp = (string) $this->milliseconds();
+                $memo = $this->uid;
+                $path = 'bitmart.WebSocket';
+                $auth = $timestamp . '#' . $memo . '#' . $path;
+                $signature = $this->hmac($this->encode($auth), $this->encode($this->secret), 'sha256');
+                $request = null;
+                if ($type === 'spot') {
+                    $request = array(
+                        'op' => 'login',
+                        'args' => array(
+                            $this->apiKey,
+                            $timestamp,
+                            $signature,
+                        ),
+                    );
+                } else {
+                    $request = array(
+                        'action' => 'access',
+                        'args' => array(
+                            $this->apiKey,
+                            $timestamp,
+                            $signature,
+                            'web',
+                        ),
+                    );
+                }
+                $message = $this->extend($request, $params);
+                $this->watch($url, $messageHash, $message, $messageHash);
             }
-            $message = array_merge($request, $params);
-            $this->watch($url, $messageHash, $message, $messageHash);
-        }
-        return $future;
+            return Async\await($future);
+        }) ();
     }
 
     public function handle_subscription_status(Client $client, $message) {

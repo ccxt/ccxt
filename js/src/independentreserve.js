@@ -65,8 +65,11 @@ export default class independentreserve extends Exchange {
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchPosition': false,
+                'fetchPositionHistory': false,
                 'fetchPositionMode': false,
                 'fetchPositions': false,
+                'fetchPositionsForSymbol': false,
+                'fetchPositionsHistory': false,
                 'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchTicker': true,
@@ -385,6 +388,21 @@ export default class independentreserve extends Exchange {
         //         "FeePercent": 0.005,
         //     }
         //
+        // cancelOrder
+        //
+        //    {
+        //        "AvgPrice": 455.48,
+        //        "CreatedTimestampUtc": "2022-08-05T06:42:11.3032208Z",
+        //        "OrderGuid": "719c495c-a39e-4884-93ac-280b37245037",
+        //        "Price": 485.76,
+        //        "PrimaryCurrencyCode": "Xbt",
+        //        "ReservedAmount": 0.358,
+        //        "SecondaryCurrencyCode": "Usd",
+        //        "Status": "Cancelled",
+        //        "Type": "LimitOffer",
+        //        "VolumeFilled": 0,
+        //        "VolumeOrdered": 0.358
+        //    }
         let symbol = undefined;
         const baseId = this.safeString(order, 'PrimaryCurrencyCode');
         const quoteId = this.safeString(order, 'SecondaryCurrencyCode');
@@ -508,7 +526,7 @@ export default class independentreserve extends Exchange {
         request['pageIndex'] = 1;
         request['pageSize'] = limit;
         const response = await this.privatePostGetOpenOrders(this.extend(request, params));
-        const data = this.safeValue(response, 'Data', []);
+        const data = this.safeList(response, 'Data', []);
         return this.parseOrders(data, market, since, limit);
     }
     async fetchClosedOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -536,7 +554,7 @@ export default class independentreserve extends Exchange {
         request['pageIndex'] = 1;
         request['pageSize'] = limit;
         const response = await this.privatePostGetClosedOrders(this.extend(request, params));
-        const data = this.safeValue(response, 'Data', []);
+        const data = this.safeList(response, 'Data', []);
         return this.parseOrders(data, market, since, limit);
     }
     async fetchMyTrades(symbol = undefined, since = undefined, limit = 50, params = {}) {
@@ -715,6 +733,7 @@ export default class independentreserve extends Exchange {
          * @method
          * @name independentreserve#cancelOrder
          * @description cancels an open order
+         * @see https://www.independentreserve.com/features/api#CancelOrder
          * @param {string} id order id
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -724,7 +743,23 @@ export default class independentreserve extends Exchange {
         const request = {
             'orderGuid': id,
         };
-        return await this.privatePostCancelOrder(this.extend(request, params));
+        const response = await this.privatePostCancelOrder(this.extend(request, params));
+        //
+        //    {
+        //        "AvgPrice": 455.48,
+        //        "CreatedTimestampUtc": "2022-08-05T06:42:11.3032208Z",
+        //        "OrderGuid": "719c495c-a39e-4884-93ac-280b37245037",
+        //        "Price": 485.76,
+        //        "PrimaryCurrencyCode": "Xbt",
+        //        "ReservedAmount": 0.358,
+        //        "SecondaryCurrencyCode": "Usd",
+        //        "Status": "Cancelled",
+        //        "Type": "LimitOffer",
+        //        "VolumeFilled": 0,
+        //        "VolumeOrdered": 0.358
+        //    }
+        //
+        return this.parseOrder(response);
     }
     async fetchDepositAddress(code, params = {}) {
         /**

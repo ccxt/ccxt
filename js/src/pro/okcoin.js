@@ -478,7 +478,7 @@ export default class okcoin extends okcoinRest {
             };
             this.spawn(this.watch, url, messageHash, request, messageHash, future);
         }
-        return future;
+        return await future;
     }
     async watchBalance(params = {}) {
         /**

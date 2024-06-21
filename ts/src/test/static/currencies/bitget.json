@@ -33,7 +33,7 @@
             "coinId": "1",
             "transfer": "true"
         },
-        "id": "1",
+        "id": "BTC",
         "code": "BTC",
         "networks": {
             "BTC": {
@@ -273,7 +273,7 @@
             "coinId": "2",
             "transfer": "true"
         },
-        "id": "2",
+        "id": "USDT",
         "code": "USDT",
         "networks": {
             "OMNI": {
@@ -646,7 +646,7 @@
             "coin": "EUR",
             "transfer": "false"
         },
-        "id": "590",
+        "id": "EUR",
         "code": "EUR",
         "networks": {},
         "active": false,
@@ -679,7 +679,7 @@
             "coinId": "5",
             "transfer": "true"
         },
-        "id": "5",
+        "id": "LTC",
         "code": "LTC",
         "networks": {
             "LTC": {
@@ -838,7 +838,7 @@
             "coinId": "3",
             "transfer": "true"
         },
-        "id": "3",
+        "id": "ETH",
         "code": "ETH",
         "networks": {
             "ETH": {
@@ -1109,7 +1109,7 @@
             "coinId": "125",
             "transfer": "true"
         },
-        "id": "125",
+        "id": "ADA",
         "code": "ADA",
         "networks": {
             "CARDANO": {
@@ -1177,7 +1177,7 @@
             "coinId": "56",
             "transfer": "true"
         },
-        "id": "56",
+        "id": "XRP",
         "code": "XRP",
         "networks": {
             "XRP": {
@@ -1336,7 +1336,7 @@
             "coinId": "74",
             "transfer": "true"
         },
-        "id": "74",
+        "id": "USDC",
         "code": "USDC",
         "networks": {
             "ARBITRUMONE": {
@@ -1608,7 +1608,7 @@
             ],
             "areaCoin": "no"
         },
-        "id": "1035",
+        "id": "$AI",
         "code": "$AI",
         "networks": {
             "BEP20": {

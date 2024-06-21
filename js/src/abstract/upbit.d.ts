@@ -8,6 +8,7 @@ interface Exchange {
     publicGetCandlesMinutes1(params?: {}): Promise<implicitReturnType>;
     publicGetCandlesMinutes3(params?: {}): Promise<implicitReturnType>;
     publicGetCandlesMinutes5(params?: {}): Promise<implicitReturnType>;
+    publicGetCandlesMinutes10(params?: {}): Promise<implicitReturnType>;
     publicGetCandlesMinutes15(params?: {}): Promise<implicitReturnType>;
     publicGetCandlesMinutes30(params?: {}): Promise<implicitReturnType>;
     publicGetCandlesMinutes60(params?: {}): Promise<implicitReturnType>;

@@ -15,6 +15,7 @@ error_hierarchy = {
                 'NoChange': {
                     'MarginModeAlreadySet': {},
                 },
+                'MarketClosed': {},
             },
             'BadResponse': {
                 'NullResponse': {},
@@ -34,6 +35,7 @@ error_hierarchy = {
             },
             'NotSupported': {},
             'ProxyError': {},
+            'ExchangeClosedByUser': {},
         },
         'OperationFailed': {
             'NetworkError': {
@@ -46,7 +48,6 @@ error_hierarchy = {
                 'RequestTimeout': {},
             },
         },
-        'ExchangeClosedByUser': {},
     },
 }
 
@@ -96,6 +97,10 @@ class NoChange(OperationRejected):
 
 
 class MarginModeAlreadySet(NoChange):
+    pass
+
+
+class MarketClosed(OperationRejected):
     pass
 
 
@@ -159,6 +164,10 @@ class ProxyError(ExchangeError):
     pass
 
 
+class ExchangeClosedByUser(ExchangeError):
+    pass
+
+
 class OperationFailed(BaseError):
     pass
 
@@ -191,10 +200,6 @@ class RequestTimeout(NetworkError):
     pass
 
 
-class ExchangeClosedByUser(BaseError):
-    pass
-
-
 __all__ = [
     'error_hierarchy',
     'BaseError',
@@ -209,6 +214,7 @@ __all__ = [
     'OperationRejected',
     'NoChange',
     'MarginModeAlreadySet',
+    'MarketClosed',
     'BadResponse',
     'NullResponse',
     'InsufficientFunds',
@@ -224,6 +230,7 @@ __all__ = [
     'ContractUnavailable',
     'NotSupported',
     'ProxyError',
+    'ExchangeClosedByUser',
     'OperationFailed',
     'NetworkError',
     'DDoSProtection',
@@ -231,6 +238,5 @@ __all__ = [
     'ExchangeNotAvailable',
     'OnMaintenance',
     'InvalidNonce',
-    'RequestTimeout',
-    'ExchangeClosedByUser'
+    'RequestTimeout'
 ]

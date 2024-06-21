@@ -28,6 +28,17 @@
                 ]
             },
             {
+                "description": "Swap market buy with negative precision markets",
+                "method": "createOrder",
+                "url": "https://demo-futures.kraken.com/derivatives/api/v3/sendorder?orderType=mkt&symbol=PF_PEPEUSD&side=buy&size=98000",
+                "input": [
+                    "PEPE/USD:USD",
+                    "market",
+                    "buy",
+                    98123
+                ]
+            },
+            {
                 "description": "Swap stop buy order using the triggerPrice param (type 1)",
                 "method": "createOrder",
                 "url": "https://demo-futures.kraken.com/derivatives/api/v3/sendorder?symbol=PF_XBTUSD&side=buy&size=0.0001&triggerSignal=last&stopPrice=45000&orderType=stp&limitPrice=46000",
@@ -97,6 +108,32 @@
                     0.1000000000000001,
                     55.000001
                 ]
+            },
+            {
+                "description": "doge order",
+                "method": "createOrder",
+                "url": "https://futures.kraken.com/derivatives/api/v3/sendorder?symbol=PF_DOGEUSD&side=buy&size=100&orderType=mkt",
+                "input": [
+                  "DOGE/USD:USD",
+                  "market",
+                  "buy",
+                  100
+                ]
+            },
+            {
+                "description": "swap reduceOnly with weird amount",
+                "method": "createOrder",
+                "url": "https://futures.kraken.com/derivatives/api/v3/sendorder?symbol=PF_DOGEUSD&side=sell&size=200&reduceOnly=true&orderType=mkt",
+                "input": [
+                  "DOGE/USD:USD",
+                  "market",
+                  "sell",
+                  200.4234234,
+                  null,
+                  {
+                    "reduceOnly": true
+                  }
+                ]
             }
         ],
         "transfer": [
@@ -131,6 +168,24 @@
                 "input": [
                     "6e88d923-630d-40aa-af4f-64e5e2b3ad03",
                     "LTC/USD:USD"
+                ]
+            }
+        ],
+        "cancelAllOrdersAfter": [
+            {
+                "description": "Cancel swap orders after",
+                "method": "cancelAllOrdersAfter",
+                "url": "https://futures.kraken.com/derivatives/api/v3/cancelallordersafter?timeout=10",
+                "input": [
+                    10000
+                ]
+            },
+            {
+                "description": "Cancel swap orders after",
+                "method": "cancelAllOrdersAfter",
+                "url": "https://futures.kraken.com/derivatives/api/v3/cancelallordersafter?timeout=0",
+                "input": [
+                    0
                 ]
             }
         ],

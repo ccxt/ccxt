@@ -450,11 +450,11 @@ class probit extends probit$1 {
         const symbol = this.safeSymbol(marketId);
         const dataBySide = this.groupBy(orderBook, 'side');
         const messageHash = 'orderbook:' + symbol;
-        let orderbook = this.safeValue(this.orderbooks, symbol);
-        if (orderbook === undefined) {
-            orderbook = this.orderBook({});
-            this.orderbooks[symbol] = orderbook;
+        // let orderbook = this.safeValue (this.orderbooks, symbol);
+        if (!(symbol in this.orderbooks)) {
+            this.orderbooks[symbol] = this.orderBook({});
         }
+        const orderbook = this.orderbooks[symbol];
         const reset = this.safeBool(message, 'reset', false);
         if (reset) {
             const snapshot = this.parseOrderBook(dataBySide, symbol, undefined, 'buy', 'sell', 'price', 'quantity');
@@ -580,7 +580,7 @@ class probit extends probit$1 {
                 'type': 'authorization',
                 'token': accessToken,
             };
-            future = this.watch(url, messageHash, this.extend(request, params));
+            future = await this.watch(url, messageHash, this.extend(request, params), messageHash);
             client.subscriptions[messageHash] = future;
         }
         return future;

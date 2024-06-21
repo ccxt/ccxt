@@ -9,8 +9,8 @@ namespace ccxt;
 // -----------------------------------------------------------------------------
 use React\Async;
 use React\Promise;
-include_once PATH_TO_CCXT . '/test/base/test_shared_methods.php';
 include_once PATH_TO_CCXT . '/test/base/test_deposit_withdrawal.php';
+include_once PATH_TO_CCXT . '/test/base/test_shared_methods.php';
 
 function test_fetch_deposits_withdrawals($exchange, $skipped_properties, $code) {
     return Async\async(function () use ($exchange, $skipped_properties, $code) {

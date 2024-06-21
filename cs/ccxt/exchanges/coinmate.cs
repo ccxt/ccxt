@@ -50,8 +50,11 @@ public partial class coinmate : Exchange
                 { "fetchOrderBook", true },
                 { "fetchOrders", true },
                 { "fetchPosition", false },
+                { "fetchPositionHistory", false },
                 { "fetchPositionMode", false },
                 { "fetchPositions", false },
+                { "fetchPositionsForSymbol", false },
+                { "fetchPositionsHistory", false },
                 { "fetchPositionsRisk", false },
                 { "fetchPremiumIndexOHLCV", false },
                 { "fetchTicker", true },
@@ -327,7 +330,7 @@ public partial class coinmate : Exchange
         //         }
         //     }
         //
-        object data = this.safeValue(response, "data");
+        object data = this.safeDict(response, "data");
         return this.parseTicker(data, market);
     }
 
@@ -640,7 +643,7 @@ public partial class coinmate : Exchange
             ((IDictionary<string,object>)request)["timestampFrom"] = since;
         }
         object response = await this.privatePostTradeHistory(this.extend(request, parameters));
-        object data = this.safeValue(response, "data", new List<object>() {});
+        object data = this.safeList(response, "data", new List<object>() {});
         return this.parseTrades(data, null, since, limit);
     }
 
@@ -747,7 +750,7 @@ public partial class coinmate : Exchange
         //         ]
         //     }
         //
-        object data = this.safeValue(response, "data", new List<object>() {});
+        object data = this.safeList(response, "data", new List<object>() {});
         return this.parseTrades(data, market, since, limit);
     }
 
@@ -908,6 +911,13 @@ public partial class coinmate : Exchange
         //         "trailing": false,
         //     }
         //
+        // cancelOrder
+        //
+        //    {
+        //        "success": true,
+        //        "remainingAmount": 0.1
+        //    }
+        //
         object id = this.safeString(order, "id");
         object timestamp = this.safeInteger(order, "timestamp");
         object side = this.safeStringLower(order, "type");
@@ -1019,7 +1029,7 @@ public partial class coinmate : Exchange
             market = this.market(symbol);
         }
         object response = await this.privatePostOrderById(this.extend(request, parameters));
-        object data = this.safeValue(response, "data");
+        object data = this.safeDict(response, "data");
         return this.parseOrder(data, market);
     }
 
@@ -1041,9 +1051,18 @@ public partial class coinmate : Exchange
             { "orderId", id },
         };
         object response = await this.privatePostCancelOrderWithInfo(this.extend(request, parameters));
-        return new Dictionary<string, object>() {
-            { "info", response },
-        };
+        //
+        //    {
+        //        "error": false,
+        //        "errorMessage": null,
+        //        "data": {
+        //          "success": true,
+        //          "remainingAmount": 0.1
+        //        }
+        //    }
+        //
+        object data = this.safeDict(response, "data");
+        return this.parseOrder(data);
     }
 
     public override object nonce()

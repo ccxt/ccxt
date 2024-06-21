@@ -62,7 +62,11 @@ public partial class ndax : Exchange
                 { "fetchOrders", true },
                 { "fetchOrderTrades", true },
                 { "fetchPosition", false },
+                { "fetchPositionHistory", false },
+                { "fetchPositionMode", false },
                 { "fetchPositions", false },
+                { "fetchPositionsForSymbol", false },
+                { "fetchPositionsHistory", false },
                 { "fetchPositionsRisk", false },
                 { "fetchPremiumIndexOHLCV", false },
                 { "fetchTicker", true },
@@ -73,6 +77,7 @@ public partial class ndax : Exchange
                 { "fetchTradingFees", false },
                 { "fetchWithdrawals", true },
                 { "reduceMargin", false },
+                { "sandbox", true },
                 { "setLeverage", false },
                 { "setMarginMode", false },
                 { "setPositionMode", false },
@@ -1623,7 +1628,9 @@ public partial class ndax : Exchange
         //         "detail":null
         //     }
         //
-        return response;
+        return new List<object> {this.safeOrder(new Dictionary<string, object>() {
+    { "info", response },
+})};
     }
 
     public async override Task<object> cancelOrder(object id, object symbol = null, object parameters = null)
@@ -2007,7 +2014,7 @@ public partial class ndax : Exchange
         //     ]
         //
         object grouped = this.groupBy(response, "ChangeReason");
-        object trades = this.safeValue(grouped, "Trade", new List<object>() {});
+        object trades = this.safeList(grouped, "Trade", new List<object>() {});
         return this.parseTrades(trades, market, since, limit);
     }
 

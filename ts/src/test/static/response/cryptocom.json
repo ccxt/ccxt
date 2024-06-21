@@ -2051,6 +2051,72 @@
                     ]
                 ]
             }
+        ],
+        "fetchPosition": [
+            {
+                "description": "fetchPostion",
+                "method": "fetchPosition",
+                "input": [
+                  "LTC/USD:USD"
+                ],
+                "httpResponse": {
+                  "id": 1712055052426,
+                  "method": "private/get-positions",
+                  "code": 0,
+                  "result": {
+                    "data": [
+                      {
+                        "account_id": "96a0edb1-afb5-4c7c-af89-5cb610319e2c",
+                        "quantity": "0.1",
+                        "cost": "9.9728",
+                        "open_pos_cost": "9.9728",
+                        "open_position_pnl": "-0.003390752",
+                        "session_pnl": "-0.003390752",
+                        "update_timestamp_ms": 1712055034409,
+                        "instrument_name": "LTCUSD-PERP",
+                        "type": "PERPETUAL_SWAP"
+                      }
+                    ]
+                  }
+                },
+                "parsedResponse": {
+                  "info": {
+                    "account_id": "96a0edb1-afb5-4c7c-af89-5cb610319e2c",
+                    "quantity": "0.1",
+                    "cost": "9.9728",
+                    "open_pos_cost": "9.9728",
+                    "open_position_pnl": "-0.003390752",
+                    "session_pnl": "-0.003390752",
+                    "update_timestamp_ms": 1712055034409,
+                    "instrument_name": "LTCUSD-PERP",
+                    "type": "PERPETUAL_SWAP"
+                  },
+                  "id": null,
+                  "symbol": "LTC/USD:USD",
+                  "timestamp": 1712055034409,
+                  "datetime": "2024-04-02T10:50:34.409Z",
+                  "hedged": null,
+                  "side": "buy",
+                  "contracts": "0.1",
+                  "contractSize": 1,
+                  "entryPrice": null,
+                  "markPrice": null,
+                  "notional": null,
+                  "leverage": null,
+                  "collateral": 9.9728,
+                  "initialMargin": 9.9728,
+                  "maintenanceMargin": null,
+                  "initialMarginPercentage": null,
+                  "maintenanceMarginPercentage": null,
+                  "unrealizedPnl": -0.003390752,
+                  "liquidationPrice": null,
+                  "marginMode": null,
+                  "percentage": null,
+                  "marginRatio": null,
+                  "stopLossPrice": null,
+                  "takeProfitPrice": null
+                }
+            }
         ]
     }
 }

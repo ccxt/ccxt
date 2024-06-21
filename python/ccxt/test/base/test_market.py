@@ -68,7 +68,7 @@ def test_market(exchange, skipped_properties, method, market):
     test_shared_methods.assert_symbol(exchange, skipped_properties, method, market, 'symbol')
     log_text = test_shared_methods.log_template(exchange, method, market)
     #
-    valid_types = ['spot', 'margin', 'swap', 'future', 'option']
+    valid_types = ['spot', 'margin', 'swap', 'future', 'option', 'index']
     test_shared_methods.assert_in_array(exchange, skipped_properties, method, market, 'type', valid_types)
     has_index = ('index' in market)  # todo: add in all
     # check if string is consistent with 'type'
@@ -91,6 +91,9 @@ def test_market(exchange, skipped_properties, method, market):
         # otherwise, it must be false or undefined
         test_shared_methods.assert_in_array(exchange, skipped_properties, method, market, 'margin', [False, None])
     if not ('contractSize' in skipped_properties):
+        if not market['spot']:
+            # if not spot, then contractSize should be defined
+            assert market['contractSize'] is not None, '\"contractSize\" must be defined when \"spot\" is false' + log_text
         test_shared_methods.assert_greater(exchange, skipped_properties, method, market, 'contractSize', '0')
     # typical values
     test_shared_methods.assert_greater(exchange, skipped_properties, method, market, 'expiry', '0')

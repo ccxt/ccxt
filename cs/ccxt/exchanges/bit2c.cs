@@ -469,7 +469,8 @@ public partial class bit2c : Exchange
         object request = new Dictionary<string, object>() {
             { "id", id },
         };
-        return await this.privatePostOrderCancelOrder(this.extend(request, parameters));
+        object response = await this.privatePostOrderCancelOrder(this.extend(request, parameters));
+        return this.parseOrder(response);
     }
 
     public async override Task<object> fetchOpenOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
@@ -498,7 +499,7 @@ public partial class bit2c : Exchange
         object response = await this.privateGetOrderMyOrders(this.extend(request, parameters));
         object orders = this.safeValue(response, getValue(market, "id"), new Dictionary<string, object>() {});
         object asks = this.safeValue(orders, "ask", new List<object>() {});
-        object bids = this.safeValue(orders, "bid", new List<object>() {});
+        object bids = this.safeList(orders, "bid", new List<object>() {});
         return this.parseOrders(this.arrayConcat(asks, bids), market, since, limit);
     }
 

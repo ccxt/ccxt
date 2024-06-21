@@ -17,7 +17,7 @@ from ccxt.test.base import test_shared_methods  # noqa E402
 
 def test_fetch_leverage_tiers(exchange, skipped_properties, symbol):
     method = 'fetchLeverageTiers'
-    tiers = exchange.fetch_leverage_tiers(symbol)
+    tiers = exchange.fetch_leverage_tiers(['symbol'])
     # const format = {
     #     'RAY/USDT': [
     #       {},

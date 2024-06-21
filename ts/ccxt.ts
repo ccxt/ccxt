@@ -33,14 +33,14 @@ import { Exchange }  from './src/base/Exchange.js'
 import { Precise }   from './src/base/Precise.js'
 import * as functions from './src/base/functions.js'
 import * as errors   from './src/base/errors.js'
-import type { Market, Trade , Fee, Ticker, OrderBook, Order, Transaction, Tickers, Currency, Balance, DepositAddress, WithdrawalResponse, DepositAddressResponse, OHLCV, Balances, PartialBalances, Dictionary, MinMax, Position, FundingRateHistory, Liquidation, FundingHistory, MarginMode, Greeks, Leverage, Leverages } from './src/base/types.js'
-import { BaseError, ExchangeError, PermissionDenied, AccountNotEnabled, AccountSuspended, ArgumentsRequired, BadRequest, BadSymbol, MarginModeAlreadySet, BadResponse, NullResponse, InsufficientFunds, InvalidAddress, InvalidOrder, OrderNotFound, OrderNotCached, CancelPending, OrderImmediatelyFillable, OrderNotFillable, DuplicateOrderId, NotSupported, NetworkError, DDoSProtection, RateLimitExceeded, ExchangeNotAvailable, OnMaintenance, InvalidNonce, RequestTimeout, AuthenticationError, AddressPending, NoChange }  from './src/base/errors.js'
+import type { Int, int, Str, Strings, Num, Bool, IndexType, OrderSide, OrderType, MarketType, SubType, Dict, NullableDict, List, NullableList, Fee, OHLCV, OHLCVC, implicitReturnType, Market, Currency, Dictionary, MinMax, FeeInterface, TradingFeeInterface, MarketInterface, Trade, Order, OrderBook, Ticker, Transaction, Tickers, CurrencyInterface, Balance, BalanceAccount, Account, PartialBalances, Balances, DepositAddress, WithdrawalResponse, DepositAddressResponse, FundingRate, FundingRates, Position, BorrowInterest, LeverageTier, LedgerEntry, DepositWithdrawFeeNetwork, DepositWithdrawFee, TransferEntry, CrossBorrowRate, IsolatedBorrowRate, FundingRateHistory, OpenInterest, Liquidation, OrderRequest, CancellationRequest, FundingHistory, MarginMode, Greeks, Conversion, Option, LastPrice, Leverage, MarginModification, Leverages, LastPrices, Currencies, TradingFees, MarginModes, OptionChain, IsolatedBorrowRates, CrossBorrowRates, TransferEntries, LeverageTiers } from './src/base/types.js'
+import {BaseError, ExchangeError, AuthenticationError, PermissionDenied, AccountNotEnabled, AccountSuspended, ArgumentsRequired, BadRequest, BadSymbol, OperationRejected, NoChange, MarginModeAlreadySet, MarketClosed, BadResponse, NullResponse, InsufficientFunds, InvalidAddress, AddressPending, InvalidOrder, OrderNotFound, OrderNotCached, CancelPending, OrderImmediatelyFillable, OrderNotFillable, DuplicateOrderId, ContractUnavailable, NotSupported, ProxyError, ExchangeClosedByUser, OperationFailed, NetworkError, DDoSProtection, RateLimitExceeded, ExchangeNotAvailable, OnMaintenance, InvalidNonce, RequestTimeout}  from './src/base/errors.js'
 
 
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '4.2.72';
+const version = '4.3.49';
 
 (Exchange as any).ccxtVersion = version
 
@@ -85,7 +85,9 @@ import btcturk from  './src/btcturk.js'
 import bybit from  './src/bybit.js'
 import cex from  './src/cex.js'
 import coinbase from  './src/coinbase.js'
-import coinbasepro from  './src/coinbasepro.js'
+import coinbaseadvanced from  './src/coinbaseadvanced.js'
+import coinbaseexchange from  './src/coinbaseexchange.js'
+import coinbaseinternational from  './src/coinbaseinternational.js'
 import coincheck from  './src/coincheck.js'
 import coinex from  './src/coinex.js'
 import coinlist from  './src/coinlist.js'
@@ -131,6 +133,7 @@ import oceanex from  './src/oceanex.js'
 import okcoin from  './src/okcoin.js'
 import okx from  './src/okx.js'
 import onetrading from  './src/onetrading.js'
+import oxfun from  './src/oxfun.js'
 import p2b from  './src/p2b.js'
 import paymium from  './src/paymium.js'
 import phemex from  './src/phemex.js'
@@ -139,11 +142,14 @@ import poloniexfutures from  './src/poloniexfutures.js'
 import probit from  './src/probit.js'
 import timex from  './src/timex.js'
 import tokocrypto from  './src/tokocrypto.js'
+import tradeogre from  './src/tradeogre.js'
 import upbit from  './src/upbit.js'
 import wavesexchange from  './src/wavesexchange.js'
 import wazirx from  './src/wazirx.js'
 import whitebit from  './src/whitebit.js'
 import woo from  './src/woo.js'
+import woofipro from  './src/woofipro.js'
+import xt from  './src/xt.js'
 import yobit from  './src/yobit.js'
 import zaif from  './src/zaif.js'
 import zonda from  './src/zonda.js'
@@ -162,6 +168,7 @@ import bitcoincomPro from  './src/pro/bitcoincom.js'
 import bitfinexPro from  './src/pro/bitfinex.js'
 import bitfinex2Pro from  './src/pro/bitfinex2.js'
 import bitgetPro from  './src/pro/bitget.js'
+import bithumbPro from  './src/pro/bithumb.js'
 import bitmartPro from  './src/pro/bitmart.js'
 import bitmexPro from  './src/pro/bitmex.js'
 import bitoproPro from  './src/pro/bitopro.js'
@@ -173,7 +180,8 @@ import blockchaincomPro from  './src/pro/blockchaincom.js'
 import bybitPro from  './src/pro/bybit.js'
 import cexPro from  './src/pro/cex.js'
 import coinbasePro from  './src/pro/coinbase.js'
-import coinbaseproPro from  './src/pro/coinbasepro.js'
+import coinbaseexchangePro from  './src/pro/coinbaseexchange.js'
+import coinbaseinternationalPro from  './src/pro/coinbaseinternational.js'
 import coincheckPro from  './src/pro/coincheck.js'
 import coinexPro from  './src/pro/coinex.js'
 import coinonePro from  './src/pro/coinone.js'
@@ -203,6 +211,7 @@ import ndaxPro from  './src/pro/ndax.js'
 import okcoinPro from  './src/pro/okcoin.js'
 import okxPro from  './src/pro/okx.js'
 import onetradingPro from  './src/pro/onetrading.js'
+import oxfunPro from  './src/pro/oxfun.js'
 import p2bPro from  './src/pro/p2b.js'
 import phemexPro from  './src/pro/phemex.js'
 import poloniexPro from  './src/pro/poloniex.js'
@@ -212,6 +221,7 @@ import upbitPro from  './src/pro/upbit.js'
 import wazirxPro from  './src/pro/wazirx.js'
 import whitebitPro from  './src/pro/whitebit.js'
 import wooPro from  './src/pro/woo.js'
+import woofiproPro from  './src/pro/woofipro.js'
 
 const exchanges = {
     'ace':                    ace,
@@ -253,7 +263,9 @@ const exchanges = {
     'bybit':                  bybit,
     'cex':                    cex,
     'coinbase':               coinbase,
-    'coinbasepro':            coinbasepro,
+    'coinbaseadvanced':       coinbaseadvanced,
+    'coinbaseexchange':       coinbaseexchange,
+    'coinbaseinternational':  coinbaseinternational,
     'coincheck':              coincheck,
     'coinex':                 coinex,
     'coinlist':               coinlist,
@@ -299,6 +311,7 @@ const exchanges = {
     'okcoin':                 okcoin,
     'okx':                    okx,
     'onetrading':             onetrading,
+    'oxfun':                  oxfun,
     'p2b':                    p2b,
     'paymium':                paymium,
     'phemex':                 phemex,
@@ -307,11 +320,14 @@ const exchanges = {
     'probit':                 probit,
     'timex':                  timex,
     'tokocrypto':             tokocrypto,
+    'tradeogre':              tradeogre,
     'upbit':                  upbit,
     'wavesexchange':          wavesexchange,
     'wazirx':                 wazirx,
     'whitebit':               whitebit,
     'woo':                    woo,
+    'woofipro':               woofipro,
+    'xt':                     xt,
     'yobit':                  yobit,
     'zaif':                   zaif,
     'zonda':                  zonda,
@@ -330,6 +346,7 @@ const pro = {
     'bitfinex':               bitfinexPro,
     'bitfinex2':              bitfinex2Pro,
     'bitget':                 bitgetPro,
+    'bithumb':                bithumbPro,
     'bitmart':                bitmartPro,
     'bitmex':                 bitmexPro,
     'bitopro':                bitoproPro,
@@ -341,7 +358,8 @@ const pro = {
     'bybit':                  bybitPro,
     'cex':                    cexPro,
     'coinbase':               coinbasePro,
-    'coinbasepro':            coinbaseproPro,
+    'coinbaseexchange':       coinbaseexchangePro,
+    'coinbaseinternational':  coinbaseinternationalPro,
     'coincheck':              coincheckPro,
     'coinex':                 coinexPro,
     'coinone':                coinonePro,
@@ -371,6 +389,7 @@ const pro = {
     'okcoin':                 okcoinPro,
     'okx':                    okxPro,
     'onetrading':             onetradingPro,
+    'oxfun':                  oxfunPro,
     'p2b':                    p2bPro,
     'phemex':                 phemexPro,
     'poloniex':               poloniexPro,
@@ -380,6 +399,7 @@ const pro = {
     'wazirx':                 wazirxPro,
     'whitebit':               whitebitPro,
     'woo':                    wooPro,
+    'woofipro':               woofiproPro,
 }
 
 for (const exchange in pro) {
@@ -407,17 +427,22 @@ export {
     errors,
     BaseError,
     ExchangeError,
+    AuthenticationError,
     PermissionDenied,
     AccountNotEnabled,
     AccountSuspended,
     ArgumentsRequired,
     BadRequest,
     BadSymbol,
+    OperationRejected,
+    NoChange,
     MarginModeAlreadySet,
+    MarketClosed,
     BadResponse,
     NullResponse,
     InsufficientFunds,
     InvalidAddress,
+    AddressPending,
     InvalidOrder,
     OrderNotFound,
     OrderNotCached,
@@ -425,7 +450,11 @@ export {
     OrderImmediatelyFillable,
     OrderNotFillable,
     DuplicateOrderId,
+    ContractUnavailable,
     NotSupported,
+    ProxyError,
+    ExchangeClosedByUser,
+    OperationFailed,
     NetworkError,
     DDoSProtection,
     RateLimitExceeded,
@@ -433,35 +462,81 @@ export {
     OnMaintenance,
     InvalidNonce,
     RequestTimeout,
-    AuthenticationError,
-    AddressPending,
-    NoChange,
-    Market,
-    Trade,
+    Int,
+    int,
+    Str,
+    Strings,
+    Num,
+    Bool,
+    IndexType,
+    OrderSide,
+    OrderType,
+    MarketType,
+    SubType,
+    Dict,
+    NullableDict,
+    List,
+    NullableList,
     Fee,
-    Ticker,
-    OrderBook,
+    OHLCV,
+    OHLCVC,
+    implicitReturnType,
+    Market,
+    Currency,
+    Dictionary,
+    MinMax,
+    FeeInterface,
+    TradingFeeInterface,
+    MarketInterface,
+    Trade,
     Order,
+    OrderBook,
+    Ticker,
     Transaction,
     Tickers,
-    Currency,
+    CurrencyInterface,
     Balance,
+    BalanceAccount,
+    Account,
+    PartialBalances,
+    Balances,
     DepositAddress,
     WithdrawalResponse,
     DepositAddressResponse,
-    OHLCV,
-    Balances,
-    PartialBalances,
-    Dictionary,
-    MinMax,
+    FundingRate,
+    FundingRates,
     Position,
+    BorrowInterest,
+    LeverageTier,
+    LedgerEntry,
+    DepositWithdrawFeeNetwork,
+    DepositWithdrawFee,
+    TransferEntry,
+    CrossBorrowRate,
+    IsolatedBorrowRate,
     FundingRateHistory,
+    OpenInterest,
     Liquidation,
+    OrderRequest,
+    CancellationRequest,
     FundingHistory,
     MarginMode,
     Greeks,
+    Conversion,
+    Option,
+    LastPrice,
     Leverage,
+    MarginModification,
     Leverages,
+    LastPrices,
+    Currencies,
+    TradingFees,
+    MarginModes,
+    OptionChain,
+    IsolatedBorrowRates,
+    CrossBorrowRates,
+    TransferEntries,
+    LeverageTiers,
     ace,
     alpaca,
     ascendex,
@@ -501,7 +576,9 @@ export {
     bybit,
     cex,
     coinbase,
-    coinbasepro,
+    coinbaseadvanced,
+    coinbaseexchange,
+    coinbaseinternational,
     coincheck,
     coinex,
     coinlist,
@@ -547,6 +624,7 @@ export {
     okcoin,
     okx,
     onetrading,
+    oxfun,
     p2b,
     paymium,
     phemex,
@@ -555,11 +633,14 @@ export {
     probit,
     timex,
     tokocrypto,
+    tradeogre,
     upbit,
     wavesexchange,
     wazirx,
     whitebit,
     woo,
+    woofipro,
+    xt,
     yobit,
     zaif,
     zonda,    

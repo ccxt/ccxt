@@ -307,6 +307,7 @@ function assert_fee_structure($exchange, $skipped_properties, $method, $entry, $
     $log_text = log_template($exchange, $method, $entry);
     $key_string = string_value($key);
     if (is_int($key)) {
+        $key = $key;
         assert(gettype($entry) === 'array' && array_keys($entry) === array_keys(array_keys($entry)), 'fee container is expected to be an array' . $log_text);
         assert($key < count($entry), 'fee key ' . $key_string . ' was expected to be present in entry' . $log_text);
     } else {
@@ -410,4 +411,14 @@ function assert_non_emtpy_array($exchange, $skipped_properties, $method, $entry,
         return;
     }
     assert(count($entry) > 0, 'response is expected to be a non-empty array' . $log_text . ' (add \"emptyResponse\" in skip-tests.json to skip this check)');
+}
+
+
+function assert_round_minute_timestamp($exchange, $skipped_properties, $method, $entry, $key) {
+    if (is_array($skipped_properties) && array_key_exists($key, $skipped_properties)) {
+        return;
+    }
+    $log_text = log_template($exchange, $method, $entry);
+    $ts = $exchange->safe_string($entry, $key);
+    assert(Precise::string_mod($ts, '60000') === '0', 'timestamp should be a multiple of 60 seconds (1 minute)' . $log_text);
 }

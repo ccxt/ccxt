@@ -654,7 +654,7 @@ class kuna extends kuna$1 {
         //          }
         //      }
         //
-        const data = this.safeValue(response, 'data', {});
+        const data = this.safeDict(response, 'data', {});
         return this.parseOrderBook(data, market['symbol'], undefined, 'bids', 'asks', 0, 1);
     }
     parseTicker(ticker, market = undefined) {
@@ -735,7 +735,7 @@ class kuna extends kuna$1 {
         //        ]
         //    }
         //
-        const data = this.safeValue(response, 'data', []);
+        const data = this.safeList(response, 'data', []);
         return this.parseTickers(data, symbols, params);
     }
     async fetchTicker(symbol, params = {}) {
@@ -775,7 +775,7 @@ class kuna extends kuna$1 {
         //    }
         //
         const data = this.safeValue(response, 'data', []);
-        const ticker = this.safeValue(data, 0);
+        const ticker = this.safeDict(data, 0);
         return this.parseTicker(ticker, market);
     }
     async fetchL3OrderBook(symbol, limit = undefined, params = {}) {
@@ -992,7 +992,7 @@ class kuna extends kuna$1 {
         //        }
         //    }
         //
-        const data = this.safeValue(response, 'data', {});
+        const data = this.safeDict(response, 'data', {});
         return this.parseOrder(data, market);
     }
     async cancelOrder(id, symbol = undefined, params = {}) {
@@ -1052,7 +1052,7 @@ class kuna extends kuna$1 {
         //        ]
         //    }
         //
-        const data = this.safeValue(response, 'data', []);
+        const data = this.safeList(response, 'data', []);
         return this.parseOrders(data);
     }
     parseOrderStatus(status) {
@@ -1198,7 +1198,7 @@ class kuna extends kuna$1 {
         //        }
         //    }
         //
-        const data = this.safeValue(response, 'data', {});
+        const data = this.safeDict(response, 'data', {});
         return this.parseOrder(data);
     }
     async fetchOpenOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -1257,7 +1257,7 @@ class kuna extends kuna$1 {
         //        ]
         //    }
         //
-        const data = this.safeValue(response, 'data', []);
+        const data = this.safeList(response, 'data', []);
         return this.parseOrders(data, market, since, limit);
     }
     async fetchClosedOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -1341,7 +1341,7 @@ class kuna extends kuna$1 {
         //        ]
         //    }
         //
-        const data = this.safeValue(response, 'data', []);
+        const data = this.safeList(response, 'data', []);
         return this.parseOrders(data, market, since, limit);
     }
     async fetchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -1387,7 +1387,7 @@ class kuna extends kuna$1 {
         //        ]
         //    }
         //
-        const data = this.safeValue(response, 'data');
+        const data = this.safeList(response, 'data');
         return this.parseTrades(data, market, since, limit);
     }
     async withdraw(code, amount, address, tag = undefined, params = {}) {
@@ -1440,7 +1440,7 @@ class kuna extends kuna$1 {
         //        }
         //    }
         //
-        const data = this.safeValue(response, 'data', {});
+        const data = this.safeDict(response, 'data', {});
         return this.parseTransaction(data, currency);
     }
     async fetchWithdrawals(code = undefined, since = undefined, limit = undefined, params = {}) {
@@ -1508,7 +1508,7 @@ class kuna extends kuna$1 {
         //        ]
         //    }
         //
-        const data = this.safeValue(response, 'data', []);
+        const data = this.safeList(response, 'data', []);
         return this.parseTransactions(data, currency);
     }
     async fetchWithdrawal(id, code = undefined, params = {}) {
@@ -1548,7 +1548,7 @@ class kuna extends kuna$1 {
         //        }
         //    }
         //
-        const data = this.safeValue(response, 'data', {});
+        const data = this.safeDict(response, 'data', {});
         return this.parseTransaction(data);
     }
     async createDepositAddress(code, params = {}) {
@@ -1576,7 +1576,7 @@ class kuna extends kuna$1 {
         //        }
         //    }
         //
-        const data = this.safeValue(response, 'data', {});
+        const data = this.safeDict(response, 'data', {});
         return this.parseDepositAddress(data, currency);
     }
     async fetchDepositAddress(code, params = {}) {
@@ -1604,7 +1604,7 @@ class kuna extends kuna$1 {
         //        }
         //    }
         //
-        const data = this.safeValue(response, 'data', {});
+        const data = this.safeDict(response, 'data', {});
         return this.parseDepositAddress(data, currency);
     }
     parseDepositAddress(depositAddress, currency = undefined) {
@@ -1702,7 +1702,7 @@ class kuna extends kuna$1 {
         //        ]
         //    }
         //
-        const data = this.safeValue(response, 'data', []);
+        const data = this.safeList(response, 'data', []);
         return this.parseTransactions(data, currency);
     }
     async fetchDeposit(id, code = undefined, params = {}) {
@@ -1746,7 +1746,7 @@ class kuna extends kuna$1 {
         //        }
         //    }
         //
-        const data = this.safeValue(response, 'data', {});
+        const data = this.safeDict(response, 'data', {});
         return this.parseTransaction(data, currency);
     }
     parseTransaction(transaction, currency = undefined) {

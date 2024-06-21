@@ -355,9 +355,9 @@ class bitmart extends bitmart$1 {
         /**
          * @method
          * @name bitmart#watchOrders
-         * @see https://developer-pro.bitmart.com/en/spot/#private-order-channel
-         * @see https://developer-pro.bitmart.com/en/futures/#private-order-channel
          * @description watches information on multiple orders made by the user
+         * @see https://developer-pro.bitmart.com/en/spot/#private-order-progress
+         * @see https://developer-pro.bitmart.com/en/futures/#private-order-channel
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
          * @param {int} [limit] the maximum number of order structures to retrieve
@@ -377,12 +377,16 @@ class bitmart extends bitmart$1 {
         await this.authenticate(type, params);
         let request = undefined;
         if (type === 'spot') {
-            if (symbol === undefined) {
-                throw new errors.ArgumentsRequired(this.id + ' watchOrders() requires a symbol argument for spot markets');
+            let argsRequest = 'spot/user/order:';
+            if (symbol !== undefined) {
+                argsRequest += market['id'];
+            }
+            else {
+                argsRequest = 'spot/user/orders:ALL_SYMBOLS';
             }
             request = {
                 'op': 'subscribe',
-                'args': ['spot/user/order:' + market['id']],
+                'args': [argsRequest],
             };
         }
         else {
@@ -704,10 +708,10 @@ class bitmart extends bitmart$1 {
         //    }
         //
         const data = this.safeValue(message, 'data', []);
-        const cache = this.positions;
         if (this.positions === undefined) {
             this.positions = new Cache.ArrayCacheBySymbolBySide();
         }
+        const cache = this.positions;
         const newPositions = [];
         for (let i = 0; i < data.length; i++) {
             const rawPosition = data[i];
@@ -1406,7 +1410,7 @@ class bitmart extends bitmart$1 {
             const message = this.extend(request, params);
             this.watch(url, messageHash, message, messageHash);
         }
-        return future;
+        return await future;
     }
     handleSubscriptionStatus(client, message) {
         //

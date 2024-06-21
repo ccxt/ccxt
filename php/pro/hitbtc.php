@@ -7,8 +7,8 @@ namespace ccxt\pro;
 
 use Exception; // a common import
 use ccxt\ExchangeError;
-use ccxt\NotSupported;
 use ccxt\AuthenticationError;
+use ccxt\NotSupported;
 use React\Async;
 use React\Promise\PromiseInterface;
 
@@ -76,50 +76,52 @@ class hitbtc extends \ccxt\async\hitbtc {
     }
 
     public function authenticate() {
-        /**
-         * @ignore
-         * authenticates the user to access private web socket channels
-         * @see https://api.hitbtc.com/#socket-authentication
-         * @return {array} response from exchange
-         */
-        $this->check_required_credentials();
-        $url = $this->urls['api']['ws']['private'];
-        $messageHash = 'authenticated';
-        $client = $this->client($url);
-        $future = $client->future ($messageHash);
-        $authenticated = $this->safe_value($client->subscriptions, $messageHash);
-        if ($authenticated === null) {
-            $timestamp = $this->milliseconds();
-            $signature = $this->hmac($this->encode($this->number_to_string($timestamp)), $this->encode($this->secret), 'sha256', 'hex');
-            $request = array(
-                'method' => 'login',
-                'params' => array(
-                    'type' => 'HS256',
-                    'api_key' => $this->apiKey,
-                    'timestamp' => $timestamp,
-                    'signature' => $signature,
-                ),
-            );
-            $this->watch($url, $messageHash, $request, $messageHash);
-            //
-            //    {
-            //        "jsonrpc" => "2.0",
-            //        "result" => true
-            //    }
-            //
-            //    # Failure to return results
-            //
-            //    {
-            //        "jsonrpc" => "2.0",
-            //        "error" => {
-            //            "code" => 1002,
-            //            "message" => "Authorization is required or has been failed",
-            //            "description" => "invalid $signature format"
-            //        }
-            //    }
-            //
-        }
-        return $future;
+        return Async\async(function ()  {
+            /**
+             * @ignore
+             * authenticates the user to access private web socket channels
+             * @see https://api.hitbtc.com/#socket-authentication
+             * @return {array} response from exchange
+             */
+            $this->check_required_credentials();
+            $url = $this->urls['api']['ws']['private'];
+            $messageHash = 'authenticated';
+            $client = $this->client($url);
+            $future = $client->future ($messageHash);
+            $authenticated = $this->safe_value($client->subscriptions, $messageHash);
+            if ($authenticated === null) {
+                $timestamp = $this->milliseconds();
+                $signature = $this->hmac($this->encode($this->number_to_string($timestamp)), $this->encode($this->secret), 'sha256', 'hex');
+                $request = array(
+                    'method' => 'login',
+                    'params' => array(
+                        'type' => 'HS256',
+                        'api_key' => $this->apiKey,
+                        'timestamp' => $timestamp,
+                        'signature' => $signature,
+                    ),
+                );
+                $this->watch($url, $messageHash, $request, $messageHash);
+                //
+                //    {
+                //        "jsonrpc" => "2.0",
+                //        "result" => true
+                //    }
+                //
+                //    # Failure to return results
+                //
+                //    {
+                //        "jsonrpc" => "2.0",
+                //        "error" => {
+                //            "code" => 1002,
+                //            "message" => "Authorization is required or has been failed",
+                //            "description" => "invalid $signature format"
+                //        }
+                //    }
+                //
+            }
+            return Async\await($future);
+        }) ();
     }
 
     public function subscribe_public(string $name, string $messageHashPrefix, ?array $symbols = null, $params = array ()) {
@@ -141,7 +143,7 @@ class hitbtc extends \ccxt\async\hitbtc {
                 'id' => $this->nonce(),
                 'ch' => $name,
             );
-            $request = array_merge($subscribe, $params);
+            $request = $this->extend($subscribe, $params);
             return Async\await($this->watch($url, $messageHash, $request, $messageHash));
         }) ();
     }
@@ -596,7 +598,7 @@ class hitbtc extends \ccxt\async\hitbtc {
         $trades = $this->to_array($trades);
         $result = array();
         for ($i = 0; $i < count($trades); $i++) {
-            $trade = array_merge($this->parse_ws_trade($trades[$i], $market), $params);
+            $trade = $this->extend($this->parse_ws_trade($trades[$i], $market), $params);
             $result[] = $trade;
         }
         $result = $this->sort_by_2($result, 'timestamp', 'id');
@@ -1016,7 +1018,7 @@ class hitbtc extends \ccxt\async\hitbtc {
             $request = array(
                 'mode' => $mode,
             );
-            return Async\await($this->subscribe_private($name, null, array_merge($request, $params)));
+            return Async\await($this->subscribe_private($name, null, $this->extend($request, $params)));
         }) ();
     }
 
@@ -1048,7 +1050,7 @@ class hitbtc extends \ccxt\async\hitbtc {
             $marginMode = null;
             list($marginMode, $params) = $this->handle_margin_mode_and_params('createOrder', $params);
             list($request, $params) = $this->create_order_request($market, $marketType, $type, $side, $amount, $price, $marginMode, $params);
-            $request = array_merge($request, $params);
+            $request = $this->extend($request, $params);
             if ($marketType === 'swap') {
                 return Async\await($this->trade_request('futures_new_order', $request));
             } elseif (($marketType === 'margin') || ($marginMode !== null)) {
@@ -1084,7 +1086,7 @@ class hitbtc extends \ccxt\async\hitbtc {
             $marketType = null;
             list($marketType, $params) = $this->handle_market_type_and_params('cancelOrderWs', $market, $params);
             list($marginMode, $query) = $this->handle_margin_mode_and_params('cancelOrderWs', $params);
-            $request = array_merge($request, $query);
+            $request = $this->extend($request, $query);
             if ($marketType === 'swap') {
                 return Async\await($this->trade_request('futures_cancel_order', $request));
             } elseif (($marketType === 'margin') || ($marginMode !== null)) {
@@ -1220,7 +1222,7 @@ class hitbtc extends \ccxt\async\hitbtc {
         //        "id" => 1700233093414
         //    }
         //
-        $messageHash = $this->safe_integer($message, 'id');
+        $messageHash = $this->safe_string($message, 'id');
         $result = $this->safe_value($message, 'result', array());
         if (gettype($result) === 'array' && array_keys($result) === array_keys(array_keys($result))) {
             $parsedOrders = array();

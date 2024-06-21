@@ -4,8 +4,8 @@
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
-import testSharedMethods from './base/test.sharedMethods.js';
 import testDepositWithdrawal from './base/test.depositWithdrawal.js';
+import testSharedMethods from './base/test.sharedMethods.js';
 async function testFetchWithdrawals(exchange, skippedProperties, code) {
     const method = 'fetchWithdrawals';
     const transactions = await exchange.fetchWithdrawals(code);

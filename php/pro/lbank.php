@@ -240,7 +240,7 @@ class lbank extends \ccxt\async\lbank {
         }
     }
 
-    public function fetch_ticker_ws($symbol, $params = array ()): PromiseInterface {
+    public function fetch_ticker_ws(string $symbol, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * @see https://www.lbank.com/en-US/docs/index.html#$request-amp-subscription-instruction
@@ -802,11 +802,11 @@ class lbank extends \ccxt\async\lbank {
         $orderBook = $this->safe_value($message, 'depth', $message);
         $datetime = $this->safe_string($message, 'TS');
         $timestamp = $this->parse8601($datetime);
-        $orderbook = $this->safe_value($this->orderbooks, $symbol);
-        if ($orderbook === null) {
-            $orderbook = $this->order_book(array());
-            $this->orderbooks[$symbol] = $orderbook;
+        // $orderbook = $this->safe_value($this->orderbooks, $symbol);
+        if (!(is_array($this->orderbooks) && array_key_exists($symbol, $this->orderbooks))) {
+            $this->orderbooks[$symbol] = $this->order_book(array());
         }
+        $orderbook = $this->orderbooks[$symbol];
         $snapshot = $this->parse_order_book($orderBook, $symbol, $timestamp, 'bids', 'asks');
         $orderbook->reset ($snapshot);
         $messageHash = 'orderbook:' . $symbol;
@@ -895,7 +895,7 @@ class lbank extends \ccxt\async\lbank {
                     $request = array(
                         'subscribeKey' => $authenticated['key'],
                     );
-                    $response = Async\await($this->spotPrivatePostSubscribeRefreshKey (array_merge($request, $params)));
+                    $response = Async\await($this->spotPrivatePostSubscribeRefreshKey ($this->extend($request, $params)));
                     //
                     //    array("result" => "true")
                     //

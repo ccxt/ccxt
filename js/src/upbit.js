@@ -81,6 +81,7 @@ export default class upbit extends Exchange {
                 '1m': 'minutes',
                 '3m': 'minutes',
                 '5m': 'minutes',
+                '10m': 'minutes',
                 '15m': 'minutes',
                 '30m': 'minutes',
                 '1h': 'minutes',
@@ -110,6 +111,7 @@ export default class upbit extends Exchange {
                         'candles/minutes/1',
                         'candles/minutes/3',
                         'candles/minutes/5',
+                        'candles/minutes/10',
                         'candles/minutes/15',
                         'candles/minutes/30',
                         'candles/minutes/60',
@@ -1885,25 +1887,33 @@ export default class upbit extends Exchange {
         }
         if (api === 'private') {
             this.checkRequiredCredentials();
+            headers = {};
             const nonce = this.uuid();
             const request = {
                 'access_key': this.apiKey,
                 'nonce': nonce,
             };
-            if (Object.keys(query).length) {
-                const auth = this.urlencode(query);
+            const hasQuery = Object.keys(query).length;
+            let auth = undefined;
+            if ((method !== 'GET') && (method !== 'DELETE')) {
+                body = this.json(params);
+                headers['Content-Type'] = 'application/json';
+                if (hasQuery) {
+                    auth = this.urlencode(query);
+                }
+            }
+            else {
+                if (hasQuery) {
+                    auth = this.urlencode(this.keysort(query));
+                }
+            }
+            if (auth !== undefined) {
                 const hash = this.hash(this.encode(auth), sha512);
                 request['query_hash'] = hash;
                 request['query_hash_alg'] = 'SHA512';
             }
             const token = jwt(request, this.encode(this.secret), sha256);
-            headers = {
-                'Authorization': 'Bearer ' + token,
-            };
-            if ((method !== 'GET') && (method !== 'DELETE')) {
-                body = this.json(params);
-                headers['Content-Type'] = 'application/json';
-            }
+            headers['Authorization'] = 'Bearer ' + token;
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }

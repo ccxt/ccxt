@@ -1,9 +1,8 @@
-
-import assert from 'assert';
+import { Exchange } from "../../../../ccxt";
+import { LastPrice } from "../../../base/types";
 import testSharedMethods from './test.sharedMethods.js';
-import Precise from '../../../base/Precise.js';
 
-function testLastPrice (exchange, skippedProperties, method, entry, symbol) {
+function testLastPrice (exchange: Exchange, skippedProperties: object, method: string, entry: LastPrice, symbol: string) {
     const format = {
         'info': {},
         'symbol': 'ETH/BTC',
