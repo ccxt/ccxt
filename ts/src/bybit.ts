@@ -4378,7 +4378,7 @@ export default class bybit extends Exchange {
          * @name bybit#cancelAllOrdersAfter
          * @description dead man's switch, cancel all orders after the given timeout
          * @see https://bybit-exchange.github.io/docs/v5/order/dcp
-         * @param {number} timeout time in milliseconds, 0 represents cancel the timer
+         * @param {number} timeout time in milliseconds
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {string} [params.product] OPTIONS, DERIVATIVES, SPOT, default is 'DERIVATIVES'
          * @returns {object} the api result
