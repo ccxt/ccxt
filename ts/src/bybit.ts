@@ -4388,7 +4388,7 @@ export default class bybit extends Exchange {
             'timeWindow': this.parseToInt (timeout / 1000),
         };
         let type: Str = undefined;
-        [ type, params ] = this.handleMarketTypeAndParams ('cancelAllOrdersAfter', undefined, 'swap');
+        [ type, params ] = this.handleMarketTypeAndParams ('cancelAllOrdersAfter', undefined, params, 'swap');
         const productMap = {
             'spot': 'SPOT',
             'swap': 'DERIVATIVES',
