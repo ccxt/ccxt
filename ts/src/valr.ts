@@ -1641,15 +1641,25 @@ export default class valr extends Exchange {
          * @returns {object} a list of [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         await this.loadMarkets ();
-        this.checkRequiredCurrencyCodeArgument ('fetchWithdrawals', code);
-        if (this.isFiat (code)) {
-            throw new NotSupported (this.id + ' fetchWithdrawals() is not supported yet for fiat currencies');
-        }
         const currency = this.safeCurrency (code);
-        const currencyId = {
-            'currency': currency['id'],
-        };
-        const response = await this.privateGetWalletCryptoCurrencyWithdrawHistory (this.extend (currencyId, params));
+        const queryParams = {};
+        let response = undefined;
+        if (this.isFiat (code)) {
+            if (code !== undefined) {
+                queryParams['currency'] = currency['id'];
+            }
+            if (since !== undefined) {
+                queryParams['startTime'] = this.iso8601 (since);
+            }
+            if (limit !== undefined) {
+                queryParams['limit'] = limit;
+                queryParams['transactionTypes'] = 'FIAT_WITHDRAWAL';
+            }
+            response = await this.privateGetAccountTransactionhistory (this.extend (queryParams, params));
+        } else {
+            this.checkRequiredCurrencyCodeArgument ('fetchWithdrawals', code);
+            queryParams['currency'] = currency['id'];
+            response = await this.privateGetWalletCryptoCurrencyWithdrawHistory (this.extend (queryParams, params));
         // [
         //     {
         //       "currency": "BTC",
@@ -1692,8 +1702,9 @@ export default class valr extends Exchange {
         //       "networkType": "Bitcoin"
         //     }
         //   ]
-        return this.parseTransactions (response);
         // Todo - Update Exchange.ts fetchDeposits argument from symbol to code parameter
+        }
+        return this.parseTransactions (response, currency, since, limit, params);
     }
 
     async fetchLedger (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
@@ -1896,12 +1907,19 @@ export default class valr extends Exchange {
         let amount = undefined;
         let status = undefined;
         let currency = undefined;
+        let address = undefined;
+        let addressTo = undefined;
         const eventTime = this.parseDate (this.safeString (transaction, 'eventAt'));
         if (transactionType === 'FIAT_DEPOSIT' || transactionType === 'FIAT_WITHDRAWAL') {
             parseType = (transactionType === 'FIAT_DEPOSIT') ? 'deposit' : 'withdrawal';
             amount = this.safeNumber2 (transaction, 'creditValue', 'debitValue');
             status = 'ok';
             currency = this.safeCurrencyCode (this.safeString2 (transaction, 'creditCurrency', 'debitCurrency'));
+            if (parseType === 'withdrawal') {
+                const additionalInfo = this.safeDict (transaction, 'additionalInfo');
+                address = this.safeString (additionalInfo, 'accountNumber');
+                addressTo = this.safeString (additionalInfo, 'bankName');
+            }
         }
         return {
             'info': transaction,
@@ -1909,9 +1927,9 @@ export default class valr extends Exchange {
             'txid': undefined,
             'timestamp': eventTime,
             'datetime': this.iso8601 (eventTime),
-            'address': undefined,
+            'address': address,
             'addressFrom': undefined,
-            'addressTo': undefined,
+            'addressTo': addressTo,
             'tag': undefined,
             'tagFrom': undefined,
             'tagTo': undefined,
@@ -2035,16 +2053,17 @@ export default class valr extends Exchange {
         };
         await this.privatePostAccountSubaccountsTransfer ((this.extend (query, params)));
         const responseTimestamp = this.parseDate (this.safeString (this.last_response_headers, 'Date'));
-        const requestedCurrency = this.safeString (this.last_request_body, 'currencyCode');
+        const last_json_request = this.parseJson (this.last_request_body);
+        const requestedCurrency = this.safeString (last_json_request, 'currencyCode');
         return {
             'info': undefined,
             'id': undefined,
             'timestamp': responseTimestamp,
             'datetime': this.iso8601 (responseTimestamp),
             'currency': this.safeCurrencyCode (requestedCurrency),
-            'amount': this.safeNumber (this.last_request_body, 'amount'),
-            'fromAccount': this.safeString (this.last_request_body, 'fromId'),
-            'toAccount': this.safeString (this.last_request_body, 'toId'),
+            'amount': this.safeNumber (last_json_request, 'amount'),
+            'fromAccount': this.safeString (last_json_request, 'fromId'),
+            'toAccount': this.safeString (last_json_request, 'toId'),
             'status': undefined,
         };
     }
