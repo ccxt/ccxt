@@ -4380,7 +4380,7 @@ export default class bybit extends Exchange {
          * @see https://bybit-exchange.github.io/docs/v5/order/dcp
          * @param {number} timeout time in milliseconds, 0 represents cancel the timer
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {string} [params.product] OPTIONS, DERIVATIVES, SPOT
+         * @param {string} [params.product] OPTIONS, DERIVATIVES, SPOT, default is 'DERIVATIVES'
          * @returns {object} the api result
          */
         await this.loadMarkets ();
