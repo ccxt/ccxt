@@ -243,8 +243,8 @@ public partial class gate : ccxt.gate
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = ((bool) isTrue((isEqual(symbol, null)))) ? null : this.market(symbol);
-        object stop = this.safeValue2(parameters, "is_stop_order", "stop", false);
-        parameters = this.omit(parameters, new List<object>() {"is_stop_order", "stop"});
+        object stop = this.safeValueN(parameters, new List<object>() {"is_stop_order", "stop", "trigger"}, false);
+        parameters = this.omit(parameters, new List<object>() {"is_stop_order", "stop", "trigger"});
         var typequeryVariable = this.handleMarketTypeAndParams("cancelOrder", market, parameters);
         var type = ((IList<object>) typequeryVariable)[0];
         var query = ((IList<object>) typequeryVariable)[1];
