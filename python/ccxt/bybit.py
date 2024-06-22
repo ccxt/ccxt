@@ -48,6 +48,7 @@ class bybit(Exchange, ImplicitAPI):
                 'option': True,
                 'borrowCrossMargin': True,
                 'cancelAllOrders': True,
+                'cancelAllOrdersAfter': True,
                 'cancelOrder': True,
                 'cancelOrders': True,
                 'cancelOrdersForSymbols': True,
@@ -4107,6 +4108,37 @@ class bybit(Exchange, ImplicitAPI):
         result = self.safe_dict(response, 'result', {})
         row = self.safe_list(result, 'list', [])
         return self.parse_orders(row, market)
+
+    def cancel_all_orders_after(self, timeout: Int, params={}):
+        """
+        dead man's switch, cancel all orders after the given timeout
+        :see: https://bybit-exchange.github.io/docs/v5/order/dcp
+        :param number timeout: time in milliseconds
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.product]: OPTIONS, DERIVATIVES, SPOT, default is 'DERIVATIVES'
+        :returns dict: the api result
+        """
+        self.load_markets()
+        request: dict = {
+            'timeWindow': self.parse_to_int(timeout / 1000),
+        }
+        type: Str = None
+        type, params = self.handle_market_type_and_params('cancelAllOrdersAfter', None, params, 'swap')
+        productMap = {
+            'spot': 'SPOT',
+            'swap': 'DERIVATIVES',
+            'option': 'OPTIONS',
+        }
+        product = self.safe_string(productMap, type, type)
+        request['product'] = product
+        response = self.privatePostV5OrderDisconnectedCancelAll(self.extend(request, params))
+        #
+        # {
+        #     "retCode": 0,
+        #     "retMsg": "success"
+        # }
+        #
+        return response
 
     def cancel_orders_for_symbols(self, orders: List[CancellationRequest], params={}):
         """

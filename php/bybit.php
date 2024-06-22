@@ -30,6 +30,7 @@ class bybit extends Exchange {
                 'option' => true,
                 'borrowCrossMargin' => true,
                 'cancelAllOrders' => true,
+                'cancelAllOrdersAfter' => true,
                 'cancelOrder' => true,
                 'cancelOrders' => true,
                 'cancelOrdersForSymbols' => true,
@@ -4321,6 +4322,38 @@ class bybit extends Exchange {
         $result = $this->safe_dict($response, 'result', array());
         $row = $this->safe_list($result, 'list', array());
         return $this->parse_orders($row, $market);
+    }
+
+    public function cancel_all_orders_after(?int $timeout, $params = array ()) {
+        /**
+         * dead man's switch, cancel all orders after the given $timeout
+         * @see https://bybit-exchange.github.io/docs/v5/order/dcp
+         * @param {number} $timeout time in milliseconds
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->product] OPTIONS, DERIVATIVES, SPOT, default is 'DERIVATIVES'
+         * @return {array} the api result
+         */
+        $this->load_markets();
+        $request = array(
+            'timeWindow' => $this->parse_to_int($timeout / 1000),
+        );
+        $type = null;
+        list($type, $params) = $this->handle_market_type_and_params('cancelAllOrdersAfter', null, $params, 'swap');
+        $productMap = array(
+            'spot' => 'SPOT',
+            'swap' => 'DERIVATIVES',
+            'option' => 'OPTIONS',
+        );
+        $product = $this->safe_string($productMap, $type, $type);
+        $request['product'] = $product;
+        $response = $this->privatePostV5OrderDisconnectedCancelAll ($this->extend($request, $params));
+        //
+        // {
+        //     "retCode" => 0,
+        //     "retMsg" => "success"
+        // }
+        //
+        return $response;
     }
 
     public function cancel_orders_for_symbols(array $orders, $params = array ()) {
