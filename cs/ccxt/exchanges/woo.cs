@@ -2709,6 +2709,13 @@ public partial class woo : Exchange
             {
                 url = add(url, add("?", this.urlencode(parameters)));
             }
+        } else if (isTrue(isEqual(access, "pub")))
+        {
+            url = add(url, pathWithParams);
+            if (isTrue(getArrayLength(new List<object>(((IDictionary<string,object>)parameters).Keys))))
+            {
+                url = add(url, add("?", this.urlencode(parameters)));
+            }
         } else
         {
             this.checkRequiredCredentials();

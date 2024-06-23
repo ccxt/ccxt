@@ -136,6 +136,8 @@ class krakenfutures(Exchange, ImplicitAPI):
                         'transfers',
                         'leveragepreferences',
                         'pnlpreferences',
+                        'assignmentprogram/current',
+                        'assignmentprogram/history',
                     ],
                     'post': [
                         'sendorder',
@@ -146,6 +148,8 @@ class krakenfutures(Exchange, ImplicitAPI):
                         'cancelallorders',
                         'cancelallordersafter',
                         'withdrawal',                              # for futures wallet -> kraken spot wallet
+                        'assignmentprogram/add',
+                        'assignmentprogram/delete',
                     ],
                     'put': [
                         'leveragepreferences',
@@ -1758,7 +1762,7 @@ class krakenfutures(Exchange, ImplicitAPI):
             'type': self.parse_order_type(type),
             'timeInForce': timeInForce,
             'postOnly': type == 'post',
-            'reduceOnly': self.safe_value(details, 'reduceOnly'),
+            'reduceOnly': self.safe_bool_2(details, 'reduceOnly', 'reduce_only'),
             'side': self.safe_string(details, 'side'),
             'price': price,
             'stopPrice': self.safe_string(details, 'triggerPrice'),

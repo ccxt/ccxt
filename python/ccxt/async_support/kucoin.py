@@ -2397,9 +2397,9 @@ class kucoin(Exchange, ImplicitAPI):
         await self.load_markets()
         lowercaseStatus = status.lower()
         until = self.safe_integer(params, 'until')
-        stop = self.safe_bool(params, 'stop', False)
+        stop = self.safe_bool_2(params, 'stop', 'trigger', False)
         hf = self.safe_bool(params, 'hf', False)
-        params = self.omit(params, ['stop', 'hf', 'until'])
+        params = self.omit(params, ['stop', 'hf', 'until', 'trigger'])
         marginMode, query = self.handle_margin_mode_and_params('fetchOrdersByStatus', params)
         if lowercaseStatus == 'open':
             lowercaseStatus = 'active'
@@ -2556,7 +2556,7 @@ class kucoin(Exchange, ImplicitAPI):
         await self.load_markets()
         request: dict = {}
         clientOrderId = self.safe_string_2(params, 'clientOid', 'clientOrderId')
-        stop = self.safe_bool(params, 'stop', False)
+        stop = self.safe_bool_2(params, 'stop', 'trigger', False)
         hf = self.safe_bool(params, 'hf', False)
         market = None
         if symbol is not None:
@@ -2565,7 +2565,7 @@ class kucoin(Exchange, ImplicitAPI):
             if symbol is None:
                 raise ArgumentsRequired(self.id + ' fetchOrder() requires a symbol parameter for hf orders')
             request['symbol'] = market['id']
-        params = self.omit(params, ['stop', 'hf', 'clientOid', 'clientOrderId'])
+        params = self.omit(params, ['stop', 'hf', 'clientOid', 'clientOrderId', 'trigger'])
         response = None
         if clientOrderId is not None:
             request['clientOid'] = clientOrderId

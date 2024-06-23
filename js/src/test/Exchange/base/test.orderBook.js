@@ -74,7 +74,7 @@ function testOrderBook(exchange, skippedProperties, method, orderbook, symbol) {
             const firstBid = exchange.safeString(bids[0], 0);
             const firstAsk = exchange.safeString(asks[0], 0);
             // check bid-ask spread
-            assert(Precise.stringLt(firstBid, firstAsk), 'bids[0][0] (' + firstAsk + ') should be < than asks[0][0] (' + firstAsk + ')' + logText);
+            assert(Precise.stringLt(firstBid, firstAsk), 'bids[0][0] (' + firstBid + ') should be < than asks[0][0] (' + firstAsk + ')' + logText);
         }
     }
 }

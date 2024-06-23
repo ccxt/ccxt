@@ -1765,7 +1765,7 @@ class kucoinfutures extends kucoinfutures$1 {
         if (paginate) {
             return await this.fetchPaginatedCallDynamic('fetchOrdersByStatus', symbol, since, limit, params);
         }
-        const stop = this.safeValue2(params, 'stop', 'trigger');
+        const stop = this.safeBool2(params, 'stop', 'trigger');
         const until = this.safeInteger(params, 'until');
         params = this.omit(params, ['stop', 'until', 'trigger']);
         if (status === 'closed') {

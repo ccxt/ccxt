@@ -644,6 +644,32 @@ public partial class bybit
         return ((IList<object>)res).Select(item => new Order(item)).ToList<Order>();
     }
     /// <summary>
+    /// dead man's switch, cancel all orders after the given timeout
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://bybit-exchange.github.io/docs/v5/order/dcp"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.product</term>
+    /// <description>
+    /// string : OPTIONS, DERIVATIVES, SPOT, default is 'DERIVATIVES'
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> the api result.</returns>
+    public async Task<Dictionary<string, object>> CancelAllOrdersAfter(Int64 timeout, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.cancelAllOrdersAfter(timeout, parameters);
+        return ((Dictionary<string, object>)res);
+    }
+    /// <summary>
     /// cancel multiple orders for multiple symbols
     /// </summary>
     /// <remarks>

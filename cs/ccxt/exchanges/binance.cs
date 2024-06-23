@@ -1185,7 +1185,7 @@ public partial class binance : Exchange
                 { "BCC", "BCC" },
                 { "YOYO", "YOYOW" },
             } },
-            { "precisionMode", DECIMAL_PLACES },
+            { "precisionMode", TICK_SIZE },
             { "options", new Dictionary<string, object>() {
                 { "sandboxMode", false },
                 { "fetchMarkets", new List<object>() {"spot", "linear", "inverse"} },
@@ -2717,7 +2717,7 @@ public partial class binance : Exchange
                     { "deposit", depositEnable },
                     { "withdraw", withdrawEnable },
                     { "fee", this.parseNumber(fee) },
-                    { "precision", minPrecision },
+                    { "precision", this.parseNumber(precisionTick) },
                     { "limits", new Dictionary<string, object>() {
                         { "withdraw", new Dictionary<string, object>() {
                             { "min", this.safeNumber(networkItem, "withdrawMin") },
@@ -2732,16 +2732,11 @@ public partial class binance : Exchange
             }
             object trading = this.safeBool(entry, "trading");
             object active = (isTrue(isTrue(isWithdrawEnabled) && isTrue(isDepositEnabled)) && isTrue(trading));
-            object maxDecimalPlaces = null;
-            if (isTrue(!isEqual(minPrecision, null)))
-            {
-                maxDecimalPlaces = parseInt(this.numberToString(this.precisionFromString(minPrecision)));
-            }
             ((IDictionary<string,object>)result)[(string)code] = new Dictionary<string, object>() {
                 { "id", id },
                 { "name", name },
                 { "code", code },
-                { "precision", maxDecimalPlaces },
+                { "precision", this.parseNumber(minPrecision) },
                 { "info", entry },
                 { "active", active },
                 { "deposit", isDepositEnabled },
@@ -3146,10 +3141,10 @@ public partial class binance : Exchange
             { "strike", parsedStrike },
             { "optionType", this.safeStringLower(market, "side") },
             { "precision", new Dictionary<string, object>() {
-                { "amount", this.safeInteger2(market, "quantityPrecision", "quantityScale") },
-                { "price", this.safeInteger2(market, "pricePrecision", "priceScale") },
-                { "base", this.safeInteger(market, "baseAssetPrecision") },
-                { "quote", this.safeInteger(market, "quotePrecision") },
+                { "amount", this.parseNumber(this.parsePrecision(this.safeString2(market, "quantityPrecision", "quantityScale"))) },
+                { "price", this.parseNumber(this.parsePrecision(this.safeString2(market, "pricePrecision", "priceScale"))) },
+                { "base", this.parseNumber(this.parsePrecision(this.safeString(market, "baseAssetPrecision"))) },
+                { "quote", this.parseNumber(this.parsePrecision(this.safeString(market, "quotePrecision"))) },
             } },
             { "limits", new Dictionary<string, object>() {
                 { "leverage", new Dictionary<string, object>() {
@@ -3183,13 +3178,12 @@ public partial class binance : Exchange
                 { "min", this.safeNumber(filter, "minPrice") },
                 { "max", this.safeNumber(filter, "maxPrice") },
             };
-            ((IDictionary<string,object>)getValue(entry, "precision"))["price"] = this.precisionFromString(getValue(filter, "tickSize"));
+            ((IDictionary<string,object>)getValue(entry, "precision"))["price"] = this.safeNumber(filter, "tickSize");
         }
         if (isTrue(inOp(filtersByType, "LOT_SIZE")))
         {
             object filter = this.safeDict(filtersByType, "LOT_SIZE", new Dictionary<string, object>() {});
-            object stepSize = this.safeString(filter, "stepSize");
-            ((IDictionary<string,object>)getValue(entry, "precision"))["amount"] = this.precisionFromString(stepSize);
+            ((IDictionary<string,object>)getValue(entry, "precision"))["amount"] = this.safeNumber(filter, "stepSize");
             ((IDictionary<string,object>)getValue(entry, "limits"))["amount"] = new Dictionary<string, object>() {
                 { "min", this.safeNumber(filter, "minQty") },
                 { "max", this.safeNumber(filter, "maxQty") },
@@ -6337,7 +6331,7 @@ public partial class binance : Exchange
         {
             throw new NotSupported ((string)add(this.id, " createMarketOrderWithCost() supports spot orders only")) ;
         }
-        ((IDictionary<string,object>)parameters)["quoteOrderQty"] = cost;
+        ((IDictionary<string,object>)parameters)["cost"] = cost;
         return await this.createOrder(symbol, "market", side, cost, null, parameters);
     }
 
@@ -6360,7 +6354,7 @@ public partial class binance : Exchange
         {
             throw new NotSupported ((string)add(this.id, " createMarketBuyOrderWithCost() supports spot orders only")) ;
         }
-        ((IDictionary<string,object>)parameters)["quoteOrderQty"] = cost;
+        ((IDictionary<string,object>)parameters)["cost"] = cost;
         return await this.createOrder(symbol, "market", "buy", cost, null, parameters);
     }
 
@@ -8182,6 +8176,10 @@ public partial class binance : Exchange
 
     public virtual object parseTransactionStatusByType(object status, object type = null)
     {
+        if (isTrue(isEqual(type, null)))
+        {
+            return status;
+        }
         object statusesByType = new Dictionary<string, object>() {
             { "deposit", new Dictionary<string, object>() {
                 { "0", "pending" },
@@ -9074,7 +9072,7 @@ public partial class binance : Exchange
         object request = new Dictionary<string, object>() {
             { "coin", getValue(currency, "id") },
             { "address", address },
-            { "amount", amount },
+            { "amount", this.currencyToPrecision(code, amount) },
         };
         if (isTrue(!isEqual(tag, null)))
         {
@@ -9920,7 +9918,7 @@ public partial class binance : Exchange
                 object rightSide = Precise.stringSub(Precise.stringMul(Precise.stringDiv("1", entryPriceSignString), size), walletBalance);
                 liquidationPriceStringRaw = Precise.stringDiv(leftSide, rightSide);
             }
-            object pricePrecision = getValue(getValue(market, "precision"), "price");
+            object pricePrecision = this.precisionFromString(this.safeString(getValue(market, "precision"), "price"));
             object pricePrecisionPlusOne = add(pricePrecision, 1);
             object pricePrecisionPlusOneString = ((object)pricePrecisionPlusOne).ToString();
             // round half up
@@ -10102,8 +10100,7 @@ public partial class binance : Exchange
                 }
                 object inner = Precise.stringMul(liquidationPriceString, onePlusMaintenanceMarginPercentageString);
                 object leftSide = Precise.stringAdd(inner, entryPriceSignString);
-                object pricePrecision = this.safeInteger(precision, "price");
-                object quotePrecision = this.safeInteger(precision, "quote", pricePrecision);
+                object quotePrecision = this.precisionFromString(this.safeString2(precision, "quote", "price"));
                 if (isTrue(!isEqual(quotePrecision, null)))
                 {
                     collateralString = Precise.stringDiv(Precise.stringMul(leftSide, contractsAbs), "1", quotePrecision);
@@ -10123,7 +10120,7 @@ public partial class binance : Exchange
                 }
                 object leftSide = Precise.stringMul(contractsAbs, contractSizeString);
                 object rightSide = Precise.stringSub(Precise.stringDiv("1", entryPriceSignString), Precise.stringDiv(onePlusMaintenanceMarginPercentageString, liquidationPriceString));
-                object basePrecision = this.safeInteger(precision, "base");
+                object basePrecision = this.precisionFromString(this.safeString(precision, "base"));
                 if (isTrue(!isEqual(basePrecision, null)))
                 {
                     collateralString = Precise.stringDiv(Precise.stringMul(leftSide, rightSide), "1", basePrecision);
@@ -13596,7 +13593,7 @@ public partial class binance : Exchange
                 { "deposit", null },
                 { "withdraw", null },
                 { "fee", null },
-                { "precision", this.safeInteger(entry, "fraction") },
+                { "precision", this.parseNumber(this.parsePrecision(this.safeString(entry, "fraction"))) },
                 { "limits", new Dictionary<string, object>() {
                     { "amount", new Dictionary<string, object>() {
                         { "min", null },

@@ -1688,7 +1688,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
         paginate, params = self.handle_option_and_params(params, 'fetchOrdersByStatus', 'paginate')
         if paginate:
             return self.fetch_paginated_call_dynamic('fetchOrdersByStatus', symbol, since, limit, params)
-        stop = self.safe_value_2(params, 'stop', 'trigger')
+        stop = self.safe_bool_2(params, 'stop', 'trigger')
         until = self.safe_integer(params, 'until')
         params = self.omit(params, ['stop', 'until', 'trigger'])
         if status == 'closed':

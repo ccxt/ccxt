@@ -117,6 +117,8 @@ class krakenfutures extends Exchange {
                         'transfers',
                         'leveragepreferences',
                         'pnlpreferences',
+                        'assignmentprogram/current',
+                        'assignmentprogram/history',
                     ),
                     'post' => array(
                         'sendorder',
@@ -127,6 +129,8 @@ class krakenfutures extends Exchange {
                         'cancelallorders',
                         'cancelallordersafter',
                         'withdrawal',                              // for futures wallet -> kraken spot wallet
+                        'assignmentprogram/add',
+                        'assignmentprogram/delete',
                     ),
                     'put' => array(
                         'leveragepreferences',
@@ -1842,7 +1846,7 @@ class krakenfutures extends Exchange {
             'type' => $this->parse_order_type($type),
             'timeInForce' => $timeInForce,
             'postOnly' => $type === 'post',
-            'reduceOnly' => $this->safe_value($details, 'reduceOnly'),
+            'reduceOnly' => $this->safe_bool_2($details, 'reduceOnly', 'reduce_only'),
             'side' => $this->safe_string($details, 'side'),
             'price' => $price,
             'stopPrice' => $this->safe_string($details, 'triggerPrice'),

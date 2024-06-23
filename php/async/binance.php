@@ -1187,7 +1187,7 @@ class binance extends Exchange {
                 'BCC' => 'BCC', // kept for backward-compatibility https://github.com/ccxt/ccxt/issues/4848
                 'YOYO' => 'YOYOW',
             ),
-            'precisionMode' => DECIMAL_PLACES,
+            'precisionMode' => TICK_SIZE,
             // exchange-specific options
             'options' => array(
                 'sandboxMode' => false,
@@ -2788,7 +2788,7 @@ class binance extends Exchange {
                         'deposit' => $depositEnable,
                         'withdraw' => $withdrawEnable,
                         'fee' => $this->parse_number($fee),
-                        'precision' => $minPrecision,
+                        'precision' => $this->parse_number($precisionTick),
                         'limits' => array(
                             'withdraw' => array(
                                 'min' => $this->safe_number($networkItem, 'withdrawMin'),
@@ -2803,15 +2803,11 @@ class binance extends Exchange {
                 }
                 $trading = $this->safe_bool($entry, 'trading');
                 $active = ($isWithdrawEnabled && $isDepositEnabled && $trading);
-                $maxDecimalPlaces = null;
-                if ($minPrecision !== null) {
-                    $maxDecimalPlaces = intval($this->number_to_string($this->precision_from_string($minPrecision)));
-                }
                 $result[$code] = array(
                     'id' => $id,
                     'name' => $name,
                     'code' => $code,
-                    'precision' => $maxDecimalPlaces,
+                    'precision' => $this->parse_number($minPrecision),
                     'info' => $entry,
                     'active' => $active,
                     'deposit' => $isDepositEnabled,
@@ -3188,10 +3184,10 @@ class binance extends Exchange {
             'strike' => $parsedStrike,
             'optionType' => $this->safe_string_lower($market, 'side'),
             'precision' => array(
-                'amount' => $this->safe_integer_2($market, 'quantityPrecision', 'quantityScale'),
-                'price' => $this->safe_integer_2($market, 'pricePrecision', 'priceScale'),
-                'base' => $this->safe_integer($market, 'baseAssetPrecision'),
-                'quote' => $this->safe_integer($market, 'quotePrecision'),
+                'amount' => $this->parse_number($this->parse_precision($this->safe_string_2($market, 'quantityPrecision', 'quantityScale'))),
+                'price' => $this->parse_number($this->parse_precision($this->safe_string_2($market, 'pricePrecision', 'priceScale'))),
+                'base' => $this->parse_number($this->parse_precision($this->safe_string($market, 'baseAssetPrecision'))),
+                'quote' => $this->parse_number($this->parse_precision($this->safe_string($market, 'quotePrecision'))),
             ),
             'limits' => array(
                 'leverage' => array(
@@ -3224,12 +3220,11 @@ class binance extends Exchange {
                 'min' => $this->safe_number($filter, 'minPrice'),
                 'max' => $this->safe_number($filter, 'maxPrice'),
             );
-            $entry['precision']['price'] = $this->precision_from_string($filter['tickSize']);
+            $entry['precision']['price'] = $this->safe_number($filter, 'tickSize');
         }
         if (is_array($filtersByType) && array_key_exists('LOT_SIZE', $filtersByType)) {
             $filter = $this->safe_dict($filtersByType, 'LOT_SIZE', array());
-            $stepSize = $this->safe_string($filter, 'stepSize');
-            $entry['precision']['amount'] = $this->precision_from_string($stepSize);
+            $entry['precision']['amount'] = $this->safe_number($filter, 'stepSize');
             $entry['limits']['amount'] = array(
                 'min' => $this->safe_number($filter, 'minQty'),
                 'max' => $this->safe_number($filter, 'maxQty'),
@@ -6080,7 +6075,7 @@ class binance extends Exchange {
             if (!$market['spot']) {
                 throw new NotSupported($this->id . ' createMarketOrderWithCost() supports spot orders only');
             }
-            $params['quoteOrderQty'] = $cost;
+            $params['cost'] = $cost;
             return Async\await($this->create_order($symbol, 'market', $side, $cost, null, $params));
         }) ();
     }
@@ -6100,7 +6095,7 @@ class binance extends Exchange {
             if (!$market['spot']) {
                 throw new NotSupported($this->id . ' createMarketBuyOrderWithCost() supports spot orders only');
             }
-            $params['quoteOrderQty'] = $cost;
+            $params['cost'] = $cost;
             return Async\await($this->create_order($symbol, 'market', 'buy', $cost, null, $params));
         }) ();
     }
@@ -7784,6 +7779,9 @@ class binance extends Exchange {
     }
 
     public function parse_transaction_status_by_type($status, $type = null) {
+        if ($type === null) {
+            return $status;
+        }
         $statusesByType = array(
             'deposit' => array(
                 '0' => 'pending',
@@ -8674,7 +8672,7 @@ class binance extends Exchange {
             $request = array(
                 'coin' => $currency['id'],
                 'address' => $address,
-                'amount' => $amount,
+                'amount' => $this->currency_to_precision($code, $amount),
                 // https://binance-docs.github.io/apidocs/spot/en/#withdraw-sapi
                 // issue sapiGetCapitalConfigGetall () to get $networks for withdrawing USDT ERC20 vs USDT Omni
                 // 'network' => 'ETH', // 'BTC', 'TRX', etc, optional
@@ -9435,7 +9433,7 @@ class binance extends Exchange {
                 $rightSide = Precise::string_sub(Precise::string_mul(Precise::string_div('1', $entryPriceSignString), $size), $walletBalance);
                 $liquidationPriceStringRaw = Precise::string_div($leftSide, $rightSide);
             }
-            $pricePrecision = $market['precision']['price'];
+            $pricePrecision = $this->precision_from_string($this->safe_string($market['precision'], 'price'));
             $pricePrecisionPlusOne = $pricePrecision + 1;
             $pricePrecisionPlusOneString = (string) $pricePrecisionPlusOne;
             // round half up
@@ -9607,8 +9605,7 @@ class binance extends Exchange {
                 }
                 $inner = Precise::string_mul($liquidationPriceString, $onePlusMaintenanceMarginPercentageString);
                 $leftSide = Precise::string_add($inner, $entryPriceSignString);
-                $pricePrecision = $this->safe_integer($precision, 'price');
-                $quotePrecision = $this->safe_integer($precision, 'quote', $pricePrecision);
+                $quotePrecision = $this->precision_from_string($this->safe_string_2($precision, 'quote', 'price'));
                 if ($quotePrecision !== null) {
                     $collateralString = Precise::string_div(Precise::string_mul($leftSide, $contractsAbs), '1', $quotePrecision);
                 }
@@ -9624,7 +9621,7 @@ class binance extends Exchange {
                 }
                 $leftSide = Precise::string_mul($contractsAbs, $contractSizeString);
                 $rightSide = Precise::string_sub(Precise::string_div('1', $entryPriceSignString), Precise::string_div($onePlusMaintenanceMarginPercentageString, $liquidationPriceString));
-                $basePrecision = $this->safe_integer($precision, 'base');
+                $basePrecision = $this->precision_from_string($this->safe_string($precision, 'base'));
                 if ($basePrecision !== null) {
                     $collateralString = Precise::string_div(Precise::string_mul($leftSide, $rightSide), '1', $basePrecision);
                 }
@@ -12755,7 +12752,7 @@ class binance extends Exchange {
                     'deposit' => null,
                     'withdraw' => null,
                     'fee' => null,
-                    'precision' => $this->safe_integer($entry, 'fraction'),
+                    'precision' => $this->parse_number($this->parse_precision($this->safe_string($entry, 'fraction'))),
                     'limits' => array(
                         'amount' => array(
                             'min' => null,
@@ -13039,7 +13036,7 @@ class binance extends Exchange {
         }) ();
     }
 
-    public function parse_conversion(array $conversion, ?array $fromCurrency = null, ?array $toCurrency = null): Conversion {
+    public function parse_conversion(array $conversion, ?array $fromCurrency = null, ?array $toCurrency = null): array {
         //
         // fetchConvertQuote
         //

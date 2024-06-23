@@ -2485,6 +2485,11 @@ class woo extends Exchange {
             if ($params) {
                 $url .= '?' . $this->urlencode($params);
             }
+        } elseif ($access === 'pub') {
+            $url .= $pathWithParams;
+            if ($params) {
+                $url .= '?' . $this->urlencode($params);
+            }
         } else {
             $this->check_required_credentials();
             if ($method === 'POST' && ($path === 'algo/order' || $path === 'order')) {
@@ -2994,7 +2999,7 @@ class woo extends Exchange {
         ));
     }
 
-    public function fetch_convert_quote(string $fromCode, string $toCode, ?float $amount = null, $params = array ()): Conversion {
+    public function fetch_convert_quote(string $fromCode, string $toCode, ?float $amount = null, $params = array ()): array {
         /**
          * fetch a quote for converting from one currency to another
          * @see https://docs.woo.org/#get-quote-rfq
@@ -3035,7 +3040,7 @@ class woo extends Exchange {
         return $this->parse_conversion($data, $fromCurrency, $toCurrency);
     }
 
-    public function create_convert_trade(string $id, string $fromCode, string $toCode, ?float $amount = null, $params = array ()): Conversion {
+    public function create_convert_trade(string $id, string $fromCode, string $toCode, ?float $amount = null, $params = array ()): array {
         /**
          * convert from one currency to another
          * @see https://docs.woo.org/#send-quote-rft
@@ -3065,7 +3070,7 @@ class woo extends Exchange {
         return $this->parse_conversion($data);
     }
 
-    public function fetch_convert_trade(string $id, ?string $code = null, $params = array ()): Conversion {
+    public function fetch_convert_trade(string $id, ?string $code = null, $params = array ()): array {
         /**
          * fetch the $data for a conversion trade
          * @see https://docs.woo.org/#get-quote-trade
@@ -3153,7 +3158,7 @@ class woo extends Exchange {
         return $this->parse_conversions($rows, $code, 'sellAsset', 'buyAsset', $since, $limit);
     }
 
-    public function parse_conversion(array $conversion, ?array $fromCurrency = null, ?array $toCurrency = null): Conversion {
+    public function parse_conversion(array $conversion, ?array $fromCurrency = null, ?array $toCurrency = null): array {
         //
         // fetchConvertQuote
         //

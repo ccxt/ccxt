@@ -1306,7 +1306,8 @@ public partial class hyperliquid : Exchange
         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
         */
         parameters ??= new Dictionary<string, object>();
-        return await this.cancelOrders(new List<object>() {id}, symbol, parameters);
+        object orders = await this.cancelOrders(new List<object>() {id}, symbol, parameters);
+        return this.safeDict(orders, 0);
     }
 
     public async virtual Task<object> cancelOrders(object ids, object symbol = null, object parameters = null)
@@ -1393,7 +1394,19 @@ public partial class hyperliquid : Exchange
         //         }
         //     }
         //
-        return response;
+        object innerResponse = this.safeDict(response, "response");
+        object data = this.safeDict(innerResponse, "data");
+        object statuses = this.safeList(data, "statuses");
+        object orders = new List<object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(statuses)); postFixIncrement(ref i))
+        {
+            object status = getValue(statuses, i);
+            ((IList<object>)orders).Add(this.safeOrder(new Dictionary<string, object>() {
+                { "info", status },
+                { "status", status },
+            }));
+        }
+        return orders;
     }
 
     public async override Task<object> cancelOrdersForSymbols(object orders, object parameters = null)

@@ -68,6 +68,7 @@ export default class bybit extends Exchange {
     cancelOrderRequest(id: string, symbol?: Str, params?: {}): any;
     cancelOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
     cancelOrders(ids: any, symbol?: Str, params?: {}): Promise<Order[]>;
+    cancelAllOrdersAfter(timeout: Int, params?: {}): Promise<any>;
     cancelOrdersForSymbols(orders: CancellationRequest[], params?: {}): Promise<Order[]>;
     cancelAllUsdcOrders(symbol?: Str, params?: {}): Promise<any>;
     cancelAllOrders(symbol?: Str, params?: {}): Promise<any>;
