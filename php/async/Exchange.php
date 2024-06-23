@@ -211,6 +211,7 @@ class Exchange extends \ccxt\Exchange {
             }
 
             $response_body = $response_body ? $response_body : '';
+            $http_status_text = $http_status_text ? $http_status_text : '';
             $this->handle_errors($http_status_code, $http_status_text, $url, $method, $response_headers, $response_body, $json_response, $headers, $body);
             $this->handle_http_status_code($http_status_code, $http_status_text, $url, $method, $response_body);
 
