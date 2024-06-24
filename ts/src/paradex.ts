@@ -1126,7 +1126,7 @@ export default class paradex extends Exchange {
         const orderReq = {
             'timestamp': now * 1000,
             'market': short (request['market']),
-            'side': (side === 'BUY') ? '1' : '2',
+            'side': (orderSide === 'BUY') ? '1' : '2',
             'orderType': short (request['type']),
             'size': Precise.stringMul (request['size'], '100000000'),
             'price': Precise.stringMul (request['price'], '100000000'),
