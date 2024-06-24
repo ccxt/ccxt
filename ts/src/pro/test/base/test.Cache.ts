@@ -414,5 +414,23 @@ symbol = 'BTC/USDT';
 outsideLimit = 5;
 oneWayCacheSymbolSide.append ({ 'symbol': symbol, 'side': 'short', 'contracts': 1 }); // create first position
 oneWayCacheSymbolSide.append ({ 'symbol': symbol, 'side': 'long', 'contracts': 2 }); // create oposite side position
-const arrayLength = oneWayCacheSymbolSide.length;
+let arrayLength = oneWayCacheSymbolSide.length;
 assert (arrayLength === 1);
+// test ArrayCacheBySymbolBySide, watchPositions does not override
+
+const cacheSymbolSide4 = new ArrayCacheBySymbolBySide ();
+symbol = 'BTC/USDT';
+symbol2 = 'ETH/USDT';
+const symbol3 = 'XRP/USDT';
+
+cacheSymbolSide4.append ({ 'symbol': symbol, 'side': 'long', 'contracts': 1 }); // create first position
+cacheSymbolSide4.append ({ 'symbol': symbol2, 'side': 'long', 'contracts': 2 }); // create second position
+cacheSymbolSide4.append ({ 'symbol': symbol3, 'side': 'long', 'contracts': 3 }); // create short position
+assert (cacheSymbolSide4[0]['symbol'] === symbol);
+assert (cacheSymbolSide4[1]['symbol'] === symbol2);
+cacheSymbolSide4.append ({ 'symbol': symbol2, 'side': 'long', 'contracts': 4 }); // update first position
+assert (cacheSymbolSide4[0]['contracts'] === 1 && cacheSymbolSide4[0]['symbol'] === symbol);
+assert (cacheSymbolSide4[1]['contracts'] === 3 && cacheSymbolSide4[1]['symbol'] === symbol3);
+assert (cacheSymbolSide4[2]['contracts'] === 4 && cacheSymbolSide4[2]['symbol'] === symbol2);
+arrayLength = cacheSymbolSide4.length;
+assert (arrayLength === 3);
