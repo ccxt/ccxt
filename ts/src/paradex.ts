@@ -1056,6 +1056,14 @@ export default class paradex extends Exchange {
         return this.safeStringLower (types, type, type);
     }
 
+    convertShortString (str: string) {
+        return '0x' + str.replace (/./g, (char) => char.charCodeAt (0).toString (16));
+    }
+
+    scaleNumber (num: string) {
+        return Precise.stringMul (num, '100000000');
+    }
+
     async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
         /**
          * @method
@@ -1121,15 +1129,14 @@ export default class paradex extends Exchange {
         }
         params = this.omit (params, [ 'reduceOnly', 'reduce_only', 'clOrdID', 'clientOrderId', 'client_order_id', 'postOnly', 'timeInForce', 'stopPrice', 'triggerPrice' ]);
         const account = await this.retrieveAccount ();
-        const short = (str) => '0x' + str.replace (/./g, (char) => char.charCodeAt (0).toString (16));
         const now = this.nonce ();
         const orderReq = {
             'timestamp': now * 1000,
-            'market': short (request['market']),
+            'market': this.convertShortString (request['market']),
             'side': (orderSide === 'BUY') ? '1' : '2',
-            'orderType': short (request['type']),
-            'size': Precise.stringMul (request['size'], '100000000'),
-            'price': Precise.stringMul (request['price'], '100000000'),
+            'orderType': this.convertShortString (request['type']),
+            'size': this.scaleNumber (request['size']),
+            'price': (isMarket) ? '0' : this.scaleNumber (request['price']),
         };
         const domain = await this.prepareParadexDomain ();
         const messageTypes = {
