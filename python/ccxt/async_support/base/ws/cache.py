@@ -184,7 +184,7 @@ class ArrayCacheBySymbolBySide(ArrayCache):
             side_to_reset = 'long' if item['side'] == 'short' else 'short'
             if side_to_reset in by_side:
                 del by_side[side_to_reset]
-                index = self._index.index(side_to_reset)
+                index = self._index.index(tem['symbol'] + side_to_reset)
                 del self._deque[index]
                 del self._index[index]
         if item['side'] in by_side:
@@ -192,7 +192,7 @@ class ArrayCacheBySymbolBySide(ArrayCache):
             if reference != item:
                 reference.update(item)
             item = reference
-            index = self._index.index(item['side'])
+            index = self._index.index(item['symbol'] + item['side'])
             del self._deque[index]
             del self._index[index]
         else:
@@ -202,7 +202,7 @@ class ArrayCacheBySymbolBySide(ArrayCache):
             self._index.popleft()
             del self.hashmap[delete_item['symbol']][delete_item['side']]
         self._deque.append(item)
-        self._index.append(item['side'])
+        self._index.append(item['symbol'] + item['side'])
         if self._clear_all_updates:
             self._clear_all_updates = False
             self._clear_updates_by_symbol.clear()
