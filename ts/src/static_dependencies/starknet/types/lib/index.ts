@@ -1,10 +1,10 @@
 import { StarknetChainId } from '../../constants.js';
-import { weierstrass } from '../../utils/ec.js';
+import { SignatureType } from '../../../noble-curves/abstract/weierstrass.js';
 // import { EDataAvailabilityMode, ResourceBounds } from '../api/index.js';
 import { CairoEnum } from '../cairoEnum.js';
 import { CompiledContract, CompiledSierraCasm, ContractClass } from './contract/index.js';
 
-export type WeierstrassSignatureType = weierstrass.SignatureType;
+export type WeierstrassSignatureType = SignatureType;
 export type ArraySignatureType = string[];
 export type Signature = ArraySignatureType | WeierstrassSignatureType;
 

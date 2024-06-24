@@ -18,18 +18,18 @@ import {
 } from '../../types/index.js';
 import { CallData } from '../calldata/index.js';
 import { felt } from '../calldata/cairo.js';
-import { starkCurve } from '../ec.js';
+import { pedersen, poseidonHash, keccak } from '../../../scure-starknet/index.js';
 import { addHexPrefix, utf8ToArray } from '../encode.js';
 import { parse, stringify } from '../json.js';
 import { toHex } from '../num.js';
 import { encodeShortString, isString } from '../shortString.js';
 
 export function computePedersenHash(a: BigNumberish, b: BigNumberish): string {
-  return starkCurve.pedersen(BigInt(a), BigInt(b));
+  return pedersen(BigInt(a), BigInt(b));
 }
 
 export function computePoseidonHash(a: BigNumberish, b: BigNumberish): string {
-  return toHex(starkCurve.poseidonHash(BigInt(a), BigInt(b)));
+  return toHex(poseidonHash(BigInt(a), BigInt(b)));
 }
 
 /**
@@ -38,7 +38,7 @@ export function computePoseidonHash(a: BigNumberish, b: BigNumberish): string {
  */
 export function computeHashOnElements(data: BigNumberish[]): string {
   return [...data, data.length]
-    .reduce((x: BigNumberish, y: BigNumberish) => starkCurve.pedersen(BigInt(x), BigInt(y)), 0)
+    .reduce((x: BigNumberish, y: BigNumberish) => pedersen(BigInt(x), BigInt(y)), 0)
     .toString();
 }
 
@@ -117,7 +117,7 @@ export default function computeHintedClassHash(compiledContract: LegacyCompiledC
   const contractClass = { abi, program };
   const serializedJson = formatSpaces(stringify(contractClass, nullSkipReplacer));
 
-  return addHexPrefix(starkCurve.keccak(utf8ToArray(serializedJson)).toString(16));
+  return addHexPrefix(keccak(utf8ToArray(serializedJson)).toString(16));
 }
 
 /**
@@ -243,7 +243,7 @@ function hashEntryPointSierra(data: SierraContractEntryPointFields[]) {
 
 function hashAbi(sierra: CompiledSierra) {
   const indentString = formatSpaces(stringify(sierra.abi, null));
-  return BigInt(addHexPrefix(starkCurve.keccak(utf8ToArray(indentString)).toString(16)));
+  return BigInt(addHexPrefix(keccak(utf8ToArray(indentString)).toString(16)));
 }
 
 /**

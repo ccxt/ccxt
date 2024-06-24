@@ -161,7 +161,7 @@ import totp from './functions/totp.js';
 import ethers from '../static_dependencies/ethers/index.js';
 import { TypedDataEncoder } from '../static_dependencies/ethers/hash/index.js';
 import {SecureRandom} from "../static_dependencies/jsencrypt/lib/jsbn/rng.js";
-import {getStarkKey, ethSigToPrivate} from '../static_dependencies/scure-starknet/index.js';
+import {getStarkKey, ethSigToPrivate, sign as starknetCurveSign} from '../static_dependencies/scure-starknet/index.js';
 import * as Starknet from '../static_dependencies/starknet/index.js';
 // ----------------------------------------------------------------------------
 /**
@@ -1820,8 +1820,9 @@ export default class Exchange {
     }
 
     starknetSign (hash, pri) {
-        const signature = Starknet.ec.starkCurve.sign (hash.replace ('0x', ''), pri.slice (-64));
-        return JSON.stringify([ signature.r.toString (), signature.s.toString () ]);
+        // TODO: unify to ecdsa
+        const signature = starknetCurveSign (hash.replace ('0x', ''), pri.slice (-64));
+        return this.json ([ signature.r.toString (), signature.s.toString () ]);
     }
 
     intToBase16(elem): string {
