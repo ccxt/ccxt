@@ -316,10 +316,13 @@ public class ArrayCacheBySymbolBySide : ArrayCache
     {
         var itemSymbol = Exchange.SafeString(item, "symbol");
         var itemSide = Exchange.SafeString(item, "side");
-        var bySide = (this.hashmap.ContainsKey(itemSymbol)) ? this.hashmap[itemSide] as Dictionary<string, object> : new Dictionary<string, object>();
-
+        if (!this.hashmap.ContainsKey(itemSymbol))
+        {
+            this.hashmap[itemSymbol] = new Dictionary<string, object>();
+        }
+        var bySide = this.hashmap[itemSymbol] as Dictionary<string, object>;
         if (!this.hedged) {
-            var sideToReset = itemSide == "long" ? "short" : "long";
+            var sideToReset = itemSide == "long" ? "short" : "long";  
             if (bySide.ContainsKey(sideToReset)) {
                 bySide.Remove(sideToReset);
                 var value = this.Find(x => Exchange.SafeString (x, "symbol") == itemSymbol && Exchange.SafeString (x, "side") == sideToReset);
