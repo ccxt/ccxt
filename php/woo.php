@@ -423,7 +423,7 @@ class woo extends Exchange {
         return $this->parse_markets($data);
     }
 
-    public function parse_market($market): array {
+    public function parse_market(array $market): array {
         $marketId = $this->safe_string($market, 'symbol');
         $parts = explode('_', $marketId);
         $first = $this->safe_string($parts, 0);
@@ -558,7 +558,7 @@ class woo extends Exchange {
         return $this->parse_trades($resultResponse, $market, $since, $limit);
     }
 
-    public function parse_trade($trade, ?array $market = null): array {
+    public function parse_trade(array $trade, ?array $market = null): array {
         //
         // public/market_trades
         //
@@ -1262,7 +1262,9 @@ class woo extends Exchange {
         //         "status":"CANCEL_ALL_SENT"
         //     }
         //
-        return $response;
+        return array(
+            $this->safe_order($response),
+        );
     }
 
     public function cancel_all_orders_after(?int $timeout, $params = array ()) {
@@ -1288,7 +1290,9 @@ class woo extends Exchange {
         //         "timestamp" => 1711534302943
         //     }
         //
-        return $response;
+        return array(
+            $this->safe_order($response),
+        );
     }
 
     public function fetch_order(string $id, ?string $symbol = null, $params = array ()) {
@@ -1489,7 +1493,7 @@ class woo extends Exchange {
         return $this->fetch_orders($symbol, $since, $limit, $extendedParams);
     }
 
-    public function parse_time_in_force($timeInForce) {
+    public function parse_time_in_force(?string $timeInForce) {
         $timeInForces = array(
             'ioc' => 'IOC',
             'fok' => 'FOK',
@@ -1498,7 +1502,7 @@ class woo extends Exchange {
         return $this->safe_string($timeInForces, $timeInForce, null);
     }
 
-    public function parse_order($order, ?array $market = null): array {
+    public function parse_order(array $order, ?array $market = null): array {
         //
         // Possible input functions:
         // * createOrder
@@ -1610,7 +1614,7 @@ class woo extends Exchange {
         ), $market);
     }
 
-    public function parse_order_status($status) {
+    public function parse_order_status(?string $status) {
         if ($status !== null) {
             $statuses = array(
                 'NEW' => 'open',
@@ -2067,7 +2071,7 @@ class woo extends Exchange {
         return $this->parse_ledger($rows, $currency, $since, $limit, $params);
     }
 
-    public function parse_ledger_entry($item, ?array $currency = null) {
+    public function parse_ledger_entry(array $item, ?array $currency = null) {
         $networkizedCode = $this->safe_string($item, 'token');
         $currencyDefined = $this->get_currency_from_chaincode($networkizedCode, $currency);
         $code = $currencyDefined['code'];
@@ -2179,7 +2183,7 @@ class woo extends Exchange {
         return $this->parse_transactions($rows, $currency, $since, $limit, $params);
     }
 
-    public function parse_transaction($transaction, ?array $currency = null): array {
+    public function parse_transaction(array $transaction, ?array $currency = null): array {
         // example in fetchLedger
         $networkizedCode = $this->safe_string($transaction, 'token');
         $currencyDefined = $this->get_currency_from_chaincode($networkizedCode, $currency);
@@ -2216,7 +2220,7 @@ class woo extends Exchange {
         );
     }
 
-    public function parse_transaction_status($status) {
+    public function parse_transaction_status(?string $status) {
         $statuses = array(
             'NEW' => 'pending',
             'CONFIRMING' => 'pending',
@@ -2481,6 +2485,11 @@ class woo extends Exchange {
             if ($params) {
                 $url .= '?' . $this->urlencode($params);
             }
+        } elseif ($access === 'pub') {
+            $url .= $pathWithParams;
+            if ($params) {
+                $url .= '?' . $this->urlencode($params);
+            }
         } else {
             $this->check_required_credentials();
             if ($method === 'POST' && ($path === 'algo/order' || $path === 'order')) {
@@ -2534,7 +2543,7 @@ class woo extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors($httpCode, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
         if (!$response) {
             return null; // fallback to default error handler
         }
@@ -2925,7 +2934,7 @@ class woo extends Exchange {
         return $this->parse_positions($positions, $symbols);
     }
 
-    public function parse_position($position, ?array $market = null) {
+    public function parse_position(array $position, ?array $market = null) {
         //
         //     {
         //         "symbol" => "0_symbol",
@@ -2990,7 +2999,7 @@ class woo extends Exchange {
         ));
     }
 
-    public function fetch_convert_quote(string $fromCode, string $toCode, ?float $amount = null, $params = array ()): Conversion {
+    public function fetch_convert_quote(string $fromCode, string $toCode, ?float $amount = null, $params = array ()): array {
         /**
          * fetch a quote for converting from one currency to another
          * @see https://docs.woo.org/#get-quote-rfq
@@ -3031,7 +3040,7 @@ class woo extends Exchange {
         return $this->parse_conversion($data, $fromCurrency, $toCurrency);
     }
 
-    public function create_convert_trade(string $id, string $fromCode, string $toCode, ?float $amount = null, $params = array ()): Conversion {
+    public function create_convert_trade(string $id, string $fromCode, string $toCode, ?float $amount = null, $params = array ()): array {
         /**
          * convert from one currency to another
          * @see https://docs.woo.org/#send-quote-rft
@@ -3061,7 +3070,7 @@ class woo extends Exchange {
         return $this->parse_conversion($data);
     }
 
-    public function fetch_convert_trade(string $id, ?string $code = null, $params = array ()): Conversion {
+    public function fetch_convert_trade(string $id, ?string $code = null, $params = array ()): array {
         /**
          * fetch the $data for a conversion trade
          * @see https://docs.woo.org/#get-quote-trade
@@ -3149,7 +3158,7 @@ class woo extends Exchange {
         return $this->parse_conversions($rows, $code, 'sellAsset', 'buyAsset', $since, $limit);
     }
 
-    public function parse_conversion(array $conversion, ?array $fromCurrency = null, ?array $toCurrency = null): Conversion {
+    public function parse_conversion(array $conversion, ?array $fromCurrency = null, ?array $toCurrency = null): array {
         //
         // fetchConvertQuote
         //

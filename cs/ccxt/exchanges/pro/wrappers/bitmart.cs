@@ -140,7 +140,7 @@ public partial class bitmart
     /// watches information on multiple orders made by the user
     /// </summary>
     /// <remarks>
-    /// See <see href="https://developer-pro.bitmart.com/en/spot/#private-order-channel"/>  <br/>
+    /// See <see href="https://developer-pro.bitmart.com/en/spot/#private-order-progress"/>  <br/>
     /// See <see href="https://developer-pro.bitmart.com/en/futures/#private-order-channel"/>  <br/>
     /// <list type="table">
     /// <item>

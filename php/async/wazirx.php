@@ -233,7 +233,7 @@ class wazirx extends Exchange {
         }) ();
     }
 
-    public function parse_market($market): array {
+    public function parse_market(array $market): array {
         $id = $this->safe_string($market, 'symbol');
         $baseId = $this->safe_string($market, 'baseAsset');
         $quoteId = $this->safe_string($market, 'quoteAsset');
@@ -513,7 +513,7 @@ class wazirx extends Exchange {
         }) ();
     }
 
-    public function parse_trade($trade, ?array $market = null): array {
+    public function parse_trade(array $trade, ?array $market = null): array {
         //
         //     {
         //         "id":322307791,
@@ -811,7 +811,26 @@ class wazirx extends Exchange {
             $request = array(
                 'symbol' => $market['id'],
             );
-            return Async\await($this->privateDeleteOpenOrders ($this->extend($request, $params)));
+            $response = Async\await($this->privateDeleteOpenOrders ($this->extend($request, $params)));
+            //
+            //    array(
+            //        {
+            //            id => "4565421197",
+            //            $symbol => "adausdt",
+            //            type => "limit",
+            //            side => "buy",
+            //            status => "wait",
+            //            price => "0.41",
+            //            origQty => "11.00",
+            //            executedQty => "0.00",
+            //            avgPrice => "0.00",
+            //            createdTime => "1718089507000",
+            //            updatedTime => "1718089507000",
+            //            clientOrderId => "93d2a838-e272-405d-91e7-3a7bc6d3a003"
+            //        }
+            //    )
+            //
+            return $this->parse_orders($response);
         }) ();
     }
 
@@ -890,19 +909,23 @@ class wazirx extends Exchange {
         }) ();
     }
 
-    public function parse_order($order, ?array $market = null): array {
-        // array(
-        //     "id":1949417813,
-        //     "symbol":"ltcusdt",
-        //     "type":"limit",
-        //     "side":"sell",
-        //     "status":"done",
-        //     "price":"146.2",
-        //     "origQty":"0.05",
-        //     "executedQty":"0.05",
-        //     "createdTime":1641252564000,
-        //     "updatedTime":1641252564000
-        // ),
+    public function parse_order(array $order, ?array $market = null): array {
+        //
+        //    {
+        //        "id" => 1949417813,
+        //        "symbol" => "ltcusdt",
+        //        "type" => "limit",
+        //        "side" => "sell",
+        //        "status" => "done",
+        //        "price" => "146.2",
+        //        "origQty" => "0.05",
+        //        "executedQty" => "0.05",
+        //        "avgPrice" =>  "0.00",
+        //        "createdTime" => 1641252564000,
+        //        "updatedTime" => 1641252564000
+        //        "clientOrderId" => "93d2a838-e272-405d-91e7-3a7bc6d3a003"
+        //    }
+        //
         $created = $this->safe_integer($order, 'createdTime');
         $updated = $this->safe_integer($order, 'updatedTime');
         $marketId = $this->safe_string($order, 'symbol');
@@ -917,7 +940,7 @@ class wazirx extends Exchange {
         return $this->safe_order(array(
             'info' => $order,
             'id' => $id,
-            'clientOrderId' => null,
+            'clientOrderId' => $this->safe_string($order, 'clientOrderId'),
             'timestamp' => $created,
             'datetime' => $this->iso8601($created),
             'lastTradeTimestamp' => $updated,
@@ -933,12 +956,12 @@ class wazirx extends Exchange {
             'remaining' => null,
             'cost' => null,
             'fee' => null,
-            'average' => null,
+            'average' => $this->safe_string($order, 'avgPrice'),
             'trades' => array(),
         ), $market);
     }
 
-    public function parse_order_status($status) {
+    public function parse_order_status(?string $status) {
         $statuses = array(
             'wait' => 'open',
             'done' => 'closed',
@@ -1190,7 +1213,7 @@ class wazirx extends Exchange {
         }) ();
     }
 
-    public function parse_transaction_status($status) {
+    public function parse_transaction_status(?string $status) {
         $statuses = array(
             '0' => 'ok',
             '1' => 'fail',
@@ -1200,7 +1223,7 @@ class wazirx extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_transaction($transaction, ?array $currency = null): array {
+    public function parse_transaction(array $transaction, ?array $currency = null): array {
         //
         //     {
         //         "address" => "0x94df8b352de7f46f64b01d3666bf6e936e44ce60",
@@ -1277,7 +1300,7 @@ class wazirx extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
         //
         // array("code":2098,"message":"Request out of receiving window.")
         //

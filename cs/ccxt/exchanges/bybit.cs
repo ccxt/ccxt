@@ -26,6 +26,7 @@ public partial class bybit : Exchange
                 { "option", true },
                 { "borrowCrossMargin", true },
                 { "cancelAllOrders", true },
+                { "cancelAllOrdersAfter", true },
                 { "cancelOrder", true },
                 { "cancelOrders", true },
                 { "cancelOrdersForSymbols", true },
@@ -2552,10 +2553,6 @@ public partial class bybit : Exchange
             throw new ArgumentsRequired ((string)add(this.id, " fetchFundingRateHistory() requires a symbol argument")) ;
         }
         await this.loadMarkets();
-        if (isTrue(isEqual(limit, null)))
-        {
-            limit = 200;
-        }
         object paginate = false;
         var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchFundingRateHistory", "paginate");
         paginate = ((IList<object>)paginateparametersVariable)[0];
@@ -2563,6 +2560,10 @@ public partial class bybit : Exchange
         if (isTrue(paginate))
         {
             return await this.fetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol, since, limit, "8h", parameters, 200);
+        }
+        if (isTrue(isEqual(limit, null)))
+        {
+            limit = 200;
         }
         object request = new Dictionary<string, object>() {
             { "limit", limit },
@@ -4627,6 +4628,44 @@ public partial class bybit : Exchange
         object result = this.safeDict(response, "result", new Dictionary<string, object>() {});
         object row = this.safeList(result, "list", new List<object>() {});
         return this.parseOrders(row, market);
+    }
+
+    public async override Task<object> cancelAllOrdersAfter(object timeout, object parameters = null)
+    {
+        /**
+        * @method
+        * @name bybit#cancelAllOrdersAfter
+        * @description dead man's switch, cancel all orders after the given timeout
+        * @see https://bybit-exchange.github.io/docs/v5/order/dcp
+        * @param {number} timeout time in milliseconds
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @param {string} [params.product] OPTIONS, DERIVATIVES, SPOT, default is 'DERIVATIVES'
+        * @returns {object} the api result
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object request = new Dictionary<string, object>() {
+            { "timeWindow", this.parseToInt(divide(timeout, 1000)) },
+        };
+        object type = null;
+        var typeparametersVariable = this.handleMarketTypeAndParams("cancelAllOrdersAfter", null, parameters, "swap");
+        type = ((IList<object>)typeparametersVariable)[0];
+        parameters = ((IList<object>)typeparametersVariable)[1];
+        object productMap = new Dictionary<string, object>() {
+            { "spot", "SPOT" },
+            { "swap", "DERIVATIVES" },
+            { "option", "OPTIONS" },
+        };
+        object product = this.safeString(productMap, type, type);
+        ((IDictionary<string,object>)request)["product"] = product;
+        object response = await this.privatePostV5OrderDisconnectedCancelAll(this.extend(request, parameters));
+        //
+        // {
+        //     "retCode": 0,
+        //     "retMsg": "success"
+        // }
+        //
+        return response;
     }
 
     public async override Task<object> cancelOrdersForSymbols(object orders, object parameters = null)

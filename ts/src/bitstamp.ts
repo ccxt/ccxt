@@ -6,7 +6,7 @@ import { AuthenticationError, BadRequest, ExchangeError, NotSupported, Permissio
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { Balances, Currencies, Currency, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry } from './base/types.js';
+import type { Balances, Currencies, Currency, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry, int } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -221,7 +221,7 @@ export default class bitstamp extends Exchange {
                         'uni_withdrawal/': 1,
                         'uni_address/': 1,
                         'yfi_withdrawal/': 1,
-                        'yfi_address': 1,
+                        'yfi_address/': 1,
                         'audio_withdrawal/': 1,
                         'audio_address/': 1,
                         'crv_withdrawal/': 1,
@@ -230,7 +230,7 @@ export default class bitstamp extends Exchange {
                         'algo_address/': 1,
                         'comp_withdrawal/': 1,
                         'comp_address/': 1,
-                        'grt_withdrawal': 1,
+                        'grt_withdrawal/': 1,
                         'grt_address/': 1,
                         'usdt_withdrawal/': 1,
                         'usdt_address/': 1,
@@ -368,6 +368,22 @@ export default class bitstamp extends Exchange {
                         'vchf_address/': 1,
                         'veur_withdrawal/': 1,
                         'veur_address/': 1,
+                        'truf_withdrawal/': 1,
+                        'truf_address/': 1,
+                        'wif_withdrawal/': 1,
+                        'wif_address/': 1,
+                        'smt_withdrawal/': 1,
+                        'smt_address/': 1,
+                        'sui_withdrawal/': 1,
+                        'sui_address/': 1,
+                        'jup_withdrawal/': 1,
+                        'jup_address/': 1,
+                        'ondo_withdrawal/': 1,
+                        'ondo_address/': 1,
+                        'boba_withdrawal/': 1,
+                        'boba_address/': 1,
+                        'pyth_withdrawal/': 1,
+                        'pyth_address/': 1,
                     },
                 },
             },
@@ -662,7 +678,7 @@ export default class bitstamp extends Exchange {
         //         },
         //     ]
         //
-        const result = {};
+        const result: Dict = {};
         for (let i = 0; i < response.length; i++) {
             const market = response[i];
             const name = this.safeString (market, 'name');
@@ -701,7 +717,7 @@ export default class bitstamp extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'pair': market['id'],
         };
         const response = await this.publicGetOrderBookPair (this.extend (request, params));
@@ -788,7 +804,7 @@ export default class bitstamp extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'pair': market['id'],
         };
         const ticker = await this.publicGetTickerPair (this.extend (request, params));
@@ -908,7 +924,7 @@ export default class bitstamp extends Exchange {
         return undefined;
     }
 
-    parseTrade (trade, market: Market = undefined): Trade {
+    parseTrade (trade: Dict, market: Market = undefined): Trade {
         //
         // fetchTrades (public)
         //
@@ -1053,7 +1069,7 @@ export default class bitstamp extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'pair': market['id'],
             'time': 'hour',
         };
@@ -1115,7 +1131,7 @@ export default class bitstamp extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'pair': market['id'],
             'step': this.safeString (this.timeframes, timeframe, timeframe),
         };
@@ -1157,7 +1173,7 @@ export default class bitstamp extends Exchange {
     }
 
     parseBalance (response): Balances {
-        const result = {
+        const result: Dict = {
             'info': response,
             'timestamp': undefined,
             'datetime': undefined,
@@ -1215,7 +1231,7 @@ export default class bitstamp extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'market_symbol': market['id'],
         };
         const response = await this.privatePostFeesTrading (this.extend (request, params));
@@ -1238,7 +1254,7 @@ export default class bitstamp extends Exchange {
         return this.parseTradingFee (tradingFee, market);
     }
 
-    parseTradingFee (fee, market: Market = undefined): TradingFeeInterface {
+    parseTradingFee (fee: Dict, market: Market = undefined): TradingFeeInterface {
         const marketId = this.safeString (fee, 'market');
         const fees = this.safeDict (fee, 'fees', {});
         return {
@@ -1252,7 +1268,7 @@ export default class bitstamp extends Exchange {
     }
 
     parseTradingFees (fees) {
-        const result = { 'info': fees };
+        const result: Dict = { 'info': fees };
         const symbols = this.symbols;
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];
@@ -1290,7 +1306,7 @@ export default class bitstamp extends Exchange {
         return this.parseTradingFees (response);
     }
 
-    async fetchTransactionFees (codes: string[] = undefined, params = {}) {
+    async fetchTransactionFees (codes: Strings = undefined, params = {}) {
         /**
          * @method
          * @name bitstamp#fetchTransactionFees
@@ -1317,7 +1333,7 @@ export default class bitstamp extends Exchange {
     }
 
     parseTransactionFees (response, codes = undefined) {
-        const result = {};
+        const result: Dict = {};
         const currencies = this.indexBy (response, 'currency');
         const ids = Object.keys (currencies);
         for (let i = 0; i < ids.length; i++) {
@@ -1408,7 +1424,7 @@ export default class bitstamp extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'pair': market['id'],
             'amount': this.amountToPrecision (symbol, amount),
         };
@@ -1456,10 +1472,20 @@ export default class bitstamp extends Exchange {
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
-        const request = {
+        const request: Dict = {
             'id': id,
         };
-        return await this.privatePostCancelOrder (this.extend (request, params));
+        const response = await this.privatePostCancelOrder (this.extend (request, params));
+        //
+        //    {
+        //        "id": 1453282316578816,
+        //        "amount": "0.02035278",
+        //        "price": "2100.45",
+        //        "type": 0,
+        //        "market": "BTC/USD"
+        //    }
+        //
+        return this.parseOrder (response);
     }
 
     async cancelAllOrders (symbol: Str = undefined, params = {}) {
@@ -1475,7 +1501,7 @@ export default class bitstamp extends Exchange {
          */
         await this.loadMarkets ();
         let market = undefined;
-        const request = {};
+        const request: Dict = {};
         let response = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
@@ -1484,11 +1510,27 @@ export default class bitstamp extends Exchange {
         } else {
             response = await this.privatePostCancelAllOrders (this.extend (request, params));
         }
-        return response;
+        //
+        //    {
+        //        "canceled": [
+        //            {
+        //                "id": 1453282316578816,
+        //                "amount": "0.02035278",
+        //                "price": "2100.45",
+        //                "type": 0,
+        //                "currency_pair": "BTC/USD",
+        //                "market": "BTC/USD"
+        //            }
+        //        ],
+        //        "success": true
+        //    }
+        //
+        const canceled = this.safeList (response, 'canceled');
+        return this.parseOrders (canceled);
     }
 
-    parseOrderStatus (status) {
-        const statuses = {
+    parseOrderStatus (status: Str) {
+        const statuses: Dict = {
             'In Queue': 'open',
             'Open': 'open',
             'Finished': 'closed',
@@ -1500,7 +1542,7 @@ export default class bitstamp extends Exchange {
     async fetchOrderStatus (id: string, symbol: Str = undefined, params = {}) {
         await this.loadMarkets ();
         const clientOrderId = this.safeValue2 (params, 'client_order_id', 'clientOrderId');
-        const request = {};
+        const request: Dict = {};
         if (clientOrderId !== undefined) {
             request['client_order_id'] = clientOrderId;
             params = this.omit (params, [ 'client_order_id', 'clientOrderId' ]);
@@ -1527,7 +1569,7 @@ export default class bitstamp extends Exchange {
             market = this.market (symbol);
         }
         const clientOrderId = this.safeValue2 (params, 'client_order_id', 'clientOrderId');
-        const request = {};
+        const request: Dict = {};
         if (clientOrderId !== undefined) {
             request['client_order_id'] = clientOrderId;
             params = this.omit (params, [ 'client_order_id', 'clientOrderId' ]);
@@ -1570,7 +1612,7 @@ export default class bitstamp extends Exchange {
          * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
          */
         await this.loadMarkets ();
-        const request = {};
+        const request: Dict = {};
         let method = 'privatePostUserTransactions';
         let market = undefined;
         if (symbol !== undefined) {
@@ -1599,7 +1641,7 @@ export default class bitstamp extends Exchange {
          * @returns {object} a list of [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         await this.loadMarkets ();
-        const request = {};
+        const request: Dict = {};
         if (limit !== undefined) {
             request['limit'] = limit;
         }
@@ -1651,7 +1693,7 @@ export default class bitstamp extends Exchange {
          * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         await this.loadMarkets ();
-        const request = {};
+        const request: Dict = {};
         if (since !== undefined) {
             request['timedelta'] = this.milliseconds () - since;
         } else {
@@ -1685,7 +1727,7 @@ export default class bitstamp extends Exchange {
         return this.parseTransactions (response, undefined, since, limit);
     }
 
-    parseTransaction (transaction, currency: Currency = undefined): Transaction {
+    parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {
         //
         // fetchDepositsWithdrawals
         //
@@ -1808,12 +1850,12 @@ export default class bitstamp extends Exchange {
         };
     }
 
-    parseTransactionStatus (status) {
+    parseTransactionStatus (status: Str) {
         //
         //   withdrawals:
         //   0 (open), 1 (in process), 2 (finished), 3 (canceled) or 4 (failed).
         //
-        const statuses = {
+        const statuses: Dict = {
             '0': 'pending', // Open
             '1': 'pending', // In process
             '2': 'ok', // Finished
@@ -1823,7 +1865,7 @@ export default class bitstamp extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseOrder (order, market: Market = undefined): Order {
+    parseOrder (order: Dict, market: Market = undefined): Order {
         //
         //   from fetch order:
         //     { status: "Finished",
@@ -1862,6 +1904,16 @@ export default class bitstamp extends Exchange {
         //           "type": "0",
         //           "id": "2814205012"
         //       }
+        //
+        // cancelOrder
+        //
+        //    {
+        //        "id": 1453282316578816,
+        //        "amount": "0.02035278",
+        //        "price": "2100.45",
+        //        "type": 0,
+        //        "market": "BTC/USD"
+        //    }
         //
         const id = this.safeString (order, 'id');
         const clientOrderId = this.safeString (order, 'client_order_id');
@@ -1904,7 +1956,7 @@ export default class bitstamp extends Exchange {
     }
 
     parseLedgerEntryType (type) {
-        const types = {
+        const types: Dict = {
             '0': 'transaction',
             '1': 'transaction',
             '2': 'trade',
@@ -1913,7 +1965,7 @@ export default class bitstamp extends Exchange {
         return this.safeString (types, type, type);
     }
 
-    parseLedgerEntry (item, currency: Currency = undefined) {
+    parseLedgerEntry (item: Dict, currency: Currency = undefined) {
         //
         //     [
         //         {
@@ -2019,7 +2071,7 @@ export default class bitstamp extends Exchange {
          * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
          */
         await this.loadMarkets ();
-        const request = {};
+        const request: Dict = {};
         if (limit !== undefined) {
             request['limit'] = limit;
         }
@@ -2130,7 +2182,7 @@ export default class bitstamp extends Exchange {
         [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
         await this.loadMarkets ();
         this.checkAddress (address);
-        const request = {
+        const request: Dict = {
             'amount': amount,
         };
         let currency = undefined;
@@ -2174,7 +2226,7 @@ export default class bitstamp extends Exchange {
          */
         await this.loadMarkets ();
         const currency = this.currency (code);
-        const request = {
+        const request: Dict = {
             'amount': this.parseToNumeric (this.currencyToPrecision (code, amount)),
             'currency': currency['id'].toUpperCase (),
         };
@@ -2217,7 +2269,7 @@ export default class bitstamp extends Exchange {
     }
 
     parseTransferStatus (status: Str): Str {
-        const statuses = {
+        const statuses: Dict = {
             'ok': 'ok',
             'error': 'failed',
         };
@@ -2273,7 +2325,7 @@ export default class bitstamp extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    handleErrors (httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+    handleErrors (httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response, requestHeaders, requestBody) {
         if (response === undefined) {
             return undefined;
         }

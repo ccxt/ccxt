@@ -6,7 +6,7 @@ import { ExchangeError, ArgumentsRequired, AuthenticationError, NullResponse, In
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { Balances, Currencies, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees } from './base/types.js';
+import type { Balances, Currencies, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, int } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -311,7 +311,7 @@ export default class cex extends Exchange {
         //
         const data = this.safeValue (response, 'data', []);
         const currencies = this.safeValue (data, 'symbols', []);
-        const result = {};
+        const result: Dict = {};
         for (let i = 0; i < currencies.length; i++) {
             const currency = currencies[i];
             const id = this.safeString (currency, 'code');
@@ -459,7 +459,7 @@ export default class cex extends Exchange {
     }
 
     parseBalance (response): Balances {
-        const result = { 'info': response };
+        const result: Dict = { 'info': response };
         const ommited = [ 'username', 'timestamp' ];
         const balances = this.omit (response, ommited);
         const currencyIds = Object.keys (balances);
@@ -503,7 +503,7 @@ export default class cex extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'pair': market['id'],
         };
         if (limit !== undefined) {
@@ -557,7 +557,7 @@ export default class cex extends Exchange {
                 throw new ExchangeError (this.id + " fetchOHLCV warning: CEX can return historical candles for a certain date only, this might produce an empty or null reply. Set exchange.options['fetchOHLCVWarning'] = false or add ({ 'options': { 'fetchOHLCVWarning': false }}) to constructor params to suppress this warning message.");
             }
         }
-        const request = {
+        const request: Dict = {
             'pair': market['id'],
             'yyyymmdd': this.yyyymmdd (since, ''),
         };
@@ -626,12 +626,12 @@ export default class cex extends Exchange {
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
         const currencies = Object.keys (this.currencies);
-        const request = {
+        const request: Dict = {
             'currencies': currencies.join ('/'),
         };
         const response = await this.publicGetTickersCurrencies (this.extend (request, params));
         const tickers = this.safeValue (response, 'data', []);
-        const result = {};
+        const result: Dict = {};
         for (let t = 0; t < tickers.length; t++) {
             const ticker = tickers[t];
             const marketId = this.safeString (ticker, 'pair');
@@ -654,14 +654,14 @@ export default class cex extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'pair': market['id'],
         };
         const ticker = await this.publicGetTickerPair (this.extend (request, params));
         return this.parseTicker (ticker, market);
     }
 
-    parseTrade (trade, market: Market = undefined): Trade {
+    parseTrade (trade: Dict, market: Market = undefined): Trade {
         //
         // fetchTrades (public)
         //
@@ -711,7 +711,7 @@ export default class cex extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'pair': market['id'],
         };
         const response = await this.publicGetTradeHistoryPair (this.extend (request, params));
@@ -741,7 +741,7 @@ export default class cex extends Exchange {
         //      }
         //
         const data = this.safeValue (response, 'data', {});
-        const result = {};
+        const result: Dict = {};
         for (let i = 0; i < this.symbols.length; i++) {
             const symbol = this.symbols[i];
             const market = this.market (symbol);
@@ -779,7 +779,7 @@ export default class cex extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'pair': market['id'],
             'type': side,
         };
@@ -868,7 +868,7 @@ export default class cex extends Exchange {
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
-        const request = {
+        const request: Dict = {
             'id': id,
         };
         const response = await this.privatePostCancelOrder (this.extend (request, params));
@@ -892,7 +892,7 @@ export default class cex extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'pair': market['id'],
         };
         const orders = await this.privatePostCancelOrdersPair (this.extend (request, params));
@@ -907,7 +907,7 @@ export default class cex extends Exchange {
         return orders;
     }
 
-    parseOrder (order, market: Market = undefined): Order {
+    parseOrder (order: Dict, market: Market = undefined): Order {
         // Depending on the call, 'time' can be a unix int, unix string or ISO string
         // Yes, really
         let timestamp = this.safeValue (order, 'time');
@@ -1183,7 +1183,7 @@ export default class cex extends Exchange {
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
-        const request = {};
+        const request: Dict = {};
         let market = undefined;
         let orders = undefined;
         if (symbol !== undefined) {
@@ -1216,7 +1216,7 @@ export default class cex extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = { 'pair': market['id'] };
+        const request: Dict = { 'pair': market['id'] };
         const response = await this.privatePostArchivedOrdersPair (this.extend (request, params));
         return this.parseOrders (response, market, since, limit);
     }
@@ -1232,7 +1232,7 @@ export default class cex extends Exchange {
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
-        const request = {
+        const request: Dict = {
             'id': id.toString (),
         };
         const response = await this.privatePostGetOrderTx (this.extend (request, params));
@@ -1354,7 +1354,7 @@ export default class cex extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'limit': limit,
             'pair': market['id'],
             'dateFrom': since,
@@ -1562,7 +1562,7 @@ export default class cex extends Exchange {
         return results as Order[];
     }
 
-    parseOrderStatus (status) {
+    parseOrderStatus (status: Str) {
         return this.safeString (this.options['order']['status'], status, status);
     }
 
@@ -1590,7 +1590,7 @@ export default class cex extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         // see: https://cex.io/rest-api#/definitions/CancelReplaceOrderRequest
-        const request = {
+        const request: Dict = {
             'pair': market['id'],
             'type': side,
             'amount': amount,
@@ -1613,7 +1613,7 @@ export default class cex extends Exchange {
          */
         await this.loadMarkets ();
         const currency = this.currency (code);
-        const request = {
+        const request: Dict = {
             'currency': currency['id'],
         };
         const [ networkCode, query ] = this.handleNetworkCodeAndParams (params);
@@ -1683,7 +1683,7 @@ export default class cex extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+    handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response, requestHeaders, requestBody) {
         if (Array.isArray (response)) {
             return response; // public endpoints may return []-arrays
         }

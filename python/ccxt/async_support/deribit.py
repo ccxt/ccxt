@@ -550,7 +550,7 @@ class deribit(Exchange, ImplicitAPI):
         #    }
         #
         data = self.safe_value(response, 'result', {})
-        result = {}
+        result: dict = {}
         for i in range(0, len(data)):
             currency = data[i]
             currencyId = self.safe_string(currency, 'currency')
@@ -699,7 +699,7 @@ class deribit(Exchange, ImplicitAPI):
         """
         instrumentsResponses = []
         result = []
-        parsedMarkets = {}
+        parsedMarkets: dict = {}
         fetchAllMarkets = None
         fetchAllMarkets, params = self.handle_option_and_params(params, 'fetchMarkets', 'fetchAllMarkets', True)
         if fetchAllMarkets:
@@ -734,7 +734,7 @@ class deribit(Exchange, ImplicitAPI):
             currenciesResult = self.safe_value(currenciesResponse, 'result', [])
             for i in range(0, len(currenciesResult)):
                 currencyId = self.safe_string(currenciesResult[i], 'currency')
-                request = {
+                request: dict = {
                     'currency': currencyId,
                 }
                 instrumentsResponse = await self.publicGetGetInstruments(self.extend(request, params))
@@ -912,7 +912,7 @@ class deribit(Exchange, ImplicitAPI):
         return result
 
     def parse_balance(self, balance) -> Balances:
-        result = {
+        result: dict = {
             'info': balance,
         }
         currencyId = self.safe_string(balance, 'currency')
@@ -934,7 +934,7 @@ class deribit(Exchange, ImplicitAPI):
         await self.load_markets()
         code = self.code_from_options('fetchBalance', params)
         currency = self.currency(code)
-        request = {
+        request: dict = {
             'currency': currency['id'],
         }
         response = await self.privateGetGetAccountSummary(self.extend(request, params))
@@ -993,7 +993,7 @@ class deribit(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         currency = self.currency(code)
-        request = {
+        request: dict = {
             'currency': currency['id'],
         }
         response = await self.privateGetCreateDepositAddress(self.extend(request, params))
@@ -1029,7 +1029,7 @@ class deribit(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         currency = self.currency(code)
-        request = {
+        request: dict = {
             'currency': currency['id'],
         }
         response = await self.privateGetGetCurrentDepositAddress(self.extend(request, params))
@@ -1146,7 +1146,7 @@ class deribit(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'instrument_name': market['id'],
         }
         response = await self.publicGetTicker(self.extend(request, params))
@@ -1197,7 +1197,7 @@ class deribit(Exchange, ImplicitAPI):
         if code is None:
             raise ArgumentsRequired(self.id + ' fetchTickers requires a currency/code(eg: BTC/ETH/USDT) parameter to fetch tickers for')
         currency = self.currency(code)
-        request = {
+        request: dict = {
             'currency': currency['id'],
         }
         response = await self.publicGetGetBookSummaryByCurrency(self.extend(request, params))
@@ -1232,7 +1232,7 @@ class deribit(Exchange, ImplicitAPI):
         #     }
         #
         result = self.safe_list(response, 'result', [])
-        tickers = {}
+        tickers: dict = {}
         for i in range(0, len(result)):
             ticker = self.parse_ticker(result[i])
             symbol = ticker['symbol']
@@ -1258,7 +1258,7 @@ class deribit(Exchange, ImplicitAPI):
         if paginate:
             return await self.fetch_paginated_call_deterministic('fetchOHLCV', symbol, since, limit, timeframe, params, 5000)
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'instrument_name': market['id'],
             'resolution': self.safe_string(self.timeframes, timeframe, timeframe),
         }
@@ -1304,7 +1304,7 @@ class deribit(Exchange, ImplicitAPI):
         ohlcvs = self.convert_trading_view_to_ohlcv(result, 'ticks', 'open', 'high', 'low', 'close', 'volume', True)
         return self.parse_ohlcvs(ohlcvs, market, timeframe, since, limit)
 
-    def parse_trade(self, trade, market: Market = None) -> Trade:
+    def parse_trade(self, trade: dict, market: Market = None) -> Trade:
         #
         # fetchTrades(public)
         #
@@ -1404,7 +1404,7 @@ class deribit(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'instrument_name': market['id'],
             'include_old': True,
         }
@@ -1460,7 +1460,7 @@ class deribit(Exchange, ImplicitAPI):
         await self.load_markets()
         code = self.code_from_options('fetchTradingFees', params)
         currency = self.currency(code)
-        request = {
+        request: dict = {
             'currency': currency['id'],
             'extended': True,
         }
@@ -1516,9 +1516,9 @@ class deribit(Exchange, ImplicitAPI):
         #
         result = self.safe_value(response, 'result', {})
         fees = self.safe_value(result, 'fees', [])
-        perpetualFee = {}
-        futureFee = {}
-        optionFee = {}
+        perpetualFee: dict = {}
+        futureFee: dict = {}
+        optionFee: dict = {}
         for i in range(0, len(fees)):
             fee = fees[i]
             instrumentType = self.safe_string(fee, 'instrument_type')
@@ -1540,11 +1540,11 @@ class deribit(Exchange, ImplicitAPI):
                     'maker': self.safe_number(fee, 'maker_fee'),
                     'taker': self.safe_number(fee, 'taker_fee'),
                 }
-        parsedFees = {}
+        parsedFees: dict = {}
         for i in range(0, len(self.symbols)):
             symbol = self.symbols[i]
             market = self.market(symbol)
-            fee = {
+            fee: dict = {
                 'info': market,
                 'symbol': symbol,
                 'percentage': True,
@@ -1572,7 +1572,7 @@ class deribit(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'instrument_name': market['id'],
         }
         if limit is not None:
@@ -1624,8 +1624,8 @@ class deribit(Exchange, ImplicitAPI):
         orderbook['nonce'] = nonce
         return orderbook
 
-    def parse_order_status(self, status):
-        statuses = {
+    def parse_order_status(self, status: Str):
+        statuses: dict = {
             'open': 'open',
             'cancelled': 'canceled',
             'filled': 'closed',
@@ -1634,8 +1634,8 @@ class deribit(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_time_in_force(self, timeInForce):
-        timeInForces = {
+    def parse_time_in_force(self, timeInForce: Str):
+        timeInForces: dict = {
             'good_til_cancelled': 'GTC',
             'fill_or_kill': 'FOK',
             'immediate_or_cancel': 'IOC',
@@ -1643,7 +1643,7 @@ class deribit(Exchange, ImplicitAPI):
         return self.safe_string(timeInForces, timeInForce, timeInForce)
 
     def parse_order_type(self, orderType):
-        orderTypes = {
+        orderTypes: dict = {
             'stop_limit': 'limit',
             'take_limit': 'limit',
             'stop_market': 'market',
@@ -1651,7 +1651,7 @@ class deribit(Exchange, ImplicitAPI):
         }
         return self.safe_string(orderTypes, orderType, orderType)
 
-    def parse_order(self, order, market: Market = None) -> Order:
+    def parse_order(self, order: dict, market: Market = None) -> Order:
         #
         # createOrder
         #
@@ -1752,7 +1752,7 @@ class deribit(Exchange, ImplicitAPI):
         :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
-        request = {
+        request: dict = {
             'order_id': id,
         }
         market = None
@@ -1807,7 +1807,7 @@ class deribit(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'instrument_name': market['id'],
             'amount': self.amount_to_precision(symbol, amount),
             'type': type,  # limit, stop_limit, market, stop_market, default is limit
@@ -1964,7 +1964,7 @@ class deribit(Exchange, ImplicitAPI):
         if amount is None:
             raise ArgumentsRequired(self.id + ' editOrder() requires an amount argument')
         await self.load_markets()
-        request = {
+        request: dict = {
             'order_id': id,
             'amount': self.amount_to_precision(symbol, amount),
             # 'post_only': False,  # if the new price would cause the order to be filled immediately(as taker), the price will be changed to be just below the spread.
@@ -1997,7 +1997,7 @@ class deribit(Exchange, ImplicitAPI):
         :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
-        request = {
+        request: dict = {
             'order_id': id,
         }
         response = await self.privateGetCancel(self.extend(request, params))
@@ -2014,7 +2014,7 @@ class deribit(Exchange, ImplicitAPI):
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
-        request = {}
+        request: dict = {}
         response = None
         if symbol is None:
             response = await self.privateGetCancelAll(self.extend(request, params))
@@ -2036,7 +2036,7 @@ class deribit(Exchange, ImplicitAPI):
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
-        request = {}
+        request: dict = {}
         market = None
         response = None
         if symbol is None:
@@ -2063,7 +2063,7 @@ class deribit(Exchange, ImplicitAPI):
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
-        request = {}
+        request: dict = {}
         market = None
         response = None
         if symbol is None:
@@ -2090,7 +2090,7 @@ class deribit(Exchange, ImplicitAPI):
         :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
         """
         await self.load_markets()
-        request = {
+        request: dict = {
             'order_id': id,
         }
         response = await self.privateGetGetUserTradesByOrder(self.extend(request, params))
@@ -2144,7 +2144,7 @@ class deribit(Exchange, ImplicitAPI):
         :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
         """
         await self.load_markets()
-        request = {
+        request: dict = {
             'include_old': True,
         }
         market = None
@@ -2219,7 +2219,7 @@ class deribit(Exchange, ImplicitAPI):
             raise ArgumentsRequired(self.id + ' fetchDeposits() requires a currency code argument')
         await self.load_markets()
         currency = self.currency(code)
-        request = {
+        request: dict = {
             'currency': currency['id'],
         }
         if limit is not None:
@@ -2263,7 +2263,7 @@ class deribit(Exchange, ImplicitAPI):
             raise ArgumentsRequired(self.id + ' fetchWithdrawals() requires a currency code argument')
         await self.load_markets()
         currency = self.currency(code)
-        request = {
+        request: dict = {
             'currency': currency['id'],
         }
         if limit is not None:
@@ -2297,14 +2297,14 @@ class deribit(Exchange, ImplicitAPI):
         data = self.safe_list(result, 'data', [])
         return self.parse_transactions(data, currency, since, limit, params)
 
-    def parse_transaction_status(self, status):
-        statuses = {
+    def parse_transaction_status(self, status: Str):
+        statuses: dict = {
             'completed': 'ok',
             'unconfirmed': 'pending',
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_transaction(self, transaction, currency: Currency = None) -> Transaction:
+    def parse_transaction(self, transaction: dict, currency: Currency = None) -> Transaction:
         #
         # fetchWithdrawals
         #
@@ -2372,7 +2372,7 @@ class deribit(Exchange, ImplicitAPI):
             'fee': fee,
         }
 
-    def parse_position(self, position, market: Market = None):
+    def parse_position(self, position: dict, market: Market = None):
         #
         #     {
         #         "jsonrpc": "2.0",
@@ -2448,7 +2448,7 @@ class deribit(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'instrument_name': market['id'],
         }
         response = await self.privateGetGetPosition(self.extend(request, params))
@@ -2508,7 +2508,7 @@ class deribit(Exchange, ImplicitAPI):
                 code = settle if (settle is not None) else market['base']
                 kind = market['info']['kind']
         currency = self.currency(code)
-        request = {
+        request: dict = {
             'currency': currency['id'],
         }
         if kind is not None:
@@ -2556,7 +2556,7 @@ class deribit(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         currency = self.currency(code)
-        request = {
+        request: dict = {
             'currency': currency['id'],
         }
         response = await self.publicGetGetHistoricalVolatility(self.extend(request, params))
@@ -2618,7 +2618,7 @@ class deribit(Exchange, ImplicitAPI):
             raise ArgumentsRequired(self.id + ' fetchTransfers() requires a currency code argument')
         await self.load_markets()
         currency = self.currency(code)
-        request = {
+        request: dict = {
             'currency': currency['id'],
         }
         if limit is not None:
@@ -2675,7 +2675,7 @@ class deribit(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         currency = self.currency(code)
-        request = {
+        request: dict = {
             'amount': amount,
             'currency': currency['id'],
             'destination': toAccount,
@@ -2742,7 +2742,7 @@ class deribit(Exchange, ImplicitAPI):
         }
 
     def parse_transfer_status(self, status: Str) -> Str:
-        statuses = {
+        statuses: dict = {
             'prepared': 'pending',
             'confirmed': 'ok',
             'cancelled': 'cancelled',
@@ -2765,7 +2765,7 @@ class deribit(Exchange, ImplicitAPI):
         self.check_address(address)
         await self.load_markets()
         currency = self.currency(code)
-        request = {
+        request: dict = {
             'currency': currency['id'],
             'address': address,  # must be in the address book
             'amount': amount,
@@ -2851,7 +2851,7 @@ class deribit(Exchange, ImplicitAPI):
         await self.load_markets()
         market = self.market(symbol)
         time = self.milliseconds()
-        request = {
+        request: dict = {
             'instrument_name': market['id'],
             'start_timestamp': time - (8 * 60 * 60 * 1000),  # 8h ago,
             'end_timestamp': time,
@@ -2889,7 +2889,7 @@ class deribit(Exchange, ImplicitAPI):
         month = 30 * 24 * 60 * 60 * 1000
         if since is None:
             since = time - month
-        request = {
+        request: dict = {
             'instrument_name': market['id'],
             'start_timestamp': since - 1,
             'end_timestamp': time,
@@ -2979,7 +2979,7 @@ class deribit(Exchange, ImplicitAPI):
         market = self.market(symbol)
         if market['spot']:
             raise NotSupported(self.id + ' fetchLiquidations() does not support ' + market['type'] + ' markets')
-        request = {
+        request: dict = {
             'instrument_name': market['id'],
             'type': 'bankruptcy',
         }
@@ -3046,7 +3046,7 @@ class deribit(Exchange, ImplicitAPI):
         market = self.market(symbol)
         if market['spot']:
             raise NotSupported(self.id + ' fetchMyLiquidations() does not support ' + market['type'] + ' markets')
-        request = {
+        request: dict = {
             'instrument_name': market['id'],
             'type': 'bankruptcy',
         }
@@ -3119,7 +3119,7 @@ class deribit(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'instrument_name': market['id'],
         }
         response = await self.publicGetTicker(self.extend(request, params))
@@ -3248,7 +3248,7 @@ class deribit(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'instrument_name': market['id'],
         }
         response = await self.publicGetGetBookSummaryByInstrument(self.extend(request, params))
@@ -3298,7 +3298,7 @@ class deribit(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         currency = self.currency(code)
-        request = {
+        request: dict = {
             'currency': currency['id'],
             'kind': 'option',
         }
@@ -3411,7 +3411,7 @@ class deribit(Exchange, ImplicitAPI):
         url = self.urls['api']['rest'] + request
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody):
+    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response, requestHeaders, requestBody):
         if not response:
             return None  # fallback to default error handler
         #

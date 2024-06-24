@@ -3,7 +3,7 @@
 import kucoinfuturesRest from '../kucoinfutures.js';
 import { ExchangeError, ArgumentsRequired } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp, ArrayCacheBySymbolBySide } from '../base/ws/Cache.js';
-import type { Int, Str, OrderBook, Order, Trade, Ticker, Balances, Position, Strings, Tickers, OHLCV } from '../base/types.js';
+import type { Int, Str, OrderBook, Order, Trade, Ticker, Balances, Position, Strings, Tickers, OHLCV, Dict } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -13,6 +13,10 @@ export default class kucoinfutures extends kucoinfuturesRest {
         return this.deepExtend (super.describe (), {
             'has': {
                 'ws': true,
+                'watchLiquidations': false,
+                'watchLiquidatinsForSymbols': false,
+                'watchMyLiquidations': undefined,
+                'watchMyLiquidationsForSymbols': undefined,
                 'watchTicker': true,
                 'watchTickers': true,
                 'watchBidsAsks': true,
@@ -151,14 +155,14 @@ export default class kucoinfutures extends kucoinfuturesRest {
 
     async subscribe (url, messageHash, subscriptionHash, subscription, params = {}) {
         const requestId = this.requestId ().toString ();
-        const request = {
+        const request: Dict = {
             'id': requestId,
             'type': 'subscribe',
             'topic': subscriptionHash,
             'response': true,
         };
         const message = this.extend (request, params);
-        const subscriptionRequest = {
+        const subscriptionRequest: Dict = {
             'id': requestId,
         };
         if (subscription === undefined) {
@@ -171,7 +175,7 @@ export default class kucoinfutures extends kucoinfuturesRest {
 
     async subscribeMultiple (url, messageHashes, topic, subscriptionHashes, subscriptionArgs, params = {}) {
         const requestId = this.requestId ().toString ();
-        const request = {
+        const request: Dict = {
             'id': requestId,
             'type': 'subscribe',
             'topic': topic,
@@ -210,7 +214,7 @@ export default class kucoinfutures extends kucoinfuturesRest {
         await this.loadMarkets ();
         const ticker = await this.watchMultiRequest ('watchTickers', '/contractMarket/ticker:', symbols, params);
         if (this.newUpdates) {
-            const tickers = {};
+            const tickers: Dict = {};
             tickers[ticker['symbol']] = ticker;
             return tickers;
         }
@@ -259,7 +263,7 @@ export default class kucoinfutures extends kucoinfuturesRest {
          */
         const ticker = await this.watchMultiRequest ('watchBidsAsks', '/contractMarket/tickerV2:', symbols, params);
         if (this.newUpdates) {
-            const tickers = {};
+            const tickers: Dict = {};
             tickers[ticker['symbol']] = ticker;
             return tickers;
         }
@@ -286,13 +290,13 @@ export default class kucoinfutures extends kucoinfuturesRest {
         const marketIds = this.marketIds (symbols);
         const joined = marketIds.join (',');
         const requestId = this.requestId ().toString ();
-        const request = {
+        const request: Dict = {
             'id': requestId,
             'type': 'subscribe',
             'topic': channelName + joined,
             'response': true,
         };
-        const subscription = {
+        const subscription: Dict = {
             'id': requestId,
         };
         return await this.watchMultiple (url, messageHashes, this.extend (request, params), messageHashes, subscription);
@@ -356,7 +360,7 @@ export default class kucoinfutures extends kucoinfuturesRest {
         const url = await this.negotiate (true);
         const market = this.market (symbol);
         const topic = '/contract/position:' + market['id'];
-        const request = {
+        const request: Dict = {
             'privateChannel': true,
         };
         const messageHash = 'position::' + market['symbol'];
@@ -801,7 +805,7 @@ export default class kucoinfutures extends kucoinfuturesRest {
         const marketIds = this.marketIds (symbols);
         const url = await this.negotiate (false);
         const topic = '/contractMarket/level2:' + marketIds.join (',');
-        const subscriptionArgs = {
+        const subscriptionArgs: Dict = {
             'limit': limit,
         };
         const subscriptionHashes = [];
@@ -947,7 +951,7 @@ export default class kucoinfutures extends kucoinfuturesRest {
         await this.loadMarkets ();
         const url = await this.negotiate (true);
         const topic = '/contractMarket/tradeOrders';
-        const request = {
+        const request: Dict = {
             'privateChannel': true,
         };
         let messageHash = 'orders';
@@ -964,7 +968,7 @@ export default class kucoinfutures extends kucoinfuturesRest {
     }
 
     parseWsOrderStatus (status) {
-        const statuses = {
+        const statuses: Dict = {
             'open': 'open',
             'filled': 'closed',
             'match': 'open',
@@ -1073,10 +1077,10 @@ export default class kucoinfutures extends kucoinfuturesRest {
         await this.loadMarkets ();
         const url = await this.negotiate (true);
         const topic = '/contractAccount/wallet';
-        const request = {
+        const request: Dict = {
             'privateChannel': true,
         };
-        const subscription = {
+        const subscription: Dict = {
             'method': this.handleBalanceSubscription,
         };
         const messageHash = 'balance';
@@ -1121,7 +1125,7 @@ export default class kucoinfutures extends kucoinfuturesRest {
         this.checkRequiredCredentials ();
         const messageHash = 'balance';
         const selectedType = this.safeString2 (this.options, 'watchBalance', 'defaultType', 'swap'); // spot, margin, main, funding, future, mining, trade, contract, pool
-        const params = {
+        const params: Dict = {
             'type': selectedType,
         };
         const snapshot = await this.fetchBalance (params);
@@ -1183,7 +1187,7 @@ export default class kucoinfutures extends kucoinfuturesRest {
         //    }
         //
         const subject = this.safeString (message, 'subject');
-        const methods = {
+        const methods: Dict = {
             'level2': this.handleOrderBook,
             'ticker': this.handleTicker,
             'candle.stick': this.handleOHLCV,
@@ -1250,7 +1254,7 @@ export default class kucoinfutures extends kucoinfuturesRest {
 
     handleMessage (client: Client, message) {
         const type = this.safeString (message, 'type');
-        const methods = {
+        const methods: Dict = {
             // 'heartbeat': this.handleHeartbeat,
             'welcome': this.handleSystemStatus,
             'message': this.handleSubject,

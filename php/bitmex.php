@@ -582,7 +582,7 @@ class bitmex extends Exchange {
         return $this->parse_markets($response);
     }
 
-    public function parse_market($market): array {
+    public function parse_market(array $market): array {
         $id = $this->safe_string($market, 'symbol');
         $baseId = $this->safe_string($market, 'underlying');
         $quoteId = $this->safe_string($market, 'quoteCurrency');
@@ -1081,7 +1081,7 @@ class bitmex extends Exchange {
         return $this->safe_string($types, $type, $type);
     }
 
-    public function parse_ledger_entry($item, ?array $currency = null) {
+    public function parse_ledger_entry(array $item, ?array $currency = null) {
         //
         //     {
         //         "transactID" => "69573da3-7744-5467-3207-89fd6efe7a47",
@@ -1263,7 +1263,7 @@ class bitmex extends Exchange {
         return $this->parse_transactions($transactions, $currency, $since, $limit);
     }
 
-    public function parse_transaction_status($status) {
+    public function parse_transaction_status(?string $status) {
         $statuses = array(
             'Confirmed' => 'pending',
             'Canceled' => 'canceled',
@@ -1273,7 +1273,7 @@ class bitmex extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_transaction($transaction, ?array $currency = null): array {
+    public function parse_transaction(array $transaction, ?array $currency = null): array {
         //
         //    {
         //        "transactID" => "ffe699c2-95ee-4c13-91f9-0faf41daec25",
@@ -1531,7 +1531,7 @@ class bitmex extends Exchange {
         return $result;
     }
 
-    public function parse_trade($trade, ?array $market = null): array {
+    public function parse_trade(array $trade, ?array $market = null): array {
         //
         // fetchTrades (public)
         //
@@ -1644,7 +1644,7 @@ class bitmex extends Exchange {
         ), $market);
     }
 
-    public function parse_order_status($status) {
+    public function parse_order_status(?string $status) {
         $statuses = array(
             'New' => 'open',
             'PartiallyFilled' => 'open',
@@ -1662,7 +1662,7 @@ class bitmex extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_time_in_force($timeInForce) {
+    public function parse_time_in_force(?string $timeInForce) {
         $timeInForces = array(
             'Day' => 'Day',
             'GoodTillCancel' => 'GTC',
@@ -1672,7 +1672,7 @@ class bitmex extends Exchange {
         return $this->safe_string($timeInForces, $timeInForce, $timeInForce);
     }
 
-    public function parse_order($order, ?array $market = null): array {
+    public function parse_order(array $order, ?array $market = null): array {
         //
         //     {
         //         "orderID":"56222c7a-9956-413a-82cf-99f4812c214b",
@@ -2250,7 +2250,7 @@ class bitmex extends Exchange {
         return $this->filter_by_array_positions($results, 'symbol', $symbols, false);
     }
 
-    public function parse_position($position, ?array $market = null) {
+    public function parse_position(array $position, ?array $market = null) {
         //
         //     {
         //         "account" => 9371654,
@@ -2857,7 +2857,7 @@ class bitmex extends Exchange {
         ));
     }
 
-    public function handle_errors($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
         if ($response === null) {
             return null;
         }

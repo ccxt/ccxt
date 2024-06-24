@@ -186,23 +186,23 @@ class independentreserve extends \ccxt\async\independentreserve {
         $base = $this->safe_currency_code($baseId);
         $quote = $this->safe_currency_code($quoteId);
         $symbol = $base . '/' . $quote;
-        $orderBook = $this->safe_value($message, 'Data', array());
+        $orderBook = $this->safe_dict($message, 'Data', array());
         $messageHash = 'orderbook:' . $symbol . ':' . $depth;
         $subscription = $this->safe_value($client->subscriptions, $messageHash, array());
         $receivedSnapshot = $this->safe_bool($subscription, 'receivedSnapshot', false);
         $timestamp = $this->safe_integer($message, 'Time');
-        $orderbook = $this->safe_value($this->orderbooks, $symbol);
-        if ($orderbook === null) {
-            $orderbook = $this->order_book(array());
-            $this->orderbooks[$symbol] = $orderbook;
+        // $orderbook = $this->safe_value($this->orderbooks, $symbol);
+        if (!(is_array($this->orderbooks) && array_key_exists($symbol, $this->orderbooks))) {
+            $this->orderbooks[$symbol] = $this->order_book(array());
         }
+        $orderbook = $this->orderbooks[$symbol];
         if ($event === 'OrderBookSnapshot') {
             $snapshot = $this->parse_order_book($orderBook, $symbol, $timestamp, 'Bids', 'Offers', 'Price', 'Volume');
             $orderbook->reset ($snapshot);
             $subscription['receivedSnapshot'] = true;
         } else {
-            $asks = $this->safe_value($orderBook, 'Offers', array());
-            $bids = $this->safe_value($orderBook, 'Bids', array());
+            $asks = $this->safe_list($orderBook, 'Offers', array());
+            $bids = $this->safe_list($orderBook, 'Bids', array());
             $this->handle_deltas($orderbook['asks'], $asks);
             $this->handle_deltas($orderbook['bids'], $bids);
             $orderbook['timestamp'] = $timestamp;

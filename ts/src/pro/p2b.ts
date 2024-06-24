@@ -3,7 +3,7 @@
 import p2bRest from '../p2b.js';
 import { BadRequest, ExchangeError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
-import type { Int, OHLCV, OrderBook, Trade, Ticker } from '../base/types.js';
+import type { Int, OHLCV, OrderBook, Trade, Ticker, Dict } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -72,7 +72,7 @@ export default class p2b extends p2bRest {
          * @returns {object} data from the websocket stream
          */
         const url = this.urls['api']['ws'];
-        const subscribe = {
+        const subscribe: Dict = {
             'method': name,
             'params': request,
             'id': this.milliseconds (),
@@ -401,7 +401,7 @@ export default class p2b extends p2bRest {
             return;
         }
         const method = this.safeString (message, 'method');
-        const methods = {
+        const methods: Dict = {
             'depth.update': this.handleOrderBook,
             'price.update': this.handleTicker,
             'kline.update': this.handleOHLCV,

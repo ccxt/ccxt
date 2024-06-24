@@ -1468,12 +1468,13 @@
             },
             {
                 "description": "Fetching 3 margin additions older than a week",
+                "disabled": true,
                 "method": "fetchMarginAdjustmentHistory",
-                "url": "https://www.okx.com/api/v5/account/bills-archive?subType=160&mgnMode=isolated&startTime=1709251200000&limit=3",
+                "url": "https://www.okx.com/api/v5/account/bills-archive?subType=160&mgnMode=isolated&startTime=1717162769000&limit=3",
                 "input": [
                   null,
                   "add",
-                  1709251200000,
+                  1717162769000,
                   3
                 ]
             }

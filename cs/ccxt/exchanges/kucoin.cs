@@ -114,6 +114,7 @@ public partial class kucoin : Exchange
                     { "futuresPublic", "https://api-futures.kucoin.com" },
                     { "webExchange", "https://kucoin.com/_api" },
                     { "broker", "https://api-broker.kucoin.com" },
+                    { "earn", "https://api.kucoin.com" },
                 } },
                 { "www", "https://www.kucoin.com" },
                 { "doc", new List<object>() {"https://docs.kucoin.com"} },
@@ -349,6 +350,9 @@ public partial class kucoin : Exchange
                         { "broker/nd/account", 2 },
                         { "broker/nd/account/apikey", 2 },
                         { "broker/nd/rebase/download", 3 },
+                        { "broker/nd/transfer/detail", 1 },
+                        { "broker/nd/deposit/detail", 1 },
+                        { "broker/nd/withdraw/detail", 1 },
                     } },
                     { "post", new Dictionary<string, object>() {
                         { "broker/nd/transfer", 1 },
@@ -358,6 +362,25 @@ public partial class kucoin : Exchange
                     } },
                     { "delete", new Dictionary<string, object>() {
                         { "broker/nd/account/apikey", 3 },
+                    } },
+                } },
+                { "earn", new Dictionary<string, object>() {
+                    { "get", new Dictionary<string, object>() {
+                        { "otc-loan/loan", 1 },
+                        { "otc-loan/accounts", 1 },
+                        { "earn/redeem-preview", 7.5 },
+                        { "earn/saving/products", 7.5 },
+                        { "earn/hold-assets", 7.5 },
+                        { "earn/promotion/products", 7.5 },
+                        { "earn/kcs-staking/products", 7.5 },
+                        { "earn/staking/products", 7.5 },
+                        { "earn/eth-staking/products", 7.5 },
+                    } },
+                    { "post", new Dictionary<string, object>() {
+                        { "earn/orders", 7.5 },
+                    } },
+                    { "delete", new Dictionary<string, object>() {
+                        { "earn/orders", 7.5 },
                     } },
                 } },
             } },
@@ -388,6 +411,7 @@ public partial class kucoin : Exchange
                     { "The withdrawal amount is below the minimum requirement.", typeof(ExchangeError) },
                     { "Unsuccessful! Exceeded the max. funds out-transfer limit", typeof(InsufficientFunds) },
                     { "The amount increment is invalid.", typeof(BadRequest) },
+                    { "The quantity is below the minimum requirement.", typeof(InvalidOrder) },
                     { "400", typeof(BadRequest) },
                     { "401", typeof(AuthenticationError) },
                     { "403", typeof(NotSupported) },
@@ -2329,6 +2353,8 @@ public partial class kucoin : Exchange
             {
                 response = await this.privateDeleteOrderClientOrderClientOid(this.extend(request, parameters));
             }
+            response = this.safeDict(response, "data");
+            return this.parseOrder(response);
         } else
         {
             ((IDictionary<string,object>)request)["orderId"] = id;
@@ -2338,12 +2364,28 @@ public partial class kucoin : Exchange
             } else if (isTrue(hf))
             {
                 response = await this.privateDeleteHfOrdersOrderId(this.extend(request, parameters));
+                //
+                //    {
+                //        "code": "200000",
+                //        "data": {
+                //          "orderId": "630625dbd9180300014c8d52"
+                //        }
+                //    }
+                //
+                response = this.safeDict(response, "data");
+                return this.parseOrder(response);
             } else
             {
                 response = await this.privateDeleteOrdersOrderId(this.extend(request, parameters));
             }
+            object data = this.safeDict(response, "data");
+            object orderIds = this.safeList(data, "cancelledOrderIds", new List<object>() {});
+            object orderId = this.safeString(orderIds, 0);
+            return this.safeOrder(new Dictionary<string, object>() {
+                { "info", data },
+                { "id", orderId },
+            });
         }
-        return response;
     }
 
     public async override Task<object> cancelAllOrders(object symbol = null, object parameters = null)
@@ -2435,9 +2477,9 @@ public partial class kucoin : Exchange
         await this.loadMarkets();
         object lowercaseStatus = ((string)status).ToLower();
         object until = this.safeInteger(parameters, "until");
-        object stop = this.safeBool(parameters, "stop", false);
+        object stop = this.safeBool2(parameters, "stop", "trigger", false);
         object hf = this.safeBool(parameters, "hf", false);
-        parameters = this.omit(parameters, new List<object>() {"stop", "hf", "until"});
+        parameters = this.omit(parameters, new List<object>() {"stop", "hf", "until", "trigger"});
         var marginModequeryVariable = this.handleMarginModeAndParams("fetchOrdersByStatus", parameters);
         var marginMode = ((IList<object>) marginModequeryVariable)[0];
         var query = ((IList<object>) marginModequeryVariable)[1];
@@ -2639,7 +2681,7 @@ public partial class kucoin : Exchange
         await this.loadMarkets();
         object request = new Dictionary<string, object>() {};
         object clientOrderId = this.safeString2(parameters, "clientOid", "clientOrderId");
-        object stop = this.safeBool(parameters, "stop", false);
+        object stop = this.safeBool2(parameters, "stop", "trigger", false);
         object hf = this.safeBool(parameters, "hf", false);
         object market = null;
         if (isTrue(!isEqual(symbol, null)))
@@ -2654,7 +2696,7 @@ public partial class kucoin : Exchange
             }
             ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
         }
-        parameters = this.omit(parameters, new List<object>() {"stop", "hf", "clientOid", "clientOrderId"});
+        parameters = this.omit(parameters, new List<object>() {"stop", "hf", "clientOid", "clientOrderId", "trigger"});
         object response = null;
         if (isTrue(!isEqual(clientOrderId, null)))
         {
@@ -2866,7 +2908,7 @@ public partial class kucoin : Exchange
         object stopPrice = this.safeNumber(order, "stopPrice");
         return this.safeOrder(new Dictionary<string, object>() {
             { "info", order },
-            { "id", this.safeStringN(order, new List<object>() {"id", "orderId", "newOrderId"}) },
+            { "id", this.safeStringN(order, new List<object>() {"id", "orderId", "newOrderId", "cancelledOrderId"}) },
             { "clientOrderId", this.safeString(order, "clientOid") },
             { "symbol", this.safeSymbol(marketId, market, "-") },
             { "type", this.safeString(order, "type") },
@@ -4965,6 +5007,10 @@ public partial class kucoin : Exchange
         {
             endpoint = add("/", this.implodeParams(path, parameters));
         }
+        if (isTrue(isEqual(api, "earn")))
+        {
+            endpoint = add("/api/v1/", this.implodeParams(path, parameters));
+        }
         object query = this.omit(parameters, this.extractParams(path));
         object endpart = "";
         headers = ((bool) isTrue((!isEqual(headers, null)))) ? headers : new Dictionary<string, object>() {};
@@ -4985,7 +5031,8 @@ public partial class kucoin : Exchange
         object isFuturePrivate = (isEqual(api, "futuresPrivate"));
         object isPrivate = (isEqual(api, "private"));
         object isBroker = (isEqual(api, "broker"));
-        if (isTrue(isTrue(isTrue(isPrivate) || isTrue(isFuturePrivate)) || isTrue(isBroker)))
+        object isEarn = (isEqual(api, "earn"));
+        if (isTrue(isTrue(isTrue(isTrue(isPrivate) || isTrue(isFuturePrivate)) || isTrue(isBroker)) || isTrue(isEarn)))
         {
             this.checkRequiredCredentials();
             object timestamp = ((object)this.nonce()).ToString();
@@ -5016,6 +5063,7 @@ public partial class kucoin : Exchange
                 object partnerSignature = this.hmac(this.encode(partnerPayload), this.encode(partnerSecret), sha256, "base64");
                 ((IDictionary<string,object>)headers)["KC-API-PARTNER-SIGN"] = partnerSignature;
                 ((IDictionary<string,object>)headers)["KC-API-PARTNER"] = partnerId;
+                ((IDictionary<string,object>)headers)["KC-API-PARTNER-VERIFY"] = "true";
             }
             if (isTrue(isBroker))
             {

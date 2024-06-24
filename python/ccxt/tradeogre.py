@@ -9,6 +9,7 @@ from ccxt.base.types import IndexType, Int, Market, Num, Order, OrderSide, Order
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
+from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.decimal_to_precision import TICK_SIZE
@@ -262,7 +263,7 @@ class tradeogre(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'market': market['id'],
         }
         response = self.publicGetTickerMarket(self.extend(request, params))
@@ -326,7 +327,7 @@ class tradeogre(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'market': market['id'],
         }
         response = self.publicGetOrdersMarket(self.extend(request, params))
@@ -342,7 +343,7 @@ class tradeogre(Exchange, ImplicitAPI):
         #
         rawBids = self.safe_dict(response, 'buy', {})
         rawAsks = self.safe_dict(response, 'sell', {})
-        rawOrderbook = {
+        rawOrderbook: dict = {
             'bids': rawBids,
             'asks': rawAsks,
         }
@@ -371,13 +372,13 @@ class tradeogre(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'market': market['id'],
         }
         response = self.publicGetHistoryMarket(self.extend(request, params))
         return self.parse_trades(response, market, since, limit)
 
-    def parse_trade(self, trade, market: Market = None):
+    def parse_trade(self, trade: dict, market: Market = None):
         #
         #  {
         #      "date":1515128233,
@@ -423,7 +424,7 @@ class tradeogre(Exchange, ImplicitAPI):
         #        "USDT": "12"
         #    }
         #
-        result = {
+        result: dict = {
             'info': response,
         }
         keys = list(response.keys())
@@ -431,7 +432,7 @@ class tradeogre(Exchange, ImplicitAPI):
             currencyId = keys[i]
             balance = response[currencyId]
             code = self.safe_currency_code(currencyId)
-            account = {
+            account: dict = {
                 'total': balance,
             }
             result[code] = account
@@ -441,7 +442,7 @@ class tradeogre(Exchange, ImplicitAPI):
         """
         create a trade order
         :param str symbol: unified symbol of the market to create an order in
-        :param str type: not used by tradeogre
+        :param str type: must be 'limit'
         :param str side: 'buy' or 'sell'
         :param float amount: how much of currency you want to trade in units of base currency
         :param float price: the price at which the order is to be fullfilled, in units of the quote currency
@@ -450,13 +451,15 @@ class tradeogre(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = self.market(symbol)
-        request = {
+        if type == 'market':
+            raise BadRequest(self.id + ' createOrder does not support market orders')
+        if price is None:
+            raise ArgumentsRequired(self.id + ' createOrder requires a limit parameter')
+        request: dict = {
             'market': market['id'],
             'quantity': self.parse_to_numeric(self.amount_to_precision(symbol, amount)),
             'price': self.parse_to_numeric(self.price_to_precision(symbol, price)),
         }
-        if type == 'market':
-            raise BadRequest(self.id + ' createOrder does not support market orders')
         response = None
         if side == 'buy':
             response = self.privatePostOrderBuy(self.extend(request, params))
@@ -473,7 +476,7 @@ class tradeogre(Exchange, ImplicitAPI):
         :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
-        request = {
+        request: dict = {
             'uuid': id,
         }
         response = self.privatePostOrderCancel(self.extend(request, params))
@@ -487,7 +490,10 @@ class tradeogre(Exchange, ImplicitAPI):
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
-        return self.cancel_order('all', symbol, params)
+        response = self.cancel_order('all', symbol, params)
+        return [
+            response,
+        ]
 
     def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
@@ -502,7 +508,7 @@ class tradeogre(Exchange, ImplicitAPI):
         market = None
         if symbol is not None:
             market = self.market(symbol)
-        request = {}
+        request: dict = {}
         if symbol is not None:
             request['market'] = market['id']
         response = self.privatePostAccountOrders(self.extend(request, params))
@@ -517,13 +523,13 @@ class tradeogre(Exchange, ImplicitAPI):
         :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
-        request = {
+        request: dict = {
             'uuid': id,
         }
         response = self.privateGetAccountOrderUuid(self.extend(request, params))
         return self.parse_order(response, None)
 
-    def parse_order(self, order, market: Market = None) -> Order:
+    def parse_order(self, order: dict, market: Market = None) -> Order:
         #
         #
         # {
@@ -581,7 +587,7 @@ class tradeogre(Exchange, ImplicitAPI):
                 body = self.urlencode(params)
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response, requestHeaders, requestBody):
         if response is None:
             return None
         if not ('success' in response):

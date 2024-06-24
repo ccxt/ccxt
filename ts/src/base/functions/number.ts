@@ -83,8 +83,8 @@ const truncate = (num: number | string, precision = 0): number => parseFloat (tr
 
 function precisionFromString (str: string) {
     // support string formats like '1e-4'
-    if (str.indexOf ('e') > -1) {
-        const numStr = str.replace (/\de/, '')
+    if (str.indexOf ('e') > -1 || str.indexOf ('E') > -1) {
+        const numStr = str.replace (/\d\.?\d*[eE]/, '')
         return parseInt (numStr) * -1
     }
     // support integer formats (without dot) like '1', '10' etc [Note: bug in decimalToPrecision, so this should not be used atm]
@@ -296,13 +296,17 @@ const _decimalToPrecision = (
 };
 
 function omitZero (stringNumber: string) {
-    if (stringNumber === undefined || stringNumber === '') {
-        return undefined;
+    try {
+        if (stringNumber === undefined || stringNumber === '') {
+            return undefined;
+        }
+        if (parseFloat (stringNumber) === 0) {
+            return undefined;
+        }
+        return stringNumber;
+    } catch (e) {
+        return stringNumber;
     }
-    if (parseFloat (stringNumber) === 0) {
-        return undefined;
-    }
-    return stringNumber;
 }
 
 /*  ------------------------------------------------------------------------ */

@@ -1572,7 +1572,11 @@ class ndax extends ndax$1 {
         //         "detail":null
         //     }
         //
-        return response;
+        return [
+            this.safeOrder({
+                'info': response,
+            }),
+        ];
     }
     async cancelOrder(id, symbol = undefined, params = {}) {
         /**

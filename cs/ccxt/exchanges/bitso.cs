@@ -1011,7 +1011,19 @@ public partial class bitso : Exchange
         object request = new Dictionary<string, object>() {
             { "oid", id },
         };
-        return await this.privateDeleteOrdersOid(this.extend(request, parameters));
+        object response = await this.privateDeleteOrdersOid(this.extend(request, parameters));
+        //
+        //     {
+        //         "success": true,
+        //         "payload": ["yWTQGxDMZ0VimZgZ"]
+        //     }
+        //
+        object payload = this.safeList(response, "payload", new List<object>() {});
+        object orderId = this.safeString(payload, 0);
+        return this.safeOrder(new Dictionary<string, object>() {
+            { "info", response },
+            { "id", orderId },
+        });
     }
 
     public async virtual Task<object> cancelOrders(object ids, object symbol = null, object parameters = null)

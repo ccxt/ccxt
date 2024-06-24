@@ -244,18 +244,53 @@ class coinbase extends coinbase$1 {
         //        ]
         //    }
         //
+        // note! seems coinbase might also send empty data like:
+        //
+        //    {
+        //        "channel": "ticker_batch",
+        //        "client_id": "",
+        //        "timestamp": "2024-05-24T18:22:24.546809523Z",
+        //        "sequence_num": 1,
+        //        "events": [
+        //            {
+        //                "type": "snapshot",
+        //                "tickers": [
+        //                    {
+        //                        "type": "ticker",
+        //                        "product_id": "",
+        //                        "price": "",
+        //                        "volume_24_h": "",
+        //                        "low_24_h": "",
+        //                        "high_24_h": "",
+        //                        "low_52_w": "",
+        //                        "high_52_w": "",
+        //                        "price_percent_chg_24_h": ""
+        //                    }
+        //                ]
+        //            }
+        //        ]
+        //    }
+        //
+        //
         const channel = this.safeString(message, 'channel');
         const events = this.safeValue(message, 'events', []);
+        const datetime = this.safeString(message, 'timestamp');
+        const timestamp = this.parse8601(datetime);
         const newTickers = [];
         for (let i = 0; i < events.length; i++) {
             const tickersObj = events[i];
-            const tickers = this.safeValue(tickersObj, 'tickers', []);
+            const tickers = this.safeList(tickersObj, 'tickers', []);
             for (let j = 0; j < tickers.length; j++) {
                 const ticker = tickers[j];
                 const result = this.parseWsTicker(ticker);
+                result['timestamp'] = timestamp;
+                result['datetime'] = datetime;
                 const symbol = result['symbol'];
                 this.tickers[symbol] = result;
                 const wsMarketId = this.safeString(ticker, 'product_id');
+                if (wsMarketId === undefined) {
+                    continue;
+                }
                 const messageHash = channel + '::' + wsMarketId;
                 newTickers.push(result);
                 client.resolve(result, messageHash);

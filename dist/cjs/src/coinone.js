@@ -1061,7 +1061,7 @@ class coinone extends coinone$1 {
         //         "errorCode": "0"
         //     }
         //
-        return response;
+        return this.safeOrder(response);
     }
     async fetchDepositAddresses(codes = undefined, params = {}) {
         /**

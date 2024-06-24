@@ -22,7 +22,7 @@
 
 # ----------------------------------------------------------------------------
 
-__version__ = '4.3.21'
+__version__ = '4.3.50'
 
 # ----------------------------------------------------------------------------
 
@@ -119,8 +119,9 @@ from ccxt.btcturk import btcturk                                      # noqa: F4
 from ccxt.bybit import bybit                                          # noqa: F401
 from ccxt.cex import cex                                              # noqa: F401
 from ccxt.coinbase import coinbase                                    # noqa: F401
+from ccxt.coinbaseadvanced import coinbaseadvanced                    # noqa: F401
+from ccxt.coinbaseexchange import coinbaseexchange                    # noqa: F401
 from ccxt.coinbaseinternational import coinbaseinternational          # noqa: F401
-from ccxt.coinbasepro import coinbasepro                              # noqa: F401
 from ccxt.coincheck import coincheck                                  # noqa: F401
 from ccxt.coinex import coinex                                        # noqa: F401
 from ccxt.coinlist import coinlist                                    # noqa: F401
@@ -166,6 +167,7 @@ from ccxt.oceanex import oceanex                                      # noqa: F4
 from ccxt.okcoin import okcoin                                        # noqa: F401
 from ccxt.okx import okx                                              # noqa: F401
 from ccxt.onetrading import onetrading                                # noqa: F401
+from ccxt.oxfun import oxfun                                          # noqa: F401
 from ccxt.p2b import p2b                                              # noqa: F401
 from ccxt.paymium import paymium                                      # noqa: F401
 from ccxt.phemex import phemex                                        # noqa: F401
@@ -181,6 +183,7 @@ from ccxt.wazirx import wazirx                                        # noqa: F4
 from ccxt.whitebit import whitebit                                    # noqa: F401
 from ccxt.woo import woo                                              # noqa: F401
 from ccxt.woofipro import woofipro                                    # noqa: F401
+from ccxt.xt import xt                                                # noqa: F401
 from ccxt.yobit import yobit                                          # noqa: F401
 from ccxt.zaif import zaif                                            # noqa: F401
 from ccxt.zonda import zonda                                          # noqa: F401
@@ -225,8 +228,9 @@ exchanges = [
     'bybit',
     'cex',
     'coinbase',
+    'coinbaseadvanced',
+    'coinbaseexchange',
     'coinbaseinternational',
-    'coinbasepro',
     'coincheck',
     'coinex',
     'coinlist',
@@ -272,6 +276,7 @@ exchanges = [
     'okcoin',
     'okx',
     'onetrading',
+    'oxfun',
     'p2b',
     'paymium',
     'phemex',
@@ -287,6 +292,7 @@ exchanges = [
     'whitebit',
     'woo',
     'woofipro',
+    'xt',
     'yobit',
     'zaif',
     'zonda',

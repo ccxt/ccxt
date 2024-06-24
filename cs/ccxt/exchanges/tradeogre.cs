@@ -475,7 +475,7 @@ public partial class tradeogre : Exchange
         * @name tradeogre#createOrder
         * @description create a trade order
         * @param {string} symbol unified symbol of the market to create an order in
-        * @param {string} type not used by tradeogre
+        * @param {string} type must be 'limit'
         * @param {string} side 'buy' or 'sell'
         * @param {float} amount how much of currency you want to trade in units of base currency
         * @param {float} price the price at which the order is to be fullfilled, in units of the quote currency
@@ -485,15 +485,19 @@ public partial class tradeogre : Exchange
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
+        if (isTrue(isEqual(type, "market")))
+        {
+            throw new BadRequest ((string)add(this.id, " createOrder does not support market orders")) ;
+        }
+        if (isTrue(isEqual(price, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " createOrder requires a limit parameter")) ;
+        }
         object request = new Dictionary<string, object>() {
             { "market", getValue(market, "id") },
             { "quantity", this.parseToNumeric(this.amountToPrecision(symbol, amount)) },
             { "price", this.parseToNumeric(this.priceToPrecision(symbol, price)) },
         };
-        if (isTrue(isEqual(type, "market")))
-        {
-            throw new BadRequest ((string)add(this.id, " createOrder does not support market orders")) ;
-        }
         object response = null;
         if (isTrue(isEqual(side, "buy")))
         {
@@ -537,7 +541,8 @@ public partial class tradeogre : Exchange
         */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        return await this.cancelOrder("all", symbol, parameters);
+        object response = await this.cancelOrder("all", symbol, parameters);
+        return new List<object>() {response};
     }
 
     public async override Task<object> fetchOpenOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
