@@ -175,14 +175,14 @@ export default class coindcx extends Exchange {
                 'private': {
                     'post': {
                         'exchange/v1/users/balances': 1, // done
-                        'exchange/v1/users/info': 1, // not implemented
+                        'exchange/v1/users/info': 1, // not unified
                         'exchange/v1/orders/create': 1, // done
                         'exchange/v1/orders/create_multiple': 1, // done
                         'exchange/v1/orders/status': 1, // done
                         'exchange/v1/orders/status_multiple': 1, // done
                         'exchange/v1/orders/active_orders': 1, // done
                         'exchange/v1/orders/trade_history': 1, // done
-                        'exchange/v1/orders/active_orders_count': 1, // not implemented
+                        'exchange/v1/orders/active_orders_count': 1, // not unified
                         'exchange/v1/orders/cancel_all': 1, // done
                         'exchange/v1/orders/cancel_by_ids': 1, // done
                         'exchange/v1/orders/cancel': 1, // done
@@ -192,13 +192,13 @@ export default class coindcx extends Exchange {
                         'exchange/v1/funding/settle': 1,
                         'exchange/v1/margin/create': 1, // done
                         'exchange/v1/margin/cancel': 1, // done
-                        'exchange/v1/margin/exit': 1,
-                        'exchange/v1/margin/edit_target': 1, // done todo check
-                        'exchange/v1/margin/edit_price_of_target_order': 1,
+                        'exchange/v1/margin/exit': 1, // done
+                        'exchange/v1/margin/edit_target': 1, // done
+                        'exchange/v1/margin/edit_price_of_target_order': 1, // not unified
                         'exchange/v1/margin/edit_sl': 1,
                         'exchange/v1/margin/edit_trailing_sl': 1,
-                        'exchange/v1/margin/add_margin': 1, // done todo check
-                        'exchange/v1/margin/remove_margin': 1, // done todo check
+                        'exchange/v1/margin/add_margin': 1, // done
+                        'exchange/v1/margin/remove_margin': 1, // done
                         'exchange/v1/margin/fetch_orders': 1, // done
                         'exchange/v1/margin/order': 1, // done
                         'exchange/v1/derivatives/futures/positions/add_margin': 1, // done todo check
@@ -232,6 +232,7 @@ export default class coindcx extends Exchange {
                     // {"code":422,"message":"Invalid Request","status":"error"}
                     // {"code":404,"message":"Order not found","status":"error"}
                     // {"code":422,"message":"Cannot exit this order","status":"error"}
+                    // {"code":422,"message":"Price can't be empty for limit_order Order","status":"error"}
                 },
                 'broad': {
                     // todo: add more error codes
@@ -593,6 +594,17 @@ export default class coindcx extends Exchange {
         return this.parseTrades (response, market, since, limit);
     }
 
+    handleMarketTypeMarginAndParams (methodName: string, market: Market = undefined, params = {}, defaultValue = undefined): any {
+        let marketType = defaultValue;
+        [ marketType, params ] = this.handleMarketTypeAndParams ('fetchMyTrades', market, params, defaultValue);
+        let isMargin = false;
+        [ isMargin, params ] = this.handleOptionAndParams (params, methodName, 'margin', isMargin);
+        if ((isMargin) && (marketType === 'spot')) {
+            marketType = 'margin';
+        }
+        return [ marketType, params ];
+    }
+
     async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
@@ -618,12 +630,7 @@ export default class coindcx extends Exchange {
             request['symbol'] = market['id'];
         }
         let marketType = 'spot';
-        [ marketType, params ] = this.handleMarketTypeAndParams ('fetchMyTrades', market, params);
-        const isMargin = this.safeBool (params, 'margin', false);
-        params = this.omit (params, 'margin');
-        if ((isMargin) && (marketType === 'spot')) {
-            marketType = 'margin';
-        }
+        [ marketType, params ] = this.handleMarketTypeMarginAndParams ('fetchMyTrades', market, params, marketType);
         if (marketType !== 'spot') {
             throw new NotSupported (this.id + ' fetchMyTrades() supports only spot markets without margin'); // todo implement this method for contract orders
         }
@@ -785,12 +792,7 @@ export default class coindcx extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         let marketType = 'spot';
-        [ marketType, params ] = this.handleMarketTypeAndParams ('createOrder', market, params);
-        const isMargin = this.safeBool (params, 'margin', false);
-        params = this.omit (params, 'margin');
-        if ((isMargin) && (marketType === 'spot')) {
-            marketType = 'margin';
-        }
+        [ marketType, params ] = this.handleMarketTypeMarginAndParams ('fetchMyTrades', market, params, marketType);
         const clientOrderId = this.safeString2 (params, 'clientOrderId', 'client_order_id');
         if ((clientOrderId !== undefined) && (marketType !== 'spot')) {
             throw new NotSupported (this.id + ' createOrder() supports params.clientOrderId for spot markets without margin only');
@@ -1088,11 +1090,9 @@ export default class coindcx extends Exchange {
          */
         await this.loadMarkets ();
         let marketType = 'spot';
-        [ marketType, params ] = this.handleMarketTypeAndParams ('createOrders', undefined, params, 'spot');
-        let isMargin = this.safeBool (params, 'margin', false);
-        params = this.omit (params, 'margin');
-        if ((marketType !== 'spot') || isMargin) {
-            throw new NotSupported (this.id + ' createOrders is not supported for ' + marketType + ' markets (for spot markets without margin only)');
+        [ marketType, params ] = this.handleMarketTypeMarginAndParams ('fetchMyTrades', undefined, params, marketType);
+        if (marketType !== 'spot') {
+            throw new NotSupported (this.id + ' createOrders is supported for spot markets without margin only');
         }
         const encodedOrders = [];
         for (let i = 0; i < orders.length; i++) {
@@ -1105,11 +1105,9 @@ export default class coindcx extends Exchange {
             const price = this.safeNumber (order, 'price'); // todo check
             let orderParams = this.safeDict (order, 'params');
             const market = this.market (symbol);
-            [ marketType, orderParams ] = this.handleMarketTypeAndParams ('createOrders', market, orderParams, 'spot');
-            isMargin = this.safeBool (orderParams, 'margin', false);
-            orderParams = this.omit (orderParams, 'margin');
-            if ((marketType !== 'spot') || isMargin) {
-                throw new NotSupported (this.id + ' createOrders is not supported for ' + marketType + ' markets (for spot markets without margin only)');
+            [ marketType, orderParams ] = this.handleMarketTypeMarginAndParams ('createOrders', market, orderParams, 'spot');
+            if (marketType !== 'spot') {
+                throw new NotSupported (this.id + ' createOrders is supported for spot markets without margin only');
             }
             const requestParams = this.extend (orderParams, { 'multiple': true });
             const encodedOrder = this.createSpotOrderRequest (symbol, type, side, amount, price, requestParams);
@@ -1175,16 +1173,11 @@ export default class coindcx extends Exchange {
         await this.loadMarkets ();
         let market: Market = undefined;
         if (symbol !== undefined) {
-            market = this.safeMarket (symbol);
+            market = this.market (symbol);
         }
         const request: Dict = {};
         let marketType = 'spot';
-        [ marketType, params ] = this.handleMarketTypeAndParams ('fetchOrder', market, params, 'spot');
-        const isMargin = this.safeBool (params, 'margin', false);
-        params = this.omit (params, 'margin');
-        if ((isMargin) && (marketType === 'spot')) {
-            marketType = 'margin';
-        }
+        [ marketType, params ] = this.handleMarketTypeMarginAndParams ('fetchMyTrades', market, params, marketType);
         const clientOrderId = this.safeString2 (params, 'clientOrderId', 'client_order_id');
         if (clientOrderId !== undefined) {
             if (marketType === 'spot') {
@@ -1358,18 +1351,13 @@ export default class coindcx extends Exchange {
             market = this.market (symbol);
         }
         let marketType = 'spot';
-        [ marketType, params ] = this.handleMarketTypeAndParams ('fetchOrders', market, params);
-        const isMargin = this.safeBool (params, 'margin', false);
-        params = this.omit (params, 'margin');
-        if ((isMargin) && (marketType === 'spot')) {
-            marketType = 'margin';
-        }
+        [ marketType, params ] = this.handleMarketTypeMarginAndParams ('fetchMyTrades', market, params, marketType);
         const request: Dict = {};
         if (marketType === 'spot') {
             const ids = this.safeList (params, 'ids');
             const clientOrderIds = this.safeList (params, 'clientOrderIds');
             if ((ids === undefined) && (clientOrderIds === undefined)) {
-                throw new ArgumentsRequired (this.id + ' fetchOrders requires params.ids or params.clientOrderIds argument');
+                throw new ArgumentsRequired (this.id + ' fetchOrders requires params.ids or params.clientOrderIds argument for spot markets without margin');
             }
             if (clientOrderIds !== undefined) {
                 request['client_order_ids'] = clientOrderIds;
@@ -1528,12 +1516,7 @@ export default class coindcx extends Exchange {
             market = this.market (symbol);
         }
         let marketType = 'spot';
-        [ marketType, params ] = this.handleMarketTypeAndParams ('fetchOpenOrders', market, params);
-        const isMargin = this.safeBool (params, 'margin', false);
-        params = this.omit (params, 'margin');
-        if ((isMargin) && (marketType === 'spot')) {
-            marketType = 'margin';
-        }
+        [ marketType, params ] = this.handleMarketTypeMarginAndParams ('fetchMyTrades', market, params, marketType);
         const request: Dict = {};
         if (marketType === 'spot') {
             if (market === undefined) {
@@ -1607,12 +1590,7 @@ export default class coindcx extends Exchange {
             market = this.market (symbol);
         }
         let marketType = 'spot';
-        [ marketType, params ] = this.handleMarketTypeAndParams ('cancelOrder', market, params);
-        const isMargin = this.safeBool (params, 'margin', false);
-        params = this.omit (params, 'margin');
-        if ((isMargin) && (marketType === 'spot')) {
-            marketType = 'margin';
-        }
+        [ marketType, params ] = this.handleMarketTypeMarginAndParams ('fetchMyTrades', market, params, marketType);
         const request: Dict = {};
         const clientOrderId = this.safeString2 (params, 'clientOrderId', 'client_order_id');
         if (clientOrderId !== undefined) {
@@ -1668,12 +1646,7 @@ export default class coindcx extends Exchange {
             request['market'] = market['id'];
         }
         let marketType = 'spot';
-        [ marketType, params ] = this.handleMarketTypeAndParams ('cancelAllOrders', market, params);
-        const isMargin = this.safeBool (params, 'margin', false);
-        params = this.omit (params, 'margin');
-        if ((isMargin) && (marketType === 'spot')) {
-            marketType = 'margin';
-        }
+        [ marketType, params ] = this.handleMarketTypeMarginAndParams ('fetchMyTrades', market, params, marketType);
         if (marketType === 'spot') {
             return await this.privatePostExchangeV1OrdersCancelAll (this.extend (request, params));
             //
@@ -1708,11 +1681,7 @@ export default class coindcx extends Exchange {
             market = this.market (symbol);
         }
         let marketType = 'spot';
-        [ marketType, params ] = this.handleMarketTypeAndParams ('cancelOrders', market, params);
-        const isMargin = this.safeBool (params, 'margin', false);
-        if ((isMargin) && (marketType === 'spot')) {
-            marketType = 'margin';
-        }
+        [ marketType, params ] = this.handleMarketTypeMarginAndParams ('fetchMyTrades', market, params, marketType);
         if (marketType !== 'spot') {
             throw new NotSupported (this.id + ' cancelOrders() supports only spot markets without margin');
         }
@@ -1765,11 +1734,7 @@ export default class coindcx extends Exchange {
             market = this.market (symbol);
         }
         let marketType = 'spot';
-        [ marketType, params ] = this.handleMarketTypeAndParams ('editOrder', market, params, 'spot');
-        const isMargin = this.safeBool (params, 'margin', false);
-        if (isMargin && (marketType === 'spot')) {
-            marketType = 'margin';
-        }
+        [ marketType, params ] = this.handleMarketTypeMarginAndParams ('fetchMyTrades', market, params, marketType);
         const clientOrderId = this.safeString2 (params, 'clientOrderId', 'client_order_id');
         if ((clientOrderId !== undefined) && (marketType !== 'spot')) {
             throw new NotSupported (this.id + ' createOrder() supports params.clientOrderId for spot markets without margin only');
@@ -1820,7 +1785,7 @@ export default class coindcx extends Exchange {
         }
         const response = await this.privatePostExchangeV1OrdersEdit (this.extend (request, params));
         // {"code":422,"message":"Edit order is not available yet for this exchange","status":"error"}
-        return this.parseOrder (response, market);
+        return this.parseOrder (response);
     }
 
     async editMarginOrder (id: string, symbol: string, type:OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params = {}) {
@@ -1846,9 +1811,10 @@ export default class coindcx extends Exchange {
         }
         const request: Dict = {
             'id': id,
-            'price_per_unit': priceString,
+            'target_price': priceString,
         };
-        const response = await this.privatePostExchangeV1OrdersEdit (this.extend (request, params));
+        // todo handle with the SL Price
+        const response = this.privatePostExchangeV1MarginEditTarget (this.extend (request, params));
         //
         //     {
         //         "message": "Target price updated",
