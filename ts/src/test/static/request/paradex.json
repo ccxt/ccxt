@@ -64,6 +64,161 @@
                     "BTC/USD:USDC"
                 ]
             }
+        ],
+        "createOrder": [
+            {
+                "description": "createOrder",
+                "method": "createOrder",
+                "url": "https://api.testnet.paradex.trade/v1/system/config",
+                "input": [
+                    "BTC/USD:USDC",
+                    "limit",
+                    "buy",
+                    0.03,
+                    60000
+                ]
+            },
+            {
+                "description": "createOrder",
+                "method": "createOrder",
+                "url": "https://api.testnet.paradex.trade/v1/system/config",
+                "input": [
+                    "BTC/USD:USDC",
+                    "limit",
+                    "buy",
+                    0.03,
+                    60000,
+                    {
+                        "triggerPrice": 60500,
+                        "postOnly": true,
+                        "reduceOnly": true,
+                        "clientOrderId": "helloworld"
+                    }
+                ]
+            }
+        ],
+        "cancelOrder": [
+            {
+                "description": "cancelOrder",
+                "method": "cancelOrder",
+                "url": "https://api.testnet.paradex.trade/v1/system/config",
+                "input": [
+                    "1719212124880201703952790000"
+                ]
+            }
+        ],
+        "cancelAllOrders": [
+            {
+                "description": "cancelAllOrders",
+                "method": "cancelAllOrders",
+                "url": "https://api.testnet.paradex.trade/v1/system/config",
+                "input": [
+                    "BTC/USD:USDC"
+                ]
+            }
+        ],
+        "fetchOrder": [
+            {
+                "description": "fetchOrder",
+                "method": "fetchOrder",
+                "url": "https://api.testnet.paradex.trade/v1/system/config",
+                "input": [
+                    "1718941725080201704028870000",
+                    "BTC/USD:USDC"
+                ]
+            }
+        ],
+        "fetchOrders": [
+            {
+                "description": "fetchOrders",
+                "method": "fetchOrders",
+                "url": "https://api.testnet.paradex.trade/v1/system/config",
+                "input": [
+                    "BTC/USD:USDC",
+                    null,
+                    1
+                ]
+            }
+        ],
+        "fetchOpenOrders": [
+            {
+                "description": "fetchOpenOrders",
+                "method": "fetchOpenOrders",
+                "url": "https://api.testnet.paradex.trade/v1/system/config",
+                "input": [
+                    "BTC/USD:USDC",
+                    null,
+                    1
+                ]
+            }
+        ],
+        "fetchBalance": [
+            {
+                "description": "fetchBalance",
+                "method": "fetchBalance",
+                "url": "https://api.testnet.paradex.trade/v1/system/config",
+                "input": []
+            }
+        ],
+        "fetchMyTrades": [
+            {
+                "description": "fetchMyTrades",
+                "method": "fetchMyTrades",
+                "url": "https://api.testnet.paradex.trade/v1/system/config",
+                "input": [
+                    "BTC/USD:USDC"
+                ]
+            }
+        ],
+        "fetchPosition": [
+            {
+                "description": "fetchPosition",
+                "method": "fetchPosition",
+                "url": "https://api.testnet.paradex.trade/v1/system/config",
+                "input": [
+                    "BTC/USD:USDC"
+                ]
+            }
+        ],
+        "fetchPositions": [
+            {
+                "description": "fetchPositions",
+                "method": "fetchPositions",
+                "url": "https://api.testnet.paradex.trade/v1/system/config",
+                "input": [
+                    [
+                        "BTC/USD:USDC"
+                    ]
+                ]
+            }
+        ],
+        "fetchLiquidations": [
+            {
+                "description": "fetchLiquidations",
+                "method": "fetchLiquidations",
+                "url": "https://api.testnet.paradex.trade/v1/system/config",
+                "input": []
+            }
+        ],
+        "fetchDeposits": [
+            {
+                "description": "fetchDeposits",
+                "method": "fetchDeposits",
+                "url": "https://api.testnet.paradex.trade/v1/system/config",
+                "input": [
+                    "USDC"
+                ]
+            }
+        ],
+        "fetchWithdrawals": [
+            {
+                "description": "fetchWithdrawals",
+                "method": "fetchWithdrawals",
+                "url": "https://api.testnet.paradex.trade/v1/system/config",
+                "input": [
+                    "USDC"
+                ]
+            }
         ]
     }
 }
