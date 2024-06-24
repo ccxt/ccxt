@@ -20,7 +20,7 @@ class bigone extends bigone$1 {
             'name': 'BigONE',
             'countries': ['CN'],
             'version': 'v3',
-            'rateLimit': 1200,
+            'rateLimit': 20,
             'has': {
                 'CORS': undefined,
                 'spot': true,
