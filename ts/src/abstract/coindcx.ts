@@ -44,6 +44,9 @@ interface Exchange {
     privatePostExchangeV1MarginRemoveMargin (params?: {}): Promise<implicitReturnType>;
     privatePostExchangeV1MarginFetchOrders (params?: {}): Promise<implicitReturnType>;
     privatePostExchangeV1MarginOrder (params?: {}): Promise<implicitReturnType>;
+    privatePostExchangeV1DerivativesFuturesPositionsAddMargin (params?: {}): Promise<implicitReturnType>;
+    privatePostExchangeV1DerivativesFuturesPositionsRemoveMargin (params?: {}): Promise<implicitReturnType>;
+    privatePostExchangeV1DerivativesFuturesPositionsExit (params?: {}): Promise<implicitReturnType>;
 }
 abstract class Exchange extends _Exchange {}
 
