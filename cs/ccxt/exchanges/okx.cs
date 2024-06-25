@@ -403,6 +403,7 @@ public partial class okx : Exchange
                         { "sprd/cancel-order", 1 },
                         { "sprd/mass-cancel", 1 },
                         { "sprd/amend-order", 1 },
+                        { "sprd/cancel-all-after", 10 },
                         { "trade/order", divide(1, 3) },
                         { "trade/batch-orders", divide(1, 15) },
                         { "trade/cancel-order", divide(1, 3) },

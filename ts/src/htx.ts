@@ -3942,10 +3942,10 @@ export default class htx extends Exchange {
             'status': '0', // support multiple query seperated by ',',such as '3,4,5', 0: all. 3. Have sumbmitted the orders; 4. Orders partially matched; 5. Orders cancelled with partially matched; 6. Orders fully matched; 7. Orders cancelled;
         };
         let response = undefined;
-        const stop = this.safeValue (params, 'stop');
+        const stop = this.safeBool2 (params, 'stop', 'trigger');
         const stopLossTakeProfit = this.safeValue (params, 'stopLossTakeProfit');
         const trailing = this.safeBool (params, 'trailing', false);
-        params = this.omit (params, [ 'stop', 'stopLossTakeProfit', 'trailing' ]);
+        params = this.omit (params, [ 'stop', 'stopLossTakeProfit', 'trailing', 'trigger' ]);
         if (stop || stopLossTakeProfit || trailing) {
             if (limit !== undefined) {
                 request['page_size'] = limit;
@@ -4302,10 +4302,10 @@ export default class htx extends Exchange {
                 request['page_size'] = limit;
             }
             request['contract_code'] = market['id'];
-            const stop = this.safeValue (params, 'stop');
+            const stop = this.safeBool2 (params, 'stop', 'trigger');
             const stopLossTakeProfit = this.safeValue (params, 'stopLossTakeProfit');
             const trailing = this.safeBool (params, 'trailing', false);
-            params = this.omit (params, [ 'stop', 'stopLossTakeProfit', 'trailing' ]);
+            params = this.omit (params, [ 'stop', 'stopLossTakeProfit', 'trailing', 'trigger' ]);
             if (market['linear']) {
                 let marginMode = undefined;
                 [ marginMode, params ] = this.handleMarginModeAndParams ('fetchOpenOrders', params);
@@ -5630,10 +5630,10 @@ export default class htx extends Exchange {
             } else {
                 request['contract_code'] = market['id'];
             }
-            const stop = this.safeValue (params, 'stop');
+            const stop = this.safeBool2 (params, 'stop', 'trigger');
             const stopLossTakeProfit = this.safeValue (params, 'stopLossTakeProfit');
             const trailing = this.safeBool (params, 'trailing', false);
-            params = this.omit (params, [ 'stop', 'stopLossTakeProfit', 'trailing' ]);
+            params = this.omit (params, [ 'stop', 'stopLossTakeProfit', 'trailing', 'trigger' ]);
             if (market['linear']) {
                 let marginMode = undefined;
                 [ marginMode, params ] = this.handleMarginModeAndParams ('cancelOrder', params);
@@ -5775,9 +5775,9 @@ export default class htx extends Exchange {
             } else {
                 request['contract_code'] = market['id'];
             }
-            const stop = this.safeValue (params, 'stop');
+            const stop = this.safeBool2 (params, 'stop', 'trigger');
             const stopLossTakeProfit = this.safeValue (params, 'stopLossTakeProfit');
-            params = this.omit (params, [ 'stop', 'stopLossTakeProfit' ]);
+            params = this.omit (params, [ 'stop', 'stopLossTakeProfit', 'trigger' ]);
             if (market['linear']) {
                 let marginMode = undefined;
                 [ marginMode, params ] = this.handleMarginModeAndParams ('cancelOrders', params);
@@ -5922,10 +5922,10 @@ export default class htx extends Exchange {
                 request['symbol'] = market['settleId'];
             }
             request['contract_code'] = market['id'];
-            const stop = this.safeValue (params, 'stop');
+            const stop = this.safeBool2 (params, 'stop', 'trigger');
             const stopLossTakeProfit = this.safeValue (params, 'stopLossTakeProfit');
             const trailing = this.safeBool (params, 'trailing', false);
-            params = this.omit (params, [ 'stop', 'stopLossTakeProfit', 'trailing' ]);
+            params = this.omit (params, [ 'stop', 'stopLossTakeProfit', 'trailing', 'trigger' ]);
             if (market['linear']) {
                 let marginMode = undefined;
                 [ marginMode, params ] = this.handleMarginModeAndParams ('cancelAllOrders', params);

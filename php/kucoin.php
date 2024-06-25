@@ -2465,9 +2465,9 @@ class kucoin extends Exchange {
         $this->load_markets();
         $lowercaseStatus = strtolower($status);
         $until = $this->safe_integer($params, 'until');
-        $stop = $this->safe_bool($params, 'stop', false);
+        $stop = $this->safe_bool_2($params, 'stop', 'trigger', false);
         $hf = $this->safe_bool($params, 'hf', false);
-        $params = $this->omit($params, array( 'stop', 'hf', 'until' ));
+        $params = $this->omit($params, array( 'stop', 'hf', 'until', 'trigger' ));
         list($marginMode, $query) = $this->handle_margin_mode_and_params('fetchOrdersByStatus', $params);
         if ($lowercaseStatus === 'open') {
             $lowercaseStatus = 'active';
@@ -2637,7 +2637,7 @@ class kucoin extends Exchange {
         $this->load_markets();
         $request = array();
         $clientOrderId = $this->safe_string_2($params, 'clientOid', 'clientOrderId');
-        $stop = $this->safe_bool($params, 'stop', false);
+        $stop = $this->safe_bool_2($params, 'stop', 'trigger', false);
         $hf = $this->safe_bool($params, 'hf', false);
         $market = null;
         if ($symbol !== null) {
@@ -2649,7 +2649,7 @@ class kucoin extends Exchange {
             }
             $request['symbol'] = $market['id'];
         }
-        $params = $this->omit($params, array( 'stop', 'hf', 'clientOid', 'clientOrderId' ));
+        $params = $this->omit($params, array( 'stop', 'hf', 'clientOid', 'clientOrderId', 'trigger' ));
         $response = null;
         if ($clientOrderId !== null) {
             $request['clientOid'] = $clientOrderId;

@@ -85,6 +85,7 @@ export default class binance extends binanceRest {
                         'papi': 'wss://fstream.binance.com/pm/ws',
                     },
                 },
+                'doc': 'https://developers.binance.com/en',
             },
             'streaming': {
                 'keepAlive': 180000,
@@ -199,8 +200,8 @@ export default class binance extends binanceRest {
          * @method
          * @name binance#watchLiquidations
          * @description watch the public liquidations of a trading pair
-         * @see https://binance-docs.github.io/apidocs/futures/en/#liquidation-order-streams
-         * @see https://binance-docs.github.io/apidocs/delivery/en/#liquidation-order-streams
+         * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Liquidation-Order-Streams
+         * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/Liquidation-Order-Streams
          * @param {string} symbol unified CCXT market symbol
          * @param {int} [since] the earliest time in ms to fetch liquidations for
          * @param {int} [limit] the maximum number of liquidation structures to retrieve
@@ -215,8 +216,8 @@ export default class binance extends binanceRest {
          * @method
          * @name binance#watchLiquidationsForSymbols
          * @description watch the public liquidations of a trading pair
-         * @see https://binance-docs.github.io/apidocs/futures/en/#all-market-liquidation-order-streams
-         * @see https://binance-docs.github.io/apidocs/delivery/en/#all-market-liquidation-order-streams
+         * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/All-Market-Liquidation-Order-Streams
+         * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/All-Market-Liquidation-Order-Streams
          * @param {string} symbol unified CCXT market symbol
          * @param {int} [since] the earliest time in ms to fetch liquidations for
          * @param {int} [limit] the maximum number of liquidation structures to retrieve
@@ -422,8 +423,8 @@ export default class binance extends binanceRest {
          * @method
          * @name binance#watchMyLiquidations
          * @description watch the private liquidations of a trading pair
-         * @see https://binance-docs.github.io/apidocs/futures/en/#event-order-update
-         * @see https://binance-docs.github.io/apidocs/delivery/en/#event-order-update
+         * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/user-data-streams/Event-Order-Update
+         * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/user-data-streams/Event-Order-Update
          * @param {string} symbol unified CCXT market symbol
          * @param {int} [since] the earliest time in ms to fetch liquidations for
          * @param {int} [limit] the maximum number of liquidation structures to retrieve
@@ -438,8 +439,8 @@ export default class binance extends binanceRest {
          * @method
          * @name binance#watchMyLiquidationsForSymbols
          * @description watch the private liquidations of a trading pair
-         * @see https://binance-docs.github.io/apidocs/futures/en/#event-order-update
-         * @see https://binance-docs.github.io/apidocs/delivery/en/#event-order-update
+         * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/user-data-streams/Event-Order-Update
+         * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/user-data-streams/Event-Order-Update
          * @param {string} symbol unified CCXT market symbol
          * @param {int} [since] the earliest time in ms to fetch liquidations for
          * @param {int} [limit] the maximum number of liquidation structures to retrieve
@@ -653,7 +654,8 @@ export default class binance extends binanceRest {
          * @method
          * @name binance#fetchOrderBookWs
          * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-         * @see https://binance-docs.github.io/apidocs/futures/en/#order-book-2
+         * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-api#order-book
+         * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/websocket-api/Order-Book
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int} [limit] the maximum amount of order book entries to return
          * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -1314,7 +1316,6 @@ export default class binance extends binanceRest {
          * @method
          * @name binance#fetchTickerWs
          * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-         * @see https://binance-docs.github.io/apidocs/voptions/en/#24hr-ticker-price-change-statistics
          * @param {string} symbol unified symbol of the market to fetch the ticker for
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {string} [params.method] method to use can be ticker.price or ticker.book
@@ -1355,8 +1356,8 @@ export default class binance extends binanceRest {
         /**
          * @method
          * @name binance#fetchOHLCVWs
-         * @see https://binance-docs.github.io/apidocs/websocket_api/en/#klines
          * @description query historical candlestick data containing the open, high, low, and close price, and the volume of a market
+         * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-api#klines
          * @param {string} symbol unified symbol of the market to query OHLCV data for
          * @param {string} timeframe the length of time each candle represents
          * @param {int} since timestamp in ms of the earliest candle to fetch
@@ -1486,10 +1487,10 @@ export default class binance extends binanceRest {
         /**
          * @method
          * @name binance#watchBidsAsks
-         * @see https://binance-docs.github.io/apidocs/spot/en/#individual-symbol-book-ticker-streams
-         * @see https://binance-docs.github.io/apidocs/futures/en/#all-book-tickers-stream
-         * @see https://binance-docs.github.io/apidocs/delivery/en/#all-book-tickers-stream
          * @description watches best bid & ask for symbols
+         * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-api#symbol-order-book-ticker
+         * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/All-Book-Tickers-Stream
+         * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/All-Book-Tickers-Stream
          * @param {string[]} symbols unified symbol of the market to fetch the ticker for
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
@@ -1997,9 +1998,8 @@ export default class binance extends binanceRest {
          * @method
          * @name binance#fetchBalanceWs
          * @description fetch balance and get the amount of funds available for trading or funds locked in orders
-         * @see https://binance-docs.github.io/apidocs/websocket_api/en/#account-information-user_data
-         * @see https://binance-docs.github.io/apidocs/futures/en/#account-information-user_data
-         * @see https://binance-docs.github.io/apidocs/futures/en/#futures-account-balance-user_data
+         * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/account/websocket-api/Futures-Account-Balance
+         * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-api#account-information-user_data
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {string|undefined} [params.type] 'future', 'delivery', 'savings', 'funding', or 'spot'
          * @param {string|undefined} [params.marginMode] 'cross' or 'isolated', for margin trading, uses this.options.defaultMarginMode if not passed, defaults to undefined/None/null
@@ -2100,7 +2100,7 @@ export default class binance extends binanceRest {
         /**
          * @method
          * @name binance#fetchPositionWs
-         * @see https://binance-docs.github.io/apidocs/futures/en/#position-information-user_data
+         * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/websocket-api/Position-Information
          * @description fetch data on an open position
          * @param {string} symbol unified market symbol of the market the position is held in
          * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -2114,7 +2114,7 @@ export default class binance extends binanceRest {
          * @method
          * @name binance#fetchPositionsWs
          * @description fetch all open positions
-         * @see https://binance-docs.github.io/apidocs/futures/en/#position-information-user_data
+         * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/websocket-api/Position-Information
          * @param {string[]} [symbols] list of unified market symbols
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {boolean} [params.returnRateLimits] set to true to return rate limit informations, defaults to false.
@@ -2354,9 +2354,9 @@ export default class binance extends binanceRest {
         /**
          * @method
          * @name binance#createOrderWs
-         * @see https://binance-docs.github.io/apidocs/websocket_api/en/#place-new-order-trade
-         * @see https://binance-docs.github.io/apidocs/futures/en/#new-order-trade-2
          * @description create a trade order
+         * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-api#place-new-order-trade
+         * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/websocket-api/New-Order
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
@@ -2505,8 +2505,8 @@ export default class binance extends binanceRest {
          * @method
          * @name binance#editOrderWs
          * @description edit a trade order
-         * @see https://binance-docs.github.io/apidocs/websocket_api/en/#cancel-and-replace-order-trade
-         * @see https://binance-docs.github.io/apidocs/futures/en/#modify-order-trade-2
+         * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-api#cancel-and-replace-order-trade
+         * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/websocket-api/Modify-Order
          * @param {string} id order id
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {string} type 'market' or 'limit'
@@ -2660,9 +2660,9 @@ export default class binance extends binanceRest {
         /**
          * @method
          * @name binance#cancelOrderWs
-         * @see https://binance-docs.github.io/apidocs/websocket_api/en/#cancel-order-trade
-         * @see https://binance-docs.github.io/apidocs/futures/en/#cancel-order-trade-2
          * @description cancel multiple orders
+         * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-api#cancel-order-trade
+         * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/websocket-api/Cancel-Order
          * @param {string} id order id
          * @param {string} symbol unified market symbol, default is undefined
          * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -2706,8 +2706,8 @@ export default class binance extends binanceRest {
         /**
          * @method
          * @name binance#cancelAllOrdersWs
-         * @see https://binance-docs.github.io/apidocs/websocket_api/en/#current-open-orders-user_data
          * @description cancel all open orders in a market
+         * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-api#cancel-open-orders-trade
          * @param {string} symbol unified market symbol of the market to cancel orders in
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -2742,9 +2742,9 @@ export default class binance extends binanceRest {
         /**
          * @method
          * @name binance#fetchOrderWs
-         * @see https://binance-docs.github.io/apidocs/websocket_api/en/#query-order-user_data
-         * @see https://binance-docs.github.io/apidocs/futures/en/#query-order-user_data-2
          * @description fetches information on an order made by the user
+         * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-api#query-order-user_data
+         * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/websocket-api/Query-Order
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} params extra parameters specific to the exchange API endpoint
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -2788,8 +2788,8 @@ export default class binance extends binanceRest {
         /**
          * @method
          * @name binance#fetchOrdersWs
-         * @see https://binance-docs.github.io/apidocs/websocket_api/en/#account-order-history-user_data
          * @description fetches information on multiple orders made by the user
+         * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-api#query-order-list-user_data
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int|undefined} [since] the earliest time in ms to fetch orders for
          * @param {int|undefined} [limit] the maximum number of order structures to retrieve
@@ -2834,8 +2834,8 @@ export default class binance extends binanceRest {
         /**
          * @method
          * @name binance#fetchClosedOrdersWs
-         * @see https://binance-docs.github.io/apidocs/websocket_api/en/#account-order-history-user_data
          * @description fetch closed orders
+         * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-api#query-order-list-user_data
          * @param {string} symbol unified market symbol
          * @param {int} [since] the earliest time in ms to fetch open orders for
          * @param {int} [limit] the maximum number of open orders structures to retrieve
@@ -2857,8 +2857,8 @@ export default class binance extends binanceRest {
         /**
          * @method
          * @name binance#fetchOpenOrdersWs
-         * @see https://binance-docs.github.io/apidocs/websocket_api/en/#current-open-orders-user_data
          * @description fetch all unfilled currently open orders
+         * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-api#current-open-orders-user_data
          * @param {string} symbol unified market symbol
          * @param {int|undefined} [since] the earliest time in ms to fetch open orders for
          * @param {int|undefined} [limit] the maximum number of open orders structures to retrieve
@@ -2899,9 +2899,9 @@ export default class binance extends binanceRest {
          * @method
          * @name binance#watchOrders
          * @description watches information on multiple orders made by the user
-         * @see https://binance-docs.github.io/apidocs/spot/en/#payload-order-update
-         * @see https://binance-docs.github.io/apidocs/pm/en/#event-futures-order-update
-         * @see https://binance-docs.github.io/apidocs/pm/en/#event-margin-order-update
+         * @see https://developers.binance.com/docs/binance-spot-api-docs/user-data-stream#order-update
+         * @see https://developers.binance.com/docs/margin_trading/trade-data-stream/Event-Order-Update
+         * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/user-data-streams/Event-Order-Update
          * @param {string} symbol unified market symbol of the market the orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
          * @param {int} [limit] the maximum number of order structures to retrieve
@@ -3424,8 +3424,8 @@ export default class binance extends binanceRest {
         /**
          * @method
          * @name binance#fetchMyTradesWs
-         * @see https://binance-docs.github.io/apidocs/websocket_api/en/#account-trade-history-user_data
          * @description fetch all trades made by the user
+         * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-api#account-trade-history-user_data
          * @param {string} symbol unified market symbol
          * @param {int|undefined} [since] the earliest time in ms to fetch trades for
          * @param {int|undefined} [limit] the maximum number of trades structures to retrieve
@@ -3478,8 +3478,8 @@ export default class binance extends binanceRest {
         /**
          * @method
          * @name binance#fetchTradesWs
-         * @see https://binance-docs.github.io/apidocs/websocket_api/en/#recent-trades
          * @description fetch all trades made by the user
+         * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-api#recent-trades
          * @param {string} symbol unified market symbol
          * @param {int} [since] the earliest time in ms to fetch trades for
          * @param {int} [limit] the maximum number of trades structures to retrieve, default=500, max=1000
