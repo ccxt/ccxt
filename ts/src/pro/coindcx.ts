@@ -69,7 +69,6 @@ export default class coindcx extends coindcxRest {
          * @param {int} [since] the earliest time in ms to fetch orders for
          * @param {int} [limit] the maximum number of trade structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {int|string} [params.tag] If given it will be echoed in the reply and the max size of tag is 32
          * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
          */
         await this.loadMarkets ();
