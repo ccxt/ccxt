@@ -2,7 +2,7 @@
 
 import kucoinfuturesRest from '../kucoinfutures.js';
 import { ExchangeError, ArgumentsRequired } from '../base/errors.js';
-import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
+import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp, ArrayCacheBySymbolBySide } from '../base/ws/Cache.js';
 import type { Int, Str, OrderBook, Order, Trade, Ticker, Balances, Position, Strings, Tickers, OHLCV, Dict } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
@@ -26,8 +26,8 @@ export default class kucoinfutures extends kucoinfuturesRest {
                 'watchOrders': true,
                 'watchBalance': true,
                 'watchPosition': true,
-                'watchPositions': false,
-                'watchPositionForSymbols': false,
+                'watchPositions': true,
+                'watchPositionForSymbols': true,
                 'watchTradesForSymbols': true,
                 'watchOrderBookForSymbols': true,
             },
@@ -68,6 +68,10 @@ export default class kucoinfutures extends kucoinfuturesRest {
                 'watchPosition': {
                     'fetchPositionSnapshot': true, // or false
                     'awaitPositionSnapshot': true, // whether to wait for the position snapshot before providing updates
+                },
+                'watchPositions': {
+                    'fetchPositionsSnapshot': true, // or false
+                    'awaitPositionsSnapshot': true, // whether to wait for the position snapshot before providing updates
                 },
             },
             'streaming': {
@@ -359,11 +363,11 @@ export default class kucoinfutures extends kucoinfuturesRest {
         const request: Dict = {
             'privateChannel': true,
         };
-        const messageHash = 'position:' + market['symbol'];
+        const messageHash = 'position::' + market['symbol'];
         const client = this.client (url);
         this.setPositionCache (client, symbol);
-        const fetchPositionSnapshot = this.handleOption ('watchPosition', 'fetchPositionSnapshot', true);
-        const awaitPositionSnapshot = this.safeBool ('watchPosition', 'awaitPositionSnapshot', true);
+        const fetchPositionSnapshot = this.handleOptionAndParams (params, 'watchPosition', 'fetchPositionSnapshot', true);
+        const awaitPositionSnapshot = this.handleOptionAndParams (params, 'watchPosition', 'awaitPositionSnapshot', true);
         const currentPosition = this.getCurrentPosition (symbol);
         if (fetchPositionSnapshot && awaitPositionSnapshot && currentPosition === undefined) {
             const snapshot = await client.future ('fetchPositionSnapshot:' + symbol);
@@ -376,8 +380,9 @@ export default class kucoinfutures extends kucoinfuturesRest {
         if (this.positions === undefined) {
             return undefined;
         }
-        const cache = this.positions.hashmap;
-        const symbolCache = this.safeValue (cache, symbol, {});
+        const cache = this.positions;
+        const positionsHashMap = cache.hashmap;
+        const symbolCache = this.safeValue (positionsHashMap, symbol, {});
         const values = Object.values (symbolCache);
         return this.safeValue (values, 0);
     }
@@ -395,13 +400,79 @@ export default class kucoinfutures extends kucoinfuturesRest {
 
     async loadPositionSnapshot (client, messageHash, symbol) {
         const position = await this.fetchPosition (symbol);
-        this.positions = new ArrayCacheBySymbolById ();
+        if (this.positions === undefined) {
+            this.positions = new ArrayCacheBySymbolBySide (undefined, false);
+        }
         const cache = this.positions;
         cache.append (position);
         // don't remove the future from the .futures cache
         const future = client.futures[messageHash];
         future.resolve (cache);
-        client.resolve (position, 'position:' + symbol);
+        client.resolve (position, 'position::' + symbol);
+    }
+
+    async watchPositions (symbols: Strings = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Position[]> {
+        /**
+         * @method
+         * @name kucoinfutures#watchPositions
+         * @description watch open positions for all symbols or a set of symbols
+         * @see https://www.kucoin.com/docs/websocket/futures-trading/private-channels/all-position-change-events
+         * @param {string[]|undefined} symbols list of unified market symbols
+         * @param {object} params extra parameters specific to the exchange API endpoint
+         * @returns {object} a [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
+         */
+        await this.loadMarkets ();
+        const url = await this.negotiate (true);
+        symbols = this.marketSymbols (symbols, undefined, true, true, false);
+        const topic = '/contract/positionAll';
+        let messageHash = 'position';
+        const request = {
+            'privateChannel': true,
+        };
+        if (!this.isEmpty (symbols)) {
+            messageHash = '::' + symbols.join (',');
+        }
+        const client = this.client (url);
+        this.setPositionsCache (client);
+        const fetchPositionsSnapshot = this.handleOptionAndParams (params, 'watchPositions', 'fetchPositionsSnapshot', true);
+        const awaitPositionsSnapshot = this.handleOptionAndParams (params, 'watchPositions', 'awaitPositionsSnapshot', true);
+        const hasReturnedPositionsSnapshot = this.safeBool (this.options, 'hasReturnedPositionsSnapshot', false);
+        if (fetchPositionsSnapshot && awaitPositionsSnapshot && !hasReturnedPositionsSnapshot) {
+            const snapshot = await client.future ('fetchPositionsSnapshot');
+            this.options['hasReturnedPositionsSnapshot'] = true;
+            return this.filterBySymbolsSinceLimit (snapshot, symbols, since, limit, true);
+        }
+        const newPosition = await this.subscribe (url, messageHash, topic, undefined, this.extend (request, params));
+        if (this.newUpdates) {
+            return this.filterBySymbolsSinceLimit ([ newPosition ], symbols, since, limit, true);
+        }
+        return this.filterBySymbolsSinceLimit (this.positions, symbols, since, limit, true);
+    }
+
+    setPositionsCache (client: Client) {
+        const fetchPositionsSnapshot = this.handleOption ('watchPositions', 'fetchPositionsSnapshot', false);
+        if (fetchPositionsSnapshot) {
+            const messageHash = 'fetchPositionsSnapshot';
+            if (!(messageHash in client.futures)) {
+                client.future (messageHash);
+                this.spawn (this.loadPositionsSnapshot, client, messageHash);
+            }
+        }
+    }
+
+    async loadPositionsSnapshot (client, messageHash) {
+        const positions = await this.fetchPositions ();
+        if (this.positions === undefined) {
+            this.positions = new ArrayCacheBySymbolBySide (undefined, false);
+        }
+        const cache = this.positions;
+        for (let i = 0; i < positions.length; i++) {
+            cache.append (positions[i]);
+        }
+        // don't remove the future from the .futures cache
+        const future = client.futures[messageHash];
+        future.resolve (cache);
+        client.resolve (this.positions, 'position');
     }
 
     handlePosition (client: Client, message) {
@@ -499,13 +570,17 @@ export default class kucoinfutures extends kucoinfuturesRest {
         //
         const topic = this.safeString (message, 'topic', '');
         const parts = topic.split (':');
-        const marketId = this.safeString (parts, 1);
-        const symbol = this.safeSymbol (marketId, undefined, '');
+        const marketIdFromTopic = this.safeString (parts, 1);
         const cache = this.positions;
-        const currentPosition = this.getCurrentPosition (symbol);
-        const messageHash = 'position:' + symbol;
         const data = this.safeValue (message, 'data', {});
-        const newPosition = this.parsePosition (data);
+        const marketId = this.safeString (data, 'symbol', marketIdFromTopic);
+        const symbol = this.safeSymbol (marketId, undefined, '');
+        const market = this.safeMarket (marketId);
+        let currentPosition = this.getCurrentPosition (symbol);
+        if (currentPosition === undefined) {
+            currentPosition = {};
+        }
+        const newPosition = this.parsePosition (data, market);
         const keys = Object.keys (newPosition);
         for (let i = 0; i < keys.length; i++) {
             const key = keys[i];
@@ -514,8 +589,10 @@ export default class kucoinfutures extends kucoinfuturesRest {
             }
         }
         const position = this.extend (currentPosition, newPosition);
+        const messageHash = 'position::' + symbol;
         cache.append (position);
         client.resolve (position, messageHash);
+        client.resolve (position, 'position');
     }
 
     async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {

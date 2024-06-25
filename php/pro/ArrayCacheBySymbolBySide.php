@@ -5,17 +5,27 @@ namespace ccxt\pro;
 class ArrayCacheBySymbolBySide extends ArrayCache {
     public $hashmap;
     private $index;
+    private $hedged;
 
-    public function __construct($max_size = null) {
+    public function __construct($max_size = null, $hedged = True) {
         parent::__construct($max_size);
         $this->nested_new_updates_by_symbol = true;
         $this->hashmap = array();
         $this->index = array();
+        $this->hedged = $hedged;
     }
 
     public function append($item) {
         if (array_key_exists($item['symbol'], $this->hashmap)) {
             $by_side = &$this->hashmap[$item['symbol']];
+            if ($this->hedged) {
+                $side_to_reset = $by_side == 'long' ?  'short' : 'long';
+                if (array_key_exists($side_to_reset, $by_side)) {
+                    $index = array_search($item['symbol'] . $side_to_reset, $this->index);
+                    array_splice ($this->index, $index, 1);
+                    array_splice ($this->deque, $index, 1);
+                }
+            }
         } else {
             $by_side = array();
             $this->hashmap[$item['symbol']] = &$by_side;
@@ -25,7 +35,7 @@ class ArrayCacheBySymbolBySide extends ArrayCache {
             # updates the reference
             $prev_ref = $item;
             $item = &$prev_ref;
-            $index = array_search($item['side'], $this->index);
+            $index = array_search($item['symbol'] . $item['side'], $this->index);
             array_splice($this->index, $index, 1);
             array_splice($this->deque, $index, 1);
         } else {
@@ -38,7 +48,7 @@ class ArrayCacheBySymbolBySide extends ArrayCache {
         }
         # this allows us to effectively pass by reference
         $this->deque[] = &$item;
-        $this->index[] = $item['side'];
+        $this->index[] = $item['symbol'] . $item['side'];
         if ($this->clear_all_updates) {
             $this->clear_all_updates = false;
             $this->clear_updates_by_symbol = array();
