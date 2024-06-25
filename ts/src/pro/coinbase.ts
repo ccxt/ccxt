@@ -725,7 +725,7 @@ export default class coinbase extends coinbaseRest {
     }
 
     handleHeartbeats (client, message) {
-        // although the subscription takes a product_ids parameter (i.e. symbol), 
+        // although the subscription takes a product_ids parameter (i.e. symbol),
         // there is no (clear) way of mapping the message back to the symbol.
         //
         //     {
