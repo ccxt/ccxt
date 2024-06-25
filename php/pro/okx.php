@@ -107,7 +107,7 @@ class okx extends \ccxt\async\okx {
                 // okex does not support built-in ws protocol-level ping-pong
                 // instead it requires a custom text-based ping-pong
                 'ping' => array($this, 'ping'),
-                'keepAlive' => 20000,
+                'keepAlive' => 18000,
             ),
         ));
     }

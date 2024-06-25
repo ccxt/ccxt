@@ -99,7 +99,7 @@ class okx extends okx$1 {
                 // okex does not support built-in ws protocol-level ping-pong
                 // instead it requires a custom text-based ping-pong
                 'ping': this.ping,
-                'keepAlive': 20000,
+                'keepAlive': 18000,
             },
         });
     }

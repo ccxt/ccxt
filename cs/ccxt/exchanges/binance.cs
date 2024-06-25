@@ -11722,11 +11722,11 @@ public partial class binance : Exchange
                     object origclientorderidlistLength = getArrayLength(origclientorderidlist);
                     if (isTrue(isGreaterThan(orderidlistLength, 0)))
                     {
-                        query = add(add(add(add(query, "&"), "orderidlist=["), String.Join(",", ((IList<object>)orderidlist).ToArray())), "]");
+                        query = add(add(add(add(query, "&"), "orderidlist=%5B"), String.Join("%2C", ((IList<object>)orderidlist).ToArray())), "%5D");
                     }
                     if (isTrue(isGreaterThan(origclientorderidlistLength, 0)))
                     {
-                        query = add(add(add(add(query, "&"), "origclientorderidlist=["), String.Join(",", ((IList<object>)origclientorderidlist).ToArray())), "]");
+                        query = add(add(add(add(query, "&"), "origclientorderidlist=%5B"), String.Join("%2C", ((IList<object>)origclientorderidlist).ToArray())), "%5D");
                     }
                 } else
                 {
