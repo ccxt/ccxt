@@ -184,7 +184,7 @@ class ArrayCacheBySymbolBySide(ArrayCache):
             side_to_reset = 'long' if item['side'] == 'short' else 'short'
             if side_to_reset in by_side:
                 del by_side[side_to_reset]
-                index = self._index.index(tem['symbol'] + side_to_reset)
+                index = self._index.index(item['symbol'] + side_to_reset)
                 del self._deque[index]
                 del self._index[index]
         if item['side'] in by_side:
