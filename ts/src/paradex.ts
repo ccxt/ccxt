@@ -688,8 +688,9 @@ export default class paradex extends Exchange {
         const priceString = this.safeString (trade, 'price');
         const amountString = this.safeString (trade, 'size');
         const side = this.safeString (trade, 'side');
-        const liability = this.safeString (trade, 'liquidity', 'taker');
-        const takerOrMaker = (liability.toLowerCase () === 'taker') ? 'taker' : 'maker';
+        const liability = this.safeStringLower (trade, 'liquidity', 'taker');
+        const isTaker = liability === 'taker';
+        const takerOrMaker = (isTaker) ? 'taker' : 'maker';
         const currencyId = this.safeString (trade, 'fee_currency');
         const code = this.safeCurrencyCode (currencyId);
         return this.safeTrade ({
@@ -1057,7 +1058,8 @@ export default class paradex extends Exchange {
     }
 
     convertShortString (str: string) {
-        return '0x' + str.replace (/./g, (char) => char.charCodeAt (0).toString (16));
+        // TODO: add stringToBase16 in exchange
+        return '0x' + this.binaryToBase16 (this.base64ToBinary (this.stringToBase64 (str)));
     }
 
     scaleNumber (num: string) {
