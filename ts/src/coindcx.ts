@@ -5,7 +5,7 @@ import Exchange from './abstract/coindcx.js';
 import { ArgumentsRequired, NotSupported } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { Balances, Dict, IndexType, Int, MarginModification, Market, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade } from './base/types.js';
+import type { Balances, Dict, IndexType, Int, MarginModification, Market, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -2044,6 +2044,221 @@ export default class coindcx extends Exchange {
         }
     }
 
+    async fetchPositionsHistory (symbols: Strings = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Position[]> {
+        /**
+         * @method
+         * @name coindcx#fetchPositionsHistory
+         * @description *spot margin markets only* fetches historical positions
+         * @see https://docs.coindcx.com/#query-order
+         * @param {string[]} [symbols] unified contract symbols
+         * @param {int} [since] timestamp in ms of the earliest position to fetch, default=3 months ago, max range for params["until"] - since is 3 months
+         * @param {int} [limit] the maximum amount of records to fetch, default 10
+         * @param {object} [params] extra parameters specific to the exchange api endpoint
+         * @param {bool} [params.details] whether you want detailed information or not, default: false
+         * @param {string} [params.status] init, open, close, rejected, cancelled, partial_entry, partial_close or triggered - the status of the order (position), default: all
+         * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
+         */
+        await this.loadMarkets ();
+        const request: Dict = {};
+        let marketType = 'spot';
+        if (symbols !== undefined) {
+            const symbolsLength = symbols.length;
+            if (symbolsLength > 0) {
+                const market = this.market (symbols[0]);
+                marketType = this.safeString (market, 'type', marketType);
+            }
+        }
+        if (marketType !== 'spot') {
+            throw new NotSupported (this.id + ' fetchPositionsHistory() supports only spot markets with margin');
+        }
+        if (limit !== undefined) {
+            request['size'] = limit;
+        }
+        const response = await this.privatePostExchangeV1MarginFetchOrders (this.extend (request, params));
+        //
+        //     [
+        //         {
+        //             "id": "ae077a5e-2cf4-11ef-8851-77a95a586a3a",
+        //             "side": "buy",
+        //             "status": "close",
+        //             "market": "ETHUSDT",
+        //             "order_type": "market_order",
+        //             "base_currency_name": null,
+        //             "target_currency_name": null,
+        //             "base_currency_short_name": null,
+        //             "target_currency_short_name": null,
+        //             "base_currency_precision": null,
+        //             "target_currency_precision": null,
+        //             "trailing_sl": false,
+        //             "trail_percent": null,
+        //             "avg_entry": 3525.41,
+        //             "avg_exit": 3522.87,
+        //             "maker_fee": 0.1,
+        //             "taker_fee": 0.1,
+        //             "fee": 0.1,
+        //             "entry_fee": 0.01057623,
+        //             "exit_fee": 0.01056861,
+        //             "active_pos": 0.0,
+        //             "exit_pos": 0.003,
+        //             "total_pos": 0.003,
+        //             "quantity": 0.003,
+        //             "price": 3525.41,
+        //             "sl_price": 704.5,
+        //             "target_price": 0.0,
+        //             "stop_price": 0.0,
+        //             "pnl": -0.02876484,
+        //             "initial_margin": 0.0,
+        //             "interest": 0.0667,
+        //             "interest_amount": 0.0,
+        //             "interest_amount_updated_at": 0,
+        //             "interest_free_hours": 1.0,
+        //             "leverage": 1.0,
+        //             "result": "exit",
+        //             "tds_amount": 0.0,
+        //             "margin_tds_records": [],
+        //             "created_at": 1718661487503,
+        //             "updated_at": 1718661890487,
+        //             "orders": [
+        //                 {
+        //                     "id": 104528544,
+        //                     "order_type": "market_order",
+        //                     "status": "filled",
+        //                     "market": "ETHUSDT",
+        //                     "side": "sell",
+        //                     "avg_price": 3522.87,
+        //                     "total_quantity": 0.003,
+        //                     "remaining_quantity": 0.0,
+        //                     "price_per_unit": 0.0,
+        //                     "timestamp": 1718661890114.6968,
+        //                     "maker_fee": 0.1,
+        //                     "taker_fee": 0.1,
+        //                     "fee": 0.1,
+        //                     "fee_amount": 0.01056861,
+        //                     "filled_quantity": 0.003,
+        //                     "bo_stage": "stage_exit",
+        //                     "cancelled_quantity": 0.0,
+        //                     "stop_price": null
+        //                 },
+        //                 ...
+        //             ]
+        //         },
+        //         ...
+        //     ]
+        //
+        const positions = this.parsePositions (response, symbols);
+        return this.filterBySinceLimit (positions, since, limit);
+    }
+
+    parsePosition (position: Dict, market: Market = undefined) {
+        //
+        // fetchPositionsHistory
+        //     {
+        //         "id": "ae077a5e-2cf4-11ef-8851-77a95a586a3a",
+        //         "side": "buy",
+        //         "status": "close",
+        //         "market": "ETHUSDT",
+        //         "order_type": "market_order",
+        //         "base_currency_name": null,
+        //         "target_currency_name": null,
+        //         "base_currency_short_name": null,
+        //         "target_currency_short_name": null,
+        //         "base_currency_precision": null,
+        //         "target_currency_precision": null,
+        //         "trailing_sl": false,
+        //         "trail_percent": null,
+        //         "avg_entry": 3525.41,
+        //         "avg_exit": 3522.87,
+        //         "maker_fee": 0.1,
+        //         "taker_fee": 0.1,
+        //         "fee": 0.1,
+        //         "entry_fee": 0.01057623,
+        //         "exit_fee": 0.01056861,
+        //         "active_pos": 0.0,
+        //         "exit_pos": 0.003,
+        //         "total_pos": 0.003,
+        //         "quantity": 0.003,
+        //         "price": 3525.41,
+        //         "sl_price": 704.5,
+        //         "target_price": 0.0,
+        //         "stop_price": 0.0,
+        //         "pnl": -0.02876484,
+        //         "initial_margin": 0.0,
+        //         "interest": 0.0667,
+        //         "interest_amount": 0.0,
+        //         "interest_amount_updated_at": 0,
+        //         "interest_free_hours": 1.0,
+        //         "leverage": 1.0,
+        //         "result": "exit",
+        //         "tds_amount": 0.0,
+        //         "margin_tds_records": [],
+        //         "created_at": 1718661487503,
+        //         "updated_at": 1718661890487,
+        //         "orders": [
+        //             {
+        //                 "id": 104528544,
+        //                 "order_type": "market_order",
+        //                 "status": "filled",
+        //                 "market": "ETHUSDT",
+        //                 "side": "sell",
+        //                 "avg_price": 3522.87,
+        //                 "total_quantity": 0.003,
+        //                 "remaining_quantity": 0.0,
+        //                 "price_per_unit": 0.0,
+        //                 "timestamp": 1718661890114.6968,
+        //                 "maker_fee": 0.1,
+        //                 "taker_fee": 0.1,
+        //                 "fee": 0.1,
+        //                 "fee_amount": 0.01056861,
+        //                 "filled_quantity": 0.003,
+        //                 "bo_stage": "stage_exit",
+        //                 "cancelled_quantity": 0.0,
+        //                 "stop_price": null
+        //             },
+        //             ...
+        //         ]
+        //     }
+        //
+        const marketId = this.safeString2 (position, 'market', 'pair');
+        market = this.safeMarket (marketId, market);
+        const symbol = market['symbol'];
+        const timestamp = this.safeInteger2 (position, 'created_at', 'updated_at');
+        const initialMargin = this.safeString (position, 'initial_margin');
+        const side = this.parsePositionSide (this.safeString (position, 'side'));
+        const leverage = this.safeString (position, 'leverage');
+        const baseAmount = this.safeString (position, 'quantity');
+        const entryPrice = this.safeString (position, 'avg_entry');
+        return this.safePosition ({
+            'id': this.safeString (position, 'id'),
+            'symbol': symbol,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'notional': undefined, // todo check
+            'marginMode': 'cross', // todo check
+            'liquidationPrice': undefined, // todo check
+            'entryPrice': this.parseNumber (entryPrice),
+            'unrealizedPnl': undefined, // todo check
+            'realizedPnl': this.safeNumber (position, 'pnl'),
+            'percentage': undefined, // todo check
+            'contracts': this.parseNumber (baseAmount), // todo check
+            'contractSize': 1, // todo check
+            'markPrice': undefined, // todo check
+            'lastPrice': this.safeNumber (position, 'avg_exit'),
+            'side': side,
+            'hedged': false, // todo check
+            'lastUpdateTimestamp': this.safeInteger (position, 'updated_at'),
+            'maintenanceMargin': undefined, // todo check
+            'maintenanceMarginPercentage': undefined, // todo check
+            'collateral': undefined, // todo check
+            'initialMargin': this.parseNumber (initialMargin),
+            'initialMarginPercentage': undefined, // todo check
+            'leverage': this.parseNumber (leverage),
+            'marginRatio': undefined, // todo check
+            'stopLossPrice': undefined, // todo check
+            'takeProfitPrice': undefined, // todo check
+            'info': position,
+        });
+    }
+
     async closePosition (symbol: string, side: OrderSide = undefined, params = {}): Promise<Order> {
         /**
          * @method
@@ -2072,6 +2287,14 @@ export default class coindcx extends Exchange {
         } else {
             throw new NotSupported (this.id + ' closePosition() does not support ' + market['type'] + ' markets');
         }
+    }
+
+    parsePositionSide (side) {
+        const sides = {
+            'buy': 'long',
+            'sell': 'short',
+        };
+        return this.safeString (sides, side, side);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
