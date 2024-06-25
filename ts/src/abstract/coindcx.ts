@@ -14,9 +14,12 @@ interface Exchange {
     public1GetExchangeV1MarketsDetails (params?: {}): Promise<implicitReturnType>;
     public1GetExchangeV1DerivativesFuturesDataActiveInstruments (params?: {}): Promise<implicitReturnType>;
     public1GetExchangeV1DerivativesFuturesDataInstrument (params?: {}): Promise<implicitReturnType>;
+    public1GetExchangeV1DerivativesFuturesDataTrades (params?: {}): Promise<implicitReturnType>;
     public2GetMarketDataTradeHistory (params?: {}): Promise<implicitReturnType>;
     public2GetMarketDataOrderbook (params?: {}): Promise<implicitReturnType>;
     public2GetMarketDataCandles (params?: {}): Promise<implicitReturnType>;
+    public2GetMarketDataV3OrderbookPairFuturesLimit (params?: {}): Promise<implicitReturnType>;
+    public2GetMarketDataCandlesticks (params?: {}): Promise<implicitReturnType>;
     privatePostExchangeV1UsersBalances (params?: {}): Promise<implicitReturnType>;
     privatePostExchangeV1UsersInfo (params?: {}): Promise<implicitReturnType>;
     privatePostExchangeV1OrdersCreate (params?: {}): Promise<implicitReturnType>;
@@ -44,9 +47,18 @@ interface Exchange {
     privatePostExchangeV1MarginRemoveMargin (params?: {}): Promise<implicitReturnType>;
     privatePostExchangeV1MarginFetchOrders (params?: {}): Promise<implicitReturnType>;
     privatePostExchangeV1MarginOrder (params?: {}): Promise<implicitReturnType>;
+    privatePostExchangeV1DerivativesFuturesOrders (params?: {}): Promise<implicitReturnType>;
+    privatePostExchangeV1DerivativesFuturesOrdersCreate (params?: {}): Promise<implicitReturnType>;
+    privatePostExchangeV1DerivativesFuturesOrdersCancel (params?: {}): Promise<implicitReturnType>;
+    privatePostExchangeV1DerivativesFuturesPositions (params?: {}): Promise<implicitReturnType>;
     privatePostExchangeV1DerivativesFuturesPositionsAddMargin (params?: {}): Promise<implicitReturnType>;
     privatePostExchangeV1DerivativesFuturesPositionsRemoveMargin (params?: {}): Promise<implicitReturnType>;
+    privatePostExchangeV1DerivativesFuturesPositionsCancelAllOpenOrders (params?: {}): Promise<implicitReturnType>;
+    privatePostExchangeV1DerivativesFuturesPositionsCancelAllOpenOrdersForPosition (params?: {}): Promise<implicitReturnType>;
     privatePostExchangeV1DerivativesFuturesPositionsExit (params?: {}): Promise<implicitReturnType>;
+    privatePostExchangeV1DerivativesFuturesPositionsCreateTpsl (params?: {}): Promise<implicitReturnType>;
+    privatePostExchangeV1DerivativesFuturesPositionsTransactions (params?: {}): Promise<implicitReturnType>;
+    privatePostExchangeV1DerivativesFuturesTrades (params?: {}): Promise<implicitReturnType>;
 }
 abstract class Exchange extends _Exchange {}
 
