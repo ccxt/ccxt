@@ -5,7 +5,7 @@ import Exchange from './abstract/coindcx.js';
 import { ArgumentsRequired, NotSupported } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { Balances, Bool, Dict, IndexType, Int, MarginModification, Market, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade } from './base/types.js';
+import type { Balances, Bool, Dict, IndexType, Int, List, MarginModification, Market, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -171,7 +171,7 @@ export default class coindcx extends Exchange {
                         'market_data/trade_history': 1, // done
                         'market_data/orderbook': 1, // done
                         'market_data/candles': 1, // done
-                        'market_data/v3/orderbook/{instrument}-futures/{limit}': 1,
+                        'market_data/v3/orderbook/{pair}-futures/{limit}': 1,
                         'market_data/candlesticks': 1,
                     },
                 },
@@ -482,7 +482,8 @@ export default class coindcx extends Exchange {
         if (active === 'active') {
             isActive = true;
         }
-        const is_inverse = this.safeBool (market, 'is_inverse');
+        const isInverse = this.safeBool (market, 'is_inverse');
+        const isLinear = isSpot ? undefined : (!isInverse);
         return {
             'id': marketId,
             'symbol': symbol,
@@ -500,8 +501,8 @@ export default class coindcx extends Exchange {
             'option': false,
             'active': isActive,
             'contract': (!isSpot),
-            'linear': (!is_inverse),
-            'inverse': is_inverse,
+            'linear': isLinear,
+            'inverse': isInverse,
             'contractSize': this.safeNumber (market, 'unit_contract_value'),
             'expiry': expiry,
             'expiryDatetime': this.iso8601 (expiry),
@@ -677,7 +678,7 @@ export default class coindcx extends Exchange {
          * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @see https://docs.coindcx.com/#order-book
          * @param {string} symbol unified symbol of the market to fetch the order book for
-         * @param {int} [limit] the maximum amount of order book entries to return (not used by coindcx)
+         * @param {int} [limit] *for contract markets only* the maximum amount of order book entries to return (10, 20 or 50)
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
          */
@@ -688,37 +689,53 @@ export default class coindcx extends Exchange {
         const request: Dict = {
             'pair': pair,
         };
-        const response = await this.public2GetMarketDataOrderbook (this.extend (request, params));
-        //
-        //     {
-        //         "timestamp": 1717694482206,
-        //         "asks":
-        //         {
-        //             "71198.00": "7.630",
-        //             "71198.10": "0.116",
-        //             "71198.40": "0.069",
-        //             "71198.50": "0.056",
-        //             "71198.70": "0.046",
-        //             "71198.80": "0.258",
-        //             "71198.90": "0.095",
-        //             "71199.00": "0.324",
-        //             ...
-        //         },
-        //         "bids":
-        //         {
-        //             "71197.90": "8.563",
-        //             "71197.80": "0.011",
-        //             "71196.80": "0.561",
-        //             "71196.70": "0.892",
-        //             "71196.60": "0.019",
-        //             "71196.30": "0.100",
-        //             "71196.10": "0.007",
-        //             "71196.00": "0.002",
-        //             ...
-        //         }
-        //     }
-        //
-        const timestamp = this.safeInteger (response, 'timestamp');
+        let response: Dict = undefined;
+        if (market['spot']) {
+            response = await this.public2GetMarketDataOrderbook (this.extend (request, params));
+            //
+            //     {
+            //         "timestamp": 1717694482206,
+            //         "asks":
+            //         {
+            //             "71198.00": "7.630",
+            //             "71198.10": "0.116",
+            //             "71198.40": "0.069",
+            //             "71198.50": "0.056",
+            //             "71198.70": "0.046",
+            //             "71198.80": "0.258",
+            //             "71198.90": "0.095",
+            //             "71199.00": "0.324",
+            //             ...
+            //         },
+            //         "bids":
+            //         {
+            //             "71197.90": "8.563",
+            //             "71197.80": "0.011",
+            //             "71196.80": "0.561",
+            //             "71196.70": "0.892",
+            //             "71196.60": "0.019",
+            //             "71196.30": "0.100",
+            //             "71196.10": "0.007",
+            //             "71196.00": "0.002",
+            //             ...
+            //         }
+            //     }
+            //
+        } else if ((market['swap']) || (market['future'])) {
+            let depth = 50;
+            if (limit !== undefined) {
+                if (limit <= 10) {
+                    depth = 10;
+                } else if (limit <= 20) {
+                    depth = 20;
+                }
+            }
+            params['limit'] = depth;
+            response = await this.public2GetMarketDataV3OrderbookPairFuturesLimit (this.extend (request, params));
+        } else {
+            throw new NotSupported (this.id + ' fetchTrades() does not supports ' + market['type'] + ' markets');
+        }
+        const timestamp = this.safeInteger2 (response, 'timestamp', 'ts');
         return this.parseOrderBook (response, symbol, timestamp);
     }
 
@@ -753,11 +770,12 @@ export default class coindcx extends Exchange {
         const request: Dict = {
             'pair': pair,
         };
+        let response: List = undefined;
         if (market['spot']) {
             if (limit !== undefined) {
                 request['limit'] = limit;
             }
-            const response = await this.public2GetMarketDataTradeHistory (this.extend (request, params));
+            response = await this.public2GetMarketDataTradeHistory (this.extend (request, params));
             //
             //     [
             //         {
@@ -769,9 +787,8 @@ export default class coindcx extends Exchange {
             //         }
             //     ]
             //
-            return this.parseTrades (response, market, since, limit);
         } else if ((market['swap']) || (market['future'])) {
-            const response = await this.public1GetExchangeV1DerivativesFuturesDataTrades (this.extend (request, params));
+            response = await this.public1GetExchangeV1DerivativesFuturesDataTrades (this.extend (request, params));
             //
             //     [
             //         {
@@ -782,10 +799,10 @@ export default class coindcx extends Exchange {
             //         }
             //     ]
             //
-            return this.parseTrades (response, market, since, limit);
         } else {
             throw new NotSupported (this.id + ' fetchTrades() does not supports ' + market['type'] + ' markets');
         }
+        return this.parseTrades (response, market, since, limit);
     }
 
     handleMarketTypeMarginAndParams (methodName: string, market: Market = undefined, params = {}, defaultValue = undefined): any {
