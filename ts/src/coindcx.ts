@@ -5,7 +5,7 @@ import Exchange from './abstract/coindcx.js';
 import { ArgumentsRequired, NotSupported } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { Balances, Bool, Dict, IndexType, Int, MarginModification, Market, MarketType, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade } from './base/types.js';
+import type { Balances, Bool, Dict, IndexType, Int, MarginModification, Market, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -163,6 +163,7 @@ export default class coindcx extends Exchange {
                         'exchange/v1/markets_details': 1, // done
                         'exchange/v1/derivatives/futures/data/active_instruments': 1,
                         'exchange/v1/derivatives/futures/data/instrument': 1,
+                        'exchange/v1/derivatives/futures/data/trades': 1,
                     },
                 },
                 'public2': {
@@ -170,6 +171,8 @@ export default class coindcx extends Exchange {
                         'market_data/trade_history': 1, // done
                         'market_data/orderbook': 1, // done
                         'market_data/candles': 1, // done
+                        'market_data/v3/orderbook/{instrument}-futures/{limit}': 1,
+                        'market_data/candlesticks': 1,
                     },
                 },
                 'private': {
@@ -201,9 +204,18 @@ export default class coindcx extends Exchange {
                         'exchange/v1/margin/remove_margin': 1, // done
                         'exchange/v1/margin/fetch_orders': 1, // done
                         'exchange/v1/margin/order': 1, // done
+                        'exchange/v1/derivatives/futures/orders': 1,
+                        'exchange/v1/derivatives/futures/orders/create': 1,
+                        'exchange/v1/derivatives/futures/orders/cancel': 1,
+                        'exchange/v1/derivatives/futures/positions': 1,
                         'exchange/v1/derivatives/futures/positions/add_margin': 1, // done todo check
                         'exchange/v1/derivatives/futures/positions/remove_margin': 1, // done todo check
+                        'exchange/v1/derivatives/futures/positions/cancel_all_open_orders': 1,
+                        'exchange/v1/derivatives/futures/positions/cancel_all_open_orders_for_position': 1,
                         'exchange/v1/derivatives/futures/positions/exit': 1,
+                        'exchange/v1/derivatives/futures/positions/create_tpsl': 1,
+                        'exchange/v1/derivatives/futures/positions/transactions': 1,
+                        'exchange/v1/derivatives/futures/trades': 1,
                     },
                 },
             },
@@ -448,7 +460,7 @@ export default class coindcx extends Exchange {
         if (maxLeverageString !== undefined) {
             maxLeverage = this.parseNumber (maxLeverageString);
         }
-        let type: MarketType = 'spot';
+        let type = 'spot' as any;
         let expiry: Int = undefined;
         if (isSpot) {
             if (maxLeverage !== undefined) {
@@ -727,6 +739,7 @@ export default class coindcx extends Exchange {
          * @name coindcx#fetchTrades
          * @description get the list of most recent trades for a particular symbol
          * @see https://docs.coindcx.com/#trades
+         * @see https://docs.coindcx.com/#get-instrument-real-time-trade-history
          * @param {string} symbol unified symbol of the market to fetch trades for
          * @param {int} [since] timestamp in ms of the earliest trade to fetch
          * @param {int} [limit] the maximum amount of trades to fetch (default 30, max 500)
@@ -740,22 +753,39 @@ export default class coindcx extends Exchange {
         const request: Dict = {
             'pair': pair,
         };
-        if (limit !== undefined) {
-            request['limit'] = limit;
+        if (market['spot']) {
+            if (limit !== undefined) {
+                request['limit'] = limit;
+            }
+            const response = await this.public2GetMarketDataTradeHistory (this.extend (request, params));
+            //
+            //     [
+            //         {
+            //             "p": 0.00000153,
+            //             "q": 10971,
+            //             "s": "SNTBTC",
+            //             "T": 1663742387385,
+            //             "m": true
+            //         }
+            //     ]
+            //
+            return this.parseTrades (response, market, since, limit);
+        } else if ((market['swap']) || (market['future'])) {
+            const response = await this.public1GetExchangeV1DerivativesFuturesDataTrades (this.extend (request, params));
+            //
+            //     [
+            //         {
+            //             "price": 3412.14,
+            //             "quantity": 7.401,
+            //             "timestamp": 1719345760928.0,
+            //             "is_maker": true
+            //         }
+            //     ]
+            //
+            return this.parseTrades (response, market, since, limit);
+        } else {
+            throw new NotSupported (this.id + ' fetchTrades() does not supports ' + market['type'] + ' markets');
         }
-        const response = await this.public2GetMarketDataTradeHistory (this.extend (request, params));
-        //
-        //     [
-        //         {
-        //             "p": 0.00000153,
-        //             "q": 10971,
-        //             "s": "SNTBTC",
-        //             "T": 1663742387385,
-        //             "m": true
-        //         }
-        //     ]
-        //
-        return this.parseTrades (response, market, since, limit);
     }
 
     handleMarketTypeMarginAndParams (methodName: string, market: Market = undefined, params = {}, defaultValue = undefined): any {
@@ -830,7 +860,7 @@ export default class coindcx extends Exchange {
 
     parseTrade (trade, market: Market = undefined): Trade {
         //
-        // public fetchTrades
+        // fetchTrades spot
         //
         //     {
         //         "p": 0.00000153,
@@ -838,6 +868,14 @@ export default class coindcx extends Exchange {
         //         "s": "SNTBTC",
         //         "T": 1663742387385,
         //         "m": true
+        //     }
+        //
+        // fetchTrades contract
+        //     {
+        //         "price": 3412.14,
+        //         "quantity": 7.401,
+        //         "timestamp": 1719345760928.0,
+        //         "is_maker": true
         //     }
         //
         // private fetchMyTrades
@@ -857,8 +895,10 @@ export default class coindcx extends Exchange {
         const marketId = this.safeString2 (trade, 's', 'symbol');
         market = this.safeMarket (marketId, market);
         const symbol = market['symbol'];
-        const timestamp = this.safeInteger2 (trade, 'T', 'timestamp');
-        const isMaker = this.safeBool (trade, 'm');
+        const timestampString = this.safeString2 (trade, 'timestamp', 'T');
+        const parts = timestampString.split ('.');
+        const timestamp = this.parseToInt (this.safeString (parts, 0));
+        const isMaker = this.safeBool2 (trade, 'm', 'is_maker');
         let takerOrMaker: Str = undefined;
         if (isMaker) {
             takerOrMaker = 'maker';
@@ -964,23 +1004,23 @@ export default class coindcx extends Exchange {
         if (marketType === 'spot') {
             type = this.encodeSpotOrderType (type);
             if (type === undefined) {
-                throw new NotSupported (this.id + ' createOrder() does not support ' + type + ' type of orders for spot markets without margin (market and limit types are supported only)');
+                throw new NotSupported (this.id + ' createOrder() does not supports ' + type + ' type of orders for spot markets without margin (market and limit types are supported only)');
             }
             return this.createSpotOrder (symbol, type, side, amount, price, params);
         } else if (marketType === 'margin') {
             type = this.encodeMarginOrderType (type);
             if (type === undefined) {
-                throw new NotSupported (this.id + ' createOrder() does not support ' + type + ' type of orders for spot margin markets (market, limit, stop_limit, take_profit and take_profit_limit types are supported only)');
+                throw new NotSupported (this.id + ' createOrder() does not supports ' + type + ' type of orders for spot margin markets (market, limit, stop_limit, take_profit and take_profit_limit types are supported only)');
             }
             return this.createMarginOrder (symbol, type, side, amount, price, params);
         } else if ((marketType === 'future') || ((marketType === 'swap'))) {
             type = this.encodeContractOrderType (type);
             if (type === undefined) {
-                throw new NotSupported (this.id + ' createOrder() does not support ' + type + ' type of orders for contract markets (market, limit, stop_limit, stop_market, take_profit_limit and take_profit_market types are supported only)');
+                throw new NotSupported (this.id + ' createOrder() does not supports ' + type + ' type of orders for contract markets (market, limit, stop_limit, stop_market, take_profit_limit and take_profit_market types are supported only)');
             }
             return this.createContractOrder (symbol, type, side, amount, price, params);
         } else {
-            throw new NotSupported (this.id + ' createOrder() does not support ' + marketType + ' markets');
+            throw new NotSupported (this.id + ' createOrder() does not supports ' + marketType + ' markets');
         }
     }
 
@@ -1890,7 +1930,7 @@ export default class coindcx extends Exchange {
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         if (amount !== undefined) {
-            throw new NotSupported (this.id + ' editOrder() does not support amount argument');
+            throw new NotSupported (this.id + ' editOrder() does not supports amount argument');
         }
         await this.loadMarkets ();
         let market: Market = undefined;
@@ -2193,7 +2233,7 @@ export default class coindcx extends Exchange {
             } else if (type === 'reduce') {
                 return await this.privatePostExchangeV1MarginRemoveMargin (this.extend (request, params));
             } else {
-                throw new NotSupported (this.id + ' modifyMarginHelper does not support a ' + type + ' type');
+                throw new NotSupported (this.id + ' modifyMarginHelper does not supports a ' + type + ' type');
             }
         } else if (market['future'] || market['swap']) {
             if (type === 'add') {
@@ -2201,10 +2241,10 @@ export default class coindcx extends Exchange {
             } else if (type === 'reduce') {
                 return await this.privatePostExchangeV1DerivativesFuturesPositionsRemoveMargin (this.extend (request, params));
             } else {
-                throw new NotSupported (this.id + ' modifyMarginHelper does not support a ' + type + ' type');
+                throw new NotSupported (this.id + ' modifyMarginHelper does not supports a ' + type + ' type');
             }
         } else {
-            throw new NotSupported (this.id + ' modifyMarginHelper() does not support ' + market['type'] + ' markets');
+            throw new NotSupported (this.id + ' modifyMarginHelper() does not supports ' + market['type'] + ' markets');
         }
     }
 
@@ -2449,7 +2489,7 @@ export default class coindcx extends Exchange {
             const response = await this.privatePostExchangeV1DerivativesFuturesPositionsExit (params);
             return this.parseOrder (response);
         } else {
-            throw new NotSupported (this.id + ' closePosition() does not support ' + market['type'] + ' markets');
+            throw new NotSupported (this.id + ' closePosition() does not supports ' + market['type'] + ' markets');
         }
     }
 
