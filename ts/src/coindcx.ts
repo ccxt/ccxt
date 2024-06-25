@@ -5,7 +5,7 @@ import Exchange from './abstract/coindcx.js';
 import { ArgumentsRequired, NotSupported } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { Balances, Bool, Dict, IndexType, Int, List, MarginModification, Market, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade } from './base/types.js';
+import type { Balances, Bool, Dict, IndexType, Int, MarginModification, Market, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -128,19 +128,27 @@ export default class coindcx extends Exchange {
                 'ws': false,
             },
             'timeframes': {
-                '1m': '1m',
-                '5m': '5m',
-                '15m': '15m',
-                '30m': '30m',
-                '1h': '1h',
-                '2h': '2h',
-                '4h': '4h',
-                '6h': '6h',
-                '8h': '8h',
-                '1d': '1d',
-                '3d': '3d',
-                '1w': '1w',
-                '1M': '1M',
+                'spot': {
+                    '1m': '1m',
+                    '5m': '5m',
+                    '15m': '15m',
+                    '30m': '30m',
+                    '1h': '1h',
+                    '2h': '2h',
+                    '4h': '4h',
+                    '6h': '6h',
+                    '8h': '8h',
+                    '1d': '1d',
+                    '3d': '3d',
+                    '1w': '1w',
+                    '1M': '1M',
+                },
+                'contract': {
+                    '1m': '1',
+                    '5m': '5',
+                    '1h': '60',
+                    '1d': '1D',
+                },
             },
             'urls': {
                 'logo': '', // todo: add a logo
@@ -618,46 +626,80 @@ export default class coindcx extends Exchange {
          * @see https://docs.coindcx.com/#candles
          * @param {string} symbol unified symbol of the market to fetch OHLCV data for
          * @param {string} timeframe the length of time each candle represents
-         * @param {int} [since] timestamp in ms of the earliest candle to fetch
+         * @param {int} [since] timestamp in ms of the earliest candle to fetch (is mandatory for contract markets)
          * @param {int} [limit] the maximum amount of candles to fetch (default 500, max 1000)
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {int} [params.until] timestamp in ms of the latest candle to fetch (works only if since is also defined)
+         * @param {int} [params.until] timestamp in ms of the latest candle to fetch (is mandatory for contract markets, works only if since is also defined for spot markets)
          * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        timeframe = this.safeString (this.timeframes, timeframe, timeframe);
         const marketInfo = this.safeDict (market, 'info', {});
         const pair = this.safeString (marketInfo, 'pair');
         const request: Dict = {
             'pair': pair,
-            'interval': timeframe,
         };
-        if (since !== undefined) {
-            request['startTime'] = since;
-        }
-        if (limit !== undefined) {
-            request['limit'] = limit;
-        }
-        const until = this.safeInteger (params, 'until');
-        if (until !== undefined) {
-            request['endTime'] = until;
+        if (market['spot']) {
+            const timeframes = this.safeDict (this.timeframes, 'spot');
+            request['interval'] = this.safeString (timeframes, timeframe, timeframe);
+            if (since !== undefined) {
+                request['startTime'] = since;
+            }
+            if (limit !== undefined) {
+                request['limit'] = limit;
+            }
+            const until = this.safeInteger (params, 'until');
+            if (until !== undefined) {
+                request['endTime'] = until;
+                params = this.omit (params, 'until');
+            }
+            const response = await this.public2GetMarketDataCandles (this.extend (request, params));
+            //
+            //     [
+            //         {
+            //             "open":70938.55,
+            //             "high":70938.55,
+            //             "low":70926.27,
+            //             "volume":7.60989,
+            //             "close":70931.98,
+            //             "time":1717692120000
+            //         }
+            //     ]
+            //
+            return this.parseOHLCVs (response, market, timeframe, since, limit);
+        } else if ((market['swap']) || (market['future'])) {
+            const timeframes = this.safeDict (this.timeframes, 'contract');
+            request['resolution'] = this.safeString (timeframes, timeframe, timeframe);
+            const until = this.safeString (params, 'until');
+            if ((since === undefined) || (until === undefined)) {
+                throw new ArgumentsRequired (this.id + ' fetchOHLCV requires both since and params.until arguments for ' + market['type'] + ' markets');
+            }
+            const sinceString = since.toString ();
+            request['from'] = sinceString.slice (0, -3); // the exchange accepts from and to params in seconds
+            request['to'] = until.slice (0, -3);
             params = this.omit (params, 'until');
+            request['pcode'] = 'f';
+            const response = await this.public2GetMarketDataCandlesticks (this.extend (request, params));
+            //
+            //     {
+            //         "s": "ok",
+            //         "data": [
+            //             {
+            //                 "open": 2292.74,
+            //                 "high": 2294.27,
+            //                 "low": 2291.01,
+            //                 "volume": 3523.044,
+            //                 "close": 2291.56,
+            //                 "time": 1704101100000
+            //             }
+            //         ]
+            //     }
+            //
+            const data = this.safeList (response, 'data');
+            return this.parseOHLCVs (data, market, timeframe, since, limit);
+        } else {
+            throw new NotSupported (this.id + ' fetchOHLCV() does not supports ' + market['type'] + ' markets');
         }
-        const response = await this.public2GetMarketDataCandles (this.extend (request, params));
-        //
-        //     [
-        //         {
-        //             "open":70938.55,
-        //             "high":70938.55,
-        //             "low":70926.27,
-        //             "volume":7.60989,
-        //             "close":70931.98,
-        //             "time":1717692120000
-        //         }
-        //     ]
-        //
-        return this.parseOHLCVs (response, market, timeframe, since, limit);
     }
 
     parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
@@ -677,6 +719,7 @@ export default class coindcx extends Exchange {
          * @name coindcx#fetchOrderBook
          * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @see https://docs.coindcx.com/#order-book
+         * @see https://docs.coindcx.com/#get-instrument-orderbook
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int} [limit] *for contract markets only* the maximum amount of order book entries to return (10, 20 or 50)
          * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -733,7 +776,7 @@ export default class coindcx extends Exchange {
             params['limit'] = depth;
             response = await this.public2GetMarketDataV3OrderbookPairFuturesLimit (this.extend (request, params));
         } else {
-            throw new NotSupported (this.id + ' fetchTrades() does not supports ' + market['type'] + ' markets');
+            throw new NotSupported (this.id + ' fetchOrderBook() does not supports ' + market['type'] + ' markets');
         }
         const timestamp = this.safeInteger2 (response, 'timestamp', 'ts');
         return this.parseOrderBook (response, symbol, timestamp);
@@ -770,7 +813,7 @@ export default class coindcx extends Exchange {
         const request: Dict = {
             'pair': pair,
         };
-        let response: List = undefined;
+        let response = undefined;
         if (market['spot']) {
             if (limit !== undefined) {
                 request['limit'] = limit;
