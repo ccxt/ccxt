@@ -5,7 +5,7 @@ import Exchange from './abstract/coindcx.js';
 import { ArgumentsRequired, NotSupported } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { Balances, Dict, IndexType, Int, MarginModification, Market, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade } from './base/types.js';
+import type { Balances, Bool, Dict, IndexType, Int, MarginModification, Market, MarketType, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -250,7 +250,7 @@ export default class coindcx extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} an array of objects representing market data
          */
-        const response = await this.public1GetExchangeV1MarketsDetails (params);
+        const responseFromSpot = await this.public1GetExchangeV1MarketsDetails (params);
         //
         //     [
         //         {
@@ -282,53 +282,217 @@ export default class coindcx extends Exchange {
         //         }
         //     ]
         //
-        return this.parseMarkets (response);
+        const markets = this.toArray (responseFromSpot);
+        const request: Dict = {
+            'pair': 'B-ETH_USDT',
+        };
+        const responseFromContract = await this.public1GetExchangeV1DerivativesFuturesDataInstrument (this.extend (request, params)); // todo using it to fetch and test a contract market
+        //
+        //     {
+        //         "instrument": {
+        //             "settle_currency_short_name": "USDT",
+        //             "quote_currency_short_name": "USDT",
+        //             "position_currency_short_name": "ETH",
+        //             "underlying_currency_short_name": "ETH",
+        //             "status": "active",
+        //             "pair": "B-ETH_USDT",
+        //             "kind": "perpetual",
+        //             "settlement": "never",
+        //             "max_leverage_long": 20.0,
+        //             "max_leverage_short": 20.0,
+        //             "unit_contract_value": 1.0,
+        //             "price_increment": 0.01,
+        //             "quantity_increment": 0.001,
+        //             "min_trade_size": 0.001,
+        //             "min_price": 41.853,
+        //             "max_price": 98898.0,
+        //             "min_quantity": 0.001,
+        //             "max_quantity": 9500.0,
+        //             "min_notional": 24.0,
+        //             "maker_fee": 0.025,
+        //             "taker_fee": 0.075,
+        //             "safety_percentage": 1.5,
+        //             "quanto_to_settle_multiplier": 1.0,
+        //             "is_inverse": false,
+        //             "is_quanto": false,
+        //             "allow_post_only": false,
+        //             "allow_hidden": false,
+        //             "max_market_order_quantity": 2000.0,
+        //             "funding_frequency": 8,
+        //             "max_notional": 20000000.0,
+        //             "expiry_time": 2548162800000,
+        //             "time_in_force_options": [
+        //                 "good_till_cancel",
+        //                 "immediate_or_cancel",
+        //                 "fill_or_kill"
+        //             ],
+        //             "order_types": [
+        //                 "market_order",
+        //                 "limit_order",
+        //                 "stop_limit",
+        //                 "take_profit_limit",
+        //                 "stop_market",
+        //                 "take_profit_market"
+        //             ]
+        //         }
+        //     }
+        //
+        const market = this.safeDict (responseFromContract, 'instrument', {});
+        markets.push (market);
+        return this.parseMarkets (markets);
     }
 
     parseMarket (market: Dict): Market {
-        const marketId = this.safeString (market, 'coindcx_name'); // todo how to set encode
-        const baseId = this.safeString (market, 'target_currency_short_name');
-        const quoteId = this.safeString (market, 'base_currency_short_name');
+        //
+        // spot markets
+        //     {
+        //         "coindcx_name": "ONDOUSDT",
+        //         "base_currency_short_name": "USDT",
+        //         "target_currency_short_name": "ONDO",
+        //         "target_currency_name": "Ondo",
+        //         "base_currency_name": "Tether",
+        //         "min_quantity": 10.0,
+        //         "max_quantity": 10000000000.0,
+        //         "max_quantity_market": 10000000000.0,
+        //         "min_price": 1.0e-05,
+        //         "max_price": 10000000000.0,
+        //         "min_notional": 0.1,
+        //         "base_currency_precision": 5,
+        //         "target_currency_precision": 4,
+        //         "step": 0.0001,
+        //         "order_types": [
+        //             "market_order",
+        //             "limit_order"
+        //         ],
+        //         "symbol": "ONDOUSDT",
+        //         "ecode": "KC",
+        //         "bo_sl_safety_percent": null,
+        //         "max_leverage": null,
+        //         "max_leverage_short": null,
+        //         "pair": "KC-ONDO_USDT",
+        //         "status": "active"
+        //     }
+        //
+        // contract markets
+        //     {
+        //         "settle_currency_short_name": "USDT",
+        //         "quote_currency_short_name": "USDT",
+        //         "position_currency_short_name": "ETH",
+        //         "underlying_currency_short_name": "ETH",
+        //         "status": "active",
+        //         "pair": "B-ETH_USDT",
+        //         "kind": "perpetual",
+        //         "settlement": "never",
+        //         "max_leverage_long": 20.0,
+        //         "max_leverage_short": 20.0,
+        //         "unit_contract_value": 1.0,
+        //         "price_increment": 0.01,
+        //         "quantity_increment": 0.001,
+        //         "min_trade_size": 0.001,
+        //         "min_price": 41.853,
+        //         "max_price": 98898.0,
+        //         "min_quantity": 0.001,
+        //         "max_quantity": 9500.0,
+        //         "min_notional": 24.0,
+        //         "maker_fee": 0.025,
+        //         "taker_fee": 0.075,
+        //         "safety_percentage": 1.5,
+        //         "quanto_to_settle_multiplier": 1.0,
+        //         "is_inverse": false,
+        //         "is_quanto": false,
+        //         "allow_post_only": false,
+        //         "allow_hidden": false,
+        //         "max_market_order_quantity": 2000.0,
+        //         "funding_frequency": 8,
+        //         "max_notional": 20000000.0,
+        //         "expiry_time": 2548162800000,
+        //         "time_in_force_options": [
+        //             "good_till_cancel",
+        //             "immediate_or_cancel",
+        //             "fill_or_kill"
+        //         ],
+        //         "order_types": [
+        //             "market_order",
+        //             "limit_order",
+        //             "stop_limit",
+        //             "take_profit_limit",
+        //             "stop_market",
+        //             "take_profit_market"
+        //         ]
+        //     }
+        //
+        const marketId = this.safeString2 (market, 'coindcx_name', 'pair');
+        const baseId = this.safeString2 (market, 'target_currency_short_name', 'position_currency_short_name');
+        const quoteId = this.safeString2 (market, 'base_currency_short_name', 'quote_currency_short_name');
+        const settleId = this.safeString (market, 'settle_currency_short_name');
         const base = this.safeCurrencyCode (baseId);
         const quote = this.safeCurrencyCode (quoteId);
-        const symbol = base + '/' + quote;
-        const amountPresicionString = this.parsePrecision (this.safeString (market, 'target_currency_precision'));
-        const pricePresicionString = this.parsePrecision (this.safeString (market, 'base_currency_precision'));
-        let margin = false;
-        let max_leverage = this.safeNumber (market, 'max_leverage');
-        if (max_leverage === 0) {
-            max_leverage = undefined;
+        const settle = this.safeCurrencyCode (settleId);
+        let symbol = base + '/' + quote;
+        let isSpot = true;
+        if (settleId !== undefined) {
+            symbol += ':' + settle;
+            isSpot = false;
         }
-        if (max_leverage !== undefined) {
-            margin = true;
+        let amountPresicionString = this.safeString (market, 'quantity_increment');
+        if (amountPresicionString === undefined) {
+            amountPresicionString = this.parsePrecision (this.safeString (market, 'target_currency_precision'));
+        }
+        let pricePresicionString = this.safeString (market, 'price_increment');
+        if (pricePresicionString === undefined) {
+            pricePresicionString = this.parsePrecision (this.safeString (market, 'base_currency_precision'));
+        }
+        let isMargin: Bool = undefined;
+        let maxLeverage: Num = undefined;
+        const maxLeverageString = this.omitZero (this.safeString2 (market, 'max_leverage', 'max_leverage_long'));
+        if (maxLeverageString !== undefined) {
+            maxLeverage = this.parseNumber (maxLeverageString);
+        }
+        let type: MarketType = 'spot';
+        let expiry: Int = undefined;
+        if (isSpot) {
+            if (maxLeverage !== undefined) {
+                isMargin = true;
+            } else {
+                isMargin = false;
+            }
+        } else {
+            const kind = this.safeString (market, 'kind');
+            if (kind === 'perpetual') {
+                type = 'swap';
+            } else {
+                type = 'future';
+                expiry = this.safeInteger (market, 'expiry');
+            }
         }
         const active = this.safeString (market, 'status');
         let isActive = false;
         if (active === 'active') {
             isActive = true;
         }
+        const is_inverse = this.safeBool (market, 'is_inverse');
         return {
             'id': marketId,
             'symbol': symbol,
             'base': base,
             'quote': quote,
-            'settle': undefined,
+            'settle': settle,
             'baseId': baseId,
             'quoteId': quoteId,
-            'settleId': undefined,
-            'type': 'spot', // todo check
-            'spot': true,
-            'margin': margin,
-            'swap': false,
-            'future': false,
+            'settleId': settleId,
+            'type': type,
+            'spot': isSpot,
+            'margin': isMargin,
+            'swap': (type === 'swap'),
+            'future': (type === 'future'),
             'option': false,
             'active': isActive,
-            'contract': false,
-            'linear': undefined,
-            'inverse': undefined,
-            'contractSize': undefined,
-            'expiry': undefined,
-            'expiryDatetime': undefined,
+            'contract': (!isSpot),
+            'linear': (!is_inverse),
+            'inverse': is_inverse,
+            'contractSize': this.safeNumber (market, 'unit_contract_value'),
+            'expiry': expiry,
+            'expiryDatetime': this.iso8601 (expiry),
             'strike': undefined,
             'optionType': undefined,
             'taker': this.safeNumber (market, 'taker_fee', 0), // spot markets have no fees yet
@@ -340,7 +504,7 @@ export default class coindcx extends Exchange {
             'limits': {
                 'leverage': {
                     'min': undefined,
-                    'max': max_leverage,
+                    'max': maxLeverage,
                 },
                 'amount': {
                     'min': this.safeNumber (market, 'min_quantity'),
@@ -364,7 +528,7 @@ export default class coindcx extends Exchange {
         /**
          * @method
          * @name coindcx#fetchTickers
-         * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+         * @description *for spot markets only* fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
          * @see https://docs.coindcx.com/#ticker
          * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
          * @param {object} [params] extra parameters specific to the exchange API endpoint
