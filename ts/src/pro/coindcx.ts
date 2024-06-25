@@ -6,7 +6,7 @@ import coindcxRest from '../coindcx.js';
 import type { Dict, Int, Trade } from '../base/types.js';
 // import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
 // import { ArrayCache } from '../base/ws/Cache.js';
-import Client from '../base/ws/Client.js';
+// import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
 
