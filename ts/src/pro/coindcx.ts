@@ -91,8 +91,4 @@ export default class coindcx extends coindcxRest {
         }
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
-
-    handleMessage (client: Client, message) {
-        return message;
-    }
 }
