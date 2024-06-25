@@ -3,9 +3,9 @@
 
 import coindcxRest from '../coindcx.js';
 // import { ArgumentsRequired, AuthenticationError, BadRequest } from '../base/errors.js';
-import type { Dict, Int, Market, Trade } from '../base/types.js';
+import type { Dict, Int, Trade } from '../base/types.js';
 // import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
-import { ArrayCache } from '../base/ws/Cache.js';
+// import { ArrayCache } from '../base/ws/Cache.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -34,7 +34,6 @@ export default class coindcx extends coindcxRest {
             'urls': {
                 'api': {
                     'ws': 'wss://stream.coindcx.com',
-                    'test': 'wss://stream.coindcx.com',
                 },
             },
             'options': {
@@ -75,7 +74,7 @@ export default class coindcx extends coindcxRest {
         const market = this.market (symbol);
         const url = this.urls['api']['ws'];
         let marketId = market['id'];
-        let suffix = '@trades';
+        let suffix = '@trades-futures';
         if (market['spot']) {
             const marketInfo = this.safeDict (market, 'info');
             marketId = this.safeString (marketInfo, 'pair');
