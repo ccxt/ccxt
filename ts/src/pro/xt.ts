@@ -2,7 +2,7 @@
 
 import xtRest from '../xt.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
-import { Balances, Int, Market, OHLCV, Order, OrderBook, Str, Strings, Ticker, Tickers, Trade } from '../base/types.js';
+import { Balances, Dict, Int, Market, OHLCV, Order, OrderBook, Str, Strings, Ticker, Tickers, Trade } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -335,7 +335,7 @@ export default class xt extends xtRest {
         return await this.subscribe (name, 'private', 'watchBalance', undefined, undefined, params);
     }
 
-    handleTicker (client: Client, message) {
+    handleTicker (client: Client, message: Dict) {
         //
         // spot
         //
@@ -412,7 +412,7 @@ export default class xt extends xtRest {
         return message;
     }
 
-    handleTickers (client: Client, message) {
+    handleTickers (client: Client, message: Dict) {
         //
         // spot
         //
@@ -510,7 +510,7 @@ export default class xt extends xtRest {
         return message;
     }
 
-    handleOHLCV (client: Client, message) {
+    handleOHLCV (client: Client, message: Dict) {
         //
         // spot
         //
@@ -571,7 +571,7 @@ export default class xt extends xtRest {
         return message;
     }
 
-    handleTrade (client: Client, message) {
+    handleTrade (client: Client, message: Dict) {
         //
         // spot
         //
@@ -624,7 +624,7 @@ export default class xt extends xtRest {
         return message;
     }
 
-    handleOrderBook (client: Client, message) {
+    handleOrderBook (client: Client, message: Dict) {
         //
         // spot
         //
@@ -737,7 +737,7 @@ export default class xt extends xtRest {
         }
     }
 
-    parseWsOrderTrade (trade, market = undefined) {
+    parseWsOrderTrade (trade: Dict, market: Market = undefined) {
         //
         //    {
         //        "s": "btc_usdt",                         // symbol
@@ -795,7 +795,7 @@ export default class xt extends xtRest {
         }, market);
     }
 
-    parseWsOrder (order, market = undefined) {
+    parseWsOrder (order: Dict, market: Market = undefined) {
         //
         // spot
         //
@@ -864,7 +864,7 @@ export default class xt extends xtRest {
         }, market);
     }
 
-    handleOrder (client: Client, message) {
+    handleOrder (client: Client, message: Dict) {
         //
         // spot
         //
@@ -925,7 +925,7 @@ export default class xt extends xtRest {
         return message;
     }
 
-    handleBalance (client: Client, message) {
+    handleBalance (client: Client, message: Dict) {
         //
         // spot
         //
@@ -973,7 +973,7 @@ export default class xt extends xtRest {
         client.resolve (this.balance, 'balance::' + tradeType);
     }
 
-    handleMyTrades (client: Client, message) {
+    handleMyTrades (client: Client, message: Dict) {
         //
         // spot
         //
@@ -1022,10 +1022,10 @@ export default class xt extends xtRest {
         client.resolve (stored, 'trade::' + tradeType);
     }
 
-    handleMessage (client, message) {
+    handleMessage (client: Client, message: Dict) {
         const event = this.safeString (message, 'event');
         if (event === 'pong') {
-            return client.onPong (message);
+            return client.onPong ();
         } else if (event !== undefined) {
             const topic = this.safeString (message, 'topic');
             const methods = {
@@ -1054,12 +1054,12 @@ export default class xt extends xtRest {
         }
     }
 
-    ping (client) {
+    ping (client: Client) {
         client.lastPong = this.milliseconds ();
         return 'ping';
     }
 
-    handleErrorMessage (client: Client, message) {
+    handleErrorMessage (client: Client, message: Dict) {
         //
         //    {
         //        "id": "123",
