@@ -2,7 +2,7 @@
 
 import xtRest from '../xt.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
-import { Balances, Int, OHLCV, Order, OrderBook, Str, Strings, Ticker, Tickers, Trade } from '../base/types.js';
+import { Balances, Int, MarketInterface, OHLCV, Order, OrderBook, Str, Strings, Ticker, Tickers, Trade } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -99,7 +99,7 @@ export default class xt extends xtRest {
         return client.subscriptions['accessToken'];
     }
 
-    async subscribe (name: string, access: string, methodName: string, market: object = undefined, symbols: string[] = undefined, params = {}) {
+    async subscribe (name: string, access: string, methodName: string, market: MarketInterface = undefined, symbols: string[] = undefined, params = {}) {
         /**
          * @ignore
          * @method
@@ -114,7 +114,6 @@ export default class xt extends xtRest {
          * @param {object} params extra parameters specific to the xt api
          * @returns {object} data from the websocket stream
          */
-        await this.loadMarkets ();
         const privateAccess = access === 'private';
         let type = undefined;
         [ type, params ] = this.handleMarketTypeAndParams (methodName, market, params);
@@ -162,6 +161,7 @@ export default class xt extends xtRest {
          * @param {string} params.method 'agg_ticker' (contract only) or 'ticker', default = 'ticker' - the endpoint that will be streamed
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
+        await this.loadMarkets ();
         const market = this.market (symbol);
         const options = this.safeValue (this.options, 'watchTicker');
         const defaultMethod = this.safeString (options, 'method', 'ticker');
@@ -183,6 +183,7 @@ export default class xt extends xtRest {
          * @param {string} params.method 'agg_tickers' (contract only) or 'tickers', default = 'tickers' - the endpoint that will be streamed
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
+        await this.loadMarkets ();
         const options = this.safeValue (this.options, 'watchTickers');
         const defaultMethod = this.safeString (options, 'method', 'tickers');
         const name = this.safeString (params, 'method', defaultMethod);
@@ -211,6 +212,7 @@ export default class xt extends xtRest {
          * @param {object} params extra parameters specific to the xt api endpoint
          * @returns {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
+        await this.loadMarkets ();
         const market = this.market (symbol);
         const name = 'kline@' + market['id'] + ',' + timeframe;
         return await this.subscribe (name, 'public', 'watchOHLCV', market, undefined, params);
