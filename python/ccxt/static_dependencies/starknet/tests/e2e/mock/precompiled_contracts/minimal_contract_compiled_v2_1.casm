@@ -1,0 +1,254 @@
+{
+  "prime": "0x800000000000011000000000000000000000000000000000000000000000001",
+  "compiler_version": "2.1.0",
+  "bytecode": [
+    "0xa0680017fff8000",
+    "0x7",
+    "0x482680017ffa8000",
+    "0x100000000000000000000000000000000",
+    "0x400280007ff97fff",
+    "0x10780017fff7fff",
+    "0x4c",
+    "0x4825800180007ffa",
+    "0x0",
+    "0x400280007ff97fff",
+    "0x48297ffc80007ffd",
+    "0x482680017ff98000",
+    "0x1",
+    "0x4824800180007ffe",
+    "0x0",
+    "0x20680017fff7fff",
+    "0x4",
+    "0x10780017fff7fff",
+    "0x13",
+    "0x480a7ffb7fff8000",
+    "0x1104800180018000",
+    "0x4c",
+    "0x40780017fff7fff",
+    "0x1",
+    "0x480680017fff8000",
+    "0x496e70757420746f6f206c6f6e6720666f7220617267756d656e7473",
+    "0x400080007ffe7fff",
+    "0x48127ff87fff8000",
+    "0x48127ff57fff8000",
+    "0x48127ffb7fff8000",
+    "0x480680017fff8000",
+    "0x1",
+    "0x48127ffa7fff8000",
+    "0x482480017ff98000",
+    "0x1",
+    "0x208b7fff7fff7ffe",
+    "0x1104800180018000",
+    "0x3f",
+    "0x482480017fff8000",
+    "0x3e",
+    "0x480080007fff8000",
+    "0xa0680017fff8000",
+    "0x9",
+    "0x4824800180007ff7",
+    "0x0",
+    "0x482480017fff8000",
+    "0x100000000000000000000000000000000",
+    "0x400080007ff77fff",
+    "0x10780017fff7fff",
+    "0x12",
+    "0x4824800180007ff7",
+    "0x0",
+    "0x400080007ff87fff",
+    "0x1104800180018000",
+    "0x2d",
+    "0x40780017fff7fff",
+    "0x1",
+    "0x482480017ff58000",
+    "0x1",
+    "0x48127ffb7fff8000",
+    "0x480a7ffb7fff8000",
+    "0x480680017fff8000",
+    "0x0",
+    "0x48127ffb7fff8000",
+    "0x48127ffa7fff8000",
+    "0x208b7fff7fff7ffe",
+    "0x40780017fff7fff",
+    "0x1",
+    "0x480680017fff8000",
+    "0x4f7574206f6620676173",
+    "0x400080007ffe7fff",
+    "0x482480017ff58000",
+    "0x1",
+    "0x48127ff27fff8000",
+    "0x480a7ffb7fff8000",
+    "0x480680017fff8000",
+    "0x1",
+    "0x48127ffa7fff8000",
+    "0x482480017ff98000",
+    "0x1",
+    "0x208b7fff7fff7ffe",
+    "0x40780017fff7fff",
+    "0x1",
+    "0x480680017fff8000",
+    "0x4f7574206f6620676173",
+    "0x400080007ffe7fff",
+    "0x482680017ff98000",
+    "0x1",
+    "0x480a7ffa7fff8000",
+    "0x480a7ffb7fff8000",
+    "0x480680017fff8000",
+    "0x1",
+    "0x48127ffa7fff8000",
+    "0x482480017ff98000",
+    "0x1",
+    "0x208b7fff7fff7ffe",
+    "0x480a7ffd7fff8000",
+    "0x208b7fff7fff7ffe",
+    "0x208b7fff7fff7ffe"
+  ],
+  "hints": [
+    [
+      0,
+      [
+        {
+          "TestLessThanOrEqual": {
+            "lhs": {
+              "Immediate": "0x0"
+            },
+            "rhs": {
+              "Deref": {
+                "register": "FP",
+                "offset": -6
+              }
+            },
+            "dst": {
+              "register": "AP",
+              "offset": 0
+            }
+          }
+        }
+      ]
+    ],
+    [
+      22,
+      [
+        {
+          "AllocSegment": {
+            "dst": {
+              "register": "AP",
+              "offset": 0
+            }
+          }
+        }
+      ]
+    ],
+    [
+      41,
+      [
+        {
+          "TestLessThanOrEqual": {
+            "lhs": {
+              "Immediate": "0x0"
+            },
+            "rhs": {
+              "Deref": {
+                "register": "AP",
+                "offset": -8
+              }
+            },
+            "dst": {
+              "register": "AP",
+              "offset": 0
+            }
+          }
+        }
+      ]
+    ],
+    [
+      55,
+      [
+        {
+          "AllocSegment": {
+            "dst": {
+              "register": "AP",
+              "offset": 0
+            }
+          }
+        }
+      ]
+    ],
+    [
+      66,
+      [
+        {
+          "AllocSegment": {
+            "dst": {
+              "register": "AP",
+              "offset": 0
+            }
+          }
+        }
+      ]
+    ],
+    [
+      81,
+      [
+        {
+          "AllocSegment": {
+            "dst": {
+              "register": "AP",
+              "offset": 0
+            }
+          }
+        }
+      ]
+    ]
+  ],
+  "pythonic_hints": [
+    [
+      0,
+      [
+        "memory[ap + 0] = 0 <= memory[fp + -6]"
+      ]
+    ],
+    [
+      22,
+      [
+        "memory[ap + 0] = segments.add()"
+      ]
+    ],
+    [
+      41,
+      [
+        "memory[ap + 0] = 0 <= memory[ap + -8]"
+      ]
+    ],
+    [
+      55,
+      [
+        "memory[ap + 0] = segments.add()"
+      ]
+    ],
+    [
+      66,
+      [
+        "memory[ap + 0] = segments.add()"
+      ]
+    ],
+    [
+      81,
+      [
+        "memory[ap + 0] = segments.add()"
+      ]
+    ]
+  ],
+  "entry_points_by_type": {
+    "EXTERNAL": [
+      {
+        "selector": "0x1fc3f77ebc090777f567969ad9823cf6334ab888acb385ca72668ec5adbde80",
+        "offset": 0,
+        "builtins": [
+          "range_check"
+        ]
+      }
+    ],
+    "L1_HANDLER": [],
+    "CONSTRUCTOR": []
+  }
+}

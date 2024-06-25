@@ -1,0 +1,42 @@
+{
+    "types": {
+        "StarkNetDomain": [
+            { "name": "name", "type": "felt" },
+            { "name": "version", "type": "felt" },
+            { "name": "chainId", "type": "felt" }
+        ],
+        "Person": [
+            { "name": "name", "type": "felt" },
+            { "name": "wallet", "type": "felt" }
+        ],
+        "String": [
+            { "name": "len", "type": "felt" },
+            { "name": "data", "type": "felt*" }
+        ],
+        "Mail": [
+            { "name": "from", "type": "Person" },
+            { "name": "to", "type": "Person" },
+            { "name": "contents", "type": "String" }
+        ]
+    },
+    "primaryType": "Mail",
+    "domain": {
+        "name": "StarkNet Mail",
+        "version": "1",
+        "chainId": 1
+    },
+    "message": {
+        "from": {
+            "name": "Cow",
+            "wallet": "0xCD2a3d9F938E13CD947Ec05AbC7FE734Df8DD826"
+        },
+        "to": {
+            "name": "Bob",
+            "wallet": "0xbBbBBBBbbBBBbbbBbbBbbbbBBbBbbbbBbBbbBBbB"
+        },
+        "contents": {
+            "len": 88,
+            "data": ["0x4e", "0x65", "0x76", "0x65", "0x72", "0x20", "0x67", "0x6f", "0x6e", "0x6e", "0x61", "0x20", "0x67", "0x69", "0x76", "0x65", "0x20", "0x79", "0x6f", "0x75", "0x20", "0x75", "0x70", "0x2c", "0x20", "0x4e", "0x65", "0x76", "0x65", "0x72", "0x20", "0x67", "0x6f", "0x6e", "0x6e", "0x61", "0x20", "0x6c", "0x65", "0x74", "0x20", "0x79", "0x6f", "0x75", "0x20", "0x64", "0x6f", "0x77", "0x6e", "0x2c", "0x20", "0x4e", "0x65", "0x76", "0x65", "0x72", "0x20", "0x67", "0x6f", "0x6e", "0x6e", "0x61", "0x20", "0x72", "0x75", "0x6e", "0x20", "0x61", "0x72", "0x6f", "0x75", "0x6e", "0x64", "0x20", "0x61", "0x6e", "0x64", "0x20", "0x64", "0x65", "0x73", "0x65", "0x72", "0x74", "0x20", "0x79", "0x6f", "0x75"]
+        }
+    }
+}

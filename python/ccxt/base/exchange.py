@@ -59,6 +59,9 @@ from ccxt.static_dependencies.ethereum import abi
 from ccxt.static_dependencies.ethereum import account
 from ccxt.static_dependencies.msgpack import packb
 
+# starknet
+from ccxt.static_dependencies.starknet.ccxt_utils import get_private_key_from_eth_signature
+from ccxt.static_dependencies.starknet.net.signer.stark_curve_signer import KeyPair
 
 # -----------------------------------------------------------------------------
 
@@ -1387,6 +1390,17 @@ class Exchange(object):
     def eth_encode_structured_data(domain, messageTypes, message):
         encodedData = account.messages.encode_typed_data(domain, messageTypes, message)
         return Exchange.binary_concat(b"\x19\x01", encodedData.header, encodedData.body)
+
+    @staticmethod
+    def retrieve_stark_account (signature, accountClassHash, accountProxyClassHash):
+        privKey = get_private_key_from_eth_signature(signature)
+        starkKey = KeyPair.from_private_key(privKey)
+        print(privKey, hex(starkKey.public_key))
+        # account = get_acc_contract_address_and_call_data(
+        #     proxy_class_hash,
+        #     account_class_hash,
+        #     hex(key_pair.public_key),
+        # )
 
     @staticmethod
     def packb(o):
