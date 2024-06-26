@@ -1052,40 +1052,43 @@ export default class kucoin extends Exchange {
         //                 "enableTrading": true
         //             },
         //
-        promises.push (this.privateGetMarginSymbols (params)); // cross margin symbols
-        //
-        //    {
-        //        "code": "200000",
-        //        "data": {
-        //            "timestamp": 1719393213421,
-        //            "items": [
-        //                {
-        //                    // same object as in market, with one additional field:
-        //                    "minFunds": "0.1"
-        //                },
-        //
-        promises.push (this.privateGetIsolatedSymbols (params)); // isolated margin symbols
-        //
-        //    {
-        //        "code": "200000",
-        //        "data": [
-        //            {
-        //                "symbol": "NKN-USDT",
-        //                "symbolName": "NKN-USDT",
-        //                "baseCurrency": "NKN",
-        //                "quoteCurrency": "USDT",
-        //                "maxLeverage": 5,
-        //                "flDebtRatio": "0.97",
-        //                "tradeEnable": true,
-        //                "autoRenewMaxDebtRatio": "0.96",
-        //                "baseBorrowEnable": true,
-        //                "quoteBorrowEnable": true,
-        //                "baseTransferInEnable": true,
-        //                "quoteTransferInEnable": true,
-        //                "baseBorrowCoefficient": "1",
-        //                "quoteBorrowCoefficient": "1"
-        //            },
-        //
+        const requestMarginables = this.checkRequiredCredentials (false);
+        if (requestMarginables) {
+            promises.push (this.privateGetMarginSymbols (params)); // cross margin symbols
+            //
+            //    {
+            //        "code": "200000",
+            //        "data": {
+            //            "timestamp": 1719393213421,
+            //            "items": [
+            //                {
+            //                    // same object as in market, with one additional field:
+            //                    "minFunds": "0.1"
+            //                },
+            //
+            promises.push (this.privateGetIsolatedSymbols (params)); // isolated margin symbols
+            //
+            //    {
+            //        "code": "200000",
+            //        "data": [
+            //            {
+            //                "symbol": "NKN-USDT",
+            //                "symbolName": "NKN-USDT",
+            //                "baseCurrency": "NKN",
+            //                "quoteCurrency": "USDT",
+            //                "maxLeverage": 5,
+            //                "flDebtRatio": "0.97",
+            //                "tradeEnable": true,
+            //                "autoRenewMaxDebtRatio": "0.96",
+            //                "baseBorrowEnable": true,
+            //                "quoteBorrowEnable": true,
+            //                "baseTransferInEnable": true,
+            //                "quoteTransferInEnable": true,
+            //                "baseBorrowCoefficient": "1",
+            //                "quoteBorrowCoefficient": "1"
+            //            },
+            //
+        }
         if (fetchTickersFees) {
             promises.push (this.publicGetMarketAllTickers (params));
             //
@@ -1115,18 +1118,20 @@ export default class kucoin extends Exchange {
             //
         }
         const responses = await Promise.all (promises);
-        const response = responses[0];
-        const data = this.safeList (response, 'data');
-        const tickersResponse = this.safeDict (responses, 3, {});
+        const symbolsData = this.safeList (responses[0], 'data');
+        const crossData = requestMarginables ? this.safeDict (responses[1], 'data', {}) : {};
+        const crossItems = this.safeList (crossData, 'items', []);
+        const crossById = this.indexBy (crossItems, 'symbol');
+        const isolatedData = requestMarginables ? responses[2] : {};
+        const isolatedItems = this.safeList (isolatedData, 'data', []);
+        const isolatedById = this.indexBy (isolatedItems, 'symbol');
+        const tickersIdx = requestMarginables ? 3 : 1;
+        const tickersResponse = this.safeDict (responses, tickersIdx, {});
         const tickerItems = this.safeList (this.safeDict (tickersResponse, 'data', {}), 'ticker', []);
         const tickersById = this.indexBy (tickerItems, 'symbol');
-        const crossItems = this.safeList (this.safeDict (responses[1], 'data', {}), 'items', []);
-        const crossById = this.indexBy (crossItems, 'symbol');
-        const isolatedItems = this.safeList (responses[2], 'data', []);
-        const isolatedById = this.indexBy (isolatedItems, 'symbol');
         const result = [];
-        for (let i = 0; i < data.length; i++) {
-            const market = data[i];
+        for (let i = 0; i < symbolsData.length; i++) {
+            const market = symbolsData[i];
             const id = this.safeString (market, 'symbol');
             const [ baseId, quoteId ] = id.split ('-');
             const base = this.safeCurrencyCode (baseId);
