@@ -1116,6 +1116,11 @@ public partial class okx : Exchange
         return await this.callAsync ("privatePostSprdAmendOrder",parameters);
     }
 
+    public async Task<object> privatePostSprdCancelAllAfter (object parameters = null)
+    {
+        return await this.callAsync ("privatePostSprdCancelAllAfter",parameters);
+    }
+
     public async Task<object> privatePostTradeOrder (object parameters = null)
     {
         return await this.callAsync ("privatePostTradeOrder",parameters);

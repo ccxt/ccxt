@@ -73,6 +73,7 @@ public partial class krakenfutures : Exchange
                     { "public", "https://demo-futures.kraken.com/derivatives/api/" },
                     { "private", "https://demo-futures.kraken.com/derivatives/api/" },
                     { "charts", "https://demo-futures.kraken.com/api/charts/" },
+                    { "history", "https://demo-futures.kraken.com/api/history/" },
                     { "www", "https://demo-futures.kraken.com" },
                 } },
                 { "logo", "https://user-images.githubusercontent.com/24300605/81436764-b22fd580-9172-11ea-9703-742783e6376d.jpg" },
@@ -93,8 +94,8 @@ public partial class krakenfutures : Exchange
                     { "get", new List<object>() {"feeschedules", "instruments", "orderbook", "tickers", "history", "historicalfundingrates"} },
                 } },
                 { "private", new Dictionary<string, object>() {
-                    { "get", new List<object>() {"feeschedules/volumes", "openpositions", "notifications", "accounts", "openorders", "recentorders", "fills", "transfers", "leveragepreferences", "pnlpreferences"} },
-                    { "post", new List<object>() {"sendorder", "editorder", "cancelorder", "transfer", "batchorder", "cancelallorders", "cancelallordersafter", "withdrawal"} },
+                    { "get", new List<object>() {"feeschedules/volumes", "openpositions", "notifications", "accounts", "openorders", "recentorders", "fills", "transfers", "leveragepreferences", "pnlpreferences", "assignmentprogram/current", "assignmentprogram/history"} },
+                    { "post", new List<object>() {"sendorder", "editorder", "cancelorder", "transfer", "batchorder", "cancelallorders", "cancelallordersafter", "withdrawal", "assignmentprogram/add", "assignmentprogram/delete"} },
                     { "put", new List<object>() {"leveragepreferences", "pnlpreferences"} },
                 } },
                 { "charts", new Dictionary<string, object>() {
@@ -1964,7 +1965,7 @@ public partial class krakenfutures : Exchange
             { "type", this.parseOrderType(type) },
             { "timeInForce", timeInForce },
             { "postOnly", isEqual(type, "post") },
-            { "reduceOnly", this.safeValue(details, "reduceOnly") },
+            { "reduceOnly", this.safeBool2(details, "reduceOnly", "reduce_only") },
             { "side", this.safeString(details, "side") },
             { "price", price },
             { "stopPrice", this.safeString(details, "triggerPrice") },

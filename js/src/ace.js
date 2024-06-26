@@ -1020,14 +1020,11 @@ export default class ace extends Exchange {
             let auth = 'ACE_SIGN' + this.secret;
             const data = this.extend({
                 'apiKey': this.apiKey,
-                'timeStamp': nonce,
+                'timeStamp': this.numberToString(nonce),
             }, params);
-            const dataKeys = Object.keys(data);
-            const sortedDataKeys = this.sortBy(dataKeys, 0, false, '');
-            for (let i = 0; i < sortedDataKeys.length; i++) {
-                const key = sortedDataKeys[i];
-                auth += this.safeString(data, key);
-            }
+            const sortedData = this.keysort(data);
+            const values = Object.values(sortedData);
+            auth += values.join('');
             const signature = this.hash(this.encode(auth), sha256, 'hex');
             data['signKey'] = signature;
             headers = {

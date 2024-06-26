@@ -117,7 +117,7 @@
                 "parsedResponse": [
                     {
                         "id": "201060879563236943",
-                        "clientOrderId": null,
+                        "clientOrderId": "201060879563236943",
                         "info": {
                             "orderId": "201060879563236943",
                             "clientOrderId": "201060879563236943",

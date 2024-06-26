@@ -25,7 +25,7 @@ class bigone extends Exchange {
             'name' => 'BigONE',
             'countries' => array( 'CN' ),
             'version' => 'v3',
-            'rateLimit' => 1200, // 500 request per 10 minutes
+            'rateLimit' => 20, // 500 requests per 10 seconds
             'has' => array(
                 'CORS' => null,
                 'spot' => true,

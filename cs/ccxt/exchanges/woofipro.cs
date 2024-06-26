@@ -15,6 +15,7 @@ public partial class woofipro : Exchange
             { "version", "v1" },
             { "certified", true },
             { "pro", true },
+            { "dex", true },
             { "hostname", "dex.woo.org" },
             { "has", new Dictionary<string, object>() {
                 { "CORS", null },

@@ -6,7 +6,8 @@
         "r",
         "s",
         "v",
-        "nonce"
+        "nonce",
+        "time"
     ],
     "outputType": "json",
     "methods": {
@@ -711,6 +712,42 @@
                   "spot"
                 ],
                 "output": "{\"action\":{\"type\":\"spotUser\",\"classTransfer\":{\"usdc\":100,\"toPerp\":false}},\"nonce\":1711801415155,\"signature\":{\"r\":\"0x22acd4b8767652694c314361f83496cfbed25bb1297c6dd63e257a4106c9d715\",\"s\":\"0x28df849bd7b8604df860a8c78a353898cbcf670184df430deeeb1baec78902b3\",\"v\":27}}"
+            },
+            {
+                "description": "transfer on chain",
+                "method": "transfer",
+                "url": "https://api.hyperliquid-testnet.xyz/exchange",
+                "input": [
+                  "USDC",
+                  100,
+                  "",
+                  "0xc751489d24a33172541ea451bc253d7a9e98c781"
+                ],
+                "output": "{\"action\":{\"hyperliquidChain\":\"Mainnet\",\"signatureChainId\":\"0x66eee\",\"destination\":\"0xc751489d24a33172541ea451bc253d7a9e98c781\",\"amount\":\"100\",\"time\":1718449507242,\"type\":\"usdSend\"},\"nonce\":1718449507242,\"signature\":{\"r\":\"0x575f802d4117366cdfc2df33185bf21af6d2cebf1549689cc23082ffcf232a5d\",\"s\":\"0x661b7e839f0a66de5c63f9d3ff437f0455f74f7e3218332e26f6f2616b0e50eb\",\"v\":27}}"
+            }
+        ],
+        "withdraw": [
+            {
+                "description": "withdraw on chain",
+                "method": "withdraw",
+                "url": "https://api.hyperliquid-testnet.xyz/exchange",
+                "input": [
+                  "USDC",
+                  100,
+                  "0xc751489d24a33172541ea451bc253d7a9e98c781"
+                ],
+                "output": "{\"action\":{\"hyperliquidChain\":\"Mainnet\",\"signatureChainId\":\"0x66eee\",\"destination\":\"0xc751489d24a33172541ea451bc253d7a9e98c781\",\"amount\":\"100\",\"time\":1718449507245,\"type\":\"withdraw3\"},\"nonce\":1718449507245,\"signature\":{\"r\":\"0x10bb60d01ebab494400e5509b50881f6967389adbe04579419ae5fdb3555fae1\",\"s\":\"0x232044e07569968bfe6f2a52ecb0d9e85b9f5215174e39c8a82241d244860b9\",\"v\":27}}"
+            },
+            {
+                "description": "withdraw mainnet",
+                "method": "withdraw",
+                "url": "https://api.hyperliquid.xyz/exchange",
+                "input": [
+                  "USDC",
+                  10,
+                  "0xc950889d14a3717f541ec246bc253d7a9e98c78f"
+                ],
+                "output": "{\"action\":{\"hyperliquidChain\":\"Mainnet\",\"signatureChainId\":\"0x66eee\",\"destination\":\"0xc950889d14a3717f541ec246bc253d7a9e98c78f\",\"amount\":\"10\",\"time\":1718451417480,\"type\":\"withdraw3\"},\"nonce\":1718451417480,\"signature\":{\"r\":\"0x307d794d5235c9d7d6b931741a487b6b0ec2a756177b7b473c6746c96f31d23c\",\"s\":\"0x27734ee21a070c0f97ffc1f5de99b70120f8c5c6b352e4e5f4e88d48cafd02ce\",\"v\":27}}"
             }
         ],
         "cancelOrdersForSymbols": [

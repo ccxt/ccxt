@@ -21,7 +21,7 @@ class exmo extends Exchange {
             'id' => 'exmo',
             'name' => 'EXMO',
             'countries' => array( 'LT' ), // Lithuania
-            'rateLimit' => 350, // once every 350 ms ≈ 180 requests per minute ≈ 3 requests per second
+            'rateLimit' => 100, // 10 requests per 1 second
             'version' => 'v1.1',
             'has' => array(
                 'CORS' => null,

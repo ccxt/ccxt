@@ -2560,6 +2560,11 @@ class woo extends Exchange {
             if ($params) {
                 $url .= '?' . $this->urlencode($params);
             }
+        } elseif ($access === 'pub') {
+            $url .= $pathWithParams;
+            if ($params) {
+                $url .= '?' . $this->urlencode($params);
+            }
         } else {
             $this->check_required_credentials();
             if ($method === 'POST' && ($path === 'algo/order' || $path === 'order')) {
@@ -3254,7 +3259,7 @@ class woo extends Exchange {
         }) ();
     }
 
-    public function parse_conversion(array $conversion, ?array $fromCurrency = null, ?array $toCurrency = null): Conversion {
+    public function parse_conversion(array $conversion, ?array $fromCurrency = null, ?array $toCurrency = null): array {
         //
         // fetchConvertQuote
         //

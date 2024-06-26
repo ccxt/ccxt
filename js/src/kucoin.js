@@ -2512,9 +2512,9 @@ export default class kucoin extends Exchange {
         await this.loadMarkets();
         let lowercaseStatus = status.toLowerCase();
         const until = this.safeInteger(params, 'until');
-        const stop = this.safeBool(params, 'stop', false);
+        const stop = this.safeBool2(params, 'stop', 'trigger', false);
         const hf = this.safeBool(params, 'hf', false);
-        params = this.omit(params, ['stop', 'hf', 'until']);
+        params = this.omit(params, ['stop', 'hf', 'until', 'trigger']);
         const [marginMode, query] = this.handleMarginModeAndParams('fetchOrdersByStatus', params);
         if (lowercaseStatus === 'open') {
             lowercaseStatus = 'active';
@@ -2691,7 +2691,7 @@ export default class kucoin extends Exchange {
         await this.loadMarkets();
         const request = {};
         const clientOrderId = this.safeString2(params, 'clientOid', 'clientOrderId');
-        const stop = this.safeBool(params, 'stop', false);
+        const stop = this.safeBool2(params, 'stop', 'trigger', false);
         const hf = this.safeBool(params, 'hf', false);
         let market = undefined;
         if (symbol !== undefined) {
@@ -2703,7 +2703,7 @@ export default class kucoin extends Exchange {
             }
             request['symbol'] = market['id'];
         }
-        params = this.omit(params, ['stop', 'hf', 'clientOid', 'clientOrderId']);
+        params = this.omit(params, ['stop', 'hf', 'clientOid', 'clientOrderId', 'trigger']);
         let response = undefined;
         if (clientOrderId !== undefined) {
             request['clientOid'] = clientOrderId;

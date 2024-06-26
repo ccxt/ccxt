@@ -21,7 +21,7 @@ export default class exmo extends Exchange {
             'id': 'exmo',
             'name': 'EXMO',
             'countries': ['LT'],
-            'rateLimit': 350,
+            'rateLimit': 100,
             'version': 'v1.1',
             'has': {
                 'CORS': undefined,

@@ -22,6 +22,7 @@ export default class wavesexchange extends Exchange {
             'countries': [ 'CH' ], // Switzerland
             'certified': false,
             'pro': false,
+            'dex': true,
             'has': {
                 'CORS': undefined,
                 'spot': true,

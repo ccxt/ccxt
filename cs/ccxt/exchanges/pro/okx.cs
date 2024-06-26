@@ -72,7 +72,7 @@ public partial class okx : ccxt.okx
             } },
             { "streaming", new Dictionary<string, object>() {
                 { "ping", this.ping },
-                { "keepAlive", 20000 },
+                { "keepAlive", 18000 },
             } },
         });
     }

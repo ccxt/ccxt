@@ -18,7 +18,7 @@ class exmo extends exmo$1 {
             'id': 'exmo',
             'name': 'EXMO',
             'countries': ['LT'],
-            'rateLimit': 350,
+            'rateLimit': 100,
             'version': 'v1.1',
             'has': {
                 'CORS': undefined,

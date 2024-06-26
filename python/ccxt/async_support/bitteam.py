@@ -15,7 +15,7 @@ from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import ExchangeNotAvailable
-from ccxt.base.decimal_to_precision import DECIMAL_PLACES
+from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
 
@@ -199,7 +199,7 @@ class bitteam(Exchange, ImplicitAPI):
                     'maker': self.parse_number('0.002'),
                 },
             },
-            'precisionMode': DECIMAL_PLACES,
+            'precisionMode': TICK_SIZE,
             # exchange-specific options
             'options': {
                 'networksById': {
@@ -358,8 +358,6 @@ class bitteam(Exchange, ImplicitAPI):
         base = self.safe_currency_code(baseId)
         quote = self.safe_currency_code(quoteId)
         active = self.safe_value(market, 'active')
-        amountPrecision = self.safe_integer(market, 'baseStep')
-        pricePrecision = self.safe_integer(market, 'quoteStep')
         timeStart = self.safe_string(market, 'timeStart')
         created = self.parse8601(timeStart)
         minCost = None
@@ -394,8 +392,8 @@ class bitteam(Exchange, ImplicitAPI):
             'strike': None,
             'optionType': None,
             'precision': {
-                'amount': amountPrecision,
-                'price': pricePrecision,
+                'amount': self.parse_number(self.parse_precision(self.safe_string(market, 'baseStep'))),
+                'price': self.parse_number(self.parse_precision(self.safe_string(market, 'quoteStep'))),
             },
             'limits': {
                 'leverage': {
@@ -549,7 +547,7 @@ class bitteam(Exchange, ImplicitAPI):
             numericId = self.safe_integer(currency, 'id')
             code = self.safe_currency_code(id)
             active = self.safe_bool(currency, 'active', False)
-            precision = self.safe_integer(currency, 'precision')
+            precision = self.parse_number(self.parse_precision(self.safe_string(currency, 'precision')))
             txLimits = self.safe_value(currency, 'txLimits', {})
             minWithdraw = self.safe_string(txLimits, 'minWithdraw')
             maxWithdraw = self.safe_string(txLimits, 'maxWithdraw')
@@ -569,7 +567,7 @@ class bitteam(Exchange, ImplicitAPI):
             withdraw = self.safe_value(statuses, 'withdrawStatus')
             networkIds = list(feesByNetworkId.keys())
             networks: dict = {}
-            networkPrecision = self.safe_integer(currency, 'decimals')
+            networkPrecision = self.parse_number(self.parse_precision(self.safe_string(currency, 'decimals')))
             for j in range(0, len(networkIds)):
                 networkId = networkIds[j]
                 networkCode = self.network_id_to_code(networkId, code)

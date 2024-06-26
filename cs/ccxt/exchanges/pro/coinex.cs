@@ -718,12 +718,13 @@ public partial class coinex : ccxt.coinex
         //         "id": null
         //     }
         //
+        object isSwap = isGreaterThanOrEqual(getIndexOf(client.url, "perpetual"), 0);
+        object marketType = ((bool) isTrue(isSwap)) ? "swap" : "spot";
         object parameters = this.safeValue(message, "params", new List<object>() {});
         object fullOrderBook = this.safeValue(parameters, 0);
         object orderbook = this.safeValue(parameters, 1);
         object marketId = this.safeString(parameters, 2);
-        object defaultType = this.safeString(this.options, "defaultType");
-        object market = this.safeMarket(marketId, null, null, defaultType);
+        object market = this.safeMarket(marketId, null, null, marketType);
         object symbol = getValue(market, "symbol");
         object name = "orderbook";
         object messageHash = add(add(name, ":"), symbol);

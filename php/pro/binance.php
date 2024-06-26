@@ -86,6 +86,7 @@ class binance extends \ccxt\async\binance {
                         'papi' => 'wss://fstream.binance.com/pm/ws',
                     ),
                 ),
+                'doc' => 'https://developers.binance.com/en',
             ),
             'streaming' => array(
                 'keepAlive' => 180000,
@@ -198,8 +199,8 @@ class binance extends \ccxt\async\binance {
     public function watch_liquidations(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         /**
          * watch the public liquidations of a trading pair
-         * @see https://binance-docs.github.io/apidocs/futures/en/#liquidation-order-streams
-         * @see https://binance-docs.github.io/apidocs/delivery/en/#liquidation-order-streams
+         * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Liquidation-Order-Streams
+         * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/Liquidation-Order-Streams
          * @param {string} $symbol unified CCXT market $symbol
          * @param {int} [$since] the earliest time in ms to fetch liquidations for
          * @param {int} [$limit] the maximum number of liquidation structures to retrieve
@@ -213,8 +214,8 @@ class binance extends \ccxt\async\binance {
         return Async\async(function () use ($symbols, $since, $limit, $params) {
             /**
              * watch the public liquidations of a trading pair
-             * @see https://binance-docs.github.io/apidocs/futures/en/#all-$market-liquidation-order-streams
-             * @see https://binance-docs.github.io/apidocs/delivery/en/#all-$market-liquidation-order-streams
+             * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-$market-streams/All-Market-Liquidation-Order-Streams
+             * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-$market-streams/All-Market-Liquidation-Order-Streams
              * @param {string} symbol unified CCXT $market symbol
              * @param {int} [$since] the earliest time in ms to fetch liquidations for
              * @param {int} [$limit] the maximum number of liquidation structures to retrieve
@@ -419,8 +420,8 @@ class binance extends \ccxt\async\binance {
     public function watch_my_liquidations(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         /**
          * watch the private liquidations of a trading pair
-         * @see https://binance-docs.github.io/apidocs/futures/en/#event-order-update
-         * @see https://binance-docs.github.io/apidocs/delivery/en/#event-order-update
+         * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/user-data-streams/Event-Order-Update
+         * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/user-data-streams/Event-Order-Update
          * @param {string} $symbol unified CCXT market $symbol
          * @param {int} [$since] the earliest time in ms to fetch liquidations for
          * @param {int} [$limit] the maximum number of liquidation structures to retrieve
@@ -434,8 +435,8 @@ class binance extends \ccxt\async\binance {
         return Async\async(function () use ($symbols, $since, $limit, $params) {
             /**
              * watch the private liquidations of a trading pair
-             * @see https://binance-docs.github.io/apidocs/futures/en/#event-order-update
-             * @see https://binance-docs.github.io/apidocs/delivery/en/#event-order-update
+             * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/user-data-streams/Event-Order-Update
+             * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/user-data-streams/Event-Order-Update
              * @param {string} $symbol unified CCXT $market $symbol
              * @param {int} [$since] the earliest time in ms to fetch liquidations for
              * @param {int} [$limit] the maximum number of liquidation structures to retrieve
@@ -649,7 +650,8 @@ class binance extends \ccxt\async\binance {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-             * @see https://binance-docs.github.io/apidocs/futures/en/#order-book-2
+             * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-api#order-book
+             * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/websocket-api/Order-Book
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -1312,7 +1314,6 @@ class binance extends \ccxt\async\binance {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
-             * @see https://binance-docs.github.io/apidocs/voptions/en/#24hr-$ticker-price-change-statistics
              * @param {string} $symbol unified $symbol of the $market to fetch the $ticker for
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->method] $method to use can be $ticker->price or $ticker->book
@@ -1353,8 +1354,8 @@ class binance extends \ccxt\async\binance {
     public function fetch_ohlcv_ws(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
-             * @see https://binance-docs.github.io/apidocs/websocket_api/en/#klines
              * query historical candlestick data containing the open, high, low, and close price, and the volume of a $market
+             * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-api#klines
              * @param {string} $symbol unified $symbol of the $market to query OHLCV data for
              * @param {string} $timeframe the length of time each candle represents
              * @param {int} $since timestamp in ms of the earliest candle to fetch
@@ -1484,10 +1485,10 @@ class binance extends \ccxt\async\binance {
     public function watch_bids_asks(?array $symbols = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbols, $params) {
             /**
-             * @see https://binance-docs.github.io/apidocs/spot/en/#individual-symbol-book-ticker-streams
-             * @see https://binance-docs.github.io/apidocs/futures/en/#all-book-tickers-stream
-             * @see https://binance-docs.github.io/apidocs/delivery/en/#all-book-tickers-stream
              * watches best bid & ask for $symbols
+             * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-api#symbol-order-book-ticker
+             * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/All-Book-Tickers-Stream
+             * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/All-Book-Tickers-Stream
              * @param {string[]} $symbols unified symbol of the market to fetch the ticker for
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
@@ -2003,9 +2004,8 @@ class binance extends \ccxt\async\binance {
         return Async\async(function () use ($params) {
             /**
              * fetch balance and get the amount of funds available for trading or funds locked in orders
-             * @see https://binance-docs.github.io/apidocs/websocket_api/en/#account-information-user_data
-             * @see https://binance-docs.github.io/apidocs/futures/en/#account-information-user_data
-             * @see https://binance-docs.github.io/apidocs/futures/en/#futures-account-balance-user_data
+             * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/account/websocket-api/Futures-Account-Balance
+             * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-api#account-information-user_data
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string|null} [$params->type] 'future', 'delivery', 'savings', 'funding', or 'spot'
              * @param {string|null} [$params->marginMode] 'cross' or 'isolated', for margin trading, uses $this->options.defaultMarginMode if not passed, defaults to null/None/null
@@ -2106,7 +2106,7 @@ class binance extends \ccxt\async\binance {
     public function fetch_position_ws(string $symbol, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
-             * @see https://binance-docs.github.io/apidocs/futures/en/#position-information-user_data
+             * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/websocket-api/Position-Information
              * fetch data on an open position
              * @param {string} $symbol unified market $symbol of the market the position is held in
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -2120,7 +2120,7 @@ class binance extends \ccxt\async\binance {
         return Async\async(function () use ($symbols, $params) {
             /**
              * fetch all open positions
-             * @see https://binance-docs.github.io/apidocs/futures/en/#position-information-user_data
+             * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/websocket-api/Position-Information
              * @param {string[]} [$symbols] list of unified market $symbols
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {boolean} [$params->returnRateLimits] set to true to return rate limit informations, defaults to false.
@@ -2360,9 +2360,9 @@ class binance extends \ccxt\async\binance {
     public function create_order_ws(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
-             * @see https://binance-docs.github.io/apidocs/websocket_api/en/#place-new-order-trade
-             * @see https://binance-docs.github.io/apidocs/futures/en/#new-order-trade-2
              * create a trade order
+             * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-api#place-new-order-trade
+             * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/websocket-api/New-Order
              * @param {string} $symbol unified $symbol of the $market to create an order in
              * @param {string} $type 'market' or 'limit'
              * @param {string} $side 'buy' or 'sell'
@@ -2511,8 +2511,8 @@ class binance extends \ccxt\async\binance {
         return Async\async(function () use ($id, $symbol, $type, $side, $amount, $price, $params) {
             /**
              * edit a trade order
-             * @see https://binance-docs.github.io/apidocs/websocket_api/en/#cancel-and-replace-order-trade
-             * @see https://binance-docs.github.io/apidocs/futures/en/#modify-order-trade-2
+             * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-api#cancel-and-replace-order-trade
+             * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/websocket-api/Modify-Order
              * @param {string} $id order $id
              * @param {string} $symbol unified $symbol of the $market to create an order in
              * @param {string} $type 'market' or 'limit'
@@ -2666,9 +2666,9 @@ class binance extends \ccxt\async\binance {
     public function cancel_order_ws(string $id, ?string $symbol = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
-             * @see https://binance-docs.github.io/apidocs/websocket_api/en/#cancel-order-trade
-             * @see https://binance-docs.github.io/apidocs/futures/en/#cancel-order-trade-2
              * cancel multiple orders
+             * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-api#cancel-order-trade
+             * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/websocket-api/Cancel-Order
              * @param {string} $id order $id
              * @param {string} $symbol unified $market $symbol, default is null
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -2712,8 +2712,8 @@ class binance extends \ccxt\async\binance {
     public function cancel_all_orders_ws(?string $symbol = null, $params = array ()) {
         return Async\async(function () use ($symbol, $params) {
             /**
-             * @see https://binance-docs.github.io/apidocs/websocket_api/en/#current-open-orders-user_data
              * cancel all open orders in a $market
+             * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-api#cancel-open-orders-trade
              * @param {string} $symbol unified $market $symbol of the $market to cancel orders in
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
@@ -2748,9 +2748,9 @@ class binance extends \ccxt\async\binance {
     public function fetch_order_ws(string $id, ?string $symbol = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
-             * @see https://binance-docs.github.io/apidocs/websocket_api/en/#query-order-user_data
-             * @see https://binance-docs.github.io/apidocs/futures/en/#query-order-user_data-2
              * fetches information on an order made by the user
+             * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-api#query-order-user_data
+             * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/websocket-api/Query-Order
              * @param {string} $symbol unified $symbol of the $market the order was made in
              * @param {array} $params extra parameters specific to the exchange API endpoint
              * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
@@ -2794,8 +2794,8 @@ class binance extends \ccxt\async\binance {
     public function fetch_orders_ws(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
-             * @see https://binance-docs.github.io/apidocs/websocket_api/en/#account-order-history-user_data
              * fetches information on multiple $orders made by the user
+             * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-api#query-order-list-user_data
              * @param {string} $symbol unified $market $symbol of the $market $orders were made in
              * @param {int|null} [$since] the earliest time in ms to fetch $orders for
              * @param {int|null} [$limit] the maximum number of order structures to retrieve
@@ -2840,8 +2840,8 @@ class binance extends \ccxt\async\binance {
     public function fetch_closed_orders_ws(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
-             * @see https://binance-docs.github.io/apidocs/websocket_api/en/#account-$order-history-user_data
              * fetch closed $orders
+             * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-api#query-$order-list-user_data
              * @param {string} $symbol unified market $symbol
              * @param {int} [$since] the earliest time in ms to fetch open $orders for
              * @param {int} [$limit] the maximum number of open $orders structures to retrieve
@@ -2863,8 +2863,8 @@ class binance extends \ccxt\async\binance {
     public function fetch_open_orders_ws(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
-             * @see https://binance-docs.github.io/apidocs/websocket_api/en/#current-open-$orders-user_data
              * fetch all unfilled currently open $orders
+             * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-api#current-open-$orders-user_data
              * @param {string} $symbol unified $market $symbol
              * @param {int|null} [$since] the earliest time in ms to fetch open $orders for
              * @param {int|null} [$limit] the maximum number of open $orders structures to retrieve
@@ -2905,9 +2905,9 @@ class binance extends \ccxt\async\binance {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * watches information on multiple $orders made by the user
-             * @see https://binance-docs.github.io/apidocs/spot/en/#payload-order-update
-             * @see https://binance-docs.github.io/apidocs/pm/en/#event-futures-order-update
-             * @see https://binance-docs.github.io/apidocs/pm/en/#event-margin-order-update
+             * @see https://developers.binance.com/docs/binance-spot-api-docs/user-data-stream#order-update
+             * @see https://developers.binance.com/docs/margin_trading/trade-data-stream/Event-Order-Update
+             * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/user-data-streams/Event-Order-Update
              * @param {string} $symbol unified $market $symbol of the $market the $orders were made in
              * @param {int} [$since] the earliest time in ms to fetch $orders for
              * @param {int} [$limit] the maximum number of order structures to retrieve
@@ -3432,8 +3432,8 @@ class binance extends \ccxt\async\binance {
     public function fetch_my_trades_ws(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
-             * @see https://binance-docs.github.io/apidocs/websocket_api/en/#account-trade-history-user_data
              * fetch all $trades made by the user
+             * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-api#account-trade-history-user_data
              * @param {string} $symbol unified $market $symbol
              * @param {int|null} [$since] the earliest time in ms to fetch $trades for
              * @param {int|null} [$limit] the maximum number of $trades structures to retrieve
@@ -3486,8 +3486,8 @@ class binance extends \ccxt\async\binance {
     public function fetch_trades_ws(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
-             * @see https://binance-docs.github.io/apidocs/websocket_api/en/#recent-$trades
              * fetch all $trades made by the user
+             * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-api#recent-$trades
              * @param {string} $symbol unified $market $symbol
              * @param {int} [$since] the earliest time in ms to fetch $trades for
              * @param {int} [$limit] the maximum number of $trades structures to retrieve, default=500, max=1000

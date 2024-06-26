@@ -962,7 +962,19 @@ class bitso(Exchange, ImplicitAPI):
         request: dict = {
             'oid': id,
         }
-        return await self.privateDeleteOrdersOid(self.extend(request, params))
+        response = await self.privateDeleteOrdersOid(self.extend(request, params))
+        #
+        #     {
+        #         "success": True,
+        #         "payload": ["yWTQGxDMZ0VimZgZ"]
+        #     }
+        #
+        payload = self.safe_list(response, 'payload', [])
+        orderId = self.safe_string(payload, 0)
+        return self.safe_order({
+            'info': response,
+            'id': orderId,
+        })
 
     async def cancel_orders(self, ids, symbol: Str = None, params={}):
         """

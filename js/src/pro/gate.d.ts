@@ -1,8 +1,17 @@
 import gateRest from '../gate.js';
-import type { Int, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Position, Balances, Liquidation } from '../base/types.js';
+import type { Int, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Position, Balances, Liquidation, OrderType, OrderSide, Num, Market, MarketType, OrderRequest } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class gate extends gateRest {
     describe(): any;
+    createOrderWs(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): Promise<Order>;
+    createOrdersWs(orders: OrderRequest[], params?: {}): Promise<Order[]>;
+    cancelAllOrdersWs(symbol?: Str, params?: {}): Promise<Order[]>;
+    cancelOrderWs(id: string, symbol?: Str, params?: {}): Promise<Order>;
+    editOrderWs(id: string, symbol: string, type: OrderType, side: OrderSide, amount?: Num, price?: Num, params?: {}): Promise<Order>;
+    fetchOrderWs(id: string, symbol?: Str, params?: {}): Promise<Order>;
+    fetchOpenOrdersWs(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
+    fetchClosedOrdersWs(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
+    fetchOrdersByStatusWs(status: string, symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<any>;
     watchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
     handleOrderBookSubscription(client: Client, message: any, subscription: any): void;
     handleOrderBook(client: Client, message: any): void;
@@ -40,11 +49,14 @@ export default class gate extends gateRest {
     handleSubscriptionStatus(client: Client, message: any): void;
     handleMessage(client: Client, message: any): void;
     getUrlByMarket(market: any): any;
-    getTypeByMarket(market: any): "spot" | "futures" | "options";
-    getUrlByMarketType(type: any, isInverse?: boolean): any;
+    getTypeByMarket(market: Market): "spot" | "futures" | "options";
+    getUrlByMarketType(type: MarketType, isInverse?: boolean): any;
     getMarketTypeByUrl(url: string): any;
     requestId(): any;
     subscribePublic(url: any, messageHash: any, payload: any, channel: any, params?: {}, subscription?: any): Promise<any>;
     subscribePublicMultiple(url: any, messageHashes: any, payload: any, channel: any, params?: {}): Promise<any>;
+    authenticate(url: any, messageType: any): Promise<any>;
+    handleAuthenticationMessage(client: Client, message: any): void;
+    requestPrivate(url: any, reqParams: any, channel: any, requestId?: Str): Promise<any>;
     subscribePrivate(url: any, messageHash: any, payload: any, channel: any, params: any, requiresUid?: boolean): Promise<any>;
 }

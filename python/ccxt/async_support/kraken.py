@@ -1639,6 +1639,7 @@ class kraken(Exchange, ImplicitAPI):
             'filled': filled,
             'average': average,
             'remaining': None,
+            'reduceOnly': self.safe_bool_2(order, 'reduceOnly', 'reduce_only'),
             'fee': fee,
             'trades': trades,
         }, market)
@@ -1993,7 +1994,7 @@ class kraken(Exchange, ImplicitAPI):
     async def cancel_order(self, id: str, symbol: Str = None, params={}):
         """
         cancels an open order
-        :see: https://docs.kraken.com/rest/#tag/Trading/operation/cancelOrder
+        :see: https://docs.kraken.com/rest/#tag/Spot-Trading/operation/cancelOrder
         :param str id: order id
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -2028,7 +2029,7 @@ class kraken(Exchange, ImplicitAPI):
     async def cancel_orders(self, ids, symbol: Str = None, params={}):
         """
         cancel multiple orders
-        :see: https://docs.kraken.com/rest/#tag/Trading/operation/cancelOrderBatch
+        :see: https://docs.kraken.com/rest/#tag/Spot-Trading/operation/cancelOrderBatch
         :param str[] ids: open orders transaction ID(txid) or user reference(userref)
         :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -2055,7 +2056,7 @@ class kraken(Exchange, ImplicitAPI):
     async def cancel_all_orders(self, symbol: Str = None, params={}):
         """
         cancel all open orders
-        :see: https://docs.kraken.com/rest/#tag/Trading/operation/cancelAllOrders
+        :see: https://docs.kraken.com/rest/#tag/Spot-Trading/operation/cancelAllOrders
         :param str symbol: unified market symbol, only orders in the market of self symbol are cancelled when symbol is not None
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`

@@ -35,6 +35,7 @@ class idex(Exchange, ImplicitAPI):
             'rateLimit': 1000,
             'version': 'v3',
             'pro': True,
+            'dex': True,
             'certified': False,
             'requiresWeb3': True,
             'has': {

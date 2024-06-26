@@ -84,6 +84,7 @@ class krakenfutures extends Exchange {
                     'public' => 'https://demo-futures.kraken.com/derivatives/api/',
                     'private' => 'https://demo-futures.kraken.com/derivatives/api/',
                     'charts' => 'https://demo-futures.kraken.com/api/charts/',
+                    'history' => 'https://demo-futures.kraken.com/api/history/',
                     'www' => 'https://demo-futures.kraken.com',
                 ),
                 'logo' => 'https://user-images.githubusercontent.com/24300605/81436764-b22fd580-9172-11ea-9703-742783e6376d.jpg',
@@ -124,6 +125,8 @@ class krakenfutures extends Exchange {
                         'transfers',
                         'leveragepreferences',
                         'pnlpreferences',
+                        'assignmentprogram/current',
+                        'assignmentprogram/history',
                     ),
                     'post' => array(
                         'sendorder',
@@ -134,6 +137,8 @@ class krakenfutures extends Exchange {
                         'cancelallorders',
                         'cancelallordersafter',
                         'withdrawal',                              // for futures wallet -> kraken spot wallet
+                        'assignmentprogram/add',
+                        'assignmentprogram/delete',
                     ),
                     'put' => array(
                         'leveragepreferences',
@@ -1879,7 +1884,7 @@ class krakenfutures extends Exchange {
             'type' => $this->parse_order_type($type),
             'timeInForce' => $timeInForce,
             'postOnly' => $type === 'post',
-            'reduceOnly' => $this->safe_value($details, 'reduceOnly'),
+            'reduceOnly' => $this->safe_bool_2($details, 'reduceOnly', 'reduce_only'),
             'side' => $this->safe_string($details, 'side'),
             'price' => $price,
             'stopPrice' => $this->safe_string($details, 'triggerPrice'),

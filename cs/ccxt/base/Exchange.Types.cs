@@ -1531,7 +1531,7 @@ public struct MarketInterface
         uppercaseId = Exchange.SafeString(market, "uppercaseId");
         lowercaseId = Exchange.SafeString(market, "lowercaseId");
         symbol = Exchange.SafeString(market, "symbol");
-        baseCurrency = Exchange.SafeString(market, "baseCurrency");
+        baseCurrency = Exchange.SafeString(market, "base");
         quote = Exchange.SafeString(market, "quote");
         baseId = Exchange.SafeString(market, "baseId");
         quoteId = Exchange.SafeString(market, "quoteId");

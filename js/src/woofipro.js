@@ -28,6 +28,7 @@ export default class woofipro extends Exchange {
             'version': 'v1',
             'certified': true,
             'pro': true,
+            'dex': true,
             'hostname': 'dex.woo.org',
             'has': {
                 'CORS': undefined,

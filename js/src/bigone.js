@@ -23,7 +23,7 @@ export default class bigone extends Exchange {
             'name': 'BigONE',
             'countries': ['CN'],
             'version': 'v3',
-            'rateLimit': 1200,
+            'rateLimit': 20,
             'has': {
                 'CORS': undefined,
                 'spot': true,
