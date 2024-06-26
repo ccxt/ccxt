@@ -445,23 +445,26 @@ class hyperliquid(Exchange, ImplicitAPI):
         for i in range(0, len(meta)):
             market = self.safe_dict(meta, i, {})
             marketName = self.safe_string(market, 'name')
-            if marketName.find('/') < 0:
-                # there are some weird spot markets in testnet, eg @2
-                continue
-            marketParts = marketName.split('/')
-            baseName = self.safe_string(marketParts, 0)
-            quoteId = self.safe_string(marketParts, 1)
-            base = self.safe_currency_code(baseName)
-            quote = self.safe_currency_code(quoteId)
-            symbol = base + '/' + quote
+            # if marketName.find('/') < 0:
+            #     # there are some weird spot markets in testnet, eg @2
+            #     continue
+            # }
+            # marketParts = marketName.split('/')
+            # baseName = self.safe_string(marketParts, 0)
+            # quoteId = self.safe_string(marketParts, 1)
             fees = self.safe_dict(self.fees, 'spot', {})
             taker = self.safe_number(fees, 'taker')
             maker = self.safe_number(fees, 'maker')
             tokensPos = self.safe_list(market, 'tokens', [])
             baseTokenPos = self.safe_integer(tokensPos, 0)
-            # quoteTokenPos = self.safe_integer(tokensPos, 1)
+            quoteTokenPos = self.safe_integer(tokensPos, 1)
             baseTokenInfo = self.safe_dict(tokens, baseTokenPos, {})
-            # quoteTokenInfo = self.safe_dict(tokens, quoteTokenPos, {})
+            quoteTokenInfo = self.safe_dict(tokens, quoteTokenPos, {})
+            baseName = self.safe_string(baseTokenInfo, 'name')
+            quoteId = self.safe_string(quoteTokenInfo, 'name')
+            base = self.safe_currency_code(baseName)
+            quote = self.safe_currency_code(quoteId)
+            symbol = base + '/' + quote
             innerBaseTokenInfo = self.safe_dict(baseTokenInfo, 'spec', baseTokenInfo)
             # innerQuoteTokenInfo = self.safe_dict(quoteTokenInfo, 'spec', quoteTokenInfo)
             amountPrecision = self.parse_number(self.parse_precision(self.safe_string(innerBaseTokenInfo, 'szDecimals')))

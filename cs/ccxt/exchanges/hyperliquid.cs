@@ -446,24 +446,26 @@ public partial class hyperliquid : Exchange
         {
             object market = this.safeDict(meta, i, new Dictionary<string, object>() {});
             object marketName = this.safeString(market, "name");
-            if (isTrue(isLessThan(getIndexOf(marketName, "/"), 0)))
-            {
-                continue;
-            }
-            object marketParts = ((string)marketName).Split(new [] {((string)"/")}, StringSplitOptions.None).ToList<object>();
-            object baseName = this.safeString(marketParts, 0);
-            object quoteId = this.safeString(marketParts, 1);
-            object bs = this.safeCurrencyCode(baseName);
-            object quote = this.safeCurrencyCode(quoteId);
-            object symbol = add(add(bs, "/"), quote);
+            // if (marketName.indexOf ('/') < 0) {
+            //     // there are some weird spot markets in testnet, eg @2
+            //     continue;
+            // }
+            // const marketParts = marketName.split ('/');
+            // const baseName = this.safeString (marketParts, 0);
+            // const quoteId = this.safeString (marketParts, 1);
             object fees = this.safeDict(this.fees, "spot", new Dictionary<string, object>() {});
             object taker = this.safeNumber(fees, "taker");
             object maker = this.safeNumber(fees, "maker");
             object tokensPos = this.safeList(market, "tokens", new List<object>() {});
             object baseTokenPos = this.safeInteger(tokensPos, 0);
-            // const quoteTokenPos = this.safeInteger (tokensPos, 1);
+            object quoteTokenPos = this.safeInteger(tokensPos, 1);
             object baseTokenInfo = this.safeDict(tokens, baseTokenPos, new Dictionary<string, object>() {});
-            // const quoteTokenInfo = this.safeDict (tokens, quoteTokenPos, {});
+            object quoteTokenInfo = this.safeDict(tokens, quoteTokenPos, new Dictionary<string, object>() {});
+            object baseName = this.safeString(baseTokenInfo, "name");
+            object quoteId = this.safeString(quoteTokenInfo, "name");
+            object bs = this.safeCurrencyCode(baseName);
+            object quote = this.safeCurrencyCode(quoteId);
+            object symbol = add(add(bs, "/"), quote);
             object innerBaseTokenInfo = this.safeDict(baseTokenInfo, "spec", baseTokenInfo);
             // const innerQuoteTokenInfo = this.safeDict (quoteTokenInfo, 'spec', quoteTokenInfo);
             object amountPrecision = this.parseNumber(this.parsePrecision(this.safeString(innerBaseTokenInfo, "szDecimals")));

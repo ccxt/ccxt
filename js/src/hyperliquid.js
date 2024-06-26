@@ -445,24 +445,26 @@ export default class hyperliquid extends Exchange {
         for (let i = 0; i < meta.length; i++) {
             const market = this.safeDict(meta, i, {});
             const marketName = this.safeString(market, 'name');
-            if (marketName.indexOf('/') < 0) {
-                // there are some weird spot markets in testnet, eg @2
-                continue;
-            }
-            const marketParts = marketName.split('/');
-            const baseName = this.safeString(marketParts, 0);
-            const quoteId = this.safeString(marketParts, 1);
-            const base = this.safeCurrencyCode(baseName);
-            const quote = this.safeCurrencyCode(quoteId);
-            const symbol = base + '/' + quote;
+            // if (marketName.indexOf ('/') < 0) {
+            //     // there are some weird spot markets in testnet, eg @2
+            //     continue;
+            // }
+            // const marketParts = marketName.split ('/');
+            // const baseName = this.safeString (marketParts, 0);
+            // const quoteId = this.safeString (marketParts, 1);
             const fees = this.safeDict(this.fees, 'spot', {});
             const taker = this.safeNumber(fees, 'taker');
             const maker = this.safeNumber(fees, 'maker');
             const tokensPos = this.safeList(market, 'tokens', []);
             const baseTokenPos = this.safeInteger(tokensPos, 0);
-            // const quoteTokenPos = this.safeInteger (tokensPos, 1);
+            const quoteTokenPos = this.safeInteger(tokensPos, 1);
             const baseTokenInfo = this.safeDict(tokens, baseTokenPos, {});
-            // const quoteTokenInfo = this.safeDict (tokens, quoteTokenPos, {});
+            const quoteTokenInfo = this.safeDict(tokens, quoteTokenPos, {});
+            const baseName = this.safeString(baseTokenInfo, 'name');
+            const quoteId = this.safeString(quoteTokenInfo, 'name');
+            const base = this.safeCurrencyCode(baseName);
+            const quote = this.safeCurrencyCode(quoteId);
+            const symbol = base + '/' + quote;
             const innerBaseTokenInfo = this.safeDict(baseTokenInfo, 'spec', baseTokenInfo);
             // const innerQuoteTokenInfo = this.safeDict (quoteTokenInfo, 'spec', quoteTokenInfo);
             const amountPrecision = this.parseNumber(this.parsePrecision(this.safeString(innerBaseTokenInfo, 'szDecimals')));
