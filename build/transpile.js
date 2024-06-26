@@ -214,6 +214,7 @@ class Transpiler {
             [ /Precise\.stringGe\s/g, 'Precise.string_ge' ],
             [ /Precise\.stringLt\s/g, 'Precise.string_lt' ],
             [ /Precise\.stringLe\s/g, 'Precise.string_le' ],
+            [ /Precise\.stringOr\s/g, 'Precise.string_or' ],
             [ /\.padEnd\s/g, '.ljust'],
             [ /\.padStart\s/g, '.rjust' ],
 
@@ -305,7 +306,7 @@ class Transpiler {
             [ /\{ /g, '{' ],              // PEP8 E201 remove whitespaces after left { bracket
             [ /(?<=[^\s#]) \]/g, ']' ],    // PEP8 E202 remove whitespaces before right ] square bracket
             [ /(?<=[^\s#]) \}/g, '}' ],    // PEP8 E202 remove whitespaces before right } bracket
-            [ /([^a-z])(elif|if|or|else)\(/g, '$1$2 \(' ], // a correction for PEP8 E225 side-effect for compound and ternary conditionals
+            [ /([^a-z\_])(elif|if|or|else)\(/g, '$1$2 \(' ], // a correction for PEP8 E225 side-effect for compound and ternary conditionals
             [ /\!\=\sTrue/g, 'is not True' ], // a correction for PEP8 E712, it likes "is not True", not "!= True"
             [ /\=\=\sTrue/g, 'is True' ], // a correction for PEP8 E712, it likes "is True", not "== True"
             [ /\sdelete\s/g, ' del ' ],
@@ -446,6 +447,7 @@ class Transpiler {
             [ /Precise\.stringGe\s/g, 'Precise::string_ge' ],
             [ /Precise\.stringLt\s/g, 'Precise::string_lt' ],
             [ /Precise\.stringLe\s/g, 'Precise::string_le' ],
+            [ /Precise\.stringOr\s/g, 'Precise::string_or' ],
             [ /(\w+)\.padEnd\s*\(([^,]+),\s*([^)]+)\)/g, 'str_pad($1, $2, $3, STR_PAD_RIGHT)' ],
             [ /(\w+)\.padStart\s*\(([^,]+),\s*([^)]+)\)/g, 'str_pad($1, $2, $3, STR_PAD_LEFT)' ],
 
@@ -458,7 +460,7 @@ class Transpiler {
             [ / this;/g, ' $this;' ],
             [ /([^'])this_\./g, '$1$this_->' ],
             [ /([^'])\{\}/g, '$1array()' ],
-            [ /([^'])\[\]/g, '$1array()' ],
+            [ /([^'])\[\](?!')/g, '$1array()' ],
 
         // add {}-array syntax conversions up to 20 levels deep on the same line
         ]).concat ([ ... Array (20) ].map (x => [ /\{([^\n\}]+)\}/g, 'array($1)' ] )).concat ([
@@ -2063,11 +2065,14 @@ class Transpiler {
             // remove async ccxt import
             replace (/from ccxt\.async_support(.*)/g, '').
             // add one more newline before function
-            replace (/^(async def|def) (\w)/gs, '\n$1 $2')
+            replace (/^(async def|def) (\w)/gs, '\n$1 $2').
+            // camelCase walletAddress and privateKey
+            replace(/\.wallet_address/g, '.walletAddress').
+            replace(/\.private_key/g, '.privateKey').
+            replace(/\.api_key/g, '.apiKey');
         
         const impHelper = `# -*- coding: utf-8 -*-\n\nimport asyncio\n\n\n` + 'from tests_helpers import get_cli_arg_value, dump, exit_script, get_test_files, init_exchange, set_exchange_prop, call_method, exception_message, io_file_exists, io_file_read, baseMainTestClass, AuthenticationError, NotSupported, OperationFailed, OnMaintenance, ExchangeNotAvailable, ProxyError, get_exchange_prop, close, json_parse, json_stringify, is_null_value, io_dir_read, convert_ascii, call_exchange_method_dynamically, set_fetch_response, call_exchange_method_dynamically_sync  # noqa: F401' + '\n\n';
         let newPython = impHelper + python3;
-        
         newPython = snakeCaseFunctions (newPython);
         overwriteSafe (files.pyFileAsync, newPython);
         this.transpilePythonAsyncToSync (files.pyFileAsync, files.pyFileSync);
@@ -2088,7 +2093,10 @@ class Transpiler {
             }
             let head = '<?php\n\n' + 'namespace ccxt;\n\n' + 'use \\React\\Async;\nuse \\React\\Promise;\n' + exceptions + '\nrequire_once __DIR__ . \'/tests_helpers.php\';\n\n';
             let newContent = head + cont;
-            newContent = newContent.replace (/use ccxt\\(async\\|)abstract\\testMainClass as baseMainTestClass;/g, '');
+            newContent = newContent.replace (/use ccxt\\(async\\|)abstract\\testMainClass as baseMainTestClass;/g, '').
+            replace(/\->wallet_address/g, '->walletAddress').
+            replace(/\->private_key/g, '->privateKey').
+            replace(/\->api_key/g, '->apiKey');
             newContent = snakeCaseFunctions (newContent);
             newContent = this.phpReplaceException (newContent);
             return newContent;
