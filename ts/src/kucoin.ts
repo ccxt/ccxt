@@ -106,7 +106,7 @@ export default class kucoin extends Exchange {
                 'fetchWithdrawals': true,
                 'repayCrossMargin': true,
                 'repayIsolatedMargin': true,
-                'setLeverage': false,
+                'setLeverage': true,
                 'setMarginMode': false,
                 'setPositionMode': false,
                 'signIn': false,
@@ -280,6 +280,7 @@ export default class kucoin extends Exchange {
                         'lend/purchase/update': 10, // 10SW
                         // ws
                         'bullet-private': 10, // 10SW
+                        'position/update-user-leverage': 5,
                     },
                     'delete': {
                         // account
@@ -699,6 +700,7 @@ export default class kucoin extends Exchange {
                             'purchase': 'v3',
                             'redeem': 'v3',
                             'lend/purchase/update': 'v3',
+                            'position/update-user-leverage': 'v3',
                         },
                         'DELETE': {
                             // account
@@ -4861,6 +4863,43 @@ export default class kucoin extends Exchange {
         //
         const data = this.safeList (response, 'data', []);
         return this.parseDepositWithdrawFees (data, codes, 'currency');
+    }
+
+    async setLeverage (leverage: Int, symbol: Str = undefined, params = {}) {
+        /**
+         * @method
+         * @name kucoin#setLeverage
+         * @description set the level of leverage for a market
+         * @see https://www.kucoin.com/docs/rest/margin-trading/margin-trading-v3-/modify-leverage-multiplier
+         * @param {string} symbol unified market symbol
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} response from the exchange
+         */
+        await this.loadMarkets ();
+        let market = undefined;
+        let marketType: Str = undefined;
+        [ marketType, params ] = this.handleMarketTypeAndParams ('setLeverage', undefined, params);
+        if ((symbol !== undefined) || marketType !== 'spot') {
+            market = this.market (symbol);
+            if (market['contract']) {
+                throw new NotSupported (this.id + ' setLeverage currently supports only spot margin');
+            }
+        }
+        let marginMode: Str = undefined;
+        [ marginMode, params ] = this.handleMarginModeAndParams ('setLeverage', params);
+        if (marginMode === undefined) {
+            throw new ArgumentsRequired (this.id + ' setLeverage requires a marginMode parameter');
+        }
+        const request: Dict = {};
+        if (marginMode === 'isolated' && symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' setLeverage requires a symbol parameter for isolated margin');
+        }
+        if (symbol !== undefined) {
+            request['symbol'] = market['id'];
+        }
+        request['leverage'] = leverage.toString ();
+        request['isIsolated'] = (marginMode === 'isolated');
+        return await this.privatePostPositionUpdateUserLeverage (this.extend (request, params));
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
