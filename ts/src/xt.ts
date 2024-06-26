@@ -2071,7 +2071,7 @@ export default class xt extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'symbol': market['symbol'],
-            'order': this.safeString (trade, 'orderId'),
+            'order': this.safeString2 (trade, 'orderId', 'oi'),
             'type': this.safeStringLower (trade, 'orderType'),
             'side': side,
             'takerOrMaker': takerOrMaker,
