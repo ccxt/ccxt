@@ -10283,9 +10283,9 @@ class binance(Exchange, ImplicitAPI):
                     orderidlistLength = len(orderidlist)
                     origclientorderidlistLength = len(origclientorderidlist)
                     if orderidlistLength > 0:
-                        query = query + '&' + 'orderidlist=[' + ','.join(orderidlist) + ']'
+                        query = query + '&' + 'orderidlist=%5B' + '%2C'.join(orderidlist) + '%5D'
                     if origclientorderidlistLength > 0:
-                        query = query + '&' + 'origclientorderidlist=[' + ','.join(origclientorderidlist) + ']'
+                        query = query + '&' + 'origclientorderidlist=%5B' + '%2C'.join(origclientorderidlist) + '%5D'
                 else:
                     query = self.rawencode(extendedParams)
             else:

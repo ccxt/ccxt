@@ -5537,10 +5537,19 @@ public partial class bybit : Exchange
         * @param {string} [params.baseCoin] Base coin. Supports linear, inverse & option
         * @param {string} [params.settleCoin] Settle coin. Supports linear, inverse & option
         * @param {string} [params.orderFilter] 'Order' or 'StopOrder' or 'tpslOrder'
+        * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
         */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
+        object paginate = false;
+        var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchOpenOrders", "paginate");
+        paginate = ((IList<object>)paginateparametersVariable)[0];
+        parameters = ((IList<object>)paginateparametersVariable)[1];
+        if (isTrue(paginate))
+        {
+            return await this.fetchPaginatedCallCursor("fetchOpenOrders", symbol, since, limit, parameters, "nextPageCursor", "cursor", null, 50);
+        }
         var enableUnifiedMarginenableUnifiedAccountVariable = await this.isUnifiedEnabled();
         var enableUnifiedMargin = ((IList<object>) enableUnifiedMarginenableUnifiedAccountVariable)[0];
         var enableUnifiedAccount = ((IList<object>) enableUnifiedMarginenableUnifiedAccountVariable)[1];

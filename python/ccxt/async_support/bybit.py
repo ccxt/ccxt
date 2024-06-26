@@ -4839,9 +4839,14 @@ class bybit(Exchange, ImplicitAPI):
         :param str [params.baseCoin]: Base coin. Supports linear, inverse & option
         :param str [params.settleCoin]: Settle coin. Supports linear, inverse & option
         :param str [params.orderFilter]: 'Order' or 'StopOrder' or 'tpslOrder'
+        :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
+        paginate = False
+        paginate, params = self.handle_option_and_params(params, 'fetchOpenOrders', 'paginate')
+        if paginate:
+            return await self.fetch_paginated_call_cursor('fetchOpenOrders', symbol, since, limit, params, 'nextPageCursor', 'cursor', None, 50)
         enableUnifiedMargin, enableUnifiedAccount = await self.is_unified_enabled()
         isUnifiedAccount = (enableUnifiedMargin or enableUnifiedAccount)
         request: dict = {}

@@ -10970,10 +10970,10 @@ export default class binance extends Exchange {
                     const orderidlistLength = orderidlist.length;
                     const origclientorderidlistLength = origclientorderidlist.length;
                     if (orderidlistLength > 0) {
-                        query = query + '&' + 'orderidlist=[' + orderidlist.join (',') + ']';
+                        query = query + '&' + 'orderidlist=%5B' + orderidlist.join ('%2C') + '%5D';
                     }
                     if (origclientorderidlistLength > 0) {
-                        query = query + '&' + 'origclientorderidlist=[' + origclientorderidlist.join (',') + ']';
+                        query = query + '&' + 'origclientorderidlist=%5B' + origclientorderidlist.join ('%2C') + '%5D';
                     }
                 } else {
                     query = this.rawencode (extendedParams);
