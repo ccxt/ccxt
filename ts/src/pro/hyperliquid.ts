@@ -288,7 +288,7 @@ export default class hyperliquid extends hyperliquidRest {
         client.resolve (trades, messageHash);
     }
 
-    parseWsTrade (trade, market: Market = undefined): Trade {
+    parseWsTrade (trade: Dict, market: Market = undefined): Trade {: Trade {
         //
         // fetchMyTrades
         //

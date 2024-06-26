@@ -498,7 +498,7 @@ export default class bitmart extends bitmartRest {
         client.resolve (newOrders, messageHash);
     }
 
-    parseWsOrder (order, market: Market = undefined) {
+    parseWsOrder (order: Dict, market: Market = undefined): Order {
         //
         // spot
         //    {
@@ -873,7 +873,7 @@ export default class bitmart extends bitmartRest {
         return symbol;
     }
 
-    parseWsTrade (trade, market: Market = undefined) {
+    parseWsTrade (trade: Dict, market: Market = undefined): Trade { {
         // spot
         //    {
         //        "price": "52700.50",
