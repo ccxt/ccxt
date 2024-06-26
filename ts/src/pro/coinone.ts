@@ -315,7 +315,7 @@ export default class coinone extends coinoneRest {
         client.resolve (stored, messageHash);
     }
 
-    parseWsTrade (trade, market: Market = undefined): Trade {
+    parseWsTrade (trade: Dict, market: Market = undefined): Trade {
         //
         //     {
         //         "quote_currency": "KRW",
