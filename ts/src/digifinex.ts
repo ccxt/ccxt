@@ -3861,7 +3861,7 @@ export default class digifinex extends Exchange {
         return this.parseMarketLeverageTiers (data, market);
     }
 
-    parseMarketLeverageTiers (info, market: Market = undefined): LeverageTier[] {
+    parseMarketLeverageTiers (info: Dict[], market: Market = undefined): LeverageTier[] {
         //
         //     {
         //         "instrument_id": "BTCUSDTPERP",
