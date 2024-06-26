@@ -693,8 +693,8 @@ export default class xt extends xtRest {
             const tradeType = ('fu' in data) ? 'contract' : 'spot';
             const market = this.safeMarket (marketId, undefined, undefined, tradeType);
             const symbol = market['symbol'];
-            const asks = this.safeDict (data, 'a');
-            const bids = this.safeDict (data, 'b');
+            const asks = this.safeList (data, 'a');
+            const bids = this.safeList (data, 'b');
             const messageHash = event + '::' + tradeType;
             let orderbook = this.safeDict (this.orderbooks, symbol);
             const nonce = this.safeInteger (orderbook, 'nonce');
