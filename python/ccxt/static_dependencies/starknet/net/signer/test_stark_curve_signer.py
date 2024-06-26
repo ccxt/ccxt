@@ -1,9 +1,9 @@
 import pytest
 
 from common import create_compiled_contract
-from net.models import StarknetChainId
-from net.models.transaction import DeclareV1, DeployAccountV1, InvokeV1
-from net.signer.stark_curve_signer import KeyPair, StarkCurveSigner
+from ..models import StarknetChainId
+from ..models.transaction import DeclareV1, DeployAccountV1, InvokeV1
+from ..signer.stark_curve_signer import KeyPair, StarkCurveSigner
 from tests.e2e.fixtures.constants import CONTRACTS_COMPILED_V0_DIR
 from tests.e2e.fixtures.misc import read_contract
 

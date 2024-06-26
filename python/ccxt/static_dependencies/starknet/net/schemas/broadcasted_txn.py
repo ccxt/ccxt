@@ -1,20 +1,20 @@
-from marshmallow import fields, post_dump, pre_load
-from marshmallow_oneofschema import OneOfSchema
+from ..marshmallow import fields, post_dump, pre_load
+from ..marshmallow_oneofschema import OneOfSchema
 
-from net.client_models import TransactionType
-from net.models.transaction import compress_program, decompress_program
-from net.schemas.gateway import (
+from ..client_models import TransactionType
+from ..models.transaction import compress_program, decompress_program
+from ..schemas.gateway import (
     ContractClassSchema,
     SierraCompiledContractSchema,
 )
-from net.schemas.rpc import (
+from ..schemas.rpc import (
     DeclareTransactionV1Schema,
     DeclareTransactionV2Schema,
     DeclareTransactionV3Schema,
     DeployAccountTransactionSchema,
     InvokeTransactionSchema,
 )
-from net.schemas.utils import _extract_tx_version
+from ..schemas.utils import _extract_tx_version
 
 
 class BroadcastedDeclareV3Schema(DeclareTransactionV3Schema):

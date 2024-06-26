@@ -1,6 +1,6 @@
 import pytest
 
-from net.models.address import parse_address
+from ..models.address import parse_address
 
 
 @pytest.mark.parametrize(

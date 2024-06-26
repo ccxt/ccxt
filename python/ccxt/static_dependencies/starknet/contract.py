@@ -6,7 +6,7 @@ from dataclasses import dataclass
 from functools import cached_property
 from typing import Dict, List, Optional, TypeVar, Union
 
-from marshmallow import ValidationError
+from ..marshmallow import ValidationError
 
 from abi.v0 import Abi as AbiV0
 from abi.v0 import AbiParser as AbiParserV0
@@ -43,7 +43,7 @@ from serialization import (
     serializer_for_function,
 )
 from serialization.factory import serializer_for_function_v1
-from utils.constructor_args_translator import (
+from .utils.constructor_args_translator import (
     _is_abi_v2,
     translate_constructor_args,
 )

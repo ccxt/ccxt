@@ -2,9 +2,9 @@ from collections import OrderedDict
 
 import pytest
 
-from serialization.data_serializers.array_serializer import ArraySerializer
-from serialization.data_serializers.felt_serializer import FeltSerializer
-from serialization.data_serializers.struct_serializer import (
+from .array_serializer import ArraySerializer
+from .felt_serializer import FeltSerializer
+from .struct_serializer import (
     StructSerializer,
 )
 

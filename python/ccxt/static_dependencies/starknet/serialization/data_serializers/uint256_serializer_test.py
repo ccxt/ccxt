@@ -2,10 +2,10 @@ import re
 
 import pytest
 
-from serialization.data_serializers.uint256_serializer import (
+from .uint256_serializer import (
     Uint256Serializer,
 )
-from serialization.errors import InvalidTypeException, InvalidValueException
+from .errors import InvalidTypeException, InvalidValueException
 
 serializer = Uint256Serializer()
 SHIFT = 2**128

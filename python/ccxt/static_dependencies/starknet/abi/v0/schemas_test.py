@@ -1,6 +1,6 @@
 import json
 
-from marshmallow import EXCLUDE
+from ..marshmallow import EXCLUDE
 
 from abi.v0.schemas import ContractAbiEntrySchema
 from tests.e2e.fixtures.constants import CONTRACTS_COMPILED_V0_DIR

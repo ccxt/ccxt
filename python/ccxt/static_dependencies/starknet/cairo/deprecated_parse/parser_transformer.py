@@ -1,9 +1,9 @@
 import dataclasses
 from typing import Optional, Tuple
 
-from lark import Token, Transformer, v_args
+from ....lark import Token, Transformer, v_args
 
-from cairo.deprecated_parse.cairo_types import (
+from .cairo_types import (
     CairoType,
     ExprIdentifier,
     TypeCodeoffset,

@@ -1,13 +1,13 @@
 from dataclasses import dataclass
 from typing import Generator, TypedDict, Union
 
-from cairo.felt import uint256_range_check
-from serialization._context import (
+from ...cairo.felt import uint256_range_check
+from .._context import (
     Context,
     DeserializationContext,
     SerializationContext,
 )
-from serialization.data_serializers.cairo_data_serializer import (
+from .cairo_data_serializer import (
     CairoDataSerializer,
 )
 

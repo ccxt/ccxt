@@ -2,12 +2,12 @@ from collections import OrderedDict, namedtuple
 
 import pytest
 
-from serialization.data_serializers.array_serializer import ArraySerializer
-from serialization.data_serializers.felt_serializer import FeltSerializer
-from serialization.data_serializers.named_tuple_serializer import (
+from .array_serializer import ArraySerializer
+from .felt_serializer import FeltSerializer
+from .named_tuple_serializer import (
     NamedTupleSerializer,
 )
-from serialization.tuple_dataclass import TupleDataclass
+from ..tuple_dataclass import TupleDataclass
 
 felt_array_serializer = ArraySerializer(FeltSerializer())
 

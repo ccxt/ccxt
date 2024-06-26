@@ -4,15 +4,15 @@ The purpose of this file is to test serialization for complex abi.
 import json
 from typing import NamedTuple
 
-from abi.v0 import AbiParser as AbiParserV0
-from abi.v1 import AbiParser as AbiParserV1
-from abi.v2 import AbiParser as AbiParserV2
-from cairo.felt import encode_shortstring
-from serialization.factory import (
+from ..abi.v0 import AbiParser as AbiParserV0
+from ..abi.v1 import AbiParser as AbiParserV1
+from ..abi.v2 import AbiParser as AbiParserV2
+from ..cairo.felt import encode_shortstring
+from .factory import (
     serializer_for_event,
     serializer_for_function,
 )
-from serialization.tuple_dataclass import TupleDataclass
+from .tuple_dataclass import TupleDataclass
 from tests.e2e.fixtures.constants import CONTRACTS_COMPILED_V0_DIR
 from tests.e2e.fixtures.misc import (
     ContractVersion,

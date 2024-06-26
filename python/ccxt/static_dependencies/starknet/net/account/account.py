@@ -8,10 +8,10 @@ from constants import FEE_CONTRACT_ADDRESS, QUERY_VERSION_BASE
 from hash.address import compute_address
 from hash.selector import get_selector_from_name
 from hash.utils import verify_message_signature
-from net.account.account_deployment_result import AccountDeploymentResult
-from net.account.base_account import BaseAccount
-from net.client import Client
-from net.client_models import (
+from ..account.account_deployment_result import AccountDeploymentResult
+from ..account.base_account import BaseAccount
+from ..client import Client
+from ..client_models import (
     Call,
     Calls,
     EstimatedFee,
@@ -22,10 +22,10 @@ from net.client_models import (
     SierraContractClass,
     Tag,
 )
-from net.full_node_client import FullNodeClient
-from net.models import AddressRepresentation, parse_address
-from net.models.chains import RECOGNIZED_CHAIN_IDS, Chain, parse_chain
-from net.models.transaction import (
+from ..full_node_client import FullNodeClient
+from ..models import AddressRepresentation, parse_address
+from ..models.chains import RECOGNIZED_CHAIN_IDS, Chain, parse_chain
+from ..models.transaction import (
     AccountTransaction,
     DeclareV1,
     DeclareV2,
@@ -36,9 +36,9 @@ from net.models.transaction import (
     InvokeV3,
     TypeAccountTransaction,
 )
-from net.models.typed_data import TypedDataDict
-from net.signer import BaseSigner
-from net.signer.stark_curve_signer import KeyPair, StarkCurveSigner
+from ..models.typed_data import TypedDataDict
+from ..signer import BaseSigner
+from ..signer.stark_curve_signer import KeyPair, StarkCurveSigner
 from serialization.data_serializers.array_serializer import ArraySerializer
 from serialization.data_serializers.felt_serializer import FeltSerializer
 from serialization.data_serializers.payload_serializer import (

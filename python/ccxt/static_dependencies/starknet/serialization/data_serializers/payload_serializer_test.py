@@ -1,8 +1,8 @@
 from collections import OrderedDict
 
-from serialization.data_serializers.array_serializer import ArraySerializer
-from serialization.data_serializers.felt_serializer import FeltSerializer
-from serialization.data_serializers.payload_serializer import (
+from .array_serializer import ArraySerializer
+from .felt_serializer import FeltSerializer
+from .payload_serializer import (
     PayloadSerializer,
 )
 

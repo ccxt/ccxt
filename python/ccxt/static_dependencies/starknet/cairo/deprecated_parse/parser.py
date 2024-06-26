@@ -1,7 +1,7 @@
-import lark
+from ....lark import Lark
 
-from cairo.deprecated_parse.cairo_types import CairoType
-from cairo.deprecated_parse.parser_transformer import ParserTransformer
+from .cairo_types import CairoType
+from .parser_transformer import ParserTransformer
 
 CAIRO_EBNF = """
     %import common.WS_INLINE
@@ -34,7 +34,7 @@ def parse(code: str) -> CairoType:
 
     grammar = CAIRO_EBNF
 
-    grammar_parser = lark.Lark(
+    grammar_parser = Lark(
         grammar=grammar,
         start=["type"],
         parser="lalr",

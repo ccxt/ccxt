@@ -1,8 +1,8 @@
 import pytest
 
-from serialization.data_serializers.array_serializer import ArraySerializer
-from serialization.data_serializers.felt_serializer import FeltSerializer
-from serialization.data_serializers.tuple_serializer import TupleSerializer
+from .array_serializer import ArraySerializer
+from .felt_serializer import FeltSerializer
+from .tuple_serializer import TupleSerializer
 
 felt_array_serializer = ArraySerializer(FeltSerializer())
 

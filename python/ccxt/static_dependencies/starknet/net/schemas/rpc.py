@@ -1,10 +1,10 @@
 # pylint: disable=too-many-lines
 
-from marshmallow import EXCLUDE, fields, post_load
-from marshmallow_oneofschema import OneOfSchema
+from ..marshmallow import EXCLUDE, fields, post_load
+from ..marshmallow_oneofschema import OneOfSchema
 
 from abi.v0.schemas import ContractAbiEntrySchema
-from net.client_models import (
+from ..client_models import (
     BlockHashAndNumber,
     BlockStateUpdate,
     BlockTransactionTrace,
@@ -68,7 +68,7 @@ from net.client_models import (
     TransactionStatusResponse,
     TransactionWithReceipt,
 )
-from net.schemas.common import (
+from ..schemas.common import (
     BlockStatusField,
     CallTypeField,
     DAModeField,
@@ -86,7 +86,7 @@ from net.schemas.common import (
     Uint64,
     Uint128,
 )
-from net.schemas.utils import _extract_tx_version
+from ..schemas.utils import _extract_tx_version
 from utils.schema import Schema
 
 # pylint: disable=unused-argument, no-self-use

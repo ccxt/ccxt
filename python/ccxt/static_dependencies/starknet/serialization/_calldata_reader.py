@@ -1,6 +1,6 @@
 from typing import List
 
-from cairo.felt import CairoData
+from ..cairo.felt import CairoData
 
 
 class OutOfBoundsError(Exception):

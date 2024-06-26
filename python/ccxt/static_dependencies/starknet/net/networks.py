@@ -1,6 +1,6 @@
 from typing import Literal, Union
 
-from constants import FEE_CONTRACT_ADDRESS
+from ..constants import FEE_CONTRACT_ADDRESS
 
 MAINNET = "mainnet"
 SEPOLIA = "sepolia"

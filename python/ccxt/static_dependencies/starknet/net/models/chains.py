@@ -2,7 +2,7 @@ from enum import IntEnum
 from typing import Optional, Union
 
 from ...common import int_from_bytes
-from net.networks import MAINNET, SEPOLIA, SEPOLIA_INTEGRATION, Network
+from ..networks import MAINNET, SEPOLIA, SEPOLIA_INTEGRATION, Network
 
 
 class StarknetChainId(IntEnum):

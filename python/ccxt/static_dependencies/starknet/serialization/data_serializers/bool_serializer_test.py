@@ -2,8 +2,8 @@ from typing import cast
 
 import pytest
 
-from serialization.data_serializers import BoolSerializer
-from serialization.errors import InvalidTypeException
+from .data_serializers import BoolSerializer
+from .errors import InvalidTypeException
 
 
 @pytest.mark.parametrize(

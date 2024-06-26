@@ -1,8 +1,8 @@
 import pytest
 
 from constants import FIELD_PRIME
-from serialization.data_serializers.array_serializer import ArraySerializer
-from serialization.data_serializers.felt_serializer import FeltSerializer
+from .array_serializer import ArraySerializer
+from .felt_serializer import FeltSerializer
 
 felt_array_serializer = ArraySerializer(FeltSerializer())
 

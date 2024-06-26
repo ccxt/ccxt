@@ -3,7 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Dict, List, OrderedDict
 
-from cairo.data_types import CairoType, EnumType, StructType
+from ...cairo.data_types import CairoType, EnumType, StructType
 
 
 @dataclass

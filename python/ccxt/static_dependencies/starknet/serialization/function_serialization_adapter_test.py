@@ -2,15 +2,15 @@ from collections import OrderedDict
 
 import pytest
 
-from serialization.data_serializers.felt_serializer import FeltSerializer
-from serialization.data_serializers.payload_serializer import (
+from .data_serializers.felt_serializer import FeltSerializer
+from .data_serializers.payload_serializer import (
     PayloadSerializer,
 )
-from serialization.errors import InvalidTypeException, InvalidValueException
-from serialization.function_serialization_adapter import (
+from .errors import InvalidTypeException, InvalidValueException
+from .function_serialization_adapter import (
     FunctionSerializationAdapter,
 )
-from serialization.tuple_dataclass import TupleDataclass
+from .tuple_dataclass import TupleDataclass
 
 serializer = FunctionSerializationAdapter(
     inputs_serializer=PayloadSerializer(

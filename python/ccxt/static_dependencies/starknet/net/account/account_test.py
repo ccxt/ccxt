@@ -3,10 +3,10 @@ from unittest.mock import AsyncMock, patch
 import pytest
 
 from constants import FEE_CONTRACT_ADDRESS
-from net.account.account import Account
-from net.full_node_client import FullNodeClient
-from net.models import StarknetChainId, parse_address
-from net.signer.stark_curve_signer import KeyPair, StarkCurveSigner
+from ..account.account import Account
+from ..full_node_client import FullNodeClient
+from ..models import StarknetChainId, parse_address
+from ..signer.stark_curve_signer import KeyPair, StarkCurveSigner
 from tests.e2e.fixtures.constants import (
     MAX_FEE,
     MAX_RESOURCE_BOUNDS_L1,

@@ -2,8 +2,8 @@ from __future__ import annotations
 
 from typing import Dict, Union
 
-from abi.v1.parser_transformer import parse
-from cairo.data_types import CairoType, EnumType, StructType, TypeIdentifier
+from ...abi.v1.parser_transformer import parse
+from ..data_types import CairoType, EnumType, StructType, TypeIdentifier
 
 
 class UnknownCairoTypeError(ValueError):

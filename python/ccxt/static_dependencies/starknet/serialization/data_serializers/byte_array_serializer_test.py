@@ -1,6 +1,6 @@
 import pytest
 
-from serialization.data_serializers.byte_array_serializer import (
+from .byte_array_serializer import (
     ByteArraySerializer,
 )
 

@@ -9,10 +9,10 @@ from constants import DEFAULT_DEPLOYER_ADDRESS, FIELD_PRIME
 from hash.address import compute_address
 from hash.selector import get_selector_from_name
 from hash.utils import pedersen_hash
-from net.client_models import Call, Hash
-from net.models import AddressRepresentation, parse_address
+from ..client_models import Call, Hash
+from ..models import AddressRepresentation, parse_address
 from serialization import serializer_for_function
-from utils.constructor_args_translator import translate_constructor_args
+from ...utils.constructor_args_translator import translate_constructor_args
 
 
 class ContractDeployment(NamedTuple):

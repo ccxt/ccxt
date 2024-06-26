@@ -3,10 +3,10 @@ from __future__ import annotations
 from collections import OrderedDict
 from typing import Dict, List, Union
 
-from abi.v0 import Abi as AbiV0
-from abi.v1 import Abi as AbiV1
-from abi.v2 import Abi as AbiV2
-from cairo.data_types import (
+from ..abi.v0 import Abi as AbiV0
+from ..abi.v1 import Abi as AbiV1
+from ..abi.v2 import Abi as AbiV2
+from ..cairo.data_types import (
     ArrayType,
     BoolType,
     CairoType,
@@ -20,39 +20,39 @@ from cairo.data_types import (
     UintType,
     UnitType,
 )
-from serialization.data_serializers import (
+from .data_serializers import (
     BoolSerializer,
     ByteArraySerializer,
 )
-from serialization.data_serializers.array_serializer import ArraySerializer
-from serialization.data_serializers.cairo_data_serializer import (
+from .data_serializers.array_serializer import ArraySerializer
+from .data_serializers.cairo_data_serializer import (
     CairoDataSerializer,
 )
-from serialization.data_serializers.enum_serializer import EnumSerializer
-from serialization.data_serializers.felt_serializer import FeltSerializer
-from serialization.data_serializers.named_tuple_serializer import (
+from .data_serializers.enum_serializer import EnumSerializer
+from .data_serializers.felt_serializer import FeltSerializer
+from .data_serializers.named_tuple_serializer import (
     NamedTupleSerializer,
 )
-from serialization.data_serializers.option_serializer import (
+from .data_serializers.option_serializer import (
     OptionSerializer,
 )
-from serialization.data_serializers.output_serializer import (
+from .data_serializers.output_serializer import (
     OutputSerializer,
 )
-from serialization.data_serializers.payload_serializer import (
+from .data_serializers.payload_serializer import (
     PayloadSerializer,
 )
-from serialization.data_serializers.struct_serializer import (
+from .data_serializers.struct_serializer import (
     StructSerializer,
 )
-from serialization.data_serializers.tuple_serializer import TupleSerializer
-from serialization.data_serializers.uint256_serializer import (
+from .data_serializers.tuple_serializer import TupleSerializer
+from .data_serializers.uint256_serializer import (
     Uint256Serializer,
 )
-from serialization.data_serializers.uint_serializer import UintSerializer
-from serialization.data_serializers.unit_serializer import UnitSerializer
-from serialization.errors import InvalidTypeException
-from serialization.function_serialization_adapter import (
+from .data_serializers.uint_serializer import UintSerializer
+from .data_serializers.unit_serializer import UnitSerializer
+from .errors import InvalidTypeException
+from .function_serialization_adapter import (
     FunctionSerializationAdapter,
     FunctionSerializationAdapterV1,
 )

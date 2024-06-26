@@ -4,12 +4,12 @@ from abc import ABC
 from contextlib import contextmanager
 from typing import Any, Generator, Iterator, List
 
-from serialization._calldata_reader import (
+from ._calldata_reader import (
     CairoData,
     CalldataReader,
     OutOfBoundsError,
 )
-from serialization.errors import InvalidTypeException, InvalidValueException
+from .errors import InvalidTypeException, InvalidValueException
 
 
 class Context(ABC):

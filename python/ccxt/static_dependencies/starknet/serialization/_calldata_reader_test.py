@@ -1,6 +1,6 @@
 import pytest
 
-from serialization._calldata_reader import CalldataReader, OutOfBoundsError
+from ._calldata_reader import CalldataReader, OutOfBoundsError
 
 
 def test_consuming_no_calldata():

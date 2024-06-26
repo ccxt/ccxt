@@ -2,31 +2,31 @@ from collections import OrderedDict
 
 import pytest
 
-from abi.v0 import Abi
-from cairo.data_types import FeltType, NamedTupleType, StructType, TupleType
-from serialization.data_serializers.array_serializer import ArraySerializer
-from serialization.data_serializers.felt_serializer import FeltSerializer
-from serialization.data_serializers.named_tuple_serializer import (
+from ..abi.v0 import Abi
+from ..cairo.data_types import FeltType, NamedTupleType, StructType, TupleType
+from .data_serializers.array_serializer import ArraySerializer
+from .data_serializers.felt_serializer import FeltSerializer
+from .data_serializers.named_tuple_serializer import (
     NamedTupleSerializer,
 )
-from serialization.data_serializers.payload_serializer import (
+from .data_serializers.payload_serializer import (
     PayloadSerializer,
 )
-from serialization.data_serializers.struct_serializer import (
+from .data_serializers.struct_serializer import (
     StructSerializer,
 )
-from serialization.data_serializers.tuple_serializer import TupleSerializer
-from serialization.data_serializers.uint256_serializer import (
+from .data_serializers.tuple_serializer import TupleSerializer
+from .data_serializers.uint256_serializer import (
     Uint256Serializer,
 )
-from serialization.data_serializers.uint_serializer import UintSerializer
-from serialization.errors import InvalidTypeException
-from serialization.factory import (
+from .data_serializers.uint_serializer import UintSerializer
+from .errors import InvalidTypeException
+from .factory import (
     serializer_for_event,
     serializer_for_function,
     serializer_for_type,
 )
-from serialization.function_serialization_adapter import (
+from .function_serialization_adapter import (
     FunctionSerializationAdapter,
 )
 from tests.e2e.fixtures.abi_structures import (

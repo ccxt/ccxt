@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from typing import Dict, List, Union, cast
 
-from marshmallow import Schema, fields, post_load
+from ..marshmallow import Schema, fields, post_load
 
 from cairo.felt import encode_shortstring
 from hash.selector import get_selector_from_name

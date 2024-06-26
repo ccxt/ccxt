@@ -2,7 +2,7 @@ import functools
 from typing import List, Optional, Sequence
 
 from Crypto.Hash import keccak
-from crypto_cpp_py.cpp_bindings import (
+from ...crypto_cpp_py.cpp_bindings import (
     ECSignature,
     cpp_get_public_key,
     cpp_hash,
@@ -10,8 +10,8 @@ from crypto_cpp_py.cpp_bindings import (
     cpp_verify,
 )
 
-from common import int_from_bytes
-from constants import EC_ORDER
+from ..common import int_from_bytes
+from ..constants import EC_ORDER
 
 MASK_250 = 2**250 - 1
 HEX_PREFIX = "0x"

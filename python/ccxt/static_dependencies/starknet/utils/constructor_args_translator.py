@@ -1,14 +1,14 @@
 from typing import List, Optional, Union
 
-import starknet_py.abi.v2.shape as ShapeV2
-from abi.v0 import AbiParser as AbiParserV0
-from abi.v1 import AbiParser as AbiParserV1
-from abi.v2 import AbiParser as AbiParserV2
-from serialization import (
+from ..abi.v2 import shape as ShapeV2
+from ..abi.v0 import AbiParser as AbiParserV0
+from ..abi.v1 import AbiParser as AbiParserV1
+from ..abi.v2 import AbiParser as AbiParserV2
+from ..serialization import (
     FunctionSerializationAdapter,
     serializer_for_function,
 )
-from serialization.factory import (
+from ..serialization.factory import (
     serializer_for_constructor_v2,
     serializer_for_function_v1,
 )

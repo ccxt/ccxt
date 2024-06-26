@@ -13,20 +13,20 @@ from dataclasses import dataclass, field
 from enum import Enum
 from typing import Any, Iterable, List, Literal, Optional, Union, cast
 
-from marshmallow import EXCLUDE
+from ...marshmallow import EXCLUDE
 
-from abi.v0.shape import AbiDictList
-from abi.v1.schemas import (
+from ..abi.v0.shape import AbiDictList
+from ..abi.v1.schemas import (
     ContractAbiEntrySchema as ContractAbiEntrySchemaV1,
 )
-from abi.v1.shape import AbiDictEntry as AbiDictEntryV1
-from abi.v1.shape import AbiDictList as AbiDictListV1
-from abi.v2.schemas import (
+from ..abi.v1.shape import AbiDictEntry as AbiDictEntryV1
+from ..abi.v1.shape import AbiDictList as AbiDictListV1
+from ..abi.v2.schemas import (
     ContractAbiEntrySchema as ContractAbiEntrySchemaV2,
 )
-from abi.v2.shape import AbiDictEntry as AbiDictEntryV2
-from abi.v2.shape import AbiDictList as AbiDictListV2
-from utils.constructor_args_translator import _is_abi_v2
+from ..abi.v2.shape import AbiDictEntry as AbiDictEntryV2
+from ..abi.v2.shape import AbiDictList as AbiDictListV2
+from ..utils.constructor_args_translator import _is_abi_v2
 
 # pylint: disable=too-many-lines
 

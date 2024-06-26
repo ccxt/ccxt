@@ -1,7 +1,7 @@
 from typing import Sequence
 
-from constants import CONTRACT_ADDRESS_PREFIX, L2_ADDRESS_UPPER_BOUND
-from hash.utils import (
+from ..constants import CONTRACT_ADDRESS_PREFIX, L2_ADDRESS_UPPER_BOUND
+from .utils import (
     HEX_PREFIX,
     _starknet_keccak,
     compute_hash_on_elements,

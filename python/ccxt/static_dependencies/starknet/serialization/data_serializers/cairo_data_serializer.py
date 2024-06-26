@@ -1,8 +1,8 @@
 from abc import ABC, abstractmethod
 from typing import Generator, Generic, List, TypeVar
 
-from serialization._calldata_reader import CairoData
-from serialization._context import (
+from .._calldata_reader import CairoData
+from .._context import (
     DeserializationContext,
     SerializationContext,
 )

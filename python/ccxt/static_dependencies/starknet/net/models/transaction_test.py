@@ -3,8 +3,8 @@ import typing
 from typing import cast
 
 from common import create_contract_class
-from net.client_models import TransactionType
-from net.models.transaction import (
+from ..client_models import TransactionType
+from ..models.transaction import (
     Declare,
     DeclareV1,
     DeclareV1Schema,

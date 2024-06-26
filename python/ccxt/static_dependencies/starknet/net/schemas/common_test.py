@@ -1,10 +1,10 @@
 from typing import Optional, Type, Union
 
 import pytest
-from marshmallow import Schema, ValidationError
+from ..marshmallow import Schema, ValidationError
 
-from net.client_models import BlockStatus, DAMode, Hash, TransactionStatus
-from net.schemas.common import (
+from ..client_models import BlockStatus, DAMode, Hash, TransactionStatus
+from ..schemas.common import (
     BlockStatusField,
     DAModeField,
     Felt,

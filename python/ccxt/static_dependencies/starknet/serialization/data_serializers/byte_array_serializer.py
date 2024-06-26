@@ -1,19 +1,19 @@
 from dataclasses import dataclass
 from typing import Generator
 
-from cairo.felt import decode_shortstring, encode_shortstring
-from serialization._context import (
+from ...cairo.felt import decode_shortstring, encode_shortstring
+from .._context import (
     DeserializationContext,
     SerializationContext,
 )
-from serialization.data_serializers._common import (
+from ._common import (
     deserialize_to_list,
     serialize_from_list,
 )
-from serialization.data_serializers.cairo_data_serializer import (
+from .cairo_data_serializer import (
     CairoDataSerializer,
 )
-from serialization.data_serializers.felt_serializer import FeltSerializer
+from .felt_serializer import FeltSerializer
 
 BYTES_31_SIZE = 31
 

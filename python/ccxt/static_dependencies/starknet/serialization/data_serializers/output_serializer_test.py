@@ -3,17 +3,17 @@ from collections import OrderedDict
 
 import pytest
 
-from serialization.data_serializers.option_serializer import (
+from .option_serializer import (
     OptionSerializer,
 )
-from serialization.data_serializers.output_serializer import (
+from .output_serializer import (
     OutputSerializer,
 )
-from serialization.data_serializers.struct_serializer import (
+from .struct_serializer import (
     StructSerializer,
 )
-from serialization.data_serializers.uint_serializer import UintSerializer
-from serialization.data_serializers.uint_serializer_test import SHIFT
+from .uint_serializer import UintSerializer
+from .uint_serializer_test import SHIFT
 
 serializer = OutputSerializer(
     serializers=[

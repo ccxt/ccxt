@@ -1,9 +1,9 @@
 from typing import Any, List, Optional
 
-import lark
-from lark import Token, Transformer
+from ....lark import *
+from ....lark import Token, Transformer
 
-from cairo.data_types import (
+from ...cairo.data_types import (
     ArrayType,
     BoolType,
     CairoType,

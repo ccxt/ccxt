@@ -2,8 +2,8 @@ import re
 
 import pytest
 
-from serialization.data_serializers.uint_serializer import UintSerializer
-from serialization.errors import InvalidTypeException, InvalidValueException
+from .uint_serializer import UintSerializer
+from .errors import InvalidTypeException, InvalidValueException
 
 u128_serializer = UintSerializer(bits=128)
 u256_serializer = UintSerializer(bits=256)

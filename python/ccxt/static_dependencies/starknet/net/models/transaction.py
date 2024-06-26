@@ -12,12 +12,12 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from typing import Any, Dict, List, TypeVar, Union
 
-import marshmallow
-import marshmallow_dataclass
-from marshmallow import fields
+from ....marshmallow import *
+from ....marshmallow_dataclass import *
+from ....marshmallow import fields
 
-from hash.address import compute_address
-from hash.transaction import (
+from ...hash.address import compute_address
+from ...hash.transaction import (
     CommonTransactionV3Fields,
     TransactionHashPrefix,
     compute_declare_transaction_hash,
@@ -28,15 +28,15 @@ from hash.transaction import (
     compute_invoke_transaction_hash,
     compute_invoke_v3_transaction_hash,
 )
-from net.client_models import (
+from ..client_models import (
     ContractClass,
     DAMode,
     ResourceBoundsMapping,
     SierraContractClass,
     TransactionType,
 )
-from net.schemas.common import Felt, TransactionTypeField
-from net.schemas.gateway import (
+from ..schemas.common import Felt, TransactionTypeField
+from ..schemas.gateway import (
     ContractClassSchema,
     SierraContractClassSchema,
 )

@@ -1,7 +1,7 @@
 import os
 
-from marshmallow import EXCLUDE, RAISE
-from marshmallow import Schema as MarshmallowSchema
+from ..marshmallow import EXCLUDE, RAISE
+from ..marshmallow import Schema as MarshmallowSchema
 
 MARSHMALLOW_UKNOWN_EXCLUDE = os.environ.get("STARKNET_PY_MARSHMALLOW_UKNOWN_EXCLUDE")
 

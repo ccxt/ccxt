@@ -1,6 +1,6 @@
 import pytest
 
-from serialization.tuple_dataclass import TupleDataclass
+from .tuple_dataclass import TupleDataclass
 
 
 def test_wrapped_named_tuple():

@@ -7,11 +7,11 @@ from collections import OrderedDict, defaultdict
 from pathlib import Path
 from typing import DefaultDict, Dict, List, Optional, Tuple, Union, cast
 
-from marshmallow import EXCLUDE
+from ....marshmallow import EXCLUDE
 
-from abi.v1.model import Abi
-from abi.v1.schemas import ContractAbiEntrySchema
-from abi.v1.shape import (
+from .model import Abi
+from .schemas import ContractAbiEntrySchema
+from .shape import (
     ENUM_ENTRY,
     EVENT_ENTRY,
     FUNCTION_ENTRY,
@@ -20,8 +20,8 @@ from abi.v1.shape import (
     FunctionDict,
     TypedParameterDict,
 )
-from cairo.data_types import CairoType, EnumType, StructType
-from cairo.v1.type_parser import TypeParser
+from ...cairo.data_types import CairoType, EnumType, StructType
+from ...cairo.v1.type_parser import TypeParser
 
 
 class AbiParsingError(ValueError):

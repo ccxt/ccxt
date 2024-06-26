@@ -2,9 +2,9 @@ import re
 import sys
 from typing import Any, Mapping, Optional, Union
 
-from marshmallow import Schema, ValidationError, fields, post_load
+from ....marshmallow import Schema, ValidationError, fields, post_load
 
-from net.client_models import (
+from ..client_models import (
     BlockStatus,
     CallType,
     DAMode,

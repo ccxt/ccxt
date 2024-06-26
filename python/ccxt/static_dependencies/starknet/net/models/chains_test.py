@@ -1,6 +1,6 @@
 import pytest
 
-from net.models.chains import chain_from_network
+from ..models.chains import chain_from_network
 
 
 def test_no_chain_for_custom_network():

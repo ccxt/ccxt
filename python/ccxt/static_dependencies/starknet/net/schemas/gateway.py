@@ -1,8 +1,8 @@
 import json
 
-from marshmallow import Schema, ValidationError, fields, post_load
+from ....marshmallow import Schema, ValidationError, fields, post_load
 
-from net.client_models import (
+from ..client_models import (
     CasmClass,
     CasmClassEntryPoint,
     CasmClassEntryPointsByType,
@@ -15,7 +15,7 @@ from net.client_models import (
     SierraEntryPoint,
     SierraEntryPointsByType,
 )
-from net.schemas.common import Felt
+from .common import Felt
 
 # pylint: disable=unused-argument, no-self-use
 

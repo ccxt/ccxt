@@ -1,18 +1,18 @@
 from dataclasses import dataclass
 from typing import Dict, Generator, NamedTuple, OrderedDict, Union
 
-from serialization._context import (
+from .._context import (
     DeserializationContext,
     SerializationContext,
 )
-from serialization.data_serializers._common import (
+from ._common import (
     deserialize_to_dict,
     serialize_from_dict,
 )
-from serialization.data_serializers.cairo_data_serializer import (
+from .cairo_data_serializer import (
     CairoDataSerializer,
 )
-from serialization.tuple_dataclass import TupleDataclass
+from ..tuple_dataclass import TupleDataclass
 
 
 @dataclass

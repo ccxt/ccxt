@@ -1,15 +1,15 @@
 from dataclasses import dataclass
 from typing import Generator, Iterable, List, Tuple
 
-from serialization._context import (
+from .._context import (
     DeserializationContext,
     SerializationContext,
 )
-from serialization.data_serializers._common import (
+from ._common import (
     deserialize_to_list,
     serialize_from_list,
 )
-from serialization.data_serializers.cairo_data_serializer import (
+from .cairo_data_serializer import (
     CairoDataSerializer,
 )
 

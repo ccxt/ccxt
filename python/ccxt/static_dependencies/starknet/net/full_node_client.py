@@ -1,7 +1,7 @@
 from typing import List, Optional, Tuple, Union, cast
 
 import aiohttp
-from marshmallow import EXCLUDE
+from ..marshmallow import EXCLUDE
 
 from constants import RPC_CONTRACT_ERROR
 from hash.utils import keccak256

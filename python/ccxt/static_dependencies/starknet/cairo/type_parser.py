@@ -3,8 +3,8 @@ from __future__ import annotations
 from collections import OrderedDict
 from typing import Dict, cast
 
-import starknet_py.cairo.deprecated_parse.cairo_types as cairo_lang_types
-from cairo.data_types import (
+from .deprecated_parse import cairo_types as cairo_lang_types
+from .data_types import (
     ArrayType,
     CairoType,
     FeltType,
@@ -12,7 +12,7 @@ from cairo.data_types import (
     StructType,
     TupleType,
 )
-from cairo.deprecated_parse.parser import parse
+from .deprecated_parse.parser import parse
 
 
 class UnknownCairoTypeError(ValueError):

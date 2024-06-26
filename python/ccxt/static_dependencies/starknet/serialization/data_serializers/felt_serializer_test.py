@@ -3,8 +3,8 @@ from typing import cast
 import pytest
 
 from constants import FIELD_PRIME
-from serialization.data_serializers.felt_serializer import FeltSerializer
-from serialization.errors import InvalidTypeException, InvalidValueException
+from .felt_serializer import FeltSerializer
+from .errors import InvalidTypeException, InvalidValueException
 
 
 @pytest.mark.parametrize(

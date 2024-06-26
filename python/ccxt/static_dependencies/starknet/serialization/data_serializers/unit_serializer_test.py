@@ -1,6 +1,6 @@
 import pytest
 
-from serialization.data_serializers.unit_serializer import UnitSerializer
+from .unit_serializer import UnitSerializer
 
 serializer = UnitSerializer()
 

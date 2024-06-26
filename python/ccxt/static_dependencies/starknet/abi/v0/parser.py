@@ -5,11 +5,11 @@ import json
 from collections import OrderedDict, defaultdict
 from typing import DefaultDict, Dict, List, Optional, cast
 
-from marshmallow import EXCLUDE
+from ....marshmallow import EXCLUDE
 
-from abi.v0 import Abi
-from abi.v0.schemas import ContractAbiEntrySchema
-from abi.v0.shape import (
+from .model import Abi
+from .schemas import ContractAbiEntrySchema
+from .shape import (
     CONSTRUCTOR_ENTRY,
     EVENT_ENTRY,
     FUNCTION_ENTRY,
@@ -20,8 +20,8 @@ from abi.v0.shape import (
     StructMemberDict,
     TypedMemberDict,
 )
-from cairo.data_types import CairoType, StructType
-from cairo.type_parser import TypeParser
+from ...cairo.data_types import CairoType, StructType
+from ...cairo.type_parser import TypeParser
 
 
 class AbiParsingError(ValueError):

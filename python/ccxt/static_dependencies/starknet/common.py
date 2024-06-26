@@ -1,7 +1,7 @@
 import warnings
 from typing import Literal, Union, cast
 
-from marshmallow import EXCLUDE, ValidationError
+from ..marshmallow import EXCLUDE, ValidationError
 
 from .net.client_models import (
     CasmClass,
@@ -9,7 +9,7 @@ from .net.client_models import (
     ContractClass,
     SierraCompiledContract,
 )
-from net.schemas.gateway import (
+from .net.schemas.gateway import (
     CasmClassSchema,
     CompiledContractSchema,
     ContractClassSchema,

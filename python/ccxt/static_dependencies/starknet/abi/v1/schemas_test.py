@@ -1,7 +1,7 @@
 import json
 
 import pytest
-from marshmallow import EXCLUDE
+from ..marshmallow import EXCLUDE
 
 from abi.v1.schemas import ContractAbiEntrySchema
 from tests.e2e.fixtures.misc import ContractVersion, load_contract

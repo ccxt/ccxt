@@ -1,8 +1,8 @@
 from abc import ABC, abstractmethod
 from typing import List, Optional, Union
 
-from net.client import Client
-from net.client_models import (
+from ..client import Client
+from ..client_models import (
     Calls,
     EstimatedFee,
     Hash,
@@ -10,8 +10,8 @@ from net.client_models import (
     SentTransactionResponse,
     Tag,
 )
-from net.models import AddressRepresentation
-from net.models.transaction import (
+from ..models import AddressRepresentation
+from ..models.transaction import (
     AccountTransaction,
     DeclareV1,
     DeclareV2,
@@ -22,7 +22,7 @@ from net.models.transaction import (
     InvokeV3,
     TypeAccountTransaction,
 )
-from net.models.typed_data import TypedDataDict
+from ..models.typed_data import TypedDataDict
 
 
 class BaseAccount(ABC):

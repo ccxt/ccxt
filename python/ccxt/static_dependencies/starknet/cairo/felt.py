@@ -1,6 +1,6 @@
 from typing import List
 
-from constants import FIELD_PRIME
+from ..constants import FIELD_PRIME
 
 CairoData = List[int]
 

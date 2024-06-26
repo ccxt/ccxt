@@ -2,20 +2,20 @@ from collections import OrderedDict as _OrderedDict
 from dataclasses import InitVar, dataclass, field
 from typing import Dict, Generator, OrderedDict
 
-from serialization._context import (
+from .._context import (
     DeserializationContext,
     SerializationContext,
 )
-from serialization.data_serializers._common import (
+from ._common import (
     deserialize_to_dict,
     serialize_from_dict,
 )
-from serialization.data_serializers.array_serializer import ArraySerializer
-from serialization.data_serializers.cairo_data_serializer import (
+from .array_serializer import ArraySerializer
+from .cairo_data_serializer import (
     CairoDataSerializer,
 )
-from serialization.data_serializers.felt_serializer import FeltSerializer
-from serialization.tuple_dataclass import TupleDataclass
+from .felt_serializer import FeltSerializer
+from ..tuple_dataclass import TupleDataclass
 
 SIZE_SUFFIX = "_len"
 SIZE_SUFFIX_LEN = len(SIZE_SUFFIX)

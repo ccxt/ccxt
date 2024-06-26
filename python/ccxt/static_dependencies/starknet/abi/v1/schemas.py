@@ -1,7 +1,7 @@
-from marshmallow import Schema, fields
-from marshmallow_oneofschema import OneOfSchema
+from ....marshmallow import Schema, fields
+from ....marshmallow_oneofschema import OneOfSchema
 
-from abi.v1.shape import (
+from .shape import (
     ENUM_ENTRY,
     EVENT_ENTRY,
     FUNCTION_ENTRY,

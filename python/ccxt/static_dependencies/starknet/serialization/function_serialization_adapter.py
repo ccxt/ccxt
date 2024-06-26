@@ -3,15 +3,15 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Dict, List, Set, Tuple
 
-from cairo.felt import CairoData
-from serialization.data_serializers.output_serializer import (
+from ..cairo.felt import CairoData
+from .data_serializers.output_serializer import (
     OutputSerializer,
 )
-from serialization.data_serializers.payload_serializer import (
+from .data_serializers.payload_serializer import (
     PayloadSerializer,
 )
-from serialization.errors import InvalidTypeException
-from serialization.tuple_dataclass import TupleDataclass
+from .errors import InvalidTypeException
+from .tuple_dataclass import TupleDataclass
 
 
 @dataclass

@@ -1,7 +1,7 @@
 import pytest
 
-from serialization._context import SerializationContext
-from serialization.errors import InvalidTypeException, InvalidValueException
+from ._context import SerializationContext
+from .errors import InvalidTypeException, InvalidValueException
 
 
 @pytest.mark.parametrize(

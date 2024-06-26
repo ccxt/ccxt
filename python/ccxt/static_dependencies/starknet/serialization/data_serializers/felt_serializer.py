@@ -2,14 +2,14 @@ import warnings
 from dataclasses import dataclass
 from typing import Generator
 
-from cairo.felt import encode_shortstring, is_in_felt_range
-from constants import FIELD_PRIME
-from serialization._context import (
+from ...cairo.felt import encode_shortstring, is_in_felt_range
+from ...constants import FIELD_PRIME
+from .._context import (
     Context,
     DeserializationContext,
     SerializationContext,
 )
-from serialization.data_serializers.cairo_data_serializer import (
+from .cairo_data_serializer import (
     CairoDataSerializer,
 )
 

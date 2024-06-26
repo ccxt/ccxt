@@ -2,11 +2,11 @@ from dataclasses import dataclass
 from typing import List
 
 from hash.utils import message_signature, private_to_stark_key
-from net.client_models import Hash
-from net.models import AddressRepresentation, parse_address
-from net.models.chains import ChainId
-from net.models.transaction import AccountTransaction
-from net.signer.base_signer import BaseSigner
+from ..client_models import Hash
+from ..models import AddressRepresentation, parse_address
+from ..models.chains import ChainId
+from ..models.transaction import AccountTransaction
+from ..signer.base_signer import BaseSigner
 from utils.typed_data import TypedData
 
 

@@ -2,8 +2,8 @@ from __future__ import annotations
 
 from typing import Dict, Union
 
-from abi.v2.parser_transformer import parse
-from cairo.data_types import (
+from ...abi.v2.parser_transformer import parse
+from ..data_types import (
     CairoType,
     EnumType,
     EventType,
