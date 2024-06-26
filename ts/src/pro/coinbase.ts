@@ -741,8 +741,6 @@ export default class coinbase extends coinbaseRest {
         //         ]
         //     }
         //
-        // treat this as a pong, to avoid ping-timeout-error
-        client.onPong ();
         return message;
     }
 
