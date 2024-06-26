@@ -45,7 +45,7 @@ export default class xt extends xtRest {
                 'keepAlive': 20000,
                 'ping': this.ping,
             },
-            'accessToken': undefined,
+            'token': undefined,
         });
     }
 
@@ -66,8 +66,8 @@ export default class xt extends xtRest {
             url = url + '/private';
         }
         const client = this.client (url);
-        const accessToken = this.safeDict (client.subscriptions, 'accessToken');
-        if (accessToken === undefined) {
+        const token = this.safeDict (client.subscriptions, 'token');
+        if (token === undefined) {
             if (isContract) {
                 const response = await this.privateLinearGetFutureUserV1UserListenKey ();
                 //
@@ -78,7 +78,7 @@ export default class xt extends xtRest {
                 //        result: '3BC1D71D6CF96DA3458FC35B05B633351684511731128'
                 //    }
                 //
-                client.subscriptions['accessToken'] = this.safeString (response, 'result');
+                client.subscriptions['token'] = this.safeString (response, 'result');
             } else {
                 const response = await this.privateSpotPostWsToken ();
                 //
@@ -87,16 +87,16 @@ export default class xt extends xtRest {
                 //        "mc": "SUCCESS",
                 //        "ma": [],
                 //        "result": {
-                //            "accessToken": "eyJhbqGciOiJSUzI1NiJ9.eyJhY2NvdW50SWQiOiIyMTQ2Mjg1MzIyNTU5Iiwic3ViIjoibGh4dDRfMDAwMUBzbmFwbWFpbC5jYyIsInNjb3BlIjoiYXV0aCIsImlzcyI6Inh0LmNvbSIsImxhc3RBdXRoVGltZSI6MTY2MzgxMzY5MDk1NSwic2lnblR5cGUiOiJBSyIsInVzZXJOYW1lIjoibGh4dDRfMDAwMUBzbmFwbWFpbC5jYyIsImV4cCI6MTY2NjQwNTY5MCwiZGV2aWNlIjoidW5rbm93biIsInVzZXJJZCI6MjE0NjI4NTMyMjU1OX0.h3zJlJBQrK2x1HvUxsKivnn6PlSrSDXXXJ7WqHAYSrN2CG5XPTKc4zKnTVoYFbg6fTS0u1fT8wH7wXqcLWXX71vm0YuP8PCvdPAkUIq4-HyzltbPr5uDYd0UByx0FPQtq1exvsQGe7evXQuDXx3SEJXxEqUbq_DNlXPTq_JyScI",
+                //            "token": "eyJhbqGciOiJSUzI1NiJ9.eyJhY2NvdW50SWQiOiIyMTQ2Mjg1MzIyNTU5Iiwic3ViIjoibGh4dDRfMDAwMUBzbmFwbWFpbC5jYyIsInNjb3BlIjoiYXV0aCIsImlzcyI6Inh0LmNvbSIsImxhc3RBdXRoVGltZSI6MTY2MzgxMzY5MDk1NSwic2lnblR5cGUiOiJBSyIsInVzZXJOYW1lIjoibGh4dDRfMDAwMUBzbmFwbWFpbC5jYyIsImV4cCI6MTY2NjQwNTY5MCwiZGV2aWNlIjoidW5rbm93biIsInVzZXJJZCI6MjE0NjI4NTMyMjU1OX0.h3zJlJBQrK2x1HvUxsKivnn6PlSrSDXXXJ7WqHAYSrN2CG5XPTKc4zKnTVoYFbg6fTS0u1fT8wH7wXqcLWXX71vm0YuP8PCvdPAkUIq4-HyzltbPr5uDYd0UByx0FPQtq1exvsQGe7evXQuDXx3SEJXxEqUbq_DNlXPTq_JyScI",
                 //            "refreshToken": "eyJhbGciOiqJSUzI1NiJ9.eyJhY2NvdW50SWQiOiIyMTQ2Mjg1MzIyNTU5Iiwic3ViIjoibGh4dDRfMDAwMUBzbmFwbWFpbC5jYyIsInNjb3BlIjoicmVmcmVzaCIsImlzcyI6Inh0LmNvbSIsImxhc3RBdXRoVGltZSI6MTY2MzgxMzY5MDk1NSwic2lnblR5cGUiOiJBSyIsInVzZXJOYW1lIjoibGh4dDRfMDAwMUBzbmFwbWFpbC5jYyIsImV4cCI6MTY2NjQwNTY5MCwiZGV2aWNlIjoidW5rbm93biIsInVzZXJJZCI6MjE0NjI4NTMyMjU1OX0.Fs3YVm5YrEOzzYOSQYETSmt9iwxUHBovh2u73liv1hLUec683WGfktA_s28gMk4NCpZKFeQWFii623FvdfNoteXR0v1yZ2519uNvNndtuZICDdv3BQ4wzW1wIHZa1skxFfqvsDnGdXpjqu9UFSbtHwxprxeYfnxChNk4ssei430"
                 //        }
                 //    }
                 //
                 const result = this.safeDict (response, 'result');
-                client.subscriptions['accessToken'] = this.safeString (result, 'accessToken');
+                client.subscriptions['token'] = this.safeString (result, 'token');
             }
         }
-        return client.subscriptions['accessToken'];
+        return client.subscriptions['token'];
     }
 
     async subscribe (name: string, access: string, methodName: string, market: Market = undefined, symbols: string[] = undefined, params = {}) {
@@ -1069,7 +1069,7 @@ export default class xt extends xtRest {
         //
         const msg = this.safeString (message, 'msg');
         if ((msg === 'invalid_listen_key') || (msg === 'token expire')) {
-            client.subscriptions['accessToken'] = undefined;
+            client.subscriptions['token'] = undefined;
             this.getListenKey (true);
             return;
         }
