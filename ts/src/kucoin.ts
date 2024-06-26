@@ -202,6 +202,7 @@ export default class kucoin extends Exchange {
                         'market/orderbook/level3': 3, // 3SW
                         'hf/orders/active': 2, // 2SW
                         'hf/orders/active/symbols': 2, // 2SW
+                        'hf/margin/order/active/symbols': 2, // 2SW
                         'hf/orders/done': 2, // 2SW
                         'hf/orders/{orderId}': 2, // 2SW
                         'hf/orders/client-order/{clientOid}': 2, // 2SW
@@ -667,6 +668,7 @@ export default class kucoin extends Exchange {
                             'oco/orders': 'v3',
                             // margin trading
                             'hf/margin/orders/active': 'v3',
+                            'hf/margin/order/active/symbols': 'v3',
                             'hf/margin/orders/done': 'v3',
                             'hf/margin/orders/{orderId}': 'v3',
                             'hf/margin/orders/client-order/{clientOid}': 'v3',
