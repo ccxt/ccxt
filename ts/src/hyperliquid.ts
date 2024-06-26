@@ -1179,7 +1179,7 @@ export default class hyperliquid extends Exchange {
             if (clientOrderId !== undefined) {
                 orderObj['c'] = clientOrderId;
             }
-            orderReq.push (this.extend (orderObj, orderParams));
+            orderReq.push (orderObj);
         }
         const vaultAddress = this.formatVaultAddress (this.safeString (params, 'vaultAddress'));
         const orderAction: Dict = {
@@ -1202,7 +1202,7 @@ export default class hyperliquid extends Exchange {
             params = this.omit (params, 'vaultAddress');
             request['vaultAddress'] = vaultAddress;
         }
-        const response = await this.privatePostExchange (this.extend (request, params));
+        const response = await this.privatePostExchange (request);
         //
         //     {
         //         "status": "ok",
@@ -1306,7 +1306,7 @@ export default class hyperliquid extends Exchange {
             params = this.omit (params, 'vaultAddress');
             request['vaultAddress'] = vaultAddress;
         }
-        const response = await this.privatePostExchange (this.extend (request, params));
+        const response = await this.privatePostExchange (request);
         //
         //     {
         //         "status":"ok",
@@ -1391,7 +1391,7 @@ export default class hyperliquid extends Exchange {
             params = this.omit (params, 'vaultAddress');
             request['vaultAddress'] = vaultAddress;
         }
-        const response = await this.privatePostExchange (this.extend (request, params));
+        const response = await this.privatePostExchange (request);
         //
         //     {
         //         "status":"ok",
@@ -1438,7 +1438,7 @@ export default class hyperliquid extends Exchange {
             params = this.omit (params, 'vaultAddress');
             request['vaultAddress'] = vaultAddress;
         }
-        const response = await this.privatePostExchange (this.extend (request, params));
+        const response = await this.privatePostExchange (request);
         //
         //     {
         //         "status":"err",
@@ -1558,7 +1558,7 @@ export default class hyperliquid extends Exchange {
             params = this.omit (params, 'vaultAddress');
             request['vaultAddress'] = vaultAddress;
         }
-        const response = await this.privatePostExchange (this.extend (request, params));
+        const response = await this.privatePostExchange (request);
         //
         //     {
         //         "status": "ok",
@@ -2246,10 +2246,9 @@ export default class hyperliquid extends Exchange {
                 vaultAddress = vaultAddress.replace ('0x', '');
             }
         }
-        const extendedAction = this.extend (updateAction, params);
-        const signature = this.signL1Action (extendedAction, nonce, vaultAddress);
+        const signature = this.signL1Action (updateAction, nonce, vaultAddress);
         const request: Dict = {
-            'action': extendedAction,
+            'action': updateAction,
             'nonce': nonce,
             'signature': signature,
             // 'vaultAddress': vaultAddress,
@@ -2308,7 +2307,7 @@ export default class hyperliquid extends Exchange {
             params = this.omit (params, 'vaultAddress');
             request['vaultAddress'] = vaultAddress;
         }
-        const response = await this.privatePostExchange (this.extend (request, params));
+        const response = await this.privatePostExchange (request);
         //
         //     {
         //         'response': {
@@ -2375,7 +2374,7 @@ export default class hyperliquid extends Exchange {
             params = this.omit (params, 'vaultAddress');
             request['vaultAddress'] = vaultAddress;
         }
-        const response = await this.privatePostExchange (this.extend (request, params));
+        const response = await this.privatePostExchange (request);
         //
         //     {
         //         'response': {
@@ -2444,7 +2443,7 @@ export default class hyperliquid extends Exchange {
             };
             const signature = this.signL1Action (action, nonce, vaultAddress);
             const innerRequest: Dict = {
-                'action': this.extend (action, params),
+                'action': action,
                 'nonce': nonce,
                 'signature': signature,
             };
@@ -2481,7 +2480,7 @@ export default class hyperliquid extends Exchange {
             'nonce': nonce,
             'signature': sig,
         };
-        const response = await this.privatePostExchange (this.extend (request, params));
+        const response = await this.privatePostExchange (request);
         return response;
     }
 
@@ -2528,7 +2527,7 @@ export default class hyperliquid extends Exchange {
             'nonce': nonce,
             'signature': sig,
         };
-        const response = await this.privatePostExchange (this.extend (request, params));
+        const response = await this.privatePostExchange (request);
         return this.parseTransaction (response);
     }
 
