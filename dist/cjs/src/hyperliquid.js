@@ -1153,7 +1153,7 @@ class hyperliquid extends hyperliquid$1 {
             if (clientOrderId !== undefined) {
                 orderObj['c'] = clientOrderId;
             }
-            orderReq.push(this.extend(orderObj, orderParams));
+            orderReq.push(orderObj);
         }
         const vaultAddress = this.formatVaultAddress(this.safeString(params, 'vaultAddress'));
         const orderAction = {
@@ -1176,7 +1176,7 @@ class hyperliquid extends hyperliquid$1 {
             params = this.omit(params, 'vaultAddress');
             request['vaultAddress'] = vaultAddress;
         }
-        const response = await this.privatePostExchange(this.extend(request, params));
+        const response = await this.privatePostExchange(request);
         //
         //     {
         //         "status": "ok",
@@ -1279,7 +1279,7 @@ class hyperliquid extends hyperliquid$1 {
             params = this.omit(params, 'vaultAddress');
             request['vaultAddress'] = vaultAddress;
         }
-        const response = await this.privatePostExchange(this.extend(request, params));
+        const response = await this.privatePostExchange(request);
         //
         //     {
         //         "status":"ok",
@@ -1363,7 +1363,7 @@ class hyperliquid extends hyperliquid$1 {
             params = this.omit(params, 'vaultAddress');
             request['vaultAddress'] = vaultAddress;
         }
-        const response = await this.privatePostExchange(this.extend(request, params));
+        const response = await this.privatePostExchange(request);
         //
         //     {
         //         "status":"ok",
@@ -1409,7 +1409,7 @@ class hyperliquid extends hyperliquid$1 {
             params = this.omit(params, 'vaultAddress');
             request['vaultAddress'] = vaultAddress;
         }
-        const response = await this.privatePostExchange(this.extend(request, params));
+        const response = await this.privatePostExchange(request);
         //
         //     {
         //         "status":"err",
@@ -1531,7 +1531,7 @@ class hyperliquid extends hyperliquid$1 {
             params = this.omit(params, 'vaultAddress');
             request['vaultAddress'] = vaultAddress;
         }
-        const response = await this.privatePostExchange(this.extend(request, params));
+        const response = await this.privatePostExchange(request);
         //
         //     {
         //         "status": "ok",
@@ -2210,10 +2210,9 @@ class hyperliquid extends hyperliquid$1 {
                 vaultAddress = vaultAddress.replace('0x', '');
             }
         }
-        const extendedAction = this.extend(updateAction, params);
-        const signature = this.signL1Action(extendedAction, nonce, vaultAddress);
+        const signature = this.signL1Action(updateAction, nonce, vaultAddress);
         const request = {
-            'action': extendedAction,
+            'action': updateAction,
             'nonce': nonce,
             'signature': signature,
             // 'vaultAddress': vaultAddress,
@@ -2271,7 +2270,7 @@ class hyperliquid extends hyperliquid$1 {
             params = this.omit(params, 'vaultAddress');
             request['vaultAddress'] = vaultAddress;
         }
-        const response = await this.privatePostExchange(this.extend(request, params));
+        const response = await this.privatePostExchange(request);
         //
         //     {
         //         'response': {
@@ -2335,7 +2334,7 @@ class hyperliquid extends hyperliquid$1 {
             params = this.omit(params, 'vaultAddress');
             request['vaultAddress'] = vaultAddress;
         }
-        const response = await this.privatePostExchange(this.extend(request, params));
+        const response = await this.privatePostExchange(request);
         //
         //     {
         //         'response': {
@@ -2402,7 +2401,7 @@ class hyperliquid extends hyperliquid$1 {
             };
             const signature = this.signL1Action(action, nonce, vaultAddress);
             const innerRequest = {
-                'action': this.extend(action, params),
+                'action': action,
                 'nonce': nonce,
                 'signature': signature,
             };
@@ -2439,7 +2438,7 @@ class hyperliquid extends hyperliquid$1 {
             'nonce': nonce,
             'signature': sig,
         };
-        const response = await this.privatePostExchange(this.extend(request, params));
+        const response = await this.privatePostExchange(request);
         return response;
     }
     async withdraw(code, amount, address, tag = undefined, params = {}) {
@@ -2485,7 +2484,7 @@ class hyperliquid extends hyperliquid$1 {
             'nonce': nonce,
             'signature': sig,
         };
-        const response = await this.privatePostExchange(this.extend(request, params));
+        const response = await this.privatePostExchange(request);
         return this.parseTransaction(response);
     }
     parseTransaction(transaction, currency = undefined) {

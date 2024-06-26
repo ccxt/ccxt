@@ -7829,7 +7829,7 @@ class bitget extends Exchange {
         return $this->parse_isolated_borrow_rate($first, $market);
     }
 
-    public function parse_isolated_borrow_rate($info, ?array $market = null): array {
+    public function parse_isolated_borrow_rate(array $info, ?array $market = null): array {
         //
         //     {
         //         "symbol" => "BTCUSDT",

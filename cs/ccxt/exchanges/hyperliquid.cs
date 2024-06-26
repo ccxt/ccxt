@@ -1243,7 +1243,7 @@ public partial class hyperliquid : Exchange
             {
                 ((IDictionary<string,object>)orderObj)["c"] = clientOrderId;
             }
-            ((IList<object>)orderReq).Add(this.extend(orderObj, orderParams));
+            ((IList<object>)orderReq).Add(orderObj);
         }
         object vaultAddress = this.formatVaultAddress(this.safeString(parameters, "vaultAddress"));
         object orderAction = new Dictionary<string, object>() {
@@ -1266,7 +1266,7 @@ public partial class hyperliquid : Exchange
             parameters = this.omit(parameters, "vaultAddress");
             ((IDictionary<string,object>)request)["vaultAddress"] = vaultAddress;
         }
-        object response = await this.privatePostExchange(this.extend(request, parameters));
+        object response = await this.privatePostExchange(request);
         //
         //     {
         //         "status": "ok",
@@ -1380,7 +1380,7 @@ public partial class hyperliquid : Exchange
             parameters = this.omit(parameters, "vaultAddress");
             ((IDictionary<string,object>)request)["vaultAddress"] = vaultAddress;
         }
-        object response = await this.privatePostExchange(this.extend(request, parameters));
+        object response = await this.privatePostExchange(request);
         //
         //     {
         //         "status":"ok",
@@ -1472,7 +1472,7 @@ public partial class hyperliquid : Exchange
             parameters = this.omit(parameters, "vaultAddress");
             ((IDictionary<string,object>)request)["vaultAddress"] = vaultAddress;
         }
-        object response = await this.privatePostExchange(this.extend(request, parameters));
+        object response = await this.privatePostExchange(request);
         //
         //     {
         //         "status":"ok",
@@ -1521,7 +1521,7 @@ public partial class hyperliquid : Exchange
             parameters = this.omit(parameters, "vaultAddress");
             ((IDictionary<string,object>)request)["vaultAddress"] = vaultAddress;
         }
-        object response = await this.privatePostExchange(this.extend(request, parameters));
+        object response = await this.privatePostExchange(request);
         //
         //     {
         //         "status":"err",
@@ -1652,7 +1652,7 @@ public partial class hyperliquid : Exchange
             parameters = this.omit(parameters, "vaultAddress");
             ((IDictionary<string,object>)request)["vaultAddress"] = vaultAddress;
         }
-        object response = await this.privatePostExchange(this.extend(request, parameters));
+        object response = await this.privatePostExchange(request);
         //
         //     {
         //         "status": "ok",
@@ -2397,10 +2397,9 @@ public partial class hyperliquid : Exchange
                 vaultAddress = ((string)vaultAddress).Replace((string)"0x", (string)"");
             }
         }
-        object extendedAction = this.extend(updateAction, parameters);
-        object signature = this.signL1Action(extendedAction, nonce, vaultAddress);
+        object signature = this.signL1Action(updateAction, nonce, vaultAddress);
         object request = new Dictionary<string, object>() {
-            { "action", extendedAction },
+            { "action", updateAction },
             { "nonce", nonce },
             { "signature", signature },
         };
@@ -2462,7 +2461,7 @@ public partial class hyperliquid : Exchange
             parameters = this.omit(parameters, "vaultAddress");
             ((IDictionary<string,object>)request)["vaultAddress"] = vaultAddress;
         }
-        object response = await this.privatePostExchange(this.extend(request, parameters));
+        object response = await this.privatePostExchange(request);
         //
         //     {
         //         'response': {
@@ -2536,7 +2535,7 @@ public partial class hyperliquid : Exchange
             parameters = this.omit(parameters, "vaultAddress");
             ((IDictionary<string,object>)request)["vaultAddress"] = vaultAddress;
         }
-        object response = await this.privatePostExchange(this.extend(request, parameters));
+        object response = await this.privatePostExchange(request);
         //
         //     {
         //         'response': {
@@ -2610,7 +2609,7 @@ public partial class hyperliquid : Exchange
             };
             object signature = this.signL1Action(action, nonce, vaultAddress);
             object innerRequest = new Dictionary<string, object>() {
-                { "action", this.extend(action, parameters) },
+                { "action", action },
                 { "nonce", nonce },
                 { "signature", signature },
             };
@@ -2650,7 +2649,7 @@ public partial class hyperliquid : Exchange
             { "nonce", nonce },
             { "signature", sig },
         };
-        object response = await this.privatePostExchange(this.extend(request, parameters));
+        object response = await this.privatePostExchange(request);
         return response;
     }
 
@@ -2701,7 +2700,7 @@ public partial class hyperliquid : Exchange
             { "nonce", nonce },
             { "signature", sig },
         };
-        object response = await this.privatePostExchange(this.extend(request, parameters));
+        object response = await this.privatePostExchange(request);
         return this.parseTransaction(response);
     }
 

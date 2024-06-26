@@ -170,7 +170,7 @@ public partial class probit : Exchange
                     { "RATE_LIMIT_EXCEEDED", typeof(RateLimitExceeded) },
                     { "MARKET_UNAVAILABLE", typeof(ExchangeNotAvailable) },
                     { "INVALID_MARKET", typeof(BadSymbol) },
-                    { "MARKET_CLOSED", typeof(BadSymbol) },
+                    { "MARKET_CLOSED", typeof(MarketClosed) },
                     { "MARKET_NOT_FOUND", typeof(BadSymbol) },
                     { "INVALID_CURRENCY", typeof(BadRequest) },
                     { "TOO_MANY_OPEN_ORDERS", typeof(DDoSProtection) },
@@ -1992,12 +1992,19 @@ public partial class probit : Exchange
         if (isTrue(inOp(response, "errorCode")))
         {
             object errorCode = this.safeString(response, "errorCode");
-            object message = this.safeString(response, "message");
             if (isTrue(!isEqual(errorCode, null)))
             {
-                object feedback = add(add(this.id, " "), body);
-                this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), message, feedback);
-                this.throwBroadlyMatchedException(getValue(this.exceptions, "exact"), errorCode, feedback);
+                object errMessage = this.safeString(response, "message", "");
+                object details = this.safeValue(response, "details");
+                object feedback = add(add(add(add(add(add(this.id, " "), errorCode), " "), errMessage), " "), this.json(details));
+                if (isTrue(inOp(this.exceptions, "exact")))
+                {
+                    this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), errorCode, feedback);
+                }
+                if (isTrue(inOp(this.exceptions, "broad")))
+                {
+                    this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), errMessage, feedback);
+                }
                 throw new ExchangeError ((string)feedback) ;
             }
         }

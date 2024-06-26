@@ -6,7 +6,7 @@
 
 //  ---------------------------------------------------------------------------
 import Exchange from './abstract/probit.js';
-import { ExchangeError, ExchangeNotAvailable, BadResponse, BadRequest, InvalidOrder, InsufficientFunds, AuthenticationError, InvalidAddress, RateLimitExceeded, DDoSProtection, BadSymbol, ArgumentsRequired } from './base/errors.js';
+import { ExchangeError, ExchangeNotAvailable, BadResponse, BadRequest, InvalidOrder, InsufficientFunds, AuthenticationError, InvalidAddress, RateLimitExceeded, DDoSProtection, BadSymbol, MarketClosed, ArgumentsRequired } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TRUNCATE, TICK_SIZE } from './base/functions/number.js';
 //  ---------------------------------------------------------------------------
@@ -182,7 +182,7 @@ export default class probit extends Exchange {
                     'RATE_LIMIT_EXCEEDED': RateLimitExceeded,
                     'MARKET_UNAVAILABLE': ExchangeNotAvailable,
                     'INVALID_MARKET': BadSymbol,
-                    'MARKET_CLOSED': BadSymbol,
+                    'MARKET_CLOSED': MarketClosed,
                     'MARKET_NOT_FOUND': BadSymbol,
                     'INVALID_CURRENCY': BadRequest,
                     'TOO_MANY_OPEN_ORDERS': DDoSProtection,
@@ -1839,11 +1839,16 @@ export default class probit extends Exchange {
         }
         if ('errorCode' in response) {
             const errorCode = this.safeString(response, 'errorCode');
-            const message = this.safeString(response, 'message');
             if (errorCode !== undefined) {
-                const feedback = this.id + ' ' + body;
-                this.throwExactlyMatchedException(this.exceptions['exact'], message, feedback);
-                this.throwBroadlyMatchedException(this.exceptions['exact'], errorCode, feedback);
+                const errMessage = this.safeString(response, 'message', '');
+                const details = this.safeValue(response, 'details');
+                const feedback = this.id + ' ' + errorCode + ' ' + errMessage + ' ' + this.json(details);
+                if ('exact' in this.exceptions) {
+                    this.throwExactlyMatchedException(this.exceptions['exact'], errorCode, feedback);
+                }
+                if ('broad' in this.exceptions) {
+                    this.throwBroadlyMatchedException(this.exceptions['broad'], errMessage, feedback);
+                }
                 throw new ExchangeError(feedback);
             }
         }
