@@ -1699,6 +1699,8 @@
         }
     },
     "vertex": {
+        "httpsProxy": "http://5.75.153.75:8002",
+        "wsProxy": "http://5.75.153.75:8002",
         "skipMethods": {
             "fetchCurrencies": "incomplete",
             "loadMarkets": {
