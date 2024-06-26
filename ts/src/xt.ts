@@ -2033,6 +2033,21 @@ export default class xt extends Exchange {
         //        "timestamp": 1684892412565
         //    }
         //
+        // watchMyTrades (ws, swap)
+        //
+        //    {
+        //        'fee': '0.04080840',
+        //        'isMaker': False,
+        //        'marginUnfrozen': '0.75711984',
+        //        'orderId': '376172779053188416',
+        //        'orderSide': 'BUY',
+        //        'positionSide': 'LONG',
+        //        'price': '3400.70',
+        //        'quantity': '2',
+        //        'symbol': 'eth_usdt',
+        //        'timestamp': 1719388579622
+        //    }
+        //
         const marketId = this.safeString2 (trade, 's', 'symbol');
         let marketType = (market !== undefined) ? market['type'] : undefined;
         const hasSpotKeys = ('b' in trade) || ('bizType' in trade) || ('oi' in trade);
@@ -2052,6 +2067,10 @@ export default class xt extends Exchange {
         let takerOrMaker = this.safeStringLower (trade, 'takerMaker');
         if (buyerMaker !== undefined) {
             takerOrMaker = buyerMaker ? 'maker' : 'taker';
+        }
+        const isMaker = this.safeBool (trade, 'isMaker');
+        if (isMaker !== undefined) {
+            takerOrMaker = isMaker ? 'maker' : 'taker';
         }
         const timestamp = this.safeIntegerN (trade, [ 't', 'time', 'timestamp' ]);
         const quantity = this.safeString2 (trade, 'q', 'quantity');
