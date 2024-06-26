@@ -205,6 +205,7 @@ class Transpiler {
             [ /Precise\.stringGe\s/g, 'Precise.string_ge' ],
             [ /Precise\.stringLt\s/g, 'Precise.string_lt' ],
             [ /Precise\.stringLe\s/g, 'Precise.string_le' ],
+            [ /Precise\.stringOr\s/g, 'Precise.string_or' ],
             [ /\.padEnd\s/g, '.ljust'],
             [ /\.padStart\s/g, '.rjust' ],
 
@@ -296,7 +297,7 @@ class Transpiler {
             [ /\{ /g, '{' ],              // PEP8 E201 remove whitespaces after left { bracket
             [ /(?<=[^\s#]) \]/g, ']' ],    // PEP8 E202 remove whitespaces before right ] square bracket
             [ /(?<=[^\s#]) \}/g, '}' ],    // PEP8 E202 remove whitespaces before right } bracket
-            [ /([^a-z])(elif|if|or|else)\(/g, '$1$2 \(' ], // a correction for PEP8 E225 side-effect for compound and ternary conditionals
+            [ /([^a-z\_])(elif|if|or|else)\(/g, '$1$2 \(' ], // a correction for PEP8 E225 side-effect for compound and ternary conditionals
             [ /\!\=\sTrue/g, 'is not True' ], // a correction for PEP8 E712, it likes "is not True", not "!= True"
             [ /\=\=\sTrue/g, 'is True' ], // a correction for PEP8 E712, it likes "is True", not "== True"
             [ /\sdelete\s/g, ' del ' ],
@@ -437,6 +438,7 @@ class Transpiler {
             [ /Precise\.stringGe\s/g, 'Precise::string_ge' ],
             [ /Precise\.stringLt\s/g, 'Precise::string_lt' ],
             [ /Precise\.stringLe\s/g, 'Precise::string_le' ],
+            [ /Precise\.stringOr\s/g, 'Precise::string_or' ],
             [ /(\w+)\.padEnd\s*\(([^,]+),\s*([^)]+)\)/g, 'str_pad($1, $2, $3, STR_PAD_RIGHT)' ],
             [ /(\w+)\.padStart\s*\(([^,]+),\s*([^)]+)\)/g, 'str_pad($1, $2, $3, STR_PAD_LEFT)' ],
 
@@ -449,7 +451,7 @@ class Transpiler {
             [ / this;/g, ' $this;' ],
             [ /([^'])this_\./g, '$1$this_->' ],
             [ /([^'])\{\}/g, '$1array()' ],
-            [ /([^'])\[\]/g, '$1array()' ],
+            [ /([^'])\[\](?!')/g, '$1array()' ],
 
         // add {}-array syntax conversions up to 20 levels deep on the same line
         ]).concat ([ ... Array (20) ].map (x => [ /\{([^\n\}]+)\}/g, 'array($1)' ] )).concat ([
@@ -2140,7 +2142,12 @@ class Transpiler {
             // remove async ccxt import
             replace (/from ccxt\.async_support(.*)/g, '').
             // add one more newline before function
-            replace (/^(async def|def) (\w)/gs, '\n$1 $2')
+            replace (/^(async def|def) (\w)/gs, '\n$1 $2').
+            // camelCase walletAddress and privateKey
+            replace(/\.wallet_address/g, '.walletAddress').
+            replace(/\.private_key/g, '.privateKey').
+            replace(/\.api_key/g, '.apiKey');
+
         const existinPythonBody = fs.readFileSync (files.pyFileAsync).toString ();
         let newPython = existinPythonBody.split(commentStartLine)[0] + commentStartLine + '\n' + python3 + '\n# ' + commentEndLine + existinPythonBody.split(commentEndLine)[1];
         newPython = snakeCaseFunctions (newPython);
@@ -2159,7 +2166,10 @@ class Transpiler {
             const partBeforClass =  existinPhpBody.split(commentStartLine)[0] + commentStartLine + '\n';
             const partAfterClass = '\n' + '// ' + commentEndLine + existinPhpBody.split(commentEndLine)[1]
             let newContent = partBeforClass + cont + partAfterClass;
-            newContent = newContent.replace (/use ccxt\\(async\\|)abstract\\testMainClass as baseMainTestClass;/g, '');
+            newContent = newContent.replace (/use ccxt\\(async\\|)abstract\\testMainClass as baseMainTestClass;/g, '').
+            replace(/\->wallet_address/g, '->walletAddress').
+            replace(/\->private_key/g, '->privateKey').
+            replace(/\->api_key/g, '->apiKey');
             newContent = snakeCaseFunctions (newContent);
             newContent = this.phpReplaceException (newContent);
             return newContent;
