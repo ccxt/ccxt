@@ -35,6 +35,7 @@ import {
     BadRequest,
     BadSymbol,
     DuplicateOrderId,
+    InsufficientFunds,
     InvalidOrder,
     NotSupported,
     NullResponse,
@@ -385,9 +386,11 @@ export default class valr extends Exchange {
                     '-12007': InvalidOrder, // {"code":-12007,"message":"Minimum order size not met . Minimum amount: 1 USDT, minimum total: 10 ZAR"}
                     '-11502': DuplicateOrderId, // {'code': '-11502', 'message': "Duplicate customer order id's are not allowed"}
                     '-113': BadRequest, // "code":-113,"message":"Invalid JSON payload"
-                    '-11133': BadRequest, // {"code":-11133,"message":"Internal transfer did not succeed A subaccount can only transfer funds from itself"}
                 },
-                'broad': {},
+                'broad': {
+                    'Internal transfer did not succeed From account does not have sufficient balance for transfer': InsufficientFunds,
+                    'Internal transfer did not succeed A subaccount can only transfer funds from itself': BadRequest,
+                },
             },
         });
     }
@@ -1073,9 +1076,9 @@ export default class valr extends Exchange {
     parseOrder (order, market: Market = undefined): Order {
         const orderStatus = this.safeString2 (order, 'status', 'orderStatusType');
         let status = undefined;
-        if (orderStatus === 'Placed' || orderStatus === 'Active' || orderStatus === 'Order Modified') {
+        if (this.inArray (orderStatus, [ 'Placed', 'Active', 'Order Modified', 'Partially Filled' ])) {
             status = 'open';
-        } else if (orderStatus === 'Failed' || orderStatus === 'Cancelled') {
+        } else if (this.inArray (orderStatus, [ 'Failed', 'Cancelled' ])) {
             status = 'canceled';
         } else if (orderStatus === 'Filled') {
             status = 'closed';
@@ -2229,10 +2232,10 @@ export default class valr extends Exchange {
         const message = this.safeString (response, 'message');
         const errorCode = this.safeString (response, 'code');
         if (errorCode && message) {
-            const errorMessage = this.id + ' ' + message;
+            const errorMessage = this.id + ' - ' + message;
             const erroCodeStr = errorCode.toString ();
             this.throwExactlyMatchedException (this.exceptions['exact'], erroCodeStr, errorMessage);
-            this.throwBroadlyMatchedException (this.exceptions['broad'], erroCodeStr, errorMessage);
+            this.throwBroadlyMatchedException (this.exceptions['broad'], message, errorMessage);
         }
         return undefined;
     }
