@@ -93,7 +93,7 @@ export default class xt extends xtRest {
                 //    }
                 //
                 const result = this.safeDict (response, 'result');
-                client.subscriptions['token'] = this.safeString (result, 'token');
+                client.subscriptions['token'] = this.safeString (result, 'accessToken');
             }
         }
         return client.subscriptions['token'];
@@ -800,15 +800,23 @@ export default class xt extends xtRest {
         // spot
         //
         //    {
-        //        "s": "btc_usdt",                         // symbol
-        //        "t": 1656043204763,                      // time happened time
-        //        "i": "6216559590087220004",              // orderId,
-        //        "ci": "test123",                         // clientOrderId
-        //        "st": "PARTIALLY_FILLED",                // state
-        //        "sd": "BUY",                             // side BUY/SELL
-        //        "eq": "2",                               // executedQty executed quantity
-        //        "ap": "30000",                           // avg price
-        //        "f": "0.002"                             // fee
+        //        "s": "btc_usdt",                // symbol
+        //        "bc": "btc",                    // base currency
+        //        "qc": "usdt",                   // quotation currency
+        //        "t": 1656043204763,             // happened time
+        //        "ct": 1656043204663,            // create time
+        //        "i": "6216559590087220004",     // order id,
+        //        "ci": "test123",                // client order id
+        //        "st": "PARTIALLY_FILLED",       // state NEW/PARTIALLY_FILLED/FILLED/CANCELED/REJECTED/EXPIRED
+        //        "sd": "BUY",                    // side BUY/SELL
+        //        "tp": "LIMIT",                  // type LIMIT/MARKET
+        //        "oq":  "4"                      // original quantity
+        //        "oqq":  48000,                  // original quotation quantity
+        //        "eq": "2",                      // executed quantity
+        //        "lq": "2",                      // remaining quantity
+        //        "p": "4000",                    // price
+        //        "ap": "30000",                  // avg price
+        //        "f":"0.002"                     // fee
         //    }
         //
         // contract
@@ -833,7 +841,7 @@ export default class xt extends xtRest {
         const marketId = this.safeString2 (order, 's', 'symbol');
         const tradeType = ('symbol' in order) ? 'contract' : 'spot';
         market = this.safeMarket (marketId, market, undefined, tradeType);
-        const timestamp = this.safeInteger2 (order, 't', 'createTime');
+        const timestamp = this.safeInteger2 (order, 'ct', 'createTime');
         return this.safeOrder ({
             'info': order,
             'id': this.safeString2 (order, 'i', 'orderId'),
@@ -846,13 +854,13 @@ export default class xt extends xtRest {
             'timeInForce': undefined,
             'postOnly': undefined,
             'side': this.safeStringLower2 (order, 'sd', 'orderSide'),
-            'price': this.safeNumber (order, 'price'),
+            'price': this.safeNumber2 (order, 'p', 'price'),
             'stopPrice': undefined,
             'stopLoss': undefined,
             'takeProfit': undefined,
-            'amount': this.safeString (order, 'origQty'),
+            'amount': this.safeString2 (order, 'oq', 'origQty'),
             'filled': this.safeString2 (order, 'eq', 'executedQty'),
-            'remaining': undefined,
+            'remaining': this.safeString (order, 'lq'),
             'cost': undefined,
             'average': this.safeString2 (order, 'ap', 'avgPrice'),
             'status': this.parseOrderStatus (this.safeString (order, 'st', 'state')),
@@ -964,9 +972,9 @@ export default class xt extends xtRest {
         const currencyId = this.safeString2 (data, 'c', 'coin');
         const code = this.safeCurrencyCode (currencyId);
         const account = this.account ();
-        account['free'] = this.safeString2 (data, 'b', 'availableBalance');
+        account['free'] = this.safeString (data, 'availableBalance');
         account['used'] = this.safeString (data, 'f');
-        account['total'] = this.safeString (data, 'walletBalance');
+        account['total'] = this.safeString2 (data, 'b', 'walletBalance');
         this.balance[code] = account;
         this.balance = this.safeBalance (this.balance);
         const tradeType = ('coin' in data) ? 'contract' : 'spot';
