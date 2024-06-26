@@ -483,8 +483,8 @@ export default class htx extends htxRest {
     }
 
     handleDelta (bookside, delta) {
-        const price = this.safeFloat (delta, 0);
-        const amount = this.safeFloat (delta, 1);
+        const price = this.safeString (delta, 0);
+        const amount = this.safeString (delta, 1);
         bookside.store (price, amount);
     }
 

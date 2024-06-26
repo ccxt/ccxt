@@ -833,8 +833,8 @@ export default class coinbaseexchange extends coinbaseexchangeRest {
     }
 
     handleDelta (bookside, delta) {
-        const price = this.safeNumber (delta, 0);
-        const amount = this.safeNumber (delta, 1);
+        const price = this.safeString (delta, 0);
+        const amount = this.safeString (delta, 1);
         bookside.store (price, amount);
     }
 

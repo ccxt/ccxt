@@ -4388,10 +4388,10 @@ export default class Exchange {
     }
 
     parseBidAsk (bidask, priceKey: IndexType = 0, amountKey: IndexType = 1, countOrIdKey: IndexType = 2) {
-        const price = this.safeNumber (bidask, priceKey);
-        const amount = this.safeNumber (bidask, amountKey);
+        const price = this.safeString (bidask, priceKey);
+        const amount = this.safeString (bidask, amountKey);
         const countOrId = this.safeInteger (bidask, countOrIdKey);
-        const bidAsk = [ price, amount ];
+        const bidAsk: IndexType[] = [ price, amount ];
         if (countOrId !== undefined) {
             bidAsk.push (countOrId);
         }

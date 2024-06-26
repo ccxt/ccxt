@@ -526,8 +526,8 @@ export default class deribit extends deribitRest {
             this.orderbooks[symbol] = this.countedOrderBook ();
         }
         const storedOrderBook = this.orderbooks[symbol];
-        const asks = this.safeList (data, 'asks', []);
-        const bids = this.safeList (data, 'bids', []);
+        const asks = this.safeList (data, 'asks', []);  // TODO
+        const bids = this.safeList (data, 'bids', []);  // TODO
         this.handleDeltas (storedOrderBook['asks'], asks);
         this.handleDeltas (storedOrderBook['bids'], bids);
         storedOrderBook['nonce'] = timestamp;

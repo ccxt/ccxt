@@ -377,8 +377,8 @@ export default class huobijp extends huobijpRest {
     }
 
     handleDelta (bookside, delta) {
-        const price = this.safeNumber (delta, 0);
-        const amount = this.safeNumber (delta, 1);
+        const price = this.safeString (delta, 0);
+        const amount = this.safeString (delta, 1);
         bookside.store (price, amount);
     }
 

@@ -132,8 +132,8 @@ export default class cryptocom extends cryptocomRest {
     }
 
     handleDelta (bookside, delta) {
-        const price = this.safeFloat (delta, 0);
-        const amount = this.safeFloat (delta, 1);
+        const price = this.safeString (delta, 0);
+        const amount = this.safeString (delta, 1);
         const count = this.safeInteger (delta, 2);
         bookside.storeArray ([ price, amount, count ]);
     }
