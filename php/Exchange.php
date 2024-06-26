@@ -485,6 +485,7 @@ class Exchange {
         'tokocrypto',
         'tradeogre',
         'upbit',
+        'vertex',
         'wavesexchange',
         'wazirx',
         'whitebit',
