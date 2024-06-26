@@ -1653,8 +1653,8 @@ export default class valr extends Exchange {
             }
             if (limit !== undefined) {
                 queryParams['limit'] = limit;
-                queryParams['transactionTypes'] = 'FIAT_WITHDRAWAL';
             }
+            queryParams['transactionTypes'] = 'FIAT_WITHDRAWAL';
             response = await this.privateGetAccountTransactionhistory (this.extend (queryParams, params));
         } else {
             this.checkRequiredCurrencyCodeArgument ('fetchWithdrawals', code);
@@ -1735,6 +1735,7 @@ export default class valr extends Exchange {
             queryParams['limit'] = limit;
         }
         const response = await this.privateGetAccountTransactionhistory (this.extend (queryParams, params));
+        params = this.omit (params, 'transactionTypes');
         const accountId = {
             'account': this.safeString (this.last_request_headers, 'X-VALR-SUB-ACCOUNT-ID', '0'),
         };
@@ -1909,12 +1910,20 @@ export default class valr extends Exchange {
         let currency = undefined;
         let address = undefined;
         let addressTo = undefined;
+        let fee = undefined;
         const eventTime = this.parseDate (this.safeString (transaction, 'eventAt'));
         if (transactionType === 'FIAT_DEPOSIT' || transactionType === 'FIAT_WITHDRAWAL') {
             parseType = (transactionType === 'FIAT_DEPOSIT') ? 'deposit' : 'withdrawal';
             amount = this.safeNumber2 (transaction, 'creditValue', 'debitValue');
             status = 'ok';
             currency = this.safeCurrencyCode (this.safeString2 (transaction, 'creditCurrency', 'debitCurrency'));
+            const feeValueCurrency = this.safeString (transaction, 'feeCurrency');
+            const feeValue = this.safeNumber (transaction, 'feeValue');
+            fee = {
+                'currency': this.safeCurrencyCode (feeValueCurrency),
+                'cost': feeValue,
+                'rate': undefined,
+            };
             if (parseType === 'withdrawal') {
                 const additionalInfo = this.safeDict (transaction, 'additionalInfo');
                 address = this.safeString (additionalInfo, 'accountNumber');
@@ -1938,7 +1947,7 @@ export default class valr extends Exchange {
             'currency': currency,
             'status': status,
             'updated': undefined,
-            'fee': undefined,
+            'fee': fee,
             'network': undefined,
             'comment': undefined,
             'internal': undefined,
