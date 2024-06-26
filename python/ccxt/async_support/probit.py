@@ -13,6 +13,7 @@ from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import BadSymbol
+from ccxt.base.errors import MarketClosed
 from ccxt.base.errors import BadResponse
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidAddress
@@ -194,7 +195,7 @@ class probit(Exchange, ImplicitAPI):
                     'RATE_LIMIT_EXCEEDED': RateLimitExceeded,  # You are sending requests too frequently. Please try it later.
                     'MARKET_UNAVAILABLE': ExchangeNotAvailable,  # Market is closed today
                     'INVALID_MARKET': BadSymbol,  # Requested market is not exist
-                    'MARKET_CLOSED': BadSymbol,  # {"errorCode":"MARKET_CLOSED"}
+                    'MARKET_CLOSED': MarketClosed,  # {"errorCode":"MARKET_CLOSED"}
                     'MARKET_NOT_FOUND': BadSymbol,  # {"errorCode":"MARKET_NOT_FOUND","message":"8e2b8496-0a1e-5beb-b990-a205b902eabe","details":{}}
                     'INVALID_CURRENCY': BadRequest,  # Requested currency is not exist on ProBit system
                     'TOO_MANY_OPEN_ORDERS': DDoSProtection,  # Too many open orders
@@ -1725,10 +1726,13 @@ class probit(Exchange, ImplicitAPI):
             return None  # fallback to default error handler
         if 'errorCode' in response:
             errorCode = self.safe_string(response, 'errorCode')
-            message = self.safe_string(response, 'message')
             if errorCode is not None:
-                feedback = self.id + ' ' + body
-                self.throw_exactly_matched_exception(self.exceptions['exact'], message, feedback)
-                self.throw_broadly_matched_exception(self.exceptions['exact'], errorCode, feedback)
+                errMessage = self.safe_string(response, 'message', '')
+                details = self.safe_value(response, 'details')
+                feedback = self.id + ' ' + errorCode + ' ' + errMessage + ' ' + self.json(details)
+                if 'exact' in self.exceptions:
+                    self.throw_exactly_matched_exception(self.exceptions['exact'], errorCode, feedback)
+                if 'broad' in self.exceptions:
+                    self.throw_broadly_matched_exception(self.exceptions['broad'], errMessage, feedback)
                 raise ExchangeError(feedback)
         return None

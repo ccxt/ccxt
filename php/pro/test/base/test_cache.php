@@ -918,3 +918,66 @@ $cache_symbol_side_3->append(array(
 
 
 assert($cache_symbol_side_3->get_limit(null, $outside_limit) === 1); // watch all positions
+
+
+// ----------------------------------------------------------------------------
+// test ArrayCacheBySymbolBySide, watchPositions does not override
+$cache_symbol_side_4 = new ArrayCacheBySymbolBySide();
+
+
+$symbol = 'BTC/USDT';
+
+
+$symbol2 = 'ETH/USDT';
+
+
+$symbol3 = 'XRP/USDT';
+
+
+$cache_symbol_side_4->append(array(
+    'symbol' => $symbol,
+    'side' => 'long',
+    'contracts' => 1,
+)); // create first position
+
+
+$cache_symbol_side_4->append(array(
+    'symbol' => $symbol2,
+    'side' => 'long',
+    'contracts' => 2,
+)); // create second position
+
+
+$cache_symbol_side_4->append(array(
+    'symbol' => $symbol3,
+    'side' => 'long',
+    'contracts' => 3,
+)); // create short position
+
+
+assert($cache_symbol_side_4[0]['symbol'] === $symbol);
+
+
+assert($cache_symbol_side_4[1]['symbol'] === $symbol2);
+
+
+$cache_symbol_side_4->append(array(
+    'symbol' => $symbol2,
+    'side' => 'long',
+    'contracts' => 4,
+)); // update first position
+
+
+assert($cache_symbol_side_4[0]['contracts'] === 1 && $cache_symbol_side_4[0]['symbol'] === $symbol);
+
+
+assert($cache_symbol_side_4[1]['contracts'] === 3 && $cache_symbol_side_4[1]['symbol'] === $symbol3);
+
+
+assert($cache_symbol_side_4[2]['contracts'] === 4 && $cache_symbol_side_4[2]['symbol'] === $symbol2);
+
+
+$array_length = count($cache_symbol_side_4);
+
+
+assert($array_length === 3);

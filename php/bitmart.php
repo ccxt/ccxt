@@ -3774,7 +3774,7 @@ class bitmart extends Exchange {
         return $this->parse_isolated_borrow_rate($borrowRate, $market);
     }
 
-    public function parse_isolated_borrow_rate($info, ?array $market = null): array {
+    public function parse_isolated_borrow_rate(array $info, ?array $market = null): array {
         //
         //     {
         //         "symbol" => "BTC_USDT",

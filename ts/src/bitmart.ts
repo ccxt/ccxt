@@ -3851,7 +3851,7 @@ export default class bitmart extends Exchange {
         return this.parseIsolatedBorrowRate (borrowRate, market);
     }
 
-    parseIsolatedBorrowRate (info, market: Market = undefined): IsolatedBorrowRate {
+    parseIsolatedBorrowRate (info: Dict, market: Market = undefined): IsolatedBorrowRate {
         //
         //     {
         //         "symbol": "BTC_USDT",

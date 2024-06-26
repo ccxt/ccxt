@@ -10681,7 +10681,7 @@ class binance(Exchange, ImplicitAPI):
             'info': info,
         }
 
-    def parse_isolated_borrow_rate(self, info, market: Market = None):
+    def parse_isolated_borrow_rate(self, info: dict, market: Market = None) -> IsolatedBorrowRate:
         #
         #    {
         #        "vipLevel": 0,

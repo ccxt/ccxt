@@ -52,8 +52,6 @@ class probit(ccxt.async_support.probit):
             },
             'streaming': {
             },
-            'exceptions': {
-            },
         })
 
     async def watch_balance(self, params={}) -> Balances:
@@ -467,8 +465,12 @@ class probit(ccxt.async_support.probit):
         code = self.safe_string(message, 'errorCode')
         errMessage = self.safe_string(message, 'message', '')
         details = self.safe_value(message, 'details')
-        # todo - raise properly here
-        raise ExchangeError(self.id + ' ' + code + ' ' + errMessage + ' ' + self.json(details))
+        feedback = self.id + ' ' + code + ' ' + errMessage + ' ' + self.json(details)
+        if 'exact' in self.exceptions:
+            self.throw_exactly_matched_exception(self.exceptions['exact'], code, feedback)
+        if 'broad' in self.exceptions:
+            self.throw_broadly_matched_exception(self.exceptions['broad'], errMessage, feedback)
+        raise ExchangeError(feedback)
 
     def handle_authenticate(self, client: Client, message):
         #

@@ -614,5 +614,40 @@ public partial class BaseTest
             { "contracts", 3 },
         }); // update second position
         Assert(isEqual(cacheSymbolSide3.getLimit(null, outsideLimit), 1)); // watch all positions
+        
+        // ----------------------------------------------------------------------------
+        
+        // test ArrayCacheBySymbolBySide, watchPositions does not override
+        var cacheSymbolSide4 = new ArrayCacheBySymbolBySide();
+        symbol = "BTC/USDT";
+        symbol2 = "ETH/USDT";
+        object symbol3 = "XRP/USDT";
+        cacheSymbolSide4.append(new Dictionary<string, object>() {
+            { "symbol", symbol },
+            { "side", "long" },
+            { "contracts", 1 },
+        }); // create first position
+        cacheSymbolSide4.append(new Dictionary<string, object>() {
+            { "symbol", symbol2 },
+            { "side", "long" },
+            { "contracts", 2 },
+        }); // create second position
+        cacheSymbolSide4.append(new Dictionary<string, object>() {
+            { "symbol", symbol3 },
+            { "side", "long" },
+            { "contracts", 3 },
+        }); // create short position
+        Assert(isEqual(getValue(getValue(cacheSymbolSide4, 0), "symbol"), symbol));
+        Assert(isEqual(getValue(getValue(cacheSymbolSide4, 1), "symbol"), symbol2));
+        cacheSymbolSide4.append(new Dictionary<string, object>() {
+            { "symbol", symbol2 },
+            { "side", "long" },
+            { "contracts", 4 },
+        }); // update first position
+        Assert(isTrue(isEqual(getValue(getValue(cacheSymbolSide4, 0), "contracts"), 1)) && isTrue(isEqual(getValue(getValue(cacheSymbolSide4, 0), "symbol"), symbol)));
+        Assert(isTrue(isEqual(getValue(getValue(cacheSymbolSide4, 1), "contracts"), 3)) && isTrue(isEqual(getValue(getValue(cacheSymbolSide4, 1), "symbol"), symbol3)));
+        Assert(isTrue(isEqual(getValue(getValue(cacheSymbolSide4, 2), "contracts"), 4)) && isTrue(isEqual(getValue(getValue(cacheSymbolSide4, 2), "symbol"), symbol2)));
+        object arrayLength = getArrayLength(cacheSymbolSide4);
+        Assert(isEqual(arrayLength, 3));
     }
 }

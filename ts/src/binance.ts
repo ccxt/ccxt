@@ -11437,7 +11437,7 @@ export default class binance extends Exchange {
         };
     }
 
-    parseIsolatedBorrowRate (info, market: Market = undefined) {
+    parseIsolatedBorrowRate (info: Dict, market: Market = undefined): IsolatedBorrowRate {
         //
         //    {
         //        "vipLevel": 0,
