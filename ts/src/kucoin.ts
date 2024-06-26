@@ -230,6 +230,7 @@ export default class kucoin extends Exchange {
                         'margin/currencies': 20, // 20SW
                         'risk/limit/strategy': 20, // 20SW (Deprecate)
                         'isolated/symbols': 20, // 20SW
+                        'margin/symbols': 5,
                         'isolated/account/{symbol}': 50, // 50SW
                         'margin/borrow': 15, // 15SW
                         'margin/repay': 15, // 15SW
@@ -678,6 +679,7 @@ export default class kucoin extends Exchange {
                             'project/marketInterestRate': 'v3',
                             'redeem/orders': 'v3',
                             'purchase/orders': 'v3',
+                            'margin/symbols': 'v3',
                         },
                         'POST': {
                             // account
@@ -1023,7 +1025,10 @@ export default class kucoin extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} an array of objects representing market data
          */
-        const response = await this.publicGetSymbols (params);
+        let fetchTickersFees = undefined;
+        [ fetchTickersFees, params ] = this.handleOptionAndParams (params, 'fetchMarkets', 'fetchTickersFees', true);
+        const promises = [];
+        promises.push (this.publicGetSymbols (params));
         //
         //     {
         //         "code": "200000",
@@ -1046,47 +1051,79 @@ export default class kucoin extends Exchange {
         //                 "isMarginEnabled": true,
         //                 "enableTrading": true
         //             },
-        //         ]
-        //     }
         //
-        const data = this.safeList (response, 'data');
-        const options = this.safeDict (this.options, 'fetchMarkets', {});
-        const fetchTickersFees = this.safeBool (options, 'fetchTickersFees', true);
-        let tickersResponse: Dict = {};
+        promises.push (this.privateGetMarginSymbols (params)); // cross margin symbols
+        //
+        //    {
+        //        "code": "200000",
+        //        "data": {
+        //            "timestamp": 1719393213421,
+        //            "items": [
+        //                {
+        //                    // same object as in market, with one additional field:
+        //                    "minFunds": "0.1"
+        //                },
+        //
+        promises.push (this.privateGetIsolatedSymbols (params)); // isolated margin symbols
+        //
+        //    {
+        //        "code": "200000",
+        //        "data": [
+        //            {
+        //                "symbol": "NKN-USDT",
+        //                "symbolName": "NKN-USDT",
+        //                "baseCurrency": "NKN",
+        //                "quoteCurrency": "USDT",
+        //                "maxLeverage": 5,
+        //                "flDebtRatio": "0.97",
+        //                "tradeEnable": true,
+        //                "autoRenewMaxDebtRatio": "0.96",
+        //                "baseBorrowEnable": true,
+        //                "quoteBorrowEnable": true,
+        //                "baseTransferInEnable": true,
+        //                "quoteTransferInEnable": true,
+        //                "baseBorrowCoefficient": "1",
+        //                "quoteBorrowCoefficient": "1"
+        //            },
+        //
         if (fetchTickersFees) {
-            tickersResponse = await this.publicGetMarketAllTickers (params);
+            promises.push (this.publicGetMarketAllTickers (params));
+            //
+            //     {
+            //         "code": "200000",
+            //         "data": {
+            //             "time":1602832092060,
+            //             "ticker":[
+            //                 {
+            //                     "symbol": "BTC-USDT",   // symbol
+            //                     "symbolName":"BTC-USDT", // Name of trading pairs, it would change after renaming
+            //                     "buy": "11328.9",   // bestAsk
+            //                     "sell": "11329",    // bestBid
+            //                     "changeRate": "-0.0055",    // 24h change rate
+            //                     "changePrice": "-63.6", // 24h change price
+            //                     "high": "11610",    // 24h highest price
+            //                     "low": "11200", // 24h lowest price
+            //                     "vol": "2282.70993217", // 24h volume，the aggregated trading volume in BTC
+            //                     "volValue": "25984946.157790431",   // 24h total, the trading volume in quote currency of last 24 hours
+            //                     "last": "11328.9",  // last price
+            //                     "averagePrice": "11360.66065903",   // 24h average transaction price yesterday
+            //                     "takerFeeRate": "0.001",    // Basic Taker Fee
+            //                     "makerFeeRate": "0.001",    // Basic Maker Fee
+            //                     "takerCoefficient": "1",    // Taker Fee Coefficient
+            //                     "makerCoefficient": "1" // Maker Fee Coefficient
+            //                 }
+            //
         }
-        //
-        //     {
-        //         "code": "200000",
-        //         "data": {
-        //             "time":1602832092060,
-        //             "ticker":[
-        //                 {
-        //                     "symbol": "BTC-USDT",   // symbol
-        //                     "symbolName":"BTC-USDT", // Name of trading pairs, it would change after renaming
-        //                     "buy": "11328.9",   // bestAsk
-        //                     "sell": "11329",    // bestBid
-        //                     "changeRate": "-0.0055",    // 24h change rate
-        //                     "changePrice": "-63.6", // 24h change price
-        //                     "high": "11610",    // 24h highest price
-        //                     "low": "11200", // 24h lowest price
-        //                     "vol": "2282.70993217", // 24h volume，the aggregated trading volume in BTC
-        //                     "volValue": "25984946.157790431",   // 24h total, the trading volume in quote currency of last 24 hours
-        //                     "last": "11328.9",  // last price
-        //                     "averagePrice": "11360.66065903",   // 24h average transaction price yesterday
-        //                     "takerFeeRate": "0.001",    // Basic Taker Fee
-        //                     "makerFeeRate": "0.001",    // Basic Maker Fee
-        //                     "takerCoefficient": "1",    // Taker Fee Coefficient
-        //                     "makerCoefficient": "1" // Maker Fee Coefficient
-        //                 }
-        //             ]
-        //         }
-        //     }
-        //
-        const tickersData = this.safeDict (tickersResponse, 'data', {});
-        const tickers = this.safeList (tickersData, 'ticker', []);
-        const tickersByMarketId = this.indexBy (tickers, 'symbol');
+        const responses = await Promise.all (promises);
+        const response = responses[0];
+        const data = this.safeList (response, 'data');
+        const tickersResponse = this.safeDict (responses, 3, {});
+        const tickerItems = this.safeList (this.safeDict (tickersResponse, 'data', {}), 'ticker', []);
+        const tickersById = this.indexBy (tickerItems, 'symbol');
+        const crossItems = this.safeList (this.safeDict (responses[1], 'data', {}), 'items', []);
+        const crossById = this.indexBy (crossItems, 'symbol');
+        const isolatedItems = this.safeList (responses[2], 'data', []);
+        const isolatedById = this.indexBy (isolatedItems, 'symbol');
         const result = [];
         for (let i = 0; i < data.length; i++) {
             const market = data[i];
@@ -1095,11 +1132,14 @@ export default class kucoin extends Exchange {
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
             // const quoteIncrement = this.safeNumber (market, 'quoteIncrement');
-            const ticker = this.safeDict (tickersByMarketId, id, {});
+            const ticker = this.safeDict (tickersById, id, {});
             const makerFeeRate = this.safeString (ticker, 'makerFeeRate');
             const takerFeeRate = this.safeString (ticker, 'takerFeeRate');
             const makerCoefficient = this.safeString (ticker, 'makerCoefficient');
             const takerCoefficient = this.safeString (ticker, 'takerCoefficient');
+            const hasCrossMargin = (id in crossById);
+            const hasIsolatedMargin = (id in isolatedById);
+            const isMarginable = this.safeBool (market, 'isMarginEnabled', false) || hasCrossMargin || hasIsolatedMargin;
             result.push ({
                 'id': id,
                 'symbol': base + '/' + quote,
@@ -1111,7 +1151,9 @@ export default class kucoin extends Exchange {
                 'settleId': undefined,
                 'type': 'spot',
                 'spot': true,
-                'margin': this.safeBool (market, 'isMarginEnabled'),
+                'crossMargin': hasCrossMargin,
+                'isolatedMargin': hasIsolatedMargin,
+                'margin': isMarginable,
                 'swap': false,
                 'future': false,
                 'option': false,
