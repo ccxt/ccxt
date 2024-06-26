@@ -171,7 +171,7 @@ export default class coindcx extends Exchange {
                         'exchange/v1/markets_details': 1, // done
                         'exchange/v1/derivatives/futures/data/active_instruments': 1,
                         'exchange/v1/derivatives/futures/data/instrument': 1,
-                        'exchange/v1/derivatives/futures/data/trades': 1,
+                        'exchange/v1/derivatives/futures/data/trades': 1, // done
                     },
                 },
                 'public2': {
@@ -179,8 +179,8 @@ export default class coindcx extends Exchange {
                         'market_data/trade_history': 1, // done
                         'market_data/orderbook': 1, // done
                         'market_data/candles': 1, // done
-                        'market_data/v3/orderbook/{pair}-futures/{limit}': 1,
-                        'market_data/candlesticks': 1,
+                        'market_data/v3/orderbook/{pair}-futures/{limit}': 1, // done
+                        'market_data/candlesticks': 1, // done
                     },
                 },
                 'private': {
@@ -267,6 +267,7 @@ export default class coindcx extends Exchange {
          * @name coindcx#fetchMarkets
          * @description retrieves data on all markets for coindcx
          * @see https://docs.coindcx.com/#markets-details
+         * @see https://docs.coindcx.com/#get-instrument-details
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} an array of objects representing market data
          */
@@ -357,8 +358,8 @@ export default class coindcx extends Exchange {
         //         }
         //     }
         //
-        const market = this.safeDict (responseFromContract, 'instrument', {});
-        markets.push (market);
+        const contractMarket = this.safeDict (responseFromContract, 'instrument', {});
+        markets.push (contractMarket);
         return this.parseMarkets (markets);
     }
 
@@ -624,6 +625,7 @@ export default class coindcx extends Exchange {
          * @name coindcx#fetchOHLCV
          * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
          * @see https://docs.coindcx.com/#candles
+         * @see https://docs.coindcx.com/#get-instrument-candlesticks
          * @param {string} symbol unified symbol of the market to fetch OHLCV data for
          * @param {string} timeframe the length of time each candle represents
          * @param {int} [since] timestamp in ms of the earliest candle to fetch (is mandatory for contract markets)
@@ -675,7 +677,7 @@ export default class coindcx extends Exchange {
                 throw new ArgumentsRequired (this.id + ' fetchOHLCV requires both since and params.until arguments for ' + market['type'] + ' markets');
             }
             const sinceString = since.toString ();
-            request['from'] = sinceString.slice (0, -3); // the exchange accepts from and to params in seconds
+            request['from'] = sinceString.slice (0, -3); // todo the exchange accepts from and to params in seconds
             request['to'] = until.slice (0, -3);
             params = this.omit (params, 'until');
             request['pcode'] = 'f';
@@ -773,7 +775,7 @@ export default class coindcx extends Exchange {
                     depth = 20;
                 }
             }
-            params['limit'] = depth;
+            request['limit'] = depth;
             response = await this.public2GetMarketDataV3OrderbookPairFuturesLimit (this.extend (request, params));
         } else {
             throw new NotSupported (this.id + ' fetchOrderBook() does not supports ' + market['type'] + ' markets');
@@ -2563,10 +2565,10 @@ export default class coindcx extends Exchange {
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'][api] + '/' + this.implodeParams (path, params);
-        params = this.omit (params, this.extractParams (path));
+        const query = this.omit (params, this.extractParams (path));
         if (method === 'GET') {
-            if (Object.keys (params).length) {
-                url += '?' + this.urlencode (params);
+            if (Object.keys (query).length) {
+                url += '?' + this.urlencode (query);
             }
         }
         if (method === 'POST') {
