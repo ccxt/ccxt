@@ -674,6 +674,8 @@ export default class bingx extends Exchange {
         const isActive = this.safeString (market, 'status') === '1';
         const isInverse = (spot) ? undefined : false;
         const isLinear = (spot) ? undefined : swap;
+        const leverageRaw = this.omitZero (this.safeString (market, 'maxLongLeverage'));
+        const leverage = (leverageRaw !== undefined) ? parseInt (leverageRaw) : undefined;
         return this.safeMarketStructure ({
             'id': id,
             'symbol': symbol,
@@ -708,7 +710,7 @@ export default class bingx extends Exchange {
             'limits': {
                 'leverage': {
                     'min': undefined,
-                    'max': this.safeInteger (market, 'maxLongLeverage'),
+                    'max': leverage,
                 },
                 'amount': {
                     'min': this.safeNumber2 (market, 'minQty', 'tradeMinQuantity'),
