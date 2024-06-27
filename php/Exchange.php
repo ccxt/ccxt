@@ -39,7 +39,7 @@ use BN\BN;
 use Sop\ASN1\Type\UnspecifiedType;
 use Exception;
 
-$version = '4.3.46';
+$version = '4.3.52';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -58,7 +58,7 @@ const PAD_WITH_ZERO = 6;
 
 class Exchange {
 
-    const VERSION = '4.3.46';
+    const VERSION = '4.3.52';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -129,6 +129,7 @@ class Exchange {
     public $certified = false; // if certified by the CCXT dev team
     public $pro = false; // if it is integrated with CCXT Pro for WebSocket support
     public $alias = false; // whether this exchange is an alias to another exchange
+    public $dex = false;
 
     public $debug = false;
 
@@ -1576,7 +1577,7 @@ class Exchange {
         $raw_headers_array = explode("\r\n", trim($raw_headers));
         $status_line = $raw_headers_array[0];
         $parts = explode(' ', $status_line);
-        $http_status_text = count($parts) === 3 ? $parts[2] : null;
+        $http_status_text = count($parts) === 3 ? $parts[2] : '';
         $raw_headers = array_slice($raw_headers_array, 1);
         foreach ($raw_headers as $raw_header) {
             if (strlen($raw_header)) {
@@ -1633,8 +1634,8 @@ class Exchange {
             // all sorts of SSL problems, accessibility
             throw new ExchangeNotAvailable($this->id . ' ' . implode(' ', array($url, $method, $curl_errno, $curl_error)));
         }
-
-        $skip_further_error_handling = $this->handle_errors($http_status_code, $http_status_text, $url, $method, $response_headers, $result ? $result : null, $json_response, $headers, $body);
+        $http_status_text =  $http_status_text ?  $http_status_text : '';
+        $skip_further_error_handling = $this->handle_errors($http_status_code, $http_status_text, $url, $method, $response_headers, $result ? $result : '', $json_response, $headers, $body);
         if (!$skip_further_error_handling) {
             $this->handle_http_status_code($http_status_code, $http_status_text, $url, $method, $result);
         }

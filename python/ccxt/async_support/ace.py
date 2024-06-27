@@ -977,13 +977,11 @@ class ace(Exchange, ImplicitAPI):
             auth = 'ACE_SIGN' + self.secret
             data = self.extend({
                 'apiKey': self.apiKey,
-                'timeStamp': nonce,
+                'timeStamp': self.number_to_string(nonce),
             }, params)
-            dataKeys = list(data.keys())
-            sortedDataKeys = self.sort_by(dataKeys, 0, False, '')
-            for i in range(0, len(sortedDataKeys)):
-                key = sortedDataKeys[i]
-                auth += self.safe_string(data, key)
+            sortedData = self.keysort(data)
+            values = list(sortedData.values())
+            auth += ''.join(values)
             signature = self.hash(self.encode(auth), 'sha256', 'hex')
             data['signKey'] = signature
             headers = {

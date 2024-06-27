@@ -1170,7 +1170,8 @@ class hyperliquid(Exchange, ImplicitAPI):
         :param str [params.vaultAddress]: the vault address for order
         :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
-        return await self.cancel_orders([id], symbol, params)
+        orders = await self.cancel_orders([id], symbol, params)
+        return self.safe_dict(orders, 0)
 
     async def cancel_orders(self, ids: List[str], symbol: Str = None, params={}):
         """
@@ -1240,7 +1241,17 @@ class hyperliquid(Exchange, ImplicitAPI):
         #         }
         #     }
         #
-        return response
+        innerResponse = self.safe_dict(response, 'response')
+        data = self.safe_dict(innerResponse, 'data')
+        statuses = self.safe_list(data, 'statuses')
+        orders = []
+        for i in range(0, len(statuses)):
+            status = statuses[i]
+            orders.append(self.safe_order({
+                'info': status,
+                'status': status,
+            }))
+        return orders
 
     async def cancel_orders_for_symbols(self, orders: List[CancellationRequest], params={}):
         """

@@ -987,7 +987,19 @@ class bitso extends Exchange {
         $request = array(
             'oid' => $id,
         );
-        return $this->privateDeleteOrdersOid ($this->extend($request, $params));
+        $response = $this->privateDeleteOrdersOid ($this->extend($request, $params));
+        //
+        //     {
+        //         "success" => true,
+        //         "payload" => ["yWTQGxDMZ0VimZgZ"]
+        //     }
+        //
+        $payload = $this->safe_list($response, 'payload', array());
+        $orderId = $this->safe_string($payload, 0);
+        return $this->safe_order(array(
+            'info' => $response,
+            'id' => $orderId,
+        ));
     }
 
     public function cancel_orders($ids, ?string $symbol = null, $params = array ()) {

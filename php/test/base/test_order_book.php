@@ -70,7 +70,7 @@ function test_order_book($exchange, $skipped_properties, $method, $orderbook, $s
             $first_bid = $exchange->safe_string($bids[0], 0);
             $first_ask = $exchange->safe_string($asks[0], 0);
             // check bid-ask spread
-            assert(Precise::string_lt($first_bid, $first_ask), 'bids[0][0] (' . $first_ask . ') should be < than asks[0][0] (' . $first_ask . ')' . $log_text);
+            assert(Precise::string_lt($first_bid, $first_ask), 'bids[0][0] (' . $first_bid . ') should be < than asks[0][0] (' . $first_ask . ')' . $log_text);
         }
     }
 }

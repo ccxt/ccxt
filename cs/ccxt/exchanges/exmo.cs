@@ -11,7 +11,7 @@ public partial class exmo : Exchange
             { "id", "exmo" },
             { "name", "EXMO" },
             { "countries", new List<object>() {"LT"} },
-            { "rateLimit", 350 },
+            { "rateLimit", 100 },
             { "version", "v1.1" },
             { "has", new Dictionary<string, object>() {
                 { "CORS", null },

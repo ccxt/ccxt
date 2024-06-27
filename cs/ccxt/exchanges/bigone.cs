@@ -12,7 +12,7 @@ public partial class bigone : Exchange
             { "name", "BigONE" },
             { "countries", new List<object>() {"CN"} },
             { "version", "v3" },
-            { "rateLimit", 1200 },
+            { "rateLimit", 20 },
             { "has", new Dictionary<string, object>() {
                 { "CORS", null },
                 { "spot", true },

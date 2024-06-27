@@ -26,6 +26,7 @@ public partial class bybit : Exchange
                 { "option", true },
                 { "borrowCrossMargin", true },
                 { "cancelAllOrders", true },
+                { "cancelAllOrdersAfter", true },
                 { "cancelOrder", true },
                 { "cancelOrders", true },
                 { "cancelOrdersForSymbols", true },
@@ -4629,6 +4630,44 @@ public partial class bybit : Exchange
         return this.parseOrders(row, market);
     }
 
+    public async override Task<object> cancelAllOrdersAfter(object timeout, object parameters = null)
+    {
+        /**
+        * @method
+        * @name bybit#cancelAllOrdersAfter
+        * @description dead man's switch, cancel all orders after the given timeout
+        * @see https://bybit-exchange.github.io/docs/v5/order/dcp
+        * @param {number} timeout time in milliseconds
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @param {string} [params.product] OPTIONS, DERIVATIVES, SPOT, default is 'DERIVATIVES'
+        * @returns {object} the api result
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object request = new Dictionary<string, object>() {
+            { "timeWindow", this.parseToInt(divide(timeout, 1000)) },
+        };
+        object type = null;
+        var typeparametersVariable = this.handleMarketTypeAndParams("cancelAllOrdersAfter", null, parameters, "swap");
+        type = ((IList<object>)typeparametersVariable)[0];
+        parameters = ((IList<object>)typeparametersVariable)[1];
+        object productMap = new Dictionary<string, object>() {
+            { "spot", "SPOT" },
+            { "swap", "DERIVATIVES" },
+            { "option", "OPTIONS" },
+        };
+        object product = this.safeString(productMap, type, type);
+        ((IDictionary<string,object>)request)["product"] = product;
+        object response = await this.privatePostV5OrderDisconnectedCancelAll(this.extend(request, parameters));
+        //
+        // {
+        //     "retCode": 0,
+        //     "retMsg": "success"
+        // }
+        //
+        return response;
+    }
+
     public async override Task<object> cancelOrdersForSymbols(object orders, object parameters = null)
     {
         /**
@@ -5498,10 +5537,19 @@ public partial class bybit : Exchange
         * @param {string} [params.baseCoin] Base coin. Supports linear, inverse & option
         * @param {string} [params.settleCoin] Settle coin. Supports linear, inverse & option
         * @param {string} [params.orderFilter] 'Order' or 'StopOrder' or 'tpslOrder'
+        * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
         */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
+        object paginate = false;
+        var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchOpenOrders", "paginate");
+        paginate = ((IList<object>)paginateparametersVariable)[0];
+        parameters = ((IList<object>)paginateparametersVariable)[1];
+        if (isTrue(paginate))
+        {
+            return await this.fetchPaginatedCallCursor("fetchOpenOrders", symbol, since, limit, parameters, "nextPageCursor", "cursor", null, 50);
+        }
         var enableUnifiedMarginenableUnifiedAccountVariable = await this.isUnifiedEnabled();
         var enableUnifiedMargin = ((IList<object>) enableUnifiedMarginenableUnifiedAccountVariable)[0];
         var enableUnifiedAccount = ((IList<object>) enableUnifiedMarginenableUnifiedAccountVariable)[1];

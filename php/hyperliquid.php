@@ -1211,12 +1211,13 @@ class hyperliquid extends Exchange {
          * @param {string} [$params->vaultAddress] the vault address for order
          * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
          */
-        return $this->cancel_orders(array( $id ), $symbol, $params);
+        $orders = $this->cancel_orders(array( $id ), $symbol, $params);
+        return $this->safe_dict($orders, 0);
     }
 
     public function cancel_orders(array $ids, ?string $symbol = null, $params = array ()) {
         /**
-         * cancel multiple orders
+         * cancel multiple $orders
          * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#cancel-order-s
          * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#cancel-order-s-by-cloid
          * @param {string[]} $ids order $ids
@@ -1288,7 +1289,18 @@ class hyperliquid extends Exchange {
         //         }
         //     }
         //
-        return $response;
+        $innerResponse = $this->safe_dict($response, 'response');
+        $data = $this->safe_dict($innerResponse, 'data');
+        $statuses = $this->safe_list($data, 'statuses');
+        $orders = array();
+        for ($i = 0; $i < count($statuses); $i++) {
+            $status = $statuses[$i];
+            $orders[] = $this->safe_order(array(
+                'info' => $status,
+                'status' => $status,
+            ));
+        }
+        return $orders;
     }
 
     public function cancel_orders_for_symbols(array $orders, $params = array ()) {

@@ -1005,7 +1005,19 @@ export default class bitso extends Exchange {
         const request = {
             'oid': id,
         };
-        return await this.privateDeleteOrdersOid(this.extend(request, params));
+        const response = await this.privateDeleteOrdersOid(this.extend(request, params));
+        //
+        //     {
+        //         "success": true,
+        //         "payload": ["yWTQGxDMZ0VimZgZ"]
+        //     }
+        //
+        const payload = this.safeList(response, 'payload', []);
+        const orderId = this.safeString(payload, 0);
+        return this.safeOrder({
+            'info': response,
+            'id': orderId,
+        });
     }
     async cancelOrders(ids, symbol = undefined, params = {}) {
         /**
