@@ -2645,9 +2645,13 @@ export default class binance extends Exchange {
         if (apiBackup !== undefined) {
             return undefined;
         }
-        const response = await this.sapiGetCapitalConfigGetall (params);
+        const promises = [ this.sapiGetCapitalConfigGetall (params), this.sapiGetMarginAllAssets (params) ];
+        const results = await Promise.all (promises);
+        const responseCurrencies = results[0];
+        const responseMarginables = results[1];
+        const marginablesById = this.indexBy (responseMarginables, 'assetName');
         const result: Dict = {};
-        for (let i = 0; i < response.length; i++) {
+        for (let i = 0; i < responseCurrencies.length; i++) {
             //
             //    {
             //        "coin": "LINK",
@@ -2743,7 +2747,7 @@ export default class binance extends Exchange {
             //        ]
             //    }
             //
-            const entry = response[i];
+            const entry = responseCurrencies[i];
             const id = this.safeString (entry, 'coin');
             const name = this.safeString (entry, 'name');
             const code = this.safeCurrencyCode (id);
@@ -2798,6 +2802,17 @@ export default class binance extends Exchange {
             }
             const trading = this.safeBool (entry, 'trading');
             const active = (isWithdrawEnabled && isDepositEnabled && trading);
+            const marginEntry = this.safeDict (marginablesById, id, {});
+            //
+            //     {
+            //         assetName: "BTC",
+            //         assetFullName: "Bitcoin",
+            //         isBorrowable: true,
+            //         isMortgageable: true,
+            //         userMinBorrow: "0",
+            //         userMinRepay: "0",
+            //     }
+            //
             result[code] = {
                 'id': id,
                 'name': name,
@@ -2811,6 +2826,7 @@ export default class binance extends Exchange {
                 'fee': fee,
                 'fees': fees,
                 'limits': this.limits,
+                'margin': this.safeBool (marginEntry, 'isBorrowable'),
             };
         }
         return result;
@@ -2842,6 +2858,7 @@ export default class binance extends Exchange {
         for (let i = 0; i < fetchMarkets.length; i++) {
             const marketType = fetchMarkets[i];
             if (marketType === 'spot') {
+                promisesRaw.push (this.publicGetExchangeInfo (params));
                 promisesRaw.push (this.publicGetExchangeInfo (params));
             } else if (marketType === 'linear') {
                 promisesRaw.push (this.fapiPublicGetExchangeInfo (params));
