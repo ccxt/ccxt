@@ -6717,7 +6717,10 @@ An `OperationFailed` might happen when user sends **correctly constructed & vali
 
 Such exceptions are temporary and re-trying the request again might be enough. However, if the error still happens, then it may indicate some persistent problem with the exchange or with your connection.
 
+CCXT Also offers a convenient retry mechanism specifically for this exception, so you can set i.e. `exchange.options['maxRetriesOnFailure'] = 1` (or `params['maxRetriesOnFailure'] = 1`) and if `OperationFailed` exception happens, ccxt will retry that request 1 (or any amount you set) more times (there also exists additional `maxRetriesOnFailureDelay` option to delay by specific milliseconds).
+
 `OperationFailed` has the following sub-types: `RequestTimeout`,`DDoSProtection` (includes sub-type `RateLimitExceeded`),  `ExchangeNotAvailable`, `InvalidNonce`.
+
 
 #### DDoSProtection
 
