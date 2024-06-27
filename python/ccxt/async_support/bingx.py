@@ -670,6 +670,8 @@ class bingx(Exchange, ImplicitAPI):
         isActive = self.safe_string(market, 'status') == '1'
         isInverse = None if (spot) else False
         isLinear = None if (spot) else swap
+        leverageRaw = self.omit_zero(self.safe_string(market, 'maxLongLeverage'))
+        leverage = int(leverageRaw) if (leverageRaw is not None) else None
         return self.safe_market_structure({
             'id': id,
             'symbol': symbol,
@@ -704,7 +706,7 @@ class bingx(Exchange, ImplicitAPI):
             'limits': {
                 'leverage': {
                     'min': None,
-                    'max': self.safe_integer(market, 'maxLongLeverage'),
+                    'max': leverage,
                 },
                 'amount': {
                     'min': self.safe_number_2(market, 'minQty', 'tradeMinQuantity'),

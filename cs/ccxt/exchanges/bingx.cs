@@ -683,6 +683,8 @@ public partial class bingx : Exchange
         object isActive = isEqual(this.safeString(market, "status"), "1");
         object isInverse = ((bool) isTrue((spot))) ? null : false;
         object isLinear = ((bool) isTrue((spot))) ? null : swap;
+        object leverageRaw = this.omitZero(this.safeString(market, "maxLongLeverage"));
+        object leverage = ((bool) isTrue((!isEqual(leverageRaw, null)))) ? parseInt(leverageRaw) : null;
         return this.safeMarketStructure(new Dictionary<string, object>() {
             { "id", id },
             { "symbol", symbol },
@@ -717,7 +719,7 @@ public partial class bingx : Exchange
             { "limits", new Dictionary<string, object>() {
                 { "leverage", new Dictionary<string, object>() {
                     { "min", null },
-                    { "max", this.safeInteger(market, "maxLongLeverage") },
+                    { "max", leverage },
                 } },
                 { "amount", new Dictionary<string, object>() {
                     { "min", this.safeNumber2(market, "minQty", "tradeMinQuantity") },
