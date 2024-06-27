@@ -1,9 +1,9 @@
-from constants import (
+from ..constants import (
     DEFAULT_ENTRY_POINT_NAME,
     DEFAULT_ENTRY_POINT_SELECTOR,
     DEFAULT_L1_ENTRY_POINT_NAME,
 )
-from hash.utils import _starknet_keccak
+from ..hash.utils import _starknet_keccak
 
 
 def get_selector_from_name(func_name: str) -> int:

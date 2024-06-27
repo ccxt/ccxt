@@ -1,8 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import List
 
-from ..models.transaction import AccountTransaction
-from utils.typed_data import TypedData
+from ...utils.typed_data import TypedData
 
 
 class BaseSigner(ABC):
@@ -17,15 +16,6 @@ class BaseSigner(ABC):
         Public key of the signer.
 
         :return: public key
-        """
-
-    @abstractmethod
-    def sign_transaction(self, transaction: AccountTransaction) -> List[int]:
-        """
-        Sign execute transaction and return a signature
-
-        :param transaction: Execute transaction to sign
-        :return: transaction signature
         """
 
     @abstractmethod

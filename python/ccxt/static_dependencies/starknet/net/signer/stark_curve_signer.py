@@ -1,13 +1,12 @@
 from dataclasses import dataclass
 from typing import List
 
-from hash.utils import message_signature, private_to_stark_key
+from ...hash.utils import message_signature, private_to_stark_key
 from ..client_models import Hash
 from ..models import AddressRepresentation, parse_address
 from ..models.chains import ChainId
-from ..models.transaction import AccountTransaction
-from ..signer.base_signer import BaseSigner
-from utils.typed_data import TypedData
+from .base_signer import BaseSigner
+from ...utils.typed_data import TypedData
 
 
 @dataclass
@@ -57,15 +56,6 @@ class StarkCurveSigner(BaseSigner):
     @property
     def public_key(self) -> int:
         return self.key_pair.public_key
-
-    def sign_transaction(
-        self,
-        transaction: AccountTransaction,
-    ) -> List[int]:
-        tx_hash = transaction.calculate_hash(self.chain_id)
-        # pylint: disable=invalid-name
-        r, s = message_signature(msg_hash=tx_hash, priv_key=self.private_key)
-        return [r, s]
 
     def sign_message(self, typed_data: TypedData, account_address: int) -> List[int]:
         msg_hash = typed_data.message_hash(account_address)

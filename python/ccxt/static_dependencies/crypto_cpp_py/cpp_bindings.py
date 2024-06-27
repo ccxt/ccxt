@@ -92,7 +92,7 @@ def cpp_binding_loaded() -> bool:
 ECSignature = Tuple[int, int]
 
 
-@load_cpp_lib
+# @load_cpp_lib
 def cpp_hash(left: int, right: int) -> int:
     res = ctypes.create_string_buffer(OUT_BUFFER_SIZE)
 
@@ -108,7 +108,7 @@ def cpp_hash(left: int, right: int) -> int:
     return int.from_bytes(res.raw[:32], "little", signed=False)
 
 
-@load_cpp_lib
+# @load_cpp_lib
 def cpp_verify(msg_hash, r, w, stark_key) -> bool:
     return CPP_LIB_BINDING.Verify(
         stark_key.to_bytes(32, "little", signed=False),
@@ -118,7 +118,7 @@ def cpp_verify(msg_hash, r, w, stark_key) -> bool:
     )
 
 
-@load_cpp_lib
+# @load_cpp_lib
 def cpp_get_public_key(private_key) -> int:
     out_buffer = ctypes.create_string_buffer(OUT_BUFFER_SIZE)
 
@@ -131,7 +131,7 @@ def cpp_get_public_key(private_key) -> int:
     return int.from_bytes(out_buffer.raw[:32], "little", signed=False)
 
 
-@load_cpp_lib
+# @load_cpp_lib
 def cpp_sign(msg_hash, priv_key, seed: Optional[int] = 32) -> ECSignature:
     res = ctypes.create_string_buffer(OUT_BUFFER_SIZE)
     k = cpp_generate_k_rfc6979(msg_hash, priv_key, seed)
