@@ -2862,8 +2862,10 @@ export default class binance extends Exchange {
             const marketType = fetchMarkets[i];
             if (marketType === 'spot') {
                 promisesRaw.push (this.publicGetExchangeInfo (params));
-                promisesRaw.push (this.sapiGetMarginAllPairs (params));
-                promisesRaw.push (this.sapiGetMarginIsolatedAllPairs (params));
+                if (this.checkRequiredCredentials (false)) {
+                    promisesRaw.push (this.sapiGetMarginAllPairs (params));
+                    promisesRaw.push (this.sapiGetMarginIsolatedAllPairs (params));
+                }
             } else if (marketType === 'linear') {
                 promisesRaw.push (this.fapiPublicGetExchangeInfo (params));
             } else if (marketType === 'inverse') {
@@ -2876,6 +2878,8 @@ export default class binance extends Exchange {
         }
         const promises = await Promise.all (promisesRaw);
         let markets = [];
+        this.options['crossMarginPairsData'] = {};
+        this.options['isolatedMarginPairsData'] = {};
         for (let i = 0; i < fetchMarkets.length; i++) {
             const promise = this.safeDict (promises, i);
             if (Array.isArray (promise)) {
