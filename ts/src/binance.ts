@@ -2626,6 +2626,7 @@ export default class binance extends Exchange {
          * @name binance#fetchCurrencies
          * @description fetches all available currencies on an exchange
          * @see https://developers.binance.com/docs/wallet/capital/all-coins-info
+         * @see https://developers.binance.com/docs/margin_trading/market-data/Get-All-Margin-Assets
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} an associative dictionary of currencies
          */
