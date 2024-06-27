@@ -867,6 +867,7 @@ export default class coindcx extends Exchange {
          * @name coindcx#fetchMyTrades
          * @description fetch all trades made by the user
          * @see https://docs.coindcx.com/#account-trade-history
+         * @see https://docs.coindcx.com/#get-trades
          * @param {string} symbol unified market symbol
          * @param {int} [since] the earliest time in ms to fetch trades for
          * @param {int} [limit] the maximum amount of trades to fetch (default 500, max 5000)
@@ -875,48 +876,79 @@ export default class coindcx extends Exchange {
          * @param {bool} [params.margin] *for spot markets only* true for creating a margin order
          * @param {int} [params.until] timestamp in ms of the latest trade to fetch (default now)
          * @param {int} [params.from_id] trade ID after which you want the data. If not supplied, trades in ascending order will be returned
+         * @param {string} [params.order_id] *for futures or swap markets only* a unique id for the order
          * @param {string} [params.sort] asc or desc to get trades in ascending or descending order, default: asc
+         * @param {string} [params.page] *for futures or swap markets only* no of pages needed
          * @returns {Trade[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure}
          */
         await this.loadMarkets ();
-        const request: Dict = {};
-        let market: Market = undefined;
-        if (symbol !== undefined) {
-            market = this.market (symbol);
-            request['symbol'] = market['id'];
-        }
+        const market = this.market (symbol);
+        const marketInfo = this.safeDict (market, 'info', {});
+        const pair = this.safeString (marketInfo, 'pair');
+        const request: Dict = {
+            'pair': pair,
+        };
+        let response = undefined;
         let marketType = 'spot';
-        [ marketType, params ] = this.handleMarketTypeMarginAndParams ('fetchMyTrades', market, params, marketType);
-        if (marketType !== 'spot') {
-            throw new NotSupported (this.id + ' fetchMyTrades() supports only spot markets without margin'); // todo implement this method for contract orders
+        if (market['spot']) {
+            [ marketType, params ] = this.handleMarketTypeMarginAndParams ('fetchMyTrades', market, params, marketType);
+            if (since !== undefined) {
+                request['from_timestamp'] = since;
+            }
+            if (limit !== undefined) {
+                request['limit'] = limit;
+            }
+            const until = this.safeInteger (params, 'until');
+            if (until !== undefined) {
+                request['to_timestamp'] = until;
+                params = this.omit (params, 'until');
+            }
+            response = await this.privatePostExchangeV1OrdersTradeHistory (this.extend (request, params));
+            //
+            //     [
+            //         {
+            //             "id": 113754608,
+            //             "order_id": "fcaae278-2a73-11ef-a2d5-5374ccb4f829",
+            //             "side": "buy",
+            //             "fee_amount": "0.00000000000000",
+            //             "ecode": "B",
+            //             "quantity": "0.00010000000000",
+            //             "price": "65483.14000000000000",
+            //             "symbol": "BTCUSDT",
+            //             "timestamp": 1718386312255.3608
+            //         }
+            //     ]
+            //
+        } else if ((market['swap']) || (market['future'])) {
+            if (since !== undefined) {
+                request['from_date'] = since;
+            }
+            if (limit !== undefined) {
+                request['size'] = limit;
+            }
+            const until = this.safeInteger (params, 'until');
+            if (until !== undefined) {
+                request['to_date'] = until;
+                params = this.omit (params, 'until');
+            }
+            response = await this.privatePostExchangeV1DerivativesFuturesTrades (this.extend (request, params));
+            //
+            //     [
+            //         {
+            //             "price": 3369.03,
+            //             "quantity": 0.01,
+            //             "is_maker": false,
+            //             "fee_amount": 0.025267725,
+            //             "pair": "B-ETH_USDT",
+            //             "side": "sell",
+            //             "timestamp": 1719472930332.058,
+            //             "order_id": "f467934a-3455-11ef-850c-bf95c3d2646c"
+            //         }
+            //     ]
+            //
+        } else {
+            throw new NotSupported (this.id + ' fetchTrades() does not supports ' + market['type'] + ' markets');
         }
-        if (since !== undefined) {
-            request['from_timestamp'] = since;
-        }
-        if (limit !== undefined) {
-            request['limit'] = limit;
-        }
-        const until = this.safeInteger (params, 'until');
-        if (until !== undefined) {
-            request['to_timestamp'] = until;
-            params = this.omit (params, 'until');
-        }
-        const response = await this.privatePostExchangeV1OrdersTradeHistory (this.extend (request, params));
-        //
-        //     [
-        //         {
-        //             "id": 113754608,
-        //             "order_id": "fcaae278-2a73-11ef-a2d5-5374ccb4f829",
-        //             "side": "buy",
-        //             "fee_amount": "0.00000000000000",
-        //             "ecode": "B",
-        //             "quantity": "0.00010000000000",
-        //             "price": "65483.14000000000000",
-        //             "symbol": "BTCUSDT",
-        //             "timestamp": 1718386312255.3608
-        //         }
-        //     ]
-        //
         return this.parseTrades (response, market, since, limit);
     }
 
@@ -952,6 +984,19 @@ export default class coindcx extends Exchange {
         //         "price": "65483.14000000000000",
         //         "symbol": "BTCUSDT",
         //         "timestamp": 1718386312255.3608
+        //     }
+        //
+        // fetchMyTrades for futures or swap
+        //
+        //     {
+        //         "price": 3369.03,
+        //         "quantity": 0.01,
+        //         "is_maker": false,
+        //         "fee_amount": 0.025267725,
+        //         "pair": "B-ETH_USDT",
+        //         "side": "sell",
+        //         "timestamp": 1719472930332.058,
+        //         "order_id": "f467934a-3455-11ef-850c-bf95c3d2646c"
         //     }
         //
         const marketId = this.safeString2 (trade, 's', 'symbol');
