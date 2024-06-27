@@ -1163,6 +1163,10 @@ export default class kucoin extends Exchange {
                 'crossMargin': hasCrossMargin,
                 'isolatedMargin': hasIsolatedMargin,
                 'margin': isMarginable,
+                'marginMode': {
+                    'cross': hasCrossMargin,
+                    'isolated': hasIsolatedMargin,
+                },
                 'swap': false,
                 'future': false,
                 'option': false,
