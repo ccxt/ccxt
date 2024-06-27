@@ -665,8 +665,6 @@ class bingx extends Exchange {
         $isActive = $this->safe_string($market, 'status') === '1';
         $isInverse = ($spot) ? null : false;
         $isLinear = ($spot) ? null : $swap;
-        $leverageRaw = $this->omit_zero($this->safe_string($market, 'maxLongLeverage'));
-        $leverage = ($leverageRaw !== null) ? intval($leverageRaw) : null;
         return $this->safe_market_structure(array(
             'id' => $id,
             'symbol' => $symbol,
@@ -701,7 +699,7 @@ class bingx extends Exchange {
             'limits' => array(
                 'leverage' => array(
                     'min' => null,
-                    'max' => $leverage,
+                    'max' => null,
                 ),
                 'amount' => array(
                     'min' => $this->safe_number_2($market, 'minQty', 'tradeMinQuantity'),
