@@ -2841,6 +2841,8 @@ export default class binance extends Exchange {
          * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Exchange-Information     // swap
          * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/Exchange-Information              // future
          * @see https://developers.binance.com/docs/derivatives/option/market-data/Exchange-Information                             // option
+         * @see https://developers.binance.com/docs/margin_trading/market-data/Get-All-Cross-Margin-Pairs                             // cross margin
+         * @see https://developers.binance.com/docs/margin_trading/market-data/Get-All-Isolated-Margin-Symbol                             // isolated margin
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} an array of objects representing market data
          */
@@ -2859,7 +2861,8 @@ export default class binance extends Exchange {
             const marketType = fetchMarkets[i];
             if (marketType === 'spot') {
                 promisesRaw.push (this.publicGetExchangeInfo (params));
-                promisesRaw.push (this.publicGetExchangeInfo (params));
+                promisesRaw.push (this.sapiGetMarginAllPairs (params));
+                promisesRaw.push (this.sapiGetMarginIsolatedAllPairs (params));
             } else if (marketType === 'linear') {
                 promisesRaw.push (this.fapiPublicGetExchangeInfo (params));
             } else if (marketType === 'inverse') {
@@ -2874,8 +2877,18 @@ export default class binance extends Exchange {
         let markets = [];
         for (let i = 0; i < fetchMarkets.length; i++) {
             const promise = this.safeDict (promises, i);
-            const promiseMarkets = this.safeList2 (promise, 'symbols', 'optionSymbols', []);
-            markets = this.arrayConcat (markets, promiseMarkets);
+            if (Array.isArray (promise)) {
+                const firstElement = this.safeDict (promise, 0, {});
+                // only cross margin pairs have 'id'
+                if (this.safeString (firstElement, 'id') !== undefined) {
+                    this.options['crossMarginPairsData'] = this.indexBy (promise, 'symbol');
+                } else {
+                    this.options['isolatedMarginPairsData'] = this.indexBy (promise, 'symbol');
+                }
+            } else {
+                const promiseMarkets = this.safeList2 (promise, 'symbols', 'optionSymbols', []);
+                markets = this.arrayConcat (markets, promiseMarkets);
+            }
         }
         //
         // spot / margin
@@ -2920,6 +2933,20 @@ export default class binance extends Exchange {
         //             },
         //         ],
         //     }
+        //
+        // cross & isolated pairs response:
+        //
+        //     [
+        //         {
+        //           symbol: "BTCUSDT",
+        //           base: "BTC",
+        //           quote: "USDT",
+        //           isMarginTrade: true,
+        //           isBuyAllowed: true,
+        //           isSellAllowed: true,
+        //           id: "376870555451677893", // doesn't exist in isolated
+        //         },
+        //     ]
         //
         // futures/usdt-margined (fapi)
         //
@@ -3152,6 +3179,15 @@ export default class binance extends Exchange {
             }
         }
         const isMarginTradingAllowed = this.safeBool (market, 'isMarginTradingAllowed', false);
+        let marginMode = undefined;
+        if (spot) {
+            const hasCrossMargin = (id in this.options['crossMarginPairsData']);
+            const hasIsolatedMargin = (id in this.options['isolatedMarginPairsData']);
+            marginMode = {
+                'cross': hasCrossMargin,
+                'isolated': hasIsolatedMargin,
+            };
+        }
         let unifiedType = undefined;
         if (spot) {
             unifiedType = 'spot';
@@ -3180,6 +3216,7 @@ export default class binance extends Exchange {
             'type': unifiedType,
             'spot': spot,
             'margin': spot && isMarginTradingAllowed,
+            'marginMode': marginMode,
             'swap': swap,
             'future': future,
             'option': option,
