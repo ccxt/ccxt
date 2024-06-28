@@ -964,6 +964,10 @@ export default class kucoin extends kucoinRest {
         //
         const messageHash = 'orders';
         const data = this.safeValue (message, 'data');
+        const tradeId = this.safeString (data, 'tradeId');
+        if (tradeId !== undefined) {
+            this.handleMyTrade (client, message);
+        }
         const parsed = this.parseWsOrder (data);
         const symbol = this.safeString (parsed, 'symbol');
         const orderId = this.safeString (parsed, 'id');
@@ -1002,7 +1006,7 @@ export default class kucoin extends kucoinRest {
          */
         await this.loadMarkets ();
         const url = await this.negotiate (true);
-        const topic = '/spot/tradeFills';
+        const topic = '/spotMarket/tradeOrders';
         const request: Dict = {
             'privateChannel': true,
         };
@@ -1020,6 +1024,34 @@ export default class kucoin extends kucoinRest {
     }
 
     handleMyTrade (client: Client, message) {
+        //
+        //     {
+        //         "type": "message",
+        //         "topic": "/spotMarket/tradeOrders",
+        //         "subject": "orderChange",
+        //         "channelType": "private",
+        //         "data": {
+        //             "symbol": "KCS-USDT",
+        //             "orderType": "limit",
+        //             "side": "sell",
+        //             "orderId": "5efab07953bdea00089965fa",
+        //             "liquidity": "taker",
+        //             "type": "match",
+        //             "feeType": "takerFee",
+        //             "orderTime": 1670329987026,
+        //             "size": "0.1",
+        //             "filledSize": "0.1",
+        //             "price": "0.938",
+        //             "matchPrice": "0.96738",
+        //             "matchSize": "0.1",
+        //             "tradeId": "5efab07a4ee4c7000a82d6d9",
+        //             "clientOid": "1593487481000313",
+        //             "remainSize": "0",
+        //             "status": "match",
+        //             "ts": 1670329987311000000
+        //         }
+        //     }
+        //
         if (this.myTrades === undefined) {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
             this.myTrades = new ArrayCacheBySymbolById (limit);
@@ -1035,19 +1067,26 @@ export default class kucoin extends kucoinRest {
 
     parseWsTrade (trade, market = undefined) {
         //
-        // {
-        //     "fee": 0.00262148,
-        //     "feeCurrency": "USDT",
-        //     "feeRate": 0.001,
-        //     "orderId": "62417436b29df8000183df2f",
-        //     "orderType": "market",
-        //     "price": 131.074,
-        //     "side": "sell",
-        //     "size": 0.02,
-        //     "symbol": "LTC-USDT",
-        //     "time": "1648456758734571745",
-        //     "tradeId": "624174362e113d2f467b3043"
-        //   }
+        //     {
+        //         "symbol": "KCS-USDT",
+        //         "orderType": "limit",
+        //         "side": "sell",
+        //         "orderId": "5efab07953bdea00089965fa",
+        //         "liquidity": "taker",
+        //         "type": "match",
+        //         "feeType": "takerFee",
+        //         "orderTime": 1670329987026,
+        //         "size": "0.1",
+        //         "filledSize": "0.1",
+        //         "price": "0.938",
+        //         "matchPrice": "0.96738",
+        //         "matchSize": "0.1",
+        //         "tradeId": "5efab07a4ee4c7000a82d6d9",
+        //         "clientOid": "1593487481000313",
+        //         "remainSize": "0",
+        //         "status": "match",
+        //         "ts": 1670329987311000000
+        //     }
         //
         const marketId = this.safeString (trade, 'symbol');
         market = this.safeMarket (marketId, market, '-');
@@ -1058,15 +1097,7 @@ export default class kucoin extends kucoinRest {
         const price = this.safeString (trade, 'price');
         const amount = this.safeString (trade, 'size');
         const order = this.safeString (trade, 'orderId');
-        const timestamp = this.safeIntegerProduct (trade, 'time', 0.000001);
-        const feeCurrency = market['quote'];
-        const feeRate = this.safeString (trade, 'feeRate');
-        const feeCost = this.safeString (trade, 'fee');
-        const fee = {
-            'cost': feeCost,
-            'rate': feeRate,
-            'currency': feeCurrency,
-        };
+        const timestamp = this.safeIntegerProduct (trade, 'ts', 0.000001);
         return this.safeTrade ({
             'info': trade,
             'timestamp': timestamp,
@@ -1075,12 +1106,12 @@ export default class kucoin extends kucoinRest {
             'id': tradeId,
             'order': order,
             'type': type,
-            'takerOrMaker': undefined,
+            'takerOrMaker': this.safeString (trade, 'liquidity'),
             'side': side,
             'price': price,
             'amount': amount,
             'cost': undefined,
-            'fee': fee,
+            'fee': undefined,
         }, market);
     }
 
@@ -1189,7 +1220,6 @@ export default class kucoin extends kucoinRest {
             'trade.l3match': this.handleTrade,
             'trade.candles.update': this.handleOHLCV,
             'account.balance': this.handleBalance,
-            '/spot/tradeFills': this.handleMyTrade,
             'orderChange': this.handleOrder,
             'stopOrder': this.handleOrder,
         };
