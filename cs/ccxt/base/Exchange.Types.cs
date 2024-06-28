@@ -43,6 +43,17 @@ public struct Precision
         price = Exchange.SafeFloat(precision, "price");
     }
 }
+public struct MarketMarginMode
+{
+    public bool? cross;
+    public bool? isolated;
+    public MarketMarginMode(object marginMode2)
+    {
+        var marginMode = (Dictionary<string, object>)marginMode2;
+        cross = Exchange.SafeBool(precision, "cross");
+        isolated = Exchange.SafeBool(precision, "isolated");
+    }
+}
 
 public struct MinMax
 {
@@ -153,6 +164,7 @@ public struct Market
     public string? feeSide;
 
     public Precision? precision;
+    public MarketMarginMode? marginMode;
 
     public Limits? limits;
     public Dictionary<string, object> info;
