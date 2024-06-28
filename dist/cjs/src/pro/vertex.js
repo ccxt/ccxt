@@ -322,7 +322,7 @@ class vertex extends vertex$1 {
         //     "ask_qty": "1000" // quantity at the lowest ask
         // }
         //
-        const timestamp = Precise["default"].stringDiv(this.safeString(ticker, 'timestamp'), '1000000');
+        const timestamp = this.safeIntegerProduct(ticker, 'timestamp', 0.000001);
         return this.safeTicker({
             'symbol': this.safeSymbol(undefined, market),
             'timestamp': timestamp,
