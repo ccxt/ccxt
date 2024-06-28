@@ -163,6 +163,7 @@ export default class kucoin extends kucoinRest {
          * @method
          * @name kucoin#watchTicker
          * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+         * @see https://www.kucoin.com/docs/websocket/spot-trading/public-channels/market-snapshot
          * @param {string} symbol unified symbol of the market to fetch the ticker for
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
@@ -400,6 +401,7 @@ export default class kucoin extends kucoinRest {
          * @method
          * @name kucoin#watchOHLCV
          * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+         * @see https://www.kucoin.com/docs/websocket/spot-trading/public-channels/klines
          * @param {string} symbol unified symbol of the market to fetch OHLCV data for
          * @param {string} timeframe the length of time each candle represents
          * @param {int} [since] timestamp in ms of the earliest candle to fetch
@@ -470,6 +472,7 @@ export default class kucoin extends kucoinRest {
          * @method
          * @name kucoin#watchTrades
          * @description get the list of most recent trades for a particular symbol
+         * @see https://www.kucoin.com/docs/websocket/spot-trading/public-channels/match-execution-data
          * @param {string} symbol unified symbol of the market to fetch trades for
          * @param {int} [since] timestamp in ms of the earliest trade to fetch
          * @param {int} [limit] the maximum amount of trades to fetch
@@ -484,6 +487,7 @@ export default class kucoin extends kucoinRest {
          * @method
          * @name kucoin#watchTrades
          * @description get the list of most recent trades for a particular symbol
+         * @see https://www.kucoin.com/docs/websocket/spot-trading/public-channels/match-execution-data
          * @param {string} symbol unified symbol of the market to fetch trades for
          * @param {int} [since] timestamp in ms of the earliest trade to fetch
          * @param {int} [limit] the maximum amount of trades to fetch
@@ -825,6 +829,8 @@ export default class kucoin extends kucoinRest {
          * @method
          * @name kucoin#watchOrders
          * @description watches information on multiple orders made by the user
+         * @see https://www.kucoin.com/docs/websocket/spot-trading/private-channels/private-order-change
+         * @see https://www.kucoin.com/docs/websocket/spot-trading/private-channels/stop-order-event
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
          * @param {int} [limit] the maximum number of order structures to retrieve
@@ -998,6 +1004,7 @@ export default class kucoin extends kucoinRest {
          * @method
          * @name kucoin#watchMyTrades
          * @description watches information on multiple trades made by the user
+         * @see https://www.kucoin.com/docs/websocket/spot-trading/private-channels/private-order-change
          * @param {string} symbol unified market symbol of the market trades were made in
          * @param {int} [since] the earliest time in ms to fetch trades for
          * @param {int} [limit] the maximum number of trade structures to retrieve
@@ -1120,6 +1127,7 @@ export default class kucoin extends kucoinRest {
          * @method
          * @name kucoin#watchBalance
          * @description watch balance and get the amount of funds available for trading or funds locked in orders
+         * @see https://www.kucoin.com/docs/websocket/spot-trading/private-channels/account-balance-change
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
          */
