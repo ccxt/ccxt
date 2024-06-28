@@ -44,7 +44,7 @@ export default class woo extends Exchange {
                 'createMarketBuyOrderWithCost': true,
                 'createMarketOrder': false,
                 'createMarketOrderWithCost': false,
-                'createMarketSellOrderWithCost': false,
+                'createMarketSellOrderWithCost': true,
                 'createOrder': true,
                 'createOrderWithTakeProfitAndStopLoss': true,
                 'createReduceOnlyOrder': true,
@@ -859,8 +859,26 @@ export default class woo extends Exchange {
         if (!market['spot']) {
             throw new NotSupported (this.id + ' createMarketBuyOrderWithCost() supports spot orders only');
         }
-        params['createMarketBuyOrderRequiresPrice'] = false;
-        return await this.createOrder (symbol, 'market', 'buy', cost, undefined, params);
+        return await this.createOrder (symbol, 'market', 'buy', cost, 1, params);
+    }
+
+    async createMarketSellOrderWithCost (symbol: string, cost: number, params = {}) {
+        /**
+         * @method
+         * @name woo#createMarketSellOrderWithCost
+         * @description create a market sell order by providing the symbol and cost
+         * @see https://docs.woo.org/#send-order
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {float} cost how much you want to trade in units of the quote currency
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        if (!market['spot']) {
+            throw new NotSupported (this.id + ' createMarketSellOrderWithCost() supports spot orders only');
+        }
+        return await this.createOrder (symbol, 'market', 'sell', cost, 1, params);
     }
 
     async createTrailingAmountOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, trailingAmount = undefined, trailingTriggerPrice = undefined, params = {}): Promise<Order> {
@@ -984,30 +1002,23 @@ export default class woo extends Exchange {
         if (reduceOnly) {
             request[reduceOnlyKey] = reduceOnly;
         }
-        if (price !== undefined) {
+        if (!isMarket && price !== undefined) {
             request[priceKey] = this.priceToPrecision (symbol, price);
         }
         if (isMarket && !isStop) {
             // for market buy it requires the amount of quote currency to spend
-            if (market['spot'] && orderSide === 'BUY') {
+            const cost = this.safeString2 (params, 'cost', 'order_amount');
+            params = this.omit (params, [ 'cost', 'order_amount' ]);
+            const isPriceProvided = price !== undefined;
+            if (market['spot'] && (isPriceProvided || (cost !== undefined))) {
                 let quoteAmount = undefined;
-                let createMarketBuyOrderRequiresPrice = true;
-                [ createMarketBuyOrderRequiresPrice, params ] = this.handleOptionAndParams (params, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
-                const cost = this.safeNumber2 (params, 'cost', 'order_amount');
-                params = this.omit (params, [ 'cost', 'order_amount' ]);
                 if (cost !== undefined) {
                     quoteAmount = this.costToPrecision (symbol, cost);
-                } else if (createMarketBuyOrderRequiresPrice) {
-                    if (price === undefined) {
-                        throw new InvalidOrder (this.id + ' createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend (quote quantity) in the amount argument');
-                    } else {
-                        const amountString = this.numberToString (amount);
-                        const priceString = this.numberToString (price);
-                        const costRequest = Precise.stringMul (amountString, priceString);
-                        quoteAmount = this.costToPrecision (symbol, costRequest);
-                    }
                 } else {
-                    quoteAmount = this.costToPrecision (symbol, amount);
+                    const amountString = this.numberToString (amount);
+                    const priceString = this.numberToString (price);
+                    const costRequest = Precise.stringMul (amountString, priceString);
+                    quoteAmount = this.costToPrecision (symbol, costRequest);
                 }
                 request['order_amount'] = quoteAmount;
             } else {
