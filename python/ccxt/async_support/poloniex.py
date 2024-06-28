@@ -1255,7 +1255,8 @@ class poloniex(Exchange, ImplicitAPI):
         #     }
         #
         response = self.extend(response, {
-            'type': side,
+            'type': type,
+            'side': side,
         })
         return self.parse_order(response, market)
 

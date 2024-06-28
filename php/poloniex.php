@@ -1282,7 +1282,8 @@ class poloniex extends Exchange {
         //     }
         //
         $response = $this->extend($response, array(
-            'type' => $side,
+            'type' => $type,
+            'side' => $side,
         ));
         return $this->parse_order($response, $market);
     }

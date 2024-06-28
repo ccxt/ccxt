@@ -1174,8 +1174,8 @@ public partial class vertex : Exchange
         await this.loadMarkets();
         object market = this.market(symbol);
         object ohlcvRequest = new Dictionary<string, object>() {
-            { "product_id", this.parseNumber(getValue(market, "id")) },
-            { "granularity", this.safeNumber(this.timeframes, timeframe) },
+            { "product_id", this.parseToInt(getValue(market, "id")) },
+            { "granularity", this.safeInteger(this.timeframes, timeframe) },
         };
         object until = this.safeInteger(parameters, "until");
         if (isTrue(!isEqual(until, null)))
@@ -1299,7 +1299,7 @@ public partial class vertex : Exchange
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "funding_rate", new Dictionary<string, object>() {
-                { "product_id", this.parseNumber(getValue(market, "id")) },
+                { "product_id", this.parseToInt(getValue(market, "id")) },
             } },
         };
         object response = await this.v1ArchivePost(this.extend(request, parameters));
@@ -1782,7 +1782,7 @@ public partial class vertex : Exchange
         }
         await this.loadMarkets();
         object market = this.market(symbol);
-        object marketId = this.parseToNumeric(getValue(market, "id"));
+        object marketId = this.parseToInt(getValue(market, "id"));
         object contracts = await this.queryContracts();
         object chainId = this.safeString(contracts, "chain_id");
         object bookAddresses = this.safeList(contracts, "book_addrs", new List<object>() {});
@@ -1894,7 +1894,7 @@ public partial class vertex : Exchange
         }
         await this.loadMarkets();
         object market = this.market(symbol);
-        object marketId = this.parseToNumeric(getValue(market, "id"));
+        object marketId = this.parseToInt(getValue(market, "id"));
         object defaultTimeInForce = ((bool) isTrue((isMarketOrder))) ? "fok" : null;
         object timeInForce = this.safeStringLower(parameters, "timeInForce", defaultTimeInForce);
         object postOnly = this.safeBool(parameters, "postOnly", false);
@@ -2137,7 +2137,7 @@ public partial class vertex : Exchange
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "type", "order" },
-            { "product_id", this.parseToNumeric(getValue(market, "id")) },
+            { "product_id", this.parseToInt(getValue(market, "id")) },
             { "digest", id },
         };
         object response = await this.v1GatewayGetQuery(this.extend(request, parameters));
