@@ -2925,12 +2925,39 @@ class phemex extends Exchange {
             $response = null;
             if ($market['settle'] === 'USDT') {
                 $response = Async\await($this->privateDeleteGOrdersAll ($this->extend($request, $params)));
+                //
+                //    {
+                //        code => '0',
+                //        msg => '',
+                //        data => '1'
+                //    }
+                //
             } elseif ($market['swap']) {
                 $response = Async\await($this->privateDeleteOrdersAll ($this->extend($request, $params)));
+                //
+                //    {
+                //        code => '0',
+                //        msg => '',
+                //        data => '1'
+                //    }
+                //
             } else {
                 $response = Async\await($this->privateDeleteSpotOrdersAll ($this->extend($request, $params)));
+                //
+                //    {
+                //        code => '0',
+                //        msg => '',
+                //        data => {
+                //            total => '1'
+                //        }
+                //    }
+                //
             }
-            return $response;
+            return array(
+                $this->safe_order(array(
+                    'info' => $response,
+                )),
+            );
         }) ();
     }
 
