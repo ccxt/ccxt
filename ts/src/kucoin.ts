@@ -1160,8 +1160,6 @@ export default class kucoin extends Exchange {
                 'settleId': undefined,
                 'type': 'spot',
                 'spot': true,
-                'crossMargin': hasCrossMargin,
-                'isolatedMargin': hasIsolatedMargin,
                 'margin': isMarginable,
                 'marginMode': {
                     'cross': hasCrossMargin,
