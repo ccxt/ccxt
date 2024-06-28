@@ -852,7 +852,7 @@ export default class coindcx extends Exchange {
 
     handleMarketTypeMarginAndParams (methodName: string, market: Market = undefined, params = {}, defaultValue = undefined): any {
         let marketType = defaultValue;
-        [ marketType, params ] = this.handleMarketTypeAndParams ('fetchMyTrades', market, params, defaultValue);
+        [ marketType, params ] = this.handleMarketTypeAndParams (methodName, market, params, defaultValue);
         let isMargin = false;
         [ isMargin, params ] = this.handleOptionAndParams (params, methodName, 'margin', isMargin);
         if ((isMargin) && (marketType === 'spot')) {
