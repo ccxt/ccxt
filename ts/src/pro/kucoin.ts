@@ -1057,6 +1057,7 @@ export default class kucoin extends kucoinRest {
         const tradeId = this.safeString (trade, 'tradeId');
         const price = this.safeString (trade, 'price');
         const amount = this.safeString (trade, 'size');
+        const cost = this.safeString (cost, 'dealFunds');
         const order = this.safeString (trade, 'orderId');
         const timestamp = this.safeIntegerProduct (trade, 'time', 0.000001);
         const feeCurrency = market['quote'];
@@ -1079,7 +1080,7 @@ export default class kucoin extends kucoinRest {
             'side': side,
             'price': price,
             'amount': amount,
-            'cost': undefined,
+            'cost': cost,
             'fee': fee,
         }, market);
     }
