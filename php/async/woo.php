@@ -9,7 +9,6 @@ use Exception; // a common import
 use ccxt\async\abstract\woo as Exchange;
 use ccxt\ArgumentsRequired;
 use ccxt\BadRequest;
-use ccxt\InvalidOrder;
 use ccxt\NotSupported;
 use ccxt\Precise;
 use React\Async;
@@ -46,7 +45,7 @@ class woo extends Exchange {
                 'createMarketBuyOrderWithCost' => true,
                 'createMarketOrder' => false,
                 'createMarketOrderWithCost' => false,
-                'createMarketSellOrderWithCost' => false,
+                'createMarketSellOrderWithCost' => true,
                 'createOrder' => true,
                 'createOrderWithTakeProfitAndStopLoss' => true,
                 'createReduceOnlyOrder' => true,
@@ -859,8 +858,26 @@ class woo extends Exchange {
             if (!$market['spot']) {
                 throw new NotSupported($this->id . ' createMarketBuyOrderWithCost() supports spot orders only');
             }
-            $params['createMarketBuyOrderRequiresPrice'] = false;
-            return Async\await($this->create_order($symbol, 'market', 'buy', $cost, null, $params));
+            return Async\await($this->create_order($symbol, 'market', 'buy', $cost, 1, $params));
+        }) ();
+    }
+
+    public function create_market_sell_order_with_cost(string $symbol, float $cost, $params = array ()) {
+        return Async\async(function () use ($symbol, $cost, $params) {
+            /**
+             * create a $market sell order by providing the $symbol and $cost
+             * @see https://docs.woo.org/#send-order
+             * @param {string} $symbol unified $symbol of the $market to create an order in
+             * @param {float} $cost how much you want to trade in units of the quote currency
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
+             */
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            if (!$market['spot']) {
+                throw new NotSupported($this->id . ' createMarketSellOrderWithCost() supports spot orders only');
+            }
+            return Async\await($this->create_order($symbol, 'market', 'sell', $cost, 1, $params));
         }) ();
     }
 
@@ -984,30 +1001,23 @@ class woo extends Exchange {
             if ($reduceOnly) {
                 $request[$reduceOnlyKey] = $reduceOnly;
             }
-            if ($price !== null) {
+            if (!$isMarket && $price !== null) {
                 $request[$priceKey] = $this->price_to_precision($symbol, $price);
             }
             if ($isMarket && !$isStop) {
                 // for $market buy it requires the $amount of quote currency to spend
-                if ($market['spot'] && $orderSide === 'BUY') {
+                $cost = $this->safe_string_2($params, 'cost', 'order_amount');
+                $params = $this->omit($params, array( 'cost', 'order_amount' ));
+                $isPriceProvided = $price !== null;
+                if ($market['spot'] && ($isPriceProvided || ($cost !== null))) {
                     $quoteAmount = null;
-                    $createMarketBuyOrderRequiresPrice = true;
-                    list($createMarketBuyOrderRequiresPrice, $params) = $this->handle_option_and_params($params, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
-                    $cost = $this->safe_number_2($params, 'cost', 'order_amount');
-                    $params = $this->omit($params, array( 'cost', 'order_amount' ));
                     if ($cost !== null) {
                         $quoteAmount = $this->cost_to_precision($symbol, $cost);
-                    } elseif ($createMarketBuyOrderRequiresPrice) {
-                        if ($price === null) {
-                            throw new InvalidOrder($this->id . ' createOrder() requires the $price argument for $market buy orders to calculate the total $cost to spend ($amount * $price), alternatively set the $createMarketBuyOrderRequiresPrice option or param to false and pass the $cost to spend (quote quantity) in the $amount argument');
-                        } else {
-                            $amountString = $this->number_to_string($amount);
-                            $priceString = $this->number_to_string($price);
-                            $costRequest = Precise::string_mul($amountString, $priceString);
-                            $quoteAmount = $this->cost_to_precision($symbol, $costRequest);
-                        }
                     } else {
-                        $quoteAmount = $this->cost_to_precision($symbol, $amount);
+                        $amountString = $this->number_to_string($amount);
+                        $priceString = $this->number_to_string($price);
+                        $costRequest = Precise::string_mul($amountString, $priceString);
+                        $quoteAmount = $this->cost_to_precision($symbol, $costRequest);
                     }
                     $request['order_amount'] = $quoteAmount;
                 } else {
