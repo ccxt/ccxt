@@ -206,7 +206,7 @@ public struct Market
         limits = market.ContainsKey("limits") ? new Limits(market["limits"]) : null;
         info = Helper.GetInfo(market);
         created = Exchange.SafeInteger(market, "created");
-        marginMode = market.ContainsKey("marginMode") ? new MarginMode(market["marginMode"]) : null;
+        marginMode = market.ContainsKey("marginMode") ? new MarketMarginMode(market["marginMode"]) : null;
     }
 }
 
