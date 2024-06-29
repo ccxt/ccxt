@@ -1352,6 +1352,9 @@ class NewTranspiler {
         const flatResult = await this.webworkerTranspile (paths, this.getTranspilerConfig());
         flatResult.forEach((file, idx) => {
             let contentIndentend = file.content.split('\n').map(line => line ? '    ' + line : line).join('\n');
+            if (contentIndentend.includes('SKIP_TRANSPILER_CSHARP')) {
+                return;
+            }
 
             let regexes = [
                 [ /object exchange(?=[,)])/g, 'Exchange exchange' ],

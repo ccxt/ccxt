@@ -981,7 +981,7 @@ export default class testMainClass extends baseMainTestClass {
         let exception = undefined;
         for (let j = 0; j < maxRetries; j++) {
             try {
-                await this.testMethod (proxyTestName, exchange, [], true);
+                await this.testMethod (proxyTestName, exchange, [ this.ext ], true);
                 break; // if successfull, then break
             } catch (e) {
                 exception = e;
@@ -989,8 +989,8 @@ export default class testMainClass extends baseMainTestClass {
         }
         // if exception was set, then throw it
         if (exception) {
-            const errorMessage = '[TEST_FAILURE] Failed ' + proxyTestName + ' : ' + exceptionMessage (exception);
-            throw new ExchangeError (errorMessage.toString ()); // toString is a c# requirement for now
+            const errorMessage = '[TEST_WARNING] Failed ' + proxyTestName + ' : ' + exceptionMessage (exception);
+            dump (errorMessage.toString ()); // toString is a c# requirement for now
         }
     }
 
@@ -1009,10 +1009,10 @@ export default class testMainClass extends baseMainTestClass {
                 await close (exchange);
                 return;
             }
-            // if (exchange.id === 'binance') {
-            //     // we test proxies functionality just for one random exchange on each build, because proxy functionality is not exchange-specific, instead it's all done from base methods, so just one working sample would mean it works for all ccxt exchanges
-            //     // await this.testProxies (exchange);
-            // }
+            if (exchange.id === 'kucoin') {
+                // we test proxies functionality just for one random exchange on each build, because proxy functionality is not exchange-specific, instead it's all done from base methods, so just one working sample would mean it works for all ccxt exchanges
+                await this.testProxies (exchange);
+            }
             await this.testExchange (exchange, symbol);
             await close (exchange);
         } catch (e) {

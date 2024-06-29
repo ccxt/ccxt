@@ -2,10 +2,10 @@ import assert from 'assert';
 import { Exchange } from "../../../ccxt";
 import testSharedMethods from './base/test.sharedMethods.js';
 
-async function testProxies (exchange: Exchange, skippedProperties: object) {
+async function testProxies (exchange: Exchange, skippedProperties: object, language: string) {
+    // todo: other proxies, i.e. 'httpsProxy', 'socksProxy'
     await testProxyUrl (exchange, skippedProperties);
     await testHttpProxy (exchange, skippedProperties);
-    // 'httpsProxy', 'socksProxy'
     await testProxyForExceptions (exchange, skippedProperties);
 }
 
@@ -36,7 +36,6 @@ async function testHttpProxy (exchange: Exchange, skippedProperties: object) {
     // reset the instance property
     testSharedMethods.setProxyOptions (exchange, skippedProperties, proxyUrl, httpProxy, httpsProxy, socksProxy);
 }
-
 
 // with the below method we test out all variations of possible proxy options, so at least 2 of them should be set together, and such cases must throw exception
 async function testProxyForExceptions (exchange: Exchange, skippedProperties: object) {
