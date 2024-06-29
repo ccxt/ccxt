@@ -3409,7 +3409,7 @@ class binance(ccxt.async_support.binance):
             rejected = True
             # private endpoint uses id
             client.reject(e, id)
-            # public endpoint stores messageHash in subscriptios
+            # public endpoint stores messageHash in subscriptions
             subscriptionKeys = list(client.subscriptions.keys())
             for i in range(0, len(subscriptionKeys)):
                 subscriptionHash = subscriptionKeys[i]

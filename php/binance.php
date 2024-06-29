@@ -11290,7 +11290,7 @@ class binance extends Exchange {
         );
     }
 
-    public function parse_isolated_borrow_rate($info, ?array $market = null) {
+    public function parse_isolated_borrow_rate(array $info, ?array $market = null): array {
         //
         //    {
         //        "vipLevel" => 0,

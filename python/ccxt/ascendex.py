@@ -2189,7 +2189,7 @@ class ascendex(Exchange, ImplicitAPI):
         :see: https://ascendex.github.io/ascendex-futures-pro-api-v2/#cancel-all-open-orders
         :param str symbol: unified market symbol, only orders in the market of self symbol are cancelled when symbol is not None
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict[]: a list with a single `order structure <https://docs.ccxt.com/#/?id=order-structure>` with the response assigned to the info property
         """
         self.load_markets()
         self.load_accounts()
@@ -2250,7 +2250,9 @@ class ascendex(Exchange, ImplicitAPI):
         #         }
         #     }
         #
-        return response
+        return self.safe_order({
+            'info': response,
+        })
 
     def parse_deposit_address(self, depositAddress, currency: Currency = None):
         #

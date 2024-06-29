@@ -1343,7 +1343,8 @@ public partial class poloniex : Exchange
         //     }
         //
         response = this.extend(response, new Dictionary<string, object>() {
-            { "type", side },
+            { "type", type },
+            { "side", side },
         });
         return this.parseOrder(response, market);
     }

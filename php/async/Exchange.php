@@ -42,11 +42,11 @@ use React\EventLoop\Loop;
 
 use Exception;
 
-$version = '4.3.52';
+$version = '4.3.54';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '4.3.52';
+    const VERSION = '4.3.54';
 
     public $browser;
     public $marketsLoading = null;
@@ -910,7 +910,7 @@ class Exchange extends \ccxt\Exchange {
         throw new NotSupported($this->id . ' parseBorrowInterest() is not supported yet');
     }
 
-    public function parse_isolated_borrow_rate($info, ?array $market = null) {
+    public function parse_isolated_borrow_rate(array $info, ?array $market = null) {
         throw new NotSupported($this->id . ' parseIsolatedBorrowRate() is not supported yet');
     }
 

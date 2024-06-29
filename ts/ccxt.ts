@@ -40,7 +40,7 @@ import {BaseError, ExchangeError, AuthenticationError, PermissionDenied, Account
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '4.3.52';
+const version = '4.3.54';
 
 (Exchange as any).ccxtVersion = version
 
@@ -144,6 +144,7 @@ import timex from  './src/timex.js'
 import tokocrypto from  './src/tokocrypto.js'
 import tradeogre from  './src/tradeogre.js'
 import upbit from  './src/upbit.js'
+import vertex from  './src/vertex.js'
 import wavesexchange from  './src/wavesexchange.js'
 import wazirx from  './src/wazirx.js'
 import whitebit from  './src/whitebit.js'
@@ -218,6 +219,7 @@ import poloniexPro from  './src/pro/poloniex.js'
 import poloniexfuturesPro from  './src/pro/poloniexfutures.js'
 import probitPro from  './src/pro/probit.js'
 import upbitPro from  './src/pro/upbit.js'
+import vertexPro from  './src/pro/vertex.js'
 import wazirxPro from  './src/pro/wazirx.js'
 import whitebitPro from  './src/pro/whitebit.js'
 import wooPro from  './src/pro/woo.js'
@@ -322,6 +324,7 @@ const exchanges = {
     'tokocrypto':             tokocrypto,
     'tradeogre':              tradeogre,
     'upbit':                  upbit,
+    'vertex':                 vertex,
     'wavesexchange':          wavesexchange,
     'wazirx':                 wazirx,
     'whitebit':               whitebit,
@@ -396,6 +399,7 @@ const pro = {
     'poloniexfutures':        poloniexfuturesPro,
     'probit':                 probitPro,
     'upbit':                  upbitPro,
+    'vertex':                 vertexPro,
     'wazirx':                 wazirxPro,
     'whitebit':               whitebitPro,
     'woo':                    wooPro,
@@ -635,6 +639,7 @@ export {
     tokocrypto,
     tradeogre,
     upbit,
+    vertex,
     wavesexchange,
     wazirx,
     whitebit,

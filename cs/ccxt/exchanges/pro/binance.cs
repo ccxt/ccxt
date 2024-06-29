@@ -4215,7 +4215,7 @@ public partial class binance : ccxt.binance
             rejected = true;
             // private endpoint uses id as messageHash
             ((WebSocketClient)client).reject(e, id);
-            // public endpoint stores messageHash in subscriptios
+            // public endpoint stores messageHash in subscriptions
             object subscriptionKeys = new List<object>(((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Keys);
             for (object i = 0; isLessThan(i, getArrayLength(subscriptionKeys)); postFixIncrement(ref i))
             {

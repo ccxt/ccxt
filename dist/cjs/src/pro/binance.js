@@ -3730,7 +3730,7 @@ class binance extends binance$1 {
             rejected = true;
             // private endpoint uses id as messageHash
             client.reject(e, id);
-            // public endpoint stores messageHash in subscriptios
+            // public endpoint stores messageHash in subscriptions
             const subscriptionKeys = Object.keys(client.subscriptions);
             for (let i = 0; i < subscriptionKeys.length; i++) {
                 const subscriptionHash = subscriptionKeys[i];

@@ -81,6 +81,7 @@ Exchange::$exchanges = array(
     'poloniexfutures',
     'probit',
     'upbit',
+    'vertex',
     'wazirx',
     'whitebit',
     'woo',

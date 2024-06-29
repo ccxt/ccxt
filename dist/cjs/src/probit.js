@@ -179,7 +179,7 @@ class probit extends probit$1 {
                     'RATE_LIMIT_EXCEEDED': errors.RateLimitExceeded,
                     'MARKET_UNAVAILABLE': errors.ExchangeNotAvailable,
                     'INVALID_MARKET': errors.BadSymbol,
-                    'MARKET_CLOSED': errors.BadSymbol,
+                    'MARKET_CLOSED': errors.MarketClosed,
                     'MARKET_NOT_FOUND': errors.BadSymbol,
                     'INVALID_CURRENCY': errors.BadRequest,
                     'TOO_MANY_OPEN_ORDERS': errors.DDoSProtection,
@@ -1836,11 +1836,16 @@ class probit extends probit$1 {
         }
         if ('errorCode' in response) {
             const errorCode = this.safeString(response, 'errorCode');
-            const message = this.safeString(response, 'message');
             if (errorCode !== undefined) {
-                const feedback = this.id + ' ' + body;
-                this.throwExactlyMatchedException(this.exceptions['exact'], message, feedback);
-                this.throwBroadlyMatchedException(this.exceptions['exact'], errorCode, feedback);
+                const errMessage = this.safeString(response, 'message', '');
+                const details = this.safeValue(response, 'details');
+                const feedback = this.id + ' ' + errorCode + ' ' + errMessage + ' ' + this.json(details);
+                if ('exact' in this.exceptions) {
+                    this.throwExactlyMatchedException(this.exceptions['exact'], errorCode, feedback);
+                }
+                if ('broad' in this.exceptions) {
+                    this.throwBroadlyMatchedException(this.exceptions['broad'], errMessage, feedback);
+                }
                 throw new errors.ExchangeError(feedback);
             }
         }

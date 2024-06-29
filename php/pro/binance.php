@@ -3766,7 +3766,7 @@ class binance extends \ccxt\async\binance {
             $rejected = true;
             // private endpoint uses $id
             $client->reject ($e, $id);
-            // public endpoint stores messageHash in subscriptios
+            // public endpoint stores messageHash in subscriptions
             $subscriptionKeys = is_array($client->subscriptions) ? array_keys($client->subscriptions) : array();
             for ($i = 0; $i < count($subscriptionKeys); $i++) {
                 $subscriptionHash = $subscriptionKeys[$i];
