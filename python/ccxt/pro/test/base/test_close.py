@@ -4,7 +4,7 @@ import sys
 root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))))
 sys.path.append(root)
 
-from asyncio import run, sleep, gather
+from asyncio import sleep, gather
 from ccxt.base.errors import ExchangeClosedByUser  # noqa E402
 import ccxt.pro
 
@@ -32,7 +32,7 @@ async def close_after(exchange, ms):
     await exchange.close()
 
 
-async def test_close():
+async def test_ws_close():
     exchange = ccxt.pro.binance()
     # exchange.verbose = True
     # --------------------------------------------
@@ -67,7 +67,3 @@ async def test_close():
     except Exception as e:
         print(f"Unexpected exception: {e}")
         assert False
-    exit(0)
-
-
-run(test_close())
