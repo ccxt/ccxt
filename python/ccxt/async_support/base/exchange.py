@@ -359,11 +359,14 @@ class Exchange(BaseExchange):
             on_connected = self.on_connected
             # decide client type here: aiohttp ws / websockets / signalr / socketio
             ws_options = self.safe_value(self.options, 'ws', {})
+            ws_connections_config = self.calculate_ws_token_bucket(ws_options, url)
+            ws_messages_config = self.calculate_ws_token_bucket(ws_options, url, 'messages')
             options = self.extend(self.streaming, {
                 'log': getattr(self, 'log'),
                 'ping': getattr(self, 'ping', None),
                 'verbose': self.verbose,
-                'throttle': Throttler(self.tokenBucket, self.asyncio_loop),
+                'connections_throttler': Throttler(ws_connections_config, self.asyncio_loop),
+                'messages_throttler': Throttler(ws_messages_config, self.asyncio_loop),
                 'asyncio_loop': self.asyncio_loop,
             }, ws_options)
             self.clients[url] = FastClient(url, on_message, on_error, on_close, on_connected, options)
@@ -389,7 +392,7 @@ class Exchange(BaseExchange):
             raise NotSupported(self.id + '.handle_message() not implemented yet')
         return {}
 
-    def watch_multiple(self, url, message_hashes, message=None, subscribe_hashes=None, subscription=None):
+    def watch_multiple(self, url, message_hashes, message=None, subscribe_hashes=None, subscription=None, message_cost=1):
         # base exchange self.open starts the aiohttp Session in an async context
         self.open()
         backoff_delay = 0
@@ -404,17 +407,21 @@ class Exchange(BaseExchange):
                     missing_subscriptions.append(subscribe_hash)
                     client.subscriptions[subscribe_hash] = subscription or True
 
-        connected = client.connected if client.connected.done() \
-            else asyncio.ensure_future(client.connect(self.session, backoff_delay))
+        if client.connected.done():
+            connected = client.connected
+        else:
+            async def connect():
+                if self.enableRateLimit:
+                    await client.connections_throttler()
+                return client.connect(self.session, backoff_delay)
+            connected = asyncio.ensure_future(connect())
 
         def after(fut):
             # todo: decouple signing from subscriptions
-            options = self.safe_value(self.options, 'ws')
-            cost = self.safe_value(options, 'cost', 1)
             if message:
                 async def send_message():
                     if self.enableRateLimit:
-                        await client.throttle(cost)
+                        await client.messages_throttler(message_cost)
                     try:
                         await client.send(message)
                     except ConnectionError as e:
@@ -428,7 +435,7 @@ class Exchange(BaseExchange):
 
         return future
 
-    def watch(self, url, message_hash, message=None, subscribe_hash=None, subscription=None):
+    def watch(self, url, message_hash, message=None, subscribe_hash=None, subscription=None, message_cost=1):
         # base exchange self.open starts the aiohttp Session in an async context
         self.open()
         backoff_delay = 0
@@ -442,8 +449,14 @@ class Exchange(BaseExchange):
         if not subscribed:
             client.subscriptions[subscribe_hash] = subscription or True
 
-        connected = client.connected if client.connected.done() \
-            else asyncio.ensure_future(client.connect(self.session, backoff_delay))
+        if client.connected.done():
+            connected = client.connected
+        else:
+            async def connect():
+                if self.enableRateLimit:
+                    await client.connections_throttler()
+                return client.connect(self.session, backoff_delay)
+            connected = asyncio.ensure_future(connect())
 
         def after(fut):
             # todo: decouple signing from subscriptions
@@ -452,7 +465,7 @@ class Exchange(BaseExchange):
             if message:
                 async def send_message():
                     if self.enableRateLimit:
-                        await client.throttle(cost)
+                        await client.messages_throttle(cost)
                     try:
                         await client.send(message)
                     except ConnectionError as e:
@@ -558,6 +571,37 @@ class Exchange(BaseExchange):
     # ########################################################################
 
     # METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
+
+    def calculate_ws_token_bucket(self, wsOptions, url, tokenKey='connections'):
+        rateLimits = self.safe_value(wsOptions, 'rateLimits')
+        rateLimit = self.safe_number(rateLimits, 'rateLimit')
+        if rateLimits is None or rateLimit is None:
+            return self.tokenBucket  # default to the rest bucket
+        cost = None
+        rateLimitsKeys = list(rateLimits.keys())
+        for i in range(0, len(rateLimitsKeys)):
+            rateLimitKey = rateLimitsKeys[i]
+            if url.startswith(rateLimitKey):
+                value = self.safe_value(rateLimits, rateLimitKey)
+                cost = self.safe_integer(value, tokenKey)
+        if cost is None:
+            # try default
+            defaultConfig = self.safe_value(rateLimits, 'default')
+            if defaultConfig is not None:
+                cost = self.safe_integer(defaultConfig, tokenKey)
+            if cost is None:
+                # default not found
+                return self.tokenBucket
+        refillRate = (1 / rateLimit) if (rateLimit is not None) else float('inf')
+        tokenBucket = self.safe_value(rateLimits, 'tokenBucket', {})
+        config = self.extend({
+            'delay': 0.001,
+            'capacity': 1,
+            'cost': cost,
+            'maxCapacity': 1000,
+            'refillRate': refillRate,
+        }, tokenBucket)
+        return config
 
     async def fetch_accounts(self, params={}):
         raise NotSupported(self.id + ' fetchAccounts() is not supported yet')

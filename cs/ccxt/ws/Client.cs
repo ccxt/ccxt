@@ -52,6 +52,10 @@ public partial class Exchange
         public Int64? connectionEstablished;
 
         public bool error = false;
+    
+        public Throttler connectionsThrottler = new Throttler();
+
+        public Throttler messagesThrottler = new Throttler();
 
         public WebSocketClient(string url, string proxy, handleMessageDelegate handleMessage, pingDelegate ping = null, onCloseDelegate onClose = null, onErrorDelegate onError = null, bool isVerbose = false, Int64 keepA = 30000)
         {

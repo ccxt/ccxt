@@ -59,6 +59,10 @@ class Client {
     public $log = null;
     public $heartbeat = null;
     public $cost = 1;
+    public $messages_throttler;
+    public $connections_throttler;
+    public $rateLimits;
+    public $throttle;
 
     // ratchet/pawl/reactphp stuff
     public $connector = null;

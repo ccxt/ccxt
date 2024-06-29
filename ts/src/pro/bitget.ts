@@ -65,6 +65,14 @@ export default class bitget extends bitgetRest {
                     '1d': '1D',
                     '1w': '1W',
                 },
+                'ws': {
+                    'rateLimits': {
+                        'default': {
+                            'rateLimit': 110,
+                            'messages': 1, // 10 messages per second
+                        },
+                    },
+                },
             },
             'streaming': {
                 'ping': this.ping,

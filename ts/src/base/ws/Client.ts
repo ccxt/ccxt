@@ -7,6 +7,7 @@ import {
     isJsonEncodedObject,
     deepExtend,
     milliseconds,
+    Throttler,
 } from '../../base/functions.js';
 import { utf8 } from '../../static_dependencies/scure-base/index.js';
 import { Dictionary, Str } from '../types.js';
@@ -67,6 +68,10 @@ export default class Client {
     subscriptions: Dictionary<any>
 
     throttle: any
+
+    connectionsThrottler: Throttler
+
+    messagesThrottler: Throttler
 
     constructor (url: string, onMessageCallback: Function | undefined, onErrorCallback: Function | undefined, onCloseCallback: Function | undefined, onConnectedCallback: Function | undefined, config = {}) {
         const defaults = {
