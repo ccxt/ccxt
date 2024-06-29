@@ -12,7 +12,6 @@ function baseTestsInit () {
     testCryptography ();
     testDatetime ();
     testNumber ();
-    console.log ('base tests passed!');
 }
 
 export default baseTestsInit;
