@@ -5174,7 +5174,7 @@ class okx(Exchange, ImplicitAPI):
         result = []
         for i in range(0, len(positions)):
             result.append(self.parse_position(positions[i]))
-        return self.filter_by_array_positions(result, 'symbol', symbols, False)
+        return self.filter_by_array_positions(result, 'symbol', self.market_symbols(symbols), False)
 
     async def fetch_positions_for_symbol(self, symbol: str, params={}):
         """
