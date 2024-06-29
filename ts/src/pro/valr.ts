@@ -824,6 +824,22 @@ export default class valr extends valrRest {
         //     "executedQuantity": "0.00001",
         //     "executedFee": "0"
         // }
+        // {
+        //     "orderId": "64f7713b-c2ad-496c-aede-a90e1389c959",
+        //     "side": "sell",
+        //     "quantity": "2301.9461",
+        //     "price": "18.6302",
+        //     "currencyPair": "USDCZAR",
+        //     "createdAt": "2024-06-28T08:31:51.621Z",
+        //     "originalQuantity": "3614.02",
+        //     "filledPercentage": "36.30",
+        //     "customerOrderId": "EMIBUN001-4610371000066198001-4610371000066207002",
+        //     "type": "post-only limit",
+        //     "status": "Partially Filled",
+        //     "updatedAt": "2024-06-28T08:47:33.988Z",
+        //     "timeInForce": "GTC",
+        //     "allowMargin": True
+        // }
         const orderStatus = this.safeString2 (order, 'status', 'orderStatusType');
         let status = undefined;
         if (this.inArray (orderStatus, [ 'Placed', 'Active', 'Order Modified', 'Partially Filled' ])) {
@@ -846,12 +862,12 @@ export default class valr extends valrRest {
                 }
             }
         }
-        const filledPercentage = this.safeString (order, 'filledPercentage');
-        const remaining = this.safeString (order, 'remainingQuantity');
+        const remaining = this.safeString2 (order, 'quantity', 'remainingQuantity');
         const amount = this.safeString (order, 'originalQuantity');
         let filled = undefined;
+        const filledPercentage = this.safeString (order, 'filledPercentage');
         if (remaining === undefined && filledPercentage !== undefined) {
-            filled = Precise.stringMul (amount, filledPercentage);
+            filled = Precise.stringDiv (Precise.stringMul (amount, filledPercentage), '100');
         }
         return this.safeOrder ({
             'timestamp': this.parse8601 (this.safeString2 (order, 'createdAt', 'orderCreatedAt')),
