@@ -5427,7 +5427,7 @@ class okx extends Exchange {
         for ($i = 0; $i < count($positions); $i++) {
             $result[] = $this->parse_position($positions[$i]);
         }
-        return $this->filter_by_array_positions($result, 'symbol', $symbols, false);
+        return $this->filter_by_array_positions($result, 'symbol', $this->market_symbols($symbols), false);
     }
 
     public function fetch_positions_for_symbol(string $symbol, $params = array ()) {

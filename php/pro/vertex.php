@@ -340,7 +340,7 @@ class vertex extends \ccxt\async\vertex {
         //     "ask_qty" => "1000" // quantity at the lowest ask
         // }
         //
-        $timestamp = Precise::string_div($this->safe_string($ticker, 'timestamp'), '1000000');
+        $timestamp = $this->safe_integer_product($ticker, 'timestamp', 0.000001);
         return $this->safe_ticker(array(
             'symbol' => $this->safe_symbol(null, $market),
             'timestamp' => $timestamp,

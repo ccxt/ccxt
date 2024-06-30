@@ -1132,8 +1132,8 @@ export default class vertex extends Exchange {
         await this.loadMarkets();
         const market = this.market(symbol);
         const ohlcvRequest = {
-            'product_id': this.parseNumber(market['id']),
-            'granularity': this.safeNumber(this.timeframes, timeframe),
+            'product_id': this.parseToInt(market['id']),
+            'granularity': this.safeInteger(this.timeframes, timeframe),
         };
         const until = this.safeInteger(params, 'until');
         if (until !== undefined) {
@@ -1249,7 +1249,7 @@ export default class vertex extends Exchange {
         const market = this.market(symbol);
         const request = {
             'funding_rate': {
-                'product_id': this.parseNumber(market['id']),
+                'product_id': this.parseToInt(market['id']),
             },
         };
         const response = await this.v1ArchivePost(this.extend(request, params));
@@ -1641,7 +1641,7 @@ export default class vertex extends Exchange {
         }
         await this.loadMarkets();
         const market = this.market(symbol);
-        const marketId = this.parseToNumeric(market['id']);
+        const marketId = this.parseToInt(market['id']);
         const contracts = await this.queryContracts();
         const chainId = this.safeString(contracts, 'chain_id');
         const bookAddresses = this.safeList(contracts, 'book_addrs', []);
@@ -1745,7 +1745,7 @@ export default class vertex extends Exchange {
         }
         await this.loadMarkets();
         const market = this.market(symbol);
-        const marketId = this.parseToNumeric(market['id']);
+        const marketId = this.parseToInt(market['id']);
         const defaultTimeInForce = (isMarketOrder) ? 'fok' : undefined;
         const timeInForce = this.safeStringLower(params, 'timeInForce', defaultTimeInForce);
         const postOnly = this.safeBool(params, 'postOnly', false);
@@ -1967,7 +1967,7 @@ export default class vertex extends Exchange {
         const market = this.market(symbol);
         const request = {
             'type': 'order',
-            'product_id': this.parseToNumeric(market['id']),
+            'product_id': this.parseToInt(market['id']),
             'digest': id,
         };
         const response = await this.v1GatewayGetQuery(this.extend(request, params));

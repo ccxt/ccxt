@@ -717,7 +717,7 @@ public partial class bingx : Exchange
             { "limits", new Dictionary<string, object>() {
                 { "leverage", new Dictionary<string, object>() {
                     { "min", null },
-                    { "max", this.safeInteger(market, "maxLongLeverage") },
+                    { "max", null },
                 } },
                 { "amount", new Dictionary<string, object>() {
                     { "min", this.safeNumber2(market, "minQty", "tradeMinQuantity") },

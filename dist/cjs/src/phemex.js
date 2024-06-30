@@ -2941,14 +2941,41 @@ class phemex extends phemex$1 {
         let response = undefined;
         if (market['settle'] === 'USDT') {
             response = await this.privateDeleteGOrdersAll(this.extend(request, params));
+            //
+            //    {
+            //        code: '0',
+            //        msg: '',
+            //        data: '1'
+            //    }
+            //
         }
         else if (market['swap']) {
             response = await this.privateDeleteOrdersAll(this.extend(request, params));
+            //
+            //    {
+            //        code: '0',
+            //        msg: '',
+            //        data: '1'
+            //    }
+            //
         }
         else {
             response = await this.privateDeleteSpotOrdersAll(this.extend(request, params));
+            //
+            //    {
+            //        code: '0',
+            //        msg: '',
+            //        data: {
+            //            total: '1'
+            //        }
+            //    }
+            //
         }
-        return response;
+        return [
+            this.safeOrder({
+                'info': response,
+            }),
+        ];
     }
     async fetchOrder(id, symbol = undefined, params = {}) {
         /**

@@ -704,7 +704,7 @@ class bingx(Exchange, ImplicitAPI):
             'limits': {
                 'leverage': {
                     'min': None,
-                    'max': self.safe_integer(market, 'maxLongLeverage'),
+                    'max': None,
                 },
                 'amount': {
                     'min': self.safe_number_2(market, 'minQty', 'tradeMinQuantity'),

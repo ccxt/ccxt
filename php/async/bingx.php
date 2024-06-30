@@ -716,7 +716,7 @@ class bingx extends Exchange {
             'limits' => array(
                 'leverage' => array(
                     'min' => null,
-                    'max' => $this->safe_integer($market, 'maxLongLeverage'),
+                    'max' => null,
                 ),
                 'amount' => array(
                     'min' => $this->safe_number_2($market, 'minQty', 'tradeMinQuantity'),

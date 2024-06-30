@@ -351,7 +351,7 @@ public partial class vertex : ccxt.vertex
         //     "ask_qty": "1000" // quantity at the lowest ask
         // }
         //
-        object timestamp = Precise.stringDiv(this.safeString(ticker, "timestamp"), "1000000");
+        object timestamp = this.safeIntegerProduct(ticker, "timestamp", 0.000001);
         return this.safeTicker(new Dictionary<string, object>() {
             { "symbol", this.safeSymbol(null, market) },
             { "timestamp", timestamp },

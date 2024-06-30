@@ -2269,7 +2269,7 @@ class ascendex extends Exchange {
          * @see https://ascendex.github.io/ascendex-futures-pro-api-v2/#cancel-all-open-orders
          * @param {string} $symbol unified $market $symbol, only orders in the $market of this $symbol are cancelled when $symbol is not null
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+         * @return {array[]} a list with a single ~@link https://docs.ccxt.com/#/?id=order-structure order structure~ with the $response assigned to the info property
          */
         $this->load_markets();
         $this->load_accounts();
@@ -2333,7 +2333,9 @@ class ascendex extends Exchange {
         //         }
         //     }
         //
-        return $response;
+        return $this->safe_order(array(
+            'info' => $response,
+        ));
     }
 
     public function parse_deposit_address($depositAddress, ?array $currency = null) {

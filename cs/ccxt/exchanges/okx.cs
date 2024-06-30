@@ -5789,7 +5789,7 @@ public partial class okx : Exchange
         {
             ((IList<object>)result).Add(this.parsePosition(getValue(positions, i)));
         }
-        return this.filterByArrayPositions(result, "symbol", symbols, false);
+        return this.filterByArrayPositions(result, "symbol", this.marketSymbols(symbols), false);
     }
 
     public async override Task<object> fetchPositionsForSymbol(object symbol, object parameters = null)

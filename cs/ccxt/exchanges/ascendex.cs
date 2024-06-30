@@ -2426,7 +2426,7 @@ public partial class ascendex : Exchange
         * @see https://ascendex.github.io/ascendex-futures-pro-api-v2/#cancel-all-open-orders
         * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
         * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+        * @returns {object[]} a list with a single [order structure]{@link https://docs.ccxt.com/#/?id=order-structure} with the response assigned to the info property
         */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -2498,7 +2498,9 @@ public partial class ascendex : Exchange
         //         }
         //     }
         //
-        return response;
+        return this.safeOrder(new Dictionary<string, object>() {
+            { "info", response },
+        });
     }
 
     public override object parseDepositAddress(object depositAddress, object currency = null)

@@ -3099,7 +3099,9 @@ public partial class phemex : Exchange
         {
             response = await this.privateDeleteSpotOrdersAll(this.extend(request, parameters));
         }
-        return response;
+        return new List<object> {this.safeOrder(new Dictionary<string, object>() {
+    { "info", response },
+})};
     }
 
     public async override Task<object> fetchOrder(object id, object symbol = null, object parameters = null)

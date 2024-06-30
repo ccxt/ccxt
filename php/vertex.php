@@ -1119,8 +1119,8 @@ class vertex extends Exchange {
         $this->load_markets();
         $market = $this->market($symbol);
         $ohlcvRequest = array(
-            'product_id' => $this->parse_number($market['id']),
-            'granularity' => $this->safe_number($this->timeframes, $timeframe),
+            'product_id' => $this->parse_to_int($market['id']),
+            'granularity' => $this->safe_integer($this->timeframes, $timeframe),
         );
         $until = $this->safe_integer($params, 'until');
         if ($until !== null) {
@@ -1236,7 +1236,7 @@ class vertex extends Exchange {
         $market = $this->market($symbol);
         $request = array(
             'funding_rate' => array(
-                'product_id' => $this->parse_number($market['id']),
+                'product_id' => $this->parse_to_int($market['id']),
             ),
         );
         $response = $this->v1ArchivePost ($this->extend($request, $params));
@@ -1638,7 +1638,7 @@ class vertex extends Exchange {
         }
         $this->load_markets();
         $market = $this->market($symbol);
-        $marketId = $this->parse_to_numeric($market['id']);
+        $marketId = $this->parse_to_int($market['id']);
         $contracts = $this->query_contracts();
         $chainId = $this->safe_string($contracts, 'chain_id');
         $bookAddresses = $this->safe_list($contracts, 'book_addrs', array());
@@ -1739,7 +1739,7 @@ class vertex extends Exchange {
         }
         $this->load_markets();
         $market = $this->market($symbol);
-        $marketId = $this->parse_to_numeric($market['id']);
+        $marketId = $this->parse_to_int($market['id']);
         $defaultTimeInForce = ($isMarketOrder) ? 'fok' : null;
         $timeInForce = $this->safe_string_lower($params, 'timeInForce', $defaultTimeInForce);
         $postOnly = $this->safe_bool($params, 'postOnly', false);
@@ -1963,7 +1963,7 @@ class vertex extends Exchange {
         $market = $this->market($symbol);
         $request = array(
             'type' => 'order',
-            'product_id' => $this->parse_to_numeric($market['id']),
+            'product_id' => $this->parse_to_int($market['id']),
             'digest' => $id,
         );
         $response = $this->v1GatewayGetQuery ($this->extend($request, $params));

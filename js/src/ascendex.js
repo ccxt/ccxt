@@ -2308,7 +2308,7 @@ export default class ascendex extends Exchange {
          * @see https://ascendex.github.io/ascendex-futures-pro-api-v2/#cancel-all-open-orders
          * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         * @returns {object[]} a list with a single [order structure]{@link https://docs.ccxt.com/#/?id=order-structure} with the response assigned to the info property
          */
         await this.loadMarkets();
         await this.loadAccounts();
@@ -2374,7 +2374,9 @@ export default class ascendex extends Exchange {
         //         }
         //     }
         //
-        return response;
+        return this.safeOrder({
+            'info': response,
+        });
     }
     parseDepositAddress(depositAddress, currency = undefined) {
         //

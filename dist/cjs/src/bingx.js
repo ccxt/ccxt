@@ -701,7 +701,7 @@ class bingx extends bingx$1 {
             'limits': {
                 'leverage': {
                     'min': undefined,
-                    'max': this.safeInteger(market, 'maxLongLeverage'),
+                    'max': undefined,
                 },
                 'amount': {
                     'min': this.safeNumber2(market, 'minQty', 'tradeMinQuantity'),

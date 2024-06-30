@@ -2763,11 +2763,38 @@ class phemex(Exchange, ImplicitAPI):
         response = None
         if market['settle'] == 'USDT':
             response = await self.privateDeleteGOrdersAll(self.extend(request, params))
+            #
+            #    {
+            #        code: '0',
+            #        msg: '',
+            #        data: '1'
+            #    }
+            #
         elif market['swap']:
             response = await self.privateDeleteOrdersAll(self.extend(request, params))
+            #
+            #    {
+            #        code: '0',
+            #        msg: '',
+            #        data: '1'
+            #    }
+            #
         else:
             response = await self.privateDeleteSpotOrdersAll(self.extend(request, params))
-        return response
+            #
+            #    {
+            #        code: '0',
+            #        msg: '',
+            #        data: {
+            #            total: '1'
+            #        }
+            #    }
+            #
+        return [
+            self.safe_order({
+                'info': response,
+            }),
+        ]
 
     async def fetch_order(self, id: str, symbol: Str = None, params={}):
         """
