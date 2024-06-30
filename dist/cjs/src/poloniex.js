@@ -1391,7 +1391,8 @@ class poloniex extends poloniex$1 {
         //     }
         //
         response = this.extend(response, {
-            'type': side,
+            'side': side,
+            'type': type,
         });
         return this.parseOrder(response, market);
     }
