@@ -999,8 +999,8 @@ class kucoin(ccxt.async_support.kucoin):
         type = self.safe_string(trade, 'orderType')
         side = self.safe_string(trade, 'side')
         tradeId = self.safe_string(trade, 'tradeId')
-        price = self.safe_string(trade, 'price')
-        amount = self.safe_string(trade, 'size')
+        price = self.safe_string(trade, 'matchPrice')
+        amount = self.safe_string(trade, 'matchSize')
         order = self.safe_string(trade, 'orderId')
         timestamp = self.safe_integer_product(trade, 'ts', 0.000001)
         return self.safe_trade({

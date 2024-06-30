@@ -1191,8 +1191,8 @@ public partial class kucoin : ccxt.kucoin
         object type = this.safeString(trade, "orderType");
         object side = this.safeString(trade, "side");
         object tradeId = this.safeString(trade, "tradeId");
-        object price = this.safeString(trade, "price");
-        object amount = this.safeString(trade, "size");
+        object price = this.safeString(trade, "matchPrice");
+        object amount = this.safeString(trade, "matchSize");
         object order = this.safeString(trade, "orderId");
         object timestamp = this.safeIntegerProduct(trade, "ts", 0.000001);
         return this.safeTrade(new Dictionary<string, object>() {

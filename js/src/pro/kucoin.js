@@ -1076,8 +1076,8 @@ export default class kucoin extends kucoinRest {
         const type = this.safeString(trade, 'orderType');
         const side = this.safeString(trade, 'side');
         const tradeId = this.safeString(trade, 'tradeId');
-        const price = this.safeString(trade, 'price');
-        const amount = this.safeString(trade, 'size');
+        const price = this.safeString(trade, 'matchPrice');
+        const amount = this.safeString(trade, 'matchSize');
         const order = this.safeString(trade, 'orderId');
         const timestamp = this.safeIntegerProduct(trade, 'ts', 0.000001);
         return this.safeTrade({
