@@ -76,6 +76,7 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: subscription to a websocket channel
         """
+        await self.load_markets()
         self.check_required_credentials()
         market = None
         messageHash = name
@@ -98,7 +99,7 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
         timestamp = str(self.nonce())
         auth = timestamp + self.apiKey + 'CBINTLMD' + self.password
         signature = self.hmac(self.encode(auth), self.base64_to_binary(self.secret), hashlib.sha256, 'base64')
-        subscribe = {
+        subscribe: dict = {
             'type': 'SUBSCRIBE',
             'product_ids': productIds,
             'channels': [name],
@@ -119,6 +120,7 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: subscription to a websocket channel
         """
+        await self.load_markets()
         self.check_required_credentials()
         if self.is_empty(symbols):
             symbols = self.symbols
@@ -137,7 +139,7 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
         timestamp = self.number_to_string(self.seconds())
         auth = timestamp + self.apiKey + 'CBINTLMD' + self.password
         signature = self.hmac(self.encode(auth), self.base64_to_binary(self.secret), hashlib.sha256, 'base64')
-        subscribe = {
+        subscribe: dict = {
             'type': 'SUBSCRIBE',
             'time': timestamp,
             'product_ids': productIds,
@@ -156,6 +158,7 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `funding rate structure <https://docs.ccxt.com/#/?id=funding-rate-structure>`
         """
+        await self.load_markets()
         return await self.subscribe('RISK', [symbol], params)
 
     async def watch_funding_rates(self, symbols: List[str], params={}) -> FundingRates:
@@ -166,10 +169,11 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `funding rates structures <https://docs.ccxt.com/#/?id=funding-rates-structure>`, indexe by market symbols
         """
+        await self.load_markets()
         fundingRate = await self.subscribe_multiple('RISK', symbols, params)
         symbol = self.safe_string(fundingRate, 'symbol')
         if self.newUpdates:
-            result = {}
+            result: dict = {}
             result[symbol] = fundingRate
             return result
         return self.filter_by_array(self.fundingRates, 'symbol', symbols)
@@ -182,6 +186,7 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
+        await self.load_markets()
         channel = None
         channel, params = self.handle_option_and_params(params, 'watchTicker', 'channel', 'LEVEL1')
         return await self.subscribe(channel, [symbol], params)
@@ -602,7 +607,7 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
         if self.handle_error_message(client, message):
             return
         channel = self.safe_string(message, 'channel')
-        methods = {
+        methods: dict = {
             'SUBSCRIPTIONS': self.handle_subscription_status,
             'INSTRUMENTS': self.handle_instrument,
             'LEVEL1': self.handle_ticker,

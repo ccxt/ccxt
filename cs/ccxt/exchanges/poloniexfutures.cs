@@ -372,10 +372,14 @@ public partial class poloniexfutures : Exchange
         object marketId = this.safeString(ticker, "symbol");
         object symbol = this.safeSymbol(marketId, market);
         object timestampString = this.safeString(ticker, "ts");
-        // check timestamp bcz bug: https://app.travis-ci.com/github/ccxt/ccxt/builds/269959181#L4011 and also 17 digits occured
         object multiplier = null;
-        if (isTrue(isEqual(((string)timestampString).Length, 17)))
+        if (isTrue(isEqual(((string)timestampString).Length, 16)))
         {
+            // 16 digits: https://app.travis-ci.com/github/ccxt/ccxt/builds/270587157#L5454
+            multiplier = 0.001;
+        } else if (isTrue(isEqual(((string)timestampString).Length, 17)))
+        {
+            // 17 digits: https://app.travis-ci.com/github/ccxt/ccxt/builds/269959181#L4011
             multiplier = 0.0001;
         } else if (isTrue(isEqual(((string)timestampString).Length, 18)))
         {
@@ -465,7 +469,8 @@ public partial class poloniexfutures : Exchange
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object response = await this.publicGetTickers(parameters);
-        return this.parseTickers(this.safeValue(response, "data", new List<object>() {}), symbols);
+        object data = this.safeList(response, "data", new List<object>() {});
+        return this.parseTickers(data, symbols);
     }
 
     public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
@@ -871,7 +876,7 @@ public partial class poloniexfutures : Exchange
         * @param {string} type 'limit' or 'market'
         * @param {string} side 'buy' or 'sell'
         * @param {float} amount the amount of currency to trade
-        * @param {float} [price] *ignored in "market" orders* the price at which the order is to be fullfilled at in units of the quote currency
+        * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         * @param {object} [params]  extra parameters specific to the exchange API endpoint
         * @param {float} [params.leverage] Leverage size of the order
         * @param {float} [params.stopPrice] The price at which a trigger order is triggered at
@@ -1308,7 +1313,7 @@ public partial class poloniexfutures : Exchange
         for (object i = 0; isLessThan(i, cancelledOrderIdsLength); postFixIncrement(ref i))
         {
             object cancelledOrderId = this.safeString(cancelledOrderIds, i);
-            ((IList<object>)result).Add(new Dictionary<string, object>() {
+            ((IList<object>)result).Add(this.safeOrder(new Dictionary<string, object>() {
                 { "id", cancelledOrderId },
                 { "clientOrderId", null },
                 { "timestamp", null },
@@ -1330,7 +1335,7 @@ public partial class poloniexfutures : Exchange
                 { "postOnly", null },
                 { "stopPrice", null },
                 { "info", response },
-            });
+            }));
         }
         return result;
     }

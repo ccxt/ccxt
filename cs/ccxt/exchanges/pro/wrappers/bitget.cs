@@ -268,7 +268,19 @@ public partial class bitget
     /// <item>
     /// <term>params.marginMode</term>
     /// <description>
-    /// string : 'isolated' or 'cross' for watching spot margin orders
+    /// string : 'isolated' or 'cross' for watching spot margin orders]
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.type</term>
+    /// <description>
+    /// string : 'spot', 'swap'
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.subType</term>
+    /// <description>
+    /// string : 'linear', 'inverse'
     /// </description>
     /// </item>
     /// </list>

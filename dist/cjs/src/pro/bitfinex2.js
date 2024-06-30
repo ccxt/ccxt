@@ -577,8 +577,7 @@ class bitfinex2 extends bitfinex2$1 {
         const prec = this.safeString(subscription, 'prec', 'P0');
         const isRaw = (prec === 'R0');
         // if it is an initial snapshot
-        let orderbook = this.safeValue(this.orderbooks, symbol);
-        if (orderbook === undefined) {
+        if (!(symbol in this.orderbooks)) {
             const limit = this.safeInteger(subscription, 'len');
             if (isRaw) {
                 // raw order books
@@ -588,7 +587,7 @@ class bitfinex2 extends bitfinex2$1 {
                 // P0, P1, P2, P3, P4
                 this.orderbooks[symbol] = this.countedOrderBook({}, limit);
             }
-            orderbook = this.orderbooks[symbol];
+            const orderbook = this.orderbooks[symbol];
             if (isRaw) {
                 const deltas = message[1];
                 for (let i = 0; i < deltas.length; i++) {
@@ -599,7 +598,7 @@ class bitfinex2 extends bitfinex2$1 {
                     const bookside = orderbook[side];
                     const idString = this.safeString(delta, 0);
                     const price = this.safeFloat(delta, 1);
-                    bookside.store(price, size, idString);
+                    bookside.storeArray([price, size, idString]);
                 }
             }
             else {
@@ -612,13 +611,14 @@ class bitfinex2 extends bitfinex2$1 {
                     const size = (amount < 0) ? -amount : amount;
                     const side = (amount < 0) ? 'asks' : 'bids';
                     const bookside = orderbook[side];
-                    bookside.store(price, size, counter);
+                    bookside.storeArray([price, size, counter]);
                 }
             }
             orderbook['symbol'] = symbol;
             client.resolve(orderbook, messageHash);
         }
         else {
+            const orderbook = this.orderbooks[symbol];
             const deltas = message[1];
             const orderbookItem = this.orderbooks[symbol];
             if (isRaw) {

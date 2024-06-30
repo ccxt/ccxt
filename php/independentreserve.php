@@ -347,7 +347,7 @@ class independentreserve extends Exchange {
         return $this->parse_ticker($response, $market);
     }
 
-    public function parse_order($order, ?array $market = null): array {
+    public function parse_order(array $order, ?array $market = null): array {
         //
         // fetchOrder
         //
@@ -382,6 +382,21 @@ class independentreserve extends Exchange {
         //         "FeePercent" => 0.005,
         //     }
         //
+        // cancelOrder
+        //
+        //    {
+        //        "AvgPrice" => 455.48,
+        //        "CreatedTimestampUtc" => "2022-08-05T06:42:11.3032208Z",
+        //        "OrderGuid" => "719c495c-a39e-4884-93ac-280b37245037",
+        //        "Price" => 485.76,
+        //        "PrimaryCurrencyCode" => "Xbt",
+        //        "ReservedAmount" => 0.358,
+        //        "SecondaryCurrencyCode" => "Usd",
+        //        "Status" => "Cancelled",
+        //        "Type" => "LimitOffer",
+        //        "VolumeFilled" => 0,
+        //        "VolumeOrdered" => 0.358
+        //    }
         $symbol = null;
         $baseId = $this->safe_string($order, 'PrimaryCurrencyCode');
         $quoteId = $this->safe_string($order, 'SecondaryCurrencyCode');
@@ -447,7 +462,7 @@ class independentreserve extends Exchange {
         ), $market);
     }
 
-    public function parse_order_status($status) {
+    public function parse_order_status(?string $status) {
         $statuses = array(
             'Open' => 'open',
             'PartiallyFilled' => 'open',
@@ -558,7 +573,7 @@ class independentreserve extends Exchange {
         return $this->parse_trades($response['Data'], $market, $since, $limit);
     }
 
-    public function parse_trade($trade, ?array $market = null): array {
+    public function parse_trade(array $trade, ?array $market = null): array {
         $timestamp = $this->parse8601($trade['TradeTimestampUtc']);
         $id = $this->safe_string($trade, 'TradeGuid');
         $orderId = $this->safe_string($trade, 'OrderGuid');
@@ -671,7 +686,7 @@ class independentreserve extends Exchange {
          * @param {string} $type 'market' or 'limit'
          * @param {string} $side 'buy' or 'sell'
          * @param {float} $amount how much of currency you want to trade in units of base currency
-         * @param {float} [$price] the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
+         * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
          */
@@ -701,6 +716,7 @@ class independentreserve extends Exchange {
     public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
         /**
          * cancels an open order
+         * @see https://www.independentreserve.com/features/api#CancelOrder
          * @param {string} $id order $id
          * @param {string} $symbol unified $symbol of the market the order was made in
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -710,7 +726,23 @@ class independentreserve extends Exchange {
         $request = array(
             'orderGuid' => $id,
         );
-        return $this->privatePostCancelOrder ($this->extend($request, $params));
+        $response = $this->privatePostCancelOrder ($this->extend($request, $params));
+        //
+        //    {
+        //        "AvgPrice" => 455.48,
+        //        "CreatedTimestampUtc" => "2022-08-05T06:42:11.3032208Z",
+        //        "OrderGuid" => "719c495c-a39e-4884-93ac-280b37245037",
+        //        "Price" => 485.76,
+        //        "PrimaryCurrencyCode" => "Xbt",
+        //        "ReservedAmount" => 0.358,
+        //        "SecondaryCurrencyCode" => "Usd",
+        //        "Status" => "Cancelled",
+        //        "Type" => "LimitOffer",
+        //        "VolumeFilled" => 0,
+        //        "VolumeOrdered" => 0.358
+        //    }
+        //
+        return $this->parse_order($response);
     }
 
     public function fetch_deposit_address(string $code, $params = array ()) {

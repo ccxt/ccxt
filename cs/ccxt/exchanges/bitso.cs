@@ -969,7 +969,7 @@ public partial class bitso : Exchange
         * @param {string} type 'market' or 'limit'
         * @param {string} side 'buy' or 'sell'
         * @param {float} amount how much of currency you want to trade in units of base currency
-        * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
         */
@@ -1011,7 +1011,19 @@ public partial class bitso : Exchange
         object request = new Dictionary<string, object>() {
             { "oid", id },
         };
-        return await this.privateDeleteOrdersOid(this.extend(request, parameters));
+        object response = await this.privateDeleteOrdersOid(this.extend(request, parameters));
+        //
+        //     {
+        //         "success": true,
+        //         "payload": ["yWTQGxDMZ0VimZgZ"]
+        //     }
+        //
+        object payload = this.safeList(response, "payload", new List<object>() {});
+        object orderId = this.safeString(payload, 0);
+        return this.safeOrder(new Dictionary<string, object>() {
+            { "info", response },
+            { "id", orderId },
+        });
     }
 
     public async virtual Task<object> cancelOrders(object ids, object symbol = null, object parameters = null)

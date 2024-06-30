@@ -1428,6 +1428,61 @@
                 ],
                 "output": "{\"position_mode\":\"dual_side\",\"margin_account\":\"USDT\"}"
             }
+        ],
+        "closePosition": [
+            {
+                "description": "closePosition for an inverse future",
+                "method": "closePosition",
+                "url": "https://api.hbdm.com/api/v1/lightning_close_position?AccessKeyId=bgbfh5tv3f-83da6485-1bbb64ae-3231b&SignatureMethod=HmacSHA256&SignatureVersion=2&Timestamp=2024-05-27T23%3A12%3A28&Signature=Ku0JINwbbWJOQSKRLn%2BzzMXYyFKMO8m%2FCPgbJtJXjS0%3D",
+                "input": [
+                    "BTC/USD:BTC-240628",
+                    "sell",
+                    {
+                        "amount": 1
+                    }
+                ],
+                "output": "{\"contract_code\":\"BTC240628\",\"direction\":\"sell\",\"volume\":\"1\"}"
+            },
+            {
+                "description": "Fill this with a description of the method call",
+                "method": "closePosition",
+                "url": "https://api.hbdm.com/linear-swap-api/v1/swap_cross_lightning_close_position?AccessKeyId=bgbfh5tv3f-83da6485-1bbb64ae-3231b&SignatureMethod=HmacSHA256&SignatureVersion=2&Timestamp=2024-05-27T23%3A24%3A01&Signature=cDskzuI6HjGPNLBDQKWkUKmidBYM7ukoso%2BJKecAdiw%3D",
+                "input": [
+                  "ETH/USDT:USDT-240607",
+                  "sell",
+                  {
+                    "amount": 1,
+                    "marginMode": "cross"
+                  }
+                ],
+                "output": "{\"contract_code\":\"ETH-USDT-240607\",\"direction\":\"sell\"}"
+            },
+            {
+                "description": "Close position for an inverse swap",
+                "method": "closePosition",
+                "url": "https://api.hbdm.com/swap-api/v1/swap_lightning_close_position?AccessKeyId=bgbfh5tv3f-83da6485-1bbb64ae-3231b&SignatureMethod=HmacSHA256&SignatureVersion=2&Timestamp=2024-05-24T04%3A49%3A14&Signature=JoyjhToitlWbE2Hc4aGDB31emyJWr%2BVk2PCQO0RFDrQ%3D",
+                "input": [
+                  "XRP/USD:XRP",
+                  "sell",
+                  {
+                    "amount": 1
+                  }
+                ],
+                "output": "{\"contract_code\":\"XRP-USD\",\"direction\":\"sell\",\"volume\":\"1\"}"
+            },
+            {
+                "description": "Close position for a linear swap short with isolated margin",
+                "method": "closePosition",
+                "url": "https://api.hbdm.com/linear-swap-api/v1/swap_lightning_close_position?AccessKeyId=bgbfh5tv3f-83da6485-1bbb64ae-3231b&SignatureMethod=HmacSHA256&SignatureVersion=2&Timestamp=2024-05-24T04%3A54%3A03&Signature=b%2F5hXnh6DaWNJp4cgzHlOem5PzxG13n47kjzAppylEg%3D",
+                "input": [
+                  "ADA/USDT:USDT",
+                  "buy",
+                  {
+                    "marginMode": "isolated"
+                  }
+                ],
+                "output": "{\"contract_code\":\"ADA-USDT\",\"direction\":\"buy\"}"
+              }
         ]
     }
 }

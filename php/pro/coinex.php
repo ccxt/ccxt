@@ -676,12 +676,13 @@ class coinex extends \ccxt\async\coinex {
         //         "id" => null
         //     }
         //
+        $isSwap = mb_strpos($client->url, 'perpetual') !== false;
+        $marketType = $isSwap ? 'swap' : 'spot';
         $params = $this->safe_value($message, 'params', array());
         $fullOrderBook = $this->safe_value($params, 0);
         $orderbook = $this->safe_value($params, 1);
         $marketId = $this->safe_string($params, 2);
-        $defaultType = $this->safe_string($this->options, 'defaultType');
-        $market = $this->safe_market($marketId, null, null, $defaultType);
+        $market = $this->safe_market($marketId, null, null, $marketType);
         $symbol = $market['symbol'];
         $name = 'orderbook';
         $messageHash = $name . ':' . $symbol;

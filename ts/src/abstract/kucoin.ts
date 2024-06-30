@@ -200,11 +200,25 @@ interface Exchange {
     brokerGetBrokerNdAccount (params?: {}): Promise<implicitReturnType>;
     brokerGetBrokerNdAccountApikey (params?: {}): Promise<implicitReturnType>;
     brokerGetBrokerNdRebaseDownload (params?: {}): Promise<implicitReturnType>;
+    brokerGetBrokerNdTransferDetail (params?: {}): Promise<implicitReturnType>;
+    brokerGetBrokerNdDepositDetail (params?: {}): Promise<implicitReturnType>;
+    brokerGetBrokerNdWithdrawDetail (params?: {}): Promise<implicitReturnType>;
     brokerPostBrokerNdTransfer (params?: {}): Promise<implicitReturnType>;
     brokerPostBrokerNdAccount (params?: {}): Promise<implicitReturnType>;
     brokerPostBrokerNdAccountApikey (params?: {}): Promise<implicitReturnType>;
     brokerPostBrokerNdAccountUpdateApikey (params?: {}): Promise<implicitReturnType>;
     brokerDeleteBrokerNdAccountApikey (params?: {}): Promise<implicitReturnType>;
+    earnGetOtcLoanLoan (params?: {}): Promise<implicitReturnType>;
+    earnGetOtcLoanAccounts (params?: {}): Promise<implicitReturnType>;
+    earnGetEarnRedeemPreview (params?: {}): Promise<implicitReturnType>;
+    earnGetEarnSavingProducts (params?: {}): Promise<implicitReturnType>;
+    earnGetEarnHoldAssets (params?: {}): Promise<implicitReturnType>;
+    earnGetEarnPromotionProducts (params?: {}): Promise<implicitReturnType>;
+    earnGetEarnKcsStakingProducts (params?: {}): Promise<implicitReturnType>;
+    earnGetEarnStakingProducts (params?: {}): Promise<implicitReturnType>;
+    earnGetEarnEthStakingProducts (params?: {}): Promise<implicitReturnType>;
+    earnPostEarnOrders (params?: {}): Promise<implicitReturnType>;
+    earnDeleteEarnOrders (params?: {}): Promise<implicitReturnType>;
 }
 abstract class Exchange extends _Exchange {}
 

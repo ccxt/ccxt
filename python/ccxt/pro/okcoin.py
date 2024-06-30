@@ -63,7 +63,7 @@ class okcoin(ccxt.async_support.okcoin):
         market = self.market(symbol)
         url = self.urls['api']['ws']
         messageHash = market['type'] + '/' + channel + ':' + market['id']
-        request = {
+        request: dict = {
             'op': 'subscribe',
             'args': [messageHash],
         }
@@ -150,7 +150,7 @@ class okcoin(ccxt.async_support.okcoin):
             if self.orders is None:
                 self.orders = ArrayCacheBySymbolById(limit)
             stored = self.orders
-            marketIds = {}
+            marketIds: dict = {}
             parsed = self.parse_orders(orders)
             for i in range(0, len(parsed)):
                 order = parsed[i]
@@ -442,7 +442,7 @@ class okcoin(ccxt.async_support.okcoin):
             path = '/users/self/verify'
             auth = timestamp + method + path
             signature = self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha256, 'base64')
-            request = {
+            request: dict = {
                 'op': messageHash,
                 'args': [
                     self.apiKey,
@@ -502,7 +502,7 @@ class okcoin(ccxt.async_support.okcoin):
         messageHash = accountType + '/' + account
         subscriptionHash = messageHash + ':' + suffix
         url = self.urls['api']['ws']
-        request = {
+        request: dict = {
             'op': 'subscribe',
             'args': [subscriptionHash],
         }
@@ -668,7 +668,7 @@ class okcoin(ccxt.async_support.okcoin):
         if table is None:
             event = self.safe_string(message, 'event')
             if event is not None:
-                methods = {
+                methods: dict = {
                     # 'info': self.handleSystemStatus,
                     # 'book': 'handleOrderBook',
                     'login': self.handle_authenticate,
@@ -680,7 +680,7 @@ class okcoin(ccxt.async_support.okcoin):
         else:
             parts = table.split('/')
             name = self.safe_string(parts, 1)
-            methods = {
+            methods: dict = {
                 'depth': self.handle_order_book,
                 'depth5': self.handle_order_book,
                 'depth_l2_tbt': self.handle_order_book,

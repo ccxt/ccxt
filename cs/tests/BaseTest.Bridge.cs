@@ -164,3 +164,13 @@ public partial class BaseTest
     }
 
 }
+
+
+
+public partial class BaseTest
+{
+    public void testLanguageSpecific()
+    {
+
+    }
+}

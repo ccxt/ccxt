@@ -2,7 +2,7 @@
 
 import lunoRest from '../luno.js';
 import { ArrayCache } from '../base/ws/Cache.js';
-import type { Int, Trade, OrderBook, IndexType } from '../base/types.js';
+import type { Int, Trade, OrderBook, IndexType, Dict } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -52,10 +52,10 @@ export default class luno extends lunoRest {
         const market = this.market (symbol);
         symbol = market['symbol'];
         const subscriptionHash = '/stream/' + market['id'];
-        const subscription = { 'symbol': symbol };
+        const subscription: Dict = { 'symbol': symbol };
         const url = this.urls['api']['ws'] + subscriptionHash;
         const messageHash = 'trades:' + symbol;
-        const subscribe = {
+        const subscribe: Dict = {
             'api_key_id': this.apiKey,
             'api_key_secret': this.secret,
         };
@@ -152,10 +152,10 @@ export default class luno extends lunoRest {
         const market = this.market (symbol);
         symbol = market['symbol'];
         const subscriptionHash = '/stream/' + market['id'];
-        const subscription = { 'symbol': symbol };
+        const subscription: Dict = { 'symbol': symbol };
         const url = this.urls['api']['ws'] + subscriptionHash;
         const messageHash = 'orderbook:' + symbol;
-        const subscribe = {
+        const subscribe: Dict = {
             'api_key_id': this.apiKey,
             'api_key_secret': this.secret,
         };

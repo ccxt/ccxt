@@ -25,7 +25,7 @@ class bigone extends Exchange {
             'name' => 'BigONE',
             'countries' => array( 'CN' ),
             'version' => 'v3',
-            'rateLimit' => 1200, // 500 request per 10 minutes
+            'rateLimit' => 20, // 500 requests per 10 seconds
             'has' => array(
                 'CORS' => null,
                 'spot' => true,
@@ -1039,7 +1039,7 @@ class bigone extends Exchange {
         );
     }
 
-    public function parse_trade($trade, ?array $market = null): array {
+    public function parse_trade(array $trade, ?array $market = null): array {
         //
         // fetchTrades (public)
         //
@@ -1362,7 +1362,7 @@ class bigone extends Exchange {
         return $this->safe_string($types, $type, $type);
     }
 
-    public function parse_order($order, ?array $market = null): array {
+    public function parse_order(array $order, ?array $market = null): array {
         //
         //    {
         //        "id" => "42154072251",
@@ -1467,7 +1467,7 @@ class bigone extends Exchange {
              * @param {string} $type 'market' or 'limit'
              * @param {string} $side 'buy' or 'sell'
              * @param {float} $amount how much of currency you want to trade in units of base currency
-             * @param {float} [$price] the $price at which the $order is to be fullfilled, in units of the quote currency, ignored in $market orders
+             * @param {float} [$price] the $price at which the $order is to be fulfilled, in units of the quote currency, ignored in $market orders
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {float} [$params->triggerPrice] the $price at which a trigger $order is triggered at
              * @param {bool} [$params->postOnly] if true, the $order will only be posted to the $order book and not executed immediately
@@ -1761,7 +1761,7 @@ class bigone extends Exchange {
         }) ();
     }
 
-    public function parse_order_status($status) {
+    public function parse_order_status(?string $status) {
         $statuses = array(
             'PENDING' => 'open',
             'FILLED' => 'closed',
@@ -1898,7 +1898,7 @@ class bigone extends Exchange {
         }) ();
     }
 
-    public function parse_transaction_status($status) {
+    public function parse_transaction_status(?string $status) {
         $statuses = array(
             // what are other $statuses here?
             'WITHHOLD' => 'ok', // deposits
@@ -1910,7 +1910,7 @@ class bigone extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_transaction($transaction, ?array $currency = null): array {
+    public function parse_transaction(array $transaction, ?array $currency = null): array {
         //
         // fetchDeposits
         //
@@ -2235,7 +2235,7 @@ class bigone extends Exchange {
         }) ();
     }
 
-    public function handle_errors($httpCode, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
         if ($response === null) {
             return null; // fallback to default error handler
         }

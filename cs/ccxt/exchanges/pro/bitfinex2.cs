@@ -635,8 +635,7 @@ public partial class bitfinex2 : ccxt.bitfinex2
         object prec = this.safeString(subscription, "prec", "P0");
         object isRaw = (isEqual(prec, "R0"));
         // if it is an initial snapshot
-        object orderbook = this.safeValue(this.orderbooks, symbol);
-        if (isTrue(isEqual(orderbook, null)))
+        if (!isTrue((inOp(this.orderbooks, symbol))))
         {
             object limit = this.safeInteger(subscription, "len");
             if (isTrue(isRaw))
@@ -648,7 +647,7 @@ public partial class bitfinex2 : ccxt.bitfinex2
                 // P0, P1, P2, P3, P4
                 ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.countedOrderBook(new Dictionary<string, object>() {}, limit);
             }
-            orderbook = getValue(this.orderbooks, symbol);
+            object orderbook = getValue(this.orderbooks, symbol);
             if (isTrue(isRaw))
             {
                 object deltas = getValue(message, 1);
@@ -661,7 +660,7 @@ public partial class bitfinex2 : ccxt.bitfinex2
                     object bookside = getValue(orderbook, side);
                     object idString = this.safeString(delta, 0);
                     object price = this.safeFloat(delta, 1);
-                    (bookside as IOrderBookSide).store(price, size, idString);
+                    (bookside as IOrderBookSide).storeArray(new List<object>() {price, size, idString});
                 }
             } else
             {
@@ -675,13 +674,14 @@ public partial class bitfinex2 : ccxt.bitfinex2
                     object size = ((bool) isTrue((isLessThan(amount, 0)))) ? prefixUnaryNeg(ref amount) : amount;
                     object side = ((bool) isTrue((isLessThan(amount, 0)))) ? "asks" : "bids";
                     object bookside = getValue(orderbook, side);
-                    (bookside as IOrderBookSide).store(price, size, counter);
+                    (bookside as IOrderBookSide).storeArray(new List<object>() {price, size, counter});
                 }
             }
             ((IDictionary<string,object>)orderbook)["symbol"] = symbol;
             callDynamically(client as WebSocketClient, "resolve", new object[] {orderbook, messageHash});
         } else
         {
+            object orderbook = getValue(this.orderbooks, symbol);
             object deltas = getValue(message, 1);
             object orderbookItem = getValue(this.orderbooks, symbol);
             if (isTrue(isRaw))

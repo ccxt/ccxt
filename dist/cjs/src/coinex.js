@@ -18,7 +18,7 @@ class coinex extends coinex$1 {
         return this.deepExtend(super.describe(), {
             'id': 'coinex',
             'name': 'CoinEx',
-            'version': 'v1',
+            'version': 'v2',
             'countries': ['CN'],
             // IP ratelimit is 400 requests per second
             // rateLimit = 1000ms / 400 = 2.5
@@ -68,17 +68,17 @@ class coinex extends coinex$1 {
                 'fetchDepositAddressByNetwork': false,
                 'fetchDepositAddresses': false,
                 'fetchDeposits': true,
-                'fetchDepositWithdrawFee': 'emulated',
-                'fetchDepositWithdrawFees': true,
+                'fetchDepositWithdrawFee': true,
+                'fetchDepositWithdrawFees': false,
                 'fetchFundingHistory': true,
                 'fetchFundingRate': true,
                 'fetchFundingRateHistory': true,
                 'fetchFundingRates': true,
                 'fetchIndexOHLCV': false,
                 'fetchIsolatedBorrowRate': true,
-                'fetchIsolatedBorrowRates': true,
-                'fetchLeverage': 'emulated',
-                'fetchLeverages': true,
+                'fetchIsolatedBorrowRates': false,
+                'fetchLeverage': true,
+                'fetchLeverages': false,
                 'fetchLeverageTiers': true,
                 'fetchMarginAdjustmentHistory': true,
                 'fetchMarketLeverageTiers': 'emulated',
@@ -315,6 +315,8 @@ class coinex extends coinex$1 {
                             'futures/position-level': 1,
                             'futures/liquidation-history': 1,
                             'futures/basis-history': 1,
+                            'assets/deposit-withdraw-config': 1,
+                            'assets/all-deposit-withdraw-config': 1,
                         },
                     },
                     'private': {
@@ -337,7 +339,6 @@ class coinex extends coinex$1 {
                             'assets/deposit-address': 40,
                             'assets/deposit-history': 40,
                             'assets/withdraw': 40,
-                            'assets/deposit-withdraw-config': 1,
                             'assets/transfer-history': 40,
                             'spot/order-status': 8,
                             'spot/batch-order-status': 8,
@@ -531,131 +532,129 @@ class coinex extends coinex$1 {
         });
     }
     async fetchCurrencies(params = {}) {
-        const response = await this.v1PublicGetCommonAssetConfig(params);
+        /**
+         * @method
+         * @name coinex#fetchCurrencies
+         * @description fetches all available currencies on an exchange
+         * @see https://docs.coinex.com/api/v2/assets/deposit-withdrawal/http/list-all-deposit-withdrawal-config
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} an associative dictionary of currencies
+         */
+        const response = await this.v2PublicGetAssetsAllDepositWithdrawConfig(params);
+        //
         //     {
         //         "code": 0,
-        //         "data": {
-        //             "USDT-ERC20": {
-        //                  "asset": "USDT",
-        //                  "chain": "ERC20",
-        //                  "withdrawal_precision": 6,
-        //                  "can_deposit": true,
-        //                  "can_withdraw": true,
-        //                  "deposit_least_amount": "4.9",
-        //                  "withdraw_least_amount": "4.9",
-        //                  "withdraw_tx_fee": "4.9",
-        //                  "explorer_asset_url": "https://etherscan.io/token/0xdac17f958d2ee523a2206206994597c13d831ec7"
-        //             },
-        //             ...
-        //         },
-        //         "message": "Success",
+        //         "data": [
+        //             {
+        //                 "asset": {
+        //                     "ccy": "CET",
+        //                     "deposit_enabled": true,
+        //                     "withdraw_enabled": true,
+        //                     "inter_transfer_enabled": true,
+        //                     "is_st": false
+        //                 },
+        //                 "chains": [
+        //                     {
+        //                         "chain": "CSC",
+        //                         "min_deposit_amount": "0.8",
+        //                         "min_withdraw_amount": "8",
+        //                         "deposit_enabled": true,
+        //                         "withdraw_enabled": true,
+        //                         "deposit_delay_minutes": 0,
+        //                         "safe_confirmations": 10,
+        //                         "irreversible_confirmations": 20,
+        //                         "deflation_rate": "0",
+        //                         "withdrawal_fee": "0.026",
+        //                         "withdrawal_precision": 8,
+        //                         "memo": "",
+        //                         "is_memo_required_for_deposit": false,
+        //                         "explorer_asset_url": ""
+        //                     },
+        //                 ]
+        //             }
+        //         ],
+        //         "message": "OK"
         //     }
         //
-        const data = this.safeValue(response, 'data', []);
-        const coins = Object.keys(data);
+        const data = this.safeList(response, 'data', []);
         const result = {};
-        for (let i = 0; i < coins.length; i++) {
-            const coin = coins[i];
-            const currency = data[coin];
-            const currencyId = this.safeString(currency, 'asset');
-            const networkId = this.safeString(currency, 'chain');
+        for (let i = 0; i < data.length; i++) {
+            const coin = data[i];
+            const asset = this.safeDict(coin, 'asset', {});
+            const chains = this.safeList(coin, 'chains', []);
+            const currencyId = this.safeString(asset, 'ccy');
+            if (currencyId === undefined) {
+                continue; // coinex returns empty structures for some reason
+            }
             const code = this.safeCurrencyCode(currencyId);
-            const precisionString = this.parsePrecision(this.safeString(currency, 'withdrawal_precision'));
-            const precision = this.parseNumber(precisionString);
-            const canDeposit = this.safeValue(currency, 'can_deposit');
-            const canWithdraw = this.safeValue(currency, 'can_withdraw');
-            const feeString = this.safeString(currency, 'withdraw_tx_fee');
-            const fee = this.parseNumber(feeString);
-            const minNetworkDepositString = this.safeString(currency, 'deposit_least_amount');
-            const minNetworkDeposit = this.parseNumber(minNetworkDepositString);
-            const minNetworkWithdrawString = this.safeString(currency, 'withdraw_least_amount');
-            const minNetworkWithdraw = this.parseNumber(minNetworkWithdrawString);
-            if (this.safeValue(result, code) === undefined) {
-                result[code] = {
-                    'id': currencyId,
-                    'numericId': undefined,
-                    'code': code,
-                    'info': undefined,
-                    'name': undefined,
-                    'active': canDeposit && canWithdraw,
-                    'deposit': canDeposit,
-                    'withdraw': canWithdraw,
-                    'fee': fee,
-                    'precision': precision,
-                    'limits': {
-                        'amount': {
-                            'min': undefined,
-                            'max': undefined,
-                        },
-                        'deposit': {
-                            'min': minNetworkDeposit,
-                            'max': undefined,
-                        },
-                        'withdraw': {
-                            'min': minNetworkWithdraw,
-                            'max': undefined,
-                        },
-                    },
-                };
-            }
-            let minFeeString = this.safeString(result[code], 'fee');
-            if (feeString !== undefined) {
-                minFeeString = (minFeeString === undefined) ? feeString : Precise["default"].stringMin(feeString, minFeeString);
-            }
-            let depositAvailable = this.safeValue(result[code], 'deposit');
-            depositAvailable = (canDeposit) ? canDeposit : depositAvailable;
-            let withdrawAvailable = this.safeValue(result[code], 'withdraw');
-            withdrawAvailable = (canWithdraw) ? canWithdraw : withdrawAvailable;
-            let minDepositString = this.safeString(result[code]['limits']['deposit'], 'min');
-            if (minNetworkDepositString !== undefined) {
-                minDepositString = (minDepositString === undefined) ? minNetworkDepositString : Precise["default"].stringMin(minNetworkDepositString, minDepositString);
-            }
-            let minWithdrawString = this.safeString(result[code]['limits']['withdraw'], 'min');
-            if (minNetworkWithdrawString !== undefined) {
-                minWithdrawString = (minWithdrawString === undefined) ? minNetworkWithdrawString : Precise["default"].stringMin(minNetworkWithdrawString, minWithdrawString);
-            }
-            let minPrecisionString = this.safeString(result[code], 'precision');
-            if (precisionString !== undefined) {
-                minPrecisionString = (minPrecisionString === undefined) ? precisionString : Precise["default"].stringMin(precisionString, minPrecisionString);
-            }
-            const networks = this.safeValue(result[code], 'networks', {});
-            const network = {
-                'info': currency,
-                'id': networkId,
-                'network': networkId,
+            const canDeposit = this.safeBool(asset, 'deposit_enabled');
+            const canWithdraw = this.safeBool(asset, 'withdraw_enabled');
+            const firstChain = this.safeDict(chains, 0, {});
+            const firstPrecisionString = this.parsePrecision(this.safeString(firstChain, 'withdrawal_precision'));
+            result[code] = {
+                'id': currencyId,
+                'code': code,
                 'name': undefined,
+                'active': canDeposit && canWithdraw,
+                'deposit': canDeposit,
+                'withdraw': canWithdraw,
+                'fee': undefined,
+                'precision': this.parseNumber(firstPrecisionString),
                 'limits': {
                     'amount': {
                         'min': undefined,
                         'max': undefined,
                     },
                     'deposit': {
-                        'min': this.safeNumber(currency, 'deposit_least_amount'),
+                        'min': undefined,
                         'max': undefined,
                     },
                     'withdraw': {
-                        'min': this.safeNumber(currency, 'withdraw_least_amount'),
+                        'min': undefined,
                         'max': undefined,
                     },
                 },
-                'active': canDeposit && canWithdraw,
-                'deposit': canDeposit,
-                'withdraw': canWithdraw,
-                'fee': fee,
-                'precision': precision,
+                'networks': {},
+                'info': coin,
             };
-            networks[networkId] = network;
-            result[code]['networks'] = networks;
-            result[code]['active'] = depositAvailable && withdrawAvailable;
-            result[code]['deposit'] = depositAvailable;
-            result[code]['withdraw'] = withdrawAvailable;
-            const info = this.safeValue(result[code], 'info', []);
-            info.push(currency);
-            result[code]['info'] = info;
-            result[code]['fee'] = this.parseNumber(minFeeString);
-            result[code]['precision'] = this.parseNumber(minPrecisionString);
-            result[code]['limits']['deposit']['min'] = this.parseNumber(minDepositString);
-            result[code]['limits']['withdraw']['min'] = this.parseNumber(minWithdrawString);
+            for (let j = 0; j < chains.length; j++) {
+                const chain = chains[j];
+                const networkId = this.safeString(chain, 'chain');
+                const precisionString = this.parsePrecision(this.safeString(chain, 'withdrawal_precision'));
+                const feeString = this.safeString(chain, 'withdrawal_fee');
+                const minNetworkDepositString = this.safeString(chain, 'min_deposit_amount');
+                const minNetworkWithdrawString = this.safeString(chain, 'min_withdraw_amount');
+                const canDepositChain = this.safeBool(chain, 'deposit_enabled');
+                const canWithdrawChain = this.safeBool(chain, 'withdraw_enabled');
+                const network = {
+                    'id': networkId,
+                    'network': networkId,
+                    'name': undefined,
+                    'active': canDepositChain && canWithdrawChain,
+                    'deposit': canDepositChain,
+                    'withdraw': canWithdrawChain,
+                    'fee': this.parseNumber(feeString),
+                    'precision': this.parseNumber(precisionString),
+                    'limits': {
+                        'amount': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
+                        'deposit': {
+                            'min': this.parseNumber(minNetworkDepositString),
+                            'max': undefined,
+                        },
+                        'withdraw': {
+                            'min': this.parseNumber(minNetworkWithdrawString),
+                            'max': undefined,
+                        },
+                    },
+                    'info': chain,
+                };
+                const networks = this.safeDict(result[code], 'networks', {});
+                networks[networkId] = network;
+                result[code]['networks'] = networks;
+            }
         }
         return result;
     }
@@ -1673,16 +1672,15 @@ class coinex extends coinex$1 {
         [marketType, params] = this.handleMarketTypeAndParams('fetchBalance', undefined, params);
         let marginMode = undefined;
         [marginMode, params] = this.handleMarginModeAndParams('fetchBalance', params);
-        marketType = (marginMode !== undefined) ? 'margin' : marketType;
-        params = this.omit(params, 'margin');
-        if (marketType === 'margin') {
-            return await this.fetchMarginBalance(params);
-        }
-        else if (marketType === 'swap') {
+        const isMargin = (marginMode !== undefined) || (marketType === 'margin');
+        if (marketType === 'swap') {
             return await this.fetchSwapBalance(params);
         }
         else if (marketType === 'financial') {
             return await this.fetchFinancialBalance(params);
+        }
+        else if (isMargin) {
+            return await this.fetchMarginBalance(params);
         }
         else {
             return await this.fetchSpotBalance(params);
@@ -2113,7 +2111,7 @@ class coinex extends coinex$1 {
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much you want to trade in units of the base currency
-         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {float} [params.triggerPrice] price to trigger stop orders
          * @param {float} [params.stopLossPrice] price to trigger stop loss orders
@@ -2750,7 +2748,7 @@ class coinex extends coinex$1 {
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of the currency you want to trade in units of the base currency
-         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {float} [params.triggerPrice] the price to trigger stop orders
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -3230,7 +3228,11 @@ class coinex extends coinex$1 {
             // {"code":0,"data":{},"message":"OK"}
             //
         }
-        return response;
+        return [
+            this.safeOrder({
+                'info': response,
+            }),
+        ];
     }
     async fetchOrder(id, symbol = undefined, params = {}) {
         /**
@@ -4643,7 +4645,7 @@ class coinex extends coinex$1 {
          * @method
          * @name coinex#withdraw
          * @description make a withdrawal
-         * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot002_account015_submit_withdraw
+         * @see https://docs.coinex.com/api/v2/assets/deposit-withdrawal/http/withdrawal
          * @param {string} code unified currency code
          * @param {float} amount the amount to withdraw
          * @param {string} address the address to withdraw to
@@ -4656,37 +4658,44 @@ class coinex extends coinex$1 {
         this.checkAddress(address);
         await this.loadMarkets();
         const currency = this.currency(code);
-        const networkCode = this.safeStringUpper(params, 'network');
+        const networkCode = this.safeStringUpper2(params, 'network', 'chain');
         params = this.omit(params, 'network');
         if (tag) {
             address = address + ':' + tag;
         }
         const request = {
-            'coin_type': currency['id'],
-            'coin_address': address,
-            'actual_amount': parseFloat(this.numberToString(amount)),
-            'transfer_method': 'onchain', // onchain, local
+            'ccy': currency['id'],
+            'to_address': address,
+            'amount': this.numberToString(amount), // the actual amount without fees, https://www.coinex.com/fees
         };
         if (networkCode !== undefined) {
-            request['smart_contract_name'] = this.networkCodeToId(networkCode);
+            request['chain'] = this.networkCodeToId(networkCode); // required for on-chain, not required for inter-user transfer
         }
-        const response = await this.v1PrivatePostBalanceCoinWithdraw(this.extend(request, params));
+        const response = await this.v2PrivatePostAssetsWithdraw(this.extend(request, params));
         //
         //     {
         //         "code": 0,
         //         "data": {
-        //             "actual_amount": "1.00000000",
-        //             "amount": "1.00000000",
-        //             "coin_address": "1KAv3pazbTk2JnQ5xTo6fpKK7p1it2RzD4",
-        //             "coin_type": "BCH",
-        //             "coin_withdraw_id": 206,
+        //             "withdraw_id": 31193755,
+        //             "created_at": 1716874165038,
+        //             "withdraw_method": "ON_CHAIN",
+        //             "ccy": "USDT",
+        //             "amount": "17.3",
+        //             "actual_amount": "15",
+        //             "chain": "TRC20",
+        //             "tx_fee": "2.3",
+        //             "fee_asset": "USDT",
+        //             "fee_amount": "2.3",
+        //             "to_address": "TY5vq3MT6b5cQVAHWHtpGyPg1ERcQgi3UN",
+        //             "memo": "",
+        //             "tx_id": "",
         //             "confirmations": 0,
-        //             "create_time": 1524228297,
-        //             "status": "audit",
-        //             "tx_fee": "0",
-        //             "tx_id": ""
+        //             "explorer_address_url": "https://tronscan.org/#/address/TY5vq3MT6b5cQVAHWHtpGyPg1ERcQgi3UN",
+        //             "explorer_tx_url": "https://tronscan.org/#/transaction/",
+        //             "remark": "",
+        //             "status": "audit_required"
         //         },
-        //         "message": "Ok"
+        //         "message": "OK"
         //     }
         //
         const transaction = this.safeDict(response, 'data', {});
@@ -4797,7 +4806,7 @@ class coinex extends coinex$1 {
         //         "remark": ""
         //     }
         //
-        // fetchWithdrawals
+        // fetchWithdrawals and withdraw
         //
         //     {
         //         "withdraw_id": 259364,
@@ -5137,29 +5146,31 @@ class coinex extends coinex$1 {
         //
         //     {
         //         "market": "BTCUSDT",
+        //         "ccy": "USDT",
         //         "leverage": 10,
-        //         "BTC": {
-        //             "min_amount": "0.002",
-        //             "max_amount": "200",
-        //             "day_rate": "0.001"
-        //         },
-        //         "USDT": {
-        //             "min_amount": "60",
-        //             "max_amount": "5000000",
-        //             "day_rate": "0.001"
-        //         }
-        //     },
+        //         "min_amount": "60",
+        //         "max_amount": "500000",
+        //         "daily_interest_rate": "0.001"
+        //     }
         //
         const marketId = this.safeString(info, 'market');
         market = this.safeMarket(marketId, market, undefined, 'spot');
-        const baseInfo = this.safeValue(info, market['baseId']);
-        const quoteInfo = this.safeValue(info, market['quoteId']);
+        const currency = this.safeString(info, 'ccy');
+        const rate = this.safeNumber(info, 'daily_interest_rate');
+        let baseRate = undefined;
+        let quoteRate = undefined;
+        if (currency === market['baseId']) {
+            baseRate = rate;
+        }
+        else if (currency === market['quoteId']) {
+            quoteRate = rate;
+        }
         return {
             'symbol': market['symbol'],
             'base': market['base'],
-            'baseRate': this.safeNumber(baseInfo, 'day_rate'),
+            'baseRate': baseRate,
             'quote': market['quote'],
-            'quoteRate': this.safeNumber(quoteInfo, 'day_rate'),
+            'quoteRate': quoteRate,
             'period': 86400000,
             'timestamp': undefined,
             'datetime': undefined,
@@ -5171,77 +5182,55 @@ class coinex extends coinex$1 {
          * @method
          * @name coinex#fetchIsolatedBorrowRate
          * @description fetch the rate of interest to borrow a currency for margin trading
-         * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot002_account007_margin_account_settings
+         * @see https://docs.coinex.com/api/v2/assets/loan-flat/http/list-margin-interest-limit
          * @param {string} symbol unified symbol of the market to fetch the borrow rate for
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} params.code unified currency code
          * @returns {object} an [isolated borrow rate structure]{@link https://docs.ccxt.com/#/?id=isolated-borrow-rate-structure}
          */
         await this.loadMarkets();
+        const code = this.safeString(params, 'code');
+        if (code === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' fetchIsolatedBorrowRate() requires a code parameter');
+        }
+        params = this.omit(params, 'code');
+        const currency = this.currency(code);
         const market = this.market(symbol);
         const request = {
             'market': market['id'],
+            'ccy': currency['id'],
         };
-        const response = await this.v1PrivateGetMarginConfig(this.extend(request, params));
+        const response = await this.v2PrivateGetAssetsMarginInterestLimit(this.extend(request, params));
         //
         //     {
         //         "code": 0,
         //         "data": {
         //             "market": "BTCUSDT",
+        //             "ccy": "USDT",
         //             "leverage": 10,
-        //             "BTC": {
-        //                 "min_amount": "0.002",
-        //                 "max_amount": "200",
-        //                 "day_rate": "0.001"
-        //             },
-        //             "USDT": {
-        //                 "min_amount": "60",
-        //                 "max_amount": "5000000",
-        //                 "day_rate": "0.001"
-        //             }
+        //             "min_amount": "60",
+        //             "max_amount": "500000",
+        //             "daily_interest_rate": "0.001"
         //         },
-        //         "message": "Success"
+        //         "message": "OK"
         //     }
         //
-        const data = this.safeValue(response, 'data', {});
+        const data = this.safeDict(response, 'data', {});
         return this.parseIsolatedBorrowRate(data, market);
     }
-    async fetchIsolatedBorrowRates(params = {}) {
+    async fetchBorrowInterest(code = undefined, symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
-         * @name coinex#fetchIsolatedBorrowRates
-         * @description fetch the borrow interest rates of all currencies
-         * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot002_account007_margin_account_settings
+         * @name coinex#fetchBorrowInterest
+         * @description fetch the interest owed by the user for borrowing currency for margin trading
+         * @see https://docs.coinex.com/api/v2/assets/loan-flat/http/list-margin-borrow-history
+         * @param {string} [code] unified currency code
+         * @param {string} [symbol] unified market symbol when fetch interest in isolated markets
+         * @param {int} [since] the earliest time in ms to fetch borrrow interest for
+         * @param {int} [limit] the maximum number of structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a list of [isolated borrow rate structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#isolated-borrow-rate-structure}
+         * @returns {object[]} a list of [borrow interest structures]{@link https://docs.ccxt.com/#/?id=borrow-interest-structure}
          */
-        await this.loadMarkets();
-        const response = await this.v1PrivateGetMarginConfig(params);
-        //
-        //     {
-        //         "code": 0,
-        //         "data": [
-        //             {
-        //                 "market": "BTCUSDT",
-        //                 "leverage": 10,
-        //                 "BTC": {
-        //                     "min_amount": "0.002",
-        //                     "max_amount": "200",
-        //                     "day_rate": "0.001"
-        //                 },
-        //                 "USDT": {
-        //                     "min_amount": "60",
-        //                     "max_amount": "5000000",
-        //                     "day_rate": "0.001"
-        //                 }
-        //             },
-        //         ],
-        //         "message": "Success"
-        //     }
-        //
-        const data = this.safeValue(response, 'data', []);
-        return this.parseIsolatedBorrowRates(data);
-    }
-    async fetchBorrowInterest(code = undefined, symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets();
         const request = {};
         let market = undefined;
@@ -5252,77 +5241,62 @@ class coinex extends coinex$1 {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this.v1PrivateGetMarginLoanHistory(this.extend(request, params));
+        const response = await this.v2PrivateGetAssetsMarginBorrowHistory(this.extend(request, params));
         //
         //     {
-        //         "code": 0,
-        //         "data": {
-        //             "page": 1,
-        //             "limit": 10,
-        //             "total": 1,
-        //             "has_next": false,
-        //             "curr_page": 1,
-        //             "count": 1,
-        //             "data": [
-        //                 {
-        //                     "loan_id": 2616357,
-        //                     "create_time": 1654214027,
-        //                     "market_type": "BTCUSDT",
-        //                     "coin_type": "BTC",
-        //                     "day_rate": "0.001",
-        //                     "loan_amount": "0.0144",
-        //                     "interest_amount": "0",
-        //                     "unflat_amount": "0",
-        //                     "expire_time": 1655078027,
-        //                     "is_renew": true,
-        //                     "status": "finish"
-        //                 }
-        //             ],
-        //             "total_page": 1
+        //         "data": [
+        //             {
+        //                 "borrow_id": 2642934,
+        //                 "created_at": 1654761016000,
+        //                 "market": "BTCUSDT",
+        //                 "ccy": "USDT",
+        //                 "daily_interest_rate": "0.001",
+        //                 "expired_at": 1655625016000,
+        //                 "borrow_amount": "100",
+        //                 "to_repaied_amount": "0",
+        //                 "is_auto_renew": false,
+        //                 "status": "finish"
+        //             },
+        //         ],
+        //         "pagination": {
+        //             "total": 4,
+        //             "has_next": true
         //         },
-        //         "message": "Success"
+        //         "code": 0,
+        //         "message": "OK"
         //     }
         //
-        const data = this.safeValue(response, 'data', {});
-        const rows = this.safeValue(data, 'data', []);
+        const rows = this.safeValue(response, 'data', []);
         const interest = this.parseBorrowInterests(rows, market);
         return this.filterByCurrencySinceLimit(interest, code, since, limit);
     }
     parseBorrowInterest(info, market = undefined) {
         //
         //     {
-        //         "loan_id": 2616357,
-        //         "create_time": 1654214027,
-        //         "market_type": "BTCUSDT",
-        //         "coin_type": "BTC",
-        //         "day_rate": "0.001",
-        //         "loan_amount": "0.0144",
-        //         "interest_amount": "0",
-        //         "unflat_amount": "0",
-        //         "expire_time": 1655078027,
-        //         "is_renew": true,
+        //         "borrow_id": 2642934,
+        //         "created_at": 1654761016000,
+        //         "market": "BTCUSDT",
+        //         "ccy": "USDT",
+        //         "daily_interest_rate": "0.001",
+        //         "expired_at": 1655625016000,
+        //         "borrow_amount": "100",
+        //         "to_repaied_amount": "0",
+        //         "is_auto_renew": false,
         //         "status": "finish"
         //     }
         //
-        const marketId = this.safeString(info, 'market_type');
+        const marketId = this.safeString(info, 'market');
         market = this.safeMarket(marketId, market, undefined, 'spot');
-        const symbol = this.safeString(market, 'symbol');
-        const timestamp = this.safeTimestamp(info, 'expire_time');
-        const unflatAmount = this.safeString(info, 'unflat_amount');
-        const loanAmount = this.safeString(info, 'loan_amount');
-        let interest = Precise["default"].stringSub(unflatAmount, loanAmount);
-        if (unflatAmount === '0') {
-            interest = undefined;
-        }
+        const timestamp = this.safeInteger(info, 'expired_at');
         return {
             'account': undefined,
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'marginMode': 'isolated',
             'marginType': undefined,
-            'currency': this.safeCurrencyCode(this.safeString(info, 'coin_type')),
-            'interest': this.parseNumber(interest),
-            'interestRate': this.safeNumber(info, 'day_rate'),
-            'amountBorrowed': this.parseNumber(loanAmount),
+            'currency': this.safeCurrencyCode(this.safeString(info, 'ccy')),
+            'interest': this.safeNumber(info, 'to_repaied_amount'),
+            'interestRate': this.safeNumber(info, 'daily_interest_rate'),
+            'amountBorrowed': this.safeNumber(info, 'borrow_amount'),
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
             'info': info,
@@ -5333,32 +5307,43 @@ class coinex extends coinex$1 {
          * @method
          * @name coinex#borrowIsolatedMargin
          * @description create a loan to borrow margin
-         * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot002_account017_margin_loan
+         * @see https://docs.coinex.com/api/v2/assets/loan-flat/http/margin-borrow
          * @param {string} symbol unified market symbol, required for coinex
          * @param {string} code unified currency code of the currency to borrow
          * @param {float} amount the amount to borrow
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {boolean} [params.isAutoRenew] whether to renew the margin loan automatically or not, default is false
          * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/#/?id=margin-loan-structure}
          */
         await this.loadMarkets();
         const market = this.market(symbol);
         const currency = this.currency(code);
+        const isAutoRenew = this.safeBool2(params, 'isAutoRenew', 'is_auto_renew', false);
+        params = this.omit(params, 'isAutoRenew');
         const request = {
             'market': market['id'],
-            'coin_type': currency['id'],
-            'amount': this.currencyToPrecision(code, amount),
+            'ccy': currency['id'],
+            'borrow_amount': this.currencyToPrecision(code, amount),
+            'is_auto_renew': isAutoRenew,
         };
-        const response = await this.v1PrivatePostMarginLoan(this.extend(request, params));
+        const response = await this.v2PrivatePostAssetsMarginBorrow(this.extend(request, params));
         //
         //     {
         //         "code": 0,
         //         "data": {
-        //             "loan_id": 1670
+        //             "borrow_id": 13784021,
+        //             "market": "BTCUSDT",
+        //             "ccy": "USDT",
+        //             "daily_interest_rate": "0.001",
+        //             "expired_at": 1717299948340,
+        //             "borrow_amount": "60",
+        //             "to_repaied_amount": "60.0025",
+        //             "status": "loan"
         //         },
-        //         "message": "Success"
+        //         "message": "OK"
         //     }
         //
-        const data = this.safeValue(response, 'data', {});
+        const data = this.safeDict(response, 'data', {});
         const transaction = this.parseMarginLoan(data, currency);
         return this.extend(transaction, {
             'amount': amount,
@@ -5370,12 +5355,12 @@ class coinex extends coinex$1 {
          * @method
          * @name coinex#repayIsolatedMargin
          * @description repay borrowed margin and interest
-         * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot002_account018_margin_flat
+         * @see https://docs.coinex.com/api/v2/assets/loan-flat/http/margin-repay
          * @param {string} symbol unified market symbol, required for coinex
          * @param {string} code unified currency code of the currency to repay
          * @param {float} amount the amount to repay
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {string} [params.loan_id] extra parameter that is not required
+         * @param {string} [params.borrow_id] extra parameter that is not required
          * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/#/?id=margin-loan-structure}
          */
         await this.loadMarkets();
@@ -5383,18 +5368,19 @@ class coinex extends coinex$1 {
         const currency = this.currency(code);
         const request = {
             'market': market['id'],
-            'coin_type': currency['id'],
+            'ccy': currency['id'],
             'amount': this.currencyToPrecision(code, amount),
         };
-        const response = await this.v1PrivatePostMarginFlat(this.extend(request, params));
+        const response = await this.v2PrivatePostAssetsMarginRepay(this.extend(request, params));
         //
         //     {
         //         "code": 0,
-        //         "data": null,
-        //         "message": "Success"
+        //         "data": {},
+        //         "message": "OK"
         //     }
         //
-        const transaction = this.parseMarginLoan(response, currency);
+        const data = this.safeDict(response, 'data', {});
+        const transaction = this.parseMarginLoan(data, currency);
         return this.extend(transaction, {
             'amount': amount,
             'symbol': symbol,
@@ -5402,181 +5388,208 @@ class coinex extends coinex$1 {
     }
     parseMarginLoan(info, currency = undefined) {
         //
-        // borrowMargin
-        //
         //     {
-        //         "loan_id": 1670
+        //         "borrow_id": 13784021,
+        //         "market": "BTCUSDT",
+        //         "ccy": "USDT",
+        //         "daily_interest_rate": "0.001",
+        //         "expired_at": 1717299948340,
+        //         "borrow_amount": "60",
+        //         "to_repaied_amount": "60.0025",
+        //         "status": "loan"
         //     }
         //
-        // repayMargin
-        //
-        //     {
-        //         "code": 0,
-        //         "data": null,
-        //         "message": "Success"
-        //     }
-        //
+        const currencyId = this.safeString(info, 'ccy');
+        const marketId = this.safeString(info, 'market');
+        const timestamp = this.safeInteger(info, 'expired_at');
         return {
-            'id': this.safeInteger(info, 'loan_id'),
-            'currency': this.safeCurrencyCode(undefined, currency),
-            'amount': undefined,
-            'symbol': undefined,
-            'timestamp': undefined,
-            'datetime': undefined,
+            'id': this.safeInteger(info, 'borrow_id'),
+            'currency': this.safeCurrencyCode(currencyId, currency),
+            'amount': this.safeString(info, 'borrow_amount'),
+            'symbol': this.safeSymbol(marketId, undefined, undefined, 'spot'),
+            'timestamp': timestamp,
+            'datetime': this.iso8601(timestamp),
             'info': info,
         };
     }
-    async fetchDepositWithdrawFees(codes = undefined, params = {}) {
+    async fetchDepositWithdrawFee(code, params = {}) {
         /**
          * @method
-         * @name coinex#fetchDepositWithdrawFees
-         * @description fetch deposit and withdraw fees
-         * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot001_market010_asset_config
-         * @param {string[]|undefined} codes list of unified currency codes
+         * @name coinex#fetchDepositWithdrawFee
+         * @description fetch the fee for deposits and withdrawals
+         * @see https://docs.coinex.com/api/v2/assets/deposit-withdrawal/http/get-deposit-withdrawal-config
+         * @param {string} code unified currency code
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object[]} a list of [fees structures]{@link https://docs.ccxt.com/#/?id=fee-structure}
+         * @returns {object} a [fee structure]{@link https://docs.ccxt.com/#/?id=fee-structure}
          */
         await this.loadMarkets();
-        const request = {};
-        if (codes !== undefined) {
-            const codesLength = codes.length;
-            if (codesLength === 1) {
-                request['coin_type'] = this.safeValue(codes, 0);
-            }
-        }
-        const response = await this.v1PublicGetCommonAssetConfig(this.extend(request, params));
-        //
-        //    {
-        //        "code": 0,
-        //        "data": {
-        //            "CET-CSC": {
-        //                "asset": "CET",
-        //                "chain": "CSC",
-        //                "can_deposit": true,
-        //                "can_withdraw ": false,
-        //                "deposit_least_amount": "1",
-        //                "withdraw_least_amount": "1",
-        //                "withdraw_tx_fee": "0.1"
-        //            },
-        //            "CET-ERC20": {
-        //                "asset": "CET",
-        //                "chain": "ERC20",
-        //                "can_deposit": true,
-        //                "can_withdraw": false,
-        //                "deposit_least_amount": "14",
-        //                "withdraw_least_amount": "14",
-        //                "withdraw_tx_fee": "14"
-        //            }
-        //        },
-        //        "message": "Success"
-        //    }
-        //
-        return this.parseDepositWithdrawFees(response, codes);
-    }
-    parseDepositWithdrawFees(response, codes = undefined, currencyIdKey = undefined) {
-        const depositWithdrawFees = {};
-        codes = this.marketCodes(codes);
-        const data = this.safeValue(response, 'data');
-        const currencyIds = Object.keys(data);
-        for (let i = 0; i < currencyIds.length; i++) {
-            const entry = currencyIds[i];
-            const splitEntry = entry.split('-');
-            const feeInfo = data[currencyIds[i]];
-            const currencyId = this.safeString(feeInfo, 'asset');
-            const currency = this.safeCurrency(currencyId);
-            const code = this.safeString(currency, 'code');
-            if ((codes === undefined) || (this.inArray(code, codes))) {
-                const depositWithdrawFee = this.safeValue(depositWithdrawFees, code);
-                if (depositWithdrawFee === undefined) {
-                    depositWithdrawFees[code] = this.depositWithdrawFee({});
-                }
-                depositWithdrawFees[code]['info'][entry] = feeInfo;
-                const networkId = this.safeString(splitEntry, 1);
-                const withdrawFee = this.safeValue(feeInfo, 'withdraw_tx_fee');
-                const withdrawResult = {
-                    'fee': withdrawFee,
-                    'percentage': (withdrawFee !== undefined) ? false : undefined,
-                };
-                const depositResult = {
-                    'fee': undefined,
-                    'percentage': undefined,
-                };
-                if (networkId !== undefined) {
-                    const networkCode = this.networkIdToCode(networkId);
-                    depositWithdrawFees[code]['networks'][networkCode] = {
-                        'withdraw': withdrawResult,
-                        'deposit': depositResult,
-                    };
-                }
-                else {
-                    depositWithdrawFees[code]['withdraw'] = withdrawResult;
-                    depositWithdrawFees[code]['deposit'] = depositResult;
-                }
-            }
-        }
-        const depositWithdrawCodes = Object.keys(depositWithdrawFees);
-        for (let i = 0; i < depositWithdrawCodes.length; i++) {
-            const code = depositWithdrawCodes[i];
-            const currency = this.currency(code);
-            depositWithdrawFees[code] = this.assignDefaultDepositWithdrawFees(depositWithdrawFees[code], currency);
-        }
-        return depositWithdrawFees;
-    }
-    async fetchLeverages(symbols = undefined, params = {}) {
-        /**
-         * @method
-         * @name coinex#fetchLeverages
-         * @description fetch the set leverage for all contract and margin markets
-         * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot002_account007_margin_account_settings
-         * @param {string[]} [symbols] a list of unified market symbols
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a list of [leverage structures]{@link https://docs.ccxt.com/#/?id=leverage-structure}
-         */
-        await this.loadMarkets();
-        symbols = this.marketSymbols(symbols);
-        let market = undefined;
-        if (symbols !== undefined) {
-            const symbol = this.safeValue(symbols, 0);
-            market = this.market(symbol);
-        }
-        let marketType = undefined;
-        [marketType, params] = this.handleMarketTypeAndParams('fetchLeverages', market, params);
-        if (marketType !== 'spot') {
-            throw new errors.NotSupported(this.id + ' fetchLeverages() supports spot margin markets only');
-        }
-        const response = await this.v1PrivateGetMarginConfig(params);
+        const currency = this.currency(code);
+        const request = {
+            'ccy': currency['id'],
+        };
+        const response = await this.v2PublicGetAssetsDepositWithdrawConfig(this.extend(request, params));
         //
         //     {
         //         "code": 0,
-        //         "data": [
-        //             {
-        //                 "market": "BTCUSDT",
-        //                 "leverage": 10,
-        //                 "BTC": {
-        //                     "min_amount": "0.0008",
-        //                     "max_amount": "200",
-        //                     "day_rate": "0.0015"
-        //                 },
-        //                 "USDT": {
-        //                     "min_amount": "50",
-        //                     "max_amount": "500000",
-        //                     "day_rate": "0.001"
-        //                 }
+        //         "data": {
+        //             "asset": {
+        //                 "ccy": "USDT",
+        //                 "deposit_enabled": true,
+        //                 "withdraw_enabled": true,
+        //                 "inter_transfer_enabled": true,
+        //                 "is_st": false
         //             },
-        //         ],
-        //         "message": "Success"
+        //             "chains": [
+        //                 {
+        //                     "chain": "TRC20",
+        //                     "min_deposit_amount": "2.4",
+        //                     "min_withdraw_amount": "2.4",
+        //                     "deposit_enabled": true,
+        //                     "withdraw_enabled": true,
+        //                     "deposit_delay_minutes": 0,
+        //                     "safe_confirmations": 10,
+        //                     "irreversible_confirmations": 20,
+        //                     "deflation_rate": "0",
+        //                     "withdrawal_fee": "2.4",
+        //                     "withdrawal_precision": 6,
+        //                     "memo": "",
+        //                     "is_memo_required_for_deposit": false,
+        //                     "explorer_asset_url": "https://tronscan.org/#/token20/TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t"
+        //                 },
+        //             ]
+        //         },
+        //         "message": "OK"
         //     }
         //
-        const leverages = this.safeList(response, 'data', []);
-        return this.parseLeverages(leverages, symbols, 'market', marketType);
+        const data = this.safeDict(response, 'data', {});
+        return this.parseDepositWithdrawFee(data, currency);
+    }
+    parseDepositWithdrawFee(fee, currency = undefined) {
+        //
+        //     {
+        //         "asset": {
+        //             "ccy": "USDT",
+        //             "deposit_enabled": true,
+        //             "withdraw_enabled": true,
+        //             "inter_transfer_enabled": true,
+        //             "is_st": false
+        //         },
+        //         "chains": [
+        //             {
+        //                 "chain": "TRC20",
+        //                 "min_deposit_amount": "2.4",
+        //                 "min_withdraw_amount": "2.4",
+        //                 "deposit_enabled": true,
+        //                 "withdraw_enabled": true,
+        //                 "deposit_delay_minutes": 0,
+        //                 "safe_confirmations": 10,
+        //                 "irreversible_confirmations": 20,
+        //                 "deflation_rate": "0",
+        //                 "withdrawal_fee": "2.4",
+        //                 "withdrawal_precision": 6,
+        //                 "memo": "",
+        //                 "is_memo_required_for_deposit": false,
+        //                 "explorer_asset_url": "https://tronscan.org/#/token20/TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t"
+        //             },
+        //         ]
+        //     }
+        //
+        const result = {
+            'info': fee,
+            'withdraw': {
+                'fee': undefined,
+                'percentage': undefined,
+            },
+            'deposit': {
+                'fee': undefined,
+                'percentage': undefined,
+            },
+            'networks': {},
+        };
+        const chains = this.safeList(fee, 'chains', []);
+        const asset = this.safeDict(fee, 'asset', {});
+        for (let i = 0; i < chains.length; i++) {
+            const entry = chains[i];
+            const isWithdrawEnabled = this.safeBool(entry, 'withdraw_enabled');
+            if (isWithdrawEnabled) {
+                result['withdraw']['fee'] = this.safeNumber(entry, 'withdrawal_fee');
+                result['withdraw']['percentage'] = false;
+                const networkId = this.safeString(entry, 'chain');
+                if (networkId) {
+                    const networkCode = this.networkIdToCode(networkId, this.safeString(asset, 'ccy'));
+                    result['networks'][networkCode] = {
+                        'withdraw': {
+                            'fee': this.safeNumber(entry, 'withdrawal_fee'),
+                            'percentage': false,
+                        },
+                        'deposit': {
+                            'fee': undefined,
+                            'percentage': undefined,
+                        },
+                    };
+                }
+            }
+        }
+        return result;
+    }
+    async fetchLeverage(symbol, params = {}) {
+        /**
+         * @method
+         * @name coinex#fetchLeverage
+         * @description fetch the set leverage for a market
+         * @see https://docs.coinex.com/api/v2/assets/loan-flat/http/list-margin-interest-limit
+         * @param {string} symbol unified market symbol
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} params.code unified currency code
+         * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/#/?id=leverage-structure}
+         */
+        await this.loadMarkets();
+        const code = this.safeString(params, 'code');
+        if (code === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' fetchLeverage() requires a code parameter');
+        }
+        params = this.omit(params, 'code');
+        const currency = this.currency(code);
+        const market = this.market(symbol);
+        const request = {
+            'market': market['id'],
+            'ccy': currency['id'],
+        };
+        const response = await this.v2PrivateGetAssetsMarginInterestLimit(this.extend(request, params));
+        //
+        //     {
+        //         "code": 0,
+        //         "data": {
+        //             "market": "BTCUSDT",
+        //             "ccy": "USDT",
+        //             "leverage": 10,
+        //             "min_amount": "50",
+        //             "max_amount": "500000",
+        //             "daily_interest_rate": "0.001"
+        //         },
+        //         "message": "OK"
+        //     }
+        //
+        const data = this.safeDict(response, 'data', {});
+        return this.parseLeverage(data, market);
     }
     parseLeverage(leverage, market = undefined) {
+        //
+        //     {
+        //         "market": "BTCUSDT",
+        //         "ccy": "USDT",
+        //         "leverage": 10,
+        //         "min_amount": "50",
+        //         "max_amount": "500000",
+        //         "daily_interest_rate": "0.001"
+        //     }
+        //
         const marketId = this.safeString(leverage, 'market');
         const leverageValue = this.safeInteger(leverage, 'leverage');
         return {
             'info': leverage,
             'symbol': this.safeSymbol(marketId, market, undefined, 'spot'),
-            'marginMode': undefined,
+            'marginMode': 'isolated',
             'longLeverage': leverageValue,
             'shortLeverage': leverageValue,
         };
@@ -5772,7 +5785,7 @@ class coinex extends coinex$1 {
                 preparedString += nonce + this.secret;
                 const signature = this.hash(this.encode(preparedString), sha256.sha256);
                 headers = {
-                    'Content-Type': 'application/json; charset=utf-8',
+                    'Content-Type': 'application/json',
                     'Accept': 'application/json',
                     'X-COINEX-KEY': this.apiKey,
                     'X-COINEX-SIGN': signature,

@@ -1,6 +1,7 @@
 namespace ccxt;
 using System.Security.Cryptography;
 using System.Text;
+
 using Cryptography.ECDSA;
 
 using MiniMessagePack;
@@ -236,20 +237,30 @@ public partial class Exchange
     {
         var parameters = (dict)parameters2;
 
-        var queryString = System.Web.HttpUtility.ParseQueryString(string.Empty);
+        // var queryString = System.Web.HttpUtility.ParseQueryString(string.Empty);
+        var queryString = new List<string>();
         var keys = parameters.Keys;
         foreach (string key in keys)
         {
             var value = parameters[key];
+            string encodedKey = System.Web.HttpUtility.UrlEncode(key);
             var finalValue = value.ToString();
             if (value.GetType() == typeof(bool))
             {
                 finalValue = finalValue.ToLower(); // c# uses "True" and "False" instead of "true" and "false" $:(
 
             }
-            queryString.Add(key, finalValue);
+            if (key.ToLower() == "timestamp")
+            {
+                finalValue = System.Web.HttpUtility.UrlEncode(finalValue).ToUpper();
+            }
+            else
+            {
+                finalValue = System.Web.HttpUtility.UrlEncode(finalValue);
+            }
+            queryString.Add($"{encodedKey}={finalValue}");
         }
-        return queryString.ToString();
+        return string.Join("&", queryString);
     }
 
     public string encodeURIComponent(object str2)

@@ -444,7 +444,7 @@ export default class zaif extends Exchange {
          * @param {string} type must be 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
@@ -479,7 +479,23 @@ export default class zaif extends Exchange {
         const request = {
             'order_id': id,
         };
-        return await this.privatePostCancelOrder(this.extend(request, params));
+        const response = await this.privatePostCancelOrder(this.extend(request, params));
+        //
+        //    {
+        //        "success": 1,
+        //        "return": {
+        //            "order_id": 184,
+        //            "funds": {
+        //                "jpy": 15320,
+        //                "btc": 1.392,
+        //                "mona": 2600,
+        //                "kaori": 0.1
+        //            }
+        //        }
+        //    }
+        //
+        const data = this.safeDict(response, 'return');
+        return this.parseOrder(data);
     }
     parseOrder(order, market = undefined) {
         //
@@ -492,6 +508,18 @@ export default class zaif extends Exchange {
         //         "comment" : "demo"
         //     }
         //
+        // cancelOrder
+        //
+        //    {
+        //        "order_id": 184,
+        //        "funds": {
+        //            "jpy": 15320,
+        //            "btc": 1.392,
+        //            "mona": 2600,
+        //            "kaori": 0.1
+        //        }
+        //    }
+        //
         let side = this.safeString(order, 'action');
         side = (side === 'bid') ? 'buy' : 'sell';
         const timestamp = this.safeTimestamp(order, 'timestamp');
@@ -499,7 +527,7 @@ export default class zaif extends Exchange {
         const symbol = this.safeSymbol(marketId, market, '_');
         const price = this.safeString(order, 'price');
         const amount = this.safeString(order, 'amount');
-        const id = this.safeString(order, 'id');
+        const id = this.safeString2(order, 'id', 'order_id');
         return this.safeOrder({
             'id': id,
             'clientOrderId': undefined,

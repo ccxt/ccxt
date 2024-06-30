@@ -126,6 +126,7 @@ class kucoin extends Exchange {
                     'futuresPublic' => 'https://api-futures.kucoin.com',
                     'webExchange' => 'https://kucoin.com/_api',
                     'broker' => 'https://api-broker.kucoin.com',
+                    'earn' => 'https://api.kucoin.com',
                 ),
                 'www' => 'https://www.kucoin.com',
                 'doc' => array(
@@ -393,6 +394,9 @@ class kucoin extends Exchange {
                         'broker/nd/account' => 2,
                         'broker/nd/account/apikey' => 2,
                         'broker/nd/rebase/download' => 3,
+                        'broker/nd/transfer/detail' => 1,
+                        'broker/nd/deposit/detail' => 1,
+                        'broker/nd/withdraw/detail' => 1,
                     ),
                     'post' => array(
                         'broker/nd/transfer' => 1,
@@ -402,6 +406,25 @@ class kucoin extends Exchange {
                     ),
                     'delete' => array(
                         'broker/nd/account/apikey' => 3,
+                    ),
+                ),
+                'earn' => array(
+                    'get' => array(
+                        'otc-loan/loan' => 1,
+                        'otc-loan/accounts' => 1,
+                        'earn/redeem-preview' => 7.5, // 5EW
+                        'earn/saving/products' => 7.5, // 5EW
+                        'earn/hold-assets' => 7.5, // 5EW
+                        'earn/promotion/products' => 7.5, // 5EW
+                        'earn/kcs-staking/products' => 7.5, // 5EW
+                        'earn/staking/products' => 7.5, // 5EW
+                        'earn/eth-staking/products' => 7.5, // 5EW
+                    ),
+                    'post' => array(
+                        'earn/orders' => 7.5, // 5EW
+                    ),
+                    'delete' => array(
+                        'earn/orders' => 7.5, // 5EW
                     ),
                 ),
             ),
@@ -1988,7 +2011,7 @@ class kucoin extends Exchange {
              * @param {string} $type 'limit' or 'market'
              * @param {string} $side 'buy' or 'sell'
              * @param {float} $amount the $amount of currency to trade
-             * @param {float} [$price] *ignored in "market" orders* the $price at which the order is to be fullfilled at in units of the quote currency
+             * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders
              * @param {array} [$params]  extra parameters specific to the exchange API endpoint
              * @param {float} [$params->triggerPrice] The $price at which a trigger order is triggered at
              * @param {string} [$params->marginMode] 'cross', // cross (cross mode) and isolated (isolated mode), set to cross by default, the isolated mode will be released soon, stay tuned
@@ -2274,7 +2297,7 @@ class kucoin extends Exchange {
              * @param {string} $type not used
              * @param {string} $side not used
              * @param {float} $amount how much of the currency you want to trade in units of the base currency
-             * @param {float} [$price] the $price at which the order is to be fullfilled, in units of the base currency, ignored in $market orders
+             * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->clientOrderId] client order $id, defaults to $id if not passed
              * @return {array} an ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
@@ -2345,22 +2368,79 @@ class kucoin extends Exchange {
                 $request['clientOid'] = $clientOrderId;
                 if ($stop) {
                     $response = Async\await($this->privateDeleteStopOrderCancelOrderByClientOid ($this->extend($request, $params)));
+                    //
+                    //    {
+                    //        code => '200000',
+                    //        $data => {
+                    //          cancelledOrderId => 'vs8lgpiuao41iaft003khbbk',
+                    //          clientOid => '123456'
+                    //        }
+                    //    }
+                    //
                 } elseif ($hf) {
                     $response = Async\await($this->privateDeleteHfOrdersClientOrderClientOid ($this->extend($request, $params)));
+                    //
+                    //    {
+                    //        "code" => "200000",
+                    //        "data" => {
+                    //          "clientOid" => "6d539dc614db3"
+                    //        }
+                    //    }
+                    //
                 } else {
                     $response = Async\await($this->privateDeleteOrderClientOrderClientOid ($this->extend($request, $params)));
+                    //
+                    //    {
+                    //        code => '200000',
+                    //        $data => {
+                    //          cancelledOrderId => '665e580f6660500007aba341',
+                    //          clientOid => '1234567',
+                    //          cancelledOcoOrderIds => null
+                    //        }
+                    //    }
+                    //
                 }
+                $response = $this->safe_dict($response, 'data');
+                return $this->parse_order($response);
             } else {
                 $request['orderId'] = $id;
                 if ($stop) {
                     $response = Async\await($this->privateDeleteStopOrderOrderId ($this->extend($request, $params)));
+                    //
+                    //    {
+                    //        code => '200000',
+                    //        $data => array( cancelledOrderIds => array( 'vs8lgpiuaco91qk8003vebu9' ) )
+                    //    }
+                    //
                 } elseif ($hf) {
                     $response = Async\await($this->privateDeleteHfOrdersOrderId ($this->extend($request, $params)));
+                    //
+                    //    {
+                    //        "code" => "200000",
+                    //        "data" => {
+                    //          "orderId" => "630625dbd9180300014c8d52"
+                    //        }
+                    //    }
+                    //
+                    $response = $this->safe_dict($response, 'data');
+                    return $this->parse_order($response);
                 } else {
                     $response = Async\await($this->privateDeleteOrdersOrderId ($this->extend($request, $params)));
+                    //
+                    //    {
+                    //        code => '200000',
+                    //        $data => array( cancelledOrderIds => array( '665e4fbe28051a0007245c41' ) )
+                    //    }
+                    //
                 }
+                $data = $this->safe_dict($response, 'data');
+                $orderIds = $this->safe_list($data, 'cancelledOrderIds', array());
+                $orderId = $this->safe_string($orderIds, 0);
+                return $this->safe_order(array(
+                    'info' => $data,
+                    'id' => $orderId,
+                ));
             }
-            return $response;
         }) ();
     }
 
@@ -2438,9 +2518,9 @@ class kucoin extends Exchange {
             Async\await($this->load_markets());
             $lowercaseStatus = strtolower($status);
             $until = $this->safe_integer($params, 'until');
-            $stop = $this->safe_bool($params, 'stop', false);
+            $stop = $this->safe_bool_2($params, 'stop', 'trigger', false);
             $hf = $this->safe_bool($params, 'hf', false);
-            $params = $this->omit($params, array( 'stop', 'hf', 'until' ));
+            $params = $this->omit($params, array( 'stop', 'hf', 'until', 'trigger' ));
             list($marginMode, $query) = $this->handle_margin_mode_and_params('fetchOrdersByStatus', $params);
             if ($lowercaseStatus === 'open') {
                 $lowercaseStatus = 'active';
@@ -2616,7 +2696,7 @@ class kucoin extends Exchange {
             Async\await($this->load_markets());
             $request = array();
             $clientOrderId = $this->safe_string_2($params, 'clientOid', 'clientOrderId');
-            $stop = $this->safe_bool($params, 'stop', false);
+            $stop = $this->safe_bool_2($params, 'stop', 'trigger', false);
             $hf = $this->safe_bool($params, 'hf', false);
             $market = null;
             if ($symbol !== null) {
@@ -2628,7 +2708,7 @@ class kucoin extends Exchange {
                 }
                 $request['symbol'] = $market['id'];
             }
-            $params = $this->omit($params, array( 'stop', 'hf', 'clientOid', 'clientOrderId' ));
+            $params = $this->omit($params, array( 'stop', 'hf', 'clientOid', 'clientOrderId', 'trigger' ));
             $response = null;
             if ($clientOrderId !== null) {
                 $request['clientOid'] = $clientOrderId;
@@ -2666,7 +2746,7 @@ class kucoin extends Exchange {
         }) ();
     }
 
-    public function parse_order($order, ?array $market = null): array {
+    public function parse_order(array $order, ?array $market = null): array {
         //
         // createOrder
         //
@@ -2821,7 +2901,7 @@ class kucoin extends Exchange {
         $stopPrice = $this->safe_number($order, 'stopPrice');
         return $this->safe_order(array(
             'info' => $order,
-            'id' => $this->safe_string_n($order, array( 'id', 'orderId', 'newOrderId' )),
+            'id' => $this->safe_string_n($order, array( 'id', 'orderId', 'newOrderId', 'cancelledOrderId' )),
             'clientOrderId' => $this->safe_string($order, 'clientOid'),
             'symbol' => $this->safe_symbol($marketId, $market, '-'),
             'type' => $this->safe_string($order, 'type'),
@@ -3018,7 +3098,7 @@ class kucoin extends Exchange {
         }) ();
     }
 
-    public function parse_trade($trade, ?array $market = null): array {
+    public function parse_trade(array $trade, ?array $market = null): array {
         //
         // fetchTrades (public)
         //
@@ -3295,7 +3375,7 @@ class kucoin extends Exchange {
         }) ();
     }
 
-    public function parse_transaction_status($status) {
+    public function parse_transaction_status(?string $status) {
         $statuses = array(
             'SUCCESS' => 'ok',
             'PROCESSING' => 'pending',
@@ -3305,7 +3385,7 @@ class kucoin extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_transaction($transaction, ?array $currency = null): array {
+    public function parse_transaction(array $transaction, ?array $currency = null): array {
         //
         // fetchDeposits
         //
@@ -3979,7 +4059,7 @@ class kucoin extends Exchange {
         return $this->safe_string($types, $type, $type);
     }
 
-    public function parse_ledger_entry($item, ?array $currency = null) {
+    public function parse_ledger_entry(array $item, ?array $currency = null) {
         //
         //     {
         //         "id" => "611a1e7c6a053300067a88d9", //unique key for each ledger entry
@@ -4322,7 +4402,7 @@ class kucoin extends Exchange {
         }) ();
     }
 
-    public function parse_borrow_interest($info, ?array $market = null) {
+    public function parse_borrow_interest(array $info, ?array $market = null) {
         //
         // Cross
         //
@@ -4757,6 +4837,9 @@ class kucoin extends Exchange {
         if ($api === 'webExchange') {
             $endpoint = '/' . $this->implode_params($path, $params);
         }
+        if ($api === 'earn') {
+            $endpoint = '/api/v1/' . $this->implode_params($path, $params);
+        }
         $query = $this->omit($params, $this->extract_params($path));
         $endpart = '';
         $headers = ($headers !== null) ? $headers : array();
@@ -4774,7 +4857,8 @@ class kucoin extends Exchange {
         $isFuturePrivate = ($api === 'futuresPrivate');
         $isPrivate = ($api === 'private');
         $isBroker = ($api === 'broker');
-        if ($isPrivate || $isFuturePrivate || $isBroker) {
+        $isEarn = ($api === 'earn');
+        if ($isPrivate || $isFuturePrivate || $isBroker || $isEarn) {
             $this->check_required_credentials();
             $timestamp = (string) $this->nonce();
             $headers = $this->extend(array(
@@ -4813,7 +4897,7 @@ class kucoin extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
         if (!$response) {
             $this->throw_broadly_matched_exception($this->exceptions['broad'], $body, $body);
             return null;

@@ -283,9 +283,9 @@ public partial class Exchange
         if (value2 == null)
             return 0;
         var value = (string)value2;
-        if (value.IndexOf('e') > -1)
+        if (value.IndexOf('e') > -1 || value.IndexOf('E') > -1)
         {
-            var numStr = Regex.Replace(value, @"/\de/", "");
+            var numStr = Regex.Replace(value, @"\d\.?\d*[eE]", "");
             return (Int32.Parse(numStr) * -1);
         }
         value = value.TrimEnd('0');

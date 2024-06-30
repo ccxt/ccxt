@@ -5,7 +5,7 @@ import { AuthenticationError, BadRequest, ArgumentsRequired, InvalidNonce, Excha
 import { Precise } from '../base/Precise.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
-import type { Int, OHLCV, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, Position, Balances } from '../base/types.js';
+import type { Int, OHLCV, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, Position, Balances, Dict } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -124,7 +124,7 @@ export default class bitget extends bitgetRest {
         const messageHash = 'ticker:' + symbol;
         let instType = undefined;
         [ instType, params ] = this.getInstType (market, params);
-        const args = {
+        const args: Dict = {
             'instType': instType,
             'channel': 'ticker',
             'instId': market['id'],
@@ -153,7 +153,7 @@ export default class bitget extends bitgetRest {
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];
             const marketInner = this.market (symbol);
-            const args = {
+            const args: Dict = {
                 'instType': instType,
                 'channel': 'ticker',
                 'instId': marketInner['id'],
@@ -163,7 +163,7 @@ export default class bitget extends bitgetRest {
         }
         const tickers = await this.watchPublicMultiple (messageHashes, topics, params);
         if (this.newUpdates) {
-            const result = {};
+            const result: Dict = {};
             result[tickers['symbol']] = tickers;
             return result;
         }
@@ -336,7 +336,7 @@ export default class bitget extends bitgetRest {
         const messageHash = 'candles:' + timeframe + ':' + symbol;
         let instType = undefined;
         [ instType, params ] = this.getInstType (market, params);
-        const args = {
+        const args: Dict = {
             'instType': instType,
             'channel': 'candle' + interval,
             'instId': market['id'],
@@ -474,7 +474,7 @@ export default class bitget extends bitgetRest {
             const market = this.market (symbol);
             let instType = undefined;
             [ instType, params ] = this.getInstType (market, params);
-            const args = {
+            const args: Dict = {
                 'instType': instType,
                 'channel': channel,
                 'instId': market['id'],
@@ -642,7 +642,7 @@ export default class bitget extends bitgetRest {
             const market = this.market (symbol);
             let instType = undefined;
             [ instType, params ] = this.getInstType (market, params);
-            const args = {
+            const args: Dict = {
                 'instType': instType,
                 'channel': 'trade',
                 'instId': market['id'],
@@ -816,7 +816,7 @@ export default class bitget extends bitgetRest {
             [ instType, params ] = this.getInstType (market, params);
         }
         messageHash = instType + ':positions' + messageHash;
-        const args = {
+        const args: Dict = {
             'instType': instType,
             'channel': 'positions',
             'instId': 'default',
@@ -986,7 +986,9 @@ export default class bitget extends bitgetRest {
          * @param {int} [limit] the maximum number of order structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {boolean} [params.stop] *contract only* set to true for watching trigger orders
-         * @param {string} [params.marginMode] 'isolated' or 'cross' for watching spot margin orders
+         * @param {string} [params.marginMode] 'isolated' or 'cross' for watching spot margin orders]
+         * @param {string} [params.type] 'spot', 'swap'
+         * @param {string} [params.subType] 'linear', 'inverse'
          * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
          */
         await this.loadMarkets ();
@@ -1002,10 +1004,22 @@ export default class bitget extends bitgetRest {
             marketId = market['id'];
             messageHash = messageHash + ':' + symbol;
         }
+        const productType = this.safeString (params, 'productType');
         let type = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('watchOrders', market, params);
-        if ((type === 'spot') && (symbol === undefined)) {
+        let subType = undefined;
+        [ subType, params ] = this.handleSubTypeAndParams ('watchOrders', market, params, 'linear');
+        if ((type === 'spot' || type === 'margin') && (symbol === undefined)) {
             throw new ArgumentsRequired (this.id + ' watchOrders requires a symbol argument for ' + type + ' markets.');
+        }
+        if ((productType === undefined) && (type !== 'spot') && (symbol === undefined)) {
+            messageHash = messageHash + ':' + subType;
+        } else if (productType === 'USDT-FUTURES') {
+            messageHash = messageHash + ':linear';
+        } else if (productType === 'COIN-FUTURES') {
+            messageHash = messageHash + ':inverse';
+        } else if (productType === 'USDC-FUTURES') {
+            messageHash = messageHash + ':usdcfutures'; // non unified channel
         }
         let instType = undefined;
         [ instType, params ] = this.getInstType (market, params);
@@ -1015,19 +1029,21 @@ export default class bitget extends bitgetRest {
         if (isTrigger) {
             subscriptionHash = subscriptionHash + ':stop'; // we don't want to re-use the same subscription hash for stop orders
         }
-        const instId = (type === 'spot') ? marketId : 'default'; // different from other streams here the 'rest' id is required for spot markets, contract markets require default here
+        const instId = (type === 'spot' || type === 'margin') ? marketId : 'default'; // different from other streams here the 'rest' id is required for spot markets, contract markets require default here
         let channel = isTrigger ? 'orders-algo' : 'orders';
         let marginMode = undefined;
         [ marginMode, params ] = this.handleMarginModeAndParams ('watchOrders', params);
         if (marginMode !== undefined) {
             instType = 'MARGIN';
+            messageHash = messageHash + ':' + marginMode;
             if (marginMode === 'isolated') {
                 channel = 'orders-isolated';
             } else {
                 channel = 'orders-crossed';
             }
         }
-        const args = {
+        subscriptionHash = subscriptionHash + ':' + instType;
+        const args: Dict = {
             'instType': instType,
             'channel': channel,
             'instId': instId,
@@ -1074,9 +1090,10 @@ export default class bitget extends bitgetRest {
         //         "ts": 1701923982497
         //     }
         //
-        const arg = this.safeValue (message, 'arg', {});
+        const arg = this.safeDict (message, 'arg', {});
         const channel = this.safeString (arg, 'channel');
         const instType = this.safeString (arg, 'instType');
+        const argInstId = this.safeString (arg, 'instId');
         let marketType = undefined;
         if (instType === 'SPOT') {
             marketType = 'spot';
@@ -1085,6 +1102,9 @@ export default class bitget extends bitgetRest {
         } else {
             marketType = 'contract';
         }
+        const isLinearSwap = (instType === 'USDT-FUTURES');
+        const isInverseSwap = (instType === 'COIN-FUTURES');
+        const isUSDCFutures = (instType === 'USDC-FUTURES');
         const data = this.safeValue (message, 'data', []);
         if (this.orders === undefined) {
             const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
@@ -1094,10 +1114,10 @@ export default class bitget extends bitgetRest {
         const isTrigger = (channel === 'orders-algo') || (channel === 'ordersAlgo');
         const stored = isTrigger ? this.triggerOrders : this.orders;
         const messageHash = isTrigger ? 'triggerOrder' : 'order';
-        const marketSymbols = {};
+        const marketSymbols: Dict = {};
         for (let i = 0; i < data.length; i++) {
             const order = data[i];
-            const marketId = this.safeString (order, 'instId');
+            const marketId = this.safeString (order, 'instId', argInstId);
             const market = this.safeMarket (marketId, undefined, undefined, marketType);
             const parsed = this.parseWsOrder (order, market);
             stored.append (parsed);
@@ -1107,10 +1127,24 @@ export default class bitget extends bitgetRest {
         const keys = Object.keys (marketSymbols);
         for (let i = 0; i < keys.length; i++) {
             const symbol = keys[i];
-            const innerMessageHash = messageHash + ':' + symbol;
+            let innerMessageHash = messageHash + ':' + symbol;
+            if (channel === 'orders-crossed') {
+                innerMessageHash = innerMessageHash + ':cross';
+            } else if (channel === 'orders-isolated') {
+                innerMessageHash = innerMessageHash + ':isolated';
+            }
             client.resolve (stored, innerMessageHash);
         }
         client.resolve (stored, messageHash);
+        if (isLinearSwap) {
+            client.resolve (stored, 'order:linear');
+        }
+        if (isInverseSwap) {
+            client.resolve (stored, 'order:inverse');
+        }
+        if (isUSDCFutures) {
+            client.resolve (stored, 'order:usdcfutures');
+        }
     }
 
     parseWsOrder (order, market = undefined) {
@@ -1206,23 +1240,30 @@ export default class bitget extends bitgetRest {
         // isolated and cross margin
         //
         //     {
-        //         "enterPointSource": "web",
-        //         "force": "gtc",
-        //         "feeDetail": [],
-        //         "orderType": "limit",
-        //         "price": "35000.000000000",
-        //         "quoteSize": "10.500000000",
-        //         "side": "buy",
-        //         "status": "live",
-        //         "baseSize": "0.000300000",
-        //         "cTime": "1701923982427",
-        //         "clientOid": "4902047879864dc980c4840e9906db4e",
-        //         "fillPrice": "0.000000000",
-        //         "baseVolume": "0.000000000",
-        //         "fillTotalAmount": "0.000000000",
-        //         "loanType": "auto-loan-and-repay",
-        //         "orderId": "1116515595178356737"
-        //     }
+        //         enterPointSource: "web",
+        //         feeDetail: [
+        //           {
+        //             feeCoin: "AAVE",
+        //             deduction: "no",
+        //             totalDeductionFee: "0",
+        //             totalFee: "-0.00010740",
+        //           },
+        //         ],
+        //         force: "gtc",
+        //         orderType: "limit",
+        //         price: "93.170000000",
+        //         fillPrice: "93.170000000",
+        //         baseSize: "0.110600000", // total amount of order
+        //         quoteSize: "10.304602000", // total cost of order (independently if order is filled or pending)
+        //         baseVolume: "0.107400000", // filled amount of order (during order's lifecycle, and not for this specific incoming update)
+        //         fillTotalAmount: "10.006458000", // filled cost of order (during order's lifecycle, and not for this specific incoming update)
+        //         side: "buy",
+        //         status: "partially_filled",
+        //         cTime: "1717875017306",
+        //         clientOid: "b57afe789a06454e9c560a2aab7f7201",
+        //         loanType: "auto-loan",
+        //         orderId: "1183419084588060673",
+        //       }
         //
         const isSpot = !('posMode' in order);
         const isMargin = ('loanType' in order);
@@ -1262,12 +1303,12 @@ export default class bitget extends bitgetRest {
         let filledAmount = undefined;
         let cost = undefined;
         let remaining = undefined;
-        const totalFilled = this.safeString (order, 'accBaseVolume');
+        let totalFilled = this.safeString (order, 'accBaseVolume');
         if (isSpot) {
             if (isMargin) {
-                filledAmount = this.omitZero (this.safeString (order, 'fillTotalAmount'));
-                totalAmount = this.omitZero (this.safeString (order, 'baseSize')); // for margin trading
-                cost = this.safeString (order, 'quoteSize');
+                totalAmount = this.safeString (order, 'baseSize');
+                totalFilled = this.safeString (order, 'baseVolume');
+                cost = this.safeString (order, 'fillTotalAmount');
             } else {
                 const partialFillAmount = this.safeString (order, 'baseVolume');
                 if (partialFillAmount !== undefined) {
@@ -1294,7 +1335,7 @@ export default class bitget extends bitgetRest {
             totalAmount = this.safeString (order, 'size');
             cost = this.safeString (order, 'fillNotionalUsd');
         }
-        remaining = this.omitZero (Precise.stringSub (totalAmount, totalFilled));
+        remaining = Precise.stringSub (totalAmount, totalFilled);
         return this.safeOrder ({
             'info': order,
             'symbol': symbol,
@@ -1321,7 +1362,7 @@ export default class bitget extends bitgetRest {
     }
 
     parseWsOrderStatus (status) {
-        const statuses = {
+        const statuses: Dict = {
             'live': 'open',
             'partially_filled': 'open',
             'filled': 'closed',
@@ -1354,7 +1395,7 @@ export default class bitget extends bitgetRest {
         let instType = undefined;
         [ instType, params ] = this.getInstType (market, params);
         const subscriptionHash = 'fill:' + instType;
-        const args = {
+        const args: Dict = {
             'instType': instType,
             'channel': 'fill',
             'instId': 'default',
@@ -1491,7 +1532,7 @@ export default class bitget extends bitgetRest {
             instType = 'SPOT';
         }
         [ instType, params ] = this.handleOptionAndParams (params, 'watchBalance', 'instType', instType);
-        const args = {
+        const args: Dict = {
             'instType': instType,
             'channel': channel,
             'coin': 'default',
@@ -1585,7 +1626,7 @@ export default class bitget extends bitgetRest {
 
     async watchPublic (messageHash, args, params = {}) {
         const url = this.urls['api']['ws']['public'];
-        const request = {
+        const request: Dict = {
             'op': 'subscribe',
             'args': [ args ],
         };
@@ -1595,7 +1636,7 @@ export default class bitget extends bitgetRest {
 
     async watchPublicMultiple (messageHashes, argsArray, params = {}) {
         const url = this.urls['api']['ws']['public'];
-        const request = {
+        const request: Dict = {
             'op': 'subscribe',
             'args': argsArray,
         };
@@ -1615,7 +1656,7 @@ export default class bitget extends bitgetRest {
             const auth = timestamp + 'GET' + '/user/verify';
             const signature = this.hmac (this.encode (auth), this.encode (this.secret), sha256, 'base64');
             const operation = 'login';
-            const request = {
+            const request: Dict = {
                 'op': operation,
                 'args': [
                     {
@@ -1635,7 +1676,7 @@ export default class bitget extends bitgetRest {
     async watchPrivate (messageHash, subscriptionHash, args, params = {}) {
         await this.authenticate ();
         const url = this.urls['api']['ws']['private'];
-        const request = {
+        const request: Dict = {
             'op': 'subscribe',
             'args': [ args ],
         };
@@ -1738,7 +1779,7 @@ export default class bitget extends bitgetRest {
             this.handleSubscriptionStatus (client, message);
             return;
         }
-        const methods = {
+        const methods: Dict = {
             'ticker': this.handleTicker,
             'trade': this.handleTrades,
             'fill': this.handleMyTrades,

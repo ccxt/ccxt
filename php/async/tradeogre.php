@@ -8,6 +8,7 @@ namespace ccxt\async;
 use Exception; // a common import
 use ccxt\async\abstract\tradeogre as Exchange;
 use ccxt\ExchangeError;
+use ccxt\ArgumentsRequired;
 use ccxt\BadRequest;
 use React\Async;
 use React\Promise\PromiseInterface;
@@ -392,7 +393,7 @@ class tradeogre extends Exchange {
         }) ();
     }
 
-    public function parse_trade($trade, ?array $market = null) {
+    public function parse_trade(array $trade, ?array $market = null) {
         //
         //  {
         //      "date":1515128233,
@@ -463,23 +464,26 @@ class tradeogre extends Exchange {
             /**
              * create a trade order
              * @param {string} $symbol unified $symbol of the $market to create an order in
-             * @param {string} $type not used by tradeogre
+             * @param {string} $type must be 'limit'
              * @param {string} $side 'buy' or 'sell'
              * @param {float} $amount how much of currency you want to trade in units of base currency
-             * @param {float} $price the $price at which the order is to be fullfilled, in units of the quote currency
+             * @param {float} $price the $price at which the order is to be fulfilled, in units of the quote currency
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
+            if ($type === 'market') {
+                throw new BadRequest($this->id . ' createOrder does not support $market orders');
+            }
+            if ($price === null) {
+                throw new ArgumentsRequired($this->id . ' createOrder requires a limit parameter');
+            }
             $request = array(
                 'market' => $market['id'],
                 'quantity' => $this->parse_to_numeric($this->amount_to_precision($symbol, $amount)),
                 'price' => $this->parse_to_numeric($this->price_to_precision($symbol, $price)),
             );
-            if ($type === 'market') {
-                throw new BadRequest($this->id . ' createOrder does not support $market orders');
-            }
             $response = null;
             if ($side === 'buy') {
                 $response = Async\await($this->privatePostOrderBuy ($this->extend($request, $params)));
@@ -517,7 +521,10 @@ class tradeogre extends Exchange {
              * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             Async\await($this->load_markets());
-            return Async\await($this->cancel_order('all', $symbol, $params));
+            $response = Async\await($this->cancel_order('all', $symbol, $params));
+            return array(
+                $response,
+            );
         }) ();
     }
 
@@ -563,7 +570,7 @@ class tradeogre extends Exchange {
         }) ();
     }
 
-    public function parse_order($order, ?array $market = null): array {
+    public function parse_order(array $order, ?array $market = null): array {
         //
         //
         // {
@@ -627,7 +634,7 @@ class tradeogre extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
         if ($response === null) {
             return null;
         }

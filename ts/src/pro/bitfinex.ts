@@ -6,7 +6,7 @@ import { ExchangeError, AuthenticationError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 import { Precise } from '../base/Precise.js';
 import { sha384 } from '../static_dependencies/noble-hashes/sha512.js';
-import type { Int, Str, Trade, OrderBook, Order, Ticker } from '../base/types.js';
+import type { Int, Str, Trade, OrderBook, Order, Ticker, Dict } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -48,7 +48,7 @@ export default class bitfinex extends bitfinexRest {
         const url = this.urls['api']['ws']['public'];
         const messageHash = channel + ':' + marketId;
         // const channel = 'trades';
-        const request = {
+        const request: Dict = {
             'event': 'subscribe',
             'channel': channel,
             'symbol': marketId,
@@ -270,7 +270,7 @@ export default class bitfinex extends bitfinexRest {
         const options = this.safeValue (this.options, 'watchOrderBook', {});
         const prec = this.safeString (options, 'prec', 'P0');
         const freq = this.safeString (options, 'freq', 'F0');
-        const request = {
+        const request: Dict = {
             // "event": "subscribe", // added in subscribe()
             // "channel": channel, // added in subscribe()
             // "symbol": marketId, // added in subscribe()
@@ -425,7 +425,7 @@ export default class bitfinex extends bitfinexRest {
             const nonce = this.milliseconds ();
             const payload = 'AUTH' + nonce.toString ();
             const signature = this.hmac (this.encode (payload), this.encode (this.secret), sha384, 'hex');
-            const request = {
+            const request: Dict = {
                 'apiKey': this.apiKey,
                 'authSig': signature,
                 'authNonce': nonce,
@@ -551,7 +551,7 @@ export default class bitfinex extends bitfinexRest {
     }
 
     parseWsOrderStatus (status) {
-        const statuses = {
+        const statuses: Dict = {
             'ACTIVE': 'open',
             'CANCELED': 'canceled',
         };
@@ -639,7 +639,7 @@ export default class bitfinex extends bitfinexRest {
             const subscription = this.safeValue (client.subscriptions, channelId, {});
             const channel = this.safeString (subscription, 'channel');
             const name = this.safeString (message, 1);
-            const methods = {
+            const methods: Dict = {
                 'book': this.handleOrderBook,
                 // 'ohlc': this.handleOHLCV,
                 'ticker': this.handleTicker,
@@ -664,7 +664,7 @@ export default class bitfinex extends bitfinexRest {
             //
             const event = this.safeString (message, 'event');
             if (event !== undefined) {
-                const methods = {
+                const methods: Dict = {
                     'info': this.handleSystemStatus,
                     // 'book': 'handleOrderBook',
                     'subscribed': this.handleSubscriptionStatus,

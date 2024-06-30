@@ -243,7 +243,7 @@ class bitso extends Exchange {
         return $this->safe_string($types, $type, $type);
     }
 
-    public function parse_ledger_entry($item, ?array $currency = null) {
+    public function parse_ledger_entry(array $item, ?array $currency = null) {
         //
         //     {
         //         "eid" => "2510b3e2bc1c87f584500a18084f35ed",
@@ -729,7 +729,7 @@ class bitso extends Exchange {
         );
     }
 
-    public function parse_trade($trade, ?array $market = null): array {
+    public function parse_trade(array $trade, ?array $market = null): array {
         //
         // fetchTrades (public)
         //
@@ -977,7 +977,7 @@ class bitso extends Exchange {
              * @param {string} $type 'market' or 'limit'
              * @param {string} $side 'buy' or 'sell'
              * @param {float} $amount how much of currency you want to trade in units of base currency
-             * @param {float} [$price] the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
+             * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} an ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
              */
@@ -1015,7 +1015,19 @@ class bitso extends Exchange {
             $request = array(
                 'oid' => $id,
             );
-            return Async\await($this->privateDeleteOrdersOid ($this->extend($request, $params)));
+            $response = Async\await($this->privateDeleteOrdersOid ($this->extend($request, $params)));
+            //
+            //     {
+            //         "success" => true,
+            //         "payload" => ["yWTQGxDMZ0VimZgZ"]
+            //     }
+            //
+            $payload = $this->safe_list($response, 'payload', array());
+            $orderId = $this->safe_string($payload, 0);
+            return $this->safe_order(array(
+                'info' => $response,
+                'id' => $orderId,
+            ));
         }) ();
     }
 
@@ -1086,7 +1098,7 @@ class bitso extends Exchange {
         }) ();
     }
 
-    public function parse_order_status($status) {
+    public function parse_order_status(?string $status) {
         $statuses = array(
             'partial-fill' => 'open', // this is a common substitution in ccxt
             'partially filled' => 'open',
@@ -1096,7 +1108,7 @@ class bitso extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_order($order, ?array $market = null): array {
+    public function parse_order(array $order, ?array $market = null): array {
         //
         //
         // canceledOrder
@@ -1657,7 +1669,7 @@ class bitso extends Exchange {
         return $this->safe_string($networksById, $networkId, $networkId);
     }
 
-    public function parse_transaction($transaction, ?array $currency = null): array {
+    public function parse_transaction(array $transaction, ?array $currency = null): array {
         //
         // deposit
         //     {
@@ -1727,7 +1739,7 @@ class bitso extends Exchange {
         );
     }
 
-    public function parse_transaction_status($status) {
+    public function parse_transaction_status(?string $status) {
         $statuses = array(
             'pending' => 'pending',
             'in_progress' => 'pending',
@@ -1770,7 +1782,7 @@ class bitso extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors($httpCode, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
         if ($response === null) {
             return null; // fallback to default $error handler
         }

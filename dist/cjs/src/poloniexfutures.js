@@ -373,9 +373,13 @@ class poloniexfutures extends poloniexfutures$1 {
         const marketId = this.safeString(ticker, 'symbol');
         const symbol = this.safeSymbol(marketId, market);
         const timestampString = this.safeString(ticker, 'ts');
-        // check timestamp bcz bug: https://app.travis-ci.com/github/ccxt/ccxt/builds/269959181#L4011 and also 17 digits occured
         let multiplier = undefined;
-        if (timestampString.length === 17) {
+        if (timestampString.length === 16) {
+            // 16 digits: https://app.travis-ci.com/github/ccxt/ccxt/builds/270587157#L5454
+            multiplier = 0.001;
+        }
+        else if (timestampString.length === 17) {
+            // 17 digits: https://app.travis-ci.com/github/ccxt/ccxt/builds/269959181#L4011
             multiplier = 0.0001;
         }
         else if (timestampString.length === 18) {
@@ -459,7 +463,8 @@ class poloniexfutures extends poloniexfutures$1 {
          */
         await this.loadMarkets();
         const response = await this.publicGetTickers(params);
-        return this.parseTickers(this.safeValue(response, 'data', []), symbols);
+        const data = this.safeList(response, 'data', []);
+        return this.parseTickers(data, symbols);
     }
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
         /**
@@ -826,7 +831,7 @@ class poloniexfutures extends poloniexfutures$1 {
          * @param {string} type 'limit' or 'market'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount the amount of currency to trade
-         * @param {float} [price] *ignored in "market" orders* the price at which the order is to be fullfilled at in units of the quote currency
+         * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params]  extra parameters specific to the exchange API endpoint
          * @param {float} [params.leverage] Leverage size of the order
          * @param {float} [params.stopPrice] The price at which a trigger order is triggered at
@@ -1231,7 +1236,7 @@ class poloniexfutures extends poloniexfutures$1 {
         const cancelledOrderIdsLength = cancelledOrderIds.length;
         for (let i = 0; i < cancelledOrderIdsLength; i++) {
             const cancelledOrderId = this.safeString(cancelledOrderIds, i);
-            result.push({
+            result.push(this.safeOrder({
                 'id': cancelledOrderId,
                 'clientOrderId': undefined,
                 'timestamp': undefined,
@@ -1253,7 +1258,7 @@ class poloniexfutures extends poloniexfutures$1 {
                 'postOnly': undefined,
                 'stopPrice': undefined,
                 'info': response,
-            });
+            }));
         }
         return result;
     }

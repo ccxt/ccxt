@@ -247,6 +247,22 @@ interface Exchange {
     privatePostVchfAddress (params?: {}): Promise<implicitReturnType>;
     privatePostVeurWithdrawal (params?: {}): Promise<implicitReturnType>;
     privatePostVeurAddress (params?: {}): Promise<implicitReturnType>;
+    privatePostTrufWithdrawal (params?: {}): Promise<implicitReturnType>;
+    privatePostTrufAddress (params?: {}): Promise<implicitReturnType>;
+    privatePostWifWithdrawal (params?: {}): Promise<implicitReturnType>;
+    privatePostWifAddress (params?: {}): Promise<implicitReturnType>;
+    privatePostSmtWithdrawal (params?: {}): Promise<implicitReturnType>;
+    privatePostSmtAddress (params?: {}): Promise<implicitReturnType>;
+    privatePostSuiWithdrawal (params?: {}): Promise<implicitReturnType>;
+    privatePostSuiAddress (params?: {}): Promise<implicitReturnType>;
+    privatePostJupWithdrawal (params?: {}): Promise<implicitReturnType>;
+    privatePostJupAddress (params?: {}): Promise<implicitReturnType>;
+    privatePostOndoWithdrawal (params?: {}): Promise<implicitReturnType>;
+    privatePostOndoAddress (params?: {}): Promise<implicitReturnType>;
+    privatePostBobaWithdrawal (params?: {}): Promise<implicitReturnType>;
+    privatePostBobaAddress (params?: {}): Promise<implicitReturnType>;
+    privatePostPythWithdrawal (params?: {}): Promise<implicitReturnType>;
+    privatePostPythAddress (params?: {}): Promise<implicitReturnType>;
 }
 abstract class Exchange extends _Exchange {}
 

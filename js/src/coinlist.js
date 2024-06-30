@@ -1458,7 +1458,26 @@ export default class coinlist extends Exchange {
         await this.loadMarkets();
         params = ids;
         const response = await this.privateDeleteV1OrdersBulk(params);
-        return response;
+        //
+        //    {
+        //        "message": "Cancel order requests received.",
+        //        "order_ids": [
+        //            "ff132955-43bc-4fe5-9d9c-5ba226cc89a0"
+        //        ],
+        //        "timestamp": "2024-06-01T02:32:30.305Z"
+        //    }
+        //
+        const orderIds = this.safeList(response, 'order_ids', []);
+        const orders = [];
+        const datetime = this.safeString(response, 'timestamp');
+        for (let i = 0; i < orderIds.length; i++) {
+            orders.push(this.safeOrder({
+                'info': orderIds[i],
+                'id': orderIds[i],
+                'lastUpdateTimestamp': this.parse8601(datetime),
+            }));
+        }
+        return orders;
     }
     async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
         /**
@@ -1470,7 +1489,7 @@ export default class coinlist extends Exchange {
          * @param {string} type 'market' or 'limit' or 'stop_market' or 'stop_limit' or 'take_market' or 'take_limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {bool} [params.postOnly] if true, the order will only be posted to the order book and not executed immediately (default false)
          * @param {float} [params.triggerPrice] only for the 'stop_market', 'stop_limit', 'take_market' or 'take_limit' orders (the price at which an order is triggered)
@@ -1547,7 +1566,7 @@ export default class coinlist extends Exchange {
          * @param {string} type 'market' or 'limit' or 'stop_market' or 'stop_limit' or 'take_market' or 'take_limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
@@ -2288,17 +2307,20 @@ export default class coinlist extends Exchange {
         const request = this.omit(params, this.extractParams(path));
         const endpoint = '/' + this.implodeParams(path, params);
         let url = this.urls['api'][api] + endpoint;
-        const query = this.urlencode(request);
+        const isBulk = Array.isArray(params);
+        let query = undefined;
+        if (!isBulk) {
+            query = this.urlencode(request);
+        }
         if (api === 'private') {
             this.checkRequiredCredentials();
             const timestamp = this.seconds().toString();
             let auth = timestamp + method + endpoint;
-            const isBulk = Array.isArray(params);
             if ((method === 'POST') || (method === 'PATCH') || isBulk) {
                 body = this.json(request);
                 auth += body;
             }
-            else if (query.length !== 0) {
+            else if (query !== undefined && query.length !== 0) {
                 auth += '?' + query;
                 url += '?' + query;
             }
@@ -2310,7 +2332,7 @@ export default class coinlist extends Exchange {
                 'Content-Type': 'application/json',
             };
         }
-        else if (query.length !== 0) {
+        else if (query !== undefined && query.length !== 0) {
             url += '?' + query;
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };

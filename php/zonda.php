@@ -166,6 +166,10 @@ class zonda extends Exchange {
                         'balances/BITBAY/balance',
                         'fiat_cantor/rate/{baseId}/{quoteId}',
                         'fiat_cantor/history',
+                        'client_payments/v2/customer/crypto/{currency}/channels/deposit',
+                        'client_payments/v2/customer/crypto/{currency}/channels/withdrawal',
+                        'client_payments/v2/customer/crypto/deposit/fee',
+                        'client_payments/v2/customer/crypto/withdrawal/fee',
                     ),
                     'post' => array(
                         'trading/offer/{symbol}',
@@ -176,6 +180,8 @@ class zonda extends Exchange {
                         'fiat_cantor/exchange',
                         'api_payments/withdrawals/crypto',
                         'api_payments/withdrawals/fiat',
+                        'client_payments/v2/customer/crypto/deposit',
+                        'client_payments/v2/customer/crypto/withdrawal',
                     ),
                     'delete' => array(
                         'trading/offer/{symbol}/{id}/{side}/{price}',
@@ -412,7 +418,7 @@ class zonda extends Exchange {
         return $this->parse_orders($items, null, $since, $limit, array( 'status' => 'open' ));
     }
 
-    public function parse_order($order, ?array $market = null): array {
+    public function parse_order(array $order, ?array $market = null): array {
         //
         //     {
         //         "market" => "ETH-EUR",
@@ -430,6 +436,13 @@ class zonda extends Exchange {
         //         "firstBalanceId" => "5b816c3e-437c-4e43-9bef-47814ae7ebfc",
         //         "secondBalanceId" => "ab43023b-4079-414c-b340-056e3430a3af"
         //     }
+        //
+        // cancelOrder
+        //
+        //    {
+        //        status => "Ok",
+        //        errors => array()
+        //    }
         //
         $marketId = $this->safe_string($order, 'market');
         $symbol = $this->safe_symbol($marketId, $market, '-');
@@ -823,7 +836,7 @@ class zonda extends Exchange {
         return $this->parse_ledger($items, null, $since, $limit);
     }
 
-    public function parse_ledger_entry($item, ?array $currency = null) {
+    public function parse_ledger_entry(array $item, ?array $currency = null) {
         //
         //    FUNDS_MIGRATION
         //    {
@@ -1218,7 +1231,7 @@ class zonda extends Exchange {
         return $this->parse_ohlcvs($items, $market, $timeframe, $since, $limit);
     }
 
-    public function parse_trade($trade, ?array $market = null): array {
+    public function parse_trade(array $trade, ?array $market = null): array {
         //
         // createOrder trades
         //
@@ -1330,7 +1343,7 @@ class zonda extends Exchange {
          * @param {string} $type 'market' or 'limit'
          * @param {string} $side 'buy' or 'sell'
          * @param {float} $amount how much of currency you want to trade in units of base currency
-         * @param {float} [$price] the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
+         * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
          */
@@ -1475,9 +1488,10 @@ class zonda extends Exchange {
             'side' => $side,
             'price' => $price,
         );
+        $response = $this->v1_01PrivateDeleteTradingOfferSymbolIdSidePrice ($this->extend($request, $params));
         // array( status => "Fail", errors => array( "NOT_RECOGNIZED_OFFER_TYPE" ) )  -- if required $params are missing
         // array( status => "Ok", errors => array() )
-        return $this->v1_01PrivateDeleteTradingOfferSymbolIdSidePrice ($this->extend($request, $params));
+        return $this->parse_order($response);
     }
 
     public function is_fiat($currency) {
@@ -1727,7 +1741,7 @@ class zonda extends Exchange {
         return $this->parse_transaction($data, $currency);
     }
 
-    public function parse_transaction($transaction, ?array $currency = null): array {
+    public function parse_transaction(array $transaction, ?array $currency = null): array {
         //
         // withdraw
         //
@@ -1811,7 +1825,7 @@ class zonda extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors($httpCode, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
         if ($response === null) {
             return null; // fallback to default $error handler
         }

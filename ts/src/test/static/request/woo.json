@@ -28,7 +28,19 @@
                     10,
                     1
                 ],
-                "output": "broker_id=bc830de7-50f3-460b-9ee0-f430f83f9dad&order_amount=10&order_price=1&order_type=MARKET&side=BUY&symbol=SPOT_LTC_USDT"
+                "output": "broker_id=bc830de7-50f3-460b-9ee0-f430f83f9dad&order_amount=10&order_type=MARKET&side=BUY&symbol=SPOT_LTC_USDT"
+            },
+            {
+                "description": "spot market buy using base amount",
+                "method": "createOrder",
+                "url": "https://api.woo.org/v1/order",
+                "input": [
+                  "LTC/USDT",
+                  "market",
+                  "buy",
+                  0.1
+                ],
+                "output": "broker_id=bc830de7-50f3-460b-9ee0-f430f83f9dad&order_quantity=0.1&order_type=MARKET&side=BUY&symbol=SPOT_LTC_USDT"
             },
             {
                 "description": "spot market sell",
@@ -117,6 +129,18 @@
                     5
                 ],
                 "output": "broker_id=bc830de7-50f3-460b-9ee0-f430f83f9dad&order_amount=5&order_type=MARKET&side=BUY&symbol=SPOT_LTC_USDT"
+            }
+        ],
+        "createMarketSellOrderWithCost":[
+            {
+                "description": "spot market sell with cost",
+                "method": "createMarketSellOrderWithCost",
+                "url": "https://api.woo.org/v1/order",
+                "input": [
+                  "LTC/USDT",
+                  5
+                ],
+                "output": "broker_id=bc830de7-50f3-460b-9ee0-f430f83f9dad&order_amount=5&order_type=MARKET&side=SELL&symbol=SPOT_LTC_USDT"
             }
         ],
         "fetchOrders": [

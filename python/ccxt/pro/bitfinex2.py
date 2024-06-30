@@ -55,7 +55,7 @@ class bitfinex2(ccxt.async_support.bitfinex2):
         url = self.urls['api']['ws']['public']
         client = self.client(url)
         messageHash = channel + ':' + marketId
-        request = {
+        request: dict = {
             'event': 'subscribe',
             'channel': channel,
             'symbol': marketId,
@@ -93,7 +93,7 @@ class bitfinex2(ccxt.async_support.bitfinex2):
         channel = 'candles'
         key = 'trade:' + interval + ':' + market['id']
         messageHash = channel + ':' + interval + ':' + market['id']
-        request = {
+        request: dict = {
             'event': 'subscribe',
             'channel': channel,
             'key': key,
@@ -508,7 +508,7 @@ class bitfinex2(ccxt.async_support.bitfinex2):
         options = self.safe_value(self.options, 'watchOrderBook', {})
         prec = self.safe_string(options, 'prec', 'P0')
         freq = self.safe_string(options, 'freq', 'F0')
-        request = {
+        request: dict = {
             'prec': prec,  # string, level of price aggregation, 'P0', 'P1', 'P2', 'P3', 'P4', default P0
             'freq': freq,  # string, frequency of updates 'F0' = realtime, 'F1' = 2 seconds, default is 'F0'
         }
@@ -551,8 +551,7 @@ class bitfinex2(ccxt.async_support.bitfinex2):
         prec = self.safe_string(subscription, 'prec', 'P0')
         isRaw = (prec == 'R0')
         # if it is an initial snapshot
-        orderbook = self.safe_value(self.orderbooks, symbol)
-        if orderbook is None:
+        if not (symbol in self.orderbooks):
             limit = self.safe_integer(subscription, 'len')
             if isRaw:
                 # raw order books
@@ -571,7 +570,7 @@ class bitfinex2(ccxt.async_support.bitfinex2):
                     bookside = orderbook[side]
                     idString = self.safe_string(delta, 0)
                     price = self.safe_float(delta, 1)
-                    bookside.store(price, size, idString)
+                    bookside.storeArray([price, size, idString])
             else:
                 deltas = message[1]
                 for i in range(0, len(deltas)):
@@ -582,10 +581,11 @@ class bitfinex2(ccxt.async_support.bitfinex2):
                     size = -amount if (amount < 0) else amount
                     side = 'asks' if (amount < 0) else 'bids'
                     bookside = orderbook[side]
-                    bookside.store(price, size, counter)
+                    bookside.storeArray([price, size, counter])
             orderbook['symbol'] = symbol
             client.resolve(orderbook, messageHash)
         else:
+            orderbook = self.orderbooks[symbol]
             deltas = message[1]
             orderbookItem = self.orderbooks[symbol]
             if isRaw:
@@ -728,7 +728,7 @@ class bitfinex2(ccxt.async_support.bitfinex2):
             data = self.safe_value(message, 2)
         else:
             data = [self.safe_value(message, 2)]
-        updatedTypes = {}
+        updatedTypes: dict = {}
         for i in range(0, len(data)):
             rawBalance = data[i]
             currencyId = self.safe_string(rawBalance, 1)
@@ -805,7 +805,7 @@ class bitfinex2(ccxt.async_support.bitfinex2):
             payload = 'AUTH' + str(nonce)
             signature = self.hmac(self.encode(payload), self.encode(self.secret), hashlib.sha384, 'hex')
             event = 'auth'
-            request = {
+            request: dict = {
                 'apiKey': self.apiKey,
                 'authSig': signature,
                 'authNonce': nonce,
@@ -896,7 +896,7 @@ class bitfinex2(ccxt.async_support.bitfinex2):
             limit = self.safe_integer(self.options, 'ordersLimit', 1000)
             self.orders = ArrayCacheBySymbolById(limit)
         orders = self.orders
-        symbolIds = {}
+        symbolIds: dict = {}
         if messageType == 'os':
             snapshotLength = len(data)
             if snapshotLength == 0:
@@ -922,7 +922,7 @@ class bitfinex2(ccxt.async_support.bitfinex2):
             client.resolve(self.orders, messageHash)
 
     def parse_ws_order_status(self, status):
-        statuses = {
+        statuses: dict = {
             'ACTIVE': 'open',
             'CANCELED': 'canceled',
             'EXECUTED': 'closed',
@@ -1047,14 +1047,14 @@ class bitfinex2(ccxt.async_support.bitfinex2):
             subscription = self.safe_value(client.subscriptions, channelId, {})
             channel = self.safe_string(subscription, 'channel')
             name = self.safe_string(message, 1)
-            publicMethods = {
+            publicMethods: dict = {
                 'book': self.handle_order_book,
                 'cs': self.handle_checksum,
                 'candles': self.handle_ohlcv,
                 'ticker': self.handle_ticker,
                 'trades': self.handle_trades,
             }
-            privateMethods = {
+            privateMethods: dict = {
                 'os': self.handle_orders,
                 'ou': self.handle_orders,
                 'on': self.handle_orders,
@@ -1073,7 +1073,7 @@ class bitfinex2(ccxt.async_support.bitfinex2):
         else:
             event = self.safe_string(message, 'event')
             if event is not None:
-                methods = {
+                methods: dict = {
                     'info': self.handle_system_status,
                     'subscribed': self.handle_subscription_status,
                     'auth': self.handle_authentication_message,

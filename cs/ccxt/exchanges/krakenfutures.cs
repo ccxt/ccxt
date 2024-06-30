@@ -73,6 +73,7 @@ public partial class krakenfutures : Exchange
                     { "public", "https://demo-futures.kraken.com/derivatives/api/" },
                     { "private", "https://demo-futures.kraken.com/derivatives/api/" },
                     { "charts", "https://demo-futures.kraken.com/api/charts/" },
+                    { "history", "https://demo-futures.kraken.com/api/history/" },
                     { "www", "https://demo-futures.kraken.com" },
                 } },
                 { "logo", "https://user-images.githubusercontent.com/24300605/81436764-b22fd580-9172-11ea-9703-742783e6376d.jpg" },
@@ -93,8 +94,8 @@ public partial class krakenfutures : Exchange
                     { "get", new List<object>() {"feeschedules", "instruments", "orderbook", "tickers", "history", "historicalfundingrates"} },
                 } },
                 { "private", new Dictionary<string, object>() {
-                    { "get", new List<object>() {"feeschedules/volumes", "openpositions", "notifications", "accounts", "openorders", "recentorders", "fills", "transfers", "leveragepreferences", "pnlpreferences"} },
-                    { "post", new List<object>() {"sendorder", "editorder", "cancelorder", "transfer", "batchorder", "cancelallorders", "cancelallordersafter", "withdrawal"} },
+                    { "get", new List<object>() {"feeschedules/volumes", "openpositions", "notifications", "accounts", "openorders", "recentorders", "fills", "transfers", "leveragepreferences", "pnlpreferences", "assignmentprogram/current", "assignmentprogram/history"} },
+                    { "post", new List<object>() {"sendorder", "editorder", "cancelorder", "transfer", "batchorder", "cancelallorders", "cancelallordersafter", "withdrawal", "assignmentprogram/add", "assignmentprogram/delete"} },
                     { "put", new List<object>() {"leveragepreferences", "pnlpreferences"} },
                 } },
                 { "charts", new Dictionary<string, object>() {
@@ -1300,7 +1301,47 @@ public partial class krakenfutures : Exchange
             ((IDictionary<string,object>)request)["symbol"] = this.marketId(symbol);
         }
         object response = await this.privatePostCancelallorders(this.extend(request, parameters));
-        return response;
+        //
+        //    {
+        //        result: 'success',
+        //        cancelStatus: {
+        //          receivedTime: '2024-06-06T01:12:44.814Z',
+        //          cancelOnly: 'PF_XRPUSD',
+        //          status: 'cancelled',
+        //          cancelledOrders: [ { order_id: '272fd0ac-45c0-4003-b84d-d39b9e86bd36' } ],
+        //          orderEvents: [
+        //            {
+        //              uid: '272fd0ac-45c0-4003-b84d-d39b9e86bd36',
+        //              order: {
+        //                orderId: '272fd0ac-45c0-4003-b84d-d39b9e86bd36',
+        //                cliOrdId: null,
+        //                type: 'lmt',
+        //                symbol: 'PF_XRPUSD',
+        //                side: 'buy',
+        //                quantity: '10',
+        //                filled: '0',
+        //                limitPrice: '0.4',
+        //                reduceOnly: false,
+        //                timestamp: '2024-06-06T01:11:16.045Z',
+        //                lastUpdateTimestamp: '2024-06-06T01:11:16.045Z'
+        //              },
+        //              type: 'CANCEL'
+        //            }
+        //          ]
+        //        },
+        //        serverTime: '2024-06-06T01:12:44.814Z'
+        //    }
+        //
+        object cancelStatus = this.safeDict(response, "cancelStatus");
+        object orderEvents = this.safeList(cancelStatus, "orderEvents", new List<object>() {});
+        object orders = new List<object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(orderEvents)); postFixIncrement(ref i))
+        {
+            object orderEvent = this.safeDict(orderEvents, 0);
+            object order = this.safeDict(orderEvent, "order", new Dictionary<string, object>() {});
+            ((IList<object>)orders).Add(order);
+        }
+        return this.parseOrders(orders);
     }
 
     public async override Task<object> cancelAllOrdersAfter(object timeout, object parameters = null)
@@ -1704,6 +1745,22 @@ public partial class krakenfutures : Exchange
         //        ]
         //    }
         //
+        // cancelAllOrders
+        //
+        //    {
+        //        "orderId": "85c40002-3f20-4e87-9302-262626c3531b",
+        //        "cliOrdId": null,
+        //        "type": "lmt",
+        //        "symbol": "pi_xbtusd",
+        //        "side": "buy",
+        //        "quantity": 1000,
+        //        "filled": 0,
+        //        "limitPrice": 10144,
+        //        "stopPrice": null,
+        //        "reduceOnly": false,
+        //        "timestamp": "2019-08-01T15:26:27.790Z"
+        //    }
+        //
         // FETCH OPEN ORDERS
         //
         //    {
@@ -1908,7 +1965,7 @@ public partial class krakenfutures : Exchange
             { "type", this.parseOrderType(type) },
             { "timeInForce", timeInForce },
             { "postOnly", isEqual(type, "post") },
-            { "reduceOnly", this.safeValue(details, "reduceOnly") },
+            { "reduceOnly", this.safeBool2(details, "reduceOnly", "reduce_only") },
             { "side", this.safeString(details, "side") },
             { "price", price },
             { "stopPrice", this.safeString(details, "triggerPrice") },

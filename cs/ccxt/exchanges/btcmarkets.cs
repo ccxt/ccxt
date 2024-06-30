@@ -795,7 +795,7 @@ public partial class btcmarkets : Exchange
         * @param {string} type 'market' or 'limit'
         * @param {string} side 'buy' or 'sell'
         * @param {float} amount how much of currency you want to trade in units of base currency
-        * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
         */
@@ -904,7 +904,29 @@ public partial class btcmarkets : Exchange
         object request = new Dictionary<string, object>() {
             { "ids", ids },
         };
-        return await this.privateDeleteBatchordersIds(this.extend(request, parameters));
+        object response = await this.privateDeleteBatchordersIds(this.extend(request, parameters));
+        //
+        //    {
+        //       "cancelOrders": [
+        //            {
+        //               "orderId": "414186",
+        //               "clientOrderId": "6"
+        //            },
+        //            ...
+        //        ],
+        //        "unprocessedRequests": [
+        //            {
+        //               "code": "OrderAlreadyCancelled",
+        //               "message": "order is already cancelled.",
+        //               "requestId": "1"
+        //            }
+        //        ]
+        //    }
+        //
+        object cancelOrders = this.safeList(response, "cancelOrders", new List<object>() {});
+        object unprocessedRequests = this.safeList(response, "unprocessedRequests", new List<object>() {});
+        object orders = this.arrayConcat(cancelOrders, unprocessedRequests);
+        return this.parseOrders(orders);
     }
 
     public async override Task<object> cancelOrder(object id, object symbol = null, object parameters = null)
@@ -924,7 +946,14 @@ public partial class btcmarkets : Exchange
         object request = new Dictionary<string, object>() {
             { "id", id },
         };
-        return await this.privateDeleteOrdersId(this.extend(request, parameters));
+        object response = await this.privateDeleteOrdersId(this.extend(request, parameters));
+        //
+        //    {
+        //        "orderId": "7524",
+        //        "clientOrderId": "123-456"
+        //    }
+        //
+        return this.parseOrder(response);
     }
 
     public override object calculateFee(object symbol, object type, object side, object amount, object price, object takerOrMaker = null, object parameters = null)

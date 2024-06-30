@@ -243,6 +243,9 @@ public partial class okx : Exchange
                         { "finance/staking-defi/eth/apy-history", divide(5, 3) },
                         { "finance/savings/lending-rate-summary", divide(5, 3) },
                         { "finance/savings/lending-rate-history", divide(5, 3) },
+                        { "finance/fixed-loan/lending-offers", divide(10, 3) },
+                        { "finance/fixed-loan/lending-apy-history", divide(10, 3) },
+                        { "finance/fixed-loan/pending-lending-volume", divide(10, 3) },
                         { "finance/sfp/dcd/products", divide(2, 3) },
                         { "copytrading/public-lead-traders", 4 },
                         { "copytrading/public-weekly-pnl", 4 },
@@ -323,6 +326,9 @@ public partial class okx : Exchange
                         { "account/greeks", 2 },
                         { "account/position-tiers", 2 },
                         { "account/mmp-config", 4 },
+                        { "account/fixed-loan/borrowing-limit", 4 },
+                        { "account/fixed-loan/borrowing-quote", 5 },
+                        { "account/fixed-loan/borrowing-orders-list", 5 },
                         { "users/subaccount/list", 10 },
                         { "account/subaccount/balances", divide(10, 3) },
                         { "asset/subaccount/balances", divide(10, 3) },
@@ -397,6 +403,7 @@ public partial class okx : Exchange
                         { "sprd/cancel-order", 1 },
                         { "sprd/mass-cancel", 1 },
                         { "sprd/amend-order", 1 },
+                        { "sprd/cancel-all-after", 10 },
                         { "trade/order", divide(1, 3) },
                         { "trade/batch-orders", divide(1, 15) },
                         { "trade/cancel-order", divide(1, 3) },
@@ -436,6 +443,10 @@ public partial class okx : Exchange
                         { "account/set-account-level", 4 },
                         { "account/mmp-reset", 4 },
                         { "account/mmp-config", 100 },
+                        { "account/fixed-loan/borrowing-order", 5 },
+                        { "account/fixed-loan/amend-borrowing-order", 5 },
+                        { "account/fixed-loan/manual-reborrow", 5 },
+                        { "account/fixed-loan/repay-borrowing-order", 5 },
                         { "users/subaccount/modify-apikey", 10 },
                         { "asset/subaccount/transfer", 10 },
                         { "users/subaccount/set-transfer-out", 10 },
@@ -2495,6 +2506,7 @@ public partial class okx : Exchange
         * @see https://www.okx.com/docs-v5/en/#funding-account-rest-api-get-balance
         * @see https://www.okx.com/docs-v5/en/#trading-account-rest-api-get-balance
         * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @param {string} [params.type] wallet type, ['funding' or 'trading'] default is 'trading'
         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
         */
         parameters ??= new Dictionary<string, object>();
@@ -2989,7 +3001,7 @@ public partial class okx : Exchange
         * @param {string} type 'market' or 'limit'
         * @param {string} side 'buy' or 'sell'
         * @param {float} amount how much of currency you want to trade in units of base currency
-        * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @param {bool} [params.reduceOnly] a mark to reduce the position size for margin, swap and future orders
         * @param {bool} [params.postOnly] true to place a post only order
@@ -3230,7 +3242,7 @@ public partial class okx : Exchange
         * @param {string} type 'market' or 'limit'
         * @param {string} side 'buy' or 'sell'
         * @param {float} amount how much of the currency you want to trade in units of the base currency
-        * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @param {string} [params.clientOrderId] client order id, uses id if not passed
         * @param {float} [params.stopLossPrice] stop loss trigger price
@@ -5777,7 +5789,7 @@ public partial class okx : Exchange
         {
             ((IList<object>)result).Add(this.parsePosition(getValue(positions, i)));
         }
-        return this.filterByArrayPositions(result, "symbol", symbols, false);
+        return this.filterByArrayPositions(result, "symbol", this.marketSymbols(symbols), false);
     }
 
     public async override Task<object> fetchPositionsForSymbol(object symbol, object parameters = null)
