@@ -949,7 +949,7 @@ export default class btcalpha extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response, requestHeaders, requestBody) {
+    handleErrors (httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response, requestHeaders, requestBody) {
         if (response === undefined) {
             return undefined; // fallback to default error handler
         }
@@ -957,19 +957,12 @@ export default class btcalpha extends Exchange {
         //     {"date":1570599531.4814300537,"error":"Out of balance -9.99243661 BTC"}
         //
         const error = this.safeString (response, 'error');
-        const feedback = this.id + ' ' + body;
         if (error !== undefined) {
+            const feedback = this.id + ' ' + body;
             this.throwExactlyMatchedException (this.exceptions['exact'], error, feedback);
             this.throwBroadlyMatchedException (this.exceptions['broad'], error, feedback);
+            throw new ExchangeError (feedback); // unknown error
         }
-        if (code === 401 || code === 403) {
-            throw new AuthenticationError (feedback);
-        } else if (code === 429) {
-            throw new DDoSProtection (feedback);
-        }
-        if (code < 400) {
-            return undefined;
-        }
-        throw new ExchangeError (feedback);
+        return undefined;
     }
 }
