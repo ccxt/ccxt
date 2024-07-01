@@ -112,7 +112,7 @@ export default class htx extends Exchange {
     parseTransfer(transfer: Dict, currency?: Currency): TransferEntry;
     transfer(code: string, amount: number, fromAccount: string, toAccount: string, params?: {}): Promise<TransferEntry>;
     fetchIsolatedBorrowRates(params?: {}): Promise<IsolatedBorrowRates>;
-    parseIsolatedBorrowRate(info: any, market?: Market): IsolatedBorrowRate;
+    parseIsolatedBorrowRate(info: Dict, market?: Market): IsolatedBorrowRate;
     fetchFundingRateHistory(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<FundingRateHistory[]>;
     parseFundingRate(contract: any, market?: Market): {
         info: any;
@@ -238,5 +238,6 @@ export default class htx extends Exchange {
     };
     fetchLiquidations(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Liquidation[]>;
     parseLiquidation(liquidation: any, market?: Market): import("./base/types.js").Liquidation;
+    closePosition(symbol: string, side?: OrderSide, params?: {}): Promise<Order>;
     setPositionMode(hedged: boolean, symbol?: Str, params?: {}): Promise<any>;
 }

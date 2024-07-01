@@ -453,7 +453,7 @@ class zaif extends Exchange {
              * @param {string} $type must be 'limit'
              * @param {string} $side 'buy' or 'sell'
              * @param {float} $amount how much of currency you want to trade in units of base currency
-             * @param {float} [$price] the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
+             * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
              */
@@ -489,7 +489,23 @@ class zaif extends Exchange {
             $request = array(
                 'order_id' => $id,
             );
-            return Async\await($this->privatePostCancelOrder ($this->extend($request, $params)));
+            $response = Async\await($this->privatePostCancelOrder ($this->extend($request, $params)));
+            //
+            //    {
+            //        "success" => 1,
+            //        "return" => {
+            //            "order_id" => 184,
+            //            "funds" => {
+            //                "jpy" => 15320,
+            //                "btc" => 1.392,
+            //                "mona" => 2600,
+            //                "kaori" => 0.1
+            //            }
+            //        }
+            //    }
+            //
+            $data = $this->safe_dict($response, 'return');
+            return $this->parse_order($data);
         }) ();
     }
 
@@ -504,6 +520,18 @@ class zaif extends Exchange {
         //         "comment" : "demo"
         //     }
         //
+        // cancelOrder
+        //
+        //    {
+        //        "order_id" => 184,
+        //        "funds" => {
+        //            "jpy" => 15320,
+        //            "btc" => 1.392,
+        //            "mona" => 2600,
+        //            "kaori" => 0.1
+        //        }
+        //    }
+        //
         $side = $this->safe_string($order, 'action');
         $side = ($side === 'bid') ? 'buy' : 'sell';
         $timestamp = $this->safe_timestamp($order, 'timestamp');
@@ -511,7 +539,7 @@ class zaif extends Exchange {
         $symbol = $this->safe_symbol($marketId, $market, '_');
         $price = $this->safe_string($order, 'price');
         $amount = $this->safe_string($order, 'amount');
-        $id = $this->safe_string($order, 'id');
+        $id = $this->safe_string_2($order, 'id', 'order_id');
         return $this->safe_order(array(
             'id' => $id,
             'clientOrderId' => null,

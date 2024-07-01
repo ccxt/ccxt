@@ -475,7 +475,7 @@ class coinspot(Exchange, ImplicitAPI):
         :param str type: must be 'limit'
         :param str side: 'buy' or 'sell'
         :param float amount: how much of currency you want to trade in units of base currency
-        :param float [price]: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
@@ -505,11 +505,20 @@ class coinspot(Exchange, ImplicitAPI):
         if side != 'buy' and side != 'sell':
             raise ArgumentsRequired(self.id + ' cancelOrder() requires a side parameter, "buy" or "sell"')
         params = self.omit(params, 'side')
-        method = 'privatePostMy' + self.capitalize(side) + 'Cancel'
         request: dict = {
             'id': id,
         }
-        return await getattr(self, method)(self.extend(request, params))
+        response = None
+        if side == 'buy':
+            response = await self.privatePostMyBuyCancel(self.extend(request, params))
+        else:
+            response = await self.privatePostMySellCancel(self.extend(request, params))
+        #
+        # status - ok, error
+        #
+        return self.safe_order({
+            'info': response,
+        })
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api'][api] + '/' + path

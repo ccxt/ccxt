@@ -698,7 +698,7 @@ class alpaca extends Exchange {
              * @param {string} $type 'market', 'limit' or 'stop_limit'
              * @param {string} $side 'buy' or 'sell'
              * @param {float} $amount how much of currency you want to trade in units of base currency
-             * @param {float} [$price] the $price at which the $order is to be fullfilled, in units of the quote currency, ignored in $market orders
+             * @param {float} [$price] the $price at which the $order is to be fulfilled, in units of the quote currency, ignored in $market orders
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {float} [$params->triggerPrice] The $price at which a trigger $order is triggered at
              * @return {array} an ~@link https://docs.ccxt.com/#/?$id=$order-structure $order structure~
@@ -798,7 +798,7 @@ class alpaca extends Exchange {
             //       "message" => "order is not found."
             //   }
             //
-            return $this->safe_value($response, 'message', array());
+            return $this->parse_order($response);
         }) ();
     }
 

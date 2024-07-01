@@ -383,7 +383,7 @@ class bl3p extends Exchange {
          * @param {string} $type 'market' or 'limit'
          * @param {string} $side 'buy' or 'sell'
          * @param {float} $amount how much of currency you want to trade in units of base currency
-         * @param {float} [$price] the $price at which the $order is to be fullfilled, in units of the quote currency, ignored in $market orders
+         * @param {float} [$price] the $price at which the $order is to be fulfilled, in units of the quote currency, ignored in $market orders
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          *
          * EXCHANGE SPECIFIC PARAMETERS
@@ -423,7 +423,13 @@ class bl3p extends Exchange {
         $request = array(
             'order_id' => $id,
         );
-        return $this->privatePostMarketMoneyOrderCancel ($this->extend($request, $params));
+        $response = $this->privatePostMarketMoneyOrderCancel ($this->extend($request, $params));
+        //
+        // "success"
+        //
+        return $this->safe_order(array(
+            'info' => $response,
+        ));
     }
 
     public function create_deposit_address(string $code, $params = array ()) {

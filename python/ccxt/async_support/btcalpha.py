@@ -9,10 +9,8 @@ import hashlib
 from ccxt.base.types import Balances, Currency, IndexType, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
-from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
-from ccxt.base.errors import DDoSProtection
 from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
@@ -679,7 +677,7 @@ class btcalpha(Exchange, ImplicitAPI):
         filled = self.safe_string(order, 'amount_filled')
         amount = self.safe_string(order, 'amount_original')
         status = self.parse_order_status(self.safe_string(order, 'status'))
-        id = self.safe_string_2(order, 'oid', 'id')
+        id = self.safe_string_n(order, ['oid', 'id', 'order'])
         trades = self.safe_value(order, 'trades')
         side = self.safe_string_2(order, 'my_side', 'type')
         return self.safe_order({
@@ -715,7 +713,7 @@ class btcalpha(Exchange, ImplicitAPI):
         :param str type: 'limit'
         :param str side: 'buy' or 'sell'
         :param float amount: how much of currency you want to trade in units of base currency
-        :param float [price]: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
@@ -751,7 +749,12 @@ class btcalpha(Exchange, ImplicitAPI):
             'order': id,
         }
         response = await self.privatePostOrderCancel(self.extend(request, params))
-        return response
+        #
+        #    {
+        #        "order": 63568
+        #    }
+        #
+        return self.parse_order(response)
 
     async def fetch_order(self, id: str, symbol: Str = None, params={}):
         """
@@ -873,14 +876,9 @@ class btcalpha(Exchange, ImplicitAPI):
         #     {"date":1570599531.4814300537,"error":"Out of balance -9.99243661 BTC"}
         #
         error = self.safe_string(response, 'error')
-        feedback = self.id + ' ' + body
         if error is not None:
+            feedback = self.id + ' ' + body
             self.throw_exactly_matched_exception(self.exceptions['exact'], error, feedback)
             self.throw_broadly_matched_exception(self.exceptions['broad'], error, feedback)
-        if code == 401 or code == 403:
-            raise AuthenticationError(feedback)
-        elif code == 429:
-            raise DDoSProtection(feedback)
-        if code < 400:
-            return None
-        raise ExchangeError(feedback)
+            raise ExchangeError(feedback)  # unknown error
+        return None

@@ -93,6 +93,7 @@ function createExchange (id, content) {
         const isPro = definesPro ? content.indexOf("'pro': true") > -1 : undefined;
         const definesCertified = content.indexOf("'certified': true") > -1 || content.indexOf("'certified': false") > -1;
         const isCertified = definesCertified ? content.indexOf("'certified': true") > -1 : undefined;
+        const isDex = definesCertified ? content.indexOf("'dex': true") > -1 : undefined;
         const matches = content.match(urlsRegex);
         const chunk = matches[0];
         const leftSpace = chunk.search(/\S|$/)
@@ -129,6 +130,7 @@ function createExchange (id, content) {
             'version': version,
             'countries': countries,
             'parent': parent,
+            'dex': isDex,
         }
     }
     return {
@@ -262,6 +264,7 @@ function createMarkdownExchange (exchange) {
         'id': exchange.id,
         'name': '[' + exchange.name + '](' + url + ')',
         'ver': getVersionBadge (exchange),
+        'type': exchange.dex ? 'dex' : 'cex',
         'certified': exchange.certified ? ccxtCertifiedBadge : '',
         'pro': exchange.pro ? ccxtProBadge : '',
     }
@@ -553,6 +556,32 @@ function generateErrorsTs () {
 
 // ----------------------------------------------------------------------------
 
+function getTypesExports() {
+    const typesPath = './ts/src/base/types.ts';
+    const fileContent = fs.readFileSync(typesPath, 'utf8');
+
+    // Regular expressions to match type and interface declarations
+    const typeRegex = /export\stype\s+([A-Za-z0-9_]+)/g;
+    const interfaceRegex = /export\sinterface\s+([A-Za-z0-9_]+)/g;
+
+    const typeNames = [];
+    const interfaceNames = [];
+
+    let match;
+      // Extract type names
+    while ((match = typeRegex.exec(fileContent)) !== null) {
+      typeNames.push(match[1]);
+    }
+
+    // Extract interface names
+    while ((match = interfaceRegex.exec(fileContent)) !== null) {
+      interfaceNames.push(match[1]);
+    }
+    return typeNames.concat(interfaceNames);
+}
+
+// ----------------------------------------------------------------------------
+
 async function exportEverything () {
     const ids = getIncludedExchangeIds ('./ts/src')
 
@@ -564,7 +593,7 @@ async function exportEverything () {
     const errorsExports = [...flat];
     flat.push ('error_hierarchy')
 
-    const typeExports = ['Market', 'Trade' , 'Fee', 'Ticker', 'OrderBook', 'Order', 'Transaction', 'Tickers', 'Currency', 'Balance', 'DepositAddress', 'WithdrawalResponse', 'DepositAddressResponse', 'OHLCV', 'Balances', 'PartialBalances', 'Dictionary', 'MinMax', 'Position', 'FundingRateHistory', 'Liquidation', 'FundingHistory', 'MarginMode', 'Greeks', 'Leverage', 'Leverages', 'Option', 'OptionChain', 'Conversion' ]
+    const typeExports = getTypesExports();
     const staticExports = ['version', 'Exchange', 'exchanges', 'pro', 'Precise', 'functions', 'errors'].concat(errorsExports).concat(typeExports)
 
     const fullExports  = staticExports.concat(ids)

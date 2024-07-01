@@ -919,6 +919,13 @@ class coinmate extends Exchange {
         //         "trailing" => false,
         //     }
         //
+        // cancelOrder
+        //
+        //    {
+        //        "success" => true,
+        //        "remainingAmount" => 0.1
+        //    }
+        //
         $id = $this->safe_string($order, 'id');
         $timestamp = $this->safe_integer($order, 'timestamp');
         $side = $this->safe_string_lower($order, 'type');
@@ -969,7 +976,7 @@ class coinmate extends Exchange {
          * @param {string} $type 'market' or 'limit'
          * @param {string} $side 'buy' or 'sell'
          * @param {float} $amount how much of currency you want to trade in units of base currency
-         * @param {float} [$price] the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
+         * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
          */
@@ -1033,9 +1040,18 @@ class coinmate extends Exchange {
         //   array("error":false,"errorMessage":null,"data":array("success":true,"remainingAmount":0.01))
         $request = array( 'orderId' => $id );
         $response = $this->privatePostCancelOrderWithInfo ($this->extend($request, $params));
-        return array(
-            'info' => $response,
-        );
+        //
+        //    {
+        //        "error" => false,
+        //        "errorMessage" => null,
+        //        "data" => {
+        //          "success" => true,
+        //          "remainingAmount" => 0.1
+        //        }
+        //    }
+        //
+        $data = $this->safe_dict($response, 'data');
+        return $this->parse_order($data);
     }
 
     public function nonce() {

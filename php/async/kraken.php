@@ -171,13 +171,13 @@ class kraken extends Exchange {
                         // rate-limits explained in comment in the top of this file
                         'Assets' => 1,
                         'AssetPairs' => 1,
-                        'Depth' => 1,
-                        'OHLC' => 1,
+                        'Depth' => 1.2,
+                        'OHLC' => 1.2, // 1.2 because 1 triggers too many requests immediately
                         'Spread' => 1,
                         'SystemStatus' => 1,
                         'Ticker' => 1,
                         'Time' => 1,
-                        'Trades' => 1,
+                        'Trades' => 1.2,
                     ),
                 ),
                 'private' => array(
@@ -775,8 +775,8 @@ class kraken extends Exchange {
         return array(
             'info' => $response,
             'symbol' => $market['symbol'],
-            'maker' => $this->safe_number($symbolMakerFee, 'fee'),
-            'taker' => $this->safe_number($symbolTakerFee, 'fee'),
+            'maker' => $this->parse_number(Precise::string_div($this->safe_string($symbolMakerFee, 'fee'), '100')),
+            'taker' => $this->parse_number(Precise::string_div($this->safe_string($symbolTakerFee, 'fee'), '100')),
             'percentage' => true,
             'tierBased' => true,
         );
@@ -1008,7 +1008,9 @@ class kraken extends Exchange {
                 $request['interval'] = $timeframe;
             }
             if ($since !== null) {
-                $request['since'] = $this->number_to_string($this->parse_to_int($since / 1000)); // expected to be in seconds
+                $scaledSince = $this->parse_to_int($since / 1000);
+                $timeFrameInSeconds = $parsedTimeframe * 60;
+                $request['since'] = $this->number_to_string($scaledSince - $timeFrameInSeconds); // expected to be in seconds
             }
             $response = Async\await($this->publicGetOHLC ($this->extend($request, $params)));
             //
@@ -1423,7 +1425,7 @@ class kraken extends Exchange {
              * @param {string} $type 'market' or 'limit'
              * @param {string} $side 'buy' or 'sell'
              * @param {float} $amount how much of currency you want to trade in units of base currency
-             * @param {float} [$price] the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
+             * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {bool} [$params->postOnly] if true, the order will only be posted to the order book and not executed immediately
              * @param {bool} [$params->reduceOnly] *margin only* indicates if this order is to reduce the size of a position
@@ -1743,6 +1745,7 @@ class kraken extends Exchange {
             'filled' => $filled,
             'average' => $average,
             'remaining' => null,
+            'reduceOnly' => $this->safe_bool_2($order, 'reduceOnly', 'reduce_only'),
             'fee' => $fee,
             'trades' => $trades,
         ), $market);
@@ -1859,7 +1862,7 @@ class kraken extends Exchange {
              * @param {string} $type 'market' or 'limit'
              * @param {string} $side 'buy' or 'sell'
              * @param {float} $amount how much of the currency you want to trade in units of the base currency
-             * @param {float} [$price] the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
+             * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {float} [$params->stopLossPrice] *margin only* the $price that a stop loss order is triggered at
              * @param {float} [$params->takeProfitPrice] *margin only* the $price that a take profit order is triggered at
@@ -2147,7 +2150,7 @@ class kraken extends Exchange {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              * cancels an open order
-             * @see https://docs.kraken.com/rest/#tag/Trading/operation/cancelOrder
+             * @see https://docs.kraken.com/rest/#tag/Spot-Trading/operation/cancelOrder
              * @param {string} $id order $id
              * @param {string} $symbol unified $symbol of the market the order was made in
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -2162,6 +2165,14 @@ class kraken extends Exchange {
             $params = $this->omit($params, array( 'userref', 'clientOrderId' ));
             try {
                 $response = Async\await($this->privatePostCancelOrder ($this->extend($request, $params)));
+                //
+                //    {
+                //        error => array(),
+                //        result => {
+                //            count => '1'
+                //        }
+                //    }
+                //
             } catch (Exception $e) {
                 if ($this->last_http_response) {
                     if (mb_strpos($this->last_http_response, 'EOrder:Unknown order') !== false) {
@@ -2170,7 +2181,9 @@ class kraken extends Exchange {
                 }
                 throw $e;
             }
-            return $response;
+            return $this->safe_order(array(
+                'info' => $response,
+            ));
         }) ();
     }
 
@@ -2178,7 +2191,7 @@ class kraken extends Exchange {
         return Async\async(function () use ($ids, $symbol, $params) {
             /**
              * cancel multiple orders
-             * @see https://docs.kraken.com/rest/#tag/Trading/operation/cancelOrderBatch
+             * @see https://docs.kraken.com/rest/#tag/Spot-Trading/operation/cancelOrderBatch
              * @param {string[]} $ids open orders transaction ID (txid) or user reference (userref)
              * @param {string} $symbol unified market $symbol
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -2196,7 +2209,11 @@ class kraken extends Exchange {
             //         }
             //     }
             //
-            return $response;
+            return array(
+                $this->safe_order(array(
+                    'info' => $response,
+                )),
+            );
         }) ();
     }
 
@@ -2204,13 +2221,26 @@ class kraken extends Exchange {
         return Async\async(function () use ($symbol, $params) {
             /**
              * cancel all open orders
-             * @see https://docs.kraken.com/rest/#tag/Trading/operation/cancelAllOrders
+             * @see https://docs.kraken.com/rest/#tag/Spot-Trading/operation/cancelAllOrders
              * @param {string} $symbol unified market $symbol, only orders in the market of this $symbol are cancelled when $symbol is not null
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             Async\await($this->load_markets());
-            return Async\await($this->privatePostCancelAll ($params));
+            $response = Async\await($this->privatePostCancelAll ($params));
+            //
+            //    {
+            //        error => array(),
+            //        result => {
+            //            count => '1'
+            //        }
+            //    }
+            //
+            return array(
+                $this->safe_order(array(
+                    'info' => $response,
+                )),
+            );
         }) ();
     }
 

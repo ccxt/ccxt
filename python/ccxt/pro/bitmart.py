@@ -12,7 +12,6 @@ from ccxt.async_support.base.ws.client import Client
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
-from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import NotSupported
 
 
@@ -333,9 +332,9 @@ class bitmart(ccxt.async_support.bitmart):
 
     async def watch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
-        :see: https://developer-pro.bitmart.com/en/spot/#private-order-channel
-        :see: https://developer-pro.bitmart.com/en/futures/#private-order-channel
         watches information on multiple orders made by the user
+        :see: https://developer-pro.bitmart.com/en/spot/#private-order-progress
+        :see: https://developer-pro.bitmart.com/en/futures/#private-order-channel
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of order structures to retrieve
@@ -354,11 +353,14 @@ class bitmart(ccxt.async_support.bitmart):
         await self.authenticate(type, params)
         request = None
         if type == 'spot':
-            if symbol is None:
-                raise ArgumentsRequired(self.id + ' watchOrders() requires a symbol argument for spot markets')
+            argsRequest = 'spot/user/order:'
+            if symbol is not None:
+                argsRequest += market['id']
+            else:
+                argsRequest = 'spot/user/orders:ALL_SYMBOLS'
             request = {
                 'op': 'subscribe',
-                'args': ['spot/user/order:' + market['id']],
+                'args': [argsRequest],
             }
         else:
             request = {

@@ -341,12 +341,11 @@ class bitrue(ccxt.async_support.bitrue):
         symbol = market['symbol']
         timestamp = self.safe_integer(message, 'ts')
         tick = self.safe_value(message, 'tick', {})
-        orderbook = self.safe_value(self.orderbooks, symbol)
-        if orderbook is None:
-            orderbook = self.order_book()
+        if not (symbol in self.orderbooks):
+            self.orderbooks[symbol] = self.order_book()
+        orderbook = self.orderbooks[symbol]
         snapshot = self.parse_order_book(tick, symbol, timestamp, 'buys', 'asks')
         orderbook.reset(snapshot)
-        self.orderbooks[symbol] = orderbook
         messageHash = 'orderbook:' + symbol
         client.resolve(orderbook, messageHash)
 

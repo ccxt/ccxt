@@ -171,6 +171,10 @@ class zonda extends Exchange {
                         'balances/BITBAY/balance',
                         'fiat_cantor/rate/{baseId}/{quoteId}',
                         'fiat_cantor/history',
+                        'client_payments/v2/customer/crypto/{currency}/channels/deposit',
+                        'client_payments/v2/customer/crypto/{currency}/channels/withdrawal',
+                        'client_payments/v2/customer/crypto/deposit/fee',
+                        'client_payments/v2/customer/crypto/withdrawal/fee',
                     ),
                     'post' => array(
                         'trading/offer/{symbol}',
@@ -181,6 +185,8 @@ class zonda extends Exchange {
                         'fiat_cantor/exchange',
                         'api_payments/withdrawals/crypto',
                         'api_payments/withdrawals/fiat',
+                        'client_payments/v2/customer/crypto/deposit',
+                        'client_payments/v2/customer/crypto/withdrawal',
                     ),
                     'delete' => array(
                         'trading/offer/{symbol}/{id}/{side}/{price}',
@@ -439,6 +445,13 @@ class zonda extends Exchange {
         //         "firstBalanceId" => "5b816c3e-437c-4e43-9bef-47814ae7ebfc",
         //         "secondBalanceId" => "ab43023b-4079-414c-b340-056e3430a3af"
         //     }
+        //
+        // cancelOrder
+        //
+        //    {
+        //        status => "Ok",
+        //        errors => array()
+        //    }
         //
         $marketId = $this->safe_string($order, 'market');
         $symbol = $this->safe_symbol($marketId, $market, '-');
@@ -1356,7 +1369,7 @@ class zonda extends Exchange {
              * @param {string} $type 'market' or 'limit'
              * @param {string} $side 'buy' or 'sell'
              * @param {float} $amount how much of currency you want to trade in units of base currency
-             * @param {float} [$price] the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
+             * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} an ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
              */
@@ -1503,9 +1516,10 @@ class zonda extends Exchange {
                 'side' => $side,
                 'price' => $price,
             );
+            $response = Async\await($this->v1_01PrivateDeleteTradingOfferSymbolIdSidePrice ($this->extend($request, $params)));
             // array( status => "Fail", errors => array( "NOT_RECOGNIZED_OFFER_TYPE" ) )  -- if required $params are missing
             // array( status => "Ok", errors => array() )
-            return Async\await($this->v1_01PrivateDeleteTradingOfferSymbolIdSidePrice ($this->extend($request, $params)));
+            return $this->parse_order($response);
         }) ();
     }
 

@@ -810,7 +810,7 @@ export default class btcmarkets extends Exchange {
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
@@ -915,7 +915,29 @@ export default class btcmarkets extends Exchange {
         const request: Dict = {
             'ids': ids,
         };
-        return await this.privateDeleteBatchordersIds (this.extend (request, params));
+        const response = await this.privateDeleteBatchordersIds (this.extend (request, params));
+        //
+        //    {
+        //       "cancelOrders": [
+        //            {
+        //               "orderId": "414186",
+        //               "clientOrderId": "6"
+        //            },
+        //            ...
+        //        ],
+        //        "unprocessedRequests": [
+        //            {
+        //               "code": "OrderAlreadyCancelled",
+        //               "message": "order is already cancelled.",
+        //               "requestId": "1"
+        //            }
+        //        ]
+        //    }
+        //
+        const cancelOrders = this.safeList (response, 'cancelOrders', []);
+        const unprocessedRequests = this.safeList (response, 'unprocessedRequests', []);
+        const orders = this.arrayConcat (cancelOrders, unprocessedRequests);
+        return this.parseOrders (orders);
     }
 
     async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
@@ -933,7 +955,14 @@ export default class btcmarkets extends Exchange {
         const request: Dict = {
             'id': id,
         };
-        return await this.privateDeleteOrdersId (this.extend (request, params));
+        const response = await this.privateDeleteOrdersId (this.extend (request, params));
+        //
+        //    {
+        //        "orderId": "7524",
+        //        "clientOrderId": "123-456"
+        //    }
+        //
+        return this.parseOrder (response);
     }
 
     calculateFee (symbol, type, side, amount, price, takerOrMaker = 'taker', params = {}) {

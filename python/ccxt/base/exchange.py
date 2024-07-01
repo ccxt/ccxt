@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.3.34'
+__version__ = '4.3.55'
 
 # -----------------------------------------------------------------------------
 
@@ -1518,8 +1518,8 @@ class Exchange(object):
 
     def precision_from_string(self, str):
         # support string formats like '1e-4'
-        if 'e' in str:
-            numStr = re.sub(r'\de', '', str)
+        if 'e' in str or 'E' in str:
+            numStr = re.sub(r'\d\.?\d*[eE]', '', str)
             return int(numStr) * -1
         # support integer formats (without dot) like '1', '10' etc [Note: bug in decimalToPrecision, so this should not be used atm]
         # if not ('.' in str):
@@ -2255,7 +2255,7 @@ class Exchange(object):
     def parse_borrow_interest(self, info: dict, market: Market = None):
         raise NotSupported(self.id + ' parseBorrowInterest() is not supported yet')
 
-    def parse_isolated_borrow_rate(self, info, market: Market = None):
+    def parse_isolated_borrow_rate(self, info: dict, market: Market = None):
         raise NotSupported(self.id + ' parseIsolatedBorrowRate() is not supported yet')
 
     def parse_ws_trade(self, trade, market: Market = None):

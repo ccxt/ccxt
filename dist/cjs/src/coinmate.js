@@ -926,6 +926,13 @@ class coinmate extends coinmate$1 {
         //         "trailing": false,
         //     }
         //
+        // cancelOrder
+        //
+        //    {
+        //        "success": true,
+        //        "remainingAmount": 0.1
+        //    }
+        //
         const id = this.safeString(order, 'id');
         const timestamp = this.safeInteger(order, 'timestamp');
         const side = this.safeStringLower(order, 'type');
@@ -977,7 +984,7 @@ class coinmate extends coinmate$1 {
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
@@ -1045,9 +1052,18 @@ class coinmate extends coinmate$1 {
         //   {"error":false,"errorMessage":null,"data":{"success":true,"remainingAmount":0.01}}
         const request = { 'orderId': id };
         const response = await this.privatePostCancelOrderWithInfo(this.extend(request, params));
-        return {
-            'info': response,
-        };
+        //
+        //    {
+        //        "error": false,
+        //        "errorMessage": null,
+        //        "data": {
+        //          "success": true,
+        //          "remainingAmount": 0.1
+        //        }
+        //    }
+        //
+        const data = this.safeDict(response, 'data');
+        return this.parseOrder(data);
     }
     nonce() {
         return this.milliseconds();

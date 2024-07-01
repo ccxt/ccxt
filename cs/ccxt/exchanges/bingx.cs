@@ -378,7 +378,7 @@ public partial class bingx : Exchange
                 { "1w", "1w" },
                 { "1M", "1M" },
             } },
-            { "precisionMode", DECIMAL_PLACES },
+            { "precisionMode", TICK_SIZE },
             { "exceptions", new Dictionary<string, object>() {
                 { "exact", new Dictionary<string, object>() {
                     { "400", typeof(BadRequest) },
@@ -621,18 +621,26 @@ public partial class bingx : Exchange
         //        "msg": "",
         //        "data": [
         //            {
-        //              "contractId": "100",
-        //              "symbol": "BTC-USDT",
-        //              "size": "0.0001",
-        //              "quantityPrecision": 4,
-        //              "pricePrecision": 1,
-        //              "feeRate": 0.0005,
-        //              "tradeMinLimit": 1,
-        //              "maxLongLeverage": 150,
-        //              "maxShortLeverage": 150,
-        //              "currency": "USDT",
-        //              "asset": "BTC",
-        //              "status": 1
+        //                "contractId": "100",
+        //                "symbol": "BTC-USDT",
+        //                "size": "0.0001",
+        //                "quantityPrecision": "4",
+        //                "pricePrecision": "1",
+        //                "feeRate": "0.0005",
+        //                "makerFeeRate": "0.0002",
+        //                "takerFeeRate": "0.0005",
+        //                "tradeMinLimit": "0",
+        //                "tradeMinQuantity": "0.0001",
+        //                "tradeMinUSDT": "2",
+        //                "maxLongLeverage": "125",
+        //                "maxShortLeverage": "125",
+        //                "currency": "USDT",
+        //                "asset": "BTC",
+        //                "status": "1",
+        //                "apiStateOpen": "true",
+        //                "apiStateClose": "true",
+        //                "ensureTrigger": true,
+        //                "triggerFeeRate": "0.00020000"
         //            },
         //            ...
         //        ]
@@ -652,15 +660,15 @@ public partial class bingx : Exchange
         object quote = this.safeCurrencyCode(quoteId);
         object currency = this.safeString(market, "currency");
         object settle = this.safeCurrencyCode(currency);
-        object pricePrecision = this.safeInteger(market, "pricePrecision");
+        object pricePrecision = this.safeNumber(market, "tickSize");
         if (isTrue(isEqual(pricePrecision, null)))
         {
-            pricePrecision = this.precisionFromString(this.safeString(market, "tickSize"));
+            pricePrecision = this.parseNumber(this.parsePrecision(this.safeString(market, "pricePrecision")));
         }
-        object quantityPrecision = this.safeInteger(market, "quantityPrecision");
+        object quantityPrecision = this.safeNumber(market, "stepSize");
         if (isTrue(isEqual(quantityPrecision, null)))
         {
-            quantityPrecision = this.precisionFromString(this.safeString(market, "stepSize"));
+            quantityPrecision = this.parseNumber(this.parsePrecision(this.safeString(market, "quantityPrecision")));
         }
         object type = ((bool) isTrue((!isEqual(settle, null)))) ? "swap" : "spot";
         object spot = isEqual(type, "spot");
@@ -709,7 +717,7 @@ public partial class bingx : Exchange
             { "limits", new Dictionary<string, object>() {
                 { "leverage", new Dictionary<string, object>() {
                     { "min", null },
-                    { "max", this.safeInteger(market, "maxLongLeverage") },
+                    { "max", null },
                 } },
                 { "amount", new Dictionary<string, object>() {
                     { "min", this.safeNumber2(market, "minQty", "tradeMinQuantity") },
@@ -1069,7 +1077,7 @@ public partial class bingx : Exchange
             time = null;
         }
         object cost = this.safeString(trade, "quoteQty");
-        object type = ((bool) isTrue((isEqual(cost, null)))) ? "spot" : "swap";
+        // const type = (cost === undefined) ? 'spot' : 'swap'; this is not reliable
         object currencyId = this.safeStringN(trade, new List<object>() {"currency", "N", "commissionAsset"});
         object currencyCode = this.safeCurrencyCode(currencyId);
         object m = this.safeBool(trade, "m");
@@ -1112,7 +1120,7 @@ public partial class bingx : Exchange
             { "info", trade },
             { "timestamp", time },
             { "datetime", this.iso8601(time) },
-            { "symbol", this.safeSymbol(marketId, market, "-", type) },
+            { "symbol", this.safeSymbol(marketId, market, "-") },
             { "order", this.safeString2(trade, "orderId", "i") },
             { "type", this.safeStringLower(trade, "o") },
             { "side", this.parseOrderSide(side) },
@@ -1957,7 +1965,7 @@ public partial class bingx : Exchange
         * @param {string} type 'market' or 'limit'
         * @param {string} side 'buy' or 'sell'
         * @param {float} amount how much you want to trade in units of the base currency
-        * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} request to be sent to the exchange
         */
@@ -2188,7 +2196,7 @@ public partial class bingx : Exchange
         * @param {string} type 'market' or 'limit'
         * @param {string} side 'buy' or 'sell'
         * @param {float} amount how much you want to trade in units of the base currency
-        * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @param {string} [params.clientOrderId] a unique id for the order
         * @param {bool} [params.postOnly] true to place a post only order
@@ -2881,7 +2889,9 @@ public partial class bingx : Exchange
         {
             throw new BadRequest ((string)add(this.id, " cancelAllOrders is only supported for spot and swap markets.")) ;
         }
-        return response;
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        object orders = this.safeList2(data, "success", "orders", new List<object>() {});
+        return this.parseOrders(orders);
     }
 
     public async virtual Task<object> cancelOrders(object ids, object symbol = null, object parameters = null)
@@ -2940,36 +2950,9 @@ public partial class bingx : Exchange
             }
             response = await this.swapV2PrivateDeleteTradeBatchOrders(this.extend(request, parameters));
         }
-        //
-        //    {
-        //        "code": 0,
-        //        "msg": "",
-        //        "data": {
-        //          "success": [
-        //            {
-        //              "symbol": "LINK-USDT",
-        //              "orderId": 1597783850786750464,
-        //              "side": "BUY",
-        //              "positionSide": "LONG",
-        //              "type": "TRIGGER_MARKET",
-        //              "origQty": "5.0",
-        //              "price": "5.5710",
-        //              "executedQty": "0.0",
-        //              "avgPrice": "0.0000",
-        //              "cumQuote": "0",
-        //              "stopPrice": "5.0000",
-        //              "profit": "0.0000",
-        //              "commission": "0.000000",
-        //              "status": "CANCELLED",
-        //              "time": 1669776330000,
-        //              "updateTime": 1672370837000
-        //            }
-        //          ],
-        //          "failed": null
-        //        }
-        //    }
-        //
-        return response;
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        object success = this.safeList2(data, "success", "orders", new List<object>() {});
+        return this.parseOrders(success);
     }
 
     public async override Task<object> cancelAllOrdersAfter(object timeout, object parameters = null)
@@ -4632,7 +4615,7 @@ public partial class bingx : Exchange
         * @param {string} type 'market' or 'limit'
         * @param {string} side 'buy' or 'sell'
         * @param {float} amount how much of the currency you want to trade in units of the base currency
-        * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @param {string} [params.stopPrice] Trigger price used for TAKE_STOP_LIMIT, TAKE_STOP_MARKET, TRIGGER_LIMIT, TRIGGER_MARKET order types.
         * @param {object} [params.takeProfit] *takeProfit object in params* containing the triggerPrice at which the attached take profit order will be triggered

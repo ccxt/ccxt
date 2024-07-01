@@ -11,6 +11,16 @@ public partial class binance : Exchange
 {
     public binance (object args = null): base(args) {}
 
+    public async Task<object> sapiGetCopyTradingFuturesUserStatus (object parameters = null)
+    {
+        return await this.callAsync ("sapiGetCopyTradingFuturesUserStatus",parameters);
+    }
+
+    public async Task<object> sapiGetCopyTradingFuturesLeadSymbol (object parameters = null)
+    {
+        return await this.callAsync ("sapiGetCopyTradingFuturesLeadSymbol",parameters);
+    }
+
     public async Task<object> sapiGetSystemStatus (object parameters = null)
     {
         return await this.callAsync ("sapiGetSystemStatus",parameters);
@@ -3069,6 +3079,16 @@ public partial class binance : Exchange
     public async Task<object> privatePostOrderListOco (object parameters = null)
     {
         return await this.callAsync ("privatePostOrderListOco",parameters);
+    }
+
+    public async Task<object> privatePostOrderListOto (object parameters = null)
+    {
+        return await this.callAsync ("privatePostOrderListOto",parameters);
+    }
+
+    public async Task<object> privatePostOrderListOtoco (object parameters = null)
+    {
+        return await this.callAsync ("privatePostOrderListOtoco",parameters);
     }
 
     public async Task<object> privatePostSorOrder (object parameters = null)

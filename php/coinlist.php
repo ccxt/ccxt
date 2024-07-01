@@ -1427,8 +1427,8 @@ class coinlist extends Exchange {
 
     public function cancel_orders($ids, ?string $symbol = null, $params = array ()) {
         /**
-         * cancel multiple orders
-         * @see https://trade-docs.coinlist.co/?javascript--nodejs#cancel-specific-orders
+         * cancel multiple $orders
+         * @see https://trade-docs.coinlist.co/?javascript--nodejs#cancel-specific-$orders
          * @param {string[]} $ids order $ids
          * @param {string} $symbol not used by coinlist cancelOrders ()
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -1437,7 +1437,26 @@ class coinlist extends Exchange {
         $this->load_markets();
         $params = $ids;
         $response = $this->privateDeleteV1OrdersBulk ($params);
-        return $response;
+        //
+        //    {
+        //        "message" => "Cancel order requests received.",
+        //        "order_ids" => array(
+        //            "ff132955-43bc-4fe5-9d9c-5ba226cc89a0"
+        //        ),
+        //        "timestamp" => "2024-06-01T02:32:30.305Z"
+        //    }
+        //
+        $orderIds = $this->safe_list($response, 'order_ids', array());
+        $orders = array();
+        $datetime = $this->safe_string($response, 'timestamp');
+        for ($i = 0; $i < count($orderIds); $i++) {
+            $orders[] = $this->safe_order(array(
+                'info' => $orderIds[$i],
+                'id' => $orderIds[$i],
+                'lastUpdateTimestamp' => $this->parse8601($datetime),
+            ));
+        }
+        return $orders;
     }
 
     public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
@@ -1448,7 +1467,7 @@ class coinlist extends Exchange {
          * @param {string} $type 'market' or 'limit' or 'stop_market' or 'stop_limit' or 'take_market' or 'take_limit'
          * @param {string} $side 'buy' or 'sell'
          * @param {float} $amount how much of currency you want to trade in units of base currency
-         * @param {float} [$price] the $price at which the $order is to be fullfilled, in units of the quote currency, ignored in $market orders
+         * @param {float} [$price] the $price at which the $order is to be fulfilled, in units of the quote currency, ignored in $market orders
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {bool} [$params->postOnly] if true, the $order will only be posted to the $order book and not executed immediately (default false)
          * @param {float} [$params->triggerPrice] only for the 'stop_market', 'stop_limit', 'take_market' or 'take_limit' orders (the $price at which an $order is triggered)
@@ -1521,7 +1540,7 @@ class coinlist extends Exchange {
          * @param {string} $type 'market' or 'limit' or 'stop_market' or 'stop_limit' or 'take_market' or 'take_limit'
          * @param {string} $side 'buy' or 'sell'
          * @param {float} $amount how much of currency you want to trade in units of base currency
-         * @param {float} [$price] the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
+         * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
          */
@@ -2262,16 +2281,19 @@ class coinlist extends Exchange {
         $request = $this->omit($params, $this->extract_params($path));
         $endpoint = '/' . $this->implode_params($path, $params);
         $url = $this->urls['api'][$api] . $endpoint;
-        $query = $this->urlencode($request);
+        $isBulk = gettype($params) === 'array' && array_keys($params) === array_keys(array_keys($params));
+        $query = null;
+        if (!$isBulk) {
+            $query = $this->urlencode($request);
+        }
         if ($api === 'private') {
             $this->check_required_credentials();
             $timestamp = (string) $this->seconds();
             $auth = $timestamp . $method . $endpoint;
-            $isBulk = gettype($params) === 'array' && array_keys($params) === array_keys(array_keys($params));
             if (($method === 'POST') || ($method === 'PATCH') || $isBulk) {
                 $body = $this->json($request);
                 $auth .= $body;
-            } elseif (strlen($query) !== 0) {
+            } elseif ($query !== null && strlen($query) !== 0) {
                 $auth .= '?' . $query;
                 $url .= '?' . $query;
             }
@@ -2282,7 +2304,7 @@ class coinlist extends Exchange {
                 'CL-ACCESS-TIMESTAMP' => $timestamp,
                 'Content-Type' => 'application/json',
             );
-        } elseif (strlen($query) !== 0) {
+        } elseif ($query !== null && strlen($query) !== 0) {
             $url .= '?' . $query;
         }
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );

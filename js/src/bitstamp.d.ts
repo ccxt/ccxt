@@ -61,8 +61,8 @@ export default class bitstamp extends Exchange {
     fetchDepositWithdrawFees(codes?: any, params?: {}): Promise<any>;
     parseDepositWithdrawFee(fee: any, currency?: any): any;
     createOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): Promise<Order>;
-    cancelOrder(id: string, symbol?: Str, params?: {}): Promise<any>;
-    cancelAllOrders(symbol?: Str, params?: {}): Promise<any>;
+    cancelOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
+    cancelAllOrders(symbol?: Str, params?: {}): Promise<Order[]>;
     parseOrderStatus(status: Str): string;
     fetchOrderStatus(id: string, symbol?: Str, params?: {}): Promise<string>;
     fetchOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;

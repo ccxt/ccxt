@@ -1713,7 +1713,7 @@ class bitfinex2 extends Exchange {
         }
         $orders = $this->safe_list($response, 4, array());
         $order = $this->safe_list($orders, 0);
-        return $this->parse_order($order, $market);
+        return $this->parse_order($this->extend(array( 'result' => $order )), $market);
     }
 
     public function create_orders(array $orders, $params = array ()) {
@@ -3615,7 +3615,7 @@ class bitfinex2 extends Exchange {
          * @param {string} $type 'market' or 'limit'
          * @param {string} $side 'buy' or 'sell'
          * @param {float} $amount how much you want to trade in units of the base currency
-         * @param {float} [$price] the $price that the $order is to be fullfilled, in units of the quote currency, ignored in $market orders
+         * @param {float} [$price] the $price at which the $order is to be fulfilled, in units of the quote currency, ignored in $market orders
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {float} [$params->stopPrice] the $price that triggers a trigger $order
          * @param {boolean} [$params->postOnly] set to true if you want to make a post only $order

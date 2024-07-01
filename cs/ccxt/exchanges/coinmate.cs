@@ -911,6 +911,13 @@ public partial class coinmate : Exchange
         //         "trailing": false,
         //     }
         //
+        // cancelOrder
+        //
+        //    {
+        //        "success": true,
+        //        "remainingAmount": 0.1
+        //    }
+        //
         object id = this.safeString(order, "id");
         object timestamp = this.safeInteger(order, "timestamp");
         object side = this.safeStringLower(order, "type");
@@ -964,7 +971,7 @@ public partial class coinmate : Exchange
         * @param {string} type 'market' or 'limit'
         * @param {string} side 'buy' or 'sell'
         * @param {float} amount how much of currency you want to trade in units of base currency
-        * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
         */
@@ -1044,9 +1051,18 @@ public partial class coinmate : Exchange
             { "orderId", id },
         };
         object response = await this.privatePostCancelOrderWithInfo(this.extend(request, parameters));
-        return new Dictionary<string, object>() {
-            { "info", response },
-        };
+        //
+        //    {
+        //        "error": false,
+        //        "errorMessage": null,
+        //        "data": {
+        //          "success": true,
+        //          "remainingAmount": 0.1
+        //        }
+        //    }
+        //
+        object data = this.safeDict(response, "data");
+        return this.parseOrder(data);
     }
 
     public override object nonce()

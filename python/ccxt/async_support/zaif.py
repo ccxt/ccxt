@@ -429,7 +429,7 @@ class zaif(Exchange, ImplicitAPI):
         :param str type: must be 'limit'
         :param str side: 'buy' or 'sell'
         :param float amount: how much of currency you want to trade in units of base currency
-        :param float [price]: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
@@ -461,7 +461,23 @@ class zaif(Exchange, ImplicitAPI):
         request: dict = {
             'order_id': id,
         }
-        return await self.privatePostCancelOrder(self.extend(request, params))
+        response = await self.privatePostCancelOrder(self.extend(request, params))
+        #
+        #    {
+        #        "success": 1,
+        #        "return": {
+        #            "order_id": 184,
+        #            "funds": {
+        #                "jpy": 15320,
+        #                "btc": 1.392,
+        #                "mona": 2600,
+        #                "kaori": 0.1
+        #            }
+        #        }
+        #    }
+        #
+        data = self.safe_dict(response, 'return')
+        return self.parse_order(data)
 
     def parse_order(self, order: dict, market: Market = None) -> Order:
         #
@@ -474,6 +490,18 @@ class zaif(Exchange, ImplicitAPI):
         #         "comment" : "demo"
         #     }
         #
+        # cancelOrder
+        #
+        #    {
+        #        "order_id": 184,
+        #        "funds": {
+        #            "jpy": 15320,
+        #            "btc": 1.392,
+        #            "mona": 2600,
+        #            "kaori": 0.1
+        #        }
+        #    }
+        #
         side = self.safe_string(order, 'action')
         side = 'buy' if (side == 'bid') else 'sell'
         timestamp = self.safe_timestamp(order, 'timestamp')
@@ -481,7 +509,7 @@ class zaif(Exchange, ImplicitAPI):
         symbol = self.safe_symbol(marketId, market, '_')
         price = self.safe_string(order, 'price')
         amount = self.safe_string(order, 'amount')
-        id = self.safe_string(order, 'id')
+        id = self.safe_string_2(order, 'id', 'order_id')
         return self.safe_order({
             'id': id,
             'clientOrderId': None,

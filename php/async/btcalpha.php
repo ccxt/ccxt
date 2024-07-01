@@ -8,9 +8,7 @@ namespace ccxt\async;
 use Exception; // a common import
 use ccxt\async\abstract\btcalpha as Exchange;
 use ccxt\ExchangeError;
-use ccxt\AuthenticationError;
 use ccxt\InvalidOrder;
-use ccxt\DDoSProtection;
 use ccxt\Precise;
 use React\Async;
 use React\Promise\PromiseInterface;
@@ -725,7 +723,7 @@ class btcalpha extends Exchange {
         $filled = $this->safe_string($order, 'amount_filled');
         $amount = $this->safe_string($order, 'amount_original');
         $status = $this->parse_order_status($this->safe_string($order, 'status'));
-        $id = $this->safe_string_2($order, 'oid', 'id');
+        $id = $this->safe_string_n($order, array( 'oid', 'id', 'order' ));
         $trades = $this->safe_value($order, 'trades');
         $side = $this->safe_string_2($order, 'my_side', 'type');
         return $this->safe_order(array(
@@ -763,7 +761,7 @@ class btcalpha extends Exchange {
              * @param {string} $type 'limit'
              * @param {string} $side 'buy' or 'sell'
              * @param {float} $amount how much of currency you want to trade in units of base currency
-             * @param {float} [$price] the $price at which the $order is to be fullfilled, in units of the quote currency, ignored in $market orders
+             * @param {float} [$price] the $price at which the $order is to be fulfilled, in units of the quote currency, ignored in $market orders
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} an ~@link https://docs.ccxt.com/#/?id=$order-structure $order structure~
              */
@@ -804,7 +802,12 @@ class btcalpha extends Exchange {
                 'order' => $id,
             );
             $response = Async\await($this->privatePostOrderCancel ($this->extend($request, $params)));
-            return $response;
+            //
+            //    {
+            //        "order" => 63568
+            //    }
+            //
+            return $this->parse_order($response);
         }) ();
     }
 
@@ -954,19 +957,12 @@ class btcalpha extends Exchange {
         //     array("date":1570599531.4814300537,"error":"Out of balance -9.99243661 BTC")
         //
         $error = $this->safe_string($response, 'error');
-        $feedback = $this->id . ' ' . $body;
         if ($error !== null) {
+            $feedback = $this->id . ' ' . $body;
             $this->throw_exactly_matched_exception($this->exceptions['exact'], $error, $feedback);
             $this->throw_broadly_matched_exception($this->exceptions['broad'], $error, $feedback);
+            throw new ExchangeError($feedback); // unknown $error
         }
-        if ($code === 401 || $code === 403) {
-            throw new AuthenticationError($feedback);
-        } elseif ($code === 429) {
-            throw new DDoSProtection($feedback);
-        }
-        if ($code < 400) {
-            return null;
-        }
-        throw new ExchangeError($feedback);
+        return null;
     }
 }

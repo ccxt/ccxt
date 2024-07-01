@@ -18,7 +18,7 @@ class exmo extends exmo$1 {
             'id': 'exmo',
             'name': 'EXMO',
             'countries': ['LT'],
-            'rateLimit': 350,
+            'rateLimit': 100,
             'version': 'v1.1',
             'has': {
                 'CORS': undefined,
@@ -1415,7 +1415,7 @@ class exmo extends exmo$1 {
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {float} [params.stopPrice] the price at which a trigger order is triggered at
          * @param {string} [params.timeInForce] *spot only* 'fok', 'ioc' or 'post_only'
@@ -2063,7 +2063,7 @@ class exmo extends exmo$1 {
          * @param {string} type not used by exmo editOrder
          * @param {string} side not used by exmo editOrder
          * @param {float} [amount] how much of the currency you want to trade in units of the base currency
-         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {float} [params.triggerPrice] stop price for stop-market and stop-limit orders
          * @param {string} params.marginMode must be set to isolated

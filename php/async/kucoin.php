@@ -11,6 +11,7 @@ use ccxt\ExchangeError;
 use ccxt\ArgumentsRequired;
 use ccxt\BadRequest;
 use ccxt\InvalidOrder;
+use ccxt\NotSupported;
 use ccxt\Precise;
 use React\Async;
 use React\Promise;
@@ -109,7 +110,7 @@ class kucoin extends Exchange {
                 'fetchWithdrawals' => true,
                 'repayCrossMargin' => true,
                 'repayIsolatedMargin' => true,
-                'setLeverage' => false,
+                'setLeverage' => true,
                 'setMarginMode' => false,
                 'setPositionMode' => false,
                 'signIn' => false,
@@ -126,6 +127,7 @@ class kucoin extends Exchange {
                     'futuresPublic' => 'https://api-futures.kucoin.com',
                     'webExchange' => 'https://kucoin.com/_api',
                     'broker' => 'https://api-broker.kucoin.com',
+                    'earn' => 'https://api.kucoin.com',
                 ),
                 'www' => 'https://www.kucoin.com',
                 'doc' => array(
@@ -204,6 +206,7 @@ class kucoin extends Exchange {
                         'market/orderbook/level3' => 3, // 3SW
                         'hf/orders/active' => 2, // 2SW
                         'hf/orders/active/symbols' => 2, // 2SW
+                        'hf/margin/order/active/symbols' => 2, // 2SW
                         'hf/orders/done' => 2, // 2SW
                         'hf/orders/{orderId}' => 2, // 2SW
                         'hf/orders/client-order/{clientOid}' => 2, // 2SW
@@ -232,6 +235,7 @@ class kucoin extends Exchange {
                         'margin/currencies' => 20, // 20SW
                         'risk/limit/strategy' => 20, // 20SW (Deprecate)
                         'isolated/symbols' => 20, // 20SW
+                        'margin/symbols' => 5,
                         'isolated/account/{symbol}' => 50, // 50SW
                         'margin/borrow' => 15, // 15SW
                         'margin/repay' => 15, // 15SW
@@ -281,6 +285,7 @@ class kucoin extends Exchange {
                         'lend/purchase/update' => 10, // 10SW
                         // ws
                         'bullet-private' => 10, // 10SW
+                        'position/update-user-leverage' => 5,
                     ),
                     'delete' => array(
                         // account
@@ -393,6 +398,9 @@ class kucoin extends Exchange {
                         'broker/nd/account' => 2,
                         'broker/nd/account/apikey' => 2,
                         'broker/nd/rebase/download' => 3,
+                        'broker/nd/transfer/detail' => 1,
+                        'broker/nd/deposit/detail' => 1,
+                        'broker/nd/withdraw/detail' => 1,
                     ),
                     'post' => array(
                         'broker/nd/transfer' => 1,
@@ -402,6 +410,25 @@ class kucoin extends Exchange {
                     ),
                     'delete' => array(
                         'broker/nd/account/apikey' => 3,
+                    ),
+                ),
+                'earn' => array(
+                    'get' => array(
+                        'otc-loan/loan' => 1,
+                        'otc-loan/accounts' => 1,
+                        'earn/redeem-preview' => 7.5, // 5EW
+                        'earn/saving/products' => 7.5, // 5EW
+                        'earn/hold-assets' => 7.5, // 5EW
+                        'earn/promotion/products' => 7.5, // 5EW
+                        'earn/kcs-staking/products' => 7.5, // 5EW
+                        'earn/staking/products' => 7.5, // 5EW
+                        'earn/eth-staking/products' => 7.5, // 5EW
+                    ),
+                    'post' => array(
+                        'earn/orders' => 7.5, // 5EW
+                    ),
+                    'delete' => array(
+                        'earn/orders' => 7.5, // 5EW
                     ),
                 ),
             ),
@@ -645,6 +672,7 @@ class kucoin extends Exchange {
                             'oco/orders' => 'v3',
                             // margin trading
                             'hf/margin/orders/active' => 'v3',
+                            'hf/margin/order/active/symbols' => 'v3',
                             'hf/margin/orders/done' => 'v3',
                             'hf/margin/orders/{orderId}' => 'v3',
                             'hf/margin/orders/client-order/{clientOid}' => 'v3',
@@ -658,6 +686,7 @@ class kucoin extends Exchange {
                             'project/marketInterestRate' => 'v3',
                             'redeem/orders' => 'v3',
                             'purchase/orders' => 'v3',
+                            'margin/symbols' => 'v3',
                         ),
                         'POST' => array(
                             // account
@@ -677,6 +706,7 @@ class kucoin extends Exchange {
                             'purchase' => 'v3',
                             'redeem' => 'v3',
                             'lend/purchase/update' => 'v3',
+                            'position/update-user-leverage' => 'v3',
                         ),
                         'DELETE' => array(
                             // account
@@ -996,17 +1026,20 @@ class kucoin extends Exchange {
     public function fetch_markets($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
-             * retrieves $data on all markets for kucoin
+             * retrieves data on all markets for kucoin
              * @see https://docs.kucoin.com/#get-symbols-list-deprecated
-             * @see https://docs.kucoin.com/#get-all-$tickers
+             * @see https://docs.kucoin.com/#get-all-tickers
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} an array of objects representing $market $data
+             * @return {array[]} an array of objects representing $market data
              */
-            $response = Async\await($this->publicGetSymbols ($params));
+            $fetchTickersFees = null;
+            list($fetchTickersFees, $params) = $this->handle_option_and_params($params, 'fetchMarkets', 'fetchTickersFees', true);
+            $promises = array();
+            $promises[] = $this->publicGetSymbols ($params);
             //
             //     {
             //         "code" => "200000",
-            //         "data" => array(
+            //         "data" => [
             //             array(
             //                 "symbol" => "XLM-USDT",
             //                 "name" => "XLM-USDT",
@@ -1025,60 +1058,100 @@ class kucoin extends Exchange {
             //                 "isMarginEnabled" => true,
             //                 "enableTrading" => true
             //             ),
-            //         )
-            //     }
             //
-            $data = $this->safe_list($response, 'data');
-            $options = $this->safe_dict($this->options, 'fetchMarkets', array());
-            $fetchTickersFees = $this->safe_bool($options, 'fetchTickersFees', true);
-            $tickersResponse = array();
-            if ($fetchTickersFees) {
-                $tickersResponse = Async\await($this->publicGetMarketAllTickers ($params));
+            $requestMarginables = $this->check_required_credentials(false);
+            if ($requestMarginables) {
+                $promises[] = $this->privateGetMarginSymbols ($params); // cross margin symbols
+                //
+                //    {
+                //        "code" => "200000",
+                //        "data" => {
+                //            "timestamp" => 1719393213421,
+                //            "items" => [
+                //                array(
+                //                    // same object $market, with one additional field:
+                //                    "minFunds" => "0.1"
+                //                ),
+                //
+                $promises[] = $this->privateGetIsolatedSymbols ($params); // isolated margin symbols
+                //
+                //    {
+                //        "code" => "200000",
+                //        "data" => [
+                //            array(
+                //                "symbol" => "NKN-USDT",
+                //                "symbolName" => "NKN-USDT",
+                //                "baseCurrency" => "NKN",
+                //                "quoteCurrency" => "USDT",
+                //                "maxLeverage" => 5,
+                //                "flDebtRatio" => "0.97",
+                //                "tradeEnable" => true,
+                //                "autoRenewMaxDebtRatio" => "0.96",
+                //                "baseBorrowEnable" => true,
+                //                "quoteBorrowEnable" => true,
+                //                "baseTransferInEnable" => true,
+                //                "quoteTransferInEnable" => true,
+                //                "baseBorrowCoefficient" => "1",
+                //                "quoteBorrowCoefficient" => "1"
+                //            ),
+                //
             }
-            //
-            //     {
-            //         "code" => "200000",
-            //         "data" => {
-            //             "time":1602832092060,
-            //             "ticker":array(
-            //                 {
-            //                     "symbol" => "BTC-USDT",   // symbol
-            //                     "symbolName":"BTC-USDT", // Name of trading pairs, it would change after renaming
-            //                     "buy" => "11328.9",   // bestAsk
-            //                     "sell" => "11329",    // bestBid
-            //                     "changeRate" => "-0.0055",    // 24h change rate
-            //                     "changePrice" => "-63.6", // 24h change price
-            //                     "high" => "11610",    // 24h highest price
-            //                     "low" => "11200", // 24h lowest price
-            //                     "vol" => "2282.70993217", // 24h volume，the aggregated trading volume in BTC
-            //                     "volValue" => "25984946.157790431",   // 24h total, the trading volume in $quote currency of last 24 hours
-            //                     "last" => "11328.9",  // last price
-            //                     "averagePrice" => "11360.66065903",   // 24h average transaction price yesterday
-            //                     "takerFeeRate" => "0.001",    // Basic Taker Fee
-            //                     "makerFeeRate" => "0.001",    // Basic Maker Fee
-            //                     "takerCoefficient" => "1",    // Taker Fee Coefficient
-            //                     "makerCoefficient" => "1" // Maker Fee Coefficient
-            //                 }
-            //             )
-            //         }
-            //     }
-            //
-            $tickersData = $this->safe_dict($tickersResponse, 'data', array());
-            $tickers = $this->safe_list($tickersData, 'ticker', array());
-            $tickersByMarketId = $this->index_by($tickers, 'symbol');
+            if ($fetchTickersFees) {
+                $promises[] = $this->publicGetMarketAllTickers ($params);
+                //
+                //     {
+                //         "code" => "200000",
+                //         "data" => {
+                //             "time":1602832092060,
+                //             "ticker":[
+                //                 {
+                //                     "symbol" => "BTC-USDT",   // symbol
+                //                     "symbolName":"BTC-USDT", // Name of trading pairs, it would change after renaming
+                //                     "buy" => "11328.9",   // bestAsk
+                //                     "sell" => "11329",    // bestBid
+                //                     "changeRate" => "-0.0055",    // 24h change rate
+                //                     "changePrice" => "-63.6", // 24h change price
+                //                     "high" => "11610",    // 24h highest price
+                //                     "low" => "11200", // 24h lowest price
+                //                     "vol" => "2282.70993217", // 24h volume，the aggregated trading volume in BTC
+                //                     "volValue" => "25984946.157790431",   // 24h total, the trading volume in $quote currency of last 24 hours
+                //                     "last" => "11328.9",  // last price
+                //                     "averagePrice" => "11360.66065903",   // 24h average transaction price yesterday
+                //                     "takerFeeRate" => "0.001",    // Basic Taker Fee
+                //                     "makerFeeRate" => "0.001",    // Basic Maker Fee
+                //                     "takerCoefficient" => "1",    // Taker Fee Coefficient
+                //                     "makerCoefficient" => "1" // Maker Fee Coefficient
+                //                 }
+                //
+            }
+            $responses = Async\await(Promise\all($promises));
+            $symbolsData = $this->safe_list($responses[0], 'data');
+            $crossData = $requestMarginables ? $this->safe_dict($responses[1], 'data', array()) : array();
+            $crossItems = $this->safe_list($crossData, 'items', array());
+            $crossById = $this->index_by($crossItems, 'symbol');
+            $isolatedData = $requestMarginables ? $responses[2] : array();
+            $isolatedItems = $this->safe_list($isolatedData, 'data', array());
+            $isolatedById = $this->index_by($isolatedItems, 'symbol');
+            $tickersIdx = $requestMarginables ? 3 : 1;
+            $tickersResponse = $this->safe_dict($responses, $tickersIdx, array());
+            $tickerItems = $this->safe_list($this->safe_dict($tickersResponse, 'data', array()), 'ticker', array());
+            $tickersById = $this->index_by($tickerItems, 'symbol');
             $result = array();
-            for ($i = 0; $i < count($data); $i++) {
-                $market = $data[$i];
+            for ($i = 0; $i < count($symbolsData); $i++) {
+                $market = $symbolsData[$i];
                 $id = $this->safe_string($market, 'symbol');
                 list($baseId, $quoteId) = explode('-', $id);
                 $base = $this->safe_currency_code($baseId);
                 $quote = $this->safe_currency_code($quoteId);
                 // $quoteIncrement = $this->safe_number($market, 'quoteIncrement');
-                $ticker = $this->safe_dict($tickersByMarketId, $id, array());
+                $ticker = $this->safe_dict($tickersById, $id, array());
                 $makerFeeRate = $this->safe_string($ticker, 'makerFeeRate');
                 $takerFeeRate = $this->safe_string($ticker, 'takerFeeRate');
                 $makerCoefficient = $this->safe_string($ticker, 'makerCoefficient');
                 $takerCoefficient = $this->safe_string($ticker, 'takerCoefficient');
+                $hasCrossMargin = (is_array($crossById) && array_key_exists($id, $crossById));
+                $hasIsolatedMargin = (is_array($isolatedById) && array_key_exists($id, $isolatedById));
+                $isMarginable = $this->safe_bool($market, 'isMarginEnabled', false) || $hasCrossMargin || $hasIsolatedMargin;
                 $result[] = array(
                     'id' => $id,
                     'symbol' => $base . '/' . $quote,
@@ -1090,7 +1163,11 @@ class kucoin extends Exchange {
                     'settleId' => null,
                     'type' => 'spot',
                     'spot' => true,
-                    'margin' => $this->safe_bool($market, 'isMarginEnabled'),
+                    'margin' => $isMarginable,
+                    'marginMode' => array(
+                        'cross' => $hasCrossMargin,
+                        'isolated' => $hasIsolatedMargin,
+                    ),
                     'swap' => false,
                     'future' => false,
                     'option' => false,
@@ -1988,7 +2065,7 @@ class kucoin extends Exchange {
              * @param {string} $type 'limit' or 'market'
              * @param {string} $side 'buy' or 'sell'
              * @param {float} $amount the $amount of currency to trade
-             * @param {float} [$price] *ignored in "market" orders* the $price at which the order is to be fullfilled at in units of the quote currency
+             * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders
              * @param {array} [$params]  extra parameters specific to the exchange API endpoint
              * @param {float} [$params->triggerPrice] The $price at which a trigger order is triggered at
              * @param {string} [$params->marginMode] 'cross', // cross (cross mode) and isolated (isolated mode), set to cross by default, the isolated mode will be released soon, stay tuned
@@ -2274,7 +2351,7 @@ class kucoin extends Exchange {
              * @param {string} $type not used
              * @param {string} $side not used
              * @param {float} $amount how much of the currency you want to trade in units of the base currency
-             * @param {float} [$price] the $price at which the order is to be fullfilled, in units of the base currency, ignored in $market orders
+             * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->clientOrderId] client order $id, defaults to $id if not passed
              * @return {array} an ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
@@ -2345,22 +2422,79 @@ class kucoin extends Exchange {
                 $request['clientOid'] = $clientOrderId;
                 if ($stop) {
                     $response = Async\await($this->privateDeleteStopOrderCancelOrderByClientOid ($this->extend($request, $params)));
+                    //
+                    //    {
+                    //        code => '200000',
+                    //        $data => {
+                    //          cancelledOrderId => 'vs8lgpiuao41iaft003khbbk',
+                    //          clientOid => '123456'
+                    //        }
+                    //    }
+                    //
                 } elseif ($hf) {
                     $response = Async\await($this->privateDeleteHfOrdersClientOrderClientOid ($this->extend($request, $params)));
+                    //
+                    //    {
+                    //        "code" => "200000",
+                    //        "data" => {
+                    //          "clientOid" => "6d539dc614db3"
+                    //        }
+                    //    }
+                    //
                 } else {
                     $response = Async\await($this->privateDeleteOrderClientOrderClientOid ($this->extend($request, $params)));
+                    //
+                    //    {
+                    //        code => '200000',
+                    //        $data => {
+                    //          cancelledOrderId => '665e580f6660500007aba341',
+                    //          clientOid => '1234567',
+                    //          cancelledOcoOrderIds => null
+                    //        }
+                    //    }
+                    //
                 }
+                $response = $this->safe_dict($response, 'data');
+                return $this->parse_order($response);
             } else {
                 $request['orderId'] = $id;
                 if ($stop) {
                     $response = Async\await($this->privateDeleteStopOrderOrderId ($this->extend($request, $params)));
+                    //
+                    //    {
+                    //        code => '200000',
+                    //        $data => array( cancelledOrderIds => array( 'vs8lgpiuaco91qk8003vebu9' ) )
+                    //    }
+                    //
                 } elseif ($hf) {
                     $response = Async\await($this->privateDeleteHfOrdersOrderId ($this->extend($request, $params)));
+                    //
+                    //    {
+                    //        "code" => "200000",
+                    //        "data" => {
+                    //          "orderId" => "630625dbd9180300014c8d52"
+                    //        }
+                    //    }
+                    //
+                    $response = $this->safe_dict($response, 'data');
+                    return $this->parse_order($response);
                 } else {
                     $response = Async\await($this->privateDeleteOrdersOrderId ($this->extend($request, $params)));
+                    //
+                    //    {
+                    //        code => '200000',
+                    //        $data => array( cancelledOrderIds => array( '665e4fbe28051a0007245c41' ) )
+                    //    }
+                    //
                 }
+                $data = $this->safe_dict($response, 'data');
+                $orderIds = $this->safe_list($data, 'cancelledOrderIds', array());
+                $orderId = $this->safe_string($orderIds, 0);
+                return $this->safe_order(array(
+                    'info' => $data,
+                    'id' => $orderId,
+                ));
             }
-            return $response;
         }) ();
     }
 
@@ -2438,9 +2572,9 @@ class kucoin extends Exchange {
             Async\await($this->load_markets());
             $lowercaseStatus = strtolower($status);
             $until = $this->safe_integer($params, 'until');
-            $stop = $this->safe_bool($params, 'stop', false);
+            $stop = $this->safe_bool_2($params, 'stop', 'trigger', false);
             $hf = $this->safe_bool($params, 'hf', false);
-            $params = $this->omit($params, array( 'stop', 'hf', 'until' ));
+            $params = $this->omit($params, array( 'stop', 'hf', 'until', 'trigger' ));
             list($marginMode, $query) = $this->handle_margin_mode_and_params('fetchOrdersByStatus', $params);
             if ($lowercaseStatus === 'open') {
                 $lowercaseStatus = 'active';
@@ -2616,7 +2750,7 @@ class kucoin extends Exchange {
             Async\await($this->load_markets());
             $request = array();
             $clientOrderId = $this->safe_string_2($params, 'clientOid', 'clientOrderId');
-            $stop = $this->safe_bool($params, 'stop', false);
+            $stop = $this->safe_bool_2($params, 'stop', 'trigger', false);
             $hf = $this->safe_bool($params, 'hf', false);
             $market = null;
             if ($symbol !== null) {
@@ -2628,7 +2762,7 @@ class kucoin extends Exchange {
                 }
                 $request['symbol'] = $market['id'];
             }
-            $params = $this->omit($params, array( 'stop', 'hf', 'clientOid', 'clientOrderId' ));
+            $params = $this->omit($params, array( 'stop', 'hf', 'clientOid', 'clientOrderId', 'trigger' ));
             $response = null;
             if ($clientOrderId !== null) {
                 $request['clientOid'] = $clientOrderId;
@@ -2821,7 +2955,7 @@ class kucoin extends Exchange {
         $stopPrice = $this->safe_number($order, 'stopPrice');
         return $this->safe_order(array(
             'info' => $order,
-            'id' => $this->safe_string_n($order, array( 'id', 'orderId', 'newOrderId' )),
+            'id' => $this->safe_string_n($order, array( 'id', 'orderId', 'newOrderId', 'cancelledOrderId' )),
             'clientOrderId' => $this->safe_string($order, 'clientOid'),
             'symbol' => $this->safe_symbol($marketId, $market, '-'),
             'type' => $this->safe_string($order, 'type'),
@@ -4741,6 +4875,43 @@ class kucoin extends Exchange {
         }) ();
     }
 
+    public function set_leverage(?int $leverage, ?string $symbol = null, $params = array ()) {
+        return Async\async(function () use ($leverage, $symbol, $params) {
+            /**
+             * set the level of $leverage for a $market
+             * @see https://www.kucoin.com/docs/rest/margin-trading/margin-trading-v3-/modify-$leverage-multiplier
+             * @param {string} $symbol unified $market $symbol
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} response from the exchange
+             */
+            Async\await($this->load_markets());
+            $market = null;
+            $marketType = null;
+            list($marketType, $params) = $this->handle_market_type_and_params('setLeverage', null, $params);
+            if (($symbol !== null) || $marketType !== 'spot') {
+                $market = $this->market($symbol);
+                if ($market['contract']) {
+                    throw new NotSupported($this->id . ' setLeverage currently supports only spot margin');
+                }
+            }
+            $marginMode = null;
+            list($marginMode, $params) = $this->handle_margin_mode_and_params('setLeverage', $params);
+            if ($marginMode === null) {
+                throw new ArgumentsRequired($this->id . ' setLeverage requires a $marginMode parameter');
+            }
+            $request = array();
+            if ($marginMode === 'isolated' && $symbol === null) {
+                throw new ArgumentsRequired($this->id . ' setLeverage requires a $symbol parameter for isolated margin');
+            }
+            if ($symbol !== null) {
+                $request['symbol'] = $market['id'];
+            }
+            $request['leverage'] = (string) $leverage;
+            $request['isIsolated'] = ($marginMode === 'isolated');
+            return Async\await($this->privatePostPositionUpdateUserLeverage ($this->extend($request, $params)));
+        }) ();
+    }
+
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         //
         // the v2 URL is https://openapi-v2.kucoin.com/api/v1/endpoint
@@ -4756,6 +4927,9 @@ class kucoin extends Exchange {
         $endpoint = '/api/' . $version . '/' . $this->implode_params($path, $params);
         if ($api === 'webExchange') {
             $endpoint = '/' . $this->implode_params($path, $params);
+        }
+        if ($api === 'earn') {
+            $endpoint = '/api/v1/' . $this->implode_params($path, $params);
         }
         $query = $this->omit($params, $this->extract_params($path));
         $endpart = '';
@@ -4774,7 +4948,8 @@ class kucoin extends Exchange {
         $isFuturePrivate = ($api === 'futuresPrivate');
         $isPrivate = ($api === 'private');
         $isBroker = ($api === 'broker');
-        if ($isPrivate || $isFuturePrivate || $isBroker) {
+        $isEarn = ($api === 'earn');
+        if ($isPrivate || $isFuturePrivate || $isBroker || $isEarn) {
             $this->check_required_credentials();
             $timestamp = (string) $this->nonce();
             $headers = $this->extend(array(

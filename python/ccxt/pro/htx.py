@@ -608,19 +608,18 @@ class htx(ccxt.async_support.htx):
         #     }
         #
         messageHash = self.safe_string(message, 'ch')
-        tick = self.safe_value(message, 'tick')
+        tick = self.safe_dict(message, 'tick')
         event = self.safe_string(tick, 'event')
-        ch = self.safe_value(message, 'ch')
+        ch = self.safe_string(message, 'ch')
         parts = ch.split('.')
         marketId = self.safe_string(parts, 1)
         symbol = self.safe_symbol(marketId)
-        orderbook = self.safe_value(self.orderbooks, symbol)
-        if orderbook is None:
+        if not (symbol in self.orderbooks):
             size = self.safe_string(parts, 3)
             sizeParts = size.split('_')
             limit = self.safe_integer(sizeParts, 1)
-            orderbook = self.order_book({}, limit)
-            self.orderbooks[symbol] = orderbook
+            self.orderbooks[symbol] = self.order_book({}, limit)
+        orderbook = self.orderbooks[symbol]
         if (event is None) and (orderbook['nonce'] is None):
             orderbook.cache.append(message)
         else:
