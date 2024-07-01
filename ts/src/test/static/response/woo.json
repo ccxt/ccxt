@@ -581,7 +581,7 @@
                     "cost": null,
                     "trades": [],
                     "fee": {
-                      "cost": "0",
+                      "cost": 0,
                       "currency": "LTC"
                     },
                     "info": {
