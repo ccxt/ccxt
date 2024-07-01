@@ -2178,6 +2178,8 @@ class Transpiler {
 
         let allFiles = await this.readFilesAsync (tests.map(t => t.tsFile));
 
+        const needsEquals = allFiles.map(file => file.includes('function equals'));
+
         // apply regex to every file
         allFiles = allFiles.map( file => this.regexAll (file, [
             [ /\'use strict\';?\s+/g, '' ],
@@ -2230,6 +2232,7 @@ class Transpiler {
             let phpSync = phpFixes(result[1].content);
             let pythonSync = pyFixes (result[2].content, true);
             let pythonAsync = pyFixes (result[3].content);
+            const usesEqualsFunction = needsEquals[i];
             if (tests.base) {
                 phpAsync = '';
                 pythonAsync = '';
@@ -2342,6 +2345,16 @@ class Transpiler {
                         pythonHeaderAsync.push (`from ccxt.test${pySuffix} import ${snake_case}  # noqa E402`)
                     }
                 }
+            }
+
+            if (usesEqualsFunction) {
+                const pyEquals = [
+                    "",
+                    "def equals(a, b):",
+                    "    return a == b",
+                ].join('\n')
+                pythonHeaderSync.push(pyEquals);
+                pythonHeaderAsync.push(pyEquals);
             }
 
 
