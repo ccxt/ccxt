@@ -257,7 +257,7 @@ class vertex extends vertex$1 {
         const price = this.convertFromX18(this.safeString(trade, 'price'));
         const amount = this.convertFromX18(this.safeString2(trade, 'taker_qty', 'filled_qty'));
         const cost = Precise["default"].stringMul(price, amount);
-        const timestamp = Precise["default"].stringDiv(this.safeString(trade, 'timestamp'), '1000000');
+        const timestamp = this.safeIntegerProduct(trade, 'timestamp', 0.000001);
         let takerOrMaker = undefined;
         const isTaker = this.safeBool(trade, 'is_taker');
         if (isTaker !== undefined) {

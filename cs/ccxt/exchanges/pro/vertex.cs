@@ -279,7 +279,7 @@ public partial class vertex : ccxt.vertex
         object price = this.convertFromX18(this.safeString(trade, "price"));
         object amount = this.convertFromX18(this.safeString2(trade, "taker_qty", "filled_qty"));
         object cost = Precise.stringMul(price, amount);
-        object timestamp = Precise.stringDiv(this.safeString(trade, "timestamp"), "1000000");
+        object timestamp = this.safeIntegerProduct(trade, "timestamp", 0.000001);
         object takerOrMaker = null;
         object isTaker = this.safeBool(trade, "is_taker");
         if (isTrue(!isEqual(isTaker, null)))

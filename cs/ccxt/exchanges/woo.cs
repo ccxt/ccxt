@@ -1721,8 +1721,8 @@ public partial class woo : Exchange
         object side = this.safeStringLower(order, "side");
         object filled = this.omitZero(this.safeValue2(order, "executed", "totalExecutedQuantity"));
         object average = this.omitZero(this.safeString2(order, "average_executed_price", "averageExecutedPrice"));
-        object remaining = Precise.stringSub(cost, filled);
-        object fee = this.safeValue2(order, "total_fee", "totalFee");
+        // const remaining = Precise.stringSub (cost, filled);
+        object fee = this.safeNumber2(order, "total_fee", "totalFee");
         object feeCurrency = this.safeString2(order, "fee_asset", "feeAsset");
         object transactions = this.safeValue(order, "Transactions");
         object stopPrice = this.safeNumber(order, "triggerPrice");
@@ -1765,7 +1765,7 @@ public partial class woo : Exchange
             { "average", average },
             { "amount", amount },
             { "filled", filled },
-            { "remaining", remaining },
+            { "remaining", null },
             { "cost", cost },
             { "trades", transactions },
             { "fee", new Dictionary<string, object>() {

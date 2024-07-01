@@ -1504,8 +1504,8 @@ class woo(Exchange, ImplicitAPI):
         side = self.safe_string_lower(order, 'side')
         filled = self.omit_zero(self.safe_value_2(order, 'executed', 'totalExecutedQuantity'))
         average = self.omit_zero(self.safe_string_2(order, 'average_executed_price', 'averageExecutedPrice'))
-        remaining = Precise.string_sub(cost, filled)
-        fee = self.safe_value_2(order, 'total_fee', 'totalFee')
+        # remaining = Precise.string_sub(cost, filled)
+        fee = self.safe_number_2(order, 'total_fee', 'totalFee')
         feeCurrency = self.safe_string_2(order, 'fee_asset', 'feeAsset')
         transactions = self.safe_value(order, 'Transactions')
         stopPrice = self.safe_number(order, 'triggerPrice')
@@ -1544,7 +1544,7 @@ class woo(Exchange, ImplicitAPI):
             'average': average,
             'amount': amount,
             'filled': filled,
-            'remaining': remaining,  # TO_DO
+            'remaining': None,  # TO_DO
             'cost': cost,
             'trades': transactions,
             'fee': {
