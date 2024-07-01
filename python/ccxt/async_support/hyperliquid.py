@@ -445,23 +445,26 @@ class hyperliquid(Exchange, ImplicitAPI):
         for i in range(0, len(meta)):
             market = self.safe_dict(meta, i, {})
             marketName = self.safe_string(market, 'name')
-            if marketName.find('/') < 0:
-                # there are some weird spot markets in testnet, eg @2
-                continue
-            marketParts = marketName.split('/')
-            baseName = self.safe_string(marketParts, 0)
-            quoteId = self.safe_string(marketParts, 1)
-            base = self.safe_currency_code(baseName)
-            quote = self.safe_currency_code(quoteId)
-            symbol = base + '/' + quote
+            # if marketName.find('/') < 0:
+            #     # there are some weird spot markets in testnet, eg @2
+            #     continue
+            # }
+            # marketParts = marketName.split('/')
+            # baseName = self.safe_string(marketParts, 0)
+            # quoteId = self.safe_string(marketParts, 1)
             fees = self.safe_dict(self.fees, 'spot', {})
             taker = self.safe_number(fees, 'taker')
             maker = self.safe_number(fees, 'maker')
             tokensPos = self.safe_list(market, 'tokens', [])
             baseTokenPos = self.safe_integer(tokensPos, 0)
-            # quoteTokenPos = self.safe_integer(tokensPos, 1)
+            quoteTokenPos = self.safe_integer(tokensPos, 1)
             baseTokenInfo = self.safe_dict(tokens, baseTokenPos, {})
-            # quoteTokenInfo = self.safe_dict(tokens, quoteTokenPos, {})
+            quoteTokenInfo = self.safe_dict(tokens, quoteTokenPos, {})
+            baseName = self.safe_string(baseTokenInfo, 'name')
+            quoteId = self.safe_string(quoteTokenInfo, 'name')
+            base = self.safe_currency_code(baseName)
+            quote = self.safe_currency_code(quoteId)
+            symbol = base + '/' + quote
             innerBaseTokenInfo = self.safe_dict(baseTokenInfo, 'spec', baseTokenInfo)
             # innerQuoteTokenInfo = self.safe_dict(quoteTokenInfo, 'spec', quoteTokenInfo)
             amountPrecision = self.parse_number(self.parse_precision(self.safe_string(innerBaseTokenInfo, 'szDecimals')))
@@ -993,7 +996,7 @@ class hyperliquid(Exchange, ImplicitAPI):
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
         :param float amount: how much of currency you want to trade in units of base currency
-        :param float [price]: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.timeInForce]: 'Gtc', 'Ioc', 'Alo'
         :param bool [params.postOnly]: True or False whether the order is post-only
@@ -1115,7 +1118,7 @@ class hyperliquid(Exchange, ImplicitAPI):
             }
             if clientOrderId is not None:
                 orderObj['c'] = clientOrderId
-            orderReq.append(self.extend(orderObj, orderParams))
+            orderReq.append(orderObj)
         vaultAddress = self.format_vault_address(self.safe_string(params, 'vaultAddress'))
         orderAction: dict = {
             'type': 'order',
@@ -1135,7 +1138,7 @@ class hyperliquid(Exchange, ImplicitAPI):
         if vaultAddress is not None:
             params = self.omit(params, 'vaultAddress')
             request['vaultAddress'] = vaultAddress
-        response = await self.privatePostExchange(self.extend(request, params))
+        response = await self.privatePostExchange(request)
         #
         #     {
         #         "status": "ok",
@@ -1227,7 +1230,7 @@ class hyperliquid(Exchange, ImplicitAPI):
         if vaultAddress is not None:
             params = self.omit(params, 'vaultAddress')
             request['vaultAddress'] = vaultAddress
-        response = await self.privatePostExchange(self.extend(request, params))
+        response = await self.privatePostExchange(request)
         #
         #     {
         #         "status":"ok",
@@ -1303,7 +1306,7 @@ class hyperliquid(Exchange, ImplicitAPI):
         if vaultAddress is not None:
             params = self.omit(params, 'vaultAddress')
             request['vaultAddress'] = vaultAddress
-        response = await self.privatePostExchange(self.extend(request, params))
+        response = await self.privatePostExchange(request)
         #
         #     {
         #         "status":"ok",
@@ -1346,7 +1349,7 @@ class hyperliquid(Exchange, ImplicitAPI):
         if vaultAddress is not None:
             params = self.omit(params, 'vaultAddress')
             request['vaultAddress'] = vaultAddress
-        response = await self.privatePostExchange(self.extend(request, params))
+        response = await self.privatePostExchange(request)
         #
         #     {
         #         "status":"err",
@@ -1365,7 +1368,7 @@ class hyperliquid(Exchange, ImplicitAPI):
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
         :param float amount: how much of currency you want to trade in units of base currency
-        :param float [price]: the price at which the order is to be fullfilled, in units of the base currency, ignored in market orders
+        :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.timeInForce]: 'Gtc', 'Ioc', 'Alo'
         :param bool [params.postOnly]: True or False whether the order is post-only
@@ -1455,7 +1458,7 @@ class hyperliquid(Exchange, ImplicitAPI):
         if vaultAddress is not None:
             params = self.omit(params, 'vaultAddress')
             request['vaultAddress'] = vaultAddress
-        response = await self.privatePostExchange(self.extend(request, params))
+        response = await self.privatePostExchange(request)
         #
         #     {
         #         "status": "ok",
@@ -2097,10 +2100,9 @@ class hyperliquid(Exchange, ImplicitAPI):
             params = self.omit(params, 'vaultAddress')
             if vaultAddress.startswith('0x'):
                 vaultAddress = vaultAddress.replace('0x', '')
-        extendedAction = self.extend(updateAction, params)
-        signature = self.sign_l1_action(extendedAction, nonce, vaultAddress)
+        signature = self.sign_l1_action(updateAction, nonce, vaultAddress)
         request: dict = {
-            'action': extendedAction,
+            'action': updateAction,
             'nonce': nonce,
             'signature': signature,
             # 'vaultAddress': vaultAddress,
@@ -2153,7 +2155,7 @@ class hyperliquid(Exchange, ImplicitAPI):
         if vaultAddress is not None:
             params = self.omit(params, 'vaultAddress')
             request['vaultAddress'] = vaultAddress
-        response = await self.privatePostExchange(self.extend(request, params))
+        response = await self.privatePostExchange(request)
         #
         #     {
         #         'response': {
@@ -2211,7 +2213,7 @@ class hyperliquid(Exchange, ImplicitAPI):
         if vaultAddress is not None:
             params = self.omit(params, 'vaultAddress')
             request['vaultAddress'] = vaultAddress
-        response = await self.privatePostExchange(self.extend(request, params))
+        response = await self.privatePostExchange(request)
         #
         #     {
         #         'response': {
@@ -2275,7 +2277,7 @@ class hyperliquid(Exchange, ImplicitAPI):
             }
             signature = self.sign_l1_action(action, nonce, vaultAddress)
             innerRequest: dict = {
-                'action': self.extend(action, params),
+                'action': action,
                 'nonce': nonce,
                 'signature': signature,
             }
@@ -2308,7 +2310,7 @@ class hyperliquid(Exchange, ImplicitAPI):
             'nonce': nonce,
             'signature': sig,
         }
-        response = await self.privatePostExchange(self.extend(request, params))
+        response = await self.privatePostExchange(request)
         return response
 
     async def withdraw(self, code: str, amount: float, address: str, tag=None, params={}) -> Transaction:
@@ -2350,7 +2352,7 @@ class hyperliquid(Exchange, ImplicitAPI):
             'nonce': nonce,
             'signature': sig,
         }
-        response = await self.privatePostExchange(self.extend(request, params))
+        response = await self.privatePostExchange(request)
         return self.parse_transaction(response)
 
     def parse_transaction(self, transaction: dict, currency: Currency = None) -> Transaction:

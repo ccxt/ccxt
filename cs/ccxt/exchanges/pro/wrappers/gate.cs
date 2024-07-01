@@ -16,7 +16,7 @@ public partial class gate
     /// <item>
     /// <term>price</term>
     /// <description>
-    /// float : *ignored in "market" orders* the price at which the order is to be fullfilled at in units of the quote currency
+    /// float : *ignored in "market" orders* the price at which the order is to be fulfilled at in units of the quote currency
     /// </description>
     /// </item>
     /// <item>
@@ -202,7 +202,7 @@ public partial class gate
     /// <item>
     /// <term>price</term>
     /// <description>
-    /// float : the price at which the order is to be fullfilled, in units of the base currency, ignored in market orders
+    /// float : the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
     /// </description>
     /// </item>
     /// <item>

@@ -137,7 +137,7 @@ class gate extends \ccxt\async\gate {
              * @param {string} $type 'limit' or 'market' *"market" is contract only*
              * @param {string} $side 'buy' or 'sell'
              * @param {float} $amount the $amount of currency to trade
-             * @param {float} [$price] *ignored in "market" orders* the $price at which the $order is to be fullfilled at in units of the quote currency
+             * @param {float} [$price] *ignored in "market" orders* the $price at which the $order is to be fulfilled at in units of the quote currency
              * @param {array} [$params]  extra parameters specific to the exchange API endpoint
              * @param {float} [$params->stopPrice] The $price at which a trigger $order is triggered at
              * @param {string} [$params->timeInForce] "GTC", "IOC", or "PO"
@@ -261,7 +261,7 @@ class gate extends \ccxt\async\gate {
              * @param {string} $type 'market' or 'limit'
              * @param {string} $side 'buy' or 'sell'
              * @param {float} $amount how much of the currency you want to trade in units of the base currency
-             * @param {float} [$price] the $price at which the order is to be fullfilled, in units of the base currency, ignored in $market orders
+             * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} an ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
              */

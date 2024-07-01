@@ -109,7 +109,7 @@ class okx(ccxt.async_support.okx):
                 # okex does not support built-in ws protocol-level ping-pong
                 # instead it requires a custom text-based ping-pong
                 'ping': self.ping,
-                'keepAlive': 20000,
+                'keepAlive': 18000,
             },
         })
 
@@ -1520,7 +1520,7 @@ class okx(ccxt.async_support.okx):
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
         :param float amount: how much of currency you want to trade in units of base currency
-        :param float|None [price]: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param float|None [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param boolean params['test']: test order, default False
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
@@ -1586,7 +1586,7 @@ class okx(ccxt.async_support.okx):
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
         :param float amount: how much of the currency you want to trade in units of the base currency
-        :param float|None [price]: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param float|None [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
