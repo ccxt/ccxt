@@ -5,6 +5,7 @@ import testDatetime from './test.datetime.js';
 import testCryptography from './test.cryptography.js';
 import testExtend from './test.extend.js';
 import testLanguageSpecific from './test.languageSpecific.js';
+import testSafeMethods from './test.safeMethods.js';
 
 function baseTestsInit () {
     testLanguageSpecific ();
@@ -12,6 +13,7 @@ function baseTestsInit () {
     testCryptography ();
     testDatetime ();
     testNumber ();
+    testSafeMethods ();
 }
 
 export default baseTestsInit;
