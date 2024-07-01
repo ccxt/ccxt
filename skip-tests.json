@@ -1716,6 +1716,12 @@
             },
             "watchTrades": {
                 "side": "not set"
+            },
+            "watchOrderBook": {
+                "spread": "cross"
+            },
+            "watchOrderBookForSymbols": {
+                "spread": "same"
             }
         }
     }
