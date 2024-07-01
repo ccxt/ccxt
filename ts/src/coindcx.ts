@@ -2320,6 +2320,8 @@ export default class coindcx extends Exchange {
             'cost': undefined,
             'trades': undefined,
             'fee': fee,
+            'reduceOnly': false,
+            'postOnly': undefined,
             'info': order,
         }, market);
     }
