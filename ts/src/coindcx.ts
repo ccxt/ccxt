@@ -253,6 +253,7 @@ export default class coindcx extends Exchange {
                     // {"code":404,"message":"Order not found","status":"error"}
                     // {"code":422,"message":"Cannot exit this order","status":"error"}
                     // {"code":422,"message":"Price can't be empty for limit_order Order","status":"error"}
+                    // {"code":422,"message":"Side Filter values are incorrect","status":"error"}
                 },
                 'broad': {
                     // todo: add more error codes
@@ -1645,15 +1646,20 @@ export default class coindcx extends Exchange {
          * @method
          * @name coindcx#fetchOrders
          * @description fetches information on multiple orders made by the user
+         * @see https://docs.coindcx.com/#active-orders
          * @see https://docs.coindcx.com/#fetch-orders-2
+         * @see https://docs.coindcx.com/#list-orders
          * @param {string} symbol unified market symbol
          * @param {int} [since] not used by coindxc
          * @param {int} [limit] the maximum number of order structures to retrieve (default 10)
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {string} [params.type] 'spot', 'margin', 'future' or 'swap'
-         * @param {bool} [params.margin] *for spot markets only* true for fetching a margin orders
-         * @param {string[]} [parsms.ids] *for spot markets without margin only* order ids
+         * @param {bool} [params.margin] *for spot markets only* true for fetching margin orders
+         * @param {string[]} [params.ids] *for spot markets without margin only* order ids
          * @param {string[]} [params.clientOrderIds] *for spot markets without margin only* client order ids
+         * @param {string} [params.status] *for contract markets only* 'open', 'filled' or 'cancelled' - could be one or more statuses, if many they should be separated by comma (i.e. 'open,filled,cancelled')
+         * @param {string} [params.side] *for contract markets only* 'buy' or 'sell'
+         * @param {string} [params.page] *for contract markets only* number of a required page
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
@@ -1801,6 +1807,43 @@ export default class coindcx extends Exchange {
                 result = this.arrayConcat (result, parsedOrders);
             }
             return this.sortBy (result, 'timestamp');
+        } else if ((marketType === 'future') || (marketType === 'swap')) {
+            if (limit !== undefined) {
+                request['size'] = limit; // should be a string but the exchange accepts an integer as well
+            }
+            const response = await this.privatePostExchangeV1DerivativesFuturesOrders (this.extend (request, params));
+            //
+            //     [
+            //         {
+            //             "id": "f467934a-3455-11ef-850c-bf95c3d2646c",
+            //             "pair": "B-ETH_USDT",
+            //             "side": "sell",
+            //             "status": "filled",
+            //             "order_type": "market_order",
+            //             "stop_trigger_instruction": "last_price",
+            //             "notification": "no_notification",
+            //             "leverage": 1.0,
+            //             "maker_fee": 0.025,
+            //             "taker_fee": 0.075,
+            //             "fee_amount": 0.025267725,
+            //             "price": 3368.55,
+            //             "stop_price": 0.0,
+            //             "avg_price": 3369.03,
+            //             "total_quantity": 0.01,
+            //             "remaining_quantity": 0.0,
+            //             "cancelled_quantity": 0.0,
+            //             "ideal_margin": 0.0,
+            //             "order_category": null,
+            //             "stage": "exit",
+            //             "group_id": "809359e6B-ETH_USDT1719472924",
+            //             "display_message": "ETHUSDT Position exited successfully!",
+            //             "group_status": "success",
+            //             "created_at": 1719472924881,
+            //             "updated_at": 1719472930403
+            //         }
+            //     ]
+            //
+            return this.parseOrders (response, market, since, limit);
         } else {
             throw new NotSupported (this.id + ' fetchOrders is not supported for ' + marketType + ' markets'); // todo implement this method for contract markets
         }
@@ -2190,7 +2233,36 @@ export default class coindcx extends Exchange {
         //         "stop_price": 0.0
         //     }
         //
-        const marketId = this.safeString (order, 'market');
+        // privatePostExchangeV1DerivativesFuturesOrders
+        //     {
+        //         "id": "f467934a-3455-11ef-850c-bf95c3d2646c",
+        //         "pair": "B-ETH_USDT",
+        //         "side": "sell",
+        //         "status": "filled",
+        //         "order_type": "market_order",
+        //         "stop_trigger_instruction": "last_price",
+        //         "notification": "no_notification",
+        //         "leverage": 1.0,
+        //         "maker_fee": 0.025,
+        //         "taker_fee": 0.075,
+        //         "fee_amount": 0.025267725,
+        //         "price": 3368.55,
+        //         "stop_price": 0.0,
+        //         "avg_price": 3369.03,
+        //         "total_quantity": 0.01,
+        //         "remaining_quantity": 0.0,
+        //         "cancelled_quantity": 0.0,
+        //         "ideal_margin": 0.0,
+        //         "order_category": null,
+        //         "stage": "exit",
+        //         "group_id": "809359e6B-ETH_USDT1719472924",
+        //         "display_message": "ETHUSDT Position exited successfully!",
+        //         "group_status": "success",
+        //         "created_at": 1719472924881,
+        //         "updated_at": 1719472930403
+        //     }
+        //
+        const marketId = this.safeString2 (order, 'market', 'pair');
         market = this.safeMarket (marketId, market);
         let timestamp = this.safeInteger (order, 'created_at');
         let datetime: Str = undefined;
