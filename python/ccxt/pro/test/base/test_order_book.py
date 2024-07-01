@@ -19,11 +19,9 @@ from ccxt.async_support.base.ws.order_book import OrderBook, IndexedOrderBook, C
 
 
 
+
 def equals(a, b):
     return a == b
-
-
-
 
 # --------------------------------------------------------------------------------------------------------------------
 def test_ws_order_book():

@@ -12,6 +12,7 @@ include_once __DIR__ . '/test_datetime.php';
 include_once __DIR__ . '/test_cryptography.php';
 include_once __DIR__ . '/test_extend.php';
 include_once __DIR__ . '/test_language_specific.php';
+include_once __DIR__ . '/test_safe_methods.php';
 
 function base_tests_init() {
     test_language_specific();
@@ -19,4 +20,5 @@ function base_tests_init() {
     test_cryptography();
     test_datetime();
     test_number();
+    test_safe_methods();
 }
