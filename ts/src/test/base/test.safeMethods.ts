@@ -4,6 +4,17 @@
 import assert from 'assert';
 import ccxt from '../../../ccxt.js';
 
+function equals (a, b) {
+    // does not check if b has more properties than a
+    // eslint-disable-next-line no-restricted-syntax
+    for (const prop of Object.keys (a)) {
+        if (a[prop] !== b[prop]) {
+            return false;
+        }
+    }
+    return true;
+}
+
 function testSafeMethods () {
 
     const exchange = new ccxt.Exchange ({
@@ -22,8 +33,9 @@ function testSafeMethods () {
 
     assert (exchange.safeValue (inputDict, 'a') === 1);
     assert (exchange.safeValue (inputDict, 'bool') === true);
-    assert (exchange.safeValue (inputDict, 'list') === [ 1, 2, 3 ]);
-    assert (exchange.safeValue (inputDict, 'dict') === { 'a': 1 });
+    assert (equals (exchange.safeValue (inputDict, 'list'), [ 1, 2, 3 ]));
+    const dictObject = exchange.safeValue (inputDict, 'dict');
+    assert (equals (dictObject, { 'a': 1 }));
     assert (exchange.safeValue (inputList, 0) === 'hi');
 }
 
