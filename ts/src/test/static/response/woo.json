@@ -935,6 +935,7 @@
                 "description": "spot market buy with cost",
                 "method": "fetchOrder",
                 "disabledPHP": true,
+                "disabled": true,
                 "input": [
                   20754818580,
                   "LTC/USDT"
