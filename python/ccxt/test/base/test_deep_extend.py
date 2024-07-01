@@ -49,7 +49,7 @@ def test_deep_extend():
         }
     ]
 
-    pprint(ccxt.Exchange.deep_extend(*values))
+    # pprint(ccxt.Exchange.deep_extend(*values))
 
     # assert.deepEqual ({
     #     a: 1,
