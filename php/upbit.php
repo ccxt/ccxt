@@ -419,7 +419,7 @@ class upbit extends Exchange {
         return $this->parse_markets($response);
     }
 
-    public function parse_market($market): array {
+    public function parse_market(array $market): array {
         $id = $this->safe_string($market, 'market');
         list($quoteId, $baseId) = explode('-', $id);
         $base = $this->safe_currency_code($baseId);
@@ -1020,7 +1020,7 @@ class upbit extends Exchange {
          * @param {string} $type 'market' or 'limit'
          * @param {string} $side 'buy' or 'sell'
          * @param {float} $amount how much you want to trade in units of the base currency
-         * @param {float} [$price] the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
+         * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {float} [$params->cost] for $market buy orders, the quote quantity that can be used alternative for the $amount
          * @param {string} [$params->timeInForce] 'IOC' or 'FOK'
@@ -1304,7 +1304,7 @@ class upbit extends Exchange {
         return $this->parse_transaction($response, $currency);
     }
 
-    public function parse_transaction_status($status) {
+    public function parse_transaction_status(?string $status) {
         $statuses = array(
             'submitting' => 'pending', // 처리 중
             'submitted' => 'pending', // 처리 완료
@@ -1857,30 +1857,37 @@ class upbit extends Exchange {
         }
         if ($api === 'private') {
             $this->check_required_credentials();
+            $headers = array();
             $nonce = $this->uuid();
             $request = array(
                 'access_key' => $this->apiKey,
                 'nonce' => $nonce,
             );
-            if ($query) {
-                $auth = $this->urlencode($query);
+            $hasQuery = $query;
+            $auth = null;
+            if (($method !== 'GET') && ($method !== 'DELETE')) {
+                $body = $this->json($params);
+                $headers['Content-Type'] = 'application/json';
+                if ($hasQuery) {
+                    $auth = $this->urlencode($query);
+                }
+            } else {
+                if ($hasQuery) {
+                    $auth = $this->urlencode($this->keysort($query));
+                }
+            }
+            if ($auth !== null) {
                 $hash = $this->hash($this->encode($auth), 'sha512');
                 $request['query_hash'] = $hash;
                 $request['query_hash_alg'] = 'SHA512';
             }
             $token = $this->jwt($request, $this->encode($this->secret), 'sha256');
-            $headers = array(
-                'Authorization' => 'Bearer ' . $token,
-            );
-            if (($method !== 'GET') && ($method !== 'DELETE')) {
-                $body = $this->json($params);
-                $headers['Content-Type'] = 'application/json';
-            }
+            $headers['Authorization'] = 'Bearer ' . $token;
         }
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors($httpCode, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
         if ($response === null) {
             return null; // fallback to default $error handler
         }

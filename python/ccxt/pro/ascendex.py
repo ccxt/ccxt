@@ -285,9 +285,9 @@ class ascendex(ccxt.async_support.ascendex):
         marketId = self.safe_string(message, 'symbol')
         symbol = self.safe_symbol(marketId)
         messageHash = channel + ':' + marketId
-        orderbook = self.safe_value(self.orderbooks, symbol)
-        if orderbook is None:
-            orderbook = self.order_book({})
+        if not (symbol in self.orderbooks):
+            self.orderbooks[symbol] = self.order_book({})
+        orderbook = self.orderbooks[symbol]
         if orderbook['nonce'] is None:
             orderbook.cache.append(message)
         else:

@@ -92,6 +92,19 @@
                 "output": "timestamp=1714923006076&symbol=LTCUSDT&side=BUY&newClientOrderId=x-xcKtGhcu8cef5fd759c2493f8eff0b&newOrderRespType=RESULT&type=LIMIT&quantity=0.423&price=55.32&timeInForce=GTC&recvWindow=10000&signature=e0c49a6da870de7264a84603c2a5f33bb5d8e24b8935cb4fdb303ee2dbf39d79"
             },
             {
+                "description": "swap limit buy with weird price/amount",
+                "method": "createOrder",
+                "url": "https://testnet.binancefuture.com/fapi/v1/order",
+                "input": [
+                  "LTC/USDT:USDT",
+                  "limit",
+                  "buy",
+                  0.132434234,
+                  50.234234234
+                ],
+                "output": "timestamp=1718723127466&symbol=LTCUSDT&side=BUY&newClientOrderId=x-xcKtGhcu29733e7109944f4b825049&newOrderRespType=RESULT&type=LIMIT&quantity=0.132&price=50.23&timeInForce=GTC&recvWindow=10000&signature=31ec4a15ca25663539a8d29991b663a90d3354ed8cad3e8360e1aa92677d5c97"
+            },
+            {
                 "description": "Swap market buy order",
                 "method": "createOrder",
                 "url": "https://testnet.binancefuture.com/fapi/v1/order",
@@ -457,6 +470,39 @@
                   }
                 ],
                 "output": "timestamp=1716470360382&symbol=LTCUSDT&side=BUY&newClientOrderId=x-xcKtGhcu08549492ddff403d8a6466&timeInForce=GTX&newOrderRespType=RESULT&type=LIMIT&quantity=0.41&price=50&positionSide=LONG&recvWindow=10000&signature=e9499c199ddedd7dec114f6b0491f6e41789b0fe0e6130b539b5ad6f9f0a549b"
+            },
+            {
+                "description": "swap limit bbo order",
+                "method": "createOrder",
+                "url": "https://testnet.binancefuture.com/fapi/v1/order",
+                "input": [
+                  "LTC/USDT:USDT",
+                  "limit",
+                  "buy",
+                  0.1,
+                  null,
+                  {
+                    "priceMatch": "OPPONENT"
+                  }
+                ],
+                "output": "timestamp=1717843341137&symbol=LTCUSDT&side=BUY&newClientOrderId=x-xcKtGhcud3bc1226a44e4652b326a8&newOrderRespType=RESULT&type=LIMIT&quantity=0.1&timeInForce=GTC&priceMatch=OPPONENT&recvWindow=10000&signature=0683954e1707e361a26c80395574bbf38829fb35c4a0fa634c7a56f7f2617843"
+            },
+            {
+                "description": "swap trigger bbo order",
+                "method": "createOrder",
+                "url": "https://testnet.binancefuture.com/fapi/v1/order",
+                "input": [
+                  "LTC/USDT:USDT",
+                  "limit",
+                  "buy",
+                  0.1,
+                  null,
+                  {
+                    "triggerPrice": 100,
+                    "priceMatch": "OPPONENT"
+                  }
+                ],
+                "output": "timestamp=1717843608802&symbol=LTCUSDT&side=BUY&newClientOrderId=x-xcKtGhcu918489f4e5334421a68067&newOrderRespType=RESULT&type=STOP&quantity=0.1&stopPrice=100&priceMatch=OPPONENT&recvWindow=10000&signature=1c87a4c108577d3fee3b3081295424c2ffeaf0454ca3cbff46ed7b84a1d62671"
             }
         ],
         "createOrders": [
@@ -508,6 +554,16 @@
                     15
                 ],
                 "output": "timestamp=1702677315563&symbol=BTCUSDT&side=BUY&newClientOrderId=x-R4BD3S82166697aa19d7484fb68378&newOrderRespType=FULL&type=MARKET&quoteOrderQty=15&recvWindow=10000&signature=64f817d988900608171a22a906a68da7ef58b401b8ec6514c0e141f2c262c8fa"
+            },
+            {
+                "description": "market buy order with weird cost",
+                "method": "createMarketBuyOrderWithCost",
+                "url": "https://api.binance.com/api/v3/order",
+                "input": [
+                  "LTC/USDT",
+                  5.3243423423423
+                ],
+                "output": "timestamp=1718723820863&symbol=LTCUSDT&side=BUY&newClientOrderId=x-R4BD3S82844b9678d33a487c9d1a81&newOrderRespType=FULL&type=MARKET&quoteOrderQty=5.32&recvWindow=10000&signature=bae9de654740b296d76fcea43e907a64c3339a76b924f797dbc4ce54b21e832f"
             }
         ],
         "createMarketSellOrderWithCost": [
@@ -520,6 +576,16 @@
                     15
                 ],
                 "output": "timestamp=1702677379657&symbol=BTCUSDT&side=SELL&newClientOrderId=x-R4BD3S82e9114f80b9124f96817cc1&newOrderRespType=FULL&type=MARKET&quoteOrderQty=15&recvWindow=10000&signature=c71dc764642f5e6b7a96d04b7d820058ec204557ec43ce64ff102d25df4423b8"
+            },
+            {
+                "description": "market sell with weird cost",
+                "method": "createMarketSellOrderWithCost",
+                "url": "https://api.binance.com/api/v3/order",
+                "input": [
+                  "LTC/USDT",
+                  5.3243423423423
+                ],
+                "output": "timestamp=1718723859404&symbol=LTCUSDT&side=SELL&newClientOrderId=x-R4BD3S8211e624263fc64745ba2215&newOrderRespType=FULL&type=MARKET&quoteOrderQty=5.32&recvWindow=10000&signature=370d368512813304333bd7510e6ae62d89ba877ed6a829ac5595a9c26b0ba265"
             }
         ],
         "editOrder": [
@@ -681,7 +747,7 @@
             {
                 "description": "Swap cancelOrders",
                 "method": "cancelOrders",
-                "url": "https://testnet.binancefuture.com/fapi/v1/batchOrders?timestamp=1699384523218&symbol=LTCUSDT&recvWindow=10000&orderidlist=[652511506]&signature=ced41362438af4b529b81484e1713dc0108b2715453e403d3e46fa93ba8a0a83",
+                "url": "https://testnet.binancefuture.com/fapi/v1/batchOrders?timestamp=1699384523218&symbol=LTCUSDT&recvWindow=10000&orderidlist=%5B652511506%5D&signature=ced41362438af4b529b81484e1713dc0108b2715453e403d3e46fa93ba8a0a83",
                 "input": [
                     [
                         "652511506"
@@ -1628,6 +1694,18 @@
                     "ADA/USDT"
                 ],
                 "output": "timestamp=1704968820014&asset=USDT&amount=1&type=ISOLATEDMARGIN_ISOLATEDMARGIN&fromSymbol=LTCUSDT&toSymbol=ADAUSDT&recvWindow=10000&signature=190b3acf1286fe5ab2e41d2024d8fe1cc81eb9a30bccf77386275d37d8cc81c5"
+            },
+            {
+                "description": "transfer main funding with weird amount",
+                "method": "transfer",
+                "url": "https://api.binance.com/sapi/v1/asset/transfer",
+                "input": [
+                  "USDT",
+                  1.23434223,
+                  "main",
+                  "funding"
+                ],
+                "output": "timestamp=1718723373536&asset=USDT&amount=1.23434223&type=MAIN_FUNDING&recvWindow=10000&signature=731b5bbe83853c1cb5b3715a569fd67554e39681ecf5098c1646264e9c98a555"
             }
         ],
         "fetchDeposits": [
@@ -2652,6 +2730,19 @@
                 "method": "fetchTransfers",
                 "url": "https://api.binance.com/sapi/v1/asset/transfer?timestamp=1706094571953&type=MAIN_UMFUTURE&recvWindow=10000&signature=a8edc2192088ef3aff0fd3687e8c222eb2f45ba83cd9a4c589f561202466be8f",
                 "input": []
+            },
+            {
+                "description": "internal transfers",
+                "method": "fetchTransfers",
+                "url": "https://api.binance.com/sapi/v1/pay/transactions?timestamp=1718096776515&recvWindow=10000&signature=b9fe81491ea542195571f617280e2bef60e5971926be6ce646e4bb25ac18d80e",
+                "input": [
+                  null,
+                  null,
+                  null,
+                  {
+                    "internal": true
+                  }
+                ]
             }
         ],
         "fetchMyLiquidations": [
@@ -3220,6 +3311,23 @@
                 "input": [
                   "BTC/USD:BTC"
                 ]
+            }
+        ],
+        "withdraw": [
+            {
+                "description": "withdraw using trc20 network",
+                "method": "withdraw",
+                "url": "https://api.binance.com/sapi/v1/capital/withdraw/apply",
+                "input": [
+                  "USDT",
+                  10.34332,
+                  "TKRxCKea88ZvHeGsXEY33CqAQHPDqcAw4N",
+                  null,
+                  {
+                    "network": "TRC20"
+                  }
+                ],
+                "output": "timestamp=1718724487672&coin=USDT&address=TKRxCKea88ZvHeGsXEY33CqAQHPDqcAw4N&amount=10.34332&network=TRX&recvWindow=10000&signature=d9a2ecdfd7a207b2e7770b45a1971a3ea6bfcdb9c0796691b6528a7a7b77fe02"
             }
         ]
     }

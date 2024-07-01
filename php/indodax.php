@@ -649,6 +649,24 @@ class indodax extends Exchange {
         //       "order_xrp" => "30.45000000",
         //       "remain_xrp" => "0.00000000"
         //     }
+        //
+        // cancelOrder
+        //
+        //    {
+        //        "order_id" => 666883,
+        //        "client_order_id" => "clientx-sj82ks82j",
+        //        "type" => "sell",
+        //        "pair" => "btc_idr",
+        //        "balance" => {
+        //            "idr" => "33605800",
+        //            "btc" => "0.00000000",
+        //            ...
+        //            "frozen_idr" => "0",
+        //            "frozen_btc" => "0.00000000",
+        //            ...
+        //        }
+        //    }
+        //
         $side = null;
         if (is_array($order) && array_key_exists('type', $order)) {
             $side = $order['type'];
@@ -659,6 +677,8 @@ class indodax extends Exchange {
         $price = $this->safe_string($order, 'price');
         $amount = null;
         $remaining = null;
+        $marketId = $this->safe_string($order, 'pair');
+        $market = $this->safe_market($marketId, $market);
         if ($market !== null) {
             $symbol = $market['symbol'];
             $quoteId = $market['quoteId'];
@@ -681,7 +701,7 @@ class indodax extends Exchange {
         return $this->safe_order(array(
             'info' => $order,
             'id' => $id,
-            'clientOrderId' => null,
+            'clientOrderId' => $this->safe_string($order, 'client_order_id'),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'lastTradeTimestamp' => null,
@@ -800,7 +820,7 @@ class indodax extends Exchange {
          * @param {string} $type 'market' or 'limit'
          * @param {string} $side 'buy' or 'sell'
          * @param {float} $amount how much of $currency you want to trade in units of base $currency
-         * @param {float} [$price] the $price at which the order is to be fullfilled, in units of the quote $currency, ignored in $market orders
+         * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote $currency, ignored in $market orders
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
          */
@@ -853,7 +873,28 @@ class indodax extends Exchange {
             'pair' => $market['id'],
             'type' => $side,
         );
-        return $this->privatePostCancelOrder ($this->extend($request, $params));
+        $response = $this->privatePostCancelOrder ($this->extend($request, $params));
+        //
+        //    {
+        //        "success" => 1,
+        //        "return" => {
+        //            "order_id" => 666883,
+        //            "client_order_id" => "clientx-sj82ks82j",
+        //            "type" => "sell",
+        //            "pair" => "btc_idr",
+        //            "balance" => {
+        //                "idr" => "33605800",
+        //                "btc" => "0.00000000",
+        //                ...
+        //                "frozen_idr" => "0",
+        //                "frozen_btc" => "0.00000000",
+        //                ...
+        //            }
+        //        }
+        //    }
+        //
+        $data = $this->safe_dict($response, 'return');
+        return $this->parse_order($data);
     }
 
     public function fetch_transaction_fee(string $code, $params = array ()) {
@@ -1117,7 +1158,7 @@ class indodax extends Exchange {
         );
     }
 
-    public function parse_transaction_status($status) {
+    public function parse_transaction_status(?string $status) {
         $statuses = array(
             'success' => 'ok',
         );
@@ -1232,7 +1273,7 @@ class indodax extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
         if ($response === null) {
             return null;
         }

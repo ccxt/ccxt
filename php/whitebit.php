@@ -335,7 +335,7 @@ class whitebit extends Exchange {
         return $this->parse_markets($markets);
     }
 
-    public function parse_market($market): array {
+    public function parse_market(array $market): array {
         $id = $this->safe_string($market, 'name');
         $baseId = $this->safe_string($market, 'stock');
         $quoteId = $this->safe_string($market, 'money');
@@ -1223,7 +1223,7 @@ class whitebit extends Exchange {
          * @param {string} $type 'market' or 'limit'
          * @param {string} $side 'buy' or 'sell'
          * @param {float} $amount how much of currency you want to trade in units of base currency
-         * @param {float} [$price] the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
+         * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {float} [$params->cost] *$market orders only* the $cost of the order in units of the base currency
          * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
@@ -1318,7 +1318,7 @@ class whitebit extends Exchange {
          * @param {string} $type 'market' or 'limit'
          * @param {string} $side 'buy' or 'sell'
          * @param {float} $amount how much of currency you want to trade in units of base currency
-         * @param {float} $price the $price at which the order is to be fullfilled, in units of the base currency, ignored in $market orders
+         * @param {float} $price the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
          */
@@ -1387,7 +1387,27 @@ class whitebit extends Exchange {
             'market' => $market['id'],
             'orderId' => intval($id),
         );
-        return $this->v4PrivatePostOrderCancel ($this->extend($request, $params));
+        $response = $this->v4PrivatePostOrderCancel ($this->extend($request, $params));
+        //
+        //    {
+        //        "orderId" => 4180284841, // order $id
+        //        "clientOrderId" => "customId11", // custom order identifier; "clientOrderId" => "" - if not specified.
+        //        "market" => "BTC_USDT", // deal $market
+        //        "side" => "buy", // order side
+        //        "type" => "stop $market", // order type
+        //        "timestamp" => 1595792396.165973, // current timestamp
+        //        "dealMoney" => "0", // if order finished - amount in money currency that is finished
+        //        "dealStock" => "0", // if order finished - amount in stock currency that is finished
+        //        "amount" => "0.001", // amount
+        //        "takerFee" => "0.001", // maker fee ratio. If the number less than 0.0001 - it will be rounded to zero
+        //        "makerFee" => "0.001", // maker fee ratio. If the number less than 0.0001 - it will be rounded to zero
+        //        "left" => "0.001", // if order not finished - rest of the amount that must be finished
+        //        "dealFee" => "0", // fee in money that you pay if order is finished
+        //        "price" => "40000", // price if price isset
+        //        "activation_price" => "40000" // activation price if activation price is set
+        //    }
+        //
+        return $this->parse_order($response);
     }
 
     public function cancel_all_orders(?string $symbol = null, $params = array ()) {
@@ -1428,7 +1448,7 @@ class whitebit extends Exchange {
         //
         // array()
         //
-        return $response;
+        return $this->parse_orders($response, $market);
     }
 
     public function cancel_all_orders_after(?int $timeout, $params = array ()) {
@@ -1657,7 +1677,7 @@ class whitebit extends Exchange {
 
     public function parse_order(array $order, ?array $market = null): array {
         //
-        // createOrder, fetchOpenOrders
+        // createOrder, fetchOpenOrders, cancelOrder
         //
         //      {
         //          "orderId":105687928629,
@@ -1672,6 +1692,7 @@ class whitebit extends Exchange {
         //          "takerFee":"0.001",
         //          "makerFee":"0",
         //          "left":"100",
+        //          "price" => "40000", // $price if $price isset
         //          "dealFee":"0",
         //          "activation_price":"0.065"      // stop $price (if stop limit or stop $market)
         //      }
@@ -2054,7 +2075,7 @@ class whitebit extends Exchange {
         );
     }
 
-    public function parse_transaction_status($status) {
+    public function parse_transaction_status(?string $status) {
         $statuses = array(
             '1' => 'pending',
             '2' => 'pending',
@@ -2529,7 +2550,7 @@ class whitebit extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
         if (($code === 418) || ($code === 429)) {
             throw new DDoSProtection($this->id . ' ' . (string) $code . ' ' . $reason . ' ' . $body);
         }

@@ -51,8 +51,6 @@ class probit extends \ccxt\async\probit {
             ),
             'streaming' => array(
             ),
-            'exceptions' => array(
-            ),
         ));
     }
 
@@ -474,11 +472,11 @@ class probit extends \ccxt\async\probit {
         $symbol = $this->safe_symbol($marketId);
         $dataBySide = $this->group_by($orderBook, 'side');
         $messageHash = 'orderbook:' . $symbol;
-        $orderbook = $this->safe_value($this->orderbooks, $symbol);
-        if ($orderbook === null) {
-            $orderbook = $this->order_book(array());
-            $this->orderbooks[$symbol] = $orderbook;
+        // $orderbook = $this->safe_value($this->orderbooks, $symbol);
+        if (!(is_array($this->orderbooks) && array_key_exists($symbol, $this->orderbooks))) {
+            $this->orderbooks[$symbol] = $this->order_book(array());
         }
+        $orderbook = $this->orderbooks[$symbol];
         $reset = $this->safe_bool($message, 'reset', false);
         if ($reset) {
             $snapshot = $this->parse_order_book($dataBySide, $symbol, null, 'buy', 'sell', 'price', 'quantity');
@@ -519,8 +517,14 @@ class probit extends \ccxt\async\probit {
         $code = $this->safe_string($message, 'errorCode');
         $errMessage = $this->safe_string($message, 'message', '');
         $details = $this->safe_value($message, 'details');
-        // todo - throw properly here
-        throw new ExchangeError($this->id . ' ' . $code . ' ' . $errMessage . ' ' . $this->json($details));
+        $feedback = $this->id . ' ' . $code . ' ' . $errMessage . ' ' . $this->json($details);
+        if (is_array($this->exceptions) && array_key_exists('exact', $this->exceptions)) {
+            $this->throw_exactly_matched_exception($this->exceptions['exact'], $code, $feedback);
+        }
+        if (is_array($this->exceptions) && array_key_exists('broad', $this->exceptions)) {
+            $this->throw_broadly_matched_exception($this->exceptions['broad'], $errMessage, $feedback);
+        }
+        throw new ExchangeError($feedback);
     }
 
     public function handle_authenticate(Client $client, $message) {

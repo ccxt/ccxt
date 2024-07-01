@@ -202,7 +202,7 @@ class ace(Exchange, ImplicitAPI):
         #
         return self.parse_markets(response)
 
-    def parse_market(self, market) -> Market:
+    def parse_market(self, market: dict) -> Market:
         baseId = self.safe_string(market, 'base')
         base = self.safe_currency_code(baseId)
         quoteId = self.safe_string(market, 'quote')
@@ -581,7 +581,7 @@ class ace(Exchange, ImplicitAPI):
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
         :param float amount: how much of currency you want to trade in units of base currency
-        :param float [price]: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
@@ -977,13 +977,11 @@ class ace(Exchange, ImplicitAPI):
             auth = 'ACE_SIGN' + self.secret
             data = self.extend({
                 'apiKey': self.apiKey,
-                'timeStamp': nonce,
+                'timeStamp': self.number_to_string(nonce),
             }, params)
-            dataKeys = list(data.keys())
-            sortedDataKeys = self.sort_by(dataKeys, 0, False, '')
-            for i in range(0, len(sortedDataKeys)):
-                key = sortedDataKeys[i]
-                auth += self.safe_string(data, key)
+            sortedData = self.keysort(data)
+            values = list(sortedData.values())
+            auth += ''.join(values)
             signature = self.hash(self.encode(auth), 'sha256', 'hex')
             data['signKey'] = signature
             headers = {
@@ -1000,7 +998,7 @@ class ace(Exchange, ImplicitAPI):
         url = self.urls['api'][api] + url
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response, requestHeaders, requestBody):
         if response is None:
             return None  # fallback to the default error handler
         feedback = self.id + ' ' + body

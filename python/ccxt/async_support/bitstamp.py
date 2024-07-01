@@ -232,7 +232,7 @@ class bitstamp(Exchange, ImplicitAPI):
                         'uni_withdrawal/': 1,
                         'uni_address/': 1,
                         'yfi_withdrawal/': 1,
-                        'yfi_address': 1,
+                        'yfi_address/': 1,
                         'audio_withdrawal/': 1,
                         'audio_address/': 1,
                         'crv_withdrawal/': 1,
@@ -241,7 +241,7 @@ class bitstamp(Exchange, ImplicitAPI):
                         'algo_address/': 1,
                         'comp_withdrawal/': 1,
                         'comp_address/': 1,
-                        'grt_withdrawal': 1,
+                        'grt_withdrawal/': 1,
                         'grt_address/': 1,
                         'usdt_withdrawal/': 1,
                         'usdt_address/': 1,
@@ -379,6 +379,22 @@ class bitstamp(Exchange, ImplicitAPI):
                         'vchf_address/': 1,
                         'veur_withdrawal/': 1,
                         'veur_address/': 1,
+                        'truf_withdrawal/': 1,
+                        'truf_address/': 1,
+                        'wif_withdrawal/': 1,
+                        'wif_address/': 1,
+                        'smt_withdrawal/': 1,
+                        'smt_address/': 1,
+                        'sui_withdrawal/': 1,
+                        'sui_address/': 1,
+                        'jup_withdrawal/': 1,
+                        'jup_address/': 1,
+                        'ondo_withdrawal/': 1,
+                        'ondo_address/': 1,
+                        'boba_withdrawal/': 1,
+                        'boba_address/': 1,
+                        'pyth_withdrawal/': 1,
+                        'pyth_address/': 1,
                     },
                 },
             },
@@ -1327,7 +1343,7 @@ class bitstamp(Exchange, ImplicitAPI):
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
         :param float amount: how much of currency you want to trade in units of base currency
-        :param float [price]: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
@@ -1376,7 +1392,17 @@ class bitstamp(Exchange, ImplicitAPI):
         request: dict = {
             'id': id,
         }
-        return await self.privatePostCancelOrder(self.extend(request, params))
+        response = await self.privatePostCancelOrder(self.extend(request, params))
+        #
+        #    {
+        #        "id": 1453282316578816,
+        #        "amount": "0.02035278",
+        #        "price": "2100.45",
+        #        "type": 0,
+        #        "market": "BTC/USD"
+        #    }
+        #
+        return self.parse_order(response)
 
     async def cancel_all_orders(self, symbol: Str = None, params={}):
         """
@@ -1397,7 +1423,23 @@ class bitstamp(Exchange, ImplicitAPI):
             response = await self.privatePostCancelAllOrdersPair(self.extend(request, params))
         else:
             response = await self.privatePostCancelAllOrders(self.extend(request, params))
-        return response
+        #
+        #    {
+        #        "canceled": [
+        #            {
+        #                "id": 1453282316578816,
+        #                "amount": "0.02035278",
+        #                "price": "2100.45",
+        #                "type": 0,
+        #                "currency_pair": "BTC/USD",
+        #                "market": "BTC/USD"
+        #            }
+        #        ],
+        #        "success": True
+        #    }
+        #
+        canceled = self.safe_list(response, 'canceled')
+        return self.parse_orders(canceled)
 
     def parse_order_status(self, status: Str):
         statuses: dict = {
@@ -1689,7 +1731,7 @@ class bitstamp(Exchange, ImplicitAPI):
             'fee': fee,
         }
 
-    def parse_transaction_status(self, status):
+    def parse_transaction_status(self, status: Str):
         #
         #   withdrawals:
         #   0(open), 1(in process), 2(finished), 3(canceled) or 4(failed).
@@ -1742,6 +1784,16 @@ class bitstamp(Exchange, ImplicitAPI):
         #           "type": "0",
         #           "id": "2814205012"
         #       }
+        #
+        # cancelOrder
+        #
+        #    {
+        #        "id": 1453282316578816,
+        #        "amount": "0.02035278",
+        #        "price": "2100.45",
+        #        "type": 0,
+        #        "market": "BTC/USD"
+        #    }
         #
         id = self.safe_string(order, 'id')
         clientOrderId = self.safe_string(order, 'client_order_id')
@@ -2109,7 +2161,7 @@ class bitstamp(Exchange, ImplicitAPI):
             headers['X-Auth-Signature'] = signature
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody):
+    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response, requestHeaders, requestBody):
         if response is None:
             return None
         #

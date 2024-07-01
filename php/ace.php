@@ -196,7 +196,7 @@ class ace extends Exchange {
         return $this->parse_markets($response);
     }
 
-    public function parse_market($market): array {
+    public function parse_market(array $market): array {
         $baseId = $this->safe_string($market, 'base');
         $base = $this->safe_currency_code($baseId);
         $quoteId = $this->safe_string($market, 'quote');
@@ -594,7 +594,7 @@ class ace extends Exchange {
          * @param {string} $type 'market' or 'limit'
          * @param {string} $side 'buy' or 'sell'
          * @param {float} $amount how much of currency you want to trade in units of base currency
-         * @param {float} [$price] the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
+         * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
          */
@@ -1010,14 +1010,11 @@ class ace extends Exchange {
             $auth = 'ACE_SIGN' . $this->secret;
             $data = $this->extend(array(
                 'apiKey' => $this->apiKey,
-                'timeStamp' => $nonce,
+                'timeStamp' => $this->number_to_string($nonce),
             ), $params);
-            $dataKeys = is_array($data) ? array_keys($data) : array();
-            $sortedDataKeys = $this->sort_by($dataKeys, 0, false, '');
-            for ($i = 0; $i < count($sortedDataKeys); $i++) {
-                $key = $sortedDataKeys[$i];
-                $auth .= $this->safe_string($data, $key);
-            }
+            $sortedData = $this->keysort($data);
+            $values = is_array($sortedData) ? array_values($sortedData) : array();
+            $auth .= implode('', $values);
             $signature = $this->hash($this->encode($auth), 'sha256', 'hex');
             $data['signKey'] = $signature;
             $headers = array(
@@ -1039,7 +1036,7 @@ class ace extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
         if ($response === null) {
             return null; // fallback to the default error handler
         }

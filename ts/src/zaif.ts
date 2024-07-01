@@ -6,7 +6,7 @@ import { ExchangeError, BadRequest } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
-import type { Balances, Currency, Dict, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade, Transaction } from './base/types.js';
+import type { Balances, Currency, Dict, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade, Transaction, int } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -177,7 +177,7 @@ export default class zaif extends Exchange {
         return this.parseMarkets (markets);
     }
 
-    parseMarket (market): Market {
+    parseMarket (market: Dict): Market {
         const id = this.safeString (market, 'currency_pair');
         const name = this.safeString (market, 'name');
         const [ baseId, quoteId ] = name.split ('/');
@@ -455,7 +455,7 @@ export default class zaif extends Exchange {
          * @param {string} type must be 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
@@ -491,7 +491,23 @@ export default class zaif extends Exchange {
         const request: Dict = {
             'order_id': id,
         };
-        return await this.privatePostCancelOrder (this.extend (request, params));
+        const response = await this.privatePostCancelOrder (this.extend (request, params));
+        //
+        //    {
+        //        "success": 1,
+        //        "return": {
+        //            "order_id": 184,
+        //            "funds": {
+        //                "jpy": 15320,
+        //                "btc": 1.392,
+        //                "mona": 2600,
+        //                "kaori": 0.1
+        //            }
+        //        }
+        //    }
+        //
+        const data = this.safeDict (response, 'return');
+        return this.parseOrder (data);
     }
 
     parseOrder (order: Dict, market: Market = undefined): Order {
@@ -505,6 +521,18 @@ export default class zaif extends Exchange {
         //         "comment" : "demo"
         //     }
         //
+        // cancelOrder
+        //
+        //    {
+        //        "order_id": 184,
+        //        "funds": {
+        //            "jpy": 15320,
+        //            "btc": 1.392,
+        //            "mona": 2600,
+        //            "kaori": 0.1
+        //        }
+        //    }
+        //
         let side = this.safeString (order, 'action');
         side = (side === 'bid') ? 'buy' : 'sell';
         const timestamp = this.safeTimestamp (order, 'timestamp');
@@ -512,7 +540,7 @@ export default class zaif extends Exchange {
         const symbol = this.safeSymbol (marketId, market, '_');
         const price = this.safeString (order, 'price');
         const amount = this.safeString (order, 'amount');
-        const id = this.safeString (order, 'id');
+        const id = this.safeString2 (order, 'id', 'order_id');
         return this.safeOrder ({
             'id': id,
             'clientOrderId': undefined,
@@ -730,7 +758,7 @@ export default class zaif extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    handleErrors (httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+    handleErrors (httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response, requestHeaders, requestBody) {
         if (response === undefined) {
             return undefined;
         }

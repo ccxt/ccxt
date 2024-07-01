@@ -1655,7 +1655,7 @@ class bitfinex2(Exchange, ImplicitAPI):
             raise ExchangeError(self.id + ' ' + response[6] + ': ' + errorText + '(#' + errorCode + ')')
         orders = self.safe_list(response, 4, [])
         order = self.safe_list(orders, 0)
-        return self.parse_order(order, market)
+        return self.parse_order(self.extend({'result': order}), market)
 
     async def create_orders(self, orders: List[OrderRequest], params={}):
         """
@@ -2146,7 +2146,7 @@ class bitfinex2(Exchange, ImplicitAPI):
             'info': response,
         }
 
-    def parse_transaction_status(self, status):
+    def parse_transaction_status(self, status: Str):
         statuses: dict = {
             'SUCCESS': 'ok',
             'COMPLETED': 'ok',
@@ -3447,7 +3447,7 @@ class bitfinex2(Exchange, ImplicitAPI):
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
         :param float amount: how much you want to trade in units of the base currency
-        :param float [price]: the price that the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param float [params.stopPrice]: the price that triggers a trigger order
         :param boolean [params.postOnly]: set to True if you want to make a post only order

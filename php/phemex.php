@@ -495,7 +495,7 @@ class phemex extends Exchange {
         return $this->safe_number($parts, 0);
     }
 
-    public function parse_swap_market($market) {
+    public function parse_swap_market(array $market) {
         //
         //     {
         //         "symbol":"BTCUSD",
@@ -633,7 +633,7 @@ class phemex extends Exchange {
         ));
     }
 
-    public function parse_spot_market($market) {
+    public function parse_spot_market(array $market) {
         //
         //     array(
         //         "symbol":"sBTCUSDT",
@@ -2469,7 +2469,7 @@ class phemex extends Exchange {
          * @param {string} $type 'market' or 'limit'
          * @param {string} $side 'buy' or 'sell'
          * @param {float} $amount how much of currency you want to trade in units of base currency
-         * @param {float} [$price] the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
+         * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {float} [$params->trigger] trigger $price for conditional orders
          * @param {array} [$params->takeProfit] *swap only* *$takeProfit object in $params* containing the $triggerPrice at which the attached take profit order will be triggered (perpetual swap markets only)
@@ -2764,7 +2764,7 @@ class phemex extends Exchange {
          * @param {string} $type 'market' or 'limit'
          * @param {string} $side 'buy' or 'sell'
          * @param {float} $amount how much of currency you want to trade in units of base currency
-         * @param {float} [$price] the $price at which the order is to be fullfilled, in units of the base currency, ignored in $market orders
+         * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->posSide] either 'Merged' or 'Long' or 'Short'
          * @return {array} an ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
@@ -2893,16 +2893,44 @@ class phemex extends Exchange {
         $response = null;
         if ($market['settle'] === 'USDT') {
             $response = $this->privateDeleteGOrdersAll ($this->extend($request, $params));
+            //
+            //    {
+            //        code => '0',
+            //        msg => '',
+            //        data => '1'
+            //    }
+            //
         } elseif ($market['swap']) {
             $response = $this->privateDeleteOrdersAll ($this->extend($request, $params));
+            //
+            //    {
+            //        code => '0',
+            //        msg => '',
+            //        data => '1'
+            //    }
+            //
         } else {
             $response = $this->privateDeleteSpotOrdersAll ($this->extend($request, $params));
+            //
+            //    {
+            //        code => '0',
+            //        msg => '',
+            //        data => {
+            //            total => '1'
+            //        }
+            //    }
+            //
         }
-        return $response;
+        return array(
+            $this->safe_order(array(
+                'info' => $response,
+            )),
+        );
     }
 
     public function fetch_order(string $id, ?string $symbol = null, $params = array ()) {
         /**
+         * @see https://phemex-docs.github.io/#query-orders-by-ids
          * fetches information on an $order made by the user
          * @param {string} $symbol unified $symbol of the $market the $order was made in
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -2913,9 +2941,6 @@ class phemex extends Exchange {
         }
         $this->load_markets();
         $market = $this->market($symbol);
-        if ($market['settle'] === 'USDT') {
-            throw new NotSupported($this->id . 'fetchOrder() is not supported yet for USDT settled swap markets'); // https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#query-user-$order-by-orderid-or-query-user-$order-by-client-$order-$id
-        }
         $request = array(
             'symbol' => $market['id'],
         );
@@ -2927,7 +2952,9 @@ class phemex extends Exchange {
             $request['orderID'] = $id;
         }
         $response = null;
-        if ($market['spot']) {
+        if ($market['settle'] === 'USDT') {
+            $response = $this->privateGetApiDataGFuturesOrdersByOrderId ($this->extend($request, $params));
+        } elseif ($market['spot']) {
             $response = $this->privateGetSpotOrdersActive ($this->extend($request, $params));
         } else {
             $response = $this->privateGetExchangeOrder ($this->extend($request, $params));
@@ -3396,7 +3423,7 @@ class phemex extends Exchange {
         return $this->parse_transactions($data, $currency, $since, $limit);
     }
 
-    public function parse_transaction_status($status) {
+    public function parse_transaction_status(?string $status) {
         $statuses = array(
             'Success' => 'ok',
             'Succeed' => 'ok',
@@ -4711,7 +4738,7 @@ class phemex extends Exchange {
         return $this->parse_transaction($data, $currency);
     }
 
-    public function handle_errors($httpCode, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
         if ($response === null) {
             return null; // fallback to default $error handler
         }

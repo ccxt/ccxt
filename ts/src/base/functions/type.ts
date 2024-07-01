@@ -28,7 +28,7 @@ const prop2 = (o: any, k1: IndexType, k2: IndexType) => (
                 )
         )
 );
-const getValueFromKeysInArray = (object: Dictionary<any>, array: any[]) => object[array.find ((k: IndexType) => prop (object, k) !== undefined)];
+const getValueFromKeysInArray = (object: Dictionary<any>, array: any[]) => isObject (object) ? object[array.find ((k: IndexType) => prop (object, k) !== undefined)] : undefined;
 /*  .............................................   */
 const asFloat = (x: any): number | typeof NaN => ((isNumber (x) || (isString (x) && x.length !== 0)) ? parseFloat (x) : NaN);
 const asInteger = (x: any): number | typeof NaN => ((isNumber (x) || (isString (x) && x.length !== 0)) ? Math.trunc (Number (x)) : NaN);
@@ -66,12 +66,22 @@ const safeString = (o: implicitReturnType, k: IndexType, $default?: string): Str
 
 const safeStringLower = (o: implicitReturnType, k: IndexType, $default?: string): Str => {
     const x = prop (o, k);
-    return isStringCoercible (x) ? String (x).toLowerCase () : $default
+    if (isStringCoercible (x)) {
+        return String (x).toLowerCase ();
+    } else if (isStringCoercible ($default)) {
+        return String ($default).toLowerCase ();
+    }
+    return $default;
 };
 
 const safeStringUpper = (o: implicitReturnType, k: IndexType, $default?: string): Str => {
     const x = prop (o, k)
-    return isStringCoercible (x) ? String (x).toUpperCase () : $default
+    if (isStringCoercible (x)) {
+        return String (x).toUpperCase ();
+    } else if (isStringCoercible ($default)) {
+        return String ($default).toUpperCase ();
+    }
+    return $default;
 };
 /*  .............................................   */
 
@@ -107,12 +117,22 @@ const safeString2 = (o: implicitReturnType, k1: IndexType, k2: IndexType, $defau
 
 const safeStringLower2 = (o: implicitReturnType, k1: IndexType, k2: IndexType, $default?: string): Str => {
     const x = prop2 (o, k1, k2);
-    return isStringCoercible (x) ? String (x).toLowerCase () : $default;
+    if (isStringCoercible (x)) {
+        return String (x).toLowerCase ();
+    } else if (isStringCoercible ($default)) {
+        return String ($default).toLowerCase ();
+    }
+    return $default;
 };
 
 const safeStringUpper2 = (o: implicitReturnType, k1: IndexType, k2: IndexType, $default?: string): Str => {
     const x = prop2 (o, k1, k2);
-    return isStringCoercible (x) ? String (x).toUpperCase () : $default;
+    if (isStringCoercible (x)) {
+        return String (x).toUpperCase ();
+    } else if (isStringCoercible ($default)) {
+        return String ($default).toUpperCase ();
+    }
+    return $default;
 };
 
 const safeFloatN = (o: implicitReturnType, k: (IndexType)[], $default?: number): Num => {
@@ -155,16 +175,23 @@ const safeStringN = (o: implicitReturnType, k: (IndexType)[], $default?: string)
 };
 
 const safeStringLowerN = (o: implicitReturnType, k: (IndexType)[], $default?: string): Str => {
-    if (o === undefined) {
-        return $default;
-    }
     const x = getValueFromKeysInArray (o, k);
-    return isStringCoercible (x) ? String (x).toLowerCase () : $default;
+    if (isStringCoercible (x)) {
+        return String (x).toLowerCase ();
+    } else if (isStringCoercible ($default)) {
+        return String ($default).toLowerCase ();
+    }
+    return $default;
 };
 
 const safeStringUpperN = (o: implicitReturnType, k: (IndexType)[], $default?: string): Str => {
     const x = getValueFromKeysInArray (o, k);
-    return isStringCoercible (x) ? String (x).toUpperCase () : $default;
+    if (isStringCoercible (x)) {
+        return String (x).toUpperCase ();
+    } else if (isStringCoercible ($default)) {
+        return String ($default).toUpperCase ();
+    }
+    return $default;
 };
 
 export {

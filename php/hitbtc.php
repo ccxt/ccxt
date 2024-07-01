@@ -849,8 +849,8 @@ class hitbtc extends Exchange {
                 $network = $this->safe_network($networkId);
                 $fee = $this->safe_number($rawNetwork, 'payout_fee');
                 $networkPrecision = $this->safe_number($rawNetwork, 'precision_payout');
-                $payinEnabledNetwork = $this->safe_bool($entry, 'payin_enabled', false);
-                $payoutEnabledNetwork = $this->safe_bool($entry, 'payout_enabled', false);
+                $payinEnabledNetwork = $this->safe_bool($rawNetwork, 'payin_enabled', false);
+                $payoutEnabledNetwork = $this->safe_bool($rawNetwork, 'payout_enabled', false);
                 $activeNetwork = $payinEnabledNetwork && $payoutEnabledNetwork;
                 if ($payinEnabledNetwork && !$depositEnabled) {
                     $depositEnabled = true;
@@ -1397,7 +1397,7 @@ class hitbtc extends Exchange {
         return $this->parse_transactions($response, $currency, $since, $limit, $params);
     }
 
-    public function parse_transaction_status($status) {
+    public function parse_transaction_status(?string $status) {
         $statuses = array(
             'PENDING' => 'pending',
             'FAILED' => 'failed',
@@ -2223,7 +2223,7 @@ class hitbtc extends Exchange {
          * @param {string} $type 'market' or 'limit'
          * @param {string} $side 'buy' or 'sell'
          * @param {float} $amount how much of currency you want to trade in units of base currency
-         * @param {float} [$price] the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
+         * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->marginMode] 'cross' or 'isolated' only 'isolated' is supported for spot-margin, swap supports both, default is 'cross'
          * @param {bool} [$params->margin] true for creating a margin order
@@ -3543,7 +3543,7 @@ class hitbtc extends Exchange {
         return array( $marginMode, $params );
     }
 
-    public function handle_errors($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
         //
         //     {
         //       "error" => {

@@ -1510,7 +1510,7 @@ class digifinex(Exchange, ImplicitAPI):
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
         :param float amount: how much you want to trade in units of the base currency, spot market orders use the quote currency, swap requires the number of contracts
-        :param float [price]: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.timeInForce]: "GTC", "IOC", "FOK", or "PO"
         :param bool [params.postOnly]: True or False
@@ -1646,7 +1646,7 @@ class digifinex(Exchange, ImplicitAPI):
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
         :param float amount: how much you want to trade in units of the base currency, spot market orders use the quote currency, swap requires the number of contracts
-        :param float [price]: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: request to be sent to the exchange
         """
@@ -2605,7 +2605,7 @@ class digifinex(Exchange, ImplicitAPI):
         """
         return self.fetch_transactions_by_type('withdrawal', code, since, limit, params)
 
-    def parse_transaction_status(self, status):
+    def parse_transaction_status(self, status: Str):
         # deposit state includes: 1(in deposit), 2(to be confirmed), 3(successfully deposited), 4(stopped)
         # withdrawal state includes: 1(application in progress), 2(to be confirmed), 3(completed), 4(rejected)
         statuses: dict = {
@@ -3945,7 +3945,7 @@ class digifinex(Exchange, ImplicitAPI):
                 url += '?' + urlencoded
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, statusCode, statusText, url, method, responseHeaders, responseBody, response, requestHeaders, requestBody):
+    def handle_errors(self, statusCode: int, statusText: str, url: str, method: str, responseHeaders: dict, responseBody, response, requestHeaders, requestBody):
         if not response:
             return None  # fall back to default error handler
         code = self.safe_string(response, 'code')

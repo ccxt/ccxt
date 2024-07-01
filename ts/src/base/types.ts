@@ -1,5 +1,5 @@
 export type Int = number | undefined;
-
+export type int = number;
 export type Str = string | undefined;
 export type Strings = string[] | undefined;
 export type Num = number | undefined;
@@ -84,6 +84,10 @@ export interface MarketInterface {
         amount: Num
         price: Num
         cost?: Num
+    };
+    marginMode?: {
+        isolated: boolean
+        cross: boolean
     };
     limits: {
         amount?: MinMax,

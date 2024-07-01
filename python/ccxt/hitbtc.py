@@ -860,8 +860,8 @@ class hitbtc(Exchange, ImplicitAPI):
                 network = self.safe_network(networkId)
                 fee = self.safe_number(rawNetwork, 'payout_fee')
                 networkPrecision = self.safe_number(rawNetwork, 'precision_payout')
-                payinEnabledNetwork = self.safe_bool(entry, 'payin_enabled', False)
-                payoutEnabledNetwork = self.safe_bool(entry, 'payout_enabled', False)
+                payinEnabledNetwork = self.safe_bool(rawNetwork, 'payin_enabled', False)
+                payoutEnabledNetwork = self.safe_bool(rawNetwork, 'payout_enabled', False)
                 activeNetwork = payinEnabledNetwork and payoutEnabledNetwork
                 if payinEnabledNetwork and not depositEnabled:
                     depositEnabled = True
@@ -1367,7 +1367,7 @@ class hitbtc(Exchange, ImplicitAPI):
         #
         return self.parse_transactions(response, currency, since, limit, params)
 
-    def parse_transaction_status(self, status):
+    def parse_transaction_status(self, status: Str):
         statuses: dict = {
             'PENDING': 'pending',
             'FAILED': 'failed',
@@ -2132,7 +2132,7 @@ class hitbtc(Exchange, ImplicitAPI):
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
         :param float amount: how much of currency you want to trade in units of base currency
-        :param float [price]: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.marginMode]: 'cross' or 'isolated' only 'isolated' is supported for spot-margin, swap supports both, default is 'cross'
         :param bool [params.margin]: True for creating a margin order
@@ -3362,7 +3362,7 @@ class hitbtc(Exchange, ImplicitAPI):
                 marginMode = 'isolated'
         return [marginMode, params]
 
-    def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response, requestHeaders, requestBody):
         #
         #     {
         #       "error": {

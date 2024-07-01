@@ -20,6 +20,10 @@ export default class binance extends binanceRest {
             'has': {
                 'ws': true,
                 'watchBalance': true,
+                'watchLiquidations': true,
+                'watchLiquidationsForSymbols': true,
+                'watchMyLiquidations': true,
+                'watchMyLiquidationsForSymbols': true,
                 'watchBidsAsks': true,
                 'watchMyTrades': true,
                 'watchOHLCV': true,
@@ -81,6 +85,7 @@ export default class binance extends binanceRest {
                         'papi': 'wss://fstream.binance.com/pm/ws',
                     },
                 },
+                'doc': 'https://developers.binance.com/en',
             },
             'streaming': {
                 'keepAlive': 180000,
@@ -104,6 +109,8 @@ export default class binance extends binanceRest {
                 // get updates every 1000ms or 100ms
                 // or every 0ms in real-time for futures
                 'watchOrderBookRate': 100,
+                'liquidationsLimit': 1000,
+                'myLiquidationsLimit': 1000,
                 'tradesLimit': 1000,
                 'ordersLimit': 1000,
                 'OHLCVLimit': 1000,
@@ -127,6 +134,9 @@ export default class binance extends binanceRest {
                 'watchBalance': {
                     'fetchBalanceSnapshot': false,
                     'awaitBalanceSnapshot': true, // whether to wait for the balance snapshot before providing updates
+                },
+                'watchLiquidationsForSymbols': {
+                    'defaultType': 'swap',
                 },
                 'watchPositions': {
                     'fetchPositionsSnapshot': true,
@@ -181,6 +191,347 @@ export default class binance extends binanceRest {
             this.options['numSubscriptionsByStream'][stream] = subscriptionsByStream + numSubscriptions;
         }
         return stream;
+    }
+    async watchLiquidations(symbol, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name binance#watchLiquidations
+         * @description watch the public liquidations of a trading pair
+         * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Liquidation-Order-Streams
+         * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/Liquidation-Order-Streams
+         * @param {string} symbol unified CCXT market symbol
+         * @param {int} [since] the earliest time in ms to fetch liquidations for
+         * @param {int} [limit] the maximum number of liquidation structures to retrieve
+         * @param {object} [params] exchange specific parameters for the bitmex api endpoint
+         * @returns {object} an array of [liquidation structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure}
+         */
+        return this.watchLiquidationsForSymbols([symbol], since, limit, params);
+    }
+    async watchLiquidationsForSymbols(symbols = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name binance#watchLiquidationsForSymbols
+         * @description watch the public liquidations of a trading pair
+         * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/All-Market-Liquidation-Order-Streams
+         * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/All-Market-Liquidation-Order-Streams
+         * @param {string} symbol unified CCXT market symbol
+         * @param {int} [since] the earliest time in ms to fetch liquidations for
+         * @param {int} [limit] the maximum number of liquidation structures to retrieve
+         * @param {object} [params] exchange specific parameters for the bitmex api endpoint
+         * @returns {object} an array of [liquidation structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure}
+         */
+        await this.loadMarkets();
+        const subscriptionHashes = [];
+        const messageHashes = [];
+        let streamHash = 'liquidations';
+        symbols = this.marketSymbols(symbols, undefined, true, true);
+        if (this.isEmpty(symbols)) {
+            subscriptionHashes.push('!' + 'forceOrder@arr');
+            messageHashes.push('liquidations');
+        }
+        else {
+            for (let i = 0; i < symbols.length; i++) {
+                const market = this.market(symbols[i]);
+                subscriptionHashes.push(market['id'] + '@forceOrder');
+                messageHashes.push('liquidations::' + symbols[i]);
+            }
+            streamHash += '::' + symbols.join(',');
+        }
+        const firstMarket = this.getMarketFromSymbols(symbols);
+        let type = undefined;
+        [type, params] = this.handleMarketTypeAndParams('watchLiquidationsForSymbols', firstMarket, params);
+        if (type === 'spot') {
+            throw new BadRequest(this.id + 'watchLiquidationsForSymbols is not supported for swap symbols');
+        }
+        let subType = undefined;
+        [subType, params] = this.handleSubTypeAndParams('watchLiquidationsForSymbols', firstMarket, params);
+        if (this.isLinear(type, subType)) {
+            type = 'future';
+        }
+        else if (this.isInverse(type, subType)) {
+            type = 'delivery';
+        }
+        const numSubscriptions = subscriptionHashes.length;
+        const url = this.urls['api']['ws'][type] + '/' + this.stream(type, streamHash, numSubscriptions);
+        const requestId = this.requestId(url);
+        const request = {
+            'method': 'SUBSCRIBE',
+            'params': subscriptionHashes,
+            'id': requestId,
+        };
+        const subscribe = {
+            'id': requestId,
+        };
+        const newLiquidations = await this.watchMultiple(url, messageHashes, this.extend(request, params), subscriptionHashes, subscribe);
+        if (this.newUpdates) {
+            return newLiquidations;
+        }
+        return this.filterBySymbolsSinceLimit(this.liquidations, symbols, since, limit, true);
+    }
+    handleLiquidation(client, message) {
+        //
+        // future
+        //    {
+        //        "e":"forceOrder",
+        //        "E":1698871323061,
+        //        "o":{
+        //           "s":"BTCUSDT",
+        //           "S":"BUY",
+        //           "o":"LIMIT",
+        //           "f":"IOC",
+        //           "q":"1.437",
+        //           "p":"35100.81",
+        //           "ap":"34959.70",
+        //           "X":"FILLED",
+        //           "l":"1.437",
+        //           "z":"1.437",
+        //           "T":1698871323059
+        //        }
+        //    }
+        // delivery
+        //    {
+        //        "e":"forceOrder",              // Event Type
+        //        "E": 1591154240950,            // Event Time
+        //        "o":{
+        //            "s":"BTCUSD_200925",       // Symbol
+        //            "ps": "BTCUSD",            // Pair
+        //            "S":"SELL",                // Side
+        //            "o":"LIMIT",               // Order Type
+        //            "f":"IOC",                 // Time in Force
+        //            "q":"1",                   // Original Quantity
+        //            "p":"9425.5",              // Price
+        //            "ap":"9496.5",             // Average Price
+        //            "X":"FILLED",              // Order Status
+        //            "l":"1",                   // Order Last Filled Quantity
+        //            "z":"1",                   // Order Filled Accumulated Quantity
+        //            "T": 1591154240949,        // Order Trade Time
+        //        }
+        //    }
+        //
+        const rawLiquidation = this.safeValue(message, 'o', {});
+        const marketId = this.safeString(rawLiquidation, 's');
+        const market = this.safeMarket(marketId, undefined, '', 'contract');
+        const symbol = market['symbol'];
+        const liquidation = this.parseWsLiquidation(rawLiquidation, market);
+        let liquidations = this.safeValue(this.liquidations, symbol);
+        if (liquidations === undefined) {
+            const limit = this.safeInteger(this.options, 'liquidationsLimit', 1000);
+            liquidations = new ArrayCache(limit);
+        }
+        liquidations.append(liquidation);
+        this.liquidations[symbol] = liquidations;
+        client.resolve([liquidation], 'liquidations');
+        client.resolve([liquidation], 'liquidations::' + symbol);
+    }
+    parseWsLiquidation(liquidation, market = undefined) {
+        //
+        // future
+        //    {
+        //        "s":"BTCUSDT",
+        //        "S":"BUY",
+        //        "o":"LIMIT",
+        //        "f":"IOC",
+        //        "q":"1.437",
+        //        "p":"35100.81",
+        //        "ap":"34959.70",
+        //        "X":"FILLED",
+        //        "l":"1.437",
+        //        "z":"1.437",
+        //        "T":1698871323059
+        //    }
+        // delivery
+        //    {
+        //        "s":"BTCUSD_200925",       // Symbol
+        //        "ps": "BTCUSD",            // Pair
+        //        "S":"SELL",                // Side
+        //        "o":"LIMIT",               // Order Type
+        //        "f":"IOC",                 // Time in Force
+        //        "q":"1",                   // Original Quantity
+        //        "p":"9425.5",              // Price
+        //        "ap":"9496.5",             // Average Price
+        //        "X":"FILLED",              // Order Status
+        //        "l":"1",                   // Order Last Filled Quantity
+        //        "z":"1",                   // Order Filled Accumulated Quantity
+        //        "T": 1591154240949,        // Order Trade Time
+        //    }
+        // myLiquidation
+        //    {
+        //        "s":"BTCUSDT",              // Symbol
+        //        "c":"TEST",                 // Client Order Id
+        //          // special client order id:
+        //          // starts with "autoclose-": liquidation order
+        //          // "adl_autoclose": ADL auto close order
+        //          // "settlement_autoclose-": settlement order for delisting or delivery
+        //        "S":"SELL",                 // Side
+        //        "o":"TRAILING_STOP_MARKET", // Order Type
+        //        "f":"GTC",                  // Time in Force
+        //        "q":"0.001",                // Original Quantity
+        //        "p":"0",                    // Original Price
+        //        "ap":"0",                   // Average Price
+        //        "sp":"7103.04",             // Stop Price. Please ignore with TRAILING_STOP_MARKET order
+        //        "x":"NEW",                  // Execution Type
+        //        "X":"NEW",                  // Order Status
+        //        "i":8886774,                // Order Id
+        //        "l":"0",                    // Order Last Filled Quantity
+        //        "z":"0",                    // Order Filled Accumulated Quantity
+        //        "L":"0",                    // Last Filled Price
+        //        "N":"USDT",                 // Commission Asset, will not push if no commission
+        //        "n":"0",                    // Commission, will not push if no commission
+        //        "T":1568879465650,          // Order Trade Time
+        //        "t":0,                      // Trade Id
+        //        "b":"0",                    // Bids Notional
+        //        "a":"9.91",                 // Ask Notional
+        //        "m":false,                  // Is this trade the maker side?
+        //        "R":false,                  // Is this reduce only
+        //        "wt":"CONTRACT_PRICE",      // Stop Price Working Type
+        //        "ot":"TRAILING_STOP_MARKET",// Original Order Type
+        //        "ps":"LONG",                // Position Side
+        //        "cp":false,                 // If Close-All, pushed with conditional order
+        //        "AP":"7476.89",             // Activation Price, only puhed with TRAILING_STOP_MARKET order
+        //        "cr":"5.0",                 // Callback Rate, only puhed with TRAILING_STOP_MARKET order
+        //        "pP": false,                // If price protection is turned on
+        //        "si": 0,                    // ignore
+        //        "ss": 0,                    // ignore
+        //        "rp":"0",                   // Realized Profit of the trade
+        //        "V":"EXPIRE_TAKER",         // STP mode
+        //        "pm":"OPPONENT",            // Price match mode
+        //        "gtd":0                     // TIF GTD order auto cancel time
+        //    }
+        //
+        const marketId = this.safeString(liquidation, 's');
+        market = this.safeMarket(marketId, market);
+        const timestamp = this.safeInteger(liquidation, 'T');
+        return this.safeLiquidation({
+            'info': liquidation,
+            'symbol': this.safeSymbol(marketId, market),
+            'contracts': this.safeNumber(liquidation, 'l'),
+            'contractSize': this.safeNumber(market, 'contractSize'),
+            'price': this.safeNumber(liquidation, 'ap'),
+            'baseValue': undefined,
+            'quoteValue': undefined,
+            'timestamp': timestamp,
+            'datetime': this.iso8601(timestamp),
+        });
+    }
+    async watchMyLiquidations(symbol, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name binance#watchMyLiquidations
+         * @description watch the private liquidations of a trading pair
+         * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/user-data-streams/Event-Order-Update
+         * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/user-data-streams/Event-Order-Update
+         * @param {string} symbol unified CCXT market symbol
+         * @param {int} [since] the earliest time in ms to fetch liquidations for
+         * @param {int} [limit] the maximum number of liquidation structures to retrieve
+         * @param {object} [params] exchange specific parameters for the bitmex api endpoint
+         * @returns {object} an array of [liquidation structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure}
+         */
+        return this.watchMyLiquidationsForSymbols([symbol], since, limit, params);
+    }
+    async watchMyLiquidationsForSymbols(symbols, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name binance#watchMyLiquidationsForSymbols
+         * @description watch the private liquidations of a trading pair
+         * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/user-data-streams/Event-Order-Update
+         * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/user-data-streams/Event-Order-Update
+         * @param {string} symbol unified CCXT market symbol
+         * @param {int} [since] the earliest time in ms to fetch liquidations for
+         * @param {int} [limit] the maximum number of liquidation structures to retrieve
+         * @param {object} [params] exchange specific parameters for the bitmex api endpoint
+         * @returns {object} an array of [liquidation structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure}
+         */
+        await this.loadMarkets();
+        symbols = this.marketSymbols(symbols, undefined, true, true, true);
+        const market = this.getMarketFromSymbols(symbols);
+        const messageHashes = ['myLiquidations'];
+        if (!this.isEmpty(symbols)) {
+            for (let i = 0; i < symbols.length; i++) {
+                const symbol = symbols[i];
+                messageHashes.push('myLiquidations::' + symbol);
+            }
+        }
+        let type = undefined;
+        [type, params] = this.handleMarketTypeAndParams('watchMyLiquidationsForSymbols', market, params);
+        let subType = undefined;
+        [subType, params] = this.handleSubTypeAndParams('watchMyLiquidationsForSymbols', market, params);
+        if (this.isLinear(type, subType)) {
+            type = 'future';
+        }
+        else if (this.isInverse(type, subType)) {
+            type = 'delivery';
+        }
+        await this.authenticate(params);
+        const url = this.urls['api']['ws'][type] + '/' + this.options[type]['listenKey'];
+        const message = undefined;
+        const newLiquidations = await this.watchMultiple(url, messageHashes, message, [type]);
+        if (this.newUpdates) {
+            return newLiquidations;
+        }
+        return this.filterBySymbolsSinceLimit(this.liquidations, symbols, since, limit);
+    }
+    handleMyLiquidation(client, message) {
+        //
+        //    {
+        //        "s":"BTCUSDT",              // Symbol
+        //        "c":"TEST",                 // Client Order Id
+        //          // special client order id:
+        //          // starts with "autoclose-": liquidation order
+        //          // "adl_autoclose": ADL auto close order
+        //          // "settlement_autoclose-": settlement order for delisting or delivery
+        //        "S":"SELL",                 // Side
+        //        "o":"TRAILING_STOP_MARKET", // Order Type
+        //        "f":"GTC",                  // Time in Force
+        //        "q":"0.001",                // Original Quantity
+        //        "p":"0",                    // Original Price
+        //        "ap":"0",                   // Average Price
+        //        "sp":"7103.04",             // Stop Price. Please ignore with TRAILING_STOP_MARKET order
+        //        "x":"NEW",                  // Execution Type
+        //        "X":"NEW",                  // Order Status
+        //        "i":8886774,                // Order Id
+        //        "l":"0",                    // Order Last Filled Quantity
+        //        "z":"0",                    // Order Filled Accumulated Quantity
+        //        "L":"0",                    // Last Filled Price
+        //        "N":"USDT",                 // Commission Asset, will not push if no commission
+        //        "n":"0",                    // Commission, will not push if no commission
+        //        "T":1568879465650,          // Order Trade Time
+        //        "t":0,                      // Trade Id
+        //        "b":"0",                    // Bids Notional
+        //        "a":"9.91",                 // Ask Notional
+        //        "m":false,                  // Is this trade the maker side?
+        //        "R":false,                  // Is this reduce only
+        //        "wt":"CONTRACT_PRICE",      // Stop Price Working Type
+        //        "ot":"TRAILING_STOP_MARKET",// Original Order Type
+        //        "ps":"LONG",                // Position Side
+        //        "cp":false,                 // If Close-All, pushed with conditional order
+        //        "AP":"7476.89",             // Activation Price, only puhed with TRAILING_STOP_MARKET order
+        //        "cr":"5.0",                 // Callback Rate, only puhed with TRAILING_STOP_MARKET order
+        //        "pP": false,                // If price protection is turned on
+        //        "si": 0,                    // ignore
+        //        "ss": 0,                    // ignore
+        //        "rp":"0",                   // Realized Profit of the trade
+        //        "V":"EXPIRE_TAKER",         // STP mode
+        //        "pm":"OPPONENT",            // Price match mode
+        //        "gtd":0                     // TIF GTD order auto cancel time
+        //    }
+        //
+        const orderType = this.safeString(message, 'o');
+        if (orderType !== 'LIQUIDATION') {
+            return;
+        }
+        const marketId = this.safeString(message, 's');
+        const market = this.safeMarket(marketId);
+        const symbol = this.safeSymbol(marketId);
+        const liquidation = this.parseWsLiquidation(message, market);
+        let myLiquidations = this.safeValue(this.myLiquidations, symbol);
+        if (myLiquidations === undefined) {
+            const limit = this.safeInteger(this.options, 'myLiquidationsLimit', 1000);
+            myLiquidations = new ArrayCache(limit);
+        }
+        myLiquidations.append(liquidation);
+        this.myLiquidations[symbol] = myLiquidations;
+        client.resolve([liquidation], 'myLiquidations');
+        client.resolve([liquidation], 'myLiquidations::' + symbol);
     }
     async watchOrderBook(symbol, limit = undefined, params = {}) {
         /**
@@ -294,7 +645,8 @@ export default class binance extends binanceRest {
          * @method
          * @name binance#fetchOrderBookWs
          * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-         * @see https://binance-docs.github.io/apidocs/futures/en/#order-book-2
+         * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-api#order-book
+         * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/websocket-api/Order-Book
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int} [limit] the maximum amount of order book entries to return
          * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -376,11 +728,11 @@ export default class binance extends binanceRest {
             // todo: this is a synch blocking call - make it async
             // default 100, max 1000, valid limits 5, 10, 20, 50, 100, 500, 1000
             const snapshot = await this.fetchRestOrderBookSafe(symbol, limit, params);
-            const orderbook = this.safeValue(this.orderbooks, symbol);
-            if (orderbook === undefined) {
+            if (this.safeValue(this.orderbooks, symbol) === undefined) {
                 // if the orderbook is dropped before the snapshot is received
                 return;
             }
+            const orderbook = this.orderbooks[symbol];
             orderbook.reset(snapshot);
             // unroll the accumulated deltas
             const messages = orderbook.cache;
@@ -466,8 +818,7 @@ export default class binance extends binanceRest {
         const symbol = market['symbol'];
         const name = 'depth';
         const messageHash = market['lowercaseId'] + '@' + name;
-        const orderbook = this.safeValue(this.orderbooks, symbol);
-        if (orderbook === undefined) {
+        if (!(symbol in this.orderbooks)) {
             //
             // https://github.com/ccxt/ccxt/issues/6672
             //
@@ -478,6 +829,7 @@ export default class binance extends binanceRest {
             //
             return;
         }
+        const orderbook = this.orderbooks[symbol];
         const nonce = this.safeInteger(orderbook, 'nonce');
         if (nonce === undefined) {
             // 2. Buffer the events you receive from the stream.
@@ -948,7 +1300,6 @@ export default class binance extends binanceRest {
          * @method
          * @name binance#fetchTickerWs
          * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-         * @see https://binance-docs.github.io/apidocs/voptions/en/#24hr-ticker-price-change-statistics
          * @param {string} symbol unified symbol of the market to fetch the ticker for
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {string} [params.method] method to use can be ticker.price or ticker.book
@@ -988,8 +1339,8 @@ export default class binance extends binanceRest {
         /**
          * @method
          * @name binance#fetchOHLCVWs
-         * @see https://binance-docs.github.io/apidocs/websocket_api/en/#klines
          * @description query historical candlestick data containing the open, high, low, and close price, and the volume of a market
+         * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-api#klines
          * @param {string} symbol unified symbol of the market to query OHLCV data for
          * @param {string} timeframe the length of time each candle represents
          * @param {int} since timestamp in ms of the earliest candle to fetch
@@ -1115,10 +1466,10 @@ export default class binance extends binanceRest {
         /**
          * @method
          * @name binance#watchBidsAsks
-         * @see https://binance-docs.github.io/apidocs/spot/en/#individual-symbol-book-ticker-streams
-         * @see https://binance-docs.github.io/apidocs/futures/en/#all-book-tickers-stream
-         * @see https://binance-docs.github.io/apidocs/delivery/en/#all-book-tickers-stream
          * @description watches best bid & ask for symbols
+         * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-api#symbol-order-book-ticker
+         * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/All-Book-Tickers-Stream
+         * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/All-Book-Tickers-Stream
          * @param {string[]} symbols unified symbol of the market to fetch the ticker for
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
@@ -1638,9 +1989,8 @@ export default class binance extends binanceRest {
          * @method
          * @name binance#fetchBalanceWs
          * @description fetch balance and get the amount of funds available for trading or funds locked in orders
-         * @see https://binance-docs.github.io/apidocs/websocket_api/en/#account-information-user_data
-         * @see https://binance-docs.github.io/apidocs/futures/en/#account-information-user_data
-         * @see https://binance-docs.github.io/apidocs/futures/en/#futures-account-balance-user_data
+         * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/account/websocket-api/Futures-Account-Balance
+         * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-api#account-information-user_data
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {string|undefined} [params.type] 'future', 'delivery', 'savings', 'funding', or 'spot'
          * @param {string|undefined} [params.marginMode] 'cross' or 'isolated', for margin trading, uses this.options.defaultMarginMode if not passed, defaults to undefined/None/null
@@ -1738,7 +2088,7 @@ export default class binance extends binanceRest {
         /**
          * @method
          * @name binance#fetchPositionWs
-         * @see https://binance-docs.github.io/apidocs/futures/en/#position-information-user_data
+         * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/websocket-api/Position-Information
          * @description fetch data on an open position
          * @param {string} symbol unified market symbol of the market the position is held in
          * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -1751,7 +2101,7 @@ export default class binance extends binanceRest {
          * @method
          * @name binance#fetchPositionsWs
          * @description fetch all open positions
-         * @see https://binance-docs.github.io/apidocs/futures/en/#position-information-user_data
+         * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/websocket-api/Position-Information
          * @param {string[]} [symbols] list of unified market symbols
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {boolean} [params.returnRateLimits] set to true to return rate limit informations, defaults to false.
@@ -1990,14 +2340,14 @@ export default class binance extends binanceRest {
         /**
          * @method
          * @name binance#createOrderWs
-         * @see https://binance-docs.github.io/apidocs/websocket_api/en/#place-new-order-trade
-         * @see https://binance-docs.github.io/apidocs/futures/en/#new-order-trade-2
          * @description create a trade order
+         * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-api#place-new-order-trade
+         * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/websocket-api/New-Order
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float|undefined} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {float|undefined} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {boolean} params.test test order, default false
          * @param {boolean} params.returnRateLimits set to true to return rate limit information, default false
@@ -2139,14 +2489,14 @@ export default class binance extends binanceRest {
          * @method
          * @name binance#editOrderWs
          * @description edit a trade order
-         * @see https://binance-docs.github.io/apidocs/websocket_api/en/#cancel-and-replace-order-trade
-         * @see https://binance-docs.github.io/apidocs/futures/en/#modify-order-trade-2
+         * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-api#cancel-and-replace-order-trade
+         * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/websocket-api/Modify-Order
          * @param {string} id order id
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of the currency you want to trade in units of the base currency
-         * @param {float|undefined} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {float|undefined} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
@@ -2294,9 +2644,9 @@ export default class binance extends binanceRest {
         /**
          * @method
          * @name binance#cancelOrderWs
-         * @see https://binance-docs.github.io/apidocs/websocket_api/en/#cancel-order-trade
-         * @see https://binance-docs.github.io/apidocs/futures/en/#cancel-order-trade-2
          * @description cancel multiple orders
+         * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-api#cancel-order-trade
+         * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/websocket-api/Cancel-Order
          * @param {string} id order id
          * @param {string} symbol unified market symbol, default is undefined
          * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -2340,8 +2690,8 @@ export default class binance extends binanceRest {
         /**
          * @method
          * @name binance#cancelAllOrdersWs
-         * @see https://binance-docs.github.io/apidocs/websocket_api/en/#current-open-orders-user_data
          * @description cancel all open orders in a market
+         * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-api#cancel-open-orders-trade
          * @param {string} symbol unified market symbol of the market to cancel orders in
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -2375,9 +2725,9 @@ export default class binance extends binanceRest {
         /**
          * @method
          * @name binance#fetchOrderWs
-         * @see https://binance-docs.github.io/apidocs/websocket_api/en/#query-order-user_data
-         * @see https://binance-docs.github.io/apidocs/futures/en/#query-order-user_data-2
          * @description fetches information on an order made by the user
+         * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-api#query-order-user_data
+         * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/websocket-api/Query-Order
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} params extra parameters specific to the exchange API endpoint
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -2421,8 +2771,8 @@ export default class binance extends binanceRest {
         /**
          * @method
          * @name binance#fetchOrdersWs
-         * @see https://binance-docs.github.io/apidocs/websocket_api/en/#account-order-history-user_data
          * @description fetches information on multiple orders made by the user
+         * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-api#query-order-list-user_data
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int|undefined} [since] the earliest time in ms to fetch orders for
          * @param {int|undefined} [limit] the maximum number of order structures to retrieve
@@ -2466,8 +2816,8 @@ export default class binance extends binanceRest {
         /**
          * @method
          * @name binance#fetchClosedOrdersWs
-         * @see https://binance-docs.github.io/apidocs/websocket_api/en/#account-order-history-user_data
          * @description fetch closed orders
+         * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-api#query-order-list-user_data
          * @param {string} symbol unified market symbol
          * @param {int} [since] the earliest time in ms to fetch open orders for
          * @param {int} [limit] the maximum number of open orders structures to retrieve
@@ -2488,8 +2838,8 @@ export default class binance extends binanceRest {
         /**
          * @method
          * @name binance#fetchOpenOrdersWs
-         * @see https://binance-docs.github.io/apidocs/websocket_api/en/#current-open-orders-user_data
          * @description fetch all unfilled currently open orders
+         * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-api#current-open-orders-user_data
          * @param {string} symbol unified market symbol
          * @param {int|undefined} [since] the earliest time in ms to fetch open orders for
          * @param {int|undefined} [limit] the maximum number of open orders structures to retrieve
@@ -2529,9 +2879,9 @@ export default class binance extends binanceRest {
          * @method
          * @name binance#watchOrders
          * @description watches information on multiple orders made by the user
-         * @see https://binance-docs.github.io/apidocs/spot/en/#payload-order-update
-         * @see https://binance-docs.github.io/apidocs/pm/en/#event-futures-order-update
-         * @see https://binance-docs.github.io/apidocs/pm/en/#event-margin-order-update
+         * @see https://developers.binance.com/docs/binance-spot-api-docs/user-data-stream#order-update
+         * @see https://developers.binance.com/docs/margin_trading/trade-data-stream/Event-Order-Update
+         * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/user-data-streams/Event-Order-Update
          * @param {string} symbol unified market symbol of the market the orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
          * @param {int} [limit] the maximum number of order structures to retrieve
@@ -2821,6 +3171,7 @@ export default class binance extends binanceRest {
         }
         this.handleMyTrade(client, message);
         this.handleOrder(client, message);
+        this.handleMyLiquidation(client, message);
     }
     async watchPositions(symbols = undefined, since = undefined, limit = undefined, params = {}) {
         /**
@@ -3050,8 +3401,8 @@ export default class binance extends binanceRest {
         /**
          * @method
          * @name binance#fetchMyTradesWs
-         * @see https://binance-docs.github.io/apidocs/websocket_api/en/#account-trade-history-user_data
          * @description fetch all trades made by the user
+         * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-api#account-trade-history-user_data
          * @param {string} symbol unified market symbol
          * @param {int|undefined} [since] the earliest time in ms to fetch trades for
          * @param {int|undefined} [limit] the maximum number of trades structures to retrieve
@@ -3103,8 +3454,8 @@ export default class binance extends binanceRest {
         /**
          * @method
          * @name binance#fetchTradesWs
-         * @see https://binance-docs.github.io/apidocs/websocket_api/en/#recent-trades
          * @description fetch all trades made by the user
+         * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-api#recent-trades
          * @param {string} symbol unified market symbol
          * @param {int} [since] the earliest time in ms to fetch trades for
          * @param {int} [limit] the maximum number of trades structures to retrieve, default=500, max=1000
@@ -3382,7 +3733,7 @@ export default class binance extends binanceRest {
             rejected = true;
             // private endpoint uses id as messageHash
             client.reject(e, id);
-            // public endpoint stores messageHash in subscriptios
+            // public endpoint stores messageHash in subscriptions
             const subscriptionKeys = Object.keys(client.subscriptions);
             for (let i = 0; i < subscriptionKeys.length; i++) {
                 const subscriptionHash = subscriptionKeys[i];
@@ -3439,6 +3790,7 @@ export default class binance extends binanceRest {
             'ACCOUNT_UPDATE': this.handleAcountUpdate,
             'executionReport': this.handleOrderUpdate,
             'ORDER_TRADE_UPDATE': this.handleOrderUpdate,
+            'forceOrder': this.handleLiquidation,
         };
         let event = this.safeString(message, 'e');
         if (Array.isArray(message)) {

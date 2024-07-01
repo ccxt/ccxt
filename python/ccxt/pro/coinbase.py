@@ -233,6 +233,34 @@ class coinbase(ccxt.async_support.coinbase):
         #        ]
         #    }
         #
+        # note! seems coinbase might also send empty data like:
+        #
+        #    {
+        #        "channel": "ticker_batch",
+        #        "client_id": "",
+        #        "timestamp": "2024-05-24T18:22:24.546809523Z",
+        #        "sequence_num": 1,
+        #        "events": [
+        #            {
+        #                "type": "snapshot",
+        #                "tickers": [
+        #                    {
+        #                        "type": "ticker",
+        #                        "product_id": "",
+        #                        "price": "",
+        #                        "volume_24_h": "",
+        #                        "low_24_h": "",
+        #                        "high_24_h": "",
+        #                        "low_52_w": "",
+        #                        "high_52_w": "",
+        #                        "price_percent_chg_24_h": ""
+        #                    }
+        #                ]
+        #            }
+        #        ]
+        #    }
+        #
+        #
         channel = self.safe_string(message, 'channel')
         events = self.safe_value(message, 'events', [])
         datetime = self.safe_string(message, 'timestamp')
@@ -249,6 +277,8 @@ class coinbase(ccxt.async_support.coinbase):
                 symbol = result['symbol']
                 self.tickers[symbol] = result
                 wsMarketId = self.safe_string(ticker, 'product_id')
+                if wsMarketId is None:
+                    continue
                 messageHash = channel + '::' + wsMarketId
                 newTickers.append(result)
                 client.resolve(result, messageHash)
@@ -630,6 +660,25 @@ class coinbase(ccxt.async_support.coinbase):
         #
         return message
 
+    def handle_heartbeats(self, client, message):
+        # although the subscription takes a product_ids parameter(i.e. symbol),
+        # there is no(clear) way of mapping the message back to the symbol.
+        #
+        #     {
+        #         "channel": "heartbeats",
+        #         "client_id": "",
+        #         "timestamp": "2023-06-23T20:31:26.122969572Z",
+        #         "sequence_num": 0,
+        #         "events": [
+        #           {
+        #               "current_time": "2023-06-23 20:31:56.121961769 +0000 UTC m=+91717.525857105",
+        #               "heartbeat_counter": "3049"
+        #           }
+        #         ]
+        #     }
+        #
+        return message
+
     def handle_message(self, client, message):
         channel = self.safe_string(message, 'channel')
         methods: dict = {
@@ -639,10 +688,12 @@ class coinbase(ccxt.async_support.coinbase):
             'market_trades': self.handle_trade,
             'user': self.handle_order,
             'l2_data': self.handle_order_book,
+            'heartbeats': self.handle_heartbeats,
         }
         type = self.safe_string(message, 'type')
         if type == 'error':
             errorMessage = self.safe_string(message, 'message')
             raise ExchangeError(errorMessage)
         method = self.safe_value(methods, channel)
-        method(client, message)
+        if method:
+            method(client, message)

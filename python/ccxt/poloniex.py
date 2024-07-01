@@ -514,7 +514,7 @@ class poloniex(Exchange, ImplicitAPI):
         #
         return self.parse_markets(markets)
 
-    def parse_market(self, market) -> Market:
+    def parse_market(self, market: dict) -> Market:
         id = self.safe_string(market, 'symbol')
         baseId = self.safe_string(market, 'baseCurrencyName')
         quoteId = self.safe_string(market, 'quoteCurrencyName')
@@ -1224,7 +1224,7 @@ class poloniex(Exchange, ImplicitAPI):
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
         :param float amount: how much of currency you want to trade in units of base currency
-        :param float [price]: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param float [params.triggerPrice]: *spot only* The price at which a trigger order is triggered at
         :param float [params.cost]: *spot market buy only* the quote quantity that can be used alternative for the amount
@@ -1255,7 +1255,8 @@ class poloniex(Exchange, ImplicitAPI):
         #     }
         #
         response = self.extend(response, {
-            'type': side,
+            'type': type,
+            'side': side,
         })
         return self.parse_order(response, market)
 
@@ -1313,7 +1314,7 @@ class poloniex(Exchange, ImplicitAPI):
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
         :param float [amount]: how much of the currency you want to trade in units of the base currency
-        :param float [price]: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param float [params.triggerPrice]: The price at which a trigger order is triggered at
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
@@ -1340,7 +1341,8 @@ class poloniex(Exchange, ImplicitAPI):
         #     }
         #
         response = self.extend(response, {
-            'type': side,
+            'side': side,
+            'type': type,
         })
         return self.parse_order(response, market)
 
@@ -2084,7 +2086,7 @@ class poloniex(Exchange, ImplicitAPI):
         transactions = self.parse_transactions(deposits, currency, since, limit)
         return self.filter_by_currency_since_limit(transactions, code, since, limit)
 
-    def parse_transaction_status(self, status):
+    def parse_transaction_status(self, status: Str):
         statuses: dict = {
             'COMPLETE': 'ok',
             'COMPLETED': 'ok',
@@ -2212,7 +2214,7 @@ class poloniex(Exchange, ImplicitAPI):
             }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response, requestHeaders, requestBody):
         if response is None:
             return None
         #

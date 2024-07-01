@@ -32,6 +32,7 @@ class woofipro(Exchange, ImplicitAPI):
             'version': 'v1',
             'certified': True,
             'pro': True,
+            'dex': True,
             'hostname': 'dex.woo.org',
             'has': {
                 'CORS': None,
@@ -397,7 +398,7 @@ class woofipro(Exchange, ImplicitAPI):
         #
         return self.safe_integer(response, 'timestamp')
 
-    def parse_market(self, market) -> Market:
+    def parse_market(self, market: dict) -> Market:
         #
         #   {
         #     "symbol": "PERP_BTC_USDC",
@@ -1195,7 +1196,7 @@ class woofipro(Exchange, ImplicitAPI):
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
         :param float amount: how much you want to trade in units of the base currency
-        :param float [price]: the price that the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param float [price]: the price that the order is to be fulfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: request to be sent to the exchange
         """
@@ -1282,7 +1283,7 @@ class woofipro(Exchange, ImplicitAPI):
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
         :param float amount: how much of currency you want to trade in units of base currency
-        :param float [price]: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param float [params.triggerPrice]: The price a trigger order is triggered at
         :param dict [params.takeProfit]: *takeProfit object in params* containing the triggerPrice at which the attached take profit order will be triggered(perpetual swap markets only)
@@ -1399,7 +1400,7 @@ class woofipro(Exchange, ImplicitAPI):
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
         :param float amount: how much of currency you want to trade in units of base currency
-        :param float [price]: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param float [params.triggerPrice]: The price a trigger order is triggered at
         :param float [params.stopLossPrice]: price to trigger stop-loss orders
@@ -1561,7 +1562,9 @@ class woofipro(Exchange, ImplicitAPI):
         #     }
         # }
         #
-        return response
+        return [self.safe_order({
+            'info': response,
+        })]
 
     async def cancel_all_orders(self, symbol: Str = None, params={}):
         """
@@ -1600,7 +1603,11 @@ class woofipro(Exchange, ImplicitAPI):
         #     }
         # }
         #
-        return response
+        return [
+            {
+                'info': response,
+            },
+        ]
 
     async def fetch_order(self, id: str, symbol: Str = None, params={}):
         """
@@ -2054,7 +2061,7 @@ class woofipro(Exchange, ImplicitAPI):
             'network': None,
         }
 
-    def parse_transaction_status(self, status):
+    def parse_transaction_status(self, status: Str):
         statuses: dict = {
             'NEW': 'pending',
             'CONFIRMING': 'pending',
@@ -2138,8 +2145,10 @@ class woofipro(Exchange, ImplicitAPI):
 
     def sign_hash(self, hash, privateKey):
         signature = self.ecdsa(hash[-64:], privateKey[-64:], 'secp256k1', None)
+        r = signature['r']
+        s = signature['s']
         v = self.int_to_base16(self.sum(27, signature['v']))
-        return '0x' + signature['r'].rjust(64, '0') + signature['s'].rjust(64, '0') + v
+        return '0x' + r.rjust(64, '0') + s.rjust(64, '0') + v
 
     def sign_message(self, message, privateKey):
         return self.sign_hash(self.hash_message(message), privateKey[-64:])
@@ -2507,7 +2516,7 @@ class woofipro(Exchange, ImplicitAPI):
             headers['orderly-signature'] = self.urlencode_base64(self.base64_to_binary(signature))
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody):
+    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response, requestHeaders, requestBody):
         if not response:
             return None  # fallback to default error handler
         #

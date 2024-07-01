@@ -131,7 +131,7 @@ class kraken(ccxt.async_support.kraken):
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
         :param float amount: how much of currency you want to trade in units of base currency
-        :param float [price]: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
@@ -186,7 +186,7 @@ class kraken(ccxt.async_support.kraken):
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
         :param float amount: how much of the currency you want to trade in units of the base currency
-        :param float [price]: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
@@ -1230,7 +1230,7 @@ class kraken(ccxt.async_support.kraken):
         messageHashes = []
         for i in range(0, len(symbols)):
             messageHashes.append(self.get_message_hash(unifiedName, None, self.symbol(symbols[i])))
-        # for WS subscriptions, we can't use .market_ids(symbols), instead a custom is field needed
+        # for WS subscriptions, we can't use .marketIds(symbols), instead a custom is field needed
         markets = self.markets_for_symbols(symbols)
         wsMarketIds = []
         for i in range(0, len(markets)):

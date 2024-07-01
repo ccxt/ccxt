@@ -195,7 +195,7 @@ class bitteam extends Exchange {
                     'maker' => $this->parse_number('0.002'),
                 ),
             ),
-            'precisionMode' => DECIMAL_PLACES,
+            'precisionMode' => TICK_SIZE,
             // exchange-specific options
             'options' => array(
                 'networksById' => array(
@@ -349,7 +349,7 @@ class bitteam extends Exchange {
         }) ();
     }
 
-    public function parse_market($market): array {
+    public function parse_market(array $market): array {
         $id = $this->safe_string($market, 'name');
         $numericId = $this->safe_integer($market, 'id');
         $parts = explode('_', $id);
@@ -358,8 +358,6 @@ class bitteam extends Exchange {
         $base = $this->safe_currency_code($baseId);
         $quote = $this->safe_currency_code($quoteId);
         $active = $this->safe_value($market, 'active');
-        $amountPrecision = $this->safe_integer($market, 'baseStep');
-        $pricePrecision = $this->safe_integer($market, 'quoteStep');
         $timeStart = $this->safe_string($market, 'timeStart');
         $created = $this->parse8601($timeStart);
         $minCost = null;
@@ -395,8 +393,8 @@ class bitteam extends Exchange {
             'strike' => null,
             'optionType' => null,
             'precision' => array(
-                'amount' => $amountPrecision,
-                'price' => $pricePrecision,
+                'amount' => $this->parse_number($this->parse_precision($this->safe_string($market, 'baseStep'))),
+                'price' => $this->parse_number($this->parse_precision($this->safe_string($market, 'quoteStep'))),
             ),
             'limits' => array(
                 'leverage' => array(
@@ -552,7 +550,7 @@ class bitteam extends Exchange {
                 $numericId = $this->safe_integer($currency, 'id');
                 $code = $this->safe_currency_code($id);
                 $active = $this->safe_bool($currency, 'active', false);
-                $precision = $this->safe_integer($currency, 'precision');
+                $precision = $this->parse_number($this->parse_precision($this->safe_string($currency, 'precision')));
                 $txLimits = $this->safe_value($currency, 'txLimits', array());
                 $minWithdraw = $this->safe_string($txLimits, 'minWithdraw');
                 $maxWithdraw = $this->safe_string($txLimits, 'maxWithdraw');
@@ -573,7 +571,7 @@ class bitteam extends Exchange {
                 $withdraw = $this->safe_value($statuses, 'withdrawStatus');
                 $networkIds = is_array($feesByNetworkId) ? array_keys($feesByNetworkId) : array();
                 $networks = array();
-                $networkPrecision = $this->safe_integer($currency, 'decimals');
+                $networkPrecision = $this->parse_number($this->parse_precision($this->safe_string($currency, 'decimals')));
                 for ($j = 0; $j < count($networkIds); $j++) {
                     $networkId = $networkIds[$j];
                     $networkCode = $this->network_id_to_code($networkId, $code);
@@ -998,7 +996,7 @@ class bitteam extends Exchange {
              * @param {string} $type 'market' or 'limit'
              * @param {string} $side 'buy' or 'sell'
              * @param {float} $amount how much of currency you want to trade in units of base currency
-             * @param {float} [$price] the $price at which the $order is to be fullfilled, in units of the quote currency, ignored in $market orders
+             * @param {float} [$price] the $price at which the $order is to be fulfilled, in units of the quote currency, ignored in $market orders
              * @param {array} [$params] extra parameters specific to the bitteam api endpoint
              * @return {array} an {@link https://github.com/ccxt/ccxt/wiki/Manual#$order-structure $order structure}
              */
@@ -2277,7 +2275,7 @@ class bitteam extends Exchange {
         return $this->safe_string($types, $type, $type);
     }
 
-    public function parse_transaction_status($status) {
+    public function parse_transaction_status(?string $status) {
         $statuses = array(
             'approving' => 'pending',
             'success' => 'ok',
@@ -2310,7 +2308,7 @@ class bitteam extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
         if ($response === null) {
             return null;
         }

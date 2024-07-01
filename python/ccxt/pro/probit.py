@@ -52,8 +52,6 @@ class probit(ccxt.async_support.probit):
             },
             'streaming': {
             },
-            'exceptions': {
-            },
         })
 
     async def watch_balance(self, params={}) -> Balances:
@@ -428,10 +426,10 @@ class probit(ccxt.async_support.probit):
         symbol = self.safe_symbol(marketId)
         dataBySide = self.group_by(orderBook, 'side')
         messageHash = 'orderbook:' + symbol
-        orderbook = self.safe_value(self.orderbooks, symbol)
-        if orderbook is None:
-            orderbook = self.order_book({})
-            self.orderbooks[symbol] = orderbook
+        # orderbook = self.safe_value(self.orderbooks, symbol)
+        if not (symbol in self.orderbooks):
+            self.orderbooks[symbol] = self.order_book({})
+        orderbook = self.orderbooks[symbol]
         reset = self.safe_bool(message, 'reset', False)
         if reset:
             snapshot = self.parse_order_book(dataBySide, symbol, None, 'buy', 'sell', 'price', 'quantity')
@@ -467,8 +465,12 @@ class probit(ccxt.async_support.probit):
         code = self.safe_string(message, 'errorCode')
         errMessage = self.safe_string(message, 'message', '')
         details = self.safe_value(message, 'details')
-        # todo - raise properly here
-        raise ExchangeError(self.id + ' ' + code + ' ' + errMessage + ' ' + self.json(details))
+        feedback = self.id + ' ' + code + ' ' + errMessage + ' ' + self.json(details)
+        if 'exact' in self.exceptions:
+            self.throw_exactly_matched_exception(self.exceptions['exact'], code, feedback)
+        if 'broad' in self.exceptions:
+            self.throw_broadly_matched_exception(self.exceptions['broad'], errMessage, feedback)
+        raise ExchangeError(feedback)
 
     def handle_authenticate(self, client: Client, message):
         #

@@ -1034,7 +1034,7 @@ class upbit extends upbit$1 {
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much you want to trade in units of the base currency
-         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {float} [params.cost] for market buy orders, the quote quantity that can be used as an alternative for the amount
          * @param {string} [params.timeInForce] 'IOC' or 'FOK'
@@ -1884,25 +1884,33 @@ class upbit extends upbit$1 {
         }
         if (api === 'private') {
             this.checkRequiredCredentials();
+            headers = {};
             const nonce = this.uuid();
             const request = {
                 'access_key': this.apiKey,
                 'nonce': nonce,
             };
-            if (Object.keys(query).length) {
-                const auth = this.urlencode(query);
+            const hasQuery = Object.keys(query).length;
+            let auth = undefined;
+            if ((method !== 'GET') && (method !== 'DELETE')) {
+                body = this.json(params);
+                headers['Content-Type'] = 'application/json';
+                if (hasQuery) {
+                    auth = this.urlencode(query);
+                }
+            }
+            else {
+                if (hasQuery) {
+                    auth = this.urlencode(this.keysort(query));
+                }
+            }
+            if (auth !== undefined) {
                 const hash = this.hash(this.encode(auth), sha512.sha512);
                 request['query_hash'] = hash;
                 request['query_hash_alg'] = 'SHA512';
             }
             const token = rsa.jwt(request, this.encode(this.secret), sha256.sha256);
-            headers = {
-                'Authorization': 'Bearer ' + token,
-            };
-            if ((method !== 'GET') && (method !== 'DELETE')) {
-                body = this.json(params);
-                headers['Content-Type'] = 'application/json';
-            }
+            headers['Authorization'] = 'Bearer ' + token;
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }

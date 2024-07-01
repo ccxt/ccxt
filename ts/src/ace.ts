@@ -5,7 +5,7 @@ import { BadRequest, AuthenticationError, InsufficientFunds, InvalidOrder, Argum
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { Balances, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade } from './base/types.js';
+import type { Balances, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, int } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -202,7 +202,7 @@ export default class ace extends Exchange {
         return this.parseMarkets (response);
     }
 
-    parseMarket (market): Market {
+    parseMarket (market: Dict): Market {
         const baseId = this.safeString (market, 'base');
         const base = this.safeCurrencyCode (baseId);
         const quoteId = this.safeString (market, 'quote');
@@ -611,7 +611,7 @@ export default class ace extends Exchange {
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
@@ -1039,14 +1039,11 @@ export default class ace extends Exchange {
             let auth = 'ACE_SIGN' + this.secret;
             const data = this.extend ({
                 'apiKey': this.apiKey,
-                'timeStamp': nonce,
+                'timeStamp': this.numberToString (nonce),
             }, params);
-            const dataKeys = Object.keys (data);
-            const sortedDataKeys = this.sortBy (dataKeys, 0, false, '');
-            for (let i = 0; i < sortedDataKeys.length; i++) {
-                const key = sortedDataKeys[i];
-                auth += this.safeString (data, key);
-            }
+            const sortedData = this.keysort (data);
+            const values = Object.values (sortedData);
+            auth += values.join ('');
             const signature = this.hash (this.encode (auth), sha256, 'hex');
             data['signKey'] = signature;
             headers = {
@@ -1068,7 +1065,7 @@ export default class ace extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+    handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response, requestHeaders, requestBody) {
         if (response === undefined) {
             return undefined; // fallback to the default error handler
         }

@@ -1203,7 +1203,7 @@ class whitebit extends whitebit$1 {
     async createMarketOrderWithCost(symbol, side, cost, params = {}) {
         /**
          * @method
-         * @name createMarketOrderWithCost
+         * @name whitebit#createMarketOrderWithCost
          * @description create a market order by providing the symbol, side and cost
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {string} side 'buy' or 'sell'
@@ -1218,7 +1218,7 @@ class whitebit extends whitebit$1 {
     async createMarketBuyOrderWithCost(symbol, cost, params = {}) {
         /**
          * @method
-         * @name createMarketBuyOrderWithCost
+         * @name whitebit#createMarketBuyOrderWithCost
          * @description create a market buy order by providing the symbol and cost
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {float} cost how much you want to trade in units of the quote currency
@@ -1241,7 +1241,7 @@ class whitebit extends whitebit$1 {
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {float} [params.cost] *market orders only* the cost of the order in units of the base currency
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -1346,7 +1346,7 @@ class whitebit extends whitebit$1 {
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float} price the price at which the order is to be fullfilled, in units of the base currency, ignored in market orders
+         * @param {float} price the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
@@ -1419,7 +1419,27 @@ class whitebit extends whitebit$1 {
             'market': market['id'],
             'orderId': parseInt(id),
         };
-        return await this.v4PrivatePostOrderCancel(this.extend(request, params));
+        const response = await this.v4PrivatePostOrderCancel(this.extend(request, params));
+        //
+        //    {
+        //        "orderId": 4180284841, // order id
+        //        "clientOrderId": "customId11", // custom order identifier; "clientOrderId": "" - if not specified.
+        //        "market": "BTC_USDT", // deal market
+        //        "side": "buy", // order side
+        //        "type": "stop market", // order type
+        //        "timestamp": 1595792396.165973, // current timestamp
+        //        "dealMoney": "0", // if order finished - amount in money currency that is finished
+        //        "dealStock": "0", // if order finished - amount in stock currency that is finished
+        //        "amount": "0.001", // amount
+        //        "takerFee": "0.001", // maker fee ratio. If the number less than 0.0001 - it will be rounded to zero
+        //        "makerFee": "0.001", // maker fee ratio. If the number less than 0.0001 - it will be rounded to zero
+        //        "left": "0.001", // if order not finished - rest of the amount that must be finished
+        //        "dealFee": "0", // fee in money that you pay if order is finished
+        //        "price": "40000", // price if price isset
+        //        "activation_price": "40000" // activation price if activation price is set
+        //    }
+        //
+        return this.parseOrder(response);
     }
     async cancelAllOrders(symbol = undefined, params = {}) {
         /**
@@ -1464,7 +1484,7 @@ class whitebit extends whitebit$1 {
         //
         // []
         //
-        return response;
+        return this.parseOrders(response, market);
     }
     async cancelAllOrdersAfter(timeout, params = {}) {
         /**
@@ -1698,7 +1718,7 @@ class whitebit extends whitebit$1 {
     }
     parseOrder(order, market = undefined) {
         //
-        // createOrder, fetchOpenOrders
+        // createOrder, fetchOpenOrders, cancelOrder
         //
         //      {
         //          "orderId":105687928629,
@@ -1713,6 +1733,7 @@ class whitebit extends whitebit$1 {
         //          "takerFee":"0.001",
         //          "makerFee":"0",
         //          "left":"100",
+        //          "price": "40000", // price if price isset
         //          "dealFee":"0",
         //          "activation_price":"0.065"      // stop price (if stop limit or stop market)
         //      }

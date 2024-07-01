@@ -47,8 +47,6 @@ export default class probit extends probitRest {
             },
             'streaming': {
             },
-            'exceptions': {
-            },
         });
     }
 
@@ -468,11 +466,11 @@ export default class probit extends probitRest {
         const symbol = this.safeSymbol (marketId);
         const dataBySide = this.groupBy (orderBook, 'side');
         const messageHash = 'orderbook:' + symbol;
-        let orderbook = this.safeValue (this.orderbooks, symbol);
-        if (orderbook === undefined) {
-            orderbook = this.orderBook ({});
-            this.orderbooks[symbol] = orderbook;
+        // let orderbook = this.safeValue (this.orderbooks, symbol);
+        if (!(symbol in this.orderbooks)) {
+            this.orderbooks[symbol] = this.orderBook ({});
         }
+        const orderbook = this.orderbooks[symbol];
         const reset = this.safeBool (message, 'reset', false);
         if (reset) {
             const snapshot = this.parseOrderBook (dataBySide, symbol, undefined, 'buy', 'sell', 'price', 'quantity');
@@ -513,8 +511,14 @@ export default class probit extends probitRest {
         const code = this.safeString (message, 'errorCode');
         const errMessage = this.safeString (message, 'message', '');
         const details = this.safeValue (message, 'details');
-        // todo - throw properly here
-        throw new ExchangeError (this.id + ' ' + code + ' ' + errMessage + ' ' + this.json (details));
+        const feedback = this.id + ' ' + code + ' ' + errMessage + ' ' + this.json (details);
+        if ('exact' in this.exceptions) {
+            this.throwExactlyMatchedException (this.exceptions['exact'], code, feedback);
+        }
+        if ('broad' in this.exceptions) {
+            this.throwBroadlyMatchedException (this.exceptions['broad'], errMessage, feedback);
+        }
+        throw new ExchangeError (feedback);
     }
 
     handleAuthenticate (client: Client, message) {

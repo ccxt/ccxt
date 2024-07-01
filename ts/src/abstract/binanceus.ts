@@ -9,8 +9,11 @@ import { implicitReturnType } from '../base/types.js';
 import _binance from '../binance.js';
 
 interface binance {
+    sapiGetCopyTradingFuturesUserStatus (params?: {}): Promise<implicitReturnType>;
+    sapiGetCopyTradingFuturesLeadSymbol (params?: {}): Promise<implicitReturnType>;
     sapiGetSystemStatus (params?: {}): Promise<implicitReturnType>;
     sapiGetAccountSnapshot (params?: {}): Promise<implicitReturnType>;
+    sapiGetAccountInfo (params?: {}): Promise<implicitReturnType>;
     sapiGetMarginAsset (params?: {}): Promise<implicitReturnType>;
     sapiGetMarginPair (params?: {}): Promise<implicitReturnType>;
     sapiGetMarginAllAssets (params?: {}): Promise<implicitReturnType>;
@@ -672,6 +675,8 @@ interface binance {
     privateGetAccountCommission (params?: {}): Promise<implicitReturnType>;
     privatePostOrderOco (params?: {}): Promise<implicitReturnType>;
     privatePostOrderListOco (params?: {}): Promise<implicitReturnType>;
+    privatePostOrderListOto (params?: {}): Promise<implicitReturnType>;
+    privatePostOrderListOtoco (params?: {}): Promise<implicitReturnType>;
     privatePostSorOrder (params?: {}): Promise<implicitReturnType>;
     privatePostSorOrderTest (params?: {}): Promise<implicitReturnType>;
     privatePostOrder (params?: {}): Promise<implicitReturnType>;

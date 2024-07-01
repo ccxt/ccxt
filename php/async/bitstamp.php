@@ -223,7 +223,7 @@ class bitstamp extends Exchange {
                         'uni_withdrawal/' => 1,
                         'uni_address/' => 1,
                         'yfi_withdrawal/' => 1,
-                        'yfi_address' => 1,
+                        'yfi_address/' => 1,
                         'audio_withdrawal/' => 1,
                         'audio_address/' => 1,
                         'crv_withdrawal/' => 1,
@@ -232,7 +232,7 @@ class bitstamp extends Exchange {
                         'algo_address/' => 1,
                         'comp_withdrawal/' => 1,
                         'comp_address/' => 1,
-                        'grt_withdrawal' => 1,
+                        'grt_withdrawal/' => 1,
                         'grt_address/' => 1,
                         'usdt_withdrawal/' => 1,
                         'usdt_address/' => 1,
@@ -370,6 +370,22 @@ class bitstamp extends Exchange {
                         'vchf_address/' => 1,
                         'veur_withdrawal/' => 1,
                         'veur_address/' => 1,
+                        'truf_withdrawal/' => 1,
+                        'truf_address/' => 1,
+                        'wif_withdrawal/' => 1,
+                        'wif_address/' => 1,
+                        'smt_withdrawal/' => 1,
+                        'smt_address/' => 1,
+                        'sui_withdrawal/' => 1,
+                        'sui_address/' => 1,
+                        'jup_withdrawal/' => 1,
+                        'jup_address/' => 1,
+                        'ondo_withdrawal/' => 1,
+                        'ondo_address/' => 1,
+                        'boba_withdrawal/' => 1,
+                        'boba_address/' => 1,
+                        'pyth_withdrawal/' => 1,
+                        'pyth_address/' => 1,
                     ),
                 ),
             ),
@@ -1405,7 +1421,7 @@ class bitstamp extends Exchange {
              * @param {string} $type 'market' or 'limit'
              * @param {string} $side 'buy' or 'sell'
              * @param {float} $amount how much of currency you want to trade in units of base currency
-             * @param {float} [$price] the $price at which the $order is to be fullfilled, in units of the quote currency, ignored in $market orders
+             * @param {float} [$price] the $price at which the $order is to be fulfilled, in units of the quote currency, ignored in $market orders
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} an ~@link https://docs.ccxt.com/#/?id=$order-structure $order structure~
              */
@@ -1462,7 +1478,17 @@ class bitstamp extends Exchange {
             $request = array(
                 'id' => $id,
             );
-            return Async\await($this->privatePostCancelOrder ($this->extend($request, $params)));
+            $response = Async\await($this->privatePostCancelOrder ($this->extend($request, $params)));
+            //
+            //    {
+            //        "id" => 1453282316578816,
+            //        "amount" => "0.02035278",
+            //        "price" => "2100.45",
+            //        "type" => 0,
+            //        "market" => "BTC/USD"
+            //    }
+            //
+            return $this->parse_order($response);
         }) ();
     }
 
@@ -1487,7 +1513,23 @@ class bitstamp extends Exchange {
             } else {
                 $response = Async\await($this->privatePostCancelAllOrders ($this->extend($request, $params)));
             }
-            return $response;
+            //
+            //    {
+            //        "canceled" => array(
+            //            {
+            //                "id" => 1453282316578816,
+            //                "amount" => "0.02035278",
+            //                "price" => "2100.45",
+            //                "type" => 0,
+            //                "currency_pair" => "BTC/USD",
+            //                "market" => "BTC/USD"
+            //            }
+            //        ),
+            //        "success" => true
+            //    }
+            //
+            $canceled = $this->safe_list($response, 'canceled');
+            return $this->parse_orders($canceled);
         }) ();
     }
 
@@ -1814,7 +1856,7 @@ class bitstamp extends Exchange {
         );
     }
 
-    public function parse_transaction_status($status) {
+    public function parse_transaction_status(?string $status) {
         //
         //   withdrawals:
         //   0 (open), 1 (in process), 2 (finished), 3 (canceled) or 4 (failed).
@@ -1868,6 +1910,16 @@ class bitstamp extends Exchange {
         //           "type" => "0",
         //           "id" => "2814205012"
         //       }
+        //
+        // cancelOrder
+        //
+        //    {
+        //        "id" => 1453282316578816,
+        //        "amount" => "0.02035278",
+        //        "price" => "2100.45",
+        //        "type" => 0,
+        //        "market" => "BTC/USD"
+        //    }
         //
         $id = $this->safe_string($order, 'id');
         $clientOrderId = $this->safe_string($order, 'client_order_id');
@@ -2278,7 +2330,7 @@ class bitstamp extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors($httpCode, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
         if ($response === null) {
             return null;
         }

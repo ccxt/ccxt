@@ -188,7 +188,7 @@ class btcalpha extends Exchange {
         }) ();
     }
 
-    public function parse_market($market): array {
+    public function parse_market(array $market): array {
         $id = $this->safe_string($market, 'name');
         $baseId = $this->safe_string($market, 'currency1');
         $quoteId = $this->safe_string($market, 'currency2');
@@ -576,7 +576,7 @@ class btcalpha extends Exchange {
         );
     }
 
-    public function parse_transaction_status($status) {
+    public function parse_transaction_status(?string $status) {
         $statuses = array(
             '10' => 'pending',  // New
             '20' => 'pending',  // Verified, waiting for approving
@@ -725,7 +725,7 @@ class btcalpha extends Exchange {
         $filled = $this->safe_string($order, 'amount_filled');
         $amount = $this->safe_string($order, 'amount_original');
         $status = $this->parse_order_status($this->safe_string($order, 'status'));
-        $id = $this->safe_string_2($order, 'oid', 'id');
+        $id = $this->safe_string_n($order, array( 'oid', 'id', 'order' ));
         $trades = $this->safe_value($order, 'trades');
         $side = $this->safe_string_2($order, 'my_side', 'type');
         return $this->safe_order(array(
@@ -763,7 +763,7 @@ class btcalpha extends Exchange {
              * @param {string} $type 'limit'
              * @param {string} $side 'buy' or 'sell'
              * @param {float} $amount how much of currency you want to trade in units of base currency
-             * @param {float} [$price] the $price at which the $order is to be fullfilled, in units of the quote currency, ignored in $market orders
+             * @param {float} [$price] the $price at which the $order is to be fulfilled, in units of the quote currency, ignored in $market orders
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} an ~@link https://docs.ccxt.com/#/?id=$order-structure $order structure~
              */
@@ -804,7 +804,12 @@ class btcalpha extends Exchange {
                 'order' => $id,
             );
             $response = Async\await($this->privatePostOrderCancel ($this->extend($request, $params)));
-            return $response;
+            //
+            //    {
+            //        "order" => 63568
+            //    }
+            //
+            return $this->parse_order($response);
         }) ();
     }
 
@@ -946,7 +951,7 @@ class btcalpha extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
         if ($response === null) {
             return null; // fallback to default $error handler
         }

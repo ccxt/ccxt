@@ -5,7 +5,7 @@ import Exchange from './abstract/poloniexfutures.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { BadRequest, ArgumentsRequired, InvalidOrder, AuthenticationError, NotSupported, RateLimitExceeded, ExchangeNotAvailable, InvalidNonce, AccountSuspended, OrderNotFound } from './base/errors.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { Balances, Dict, FundingHistory, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade } from './base/types.js';
+import type { Balances, Dict, FundingHistory, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, int } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -282,7 +282,7 @@ export default class poloniexfutures extends Exchange {
         return this.parseMarkets (data);
     }
 
-    parseMarket (market): Market {
+    parseMarket (market: Dict): Market {
         const id = this.safeString (market, 'symbol');
         const baseId = this.safeString (market, 'baseCurrency');
         const quoteId = this.safeString (market, 'quoteCurrency');
@@ -839,7 +839,7 @@ export default class poloniexfutures extends Exchange {
          * @param {string} type 'limit' or 'market'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount the amount of currency to trade
-         * @param {float} [price] *ignored in "market" orders* the price at which the order is to be fullfilled at in units of the quote currency
+         * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params]  extra parameters specific to the exchange API endpoint
          * @param {float} [params.leverage] Leverage size of the order
          * @param {float} [params.stopPrice] The price at which a trigger order is triggered at
@@ -1246,7 +1246,7 @@ export default class poloniexfutures extends Exchange {
         const cancelledOrderIdsLength = cancelledOrderIds.length;
         for (let i = 0; i < cancelledOrderIdsLength; i++) {
             const cancelledOrderId = this.safeString (cancelledOrderIds, i);
-            result.push ({
+            result.push (this.safeOrder ({
                 'id': cancelledOrderId,
                 'clientOrderId': undefined,
                 'timestamp': undefined,
@@ -1268,7 +1268,7 @@ export default class poloniexfutures extends Exchange {
                 'postOnly': undefined,
                 'stopPrice': undefined,
                 'info': response,
-            });
+            }));
         }
         return result;
     }
@@ -1813,7 +1813,7 @@ export default class poloniexfutures extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+    handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response, requestHeaders, requestBody) {
         if (!response) {
             this.throwBroadlyMatchedException (this.exceptions['broad'], body, body);
             return undefined;

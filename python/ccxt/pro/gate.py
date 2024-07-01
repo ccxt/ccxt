@@ -6,13 +6,16 @@
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCacheByTimestamp
 import hashlib
-from ccxt.base.types import Balances, Int, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, Trade
+from ccxt.base.types import Balances, Int, Liquidation, Market, MarketType, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade
 from ccxt.async_support.base.ws.client import Client
 from typing import List
+from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
+from ccxt.base.errors import NotSupported
 from ccxt.base.errors import InvalidNonce
+from ccxt.base.precise import Precise
 
 
 class gate(ccxt.async_support.gate):
@@ -21,6 +24,27 @@ class gate(ccxt.async_support.gate):
         return self.deep_extend(super(gate, self).describe(), {
             'has': {
                 'ws': True,
+                'cancelAllOrdersWs': True,
+                'cancelOrderWs': True,
+                'createMarketBuyOrderWithCostWs': True,
+                'createMarketOrderWs': True,
+                'createMarketOrderWithCostWs': False,
+                'createMarketSellOrderWithCostWs': False,
+                'createOrderWs': True,
+                'createOrdersWs': True,
+                'createPostOnlyOrderWs': True,
+                'createReduceOnlyOrderWs': True,
+                'createStopLimitOrderWs': True,
+                'createStopLossOrderWs': True,
+                'createStopMarketOrderWs': False,
+                'createStopOrderWs': True,
+                'createTakeProfitOrderWs': True,
+                'createTriggerOrderWs': True,
+                'editOrderWs': True,
+                'fetchOrderWs': True,
+                'fetchOrdersWs': False,
+                'fetchOpenOrdersWs': True,
+                'fetchClosedOrdersWs': True,
                 'watchOrderBook': True,
                 'watchTicker': True,
                 'watchTickers': True,
@@ -30,6 +54,10 @@ class gate(ccxt.async_support.gate):
                 'watchOHLCV': True,
                 'watchBalance': True,
                 'watchOrders': True,
+                'watchLiquidations': False,
+                'watchLiquidationsForSymbols': False,
+                'watchMyLiquidations': True,
+                'watchMyLiquidationsForSymbols': True,
                 'watchPositions': True,
             },
             'urls': {
@@ -90,14 +118,227 @@ class gate(ccxt.async_support.gate):
             'exceptions': {
                 'ws': {
                     'exact': {
+                        '1': BadRequest,
                         '2': BadRequest,
                         '4': AuthenticationError,
                         '6': AuthenticationError,
                         '11': AuthenticationError,
                     },
+                    'broad': {},
                 },
             },
         })
+
+    async def create_order_ws(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
+        """
+        :see: https://www.gate.io/docs/developers/apiv4/ws/en/#order-place
+        :see: https://www.gate.io/docs/developers/futures/ws/en/#order-place
+        Create an order on the exchange
+        :param str symbol: Unified CCXT market symbol
+        :param str type: 'limit' or 'market' *"market" is contract only*
+        :param str side: 'buy' or 'sell'
+        :param float amount: the amount of currency to trade
+        :param float [price]: *ignored in "market" orders* the price at which the order is to be fulfilled at in units of the quote currency
+        :param dict [params]:  extra parameters specific to the exchange API endpoint
+        :param float [params.stopPrice]: The price at which a trigger order is triggered at
+        :param str [params.timeInForce]: "GTC", "IOC", or "PO"
+        :param float [params.stopLossPrice]: The price at which a stop loss order is triggered at
+        :param float [params.takeProfitPrice]: The price at which a take profit order is triggered at
+        :param str [params.marginMode]: 'cross' or 'isolated' - marginMode for margin trading if not provided self.options['defaultMarginMode'] is used
+        :param int [params.iceberg]: Amount to display for the iceberg order, Null or 0 for normal orders, Set to -1 to hide the order completely
+        :param str [params.text]: User defined information
+        :param str [params.account]: *spot and margin only* "spot", "margin" or "cross_margin"
+        :param bool [params.auto_borrow]: *margin only* Used in margin or cross margin trading to allow automatic loan of insufficient amount if balance is not enough
+        :param str [params.settle]: *contract only* Unified Currency Code for settle currency
+        :param bool [params.reduceOnly]: *contract only* Indicates if self order is to reduce the size of a position
+        :param bool [params.close]: *contract only* Set to close the position, with size set to 0
+        :param bool [params.auto_size]: *contract only* Set side to close dual-mode position, close_long closes the long side, while close_short the short one, size also needs to be set to 0
+        :param int [params.price_type]: *contract only* 0 latest deal price, 1 mark price, 2 index price
+        :param float [params.cost]: *spot market buy only* the quote quantity that can be used alternative for the amount
+        :returns dict|None: `An order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        """
+        await self.load_markets()
+        market = self.market(symbol)
+        symbol = market['symbol']
+        messageType = self.get_type_by_market(market)
+        channel = messageType + '.order_place'
+        url = self.get_url_by_market(market)
+        params['textIsRequired'] = True
+        request = self.create_order_request(symbol, type, side, amount, price, params)
+        await self.authenticate(url, messageType)
+        rawOrder = await self.request_private(url, request, channel)
+        order = self.parse_order(rawOrder, market)
+        return order
+
+    async def create_orders_ws(self, orders: List[OrderRequest], params={}):
+        """
+        create a list of trade orders
+        :see: https://www.gate.io/docs/developers/futures/ws/en/#order-batch-place
+        :param Array orders: list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
+        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        """
+        await self.load_markets()
+        request = self.createOrdersRequest(orders, params)
+        firstOrder = orders[0]
+        market = self.market(firstOrder['symbol'])
+        if market['swap'] is not True:
+            raise NotSupported(self.id + ' createOrdersWs is not supported for swap markets')
+        messageType = self.get_type_by_market(market)
+        channel = messageType + '.order_batch_place'
+        url = self.get_url_by_market(market)
+        await self.authenticate(url, messageType)
+        rawOrders = await self.request_private(url, request, channel)
+        return self.parse_orders(rawOrders, market)
+
+    async def cancel_all_orders_ws(self, symbol: Str = None, params={}):
+        """
+        cancel all open orders
+        :see: https://www.gate.io/docs/developers/futures/ws/en/#cancel-all-open-orders-matched
+        :see: https://www.gate.io/docs/developers/apiv4/ws/en/#order-cancel-all-with-specified-currency-pair
+        :param str symbol: unified market symbol, only orders in the market of self symbol are cancelled when symbol is not None
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.channel]: the channel to use, defaults to spot.order_cancel_cp or futures.order_cancel_cp
+        :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        """
+        await self.load_markets()
+        market = None if (symbol is None) else self.market(symbol)
+        stop = self.safe_bool_2(params, 'stop', 'trigger')
+        messageType = self.get_type_by_market(market)
+        channel = messageType + '.order_cancel_cp'
+        channel, params = self.handle_option_and_params(params, 'cancelAllOrdersWs', 'channel', channel)
+        url = self.get_url_by_market(market)
+        params = self.omit(params, ['stop', 'trigger'])
+        type, query = self.handle_market_type_and_params('cancelAllOrders', market, params)
+        request, requestParams = self.multiOrderSpotPrepareRequest(market, stop, query) if (type == 'spot') else self.prepareRequest(market, type, query)
+        await self.authenticate(url, messageType)
+        rawOrders = await self.request_private(url, self.extend(request, requestParams), channel)
+        return self.parse_orders(rawOrders, market)
+
+    async def cancel_order_ws(self, id: str, symbol: Str = None, params={}):
+        """
+        Cancels an open order
+        :see: https://www.gate.io/docs/developers/apiv4/ws/en/#order-cancel
+        :see: https://www.gate.io/docs/developers/futures/ws/en/#order-cancel
+        :param str id: Order id
+        :param str symbol: Unified market symbol
+        :param dict [params]: Parameters specified by the exchange api
+        :param bool [params.stop]: True if the order to be cancelled is a trigger order
+        :returns: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        """
+        await self.load_markets()
+        market = None if (symbol is None) else self.market(symbol)
+        stop = self.safe_value_n(params, ['is_stop_order', 'stop', 'trigger'], False)
+        params = self.omit(params, ['is_stop_order', 'stop', 'trigger'])
+        type, query = self.handle_market_type_and_params('cancelOrder', market, params)
+        request, requestParams = self.spotOrderPrepareRequest(market, stop, query) if (type == 'spot' or type == 'margin') else self.prepareRequest(market, type, query)
+        messageType = self.get_type_by_market(market)
+        channel = messageType + '.order_cancel'
+        url = self.get_url_by_market(market)
+        await self.authenticate(url, messageType)
+        request['order_id'] = str(id)
+        res = await self.request_private(url, self.extend(request, requestParams), channel)
+        return self.parse_order(res, market)
+
+    async def edit_order_ws(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: Num = None, price: Num = None, params={}):
+        """
+        edit a trade order, gate currently only supports the modification of the price or amount fields
+        :see: https://www.gate.io/docs/developers/apiv4/ws/en/#order-amend
+        :see: https://www.gate.io/docs/developers/futures/ws/en/#order-amend
+        :param str id: order id
+        :param str symbol: unified symbol of the market to create an order in
+        :param str type: 'market' or 'limit'
+        :param str side: 'buy' or 'sell'
+        :param float amount: how much of the currency you want to trade in units of the base currency
+        :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        """
+        await self.load_markets()
+        market = self.market(symbol)
+        extendedRequest = self.edit_order_request(id, symbol, type, side, amount, price, params)
+        messageType = self.get_type_by_market(market)
+        channel = messageType + '.order_amend'
+        url = self.get_url_by_market(market)
+        await self.authenticate(url, messageType)
+        rawOrder = await self.request_private(url, extendedRequest, channel)
+        return self.parse_order(rawOrder, market)
+
+    async def fetch_order_ws(self, id: str, symbol: Str = None, params={}):
+        """
+        Retrieves information on an order
+        :see: https://www.gate.io/docs/developers/apiv4/ws/en/#order-status
+        :see: https://www.gate.io/docs/developers/futures/ws/en/#order-status
+        :param str id: Order id
+        :param str symbol: Unified market symbol, *required for spot and margin*
+        :param dict [params]: Parameters specified by the exchange api
+        :param bool [params.stop]: True if the order being fetched is a trigger order
+        :param str [params.marginMode]: 'cross' or 'isolated' - marginMode for margin trading if not provided self.options['defaultMarginMode'] is used
+        :param str [params.type]: 'spot', 'swap', or 'future', if not provided self.options['defaultMarginMode'] is used
+        :param str [params.settle]: 'btc' or 'usdt' - settle currency for perpetual swap and future - market settle currency is used if symbol is not None, default="usdt" for swap and "btc" for future
+        :returns: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        """
+        await self.load_markets()
+        market = None if (symbol is None) else self.market(symbol)
+        request, requestParams = self.fetchOrderRequest(id, symbol, params)
+        messageType = self.get_type_by_market(market)
+        channel = messageType + '.order_status'
+        url = self.get_url_by_market(market)
+        await self.authenticate(url, messageType)
+        rawOrder = await self.request_private(url, self.extend(request, requestParams), channel)
+        return self.parse_order(rawOrder, market)
+
+    async def fetch_open_orders_ws(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+        """
+        fetch all unfilled currently open orders
+        :see: https://www.gate.io/docs/developers/futures/ws/en/#order-list
+        :param str symbol: unified market symbol
+        :param int [since]: the earliest time in ms to fetch open orders for
+        :param int [limit]: the maximum number of  open orders structures to retrieve
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        """
+        return await self.fetch_orders_by_status_ws('open', symbol, since, limit, params)
+
+    async def fetch_closed_orders_ws(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+        """
+        fetches information on multiple closed orders made by the user
+        :see: https://www.gate.io/docs/developers/futures/ws/en/#order-list
+        :param str symbol: unified market symbol of the market orders were made in
+        :param int [since]: the earliest time in ms to fetch orders for
+        :param int [limit]: the maximum number of order structures to retrieve
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        """
+        return await self.fetch_orders_by_status_ws('finished', symbol, since, limit, params)
+
+    async def fetch_orders_by_status_ws(self, status: str, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+        """
+        :see: https://www.gate.io/docs/developers/futures/ws/en/#order-list
+        fetches information on multiple orders made by the user by status
+        :param str symbol: unified market symbol of the market orders were made in
+        :param int|None [since]: the earliest time in ms to fetch orders for
+        :param int|None [limit]: the maximum number of order structures to retrieve
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param int [params.orderId]: order id to begin at
+        :param int [params.limit]: the maximum number of order structures to retrieve
+        :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        """
+        await self.load_markets()
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
+            symbol = market['symbol']
+            if market['swap'] is not True:
+                raise NotSupported(self.id + ' fetchOrdersByStatusWs is only supported by swap markets. Use rest API for other markets')
+        request, requestParams = self.fetchOrdersByStatusRequest(status, symbol, since, limit, params)
+        newRequest = self.omit(request, ['settle'])
+        messageType = self.get_type_by_market(market)
+        channel = messageType + '.order_list'
+        url = self.get_url_by_market(market)
+        await self.authenticate(url, messageType)
+        rawOrders = await self.request_private(url, self.extend(newRequest, requestParams), channel)
+        orders = self.parse_orders(rawOrders, market)
+        return self.filter_by_symbol_since_limit(orders, symbol, since, limit)
 
     async def watch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
@@ -963,38 +1204,222 @@ class gate(ccxt.async_support.gate):
             client.resolve(self.orders, messageHash)
         client.resolve(self.orders, 'orders')
 
+    async def watch_my_liquidations(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Liquidation]:
+        """
+        watch the public liquidations of a trading pair
+        :see: https://www.gate.io/docs/developers/futures/ws/en/#liquidates-api
+        :see: https://www.gate.io/docs/developers/delivery/ws/en/#liquidates-api
+        :see: https://www.gate.io/docs/developers/options/ws/en/#liquidates-channel
+        :param str symbol: unified CCXT market symbol
+        :param int [since]: the earliest time in ms to fetch liquidations for
+        :param int [limit]: the maximum number of liquidation structures to retrieve
+        :param dict [params]: exchange specific parameters for the bitmex api endpoint
+        :returns dict: an array of `liquidation structures <https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure>`
+        """
+        return self.watch_my_liquidations_for_symbols([symbol], since, limit, params)
+
+    async def watch_my_liquidations_for_symbols(self, symbols: List[str] = None, since: Int = None, limit: Int = None, params={}) -> List[Liquidation]:
+        """
+        watch the private liquidations of a trading pair
+        :see: https://www.gate.io/docs/developers/futures/ws/en/#liquidates-api
+        :see: https://www.gate.io/docs/developers/delivery/ws/en/#liquidates-api
+        :see: https://www.gate.io/docs/developers/options/ws/en/#liquidates-channel
+        :param str symbol: unified CCXT market symbol
+        :param int [since]: the earliest time in ms to fetch liquidations for
+        :param int [limit]: the maximum number of liquidation structures to retrieve
+        :param dict [params]: exchange specific parameters for the gate api endpoint
+        :returns dict: an array of `liquidation structures <https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure>`
+        """
+        await self.load_markets()
+        symbols = self.market_symbols(symbols, None, True, True)
+        market = self.get_market_from_symbols(symbols)
+        type = None
+        query = None
+        type, query = self.handle_market_type_and_params('watchMyLiquidationsForSymbols', market, params)
+        typeId = self.get_supported_mapping(type, {
+            'future': 'futures',
+            'swap': 'futures',
+            'option': 'options',
+        })
+        subType = None
+        subType, query = self.handle_sub_type_and_params('watchMyLiquidationsForSymbols', market, query)
+        isInverse = (subType == 'inverse')
+        url = self.get_url_by_market_type(type, isInverse)
+        payload = []
+        messageHash = ''
+        if self.is_empty(symbols):
+            if typeId != 'futures' and not isInverse:
+                raise BadRequest(self.id + ' watchMyLiquidationsForSymbols() does not support listening to all symbols, you must call watchMyLiquidations() instead for each symbol you wish to watch.')
+            messageHash = 'myLiquidations'
+            payload.append('not all')
+        else:
+            symbolsLength = len(symbols)
+            if symbolsLength != 1:
+                raise BadRequest(self.id + ' watchMyLiquidationsForSymbols() only allows one symbol at a time. To listen to several symbols call watchMyLiquidationsForSymbols() several times.')
+            messageHash = 'myLiquidations::' + symbols[0]
+            payload.append(market['id'])
+        channel = typeId + '.liquidates'
+        newLiquidations = await self.subscribe_private(url, messageHash, payload, channel, query, True)
+        if self.newUpdates:
+            return newLiquidations
+        return self.filter_by_symbols_since_limit(self.liquidations, symbols, since, limit, True)
+
+    def handle_liquidation(self, client: Client, message):
+        #
+        # future / delivery
+        #     {
+        #         "channel":"futures.liquidates",
+        #         "event":"update",
+        #         "time":1541505434,
+        #         "time_ms":1541505434123,
+        #         "result":[
+        #            {
+        #               "entry_price":209,
+        #               "fill_price":215.1,
+        #               "left":0,
+        #               "leverage":0.0,
+        #               "liq_price":213,
+        #               "margin":0.007816722941,
+        #               "mark_price":213,
+        #               "order_id":4093362,
+        #               "order_price":215.1,
+        #               "size":-124,
+        #               "time":1541486601,
+        #               "time_ms":1541486601123,
+        #               "contract":"BTC_USD",
+        #               "user":"1040xxxx"
+        #            }
+        #         ]
+        #     }
+        # option
+        #    {
+        #        "channel":"options.liquidates",
+        #        "event":"update",
+        #        "time":1630654851,
+        #        "result":[
+        #           {
+        #              "user":"1xxxx",
+        #              "init_margin":1190,
+        #              "maint_margin":1042.5,
+        #              "order_margin":0,
+        #              "time":1639051907,
+        #              "time_ms":1639051907000
+        #           }
+        #        ]
+        #    }
+        #
+        rawLiquidations = self.safe_list(message, 'result', [])
+        newLiquidations = []
+        for i in range(0, len(rawLiquidations)):
+            rawLiquidation = rawLiquidations[i]
+            liquidation = self.parse_ws_liquidation(rawLiquidation)
+            symbol = self.safe_string(liquidation, 'symbol')
+            liquidations = self.safe_value(self.liquidations, symbol)
+            if liquidations is None:
+                limit = self.safe_integer(self.options, 'liquidationsLimit', 1000)
+                liquidations = ArrayCache(limit)
+            liquidations.append(liquidation)
+            self.liquidations[symbol] = liquidations
+            client.resolve(liquidations, 'myLiquidations::' + symbol)
+        client.resolve(newLiquidations, 'myLiquidations')
+
+    def parse_ws_liquidation(self, liquidation, market=None):
+        #
+        # future / delivery
+        #    {
+        #        "entry_price": 209,
+        #        "fill_price": 215.1,
+        #        "left": 0,
+        #        "leverage": 0.0,
+        #        "liq_price": 213,
+        #        "margin": 0.007816722941,
+        #        "mark_price": 213,
+        #        "order_id": 4093362,
+        #        "order_price": 215.1,
+        #        "size": -124,
+        #        "time": 1541486601,
+        #        "time_ms": 1541486601123,
+        #        "contract": "BTC_USD",
+        #        "user": "1040xxxx"
+        #    }
+        # option
+        #    {
+        #        "user": "1xxxx",
+        #        "init_margin": 1190,
+        #        "maint_margin": 1042.5,
+        #        "order_margin": 0,
+        #        "time": 1639051907,
+        #        "time_ms": 1639051907000
+        #    }
+        #
+        marketId = self.safe_string(liquidation, 'contract')
+        market = self.safe_market(marketId, market)
+        timestamp = self.safe_integer(liquidation, 'time_ms')
+        originalSize = self.safe_string(liquidation, 'size')
+        left = self.safe_string(liquidation, 'left')
+        amount = Precise.string_abs(Precise.string_sub(originalSize, left))
+        return self.safe_liquidation({
+            'info': liquidation,
+            'symbol': self.safe_symbol(marketId, market),
+            'contracts': self.parse_number(amount),
+            'contractSize': self.safe_number(market, 'contractSize'),
+            'price': self.safe_number(liquidation, 'fill_price'),
+            'baseValue': None,
+            'quoteValue': None,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+        })
+
     def handle_error_message(self, client: Client, message):
-        # {
-        #     "time": 1647274664,
-        #     "channel": "futures.orders",
-        #     "event": "subscribe",
-        #     "error": {code: 2, message: "unknown contract BTC_USDT_20220318"},
-        # }
-        # {
-        #     "time": 1647276473,
-        #     "channel": "futures.orders",
-        #     "event": "subscribe",
-        #     "error": {
-        #       "code": 4,
-        #       "message": "{"label":"INVALID_KEY","message":"Invalid key provided"}\n"
-        #     },
-        #     "result": null
-        #   }
-        error = self.safe_value(message, 'error')
-        code = self.safe_integer(error, 'code')
-        id = self.safe_string(message, 'id')
-        if id is None:
-            return False
-        if code is not None:
+        #
+        #    {
+        #        "time": 1647274664,
+        #        "channel": "futures.orders",
+        #        "event": "subscribe",
+        #        "error": {code: 2, message: "unknown contract BTC_USDT_20220318"},
+        #    }
+        #    {
+        #      "time": 1647276473,
+        #      "channel": "futures.orders",
+        #      "event": "subscribe",
+        #      "error": {
+        #        "code": 4,
+        #        "message": "{"label":"INVALID_KEY","message":"Invalid key provided"}\n"
+        #      },
+        #      "result": null
+        #    }
+        #    {
+        #       header: {
+        #         response_time: '1718551891329',
+        #         status: '400',
+        #         channel: 'spot.order_place',
+        #         event: 'api',
+        #         client_id: '81.34.68.6-0xc16375e2c0',
+        #         conn_id: '9539116e0e09678f'
+        #       },
+        #       data: {errs: {label: 'AUTHENTICATION_FAILED', message: 'Not login'}},
+        #       request_id: '10406147'
+        #     }
+        #
+        data = self.safe_dict(message, 'data')
+        errs = self.safe_dict(data, 'errs')
+        error = self.safe_dict(message, 'error', errs)
+        code = self.safe_string_2(error, 'code', 'label')
+        id = self.safe_string_2(message, 'id', 'requestId')
+        if error is not None:
             messageHash = self.safe_string(client.subscriptions, id)
-            if messageHash is not None:
-                try:
-                    self.throw_exactly_matched_exception(self.exceptions['ws']['exact'], code, self.json(message))
-                except Exception as e:
-                    client.reject(e, messageHash)
-                    if messageHash in client.subscriptions:
-                        del client.subscriptions[messageHash]
-            del client.subscriptions[id]
+            try:
+                self.throw_exactly_matched_exception(self.exceptions['ws']['exact'], code, self.json(message))
+                self.throw_exactly_matched_exception(self.exceptions['exact'], code, self.json(errs))
+                errorMessage = self.safe_string(error, 'message', self.safe_string(errs, 'message'))
+                self.throw_broadly_matched_exception(self.exceptions['ws']['broad'], errorMessage, self.json(message))
+                raise ExchangeError(self.json(message))
+            except Exception as e:
+                client.reject(e, messageHash)
+                if (messageHash is not None) and (messageHash in client.subscriptions):
+                    del client.subscriptions[messageHash]
+            if id is not None:
+                del client.subscriptions[id]
             return True
         return False
 
@@ -1126,10 +1551,22 @@ class gate(ccxt.async_support.gate):
             'trades': self.handle_trades,
             'order_book_update': self.handle_order_book,
             'balances': self.handle_balance,
+            'liquidates': self.handle_liquidation,
         }
         method = self.safe_value(v4Methods, channelType)
         if method is not None:
             method(client, message)
+        requestId = self.safe_string(message, 'request_id')
+        if requestId == 'authenticated':
+            self.handle_authentication_message(client, message)
+            return
+        if requestId is not None:
+            data = self.safe_dict(message, 'data')
+            # use safeValue may be Array or an Object
+            result = self.safe_value(data, 'result')
+            ack = self.safe_bool(message, 'ack')
+            if ack is not True:
+                client.resolve(result, requestId)
 
     def get_url_by_market(self, market):
         baseUrl = self.urls['api'][market['type']]
@@ -1138,7 +1575,7 @@ class gate(ccxt.async_support.gate):
         else:
             return baseUrl
 
-    def get_type_by_market(self, market):
+    def get_type_by_market(self, market: Market):
         if market['spot']:
             return 'spot'
         elif market['option']:
@@ -1146,7 +1583,7 @@ class gate(ccxt.async_support.gate):
         else:
             return 'futures'
 
-    def get_url_by_market_type(self, type, isInverse=False):
+    def get_url_by_market_type(self, type: MarketType, isInverse=False):
         api = self.urls['api']
         url = api[type]
         if (type == 'swap') or (type == 'future'):
@@ -1205,6 +1642,49 @@ class gate(ccxt.async_support.gate):
         message = self.extend(request, params)
         return await self.watch_multiple(url, messageHashes, message, messageHashes)
 
+    async def authenticate(self, url, messageType):
+        channel = messageType + '.login'
+        client = self.client(url)
+        messageHash = 'authenticated'
+        future = client.future(messageHash)
+        authenticated = self.safe_value(client.subscriptions, messageHash)
+        if authenticated is None:
+            return await self.request_private(url, {}, channel, messageHash)
+        return future
+
+    def handle_authentication_message(self, client: Client, message):
+        messageHash = 'authenticated'
+        future = self.safe_value(client.futures, messageHash)
+        future.resolve(True)
+
+    async def request_private(self, url, reqParams, channel, requestId: Str = None):
+        self.check_required_credentials()
+        # uid is required for some subscriptions only so it's not a part of required credentials
+        event = 'api'
+        if requestId is None:
+            reqId = self.request_id()
+            requestId = str(reqId)
+        messageHash = requestId
+        time = self.seconds()
+        # unfortunately, PHP demands double quotes for the escaped newline symbol
+        signatureString = "\n".join([event, channel, self.json(reqParams), str(time)])  # eslint-disable-line quotes
+        signature = self.hmac(self.encode(signatureString), self.encode(self.secret), hashlib.sha512, 'hex')
+        payload: dict = {
+            'req_id': requestId,
+            'timestamp': str(time),
+            'api_key': self.apiKey,
+            'signature': signature,
+            'req_param': reqParams,
+        }
+        request: dict = {
+            'id': requestId,
+            'time': time,
+            'channel': channel,
+            'event': event,
+            'payload': payload,
+        }
+        return await self.watch(url, messageHash, request, messageHash)
+
     async def subscribe_private(self, url, messageHash, payload, channel, params, requiresUid=False):
         self.check_required_credentials()
         # uid is required for some subscriptions only so it's not a part of required credentials
@@ -1230,7 +1710,7 @@ class gate(ccxt.async_support.gate):
             'id': requestId,
             'time': time,
             'channel': channel,
-            'event': 'subscribe',
+            'event': event,
             'auth': auth,
         }
         if payload is not None:

@@ -33,6 +33,10 @@ interface zonda {
     v1_01PrivateGetBalancesBITBAYBalance(params?: {}): Promise<implicitReturnType>;
     v1_01PrivateGetFiatCantorRateBaseIdQuoteId(params?: {}): Promise<implicitReturnType>;
     v1_01PrivateGetFiatCantorHistory(params?: {}): Promise<implicitReturnType>;
+    v1_01PrivateGetClientPaymentsV2CustomerCryptoCurrencyChannelsDeposit(params?: {}): Promise<implicitReturnType>;
+    v1_01PrivateGetClientPaymentsV2CustomerCryptoCurrencyChannelsWithdrawal(params?: {}): Promise<implicitReturnType>;
+    v1_01PrivateGetClientPaymentsV2CustomerCryptoDepositFee(params?: {}): Promise<implicitReturnType>;
+    v1_01PrivateGetClientPaymentsV2CustomerCryptoWithdrawalFee(params?: {}): Promise<implicitReturnType>;
     v1_01PrivatePostTradingOfferSymbol(params?: {}): Promise<implicitReturnType>;
     v1_01PrivatePostTradingStopOfferSymbol(params?: {}): Promise<implicitReturnType>;
     v1_01PrivatePostTradingConfigSymbol(params?: {}): Promise<implicitReturnType>;
@@ -41,6 +45,8 @@ interface zonda {
     v1_01PrivatePostFiatCantorExchange(params?: {}): Promise<implicitReturnType>;
     v1_01PrivatePostApiPaymentsWithdrawalsCrypto(params?: {}): Promise<implicitReturnType>;
     v1_01PrivatePostApiPaymentsWithdrawalsFiat(params?: {}): Promise<implicitReturnType>;
+    v1_01PrivatePostClientPaymentsV2CustomerCryptoDeposit(params?: {}): Promise<implicitReturnType>;
+    v1_01PrivatePostClientPaymentsV2CustomerCryptoWithdrawal(params?: {}): Promise<implicitReturnType>;
     v1_01PrivateDeleteTradingOfferSymbolIdSidePrice(params?: {}): Promise<implicitReturnType>;
     v1_01PrivateDeleteTradingStopOfferSymbolIdSidePrice(params?: {}): Promise<implicitReturnType>;
     v1_01PrivatePutBalancesBITBAYBalanceId(params?: {}): Promise<implicitReturnType>;

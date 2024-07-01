@@ -5,7 +5,7 @@ import Exchange from './abstract/bitbank.js';
 import { ExchangeError, AuthenticationError, InvalidNonce, InsufficientFunds, InvalidOrder, OrderNotFound, PermissionDenied } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { Balances, Currency, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade, TradingFees, Transaction } from './base/types.js';
+import type { Balances, Currency, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade, TradingFees, Transaction, int } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -665,7 +665,7 @@ export default class bitbank extends Exchange {
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
@@ -703,8 +703,31 @@ export default class bitbank extends Exchange {
             'pair': market['id'],
         };
         const response = await this.privatePostUserSpotCancelOrder (this.extend (request, params));
+        //
+        //    {
+        //        "success": 1,
+        //        "data": {
+        //            "order_id": 0,
+        //            "pair": "string",
+        //            "side": "string",
+        //            "type": "string",
+        //            "start_amount": "string",
+        //            "remaining_amount": "string",
+        //            "executed_amount": "string",
+        //            "price": "string",
+        //            "post_only": false,
+        //            "average_price": "string",
+        //            "ordered_at": 0,
+        //            "expire_at": 0,
+        //            "canceled_at": 0,
+        //            "triggered_at": 0,
+        //            "trigger_price": "string",
+        //            "status": "string"
+        //        }
+        //    }
+        //
         const data = this.safeValue (response, 'data');
-        return data;
+        return this.parseOrder (data);
     }
 
     async fetchOrder (id: string, symbol: Str = undefined, params = {}) {
@@ -724,6 +747,28 @@ export default class bitbank extends Exchange {
             'pair': market['id'],
         };
         const response = await this.privateGetUserSpotOrder (this.extend (request, params));
+        //
+        //    {
+        //        "success": 1,
+        //        "data": {
+        //          "order_id": 0,
+        //          "pair": "string",
+        //          "side": "string",
+        //          "type": "string",
+        //          "start_amount": "string",
+        //          "remaining_amount": "string",
+        //          "executed_amount": "string",
+        //          "price": "string",
+        //          "post_only": false,
+        //          "average_price": "string",
+        //          "ordered_at": 0,
+        //          "expire_at": 0,
+        //          "triggered_at": 0,
+        //          "triger_price": "string",
+        //          "status": "string"
+        //        }
+        //    }
+        //
         const data = this.safeDict (response, 'data');
         return this.parseOrder (data, market);
     }
@@ -944,7 +989,7 @@ export default class bitbank extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    handleErrors (httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+    handleErrors (httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response, requestHeaders, requestBody) {
         if (response === undefined) {
             return undefined;
         }

@@ -378,7 +378,7 @@ class onetrading extends Exchange {
         return $this->parse_markets($response);
     }
 
-    public function parse_market($market): array {
+    public function parse_market(array $market): array {
         $baseAsset = $this->safe_value($market, 'base', array());
         $quoteAsset = $this->safe_value($market, 'quote', array());
         $baseId = $this->safe_string($baseAsset, 'code');
@@ -1495,7 +1495,7 @@ class onetrading extends Exchange {
          * @param {string} $type 'market' or 'limit'
          * @param {string} $side 'buy' or 'sell'
          * @param {float} $amount how much of currency you want to trade in units of base currency
-         * @param {float} [$price] the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
+         * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {float} [$params->triggerPrice] onetrading only does stop limit orders and does not do stop $market
          * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
@@ -1966,7 +1966,7 @@ class onetrading extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
         if ($response === null) {
             return null;
         }

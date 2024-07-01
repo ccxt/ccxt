@@ -186,7 +186,7 @@ class btcalpha(Exchange, ImplicitAPI):
         #
         return self.parse_markets(response)
 
-    def parse_market(self, market) -> Market:
+    def parse_market(self, market: dict) -> Market:
         id = self.safe_string(market, 'name')
         baseId = self.safe_string(market, 'currency1')
         quoteId = self.safe_string(market, 'currency2')
@@ -544,7 +544,7 @@ class btcalpha(Exchange, ImplicitAPI):
             'updated': None,
         }
 
-    def parse_transaction_status(self, status):
+    def parse_transaction_status(self, status: Str):
         statuses: dict = {
             '10': 'pending',  # New
             '20': 'pending',  # Verified, waiting for approving
@@ -679,7 +679,7 @@ class btcalpha(Exchange, ImplicitAPI):
         filled = self.safe_string(order, 'amount_filled')
         amount = self.safe_string(order, 'amount_original')
         status = self.parse_order_status(self.safe_string(order, 'status'))
-        id = self.safe_string_2(order, 'oid', 'id')
+        id = self.safe_string_n(order, ['oid', 'id', 'order'])
         trades = self.safe_value(order, 'trades')
         side = self.safe_string_2(order, 'my_side', 'type')
         return self.safe_order({
@@ -715,7 +715,7 @@ class btcalpha(Exchange, ImplicitAPI):
         :param str type: 'limit'
         :param str side: 'buy' or 'sell'
         :param float amount: how much of currency you want to trade in units of base currency
-        :param float [price]: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
@@ -751,7 +751,12 @@ class btcalpha(Exchange, ImplicitAPI):
             'order': id,
         }
         response = self.privatePostOrderCancel(self.extend(request, params))
-        return response
+        #
+        #    {
+        #        "order": 63568
+        #    }
+        #
+        return self.parse_order(response)
 
     def fetch_order(self, id: str, symbol: Str = None, params={}):
         """
@@ -866,7 +871,7 @@ class btcalpha(Exchange, ImplicitAPI):
             headers['X-NONCE'] = str(self.nonce())
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response, requestHeaders, requestBody):
         if response is None:
             return None  # fallback to default error handler
         #

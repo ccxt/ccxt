@@ -276,7 +276,7 @@ class poloniexfutures extends Exchange {
         return $this->parse_markets($data);
     }
 
-    public function parse_market($market): array {
+    public function parse_market(array $market): array {
         $id = $this->safe_string($market, 'symbol');
         $baseId = $this->safe_string($market, 'baseCurrency');
         $quoteId = $this->safe_string($market, 'quoteCurrency');
@@ -815,7 +815,7 @@ class poloniexfutures extends Exchange {
          * @param {string} $type 'limit' or 'market'
          * @param {string} $side 'buy' or 'sell'
          * @param {float} $amount the $amount of currency to trade
-         * @param {float} [$price] *ignored in "market" orders* the $price at which the order is to be fullfilled at in units of the quote currency
+         * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders
          * @param {array} [$params]  extra parameters specific to the exchange API endpoint
          * @param {float} [$params->leverage] Leverage size of the order
          * @param {float} [$params->stopPrice] The $price at which a trigger order is triggered at
@@ -1213,7 +1213,7 @@ class poloniexfutures extends Exchange {
         $cancelledOrderIdsLength = count($cancelledOrderIds);
         for ($i = 0; $i < $cancelledOrderIdsLength; $i++) {
             $cancelledOrderId = $this->safe_string($cancelledOrderIds, $i);
-            $result[] = array(
+            $result[] = $this->safe_order(array(
                 'id' => $cancelledOrderId,
                 'clientOrderId' => null,
                 'timestamp' => null,
@@ -1235,7 +1235,7 @@ class poloniexfutures extends Exchange {
                 'postOnly' => null,
                 'stopPrice' => null,
                 'info' => $response,
-            );
+            ));
         }
         return $result;
     }
@@ -1766,7 +1766,7 @@ class poloniexfutures extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
         if (!$response) {
             $this->throw_broadly_matched_exception($this->exceptions['broad'], $body, $body);
             return null;

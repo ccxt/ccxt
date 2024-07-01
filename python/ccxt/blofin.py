@@ -368,7 +368,7 @@ class blofin(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data', [])
         return self.parse_markets(data)
 
-    def parse_market(self, market) -> Market:
+    def parse_market(self, market: dict) -> Market:
         id = self.safe_string(market, 'instId')
         type = self.safe_string_lower(market, 'instType')
         spot = (type == 'spot')
@@ -1118,7 +1118,7 @@ class blofin(Exchange, ImplicitAPI):
         :param str type: 'market' or 'limit' or 'post_only' or 'ioc' or 'fok'
         :param str side: 'buy' or 'sell'
         :param float amount: how much of currency you want to trade in units of base currency
-        :param float [price]: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param bool [params.reduceOnly]: a mark to reduce the position size for margin, swap and future orders
         :param bool [params.postOnly]: True to place a post only order
@@ -1499,7 +1499,7 @@ class blofin(Exchange, ImplicitAPI):
             },
         }
 
-    def parse_transaction_status(self, status):
+    def parse_transaction_status(self, status: Str):
         statuses: dict = {
             '0': 'pending',
             '1': 'ok',
@@ -2000,7 +2000,7 @@ class blofin(Exchange, ImplicitAPI):
             'marginMode': self.safe_string(marginMode, 'marginMode'),
         }
 
-    def handle_errors(self, httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody):
+    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response, requestHeaders, requestBody):
         if response is None:
             return None  # fallback to default error handler
         #

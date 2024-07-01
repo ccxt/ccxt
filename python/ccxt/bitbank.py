@@ -635,7 +635,7 @@ class bitbank(Exchange, ImplicitAPI):
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
         :param float amount: how much of currency you want to trade in units of base currency
-        :param float [price]: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
@@ -669,8 +669,31 @@ class bitbank(Exchange, ImplicitAPI):
             'pair': market['id'],
         }
         response = self.privatePostUserSpotCancelOrder(self.extend(request, params))
+        #
+        #    {
+        #        "success": 1,
+        #        "data": {
+        #            "order_id": 0,
+        #            "pair": "string",
+        #            "side": "string",
+        #            "type": "string",
+        #            "start_amount": "string",
+        #            "remaining_amount": "string",
+        #            "executed_amount": "string",
+        #            "price": "string",
+        #            "post_only": False,
+        #            "average_price": "string",
+        #            "ordered_at": 0,
+        #            "expire_at": 0,
+        #            "canceled_at": 0,
+        #            "triggered_at": 0,
+        #            "trigger_price": "string",
+        #            "status": "string"
+        #        }
+        #    }
+        #
         data = self.safe_value(response, 'data')
-        return data
+        return self.parse_order(data)
 
     def fetch_order(self, id: str, symbol: Str = None, params={}):
         """
@@ -687,6 +710,28 @@ class bitbank(Exchange, ImplicitAPI):
             'pair': market['id'],
         }
         response = self.privateGetUserSpotOrder(self.extend(request, params))
+        #
+        #    {
+        #        "success": 1,
+        #        "data": {
+        #          "order_id": 0,
+        #          "pair": "string",
+        #          "side": "string",
+        #          "type": "string",
+        #          "start_amount": "string",
+        #          "remaining_amount": "string",
+        #          "executed_amount": "string",
+        #          "price": "string",
+        #          "post_only": False,
+        #          "average_price": "string",
+        #          "ordered_at": 0,
+        #          "expire_at": 0,
+        #          "triggered_at": 0,
+        #          "triger_price": "string",
+        #          "status": "string"
+        #        }
+        #    }
+        #
         data = self.safe_dict(response, 'data')
         return self.parse_order(data, market)
 
@@ -881,7 +926,7 @@ class bitbank(Exchange, ImplicitAPI):
             }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody):
+    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response, requestHeaders, requestBody):
         if response is None:
             return None
         success = self.safe_integer(response, 'success')

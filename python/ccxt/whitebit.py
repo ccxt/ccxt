@@ -349,7 +349,7 @@ class whitebit(Exchange, ImplicitAPI):
         #
         return self.parse_markets(markets)
 
-    def parse_market(self, market) -> Market:
+    def parse_market(self, market: dict) -> Market:
         id = self.safe_string(market, 'name')
         baseId = self.safe_string(market, 'stock')
         quoteId = self.safe_string(market, 'money')
@@ -1200,7 +1200,7 @@ class whitebit(Exchange, ImplicitAPI):
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
         :param float amount: how much of currency you want to trade in units of base currency
-        :param float [price]: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param float [params.cost]: *market orders only* the cost of the order in units of the base currency
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
@@ -1281,7 +1281,7 @@ class whitebit(Exchange, ImplicitAPI):
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
         :param float amount: how much of currency you want to trade in units of base currency
-        :param float price: the price at which the order is to be fullfilled, in units of the base currency, ignored in market orders
+        :param float price: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
@@ -1341,7 +1341,27 @@ class whitebit(Exchange, ImplicitAPI):
             'market': market['id'],
             'orderId': int(id),
         }
-        return self.v4PrivatePostOrderCancel(self.extend(request, params))
+        response = self.v4PrivatePostOrderCancel(self.extend(request, params))
+        #
+        #    {
+        #        "orderId": 4180284841,  # order id
+        #        "clientOrderId": "customId11",  # custom order identifier; "clientOrderId": "" - if not specified.
+        #        "market": "BTC_USDT",  # deal market
+        #        "side": "buy",  # order side
+        #        "type": "stop market",  # order type
+        #        "timestamp": 1595792396.165973,  # current timestamp
+        #        "dealMoney": "0",  # if order finished - amount in money currency that is finished
+        #        "dealStock": "0",  # if order finished - amount in stock currency that is finished
+        #        "amount": "0.001",  # amount
+        #        "takerFee": "0.001",  # maker fee ratio. If the number less than 0.0001 - it will be rounded to zero
+        #        "makerFee": "0.001",  # maker fee ratio. If the number less than 0.0001 - it will be rounded to zero
+        #        "left": "0.001",  # if order not finished - rest of the amount that must be finished
+        #        "dealFee": "0",  # fee in money that you pay if order is finished
+        #        "price": "40000",  # price if price isset
+        #        "activation_price": "40000"  # activation price if activation price is set
+        #    }
+        #
+        return self.parse_order(response)
 
     def cancel_all_orders(self, symbol: Str = None, params={}):
         """
@@ -1378,7 +1398,7 @@ class whitebit(Exchange, ImplicitAPI):
         #
         # []
         #
-        return response
+        return self.parse_orders(response, market)
 
     def cancel_all_orders_after(self, timeout: Int, params={}):
         """
@@ -1588,7 +1608,7 @@ class whitebit(Exchange, ImplicitAPI):
 
     def parse_order(self, order: dict, market: Market = None) -> Order:
         #
-        # createOrder, fetchOpenOrders
+        # createOrder, fetchOpenOrders, cancelOrder
         #
         #      {
         #          "orderId":105687928629,
@@ -1603,6 +1623,7 @@ class whitebit(Exchange, ImplicitAPI):
         #          "takerFee":"0.001",
         #          "makerFee":"0",
         #          "left":"100",
+        #          "price": "40000",  # price if price isset
         #          "dealFee":"0",
         #          "activation_price":"0.065"      # stop price(if stop limit or stop market)
         #      }
@@ -1961,7 +1982,7 @@ class whitebit(Exchange, ImplicitAPI):
             'info': transaction,
         }
 
-    def parse_transaction_status(self, status):
+    def parse_transaction_status(self, status: Str):
         statuses: dict = {
             '1': 'pending',
             '2': 'pending',
@@ -2415,7 +2436,7 @@ class whitebit(Exchange, ImplicitAPI):
             }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response, requestHeaders, requestBody):
         if (code == 418) or (code == 429):
             raise DDoSProtection(self.id + ' ' + str(code) + ' ' + reason + ' ' + body)
         if code == 404:

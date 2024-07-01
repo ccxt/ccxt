@@ -641,6 +641,24 @@ class indodax(Exchange, ImplicitAPI):
         #       "order_xrp": "30.45000000",
         #       "remain_xrp": "0.00000000"
         #     }
+        #
+        # cancelOrder
+        #
+        #    {
+        #        "order_id": 666883,
+        #        "client_order_id": "clientx-sj82ks82j",
+        #        "type": "sell",
+        #        "pair": "btc_idr",
+        #        "balance": {
+        #            "idr": "33605800",
+        #            "btc": "0.00000000",
+        #            ...
+        #            "frozen_idr": "0",
+        #            "frozen_btc": "0.00000000",
+        #            ...
+        #        }
+        #    }
+        #
         side = None
         if 'type' in order:
             side = order['type']
@@ -650,6 +668,8 @@ class indodax(Exchange, ImplicitAPI):
         price = self.safe_string(order, 'price')
         amount = None
         remaining = None
+        marketId = self.safe_string(order, 'pair')
+        market = self.safe_market(marketId, market)
         if market is not None:
             symbol = market['symbol']
             quoteId = market['quoteId']
@@ -668,7 +688,7 @@ class indodax(Exchange, ImplicitAPI):
         return self.safe_order({
             'info': order,
             'id': id,
-            'clientOrderId': None,
+            'clientOrderId': self.safe_string(order, 'client_order_id'),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': None,
@@ -777,7 +797,7 @@ class indodax(Exchange, ImplicitAPI):
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
         :param float amount: how much of currency you want to trade in units of base currency
-        :param float [price]: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
@@ -825,7 +845,28 @@ class indodax(Exchange, ImplicitAPI):
             'pair': market['id'],
             'type': side,
         }
-        return await self.privatePostCancelOrder(self.extend(request, params))
+        response = await self.privatePostCancelOrder(self.extend(request, params))
+        #
+        #    {
+        #        "success": 1,
+        #        "return": {
+        #            "order_id": 666883,
+        #            "client_order_id": "clientx-sj82ks82j",
+        #            "type": "sell",
+        #            "pair": "btc_idr",
+        #            "balance": {
+        #                "idr": "33605800",
+        #                "btc": "0.00000000",
+        #                ...
+        #                "frozen_idr": "0",
+        #                "frozen_btc": "0.00000000",
+        #                ...
+        #            }
+        #        }
+        #    }
+        #
+        data = self.safe_dict(response, 'return')
+        return self.parse_order(data)
 
     async def fetch_transaction_fee(self, code: str, params={}):
         """
@@ -1078,7 +1119,7 @@ class indodax(Exchange, ImplicitAPI):
             'info': transaction,
         }
 
-    def parse_transaction_status(self, status):
+    def parse_transaction_status(self, status: Str):
         statuses: dict = {
             'success': 'ok',
         }
@@ -1183,7 +1224,7 @@ class indodax(Exchange, ImplicitAPI):
             }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response, requestHeaders, requestBody):
         if response is None:
             return None
         # {success: 0, error: "invalid order."}

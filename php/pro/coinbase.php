@@ -255,6 +255,34 @@ class coinbase extends \ccxt\async\coinbase {
         //        )
         //    }
         //
+        // note! seems coinbase might also send empty data like:
+        //
+        //    {
+        //        "channel" => "ticker_batch",
+        //        "client_id" => "",
+        //        "timestamp" => "2024-05-24T18:22:24.546809523Z",
+        //        "sequence_num" => 1,
+        //        "events" => array(
+        //            {
+        //                "type" => "snapshot",
+        //                "tickers" => array(
+        //                    {
+        //                        "type" => "ticker",
+        //                        "product_id" => "",
+        //                        "price" => "",
+        //                        "volume_24_h" => "",
+        //                        "low_24_h" => "",
+        //                        "high_24_h" => "",
+        //                        "low_52_w" => "",
+        //                        "high_52_w" => "",
+        //                        "price_percent_chg_24_h" => ""
+        //                    }
+        //                )
+        //            }
+        //        )
+        //    }
+        //
+        //
         $channel = $this->safe_string($message, 'channel');
         $events = $this->safe_value($message, 'events', array());
         $datetime = $this->safe_string($message, 'timestamp');
@@ -271,6 +299,9 @@ class coinbase extends \ccxt\async\coinbase {
                 $symbol = $result['symbol'];
                 $this->tickers[$symbol] = $result;
                 $wsMarketId = $this->safe_string($ticker, 'product_id');
+                if ($wsMarketId === null) {
+                    continue;
+                }
                 $messageHash = $channel . '::' . $wsMarketId;
                 $newTickers[] = $result;
                 $client->resolve ($result, $messageHash);
@@ -699,6 +730,26 @@ class coinbase extends \ccxt\async\coinbase {
         return $message;
     }
 
+    public function handle_heartbeats($client, $message) {
+        // although the subscription takes a product_ids parameter (i.e. symbol),
+        // there is no (clear) way of mapping the $message back to the symbol.
+        //
+        //     {
+        //         "channel" => "heartbeats",
+        //         "client_id" => "",
+        //         "timestamp" => "2023-06-23T20:31:26.122969572Z",
+        //         "sequence_num" => 0,
+        //         "events" => array(
+        //           {
+        //               "current_time" => "2023-06-23 20:31:56.121961769 +0000 UTC m=+91717.525857105",
+        //               "heartbeat_counter" => "3049"
+        //           }
+        //         )
+        //     }
+        //
+        return $message;
+    }
+
     public function handle_message($client, $message) {
         $channel = $this->safe_string($message, 'channel');
         $methods = array(
@@ -708,6 +759,7 @@ class coinbase extends \ccxt\async\coinbase {
             'market_trades' => array($this, 'handle_trade'),
             'user' => array($this, 'handle_order'),
             'l2_data' => array($this, 'handle_order_book'),
+            'heartbeats' => array($this, 'handle_heartbeats'),
         );
         $type = $this->safe_string($message, 'type');
         if ($type === 'error') {
@@ -715,6 +767,8 @@ class coinbase extends \ccxt\async\coinbase {
             throw new ExchangeError($errorMessage);
         }
         $method = $this->safe_value($methods, $channel);
-        $method($client, $message);
+        if ($method) {
+            $method($client, $message);
+        }
     }
 }

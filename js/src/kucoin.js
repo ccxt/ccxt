@@ -124,6 +124,7 @@ export default class kucoin extends Exchange {
                     'futuresPublic': 'https://api-futures.kucoin.com',
                     'webExchange': 'https://kucoin.com/_api',
                     'broker': 'https://api-broker.kucoin.com',
+                    'earn': 'https://api.kucoin.com',
                 },
                 'www': 'https://www.kucoin.com',
                 'doc': [
@@ -391,6 +392,9 @@ export default class kucoin extends Exchange {
                         'broker/nd/account': 2,
                         'broker/nd/account/apikey': 2,
                         'broker/nd/rebase/download': 3,
+                        'broker/nd/transfer/detail': 1,
+                        'broker/nd/deposit/detail': 1,
+                        'broker/nd/withdraw/detail': 1,
                     },
                     'post': {
                         'broker/nd/transfer': 1,
@@ -400,6 +404,25 @@ export default class kucoin extends Exchange {
                     },
                     'delete': {
                         'broker/nd/account/apikey': 3,
+                    },
+                },
+                'earn': {
+                    'get': {
+                        'otc-loan/loan': 1,
+                        'otc-loan/accounts': 1,
+                        'earn/redeem-preview': 7.5,
+                        'earn/saving/products': 7.5,
+                        'earn/hold-assets': 7.5,
+                        'earn/promotion/products': 7.5,
+                        'earn/kcs-staking/products': 7.5,
+                        'earn/staking/products': 7.5,
+                        'earn/eth-staking/products': 7.5, // 5EW
+                    },
+                    'post': {
+                        'earn/orders': 7.5, // 5EW
+                    },
+                    'delete': {
+                        'earn/orders': 7.5, // 5EW
                     },
                 },
             },
@@ -1970,7 +1993,7 @@ export default class kucoin extends Exchange {
          * @param {string} type 'limit' or 'market'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount the amount of currency to trade
-         * @param {float} [price] *ignored in "market" orders* the price at which the order is to be fullfilled at in units of the quote currency
+         * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params]  extra parameters specific to the exchange API endpoint
          * @param {float} [params.triggerPrice] The price at which a trigger order is triggered at
          * @param {string} [params.marginMode] 'cross', // cross (cross mode) and isolated (isolated mode), set to cross by default, the isolated mode will be released soon, stay tuned
@@ -2262,7 +2285,7 @@ export default class kucoin extends Exchange {
          * @param {string} type not used
          * @param {string} side not used
          * @param {float} amount how much of the currency you want to trade in units of the base currency
-         * @param {float} [price] the price at which the order is to be fullfilled, in units of the base currency, ignored in market orders
+         * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {string} [params.clientOrderId] client order id, defaults to id if not passed
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -2333,27 +2356,84 @@ export default class kucoin extends Exchange {
             request['clientOid'] = clientOrderId;
             if (stop) {
                 response = await this.privateDeleteStopOrderCancelOrderByClientOid(this.extend(request, params));
+                //
+                //    {
+                //        code: '200000',
+                //        data: {
+                //          cancelledOrderId: 'vs8lgpiuao41iaft003khbbk',
+                //          clientOid: '123456'
+                //        }
+                //    }
+                //
             }
             else if (hf) {
                 response = await this.privateDeleteHfOrdersClientOrderClientOid(this.extend(request, params));
+                //
+                //    {
+                //        "code": "200000",
+                //        "data": {
+                //          "clientOid": "6d539dc614db3"
+                //        }
+                //    }
+                //
             }
             else {
                 response = await this.privateDeleteOrderClientOrderClientOid(this.extend(request, params));
+                //
+                //    {
+                //        code: '200000',
+                //        data: {
+                //          cancelledOrderId: '665e580f6660500007aba341',
+                //          clientOid: '1234567',
+                //          cancelledOcoOrderIds: null
+                //        }
+                //    }
+                //
             }
+            response = this.safeDict(response, 'data');
+            return this.parseOrder(response);
         }
         else {
             request['orderId'] = id;
             if (stop) {
                 response = await this.privateDeleteStopOrderOrderId(this.extend(request, params));
+                //
+                //    {
+                //        code: '200000',
+                //        data: { cancelledOrderIds: [ 'vs8lgpiuaco91qk8003vebu9' ] }
+                //    }
+                //
             }
             else if (hf) {
                 response = await this.privateDeleteHfOrdersOrderId(this.extend(request, params));
+                //
+                //    {
+                //        "code": "200000",
+                //        "data": {
+                //          "orderId": "630625dbd9180300014c8d52"
+                //        }
+                //    }
+                //
+                response = this.safeDict(response, 'data');
+                return this.parseOrder(response);
             }
             else {
                 response = await this.privateDeleteOrdersOrderId(this.extend(request, params));
+                //
+                //    {
+                //        code: '200000',
+                //        data: { cancelledOrderIds: [ '665e4fbe28051a0007245c41' ] }
+                //    }
+                //
             }
+            const data = this.safeDict(response, 'data');
+            const orderIds = this.safeList(data, 'cancelledOrderIds', []);
+            const orderId = this.safeString(orderIds, 0);
+            return this.safeOrder({
+                'info': data,
+                'id': orderId,
+            });
         }
-        return response;
     }
     async cancelAllOrders(symbol = undefined, params = {}) {
         /**
@@ -2432,9 +2512,9 @@ export default class kucoin extends Exchange {
         await this.loadMarkets();
         let lowercaseStatus = status.toLowerCase();
         const until = this.safeInteger(params, 'until');
-        const stop = this.safeBool(params, 'stop', false);
+        const stop = this.safeBool2(params, 'stop', 'trigger', false);
         const hf = this.safeBool(params, 'hf', false);
-        params = this.omit(params, ['stop', 'hf', 'until']);
+        params = this.omit(params, ['stop', 'hf', 'until', 'trigger']);
         const [marginMode, query] = this.handleMarginModeAndParams('fetchOrdersByStatus', params);
         if (lowercaseStatus === 'open') {
             lowercaseStatus = 'active';
@@ -2611,7 +2691,7 @@ export default class kucoin extends Exchange {
         await this.loadMarkets();
         const request = {};
         const clientOrderId = this.safeString2(params, 'clientOid', 'clientOrderId');
-        const stop = this.safeBool(params, 'stop', false);
+        const stop = this.safeBool2(params, 'stop', 'trigger', false);
         const hf = this.safeBool(params, 'hf', false);
         let market = undefined;
         if (symbol !== undefined) {
@@ -2623,7 +2703,7 @@ export default class kucoin extends Exchange {
             }
             request['symbol'] = market['id'];
         }
-        params = this.omit(params, ['stop', 'hf', 'clientOid', 'clientOrderId']);
+        params = this.omit(params, ['stop', 'hf', 'clientOid', 'clientOrderId', 'trigger']);
         let response = undefined;
         if (clientOrderId !== undefined) {
             request['clientOid'] = clientOrderId;
@@ -2821,7 +2901,7 @@ export default class kucoin extends Exchange {
         const stopPrice = this.safeNumber(order, 'stopPrice');
         return this.safeOrder({
             'info': order,
-            'id': this.safeStringN(order, ['id', 'orderId', 'newOrderId']),
+            'id': this.safeStringN(order, ['id', 'orderId', 'newOrderId', 'cancelledOrderId']),
             'clientOrderId': this.safeString(order, 'clientOid'),
             'symbol': this.safeSymbol(marketId, market, '-'),
             'type': this.safeString(order, 'type'),
@@ -4741,6 +4821,9 @@ export default class kucoin extends Exchange {
         if (api === 'webExchange') {
             endpoint = '/' + this.implodeParams(path, params);
         }
+        if (api === 'earn') {
+            endpoint = '/api/v1/' + this.implodeParams(path, params);
+        }
         const query = this.omit(params, this.extractParams(path));
         let endpart = '';
         headers = (headers !== undefined) ? headers : {};
@@ -4759,7 +4842,8 @@ export default class kucoin extends Exchange {
         const isFuturePrivate = (api === 'futuresPrivate');
         const isPrivate = (api === 'private');
         const isBroker = (api === 'broker');
-        if (isPrivate || isFuturePrivate || isBroker) {
+        const isEarn = (api === 'earn');
+        if (isPrivate || isFuturePrivate || isBroker || isEarn) {
             this.checkRequiredCredentials();
             const timestamp = this.nonce().toString();
             headers = this.extend({

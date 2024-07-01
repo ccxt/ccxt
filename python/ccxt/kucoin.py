@@ -140,6 +140,7 @@ class kucoin(Exchange, ImplicitAPI):
                     'futuresPublic': 'https://api-futures.kucoin.com',
                     'webExchange': 'https://kucoin.com/_api',
                     'broker': 'https://api-broker.kucoin.com',
+                    'earn': 'https://api.kucoin.com',
                 },
                 'www': 'https://www.kucoin.com',
                 'doc': [
@@ -407,6 +408,9 @@ class kucoin(Exchange, ImplicitAPI):
                         'broker/nd/account': 2,
                         'broker/nd/account/apikey': 2,
                         'broker/nd/rebase/download': 3,
+                        'broker/nd/transfer/detail': 1,
+                        'broker/nd/deposit/detail': 1,
+                        'broker/nd/withdraw/detail': 1,
                     },
                     'post': {
                         'broker/nd/transfer': 1,
@@ -416,6 +420,25 @@ class kucoin(Exchange, ImplicitAPI):
                     },
                     'delete': {
                         'broker/nd/account/apikey': 3,
+                    },
+                },
+                'earn': {
+                    'get': {
+                        'otc-loan/loan': 1,
+                        'otc-loan/accounts': 1,
+                        'earn/redeem-preview': 7.5,  # 5EW
+                        'earn/saving/products': 7.5,  # 5EW
+                        'earn/hold-assets': 7.5,  # 5EW
+                        'earn/promotion/products': 7.5,  # 5EW
+                        'earn/kcs-staking/products': 7.5,  # 5EW
+                        'earn/staking/products': 7.5,  # 5EW
+                        'earn/eth-staking/products': 7.5,  # 5EW
+                    },
+                    'post': {
+                        'earn/orders': 7.5,  # 5EW
+                    },
+                    'delete': {
+                        'earn/orders': 7.5,  # 5EW
                     },
                 },
             },
@@ -1921,7 +1944,7 @@ class kucoin(Exchange, ImplicitAPI):
         :param str type: 'limit' or 'market'
         :param str side: 'buy' or 'sell'
         :param float amount: the amount of currency to trade
-        :param float [price]: *ignored in "market" orders* the price at which the order is to be fullfilled at in units of the quote currency
+        :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         :param dict [params]:  extra parameters specific to the exchange API endpoint
         :param float [params.triggerPrice]: The price at which a trigger order is triggered at
         :param str [params.marginMode]: 'cross',  # cross(cross mode) and isolated(isolated mode), set to cross by default, the isolated mode will be released soon, stay tuned
@@ -2174,7 +2197,7 @@ class kucoin(Exchange, ImplicitAPI):
         :param str type: not used
         :param str side: not used
         :param float amount: how much of the currency you want to trade in units of the base currency
-        :param float [price]: the price at which the order is to be fullfilled, in units of the base currency, ignored in market orders
+        :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.clientOrderId]: client order id, defaults to id if not passed
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
@@ -2237,19 +2260,76 @@ class kucoin(Exchange, ImplicitAPI):
             request['clientOid'] = clientOrderId
             if stop:
                 response = self.privateDeleteStopOrderCancelOrderByClientOid(self.extend(request, params))
+                #
+                #    {
+                #        code: '200000',
+                #        data: {
+                #          cancelledOrderId: 'vs8lgpiuao41iaft003khbbk',
+                #          clientOid: '123456'
+                #        }
+                #    }
+                #
             elif hf:
                 response = self.privateDeleteHfOrdersClientOrderClientOid(self.extend(request, params))
+                #
+                #    {
+                #        "code": "200000",
+                #        "data": {
+                #          "clientOid": "6d539dc614db3"
+                #        }
+                #    }
+                #
             else:
                 response = self.privateDeleteOrderClientOrderClientOid(self.extend(request, params))
+                #
+                #    {
+                #        code: '200000',
+                #        data: {
+                #          cancelledOrderId: '665e580f6660500007aba341',
+                #          clientOid: '1234567',
+                #          cancelledOcoOrderIds: null
+                #        }
+                #    }
+                #
+            response = self.safe_dict(response, 'data')
+            return self.parse_order(response)
         else:
             request['orderId'] = id
             if stop:
                 response = self.privateDeleteStopOrderOrderId(self.extend(request, params))
+                #
+                #    {
+                #        code: '200000',
+                #        data: {cancelledOrderIds: ['vs8lgpiuaco91qk8003vebu9']}
+                #    }
+                #
             elif hf:
                 response = self.privateDeleteHfOrdersOrderId(self.extend(request, params))
+                #
+                #    {
+                #        "code": "200000",
+                #        "data": {
+                #          "orderId": "630625dbd9180300014c8d52"
+                #        }
+                #    }
+                #
+                response = self.safe_dict(response, 'data')
+                return self.parse_order(response)
             else:
                 response = self.privateDeleteOrdersOrderId(self.extend(request, params))
-        return response
+                #
+                #    {
+                #        code: '200000',
+                #        data: {cancelledOrderIds: ['665e4fbe28051a0007245c41']}
+                #    }
+                #
+            data = self.safe_dict(response, 'data')
+            orderIds = self.safe_list(data, 'cancelledOrderIds', [])
+            orderId = self.safe_string(orderIds, 0)
+            return self.safe_order({
+                'info': data,
+                'id': orderId,
+            })
 
     def cancel_all_orders(self, symbol: Str = None, params={}):
         """
@@ -2316,9 +2396,9 @@ class kucoin(Exchange, ImplicitAPI):
         self.load_markets()
         lowercaseStatus = status.lower()
         until = self.safe_integer(params, 'until')
-        stop = self.safe_bool(params, 'stop', False)
+        stop = self.safe_bool_2(params, 'stop', 'trigger', False)
         hf = self.safe_bool(params, 'hf', False)
-        params = self.omit(params, ['stop', 'hf', 'until'])
+        params = self.omit(params, ['stop', 'hf', 'until', 'trigger'])
         marginMode, query = self.handle_margin_mode_and_params('fetchOrdersByStatus', params)
         if lowercaseStatus == 'open':
             lowercaseStatus = 'active'
@@ -2475,7 +2555,7 @@ class kucoin(Exchange, ImplicitAPI):
         self.load_markets()
         request: dict = {}
         clientOrderId = self.safe_string_2(params, 'clientOid', 'clientOrderId')
-        stop = self.safe_bool(params, 'stop', False)
+        stop = self.safe_bool_2(params, 'stop', 'trigger', False)
         hf = self.safe_bool(params, 'hf', False)
         market = None
         if symbol is not None:
@@ -2484,7 +2564,7 @@ class kucoin(Exchange, ImplicitAPI):
             if symbol is None:
                 raise ArgumentsRequired(self.id + ' fetchOrder() requires a symbol parameter for hf orders')
             request['symbol'] = market['id']
-        params = self.omit(params, ['stop', 'hf', 'clientOid', 'clientOrderId'])
+        params = self.omit(params, ['stop', 'hf', 'clientOid', 'clientOrderId', 'trigger'])
         response = None
         if clientOrderId is not None:
             request['clientOid'] = clientOrderId
@@ -2663,7 +2743,7 @@ class kucoin(Exchange, ImplicitAPI):
         stopPrice = self.safe_number(order, 'stopPrice')
         return self.safe_order({
             'info': order,
-            'id': self.safe_string_n(order, ['id', 'orderId', 'newOrderId']),
+            'id': self.safe_string_n(order, ['id', 'orderId', 'newOrderId', 'cancelledOrderId']),
             'clientOrderId': self.safe_string(order, 'clientOid'),
             'symbol': self.safe_symbol(marketId, market, '-'),
             'type': self.safe_string(order, 'type'),
@@ -3100,7 +3180,7 @@ class kucoin(Exchange, ImplicitAPI):
             code = currency['code']
             self.currencies[code]['networks'][networkCode]['precision'] = precision
 
-    def parse_transaction_status(self, status):
+    def parse_transaction_status(self, status: Str):
         statuses: dict = {
             'SUCCESS': 'ok',
             'PROCESSING': 'pending',
@@ -4449,6 +4529,8 @@ class kucoin(Exchange, ImplicitAPI):
         endpoint = '/api/' + version + '/' + self.implode_params(path, params)
         if api == 'webExchange':
             endpoint = '/' + self.implode_params(path, params)
+        if api == 'earn':
+            endpoint = '/api/v1/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
         endpart = ''
         headers = headers if (headers is not None) else {}
@@ -4464,7 +4546,8 @@ class kucoin(Exchange, ImplicitAPI):
         isFuturePrivate = (api == 'futuresPrivate')
         isPrivate = (api == 'private')
         isBroker = (api == 'broker')
-        if isPrivate or isFuturePrivate or isBroker:
+        isEarn = (api == 'earn')
+        if isPrivate or isFuturePrivate or isBroker or isEarn:
             self.check_required_credentials()
             timestamp = str(self.nonce())
             headers = self.extend({
@@ -4497,7 +4580,7 @@ class kucoin(Exchange, ImplicitAPI):
                     headers['KC-BROKER-NAME'] = brokerName
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response, requestHeaders, requestBody):
         if not response:
             self.throw_broadly_matched_exception(self.exceptions['broad'], body, body)
             return None

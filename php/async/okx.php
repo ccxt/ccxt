@@ -262,6 +262,9 @@ class okx extends Exchange {
                         'finance/staking-defi/eth/apy-history' => 5 / 3,
                         'finance/savings/lending-rate-summary' => 5 / 3,
                         'finance/savings/lending-rate-history' => 5 / 3,
+                        'finance/fixed-loan/lending-offers' => 10 / 3,
+                        'finance/fixed-loan/lending-apy-history' => 10 / 3,
+                        'finance/fixed-loan/pending-lending-volume' => 10 / 3,
                         // public broker
                         'finance/sfp/dcd/products' => 2 / 3,
                         // copytrading
@@ -349,6 +352,9 @@ class okx extends Exchange {
                         'account/greeks' => 2,
                         'account/position-tiers' => 2,
                         'account/mmp-config' => 4,
+                        'account/fixed-loan/borrowing-limit' => 4,
+                        'account/fixed-loan/borrowing-quote' => 5,
+                        'account/fixed-loan/borrowing-orders-list' => 5,
                         // subaccount
                         'users/subaccount/list' => 10,
                         'account/subaccount/balances' => 10 / 3,
@@ -432,6 +438,7 @@ class okx extends Exchange {
                         'sprd/cancel-order' => 1,
                         'sprd/mass-cancel' => 1,
                         'sprd/amend-order' => 1,
+                        'sprd/cancel-all-after' => 10,
                         // trade
                         'trade/order' => 1 / 3,
                         'trade/batch-orders' => 1 / 15,
@@ -474,6 +481,10 @@ class okx extends Exchange {
                         'account/set-account-level' => 4,
                         'account/mmp-reset' => 4,
                         'account/mmp-config' => 100,
+                        'account/fixed-loan/borrowing-order' => 5,
+                        'account/fixed-loan/amend-borrowing-order' => 5,
+                        'account/fixed-loan/manual-reborrow' => 5,
+                        'account/fixed-loan/repay-borrowing-order' => 5,
                         // subaccount
                         'users/subaccount/modify-apikey' => 10,
                         'asset/subaccount/transfer' => 10,
@@ -1381,7 +1392,7 @@ class okx extends Exchange {
         }) ();
     }
 
-    public function parse_market($market): array {
+    public function parse_market(array $market): array {
         //
         //     {
         //         "alias" => "", // this_week, next_week, quarter, next_quarter
@@ -2464,6 +2475,7 @@ class okx extends Exchange {
              * @see https://www.okx.com/docs-v5/en/#funding-account-rest-api-get-balance
              * @see https://www.okx.com/docs-v5/en/#trading-account-rest-api-get-balance
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {string} [$params->type] wallet type, ['funding' or 'trading'] default is 'trading'
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=balance-structure balance structure~
              */
             Async\await($this->load_markets());
@@ -2897,7 +2909,7 @@ class okx extends Exchange {
              * @param {string} $type 'market' or 'limit'
              * @param {string} $side 'buy' or 'sell'
              * @param {float} $amount how much of currency you want to trade in units of base currency
-             * @param {float} [$price] the $price at which the $order is to be fullfilled, in units of the quote currency, ignored in $market orders
+             * @param {float} [$price] the $price at which the $order is to be fulfilled, in units of the quote currency, ignored in $market orders
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {bool} [$params->reduceOnly] a mark to reduce the position size for margin, swap and future orders
              * @param {bool} [$params->postOnly] true to place a post only $order
@@ -3104,7 +3116,7 @@ class okx extends Exchange {
              * @param {string} $type 'market' or 'limit'
              * @param {string} $side 'buy' or 'sell'
              * @param {float} $amount how much of the currency you want to trade in units of the base currency
-             * @param {float} [$price] the $price at which the $order is to be fullfilled, in units of the quote currency, ignored in $market orders
+             * @param {float} [$price] the $price at which the $order is to be fulfilled, in units of the quote currency, ignored in $market orders
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->clientOrderId] client $order $id, uses $id if not passed
              * @param {float} [$params->stopLossPrice] stop loss trigger $price
@@ -5125,7 +5137,7 @@ class okx extends Exchange {
         }) ();
     }
 
-    public function parse_transaction_status($status) {
+    public function parse_transaction_status(?string $status) {
         //
         // deposit $statuses
         //
@@ -5504,7 +5516,7 @@ class okx extends Exchange {
             for ($i = 0; $i < count($positions); $i++) {
                 $result[] = $this->parse_position($positions[$i]);
             }
-            return $this->filter_by_array_positions($result, 'symbol', $symbols, false);
+            return $this->filter_by_array_positions($result, 'symbol', $this->market_symbols($symbols), false);
         }) ();
     }
 
@@ -8049,7 +8061,7 @@ class okx extends Exchange {
         }) ();
     }
 
-    public function parse_conversion(array $conversion, ?array $fromCurrency = null, ?array $toCurrency = null): Conversion {
+    public function parse_conversion(array $conversion, ?array $fromCurrency = null, ?array $toCurrency = null): array {
         //
         // fetchConvertQuote
         //
@@ -8183,7 +8195,7 @@ class okx extends Exchange {
         }) ();
     }
 
-    public function handle_errors($httpCode, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
         if (!$response) {
             return null; // fallback to default $error handler
         }

@@ -13,6 +13,7 @@ from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import BadSymbol
+from ccxt.base.errors import MarketClosed
 from ccxt.base.errors import BadResponse
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidAddress
@@ -194,7 +195,7 @@ class probit(Exchange, ImplicitAPI):
                     'RATE_LIMIT_EXCEEDED': RateLimitExceeded,  # You are sending requests too frequently. Please try it later.
                     'MARKET_UNAVAILABLE': ExchangeNotAvailable,  # Market is closed today
                     'INVALID_MARKET': BadSymbol,  # Requested market is not exist
-                    'MARKET_CLOSED': BadSymbol,  # {"errorCode":"MARKET_CLOSED"}
+                    'MARKET_CLOSED': MarketClosed,  # {"errorCode":"MARKET_CLOSED"}
                     'MARKET_NOT_FOUND': BadSymbol,  # {"errorCode":"MARKET_NOT_FOUND","message":"8e2b8496-0a1e-5beb-b990-a205b902eabe","details":{}}
                     'INVALID_CURRENCY': BadRequest,  # Requested currency is not exist on ProBit system
                     'TOO_MANY_OPEN_ORDERS': DDoSProtection,  # Too many open orders
@@ -276,7 +277,7 @@ class probit(Exchange, ImplicitAPI):
         markets = self.safe_value(response, 'data', [])
         return self.parse_markets(markets)
 
-    def parse_market(self, market) -> Market:
+    def parse_market(self, market: dict) -> Market:
         id = self.safe_string(market, 'id')
         baseId = self.safe_string(market, 'base_currency_id')
         quoteId = self.safe_string(market, 'quote_currency_id')
@@ -1131,7 +1132,7 @@ class probit(Exchange, ImplicitAPI):
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
         :param float amount: how much you want to trade in units of the base currency
-        :param float [price]: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param float [params.cost]: the quote quantity that can be used alternative for the amount for market buy orders
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
@@ -1511,7 +1512,7 @@ class probit(Exchange, ImplicitAPI):
             'info': transaction,
         }
 
-    def parse_transaction_status(self, status):
+    def parse_transaction_status(self, status: Str):
         statuses: dict = {
             'requested': 'pending',
             'pending': 'pending',
@@ -1720,15 +1721,18 @@ class probit(Exchange, ImplicitAPI):
         self.options['expires'] = self.sum(self.milliseconds(), expiresIn * 1000)
         return response
 
-    def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response, requestHeaders, requestBody):
         if response is None:
             return None  # fallback to default error handler
         if 'errorCode' in response:
             errorCode = self.safe_string(response, 'errorCode')
-            message = self.safe_string(response, 'message')
             if errorCode is not None:
-                feedback = self.id + ' ' + body
-                self.throw_exactly_matched_exception(self.exceptions['exact'], message, feedback)
-                self.throw_broadly_matched_exception(self.exceptions['exact'], errorCode, feedback)
+                errMessage = self.safe_string(response, 'message', '')
+                details = self.safe_value(response, 'details')
+                feedback = self.id + ' ' + errorCode + ' ' + errMessage + ' ' + self.json(details)
+                if 'exact' in self.exceptions:
+                    self.throw_exactly_matched_exception(self.exceptions['exact'], errorCode, feedback)
+                if 'broad' in self.exceptions:
+                    self.throw_broadly_matched_exception(self.exceptions['broad'], errMessage, feedback)
                 raise ExchangeError(feedback)
         return None

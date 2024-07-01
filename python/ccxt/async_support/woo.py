@@ -52,7 +52,7 @@ class woo(Exchange, ImplicitAPI):
                 'createMarketBuyOrderWithCost': True,
                 'createMarketOrder': False,
                 'createMarketOrderWithCost': False,
-                'createMarketSellOrderWithCost': False,
+                'createMarketSellOrderWithCost': True,
                 'createOrder': True,
                 'createOrderWithTakeProfitAndStopLoss': True,
                 'createReduceOnlyOrder': True,
@@ -431,7 +431,7 @@ class woo(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'rows', [])
         return self.parse_markets(data)
 
-    def parse_market(self, market) -> Market:
+    def parse_market(self, market: dict) -> Market:
         marketId = self.safe_string(market, 'symbol')
         parts = marketId.split('_')
         first = self.safe_string(parts, 0)
@@ -832,8 +832,22 @@ class woo(Exchange, ImplicitAPI):
         market = self.market(symbol)
         if not market['spot']:
             raise NotSupported(self.id + ' createMarketBuyOrderWithCost() supports spot orders only')
-        params['createMarketBuyOrderRequiresPrice'] = False
-        return await self.create_order(symbol, 'market', 'buy', cost, None, params)
+        return await self.create_order(symbol, 'market', 'buy', cost, 1, params)
+
+    async def create_market_sell_order_with_cost(self, symbol: str, cost: float, params={}):
+        """
+        create a market sell order by providing the symbol and cost
+        :see: https://docs.woo.org/#send-order
+        :param str symbol: unified symbol of the market to create an order in
+        :param float cost: how much you want to trade in units of the quote currency
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        """
+        await self.load_markets()
+        market = self.market(symbol)
+        if not market['spot']:
+            raise NotSupported(self.id + ' createMarketSellOrderWithCost() supports spot orders only')
+        return await self.create_order(symbol, 'market', 'sell', cost, 1, params)
 
     async def create_trailing_amount_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, trailingAmount=None, trailingTriggerPrice=None, params={}) -> Order:
         """
@@ -888,7 +902,7 @@ class woo(Exchange, ImplicitAPI):
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
         :param float amount: how much of currency you want to trade in units of base currency
-        :param float [price]: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param float [params.triggerPrice]: The price a trigger order is triggered at
         :param dict [params.takeProfit]: *takeProfit object in params* containing the triggerPrice at which the attached take profit order will be triggered(perpetual swap markets only)
@@ -941,28 +955,22 @@ class woo(Exchange, ImplicitAPI):
                 request['order_type'] = 'IOC'
         if reduceOnly:
             request[reduceOnlyKey] = reduceOnly
-        if price is not None:
+        if not isMarket and price is not None:
             request[priceKey] = self.price_to_precision(symbol, price)
         if isMarket and not isStop:
             # for market buy it requires the amount of quote currency to spend
-            if market['spot'] and orderSide == 'BUY':
+            cost = self.safe_string_2(params, 'cost', 'order_amount')
+            params = self.omit(params, ['cost', 'order_amount'])
+            isPriceProvided = price is not None
+            if market['spot'] and (isPriceProvided or (cost is not None)):
                 quoteAmount = None
-                createMarketBuyOrderRequiresPrice = True
-                createMarketBuyOrderRequiresPrice, params = self.handle_option_and_params(params, 'createOrder', 'createMarketBuyOrderRequiresPrice', True)
-                cost = self.safe_number_2(params, 'cost', 'order_amount')
-                params = self.omit(params, ['cost', 'order_amount'])
                 if cost is not None:
                     quoteAmount = self.cost_to_precision(symbol, cost)
-                elif createMarketBuyOrderRequiresPrice:
-                    if price is None:
-                        raise InvalidOrder(self.id + ' createOrder() requires the price argument for market buy orders to calculate the total cost to spend(amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to False and pass the cost to spend(quote quantity) in the amount argument')
-                    else:
-                        amountString = self.number_to_string(amount)
-                        priceString = self.number_to_string(price)
-                        costRequest = Precise.string_mul(amountString, priceString)
-                        quoteAmount = self.cost_to_precision(symbol, costRequest)
                 else:
-                    quoteAmount = self.cost_to_precision(symbol, amount)
+                    amountString = self.number_to_string(amount)
+                    priceString = self.number_to_string(price)
+                    costRequest = Precise.string_mul(amountString, priceString)
+                    quoteAmount = self.cost_to_precision(symbol, costRequest)
                 request['order_amount'] = quoteAmount
             else:
                 request['order_quantity'] = self.amount_to_precision(symbol, amount)
@@ -1066,7 +1074,7 @@ class woo(Exchange, ImplicitAPI):
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
         :param float amount: how much of currency you want to trade in units of base currency
-        :param float [price]: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param float [params.triggerPrice]: The price a trigger order is triggered at
         :param float [params.stopLossPrice]: price to trigger stop-loss orders
@@ -1212,7 +1220,9 @@ class woo(Exchange, ImplicitAPI):
         #         "status":"CANCEL_ALL_SENT"
         #     }
         #
-        return response
+        return [
+            self.safe_order(response),
+        ]
 
     async def cancel_all_orders_after(self, timeout: Int, params={}):
         """
@@ -1237,7 +1247,9 @@ class woo(Exchange, ImplicitAPI):
         #         "timestamp": 1711534302943
         #     }
         #
-        return response
+        return [
+            self.safe_order(response),
+        ]
 
     async def fetch_order(self, id: str, symbol: Str = None, params={}):
         """
@@ -2110,7 +2122,7 @@ class woo(Exchange, ImplicitAPI):
             'network': None,
         }
 
-    def parse_transaction_status(self, status):
+    def parse_transaction_status(self, status: Str):
         statuses: dict = {
             'NEW': 'pending',
             'CONFIRMING': 'pending',
@@ -2357,6 +2369,10 @@ class woo(Exchange, ImplicitAPI):
             url += access + '/' + pathWithParams
             if params:
                 url += '?' + self.urlencode(params)
+        elif access == 'pub':
+            url += pathWithParams
+            if params:
+                url += '?' + self.urlencode(params)
         else:
             self.check_required_credentials()
             if method == 'POST' and (path == 'algo/order' or path == 'order'):
@@ -2400,7 +2416,7 @@ class woo(Exchange, ImplicitAPI):
             headers['x-api-signature'] = self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha256)
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody):
+    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response, requestHeaders, requestBody):
         if not response:
             return None  # fallback to default error handler
         #

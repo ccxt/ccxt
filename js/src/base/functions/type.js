@@ -23,7 +23,7 @@ const prop2 = (o, k1, k2) => (!isObject(o)
         : (o[k2] !== '' && o[k2] !== null
             ? o[k2]
             : undefined)));
-const getValueFromKeysInArray = (object, array) => object[array.find((k) => prop(object, k) !== undefined)];
+const getValueFromKeysInArray = (object, array) => isObject(object) ? object[array.find((k) => prop(object, k) !== undefined)] : undefined;
 /*  .............................................   */
 const asFloat = (x) => ((isNumber(x) || (isString(x) && x.length !== 0)) ? parseFloat(x) : NaN);
 const asInteger = (x) => ((isNumber(x) || (isString(x) && x.length !== 0)) ? Math.trunc(Number(x)) : NaN);
@@ -54,11 +54,23 @@ const safeString = (o, k, $default) => {
 };
 const safeStringLower = (o, k, $default) => {
     const x = prop(o, k);
-    return isStringCoercible(x) ? String(x).toLowerCase() : $default;
+    if (isStringCoercible(x)) {
+        return String(x).toLowerCase();
+    }
+    else if (isStringCoercible($default)) {
+        return String($default).toLowerCase();
+    }
+    return $default;
 };
 const safeStringUpper = (o, k, $default) => {
     const x = prop(o, k);
-    return isStringCoercible(x) ? String(x).toUpperCase() : $default;
+    if (isStringCoercible(x)) {
+        return String(x).toUpperCase();
+    }
+    else if (isStringCoercible($default)) {
+        return String($default).toUpperCase();
+    }
+    return $default;
 };
 /*  .............................................   */
 const safeFloat2 = (o, k1, k2, $default) => {
@@ -87,11 +99,23 @@ const safeString2 = (o, k1, k2, $default) => {
 };
 const safeStringLower2 = (o, k1, k2, $default) => {
     const x = prop2(o, k1, k2);
-    return isStringCoercible(x) ? String(x).toLowerCase() : $default;
+    if (isStringCoercible(x)) {
+        return String(x).toLowerCase();
+    }
+    else if (isStringCoercible($default)) {
+        return String($default).toLowerCase();
+    }
+    return $default;
 };
 const safeStringUpper2 = (o, k1, k2, $default) => {
     const x = prop2(o, k1, k2);
-    return isStringCoercible(x) ? String(x).toUpperCase() : $default;
+    if (isStringCoercible(x)) {
+        return String(x).toUpperCase();
+    }
+    else if (isStringCoercible($default)) {
+        return String($default).toUpperCase();
+    }
+    return $default;
 };
 const safeFloatN = (o, k, $default) => {
     const n = asFloat(getValueFromKeysInArray(o, k));
@@ -127,15 +151,24 @@ const safeStringN = (o, k, $default) => {
     return isStringCoercible(x) ? String(x) : $default;
 };
 const safeStringLowerN = (o, k, $default) => {
-    if (o === undefined) {
-        return $default;
-    }
     const x = getValueFromKeysInArray(o, k);
-    return isStringCoercible(x) ? String(x).toLowerCase() : $default;
+    if (isStringCoercible(x)) {
+        return String(x).toLowerCase();
+    }
+    else if (isStringCoercible($default)) {
+        return String($default).toLowerCase();
+    }
+    return $default;
 };
 const safeStringUpperN = (o, k, $default) => {
     const x = getValueFromKeysInArray(o, k);
-    return isStringCoercible(x) ? String(x).toUpperCase() : $default;
+    if (isStringCoercible(x)) {
+        return String(x).toUpperCase();
+    }
+    else if (isStringCoercible($default)) {
+        return String($default).toUpperCase();
+    }
+    return $default;
 };
 export { isNumber, isInteger, isArray, isObject, isString, isStringCoercible, isDictionary, hasProps, prop, asFloat, asInteger, safeFloat, safeInteger, safeIntegerProduct, safeTimestamp, safeValue, safeString, safeStringLower, safeStringUpper
 // not using safeFloats with an array argument as we're trying to save some cycles here

@@ -580,7 +580,7 @@ class bitmex(Exchange, ImplicitAPI):
         #
         return self.parse_markets(response)
 
-    def parse_market(self, market) -> Market:
+    def parse_market(self, market: dict) -> Market:
         id = self.safe_string(market, 'symbol')
         baseId = self.safe_string(market, 'underlying')
         quoteId = self.safe_string(market, 'quoteCurrency')
@@ -1220,7 +1220,7 @@ class bitmex(Exchange, ImplicitAPI):
         transactions = self.filter_by_array(response, 'transactType', ['Withdrawal', 'Deposit'], False)
         return self.parse_transactions(transactions, currency, since, limit)
 
-    def parse_transaction_status(self, status):
+    def parse_transaction_status(self, status: Str):
         statuses: dict = {
             'Confirmed': 'pending',
             'Canceled': 'canceled',
@@ -1768,7 +1768,7 @@ class bitmex(Exchange, ImplicitAPI):
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
         :param float amount: how much of currency you want to trade in units of base currency
-        :param float [price]: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param dict [params.triggerPrice]: the price at which a trigger order is triggered at
         :param dict [params.triggerDirection]: the direction whenever the trigger happens with relation to price - 'above' or 'below'
@@ -2705,7 +2705,7 @@ class bitmex(Exchange, ImplicitAPI):
             'datetime': None,
         })
 
-    def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response, requestHeaders, requestBody):
         if response is None:
             return None
         if code == 429:

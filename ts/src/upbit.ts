@@ -8,7 +8,7 @@ import { TICK_SIZE } from './base/functions/number.js';
 import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { jwt } from './base/functions/rsa.js';
-import type { Balances, Currency, Dict, Dictionary, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, Transaction } from './base/types.js';
+import type { Balances, Currency, Dict, Dictionary, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, Transaction, int } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -428,7 +428,7 @@ export default class upbit extends Exchange {
         return this.parseMarkets (response);
     }
 
-    parseMarket (market): Market {
+    parseMarket (market: Dict): Market {
         const id = this.safeString (market, 'market');
         const [ quoteId, baseId ] = id.split ('-');
         const base = this.safeCurrencyCode (baseId);
@@ -1047,7 +1047,7 @@ export default class upbit extends Exchange {
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much you want to trade in units of the base currency
-         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {float} [params.cost] for market buy orders, the quote quantity that can be used as an alternative for the amount
          * @param {string} [params.timeInForce] 'IOC' or 'FOK'
@@ -1341,7 +1341,7 @@ export default class upbit extends Exchange {
         return this.parseTransaction (response, currency);
     }
 
-    parseTransactionStatus (status) {
+    parseTransactionStatus (status: Str) {
         const statuses: Dict = {
             'submitting': 'pending', // 처리 중
             'submitted': 'pending', // 처리 완료
@@ -1910,30 +1910,37 @@ export default class upbit extends Exchange {
         }
         if (api === 'private') {
             this.checkRequiredCredentials ();
+            headers = {};
             const nonce = this.uuid ();
             const request: Dict = {
                 'access_key': this.apiKey,
                 'nonce': nonce,
             };
-            if (Object.keys (query).length) {
-                const auth = this.urlencode (query);
+            const hasQuery = Object.keys (query).length;
+            let auth = undefined;
+            if ((method !== 'GET') && (method !== 'DELETE')) {
+                body = this.json (params);
+                headers['Content-Type'] = 'application/json';
+                if (hasQuery) {
+                    auth = this.urlencode (query);
+                }
+            } else {
+                if (hasQuery) {
+                    auth = this.urlencode (this.keysort (query));
+                }
+            }
+            if (auth !== undefined) {
                 const hash = this.hash (this.encode (auth), sha512);
                 request['query_hash'] = hash;
                 request['query_hash_alg'] = 'SHA512';
             }
             const token = jwt (request, this.encode (this.secret), sha256);
-            headers = {
-                'Authorization': 'Bearer ' + token,
-            };
-            if ((method !== 'GET') && (method !== 'DELETE')) {
-                body = this.json (params);
-                headers['Content-Type'] = 'application/json';
-            }
+            headers['Authorization'] = 'Bearer ' + token;
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    handleErrors (httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+    handleErrors (httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response, requestHeaders, requestBody) {
         if (response === undefined) {
             return undefined; // fallback to default error handler
         }

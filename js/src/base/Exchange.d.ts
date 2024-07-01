@@ -3,8 +3,8 @@ import { // eslint-disable-line object-curly-newline
 ExchangeError, AuthenticationError, DDoSProtection, RequestTimeout, ExchangeNotAvailable, RateLimitExceeded } from "./errors.js";
 import WsClient from './ws/WsClient.js';
 import { OrderBook as WsOrderBook, IndexedOrderBook, CountedOrderBook } from './ws/OrderBook.js';
-import type { Market, Trade, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, DepositAddressResponse, Currency, MinMax, IndexType, Int, OrderType, OrderSide, Position, FundingRate, DepositWithdrawFeeNetwork, LedgerEntry, BorrowInterest, OpenInterest, LeverageTier, TransferEntry, FundingRateHistory, Liquidation, FundingHistory, OrderRequest, MarginMode, Tickers, Greeks, Option, OptionChain, Str, Num, MarketInterface, CurrencyInterface, BalanceAccount, MarginModes, MarketType, Leverage, Leverages, LastPrice, LastPrices, Account, Strings, MarginModification, TradingFeeInterface, Currencies, TradingFees, Conversion, CancellationRequest, IsolatedBorrowRate, IsolatedBorrowRates, CrossBorrowRates, CrossBorrowRate, Dict, TransferEntries, FundingRates, LeverageTiers } from './types.js';
-export type { Market, Trade, Fee, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, DepositAddressResponse, Currency, MinMax, IndexType, Int, OrderType, OrderSide, Position, LedgerEntry, BorrowInterest, OpenInterest, LeverageTier, TransferEntry, CrossBorrowRate, FundingRateHistory, Liquidation, FundingHistory, OrderRequest, MarginMode, Tickers, Greeks, Option, OptionChain, Str, Num, MarketInterface, CurrencyInterface, BalanceAccount, MarginModes, MarketType, Leverage, Leverages, LastPrice, LastPrices, Account, Strings, Conversion } from './types.js';
+import type { Market, Trade, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, DepositAddressResponse, Currency, MinMax, IndexType, Int, OrderType, OrderSide, Position, FundingRate, DepositWithdrawFeeNetwork, LedgerEntry, BorrowInterest, OpenInterest, LeverageTier, TransferEntry, FundingRateHistory, Liquidation, FundingHistory, OrderRequest, MarginMode, Tickers, Greeks, Option, OptionChain, Str, Num, MarketInterface, CurrencyInterface, BalanceAccount, MarginModes, MarketType, Leverage, Leverages, LastPrice, LastPrices, Account, Strings, MarginModification, TradingFeeInterface, Currencies, TradingFees, Conversion, CancellationRequest, IsolatedBorrowRate, IsolatedBorrowRates, CrossBorrowRates, CrossBorrowRate, Dict, TransferEntries, FundingRates, LeverageTiers, Bool, int } from './types.js';
+export type { Market, Trade, Fee, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, DepositAddressResponse, Currency, MinMax, IndexType, Int, Bool, OrderType, OrderSide, Position, LedgerEntry, BorrowInterest, OpenInterest, LeverageTier, TransferEntry, CrossBorrowRate, FundingRateHistory, Liquidation, FundingHistory, OrderRequest, MarginMode, Tickers, Greeks, Option, OptionChain, Str, Num, MarketInterface, CurrencyInterface, BalanceAccount, MarginModes, MarketType, Leverage, Leverages, LastPrice, LastPrices, Account, Strings, Conversion } from './types.js';
 import { ArrayCache, ArrayCacheByTimestamp } from './ws/Cache.js';
 import { OrderBook as Ob } from './ws/OrderBook.js';
 /**
@@ -76,6 +76,7 @@ export default class Exchange {
     walletAddress: string;
     token: string;
     balance: {};
+    liquidations: Dictionary<Liquidation>;
     orderbooks: Dictionary<Ob>;
     tickers: Dictionary<Ticker>;
     fundingRates: Dictionary<FundingRate>;
@@ -85,6 +86,7 @@ export default class Exchange {
     trades: Dictionary<ArrayCache>;
     transactions: {};
     ohlcvs: Dictionary<Dictionary<ArrayCacheByTimestamp>>;
+    myLiquidations: Dictionary<Liquidation>;
     myTrades: ArrayCache;
     positions: any;
     urls: {
@@ -289,6 +291,7 @@ export default class Exchange {
         certified: boolean;
         pro: boolean;
         alias: boolean;
+        dex: boolean;
         has: {
             publicAPI: boolean;
             privateAPI: boolean;
@@ -498,6 +501,10 @@ export default class Exchange {
             watchTickers: any;
             watchTrades: any;
             watchTradesForSymbols: any;
+            watchLiquidations: any;
+            watchLiquidationsForSymbols: any;
+            watchMyLiquidations: any;
+            watchMyLiquidationsForSymbols: any;
             withdraw: any;
             ws: any;
         };
@@ -689,6 +696,10 @@ export default class Exchange {
     fetchAccounts(params?: {}): Promise<Account[]>;
     fetchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     fetchTradesWs(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
+    watchLiquidations(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Liquidation[]>;
+    watchLiquidationsForSymbols(symbols: string[], since?: Int, limit?: Int, params?: {}): Promise<Liquidation[]>;
+    watchMyLiquidations(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Liquidation[]>;
+    watchMyLiquidationsForSymbols(symbols: string[], since?: Int, limit?: Int, params?: {}): Promise<Liquidation[]>;
     watchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     watchTradesForSymbols(symbols: string[], since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     watchMyTradesForSymbols(symbols: string[], since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
@@ -703,7 +714,7 @@ export default class Exchange {
     watchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
     fetchTime(params?: {}): Promise<Int>;
     fetchTradingLimits(symbols?: Strings, params?: {}): Promise<{}>;
-    parseMarket(market: any): Market;
+    parseMarket(market: Dict): Market;
     parseMarkets(markets: any): Market[];
     parseTicker(ticker: Dict, market?: Market): Ticker;
     parseDepositAddress(depositAddress: any, currency?: Currency): object;
@@ -720,7 +731,7 @@ export default class Exchange {
     parsePosition(position: Dict, market?: Market): Position;
     parseFundingRateHistory(info: any, market?: Market): FundingRateHistory;
     parseBorrowInterest(info: Dict, market?: Market): BorrowInterest;
-    parseIsolatedBorrowRate(info: any, market?: Market): IsolatedBorrowRate;
+    parseIsolatedBorrowRate(info: Dict, market?: Market): IsolatedBorrowRate;
     parseWsTrade(trade: any, market?: Market): Trade;
     parseWsOrder(order: any, market?: Market): Order;
     parseWsOrderTrade(trade: any, market?: Market): Trade;
@@ -797,6 +808,7 @@ export default class Exchange {
     };
     safeLiquidation(liquidation: object, market?: Market): Liquidation;
     safeTrade(trade: object, market?: Market): Trade;
+    findNearestCeiling(arr: number[], providedValue: number): number;
     invertFlatStringDictionary(dict: any): {};
     reduceFeesByCurrency(fees: any): any[];
     safeTicker(ticker: object, market?: Market): Ticker;
@@ -848,6 +860,8 @@ export default class Exchange {
     handleParamString2(params: object, paramName1: string, paramName2: string, defaultValue?: Str): [string, object];
     handleParamInteger(params: object, paramName: string, defaultValue?: Int): [Int, object];
     handleParamInteger2(params: object, paramName1: string, paramName2: string, defaultValue?: Int): [Int, object];
+    handleParamBool(params: object, paramName: string, defaultValue?: Bool): [Bool, object];
+    handleParamBool2(params: object, paramName1: string, paramName2: string, defaultValue?: Bool): [Bool, object];
     resolvePath(path: any, params: any): any[];
     getListFromObjectValues(objects: any, key: IndexType): any[];
     getSymbolsForMarketType(marketType?: Str, subType?: Str, symbolWithActiveStatus?: boolean, symbolWithUnknownStatus?: boolean): any[];
@@ -907,7 +921,7 @@ export default class Exchange {
     throwExactlyMatchedException(exact: any, string: any, message: any): void;
     throwBroadlyMatchedException(broad: any, string: any, message: any): void;
     findBroadlyMatchedKey(broad: any, string: any): string;
-    handleErrors(statusCode: any, statusText: any, url: any, method: any, responseHeaders: any, responseBody: any, response: any, requestHeaders: any, requestBody: any): any;
+    handleErrors(statusCode: int, statusText: string, url: string, method: string, responseHeaders: Dict, responseBody: string, response: any, requestHeaders: any, requestBody: any): any;
     calculateRateLimiterCost(api: any, method: any, path: any, params: any, config?: {}): any;
     fetchTicker(symbol: string, params?: {}): Promise<Ticker>;
     fetchTickerWs(symbol: string, params?: {}): Promise<Ticker>;

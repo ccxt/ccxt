@@ -9,7 +9,7 @@ import { ecdsa, eddsa } from './base/functions/crypto.js';
 import { ed25519 } from './static_dependencies/noble-curves/ed25519.js';
 import { keccak_256 as keccak } from './static_dependencies/noble-hashes/sha3.js';
 import { secp256k1 } from './static_dependencies/noble-curves/secp256k1.js';
-import type { Balances, Currency, FundingRateHistory, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Trade, Transaction, Leverage, Currencies, TradingFees, OrderRequest, Dict } from './base/types.js';
+import type { Balances, Currency, FundingRateHistory, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Trade, Transaction, Leverage, Currencies, TradingFees, OrderRequest, Dict, int } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -27,6 +27,7 @@ export default class woofipro extends Exchange {
             'version': 'v1',
             'certified': true,
             'pro': true,
+            'dex': true,
             'hostname': 'dex.woo.org',
             'has': {
                 'CORS': undefined,
@@ -401,7 +402,7 @@ export default class woofipro extends Exchange {
         return this.safeInteger (response, 'timestamp');
     }
 
-    parseMarket (market): Market {
+    parseMarket (market: Dict): Market {
         //
         //   {
         //     "symbol": "PERP_BTC_USDC",
@@ -1258,7 +1259,7 @@ export default class woofipro extends Exchange {
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much you want to trade in units of the base currency
-         * @param {float} [price] the price that the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {float} [price] the price that the order is to be fulfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} request to be sent to the exchange
          */
@@ -1357,7 +1358,7 @@ export default class woofipro extends Exchange {
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {float} [params.triggerPrice] The price a trigger order is triggered at
          * @param {object} [params.takeProfit] *takeProfit object in params* containing the triggerPrice at which the attached take profit order will be triggered (perpetual swap markets only)
@@ -1483,7 +1484,7 @@ export default class woofipro extends Exchange {
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {float} [params.triggerPrice] The price a trigger order is triggered at
          * @param {float} [params.stopLossPrice] price to trigger stop-loss orders
@@ -1665,7 +1666,9 @@ export default class woofipro extends Exchange {
         //     }
         // }
         //
-        return response;
+        return [ this.safeOrder ({
+            'info': response,
+        }) ];
     }
 
     async cancelAllOrders (symbol: Str = undefined, params = {}) {
@@ -1709,7 +1712,11 @@ export default class woofipro extends Exchange {
         //     }
         // }
         //
-        return response;
+        return [
+            {
+                'info': response,
+            },
+        ];
     }
 
     async fetchOrder (id: string, symbol: Str = undefined, params = {}) {
@@ -2213,7 +2220,7 @@ export default class woofipro extends Exchange {
         };
     }
 
-    parseTransactionStatus (status) {
+    parseTransactionStatus (status: Str) {
         const statuses: Dict = {
             'NEW': 'pending',
             'CONFIRMING': 'pending',
@@ -2309,8 +2316,10 @@ export default class woofipro extends Exchange {
 
     signHash (hash, privateKey) {
         const signature = ecdsa (hash.slice (-64), privateKey.slice (-64), secp256k1, undefined);
+        const r = signature['r'];
+        const s = signature['s'];
         const v = this.intToBase16 (this.sum (27, signature['v']));
-        return '0x' + signature['r'].padStart (64, '0') + signature['s'].padStart (64, '0') + v;
+        return '0x' + r.padStart (64, '0') + s.padStart (64, '0') + v;
     }
 
     signMessage (message, privateKey) {
@@ -2714,7 +2723,7 @@ export default class woofipro extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    handleErrors (httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+    handleErrors (httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response, requestHeaders, requestBody) {
         if (!response) {
             return undefined; // fallback to default error handler
         }

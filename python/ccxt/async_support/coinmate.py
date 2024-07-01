@@ -504,7 +504,7 @@ class coinmate(Exchange, ImplicitAPI):
         items = response['data']
         return self.parse_transactions(items, None, since, limit)
 
-    def parse_transaction_status(self, status):
+    def parse_transaction_status(self, status: Str):
         statuses: dict = {
             'COMPLETED': 'ok',
             'WAITING': 'pending',
@@ -895,6 +895,13 @@ class coinmate(Exchange, ImplicitAPI):
         #         "trailing": False,
         #     }
         #
+        # cancelOrder
+        #
+        #    {
+        #        "success": True,
+        #        "remainingAmount": 0.1
+        #    }
+        #
         id = self.safe_string(order, 'id')
         timestamp = self.safe_integer(order, 'timestamp')
         side = self.safe_string_lower(order, 'type')
@@ -944,7 +951,7 @@ class coinmate(Exchange, ImplicitAPI):
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
         :param float amount: how much of currency you want to trade in units of base currency
-        :param float [price]: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
@@ -1003,9 +1010,18 @@ class coinmate(Exchange, ImplicitAPI):
         #   {"error":false,"errorMessage":null,"data":{"success":true,"remainingAmount":0.01}}
         request: dict = {'orderId': id}
         response = await self.privatePostCancelOrderWithInfo(self.extend(request, params))
-        return {
-            'info': response,
-        }
+        #
+        #    {
+        #        "error": False,
+        #        "errorMessage": null,
+        #        "data": {
+        #          "success": True,
+        #          "remainingAmount": 0.1
+        #        }
+        #    }
+        #
+        data = self.safe_dict(response, 'data')
+        return self.parse_order(data)
 
     def nonce(self):
         return self.milliseconds()
@@ -1031,7 +1047,7 @@ class coinmate(Exchange, ImplicitAPI):
             }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response, requestHeaders, requestBody):
         if response is not None:
             if 'error' in response:
                 # {"error":true,"errorMessage":"Minimum Order Size 0.01 ETH","data":null}
