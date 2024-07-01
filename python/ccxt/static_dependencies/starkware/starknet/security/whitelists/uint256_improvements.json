@@ -1,0 +1,56 @@
+{
+    "allowed_reference_expressions_for_hint": [
+        {
+            "allowed_expressions": [],
+            "hint_lines": [
+                "a = (ids.a.high << 128) + ids.a.low",
+                "div = (ids.div.b23 << 128) + ids.div.b01",
+                "quotient, remainder = divmod(a, div)",
+                "",
+                "ids.quotient.low = quotient & ((1 << 128) - 1)",
+                "ids.quotient.high = quotient >> 128",
+                "ids.remainder.low = remainder & ((1 << 128) - 1)",
+                "ids.remainder.high = remainder >> 128"
+            ]
+        },
+        {
+            "allowed_expressions": [],
+            "hint_lines": [
+                "def split(num: int, num_bits_shift: int = 128, length: int = 2):",
+                "    a = []",
+                "    for _ in range(length):",
+                "        a.append( num & ((1 << num_bits_shift) - 1) )",
+                "        num = num >> num_bits_shift",
+                "    return tuple(a)",
+                "",
+                "def pack(z, num_bits_shift: int = 128) -> int:",
+                "    limbs = (z.low, z.high)",
+                "    return sum(limb << (num_bits_shift * i) for i, limb in enumerate(limbs))",
+                "",
+                "a = pack(ids.a)",
+                "b = pack(ids.b)",
+                "res = (a - b)%2**256",
+                "res_split = split(res)",
+                "ids.res.low = res_split[0]",
+                "ids.res.high = res_split[1]"
+            ]
+        },
+        {
+            "allowed_expressions": [],
+            "hint_lines": [
+                "from starkware.python.math_utils import isqrt",
+                "n = (ids.n.high << 128) + ids.n.low",
+                "root = isqrt(n)",
+                "assert 0 <= root < 2 ** 128",
+                "ids.root = root"
+            ]
+        },
+        {
+            "allowed_expressions": [],
+            "hint_lines": [
+                "res = ids.a + ids.b",
+                "ids.carry = 1 if res >= ids.SHIFT else 0"
+            ]
+        }
+    ]
+}

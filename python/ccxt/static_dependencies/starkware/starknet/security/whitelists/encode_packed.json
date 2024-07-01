@@ -1,0 +1,11 @@
+{
+    "allowed_reference_expressions_for_hint": [
+        {
+            "allowed_expressions": [],
+            "hint_lines": [
+                "x = ids.x",
+                "ids.bit_length = x.bit_length()"
+            ]
+        }
+    ]
+}

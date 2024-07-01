@@ -1,0 +1,7 @@
+package(default_visibility = ["//visibility:public"])
+
+filegroup(
+    name = "sierra-compiler-major-1",
+    srcs = glob(["**/*"]),
+    visibility = ["//visibility:public"],
+)

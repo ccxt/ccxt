@@ -1,0 +1,293 @@
+{
+    "allowed_reference_expressions_for_hint": [
+        {
+            "allowed_expressions": [],
+            "hint_lines": [
+                "PRIME = 2**255 - 19",
+                "II = pow(2, (PRIME - 1) // 4, PRIME)",
+                "",
+                "xx = ids.xx.low + (ids.xx.high<<128)",
+                "x = pow(xx, (PRIME + 3) // 8, PRIME)",
+                "if (x * x - xx) % PRIME != 0:",
+                "    x = (x * II) % PRIME",
+                "if x % 2 != 0:",
+                "    x = PRIME - x",
+                "ids.x.low = x & ((1<<128)-1)",
+                "ids.x.high = x >> 128"
+            ]
+        },
+        {
+            "allowed_expressions": [],
+            "hint_lines": [
+                "def split(num: int, num_bits_shift: int, length: int):",
+                "    a = []",
+                "    for _ in range(length):",
+                "        a.append( num & ((1 << num_bits_shift) - 1) )",
+                "        num = num >> num_bits_shift",
+                "    return tuple(a)",
+                "",
+                "def pack(z, num_bits_shift: int) -> int:",
+                "    limbs = (z.low, z.high)",
+                "    return sum(limb << (num_bits_shift * i) for i, limb in enumerate(limbs))",
+                "",
+                "def pack_extended(z, num_bits_shift: int) -> int:",
+                "    limbs = (z.d0, z.d1, z.d2, z.d3)",
+                "    return sum(limb << (num_bits_shift * i) for i, limb in enumerate(limbs))",
+                "",
+                "x = pack_extended(ids.x, num_bits_shift = 128)",
+                "div = pack(ids.div, num_bits_shift = 128)",
+                "",
+                "quotient, remainder = divmod(x, div)",
+                "",
+                "quotient_split = split(quotient, num_bits_shift=128, length=4)",
+                "",
+                "ids.quotient.d0 = quotient_split[0]",
+                "ids.quotient.d1 = quotient_split[1]",
+                "ids.quotient.d2 = quotient_split[2]",
+                "ids.quotient.d3 = quotient_split[3]",
+                "",
+                "remainder_split = split(remainder, num_bits_shift=128, length=2)",
+                "ids.remainder.low = remainder_split[0]",
+                "ids.remainder.high = remainder_split[1]"
+            ]
+        },
+        {
+            "allowed_expressions": [],
+            "hint_lines": [
+                "def pack_512(u, num_bits_shift: int) -> int:",
+                "    limbs = (u.d0, u.d1, u.d2, u.d3)",
+                "    return sum(limb << (num_bits_shift * i) for i, limb in enumerate(limbs))",
+                "",
+                "x = pack_512(ids.x, num_bits_shift = 128)",
+                "p = ids.p.low + (ids.p.high << 128)",
+                "x_inverse_mod_p = pow(x,-1, p)",
+                "",
+                "x_inverse_mod_p_split = (x_inverse_mod_p & ((1 << 128) - 1), x_inverse_mod_p >> 128)",
+                "",
+                "ids.x_inverse_mod_p.low = x_inverse_mod_p_split[0]",
+                "ids.x_inverse_mod_p.high = x_inverse_mod_p_split[1]"
+            ]
+        },
+        {
+            "allowed_expressions": [],
+            "hint_lines": [
+                "from starkware.python.math_utils import div_mod",
+                "",
+                "def split(a: int):",
+                "    return (a & ((1 << 128) - 1), a >> 128)",
+                "",
+                "def pack(z, num_bits_shift: int) -> int:",
+                "    limbs = (z.low, z.high)",
+                "    return sum(limb << (num_bits_shift * i) for i, limb in enumerate(limbs))",
+                "",
+                "a = pack(ids.a, 128)",
+                "b = pack(ids.b, 128)",
+                "p = pack(ids.p, 128)",
+                "# For python3.8 and above the modular inverse can be computed as follows:",
+                "# b_inverse_mod_p = pow(b, -1, p)",
+                "# Instead we use the python3.7-friendly function div_mod from starkware.python.math_utils",
+                "b_inverse_mod_p = div_mod(1, b, p)",
+                "",
+                "b_inverse_mod_p_split = split(b_inverse_mod_p)",
+                "",
+                "ids.b_inverse_mod_p.low = b_inverse_mod_p_split[0]",
+                "ids.b_inverse_mod_p.high = b_inverse_mod_p_split[1]"
+            ]
+        },
+        {
+            "allowed_expressions": [],
+            "hint_lines": [
+                "from starkware.python.math_utils import is_quad_residue, sqrt",
+                "",
+                "def split(a: int):",
+                "    return (a & ((1 << 128) - 1), a >> 128)",
+                "",
+                "def pack(z) -> int:",
+                "    return z.low + (z.high << 128)",
+                "",
+                "generator = pack(ids.generator)",
+                "x = pack(ids.x)",
+                "p = pack(ids.p)",
+                "",
+                "success_x = is_quad_residue(x, p)",
+                "root_x = sqrt(x, p) if success_x else None",
+                "success_gx = is_quad_residue(generator*x, p)",
+                "root_gx = sqrt(generator*x, p) if success_gx else None",
+                "",
+                "# Check that one is 0 and the other is 1",
+                "if x != 0:",
+                "    assert success_x + success_gx == 1",
+                "",
+                "# `None` means that no root was found, but we need to transform these into a felt no matter what",
+                "if root_x == None:",
+                "    root_x = 0",
+                "if root_gx == None:",
+                "    root_gx = 0",
+                "ids.success_x = int(success_x)",
+                "ids.success_gx = int(success_gx)",
+                "split_root_x = split(root_x)",
+                "# print('split root x', split_root_x)",
+                "split_root_gx = split(root_gx)",
+                "ids.sqrt_x.low = split_root_x[0]",
+                "ids.sqrt_x.high = split_root_x[1]",
+                "ids.sqrt_gx.low = split_root_gx[0]",
+                "ids.sqrt_gx.high = split_root_gx[1]"
+            ]
+        },
+        {
+            "allowed_expressions": [],
+            "hint_lines": [
+                "def split(num: int, num_bits_shift: int, length: int):",
+                "    a = []",
+                "    for _ in range(length):",
+                "        a.append( num & ((1 << num_bits_shift) - 1) )",
+                "        num = num >> num_bits_shift",
+                "    return tuple(a)",
+                "",
+                "def pack(z, num_bits_shift: int) -> int:",
+                "    limbs = (z.d0, z.d1, z.d2)",
+                "    return sum(limb << (num_bits_shift * i) for i, limb in enumerate(limbs))",
+                "",
+                "def pack_extended(z, num_bits_shift: int) -> int:",
+                "    limbs = (z.d0, z.d1, z.d2, z.d3, z.d4, z.d5)",
+                "    return sum(limb << (num_bits_shift * i) for i, limb in enumerate(limbs))",
+                "",
+                "a = pack_extended(ids.a, num_bits_shift = 128)",
+                "div = pack(ids.div, num_bits_shift = 128)",
+                "",
+                "quotient, remainder = divmod(a, div)",
+                "",
+                "quotient_split = split(quotient, num_bits_shift=128, length=6)",
+                "",
+                "ids.quotient.d0 = quotient_split[0]",
+                "ids.quotient.d1 = quotient_split[1]",
+                "ids.quotient.d2 = quotient_split[2]",
+                "ids.quotient.d3 = quotient_split[3]",
+                "ids.quotient.d4 = quotient_split[4]",
+                "ids.quotient.d5 = quotient_split[5]",
+                "",
+                "remainder_split = split(remainder, num_bits_shift=128, length=3)",
+                "ids.remainder.d0 = remainder_split[0]",
+                "ids.remainder.d1 = remainder_split[1]",
+                "ids.remainder.d2 = remainder_split[2]"
+            ]
+        },
+        {
+            "allowed_expressions": [],
+            "hint_lines": [
+                "ids.low = ids.a & ((1<<128) - 1)",
+                "ids.high = ids.a >> 128"
+            ]
+        },
+        {
+            "allowed_expressions": [],
+            "hint_lines": [
+                "sum_low = ids.a.low + ids.b.low",
+                "ids.carry_low = 1 if sum_low >= ids.SHIFT else 0"
+            ]
+        },
+        {
+            "allowed_expressions": [],
+            "hint_lines": [
+                "from starkware.cairo.common.cairo_secp.secp_utils import pack",
+                "SECP_P = 2**255-19",
+                "to_assert = pack(ids.val, PRIME)",
+                "q, r = divmod(pack(ids.val, PRIME), SECP_P)",
+                "assert r == 0, f\"verify_zero: Invalid input {ids.val.d0, ids.val.d1, ids.val.d2}.\"",
+                "ids.q = q % PRIME"
+            ]
+        },
+        {
+            "allowed_expressions": [],
+            "hint_lines": [
+                "from starkware.cairo.common.cairo_secp.secp_utils import pack",
+                "SECP_P=2**255-19",
+                "",
+                "x = pack(ids.x, PRIME) % SECP_P"
+            ]
+        },
+        {
+            "allowed_expressions": [],
+            "hint_lines": [
+                "from starkware.cairo.common.cairo_secp.secp_utils import pack",
+                "SECP_P=2**255-19",
+                "",
+                "value = pack(ids.x, PRIME) % SECP_P"
+            ]
+        },
+        {
+            "allowed_expressions": [],
+            "hint_lines": [
+                "SECP_P=2**255-19",
+                "from starkware.python.math_utils import div_mod",
+                "",
+                "value = x_inv = div_mod(1, x, SECP_P)"
+            ]
+        },
+        {
+            "allowed_expressions": [],
+            "hint_lines": [
+                "from starkware.cairo.common.cairo_secp.secp_utils import pack",
+                "SECP_P = 2**255-19",
+                "",
+                "y = pack(ids.point.y, PRIME) % SECP_P",
+                "# The modulo operation in python always returns a nonnegative number.",
+                "value = (-y) % SECP_P"
+            ]
+        },
+        {
+            "allowed_expressions": [],
+            "hint_lines": [
+                "from starkware.cairo.common.cairo_secp.secp_utils import pack",
+                "SECP_P = 2**255-19",
+                "",
+                "slope = pack(ids.slope, PRIME)",
+                "x = pack(ids.point.x, PRIME)",
+                "y = pack(ids.point.y, PRIME)",
+                "",
+                "value = new_x = (pow(slope, 2, SECP_P) - 2 * x) % SECP_P"
+            ]
+        },
+        {
+            "allowed_expressions": [],
+            "hint_lines": [
+                "from starkware.cairo.common.cairo_secp.secp_utils import pack",
+                "SECP_P = 2**255-19",
+                "",
+                "slope = pack(ids.slope, PRIME)",
+                "x0 = pack(ids.point0.x, PRIME)",
+                "x1 = pack(ids.point1.x, PRIME)",
+                "y0 = pack(ids.point0.y, PRIME)",
+                "",
+                "value = new_x = (pow(slope, 2, SECP_P) - x0 - x1) % SECP_P"
+            ]
+        },
+        {
+            "allowed_expressions": [],
+            "hint_lines": [
+                "from starkware.python.math_utils import ec_double_slope",
+                "from starkware.cairo.common.cairo_secp.secp_utils import pack",
+                "SECP_P = 2**255-19",
+                "",
+                "# Compute the slope.",
+                "x = pack(ids.point.x, PRIME)",
+                "y = pack(ids.point.y, PRIME)",
+                "value = slope = ec_double_slope(point=(x, y), alpha=42204101795669822316448953119945047945709099015225996174933988943478124189485, p=SECP_P)"
+            ]
+        },
+        {
+            "allowed_expressions": [],
+            "hint_lines": [
+                "from starkware.python.math_utils import line_slope",
+                "from starkware.cairo.common.cairo_secp.secp_utils import pack",
+                "SECP_P = 2**255-19",
+                "# Compute the slope.",
+                "x0 = pack(ids.point0.x, PRIME)",
+                "y0 = pack(ids.point0.y, PRIME)",
+                "x1 = pack(ids.point1.x, PRIME)",
+                "y1 = pack(ids.point1.y, PRIME)",
+                "value = slope = line_slope(point1=(x0, y0), point2=(x1, y1), p=SECP_P)"
+            ]
+        }
+    ]
+}

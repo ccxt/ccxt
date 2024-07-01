@@ -1,0 +1,18 @@
+constant_gas_price: false
+default_eth_price_in_fri: 1000000000000000000000
+enforce_l1_handler_fee: true
+gas_price_bounds:
+  max_fri_l1_data_gas_price: 10000000000000
+  max_fri_l1_gas_price: 100000000000000
+  min_fri_l1_data_gas_price: 10
+  min_fri_l1_gas_price: 30000000000
+  min_wei_l1_data_gas_price: 100000
+  min_wei_l1_gas_price: 10000000000
+invoke_tx_max_n_steps: 1000000
+sequencer_address: "0x4acb67f8e29379b475ccc408fc8269c116f64b4fe5a625644c507d7df07132"
+starknet_os_config:
+  chain_id: 1536727068981429685321
+  deprecated_fee_token_address: "0x3c9310766d2309bb2d7b2934fee57f5ae8bd2c4cbb4199c88f2230ed1d5f0df"
+  fee_token_address: "0x17cbe4265c239101e83ffcd371cb5631101d389b088d962cd222062d9cfddab"
+use_kzg_da: true
+validate_max_n_steps: 1000000

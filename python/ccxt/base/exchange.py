@@ -62,6 +62,10 @@ from ccxt.static_dependencies.msgpack import packb
 # starknet
 from ccxt.static_dependencies.starknet.ccxt_utils import get_private_key_from_eth_signature
 from ccxt.static_dependencies.starknet.net.signer.stark_curve_signer import KeyPair
+from ccxt.static_dependencies.starknet.hash.address import compute_address
+from ccxt.static_dependencies.starknet.hash.selector import get_selector_from_name
+from ccxt.static_dependencies.starknet.hash.utils import message_signature, verify_message_signature
+from ccxt.static_dependencies.starknet.utils.typed_data import TypedData as TypedDataDataclass
 
 # -----------------------------------------------------------------------------
 
@@ -1395,12 +1399,53 @@ class Exchange(object):
     def retrieve_stark_account (signature, accountClassHash, accountProxyClassHash):
         privKey = get_private_key_from_eth_signature(signature)
         starkKey = KeyPair.from_private_key(privKey)
-        print(privKey, hex(starkKey.public_key))
-        # account = get_acc_contract_address_and_call_data(
-        #     proxy_class_hash,
-        #     account_class_hash,
-        #     hex(key_pair.public_key),
-        # )
+        publicKey = starkKey.public_key
+        calldata = [
+            int(accountClassHash, 16),
+            get_selector_from_name("initialize"),
+            2,
+            publicKey,
+            0,
+        ]
+
+        address = compute_address(
+            class_hash=int(accountProxyClassHash, 16),
+            constructor_calldata=calldata,
+            salt=publicKey,
+        )
+        return {
+            'pri': privKey,
+            'pub': publicKey,
+            'address': hex(address)
+        }
+
+    @staticmethod
+    def starknet_encode_structured_data (domain, messageTypes, messageData, address):
+        types = list(messageTypes.keys())
+        if len(types) > 1:
+            raise NotSupported (this.id + 'starknetEncodeStructuredData only support single type')
+
+        request = {
+            'domain': domain,
+            'primaryType': types[0],
+            'types': Exchange.extend ({
+                'StarkNetDomain': [
+                    { 'name': "name", 'type': "felt" },
+                    { 'name': "chainId", 'type': "felt" },
+                    { 'name': "version", 'type': "felt" },
+                ],
+            }, messageTypes),
+            'message': messageData,
+        }
+        typedDataClass = TypedDataDataclass.from_dict(request)
+        msgHash = typedDataClass.message_hash(int(address, 16))
+        return msgHash
+
+    @staticmethod
+    def starknet_sign (hash, pri):
+        # // TODO: unify to ecdsa
+        r, s = message_signature (hash, pri)
+        return Exchange.json([ hex(r), hex(s)])
 
     @staticmethod
     def packb(o):

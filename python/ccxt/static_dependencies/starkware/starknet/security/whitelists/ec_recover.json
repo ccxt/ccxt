@@ -1,0 +1,48 @@
+{
+    "allowed_reference_expressions_for_hint": [
+        {
+            "allowed_expressions": [],
+            "hint_lines": [
+                "from starkware.cairo.common.cairo_secp.secp_utils import pack",
+                "from starkware.python.math_utils import div_mod, safe_div",
+                "",
+                "N = pack(ids.n, PRIME)",
+                "x = pack(ids.x, PRIME) % N",
+                "s = pack(ids.s, PRIME) % N",
+                "value = res = div_mod(x, s, N)"
+            ]
+        },
+        {
+            "allowed_expressions": [],
+            "hint_lines": [
+                "from starkware.cairo.common.cairo_secp.secp_utils import pack",
+                "from starkware.python.math_utils import div_mod, safe_div",
+                "",
+                "a = pack(ids.a, PRIME)",
+                "b = pack(ids.b, PRIME)",
+                "",
+                "value = res = a - b"
+            ]
+        },
+        {
+            "allowed_expressions": [],
+            "hint_lines": [
+                "from starkware.cairo.common.cairo_secp.secp_utils import pack",
+                "from starkware.python.math_utils import div_mod, safe_div",
+                "",
+                "a = pack(ids.a, PRIME)",
+                "b = pack(ids.b, PRIME)",
+                "product = a * b",
+                "m = pack(ids.m, PRIME)",
+                "",
+                "value = res = product % m"
+            ]
+        },
+        {
+            "allowed_expressions": [],
+            "hint_lines": [
+                "value = k = product // m"
+            ]
+        }
+    ]
+}

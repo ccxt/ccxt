@@ -1,0 +1,123 @@
+{
+    "allowed_reference_expressions_for_hint": [
+        {
+            "allowed_expressions": [
+                {
+                    "expr": "[cast(ap + (-2), felt*)]",
+                    "name": "sha256.finalize_sha256.__fp__"
+                },
+                {
+                    "expr": "[cast(fp + (-5), starkware.cairo.common.cairo_builtins.BitwiseBuiltin**)]",
+                    "name": "sha256.finalize_sha256.bitwise_ptr"
+                },
+                {
+                    "expr": "[cast(ap + (-1), felt*)]",
+                    "name": "sha256.finalize_sha256.n"
+                },
+                {
+                    "expr": "[cast(fp + (-6), felt*)]",
+                    "name": "sha256.finalize_sha256.range_check_ptr"
+                },
+                {
+                    "expr": "[cast(ap + (-1), felt**)]",
+                    "name": "sha256.finalize_sha256.round_constants"
+                },
+                {
+                    "expr": "[cast(fp + (-3), felt**)]",
+                    "name": "sha256.finalize_sha256.sha256_ptr_end"
+                },
+                {
+                    "expr": "[cast(fp + (-4), felt**)]",
+                    "name": "sha256.finalize_sha256.sha256_ptr_start"
+                }
+            ],
+            "hint_lines": [
+                "# Add dummy pairs of input and output.",
+                "from starkware.cairo.common.cairo_sha256.sha256_utils import (",
+                "    IV, compute_message_schedule, sha2_compress_function)",
+                "",
+                "_block_size = int(ids.BLOCK_SIZE)",
+                "assert 0 <= _block_size < 20",
+                "_sha256_input_chunk_size_felts = int(ids.SHA256_INPUT_CHUNK_SIZE_FELTS)",
+                "assert 0 <= _sha256_input_chunk_size_felts < 100",
+                "",
+                "message = [0] * _sha256_input_chunk_size_felts",
+                "w = compute_message_schedule(message)",
+                "output = sha2_compress_function(IV, w)",
+                "padding = (message + IV + output) * (_block_size - 1)",
+                "segments.write_arg(ids.sha256_ptr_end, padding)"
+            ]
+        },
+        {
+            "allowed_expressions": [
+                {
+                    "expr": "[cast(fp + (-4), felt**)]",
+                    "name": "sha256.sha256.input"
+                },
+                {
+                    "expr": "[cast(fp + (-3), felt*)]",
+                    "name": "sha256.sha256.n_bytes"
+                },
+                {
+                    "expr": "cast([ap + (-11)] + 10, felt*)",
+                    "name": "sha256.sha256.output"
+                },
+                {
+                    "expr": "[cast(ap + (-2), felt*)]",
+                    "name": "sha256.sha256.range_check_ptr"
+                },
+                {
+                    "expr": "cast([ap + (-11)] + 10, felt*)",
+                    "name": "sha256.sha256.sha256_ptr"
+                },
+                {
+                    "expr": "[cast(fp + (-5), felt**)]",
+                    "name": "sha256.sha256.sha256_start"
+                }
+            ],
+            "hint_lines": [
+                "from starkware.cairo.common.cairo_sha256.sha256_utils import (",
+                "    IV, compute_message_schedule, sha2_compress_function)",
+                "",
+                "_sha256_input_chunk_size_felts = int(ids.SHA256_INPUT_CHUNK_SIZE_FELTS)",
+                "assert 0 <= _sha256_input_chunk_size_felts < 100",
+                "",
+                "w = compute_message_schedule(memory.get_range(",
+                "    ids.sha256_start, _sha256_input_chunk_size_felts))",
+                "new_state = sha2_compress_function(IV, w)",
+                "segments.write_arg(ids.output, new_state)"
+            ]
+        },
+        {
+            "allowed_expressions": [
+                {
+                    "expr": "[cast(fp, felt*)]",
+                    "name": "sha256._sha256_input.full_word"
+                },
+                {
+                    "expr": "[cast(fp + (-5), felt**)]",
+                    "name": "sha256._sha256_input.input"
+                },
+                {
+                    "expr": "[cast(fp + (-4), felt*)]",
+                    "name": "sha256._sha256_input.n_bytes"
+                },
+                {
+                    "expr": "[cast(fp + (-3), felt*)]",
+                    "name": "sha256._sha256_input.n_words"
+                },
+                {
+                    "expr": "[cast(fp + (-7), felt*)]",
+                    "name": "sha256._sha256_input.range_check_ptr"
+                },
+                {
+                    "expr": "[cast(fp + (-6), felt**)]",
+                    "name": "sha256._sha256_input.sha256_ptr"
+                }
+            ],
+            "hint_lines": [
+                "ids.full_word = int(ids.n_bytes >= 4)"
+            ]
+        }
+    ]
+}

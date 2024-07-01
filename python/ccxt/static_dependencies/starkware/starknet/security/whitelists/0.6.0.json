@@ -1,0 +1,549 @@
+{
+    "allowed_reference_expressions_for_hint": [
+        {
+            "allowed_expressions": [],
+            "hint_lines": [
+                "# Prepare arguments for dict_new. In particular, the same dictionary values should be copied",
+                "# to the new (squashed) dictionary.",
+                "vm_enter_scope({",
+                "    # Make __dict_manager accessible.",
+                "    '__dict_manager': __dict_manager,",
+                "    # Create a copy of the dict, in case it changes in the future.",
+                "    'initial_dict': dict(__dict_manager.get_dict(ids.dict_accesses_end)),",
+                "})"
+            ]
+        },
+        {
+            "allowed_expressions": [],
+            "hint_lines": [
+                "# Update the DictTracker's current_ptr to point to the end of the squashed dict.",
+                "__dict_manager.get_tracker(ids.squashed_dict_start).current_ptr = \\",
+                "    ids.squashed_dict_end.address_"
+            ]
+        },
+        {
+            "allowed_expressions": [],
+            "hint_lines": [
+                "# Verify dict pointer and prev value.",
+                "dict_tracker = __dict_manager.get_tracker(ids.dict_ptr)",
+                "current_value = dict_tracker.data[ids.key]",
+                "assert current_value == ids.prev_value, \\",
+                "    f'Wrong previous value in dict. Got {ids.prev_value}, expected {current_value}.'",
+                "",
+                "# Update value.",
+                "dict_tracker.data[ids.key] = ids.new_value",
+                "dict_tracker.current_ptr += ids.DictAccess.SIZE"
+            ]
+        },
+        {
+            "allowed_expressions": [],
+            "hint_lines": [
+                "# Verify the assumptions on the relationship between 2**250, ADDR_BOUND and PRIME.",
+                "ADDR_BOUND = ids.ADDR_BOUND % PRIME",
+                "assert (2**250 < ADDR_BOUND <= 2**251) and (2 * 2**250 < PRIME) and (",
+                "        ADDR_BOUND * 2 > PRIME), \\",
+                "    'normalize_address() cannot be used with the current constants.'",
+                "ids.is_small = 1 if ids.addr < ADDR_BOUND else 0"
+            ]
+        },
+        {
+            "allowed_expressions": [],
+            "hint_lines": [
+                "a = (ids.a.high << 128) + ids.a.low",
+                "div = (ids.div.high << 128) + ids.div.low",
+                "quotient, remainder = divmod(a, div)",
+                "",
+                "ids.quotient.low = quotient & ((1 << 128) - 1)",
+                "ids.quotient.high = quotient >> 128",
+                "ids.remainder.low = remainder & ((1 << 128) - 1)",
+                "ids.remainder.high = remainder >> 128"
+            ]
+        },
+        {
+            "allowed_expressions": [],
+            "hint_lines": [
+                "array_ptr = ids.array_ptr",
+                "elm_size = ids.elm_size",
+                "assert isinstance(elm_size, int) and elm_size > 0, \\",
+                "    f'Invalid value for elm_size. Got: {elm_size}.'",
+                "",
+                "n_elms = ids.n_elms",
+                "assert isinstance(n_elms, int) and n_elms >= 0, \\",
+                "    f'Invalid value for n_elms. Got: {n_elms}.'",
+                "if '__find_element_max_size' in globals():",
+                "    assert n_elms <= __find_element_max_size, \\",
+                "        f'find_element() can only be used with n_elms<={__find_element_max_size}. ' \\",
+                "        f'Got: n_elms={n_elms}.'",
+                "",
+                "for i in range(n_elms):",
+                "    if memory[array_ptr + elm_size * i] >= ids.key:",
+                "        ids.index = i",
+                "        break",
+                "else:",
+                "    ids.index = n_elms"
+            ]
+        },
+        {
+            "allowed_expressions": [],
+            "hint_lines": [
+                "array_ptr = ids.array_ptr",
+                "elm_size = ids.elm_size",
+                "assert isinstance(elm_size, int) and elm_size > 0, \\",
+                "    f'Invalid value for elm_size. Got: {elm_size}.'",
+                "key = ids.key",
+                "",
+                "if '__find_element_index' in globals():",
+                "    ids.index = __find_element_index",
+                "    found_key = memory[array_ptr + elm_size * __find_element_index]",
+                "    assert found_key == key, \\",
+                "        f'Invalid index found in __find_element_index. index: {__find_element_index}, ' \\",
+                "        f'expected key {key}, found key: {found_key}.'",
+                "    # Delete __find_element_index to make sure it's not used for the next calls.",
+                "    del __find_element_index",
+                "else:",
+                "    n_elms = ids.n_elms",
+                "    assert isinstance(n_elms, int) and n_elms >= 0, \\",
+                "        f'Invalid value for n_elms. Got: {n_elms}.'",
+                "    if '__find_element_max_size' in globals():",
+                "        assert n_elms <= __find_element_max_size, \\",
+                "            f'find_element() can only be used with n_elms<={__find_element_max_size}. ' \\",
+                "            f'Got: n_elms={n_elms}.'",
+                "",
+                "    for i in range(n_elms):",
+                "        if memory[array_ptr + elm_size * i] == key:",
+                "            ids.index = i",
+                "            break",
+                "    else:",
+                "        raise ValueError(f'Key {key} was not found.')"
+            ]
+        },
+        {
+            "allowed_expressions": [],
+            "hint_lines": [
+                "assert ids.n_used_accesses == len(access_indices[key])"
+            ]
+        },
+        {
+            "allowed_expressions": [],
+            "hint_lines": [
+                "assert ids.value == 0, 'split_int(): value is out of range.'"
+            ]
+        },
+        {
+            "allowed_expressions": [],
+            "hint_lines": [
+                "assert len(current_access_indices) == 0"
+            ]
+        },
+        {
+            "allowed_expressions": [],
+            "hint_lines": [
+                "assert len(keys) == 0"
+            ]
+        },
+        {
+            "allowed_expressions": [],
+            "hint_lines": [
+                "assert len(keys) > 0, 'No keys left but remaining_accesses > 0.'",
+                "ids.next_key = key = keys.pop()"
+            ]
+        },
+        {
+            "allowed_expressions": [],
+            "hint_lines": [
+                "current_access_indices = sorted(access_indices[key])[::-1]",
+                "current_access_index = current_access_indices.pop()",
+                "memory[ids.range_check_ptr] = current_access_index"
+            ]
+        },
+        {
+            "allowed_expressions": [],
+            "hint_lines": [
+                "dict_access_size = ids.DictAccess.SIZE",
+                "address = ids.dict_accesses.address_",
+                "assert ids.ptr_diff % dict_access_size == 0, \\",
+                "    'Accesses array size must be divisible by DictAccess.SIZE'",
+                "n_accesses = ids.n_accesses",
+                "if '__squash_dict_max_size' in globals():",
+                "    assert n_accesses <= __squash_dict_max_size, \\",
+                "        f'squash_dict() can only be used with n_accesses<={__squash_dict_max_size}. ' \\",
+                "        f'Got: n_accesses={n_accesses}.'",
+                "# A map from key to the list of indices accessing it.",
+                "access_indices = {}",
+                "for i in range(n_accesses):",
+                "    key = memory[address + dict_access_size * i]",
+                "    access_indices.setdefault(key, []).append(i)",
+                "# Descending list of keys.",
+                "keys = sorted(access_indices.keys(), reverse=True)",
+                "# Are the keys used bigger than range_check bound.",
+                "ids.big_keys = 1 if keys[0] >= range_check_builtin.bound else 0",
+                "ids.first_key = key = keys.pop()"
+            ]
+        },
+        {
+            "allowed_expressions": [],
+            "hint_lines": [
+                "dict_tracker = __dict_manager.get_tracker(ids.dict_ptr)",
+                "dict_tracker.current_ptr += ids.DictAccess.SIZE",
+                "ids.dict_ptr.prev_value = dict_tracker.data[ids.key]",
+                "dict_tracker.data[ids.key] = ids.new_value"
+            ]
+        },
+        {
+            "allowed_expressions": [],
+            "hint_lines": [
+                "dict_tracker = __dict_manager.get_tracker(ids.dict_ptr)",
+                "dict_tracker.current_ptr += ids.DictAccess.SIZE",
+                "ids.value = dict_tracker.data[ids.key]"
+            ]
+        },
+        {
+            "allowed_expressions": [],
+            "hint_lines": [
+                "ecdsa_builtin.add_signature(ids.ecdsa_ptr.address_, (ids.signature_r, ids.signature_s))"
+            ]
+        },
+        {
+            "allowed_expressions": [],
+            "hint_lines": [
+                "from eth_hash.auto import keccak",
+                "",
+                "data, length = ids.data, ids.length",
+                "",
+                "if '__keccak_max_size' in globals():",
+                "    assert length <= __keccak_max_size, \\",
+                "        f'unsafe_keccak() can only be used with length<={__keccak_max_size}. ' \\",
+                "        f'Got: length={length}.'",
+                "",
+                "keccak_input = bytearray()",
+                "for word_i, byte_i in enumerate(range(0, length, 16)):",
+                "    word = memory[data + word_i]",
+                "    n_bytes = min(16, length - byte_i)",
+                "    assert 0 <= word < 2 ** (8 * n_bytes)",
+                "    keccak_input += word.to_bytes(n_bytes, 'big')",
+                "",
+                "hashed = keccak(keccak_input)",
+                "ids.high = int.from_bytes(hashed[:16], 'big')",
+                "ids.low = int.from_bytes(hashed[16:32], 'big')"
+            ]
+        },
+        {
+            "allowed_expressions": [],
+            "hint_lines": [
+                "from starkware.cairo.common.math_utils import as_int",
+                "",
+                "# Correctness check.",
+                "value = as_int(ids.value, PRIME) % PRIME",
+                "assert value < ids.UPPER_BOUND, f'{value} is outside of the range [0, 2**250).'",
+                "",
+                "# Calculation for the assertion.",
+                "ids.high, ids.low = divmod(ids.value, ids.SHIFT)"
+            ]
+        },
+        {
+            "allowed_expressions": [],
+            "hint_lines": [
+                "from starkware.cairo.common.math_utils import as_int, assert_integer",
+                "",
+                "assert_integer(ids.div)",
+                "assert 0 < ids.div <= PRIME // range_check_builtin.bound, \\",
+                "    f'div={hex(ids.div)} is out of the valid range.'",
+                "",
+                "assert_integer(ids.bound)",
+                "assert ids.bound <= range_check_builtin.bound // 2, \\",
+                "    f'bound={hex(ids.bound)} is out of the valid range.'",
+                "",
+                "int_value = as_int(ids.value, PRIME)",
+                "q, ids.r = divmod(int_value, ids.div)",
+                "",
+                "assert -ids.bound <= q < ids.bound, \\",
+                "    f'{int_value} / {ids.div} = {q} is out of the range [{-ids.bound}, {ids.bound}).'",
+                "",
+                "ids.biased_q = q + ids.bound"
+            ]
+        },
+        {
+            "allowed_expressions": [],
+            "hint_lines": [
+                "from starkware.cairo.common.math_utils import assert_integer",
+                "assert ids.MAX_HIGH < 2**128 and ids.MAX_LOW < 2**128",
+                "assert PRIME - 1 == ids.MAX_HIGH * 2**128 + ids.MAX_LOW",
+                "assert_integer(ids.value)",
+                "ids.low = ids.value & ((1 << 128) - 1)",
+                "ids.high = ids.value >> 128"
+            ]
+        },
+        {
+            "allowed_expressions": [],
+            "hint_lines": [
+                "from starkware.cairo.common.math_utils import assert_integer",
+                "assert_integer(ids.a)",
+                "assert 0 <= ids.a % PRIME < range_check_builtin.bound, f'a = {ids.a} is out of range.'"
+            ]
+        },
+        {
+            "allowed_expressions": [],
+            "hint_lines": [
+                "from starkware.cairo.common.math_utils import assert_integer",
+                "assert_integer(ids.a)",
+                "assert_integer(ids.b)",
+                "assert (ids.a % PRIME) < (ids.b % PRIME), \\",
+                "    f'a = {ids.a % PRIME} is not less than b = {ids.b % PRIME}.'"
+            ]
+        },
+        {
+            "allowed_expressions": [],
+            "hint_lines": [
+                "from starkware.cairo.common.math_utils import assert_integer",
+                "assert_integer(ids.a)",
+                "assert_integer(ids.b)",
+                "assert (ids.a % PRIME) <= (ids.b % PRIME), \\",
+                "    f'a = {ids.a % PRIME} is not less than or equal to b = {ids.b % PRIME}.'"
+            ]
+        },
+        {
+            "allowed_expressions": [],
+            "hint_lines": [
+                "from starkware.cairo.common.math_utils import assert_integer",
+                "assert_integer(ids.div)",
+                "assert 0 < ids.div <= PRIME // range_check_builtin.bound, \\",
+                "    f'div={hex(ids.div)} is out of the valid range.'",
+                "ids.q, ids.r = divmod(ids.value, ids.div)"
+            ]
+        },
+        {
+            "allowed_expressions": [],
+            "hint_lines": [
+                "from starkware.cairo.common.math_utils import assert_integer",
+                "assert_integer(ids.value)",
+                "assert ids.value % PRIME != 0, f'assert_not_zero failed: {ids.value} = 0.'"
+            ]
+        },
+        {
+            "allowed_expressions": [],
+            "hint_lines": [
+                "from starkware.cairo.common.math_utils import is_positive",
+                "ids.is_positive = 1 if is_positive(",
+                "    value=ids.value, prime=PRIME, rc_bound=range_check_builtin.bound) else 0"
+            ]
+        },
+        {
+            "allowed_expressions": [],
+            "hint_lines": [
+                "from starkware.cairo.lang.vm.relocatable import RelocatableValue",
+                "both_ints = isinstance(ids.a, int) and isinstance(ids.b, int)",
+                "both_relocatable = (",
+                "    isinstance(ids.a, RelocatableValue) and isinstance(ids.b, RelocatableValue) and",
+                "    ids.a.segment_index == ids.b.segment_index)",
+                "assert both_ints or both_relocatable, \\",
+                "    f'assert_not_equal failed: non-comparable values: {ids.a}, {ids.b}.'",
+                "assert (ids.a - ids.b) % PRIME != 0, f'assert_not_equal failed: {ids.a} = {ids.b}.'"
+            ]
+        },
+        {
+            "allowed_expressions": [],
+            "hint_lines": [
+                "ids.a_lsb = ids.a & 1",
+                "ids.b_lsb = ids.b & 1"
+            ]
+        },
+        {
+            "allowed_expressions": [],
+            "hint_lines": [
+                "ids.is_250 = 1 if ids.addr < 2**250 else 0"
+            ]
+        },
+        {
+            "allowed_expressions": [],
+            "hint_lines": [
+                "ids.locs.bit = (ids.prev_locs.exp % PRIME) & 1"
+            ]
+        },
+        {
+            "allowed_expressions": [],
+            "hint_lines": [
+                "ids.loop_temps.should_continue = 1 if current_access_indices else 0"
+            ]
+        },
+        {
+            "allowed_expressions": [],
+            "hint_lines": [
+                "ids.low = ids.a & ((1<<64) - 1)",
+                "ids.high = ids.a >> 64"
+            ]
+        },
+        {
+            "allowed_expressions": [],
+            "hint_lines": [
+                "ids.should_skip_loop = 0 if current_access_indices else 1"
+            ]
+        },
+        {
+            "allowed_expressions": [],
+            "hint_lines": [
+                "if '__dict_manager' not in globals():",
+                "    from starkware.cairo.common.dict import DictManager",
+                "    __dict_manager = DictManager()",
+                "",
+                "memory[ap] = __dict_manager.new_default_dict(segments, ids.default_value)"
+            ]
+        },
+        {
+            "allowed_expressions": [],
+            "hint_lines": [
+                "if '__dict_manager' not in globals():",
+                "    from starkware.cairo.common.dict import DictManager",
+                "    __dict_manager = DictManager()",
+                "",
+                "memory[ap] = __dict_manager.new_dict(segments, initial_dict)",
+                "del initial_dict"
+            ]
+        },
+        {
+            "allowed_expressions": [],
+            "hint_lines": [
+                "memory[ap] = 0 if (ids.a % PRIME) <= (ids.b % PRIME) else 1"
+            ]
+        },
+        {
+            "allowed_expressions": [],
+            "hint_lines": [
+                "memory[ap] = 0 if 0 <= ((-ids.a - 1) % PRIME) < range_check_builtin.bound else 1"
+            ]
+        },
+        {
+            "allowed_expressions": [],
+            "hint_lines": [
+                "memory[ap] = 0 if 0 <= (ids.a % PRIME) < range_check_builtin.bound else 1"
+            ]
+        },
+        {
+            "allowed_expressions": [],
+            "hint_lines": [
+                "memory[ap] = 1 if 0 <= (ids.a.high % PRIME) < 2 ** 127 else 0"
+            ]
+        },
+        {
+            "allowed_expressions": [],
+            "hint_lines": [
+                "memory[ap] = segments.add()"
+            ]
+        },
+        {
+            "allowed_expressions": [],
+            "hint_lines": [
+                "memory[ids.output] = res = (int(ids.value) % PRIME) % ids.base",
+                "assert res < ids.bound, f'split_int(): Limb {res} is out of range.'"
+            ]
+        },
+        {
+            "allowed_expressions": [],
+            "hint_lines": [
+                "n -= 1",
+                "ids.continue_copying = 1 if n > 0 else 0"
+            ]
+        },
+        {
+            "allowed_expressions": [],
+            "hint_lines": [
+                "n -= 1",
+                "ids.continue_loop = 1 if n > 0 else 0"
+            ]
+        },
+        {
+            "allowed_expressions": [],
+            "hint_lines": [
+                "new_access_index = current_access_indices.pop()",
+                "ids.loop_temps.index_delta_minus1 = new_access_index - current_access_index - 1",
+                "current_access_index = new_access_index"
+            ]
+        },
+        {
+            "allowed_expressions": [],
+            "hint_lines": [
+                "sum_low = ids.a.low + ids.b.low",
+                "ids.carry_low = 1 if sum_low >= ids.SHIFT else 0",
+                "sum_high = ids.a.high + ids.b.high + ids.carry_low",
+                "ids.carry_high = 1 if sum_high >= ids.SHIFT else 0"
+            ]
+        },
+        {
+            "allowed_expressions": [],
+            "hint_lines": [
+                "syscall_handler.call_contract(segments=segments, syscall_ptr=ids.syscall_ptr)"
+            ]
+        },
+        {
+            "allowed_expressions": [],
+            "hint_lines": [
+                "syscall_handler.delegate_call(segments=segments, syscall_ptr=ids.syscall_ptr)"
+            ]
+        },
+        {
+            "allowed_expressions": [],
+            "hint_lines": [
+                "syscall_handler.get_caller_address(segments=segments, syscall_ptr=ids.syscall_ptr)"
+            ]
+        },
+        {
+            "allowed_expressions": [],
+            "hint_lines": [
+                "syscall_handler.get_contract_address(segments=segments, syscall_ptr=ids.syscall_ptr)"
+            ]
+        },
+        {
+            "allowed_expressions": [],
+            "hint_lines": [
+                "syscall_handler.get_sequencer_address(segments=segments, syscall_ptr=ids.syscall_ptr)"
+            ]
+        },
+        {
+            "allowed_expressions": [],
+            "hint_lines": [
+                "syscall_handler.get_tx_signature(segments=segments, syscall_ptr=ids.syscall_ptr)"
+            ]
+        },
+        {
+            "allowed_expressions": [],
+            "hint_lines": [
+                "syscall_handler.send_message_to_l1(segments=segments, syscall_ptr=ids.syscall_ptr)"
+            ]
+        },
+        {
+            "allowed_expressions": [],
+            "hint_lines": [
+                "syscall_handler.storage_read(segments=segments, syscall_ptr=ids.syscall_ptr)"
+            ]
+        },
+        {
+            "allowed_expressions": [],
+            "hint_lines": [
+                "syscall_handler.storage_write(segments=segments, syscall_ptr=ids.syscall_ptr)"
+            ]
+        },
+        {
+            "allowed_expressions": [],
+            "hint_lines": [
+                "vm_enter_scope()"
+            ]
+        },
+        {
+            "allowed_expressions": [],
+            "hint_lines": [
+                "vm_enter_scope({'n': ids.len})"
+            ]
+        },
+        {
+            "allowed_expressions": [],
+            "hint_lines": [
+                "vm_enter_scope({'n': ids.n})"
+            ]
+        },
+        {
+            "allowed_expressions": [],
+            "hint_lines": [
+                "vm_exit_scope()"
+            ]
+        }
+    ]
+}
