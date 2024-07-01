@@ -5,7 +5,7 @@
 # import argparse
 import os
 import sys
-from pprint import pprint
+# from pprint import pprint
 # import json
 # import time
 
@@ -16,7 +16,7 @@ sys.path.append(root)
 
 # ------------------------------------------------------------------------------
 
-import ccxt  # noqa: E402
+# import ccxt  # noqa: E402
 
 # ------------------------------------------------------------------------------
 
