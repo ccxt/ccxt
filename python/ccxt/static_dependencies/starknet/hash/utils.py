@@ -5,12 +5,14 @@ from Crypto.Hash import keccak
 
 from ..common import int_from_bytes
 from ..constants import EC_ORDER
-from ...starkware.crypto.signature.signature import (
+from ...starkware.crypto.signature import (
     ECSignature,
     private_to_stark_key,
-    pedersen_hash,
     sign,
     verify
+)
+from ...starkware.crypto.fast_pedersen_hash import (
+    pedersen_hash
 )
 
 MASK_250 = 2**250 - 1
