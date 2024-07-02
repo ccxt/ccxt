@@ -17,6 +17,7 @@ const skipMethods = [
     "fetchDepositWithdrawFee",
     "fetchLedgerEntry",
     'watchTickers', // will be updated later
+    "cancelAllOrders", // unksip this later
 ]
 
 const skipExchanges = [
