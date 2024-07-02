@@ -50,7 +50,7 @@ export default class cryptocom extends Exchange {
                 'fetchClosedOrders': 'emulated',
                 'fetchCrossBorrowRate': false,
                 'fetchCrossBorrowRates': false,
-                'fetchCurrencies': false,
+                'fetchCurrencies': true,
                 'fetchDepositAddress': true,
                 'fetchDepositAddressesByNetwork': true,
                 'fetchDeposits': true,
@@ -135,6 +135,7 @@ export default class cryptocom extends Exchange {
                     'v1': 'https://api.crypto.com/exchange/v1',
                     'v2': 'https://api.crypto.com/v2',
                     'derivatives': 'https://deriv-api.crypto.com/v1',
+                    'webApi': 'https://crypto.com/fe-ex-api',
                 },
                 'www': 'https://crypto.com/',
                 'referral': {
@@ -282,6 +283,13 @@ export default class cryptocom extends Exchange {
                         },
                     },
                 },
+                'webApi': {
+                    'public': {
+                        'get': {
+                            'common/supported_coins': 5,
+                        },
+                    },
+                },
             },
             'fees': {
                 'trading': {
@@ -327,6 +335,9 @@ export default class cryptocom extends Exchange {
                     'BEP20': 'BSC',
                     'ERC20': 'ETH',
                     'TRC20': 'TRON',
+                },
+                'fetchCurrencies': {
+                    'usePrivateApi': false, // this is a private call and it requires API keys, if this is disabled, then "public" endpoint for currencies will be used. To see differences check comments in "fetchCurrencies"
                 },
                 'broker': 'CCXT',
             },
@@ -380,6 +391,215 @@ export default class cryptocom extends Exchange {
                 'broad': {},
             },
         });
+    }
+
+    async fetchCurrencies (params = {}) {
+        /**
+         * @method
+         * @name cryptocom#fetchCurrencies
+         * @description fetches all available currencies on an exchange
+         * @param {object} params extra parameters specific to the endpoint
+         * @returns {object} an associative dictionary of currencies
+         */
+        const options = this.safeValue (this.options, 'fetchCurrencies', {});
+        const enabledPrivateEndpoint = this.safeValue (options, 'usePrivateApi');
+        let response = undefined;
+        let currenciesData = undefined;
+        const apiKeysPresent = this.checkRequiredCredentials (false);
+        if (enabledPrivateEndpoint || apiKeysPresent) {
+            if (!apiKeysPresent) {
+                throw new AuthenticationError (this.id + ' fetchCurrencies() requires is private endpoint and requires apikeys. Alternatively, you can set ".options["fetchCurrencies"]["usePrivateApi"] = false" to use public data about currencies');
+            }
+            response = await this.v2PrivatePostPrivateGetCurrencyNetworks (params);
+            //
+            //    {
+            //        "id": "1674652336623",
+            //        "method": "private/get-currency-networks",
+            //        "code": "0",
+            //        "result": {
+            //            "update_time": "1674501233000",
+            //            "currency_map": {
+            //                "AGLD": {
+            //                    "full_name": "Adventure Gold",
+            //                    "default_network": "ETH",
+            //                    "network_list": [
+            //                        {
+            //                            "network_id": "CRONOS",
+            //                            "withdrawal_fee": "0.20000000",
+            //                            "withdraw_enabled": true,
+            //                            "min_withdrawal_amount": "0.4",
+            //                            "deposit_enabled": true,
+            //                            "confirmation_required": "0"
+            //                        },
+            //                        {
+            //                            "network_id": "ETH",
+            //                            "withdrawal_fee": "5.00000000",
+            //                            "withdraw_enabled": true,
+            //                            "min_withdrawal_amount": "10.0",
+            //                            "deposit_enabled": true,
+            //                            "confirmation_required": "0"
+            //                        }
+            //                    ]
+            //                },
+            //                ...
+            //             }
+            //         }
+            //     }
+            //
+            const resultData = this.safeValue (response, 'result', {});
+            currenciesData = this.safeValue (resultData, 'currency_map', {});
+        } else {
+            try {
+                // @ts-ignore
+                response = await this.webApiPublicGetCommonSupportedCoins (params);
+            } catch (e) {
+                response = {};
+            }
+            //
+            //     {
+            //       "code": "0",
+            //       "msg": "Success",
+            //       "data": {
+            //         "lastUpdatedAt": 1686817296000,
+            //         "symbols": {
+            //             "AGLD": {
+            //               "withdrawal_decimals": 8,
+            //               "fullName": "Adventure Gold",
+            //               "networks": [
+            //                 {
+            //                   "minWithdrawalAmount": "10",
+            //                   "address_type": "basic",
+            //                   "withdraw_open": 1,
+            //                   "deposit_open": 1,
+            //                   "withdrawalFees": "5",
+            //                   "confirmation": 64,
+            //                   "is_xapp_released": 1,
+            //                   "is_public_release": 1,
+            //                   "address_max_length": 256,
+            //                   "address_pattern": "^.*",
+            //                   "networkDisplayName": "ERC20",
+            //                   "network": "ETH"
+            //                 },
+            //                 {
+            //                   "minWithdrawalAmount": "0.4",
+            //                   "address_type": "basic",
+            //                   "withdraw_open": 1,
+            //                   "deposit_open": 1,
+            //                   "withdrawalFees": "0.2",
+            //                   "confirmation": 1,
+            //                   "is_xapp_released": 1,
+            //                   "is_public_release": 1,
+            //                   "address_max_length": 256,
+            //                   "address_pattern": "^.*",
+            //                   "networkDisplayName": "Cronos",
+            //                   "network": "CRONOS"
+            //                 }
+            //               ]
+            //             },
+            //             ...
+            //         }
+            //       }
+            //     }
+            //
+            const resultData = this.safeValue (response, 'data', {});
+            currenciesData = this.safeValue (resultData, 'symbols', {});
+        }
+        const result = {};
+        const keys = Object.keys (currenciesData);
+        for (let i = 0; i < keys.length; i++) {
+            const key = keys[i];
+            const entry = currenciesData[key];
+            const currencyId = key;
+            const code = this.safeCurrencyCode (currencyId);
+            const networkList = this.safeValue2 (entry, 'network_list', 'networks', []);
+            let depositEnabled = undefined;
+            let withdrawEnabled = undefined;
+            let feeFound = undefined;
+            let minWithdrawFound = undefined;
+            const networks = {};
+            let withdrawPrecision = this.safeString (entry, 'withdrawal_decimals');
+            const defaultNetworkId = this.safeString (entry, 'default_network');
+            if (withdrawPrecision === undefined) {
+                // todo: precision info is present only in their "public" endpoint, so for "private" endpoint we add this till they fix their response
+                // for USDT & GUSD precision is 2, for most other coins it's 6,7,8 (only several coins have 4). So, assume 6 as default, to cover most of the cases
+                withdrawPrecision = this.inArray (code, [ 'USDT', 'GUSD' ]) ? '2' : '6';
+            }
+            for (let j = 0; j < networkList.length; j++) {
+                const chainEntry = networkList[j];
+                const networkId = this.safeString2 (chainEntry, 'network_id', 'network');
+                const networkCode = this.networkIdToCode (networkId);
+                const isDefaultNetwork = defaultNetworkId === networkId;
+                const feeNetwork = this.safeNumber2 (chainEntry, 'withdrawal_fee', 'withdrawalFees');
+                let withdraw = this.safeValue (chainEntry, 'withdraw_enabled');
+                if (withdraw === undefined) {
+                    withdraw = this.safeInteger (chainEntry, 'withdraw_open') === 1;
+                }
+                let deposit = this.safeValue (chainEntry, 'deposit_enabled');
+                if (deposit === undefined) {
+                    deposit = this.safeInteger (chainEntry, 'deposit_open') === 1;
+                }
+                const minWithdraw = this.safeNumber2 (chainEntry, 'min_withdrawal_amount', 'minWithdrawalAmount');
+                const isMemoType = this.safeString (chainEntry, 'address_type', '') === 'memo';
+                networks[networkCode] = {
+                    'info': chainEntry,
+                    'id': networkId,
+                    'network': networkCode,
+                    'active': undefined,
+                    'deposit': deposit,
+                    'withdraw': withdraw,
+                    'fee': feeNetwork,
+                    'precision': undefined,
+                    'limits': {
+                        'deposit': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
+                        'withdraw': {
+                            'min': minWithdraw,
+                            'max': undefined,
+                        },
+                    },
+                    'name': this.safeString (chainEntry, 'networkDisplayName'),
+                    'memoRequired': isMemoType ? true : undefined, // because of vague values, don't set false
+                    'isDefault': isDefaultNetwork,
+                };
+                if (depositEnabled !== undefined || deposit) {
+                    depositEnabled = deposit;
+                }
+                if (withdrawEnabled !== undefined || withdraw) {
+                    withdrawEnabled = withdraw;
+                }
+                if (feeFound === undefined || feeNetwork < feeFound) {
+                    feeFound = feeNetwork;
+                }
+                if (minWithdrawFound === undefined || minWithdraw < minWithdrawFound) {
+                    minWithdrawFound = minWithdraw;
+                }
+            }
+            result[code] = {
+                'info': entry,
+                'id': currencyId,
+                'code': code,
+                'active': undefined,
+                'deposit': depositEnabled,
+                'withdraw': withdrawEnabled,
+                'fee': feeFound,
+                'name': this.safeString2 (entry, 'full_name', 'fullName'),
+                'limits': {
+                    'deposit': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'withdraw': {
+                        'min': minWithdrawFound,
+                        'max': undefined,
+                    },
+                },
+                'precision': this.parseNumber (this.parsePrecision (withdrawPrecision)),
+                'networks': networks,
+            };
+        }
+        return result;
     }
 
     async fetchMarkets (params = {}): Promise<Market[]> {
