@@ -17,6 +17,7 @@ echo ""
 if [ "$HEAD_LOCAL" != "$HEAD_REMOTE" ]; then
     echo "HEAD CHANGED, ABORTING BUILD!"
     echo ""
+    sleep 0.1
     exit 1
 fi
 
