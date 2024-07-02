@@ -2574,6 +2574,10 @@ export default class Exchange {
         this.createNetworksByIdObject ();
     }
 
+    orderbookChecksumMessage (symbol:Str) {
+        return symbol + ' : ' + 'incoming orderbook data checksum/nonce validation failed. You can make your own reconnection logic or temporarily you can mute the error by setting exhcange.options["watchOrderBook"]["checksum"] = false';
+    }
+
     createNetworksByIdObject () {
         // automatically generate network-id-to-code mappings
         const networkIdsToCodesGenerated = this.invertFlatStringDictionary (this.safeValue (this.options, 'networks', {})); // invert defined networks dictionary

@@ -44,7 +44,9 @@ const errorHierarchy = {
                 'ExchangeNotAvailable': {
                     'OnMaintenance': {},
                 },
-                'InvalidNonce': {},
+                'InvalidNonce': {
+                    'InvalidOrderbookChecksum': {},
+                },
                 'RequestTimeout': {},
             },
         },
