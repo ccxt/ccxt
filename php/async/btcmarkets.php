@@ -388,7 +388,8 @@ class btcmarkets extends Exchange {
             //             "minOrderAmount":"0.00007",
             //             "maxOrderAmount":"1000000",
             //             "amountDecimals":"8",
-            //             "priceDecimals":"2"
+            //             "priceDecimals":"2",
+            //             "status" => "Online"
             //         }
             //     )
             //
@@ -407,6 +408,7 @@ class btcmarkets extends Exchange {
         $pricePrecision = $this->parse_number($this->parse_precision($this->safe_string($market, 'priceDecimals')));
         $minAmount = $this->safe_number($market, 'minOrderAmount');
         $maxAmount = $this->safe_number($market, 'maxOrderAmount');
+        $status = $this->safe_string($market, 'status');
         $minPrice = null;
         if ($quote === 'AUD') {
             $minPrice = $pricePrecision;
@@ -426,7 +428,7 @@ class btcmarkets extends Exchange {
             'swap' => false,
             'future' => false,
             'option' => false,
-            'active' => null,
+            'active' => ($status === 'Online'),
             'contract' => false,
             'linear' => null,
             'inverse' => null,

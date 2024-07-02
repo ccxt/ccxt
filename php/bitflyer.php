@@ -584,7 +584,13 @@ class bitflyer extends Exchange {
             'product_code' => $this->market_id($symbol),
             'child_order_acceptance_id' => $id,
         );
-        return $this->privatePostCancelchildorder ($this->extend($request, $params));
+        $response = $this->privatePostCancelchildorder ($this->extend($request, $params));
+        //
+        //    200 OK.
+        //
+        return $this->safe_order(array(
+            'info' => $response,
+        ));
     }
 
     public function parse_order_status(?string $status) {

@@ -17,6 +17,7 @@ from ccxt.test.base.test_datetime import test_datetime  # noqa E402
 from ccxt.test.base.test_cryptography import test_cryptography  # noqa E402
 from ccxt.test.base.test_extend import test_extend  # noqa E402
 from ccxt.test.base.test_language_specific import test_language_specific  # noqa E402
+from ccxt.test.base.test_safe_methods import test_safe_methods  # noqa E402
 
 def base_tests_init():
     test_language_specific()
@@ -24,3 +25,4 @@ def base_tests_init():
     test_cryptography()
     test_datetime()
     test_number()
+    test_safe_methods()

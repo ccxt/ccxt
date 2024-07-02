@@ -17,11 +17,9 @@ from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheByTimestamp, 
 
 
 
+
 def equals(a, b):
     return a == b
-
-
-
 
 # ----------------------------------------------------------------------------
 def test_ws_cache():

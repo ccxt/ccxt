@@ -13,5 +13,6 @@ public partial class BaseTest
             testCryptography();
             testDatetime();
             testNumber();
+            testSafeMethods();
         }
 }

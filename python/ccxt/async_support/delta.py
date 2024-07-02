@@ -1946,7 +1946,11 @@ class delta(Exchange, ImplicitAPI):
         #         "success":true
         #     }
         #
-        return response
+        return [
+            self.safe_order({
+                'info': response,
+            }),
+        ]
 
     async def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """

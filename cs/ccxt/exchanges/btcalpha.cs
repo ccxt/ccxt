@@ -1014,23 +1014,13 @@ public partial class btcalpha : Exchange
         //     {"date":1570599531.4814300537,"error":"Out of balance -9.99243661 BTC"}
         //
         object error = this.safeString(response, "error");
-        object feedback = add(add(this.id, " "), body);
         if (isTrue(!isEqual(error, null)))
         {
+            object feedback = add(add(this.id, " "), body);
             this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), error, feedback);
             this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), error, feedback);
+            throw new ExchangeError ((string)feedback) ;
         }
-        if (isTrue(isTrue(isEqual(code, 401)) || isTrue(isEqual(code, 403))))
-        {
-            throw new AuthenticationError ((string)feedback) ;
-        } else if (isTrue(isEqual(code, 429)))
-        {
-            throw new DDoSProtection ((string)feedback) ;
-        }
-        if (isTrue(isLessThan(code, 400)))
-        {
-            return null;
-        }
-        throw new ExchangeError ((string)feedback) ;
+        return null;
     }
 }

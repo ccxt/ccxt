@@ -601,7 +601,7 @@ public partial class hyperliquid : Exchange
             { "limits", new Dictionary<string, object>() {
                 { "leverage", new Dictionary<string, object>() {
                     { "min", null },
-                    { "max", null },
+                    { "max", this.safeInteger(market, "maxLeverage") },
                 } },
                 { "amount", new Dictionary<string, object>() {
                     { "min", null },

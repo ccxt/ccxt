@@ -56,6 +56,7 @@ interface Exchange {
     privateGetMarketOrderbookLevel3 (params?: {}): Promise<implicitReturnType>;
     privateGetHfOrdersActive (params?: {}): Promise<implicitReturnType>;
     privateGetHfOrdersActiveSymbols (params?: {}): Promise<implicitReturnType>;
+    privateGetHfMarginOrderActiveSymbols (params?: {}): Promise<implicitReturnType>;
     privateGetHfOrdersDone (params?: {}): Promise<implicitReturnType>;
     privateGetHfOrdersOrderId (params?: {}): Promise<implicitReturnType>;
     privateGetHfOrdersClientOrderClientOid (params?: {}): Promise<implicitReturnType>;
@@ -83,6 +84,7 @@ interface Exchange {
     privateGetMarginCurrencies (params?: {}): Promise<implicitReturnType>;
     privateGetRiskLimitStrategy (params?: {}): Promise<implicitReturnType>;
     privateGetIsolatedSymbols (params?: {}): Promise<implicitReturnType>;
+    privateGetMarginSymbols (params?: {}): Promise<implicitReturnType>;
     privateGetIsolatedAccountSymbol (params?: {}): Promise<implicitReturnType>;
     privateGetMarginBorrow (params?: {}): Promise<implicitReturnType>;
     privateGetMarginRepay (params?: {}): Promise<implicitReturnType>;
@@ -124,6 +126,7 @@ interface Exchange {
     privatePostRedeem (params?: {}): Promise<implicitReturnType>;
     privatePostLendPurchaseUpdate (params?: {}): Promise<implicitReturnType>;
     privatePostBulletPrivate (params?: {}): Promise<implicitReturnType>;
+    privatePostPositionUpdateUserLeverage (params?: {}): Promise<implicitReturnType>;
     privateDeleteSubApiKey (params?: {}): Promise<implicitReturnType>;
     privateDeleteWithdrawalsWithdrawalId (params?: {}): Promise<implicitReturnType>;
     privateDeleteHfOrdersOrderId (params?: {}): Promise<implicitReturnType>;

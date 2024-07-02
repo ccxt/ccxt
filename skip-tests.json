@@ -1713,6 +1713,15 @@
                 "currencyIdAndCode": "different",
                 "amount": "handled seperately",
                 "precision": "handled seperately"
+            },
+            "watchTrades": {
+                "side": "not set"
+            },
+            "watchOrderBook": {
+                "spread": "cross"
+            },
+            "watchOrderBookForSymbols": {
+                "spread": "same"
             }
         }
     }

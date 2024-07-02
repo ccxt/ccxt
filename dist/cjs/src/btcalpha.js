@@ -929,21 +929,13 @@ class btcalpha extends btcalpha$1 {
         //     {"date":1570599531.4814300537,"error":"Out of balance -9.99243661 BTC"}
         //
         const error = this.safeString(response, 'error');
-        const feedback = this.id + ' ' + body;
         if (error !== undefined) {
+            const feedback = this.id + ' ' + body;
             this.throwExactlyMatchedException(this.exceptions['exact'], error, feedback);
             this.throwBroadlyMatchedException(this.exceptions['broad'], error, feedback);
+            throw new errors.ExchangeError(feedback); // unknown error
         }
-        if (code === 401 || code === 403) {
-            throw new errors.AuthenticationError(feedback);
-        }
-        else if (code === 429) {
-            throw new errors.DDoSProtection(feedback);
-        }
-        if (code < 400) {
-            return undefined;
-        }
-        throw new errors.ExchangeError(feedback);
+        return undefined;
     }
 }
 

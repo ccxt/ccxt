@@ -593,7 +593,7 @@ class hyperliquid(Exchange, ImplicitAPI):
             'limits': {
                 'leverage': {
                     'min': None,
-                    'max': None,
+                    'max': self.safe_integer(market, 'maxLeverage'),
                 },
                 'amount': {
                     'min': None,
