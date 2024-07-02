@@ -4,6 +4,8 @@
 #
 .vs
 .vscode
+*.iml
+idea
 build/ccxt.wiki
 node_modules/
 npm-debug.log
