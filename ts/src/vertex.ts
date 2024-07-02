@@ -667,7 +667,10 @@ export default class vertex extends Exchange {
         let price = undefined;
         let amount = undefined;
         let side = undefined;
-        let fee = undefined;
+        const fee = {
+            'cost': this.parseNumber (this.convertFromX18 (this.safeString (trade, 'fee'))),
+            'currency': undefined,
+        };
         const id = this.safeString2 (trade, 'trade_id', 'submission_idx');
         const order = this.safeString (trade, 'digest');
         const timestamp = this.safeTimestamp (trade, 'timestamp');
@@ -684,10 +687,6 @@ export default class vertex extends Exchange {
             const subOrder = this.safeDict (trade, 'order', {});
             price = this.convertFromX18 (this.safeString (subOrder, 'priceX18'));
             amount = this.convertFromX18 (this.safeString (trade, 'base_filled'));
-            fee = {
-                'cost': this.parseNumber (this.convertFromX18 (this.safeString (trade, 'fee'))),
-                'currency': undefined,
-            };
             if (Precise.stringLt (amount, '0')) {
                 side = 'sell';
             } else {
