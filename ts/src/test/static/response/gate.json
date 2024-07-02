@@ -433,14 +433,19 @@
                         "cost": 5,
                         "filled": 0.07349286974419289,
                         "remaining": 0.000014922081740664,
-                        "fee": {
-                            "currency": "LTC",
-                            "cost": 0.000147
-                        },
+                        "fee": null,
                         "fees": [
+                            {
+                                "currency":"GT",
+                                "cost":0
+                            },
                             {
                                 "currency": "LTC",
                                 "cost": 0.000147
+                            },
+                            {
+                                "currency":"USDT",
+                                "cost":0
                             }
                         ],
                         "trades": [],
