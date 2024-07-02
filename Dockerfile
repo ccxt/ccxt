@@ -1,32 +1,20 @@
-FROM ubuntu:20.04
-
-# Supresses unwanted user interaction (like "Please select the geographic area" when installing tzdata)
-ENV DEBIAN_FRONTEND=noninteractive
+FROM alpine:3.16.7
 
 ADD ./ /ccxt
 WORKDIR /ccxt
 
-# Update packages (use us.archive.ubuntu.com instead of archive.ubuntu.com — solves the painfully slow apt-get update)
-RUN sed -i 's/archive\.ubuntu\.com/us\.archive\.ubuntu\.com/' /etc/apt/sources.list
-
 # Miscellaneous deps
-RUN apt-get update && apt-get install -y --no-install-recommends curl gnupg git ca-certificates
+RUN apk update && apk add curl gnupg git ca-certificates gmp-dev build-base
 # PHP
-RUN apt-get install -y software-properties-common && add-apt-repository -y ppa:ondrej/php
-RUN apt-get update && apt-get install -y --no-install-recommends php8.1 php8.1-curl php8.1-iconv php8.1-mbstring php8.1-bcmath php8.1-gmp
+RUN apk add php81 php81-curl php81-iconv php81-mbstring php81-bcmath php81-gmp php81-openssl php81-phar
+RUN ln -s /usr/bin/php81 /usr/bin/php
 # Node
-RUN apt-get update
-RUN apt-get install -y ca-certificates curl gnupg
-RUN mkdir -p /etc/apt/keyrings
-RUN curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | gpg --dearmor -o /etc/apt/keyrings/nodesource.gpg
-ENV NODE_MAJOR=20
-RUN echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_$NODE_MAJOR.x nodistro main" | tee /etc/apt/sources.list.d/nodesource.list
-RUN apt-get update && apt-get install -y nodejs
+RUN apk add nodejs npm
 # Python 3
-RUN apt-get update && apt-get install -y --no-install-recommends python3 python3-pip
+RUN apk add python3 python3-dev py3-pip libffi-dev
 RUN pip3 install 'idna==2.9' --force-reinstall
 RUN pip3 install --upgrade setuptools==65.7.0
-RUN pip3 install tox
+RUN pip3 install --ignore-installed tox
 RUN pip3 install aiohttp
 RUN pip3 install cryptography
 RUN pip3 install requests
@@ -45,9 +33,6 @@ RUN cd python \
     && cd ..
 ## Install composer and everything else that it needs and manages
 RUN /ccxt/composer-install.sh
-RUN apt-get update && apt-get install -y --no-install-recommends zip unzip php-zip
+RUN apk add zip unzip php81-zip
 RUN mv /ccxt/composer.phar /usr/local/bin/composer
 RUN composer install
-## Remove apt sources
-RUN apt-get -y autoremove && apt-get clean && apt-get autoclean \
-    && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
