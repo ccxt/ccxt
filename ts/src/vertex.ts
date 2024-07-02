@@ -685,7 +685,7 @@ export default class vertex extends Exchange {
             price = this.convertFromX18 (this.safeString (subOrder, 'priceX18'));
             amount = this.convertFromX18 (this.safeString (trade, 'base_filled'));
             fee = {
-                'cost': this.convertFromX18 (this.safeString (trade, 'fee')),
+                'cost': this.parseNumber (this.convertFromX18 (this.safeString (trade, 'fee'))),
                 'currency': undefined,
             };
             if (Precise.stringLt (amount, '0')) {
