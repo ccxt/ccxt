@@ -622,6 +622,7 @@ class gate extends gate$1 {
                 'createOrder': {
                     'expiration': 86400, // for conditional orders
                 },
+                'createMarketBuyOrderRequiresPrice': true,
                 'networks': {
                     'AVAXC': 'AVAX_C',
                     'BEP20': 'BSC',

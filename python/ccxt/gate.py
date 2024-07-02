@@ -640,6 +640,7 @@ class gate(Exchange, ImplicitAPI):
                 'createOrder': {
                     'expiration': 86400,  # for conditional orders
                 },
+                'createMarketBuyOrderRequiresPrice': True,
                 'networks': {
                     'AVAXC': 'AVAX_C',
                     'BEP20': 'BSC',
