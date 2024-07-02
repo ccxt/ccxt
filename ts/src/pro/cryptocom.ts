@@ -1037,7 +1037,7 @@ export default class cryptocom extends cryptocomRest {
                 'sig': signature,
             };
             const message = this.extend (request, params);
-            this.watch (url, messageHash, message, messageHash);
+            await this.watch (url, messageHash, message, messageHash);
         }
         return await future;
     }
