@@ -97,12 +97,15 @@ public static class Program
 
     public static void Main(string[] args)
     {
-
-        var file = File.ReadAllText(exchangesPath);
-        var converted = (dict)JsonHelper.Deserialize(file);
-        var ids = (list)converted["ids"];
-        List<string> strings = ids.Select(s => (string)s).ToList();
-        exchangesId = strings;
+        if (File.Exists(exchangesPath)) {
+            var file = File.ReadAllText(exchangesPath);
+            var converted = (dict)JsonHelper.Deserialize(file);
+            var ids = (list)converted["ids"];
+            List<string> strings = ids.Select(s => (string)s).ToList();
+            exchangesId = strings;
+        } else {
+            exchangesId = null;
+        }
 
         // if (true || args.Contains("--ws"))
         // {
@@ -127,7 +130,7 @@ public static class Program
         var methodName = args[1];
 
 
-        if (!exchangesId.Contains(exchangeName.ToLower()))
+        if (exchangesId != null && !exchangesId.Contains(exchangeName.ToLower()))
         {
             Helper.Red($"Exchange {exchangeName} not found!");
             return;
@@ -170,7 +173,7 @@ public static class Program
         // instance.setSandboxMode(true);
         try
         {
-            Console.WriteLine(JsonConvert.SerializeObject(parameters, Formatting.Indented));
+            // Console.WriteLine(JsonConvert.SerializeObject(parameters, Formatting.Indented));
             var task = instance.loadMarkets();
             task.Wait();
             if (verbose)
