@@ -591,7 +591,7 @@ class hyperliquid extends Exchange {
             'limits' => array(
                 'leverage' => array(
                     'min' => null,
-                    'max' => null,
+                    'max' => $this->safe_integer($market, 'maxLeverage'),
                 ),
                 'amount' => array(
                     'min' => null,

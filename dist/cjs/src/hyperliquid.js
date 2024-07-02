@@ -593,7 +593,7 @@ class hyperliquid extends hyperliquid$1 {
             'limits': {
                 'leverage': {
                     'min': undefined,
-                    'max': undefined,
+                    'max': this.safeInteger(market, 'maxLeverage'),
                 },
                 'amount': {
                     'min': undefined,
