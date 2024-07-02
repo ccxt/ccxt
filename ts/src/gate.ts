@@ -1148,8 +1148,8 @@ export default class gate extends Exchange {
         //        "leverage_min": "1",
         //        "leverage_max": "100",
         //        "risk_limit_max": "8000000",
-        //        "maker_fee_rate": "-0.00025",
-        //        "taker_fee_rate": "0.00075",
+        //        "maker_fee_rate": "-0.00025", // not actual value for regular users
+        //        "taker_fee_rate": "0.00075", // not actual value for regular users
         //        "funding_rate": "0.002053",
         //        "order_size_max": 1000000,
         //        "funding_next_apply": 1610035200,
@@ -1192,8 +1192,8 @@ export default class gate extends Exchange {
         //        "risk_limit_base": "140.726652109199",
         //        "risk_limit_step": "1000000",
         //        "risk_limit_max": "8000000",
-        //        "maker_fee_rate": "-0.00025",
-        //        "taker_fee_rate": "0.00075",
+        //        "maker_fee_rate": "-0.00025", // not actual value for regular users
+        //        "taker_fee_rate": "0.00075", // not actual value for regular users
         //        "ref_discount_rate": "0",
         //        "ref_rebate_rate": "0.2",
         //        "order_price_deviate": "0.5",
@@ -1231,8 +1231,6 @@ export default class gate extends Exchange {
         const maxMultiplier = Precise.stringAdd ('1', priceDeviate);
         const minPrice = Precise.stringMul (minMultiplier, markPrice);
         const maxPrice = Precise.stringMul (maxMultiplier, markPrice);
-        const takerPercent = this.safeString (market, 'taker_fee_rate');
-        const makerPercent = this.safeString (market, 'maker_fee_rate', takerPercent);
         const isLinear = quote === settle;
         return {
             'id': id,
@@ -1253,8 +1251,8 @@ export default class gate extends Exchange {
             'contract': true,
             'linear': isLinear,
             'inverse': !isLinear,
-            'taker': this.parseNumber (Precise.stringDiv (takerPercent, '100')), // Fee is in %, so divide by 100
-            'maker': this.parseNumber (Precise.stringDiv (makerPercent, '100')),
+            'taker': undefined,
+            'maker': undefined,
             'contractSize': this.safeNumber (market, 'quanto_multiplier'),
             'expiry': expiry,
             'expiryDatetime': this.iso8601 (expiry),
@@ -1354,8 +1352,6 @@ export default class gate extends Exchange {
                 const maxMultiplier = Precise.stringAdd ('1', priceDeviate);
                 const minPrice = Precise.stringMul (minMultiplier, markPrice);
                 const maxPrice = Precise.stringMul (maxMultiplier, markPrice);
-                const takerPercent = this.safeString (market, 'taker_fee_rate');
-                const makerPercent = this.safeString (market, 'maker_fee_rate', takerPercent);
                 result.push ({
                     'id': id,
                     'symbol': symbol,
@@ -1375,8 +1371,8 @@ export default class gate extends Exchange {
                     'contract': true,
                     'linear': true,
                     'inverse': false,
-                    'taker': this.parseNumber (Precise.stringDiv (takerPercent, '100')), // Fee is in %, so divide by 100
-                    'maker': this.parseNumber (Precise.stringDiv (makerPercent, '100')),
+                    'taker': undefined,
+                    'maker': undefined,
                     'contractSize': this.parseNumber ('1'),
                     'expiry': expiry,
                     'expiryDatetime': this.iso8601 (expiry),
