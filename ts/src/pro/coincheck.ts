@@ -167,7 +167,7 @@ export default class coincheck extends coincheckRest {
         client.resolve (stored, messageHash);
     }
 
-    parseWsTrade (trade, market: Market = undefined): Trade {
+    parseWsTrade (trade: Dict, market: Market = undefined): Trade {
         //
         //     [
         //         "1663318663", // transaction timestamp (unix time)
