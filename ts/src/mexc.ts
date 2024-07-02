@@ -798,24 +798,24 @@ export default class mexc extends Exchange {
             'commonCurrencies': {
                 'BEYONDPROTOCOL': 'BEYOND',
                 'BIFI': 'BIFIF',
-                'BYN': 'BeyondFi',
+                'BYN': 'BEYONDFI',
                 'COFI': 'COFIX', // conflict with CoinFi
-                'DFI': 'DfiStarter',
-                'DFT': 'dFuture',
+                'DFI': 'DFISTARTER',
+                'DFT': 'DFUTURE',
                 'DRK': 'DRK',
-                'EGC': 'Egoras Credit',
+                'EGC': 'EGORASCREDIT',
                 'FLUX1': 'FLUX', // switched places
                 'FLUX': 'FLUX1', // switched places
-                'FREE': 'FreeRossDAO', // conflict with FREE Coin
+                'FREE': 'FREEROSSDAO', // conflict with FREE Coin
                 'GAS': 'GASDAO',
                 'GASNEO': 'GAS',
-                'GMT': 'GMT Token', // Conflict with GMT (STEPN)
+                'GMT': 'GMTTOKEN', // Conflict with GMT (STEPN)
                 'STEPN': 'GMT', // Conflict with GMT Token
-                'HERO': 'Step Hero', // conflict with Metahero
-                'MIMO': 'Mimosa',
-                'PROS': 'Pros.Finance', // conflict with Prosper
-                'SIN': 'Sin City Token',
-                'SOUL': 'Soul Swap',
+                'HERO': 'STEPHERO', // conflict with Metahero
+                'MIMO': 'MIMOSA',
+                'PROS': 'PROSFINANCE', // conflict with Prosper
+                'SIN': 'SINCITYTOKEN',
+                'SOUL': 'SOULSWAP',
             },
             'exceptions': {
                 'exact': {
