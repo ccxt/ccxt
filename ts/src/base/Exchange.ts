@@ -4217,16 +4217,19 @@ export default class Exchange {
         this.last_request_body = request['body'];
         this.last_request_url = request['url'];
         let retries = undefined;
-        [ retries, params ] = this.handleOptionAndParams (params, path, 'maxRetriesOnFailure', 0);
+        [ retries, params ] = this.handleOptionAndParams (params, path, 'maxRetriesOnFailure', 1);
         let retryDelay = undefined;
         [ retryDelay, params ] = this.handleOptionAndParams (params, path, 'maxRetriesOnFailureDelay', 0);
-        for (let i = 0; i < retries + 1; i++) {
+        for (let i = 0; i < retries; i++) {
             try {
                 return await this.fetch (request['url'], request['method'], request['headers'], request['body']);
             } catch (e) {
                 if (e instanceof OperationFailed) {
                     if (i < retries) {
-                        if (retryDelay !== undefined) {
+                        if (this.verbose) {
+                            this.log ('Request failed with the error: ' + e.toString () + ', retrying...');
+                        }
+                        if ((retryDelay !== undefined) && (retryDelay !== 0)) {
                             await this.sleep (retryDelay);
                         }
                         continue;
