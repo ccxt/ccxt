@@ -108,21 +108,24 @@ const decimalToPrecision = (
     return _decimalToPrecision (x, roundingMode, numPrecisionDigits, countingMode, paddingMode);
 }
 
-const _decimalToPrecision = (
-    x: any,
-    roundingMode: number,
-    numPrecisionDigits: any,
-    countingMode: number = DECIMAL_PLACES,
-    paddingMode: number = NO_PADDING
-) => {
-    if (countingMode === TICK_SIZE) {
-        if (typeof numPrecisionDigits === 'string') {
-            numPrecisionDigits = parseFloat(numPrecisionDigits)
-        }
-        if (numPrecisionDigits <= 0) {
-            throw new Error ('TICK_SIZE cant be used with negative or zero numPrecisionDigits');
-        }
+const _decimalToPrecision = ( x: any, roundingMode: number, numPrecisionDigits: any, countingMode: number = DECIMAL_PLACES, paddingMode: number = NO_PADDING ) => {
+    assert (numPrecisionDigits !== undefined, 'numPrecisionDigits should not be undefined');
+
+    if (typeof numPrecisionDigits === 'string') {
+        numPrecisionDigits = parseFloat (numPrecisionDigits)
     }
+    assert (Number.isFinite (numPrecisionDigits), 'numPrecisionDigits has an invalid number');
+    if (countingMode === TICK_SIZE) {
+        assert (numPrecisionDigits > 0, 'negative or zero numPrecisionDigits can not be used with TICK_SIZE precisionMode');
+    } else {
+        assert (Number.isInteger (numPrecisionDigits), 'numPrecisionDigits must be an integer with DECIMAL_PLACES or SIGNIFICANT_DIGITS precisionMode');
+    }
+
+    assert((roundingMode === ROUND) || (roundingMode === TRUNCATE), 'invalid roundingMode provided');
+    assert(countingMode === DECIMAL_PLACES || countingMode === SIGNIFICANT_DIGITS || countingMode === TICK_SIZE, 'invalid countingMode provided');
+    assert(paddingMode === NO_PADDING || paddingMode === PAD_WITH_ZERO, 'invalid paddingMode provided');
+    // end of checks
+
     if (numPrecisionDigits < 0) {
         const toNearest = Math.pow (10, -numPrecisionDigits);
         if (roundingMode === ROUND) {
