@@ -3394,7 +3394,7 @@ export default class Exchange {
             const fee = fees[i];
             const feeCurrencyCode = this.safeString (fee, 'currency');
             const keyForCode = feeCurrencyCode !== undefined ? feeCurrencyCode : i.toString ();
-            {
+            if (keyForCode !== undefined) {
                 const rate = this.safeString (fee, 'rate');
                 const cost = this.safeString (fee, 'cost');
                 if (cost === undefined) {
