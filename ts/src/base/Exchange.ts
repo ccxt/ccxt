@@ -3393,26 +3393,27 @@ export default class Exchange {
         for (let i = 0; i < fees.length; i++) {
             const fee = fees[i];
             const feeCurrencyCode = this.safeString (fee, 'currency');
-            if (feeCurrencyCode !== undefined) {
+            const keyForCode = feeCurrencyCode !== undefined ? feeCurrencyCode : i.toString ();
+            {
                 const rate = this.safeString (fee, 'rate');
                 const cost = this.safeString (fee, 'cost');
-                if (cost === undefined || Precise.stringEq (cost, '0') || Precise.stringEq (cost, '0.0')) {
-                    // omit zero cost fees
+                if (cost === undefined) {
+                    // omit undefined cost, as it does not make sense, however, don't omit '0' costs, as they still make sense
                     continue;
                 }
-                if (!(feeCurrencyCode in reduced)) {
-                    reduced[feeCurrencyCode] = {};
+                if (!(keyForCode in reduced)) {
+                    reduced[keyForCode] = {};
                 }
                 const rateKey = (rate === undefined) ? '' : rate;
-                if (rateKey in reduced[feeCurrencyCode]) {
-                    reduced[feeCurrencyCode][rateKey]['cost'] = Precise.stringAdd (reduced[feeCurrencyCode][rateKey]['cost'], cost);
+                if (rateKey in reduced[keyForCode]) {
+                    reduced[keyForCode][rateKey]['cost'] = Precise.stringAdd (reduced[keyForCode][rateKey]['cost'], cost);
                 } else {
-                    reduced[feeCurrencyCode][rateKey] = {
+                    reduced[keyForCode][rateKey] = {
                         'currency': feeCurrencyCode,
                         'cost': cost,
                     };
                     if (rate !== undefined) {
-                        reduced[feeCurrencyCode][rateKey]['rate'] = rate;
+                        reduced[keyForCode][rateKey]['rate'] = rate;
                     }
                 }
             }
