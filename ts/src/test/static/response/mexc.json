@@ -149,7 +149,12 @@
                             "isSelfTrade": false,
                             "clientOrderId": null
                         },
-                        "fees": []
+                        "fees": [
+                            {
+                                "currency":"USDT",
+                                "cost":0
+                            }
+                        ]
                     }
                 ]
             }
