@@ -1305,7 +1305,7 @@ export default class btcmarkets extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    handleErrors (httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response, requestHeaders, requestBody) {
+    handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response, requestHeaders, requestBody) {
         if (response === undefined) {
             return undefined; // fallback to default error handler
         }
@@ -1313,12 +1313,12 @@ export default class btcmarkets extends Exchange {
         //     {"code":"UnAuthorized","message":"invalid access token"}
         //     {"code":"MarketNotFound","message":"invalid marketId"}
         //
-        const code = this.safeString (response, 'code');
+        const errorCode = this.safeString (response, 'code');
         const message = this.safeString (response, 'message');
-        if (code !== undefined) {
+        if (errorCode !== undefined) {
             const feedback = this.id + ' ' + body;
             this.throwExactlyMatchedException (this.exceptions['exact'], message, feedback);
-            this.throwExactlyMatchedException (this.exceptions['exact'], code, feedback);
+            this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, feedback);
             this.throwBroadlyMatchedException (this.exceptions['broad'], message, feedback);
             throw new ExchangeError (feedback); // unknown message
         }
