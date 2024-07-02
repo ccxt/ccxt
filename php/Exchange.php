@@ -4638,7 +4638,29 @@ class Exchange {
         $this->last_request_headers = $request['headers'];
         $this->last_request_body = $request['body'];
         $this->last_request_url = $request['url'];
-        return $this->fetch($request['url'], $request['method'], $request['headers'], $request['body']);
+        $retries = null;
+        list($retries, $params) = $this->handle_option_and_params($params, $path, 'maxRetriesOnFailure', 0);
+        $retryDelay = null;
+        list($retryDelay, $params) = $this->handle_option_and_params($params, $path, 'maxRetriesOnFailureDelay', 0);
+        for ($i = 0; $i < $retries + 1; $i++) {
+            try {
+                return $this->fetch($request['url'], $request['method'], $request['headers'], $request['body']);
+            } catch (Exception $e) {
+                if ($e instanceof NetworkError) {
+                    if ($i < $retries) {
+                        if ($this->verbose) {
+                            $this->log('Request failed with the error => ' . (string) $e . ', retrying...');
+                        }
+                        if (($retryDelay !== null) && ($retryDelay !== 0)) {
+                            $this->sleep($retryDelay);
+                        }
+                        continue;
+                    }
+                }
+                throw $e;
+            }
+        }
+        return null; // this line is never reached, but exists for c# value return requirement
     }
 
     public function request($path, mixed $api = 'public', $method = 'GET', $params = array (), mixed $headers = null, mixed $body = null, $config = array ()) {
