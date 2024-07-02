@@ -252,7 +252,7 @@ export default class alpaca extends Exchange {
                     'GNSS', // Genesis
                     'ERSX', // ErisX
                 ],
-                'defaultTimeInForce': 'gtc', // fok, gtc, ioc
+                'defaultTimeInForce': 'gtc', // gtc, ioc
                 'clientOrderId': 'ccxt_{id}',
             },
             'exceptions': {
@@ -725,8 +725,13 @@ export default class alpaca extends Exchange {
             request['limit_price'] = this.priceToPrecision (symbol, price);
         }
         const defaultTIF = this.safeString (this.options, 'defaultTimeInForce');
-        request['time_in_force'] = this.safeString (params, 'timeInForce', defaultTIF);
-        params = this.omit (params, [ 'timeInForce', 'triggerPrice' ]);
+        const tif = this.safeString2 (params, 'timeInForce', 'time_in_force', defaultTIF);
+        const postOnly = this.safeValue (params, 'postOnly', tif === 'PO');
+        if (postOnly) {
+            throw new NotSupported (this.id + ' createOrder() does not support postOnly orders');
+        }
+        request['time_in_force'] = tif;
+        params = this.omit (params, [ 'postOnly', 'timeInForce', 'time_in_force', 'triggerPrice' ]);
         const clientOrderIdprefix = this.safeString (this.options, 'clientOrderId');
         const uuid = this.uuid ();
         const parts = uuid.split ('-');
