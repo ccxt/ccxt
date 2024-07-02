@@ -424,6 +424,7 @@ class Exchange {
         'btcmarkets',
         'btcturk',
         'bybit',
+        'bytex',
         'cex',
         'coinbase',
         'coinbaseadvanced',
