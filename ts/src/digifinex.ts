@@ -1305,15 +1305,15 @@ export default class digifinex extends Exchange {
             takerOrMaker = isMaker ? 'maker' : 'taker';
         }
         let fee = undefined;
-        const feeCostString = this.safeString (trade, 'fee');
-        if (feeCostString !== undefined) {
+        const feeCost = this.safeNumber (trade, 'fee');
+        if (feeCost !== undefined) {
             const feeCurrencyId = this.safeString (trade, 'fee_currency');
             let feeCurrencyCode = undefined;
             if (feeCurrencyId !== undefined) {
                 feeCurrencyCode = this.safeCurrencyCode (feeCurrencyId);
             }
             fee = {
-                'cost': feeCostString,
+                'cost': feeCost,
                 'currency': feeCurrencyCode,
             };
         }

@@ -3288,13 +3288,15 @@ export default class Exchange {
             }
             cost = Precise.stringMul (multiplyPrice, amount);
         }
-        const parseFee = this.safeValue (trade, 'fee') === undefined;
-        const parseFees = this.safeValue (trade, 'fees') === undefined;
-        const shouldParseFees = parseFee || parseFees;
-        const fees = [];
-        const fee = this.safeValue (trade, 'fee');
+        const fee = this.safeDict (trade, 'fee');
+        const fees = this.safeList (trade, 'fees');
+        const feeDefined = fee !== undefined;
+        const feesDefined = fees !== undefined;
+        // parsing only if one of them is undefined (if both of them is undefined, then there is nothing to parse)
+        const shouldParseFees = (feeDefined && !feesDefined) || (!feeDefined && feesDefined);
         if (shouldParseFees) {
-            const reducedFees = this.reduceFees ? this.reduceFeesByCurrency (fees) : fees;
+            const feesTemp = (fees !== undefined) ? fees : [ fee ];
+            const reducedFees = this.reduceFees ? this.reduceFeesByCurrency (feesTemp) : feesTemp;
             const reducedLength = reducedFees.length;
             for (let i = 0; i < reducedLength; i++) {
                 reducedFees[i]['cost'] = this.safeNumber (reducedFees[i], 'cost');
@@ -3302,29 +3304,15 @@ export default class Exchange {
                     reducedFees[i]['rate'] = this.safeNumber (reducedFees[i], 'rate');
                 }
             }
-            if (!parseFee && (reducedLength === 0)) {
-                // copy fee to avoid modification by reference
-                const feeCopy = this.deepExtend (fee);
-                feeCopy['cost'] = this.safeNumber (feeCopy, 'cost');
-                if ('rate' in feeCopy) {
-                    feeCopy['rate'] = this.safeNumber (feeCopy, 'rate');
-                }
-                reducedFees.push (feeCopy);
-            }
-            if (parseFees) {
+            if (!feesDefined) {
                 trade['fees'] = reducedFees;
             }
-            if (parseFee && (reducedLength === 1)) {
+            if (!feeDefined && (reducedLength === 1)) {
                 trade['fee'] = reducedFees[0];
             }
-            const tradeFee = this.safeValue (trade, 'fee');
-            if (tradeFee !== undefined) {
-                tradeFee['cost'] = this.safeNumber (tradeFee, 'cost');
-                if ('rate' in tradeFee) {
-                    tradeFee['rate'] = this.safeNumber (tradeFee, 'rate');
-                }
-                trade['fee'] = tradeFee;
-            }
+        }
+        if (!('fees' in trade)) {
+            trade['fees'] = [];
         }
         trade['amount'] = this.parseNumber (amount);
         trade['price'] = this.parseNumber (price);
@@ -3407,26 +3395,27 @@ export default class Exchange {
         for (let i = 0; i < fees.length; i++) {
             const fee = fees[i];
             const feeCurrencyCode = this.safeString (fee, 'currency');
-            if (feeCurrencyCode !== undefined) {
+            const keyForCode = feeCurrencyCode !== undefined ? feeCurrencyCode : i.toString ();
+            {
                 const rate = this.safeString (fee, 'rate');
-                const cost = this.safeValue (fee, 'cost');
-                if (Precise.stringEq (cost, '0')) {
-                    // omit zero cost fees
+                const cost = this.safeString (fee, 'cost');
+                if (cost === undefined) {
+                    // omit undefined cost, as it does not make sense, however, don't omit '0' costs, as they still make sense
                     continue;
                 }
-                if (!(feeCurrencyCode in reduced)) {
-                    reduced[feeCurrencyCode] = {};
+                if (!(keyForCode in reduced)) {
+                    reduced[keyForCode] = {};
                 }
                 const rateKey = (rate === undefined) ? '' : rate;
-                if (rateKey in reduced[feeCurrencyCode]) {
-                    reduced[feeCurrencyCode][rateKey]['cost'] = Precise.stringAdd (reduced[feeCurrencyCode][rateKey]['cost'], cost);
+                if (rateKey in reduced[keyForCode]) {
+                    reduced[keyForCode][rateKey]['cost'] = Precise.stringAdd (reduced[keyForCode][rateKey]['cost'], cost);
                 } else {
-                    reduced[feeCurrencyCode][rateKey] = {
+                    reduced[keyForCode][rateKey] = {
                         'currency': feeCurrencyCode,
                         'cost': cost,
                     };
                     if (rate !== undefined) {
-                        reduced[feeCurrencyCode][rateKey]['rate'] = rate;
+                        reduced[keyForCode][rateKey]['rate'] = rate;
                     }
                 }
             }

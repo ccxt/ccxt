@@ -1091,14 +1091,12 @@
                         "cost": 65.2965,
                         "fee": {
                             "cost": 0.0326,
-                            "currency": "USDT",
-                            "rate": null
+                            "currency": "USDT"
                         },
                         "fees": [
                             {
                                 "cost": 0.0326,
-                                "currency": "USDT",
-                                "rate": null
+                                "currency": "USDT"
                             }
                         ]
                     }
@@ -1162,14 +1160,12 @@
                         "cost": 7.5562000000000005,
                         "fee": {
                             "cost": 0.0001,
-                            "currency": "LTC",
-                            "rate": null
+                            "currency": "LTC"
                         },
                         "fees": [
                             {
                                 "cost": 0.0001,
-                                "currency": "LTC",
-                                "rate": null
+                                "currency": "LTC"
                             }
                         ]
                     }
@@ -1410,16 +1406,9 @@
                         "cost": 7048.5329088,
                         "fee": {
                             "cost": null,
-                            "currency": null,
-                            "rate": null
+                            "currency": null
                         },
-                        "fees": [
-                            {
-                                "cost": null,
-                                "currency": null,
-                                "rate": null
-                            }
-                        ]
+                        "fees": []
                     }
                 ]
             }

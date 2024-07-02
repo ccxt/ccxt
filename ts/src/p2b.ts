@@ -652,7 +652,7 @@ export default class p2b extends Exchange {
             'cost': this.safeString (trade, 'deal'),
             'fee': {
                 'currency': market['quote'],
-                'cost': this.safeString2 (trade, 'fee', 'deal_fee'),
+                'cost': this.safeNumber2 (trade, 'fee', 'deal_fee'),
             },
         }, market);
     }

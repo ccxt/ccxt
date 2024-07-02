@@ -1329,7 +1329,7 @@ export default class hitbtc extends Exchange {
         market = this.safeMarket (marketId, market);
         const symbol = market['symbol'];
         let fee = undefined;
-        const feeCostString = this.safeString (trade, 'fee');
+        const feeCost = this.safeNumber (trade, 'fee');
         const taker = this.safeValue (trade, 'taker');
         let takerOrMaker = undefined;
         if (taker !== undefined) {
@@ -1337,12 +1337,12 @@ export default class hitbtc extends Exchange {
         } else {
             takerOrMaker = 'taker'; // the only case when `taker` field is missing, is public fetchTrades and it must be taker
         }
-        if (feeCostString !== undefined) {
+        if (feeCost !== undefined) {
             const info = this.safeValue (market, 'info', {});
             const feeCurrency = this.safeString (info, 'fee_currency');
             const feeCurrencyCode = this.safeCurrencyCode (feeCurrency);
             fee = {
-                'cost': feeCostString,
+                'cost': feeCost,
                 'currency': feeCurrencyCode,
             };
         }

@@ -797,7 +797,7 @@ export default class huobijp extends Exchange {
         }
         if (feeCost !== undefined) {
             fee = {
-                'cost': feeCost,
+                'cost': this.parseNumber (feeCost),
                 'currency': feeCurrency,
             };
         }

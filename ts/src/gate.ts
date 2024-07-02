@@ -3460,9 +3460,9 @@ export default class gate extends Exchange {
         amountString = Precise.stringAbs (amountString);
         const side = this.safeString2 (trade, 'side', 'type', contractSide);
         const orderId = this.safeString (trade, 'order_id');
-        const feeAmount = this.safeString (trade, 'fee');
-        const gtFee = this.safeString (trade, 'gt_fee');
-        const pointFee = this.safeString (trade, 'point_fee');
+        const feeAmount = this.safeNumber (trade, 'fee');
+        const gtFee = this.omitZero (this.safeString (trade, 'gt_fee'));
+        const pointFee = this.omitZero (this.safeString (trade, 'point_fee'));
         const fees = [];
         if (feeAmount !== undefined) {
             const feeCurrencyId = this.safeString (trade, 'fee_currency');
@@ -3477,13 +3477,13 @@ export default class gate extends Exchange {
         }
         if (gtFee !== undefined) {
             fees.push ({
-                'cost': gtFee,
+                'cost': this.parseNumber (gtFee),
                 'currency': 'GT',
             });
         }
         if (pointFee !== undefined) {
             fees.push ({
-                'cost': pointFee,
+                'cost': this.parseNumber (pointFee),
                 'currency': 'GatePoint',
             });
         }

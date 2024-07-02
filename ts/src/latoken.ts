@@ -787,7 +787,7 @@ export default class latoken extends Exchange {
         }
         const id = this.safeString (trade, 'id');
         const orderId = this.safeString (trade, 'order');
-        const feeCost = this.safeString (trade, 'fee');
+        const feeCost = this.safeNumber (trade, 'fee');
         let fee = undefined;
         if (feeCost !== undefined) {
             fee = {

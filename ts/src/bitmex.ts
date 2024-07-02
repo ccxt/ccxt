@@ -1649,7 +1649,7 @@ export default class bitmex extends Exchange {
         if (feeCostString !== undefined) {
             const currencyId = this.safeString2 (trade, 'settlCurrency', 'currency');
             fee = {
-                'cost': feeCostString,
+                'cost': this.parseNumber (feeCostString),
                 'currency': this.safeCurrencyCode (currencyId),
                 'rate': this.safeString (trade, 'commission'),
             };

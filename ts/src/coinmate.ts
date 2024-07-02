@@ -739,10 +739,10 @@ export default class coinmate extends Exchange {
         const id = this.safeString (trade, 'transactionId');
         const timestamp = this.safeInteger2 (trade, 'timestamp', 'createdTimestamp');
         let fee = undefined;
-        const feeCostString = this.safeString (trade, 'fee');
-        if (feeCostString !== undefined) {
+        const feeCost = this.safeNumber (trade, 'fee');
+        if (feeCost !== undefined) {
             fee = {
-                'cost': feeCostString,
+                'cost': feeCost,
                 'currency': market['quote'],
             };
         }

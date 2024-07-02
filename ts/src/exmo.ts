@@ -1240,8 +1240,8 @@ export default class exmo extends Exchange {
         }
         const takerOrMaker = this.safeString (trade, 'exec_type', takerOrMakerDefault);
         let fee = undefined;
-        const feeCostString = this.safeString (trade, 'commission_amount');
-        if (feeCostString !== undefined) {
+        const feeCost = this.safeNumber (trade, 'commission_amount');
+        if (feeCost !== undefined) {
             const feeCurrencyId = this.safeString (trade, 'commission_currency');
             const feeCurrencyCode = this.safeCurrencyCode (feeCurrencyId);
             let feeRateString = this.safeString (trade, 'commission_percent');
@@ -1249,7 +1249,7 @@ export default class exmo extends Exchange {
                 feeRateString = Precise.stringDiv (feeRateString, '1000', 18);
             }
             fee = {
-                'cost': feeCostString,
+                'cost': feeCost,
                 'currency': feeCurrencyCode,
                 'rate': feeRateString,
             };

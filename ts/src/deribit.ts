@@ -1418,13 +1418,13 @@ export default class deribit extends Exchange {
             // M = maker, T = taker, MT = both
             takerOrMaker = (liquidity === 'M') ? 'maker' : 'taker';
         }
-        const feeCostString = this.safeString (trade, 'fee');
+        const feeCost = this.safeNumber (trade, 'fee');
         let fee = undefined;
-        if (feeCostString !== undefined) {
+        if (feeCost !== undefined) {
             const feeCurrencyId = this.safeString (trade, 'fee_currency');
             const feeCurrencyCode = this.safeCurrencyCode (feeCurrencyId);
             fee = {
-                'cost': feeCostString,
+                'cost': feeCost,
                 'currency': feeCurrencyCode,
             };
         }

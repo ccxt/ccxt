@@ -803,7 +803,7 @@ export default class upbit extends Exchange {
         const marketId = this.safeString2 (trade, 'market', 'code');
         market = this.safeMarket (marketId, market, '-');
         let fee = undefined;
-        const feeCost = this.safeString (trade, askOrBid + '_fee');
+        const feeCost = this.safeNumber (trade, askOrBid + '_fee');
         if (feeCost !== undefined) {
             fee = {
                 'currency': market['quote'],

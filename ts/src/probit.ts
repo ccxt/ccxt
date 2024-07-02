@@ -854,13 +854,13 @@ export default class probit extends Exchange {
         const priceString = this.safeString (trade, 'price');
         const amountString = this.safeString (trade, 'quantity');
         const orderId = this.safeString (trade, 'order_id');
-        const feeCostString = this.safeString (trade, 'fee_amount');
+        const feeCost = this.safeNumber (trade, 'fee_amount');
         let fee = undefined;
-        if (feeCostString !== undefined) {
+        if (feeCost !== undefined) {
             const feeCurrencyId = this.safeString (trade, 'fee_currency_id');
             const feeCurrencyCode = this.safeCurrencyCode (feeCurrencyId);
             fee = {
-                'cost': feeCostString,
+                'cost': feeCost,
                 'currency': feeCurrencyCode,
             };
         }

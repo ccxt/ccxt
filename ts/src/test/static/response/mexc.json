@@ -151,8 +151,8 @@
                         },
                         "fees": [
                             {
-                                "cost": 0,
-                                "currency": "USDT"
+                                "currency":"USDT",
+                                "cost":0
                             }
                         ]
                     }

@@ -1667,7 +1667,7 @@ export default class bitrue extends Exchange {
         let fee = undefined;
         if ('commission' in trade) {
             fee = {
-                'cost': this.safeString2 (trade, 'commission', 'fee'),
+                'cost': this.safeNumber2 (trade, 'commission', 'fee'),
                 'currency': this.safeCurrencyCode (this.safeString (trade, 'commissionAssert')),
             };
         }

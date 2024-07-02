@@ -48,12 +48,7 @@
                             "cost": null,
                             "currency": null
                         },
-                        "fees": [
-                            {
-                                "cost": null,
-                                "currency": null
-                            }
-                        ]
+                        "fees": []
                     }
                 ]
             }

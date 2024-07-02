@@ -679,11 +679,11 @@ export default class hollaex extends Exchange {
         const orderId = this.safeString (trade, 'order_id');
         const priceString = this.safeString (trade, 'price');
         const amountString = this.safeString (trade, 'size');
-        const feeCostString = this.safeString (trade, 'fee');
+        const feeCost = this.safeNumber (trade, 'fee');
         let fee = undefined;
-        if (feeCostString !== undefined) {
+        if (feeCost !== undefined) {
             fee = {
-                'cost': feeCostString,
+                'cost': feeCost,
                 'currency': market['quote'],
             };
         }

@@ -431,7 +431,7 @@ export default class coincheck extends Exchange {
             costString = this.safeString (funds, quoteId);
             fee = {
                 'currency': this.safeString (trade, 'fee_currency'),
-                'cost': this.safeString (trade, 'fee'),
+                'cost': this.safeNumber (trade, 'fee'),
             };
             side = this.safeString (trade, 'side');
             orderId = this.safeString (trade, 'order_id');

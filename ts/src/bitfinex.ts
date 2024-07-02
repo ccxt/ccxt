@@ -998,11 +998,11 @@ export default class bitfinex extends Exchange {
         const amountString = this.safeString (trade, 'amount');
         let fee = undefined;
         if ('fee_amount' in trade) {
-            const feeCostString = Precise.stringNeg (this.safeString (trade, 'fee_amount'));
+            const feeCost = this.parseNumber (Precise.stringNeg (this.safeString (trade, 'fee_amount')));
             const feeCurrencyId = this.safeString (trade, 'fee_currency');
             const feeCurrencyCode = this.safeCurrencyCode (feeCurrencyId);
             fee = {
-                'cost': feeCostString,
+                'cost': feeCost,
                 'currency': feeCurrencyCode,
             };
         }
