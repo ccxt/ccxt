@@ -2883,9 +2883,8 @@ export default class binance extends Exchange {
         for (let i = 0; i < fetchMarkets.length; i++) {
             const promise = this.safeDict (promises, i);
             if (Array.isArray (promise)) {
-                const firstElement = this.safeDict (promise, 0, {});
-                // only cross margin pairs have 'id'
-                if (this.safeString (firstElement, 'id') !== undefined) {
+                // first one is the cross-margin promise
+                if (this.options['crossMarginPairsData'] === undefined) {
                     this.options['crossMarginPairsData'] = this.indexBy (promise, 'symbol');
                 } else {
                     this.options['isolatedMarginPairsData'] = this.indexBy (promise, 'symbol');
