@@ -490,14 +490,22 @@
     "blockchaincom": {
         "skipMethods": {
             "loadMarkets": {
+                "currencyIdAndCode": "inexistent ones",
                 "taker":"not provided",
                 "maker":"not provided"
+            },
+            "fetchCurrencies": {
+                "currencyIdAndCode": "inexistent ones",
+                "deposit":"not provided",
+                "withdraw":"not provided",
+                "precision":"not provided"
             },
             "orderBook": {
                 "bid": "messed bid-ask sequence",
                 "nonce": "missing https://app.travis-ci.com/github/ccxt/ccxt/builds/267900037#L4517 and https://app.travis-ci.com/github/ccxt/ccxt/builds/267900037#L4562",
                 "timestamp": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269572350#L4601",
-                "compareToNextItem": "sometimes bid equals to next bid"            }
+                "compareToNextItem": "sometimes bid equals to next bid"
+            }
         }
     },
     "btcbox": {
