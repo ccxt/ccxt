@@ -909,7 +909,7 @@ export default class cex extends Exchange {
         //    }
         //
         const data = this.safeList (response, 'data', []);
-        const orders: Order[] = [];
+        const orders = [];
         for (let i = 0; i < data.length; i++) {
             orders.push (this.safeOrder ({
                 'id': data[i],
