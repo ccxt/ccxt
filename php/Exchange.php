@@ -2065,12 +2065,12 @@ class Exchange {
 
     public static function number_to_be($n, $padding) {
         $n = new BN($n);
-        return array_reduce(array_map('chr', $n->toArray('be', $padding)), 'static::binary_concat');
+        return array_reduce(array_map('chr', $n->toArray('be', $padding)),  [__CLASS__, 'binary_concat']);
     }
 
     public static function number_to_le($n, $padding) {
         $n = new BN($n);
-        return array_reduce(array_map('chr', $n->toArray('le', $padding)), 'static::binary_concat');
+        return array_reduce(array_map('chr', $n->toArray('le', $padding)),  [__CLASS__, 'binary_concat']);
     }
 
     public static function base58_to_binary($s) {
