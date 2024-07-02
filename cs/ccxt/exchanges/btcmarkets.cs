@@ -355,7 +355,8 @@ public partial class btcmarkets : Exchange
         //             "minOrderAmount":"0.00007",
         //             "maxOrderAmount":"1000000",
         //             "amountDecimals":"8",
-        //             "priceDecimals":"2"
+        //             "priceDecimals":"2",
+        //             "status": "Online"
         //         }
         //     ]
         //
@@ -374,6 +375,7 @@ public partial class btcmarkets : Exchange
         object pricePrecision = this.parseNumber(this.parsePrecision(this.safeString(market, "priceDecimals")));
         object minAmount = this.safeNumber(market, "minOrderAmount");
         object maxAmount = this.safeNumber(market, "maxOrderAmount");
+        object status = this.safeString(market, "status");
         object minPrice = null;
         if (isTrue(isEqual(quote, "AUD")))
         {
@@ -394,7 +396,7 @@ public partial class btcmarkets : Exchange
             { "swap", false },
             { "future", false },
             { "option", false },
-            { "active", null },
+            { "active", (isEqual(status, "Online")) },
             { "contract", false },
             { "linear", null },
             { "inverse", null },

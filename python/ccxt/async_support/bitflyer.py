@@ -566,7 +566,13 @@ class bitflyer(Exchange, ImplicitAPI):
             'product_code': self.market_id(symbol),
             'child_order_acceptance_id': id,
         }
-        return await self.privatePostCancelchildorder(self.extend(request, params))
+        response = await self.privatePostCancelchildorder(self.extend(request, params))
+        #
+        #    200 OK.
+        #
+        return self.safe_order({
+            'info': response,
+        })
 
     def parse_order_status(self, status: Str):
         statuses: dict = {

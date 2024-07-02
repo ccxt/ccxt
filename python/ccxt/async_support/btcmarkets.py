@@ -370,7 +370,8 @@ class btcmarkets(Exchange, ImplicitAPI):
         #             "minOrderAmount":"0.00007",
         #             "maxOrderAmount":"1000000",
         #             "amountDecimals":"8",
-        #             "priceDecimals":"2"
+        #             "priceDecimals":"2",
+        #             "status": "Online"
         #         }
         #     ]
         #
@@ -387,6 +388,7 @@ class btcmarkets(Exchange, ImplicitAPI):
         pricePrecision = self.parse_number(self.parse_precision(self.safe_string(market, 'priceDecimals')))
         minAmount = self.safe_number(market, 'minOrderAmount')
         maxAmount = self.safe_number(market, 'maxOrderAmount')
+        status = self.safe_string(market, 'status')
         minPrice = None
         if quote == 'AUD':
             minPrice = pricePrecision
@@ -405,7 +407,7 @@ class btcmarkets(Exchange, ImplicitAPI):
             'swap': False,
             'future': False,
             'option': False,
-            'active': None,
+            'active': (status == 'Online'),
             'contract': False,
             'linear': None,
             'inverse': None,

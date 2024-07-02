@@ -596,7 +596,7 @@ export default class hyperliquid extends Exchange {
             'limits': {
                 'leverage': {
                     'min': undefined,
-                    'max': undefined,
+                    'max': this.safeInteger(market, 'maxLeverage'),
                 },
                 'amount': {
                     'min': undefined,

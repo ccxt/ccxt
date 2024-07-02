@@ -625,6 +625,7 @@ export default class gate extends Exchange {
                 'createOrder': {
                     'expiration': 86400, // for conditional orders
                 },
+                'createMarketBuyOrderRequiresPrice': true,
                 'networks': {
                     'AVAXC': 'AVAX_C',
                     'BEP20': 'BSC',

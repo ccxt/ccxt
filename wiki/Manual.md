@@ -6540,6 +6540,7 @@ So, in such cases you will need to communicate a "CORS" proxy, which would redir
 
 # Error Handling
 
+- [Retry Mechanism](#retry-mechanism)
 - [Exception Hierarchy](#exception-hierarchy)
 - [ExchangeError](#exchangeerror)
 - [OperationFailed](#operationfailed)
@@ -6610,6 +6611,16 @@ try {
 }
 ```
 <!-- tabs:end -->
+
+## Retry Mechanism
+When dealing with HTTP requests, it's important to understand that requests might fail for various reasons. Common causes of these failures include the server being unavailable, network instability, or temporary server issues. To handle such scenarios gracefully, CCXT provide an option to automatically retry failed requests. You can set the value of `maxRetriesOnFailure` and `maxRetriesOnFailureDelay` to configure the number of retries and the delay between retries, example:
+
+```Python
+exchange.options['maxRetriesOnFailure'] = 3 # if we get an error like the ones mentioned above we will retry up to three times per request
+exchange.options['maxRetriesOnFailureDelay'] = 1000 # we will wait 1000ms (1s) between retries
+```
+
+It's important to highlight that only server/network-related issues will be part of the retry mechanism; if the user gets an error due to `InsufficientFunds` or `InvalidOrder,`  the request will not be repeated.
 
 ## Exception Hierarchy
 
@@ -6719,6 +6730,7 @@ An `OperationFailed` might happen when user sends **correctly constructed & vali
 Such exceptions are temporary and re-trying the request again might be enough. However, if the error still happens, then it may indicate some persistent problem with the exchange or with your connection.
 
 `OperationFailed` has the following sub-types: `RequestTimeout`,`DDoSProtection` (includes sub-type `RateLimitExceeded`),  `ExchangeNotAvailable`, `InvalidNonce`.
+
 
 #### DDoSProtection
 

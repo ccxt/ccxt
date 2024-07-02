@@ -24,6 +24,7 @@ import {
     NetworkError,
     NotSupported,
     NullResponse,
+    OperationFailed,
     ProxyError,
     RateLimitExceeded,
     RequestTimeout
@@ -204,6 +205,7 @@ const {
     safeValueN,
     seconds,
     SIGNIFICANT_DIGITS,
+    sleep,
     sortBy,
     sortBy2,
     stringToBase64,
@@ -290,9 +292,9 @@ export default class Exchange {
         [key: string]: any;
     };
 
-    throttleProp = undefined;
-
-    api = undefined;
+    api = undefined
+    sleep = sleep;
+    throttleProp = undefined
 
     // PROXY & USER-AGENTS (see "examples/proxy-usage" file for explanation)
     http_proxy: string;
@@ -4312,7 +4314,29 @@ export default class Exchange {
         this.last_request_headers = request['headers'];
         this.last_request_body = request['body'];
         this.last_request_url = request['url'];
-        return await this.fetch (request['url'], request['method'], request['headers'], request['body']);
+        let retries = undefined;
+        [ retries, params ] = this.handleOptionAndParams (params, path, 'maxRetriesOnFailure', 0);
+        let retryDelay = undefined;
+        [ retryDelay, params ] = this.handleOptionAndParams (params, path, 'maxRetriesOnFailureDelay', 0);
+        for (let i = 0; i < retries + 1; i++) {
+            try {
+                return await this.fetch (request['url'], request['method'], request['headers'], request['body']);
+            } catch (e) {
+                if (e instanceof NetworkError) {
+                    if (i < retries) {
+                        if (this.verbose) {
+                            this.log ('Request failed with the error: ' + e.toString () + ', retrying ' + (i + 1).toString () + ' of ' + retries.toString () + '...');
+                        }
+                        if ((retryDelay !== undefined) && (retryDelay !== 0)) {
+                            await this.sleep (retryDelay);
+                        }
+                        continue;
+                    }
+                }
+                throw e;
+            }
+        }
+        return undefined; // this line is never reached, but exists for c# value return requirement
     }
 
     async request (path, api: any = 'public', method = 'GET', params = {}, headers: any = undefined, body: any = undefined, config = {}) {

@@ -377,7 +377,8 @@ class btcmarkets extends btcmarkets$1 {
         //             "minOrderAmount":"0.00007",
         //             "maxOrderAmount":"1000000",
         //             "amountDecimals":"8",
-        //             "priceDecimals":"2"
+        //             "priceDecimals":"2",
+        //             "status": "Online"
         //         }
         //     ]
         //
@@ -394,6 +395,7 @@ class btcmarkets extends btcmarkets$1 {
         const pricePrecision = this.parseNumber(this.parsePrecision(this.safeString(market, 'priceDecimals')));
         const minAmount = this.safeNumber(market, 'minOrderAmount');
         const maxAmount = this.safeNumber(market, 'maxOrderAmount');
+        const status = this.safeString(market, 'status');
         let minPrice = undefined;
         if (quote === 'AUD') {
             minPrice = pricePrecision;
@@ -413,7 +415,7 @@ class btcmarkets extends btcmarkets$1 {
             'swap': false,
             'future': false,
             'option': false,
-            'active': undefined,
+            'active': (status === 'Online'),
             'contract': false,
             'linear': undefined,
             'inverse': undefined,

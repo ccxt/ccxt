@@ -612,6 +612,7 @@ public partial class gate : Exchange
                 { "createOrder", new Dictionary<string, object>() {
                     { "expiration", 86400 },
                 } },
+                { "createMarketBuyOrderRequiresPrice", true },
                 { "networks", new Dictionary<string, object>() {
                     { "AVAXC", "AVAX_C" },
                     { "BEP20", "BSC" },

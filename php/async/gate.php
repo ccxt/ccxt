@@ -631,6 +631,7 @@ class gate extends Exchange {
                 'createOrder' => array(
                     'expiration' => 86400, // for conditional orders
                 ),
+                'createMarketBuyOrderRequiresPrice' => true,
                 'networks' => array(
                     'AVAXC' => 'AVAX_C',
                     'BEP20' => 'BSC',
