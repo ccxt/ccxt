@@ -4224,7 +4224,7 @@ export default class Exchange {
             try {
                 return await this.fetch (request['url'], request['method'], request['headers'], request['body']);
             } catch (e) {
-                if (e instanceof OperationFailed) {
+                if (e instanceof NetworkError) {
                     if (i < retries) {
                         if (this.verbose) {
                             this.log ('Request failed with the error: ' + e.toString () + ', retrying...');
