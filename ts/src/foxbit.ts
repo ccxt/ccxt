@@ -22,6 +22,10 @@ export default class foxbit extends Exchange {
                     'https://docs.foxbit.com.br',
                 ],
             },
+            'requiredCredentials': {
+                'apiKey': true,
+                'secret': true,
+            },
             'api': {
                 'public': {
                     'get': [
@@ -37,6 +41,21 @@ export default class foxbit extends Exchange {
                 'fetchOrderBook': true,
                 'fetchCurrencies': true,
                 'fetchMarkets': true,
+            },
+            'timeframes': {
+                '1m': '1m',
+                '5m': '5m',
+                '15m': '15m',
+                '30m': '30m',
+                '1h': '1h',
+                '2h': '2h',
+                '4h': '4h',
+                '6h': '6h',
+                '12h': '12h',
+                '1d': '1d',
+                '1w': '1w',
+                '2w': '2w',
+                '1M': '1M',
             },
             'markets': {
                 'BTC/BRL': this.safeMarketStructure ({ 'id': 'btc', 'symbol': 'BTC/BRL', 'base': 'BTC', 'quote': 'BRL', 'baseId': 'btc', 'quoteId': 'brl', 'taker': this.parseNumber ('0.0005'), 'maker': this.parseNumber ('0.0005'), 'type': 'spot', 'spot': true }),
