@@ -710,6 +710,25 @@ export default class coinbase extends coinbaseRest {
         //
         return message;
     }
+    handleHeartbeats(client, message) {
+        // although the subscription takes a product_ids parameter (i.e. symbol),
+        // there is no (clear) way of mapping the message back to the symbol.
+        //
+        //     {
+        //         "channel": "heartbeats",
+        //         "client_id": "",
+        //         "timestamp": "2023-06-23T20:31:26.122969572Z",
+        //         "sequence_num": 0,
+        //         "events": [
+        //           {
+        //               "current_time": "2023-06-23 20:31:56.121961769 +0000 UTC m=+91717.525857105",
+        //               "heartbeat_counter": "3049"
+        //           }
+        //         ]
+        //     }
+        //
+        return message;
+    }
     handleMessage(client, message) {
         const channel = this.safeString(message, 'channel');
         const methods = {
@@ -719,6 +738,7 @@ export default class coinbase extends coinbaseRest {
             'market_trades': this.handleTrade,
             'user': this.handleOrder,
             'l2_data': this.handleOrderBook,
+            'heartbeats': this.handleHeartbeats,
         };
         const type = this.safeString(message, 'type');
         if (type === 'error') {
@@ -726,6 +746,8 @@ export default class coinbase extends coinbaseRest {
             throw new ExchangeError(errorMessage);
         }
         const method = this.safeValue(methods, channel);
-        method.call(this, client, message);
+        if (method) {
+            method.call(this, client, message);
+        }
     }
 }

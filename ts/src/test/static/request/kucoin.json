@@ -548,6 +548,34 @@
                   "ALT"
                 ]
             }
+        ],
+        "setLeverage": [
+            {
+                "description": "isolated",
+                "method": "setLeverage",
+                "url": "https://api.kucoin.com/api/v3/position/update-user-leverage",
+                "input": [
+                    4,
+                    "BTC/USDT",
+                    {
+                    "marginMode": "isolated"
+                    }
+                ],
+                "output": "{\"symbol\":\"BTC-USDT\",\"leverage\":\"4\",\"isIsolated\":true}"
+            },
+            {
+                "description": "cross",
+                "method": "setLeverage",
+                "url": "https://api.kucoin.com/api/v3/position/update-user-leverage",
+                "input": [
+                  4,
+                  null,
+                  {
+                    "marginMode": "cross"
+                  }
+                ],
+                "output": "{\"leverage\":\"4\",\"isIsolated\":false}"
+            }
         ]
     }
 }

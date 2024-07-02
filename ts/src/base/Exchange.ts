@@ -2415,7 +2415,7 @@ export default class Exchange {
         throw new NotSupported (this.id + ' parseBorrowInterest() is not supported yet');
     }
 
-    parseIsolatedBorrowRate (info, market: Market = undefined): IsolatedBorrowRate {
+    parseIsolatedBorrowRate (info: Dict, market: Market = undefined): IsolatedBorrowRate {
         throw new NotSupported (this.id + ' parseIsolatedBorrowRate() is not supported yet');
     }
 

@@ -138,7 +138,7 @@ class gate(ccxt.async_support.gate):
         :param str type: 'limit' or 'market' *"market" is contract only*
         :param str side: 'buy' or 'sell'
         :param float amount: the amount of currency to trade
-        :param float [price]: *ignored in "market" orders* the price at which the order is to be fullfilled at in units of the quote currency
+        :param float [price]: *ignored in "market" orders* the price at which the order is to be fulfilled at in units of the quote currency
         :param dict [params]:  extra parameters specific to the exchange API endpoint
         :param float [params.stopPrice]: The price at which a trigger order is triggered at
         :param str [params.timeInForce]: "GTC", "IOC", or "PO"
@@ -227,8 +227,8 @@ class gate(ccxt.async_support.gate):
         """
         await self.load_markets()
         market = None if (symbol is None) else self.market(symbol)
-        stop = self.safe_value_2(params, 'is_stop_order', 'stop', False)
-        params = self.omit(params, ['is_stop_order', 'stop'])
+        stop = self.safe_value_n(params, ['is_stop_order', 'stop', 'trigger'], False)
+        params = self.omit(params, ['is_stop_order', 'stop', 'trigger'])
         type, query = self.handle_market_type_and_params('cancelOrder', market, params)
         request, requestParams = self.spotOrderPrepareRequest(market, stop, query) if (type == 'spot' or type == 'margin') else self.prepareRequest(market, type, query)
         messageType = self.get_type_by_market(market)
@@ -249,7 +249,7 @@ class gate(ccxt.async_support.gate):
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
         :param float amount: how much of the currency you want to trade in units of the base currency
-        :param float [price]: the price at which the order is to be fullfilled, in units of the base currency, ignored in market orders
+        :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """

@@ -439,24 +439,26 @@ class hyperliquid extends Exchange {
         for ($i = 0; $i < count($meta); $i++) {
             $market = $this->safe_dict($meta, $i, array());
             $marketName = $this->safe_string($market, 'name');
-            if (mb_strpos($marketName, '/') === false) {
-                // there are some weird spot $markets in testnet, eg @2
-                continue;
-            }
-            $marketParts = explode('/', $marketName);
-            $baseName = $this->safe_string($marketParts, 0);
-            $quoteId = $this->safe_string($marketParts, 1);
-            $base = $this->safe_currency_code($baseName);
-            $quote = $this->safe_currency_code($quoteId);
-            $symbol = $base . '/' . $quote;
+            // if (mb_strpos($marketName, '/') === false) {
+            //     // there are some weird spot $markets in testnet, eg @2
+            //     continue;
+            // }
+            // $marketParts = explode('/', $marketName);
+            // $baseName = $this->safe_string($marketParts, 0);
+            // $quoteId = $this->safe_string($marketParts, 1);
             $fees = $this->safe_dict($this->fees, 'spot', array());
             $taker = $this->safe_number($fees, 'taker');
             $maker = $this->safe_number($fees, 'maker');
             $tokensPos = $this->safe_list($market, 'tokens', array());
             $baseTokenPos = $this->safe_integer($tokensPos, 0);
-            // $quoteTokenPos = $this->safe_integer($tokensPos, 1);
+            $quoteTokenPos = $this->safe_integer($tokensPos, 1);
             $baseTokenInfo = $this->safe_dict($tokens, $baseTokenPos, array());
-            // $quoteTokenInfo = $this->safe_dict($tokens, $quoteTokenPos, array());
+            $quoteTokenInfo = $this->safe_dict($tokens, $quoteTokenPos, array());
+            $baseName = $this->safe_string($baseTokenInfo, 'name');
+            $quoteId = $this->safe_string($quoteTokenInfo, 'name');
+            $base = $this->safe_currency_code($baseName);
+            $quote = $this->safe_currency_code($quoteId);
+            $symbol = $base . '/' . $quote;
             $innerBaseTokenInfo = $this->safe_dict($baseTokenInfo, 'spec', $baseTokenInfo);
             // $innerQuoteTokenInfo = $this->safe_dict($quoteTokenInfo, 'spec', $quoteTokenInfo);
             $amountPrecision = $this->parse_number($this->parse_precision($this->safe_string($innerBaseTokenInfo, 'szDecimals')));
@@ -589,7 +591,7 @@ class hyperliquid extends Exchange {
             'limits' => array(
                 'leverage' => array(
                     'min' => null,
-                    'max' => null,
+                    'max' => $this->safe_integer($market, 'maxLeverage'),
                 ),
                 'amount' => array(
                     'min' => null,
@@ -1017,7 +1019,7 @@ class hyperliquid extends Exchange {
          * @param {string} $type 'market' or 'limit'
          * @param {string} $side 'buy' or 'sell'
          * @param {float} $amount how much of currency you want to trade in units of base currency
-         * @param {float} [$price] the $price at which the $order is to be fullfilled, in units of the quote currency, ignored in $market orders
+         * @param {float} [$price] the $price at which the $order is to be fulfilled, in units of the quote currency, ignored in $market orders
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->timeInForce] 'Gtc', 'Ioc', 'Alo'
          * @param {bool} [$params->postOnly] true or false whether the $order is post-only
@@ -1152,7 +1154,7 @@ class hyperliquid extends Exchange {
             if ($clientOrderId !== null) {
                 $orderObj['c'] = $clientOrderId;
             }
-            $orderReq[] = $this->extend($orderObj, $orderParams);
+            $orderReq[] = $orderObj;
         }
         $vaultAddress = $this->format_vault_address($this->safe_string($params, 'vaultAddress'));
         $orderAction = array(
@@ -1175,7 +1177,7 @@ class hyperliquid extends Exchange {
             $params = $this->omit($params, 'vaultAddress');
             $request['vaultAddress'] = $vaultAddress;
         }
-        $response = $this->privatePostExchange ($this->extend($request, $params));
+        $response = $this->privatePostExchange ($request);
         //
         //     {
         //         "status" => "ok",
@@ -1275,7 +1277,7 @@ class hyperliquid extends Exchange {
             $params = $this->omit($params, 'vaultAddress');
             $request['vaultAddress'] = $vaultAddress;
         }
-        $response = $this->privatePostExchange ($this->extend($request, $params));
+        $response = $this->privatePostExchange ($request);
         //
         //     {
         //         "status":"ok",
@@ -1358,7 +1360,7 @@ class hyperliquid extends Exchange {
             $params = $this->omit($params, 'vaultAddress');
             $request['vaultAddress'] = $vaultAddress;
         }
-        $response = $this->privatePostExchange ($this->extend($request, $params));
+        $response = $this->privatePostExchange ($request);
         //
         //     {
         //         "status":"ok",
@@ -1403,7 +1405,7 @@ class hyperliquid extends Exchange {
             $params = $this->omit($params, 'vaultAddress');
             $request['vaultAddress'] = $vaultAddress;
         }
-        $response = $this->privatePostExchange ($this->extend($request, $params));
+        $response = $this->privatePostExchange ($request);
         //
         //     {
         //         "status":"err",
@@ -1423,7 +1425,7 @@ class hyperliquid extends Exchange {
          * @param {string} $type 'market' or 'limit'
          * @param {string} $side 'buy' or 'sell'
          * @param {float} $amount how much of currency you want to trade in units of base currency
-         * @param {float} [$price] the $price at which the order is to be fullfilled, in units of the base currency, ignored in $market orders
+         * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->timeInForce] 'Gtc', 'Ioc', 'Alo'
          * @param {bool} [$params->postOnly] true or false whether the order is post-only
@@ -1521,7 +1523,7 @@ class hyperliquid extends Exchange {
             $params = $this->omit($params, 'vaultAddress');
             $request['vaultAddress'] = $vaultAddress;
         }
-        $response = $this->privatePostExchange ($this->extend($request, $params));
+        $response = $this->privatePostExchange ($request);
         //
         //     {
         //         "status" => "ok",
@@ -2193,10 +2195,9 @@ class hyperliquid extends Exchange {
                 $vaultAddress = str_replace('0x', '', $vaultAddress);
             }
         }
-        $extendedAction = $this->extend($updateAction, $params);
-        $signature = $this->sign_l1_action($extendedAction, $nonce, $vaultAddress);
+        $signature = $this->sign_l1_action($updateAction, $nonce, $vaultAddress);
         $request = array(
-            'action' => $extendedAction,
+            'action' => $updateAction,
             'nonce' => $nonce,
             'signature' => $signature,
             // 'vaultAddress' => $vaultAddress,
@@ -2253,7 +2254,7 @@ class hyperliquid extends Exchange {
             $params = $this->omit($params, 'vaultAddress');
             $request['vaultAddress'] = $vaultAddress;
         }
-        $response = $this->privatePostExchange ($this->extend($request, $params));
+        $response = $this->privatePostExchange ($request);
         //
         //     {
         //         'response' => array(
@@ -2316,7 +2317,7 @@ class hyperliquid extends Exchange {
             $params = $this->omit($params, 'vaultAddress');
             $request['vaultAddress'] = $vaultAddress;
         }
-        $response = $this->privatePostExchange ($this->extend($request, $params));
+        $response = $this->privatePostExchange ($request);
         //
         //     {
         //         'response' => array(
@@ -2383,7 +2384,7 @@ class hyperliquid extends Exchange {
             );
             $signature = $this->sign_l1_action($action, $nonce, $vaultAddress);
             $innerRequest = array(
-                'action' => $this->extend($action, $params),
+                'action' => $action,
                 'nonce' => $nonce,
                 'signature' => $signature,
             );
@@ -2420,7 +2421,7 @@ class hyperliquid extends Exchange {
             'nonce' => $nonce,
             'signature' => $sig,
         );
-        $response = $this->privatePostExchange ($this->extend($request, $params));
+        $response = $this->privatePostExchange ($request);
         return $response;
     }
 
@@ -2465,7 +2466,7 @@ class hyperliquid extends Exchange {
             'nonce' => $nonce,
             'signature' => $sig,
         );
-        $response = $this->privatePostExchange ($this->extend($request, $params));
+        $response = $this->privatePostExchange ($request);
         return $this->parse_transaction($response);
     }
 

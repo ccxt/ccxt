@@ -39,7 +39,7 @@ use BN\BN;
 use Sop\ASN1\Type\UnspecifiedType;
 use Exception;
 
-$version = '4.3.49';
+$version = '4.3.55';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -58,7 +58,7 @@ const PAD_WITH_ZERO = 6;
 
 class Exchange {
 
-    const VERSION = '4.3.49';
+    const VERSION = '4.3.55';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -485,6 +485,7 @@ class Exchange {
         'tokocrypto',
         'tradeogre',
         'upbit',
+        'vertex',
         'wavesexchange',
         'wazirx',
         'whitebit',
@@ -1634,8 +1635,8 @@ class Exchange {
             // all sorts of SSL problems, accessibility
             throw new ExchangeNotAvailable($this->id . ' ' . implode(' ', array($url, $method, $curl_errno, $curl_error)));
         }
-
-        $skip_further_error_handling = $this->handle_errors($http_status_code, $http_status_text, $url, $method, $response_headers, $result ? $result : null, $json_response, $headers, $body);
+        $http_status_text =  $http_status_text ?  $http_status_text : '';
+        $skip_further_error_handling = $this->handle_errors($http_status_code, $http_status_text, $url, $method, $response_headers, $result ? $result : '', $json_response, $headers, $body);
         if (!$skip_further_error_handling) {
             $this->handle_http_status_code($http_status_code, $http_status_text, $url, $method, $result);
         }
@@ -2844,7 +2845,7 @@ class Exchange {
         throw new NotSupported($this->id . ' parseBorrowInterest() is not supported yet');
     }
 
-    public function parse_isolated_borrow_rate($info, ?array $market = null) {
+    public function parse_isolated_borrow_rate(array $info, ?array $market = null) {
         throw new NotSupported($this->id . ' parseIsolatedBorrowRate() is not supported yet');
     }
 
