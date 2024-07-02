@@ -598,7 +598,13 @@ public partial class bitflyer : Exchange
             { "product_code", this.marketId(symbol) },
             { "child_order_acceptance_id", id },
         };
-        return await this.privatePostCancelchildorder(this.extend(request, parameters));
+        object response = await this.privatePostCancelchildorder(this.extend(request, parameters));
+        //
+        //    200 OK.
+        //
+        return this.safeOrder(new Dictionary<string, object>() {
+            { "info", response },
+        });
     }
 
     public virtual object parseOrderStatus(object status)
