@@ -66,8 +66,8 @@
                         "strike": null,
                         "optionType": null,
                         "precision": {
-                            "amount": null,
-                            "price": null
+                            "amount": 0.001,
+                            "price": 0.1
                         },
                         "limits": {
                             "leverage": {
@@ -76,7 +76,7 @@
                             },
                             "amount": {
                                 "min": null,
-                                "max": null
+                                "max": 100
                             },
                             "price": {
                                 "min": null,
@@ -116,6 +116,40 @@
                             "max_tob_spread": "0.1"
                         }
                     }
+                ]
+            }
+        ],
+        "fetchOHLCV": [
+            {
+                "description": "fetchMarkets",
+                "method": "fetchMarkets",
+                "input": [
+                    "BTC/USD:USDC",
+                    "1m",
+                    null,
+                    1
+                ],
+                "httpResponse": {
+                    "results": [
+                        [
+                            1719993660000,
+                            60823.3,
+                            60823.3,
+                            60823.3,
+                            60823.3,
+                            4561
+                        ]
+                    ]
+                },
+                "parsedResponse": [
+                    [
+                        1719993660000,
+                        60823.3,
+                        60823.3,
+                        60823.3,
+                        60823.3,
+                        4561
+                    ]
                 ]
             }
         ],
