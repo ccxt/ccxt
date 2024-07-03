@@ -153,16 +153,17 @@ class btcmarkets extends btcmarkets$1 {
             },
             'precisionMode': number.TICK_SIZE,
             'exceptions': {
-                '3': errors.InvalidOrder,
-                '6': errors.DDoSProtection,
-                'InsufficientFund': errors.InsufficientFunds,
-                'InvalidPrice': errors.InvalidOrder,
-                'InvalidAmount': errors.InvalidOrder,
-                'MissingArgument': errors.InvalidOrder,
-                'OrderAlreadyCancelled': errors.InvalidOrder,
-                'OrderNotFound': errors.OrderNotFound,
-                'OrderStatusIsFinal': errors.InvalidOrder,
-                'InvalidPaginationParameter': errors.BadRequest,
+                'exact': {
+                    'InsufficientFund': errors.InsufficientFunds,
+                    'InvalidPrice': errors.InvalidOrder,
+                    'InvalidAmount': errors.InvalidOrder,
+                    'MissingArgument': errors.BadRequest,
+                    'OrderAlreadyCancelled': errors.InvalidOrder,
+                    'OrderNotFound': errors.OrderNotFound,
+                    'OrderStatusIsFinal': errors.InvalidOrder,
+                    'InvalidPaginationParameter': errors.BadRequest,
+                },
+                'broad': {},
             },
             'fees': {
                 'percentage': true,
@@ -1282,22 +1283,18 @@ class btcmarkets extends btcmarkets$1 {
         if (response === undefined) {
             return undefined; // fallback to default error handler
         }
-        if ('success' in response) {
-            if (!response['success']) {
-                const error = this.safeString(response, 'errorCode');
-                const feedback = this.id + ' ' + body;
-                this.throwExactlyMatchedException(this.exceptions, error, feedback);
-                throw new errors.ExchangeError(feedback);
-            }
-        }
-        // v3 api errors
-        if (code >= 400) {
-            const errorCode = this.safeString(response, 'code');
-            const message = this.safeString(response, 'message');
+        //
+        //     {"code":"UnAuthorized","message":"invalid access token"}
+        //     {"code":"MarketNotFound","message":"invalid marketId"}
+        //
+        const errorCode = this.safeString(response, 'code');
+        const message = this.safeString(response, 'message');
+        if (errorCode !== undefined) {
             const feedback = this.id + ' ' + body;
-            this.throwExactlyMatchedException(this.exceptions, errorCode, feedback);
-            this.throwExactlyMatchedException(this.exceptions, message, feedback);
-            throw new errors.ExchangeError(feedback);
+            this.throwExactlyMatchedException(this.exceptions['exact'], message, feedback);
+            this.throwExactlyMatchedException(this.exceptions['exact'], errorCode, feedback);
+            this.throwBroadlyMatchedException(this.exceptions['broad'], message, feedback);
+            throw new errors.ExchangeError(feedback); // unknown message
         }
         return undefined;
     }

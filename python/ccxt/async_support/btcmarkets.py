@@ -14,7 +14,6 @@ from ccxt.base.errors import BadRequest
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
-from ccxt.base.errors import DDoSProtection
 from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
@@ -161,16 +160,18 @@ class btcmarkets(Exchange, ImplicitAPI):
             },
             'precisionMode': TICK_SIZE,
             'exceptions': {
-                '3': InvalidOrder,
-                '6': DDoSProtection,
-                'InsufficientFund': InsufficientFunds,
-                'InvalidPrice': InvalidOrder,
-                'InvalidAmount': InvalidOrder,
-                'MissingArgument': InvalidOrder,
-                'OrderAlreadyCancelled': InvalidOrder,
-                'OrderNotFound': OrderNotFound,
-                'OrderStatusIsFinal': InvalidOrder,
-                'InvalidPaginationParameter': BadRequest,
+                'exact': {
+                    'InsufficientFund': InsufficientFunds,
+                    'InvalidPrice': InvalidOrder,
+                    'InvalidAmount': InvalidOrder,
+                    'MissingArgument': BadRequest,
+                    'OrderAlreadyCancelled': InvalidOrder,
+                    'OrderNotFound': OrderNotFound,
+                    'OrderStatusIsFinal': InvalidOrder,
+                    'InvalidPaginationParameter': BadRequest,
+                },
+                'broad': {
+                },
             },
             'fees': {
                 'percentage': True,
@@ -1206,18 +1207,16 @@ class btcmarkets(Exchange, ImplicitAPI):
     def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response, requestHeaders, requestBody):
         if response is None:
             return None  # fallback to default error handler
-        if 'success' in response:
-            if not response['success']:
-                error = self.safe_string(response, 'errorCode')
-                feedback = self.id + ' ' + body
-                self.throw_exactly_matched_exception(self.exceptions, error, feedback)
-                raise ExchangeError(feedback)
-        # v3 api errors
-        if code >= 400:
-            errorCode = self.safe_string(response, 'code')
-            message = self.safe_string(response, 'message')
+        #
+        #     {"code":"UnAuthorized","message":"invalid access token"}
+        #     {"code":"MarketNotFound","message":"invalid marketId"}
+        #
+        errorCode = self.safe_string(response, 'code')
+        message = self.safe_string(response, 'message')
+        if errorCode is not None:
             feedback = self.id + ' ' + body
-            self.throw_exactly_matched_exception(self.exceptions, errorCode, feedback)
-            self.throw_exactly_matched_exception(self.exceptions, message, feedback)
-            raise ExchangeError(feedback)
+            self.throw_exactly_matched_exception(self.exceptions['exact'], message, feedback)
+            self.throw_exactly_matched_exception(self.exceptions['exact'], errorCode, feedback)
+            self.throw_broadly_matched_exception(self.exceptions['broad'], message, feedback)
+            raise ExchangeError(feedback)  # unknown message
         return None
