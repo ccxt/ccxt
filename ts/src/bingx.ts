@@ -1570,7 +1570,10 @@ export default class bingx extends Exchange {
             percentage = percentage.replace ('%', '');
         }
         const change = this.safeString (ticker, 'priceChange');
-        const ts = this.safeInteger (ticker, 'closeTime');
+        let ts = this.safeInteger (ticker, 'closeTime');
+        if (ts === 0) {
+            ts = undefined;
+        }
         const datetime = this.iso8601 (ts);
         const bid = this.safeString (ticker, 'bidPrice');
         const bidVolume = this.safeString (ticker, 'bidQty');
