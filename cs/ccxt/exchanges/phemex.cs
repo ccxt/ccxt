@@ -2600,7 +2600,7 @@ public partial class phemex : Exchange
         * @param {string} type 'market' or 'limit'
         * @param {string} side 'buy' or 'sell'
         * @param {float} amount how much of currency you want to trade in units of base currency
-        * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @param {float} [params.trigger] trigger price for conditional orders
         * @param {object} [params.takeProfit] *swap only* *takeProfit object in params* containing the triggerPrice at which the attached take profit order will be triggered (perpetual swap markets only)
@@ -2930,7 +2930,7 @@ public partial class phemex : Exchange
         * @param {string} type 'market' or 'limit'
         * @param {string} side 'buy' or 'sell'
         * @param {float} amount how much of currency you want to trade in units of base currency
-        * @param {float} [price] the price at which the order is to be fullfilled, in units of the base currency, ignored in market orders
+        * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @param {string} [params.posSide] either 'Merged' or 'Long' or 'Short'
         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -3099,7 +3099,9 @@ public partial class phemex : Exchange
         {
             response = await this.privateDeleteSpotOrdersAll(this.extend(request, parameters));
         }
-        return response;
+        return new List<object> {this.safeOrder(new Dictionary<string, object>() {
+    { "info", response },
+})};
     }
 
     public async override Task<object> fetchOrder(object id, object symbol = null, object parameters = null)
@@ -3107,6 +3109,7 @@ public partial class phemex : Exchange
         /**
         * @method
         * @name phemex#fetchOrder
+        * @see https://phemex-docs.github.io/#query-orders-by-ids
         * @description fetches information on an order made by the user
         * @param {string} symbol unified symbol of the market the order was made in
         * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -3119,10 +3122,6 @@ public partial class phemex : Exchange
         }
         await this.loadMarkets();
         object market = this.market(symbol);
-        if (isTrue(isEqual(getValue(market, "settle"), "USDT")))
-        {
-            throw new NotSupported ((string)add(this.id, "fetchOrder() is not supported yet for USDT settled swap markets")) ;
-        }
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
         };
@@ -3136,7 +3135,10 @@ public partial class phemex : Exchange
             ((IDictionary<string,object>)request)["orderID"] = id;
         }
         object response = null;
-        if (isTrue(getValue(market, "spot")))
+        if (isTrue(isEqual(getValue(market, "settle"), "USDT")))
+        {
+            response = await this.privateGetApiDataGFuturesOrdersByOrderId(this.extend(request, parameters));
+        } else if (isTrue(getValue(market, "spot")))
         {
             response = await this.privateGetSpotOrdersActive(this.extend(request, parameters));
         } else

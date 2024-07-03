@@ -113,7 +113,7 @@ public partial class coinbase : Exchange
                     { "rest", "https://api.coinbase.com" },
                 } },
                 { "www", "https://www.coinbase.com" },
-                { "doc", new List<object>() {"https://developers.coinbase.com/api/v2", "https://docs.cloud.coinbase.com/advanced-trade-api/docs/welcome"} },
+                { "doc", new List<object>() {"https://developers.coinbase.com/api/v2", "https://docs.cloud.coinbase.com/advanced-trade/docs/welcome"} },
                 { "fees", new List<object>() {"https://support.coinbase.com/customer/portal/articles/2109597-buy-sell-bank-transfer-fees", "https://www.coinbase.com/advanced-fees"} },
                 { "referral", "https://www.coinbase.com/join/58cbe25a355148797479dbd2" },
             } },
@@ -368,7 +368,7 @@ public partial class coinbase : Exchange
         * @method
         * @name coinbase#fetchAccounts
         * @description fetch all the accounts associated with a profile
-        * @see https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_getaccounts
+        * @see https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_getaccounts
         * @see https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-accounts#list-accounts
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
@@ -523,7 +523,7 @@ public partial class coinbase : Exchange
         * @method
         * @name coinbase#fetchPortfolios
         * @description fetch all the portfolios
-        * @see https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_getportfolios
+        * @see https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_getportfolios
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/#/?id=account-structure} indexed by the account type
         */
@@ -1115,7 +1115,7 @@ public partial class coinbase : Exchange
         /**
         * @method
         * @name coinbase#fetchMarkets
-        * @see https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_getpublicproducts
+        * @see https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_getpublicproducts
         * @see https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-currencies#get-fiat-currencies
         * @see https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-exchange-rates#get-exchange-rates
         * @description retrieves data on all markets for coinbase
@@ -1820,7 +1820,7 @@ public partial class coinbase : Exchange
         * @method
         * @name coinbase#fetchTickers
         * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
-        * @see https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_getproducts
+        * @see https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_getproducts
         * @see https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-exchange-rates#get-exchange-rates
         * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -1958,7 +1958,7 @@ public partial class coinbase : Exchange
         * @method
         * @name coinbase#fetchTicker
         * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-        * @see https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_getmarkettrades
+        * @see https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_getmarkettrades
         * @see https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-prices#get-spot-price
         * @see https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-prices#get-buy-price
         * @see https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-prices#get-sell-price
@@ -2247,9 +2247,9 @@ public partial class coinbase : Exchange
         * @method
         * @name coinbase#fetchBalance
         * @description query for balance and get the amount of funds available for trading or funds locked in orders
-        * @see https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_getaccounts
+        * @see https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_getaccounts
         * @see https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-accounts#list-accounts
-        * @see https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_getfcmbalancesummary
+        * @see https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_getfcmbalancesummary
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @param {boolean} [params.v3] default false, set true to use v3 api endpoint
         * @param {object} [params.type] "spot" (default) or "swap" or "future"
@@ -2814,7 +2814,7 @@ public partial class coinbase : Exchange
         * @method
         * @name coinbase#createMarketBuyOrderWithCost
         * @description create a market buy order by providing the symbol and cost
-        * @see https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_postorder
+        * @see https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_postorder
         * @param {string} symbol unified symbol of the market to create an order in
         * @param {float} cost how much you want to trade in units of the quote currency
         * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -2837,7 +2837,7 @@ public partial class coinbase : Exchange
         * @method
         * @name coinbase#createOrder
         * @description create a trade order
-        * @see https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_postorder
+        * @see https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_postorder
         * @param {string} symbol unified symbol of the market to create an order in
         * @param {string} type 'market' or 'limit'
         * @param {string} side 'buy' or 'sell'
@@ -3300,7 +3300,7 @@ public partial class coinbase : Exchange
         * @method
         * @name coinbase#cancelOrder
         * @description cancels an open order
-        * @see https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_cancelorders
+        * @see https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_cancelorders
         * @param {string} id order id
         * @param {string} symbol not used by coinbase cancelOrder()
         * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -3318,7 +3318,7 @@ public partial class coinbase : Exchange
         * @method
         * @name coinbase#cancelOrders
         * @description cancel multiple orders
-        * @see https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_cancelorders
+        * @see https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_cancelorders
         * @param {string[]} ids order ids
         * @param {string} symbol not used by coinbase cancelOrders()
         * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -3364,13 +3364,13 @@ public partial class coinbase : Exchange
         * @method
         * @name coinbase#editOrder
         * @description edit a trade order
-        * @see https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_editorder
+        * @see https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_editorder
         * @param {string} id cancel order id
         * @param {string} symbol unified symbol of the market to create an order in
         * @param {string} type 'market' or 'limit'
         * @param {string} side 'buy' or 'sell'
         * @param {float} amount how much of currency you want to trade in units of base currency
-        * @param {float} [price] the price at which the order is to be fullfilled, in units of the base currency, ignored in market orders
+        * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @param {boolean} [params.preview] default to false, wether to use the test/preview endpoint or not
         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -3417,7 +3417,7 @@ public partial class coinbase : Exchange
         * @method
         * @name coinbase#fetchOrder
         * @description fetches information on an order made by the user
-        * @see https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_gethistoricalorder
+        * @see https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_gethistoricalorder
         * @param {string} id the order id
         * @param {string} symbol unified market symbol that the order was made in
         * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -3483,7 +3483,7 @@ public partial class coinbase : Exchange
         * @method
         * @name coinbase#fetchOrders
         * @description fetches information on multiple orders made by the user
-        * @see https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_gethistoricalorders
+        * @see https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_gethistoricalorders
         * @param {string} symbol unified market symbol that the orders were made in
         * @param {int} [since] the earliest time in ms to fetch orders
         * @param {int} [limit] the maximum number of order structures to retrieve
@@ -3672,7 +3672,7 @@ public partial class coinbase : Exchange
         * @method
         * @name coinbase#fetchOpenOrders
         * @description fetches information on all currently open orders
-        * @see https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_gethistoricalorders
+        * @see https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_gethistoricalorders
         * @param {string} symbol unified market symbol of the orders
         * @param {int} [since] timestamp in ms of the earliest order, default is undefined
         * @param {int} [limit] the maximum number of open order structures to retrieve
@@ -3700,7 +3700,7 @@ public partial class coinbase : Exchange
         * @method
         * @name coinbase#fetchClosedOrders
         * @description fetches information on multiple closed orders made by the user
-        * @see https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_gethistoricalorders
+        * @see https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_gethistoricalorders
         * @param {string} symbol unified market symbol of the orders
         * @param {int} [since] timestamp in ms of the earliest order, default is undefined
         * @param {int} [limit] the maximum number of closed order structures to retrieve
@@ -3728,7 +3728,7 @@ public partial class coinbase : Exchange
         * @method
         * @name coinbase#fetchCanceledOrders
         * @description fetches information on multiple canceled orders made by the user
-        * @see https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_gethistoricalorders
+        * @see https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_gethistoricalorders
         * @param {string} symbol unified market symbol of the orders
         * @param {int} [since] timestamp in ms of the earliest order, default is undefined
         * @param {int} [limit] the maximum number of canceled order structures to retrieve
@@ -3745,7 +3745,7 @@ public partial class coinbase : Exchange
         * @method
         * @name coinbase#fetchOHLCV
         * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-        * @see https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_getpubliccandles
+        * @see https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_getpubliccandles
         * @param {string} symbol unified symbol of the market to fetch OHLCV data for
         * @param {string} timeframe the length of time each candle represents
         * @param {int} [since] timestamp in ms of the earliest candle to fetch
@@ -3849,7 +3849,7 @@ public partial class coinbase : Exchange
         * @method
         * @name coinbase#fetchTrades
         * @description get the list of most recent trades for a particular symbol
-        * @see https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_getpublicmarkettrades
+        * @see https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_getpublicmarkettrades
         * @param {string} symbol unified market symbol of the trades
         * @param {int} [since] not used by coinbase fetchTrades
         * @param {int} [limit] the maximum number of trade structures to fetch
@@ -3920,7 +3920,7 @@ public partial class coinbase : Exchange
         * @method
         * @name coinbase#fetchMyTrades
         * @description fetch all trades made by the user
-        * @see https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_getfills
+        * @see https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_getfills
         * @param {string} symbol unified market symbol of the trades
         * @param {int} [since] timestamp in ms of the earliest order, default is undefined
         * @param {int} [limit] the maximum number of trade structures to fetch
@@ -4004,7 +4004,7 @@ public partial class coinbase : Exchange
         * @method
         * @name coinbase#fetchOrderBook
         * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-        * @see https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_getpublicproductbook
+        * @see https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_getpublicproductbook
         * @param {string} symbol unified symbol of the market to fetch the order book for
         * @param {int} [limit] the maximum amount of order book entries to return
         * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -4065,7 +4065,7 @@ public partial class coinbase : Exchange
         * @method
         * @name coinbase#fetchBidsAsks
         * @description fetches the bid and ask price and volume for multiple markets
-        * @see https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_getbestbidask
+        * @see https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_getbestbidask
         * @param {string[]} [symbols] unified symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
@@ -4506,7 +4506,7 @@ public partial class coinbase : Exchange
         * @method
         * @name coinbase#fetchConvertQuote
         * @description fetch a quote for converting from one currency to another
-        * @see https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_createconvertquote
+        * @see https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_createconvertquote
         * @param {string} fromCode the currency that you want to sell and convert from
         * @param {string} toCode the currency that you want to buy and convert into
         * @param {float} [amount] how much you want to trade in units of the from currency
@@ -4534,7 +4534,7 @@ public partial class coinbase : Exchange
         * @method
         * @name coinbase#createConvertTrade
         * @description convert from one currency to another
-        * @see https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_commitconverttrade
+        * @see https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_commitconverttrade
         * @param {string} id the id of the trade that you want to make
         * @param {string} fromCode the currency that you want to sell and convert from
         * @param {string} toCode the currency that you want to buy and convert into
@@ -4560,7 +4560,7 @@ public partial class coinbase : Exchange
         * @method
         * @name coinbase#fetchConvertTrade
         * @description fetch the data for a conversion trade
-        * @see https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_getconverttrade
+        * @see https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_getconverttrade
         * @param {string} id the id of the trade that you want to commit
         * @param {string} code the unified currency code that was converted from
         * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -4654,8 +4654,8 @@ public partial class coinbase : Exchange
         * @method
         * @name coinbase#fetchPositions
         * @description fetch all open positions
-        * @see https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_getfcmpositions
-        * @see https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_getintxpositions
+        * @see https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_getfcmpositions
+        * @see https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_getintxpositions
         * @param {string[]} [symbols] list of unified market symbols
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @param {string} [params.portfolio] the portfolio UUID to fetch positions for
@@ -4702,8 +4702,8 @@ public partial class coinbase : Exchange
         * @method
         * @name coinbase#fetchPosition
         * @description fetch data on a single open contract trade position
-        * @see https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_getintxposition
-        * @see https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_getfcmposition
+        * @see https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_getintxposition
+        * @see https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_getfcmposition
         * @param {string} symbol unified market symbol of the market the position is held in, default is undefined
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @param {string} [params.product_id] *futures only* the product id of the position to fetch, required for futures markets only
@@ -5041,7 +5041,7 @@ public partial class coinbase : Exchange
                     }
                 }
                 // v3: 'GET' doesn't need payload in the signature. inside url is enough
-                // https://docs.cloud.coinbase.com/advanced-trade-api/docs/auth#example-request
+                // https://docs.cloud.coinbase.com/advanced-trade/docs/auth#example-request
                 // v2: 'GET' require payload in the signature
                 // https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-key-authentication
                 object isCloudAPiKey = isTrue((isGreaterThanOrEqual(getIndexOf(this.apiKey, "organizations/"), 0))) || isTrue((((string)this.secret).StartsWith(((string)"-----BEGIN"))));

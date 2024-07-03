@@ -55,7 +55,7 @@ export default class woo extends wooRest {
             },
             'streaming': {
                 'ping': this.ping,
-                'keepAlive': 10000,
+                'keepAlive': 9000,
             },
             'exceptions': {
                 'ws': {

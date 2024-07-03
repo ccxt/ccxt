@@ -10,6 +10,7 @@ public partial class kucoin
     /// watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
     /// </summary>
     /// <remarks>
+    /// See <see href="https://www.kucoin.com/docs/websocket/spot-trading/public-channels/market-snapshot"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -80,6 +81,7 @@ public partial class kucoin
     /// watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
     /// </summary>
     /// <remarks>
+    /// See <see href="https://www.kucoin.com/docs/websocket/spot-trading/public-channels/klines"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -113,6 +115,7 @@ public partial class kucoin
     /// get the list of most recent trades for a particular symbol
     /// </summary>
     /// <remarks>
+    /// See <see href="https://www.kucoin.com/docs/websocket/spot-trading/public-channels/match-execution-data"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -225,6 +228,8 @@ public partial class kucoin
     /// watches information on multiple orders made by the user
     /// </summary>
     /// <remarks>
+    /// See <see href="https://www.kucoin.com/docs/websocket/spot-trading/private-channels/private-order-change"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs/websocket/spot-trading/private-channels/stop-order-event"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -264,6 +269,7 @@ public partial class kucoin
     /// watches information on multiple trades made by the user
     /// </summary>
     /// <remarks>
+    /// See <see href="https://www.kucoin.com/docs/websocket/spot-trading/private-channels/private-order-change"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -297,6 +303,7 @@ public partial class kucoin
     /// watch balance and get the amount of funds available for trading or funds locked in orders
     /// </summary>
     /// <remarks>
+    /// See <see href="https://www.kucoin.com/docs/websocket/spot-trading/private-channels/account-balance-change"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>

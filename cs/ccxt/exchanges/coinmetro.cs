@@ -197,7 +197,7 @@ public partial class coinmetro : Exchange
                     { "maker", this.parseNumber("0") },
                 } },
             } },
-            { "precisionMode", DECIMAL_PLACES },
+            { "precisionMode", TICK_SIZE },
             { "options", new Dictionary<string, object>() {
                 { "currenciesByIdForParseMarket", null },
                 { "currencyIdsListForParseMarket", null },
@@ -303,7 +303,6 @@ public partial class coinmetro : Exchange
             object deposit = this.safeValue(currency, "canDeposit");
             object canTrade = this.safeValue(currency, "canTrade");
             object active = ((bool) isTrue(canTrade)) ? withdraw : true;
-            object precision = this.safeInteger(currency, "digits");
             object minAmount = this.safeNumber(currency, "minQty");
             ((IDictionary<string,object>)result)[(string)code] = this.safeCurrencyStructure(new Dictionary<string, object>() {
                 { "id", id },
@@ -314,7 +313,7 @@ public partial class coinmetro : Exchange
                 { "deposit", deposit },
                 { "withdraw", withdraw },
                 { "fee", null },
-                { "precision", precision },
+                { "precision", this.parseNumber(this.parsePrecision(this.safeString(currency, "digits"))) },
                 { "limits", new Dictionary<string, object>() {
                     { "amount", new Dictionary<string, object>() {
                         { "min", minAmount },
@@ -356,19 +355,14 @@ public partial class coinmetro : Exchange
         //
         //     [
         //         {
-        //             "pair": "PERPEUR",
-        //             "precision": 5,
-        //             "margin": false
-        //         },
-        //         {
-        //             "pair": "PERPUSD",
-        //             "precision": 5,
-        //             "margin": false
-        //         },
-        //         {
         //             "pair": "YFIEUR",
         //             "precision": 5,
         //             "margin": false
+        //         },
+        //         {
+        //             "pair": "BTCEUR",
+        //             "precision": 2,
+        //             "margin": true
         //         },
         //         ...
         //     ]
@@ -416,9 +410,7 @@ public partial class coinmetro : Exchange
             { "optionType", null },
             { "precision", new Dictionary<string, object>() {
                 { "amount", getValue(basePrecisionAndLimits, "precision") },
-                { "price", getValue(quotePrecisionAndLimits, "precision") },
-                { "base", getValue(basePrecisionAndLimits, "precision") },
-                { "quote", getValue(quotePrecisionAndLimits, "precision") },
+                { "price", this.parseNumber(this.parsePrecision(this.safeString(market, "precision"))) },
             } },
             { "limits", new Dictionary<string, object>() {
                 { "leverage", new Dictionary<string, object>() {
@@ -481,12 +473,11 @@ public partial class coinmetro : Exchange
     {
         object currencies = this.safeValue(this.options, "currenciesByIdForParseMarket", new Dictionary<string, object>() {});
         object currency = this.safeValue(currencies, currencyId, new Dictionary<string, object>() {});
-        object precision = this.safeInteger(currency, "precision");
         object limits = this.safeValue(currency, "limits", new Dictionary<string, object>() {});
         object amountLimits = this.safeValue(limits, "amount", new Dictionary<string, object>() {});
         object minLimit = this.safeNumber(amountLimits, "min");
         object result = new Dictionary<string, object>() {
-            { "precision", precision },
+            { "precision", this.safeNumber(currency, "precision") },
             { "minLimit", minLimit },
         };
         return result;
@@ -1274,7 +1265,7 @@ public partial class coinmetro : Exchange
         * @param {string} type 'market' or 'limit'
         * @param {string} side 'buy' or 'sell'
         * @param {float} amount how much of currency you want to trade in units of base currency
-        * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @param {float} [params.cost] the quote quantity that can be used as an alternative for the amount in market orders
         * @param {string} [params.timeInForce] "GTC", "IOC", "FOK", "GTD"

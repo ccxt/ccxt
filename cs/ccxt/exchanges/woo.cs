@@ -35,7 +35,7 @@ public partial class woo : Exchange
                 { "createMarketBuyOrderWithCost", true },
                 { "createMarketOrder", false },
                 { "createMarketOrderWithCost", false },
-                { "createMarketSellOrderWithCost", false },
+                { "createMarketSellOrderWithCost", true },
                 { "createOrder", true },
                 { "createOrderWithTakeProfitAndStopLoss", true },
                 { "createReduceOnlyOrder", true },
@@ -872,8 +872,29 @@ public partial class woo : Exchange
         {
             throw new NotSupported ((string)add(this.id, " createMarketBuyOrderWithCost() supports spot orders only")) ;
         }
-        ((IDictionary<string,object>)parameters)["createMarketBuyOrderRequiresPrice"] = false;
-        return await this.createOrder(symbol, "market", "buy", cost, null, parameters);
+        return await this.createOrder(symbol, "market", "buy", cost, 1, parameters);
+    }
+
+    public async override Task<object> createMarketSellOrderWithCost(object symbol, object cost, object parameters = null)
+    {
+        /**
+        * @method
+        * @name woo#createMarketSellOrderWithCost
+        * @description create a market sell order by providing the symbol and cost
+        * @see https://docs.woo.org/#send-order
+        * @param {string} symbol unified symbol of the market to create an order in
+        * @param {float} cost how much you want to trade in units of the quote currency
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object market = this.market(symbol);
+        if (!isTrue(getValue(market, "spot")))
+        {
+            throw new NotSupported ((string)add(this.id, " createMarketSellOrderWithCost() supports spot orders only")) ;
+        }
+        return await this.createOrder(symbol, "market", "sell", cost, 1, parameters);
     }
 
     public async override Task<object> createTrailingAmountOrder(object symbol, object type, object side, object amount, object price = null, object trailingAmount = null, object trailingTriggerPrice = null, object parameters = null)
@@ -950,7 +971,7 @@ public partial class woo : Exchange
         * @param {string} type 'market' or 'limit'
         * @param {string} side 'buy' or 'sell'
         * @param {float} amount how much of currency you want to trade in units of base currency
-        * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @param {float} [params.triggerPrice] The price a trigger order is triggered at
         * @param {object} [params.takeProfit] *takeProfit object in params* containing the triggerPrice at which the attached take profit order will be triggered (perpetual swap markets only)
@@ -1012,40 +1033,28 @@ public partial class woo : Exchange
         {
             ((IDictionary<string,object>)request)[(string)reduceOnlyKey] = reduceOnly;
         }
-        if (isTrue(!isEqual(price, null)))
+        if (isTrue(!isTrue(isMarket) && isTrue(!isEqual(price, null))))
         {
             ((IDictionary<string,object>)request)[(string)priceKey] = this.priceToPrecision(symbol, price);
         }
         if (isTrue(isTrue(isMarket) && !isTrue(isStop)))
         {
             // for market buy it requires the amount of quote currency to spend
-            if (isTrue(isTrue(getValue(market, "spot")) && isTrue(isEqual(orderSide, "BUY"))))
+            object cost = this.safeString2(parameters, "cost", "order_amount");
+            parameters = this.omit(parameters, new List<object>() {"cost", "order_amount"});
+            object isPriceProvided = !isEqual(price, null);
+            if (isTrue(isTrue(getValue(market, "spot")) && isTrue((isTrue(isPriceProvided) || isTrue((!isEqual(cost, null)))))))
             {
                 object quoteAmount = null;
-                object createMarketBuyOrderRequiresPrice = true;
-                var createMarketBuyOrderRequiresPriceparametersVariable = this.handleOptionAndParams(parameters, "createOrder", "createMarketBuyOrderRequiresPrice", true);
-                createMarketBuyOrderRequiresPrice = ((IList<object>)createMarketBuyOrderRequiresPriceparametersVariable)[0];
-                parameters = ((IList<object>)createMarketBuyOrderRequiresPriceparametersVariable)[1];
-                object cost = this.safeNumber2(parameters, "cost", "order_amount");
-                parameters = this.omit(parameters, new List<object>() {"cost", "order_amount"});
                 if (isTrue(!isEqual(cost, null)))
                 {
                     quoteAmount = this.costToPrecision(symbol, cost);
-                } else if (isTrue(createMarketBuyOrderRequiresPrice))
-                {
-                    if (isTrue(isEqual(price, null)))
-                    {
-                        throw new InvalidOrder ((string)add(this.id, " createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend (quote quantity) in the amount argument")) ;
-                    } else
-                    {
-                        object amountString = this.numberToString(amount);
-                        object priceString = this.numberToString(price);
-                        object costRequest = Precise.stringMul(amountString, priceString);
-                        quoteAmount = this.costToPrecision(symbol, costRequest);
-                    }
                 } else
                 {
-                    quoteAmount = this.costToPrecision(symbol, amount);
+                    object amountString = this.numberToString(amount);
+                    object priceString = this.numberToString(price);
+                    object costRequest = Precise.stringMul(amountString, priceString);
+                    quoteAmount = this.costToPrecision(symbol, costRequest);
                 }
                 ((IDictionary<string,object>)request)["order_amount"] = quoteAmount;
             } else
@@ -1180,7 +1189,7 @@ public partial class woo : Exchange
         * @param {string} type 'market' or 'limit'
         * @param {string} side 'buy' or 'sell'
         * @param {float} amount how much of currency you want to trade in units of base currency
-        * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @param {float} [params.triggerPrice] The price a trigger order is triggered at
         * @param {float} [params.stopLossPrice] price to trigger stop-loss orders
@@ -1712,8 +1721,8 @@ public partial class woo : Exchange
         object side = this.safeStringLower(order, "side");
         object filled = this.omitZero(this.safeValue2(order, "executed", "totalExecutedQuantity"));
         object average = this.omitZero(this.safeString2(order, "average_executed_price", "averageExecutedPrice"));
-        object remaining = Precise.stringSub(cost, filled);
-        object fee = this.safeValue2(order, "total_fee", "totalFee");
+        // const remaining = Precise.stringSub (cost, filled);
+        object fee = this.safeNumber2(order, "total_fee", "totalFee");
         object feeCurrency = this.safeString2(order, "fee_asset", "feeAsset");
         object transactions = this.safeValue(order, "Transactions");
         object stopPrice = this.safeNumber(order, "triggerPrice");
@@ -1756,7 +1765,7 @@ public partial class woo : Exchange
             { "average", average },
             { "amount", amount },
             { "filled", filled },
-            { "remaining", remaining },
+            { "remaining", null },
             { "cost", cost },
             { "trades", transactions },
             { "fee", new Dictionary<string, object>() {
@@ -2705,6 +2714,13 @@ public partial class woo : Exchange
         if (isTrue(isEqual(access, "public")))
         {
             url = add(url, add(add(access, "/"), pathWithParams));
+            if (isTrue(getArrayLength(new List<object>(((IDictionary<string,object>)parameters).Keys))))
+            {
+                url = add(url, add("?", this.urlencode(parameters)));
+            }
+        } else if (isTrue(isEqual(access, "pub")))
+        {
+            url = add(url, pathWithParams);
             if (isTrue(getArrayLength(new List<object>(((IDictionary<string,object>)parameters).Keys))))
             {
                 url = add(url, add("?", this.urlencode(parameters)));

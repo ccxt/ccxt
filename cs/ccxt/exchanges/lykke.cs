@@ -825,7 +825,7 @@ public partial class lykke : Exchange
         * @param {string} type 'market' or 'limit'
         * @param {string} side 'buy' or 'sell'
         * @param {float} amount how much of currency you want to trade in units of base currency
-        * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
         */
@@ -919,7 +919,10 @@ public partial class lykke : Exchange
         //         "error":null
         //     }
         //
-        return await this.privateDeleteOrdersOrderId(this.extend(request, parameters));
+        object response = await this.privateDeleteOrdersOrderId(this.extend(request, parameters));
+        return this.safeOrder(new Dictionary<string, object>() {
+            { "info", response },
+        });
     }
 
     public async override Task<object> cancelAllOrders(object symbol = null, object parameters = null)
@@ -948,7 +951,10 @@ public partial class lykke : Exchange
         //         "error":null
         //     }
         //
-        return await this.privateDeleteOrders(this.extend(request, parameters));
+        object response = await this.privateDeleteOrders(this.extend(request, parameters));
+        return new List<object> {this.safeOrder(new Dictionary<string, object>() {
+    { "info", response },
+})};
     }
 
     public async override Task<object> fetchOrder(object id, object symbol = null, object parameters = null)

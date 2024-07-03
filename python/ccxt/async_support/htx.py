@@ -3747,10 +3747,10 @@ class htx(Exchange, ImplicitAPI):
             'status': '0',  # support multiple query seperated by ',',such as '3,4,5', 0: all. 3. Have sumbmitted the orders; 4. Orders partially matched; 5. Orders cancelled with partially matched; 6. Orders fully matched; 7. Orders cancelled
         }
         response = None
-        stop = self.safe_value(params, 'stop')
+        stop = self.safe_bool_2(params, 'stop', 'trigger')
         stopLossTakeProfit = self.safe_value(params, 'stopLossTakeProfit')
         trailing = self.safe_bool(params, 'trailing', False)
-        params = self.omit(params, ['stop', 'stopLossTakeProfit', 'trailing'])
+        params = self.omit(params, ['stop', 'stopLossTakeProfit', 'trailing', 'trigger'])
         if stop or stopLossTakeProfit or trailing:
             if limit is not None:
                 request['page_size'] = limit
@@ -4071,10 +4071,10 @@ class htx(Exchange, ImplicitAPI):
             if limit is not None:
                 request['page_size'] = limit
             request['contract_code'] = market['id']
-            stop = self.safe_value(params, 'stop')
+            stop = self.safe_bool_2(params, 'stop', 'trigger')
             stopLossTakeProfit = self.safe_value(params, 'stopLossTakeProfit')
             trailing = self.safe_bool(params, 'trailing', False)
-            params = self.omit(params, ['stop', 'stopLossTakeProfit', 'trailing'])
+            params = self.omit(params, ['stop', 'stopLossTakeProfit', 'trailing', 'trigger'])
             if market['linear']:
                 marginMode = None
                 marginMode, params = self.handle_margin_mode_and_params('fetchOpenOrders', params)
@@ -4806,7 +4806,7 @@ class htx(Exchange, ImplicitAPI):
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
         :param float amount: how much you want to trade in units of the base currency
-        :param float [price]: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.timeInForce]: supports 'IOC' and 'FOK'
         :param float [params.cost]: the quote quantity that can be used alternative for the amount for market buy orders
@@ -4910,7 +4910,7 @@ class htx(Exchange, ImplicitAPI):
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
         :param float amount: how much you want to trade in units of the base currency
-        :param float [price]: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.timeInForce]: supports 'IOC' and 'FOK'
         :param float [params.trailingPercent]: *contract only* the percent to trail away from the current market price
@@ -4999,7 +4999,7 @@ class htx(Exchange, ImplicitAPI):
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
         :param float amount: how much you want to trade in units of the base currency
-        :param float [price]: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param float [params.stopPrice]: the price a trigger order is triggered at
         :param str [params.triggerType]: *contract trigger orders only* ge: greater than or equal to, le: less than or equal to
@@ -5306,10 +5306,10 @@ class htx(Exchange, ImplicitAPI):
                 request['symbol'] = market['settleId']
             else:
                 request['contract_code'] = market['id']
-            stop = self.safe_value(params, 'stop')
+            stop = self.safe_bool_2(params, 'stop', 'trigger')
             stopLossTakeProfit = self.safe_value(params, 'stopLossTakeProfit')
             trailing = self.safe_bool(params, 'trailing', False)
-            params = self.omit(params, ['stop', 'stopLossTakeProfit', 'trailing'])
+            params = self.omit(params, ['stop', 'stopLossTakeProfit', 'trailing', 'trigger'])
             if market['linear']:
                 marginMode = None
                 marginMode, params = self.handle_margin_mode_and_params('cancelOrder', params)
@@ -5433,9 +5433,9 @@ class htx(Exchange, ImplicitAPI):
                 request['symbol'] = market['settleId']
             else:
                 request['contract_code'] = market['id']
-            stop = self.safe_value(params, 'stop')
+            stop = self.safe_bool_2(params, 'stop', 'trigger')
             stopLossTakeProfit = self.safe_value(params, 'stopLossTakeProfit')
-            params = self.omit(params, ['stop', 'stopLossTakeProfit'])
+            params = self.omit(params, ['stop', 'stopLossTakeProfit', 'trigger'])
             if market['linear']:
                 marginMode = None
                 marginMode, params = self.handle_margin_mode_and_params('cancelOrders', params)
@@ -5565,10 +5565,10 @@ class htx(Exchange, ImplicitAPI):
             if market['future']:
                 request['symbol'] = market['settleId']
             request['contract_code'] = market['id']
-            stop = self.safe_value(params, 'stop')
+            stop = self.safe_bool_2(params, 'stop', 'trigger')
             stopLossTakeProfit = self.safe_value(params, 'stopLossTakeProfit')
             trailing = self.safe_bool(params, 'trailing', False)
-            params = self.omit(params, ['stop', 'stopLossTakeProfit', 'trailing'])
+            params = self.omit(params, ['stop', 'stopLossTakeProfit', 'trailing', 'trigger'])
             if market['linear']:
                 marginMode = None
                 marginMode, params = self.handle_margin_mode_and_params('cancelAllOrders', params)
@@ -6181,7 +6181,7 @@ class htx(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'data', [])
         return self.parse_isolated_borrow_rates(data)
 
-    def parse_isolated_borrow_rate(self, info, market: Market = None) -> IsolatedBorrowRate:
+    def parse_isolated_borrow_rate(self, info: dict, market: Market = None) -> IsolatedBorrowRate:
         #
         #     {
         #         "symbol": "1inchusdt",

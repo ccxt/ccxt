@@ -777,7 +777,7 @@ class lykke(Exchange, ImplicitAPI):
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
         :param float amount: how much of currency you want to trade in units of base currency
-        :param float [price]: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
@@ -858,7 +858,10 @@ class lykke(Exchange, ImplicitAPI):
         #         "error":null
         #     }
         #
-        return await self.privateDeleteOrdersOrderId(self.extend(request, params))
+        response = await self.privateDeleteOrdersOrderId(self.extend(request, params))
+        return self.safe_order({
+            'info': response,
+        })
 
     async def cancel_all_orders(self, symbol: Str = None, params={}):
         """
@@ -882,7 +885,12 @@ class lykke(Exchange, ImplicitAPI):
         #         "error":null
         #     }
         #
-        return await self.privateDeleteOrders(self.extend(request, params))
+        response = await self.privateDeleteOrders(self.extend(request, params))
+        return [
+            self.safe_order({
+                'info': response,
+            }),
+        ]
 
     async def fetch_order(self, id: str, symbol: Str = None, params={}):
         """

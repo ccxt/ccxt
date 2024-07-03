@@ -977,7 +977,7 @@ class bitso extends Exchange {
              * @param {string} $type 'market' or 'limit'
              * @param {string} $side 'buy' or 'sell'
              * @param {float} $amount how much of currency you want to trade in units of base currency
-             * @param {float} [$price] the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
+             * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} an ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
              */
@@ -1015,7 +1015,19 @@ class bitso extends Exchange {
             $request = array(
                 'oid' => $id,
             );
-            return Async\await($this->privateDeleteOrdersOid ($this->extend($request, $params)));
+            $response = Async\await($this->privateDeleteOrdersOid ($this->extend($request, $params)));
+            //
+            //     {
+            //         "success" => true,
+            //         "payload" => ["yWTQGxDMZ0VimZgZ"]
+            //     }
+            //
+            $payload = $this->safe_list($response, 'payload', array());
+            $orderId = $this->safe_string($payload, 0);
+            return $this->safe_order(array(
+                'info' => $response,
+                'id' => $orderId,
+            ));
         }) ();
     }
 

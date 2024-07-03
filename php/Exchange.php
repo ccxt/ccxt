@@ -39,7 +39,7 @@ use BN\BN;
 use Sop\ASN1\Type\UnspecifiedType;
 use Exception;
 
-$version = '4.3.42';
+$version = '4.3.55';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -58,7 +58,7 @@ const PAD_WITH_ZERO = 6;
 
 class Exchange {
 
-    const VERSION = '4.3.42';
+    const VERSION = '4.3.55';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -129,6 +129,7 @@ class Exchange {
     public $certified = false; // if certified by the CCXT dev team
     public $pro = false; // if it is integrated with CCXT Pro for WebSocket support
     public $alias = false; // whether this exchange is an alias to another exchange
+    public $dex = false;
 
     public $debug = false;
 
@@ -473,6 +474,7 @@ class Exchange {
         'okcoin',
         'okx',
         'onetrading',
+        'oxfun',
         'p2b',
         'paymium',
         'phemex',
@@ -483,11 +485,13 @@ class Exchange {
         'tokocrypto',
         'tradeogre',
         'upbit',
+        'vertex',
         'wavesexchange',
         'wazirx',
         'whitebit',
         'woo',
         'woofipro',
+        'xt',
         'yobit',
         'zaif',
         'zonda',
@@ -1574,7 +1578,7 @@ class Exchange {
         $raw_headers_array = explode("\r\n", trim($raw_headers));
         $status_line = $raw_headers_array[0];
         $parts = explode(' ', $status_line);
-        $http_status_text = count($parts) === 3 ? $parts[2] : null;
+        $http_status_text = count($parts) === 3 ? $parts[2] : '';
         $raw_headers = array_slice($raw_headers_array, 1);
         foreach ($raw_headers as $raw_header) {
             if (strlen($raw_header)) {
@@ -1631,8 +1635,8 @@ class Exchange {
             // all sorts of SSL problems, accessibility
             throw new ExchangeNotAvailable($this->id . ' ' . implode(' ', array($url, $method, $curl_errno, $curl_error)));
         }
-
-        $skip_further_error_handling = $this->handle_errors($http_status_code, $http_status_text, $url, $method, $response_headers, $result ? $result : null, $json_response, $headers, $body);
+        $http_status_text =  $http_status_text ?  $http_status_text : '';
+        $skip_further_error_handling = $this->handle_errors($http_status_code, $http_status_text, $url, $method, $response_headers, $result ? $result : '', $json_response, $headers, $body);
         if (!$skip_further_error_handling) {
             $this->handle_http_status_code($http_status_code, $http_status_text, $url, $method, $result);
         }
@@ -1681,8 +1685,8 @@ class Exchange {
 
     public function precision_from_string($str) {
         // support string formats like '1e-4'
-        if (strpos($str, 'e') > -1) {
-            $numStr = preg_replace ('/\de/', '', $str);
+        if (stripos($str, 'e') > -1) {
+            $numStr = preg_replace ('/\d\.?\d*[eE]/', '', $str);
             return ((int)$numStr) * -1;
         }
         // support integer formats (without dot) like '1', '10' etc [Note: bug in decimalToPrecision, so this should not be used atm]
@@ -2061,12 +2065,12 @@ class Exchange {
 
     public static function number_to_be($n, $padding) {
         $n = new BN($n);
-        return array_reduce(array_map('chr', $n->toArray('be', $padding)), 'static::binary_concat');
+        return array_reduce(array_map('chr', $n->toArray('be', $padding)),  [__CLASS__, 'binary_concat']);
     }
 
     public static function number_to_le($n, $padding) {
         $n = new BN($n);
-        return array_reduce(array_map('chr', $n->toArray('le', $padding)), 'static::binary_concat');
+        return array_reduce(array_map('chr', $n->toArray('le', $padding)),  [__CLASS__, 'binary_concat']);
     }
 
     public static function base58_to_binary($s) {
@@ -2841,7 +2845,7 @@ class Exchange {
         throw new NotSupported($this->id . ' parseBorrowInterest() is not supported yet');
     }
 
-    public function parse_isolated_borrow_rate($info, ?array $market = null) {
+    public function parse_isolated_borrow_rate(array $info, ?array $market = null) {
         throw new NotSupported($this->id . ' parseIsolatedBorrowRate() is not supported yet');
     }
 
@@ -4635,7 +4639,29 @@ class Exchange {
         $this->last_request_headers = $request['headers'];
         $this->last_request_body = $request['body'];
         $this->last_request_url = $request['url'];
-        return $this->fetch($request['url'], $request['method'], $request['headers'], $request['body']);
+        $retries = null;
+        list($retries, $params) = $this->handle_option_and_params($params, $path, 'maxRetriesOnFailure', 0);
+        $retryDelay = null;
+        list($retryDelay, $params) = $this->handle_option_and_params($params, $path, 'maxRetriesOnFailureDelay', 0);
+        for ($i = 0; $i < $retries + 1; $i++) {
+            try {
+                return $this->fetch($request['url'], $request['method'], $request['headers'], $request['body']);
+            } catch (Exception $e) {
+                if ($e instanceof NetworkError) {
+                    if ($i < $retries) {
+                        if ($this->verbose) {
+                            $this->log('Request failed with the error => ' . (string) $e . ', retrying ' . ($i . (string) 1) . ' of ' . (string) $retries . '...');
+                        }
+                        if (($retryDelay !== null) && ($retryDelay !== 0)) {
+                            $this->sleep($retryDelay);
+                        }
+                        continue;
+                    }
+                }
+                throw $e;
+            }
+        }
+        return null; // this line is never reached, but exists for c# value return requirement
     }
 
     public function request($path, mixed $api = 'public', $method = 'GET', $params = array (), mixed $headers = null, mixed $body = null, $config = array ()) {

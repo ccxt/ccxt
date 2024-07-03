@@ -928,7 +928,7 @@ class bitso(Exchange, ImplicitAPI):
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
         :param float amount: how much of currency you want to trade in units of base currency
-        :param float [price]: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
@@ -962,7 +962,19 @@ class bitso(Exchange, ImplicitAPI):
         request: dict = {
             'oid': id,
         }
-        return await self.privateDeleteOrdersOid(self.extend(request, params))
+        response = await self.privateDeleteOrdersOid(self.extend(request, params))
+        #
+        #     {
+        #         "success": True,
+        #         "payload": ["yWTQGxDMZ0VimZgZ"]
+        #     }
+        #
+        payload = self.safe_list(response, 'payload', [])
+        orderId = self.safe_string(payload, 0)
+        return self.safe_order({
+            'info': response,
+            'id': orderId,
+        })
 
     async def cancel_orders(self, ids, symbol: Str = None, params={}):
         """

@@ -3959,7 +3959,7 @@ class bitget(Exchange, ImplicitAPI):
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
         :param float amount: how much you want to trade in units of the base currency
-        :param float [price]: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param float [params.cost]: *spot only* how much you want to trade in units of the quote currency, for market buy orders only
         :param float [params.triggerPrice]: *swap only* The price at which a trigger order is triggered at
@@ -3981,6 +3981,7 @@ class bitget(Exchange, ImplicitAPI):
         :param str [params.trailingTriggerPrice]: *swap and future only* the price to trigger a trailing stop order, default uses the price argument
         :param str [params.triggerType]: *swap and future only* 'fill_price', 'mark_price' or 'index_price'
         :param boolean [params.oneWayMode]: *swap and future only* required to set self to True in one_way_mode and you can leave self in hedge_mode, can adjust the mode using the setPositionMode() method
+        :param bool [params.reduceOnly]: True or False whether the order is reduce-only
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
@@ -4190,7 +4191,7 @@ class bitget(Exchange, ImplicitAPI):
                 request['clientOid'] = clientOrderId
             if marginMode is not None:
                 request['loanType'] = 'normal'
-                if createMarketBuyOrderRequiresPrice and isMarketOrder and (side == 'buy'):
+                if isMarketOrder and (side == 'buy'):
                     request['quoteSize'] = quantity
                 else:
                     request['baseSize'] = quantity
@@ -4314,7 +4315,7 @@ class bitget(Exchange, ImplicitAPI):
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
         :param float amount: how much you want to trade in units of the base currency
-        :param float [price]: the price at which the order is to be fullfilled, in units of the base currency, ignored in market orders
+        :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param float [params.triggerPrice]: the price that a trigger order is triggered at
         :param float [params.stopLossPrice]: *swap only* The price at which a stop loss order is triggered at
@@ -7450,7 +7451,7 @@ class bitget(Exchange, ImplicitAPI):
         first['timestamp'] = timestamp
         return self.parse_isolated_borrow_rate(first, market)
 
-    def parse_isolated_borrow_rate(self, info, market: Market = None) -> IsolatedBorrowRate:
+    def parse_isolated_borrow_rate(self, info: dict, market: Market = None) -> IsolatedBorrowRate:
         #
         #     {
         #         "symbol": "BTCUSDT",

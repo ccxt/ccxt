@@ -370,7 +370,8 @@ class btcmarkets(Exchange, ImplicitAPI):
         #             "minOrderAmount":"0.00007",
         #             "maxOrderAmount":"1000000",
         #             "amountDecimals":"8",
-        #             "priceDecimals":"2"
+        #             "priceDecimals":"2",
+        #             "status": "Online"
         #         }
         #     ]
         #
@@ -387,6 +388,7 @@ class btcmarkets(Exchange, ImplicitAPI):
         pricePrecision = self.parse_number(self.parse_precision(self.safe_string(market, 'priceDecimals')))
         minAmount = self.safe_number(market, 'minOrderAmount')
         maxAmount = self.safe_number(market, 'maxOrderAmount')
+        status = self.safe_string(market, 'status')
         minPrice = None
         if quote == 'AUD':
             minPrice = pricePrecision
@@ -405,7 +407,7 @@ class btcmarkets(Exchange, ImplicitAPI):
             'swap': False,
             'future': False,
             'option': False,
-            'active': None,
+            'active': (status == 'Online'),
             'contract': False,
             'linear': None,
             'inverse': None,
@@ -760,7 +762,7 @@ class btcmarkets(Exchange, ImplicitAPI):
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
         :param float amount: how much of currency you want to trade in units of base currency
-        :param float [price]: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
@@ -855,7 +857,29 @@ class btcmarkets(Exchange, ImplicitAPI):
         request: dict = {
             'ids': ids,
         }
-        return self.privateDeleteBatchordersIds(self.extend(request, params))
+        response = self.privateDeleteBatchordersIds(self.extend(request, params))
+        #
+        #    {
+        #       "cancelOrders": [
+        #            {
+        #               "orderId": "414186",
+        #               "clientOrderId": "6"
+        #            },
+        #            ...
+        #        ],
+        #        "unprocessedRequests": [
+        #            {
+        #               "code": "OrderAlreadyCancelled",
+        #               "message": "order is already cancelled.",
+        #               "requestId": "1"
+        #            }
+        #        ]
+        #    }
+        #
+        cancelOrders = self.safe_list(response, 'cancelOrders', [])
+        unprocessedRequests = self.safe_list(response, 'unprocessedRequests', [])
+        orders = self.array_concat(cancelOrders, unprocessedRequests)
+        return self.parse_orders(orders)
 
     def cancel_order(self, id: str, symbol: Str = None, params={}):
         """
@@ -870,7 +894,14 @@ class btcmarkets(Exchange, ImplicitAPI):
         request: dict = {
             'id': id,
         }
-        return self.privateDeleteOrdersId(self.extend(request, params))
+        response = self.privateDeleteOrdersId(self.extend(request, params))
+        #
+        #    {
+        #        "orderId": "7524",
+        #        "clientOrderId": "123-456"
+        #    }
+        #
+        return self.parse_order(response)
 
     def calculate_fee(self, symbol, type, side, amount, price, takerOrMaker='taker', params={}):
         """
