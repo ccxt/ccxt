@@ -1449,7 +1449,7 @@ class Exchange(object):
     @staticmethod
     def eddsa(request, secret, curve='ed25519'):
         if isinstance(secret, str):
-            Exchange.encode(secret)
+            secret = Exchange.encode(secret)
         private_key = ed25519.Ed25519PrivateKey.from_private_bytes(secret) if len(secret) == 32 else load_pem_private_key(secret, None)
         return Exchange.binary_to_base64(private_key.sign(request))
 
