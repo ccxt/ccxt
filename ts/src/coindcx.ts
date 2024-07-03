@@ -484,7 +484,7 @@ export default class coindcx extends Exchange {
                 type = 'swap';
             } else {
                 type = 'future';
-                expiry = this.safeInteger (market, 'expiry');
+                expiry = this.safeInteger (market, 'expiry_time');
             }
         }
         const active = this.safeString (market, 'status');
@@ -879,20 +879,22 @@ export default class coindcx extends Exchange {
          * @param {int} [params.from_id] trade ID after which you want the data. If not supplied, trades in ascending order will be returned
          * @param {string} [params.order_id] *for futures or swap markets only* a unique id for the order
          * @param {string} [params.sort] asc or desc to get trades in ascending or descending order, default: asc
-         * @param {string} [params.page] *for futures or swap markets only* no of pages needed
+         * @param {int} [params.page] *for futures or swap markets only* no of pages needed
          * @returns {Trade[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure}
          */
         await this.loadMarkets ();
-        const market = this.market (symbol);
-        const marketInfo = this.safeDict (market, 'info', {});
-        const pair = this.safeString (marketInfo, 'pair');
-        const request: Dict = {
-            'pair': pair,
-        };
-        let response = undefined;
+        let market: Market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
         let marketType = 'spot';
-        if (market['spot']) {
-            [ marketType, params ] = this.handleMarketTypeMarginAndParams ('fetchMyTrades', market, params, marketType);
+        [ marketType, params ] = this.handleMarketTypeMarginAndParams ('fetchMyTrades', market, params, marketType);
+        let response = undefined;
+        const request: Dict = {};
+        if (marketType === 'spot') {
+            if (symbol !== undefined) {
+                request['symbol'] = market['id'];
+            }
             if (since !== undefined) {
                 request['from_timestamp'] = since;
             }
@@ -920,16 +922,25 @@ export default class coindcx extends Exchange {
             //         }
             //     ]
             //
-        } else if ((market['swap']) || (market['future'])) {
+        } else if (marketType === 'margin') {
+            throw new NotSupported (this.id + ' fetchMyTrades() does not supports ' + marketType + ' markets');
+        } else if ((marketType === 'swap') || (marketType === 'future')) {
+            if (market !== undefined) {
+                request['pair'] = market['id'];
+            }
             if (since !== undefined) {
-                request['from_date'] = since;
+                const datetime = this.iso8601 (since);
+                const datetimeParts = datetime.split ('T');
+                request['from_date'] = datetimeParts[0];
             }
             if (limit !== undefined) {
                 request['size'] = limit;
             }
             const until = this.safeInteger (params, 'until');
             if (until !== undefined) {
-                request['to_date'] = until;
+                const datetime = this.iso8601 (until);
+                const datetimeParts = datetime.split ('T');
+                request['to_date'] = datetimeParts[0];
                 params = this.omit (params, 'until');
             }
             response = await this.privatePostExchangeV1DerivativesFuturesTrades (this.extend (request, params));
@@ -948,7 +959,7 @@ export default class coindcx extends Exchange {
             //     ]
             //
         } else {
-            throw new NotSupported (this.id + ' fetchTrades() does not supports ' + market['type'] + ' markets');
+            throw new NotSupported (this.id + ' fetchMyTrades() does not supports ' + marketType + ' markets');
         }
         return this.parseTrades (response, market, since, limit);
     }
@@ -965,7 +976,7 @@ export default class coindcx extends Exchange {
         //         "m": true
         //     }
         //
-        // fetchTrades contract
+        // fetchTrades future or swap
         //     {
         //         "price": 3412.14,
         //         "quantity": 7.401,
@@ -987,7 +998,7 @@ export default class coindcx extends Exchange {
         //         "timestamp": 1718386312255.3608
         //     }
         //
-        // fetchMyTrades for futures or swap
+        // fetchMyTrades future or swap
         //
         //     {
         //         "price": 3369.03,
@@ -1000,7 +1011,7 @@ export default class coindcx extends Exchange {
         //         "order_id": "f467934a-3455-11ef-850c-bf95c3d2646c"
         //     }
         //
-        const marketId = this.safeString2 (trade, 's', 'symbol');
+        const marketId = this.safeStringN (trade, [ 's', 'symbol', 'pair' ]);
         market = this.safeMarket (marketId, market);
         const symbol = market['symbol'];
         const timestampString = this.safeString2 (trade, 'timestamp', 'T');
@@ -1104,7 +1115,7 @@ export default class coindcx extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         let marketType = 'spot';
-        [ marketType, params ] = this.handleMarketTypeMarginAndParams ('fetchMyTrades', market, params, marketType);
+        [ marketType, params ] = this.handleMarketTypeMarginAndParams ('createOrder', market, params, marketType);
         const clientOrderId = this.safeString2 (params, 'clientOrderId', 'client_order_id');
         if ((clientOrderId !== undefined) && (marketType !== 'spot')) {
             throw new NotSupported (this.id + ' createOrder() supports params.clientOrderId for spot markets without margin only');
