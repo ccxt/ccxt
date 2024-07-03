@@ -1550,7 +1550,7 @@ class binance extends Exchange {
                         '-3042' => '\\ccxt\\BadRequest', // array("code":-3042,"msg":"PriceIndex not available for this margin pair.")
                         '-3043' => '\\ccxt\\PermissionDenied', // array(is_array(not allowed.") && array_key_exists("code":-3043,"msg":"Transferring, not allowed."))
                         '-3044' => '\\ccxt\\OperationFailed', // array("code":-3044,"msg":"System busy.")
-                        '-3045' => '\\ccxt\\OperationFailed', // array("code":-3045,"msg":"The system doesn't have enough asset now.")
+                        '-3045' => '\\ccxt\\OperationRejected', // array("code":-3045,"msg":"The system doesn't have enough asset now.")
                         '-3999' => '\\ccxt\\PermissionDenied', // array("code":-3999,"msg":"This function is only available for invited users.")
                         //
                         //        4xxx (different from contract markets)
@@ -1569,7 +1569,7 @@ class binance extends Exchange {
                         '-4011' => '\\ccxt\\BadRequest', // array("code":-4011 ,"msg":"White list mail is invalid.")
                         '-4012' => '\\ccxt\\PermissionDenied', // array("code":-4012 ,"msg":"White list is not opened.")
                         '-4013' => '\\ccxt\\AuthenticationError', // array("code":-4013 ,"msg":"2FA is not opened.")
-                        '-4014' => '\\ccxt\\OperationFailed', // array("code":-4014 ,"msg":"Withdraw is not allowed within 2 min login.")
+                        '-4014' => '\\ccxt\\OperationRejected', // array("code":-4014 ,"msg":"Withdraw is not allowed within 2 min login.")
                         '-4015' => '\\ccxt\\PermissionDenied', // array("code":-4015 ,"msg":"Withdraw is limited.")
                         '-4016' => '\\ccxt\\PermissionDenied', // array("code":-4016 ,"msg":"Within 24 hours after password modification, withdrawal is prohibited.")
                         '-4017' => '\\ccxt\\PermissionDenied', // array("code":-4017 ,"msg":"Within 24 hours after the release of 2FA, withdrawal is prohibited.")
@@ -1578,7 +1578,7 @@ class binance extends Exchange {
                         '-4020' => '\\ccxt\\ExchangeError', // override commons
                         '-4021' => '\\ccxt\\BadRequest', // array("code":-4021,"msg":"Asset withdrawal must be an %s multiple of %s.")
                         '-4022' => '\\ccxt\\BadRequest', // array("code":-4022,"msg":"Not less than the minimum pick-up quantity %s.")
-                        '-4023' => '\\ccxt\\OperationFailed', // array("code":-4023,"msg":"Within 24 hours, the withdrawal exceeds the maximum amount.")
+                        '-4023' => '\\ccxt\\OperationRejected', // array("code":-4023,"msg":"Within 24 hours, the withdrawal exceeds the maximum amount.")
                         '-4024' => '\\ccxt\\InsufficientFunds', // array("code":-4024,"msg":"You don't have this asset.")
                         '-4025' => '\\ccxt\\InsufficientFunds', // array("code":-4025,"msg":"The number of hold asset is less than zero.")
                         '-4026' => '\\ccxt\\InsufficientFunds', // array("code":-4026,"msg":"You have insufficient balance.")
@@ -1587,7 +1587,7 @@ class binance extends Exchange {
                         '-4029' => '\\ccxt\\BadRequest', // array("code":-4029,"msg":"The withdrawal record does not exist.")
                         '-4030' => '\\ccxt\\BadResponse', // array("code":-4030,"msg":"Confirmation of successful asset withdrawal. [TODO] possible bug in docs")
                         '-4031' => '\\ccxt\\OperationFailed', // array("code":-4031,"msg":"Cancellation failed.")
-                        '-4032' => '\\ccxt\\OperationFailed', // array("code":-4032,"msg":"Withdraw verification exception.")
+                        '-4032' => '\\ccxt\\OperationRejected', // array("code":-4032,"msg":"Withdraw verification exception.")
                         '-4033' => '\\ccxt\\BadRequest', // array("code":-4033,"msg":"Illegal address.")
                         '-4034' => '\\ccxt\\OperationRejected', // array("code":-4034,"msg":"The address is suspected of fake.")
                         '-4035' => '\\ccxt\\PermissionDenied', // array("code":-4035,"msg":"This address is not on the whitelist. Please join and try again.")
@@ -1710,7 +1710,7 @@ class binance extends Exchange {
                         '-5003' => '\\ccxt\\InsufficientFunds', // You don't have this asset.
                         '-5004' => '\\ccxt\\OperationRejected', // The residual balances of %s have exceeded 0.001BTC, Please re-choose.
                         '-5005' => '\\ccxt\\OperationRejected', // The residual balances of %s is too low, Please re-choose.
-                        '-5006' => '\\ccxt\\OperationFailed', // Only transfer once in 24 hours.
+                        '-5006' => '\\ccxt\\OperationRejected', // Only transfer once in 24 hours.
                         '-5007' => '\\ccxt\\BadRequest', // Quantity must be greater than zero.
                         '-5008' => '\\ccxt\\OperationRejected', // Insufficient amount of returnable assets.
                         '-5009' => '\\ccxt\\BadSymbol', // Product does not exist.
@@ -1728,8 +1728,8 @@ class binance extends Exchange {
                         '-6004' => '\\ccxt\\BadRequest', // Product not in purchase status
                         '-6005' => '\\ccxt\\BadRequest', // Smaller than min purchase limit
                         '-6006' => '\\ccxt\\BadRequest', // Redeem amount error
-                        '-6007' => '\\ccxt\\OperationFailed', // Not in redeem time
-                        '-6008' => '\\ccxt\\OperationFailed', // Product not in redeem status
+                        '-6007' => '\\ccxt\\OperationRejected', // Not in redeem time
+                        '-6008' => '\\ccxt\\OperationRejected', // Product not in redeem status
                         '-6009' => '\\ccxt\\RateLimitExceeded', // Request frequency too high
                         '-6011' => '\\ccxt\\OperationRejected', // Exceeding the maximum num allowed to purchase per user
                         '-6012' => '\\ccxt\\InsufficientFunds', // Balance not enough

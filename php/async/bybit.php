@@ -3061,15 +3061,18 @@ class bybit extends Exchange {
             list($enableUnifiedMargin, $enableUnifiedAccount) = Async\await($this->is_unified_enabled());
             $isUnifiedAccount = ($enableUnifiedMargin || $enableUnifiedAccount);
             $type = null;
-            list($type, $params) = $this->handle_market_type_and_params('fetchBalance', null, $params);
+            list($type, $params) = $this->get_bybit_type('fetchBalance', null, $params);
             $isSpot = ($type === 'spot');
-            $isSwap = ($type === 'swap');
+            $isLinear = ($type === 'linear');
+            $isInverse = ($type === 'inverse');
             if ($isUnifiedAccount) {
-                if ($isSpot || $isSwap) {
+                if ($isInverse) {
+                    $type = 'contract';
+                } else {
                     $type = 'unified';
                 }
             } else {
-                if ($isSwap) {
+                if ($isLinear || $isInverse) {
                     $type = 'contract';
                 }
             }

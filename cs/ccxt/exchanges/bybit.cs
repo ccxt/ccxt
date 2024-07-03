@@ -3172,20 +3172,24 @@ public partial class bybit : Exchange
         var enableUnifiedAccount = ((IList<object>) enableUnifiedMarginenableUnifiedAccountVariable)[1];
         object isUnifiedAccount = (isTrue(enableUnifiedMargin) || isTrue(enableUnifiedAccount));
         object type = null;
-        var typeparametersVariable = this.handleMarketTypeAndParams("fetchBalance", null, parameters);
+        var typeparametersVariable = this.getBybitType("fetchBalance", null, parameters);
         type = ((IList<object>)typeparametersVariable)[0];
         parameters = ((IList<object>)typeparametersVariable)[1];
         object isSpot = (isEqual(type, "spot"));
-        object isSwap = (isEqual(type, "swap"));
+        object isLinear = (isEqual(type, "linear"));
+        object isInverse = (isEqual(type, "inverse"));
         if (isTrue(isUnifiedAccount))
         {
-            if (isTrue(isTrue(isSpot) || isTrue(isSwap)))
+            if (isTrue(isInverse))
+            {
+                type = "contract";
+            } else
             {
                 type = "unified";
             }
         } else
         {
-            if (isTrue(isSwap))
+            if (isTrue(isTrue(isLinear) || isTrue(isInverse)))
             {
                 type = "contract";
             }

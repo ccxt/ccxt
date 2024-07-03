@@ -2921,14 +2921,17 @@ class bybit(Exchange, ImplicitAPI):
         enableUnifiedMargin, enableUnifiedAccount = self.is_unified_enabled()
         isUnifiedAccount = (enableUnifiedMargin or enableUnifiedAccount)
         type = None
-        type, params = self.handle_market_type_and_params('fetchBalance', None, params)
+        type, params = self.get_bybit_type('fetchBalance', None, params)
         isSpot = (type == 'spot')
-        isSwap = (type == 'swap')
+        isLinear = (type == 'linear')
+        isInverse = (type == 'inverse')
         if isUnifiedAccount:
-            if isSpot or isSwap:
+            if isInverse:
+                type = 'contract'
+            else:
                 type = 'unified'
         else:
-            if isSwap:
+            if isLinear or isInverse:
                 type = 'contract'
         accountTypes = self.safe_dict(self.options, 'accountsByType', {})
         unifiedType = self.safe_string_upper(accountTypes, type, type)

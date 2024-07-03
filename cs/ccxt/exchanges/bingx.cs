@@ -94,6 +94,7 @@ public partial class bingx : Exchange
                     { "subAccount", "https://open-api.{hostname}/openApi" },
                     { "account", "https://open-api.{hostname}/openApi" },
                     { "copyTrading", "https://open-api.{hostname}/openApi" },
+                    { "cswap", "https://open-api.{hostname}/openApi" },
                 } },
                 { "test", new Dictionary<string, object>() {
                     { "swap", "https://open-api-vst.{hostname}/openApi" },
@@ -252,6 +253,36 @@ public partial class bingx : Exchange
                         { "public", new Dictionary<string, object>() {
                             { "get", new Dictionary<string, object>() {
                                 { "quote/klines", 1 },
+                            } },
+                        } },
+                    } },
+                } },
+                { "cswap", new Dictionary<string, object>() {
+                    { "v1", new Dictionary<string, object>() {
+                        { "public", new Dictionary<string, object>() {
+                            { "get", new Dictionary<string, object>() {
+                                { "market/contracts", 1 },
+                                { "market/premiumIndex", 1 },
+                                { "market/openInterest", 1 },
+                                { "market/klines", 1 },
+                                { "market/depth", 1 },
+                                { "market/ticker", 1 },
+                            } },
+                        } },
+                        { "private", new Dictionary<string, object>() {
+                            { "get", new Dictionary<string, object>() {
+                                { "trade/leverage", 2 },
+                                { "trade/forceOrders", 2 },
+                                { "trade/allFillOrders", 2 },
+                                { "user/commissionRate", 2 },
+                                { "user/positions", 2 },
+                                { "user/balance", 2 },
+                            } },
+                            { "post", new Dictionary<string, object>() {
+                                { "trade/order", 2 },
+                                { "trade/leverage", 2 },
+                                { "trade/allOpenOrders", 2 },
+                                { "trade/closeAllPositions", 2 },
                             } },
                         } },
                     } },
