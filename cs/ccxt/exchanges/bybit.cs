@@ -3524,7 +3524,7 @@ public partial class bybit : Exchange
                 feeCurrencyCode = ((bool) isTrue(getValue(market, "inverse"))) ? getValue(market, "base") : getValue(market, "settle");
             }
             fee = new Dictionary<string, object>() {
-                { "cost", feeCostString },
+                { "cost", this.parseNumber(feeCostString) },
                 { "currency", feeCurrencyCode },
             };
         }
