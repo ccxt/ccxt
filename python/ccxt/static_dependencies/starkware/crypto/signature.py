@@ -31,9 +31,13 @@ from .math_utils import (
     ec_add,
     ec_double,
     ec_mult,
-    is_quad_residue,
-    sqrt_mod,
 )
+
+# TODO: require more module from sympy
+# from ...sympy.ntheory.residue_ntheory import (
+#     is_quad_residue,
+#     sqrt_mod,
+# )
 
 FIELD_PRIME = 3618502788666131213697322783095070105623107215331596699973092056135872020481
 FIELD_GEN = 3
@@ -2115,7 +2119,7 @@ def get_y_coordinate(stark_key_x_coordinate: int) -> int:
     y_squared = (x * x * x + ALPHA * x + BETA) % FIELD_PRIME
     if not is_quad_residue(y_squared, FIELD_PRIME):
         raise InvalidPublicKeyError()
-    return sqrt_mod(y_squared, FIELD_PRIME)
+    return sqrt_mod(y_squared, FIELD_PRIME, all_roots=True)
 
 
 def get_random_private_key() -> int:
@@ -2223,63 +2227,63 @@ def is_valid_stark_private_key(private_key: int) -> bool:
     return 0 < private_key < EC_ORDER
 
 
-def is_valid_stark_key(stark_key: int) -> bool:
-    """
-    Returns whether the given input is a valid STARK key.
-    """
-    # Only the x coordinate of the point is given, get the y coordinate and make sure that the
-    # point is on the curve.
-    try:
-        get_y_coordinate(stark_key_x_coordinate=stark_key)
-    except InvalidPublicKeyError:
-        return False
-    return True
+# def is_valid_stark_key(stark_key: int) -> bool:
+#     """
+#     Returns whether the given input is a valid STARK key.
+#     """
+#     # Only the x coordinate of the point is given, get the y coordinate and make sure that the
+#     # point is on the curve.
+#     try:
+#         get_y_coordinate(stark_key_x_coordinate=stark_key)
+#     except InvalidPublicKeyError:
+#         return False
+#     return True
 
 
-def verify(msg_hash: int, r: int, s: int, public_key: Union[int, ECPoint]) -> bool:
-    # Compute w = s^-1 (mod EC_ORDER).
-    assert 1 <= s < EC_ORDER, "s = %s" % s
-    w = inv_mod_curve_size(s)
+# def verify(msg_hash: int, r: int, s: int, public_key: Union[int, ECPoint]) -> bool:
+#     # Compute w = s^-1 (mod EC_ORDER).
+#     assert 1 <= s < EC_ORDER, "s = %s" % s
+#     w = inv_mod_curve_size(s)
 
-    # Preassumptions:
-    # DIFF: in classic ECDSA, we assert 1 <= r, w <= EC_ORDER-1.
-    # Since r, w < 2**N_ELEMENT_BITS_ECDSA < EC_ORDER, we only need to verify r, w != 0.
-    assert 1 <= r < 2**N_ELEMENT_BITS_ECDSA, "r = %s" % r
-    assert 1 <= w < 2**N_ELEMENT_BITS_ECDSA, "w = %s" % w
-    assert 0 <= msg_hash < 2**N_ELEMENT_BITS_ECDSA, "msg_hash = %s" % msg_hash
+#     # Preassumptions:
+#     # DIFF: in classic ECDSA, we assert 1 <= r, w <= EC_ORDER-1.
+#     # Since r, w < 2**N_ELEMENT_BITS_ECDSA < EC_ORDER, we only need to verify r, w != 0.
+#     assert 1 <= r < 2**N_ELEMENT_BITS_ECDSA, "r = %s" % r
+#     assert 1 <= w < 2**N_ELEMENT_BITS_ECDSA, "w = %s" % w
+#     assert 0 <= msg_hash < 2**N_ELEMENT_BITS_ECDSA, "msg_hash = %s" % msg_hash
 
-    if isinstance(public_key, int):
-        # Only the x coordinate of the point is given, check the two possibilities for the y
-        # coordinate.
-        try:
-            y = get_y_coordinate(public_key)
-        except InvalidPublicKeyError:
-            return False
-        return verify(msg_hash, r, s, (public_key, y)) or verify(
-            msg_hash, r, s, (public_key, (-y) % FIELD_PRIME)
-        )
+#     if isinstance(public_key, int):
+#         # Only the x coordinate of the point is given, check the two possibilities for the y
+#         # coordinate.
+#         try:
+#             y = get_y_coordinate(public_key)
+#         except InvalidPublicKeyError:
+#             return False
+#         return verify(msg_hash, r, s, (public_key, y)) or verify(
+#             msg_hash, r, s, (public_key, (-y) % FIELD_PRIME)
+#         )
 
-    # The public key is provided as a point.
-    assert is_point_on_curve(x=public_key[0], y=public_key[1])
+#     # The public key is provided as a point.
+#     assert is_point_on_curve(x=public_key[0], y=public_key[1])
 
-    # Signature validation.
-    # DIFF: original formula is:
-    # x = (w*msg_hash)*EC_GEN + (w*r)*public_key
-    # While what we implement is:
-    # x = w*(msg_hash*EC_GEN + r*public_key).
-    # While both mathematically equivalent, one might error while the other doesn't,
-    # given the current implementation.
-    # This formula ensures that if the verification errors in our AIR, it errors here as well.
-    try:
-        zG = mimic_ec_mult_air(msg_hash, EC_GEN, MINUS_SHIFT_POINT)
-        rQ = mimic_ec_mult_air(r, public_key, SHIFT_POINT)
-        wB = mimic_ec_mult_air(w, ec_add(zG, rQ, FIELD_PRIME), SHIFT_POINT)
-        x = ec_add(wB, MINUS_SHIFT_POINT, FIELD_PRIME)[0]
-    except AssertionError:
-        return False
+#     # Signature validation.
+#     # DIFF: original formula is:
+#     # x = (w*msg_hash)*EC_GEN + (w*r)*public_key
+#     # While what we implement is:
+#     # x = w*(msg_hash*EC_GEN + r*public_key).
+#     # While both mathematically equivalent, one might error while the other doesn't,
+#     # given the current implementation.
+#     # This formula ensures that if the verification errors in our AIR, it errors here as well.
+#     try:
+#         zG = mimic_ec_mult_air(msg_hash, EC_GEN, MINUS_SHIFT_POINT)
+#         rQ = mimic_ec_mult_air(r, public_key, SHIFT_POINT)
+#         wB = mimic_ec_mult_air(w, ec_add(zG, rQ, FIELD_PRIME), SHIFT_POINT)
+#         x = ec_add(wB, MINUS_SHIFT_POINT, FIELD_PRIME)[0]
+#     except AssertionError:
+#         return False
 
-    # DIFF: Here we drop the mod n from classic ECDSA.
-    return r == x
+#     # DIFF: Here we drop the mod n from classic ECDSA.
+#     return r == x
 
 
 def grind_key(key_seed: int, key_value_limit: int) -> int:  # type: ignore[return]

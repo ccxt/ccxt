@@ -8,8 +8,8 @@ from ..constants import EC_ORDER
 from ...starkware.crypto.signature import (
     ECSignature,
     private_to_stark_key,
-    sign,
-    verify
+    sign
+    # verify
 )
 from ...starkware.crypto.fast_pedersen_hash import (
     pedersen_hash
@@ -62,23 +62,16 @@ def message_signature(
     return sign(msg_hash, priv_key, seed)
 
 
-def verify_message_signature(
-    msg_hash: int, signature: List[int], public_key: int
-) -> bool:
-    """
-    Verifies ECDSA signature of a given message hash with a given public key.
-    Returns true if public_key signs the message.
-    """
-    sig_r, sig_s = signature
-    # sig_w = pow(sig_s, -1, EC_ORDER)
-    return verify(msg_hash=msg_hash, r=sig_r, s=sig_s, public_key=public_key)
-
-
-# def private_to_stark_key(priv_key: int) -> int:
+# def verify_message_signature(
+#     msg_hash: int, signature: List[int], public_key: int
+# ) -> bool:
 #     """
-#     Deduces the public key given a private key.
+#     Verifies ECDSA signature of a given message hash with a given public key.
+#     Returns true if public_key signs the message.
 #     """
-#     return private_to_stark_key(priv_key)
+#     sig_r, sig_s = signature
+#     # sig_w = pow(sig_s, -1, EC_ORDER)
+#     return verify(msg_hash=msg_hash, r=sig_r, s=sig_s, public_key=public_key)
 
 
 def encode_uint(value: int, bytes_length: int = 32) -> bytes:
