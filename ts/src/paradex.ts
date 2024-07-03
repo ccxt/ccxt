@@ -5,7 +5,7 @@ import { Precise } from '../ccxt.js';
 import Exchange from './abstract/paradex.js';
 import { ExchangeError, PermissionDenied, AuthenticationError, BadRequest, ArgumentsRequired } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Str, Num, Dict, List, Int, Market, OrderType, OrderSide, Order, OrderBook, Strings, Ticker, Tickers, Trade, Balances, Currency, Transaction } from './base/types.js';
+import type { Str, Num, Dict, List, Int, Market, OrderType, OrderSide, Order, OrderBook, Strings, Ticker, Tickers, Trade, Balances, Currency, Transaction, OHLCV } from './base/types.js';
 import { ecdsa } from './base/functions/crypto.js';
 import { keccak_256 as keccak } from './static_dependencies/noble-hashes/sha3.js';
 import { secp256k1 } from './static_dependencies/noble-curves/secp256k1.js';
@@ -116,15 +116,12 @@ export default class paradex extends Exchange {
                 'withdraw': false,
             },
             'timeframes': {
-                '1m': 60,
-                '5m': 300,
-                '15m': 900,
-                '1h': 3600,
-                '2h': 7200,
-                '4h': 14400,
-                '1d': 86400,
-                '1w': 604800,
-                '1M': 604800,
+                '1m': 1,
+                '3m': 3,
+                '5m': 5,
+                '15m': 15,
+                '30m': 30,
+                '1h': 60,
             },
             'hostname': 'paradex.trade',
             'urls': {
@@ -146,6 +143,7 @@ export default class paradex extends Exchange {
                         'bbo/{market}': 1,
                         'funding/data': 1,
                         'markets': 1,
+                        'markets/klines': 1,
                         'markets/summary': 1,
                         'orderbook/{market}': 1,
                         'insurance': 1,
@@ -407,6 +405,61 @@ export default class paradex extends Exchange {
             'created': undefined,
             'info': market,
         };
+    }
+
+    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+        /**
+         * @method
+         * @name binance#fetchOHLCV
+         * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+         * @see https://docs.api.testnet.paradex.trade/#ohlcv-for-a-symbol
+         * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+         * @param {string} timeframe the length of time each candle represents
+         * @param {int} [since] timestamp in ms of the earliest candle to fetch
+         * @param {int} [limit] the maximum amount of candles to fetch
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {int} [params.until] timestamp in ms of the latest candle to fetch
+         * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request: Dict = {
+            'resolution': this.safeString (this.timeframes, timeframe, timeframe),
+            'symbol': market['id'],
+        };
+        const now = this.milliseconds ();
+        const duration = this.parseTimeframe (timeframe);
+        const until = this.safeInteger2 (params, 'until', 'till', now);
+        params = this.omit (params, [ 'until', 'till' ]);
+        if (since !== undefined) {
+            request['start_at'] = since;
+            if (limit !== undefined) {
+                request['end_at'] = this.sum (since, duration * limit * 1000);
+            } else {
+                request['end_at'] = until;
+            }
+        } else {
+            request['end_at'] = until;
+            if (limit !== undefined) {
+                request['start_at'] = until - duration * limit * 1000;
+            } else {
+                request['start_at'] = until - duration * 100 * 1000;
+            }
+        }
+        const response = await this.publicGetMarketsKlines (this.extend (request, params));
+        const data = this.safeList (response, 'results', []);
+        return this.parseOHLCVs (data, market, timeframe, since, limit);
+    }
+
+    parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
+        return [
+            this.safeInteger2 (ohlcv, 0, 'openTime'),
+            this.safeNumber2 (ohlcv, 1, 'open'),
+            this.safeNumber2 (ohlcv, 2, 'high'),
+            this.safeNumber2 (ohlcv, 3, 'low'),
+            this.safeNumber2 (ohlcv, 4, 'close'),
+            this.safeNumber2 (ohlcv, 5, 'volume'),
+        ];
     }
 
     async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
