@@ -34,5 +34,11 @@
     <None Include="img/ccxt4.png" Pack="true" PackagePath="" />
     <None Include="../../README.md" Pack="true" PackagePath="" />
 </ItemGroup>
+<ItemGroup>
+  <None Update="static/StarkSharp/StarkSharp.Signer/StarkCurveSigner\pedersen_params.json">
+    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    <Pack>true</Pack>
+  </None>
+</ItemGroup>
 
 </Project>

@@ -11,6 +11,7 @@ using BigInt = System.Numerics.BigInteger;
 using System.Collections.Generic;
 using System.Linq;
 using System.Diagnostics;
+using System.Reflection;
 
 namespace StarkSharp.StarkCurve.Signature
 {
@@ -38,8 +39,16 @@ namespace StarkSharp.StarkCurve.Signature
 
     public static class ECDSA
     {
-        private const string PedersenHashPointFilename = "StarkSharp\\StarkSharp.Signer\\StarkCurveSigner\\pedersen_params.json"; // Hey, Adjust according to your File Directory
-        private static readonly StarkCurveParameters PedersenParams = JsonConvert.DeserializeObject<StarkCurveParameters>(File.ReadAllText(PedersenHashPointFilename));
+        // private const string PedersenHashPointFilename = "StarkSharp\\StarkSharp.Signer\\StarkCurveSigner\\pedersen_params.json"; // Hey, Adjust according to your File Directory
+        // private const string PedersenHashPointFilename = "pedersen_params.json"; // Hey, Adjust according to your File Directory
+        // private static string PedersenHashPointFilename = Path.Combine(Directory.GetCurrentDirectory(), "StarkSharp/StarkSharp.Signer/StarkCurveSigner/pedersen_params.json"); // Hey, Adjust according to your File Directory
+        // private static string PedersenHashPointFilename = "./pedersen_params.json"; // Hey, Adjust according to your File Directory
+
+        // private static string relativePath = Assembly.GetExecutingAssembly().Location;
+
+        // Combine the relative path with the current directory path
+        private static string fullPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "static", "StarkSharp/StarkSharp.Signer/StarkCurveSigner/pedersen_params.json");
+        private static readonly StarkCurveParameters PedersenParams = JsonConvert.DeserializeObject<StarkCurveParameters>(File.ReadAllText(fullPath));
 
         // Field parameters.
         public static readonly BigInt FieldPrime = PedersenParams.FieldPrime;
