@@ -3967,10 +3967,10 @@ class htx extends Exchange {
                 'status' => '0', // support multiple query seperated by ',',such as '3,4,5', 0 => all. 3. Have sumbmitted the $orders; 4. Orders partially matched; 5. Orders cancelled with partially matched; 6. Orders fully matched; 7. Orders cancelled;
             );
             $response = null;
-            $stop = $this->safe_value($params, 'stop');
+            $stop = $this->safe_bool_2($params, 'stop', 'trigger');
             $stopLossTakeProfit = $this->safe_value($params, 'stopLossTakeProfit');
             $trailing = $this->safe_bool($params, 'trailing', false);
-            $params = $this->omit($params, array( 'stop', 'stopLossTakeProfit', 'trailing' ));
+            $params = $this->omit($params, array( 'stop', 'stopLossTakeProfit', 'trailing', 'trigger' ));
             if ($stop || $stopLossTakeProfit || $trailing) {
                 if ($limit !== null) {
                     $request['page_size'] = $limit;
@@ -4329,10 +4329,10 @@ class htx extends Exchange {
                     $request['page_size'] = $limit;
                 }
                 $request['contract_code'] = $market['id'];
-                $stop = $this->safe_value($params, 'stop');
+                $stop = $this->safe_bool_2($params, 'stop', 'trigger');
                 $stopLossTakeProfit = $this->safe_value($params, 'stopLossTakeProfit');
                 $trailing = $this->safe_bool($params, 'trailing', false);
-                $params = $this->omit($params, array( 'stop', 'stopLossTakeProfit', 'trailing' ));
+                $params = $this->omit($params, array( 'stop', 'stopLossTakeProfit', 'trailing', 'trigger' ));
                 if ($market['linear']) {
                     $marginMode = null;
                     list($marginMode, $params) = $this->handle_margin_mode_and_params('fetchOpenOrders', $params);
@@ -5094,7 +5094,7 @@ class htx extends Exchange {
              * @param {string} $type 'market' or 'limit'
              * @param {string} $side 'buy' or 'sell'
              * @param {float} $amount how much you want to trade in units of the base currency
-             * @param {float} [$price] the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
+             * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->timeInForce] supports 'IOC' and 'FOK'
              * @param {float} [$params->cost] the quote quantity that can be used alternative for the $amount for $market buy orders
@@ -5211,7 +5211,7 @@ class htx extends Exchange {
          * @param {string} $type 'market' or 'limit'
          * @param {string} $side 'buy' or 'sell'
          * @param {float} $amount how much you want to trade in units of the base currency
-         * @param {float} [$price] the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
+         * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->timeInForce] supports 'IOC' and 'FOK'
          * @param {float} [$params->trailingPercent] *contract only* the percent to trail away from the current $market $price
@@ -5314,7 +5314,7 @@ class htx extends Exchange {
              * @param {string} $type 'market' or 'limit'
              * @param {string} $side 'buy' or 'sell'
              * @param {float} $amount how much you want to trade in units of the base currency
-             * @param {float} [$price] the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
+             * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {float} [$params->stopPrice] the $price a trigger order is triggered at
              * @param {string} [$params->triggerType] *contract trigger orders only* ge => greater than or equal to, le => less than or equal to
@@ -5655,10 +5655,10 @@ class htx extends Exchange {
                 } else {
                     $request['contract_code'] = $market['id'];
                 }
-                $stop = $this->safe_value($params, 'stop');
+                $stop = $this->safe_bool_2($params, 'stop', 'trigger');
                 $stopLossTakeProfit = $this->safe_value($params, 'stopLossTakeProfit');
                 $trailing = $this->safe_bool($params, 'trailing', false);
-                $params = $this->omit($params, array( 'stop', 'stopLossTakeProfit', 'trailing' ));
+                $params = $this->omit($params, array( 'stop', 'stopLossTakeProfit', 'trailing', 'trigger' ));
                 if ($market['linear']) {
                     $marginMode = null;
                     list($marginMode, $params) = $this->handle_margin_mode_and_params('cancelOrder', $params);
@@ -5800,9 +5800,9 @@ class htx extends Exchange {
                 } else {
                     $request['contract_code'] = $market['id'];
                 }
-                $stop = $this->safe_value($params, 'stop');
+                $stop = $this->safe_bool_2($params, 'stop', 'trigger');
                 $stopLossTakeProfit = $this->safe_value($params, 'stopLossTakeProfit');
-                $params = $this->omit($params, array( 'stop', 'stopLossTakeProfit' ));
+                $params = $this->omit($params, array( 'stop', 'stopLossTakeProfit', 'trigger' ));
                 if ($market['linear']) {
                     $marginMode = null;
                     list($marginMode, $params) = $this->handle_margin_mode_and_params('cancelOrders', $params);
@@ -5947,10 +5947,10 @@ class htx extends Exchange {
                     $request['symbol'] = $market['settleId'];
                 }
                 $request['contract_code'] = $market['id'];
-                $stop = $this->safe_value($params, 'stop');
+                $stop = $this->safe_bool_2($params, 'stop', 'trigger');
                 $stopLossTakeProfit = $this->safe_value($params, 'stopLossTakeProfit');
                 $trailing = $this->safe_bool($params, 'trailing', false);
-                $params = $this->omit($params, array( 'stop', 'stopLossTakeProfit', 'trailing' ));
+                $params = $this->omit($params, array( 'stop', 'stopLossTakeProfit', 'trailing', 'trigger' ));
                 if ($market['linear']) {
                     $marginMode = null;
                     list($marginMode, $params) = $this->handle_margin_mode_and_params('cancelAllOrders', $params);
@@ -6627,7 +6627,7 @@ class htx extends Exchange {
         }) ();
     }
 
-    public function parse_isolated_borrow_rate($info, ?array $market = null): array {
+    public function parse_isolated_borrow_rate(array $info, ?array $market = null): array {
         //
         //     {
         //         "symbol" => "1inchusdt",

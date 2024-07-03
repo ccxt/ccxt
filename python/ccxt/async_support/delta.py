@@ -1750,7 +1750,7 @@ class delta(Exchange, ImplicitAPI):
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
         :param float amount: how much of currency you want to trade in units of base currency
-        :param float [price]: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param bool [params.reduceOnly]: *contract only* indicates if self order is to reduce the size of a position
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
@@ -1828,7 +1828,7 @@ class delta(Exchange, ImplicitAPI):
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
         :param float amount: how much of the currency you want to trade in units of the base currency
-        :param float [price]: the price at which the order is to be fullfilled, in units of the quote currency
+        :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
@@ -1946,7 +1946,11 @@ class delta(Exchange, ImplicitAPI):
         #         "success":true
         #     }
         #
-        return response
+        return [
+            self.safe_order({
+                'info': response,
+            }),
+        ]
 
     async def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """

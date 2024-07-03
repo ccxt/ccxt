@@ -1381,7 +1381,7 @@ class kraken extends Exchange {
          * @param {string} $type 'market' or 'limit'
          * @param {string} $side 'buy' or 'sell'
          * @param {float} $amount how much of currency you want to trade in units of base currency
-         * @param {float} [$price] the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
+         * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {bool} [$params->postOnly] if true, the order will only be posted to the order book and not executed immediately
          * @param {bool} [$params->reduceOnly] *margin only* indicates if this order is to reduce the size of a position
@@ -1700,6 +1700,7 @@ class kraken extends Exchange {
             'filled' => $filled,
             'average' => $average,
             'remaining' => null,
+            'reduceOnly' => $this->safe_bool_2($order, 'reduceOnly', 'reduce_only'),
             'fee' => $fee,
             'trades' => $trades,
         ), $market);
@@ -1815,7 +1816,7 @@ class kraken extends Exchange {
          * @param {string} $type 'market' or 'limit'
          * @param {string} $side 'buy' or 'sell'
          * @param {float} $amount how much of the currency you want to trade in units of the base currency
-         * @param {float} [$price] the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
+         * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {float} [$params->stopLossPrice] *margin only* the $price that a stop loss order is triggered at
          * @param {float} [$params->takeProfitPrice] *margin only* the $price that a take profit order is triggered at
@@ -2093,7 +2094,7 @@ class kraken extends Exchange {
     public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
         /**
          * cancels an open order
-         * @see https://docs.kraken.com/rest/#tag/Trading/operation/cancelOrder
+         * @see https://docs.kraken.com/rest/#tag/Spot-Trading/operation/cancelOrder
          * @param {string} $id order $id
          * @param {string} $symbol unified $symbol of the market the order was made in
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -2132,7 +2133,7 @@ class kraken extends Exchange {
     public function cancel_orders($ids, ?string $symbol = null, $params = array ()) {
         /**
          * cancel multiple orders
-         * @see https://docs.kraken.com/rest/#tag/Trading/operation/cancelOrderBatch
+         * @see https://docs.kraken.com/rest/#tag/Spot-Trading/operation/cancelOrderBatch
          * @param {string[]} $ids open orders transaction ID (txid) or user reference (userref)
          * @param {string} $symbol unified market $symbol
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -2160,7 +2161,7 @@ class kraken extends Exchange {
     public function cancel_all_orders(?string $symbol = null, $params = array ()) {
         /**
          * cancel all open orders
-         * @see https://docs.kraken.com/rest/#tag/Trading/operation/cancelAllOrders
+         * @see https://docs.kraken.com/rest/#tag/Spot-Trading/operation/cancelAllOrders
          * @param {string} $symbol unified market $symbol, only orders in the market of this $symbol are cancelled when $symbol is not null
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~

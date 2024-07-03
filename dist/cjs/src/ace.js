@@ -598,7 +598,7 @@ class ace extends ace$1 {
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
@@ -1017,14 +1017,11 @@ class ace extends ace$1 {
             let auth = 'ACE_SIGN' + this.secret;
             const data = this.extend({
                 'apiKey': this.apiKey,
-                'timeStamp': nonce,
+                'timeStamp': this.numberToString(nonce),
             }, params);
-            const dataKeys = Object.keys(data);
-            const sortedDataKeys = this.sortBy(dataKeys, 0, false, '');
-            for (let i = 0; i < sortedDataKeys.length; i++) {
-                const key = sortedDataKeys[i];
-                auth += this.safeString(data, key);
-            }
+            const sortedData = this.keysort(data);
+            const values = Object.values(sortedData);
+            auth += values.join('');
             const signature = this.hash(this.encode(auth), sha256.sha256, 'hex');
             data['signKey'] = signature;
             headers = {

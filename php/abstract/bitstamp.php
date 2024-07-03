@@ -281,7 +281,7 @@ abstract class bitstamp extends \ccxt\Exchange {
         return $this->request('yfi_withdrawal/', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
     public function private_post_yfi_address($params = array()) {
-        return $this->request('yfi_address', 'private', 'POST', $params, null, null, array("cost" => 1));
+        return $this->request('yfi_address/', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
     public function private_post_audio_withdrawal($params = array()) {
         return $this->request('audio_withdrawal/', 'private', 'POST', $params, null, null, array("cost" => 1));
@@ -308,7 +308,7 @@ abstract class bitstamp extends \ccxt\Exchange {
         return $this->request('comp_address/', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
     public function private_post_grt_withdrawal($params = array()) {
-        return $this->request('grt_withdrawal', 'private', 'POST', $params, null, null, array("cost" => 1));
+        return $this->request('grt_withdrawal/', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
     public function private_post_grt_address($params = array()) {
         return $this->request('grt_address/', 'private', 'POST', $params, null, null, array("cost" => 1));
@@ -721,6 +721,54 @@ abstract class bitstamp extends \ccxt\Exchange {
     public function private_post_veur_address($params = array()) {
         return $this->request('veur_address/', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
+    public function private_post_truf_withdrawal($params = array()) {
+        return $this->request('truf_withdrawal/', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function private_post_truf_address($params = array()) {
+        return $this->request('truf_address/', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function private_post_wif_withdrawal($params = array()) {
+        return $this->request('wif_withdrawal/', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function private_post_wif_address($params = array()) {
+        return $this->request('wif_address/', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function private_post_smt_withdrawal($params = array()) {
+        return $this->request('smt_withdrawal/', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function private_post_smt_address($params = array()) {
+        return $this->request('smt_address/', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function private_post_sui_withdrawal($params = array()) {
+        return $this->request('sui_withdrawal/', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function private_post_sui_address($params = array()) {
+        return $this->request('sui_address/', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function private_post_jup_withdrawal($params = array()) {
+        return $this->request('jup_withdrawal/', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function private_post_jup_address($params = array()) {
+        return $this->request('jup_address/', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function private_post_ondo_withdrawal($params = array()) {
+        return $this->request('ondo_withdrawal/', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function private_post_ondo_address($params = array()) {
+        return $this->request('ondo_address/', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function private_post_boba_withdrawal($params = array()) {
+        return $this->request('boba_withdrawal/', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function private_post_boba_address($params = array()) {
+        return $this->request('boba_address/', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function private_post_pyth_withdrawal($params = array()) {
+        return $this->request('pyth_withdrawal/', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function private_post_pyth_address($params = array()) {
+        return $this->request('pyth_address/', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
     public function publicGetOhlcPair($params = array()) {
         return $this->request('ohlc/{pair}/', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
@@ -995,7 +1043,7 @@ abstract class bitstamp extends \ccxt\Exchange {
         return $this->request('yfi_withdrawal/', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
     public function privatePostYfiAddress($params = array()) {
-        return $this->request('yfi_address', 'private', 'POST', $params, null, null, array("cost" => 1));
+        return $this->request('yfi_address/', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
     public function privatePostAudioWithdrawal($params = array()) {
         return $this->request('audio_withdrawal/', 'private', 'POST', $params, null, null, array("cost" => 1));
@@ -1022,7 +1070,7 @@ abstract class bitstamp extends \ccxt\Exchange {
         return $this->request('comp_address/', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
     public function privatePostGrtWithdrawal($params = array()) {
-        return $this->request('grt_withdrawal', 'private', 'POST', $params, null, null, array("cost" => 1));
+        return $this->request('grt_withdrawal/', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
     public function privatePostGrtAddress($params = array()) {
         return $this->request('grt_address/', 'private', 'POST', $params, null, null, array("cost" => 1));
@@ -1434,5 +1482,53 @@ abstract class bitstamp extends \ccxt\Exchange {
     }
     public function privatePostVeurAddress($params = array()) {
         return $this->request('veur_address/', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function privatePostTrufWithdrawal($params = array()) {
+        return $this->request('truf_withdrawal/', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function privatePostTrufAddress($params = array()) {
+        return $this->request('truf_address/', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function privatePostWifWithdrawal($params = array()) {
+        return $this->request('wif_withdrawal/', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function privatePostWifAddress($params = array()) {
+        return $this->request('wif_address/', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function privatePostSmtWithdrawal($params = array()) {
+        return $this->request('smt_withdrawal/', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function privatePostSmtAddress($params = array()) {
+        return $this->request('smt_address/', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function privatePostSuiWithdrawal($params = array()) {
+        return $this->request('sui_withdrawal/', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function privatePostSuiAddress($params = array()) {
+        return $this->request('sui_address/', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function privatePostJupWithdrawal($params = array()) {
+        return $this->request('jup_withdrawal/', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function privatePostJupAddress($params = array()) {
+        return $this->request('jup_address/', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function privatePostOndoWithdrawal($params = array()) {
+        return $this->request('ondo_withdrawal/', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function privatePostOndoAddress($params = array()) {
+        return $this->request('ondo_address/', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function privatePostBobaWithdrawal($params = array()) {
+        return $this->request('boba_withdrawal/', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function privatePostBobaAddress($params = array()) {
+        return $this->request('boba_address/', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function privatePostPythWithdrawal($params = array()) {
+        return $this->request('pyth_withdrawal/', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function privatePostPythAddress($params = array()) {
+        return $this->request('pyth_address/', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
 }

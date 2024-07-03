@@ -27,6 +27,7 @@ use ccxt\ProxyError;
 use ccxt\NotSupported;
 use ccxt\BadSymbol;
 use ccxt\ArgumentsRequired;
+use ccxt\NetworkError;
 use ccxt\pro\ClientTrait;
 use ccxt\RateLimitExceeded;
 use ccxt\NullResponse;
@@ -42,11 +43,11 @@ use React\EventLoop\Loop;
 
 use Exception;
 
-$version = '4.3.42';
+$version = '4.3.55';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '4.3.42';
+    const VERSION = '4.3.55';
 
     public $browser;
     public $marketsLoading = null;
@@ -210,6 +211,8 @@ class Exchange extends \ccxt\Exchange {
                 }
             }
 
+            $response_body = $response_body ? $response_body : '';
+            $http_status_text = $http_status_text ? $http_status_text : '';
             $this->handle_errors($http_status_code, $http_status_text, $url, $method, $response_headers, $response_body, $json_response, $headers, $body);
             $this->handle_http_status_code($http_status_code, $http_status_text, $url, $method, $response_body);
 
@@ -908,7 +911,7 @@ class Exchange extends \ccxt\Exchange {
         throw new NotSupported($this->id . ' parseBorrowInterest() is not supported yet');
     }
 
-    public function parse_isolated_borrow_rate($info, ?array $market = null) {
+    public function parse_isolated_borrow_rate(array $info, ?array $market = null) {
         throw new NotSupported($this->id . ' parseIsolatedBorrowRate() is not supported yet');
     }
 
@@ -2713,7 +2716,29 @@ class Exchange extends \ccxt\Exchange {
             $this->last_request_headers = $request['headers'];
             $this->last_request_body = $request['body'];
             $this->last_request_url = $request['url'];
-            return Async\await($this->fetch($request['url'], $request['method'], $request['headers'], $request['body']));
+            $retries = null;
+            list($retries, $params) = $this->handle_option_and_params($params, $path, 'maxRetriesOnFailure', 0);
+            $retryDelay = null;
+            list($retryDelay, $params) = $this->handle_option_and_params($params, $path, 'maxRetriesOnFailureDelay', 0);
+            for ($i = 0; $i < $retries + 1; $i++) {
+                try {
+                    return Async\await($this->fetch($request['url'], $request['method'], $request['headers'], $request['body']));
+                } catch (Exception $e) {
+                    if ($e instanceof NetworkError) {
+                        if ($i < $retries) {
+                            if ($this->verbose) {
+                                $this->log('Request failed with the error => ' . (string) $e . ', retrying ' . ($i . (string) 1) . ' of ' . (string) $retries . '...');
+                            }
+                            if (($retryDelay !== null) && ($retryDelay !== 0)) {
+                                Async\await($this->sleep($retryDelay));
+                            }
+                            continue;
+                        }
+                    }
+                    throw $e;
+                }
+            }
+            return null; // this line is never reached, but exists for c# value return requirement
         }) ();
     }
 

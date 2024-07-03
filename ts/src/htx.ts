@@ -3942,10 +3942,10 @@ export default class htx extends Exchange {
             'status': '0', // support multiple query seperated by ',',such as '3,4,5', 0: all. 3. Have sumbmitted the orders; 4. Orders partially matched; 5. Orders cancelled with partially matched; 6. Orders fully matched; 7. Orders cancelled;
         };
         let response = undefined;
-        const stop = this.safeValue (params, 'stop');
+        const stop = this.safeBool2 (params, 'stop', 'trigger');
         const stopLossTakeProfit = this.safeValue (params, 'stopLossTakeProfit');
         const trailing = this.safeBool (params, 'trailing', false);
-        params = this.omit (params, [ 'stop', 'stopLossTakeProfit', 'trailing' ]);
+        params = this.omit (params, [ 'stop', 'stopLossTakeProfit', 'trailing', 'trigger' ]);
         if (stop || stopLossTakeProfit || trailing) {
             if (limit !== undefined) {
                 request['page_size'] = limit;
@@ -4302,10 +4302,10 @@ export default class htx extends Exchange {
                 request['page_size'] = limit;
             }
             request['contract_code'] = market['id'];
-            const stop = this.safeValue (params, 'stop');
+            const stop = this.safeBool2 (params, 'stop', 'trigger');
             const stopLossTakeProfit = this.safeValue (params, 'stopLossTakeProfit');
             const trailing = this.safeBool (params, 'trailing', false);
-            params = this.omit (params, [ 'stop', 'stopLossTakeProfit', 'trailing' ]);
+            params = this.omit (params, [ 'stop', 'stopLossTakeProfit', 'trailing', 'trigger' ]);
             if (market['linear']) {
                 let marginMode = undefined;
                 [ marginMode, params ] = this.handleMarginModeAndParams ('fetchOpenOrders', params);
@@ -5067,7 +5067,7 @@ export default class htx extends Exchange {
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much you want to trade in units of the base currency
-         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {string} [params.timeInForce] supports 'IOC' and 'FOK'
          * @param {float} [params.cost] the quote quantity that can be used as an alternative for the amount for market buy orders
@@ -5185,7 +5185,7 @@ export default class htx extends Exchange {
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much you want to trade in units of the base currency
-         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {string} [params.timeInForce] supports 'IOC' and 'FOK'
          * @param {float} [params.trailingPercent] *contract only* the percent to trail away from the current market price
@@ -5289,7 +5289,7 @@ export default class htx extends Exchange {
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much you want to trade in units of the base currency
-         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {float} [params.stopPrice] the price a trigger order is triggered at
          * @param {string} [params.triggerType] *contract trigger orders only* ge: greater than or equal to, le: less than or equal to
@@ -5630,10 +5630,10 @@ export default class htx extends Exchange {
             } else {
                 request['contract_code'] = market['id'];
             }
-            const stop = this.safeValue (params, 'stop');
+            const stop = this.safeBool2 (params, 'stop', 'trigger');
             const stopLossTakeProfit = this.safeValue (params, 'stopLossTakeProfit');
             const trailing = this.safeBool (params, 'trailing', false);
-            params = this.omit (params, [ 'stop', 'stopLossTakeProfit', 'trailing' ]);
+            params = this.omit (params, [ 'stop', 'stopLossTakeProfit', 'trailing', 'trigger' ]);
             if (market['linear']) {
                 let marginMode = undefined;
                 [ marginMode, params ] = this.handleMarginModeAndParams ('cancelOrder', params);
@@ -5775,9 +5775,9 @@ export default class htx extends Exchange {
             } else {
                 request['contract_code'] = market['id'];
             }
-            const stop = this.safeValue (params, 'stop');
+            const stop = this.safeBool2 (params, 'stop', 'trigger');
             const stopLossTakeProfit = this.safeValue (params, 'stopLossTakeProfit');
-            params = this.omit (params, [ 'stop', 'stopLossTakeProfit' ]);
+            params = this.omit (params, [ 'stop', 'stopLossTakeProfit', 'trigger' ]);
             if (market['linear']) {
                 let marginMode = undefined;
                 [ marginMode, params ] = this.handleMarginModeAndParams ('cancelOrders', params);
@@ -5922,10 +5922,10 @@ export default class htx extends Exchange {
                 request['symbol'] = market['settleId'];
             }
             request['contract_code'] = market['id'];
-            const stop = this.safeValue (params, 'stop');
+            const stop = this.safeBool2 (params, 'stop', 'trigger');
             const stopLossTakeProfit = this.safeValue (params, 'stopLossTakeProfit');
             const trailing = this.safeBool (params, 'trailing', false);
-            params = this.omit (params, [ 'stop', 'stopLossTakeProfit', 'trailing' ]);
+            params = this.omit (params, [ 'stop', 'stopLossTakeProfit', 'trailing', 'trigger' ]);
             if (market['linear']) {
                 let marginMode = undefined;
                 [ marginMode, params ] = this.handleMarginModeAndParams ('cancelAllOrders', params);
@@ -6599,7 +6599,7 @@ export default class htx extends Exchange {
         return this.parseIsolatedBorrowRates (data);
     }
 
-    parseIsolatedBorrowRate (info, market: Market = undefined): IsolatedBorrowRate {
+    parseIsolatedBorrowRate (info: Dict, market: Market = undefined): IsolatedBorrowRate {
         //
         //     {
         //         "symbol": "1inchusdt",

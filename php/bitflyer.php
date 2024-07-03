@@ -546,7 +546,7 @@ class bitflyer extends Exchange {
          * @param {string} $type 'market' or 'limit'
          * @param {string} $side 'buy' or 'sell'
          * @param {float} $amount how much of currency you want to trade in units of base currency
-         * @param {float} [$price] the $price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
          */
@@ -584,7 +584,13 @@ class bitflyer extends Exchange {
             'product_code' => $this->market_id($symbol),
             'child_order_acceptance_id' => $id,
         );
-        return $this->privatePostCancelchildorder ($this->extend($request, $params));
+        $response = $this->privatePostCancelchildorder ($this->extend($request, $params));
+        //
+        //    200 OK.
+        //
+        return $this->safe_order(array(
+            'info' => $response,
+        ));
     }
 
     public function parse_order_status(?string $status) {

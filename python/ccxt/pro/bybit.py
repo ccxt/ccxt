@@ -133,7 +133,7 @@ class bybit(ccxt.async_support.bybit):
             },
             'streaming': {
                 'ping': self.ping,
-                'keepAlive': 19000,
+                'keepAlive': 18000,
             },
         })
 
@@ -142,7 +142,7 @@ class bybit(ccxt.async_support.bybit):
         self.options['requestId'] = requestId
         return requestId
 
-    def get_url_by_market_type(self, symbol: Str = None, isPrivate=False, method: Str = None, params={}):
+    async def get_url_by_market_type(self, symbol: Str = None, isPrivate=False, method: Str = None, params={}):
         accessibility = 'private' if isPrivate else 'public'
         isUsdcSettled = None
         isSpot = None
@@ -160,7 +160,13 @@ class bybit(ccxt.async_support.bybit):
             isUsdcSettled = (defaultSettle == 'USDC')
         isSpot = (type == 'spot')
         if isPrivate:
-            url = url[accessibility]['usdc'] if (isUsdcSettled) else url[accessibility]['contract']
+            unified = await self.isUnifiedEnabled()
+            isUnifiedMargin = self.safe_bool(unified, 0, False)
+            isUnifiedAccount = self.safe_bool(unified, 1, False)
+            if isUsdcSettled and not isUnifiedMargin and not isUnifiedAccount:
+                url = url[accessibility]['usdc']
+            else:
+                url = url[accessibility]['contract']
         else:
             if isSpot:
                 url = url[accessibility]['spot']
@@ -187,7 +193,7 @@ class bybit(ccxt.async_support.bybit):
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
         :param float amount: how much of currency you want to trade in units of base currency
-        :param float [price]: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.timeInForce]: "GTC", "IOC", "FOK"
         :param bool [params.postOnly]: True or False whether the order is post-only
@@ -236,7 +242,7 @@ class bybit(ccxt.async_support.bybit):
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
         :param float amount: how much of currency you want to trade in units of base currency
-        :param float price: the price at which the order is to be fullfilled, in units of the base currency, ignored in market orders
+        :param float price: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param float [params.triggerPrice]: The price that a trigger order is triggered at
         :param float [params.stopLossPrice]: The price that a stop loss order is triggered at
@@ -313,7 +319,7 @@ class bybit(ccxt.async_support.bybit):
         market = self.market(symbol)
         symbol = market['symbol']
         messageHash = 'ticker:' + symbol
-        url = self.get_url_by_market_type(symbol, False, 'watchTicker', params)
+        url = await self.get_url_by_market_type(symbol, False, 'watchTicker', params)
         params = self.clean_params(params)
         options = self.safe_value(self.options, 'watchTicker', {})
         topic = self.safe_string(options, 'name', 'tickers')
@@ -335,7 +341,7 @@ class bybit(ccxt.async_support.bybit):
         await self.load_markets()
         symbols = self.market_symbols(symbols, None, False)
         messageHashes = []
-        url = self.get_url_by_market_type(symbols[0], False, 'watchTickers', params)
+        url = await self.get_url_by_market_type(symbols[0], False, 'watchTickers', params)
         params = self.clean_params(params)
         options = self.safe_value(self.options, 'watchTickers', {})
         topic = self.safe_string(options, 'name', 'tickers')
@@ -510,7 +516,7 @@ class bybit(ccxt.async_support.bybit):
         await self.load_markets()
         market = self.market(symbol)
         symbol = market['symbol']
-        url = self.get_url_by_market_type(symbol, False, 'watchOHLCV', params)
+        url = await self.get_url_by_market_type(symbol, False, 'watchOHLCV', params)
         params = self.clean_params(params)
         ohlcv = None
         timeframeId = self.safe_string(self.timeframes, timeframe, timeframe)
@@ -619,7 +625,7 @@ class bybit(ccxt.async_support.bybit):
         if symbolsLength == 0:
             raise ArgumentsRequired(self.id + ' watchOrderBookForSymbols() requires a non-empty array of symbols')
         symbols = self.market_symbols(symbols)
-        url = self.get_url_by_market_type(symbols[0], False, 'watchOrderBook', params)
+        url = await self.get_url_by_market_type(symbols[0], False, 'watchOrderBook', params)
         params = self.clean_params(params)
         market = self.market(symbols[0])
         if limit is None:
@@ -737,7 +743,7 @@ class bybit(ccxt.async_support.bybit):
         if symbolsLength == 0:
             raise ArgumentsRequired(self.id + ' watchTradesForSymbols() requires a non-empty array of symbols')
         params = self.clean_params(params)
-        url = self.get_url_by_market_type(symbols[0], False, 'watchTrades', params)
+        url = await self.get_url_by_market_type(symbols[0], False, 'watchTrades', params)
         topics = []
         messageHashes = []
         for i in range(0, len(symbols)):
@@ -887,7 +893,7 @@ class bybit(ccxt.async_support.bybit):
         if symbol is not None:
             symbol = self.symbol(symbol)
             messageHash += ':' + symbol
-        url = self.get_url_by_market_type(symbol, True, method, params)
+        url = await self.get_url_by_market_type(symbol, True, method, params)
         await self.authenticate(url)
         topicByMarket: dict = {
             'spot': 'ticketInfo',
@@ -1006,7 +1012,7 @@ class bybit(ccxt.async_support.bybit):
             symbols = self.market_symbols(symbols)
             messageHash = '::' + ','.join(symbols)
         firstSymbol = self.safe_string(symbols, 0)
-        url = self.get_url_by_market_type(firstSymbol, True, method, params)
+        url = await self.get_url_by_market_type(firstSymbol, True, method, params)
         messageHash = 'positions' + messageHash
         client = self.client(url)
         await self.authenticate(url)
@@ -1141,7 +1147,7 @@ class bybit(ccxt.async_support.bybit):
         await self.load_markets()
         market = self.market(symbol)
         symbol = market['symbol']
-        url = self.get_url_by_market_type(symbol, False, 'watchLiquidations', params)
+        url = await self.get_url_by_market_type(symbol, False, 'watchLiquidations', params)
         params = self.clean_params(params)
         messageHash = 'liquidations::' + symbol
         topic = 'liquidation.' + market['id']
@@ -1220,7 +1226,7 @@ class bybit(ccxt.async_support.bybit):
         if symbol is not None:
             symbol = self.symbol(symbol)
             messageHash += ':' + symbol
-        url = self.get_url_by_market_type(symbol, True, method, params)
+        url = await self.get_url_by_market_type(symbol, True, method, params)
         await self.authenticate(url)
         topicsByMarket: dict = {
             'spot': ['order', 'stopOrder'],
@@ -1518,7 +1524,7 @@ class bybit(ccxt.async_support.bybit):
         unified = await self.isUnifiedEnabled()
         isUnifiedMargin = self.safe_bool(unified, 0, False)
         isUnifiedAccount = self.safe_bool(unified, 1, False)
-        url = self.get_url_by_market_type(None, True, method, params)
+        url = await self.get_url_by_market_type(None, True, method, params)
         await self.authenticate(url)
         topicByMarket: dict = {
             'spot': 'outboundAccountInfo',

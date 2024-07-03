@@ -1034,7 +1034,7 @@ class upbit extends upbit$1 {
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much you want to trade in units of the base currency
-         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {float} [params.cost] for market buy orders, the quote quantity that can be used as an alternative for the amount
          * @param {string} [params.timeInForce] 'IOC' or 'FOK'

@@ -4,7 +4,7 @@ import Client from '../base/ws/Client.js';
 export default class bybit extends bybitRest {
     describe(): any;
     requestId(): any;
-    getUrlByMarketType(symbol?: Str, isPrivate?: boolean, method?: Str, params?: {}): any;
+    getUrlByMarketType(symbol?: Str, isPrivate?: boolean, method?: Str, params?: {}): Promise<any>;
     cleanParams(params: any): any;
     createOrderWs(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): Promise<Order>;
     editOrderWs(id: string, symbol: string, type: OrderType, side: OrderSide, amount?: Num, price?: Num, params?: {}): Promise<Order>;

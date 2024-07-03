@@ -28,7 +28,7 @@ export default class luno extends Exchange {
     fetchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     fetchTradingFee(symbol: string, params?: {}): Promise<TradingFeeInterface>;
     createOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): Promise<Order>;
-    cancelOrder(id: string, symbol?: Str, params?: {}): Promise<any>;
+    cancelOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
     fetchLedgerByEntries(code?: Str, entry?: any, limit?: any, params?: {}): Promise<any>;
     fetchLedger(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<any>;
     parseLedgerComment(comment: any): {

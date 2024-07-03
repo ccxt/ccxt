@@ -1323,7 +1323,7 @@ export default class lbank extends Exchange {
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
@@ -1492,6 +1492,27 @@ export default class lbank extends Exchange {
         //          "status":-1
         //      }
         //
+        // cancelOrder
+        //
+        //    {
+        //        "executedQty":0.0,
+        //        "price":0.05,
+        //        "origQty":100.0,
+        //        "tradeType":"buy",
+        //        "status":0
+        //    }
+        //
+        // cancelAllOrders
+        //
+        //    {
+        //        "executedQty":0.00000000000000000000,
+        //        "orderId":"293ef71b-3e67-4962-af93-aa06990a045f",
+        //        "price":0.05000000000000000000,
+        //        "origQty":100.00000000000000000000,
+        //        "tradeType":"buy",
+        //        "status":0
+        //    }
+        //
         const id = this.safeString2 (order, 'orderId', 'order_id');
         const clientOrderId = this.safeString2 (order, 'clientOrderId', 'custom_id');
         const timestamp = this.safeInteger2 (order, 'time', 'create_time');
@@ -1501,7 +1522,7 @@ export default class lbank extends Exchange {
         let timeInForce = undefined;
         let postOnly = false;
         let type = 'limit';
-        const rawType = this.safeString (order, 'type'); // buy, sell, buy_market, sell_market, buy_maker,sell_maker,buy_ioc,sell_ioc, buy_fok, sell_fok
+        const rawType = this.safeString2 (order, 'type', 'tradeType'); // buy, sell, buy_market, sell_market, buy_maker,sell_maker,buy_ioc,sell_ioc, buy_fok, sell_fok
         const parts = rawType.split ('_');
         const side = this.safeString (parts, 0);
         const typePart = this.safeString (parts, 1); // market, maker, ioc, fok or undefined (limit)
@@ -1871,12 +1892,12 @@ export default class lbank extends Exchange {
         //          "origQty":100.0,
         //          "tradeType":"buy",
         //          "status":0
-        //          },
+        //      },
         //      "error_code":0,
         //      "ts":1648501286196
         //  }
-        const result = this.safeValue (response, 'data', {});
-        return result;
+        const data = this.safeDict (response, 'data', {});
+        return this.parseOrder (data);
     }
 
     async cancelAllOrders (symbol: Str = undefined, params = {}) {
@@ -1915,8 +1936,8 @@ export default class lbank extends Exchange {
         //          "ts":1648506641469
         //      }
         //
-        const result = this.safeValue (response, 'data', []);
-        return result;
+        const data = this.safeList (response, 'data', []);
+        return this.parseOrders (data);
     }
 
     getNetworkCodeForCurrency (currencyCode, params) {

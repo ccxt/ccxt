@@ -22,7 +22,7 @@ from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import NotSupported
 from ccxt.base.errors import OperationFailed
 from ccxt.base.errors import DDoSProtection
-from ccxt.base.decimal_to_precision import DECIMAL_PLACES
+from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
 
@@ -400,7 +400,7 @@ class bingx(Exchange, ImplicitAPI):
                 '1w': '1w',
                 '1M': '1M',
             },
-            'precisionMode': DECIMAL_PLACES,
+            'precisionMode': TICK_SIZE,
             'exceptions': {
                 'exact': {
                     '400': BadRequest,
@@ -616,18 +616,26 @@ class bingx(Exchange, ImplicitAPI):
         #        "msg": "",
         #        "data": [
         #            {
-        #              "contractId": "100",
-        #              "symbol": "BTC-USDT",
-        #              "size": "0.0001",
-        #              "quantityPrecision": 4,
-        #              "pricePrecision": 1,
-        #              "feeRate": 0.0005,
-        #              "tradeMinLimit": 1,
-        #              "maxLongLeverage": 150,
-        #              "maxShortLeverage": 150,
-        #              "currency": "USDT",
-        #              "asset": "BTC",
-        #              "status": 1
+        #                "contractId": "100",
+        #                "symbol": "BTC-USDT",
+        #                "size": "0.0001",
+        #                "quantityPrecision": "4",
+        #                "pricePrecision": "1",
+        #                "feeRate": "0.0005",
+        #                "makerFeeRate": "0.0002",
+        #                "takerFeeRate": "0.0005",
+        #                "tradeMinLimit": "0",
+        #                "tradeMinQuantity": "0.0001",
+        #                "tradeMinUSDT": "2",
+        #                "maxLongLeverage": "125",
+        #                "maxShortLeverage": "125",
+        #                "currency": "USDT",
+        #                "asset": "BTC",
+        #                "status": "1",
+        #                "apiStateOpen": "true",
+        #                "apiStateClose": "true",
+        #                "ensureTrigger": True,
+        #                "triggerFeeRate": "0.00020000"
         #            },
         #            ...
         #        ]
@@ -645,12 +653,12 @@ class bingx(Exchange, ImplicitAPI):
         quote = self.safe_currency_code(quoteId)
         currency = self.safe_string(market, 'currency')
         settle = self.safe_currency_code(currency)
-        pricePrecision = self.safe_integer(market, 'pricePrecision')
+        pricePrecision = self.safe_number(market, 'tickSize')
         if pricePrecision is None:
-            pricePrecision = self.precision_from_string(self.safe_string(market, 'tickSize'))
-        quantityPrecision = self.safe_integer(market, 'quantityPrecision')
+            pricePrecision = self.parse_number(self.parse_precision(self.safe_string(market, 'pricePrecision')))
+        quantityPrecision = self.safe_number(market, 'stepSize')
         if quantityPrecision is None:
-            quantityPrecision = self.precision_from_string(self.safe_string(market, 'stepSize'))
+            quantityPrecision = self.parse_number(self.parse_precision(self.safe_string(market, 'quantityPrecision')))
         type = 'swap' if (settle is not None) else 'spot'
         spot = type == 'spot'
         swap = type == 'swap'
@@ -696,7 +704,7 @@ class bingx(Exchange, ImplicitAPI):
             'limits': {
                 'leverage': {
                     'min': None,
-                    'max': self.safe_integer(market, 'maxLongLeverage'),
+                    'max': None,
                 },
                 'amount': {
                     'min': self.safe_number_2(market, 'minQty', 'tradeMinQuantity'),
@@ -1756,7 +1764,7 @@ class bingx(Exchange, ImplicitAPI):
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
         :param float amount: how much you want to trade in units of the base currency
-        :param float [price]: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: request to be sent to the exchange
         """
@@ -1914,7 +1922,7 @@ class bingx(Exchange, ImplicitAPI):
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
         :param float amount: how much you want to trade in units of the base currency
-        :param float [price]: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.clientOrderId]: a unique id for the order
         :param bool [params.postOnly]: True to place a post only order
@@ -4090,7 +4098,7 @@ class bingx(Exchange, ImplicitAPI):
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
         :param float amount: how much of the currency you want to trade in units of the base currency
-        :param float [price]: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.stopPrice]: Trigger price used for TAKE_STOP_LIMIT, TAKE_STOP_MARKET, TRIGGER_LIMIT, TRIGGER_MARKET order types.
         :param dict [params.takeProfit]: *takeProfit object in params* containing the triggerPrice at which the attached take profit order will be triggered

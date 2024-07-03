@@ -35,6 +35,7 @@ class idex(Exchange, ImplicitAPI):
             'rateLimit': 1000,
             'version': 'v3',
             'pro': True,
+            'dex': True,
             'certified': False,
             'requiresWeb3': True,
             'has': {
@@ -1116,7 +1117,7 @@ class idex(Exchange, ImplicitAPI):
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
         :param float amount: how much of currency you want to trade in units of base currency
-        :param float [price]: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param bool [params.test]: set to True to test an order, no order will be created but the request will be validated
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`

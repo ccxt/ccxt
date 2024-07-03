@@ -353,6 +353,9 @@ class Option(TypedDict):
 
 OptionChain = Dict[str, Option]
 
+class MarketMarginMode(TypedDict):
+    cross: bool
+    isolated: bool
 
 class MarketInterface(TypedDict):
     info: Dict[str, Any]
@@ -367,6 +370,7 @@ class MarketInterface(TypedDict):
     subType: Str
     spot: bool
     margin: bool
+    marginMode: MarketMarginMode
     swap: bool
     future: bool
     option: bool
@@ -388,7 +392,6 @@ class MarketInterface(TypedDict):
     precision: Any
     limits: Any
     created: Int
-
 
 class Limit(TypedDict):
     min: Num

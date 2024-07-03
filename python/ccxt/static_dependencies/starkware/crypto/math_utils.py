@@ -17,25 +17,10 @@
 
 from typing import Tuple
 
-import sympy
-from sympy.core.numbers import igcdex
+from ...sympy.core.intfunc import igcdex
 
 # A type that represents a point (x,y) on an elliptic curve.
 ECPoint = Tuple[int, int]
-
-def is_quad_residue(n: int, p: int) -> bool:
-    """
-    Returns True if n is a quadratic residue mod p.
-    """
-    return sympy.is_quad_residue(n, p)
-
-
-def sqrt_mod(n: int, p: int) -> int:
-    """
-    Finds the minimum positive integer m such that (m*m) % p == n
-    """
-    return min(sympy.sqrt_mod(n, p, all_roots=True))
-
 
 def div_mod(n: int, m: int, p: int) -> int:
     """

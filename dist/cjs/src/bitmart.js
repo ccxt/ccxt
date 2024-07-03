@@ -2330,7 +2330,7 @@ class bitmart extends bitmart$1 {
         const trailingActivationPrice = this.safeNumber(order, 'activation_price');
         return this.safeOrder({
             'id': id,
-            'clientOrderId': this.safeString(order, 'client_order_id'),
+            'clientOrderId': this.safeString2(order, 'client_order_id', 'clientOrderId'),
             'info': order,
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
@@ -2419,7 +2419,7 @@ class bitmart extends bitmart$1 {
          * @param {string} type 'market', 'limit' or 'trailing' for swap markets only
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {string} [params.marginMode] 'cross' or 'isolated'
          * @param {string} [params.leverage] *swap only* leverage level
@@ -2564,7 +2564,7 @@ class bitmart extends bitmart$1 {
          * @param {string} type 'market', 'limit' or 'trailing'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {int} [params.leverage] leverage level
          * @param {boolean} [params.reduceOnly] *swap only* reduce only
@@ -2680,7 +2680,7 @@ class bitmart extends bitmart$1 {
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {string} [params.marginMode] 'cross' or 'isolated'
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -2739,6 +2739,11 @@ class bitmart extends bitmart$1 {
         }
         if (ioc) {
             request['type'] = 'ioc';
+        }
+        const clientOrderId = this.safeString(params, 'clientOrderId');
+        if (clientOrderId !== undefined) {
+            params = this.omit(params, 'clientOrderId');
+            request['client_order_id'] = clientOrderId;
         }
         return this.extend(request, params);
     }

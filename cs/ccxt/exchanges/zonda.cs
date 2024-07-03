@@ -345,6 +345,13 @@ public partial class zonda : Exchange
         //         "secondBalanceId": "ab43023b-4079-414c-b340-056e3430a3af"
         //     }
         //
+        // cancelOrder
+        //
+        //    {
+        //        status: "Ok",
+        //        errors: []
+        //    }
+        //
         object marketId = this.safeString(order, "market");
         object symbol = this.safeSymbol(marketId, market, "-");
         object timestamp = this.safeInteger(order, "time");
@@ -1220,7 +1227,7 @@ public partial class zonda : Exchange
         * @param {string} type 'market' or 'limit'
         * @param {string} side 'buy' or 'sell'
         * @param {float} amount how much of currency you want to trade in units of base currency
-        * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
         */
@@ -1378,9 +1385,10 @@ public partial class zonda : Exchange
             { "side", side },
             { "price", price },
         };
+        object response = await this.v1_01PrivateDeleteTradingOfferSymbolIdSidePrice(this.extend(request, parameters));
         // { status: "Fail", errors: [ "NOT_RECOGNIZED_OFFER_TYPE" ] }  -- if required params are missing
         // { status: "Ok", errors: [] }
-        return await this.v1_01PrivateDeleteTradingOfferSymbolIdSidePrice(this.extend(request, parameters));
+        return this.parseOrder(response);
     }
 
     public virtual object isFiat(object currency)

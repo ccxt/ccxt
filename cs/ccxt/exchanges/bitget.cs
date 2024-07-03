@@ -4323,7 +4323,7 @@ public partial class bitget : Exchange
         * @param {string} type 'market' or 'limit'
         * @param {string} side 'buy' or 'sell'
         * @param {float} amount how much you want to trade in units of the base currency
-        * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @param {float} [params.cost] *spot only* how much you want to trade in units of the quote currency, for market buy orders only
         * @param {float} [params.triggerPrice] *swap only* The price at which a trigger order is triggered at
@@ -4345,6 +4345,7 @@ public partial class bitget : Exchange
         * @param {string} [params.trailingTriggerPrice] *swap and future only* the price to trigger a trailing stop order, default uses the price argument
         * @param {string} [params.triggerType] *swap and future only* 'fill_price', 'mark_price' or 'index_price'
         * @param {boolean} [params.oneWayMode] *swap and future only* required to set this to true in one_way_mode and you can leave this as undefined in hedge_mode, can adjust the mode using the setPositionMode() method
+        * @param {bool} [params.reduceOnly] true or false whether the order is reduce-only
         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
         */
         parameters ??= new Dictionary<string, object>();
@@ -4655,7 +4656,7 @@ public partial class bitget : Exchange
             if (isTrue(!isEqual(marginMode, null)))
             {
                 ((IDictionary<string,object>)request)["loanType"] = "normal";
-                if (isTrue(isTrue(isTrue(createMarketBuyOrderRequiresPrice) && isTrue(isMarketOrder)) && isTrue((isEqual(side, "buy")))))
+                if (isTrue(isTrue(isMarketOrder) && isTrue((isEqual(side, "buy")))))
                 {
                     ((IDictionary<string,object>)request)["quoteSize"] = quantity;
                 } else
@@ -4827,7 +4828,7 @@ public partial class bitget : Exchange
         * @param {string} type 'market' or 'limit'
         * @param {string} side 'buy' or 'sell'
         * @param {float} amount how much you want to trade in units of the base currency
-        * @param {float} [price] the price at which the order is to be fullfilled, in units of the base currency, ignored in market orders
+        * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @param {float} [params.triggerPrice] the price that a trigger order is triggered at
         * @param {float} [params.stopLossPrice] *swap only* The price at which a stop loss order is triggered at

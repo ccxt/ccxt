@@ -1,6 +1,9 @@
 {
     "exchange": "paradex",
-    "skipKeys": [],
+    "skipKeys": [
+        "start_at",
+        "end_at"
+    ],
     "outputType": "json",
     "methods": {
         "fetchMarkets": [
@@ -9,6 +12,19 @@
                 "method": "fetchMarkets",
                 "url": "https://api.testnet.paradex.trade/v1/markets",
                 "input": []
+            }
+        ],
+        "fetchOHLCV": [
+            {
+                "description": "fetchOHLCV",
+                "method": "fetchOHLCV",
+                "url": "https://api.testnet.paradex.trade/v1/markets/klines?resolution=1&symbol=BTC-USD-PERP&end_at=1719993576989&start_at=1719993276989",
+                "input": [
+                    "BTC/USD:USDC",
+                    "1m",
+                    null,
+                    5
+                ]
             }
         ],
         "fetchTickers": [

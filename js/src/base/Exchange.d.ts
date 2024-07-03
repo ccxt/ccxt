@@ -15,6 +15,7 @@ export default class Exchange {
         [key: string]: any;
     };
     throttleProp: any;
+    sleep: (ms: any) => Promise<unknown>;
     api: any;
     proxy: any;
     proxyUrl: string;
@@ -291,6 +292,7 @@ export default class Exchange {
         certified: boolean;
         pro: boolean;
         alias: boolean;
+        dex: boolean;
         has: {
             publicAPI: boolean;
             privateAPI: boolean;
@@ -730,7 +732,7 @@ export default class Exchange {
     parsePosition(position: Dict, market?: Market): Position;
     parseFundingRateHistory(info: any, market?: Market): FundingRateHistory;
     parseBorrowInterest(info: Dict, market?: Market): BorrowInterest;
-    parseIsolatedBorrowRate(info: any, market?: Market): IsolatedBorrowRate;
+    parseIsolatedBorrowRate(info: Dict, market?: Market): IsolatedBorrowRate;
     parseWsTrade(trade: any, market?: Market): Trade;
     parseWsOrder(order: any, market?: Market): Order;
     parseWsOrderTrade(trade: any, market?: Market): Trade;

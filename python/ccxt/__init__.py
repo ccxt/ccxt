@@ -22,7 +22,7 @@
 
 # ----------------------------------------------------------------------------
 
-__version__ = '4.3.42'
+__version__ = '4.3.55'
 
 # ----------------------------------------------------------------------------
 
@@ -167,6 +167,7 @@ from ccxt.oceanex import oceanex                                      # noqa: F4
 from ccxt.okcoin import okcoin                                        # noqa: F401
 from ccxt.okx import okx                                              # noqa: F401
 from ccxt.onetrading import onetrading                                # noqa: F401
+from ccxt.oxfun import oxfun                                          # noqa: F401
 from ccxt.p2b import p2b                                              # noqa: F401
 from ccxt.paymium import paymium                                      # noqa: F401
 from ccxt.phemex import phemex                                        # noqa: F401
@@ -177,11 +178,13 @@ from ccxt.timex import timex                                          # noqa: F4
 from ccxt.tokocrypto import tokocrypto                                # noqa: F401
 from ccxt.tradeogre import tradeogre                                  # noqa: F401
 from ccxt.upbit import upbit                                          # noqa: F401
+from ccxt.vertex import vertex                                        # noqa: F401
 from ccxt.wavesexchange import wavesexchange                          # noqa: F401
 from ccxt.wazirx import wazirx                                        # noqa: F401
 from ccxt.whitebit import whitebit                                    # noqa: F401
 from ccxt.woo import woo                                              # noqa: F401
 from ccxt.woofipro import woofipro                                    # noqa: F401
+from ccxt.xt import xt                                                # noqa: F401
 from ccxt.yobit import yobit                                          # noqa: F401
 from ccxt.zaif import zaif                                            # noqa: F401
 from ccxt.zonda import zonda                                          # noqa: F401
@@ -274,6 +277,7 @@ exchanges = [
     'okcoin',
     'okx',
     'onetrading',
+    'oxfun',
     'p2b',
     'paymium',
     'phemex',
@@ -284,11 +288,13 @@ exchanges = [
     'tokocrypto',
     'tradeogre',
     'upbit',
+    'vertex',
     'wavesexchange',
     'wazirx',
     'whitebit',
     'woo',
     'woofipro',
+    'xt',
     'yobit',
     'zaif',
     'zonda',

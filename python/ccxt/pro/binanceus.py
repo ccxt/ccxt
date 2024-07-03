@@ -45,12 +45,4 @@ class binanceus(binance):
                 'defaultType': 'spot',
                 'fetchMarkets': ['spot'],
             },
-            'fees': {
-                'trading': {
-                    'tierBased': False,
-                    'percentage': True,
-                    'taker': 0.0,  # 0.1% trading fee, zero fees for all trading pairs before November 1
-                    'maker': 0.0,  # 0.1% trading fee, zero fees for all trading pairs before November 1
-                },
-            },
         })

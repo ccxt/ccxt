@@ -693,14 +693,14 @@ class bingx(ccxt.async_support.bingx):
         #        ]
         #    }
         #
-        data = self.safe_list(message, 'data', [])
-        candles = None
-        if isinstance(data, list):
-            candles = data
-        else:
-            candles = [self.safe_list(data, 'K', [])]
-        dataType = self.safe_string(message, 'dataType')
         isSwap = client.url.find('swap') >= 0
+        candles = None
+        if isSwap:
+            candles = self.safe_list(message, 'data', [])
+        else:
+            data = self.safe_dict(message, 'data', {})
+            candles = [self.safe_dict(data, 'K', {})]
+        dataType = self.safe_string(message, 'dataType')
         parts = dataType.split('@')
         firstPart = parts[0]
         isAllEndpoint = (firstPart == 'all')

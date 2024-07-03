@@ -210,6 +210,7 @@ public partial class mexc : Exchange
                             { "sub-account/margin", 1 },
                             { "batchOrders", 10 },
                             { "capital/withdraw/apply", 1 },
+                            { "capital/withdraw", 1 },
                             { "capital/transfer", 1 },
                             { "capital/transfer/internal", 1 },
                             { "capital/deposit/address", 1 },
@@ -228,6 +229,7 @@ public partial class mexc : Exchange
                             { "margin/order", 1 },
                             { "margin/openOrders", 1 },
                             { "userDataStream", 1 },
+                            { "capital/withdraw", 1 },
                         } },
                     } },
                 } },
@@ -954,7 +956,7 @@ public partial class mexc : Exchange
             for (object j = 0; isLessThan(j, getArrayLength(chains)); postFixIncrement(ref j))
             {
                 object chain = getValue(chains, j);
-                object networkId = this.safeString(chain, "network");
+                object networkId = this.safeString2(chain, "network", "netWork");
                 object network = this.networkIdToCode(networkId);
                 object isDepositEnabled = this.safeBool(chain, "depositEnable", false);
                 object isWithdrawEnabled = this.safeBool(chain, "withdrawEnable", false);
@@ -2108,7 +2110,7 @@ public partial class mexc : Exchange
         * @param {string} type 'market' or 'limit'
         * @param {string} side 'buy' or 'sell'
         * @param {float} amount how much of currency you want to trade in units of base currency
-        * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @param {string} [params.marginMode] only 'isolated' is supported for spot-margin trading
         * @param {float} [params.triggerPrice] The price at which a trigger order is triggered at
@@ -5233,7 +5235,7 @@ public partial class mexc : Exchange
         * @method
         * @name mexc#withdraw
         * @description make a withdrawal
-        * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#withdraw
+        * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#withdraw-new
         * @param {string} code unified currency code
         * @param {float} amount the amount to withdraw
         * @param {string} address the address to withdraw to
@@ -5246,7 +5248,7 @@ public partial class mexc : Exchange
         tag = ((IList<object>)tagparametersVariable)[0];
         parameters = ((IList<object>)tagparametersVariable)[1];
         object networks = this.safeValue(this.options, "networks", new Dictionary<string, object>() {});
-        object network = this.safeString2(parameters, "network", "chain"); // this line allows the user to specify either ERC20 or ETH
+        object network = this.safeString2(parameters, "network", "netWork"); // this line allows the user to specify either ERC20 or ETH
         network = this.safeString(networks, network, network); // handle ETH > ERC-20 alias
         this.checkAddress(address);
         await this.loadMarkets();
@@ -5262,10 +5264,10 @@ public partial class mexc : Exchange
         }
         if (isTrue(!isEqual(network, null)))
         {
-            ((IDictionary<string,object>)request)["network"] = network;
-            parameters = this.omit(parameters, new List<object>() {"network", "chain"});
+            ((IDictionary<string,object>)request)["netWork"] = network;
+            parameters = this.omit(parameters, new List<object>() {"network", "netWork"});
         }
-        object response = await this.spotPrivatePostCapitalWithdrawApply(this.extend(request, parameters));
+        object response = await this.spotPrivatePostCapitalWithdraw(this.extend(request, parameters));
         //
         //     {
         //       "id":"7213fea8e94b4a5593d507237e5a555b"
