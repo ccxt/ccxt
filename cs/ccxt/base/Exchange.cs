@@ -2,7 +2,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Globalization;
 using System.Net;
-
+using StarkSharp.StarkCurve.Signature;
 namespace ccxt;
 
 using dict = Dictionary<string, object>;
@@ -755,6 +755,27 @@ public partial class Exchange
         if (a is IDictionary<string, object>)
             return ((IDictionary<string, object>)a).Count == 0;
         return false;
+    }
+
+    public object starknetSign(object msgHash, object privateKey)
+    {
+
+        var msgHashStr = msgHash.ToString();
+        var bytes = Exchange.StringToByteArray(msgHashStr.Replace("0x", ""));
+        var privateKeyString = privateKey.ToString()[-64];
+        var bigIntHash = new System.Numerics.BigInteger(bytes);
+        var bigIntKey = new System.Numerics.BigInteger(privateKeyString);
+        return ECDSA.Sign(bigIntHash, bigIntKey);
+    }
+
+    public ECDSA.ECSignature Stark()
+    {
+        // debug only remove later
+        var msgHash = "111111";
+        var bytes = Exchange.StringToByteArray(msgHash);
+        var bigInt = new System.Numerics.BigInteger(bytes);
+        var res = ECDSA.Sign(bigInt, bigInt);
+        return res;
     }
 
     public object spawn(object action, object[] args = null)
