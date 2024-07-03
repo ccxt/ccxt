@@ -1643,6 +1643,10 @@ public partial class bingx : Exchange
         }
         object change = this.safeString(ticker, "priceChange");
         object ts = this.safeInteger(ticker, "closeTime");
+        if (isTrue(isEqual(ts, 0)))
+        {
+            ts = null;
+        }
         object datetime = this.iso8601(ts);
         object bid = this.safeString(ticker, "bidPrice");
         object bidVolume = this.safeString(ticker, "bidQty");

@@ -1496,6 +1496,8 @@ class bingx(Exchange, ImplicitAPI):
             percentage = percentage.replace('%', '')
         change = self.safe_string(ticker, 'priceChange')
         ts = self.safe_integer(ticker, 'closeTime')
+        if ts == 0:
+            ts = None
         datetime = self.iso8601(ts)
         bid = self.safe_string(ticker, 'bidPrice')
         bidVolume = self.safe_string(ticker, 'bidQty')

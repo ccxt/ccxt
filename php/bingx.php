@@ -1542,6 +1542,9 @@ class bingx extends Exchange {
         }
         $change = $this->safe_string($ticker, 'priceChange');
         $ts = $this->safe_integer($ticker, 'closeTime');
+        if ($ts === 0) {
+            $ts = null;
+        }
         $datetime = $this->iso8601($ts);
         $bid = $this->safe_string($ticker, 'bidPrice');
         $bidVolume = $this->safe_string($ticker, 'bidQty');
