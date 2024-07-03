@@ -81,7 +81,7 @@ export default class paradex extends Exchange {
                 'fetchMarkOHLCV': false,
                 'fetchMyLiquidations': false,
                 'fetchMyTrades': false,
-                'fetchOHLCV': false,
+                'fetchOHLCV': true,
                 'fetchOpenInterest': true,
                 'fetchOpenInterestHistory': false,
                 'fetchOpenOrders': true,
@@ -410,7 +410,7 @@ export default class paradex extends Exchange {
     async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         /**
          * @method
-         * @name binance#fetchOHLCV
+         * @name paradex#fetchOHLCV
          * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
          * @see https://docs.api.testnet.paradex.trade/#ohlcv-for-a-symbol
          * @param {string} symbol unified symbol of the market to fetch OHLCV data for
