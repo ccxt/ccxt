@@ -765,7 +765,8 @@ public partial class Exchange
         var privateKeyString = privateKey.ToString()[-64];
         var bigIntHash = new System.Numerics.BigInteger(bytes);
         var bigIntKey = new System.Numerics.BigInteger(privateKeyString);
-        return ECDSA.Sign(bigIntHash, bigIntKey);
+        var res = ECDSA.Sign(bigIntHash, bigIntKey);
+        return this.json(new List<string> { res.R.ToString(), res.S.ToString() });
     }
 
     public ECDSA.ECSignature Stark()
