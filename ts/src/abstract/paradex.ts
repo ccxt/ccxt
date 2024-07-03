@@ -12,6 +12,7 @@ interface Exchange {
     publicGetBboMarket (params?: {}): Promise<implicitReturnType>;
     publicGetFundingData (params?: {}): Promise<implicitReturnType>;
     publicGetMarkets (params?: {}): Promise<implicitReturnType>;
+    publicGetMarketsKlines (params?: {}): Promise<implicitReturnType>;
     publicGetMarketsSummary (params?: {}): Promise<implicitReturnType>;
     publicGetOrderbookMarket (params?: {}): Promise<implicitReturnType>;
     publicGetInsurance (params?: {}): Promise<implicitReturnType>;
