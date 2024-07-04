@@ -5071,8 +5071,8 @@ export default class gate extends Exchange {
         const defaultSettle = (market === undefined) ? 'usdt' : market['settle'];
         const settle = this.safeStringLower (params, 'settle', defaultSettle);
         [ type, params ] = this.handleMarketTypeAndParams ('cancelOrders', market, params);
-        const isSpot = (type === 'spot') && (symbol === undefined) && ((settle !== 'USDT') && (settle !== 'BTC'));
-        if (isSpot) {
+        const isSpot = (type === 'spot');
+        if (isSpot && (symbol === undefined)) {
             throw new ArgumentsRequired (this.id + ' cancelOrders requires a symbol argument for spot markets');
         }
         if (isSpot) {
