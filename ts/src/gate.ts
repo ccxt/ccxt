@@ -6137,7 +6137,7 @@ export default class gate extends Exchange {
         const authentication = api[0]; // public, private
         const type = api[1]; // spot, margin, future, delivery
         let query = this.omit (params, this.extractParams (path));
-        if (path === '{settle}/batch_cancel_orders') {
+        if (path === '{s' + 'ettle}/batch_cancel_orders') { // weird concatenation to prevent $settle in php
             // special case where we need to extract the settle from the path
             // but the body is an array of strings
             const settle = this.safeDict (params, 0);
