@@ -839,6 +839,7 @@ Each network is an associative array (aka dictionary) with the following keys:
     'expiryDatetime': '2022-03-26T00:00:00.000Z', // The datetime contract will in iso8601 format
     'strike': 4000,           // price at which a put or call option can be exercised
     'optionType': 'call',     // call or put string, call option represents an option with the right to buy and put an option with the right to sell
+    // note, 'taker' and 'maker' composes extended data for markets, however it might be better to use `fetchTradingFees` for more accuracy
     'taker':    0.002,        // taker fee rate, 0.002 = 0.2%
     'maker':    0.0016,       // maker fee rate, 0.0016 = 0.16%
     'percentage': true,       // whether the taker and maker fee rate is a multiplier or a fixed flat amount
@@ -871,7 +872,7 @@ Each market is an associative array (aka dictionary) with the following keys:
 - `baseId`. An exchange-specific id of the base currency for this market, not unified. Can be any string, literally. This is communicated to the exchange using the language the exchange understands.
 - `quoteId`. An exchange-specific id of the quote currency, not unified.
 - `active`. A boolean indicating whether or not trading this market is currently possible, more about it here: [`active` status](#active-status).
-- `maker`. Float, 0.0015 = 0.15%. Maker fees are paid when you provide liquidity to the exchange i.e. you *market-make* an order and someone else fills it. Maker fees are usually lower than taker fees. Fees can be negative, this is very common amongst derivative exchanges. A negative fee means the exchange will pay a rebate (reward) to the user for trading this market.
+- `maker`. Float, 0.0015 = 0.15%. Maker fees are paid when you provide liquidity to the exchange i.e. you *market-make* an order and someone else fills it. Maker fees are usually lower than taker fees. Fees can be negative, this is very common amongst derivative exchanges. A negative fee means the exchange will pay a rebate (reward) to the user for trading this market (note, 'taker' and 'maker' fields composes extended data for markets, however it might be better to use `fetchTradingFees` for more accuracy).
 - `taker`. Float, 0.002 = 0.2%. Taker fees are paid when you *take* liquidity from the exchange and fill someone else's order.
 - `percentage`. A boolean true/false value indicating whether `taker` and `maker` are multipliers or fixed flat amounts.
 - `tierBased`. A boolean true/false value indicating whether the fee depends on your trading tier (usually, your traded volume over a period of time).
@@ -5654,7 +5655,7 @@ The `calculateFee` method can be used to precalculate trading fees that will be 
 
 The `calculateFee` method will return a unified fee structure with precalculated fees for an order with specified params.
 
-Accessing trading fee rates should be done via the `.markets` property, like so:
+Accessing trading fee rates should be done via [fetchTradingFees](#fee-schedule) which is recommended approach. If that method is not supported by exchange, then via the `.markets` property, like so:
 
 ```javascript
 exchange.markets['ETH/BTC']['taker'] // taker fee rate for ETH/BTC
