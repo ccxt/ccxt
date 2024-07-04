@@ -117,6 +117,28 @@ export default class xt extends xtRest {
         return cache.length;
     }
 
+    handleDelta (orderbook, delta) {
+        orderbook['nonce'] = this.safeInteger (delta, 'i');
+        const obAsks = this.safeList (delta, 'a', []);
+        const obBids = this.safeList (delta, 'b', []);
+        const bids = orderbook['bids'];
+        const asks = orderbook['asks'];
+        for (let i = 0; i < obBids.length; i++) {
+            const bid = obBids[i];
+            const price = this.safeNumber (bid, 0);
+            const quantity = this.safeNumber (bid, 1);
+            bids.store (price, quantity);
+        }
+        for (let i = 0; i < obAsks.length; i++) {
+            const ask = obAsks[i];
+            const price = this.safeNumber (ask, 0);
+            const quantity = this.safeNumber (ask, 1);
+            asks.store (price, quantity);
+        }
+        // this.handleBidAsks (storedBids, bids);
+        // this.handleBidAsks (storedAsks, asks);
+    }
+
     async subscribe (name: string, access: string, methodName: string, market: Market = undefined, symbols: string[] = undefined, params = {}) {
         /**
          * @ignore

@@ -1463,9 +1463,13 @@ export default class xt extends Exchange {
         const orderBook = this.safeValue (response, 'result', {});
         const timestamp = this.safeInteger2 (orderBook, 'timestamp', 't');
         if (market['spot']) {
-            return this.parseOrderBook (orderBook, symbol, timestamp);
+            const ob = this.parseOrderBook (orderBook, symbol, timestamp);
+            ob['nonce'] = this.safeInteger (orderBook, 'lastUpdateId');
+            return ob;
         }
-        return this.parseOrderBook (orderBook, symbol, timestamp, 'b', 'a');
+        const swapOb = this.parseOrderBook (orderBook, symbol, timestamp, 'b', 'a');
+        swapOb['nonce'] = this.safeInteger2 (orderBook, 'u', 'lastUpdateId');
+        return swapOb;
     }
 
     async fetchTicker (symbol: string, params = {}) {
