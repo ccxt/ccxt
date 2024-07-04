@@ -5,7 +5,7 @@ import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { ExchangeError, BadRequest, ArgumentsRequired, AuthenticationError, PermissionDenied, AccountSuspended, InsufficientFunds, RateLimitExceeded, ExchangeNotAvailable, BadSymbol, InvalidOrder, OrderNotFound, NotSupported, AccountNotEnabled, OrderImmediatelyFillable, BadResponse } from './base/errors.js';
 import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
-import type { Int, OrderSide, OrderType, OHLCV, Trade, FundingRateHistory, OpenInterest, Order, Balances, OrderRequest, FundingHistory, Str, Transaction, Ticker, OrderBook, Tickers, Greeks, Strings, Market, Currency, MarketInterface, TransferEntry, Leverage, Leverages, Num, OptionChain, Option, MarginModification, TradingFeeInterface, Currencies, TradingFees, Position, Dict, LeverageTier, LeverageTiers, int } from './base/types.js';
+import type { Int, OrderSide, OrderType, OHLCV, Trade, FundingRateHistory, OpenInterest, Order, Balances, OrderRequest, FundingHistory, Str, Transaction, Ticker, OrderBook, Tickers, Greeks, Strings, Market, Currency, MarketInterface, TransferEntry, Leverage, Leverages, Num, OptionChain, Option, MarginModification, TradingFeeInterface, Currencies, TradingFees, Position, Dict, LeverageTier, LeverageTiers, int, CancellationRequest } from './base/types.js';
 
 /**
  * @class gate
@@ -81,6 +81,8 @@ export default class gate extends Exchange {
                 'borrowIsolatedMargin': true,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
+                'cancelOrders': true,
+                'cancelOrdersForSymbols': true,
                 'createMarketBuyOrderWithCost': true,
                 'createMarketOrder': true,
                 'createMarketOrderWithCost': false,
@@ -4453,6 +4455,8 @@ export default class gate extends Exchange {
         //        "message": "Not enough balance"
         //    }
         //
+        //  {"user_id":10406147,"id":"id","succeeded":false,"message":"INVALID_PROTOCOL","label":"INVALID_PROTOCOL"}
+        //
         const succeeded = this.safeBool (order, 'succeeded', true);
         if (!succeeded) {
             // cancelOrders response
@@ -4460,6 +4464,7 @@ export default class gate extends Exchange {
                 'clientOrderId': this.safeString (order, 'text'),
                 'info': order,
                 'status': 'rejected',
+                'id': this.safeString (order, 'id'),
             });
         }
         const put = this.safeValue2 (order, 'put', 'initial', {});
@@ -5043,6 +5048,94 @@ export default class gate extends Exchange {
         //     }
         //
         return this.parseOrder (response, market);
+    }
+
+    async cancelOrders (ids: string[], symbol: Str = undefined, params = {}) {
+        /**
+         * @method
+         * @name gate#cancelOrders
+         * @description cancel multiple orders
+         * @see https://www.gate.io/docs/developers/apiv4/en/#cancel-a-batch-of-orders-with-an-id-list
+         * @see https://www.gate.io/docs/developers/apiv4/en/#cancel-a-batch-of-orders-with-an-id-list-2
+         * @param {string[]} ids order ids
+         * @param {string} symbol unified symbol of the market the order was made in
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        await this.loadMarkets ();
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
+        let type = undefined;
+        const defaultSettle = (market === undefined) ? 'usdt' : market['settle'];
+        const settle = this.safeStringLower (params, 'settle', defaultSettle);
+        [ type, params ] = this.handleMarketTypeAndParams ('cancelOrders', market, params);
+        const isSpot = (type === 'spot') && (symbol === undefined) && ((settle !== 'USDT') && (settle !== 'BTC'));
+        if (isSpot) {
+            throw new ArgumentsRequired (this.id + ' cancelOrders requires a symbol argument for spot markets');
+        }
+        if (isSpot) {
+            const ordersRequests = [];
+            for (let i = 0; i < ids.length; i++) {
+                const id = ids[i];
+                const orderItem: Dict = {
+                    'id': id,
+                    'symbol': symbol,
+                };
+                ordersRequests.push (orderItem);
+            }
+            return await this.cancelOrdersForSymbols (ordersRequests, params);
+        }
+        const request = {
+            'settle': settle,
+        };
+        const finalList = [ request ] as any; // hacky but needs to be done here
+        for (let i = 0; i < ids.length; i++) {
+            finalList.push (ids[i]);
+        }
+        const response = await this.privateFuturesPostSettleBatchCancelOrders (finalList);
+        return this.parseOrders (response);
+    }
+
+    async cancelOrdersForSymbols (orders: CancellationRequest[], params = {}) {
+        /**
+         * @method
+         * @name gate#cancelOrdersForSymbols
+         * @description cancel multiple orders for multiple symbols
+         * @see https://www.gate.io/docs/developers/apiv4/en/#cancel-a-batch-of-orders-with-an-id-list
+         * @param {string[]} ids order ids
+         * @param {string} symbol unified symbol of the market the order was made in
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string[]} [params.clientOrderIds] client order ids
+         * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        await this.loadMarkets ();
+        const ordersRequests = [];
+        for (let i = 0; i < orders.length; i++) {
+            const order = orders[i];
+            const symbol = this.safeString (order, 'symbol');
+            const market = this.market (symbol);
+            if (!market['spot']) {
+                throw new NotSupported (this.id + ' cancelOrdersForSymbols() supports only spot markets');
+            }
+            const id = this.safeString (order, 'id');
+            const orderItem: Dict = {
+                'id': id,
+                'currency_pair': market['id'],
+            };
+            ordersRequests.push (orderItem);
+        }
+        const response = await this.privateSpotPostCancelBatchOrders (ordersRequests);
+        //
+        // [
+        //     {
+        //       "currency_pair": "BTC_USDT",
+        //       "id": "123456"
+        //     }
+        // ]
+        //
+        return this.parseOrders (response);
     }
 
     async cancelAllOrders (symbol: Str = undefined, params = {}) {
@@ -6044,7 +6137,20 @@ export default class gate extends Exchange {
         const authentication = api[0]; // public, private
         const type = api[1]; // spot, margin, future, delivery
         let query = this.omit (params, this.extractParams (path));
-        if (Array.isArray (params)) {
+        if (path === '{settle}/batch_cancel_orders') {
+            // special case where we need to extract the settle from the path
+            // but the body is an array of strings
+            const settle = this.safeDict (params, 0);
+            path = this.implodeParams (path, settle);
+            // remove the first element from params
+            const newParams = [];
+            const anyParams = params as any;
+            for (let i = 1; i < anyParams.length; i++) {
+                newParams.push (params[i]);
+            }
+            params = newParams;
+            query = newParams;
+        } else if (Array.isArray (params)) {
             // endpoints like createOrders use an array instead of an object
             // so we infer the settle from one of the elements
             // they have to be all the same so relying on the first one is fine
@@ -7525,6 +7631,7 @@ export default class gate extends Exchange {
         //    {"label": "INVALID_PARAM_VALUE", "message": "invalid argument: Trigger.rule"}
         //    {"label": "INVALID_PARAM_VALUE", "message": "invalid argument: trigger.expiration invalid range"}
         //    {"label": "INVALID_ARGUMENT", "detail": "invalid size"}
+        //    {"user_id":10406147,"id":"id","succeeded":false,"message":"INVALID_PROTOCOL","label":"INVALID_PROTOCOL"}
         //
         const label = this.safeString (response, 'label');
         if (label !== undefined) {
