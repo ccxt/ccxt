@@ -1,12 +1,12 @@
 import Exchange from './abstract/foxbit';
-import type { Currencies, Market, OrderBook, Ticker, TradingFees, Int, Str, Num, Dictionary, Trade, OHLCV, Balances, Order, Account, OrderType, OrderSide } from './base/types.js';
+import type { Currencies, Market, OrderBook, Dict, Ticker, TradingFees, Int, Str, Num, Dictionary, Trade, OHLCV, Balances, Order, Account, OrderType, OrderSide } from './base/types.js';
 
 /**
  * @class foxbit
  * @augments Exchange
  */
 export default class foxbit extends Exchange {
-    decribe () {
+    describe () {
         return this.deepExtend (super.describe (), {
             'id': 'foxbit',
             'name': 'Foxbit',
@@ -27,12 +27,14 @@ export default class foxbit extends Exchange {
                 'secret': true,
             },
             'api': {
-                'public': {
-                    'get': [
-                        'rest/v3/currencies',
-                        'rest/v3/markets',
-                        'rest/v3/markets/{market}/orderbook',
-                    ],
+                'v3': {
+                    'public': {
+                        'get': [
+                            'rest/v3/currencies',
+                            'rest/v3/markets',
+                            'rest/v3/markets/{market}/orderbook',
+                        ],
+                    },
                 },
             },
             'has': {
@@ -385,6 +387,7 @@ export default class foxbit extends Exchange {
     }
 
     async fetchCurrencies (params = {}): Promise<Currencies> {
+        const response = await this.v3PublicGetRestV3Currencies (params);
         // {
         //   "data": [
         //     {
@@ -408,8 +411,13 @@ export default class foxbit extends Exchange {
         //     }
         //   ]
         // }
-
-        return {};
+        const data = this.safeValue (response, 'data', []);
+        const coins = Object.keys (data);
+        const result: Dict = {};
+        for (let i = 0; i < coins.length; i++) {
+            const coin = coins[i];
+        }
+        return result;
     }
 
     async fetchMarkets (params = {}): Promise<Market[]> {
@@ -549,6 +557,11 @@ export default class foxbit extends Exchange {
 
     async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         return [];
+    }
+
+    sign (path, api = [], method = 'GET', params = {}, headers = undefined, body = undefined) {
+        const url = this.urls['api'] + '/' + path;
+        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 }
 
