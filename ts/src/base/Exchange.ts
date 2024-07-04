@@ -3244,7 +3244,11 @@ export default class Exchange {
             'takeProfitPrice': takeProfitPrice,
             'stopLossPrice': stopLossPrice,
             'status': status,
-            'fee': this.safeValue (order, 'fee'),
+            'fee': {
+                'currency': this.safeString (fee, 'currency'),
+                'cost': this.safeNumber (fee, 'cost'),
+                'rate': this.safeNumber (fee, 'rate'),
+            },
         });
     }
 
