@@ -434,31 +434,55 @@ export default class paradex extends Exchange {
         if (since !== undefined) {
             request['start_at'] = since;
             if (limit !== undefined) {
-                request['end_at'] = this.sum (since, duration * limit * 1000);
+                request['end_at'] = this.sum (since, duration * (limit + 1) * 1000) - 1;
             } else {
                 request['end_at'] = until;
             }
         } else {
             request['end_at'] = until;
             if (limit !== undefined) {
-                request['start_at'] = until - duration * limit * 1000;
+                request['start_at'] = until - duration * (limit + 1) * 1000 + 1;
             } else {
-                request['start_at'] = until - duration * 100 * 1000;
+                request['start_at'] = until - duration * 101 * 1000 + 1;
             }
         }
         const response = await this.publicGetMarketsKlines (this.extend (request, params));
+        //
+        //     {
+        //         "results": [
+        //             [
+        //                 1720071900000,
+        //                 58961.3,
+        //                 58961.3,
+        //                 58961.3,
+        //                 58961.3,
+        //                 1591
+        //             ]
+        //         ]
+        //     }
+        //
         const data = this.safeList (response, 'results', []);
         return this.parseOHLCVs (data, market, timeframe, since, limit);
     }
 
     parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
+        //
+        //     [
+        //         1720071900000,
+        //         58961.3,
+        //         58961.3,
+        //         58961.3,
+        //         58961.3,
+        //         1591
+        //     ]
+        //
         return [
-            this.safeInteger2 (ohlcv, 0, 'openTime'),
-            this.safeNumber2 (ohlcv, 1, 'open'),
-            this.safeNumber2 (ohlcv, 2, 'high'),
-            this.safeNumber2 (ohlcv, 3, 'low'),
-            this.safeNumber2 (ohlcv, 4, 'close'),
-            this.safeNumber2 (ohlcv, 5, 'volume'),
+            this.safeInteger (ohlcv, 0),
+            this.safeNumber (ohlcv, 1),
+            this.safeNumber (ohlcv, 2),
+            this.safeNumber (ohlcv, 3),
+            this.safeNumber (ohlcv, 4),
+            this.safeNumber (ohlcv, 5),
         ];
     }
 
