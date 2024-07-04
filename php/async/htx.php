@@ -5897,8 +5897,67 @@ class htx extends Exchange {
             //         "ts" => 1604367997451
             //     }
             //
-            return $response;
+            $data = $this->safe_dict($response, 'data');
+            return $this->parse_cancel_orders($data);
         }) ();
+    }
+
+    public function parse_cancel_orders($orders) {
+        //
+        //    {
+        //        "success" => array(
+        //            "5983466"
+        //        ),
+        //        "failed" => array(
+        //            array(
+        //                "err-msg" => "Incorrect $order state",
+        //                "order-state" => 7,
+        //                "order-id" => "",
+        //                "err-code" => "order-orderstate-error",
+        //                "client-$order-id" => "first"
+        //            ),
+        //            ...
+        //        )
+        //    }
+        //
+        //    {
+        //        "errors" => array(
+        //            {
+        //                "order_id" => "769206471845261312",
+        //                "err_code" => 1061,
+        //                "err_msg" => "This $order doesnt exist."
+        //            }
+        //        ),
+        //        "successes" => "1258075374411399168,1258075393254871040"
+        //    }
+        //
+        $successes = $this->safe_string($orders, 'successes');
+        $success = null;
+        if ($successes !== null) {
+            $success = explode(',', $successes);
+        } else {
+            $success = $this->safe_list($orders, 'success', array());
+        }
+        $failed = $this->safe_list_2($orders, 'errors', 'failed', array());
+        $result = array();
+        for ($i = 0; $i < count($success); $i++) {
+            $order = $success[$i];
+            $result[] = $this->safe_order(array(
+                'info' => $order,
+                'id' => $order,
+                'status' => 'canceled',
+            ));
+        }
+        for ($i = 0; $i < count($failed); $i++) {
+            $order = $failed[$i];
+            $result[] = $this->safe_order(array(
+                'info' => $order,
+                'id' => $this->safe_string_2($order, 'order-id', 'order_id'),
+                'status' => 'failed',
+                'clientOrderId' => $this->safe_string($order, 'client-$order-id'),
+            ));
+        }
+        return $result;
     }
 
     public function cancel_all_orders(?string $symbol = null, $params = array ()) {
@@ -5939,6 +5998,22 @@ class htx extends Exchange {
                     $request['symbol'] = $market['id'];
                 }
                 $response = Async\await($this->spotPrivatePostV1OrderOrdersBatchCancelOpenOrders ($this->extend($request, $params)));
+                //
+                //     {
+                //         "code" => 200,
+                //         "data" => {
+                //             "success-count" => 2,
+                //             "failed-count" => 0,
+                //             "next-id" => 5454600
+                //         }
+                //     }
+                //
+                $data = $this->safe_dict($response, 'data');
+                return array(
+                    $this->safe_order(array(
+                        'info' => $data,
+                    )),
+                );
             } else {
                 if ($symbol === null) {
                     throw new ArgumentsRequired($this->id . ' cancelAllOrders() requires a $symbol argument');
@@ -6001,31 +6076,19 @@ class htx extends Exchange {
                 } else {
                     throw new NotSupported($this->id . ' cancelAllOrders() does not support ' . $marketType . ' markets');
                 }
+                //
+                //     {
+                //         "status" => "ok",
+                //         "data" => array(
+                //             "errors" => array(),
+                //             "successes" => "1104754904426696704"
+                //         ),
+                //         "ts" => "1683435723755"
+                //     }
+                //
+                $data = $this->safe_dict($response, 'data');
+                return $this->parse_cancel_orders($data);
             }
-            //
-            // spot
-            //
-            //     {
-            //         "code" => 200,
-            //         "data" => {
-            //             "success-count" => 2,
-            //             "failed-count" => 0,
-            //             "next-id" => 5454600
-            //         }
-            //     }
-            //
-            // future and swap
-            //
-            //     {
-            //         "status" => "ok",
-            //         "data" => array(
-            //             "errors" => array(),
-            //             "successes" => "1104754904426696704"
-            //         ),
-            //         "ts" => "1683435723755"
-            //     }
-            //
-            return $response;
         }) ();
     }
 

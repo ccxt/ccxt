@@ -4691,6 +4691,22 @@ class bitget(Exchange, ImplicitAPI):
                     response = self.privateMarginPostMarginV1CrossOrderBatchCancelOrder(self.extend(request, params))
                 else:
                     response = self.privateMarginPostMarginV1IsolatedOrderBatchCancelOrder(self.extend(request, params))
+                #
+                #     {
+                #         "code": "00000",
+                #         "msg": "success",
+                #         "requestTime": 1700717155622,
+                #         "data": {
+                #             "resultList": [
+                #                 {
+                #                     "orderId": "1111453253721796609",
+                #                     "clientOid": "2ae7fc8a4ff949b6b60d770ca3950e2d"
+                #                 },
+                #             ],
+                #             "failure": []
+                #         }
+                #     }
+                #
             else:
                 if stop:
                     stopRequest: dict = {
@@ -4699,6 +4715,27 @@ class bitget(Exchange, ImplicitAPI):
                     response = self.privateSpotPostV2SpotTradeBatchCancelPlanOrder(self.extend(stopRequest, params))
                 else:
                     response = self.privateSpotPostV2SpotTradeCancelSymbolOrder(self.extend(request, params))
+                #
+                #     {
+                #         "code": "00000",
+                #         "msg": "success",
+                #         "requestTime": 1700716953996,
+                #         "data": {
+                #             "symbol": "BTCUSDT"
+                #         }
+                #     }
+                #
+                timestamp = self.safe_integer(response, 'requestTime')
+                responseData = self.safe_dict(response, 'data')
+                marketId = self.safe_string(responseData, 'symbol')
+                return [
+                    self.safe_order({
+                        'info': response,
+                        'symbol': self.safe_symbol(marketId, None, None, 'spot'),
+                        'timestamp': timestamp,
+                        'datetime': self.iso8601(timestamp),
+                    }),
+                ]
         else:
             productType = None
             productType, params = self.handle_product_type_and_params(market, params)
@@ -4707,53 +4744,25 @@ class bitget(Exchange, ImplicitAPI):
                 response = self.privateMixPostV2MixOrderCancelPlanOrder(self.extend(request, params))
             else:
                 response = self.privateMixPostV2MixOrderBatchCancelOrders(self.extend(request, params))
-        #
-        # spot
-        #
-        #     {
-        #         "code": "00000",
-        #         "msg": "success",
-        #         "requestTime": 1700716953996,
-        #         "data": {
-        #             "symbol": "BTCUSDT"
-        #         }
-        #     }
-        #
-        # swap
-        #
-        #     {
-        #         "code": "00000",
-        #         "msg": "success",
-        #         "requestTime": "1680008815965",
-        #         "data": {
-        #             "successList": [
-        #                 {
-        #                     "orderId": "1024598257429823488",
-        #                     "clientOid": "876493ce-c287-4bfc-9f4a-8b1905881313"
-        #                 },
-        #             ],
-        #             "failureList": []
-        #         }
-        #     }
-        #
-        # spot margin
-        #
-        #     {
-        #         "code": "00000",
-        #         "msg": "success",
-        #         "requestTime": 1700717155622,
-        #         "data": {
-        #             "resultList": [
-        #                 {
-        #                     "orderId": "1111453253721796609",
-        #                     "clientOid": "2ae7fc8a4ff949b6b60d770ca3950e2d"
-        #                 },
-        #             ],
-        #             "failure": []
-        #         }
-        #     }
-        #
-        return response
+            #     {
+            #         "code": "00000",
+            #         "msg": "success",
+            #         "requestTime": "1680008815965",
+            #         "data": {
+            #             "successList": [
+            #                 {
+            #                     "orderId": "1024598257429823488",
+            #                     "clientOid": "876493ce-c287-4bfc-9f4a-8b1905881313"
+            #                 },
+            #             ],
+            #             "failureList": []
+            #         }
+            #     }
+        data = self.safe_dict(response, 'data')
+        resultList = self.safe_list_2(data, 'resultList', 'successList')
+        failureList = self.safe_list_2(data, 'failure', 'failureList')
+        responseList = self.array_concat(resultList, failureList)
+        return self.parse_orders(responseList)
 
     def fetch_order(self, id: str, symbol: Str = None, params={}):
         """

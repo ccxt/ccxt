@@ -6233,7 +6233,71 @@ public partial class htx : Exchange
         //         "ts": 1604367997451
         //     }
         //
-        return response;
+        object data = this.safeDict(response, "data");
+        return this.parseCancelOrders(data);
+    }
+
+    public virtual object parseCancelOrders(object orders)
+    {
+        //
+        //    {
+        //        "success": [
+        //            "5983466"
+        //        ],
+        //        "failed": [
+        //            {
+        //                "err-msg": "Incorrect order state",
+        //                "order-state": 7,
+        //                "order-id": "",
+        //                "err-code": "order-orderstate-error",
+        //                "client-order-id": "first"
+        //            },
+        //            ...
+        //        ]
+        //    }
+        //
+        //    {
+        //        "errors": [
+        //            {
+        //                "order_id": "769206471845261312",
+        //                "err_code": 1061,
+        //                "err_msg": "This order doesnt exist."
+        //            }
+        //        ],
+        //        "successes": "1258075374411399168,1258075393254871040"
+        //    }
+        //
+        object successes = this.safeString(orders, "successes");
+        object success = null;
+        if (isTrue(!isEqual(successes, null)))
+        {
+            success = ((string)successes).Split(new [] {((string)",")}, StringSplitOptions.None).ToList<object>();
+        } else
+        {
+            success = this.safeList(orders, "success", new List<object>() {});
+        }
+        object failed = this.safeList2(orders, "errors", "failed", new List<object>() {});
+        object result = new List<object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(success)); postFixIncrement(ref i))
+        {
+            object order = getValue(success, i);
+            ((IList<object>)result).Add(this.safeOrder(new Dictionary<string, object>() {
+                { "info", order },
+                { "id", order },
+                { "status", "canceled" },
+            }));
+        }
+        for (object i = 0; isLessThan(i, getArrayLength(failed)); postFixIncrement(ref i))
+        {
+            object order = getValue(failed, i);
+            ((IList<object>)result).Add(this.safeOrder(new Dictionary<string, object>() {
+                { "info", order },
+                { "id", this.safeString2(order, "order-id", "order_id") },
+                { "status", "failed" },
+                { "clientOrderId", this.safeString(order, "client-order-id") },
+            }));
+        }
+        return result;
     }
 
     public async override Task<object> cancelAllOrders(object symbol = null, object parameters = null)
@@ -6269,6 +6333,20 @@ public partial class htx : Exchange
                 ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
             }
             response = await this.spotPrivatePostV1OrderOrdersBatchCancelOpenOrders(this.extend(request, parameters));
+            //
+            //     {
+            //         "code": 200,
+            //         "data": {
+            //             "success-count": 2,
+            //             "failed-count": 0,
+            //             "next-id": 5454600
+            //         }
+            //     }
+            //
+            object data = this.safeDict(response, "data");
+            return new List<object> {this.safeOrder(new Dictionary<string, object>() {
+    { "info", data },
+})};
         } else
         {
             if (isTrue(isEqual(symbol, null)))
@@ -6359,31 +6437,19 @@ public partial class htx : Exchange
             {
                 throw new NotSupported ((string)add(add(add(this.id, " cancelAllOrders() does not support "), marketType), " markets")) ;
             }
+            //
+            //     {
+            //         "status": "ok",
+            //         "data": {
+            //             "errors": [],
+            //             "successes": "1104754904426696704"
+            //         },
+            //         "ts": "1683435723755"
+            //     }
+            //
+            object data = this.safeDict(response, "data");
+            return this.parseCancelOrders(data);
         }
-        //
-        // spot
-        //
-        //     {
-        //         "code": 200,
-        //         "data": {
-        //             "success-count": 2,
-        //             "failed-count": 0,
-        //             "next-id": 5454600
-        //         }
-        //     }
-        //
-        // future and swap
-        //
-        //     {
-        //         "status": "ok",
-        //         "data": {
-        //             "errors": [],
-        //             "successes": "1104754904426696704"
-        //         },
-        //         "ts": "1683435723755"
-        //     }
-        //
-        return response;
     }
 
     public async override Task<object> cancelAllOrdersAfter(object timeout, object parameters = null)

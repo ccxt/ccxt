@@ -5521,7 +5521,62 @@ class htx(Exchange, ImplicitAPI):
         #         "ts": 1604367997451
         #     }
         #
-        return response
+        data = self.safe_dict(response, 'data')
+        return self.parse_cancel_orders(data)
+
+    def parse_cancel_orders(self, orders):
+        #
+        #    {
+        #        "success": [
+        #            "5983466"
+        #        ],
+        #        "failed": [
+        #            {
+        #                "err-msg": "Incorrect order state",
+        #                "order-state": 7,
+        #                "order-id": "",
+        #                "err-code": "order-orderstate-error",
+        #                "client-order-id": "first"
+        #            },
+        #            ...
+        #        ]
+        #    }
+        #
+        #    {
+        #        "errors": [
+        #            {
+        #                "order_id": "769206471845261312",
+        #                "err_code": 1061,
+        #                "err_msg": "This order doesnt exist."
+        #            }
+        #        ],
+        #        "successes": "1258075374411399168,1258075393254871040"
+        #    }
+        #
+        successes = self.safe_string(orders, 'successes')
+        success = None
+        if successes is not None:
+            success = successes.split(',')
+        else:
+            success = self.safe_list(orders, 'success', [])
+        failed = self.safe_list_2(orders, 'errors', 'failed', [])
+        result = []
+        for i in range(0, len(success)):
+            order = success[i]
+            result.append(self.safe_order({
+                'info': order,
+                'id': order,
+                'status': 'canceled',
+            }))
+        for i in range(0, len(failed)):
+            order = failed[i]
+            result.append(self.safe_order({
+                'info': order,
+                'id': self.safe_string_2(order, 'order-id', 'order_id'),
+                'status': 'failed',
+                'clientOrderId': self.safe_string(order, 'client-order-id'),
+            }))
+        return result
 
     def cancel_all_orders(self, symbol: Str = None, params={}):
         """
@@ -5558,6 +5613,22 @@ class htx(Exchange, ImplicitAPI):
             if symbol is not None:
                 request['symbol'] = market['id']
             response = self.spotPrivatePostV1OrderOrdersBatchCancelOpenOrders(self.extend(request, params))
+            #
+            #     {
+            #         "code": 200,
+            #         "data": {
+            #             "success-count": 2,
+            #             "failed-count": 0,
+            #             "next-id": 5454600
+            #         }
+            #     }
+            #
+            data = self.safe_dict(response, 'data')
+            return [
+                self.safe_order({
+                    'info': data,
+                }),
+            ]
         else:
             if symbol is None:
                 raise ArgumentsRequired(self.id + ' cancelAllOrders() requires a symbol argument')
@@ -5611,30 +5682,18 @@ class htx(Exchange, ImplicitAPI):
                         response = self.contractPrivatePostApiV1ContractCancelall(self.extend(request, params))
             else:
                 raise NotSupported(self.id + ' cancelAllOrders() does not support ' + marketType + ' markets')
-        #
-        # spot
-        #
-        #     {
-        #         "code": 200,
-        #         "data": {
-        #             "success-count": 2,
-        #             "failed-count": 0,
-        #             "next-id": 5454600
-        #         }
-        #     }
-        #
-        # future and swap
-        #
-        #     {
-        #         "status": "ok",
-        #         "data": {
-        #             "errors": [],
-        #             "successes": "1104754904426696704"
-        #         },
-        #         "ts": "1683435723755"
-        #     }
-        #
-        return response
+            #
+            #     {
+            #         "status": "ok",
+            #         "data": {
+            #             "errors": [],
+            #             "successes": "1104754904426696704"
+            #         },
+            #         "ts": "1683435723755"
+            #     }
+            #
+            data = self.safe_dict(response, 'data')
+            return self.parse_cancel_orders(data)
 
     def cancel_all_orders_after(self, timeout: Int, params={}):
         """
