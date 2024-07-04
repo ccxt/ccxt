@@ -1059,7 +1059,7 @@ export default class xt extends xtRest {
                 }
             }
             if (method !== undefined) {
-                return method.call (this, client, message);
+                method.call (this, client, message);
             }
         }
     }
