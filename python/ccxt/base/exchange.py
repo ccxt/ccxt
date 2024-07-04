@@ -61,10 +61,9 @@ from ccxt.static_dependencies.msgpack import packb
 
 # starknet
 from ccxt.static_dependencies.starknet.ccxt_utils import get_private_key_from_eth_signature
-from ccxt.static_dependencies.starknet.net.signer.stark_curve_signer import KeyPair
 from ccxt.static_dependencies.starknet.hash.address import compute_address
 from ccxt.static_dependencies.starknet.hash.selector import get_selector_from_name
-from ccxt.static_dependencies.starknet.hash.utils import message_signature, verify_message_signature
+from ccxt.static_dependencies.starknet.hash.utils import message_signature, private_to_stark_key
 from ccxt.static_dependencies.starknet.utils.typed_data import TypedData as TypedDataDataclass
 
 # -----------------------------------------------------------------------------
@@ -1398,8 +1397,7 @@ class Exchange(object):
     @staticmethod
     def retrieve_stark_account (signature, accountClassHash, accountProxyClassHash):
         privKey = get_private_key_from_eth_signature(signature)
-        starkKey = KeyPair.from_private_key(privKey)
-        publicKey = starkKey.public_key
+        publicKey = private_to_stark_key(privKey)
         calldata = [
             int(accountClassHash, 16),
             get_selector_from_name("initialize"),
