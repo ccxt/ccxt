@@ -15,7 +15,7 @@ class Client(object):
     subscriptions = {}
     rejections = {}
     message_queue = {}
-    use_message_queue = True
+    useMessageQueue = True
     on_message_callback = None
     on_error_callback = None
     on_close_callback = None
@@ -72,7 +72,7 @@ class Client(object):
             del self.rejections[message_hash]
             del self.message_queue[message_hash]
             return future
-        if self.use_message_queue and message_hash in self.message_queue:
+        if self.useMessageQueue and message_hash in self.message_queue:
             queue = self.message_queue[message_hash]
             if len(queue):
                 future.resolve(queue.popleft())
@@ -82,7 +82,7 @@ class Client(object):
         if self.verbose and message_hash is None:
             self.log(iso8601(milliseconds()), 'resolve received None messageHash')
 
-        if self.use_message_queue:
+        if self.useMessageQueue:
             if message_hash not in self.message_queue:
                 self.message_queue[message_hash] = deque(maxlen=10)
             queue = self.message_queue[message_hash]

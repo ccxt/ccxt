@@ -31,7 +31,7 @@ class Client {
     public $subscriptions = array();
     public $rejections = array();
     public $message_queue = array();
-    public $use_message_queue = true;
+    public $useMessageQueue = true;
     public $options = array();
 
     public $on_message_callback;
@@ -79,7 +79,7 @@ class Client {
             unset($this->message_queue[$message_hash]);
             return $future;
         }
-        if ($this->use_message_queue && array_key_exists($message_hash, $this->message_queue)) {
+        if ($this->useMessageQueue && array_key_exists($message_hash, $this->message_queue)) {
             $queue = $this->message_queue[$message_hash];
             if (count($queue) > 0) {
                 $future->resolve(array_shift($queue));
@@ -92,7 +92,7 @@ class Client {
         if ($this->verbose && ($message_hash === null)) {
             $this->log(date('c'), 'resolve received null messageHash');
         }
-        if ($this->use_message_queue) {
+        if ($this->useMessageQueue) {
             if (!array_key_exists($message_hash, $this->message_queue)) {
                 $this->message_queue[$message_hash] = array();
             }
