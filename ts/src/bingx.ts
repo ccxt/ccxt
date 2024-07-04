@@ -738,6 +738,10 @@ export default class bingx extends Exchange {
         const isActive = this.safeString (market, 'status') === '1';
         const isInverse = (spot) ? undefined : checkIsInverse;
         const isLinear = (spot) ? undefined : checkIsLinear;
+        let timeOnline = this.safeInteger (market, 'timeOnline');
+        if (timeOnline === 0) {
+            timeOnline = undefined;
+        }
         return this.safeMarketStructure ({
             'id': id,
             'symbol': symbol,
@@ -787,7 +791,7 @@ export default class bingx extends Exchange {
                     'max': this.safeNumber (market, 'maxNotional'),
                 },
             },
-            'created': this.safeInteger (market, 'timeOnline'),
+            'created': timeOnline,
             'info': market,
         });
     }
