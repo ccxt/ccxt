@@ -693,17 +693,17 @@ export default class xt extends xtRest {
             const tradeType = ('fu' in data) ? 'contract' : 'spot';
             const market = this.safeMarket (marketId, undefined, undefined, tradeType);
             const symbol = market['symbol'];
-            const asks = this.safeList (data, 'a');
-            const bids = this.safeList (data, 'b');
+            const obAsks = this.safeList (data, 'a');
+            const obBids = this.safeList (data, 'b');
             const messageHash = event + '::' + tradeType;
-            let orderbook = this.safeDict (this.orderbooks, symbol);
-            const nonce = this.safeInteger (orderbook, 'nonce');
-            if (orderbook === undefined) {
+            if (!(symbol in this.orderbooks)) {
                 const subscription = this.safeDict (client.subscriptions, messageHash, {});
                 const limit = this.safeInteger (subscription, 'limit');
                 this.orderbooks[symbol] = this.orderBook ({}, limit);
-                orderbook = this.orderbooks[symbol];
-            } else if (nonce === undefined) {
+            }
+            const orderbook = this.orderbooks[symbol];
+            const nonce = this.safeInteger (orderbook, 'nonce');
+            if (nonce === undefined) {
                 const cacheLength = orderbook.cache.length;
                 const snapshotDelay = this.handleOption ('watchOrderBook', 'snapshotDelay', 25);
                 if (cacheLength === snapshotDelay) {
@@ -712,24 +712,26 @@ export default class xt extends xtRest {
                 orderbook.cache.push (data);
                 return;
             }
-            if (asks !== undefined) {
-                for (let i = 0; i < asks.length; i++) {
-                    const ask = asks[i];
+            if (obAsks !== undefined) {
+                const asks = orderbook['asks'];
+                for (let i = 0; i < obAsks.length; i++) {
+                    const ask = obAsks[i];
                     const price = this.safeNumber (ask, 0);
                     const quantity = this.safeNumber (ask, 1);
-                    orderbook['asks'].store (price, quantity);
+                    asks.store (price, quantity);
                 }
             }
-            if (bids !== undefined) {
-                for (let i = 0; i < bids.length; i++) {
-                    const bid = bids[i];
+            if (obBids !== undefined) {
+                const bids = orderbook['bids'];
+                for (let i = 0; i < obBids.length; i++) {
+                    const bid = obBids[i];
                     const price = this.safeNumber (bid, 0);
                     const quantity = this.safeNumber (bid, 1);
-                    orderbook['bids'].store (price, quantity);
+                    bids.store (price, quantity);
                 }
             }
-            const timestamp = this.safeString (data, 't');
-            orderbook['nonce'] = this.safeString2 (data, 'i', 'u');
+            const timestamp = this.safeInteger (data, 't');
+            orderbook['nonce'] = this.safeInteger2 (data, 'i', 'u');
             orderbook['timestamp'] = timestamp;
             orderbook['datetime'] = this.iso8601 (timestamp);
             orderbook['symbol'] = symbol;
@@ -1033,7 +1035,7 @@ export default class xt extends xtRest {
     handleMessage (client: Client, message: Dict) {
         const event = this.safeString (message, 'event');
         if (event === 'pong') {
-            return client.onPong ();
+            client.onPong ();
         } else if (event !== undefined) {
             const topic = this.safeString (message, 'topic');
             const methods = {

@@ -75,7 +75,7 @@ public partial class Exchange
         public Future future(object messageHash2)
         {
             var messageHash = messageHash2.ToString();
-            return (this.futures as ConcurrentDictionary<string, Future>).GetOrAdd (messageHash, (key) =>  new Future());
+            return (this.futures as ConcurrentDictionary<string, Future>).GetOrAdd(messageHash, (key) => new Future());
         }
 
         public void resolve(object content, object messageHash2)
@@ -139,6 +139,15 @@ public partial class Exchange
                 Task.Run(async () => Connect());
             }
             return this.connected.Task;
+        }
+
+        public void onPong()
+        {
+            this.lastPong = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+            if (this.verbose)
+            {
+                Console.WriteLine("Pong received: " + this.lastPong.ToString());
+            }
         }
 
         public async void PingLoop()
@@ -359,10 +368,13 @@ public partial class Exchange
                             {
                                 Console.WriteLine($"On binary message {decompressedString}");
                             }
-                            try {
+                            try
+                            {
                                 var deserializedJson = JsonHelper.Deserialize(decompressedString);
                                 this.handleMessage(this, deserializedJson);
-                            } catch (Exception e) {
+                            }
+                            catch (Exception e)
+                            {
                                 this.handleMessage(this, decompressedString);
                             }
                         }
