@@ -2858,11 +2858,13 @@ export default class binance extends Exchange {
             }
             fetchMarkets.push (type);
         }
+        let fetchMargins = false;
         for (let i = 0; i < fetchMarkets.length; i++) {
             const marketType = fetchMarkets[i];
             if (marketType === 'spot') {
                 promisesRaw.push (this.publicGetExchangeInfo (params));
                 if (this.checkRequiredCredentials (false)) {
+                    fetchMargins = true;
                     promisesRaw.push (this.sapiGetMarginAllPairs (params));
                     promisesRaw.push (this.sapiGetMarginIsolatedAllPairs (params));
                 }
@@ -2876,23 +2878,23 @@ export default class binance extends Exchange {
                 throw new ExchangeError (this.id + ' fetchMarkets() this.options fetchMarkets "' + marketType + '" is not a supported market type');
             }
         }
-        const promises = await Promise.all (promisesRaw);
+        const results = await Promise.all (promisesRaw);
         let markets = [];
         this.options['crossMarginPairsData'] = {};
         this.options['isolatedMarginPairsData'] = {};
         for (let i = 0; i < fetchMarkets.length; i++) {
-            const promise = this.safeDict (promises, i);
-            if (Array.isArray (promise)) {
-                const firstElement = this.safeDict (promise, 0, {});
+            const res = this.safeValue (results, i);
+            if (Array.isArray (res)) {
+                const firstElement = this.safeDict (res, 0, {});
                 // only cross margin pairs have 'id'
                 if (this.safeString (firstElement, 'id') !== undefined) {
-                    this.options['crossMarginPairsData'] = this.indexBy (promise, 'symbol');
+                    this.options['crossMarginPairsData'] = this.indexBy (res, 'symbol');
                 } else {
-                    this.options['isolatedMarginPairsData'] = this.indexBy (promise, 'symbol');
+                    this.options['isolatedMarginPairsData'] = this.indexBy (res, 'symbol');
                 }
             } else {
-                const promiseMarkets = this.safeList2 (promise, 'symbols', 'optionSymbols', []);
-                markets = this.arrayConcat (markets, promiseMarkets);
+                const resultMarkets = this.safeList2 (res, 'symbols', 'optionSymbols', []);
+                markets = this.arrayConcat (markets, resultMarkets);
             }
         }
         //
