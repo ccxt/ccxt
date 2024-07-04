@@ -99,6 +99,24 @@ export default class xt extends xtRest {
         return client.subscriptions['token'];
     }
 
+    getCacheIndex (orderbook, cache) {
+        // return the first index of the cache that can be applied to the orderbook or -1 if not possible
+        const nonce = this.safeInteger (orderbook, 'nonce');
+        const firstDelta = this.safeValue (cache, 0);
+        const firstDeltaNonce = this.safeInteger (firstDelta, 'i');
+        if (nonce < firstDeltaNonce - 1) {
+            return -1;
+        }
+        for (let i = 0; i < cache.length; i++) {
+            const delta = cache[i];
+            const deltaNonce = this.safeInteger (delta, 'i');
+            if (deltaNonce >= nonce) {
+                return i;
+            }
+        }
+        return cache.length;
+    }
+
     async subscribe (name: string, access: string, methodName: string, market: Market = undefined, symbols: string[] = undefined, params = {}) {
         /**
          * @ignore
