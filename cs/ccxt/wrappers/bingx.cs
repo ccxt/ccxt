@@ -36,12 +36,18 @@ public partial class bingx
         var res = await this.fetchSwapMarkets(parameters);
         return ((IList<object>)res).Select(item => new MarketInterface(item)).ToList<MarketInterface>();
     }
+    public async Task<List<MarketInterface>> FetchInverseSwapMarkets(object parameters)
+    {
+        var res = await this.fetchInverseSwapMarkets(parameters);
+        return ((IList<object>)res).Select(item => new MarketInterface(item)).ToList<MarketInterface>();
+    }
     /// <summary>
     /// retrieves data on all markets for bingx
     /// </summary>
     /// <remarks>
     /// See <see href="https://bingx-api.github.io/docs/#/spot/market-api.html#Query%20Symbols"/>  <br/>
     /// See <see href="https://bingx-api.github.io/docs/#/swapV2/market-api.html#Contract%20Information"/>  <br/>
+    /// See <see href="https://bingx-api.github.io/docs/#/en-us/cswap/market-api.html#Contract%20Information"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -421,7 +427,7 @@ public partial class bingx
     /// <item>
     /// <term>price</term>
     /// <description>
-    /// float : the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+    /// float : the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
     /// </description>
     /// </item>
     /// <item>
@@ -449,7 +455,7 @@ public partial class bingx
     /// <item>
     /// <term>price</term>
     /// <description>
-    /// float : the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+    /// float : the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
     /// </description>
     /// </item>
     /// <item>
@@ -1285,7 +1291,7 @@ public partial class bingx
     /// <item>
     /// <term>price</term>
     /// <description>
-    /// float : the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+    /// float : the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
     /// </description>
     /// </item>
     /// <item>

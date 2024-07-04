@@ -608,7 +608,7 @@ public partial class ace : Exchange
         * @param {string} type 'market' or 'limit'
         * @param {string} side 'buy' or 'sell'
         * @param {float} amount how much of currency you want to trade in units of base currency
-        * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
         */
@@ -1063,15 +1063,11 @@ public partial class ace : Exchange
             object auth = add("ACE_SIGN", this.secret);
             object data = this.extend(new Dictionary<string, object>() {
                 { "apiKey", this.apiKey },
-                { "timeStamp", nonce },
+                { "timeStamp", this.numberToString(nonce) },
             }, parameters);
-            object dataKeys = new List<object>(((IDictionary<string,object>)data).Keys);
-            object sortedDataKeys = this.sortBy(dataKeys, 0, false, "");
-            for (object i = 0; isLessThan(i, getArrayLength(sortedDataKeys)); postFixIncrement(ref i))
-            {
-                object key = getValue(sortedDataKeys, i);
-                auth = add(auth, this.safeString(data, key));
-            }
+            object sortedData = this.keysort(data);
+            object values = new List<object>(((IDictionary<string,object>)sortedData).Values);
+            auth = add(auth, String.Join("", ((IList<object>)values).ToArray()));
             object signature = this.hash(this.encode(auth), sha256, "hex");
             ((IDictionary<string,object>)data)["signKey"] = signature;
             headers = new Dictionary<string, object>() {

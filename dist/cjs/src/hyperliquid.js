@@ -442,24 +442,26 @@ class hyperliquid extends hyperliquid$1 {
         for (let i = 0; i < meta.length; i++) {
             const market = this.safeDict(meta, i, {});
             const marketName = this.safeString(market, 'name');
-            if (marketName.indexOf('/') < 0) {
-                // there are some weird spot markets in testnet, eg @2
-                continue;
-            }
-            const marketParts = marketName.split('/');
-            const baseName = this.safeString(marketParts, 0);
-            const quoteId = this.safeString(marketParts, 1);
-            const base = this.safeCurrencyCode(baseName);
-            const quote = this.safeCurrencyCode(quoteId);
-            const symbol = base + '/' + quote;
+            // if (marketName.indexOf ('/') < 0) {
+            //     // there are some weird spot markets in testnet, eg @2
+            //     continue;
+            // }
+            // const marketParts = marketName.split ('/');
+            // const baseName = this.safeString (marketParts, 0);
+            // const quoteId = this.safeString (marketParts, 1);
             const fees = this.safeDict(this.fees, 'spot', {});
             const taker = this.safeNumber(fees, 'taker');
             const maker = this.safeNumber(fees, 'maker');
             const tokensPos = this.safeList(market, 'tokens', []);
             const baseTokenPos = this.safeInteger(tokensPos, 0);
-            // const quoteTokenPos = this.safeInteger (tokensPos, 1);
+            const quoteTokenPos = this.safeInteger(tokensPos, 1);
             const baseTokenInfo = this.safeDict(tokens, baseTokenPos, {});
-            // const quoteTokenInfo = this.safeDict (tokens, quoteTokenPos, {});
+            const quoteTokenInfo = this.safeDict(tokens, quoteTokenPos, {});
+            const baseName = this.safeString(baseTokenInfo, 'name');
+            const quoteId = this.safeString(quoteTokenInfo, 'name');
+            const base = this.safeCurrencyCode(baseName);
+            const quote = this.safeCurrencyCode(quoteId);
+            const symbol = base + '/' + quote;
             const innerBaseTokenInfo = this.safeDict(baseTokenInfo, 'spec', baseTokenInfo);
             // const innerQuoteTokenInfo = this.safeDict (quoteTokenInfo, 'spec', quoteTokenInfo);
             const amountPrecision = this.parseNumber(this.parsePrecision(this.safeString(innerBaseTokenInfo, 'szDecimals')));
@@ -591,7 +593,7 @@ class hyperliquid extends hyperliquid$1 {
             'limits': {
                 'leverage': {
                     'min': undefined,
-                    'max': undefined,
+                    'max': this.safeInteger(market, 'maxLeverage'),
                 },
                 'amount': {
                     'min': undefined,
@@ -1014,7 +1016,7 @@ class hyperliquid extends hyperliquid$1 {
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {string} [params.timeInForce] 'Gtc', 'Ioc', 'Alo'
          * @param {bool} [params.postOnly] true or false whether the order is post-only
@@ -1153,7 +1155,7 @@ class hyperliquid extends hyperliquid$1 {
             if (clientOrderId !== undefined) {
                 orderObj['c'] = clientOrderId;
             }
-            orderReq.push(this.extend(orderObj, orderParams));
+            orderReq.push(orderObj);
         }
         const vaultAddress = this.formatVaultAddress(this.safeString(params, 'vaultAddress'));
         const orderAction = {
@@ -1176,7 +1178,7 @@ class hyperliquid extends hyperliquid$1 {
             params = this.omit(params, 'vaultAddress');
             request['vaultAddress'] = vaultAddress;
         }
-        const response = await this.privatePostExchange(this.extend(request, params));
+        const response = await this.privatePostExchange(request);
         //
         //     {
         //         "status": "ok",
@@ -1213,7 +1215,8 @@ class hyperliquid extends hyperliquid$1 {
          * @param {string} [params.vaultAddress] the vault address for order
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
-        return await this.cancelOrders([id], symbol, params);
+        const orders = await this.cancelOrders([id], symbol, params);
+        return this.safeDict(orders, 0);
     }
     async cancelOrders(ids, symbol = undefined, params = {}) {
         /**
@@ -1278,7 +1281,7 @@ class hyperliquid extends hyperliquid$1 {
             params = this.omit(params, 'vaultAddress');
             request['vaultAddress'] = vaultAddress;
         }
-        const response = await this.privatePostExchange(this.extend(request, params));
+        const response = await this.privatePostExchange(request);
         //
         //     {
         //         "status":"ok",
@@ -1292,7 +1295,18 @@ class hyperliquid extends hyperliquid$1 {
         //         }
         //     }
         //
-        return response;
+        const innerResponse = this.safeDict(response, 'response');
+        const data = this.safeDict(innerResponse, 'data');
+        const statuses = this.safeList(data, 'statuses');
+        const orders = [];
+        for (let i = 0; i < statuses.length; i++) {
+            const status = statuses[i];
+            orders.push(this.safeOrder({
+                'info': status,
+                'status': status,
+            }));
+        }
+        return orders;
     }
     async cancelOrdersForSymbols(orders, params = {}) {
         /**
@@ -1351,7 +1365,7 @@ class hyperliquid extends hyperliquid$1 {
             params = this.omit(params, 'vaultAddress');
             request['vaultAddress'] = vaultAddress;
         }
-        const response = await this.privatePostExchange(this.extend(request, params));
+        const response = await this.privatePostExchange(request);
         //
         //     {
         //         "status":"ok",
@@ -1397,7 +1411,7 @@ class hyperliquid extends hyperliquid$1 {
             params = this.omit(params, 'vaultAddress');
             request['vaultAddress'] = vaultAddress;
         }
-        const response = await this.privatePostExchange(this.extend(request, params));
+        const response = await this.privatePostExchange(request);
         //
         //     {
         //         "status":"err",
@@ -1418,7 +1432,7 @@ class hyperliquid extends hyperliquid$1 {
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float} [price] the price at which the order is to be fullfilled, in units of the base currency, ignored in market orders
+         * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {string} [params.timeInForce] 'Gtc', 'Ioc', 'Alo'
          * @param {bool} [params.postOnly] true or false whether the order is post-only
@@ -1519,7 +1533,7 @@ class hyperliquid extends hyperliquid$1 {
             params = this.omit(params, 'vaultAddress');
             request['vaultAddress'] = vaultAddress;
         }
-        const response = await this.privatePostExchange(this.extend(request, params));
+        const response = await this.privatePostExchange(request);
         //
         //     {
         //         "status": "ok",
@@ -2198,10 +2212,9 @@ class hyperliquid extends hyperliquid$1 {
                 vaultAddress = vaultAddress.replace('0x', '');
             }
         }
-        const extendedAction = this.extend(updateAction, params);
-        const signature = this.signL1Action(extendedAction, nonce, vaultAddress);
+        const signature = this.signL1Action(updateAction, nonce, vaultAddress);
         const request = {
-            'action': extendedAction,
+            'action': updateAction,
             'nonce': nonce,
             'signature': signature,
             // 'vaultAddress': vaultAddress,
@@ -2259,7 +2272,7 @@ class hyperliquid extends hyperliquid$1 {
             params = this.omit(params, 'vaultAddress');
             request['vaultAddress'] = vaultAddress;
         }
-        const response = await this.privatePostExchange(this.extend(request, params));
+        const response = await this.privatePostExchange(request);
         //
         //     {
         //         'response': {
@@ -2323,7 +2336,7 @@ class hyperliquid extends hyperliquid$1 {
             params = this.omit(params, 'vaultAddress');
             request['vaultAddress'] = vaultAddress;
         }
-        const response = await this.privatePostExchange(this.extend(request, params));
+        const response = await this.privatePostExchange(request);
         //
         //     {
         //         'response': {
@@ -2390,7 +2403,7 @@ class hyperliquid extends hyperliquid$1 {
             };
             const signature = this.signL1Action(action, nonce, vaultAddress);
             const innerRequest = {
-                'action': this.extend(action, params),
+                'action': action,
                 'nonce': nonce,
                 'signature': signature,
             };
@@ -2427,7 +2440,7 @@ class hyperliquid extends hyperliquid$1 {
             'nonce': nonce,
             'signature': sig,
         };
-        const response = await this.privatePostExchange(this.extend(request, params));
+        const response = await this.privatePostExchange(request);
         return response;
     }
     async withdraw(code, amount, address, tag = undefined, params = {}) {
@@ -2473,7 +2486,7 @@ class hyperliquid extends hyperliquid$1 {
             'nonce': nonce,
             'signature': sig,
         };
-        const response = await this.privatePostExchange(this.extend(request, params));
+        const response = await this.privatePostExchange(request);
         return this.parseTransaction(response);
     }
     parseTransaction(transaction, currency = undefined) {

@@ -222,6 +222,7 @@ interface Exchange {
     privatePostSprdCancelOrder(params?: {}): Promise<implicitReturnType>;
     privatePostSprdMassCancel(params?: {}): Promise<implicitReturnType>;
     privatePostSprdAmendOrder(params?: {}): Promise<implicitReturnType>;
+    privatePostSprdCancelAllAfter(params?: {}): Promise<implicitReturnType>;
     privatePostTradeOrder(params?: {}): Promise<implicitReturnType>;
     privatePostTradeBatchOrders(params?: {}): Promise<implicitReturnType>;
     privatePostTradeCancelOrder(params?: {}): Promise<implicitReturnType>;
