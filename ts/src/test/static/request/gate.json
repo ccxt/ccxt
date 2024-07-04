@@ -1,6 +1,6 @@
 {
     "exchange": "gate",
-    "skipKeys": [],
+    "skipKeys": ["text"],
     "outputType": "json",
     "methods": {
         "createOrder": [
@@ -100,6 +100,56 @@
                   100
                 ],
                 "output": "{\"contract\":\"LTC_USDT\",\"size\":-1,\"price\":\"100\"}"
+            }
+        ],
+        "createOrders": [
+            {
+                "description": "create spot orders",
+                "method": "createOrders",
+                "url": "https://api.gateio.ws/api/v4/spot/batch_orders",
+                "input": [
+                  [
+                    {
+                      "symbol": "LTC/USDT",
+                      "amount": 0.1,
+                      "side": "buy",
+                      "type": "limit",
+                      "price": 60
+                    },
+                    {
+                      "symbol": "LTC/USDT",
+                      "amount": 0.11,
+                      "side": "buy",
+                      "type": "limit",
+                      "price": 61
+                    }
+                  ]
+                ],
+                "output": "[{\"currency_pair\":\"LTC_USDT\",\"type\":\"limit\",\"account\":\"spot\",\"side\":\"buy\",\"amount\":\"0.1\",\"price\":\"60\",\"text\":\"t-bf834c9f04d59e30\",\"textIsRequired\":true},{\"currency_pair\":\"LTC_USDT\",\"type\":\"limit\",\"account\":\"spot\",\"side\":\"buy\",\"amount\":\"0.11\",\"price\":\"61\",\"text\":\"t-c3cd85c964249171\",\"textIsRequired\":true}]"
+            },
+            {
+                "description": "create swap orders",
+                "method": "createOrders",
+                "url": "https://api.gateio.ws/api/v4/futures/usdt/batch_orders",
+                "input": [
+                  [
+                    {
+                      "symbol": "LTC/USDT:USDT",
+                      "amount": 1,
+                      "side": "buy",
+                      "type": "limit",
+                      "price": 60
+                    },
+                    {
+                      "symbol": "LTC/USDT:USDT",
+                      "amount": 1,
+                      "side": "buy",
+                      "type": "limit",
+                      "price": 61
+                    }
+                  ]
+                ],
+                "output": "[{\"contract\":\"LTC_USDT\",\"size\":1,\"settle\":\"usdt\",\"price\":\"60\",\"text\":\"t-a5b9aed2c46ea556\",\"textIsRequired\":true},{\"contract\":\"LTC_USDT\",\"size\":1,\"settle\":\"usdt\",\"price\":\"61\",\"text\":\"t-3976273d648ba9a6\",\"textIsRequired\":true}]"
             }
         ],
         "createMarketBuyOrderWithCost": [
@@ -1208,6 +1258,34 @@
                         "stop": true
                     }
                 ]
+            }
+        ],
+        "cancelOrders": [
+            {
+                "description": "cancel spot orders",
+                "method": "cancelOrders",
+                "url": "https://api.gateio.ws/api/v4/spot/cancel_batch_orders",
+                "input": [
+                  [
+                    "t-bf834c9f04d59e30",
+                    "t-c3cd85c964249171"
+                  ],
+                  "LTC/USDT"
+                ],
+                "output": "[{\"id\":\"t-bf834c9f04d59e30\",\"currency_pair\":\"LTC_USDT\"},{\"id\":\"t-c3cd85c964249171\",\"currency_pair\":\"LTC_USDT\"}]"
+            },
+            {
+                "description": "cancel swap orders",
+                "method": "cancelOrders",
+                "url": "https://api.gateio.ws/api/v4/futures/usdt/batch_cancel_orders",
+                "input": [
+                  [
+                    "495649711905",
+                    "495649711903"
+                  ],
+                  "LTC/USDT:USDT"
+                ],
+                "output": "[\"495649711905\",\"495649711903\"]"
             }
         ],
         "reduceMargin": [
