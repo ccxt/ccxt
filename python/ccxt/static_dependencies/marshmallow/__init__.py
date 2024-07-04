@@ -3,7 +3,7 @@ from __future__ import annotations
 import importlib.metadata
 import typing
 
-from packaging.version import Version
+# from packaging.version import Version
 
 from .decorators import (
     post_dump,
@@ -33,15 +33,15 @@ def __getattr__(name: str) -> typing.Any:
         )
         return importlib.metadata.version("marshmallow")
 
-    if name == "__parsed_version__":
-        warnings.warn(
-            "The '__parsed_version__' attribute is deprecated and will be removed in"
-            " in a future version. Use feature detection or"
-            " 'packaging.Version(importlib.metadata.version(\"marshmallow\"))' instead.",
-            DeprecationWarning,
-            stacklevel=2,
-        )
-        return Version(importlib.metadata.version("marshmallow"))
+    # if name == "__parsed_version__":
+    #     warnings.warn(
+    #         "The '__parsed_version__' attribute is deprecated and will be removed in"
+    #         " in a future version. Use feature detection or"
+    #         " 'packaging.Version(importlib.metadata.version(\"marshmallow\"))' instead.",
+    #         DeprecationWarning,
+    #         stacklevel=2,
+    #     )
+    #     return Version(importlib.metadata.version("marshmallow"))
 
     if name == "__version_info__":
         warnings.warn(
@@ -51,7 +51,7 @@ def __getattr__(name: str) -> typing.Any:
             DeprecationWarning,
             stacklevel=2,
         )
-        __parsed_version__ = Version(importlib.metadata.version("marshmallow"))
+        # __parsed_version__ = Version(importlib.metadata.version("marshmallow"))
         __version_info__: tuple[int, int, int] | tuple[int, int, int, str, int] = (
             __parsed_version__.release  # type: ignore[assignment]
         )
