@@ -684,6 +684,32 @@ class bingx extends Exchange {
         }) ();
     }
 
+    public function fetch_inverse_swap_markets($params) {
+        return Async\async(function () use ($params) {
+            $response = Async\await($this->cswapV1PublicGetMarketContracts ($params));
+            //
+            //     {
+            //         "code" => 0,
+            //         "msg" => "",
+            //         "timestamp" => 1720074487610,
+            //         "data" => array(
+            //             array(
+            //                 "symbol" => "BNB-USD",
+            //                 "pricePrecision" => 2,
+            //                 "minTickSize" => "10",
+            //                 "minTradeValue" => "10",
+            //                 "minQty" => "1.00000000",
+            //                 "status" => 1,
+            //                 "timeOnline" => 1713175200000
+            //             ),
+            //         )
+            //     }
+            //
+            $markets = $this->safe_list($response, 'data', array());
+            return $this->parse_markets($markets);
+        }) ();
+    }
+
     public function parse_market(array $market): array {
         $id = $this->safe_string($market, 'symbol');
         $symbolParts = explode('-', $id);
@@ -692,6 +718,15 @@ class bingx extends Exchange {
         $base = $this->safe_currency_code($baseId);
         $quote = $this->safe_currency_code($quoteId);
         $currency = $this->safe_string($market, 'currency');
+        $checkIsInverse = false;
+        $checkIsLinear = true;
+        $minTickSize = $this->safe_number($market, 'minTickSize');
+        if ($minTickSize !== null) {
+            // inverse $swap $market
+            $currency = $baseId;
+            $checkIsInverse = true;
+            $checkIsLinear = false;
+        }
         $settle = $this->safe_currency_code($currency);
         $pricePrecision = $this->safe_number($market, 'tickSize');
         if ($pricePrecision === null) {
@@ -711,8 +746,12 @@ class bingx extends Exchange {
         $fees = $this->safe_dict($this->fees, $type, array());
         $contractSize = ($swap) ? $this->parse_number('1') : null;
         $isActive = $this->safe_string($market, 'status') === '1';
-        $isInverse = ($spot) ? null : false;
-        $isLinear = ($spot) ? null : $swap;
+        $isInverse = ($spot) ? null : $checkIsInverse;
+        $isLinear = ($spot) ? null : $checkIsLinear;
+        $timeOnline = $this->safe_integer($market, 'timeOnline');
+        if ($timeOnline === 0) {
+            $timeOnline = null;
+        }
         return $this->safe_market_structure(array(
             'id' => $id,
             'symbol' => $symbol,
@@ -754,15 +793,15 @@ class bingx extends Exchange {
                     'max' => $this->safe_number($market, 'maxQty'),
                 ),
                 'price' => array(
-                    'min' => null,
+                    'min' => $minTickSize,
                     'max' => null,
                 ),
                 'cost' => array(
-                    'min' => $this->safe_number_2($market, 'minNotional', 'tradeMinUSDT'),
+                    'min' => $this->safe_number_n($market, array( 'minNotional', 'tradeMinUSDT', 'minTradeValue' )),
                     'max' => $this->safe_number($market, 'maxNotional'),
                 ),
             ),
-            'created' => null,
+            'created' => $timeOnline,
             'info' => $market,
         ));
     }
@@ -773,17 +812,21 @@ class bingx extends Exchange {
              * retrieves data on all markets for bingx
              * @see https://bingx-api.github.io/docs/#/spot/market-api.html#Query%20Symbols
              * @see https://bingx-api.github.io/docs/#/swapV2/market-api.html#Contract%20Information
+             * @see https://bingx-api.github.io/docs/#/en-us/cswap/market-api.html#Contract%20Information
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} an array of objects representing market data
              */
             $requests = array( $this->fetch_swap_markets($params) );
             $isSandbox = $this->safe_bool($this->options, 'sandboxMode', false);
             if (!$isSandbox) {
+                $requests[] = $this->fetch_inverse_swap_markets($params);
                 $requests[] = $this->fetch_spot_markets($params); // sandbox is swap only
             }
             $promises = Async\await(Promise\all($requests));
-            $spotMarkets = $this->safe_list($promises, 0, array());
-            $swapMarkets = $this->safe_list($promises, 1, array());
+            $linearSwapMarkets = $this->safe_list($promises, 0, array());
+            $inverseSwapMarkets = $this->safe_list($promises, 1, array());
+            $spotMarkets = $this->safe_list($promises, 2, array());
+            $swapMarkets = $this->array_concat($linearSwapMarkets, $inverseSwapMarkets);
             return $this->array_concat($spotMarkets, $swapMarkets);
         }) ();
     }

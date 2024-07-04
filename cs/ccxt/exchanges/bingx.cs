@@ -681,6 +681,31 @@ public partial class bingx : Exchange
         return this.parseMarkets(markets);
     }
 
+    public async virtual Task<object> fetchInverseSwapMarkets(object parameters)
+    {
+        object response = await this.cswapV1PublicGetMarketContracts(parameters);
+        //
+        //     {
+        //         "code": 0,
+        //         "msg": "",
+        //         "timestamp": 1720074487610,
+        //         "data": [
+        //             {
+        //                 "symbol": "BNB-USD",
+        //                 "pricePrecision": 2,
+        //                 "minTickSize": "10",
+        //                 "minTradeValue": "10",
+        //                 "minQty": "1.00000000",
+        //                 "status": 1,
+        //                 "timeOnline": 1713175200000
+        //             },
+        //         ]
+        //     }
+        //
+        object markets = this.safeList(response, "data", new List<object>() {});
+        return this.parseMarkets(markets);
+    }
+
     public override object parseMarket(object market)
     {
         object id = this.safeString(market, "symbol");
@@ -690,6 +715,16 @@ public partial class bingx : Exchange
         object bs = this.safeCurrencyCode(baseId);
         object quote = this.safeCurrencyCode(quoteId);
         object currency = this.safeString(market, "currency");
+        object checkIsInverse = false;
+        object checkIsLinear = true;
+        object minTickSize = this.safeNumber(market, "minTickSize");
+        if (isTrue(!isEqual(minTickSize, null)))
+        {
+            // inverse swap market
+            currency = baseId;
+            checkIsInverse = true;
+            checkIsLinear = false;
+        }
         object settle = this.safeCurrencyCode(currency);
         object pricePrecision = this.safeNumber(market, "tickSize");
         if (isTrue(isEqual(pricePrecision, null)))
@@ -712,8 +747,13 @@ public partial class bingx : Exchange
         object fees = this.safeDict(this.fees, type, new Dictionary<string, object>() {});
         object contractSize = ((bool) isTrue((swap))) ? this.parseNumber("1") : null;
         object isActive = isEqual(this.safeString(market, "status"), "1");
-        object isInverse = ((bool) isTrue((spot))) ? null : false;
-        object isLinear = ((bool) isTrue((spot))) ? null : swap;
+        object isInverse = ((bool) isTrue((spot))) ? null : checkIsInverse;
+        object isLinear = ((bool) isTrue((spot))) ? null : checkIsLinear;
+        object timeOnline = this.safeInteger(market, "timeOnline");
+        if (isTrue(isEqual(timeOnline, 0)))
+        {
+            timeOnline = null;
+        }
         return this.safeMarketStructure(new Dictionary<string, object>() {
             { "id", id },
             { "symbol", symbol },
@@ -755,15 +795,15 @@ public partial class bingx : Exchange
                     { "max", this.safeNumber(market, "maxQty") },
                 } },
                 { "price", new Dictionary<string, object>() {
-                    { "min", null },
+                    { "min", minTickSize },
                     { "max", null },
                 } },
                 { "cost", new Dictionary<string, object>() {
-                    { "min", this.safeNumber2(market, "minNotional", "tradeMinUSDT") },
+                    { "min", this.safeNumberN(market, new List<object>() {"minNotional", "tradeMinUSDT", "minTradeValue"}) },
                     { "max", this.safeNumber(market, "maxNotional") },
                 } },
             } },
-            { "created", null },
+            { "created", timeOnline },
             { "info", market },
         });
     }
@@ -776,6 +816,7 @@ public partial class bingx : Exchange
         * @description retrieves data on all markets for bingx
         * @see https://bingx-api.github.io/docs/#/spot/market-api.html#Query%20Symbols
         * @see https://bingx-api.github.io/docs/#/swapV2/market-api.html#Contract%20Information
+        * @see https://bingx-api.github.io/docs/#/en-us/cswap/market-api.html#Contract%20Information
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object[]} an array of objects representing market data
         */
@@ -784,11 +825,14 @@ public partial class bingx : Exchange
         object isSandbox = this.safeBool(this.options, "sandboxMode", false);
         if (!isTrue(isSandbox))
         {
+            ((IList<object>)requests).Add(this.fetchInverseSwapMarkets(parameters));
             ((IList<object>)requests).Add(this.fetchSpotMarkets(parameters)); // sandbox is swap only
         }
         object promises = await promiseAll(requests);
-        object spotMarkets = this.safeList(promises, 0, new List<object>() {});
-        object swapMarkets = this.safeList(promises, 1, new List<object>() {});
+        object linearSwapMarkets = this.safeList(promises, 0, new List<object>() {});
+        object inverseSwapMarkets = this.safeList(promises, 1, new List<object>() {});
+        object spotMarkets = this.safeList(promises, 2, new List<object>() {});
+        object swapMarkets = this.arrayConcat(linearSwapMarkets, inverseSwapMarkets);
         return this.arrayConcat(spotMarkets, swapMarkets);
     }
 

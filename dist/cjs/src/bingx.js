@@ -669,6 +669,29 @@ class bingx extends bingx$1 {
         const markets = this.safeList(response, 'data', []);
         return this.parseMarkets(markets);
     }
+    async fetchInverseSwapMarkets(params) {
+        const response = await this.cswapV1PublicGetMarketContracts(params);
+        //
+        //     {
+        //         "code": 0,
+        //         "msg": "",
+        //         "timestamp": 1720074487610,
+        //         "data": [
+        //             {
+        //                 "symbol": "BNB-USD",
+        //                 "pricePrecision": 2,
+        //                 "minTickSize": "10",
+        //                 "minTradeValue": "10",
+        //                 "minQty": "1.00000000",
+        //                 "status": 1,
+        //                 "timeOnline": 1713175200000
+        //             },
+        //         ]
+        //     }
+        //
+        const markets = this.safeList(response, 'data', []);
+        return this.parseMarkets(markets);
+    }
     parseMarket(market) {
         const id = this.safeString(market, 'symbol');
         const symbolParts = id.split('-');
@@ -676,7 +699,16 @@ class bingx extends bingx$1 {
         const quoteId = symbolParts[1];
         const base = this.safeCurrencyCode(baseId);
         const quote = this.safeCurrencyCode(quoteId);
-        const currency = this.safeString(market, 'currency');
+        let currency = this.safeString(market, 'currency');
+        let checkIsInverse = false;
+        let checkIsLinear = true;
+        const minTickSize = this.safeNumber(market, 'minTickSize');
+        if (minTickSize !== undefined) {
+            // inverse swap market
+            currency = baseId;
+            checkIsInverse = true;
+            checkIsLinear = false;
+        }
         const settle = this.safeCurrencyCode(currency);
         let pricePrecision = this.safeNumber(market, 'tickSize');
         if (pricePrecision === undefined) {
@@ -696,8 +728,12 @@ class bingx extends bingx$1 {
         const fees = this.safeDict(this.fees, type, {});
         const contractSize = (swap) ? this.parseNumber('1') : undefined;
         const isActive = this.safeString(market, 'status') === '1';
-        const isInverse = (spot) ? undefined : false;
-        const isLinear = (spot) ? undefined : swap;
+        const isInverse = (spot) ? undefined : checkIsInverse;
+        const isLinear = (spot) ? undefined : checkIsLinear;
+        let timeOnline = this.safeInteger(market, 'timeOnline');
+        if (timeOnline === 0) {
+            timeOnline = undefined;
+        }
         return this.safeMarketStructure({
             'id': id,
             'symbol': symbol,
@@ -739,15 +775,15 @@ class bingx extends bingx$1 {
                     'max': this.safeNumber(market, 'maxQty'),
                 },
                 'price': {
-                    'min': undefined,
+                    'min': minTickSize,
                     'max': undefined,
                 },
                 'cost': {
-                    'min': this.safeNumber2(market, 'minNotional', 'tradeMinUSDT'),
+                    'min': this.safeNumberN(market, ['minNotional', 'tradeMinUSDT', 'minTradeValue']),
                     'max': this.safeNumber(market, 'maxNotional'),
                 },
             },
-            'created': undefined,
+            'created': timeOnline,
             'info': market,
         });
     }
@@ -758,17 +794,21 @@ class bingx extends bingx$1 {
          * @description retrieves data on all markets for bingx
          * @see https://bingx-api.github.io/docs/#/spot/market-api.html#Query%20Symbols
          * @see https://bingx-api.github.io/docs/#/swapV2/market-api.html#Contract%20Information
+         * @see https://bingx-api.github.io/docs/#/en-us/cswap/market-api.html#Contract%20Information
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} an array of objects representing market data
          */
         const requests = [this.fetchSwapMarkets(params)];
         const isSandbox = this.safeBool(this.options, 'sandboxMode', false);
         if (!isSandbox) {
+            requests.push(this.fetchInverseSwapMarkets(params));
             requests.push(this.fetchSpotMarkets(params)); // sandbox is swap only
         }
         const promises = await Promise.all(requests);
-        const spotMarkets = this.safeList(promises, 0, []);
-        const swapMarkets = this.safeList(promises, 1, []);
+        const linearSwapMarkets = this.safeList(promises, 0, []);
+        const inverseSwapMarkets = this.safeList(promises, 1, []);
+        const spotMarkets = this.safeList(promises, 2, []);
+        const swapMarkets = this.arrayConcat(linearSwapMarkets, inverseSwapMarkets);
         return this.arrayConcat(spotMarkets, swapMarkets);
     }
     async fetchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
