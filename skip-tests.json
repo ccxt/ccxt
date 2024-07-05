@@ -1703,7 +1703,8 @@
                 "bid": "weird values"
             },
             "watchOrderBook": {
-                "timestamp": "not provided"
+                "timestamp": "not provided",
+                "spread": "bid-ask crossing"
             }
         }
     },
