@@ -115,6 +115,7 @@ class bingx(Exchange, ImplicitAPI):
                     'subAccount': 'https://open-api.{hostname}/openApi',
                     'account': 'https://open-api.{hostname}/openApi',
                     'copyTrading': 'https://open-api.{hostname}/openApi',
+                    'cswap': 'https://open-api.{hostname}/openApi',
                 },
                 'test': {
                     'swap': 'https://open-api-vst.{hostname}/openApi',  # only swap is really "test" but since the API keys are the same, we want to keep all the functionalities when the user enables the sandboxmode
@@ -273,6 +274,36 @@ class bingx(Exchange, ImplicitAPI):
                         'public': {
                             'get': {
                                 'quote/klines': 1,
+                            },
+                        },
+                    },
+                },
+                'cswap': {
+                    'v1': {
+                        'public': {
+                            'get': {
+                                'market/contracts': 1,
+                                'market/premiumIndex': 1,
+                                'market/openInterest': 1,
+                                'market/klines': 1,
+                                'market/depth': 1,
+                                'market/ticker': 1,
+                            },
+                        },
+                        'private': {
+                            'get': {
+                                'trade/leverage': 2,
+                                'trade/forceOrders': 2,
+                                'trade/allFillOrders': 2,
+                                'user/commissionRate': 2,
+                                'user/positions': 2,
+                                'user/balance': 2,
+                            },
+                            'post': {
+                                'trade/order': 2,
+                                'trade/leverage': 2,
+                                'trade/allOpenOrders': 2,
+                                'trade/closeAllPositions': 2,
                             },
                         },
                     },
@@ -643,6 +674,29 @@ class bingx(Exchange, ImplicitAPI):
         markets = self.safe_list(response, 'data', [])
         return self.parse_markets(markets)
 
+    def fetch_inverse_swap_markets(self, params):
+        response = self.cswapV1PublicGetMarketContracts(params)
+        #
+        #     {
+        #         "code": 0,
+        #         "msg": "",
+        #         "timestamp": 1720074487610,
+        #         "data": [
+        #             {
+        #                 "symbol": "BNB-USD",
+        #                 "pricePrecision": 2,
+        #                 "minTickSize": "10",
+        #                 "minTradeValue": "10",
+        #                 "minQty": "1.00000000",
+        #                 "status": 1,
+        #                 "timeOnline": 1713175200000
+        #             },
+        #         ]
+        #     }
+        #
+        markets = self.safe_list(response, 'data', [])
+        return self.parse_markets(markets)
+
     def parse_market(self, market: dict) -> Market:
         id = self.safe_string(market, 'symbol')
         symbolParts = id.split('-')
@@ -651,6 +705,14 @@ class bingx(Exchange, ImplicitAPI):
         base = self.safe_currency_code(baseId)
         quote = self.safe_currency_code(quoteId)
         currency = self.safe_string(market, 'currency')
+        checkIsInverse = False
+        checkIsLinear = True
+        minTickSize = self.safe_number(market, 'minTickSize')
+        if minTickSize is not None:
+            # inverse swap market
+            currency = baseId
+            checkIsInverse = True
+            checkIsLinear = False
         settle = self.safe_currency_code(currency)
         pricePrecision = self.safe_number(market, 'tickSize')
         if pricePrecision is None:
@@ -667,8 +729,11 @@ class bingx(Exchange, ImplicitAPI):
         fees = self.safe_dict(self.fees, type, {})
         contractSize = self.parse_number('1') if (swap) else None
         isActive = self.safe_string(market, 'status') == '1'
-        isInverse = None if (spot) else False
-        isLinear = None if (spot) else swap
+        isInverse = None if (spot) else checkIsInverse
+        isLinear = None if (spot) else checkIsLinear
+        timeOnline = self.safe_integer(market, 'timeOnline')
+        if timeOnline == 0:
+            timeOnline = None
         return self.safe_market_structure({
             'id': id,
             'symbol': symbol,
@@ -703,22 +768,22 @@ class bingx(Exchange, ImplicitAPI):
             'limits': {
                 'leverage': {
                     'min': None,
-                    'max': self.safe_integer(market, 'maxLongLeverage'),
+                    'max': None,
                 },
                 'amount': {
                     'min': self.safe_number_2(market, 'minQty', 'tradeMinQuantity'),
                     'max': self.safe_number(market, 'maxQty'),
                 },
                 'price': {
-                    'min': None,
+                    'min': minTickSize,
                     'max': None,
                 },
                 'cost': {
-                    'min': self.safe_number_2(market, 'minNotional', 'tradeMinUSDT'),
+                    'min': self.safe_number_n(market, ['minNotional', 'tradeMinUSDT', 'minTradeValue']),
                     'max': self.safe_number(market, 'maxNotional'),
                 },
             },
-            'created': None,
+            'created': timeOnline,
             'info': market,
         })
 
@@ -727,16 +792,20 @@ class bingx(Exchange, ImplicitAPI):
         retrieves data on all markets for bingx
         :see: https://bingx-api.github.io/docs/#/spot/market-api.html#Query%20Symbols
         :see: https://bingx-api.github.io/docs/#/swapV2/market-api.html#Contract%20Information
+        :see: https://bingx-api.github.io/docs/#/en-us/cswap/market-api.html#Contract%20Information
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: an array of objects representing market data
         """
         requests = [self.fetch_swap_markets(params)]
         isSandbox = self.safe_bool(self.options, 'sandboxMode', False)
         if not isSandbox:
+            requests.append(self.fetch_inverse_swap_markets(params))
             requests.append(self.fetch_spot_markets(params))  # sandbox is swap only
         promises = requests
-        spotMarkets = self.safe_list(promises, 0, [])
-        swapMarkets = self.safe_list(promises, 1, [])
+        linearSwapMarkets = self.safe_list(promises, 0, [])
+        inverseSwapMarkets = self.safe_list(promises, 1, [])
+        spotMarkets = self.safe_list(promises, 2, [])
+        swapMarkets = self.array_concat(linearSwapMarkets, inverseSwapMarkets)
         return self.array_concat(spotMarkets, swapMarkets)
 
     def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
@@ -746,13 +815,14 @@ class bingx(Exchange, ImplicitAPI):
         :see: https://bingx-api.github.io/docs/#/spot/market-api.html#Candlestick%20chart%20data
         :see: https://bingx-api.github.io/docs/#/swapV2/market-api.html#%20K-Line%20Data
         :see: https://bingx-api.github.io/docs/#/en-us/swapV2/market-api.html#K-Line%20Data%20-%20Mark%20Price
+        :see: https://bingx-api.github.io/docs/#/en-us/cswap/market-api.html#Get%20K-line%20Data
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: timestamp in ms of the latest candle to fetch
-        :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+        :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
         self.load_markets()
@@ -777,12 +847,15 @@ class bingx(Exchange, ImplicitAPI):
         if market['spot']:
             response = self.spotV1PublicGetMarketKline(self.extend(request, params))
         else:
-            price = self.safe_string(params, 'price')
-            params = self.omit(params, 'price')
-            if price == 'mark':
-                response = self.swapV1PrivateGetMarketMarkPriceKlines(self.extend(request, params))
+            if market['inverse']:
+                response = self.cswapV1PublicGetMarketKlines(self.extend(request, params))
             else:
-                response = self.swapV3PublicGetQuoteKlines(self.extend(request, params))
+                price = self.safe_string(params, 'price')
+                params = self.omit(params, 'price')
+                if price == 'mark':
+                    response = self.swapV1PrivateGetMarketMarkPriceKlines(self.extend(request, params))
+                else:
+                    response = self.swapV3PublicGetQuoteKlines(self.extend(request, params))
         #
         #    {
         #        "code": 0,
@@ -1075,6 +1148,7 @@ class bingx(Exchange, ImplicitAPI):
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :see: https://bingx-api.github.io/docs/#/spot/market-api.html#Query%20depth%20information
         :see: https://bingx-api.github.io/docs/#/swapV2/market-api.html#Get%20Market%20Depth
+        :see: https://bingx-api.github.io/docs/#/en-us/cswap/market-api.html#Query%20Depth%20Data
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -1093,7 +1167,10 @@ class bingx(Exchange, ImplicitAPI):
         if marketType == 'spot':
             response = self.spotV1PublicGetMarketDepth(self.extend(request, params))
         else:
-            response = self.swapV2PublicGetQuoteDepth(self.extend(request, params))
+            if market['inverse']:
+                response = self.cswapV1PublicGetMarketDepth(self.extend(request, params))
+            else:
+                response = self.swapV2PublicGetQuoteDepth(self.extend(request, params))
         #
         # spot
         #
@@ -1465,6 +1542,8 @@ class bingx(Exchange, ImplicitAPI):
             percentage = percentage.replace('%', '')
         change = self.safe_string(ticker, 'priceChange')
         ts = self.safe_integer(ticker, 'closeTime')
+        if ts == 0:
+            ts = None
         datetime = self.iso8601(ts)
         bid = self.safe_string(ticker, 'bidPrice')
         bidVolume = self.safe_string(ticker, 'bidQty')
@@ -1763,7 +1842,7 @@ class bingx(Exchange, ImplicitAPI):
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
         :param float amount: how much you want to trade in units of the base currency
-        :param float [price]: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: request to be sent to the exchange
         """
@@ -1921,7 +2000,7 @@ class bingx(Exchange, ImplicitAPI):
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
         :param float amount: how much you want to trade in units of the base currency
-        :param float [price]: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.clientOrderId]: a unique id for the order
         :param bool [params.postOnly]: True to place a post only order
@@ -4097,7 +4176,7 @@ class bingx(Exchange, ImplicitAPI):
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
         :param float amount: how much of the currency you want to trade in units of the base currency
-        :param float [price]: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.stopPrice]: Trigger price used for TAKE_STOP_LIMIT, TAKE_STOP_MARKET, TRIGGER_LIMIT, TRIGGER_MARKET order types.
         :param dict [params.takeProfit]: *takeProfit object in params* containing the triggerPrice at which the attached take profit order will be triggered

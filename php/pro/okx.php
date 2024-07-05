@@ -107,7 +107,7 @@ class okx extends \ccxt\async\okx {
                 // okex does not support built-in ws protocol-level ping-pong
                 // instead it requires a custom text-based ping-pong
                 'ping' => array($this, 'ping'),
-                'keepAlive' => 20000,
+                'keepAlive' => 18000,
             ),
         ));
     }
@@ -1673,7 +1673,7 @@ class okx extends \ccxt\async\okx {
              * @param {string} $type 'market' or 'limit'
              * @param {string} $side 'buy' or 'sell'
              * @param {float} $amount how much of currency you want to trade in units of base currency
-             * @param {float|null} [$price] the $price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+             * @param {float|null} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {boolean} $params->test test order, default false
              * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
@@ -1746,7 +1746,7 @@ class okx extends \ccxt\async\okx {
              * @param {string} $type 'market' or 'limit'
              * @param {string} $side 'buy' or 'sell'
              * @param {float} $amount how much of the currency you want to trade in units of the base currency
-             * @param {float|null} [$price] the $price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+             * @param {float|null} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} an ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
              */

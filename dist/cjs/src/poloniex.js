@@ -1254,7 +1254,7 @@ class poloniex extends poloniex$1 {
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {float} [params.triggerPrice] *spot only* The price at which a trigger order is triggered at
          * @param {float} [params.cost] *spot market buy only* the quote quantity that can be used as an alternative for the amount
@@ -1288,7 +1288,8 @@ class poloniex extends poloniex$1 {
         //     }
         //
         response = this.extend(response, {
-            'type': side,
+            'type': type,
+            'side': side,
         });
         return this.parseOrder(response, market);
     }
@@ -1360,7 +1361,7 @@ class poloniex extends poloniex$1 {
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} [amount] how much of the currency you want to trade in units of the base currency
-         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {float} [params.triggerPrice] The price at which a trigger order is triggered at
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -1390,7 +1391,8 @@ class poloniex extends poloniex$1 {
         //     }
         //
         response = this.extend(response, {
-            'type': side,
+            'side': side,
+            'type': type,
         });
         return this.parseOrder(response, market);
     }

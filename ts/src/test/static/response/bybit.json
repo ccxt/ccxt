@@ -482,7 +482,7 @@
                     "remaining": 0.3,
                     "status": "open",
                     "fee": {
-                        "cost": "0",
+                        "cost": 0,
                         "currency": "USDT"
                     },
                     "trades": [],

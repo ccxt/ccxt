@@ -1195,6 +1195,15 @@
                 "input": [
                     "BTC/USDT:USDT"
                 ]
+            },
+            {
+                "description": "inverse swap orderbook with symbol and limit arguments",
+                "method": "fetchOrderBook",
+                "url": "https://open-api.bingx.com/openApi/cswap/v1/market/depth?limit=5&symbol=BTC-USD&timestamp=1720164891997",
+                "input": [
+                  "BTC/USD:BTC",
+                  5
+                ]
             }
         ],
         "fetchTicker": [
@@ -1254,6 +1263,17 @@
                 "url": "https://open-api.bingx.com/openApi/swap/v3/quote/klines?interval=1m&symbol=BTC-USDT&timestamp=1709992987069",
                 "input": [
                     "BTC/USDT:USDT"
+                ]
+            },
+            {
+                "description": "inverse swap ohlcv with timeframe and limit arguments",
+                "method": "fetchOHLCV",
+                "url": "https://open-api.bingx.com/openApi/cswap/v1/market/klines?interval=1m&limit=3&symbol=BTC-USD&timestamp=1720124710777",
+                "input": [
+                  "BTC/USD:BTC",
+                  "1m",
+                  null,
+                  3
                 ]
             }
         ],

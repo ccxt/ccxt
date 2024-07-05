@@ -137,7 +137,7 @@ class gate extends \ccxt\async\gate {
              * @param {string} $type 'limit' or 'market' *"market" is contract only*
              * @param {string} $side 'buy' or 'sell'
              * @param {float} $amount the $amount of currency to trade
-             * @param {float} [$price] *ignored in "market" orders* the $price at which the $order is to be fullfilled at in units of the quote currency
+             * @param {float} [$price] *ignored in "market" orders* the $price at which the $order is to be fulfilled at in units of the quote currency
              * @param {array} [$params]  extra parameters specific to the exchange API endpoint
              * @param {float} [$params->stopPrice] The $price at which a trigger $order is triggered at
              * @param {string} [$params->timeInForce] "GTC", "IOC", or "PO"
@@ -236,8 +236,8 @@ class gate extends \ccxt\async\gate {
              */
             Async\await($this->load_markets());
             $market = ($symbol === null) ? null : $this->market($symbol);
-            $stop = $this->safe_value_2($params, 'is_stop_order', 'stop', false);
-            $params = $this->omit($params, array( 'is_stop_order', 'stop' ));
+            $stop = $this->safe_value_n($params, array( 'is_stop_order', 'stop', 'trigger' ), false);
+            $params = $this->omit($params, array( 'is_stop_order', 'stop', 'trigger' ));
             list($type, $query) = $this->handle_market_type_and_params('cancelOrder', $market, $params);
             list($request, $requestParams) = ($type === 'spot' || $type === 'margin') ? $this->spotOrderPrepareRequest ($market, $stop, $query) : $this->prepareRequest ($market, $type, $query);
             $messageType = $this->get_type_by_market($market);
@@ -261,7 +261,7 @@ class gate extends \ccxt\async\gate {
              * @param {string} $type 'market' or 'limit'
              * @param {string} $side 'buy' or 'sell'
              * @param {float} $amount how much of the currency you want to trade in units of the base currency
-             * @param {float} [$price] the $price at which the order is to be fullfilled, in units of the base currency, ignored in $market orders
+             * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} an ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
              */

@@ -7,7 +7,7 @@ from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.gate import ImplicitAPI
 import asyncio
 import hashlib
-from ccxt.base.types import Balances, Currencies, Currency, FundingHistory, Greeks, Int, Leverage, Leverages, LeverageTier, LeverageTiers, MarginModification, Market, MarketInterface, Num, Option, OptionChain, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry
+from ccxt.base.types import Balances, Currencies, Currency, FundingHistory, Greeks, Int, Leverage, Leverages, LeverageTier, LeverageTiers, MarginModification, Market, MarketInterface, Num, Option, OptionChain, Order, OrderBook, OrderRequest, CancellationRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -100,6 +100,8 @@ class gate(Exchange, ImplicitAPI):
                 'borrowIsolatedMargin': True,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
+                'cancelOrders': True,
+                'cancelOrdersForSymbols': True,
                 'createMarketBuyOrderWithCost': True,
                 'createMarketOrder': True,
                 'createMarketOrderWithCost': False,
@@ -641,6 +643,7 @@ class gate(Exchange, ImplicitAPI):
                 'createOrder': {
                     'expiration': 86400,  # for conditional orders
                 },
+                'createMarketBuyOrderRequiresPrice': True,
                 'networks': {
                     'AVAXC': 'AVAX_C',
                     'BEP20': 'BSC',
@@ -3556,7 +3559,7 @@ class gate(Exchange, ImplicitAPI):
         :param str type: 'limit' or 'market' *"market" is contract only*
         :param str side: 'buy' or 'sell'
         :param float amount: the amount of currency to trade
-        :param float [price]: *ignored in "market" orders* the price at which the order is to be fullfilled at in units of the quote currency
+        :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         :param dict [params]:  extra parameters specific to the exchange API endpoint
         :param float [params.stopPrice]: The price at which a trigger order is triggered at
         :param str [params.timeInForce]: "GTC", "IOC", or "PO"
@@ -3981,7 +3984,7 @@ class gate(Exchange, ImplicitAPI):
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
         :param float amount: how much of the currency you want to trade in units of the base currency
-        :param float [price]: the price at which the order is to be fullfilled, in units of the base currency, ignored in market orders
+        :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
@@ -4184,6 +4187,8 @@ class gate(Exchange, ImplicitAPI):
         #        "message": "Not enough balance"
         #    }
         #
+        #  {"user_id":10406147,"id":"id","succeeded":false,"message":"INVALID_PROTOCOL","label":"INVALID_PROTOCOL"}
+        #
         succeeded = self.safe_bool(order, 'succeeded', True)
         if not succeeded:
             # cancelOrders response
@@ -4191,6 +4196,7 @@ class gate(Exchange, ImplicitAPI):
                 'clientOrderId': self.safe_string(order, 'text'),
                 'info': order,
                 'status': 'rejected',
+                'id': self.safe_string(order, 'id'),
             })
         put = self.safe_value_2(order, 'put', 'initial', {})
         trigger = self.safe_value(order, 'trigger', {})
@@ -4725,6 +4731,81 @@ class gate(Exchange, ImplicitAPI):
         #     }
         #
         return self.parse_order(response, market)
+
+    async def cancel_orders(self, ids: List[str], symbol: Str = None, params={}):
+        """
+        cancel multiple orders
+        :see: https://www.gate.io/docs/developers/apiv4/en/#cancel-a-batch-of-orders-with-an-id-list
+        :see: https://www.gate.io/docs/developers/apiv4/en/#cancel-a-batch-of-orders-with-an-id-list-2
+        :param str[] ids: order ids
+        :param str symbol: unified symbol of the market the order was made in
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: an list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        """
+        await self.load_markets()
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
+        type = None
+        defaultSettle = 'usdt' if (market is None) else market['settle']
+        settle = self.safe_string_lower(params, 'settle', defaultSettle)
+        type, params = self.handle_market_type_and_params('cancelOrders', market, params)
+        isSpot = (type == 'spot')
+        if isSpot and (symbol is None):
+            raise ArgumentsRequired(self.id + ' cancelOrders requires a symbol argument for spot markets')
+        if isSpot:
+            ordersRequests = []
+            for i in range(0, len(ids)):
+                id = ids[i]
+                orderItem: dict = {
+                    'id': id,
+                    'symbol': symbol,
+                }
+                ordersRequests.append(orderItem)
+            return await self.cancel_orders_for_symbols(ordersRequests, params)
+        request = {
+            'settle': settle,
+        }
+        finalList = [request]  # hacky but needs to be done here
+        for i in range(0, len(ids)):
+            finalList.append(ids[i])
+        response = await self.privateFuturesPostSettleBatchCancelOrders(finalList)
+        return self.parse_orders(response)
+
+    async def cancel_orders_for_symbols(self, orders: List[CancellationRequest], params={}):
+        """
+        cancel multiple orders for multiple symbols
+        :see: https://www.gate.io/docs/developers/apiv4/en/#cancel-a-batch-of-orders-with-an-id-list
+        :param str[] ids: order ids
+        :param str symbol: unified symbol of the market the order was made in
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str[] [params.clientOrderIds]: client order ids
+        :returns dict: an list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        """
+        await self.load_markets()
+        ordersRequests = []
+        for i in range(0, len(orders)):
+            order = orders[i]
+            symbol = self.safe_string(order, 'symbol')
+            market = self.market(symbol)
+            if not market['spot']:
+                raise NotSupported(self.id + ' cancelOrdersForSymbols() supports only spot markets')
+            id = self.safe_string(order, 'id')
+            orderItem: dict = {
+                'id': id,
+                'currency_pair': market['id'],
+            }
+            ordersRequests.append(orderItem)
+        response = await self.privateSpotPostCancelBatchOrders(ordersRequests)
+        #
+        # [
+        #     {
+        #       "currency_pair": "BTC_USDT",
+        #       "id": "123456"
+        #     }
+        # ]
+        #
+        return self.parse_orders(response)
 
     async def cancel_all_orders(self, symbol: Str = None, params={}):
         """
@@ -5652,7 +5733,20 @@ class gate(Exchange, ImplicitAPI):
         authentication = api[0]  # public, private
         type = api[1]  # spot, margin, future, delivery
         query = self.omit(params, self.extract_params(path))
-        if isinstance(params, list):
+        containsSettle = path.find('settle') > -1
+        if containsSettle and path.endswith('batch_cancel_orders'):  # weird check to prevent $settle in php and converting {settle} to array(settle)
+            # special case where we need to extract the settle from the path
+            # but the body is an array of strings
+            settle = self.safe_dict(params, 0)
+            path = self.implode_params(path, settle)
+            # remove the first element from params
+            newParams = []
+            anyParams = params
+            for i in range(1, len(anyParams)):
+                newParams.append(params[i])
+            params = newParams
+            query = newParams
+        elif isinstance(params, list):
             # endpoints like createOrders use an array instead of an object
             # so we infer the settle from one of the elements
             # they have to be all the same so relying on the first one is fine
@@ -7011,6 +7105,7 @@ class gate(Exchange, ImplicitAPI):
         #    {"label": "INVALID_PARAM_VALUE", "message": "invalid argument: Trigger.rule"}
         #    {"label": "INVALID_PARAM_VALUE", "message": "invalid argument: trigger.expiration invalid range"}
         #    {"label": "INVALID_ARGUMENT", "detail": "invalid size"}
+        #    {"user_id":10406147,"id":"id","succeeded":false,"message":"INVALID_PROTOCOL","label":"INVALID_PROTOCOL"}
         #
         label = self.safe_string(response, 'label')
         if label is not None:

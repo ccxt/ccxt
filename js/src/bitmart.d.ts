@@ -102,7 +102,7 @@ export default class bitmart extends Exchange {
         info: any;
     };
     fetchIsolatedBorrowRate(symbol: string, params?: {}): Promise<IsolatedBorrowRate>;
-    parseIsolatedBorrowRate(info: any, market?: Market): IsolatedBorrowRate;
+    parseIsolatedBorrowRate(info: Dict, market?: Market): IsolatedBorrowRate;
     fetchIsolatedBorrowRates(params?: {}): Promise<IsolatedBorrowRates>;
     transfer(code: string, amount: number, fromAccount: string, toAccount: string, params?: {}): Promise<TransferEntry>;
     parseTransferStatus(status: Str): Str;

@@ -176,6 +176,7 @@ export default class kucoin extends Exchange {
         info: any;
     };
     fetchDepositWithdrawFees(codes?: Strings, params?: {}): Promise<any>;
+    setLeverage(leverage: Int, symbol?: Str, params?: {}): Promise<any>;
     sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {
         url: any;
         method: string;

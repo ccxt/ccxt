@@ -3958,7 +3958,7 @@ class bitget(Exchange, ImplicitAPI):
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
         :param float amount: how much you want to trade in units of the base currency
-        :param float [price]: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param float [params.cost]: *spot only* how much you want to trade in units of the quote currency, for market buy orders only
         :param float [params.triggerPrice]: *swap only* The price at which a trigger order is triggered at
@@ -3980,6 +3980,7 @@ class bitget(Exchange, ImplicitAPI):
         :param str [params.trailingTriggerPrice]: *swap and future only* the price to trigger a trailing stop order, default uses the price argument
         :param str [params.triggerType]: *swap and future only* 'fill_price', 'mark_price' or 'index_price'
         :param boolean [params.oneWayMode]: *swap and future only* required to set self to True in one_way_mode and you can leave self in hedge_mode, can adjust the mode using the setPositionMode() method
+        :param bool [params.reduceOnly]: True or False whether the order is reduce-only
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
@@ -4313,7 +4314,7 @@ class bitget(Exchange, ImplicitAPI):
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
         :param float amount: how much you want to trade in units of the base currency
-        :param float [price]: the price at which the order is to be fullfilled, in units of the base currency, ignored in market orders
+        :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param float [params.triggerPrice]: the price that a trigger order is triggered at
         :param float [params.stopLossPrice]: *swap only* The price at which a stop loss order is triggered at
@@ -4690,6 +4691,22 @@ class bitget(Exchange, ImplicitAPI):
                     response = self.privateMarginPostMarginV1CrossOrderBatchCancelOrder(self.extend(request, params))
                 else:
                     response = self.privateMarginPostMarginV1IsolatedOrderBatchCancelOrder(self.extend(request, params))
+                #
+                #     {
+                #         "code": "00000",
+                #         "msg": "success",
+                #         "requestTime": 1700717155622,
+                #         "data": {
+                #             "resultList": [
+                #                 {
+                #                     "orderId": "1111453253721796609",
+                #                     "clientOid": "2ae7fc8a4ff949b6b60d770ca3950e2d"
+                #                 },
+                #             ],
+                #             "failure": []
+                #         }
+                #     }
+                #
             else:
                 if stop:
                     stopRequest: dict = {
@@ -4698,6 +4715,27 @@ class bitget(Exchange, ImplicitAPI):
                     response = self.privateSpotPostV2SpotTradeBatchCancelPlanOrder(self.extend(stopRequest, params))
                 else:
                     response = self.privateSpotPostV2SpotTradeCancelSymbolOrder(self.extend(request, params))
+                #
+                #     {
+                #         "code": "00000",
+                #         "msg": "success",
+                #         "requestTime": 1700716953996,
+                #         "data": {
+                #             "symbol": "BTCUSDT"
+                #         }
+                #     }
+                #
+                timestamp = self.safe_integer(response, 'requestTime')
+                responseData = self.safe_dict(response, 'data')
+                marketId = self.safe_string(responseData, 'symbol')
+                return [
+                    self.safe_order({
+                        'info': response,
+                        'symbol': self.safe_symbol(marketId, None, None, 'spot'),
+                        'timestamp': timestamp,
+                        'datetime': self.iso8601(timestamp),
+                    }),
+                ]
         else:
             productType = None
             productType, params = self.handle_product_type_and_params(market, params)
@@ -4706,53 +4744,25 @@ class bitget(Exchange, ImplicitAPI):
                 response = self.privateMixPostV2MixOrderCancelPlanOrder(self.extend(request, params))
             else:
                 response = self.privateMixPostV2MixOrderBatchCancelOrders(self.extend(request, params))
-        #
-        # spot
-        #
-        #     {
-        #         "code": "00000",
-        #         "msg": "success",
-        #         "requestTime": 1700716953996,
-        #         "data": {
-        #             "symbol": "BTCUSDT"
-        #         }
-        #     }
-        #
-        # swap
-        #
-        #     {
-        #         "code": "00000",
-        #         "msg": "success",
-        #         "requestTime": "1680008815965",
-        #         "data": {
-        #             "successList": [
-        #                 {
-        #                     "orderId": "1024598257429823488",
-        #                     "clientOid": "876493ce-c287-4bfc-9f4a-8b1905881313"
-        #                 },
-        #             ],
-        #             "failureList": []
-        #         }
-        #     }
-        #
-        # spot margin
-        #
-        #     {
-        #         "code": "00000",
-        #         "msg": "success",
-        #         "requestTime": 1700717155622,
-        #         "data": {
-        #             "resultList": [
-        #                 {
-        #                     "orderId": "1111453253721796609",
-        #                     "clientOid": "2ae7fc8a4ff949b6b60d770ca3950e2d"
-        #                 },
-        #             ],
-        #             "failure": []
-        #         }
-        #     }
-        #
-        return response
+            #     {
+            #         "code": "00000",
+            #         "msg": "success",
+            #         "requestTime": "1680008815965",
+            #         "data": {
+            #             "successList": [
+            #                 {
+            #                     "orderId": "1024598257429823488",
+            #                     "clientOid": "876493ce-c287-4bfc-9f4a-8b1905881313"
+            #                 },
+            #             ],
+            #             "failureList": []
+            #         }
+            #     }
+        data = self.safe_dict(response, 'data')
+        resultList = self.safe_list_2(data, 'resultList', 'successList')
+        failureList = self.safe_list_2(data, 'failure', 'failureList')
+        responseList = self.array_concat(resultList, failureList)
+        return self.parse_orders(responseList)
 
     def fetch_order(self, id: str, symbol: Str = None, params={}):
         """
@@ -7449,7 +7459,7 @@ class bitget(Exchange, ImplicitAPI):
         first['timestamp'] = timestamp
         return self.parse_isolated_borrow_rate(first, market)
 
-    def parse_isolated_borrow_rate(self, info, market: Market = None) -> IsolatedBorrowRate:
+    def parse_isolated_borrow_rate(self, info: dict, market: Market = None) -> IsolatedBorrowRate:
         #
         #     {
         #         "symbol": "BTCUSDT",

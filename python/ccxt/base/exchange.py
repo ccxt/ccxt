@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.3.49'
+__version__ = '4.3.57'
 
 # -----------------------------------------------------------------------------
 
@@ -1449,7 +1449,7 @@ class Exchange(object):
     @staticmethod
     def eddsa(request, secret, curve='ed25519'):
         if isinstance(secret, str):
-            Exchange.encode(secret)
+            secret = Exchange.encode(secret)
         private_key = ed25519.Ed25519PrivateKey.from_private_bytes(secret) if len(secret) == 32 else load_pem_private_key(secret, None)
         return Exchange.binary_to_base64(private_key.sign(request))
 
@@ -2255,7 +2255,7 @@ class Exchange(object):
     def parse_borrow_interest(self, info: dict, market: Market = None):
         raise NotSupported(self.id + ' parseBorrowInterest() is not supported yet')
 
-    def parse_isolated_borrow_rate(self, info, market: Market = None):
+    def parse_isolated_borrow_rate(self, info: dict, market: Market = None):
         raise NotSupported(self.id + ' parseIsolatedBorrowRate() is not supported yet')
 
     def parse_ws_trade(self, trade, market: Market = None):
@@ -3734,7 +3734,23 @@ class Exchange(object):
         self.last_request_headers = request['headers']
         self.last_request_body = request['body']
         self.last_request_url = request['url']
-        return self.fetch(request['url'], request['method'], request['headers'], request['body'])
+        retries = None
+        retries, params = self.handle_option_and_params(params, path, 'maxRetriesOnFailure', 0)
+        retryDelay = None
+        retryDelay, params = self.handle_option_and_params(params, path, 'maxRetriesOnFailureDelay', 0)
+        for i in range(0, retries + 1):
+            try:
+                return self.fetch(request['url'], request['method'], request['headers'], request['body'])
+            except Exception as e:
+                if isinstance(e, NetworkError):
+                    if i < retries:
+                        if self.verbose:
+                            self.log('Request failed with the error: ' + str(e) + ', retrying ' + (i + str(1)) + ' of ' + str(retries) + '...')
+                        if (retryDelay is not None) and (retryDelay != 0):
+                            self.sleep(retryDelay)
+                        continue
+                raise e
+        return None  # self line is never reached, but exists for c# value return requirement
 
     def request(self, path, api: Any = 'public', method='GET', params={}, headers: Any = None, body: Any = None, config={}):
         return self.fetch2(path, api, method, params, headers, body, config)

@@ -22,7 +22,7 @@ export default class bigone extends Exchange {
             'name': 'BigONE',
             'countries': [ 'CN' ],
             'version': 'v3',
-            'rateLimit': 1200, // 500 request per 10 minutes
+            'rateLimit': 20, // 500 requests per 10 seconds
             'has': {
                 'CORS': undefined,
                 'spot': true,
@@ -1465,7 +1465,7 @@ export default class bigone extends Exchange {
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {float} [params.triggerPrice] the price at which a trigger order is triggered at
          * @param {bool} [params.postOnly] if true, the order will only be posted to the order book and not executed immediately
@@ -1623,7 +1623,27 @@ export default class bigone extends Exchange {
         //         }
         //     }
         //
-        return response;
+        const data = this.safeDict (response, 'data', {});
+        const cancelled = this.safeList (data, 'cancelled', []);
+        const failed = this.safeList (data, 'failed', []);
+        const result = [];
+        for (let i = 0; i < cancelled.length; i++) {
+            const orderId = cancelled[i];
+            result.push (this.safeOrder ({
+                'info': orderId,
+                'id': orderId,
+                'status': 'canceled',
+            }));
+        }
+        for (let i = 0; i < failed.length; i++) {
+            const orderId = failed[i];
+            result.push (this.safeOrder ({
+                'info': orderId,
+                'id': orderId,
+                'status': 'failed',
+            }));
+        }
+        return result;
     }
 
     async fetchOrder (id: string, symbol: Str = undefined, params = {}) {
