@@ -3233,6 +3233,7 @@ export default class htx extends Exchange {
             const instStatus = this.safeString(entry, 'instStatus');
             const currencyActive = instStatus === 'normal';
             let minPrecision = undefined;
+            let minDeposit = undefined;
             let minWithdraw = undefined;
             let maxWithdraw = undefined;
             let deposit = false;
@@ -3244,6 +3245,7 @@ export default class htx extends Exchange {
                 this.options['networkChainIdsByNames'][code][title] = uniqueChainId;
                 this.options['networkNamesByChainIds'][uniqueChainId] = title;
                 const networkCode = this.networkIdToCode(uniqueChainId);
+                minDeposit = this.safeNumber(chainEntry, 'minDepositAmt');
                 minWithdraw = this.safeNumber(chainEntry, 'minWithdrawAmt');
                 maxWithdraw = this.safeNumber(chainEntry, 'maxWithdrawAmt');
                 const withdrawStatus = this.safeString(chainEntry, 'withdrawStatus');
@@ -3264,7 +3266,7 @@ export default class htx extends Exchange {
                     'network': networkCode,
                     'limits': {
                         'deposit': {
-                            'min': undefined,
+                            'min': minDeposit,
                             'max': undefined,
                         },
                         'withdraw': {

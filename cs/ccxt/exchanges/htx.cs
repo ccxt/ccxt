@@ -3231,6 +3231,7 @@ public partial class htx : Exchange
             object instStatus = this.safeString(entry, "instStatus");
             object currencyActive = isEqual(instStatus, "normal");
             object minPrecision = null;
+            object minDeposit = null;
             object minWithdraw = null;
             object maxWithdraw = null;
             object deposit = false;
@@ -3243,6 +3244,7 @@ public partial class htx : Exchange
                 ((IDictionary<string,object>)getValue(getValue(this.options, "networkChainIdsByNames"), code))[(string)title] = uniqueChainId;
                 ((IDictionary<string,object>)getValue(this.options, "networkNamesByChainIds"))[(string)uniqueChainId] = title;
                 object networkCode = this.networkIdToCode(uniqueChainId);
+                minDeposit = this.safeNumber(chainEntry, "minDepositAmt");
                 minWithdraw = this.safeNumber(chainEntry, "minWithdrawAmt");
                 maxWithdraw = this.safeNumber(chainEntry, "maxWithdrawAmt");
                 object withdrawStatus = this.safeString(chainEntry, "withdrawStatus");
@@ -3264,7 +3266,7 @@ public partial class htx : Exchange
                     { "network", networkCode },
                     { "limits", new Dictionary<string, object>() {
                         { "deposit", new Dictionary<string, object>() {
-                            { "min", null },
+                            { "min", minDeposit },
                             { "max", null },
                         } },
                         { "withdraw", new Dictionary<string, object>() {

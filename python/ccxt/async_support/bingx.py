@@ -816,13 +816,14 @@ class bingx(Exchange, ImplicitAPI):
         :see: https://bingx-api.github.io/docs/#/spot/market-api.html#Candlestick%20chart%20data
         :see: https://bingx-api.github.io/docs/#/swapV2/market-api.html#%20K-Line%20Data
         :see: https://bingx-api.github.io/docs/#/en-us/swapV2/market-api.html#K-Line%20Data%20-%20Mark%20Price
+        :see: https://bingx-api.github.io/docs/#/en-us/cswap/market-api.html#Get%20K-line%20Data
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: timestamp in ms of the latest candle to fetch
-        :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+        :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
         await self.load_markets()
@@ -847,12 +848,15 @@ class bingx(Exchange, ImplicitAPI):
         if market['spot']:
             response = await self.spotV1PublicGetMarketKline(self.extend(request, params))
         else:
-            price = self.safe_string(params, 'price')
-            params = self.omit(params, 'price')
-            if price == 'mark':
-                response = await self.swapV1PrivateGetMarketMarkPriceKlines(self.extend(request, params))
+            if market['inverse']:
+                response = await self.cswapV1PublicGetMarketKlines(self.extend(request, params))
             else:
-                response = await self.swapV3PublicGetQuoteKlines(self.extend(request, params))
+                price = self.safe_string(params, 'price')
+                params = self.omit(params, 'price')
+                if price == 'mark':
+                    response = await self.swapV1PrivateGetMarketMarkPriceKlines(self.extend(request, params))
+                else:
+                    response = await self.swapV3PublicGetQuoteKlines(self.extend(request, params))
         #
         #    {
         #        "code": 0,
@@ -1145,6 +1149,7 @@ class bingx(Exchange, ImplicitAPI):
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :see: https://bingx-api.github.io/docs/#/spot/market-api.html#Query%20depth%20information
         :see: https://bingx-api.github.io/docs/#/swapV2/market-api.html#Get%20Market%20Depth
+        :see: https://bingx-api.github.io/docs/#/en-us/cswap/market-api.html#Query%20Depth%20Data
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -1163,7 +1168,10 @@ class bingx(Exchange, ImplicitAPI):
         if marketType == 'spot':
             response = await self.spotV1PublicGetMarketDepth(self.extend(request, params))
         else:
-            response = await self.swapV2PublicGetQuoteDepth(self.extend(request, params))
+            if market['inverse']:
+                response = await self.cswapV1PublicGetMarketDepth(self.extend(request, params))
+            else:
+                response = await self.swapV2PublicGetQuoteDepth(self.extend(request, params))
         #
         # spot
         #

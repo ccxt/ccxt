@@ -71,6 +71,7 @@ public partial class bingx
     /// See <see href="https://bingx-api.github.io/docs/#/spot/market-api.html#Candlestick%20chart%20data"/>  <br/>
     /// See <see href="https://bingx-api.github.io/docs/#/swapV2/market-api.html#%20K-Line%20Data"/>  <br/>
     /// See <see href="https://bingx-api.github.io/docs/#/en-us/swapV2/market-api.html#K-Line%20Data%20-%20Mark%20Price"/>  <br/>
+    /// See <see href="https://bingx-api.github.io/docs/#/en-us/cswap/market-api.html#Get%20K-line%20Data"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -99,7 +100,7 @@ public partial class bingx
     /// <item>
     /// <term>params.paginate</term>
     /// <description>
-    /// boolean : default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+    /// boolean : default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
     /// </description>
     /// </item>
     /// </list>
@@ -153,6 +154,7 @@ public partial class bingx
     /// <remarks>
     /// See <see href="https://bingx-api.github.io/docs/#/spot/market-api.html#Query%20depth%20information"/>  <br/>
     /// See <see href="https://bingx-api.github.io/docs/#/swapV2/market-api.html#Get%20Market%20Depth"/>  <br/>
+    /// See <see href="https://bingx-api.github.io/docs/#/en-us/cswap/market-api.html#Query%20Depth%20Data"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>limit</term>

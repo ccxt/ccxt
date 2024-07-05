@@ -243,6 +243,8 @@ export default class kucoin extends Exchange {
                         'purchase/orders': 10,
                         // broker
                         'broker/api/rebase/download': 3,
+                        // affiliate
+                        'affiliate/inviter/statistics': 30,
                     },
                     'post': {
                         // account
@@ -684,6 +686,7 @@ export default class kucoin extends Exchange {
                             'redeem/orders': 'v3',
                             'purchase/orders': 'v3',
                             'margin/symbols': 'v3',
+                            'affiliate/inviter/statistics': 'v2',
                         },
                         'POST': {
                             // account

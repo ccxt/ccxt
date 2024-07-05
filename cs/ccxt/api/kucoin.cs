@@ -436,6 +436,11 @@ public partial class kucoin : Exchange
         return await this.callAsync ("privateGetBrokerApiRebaseDownload",parameters);
     }
 
+    public async Task<object> privateGetAffiliateInviterStatistics (object parameters = null)
+    {
+        return await this.callAsync ("privateGetAffiliateInviterStatistics",parameters);
+    }
+
     public async Task<object> privatePostSubUserCreated (object parameters = null)
     {
         return await this.callAsync ("privatePostSubUserCreated",parameters);

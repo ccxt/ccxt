@@ -3210,6 +3210,7 @@ class htx extends Exchange {
                 $instStatus = $this->safe_string($entry, 'instStatus');
                 $currencyActive = $instStatus === 'normal';
                 $minPrecision = null;
+                $minDeposit = null;
                 $minWithdraw = null;
                 $maxWithdraw = null;
                 $deposit = false;
@@ -3221,6 +3222,7 @@ class htx extends Exchange {
                     $this->options['networkChainIdsByNames'][$code][$title] = $uniqueChainId;
                     $this->options['networkNamesByChainIds'][$uniqueChainId] = $title;
                     $networkCode = $this->network_id_to_code($uniqueChainId);
+                    $minDeposit = $this->safe_number($chainEntry, 'minDepositAmt');
                     $minWithdraw = $this->safe_number($chainEntry, 'minWithdrawAmt');
                     $maxWithdraw = $this->safe_number($chainEntry, 'maxWithdrawAmt');
                     $withdrawStatus = $this->safe_string($chainEntry, 'withdrawStatus');
@@ -3241,7 +3243,7 @@ class htx extends Exchange {
                         'network' => $networkCode,
                         'limits' => array(
                             'deposit' => array(
-                                'min' => null,
+                                'min' => $minDeposit,
                                 'max' => null,
                             ),
                             'withdraw' => array(

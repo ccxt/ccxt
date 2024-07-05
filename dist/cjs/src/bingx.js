@@ -820,13 +820,14 @@ class bingx extends bingx$1 {
          * @see https://bingx-api.github.io/docs/#/spot/market-api.html#Candlestick%20chart%20data
          * @see https://bingx-api.github.io/docs/#/swapV2/market-api.html#%20K-Line%20Data
          * @see https://bingx-api.github.io/docs/#/en-us/swapV2/market-api.html#K-Line%20Data%20-%20Mark%20Price
+         * @see https://bingx-api.github.io/docs/#/en-us/cswap/market-api.html#Get%20K-line%20Data
          * @param {string} symbol unified symbol of the market to fetch OHLCV data for
          * @param {string} timeframe the length of time each candle represents
          * @param {int} [since] timestamp in ms of the earliest candle to fetch
          * @param {int} [limit] the maximum amount of candles to fetch
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {int} [params.until] timestamp in ms of the latest candle to fetch
-         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
          * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         await this.loadMarkets();
@@ -856,13 +857,18 @@ class bingx extends bingx$1 {
             response = await this.spotV1PublicGetMarketKline(this.extend(request, params));
         }
         else {
-            const price = this.safeString(params, 'price');
-            params = this.omit(params, 'price');
-            if (price === 'mark') {
-                response = await this.swapV1PrivateGetMarketMarkPriceKlines(this.extend(request, params));
+            if (market['inverse']) {
+                response = await this.cswapV1PublicGetMarketKlines(this.extend(request, params));
             }
             else {
-                response = await this.swapV3PublicGetQuoteKlines(this.extend(request, params));
+                const price = this.safeString(params, 'price');
+                params = this.omit(params, 'price');
+                if (price === 'mark') {
+                    response = await this.swapV1PrivateGetMarketMarkPriceKlines(this.extend(request, params));
+                }
+                else {
+                    response = await this.swapV3PublicGetQuoteKlines(this.extend(request, params));
+                }
             }
         }
         //
@@ -1174,6 +1180,7 @@ class bingx extends bingx$1 {
          * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @see https://bingx-api.github.io/docs/#/spot/market-api.html#Query%20depth%20information
          * @see https://bingx-api.github.io/docs/#/swapV2/market-api.html#Get%20Market%20Depth
+         * @see https://bingx-api.github.io/docs/#/en-us/cswap/market-api.html#Query%20Depth%20Data
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int} [limit] the maximum amount of order book entries to return
          * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -1194,7 +1201,12 @@ class bingx extends bingx$1 {
             response = await this.spotV1PublicGetMarketDepth(this.extend(request, params));
         }
         else {
-            response = await this.swapV2PublicGetQuoteDepth(this.extend(request, params));
+            if (market['inverse']) {
+                response = await this.cswapV1PublicGetMarketDepth(this.extend(request, params));
+            }
+            else {
+                response = await this.swapV2PublicGetQuoteDepth(this.extend(request, params));
+            }
         }
         //
         // spot

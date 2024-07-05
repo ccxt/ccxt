@@ -3054,6 +3054,7 @@ class htx(Exchange, ImplicitAPI):
             instStatus = self.safe_string(entry, 'instStatus')
             currencyActive = instStatus == 'normal'
             minPrecision = None
+            minDeposit = None
             minWithdraw = None
             maxWithdraw = None
             deposit = False
@@ -3065,6 +3066,7 @@ class htx(Exchange, ImplicitAPI):
                 self.options['networkChainIdsByNames'][code][title] = uniqueChainId
                 self.options['networkNamesByChainIds'][uniqueChainId] = title
                 networkCode = self.network_id_to_code(uniqueChainId)
+                minDeposit = self.safe_number(chainEntry, 'minDepositAmt')
                 minWithdraw = self.safe_number(chainEntry, 'minWithdrawAmt')
                 maxWithdraw = self.safe_number(chainEntry, 'maxWithdrawAmt')
                 withdrawStatus = self.safe_string(chainEntry, 'withdrawStatus')
@@ -3084,7 +3086,7 @@ class htx(Exchange, ImplicitAPI):
                     'network': networkCode,
                     'limits': {
                         'deposit': {
-                            'min': None,
+                            'min': minDeposit,
                             'max': None,
                         },
                         'withdraw': {

@@ -3230,6 +3230,7 @@ class htx extends htx$1 {
             const instStatus = this.safeString(entry, 'instStatus');
             const currencyActive = instStatus === 'normal';
             let minPrecision = undefined;
+            let minDeposit = undefined;
             let minWithdraw = undefined;
             let maxWithdraw = undefined;
             let deposit = false;
@@ -3241,6 +3242,7 @@ class htx extends htx$1 {
                 this.options['networkChainIdsByNames'][code][title] = uniqueChainId;
                 this.options['networkNamesByChainIds'][uniqueChainId] = title;
                 const networkCode = this.networkIdToCode(uniqueChainId);
+                minDeposit = this.safeNumber(chainEntry, 'minDepositAmt');
                 minWithdraw = this.safeNumber(chainEntry, 'minWithdrawAmt');
                 maxWithdraw = this.safeNumber(chainEntry, 'maxWithdrawAmt');
                 const withdrawStatus = this.safeString(chainEntry, 'withdrawStatus');
@@ -3261,7 +3263,7 @@ class htx extends htx$1 {
                     'network': networkCode,
                     'limits': {
                         'deposit': {
-                            'min': undefined,
+                            'min': minDeposit,
                             'max': undefined,
                         },
                         'withdraw': {
