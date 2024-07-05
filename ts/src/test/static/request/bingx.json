@@ -1264,6 +1264,17 @@
                 "input": [
                     "BTC/USDT:USDT"
                 ]
+            },
+            {
+                "description": "inverse swap ohlcv with timeframe and limit arguments",
+                "method": "fetchOHLCV",
+                "url": "https://open-api.bingx.com/openApi/cswap/v1/market/klines?interval=1m&limit=3&symbol=BTC-USD&timestamp=1720124710777",
+                "input": [
+                  "BTC/USD:BTC",
+                  "1m",
+                  null,
+                  3
+                ]
             }
         ],
         "fetchFundingRateHistory": [
