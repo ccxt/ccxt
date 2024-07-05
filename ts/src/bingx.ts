@@ -1190,6 +1190,7 @@ export default class bingx extends Exchange {
          * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @see https://bingx-api.github.io/docs/#/spot/market-api.html#Query%20depth%20information
          * @see https://bingx-api.github.io/docs/#/swapV2/market-api.html#Get%20Market%20Depth
+         * @see https://bingx-api.github.io/docs/#/en-us/cswap/market-api.html#Query%20Depth%20Data
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int} [limit] the maximum amount of order book entries to return
          * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -1209,7 +1210,11 @@ export default class bingx extends Exchange {
         if (marketType === 'spot') {
             response = await this.spotV1PublicGetMarketDepth (this.extend (request, params));
         } else {
-            response = await this.swapV2PublicGetQuoteDepth (this.extend (request, params));
+            if (market['inverse']) {
+                response = await this.cswapV1PublicGetMarketDepth (this.extend (request, params));
+            } else {
+                response = await this.swapV2PublicGetQuoteDepth (this.extend (request, params));
+            }
         }
         //
         // spot
