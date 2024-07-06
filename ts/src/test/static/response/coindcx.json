@@ -1,0 +1,151 @@
+{
+    "exchange": "coindcx",
+    "options": {},
+    "methods": {
+        "fetchBalance": [
+            {
+                "description": "Fetch balance for USDT",
+                "method": "fetchBalance",
+                "input": [],
+                "httpResponse": [
+                    {
+                        "balance": "0.0",
+                        "locked_balance": "0.0",
+                        "currency": "ACH"
+                    },
+                    {
+                        "balance": "0.0",
+                        "locked_balance": "0.0",
+                        "currency": "BTC"
+                    },
+                    {
+                        "balance": "0.0",
+                        "locked_balance": "0.0",
+                        "currency": "CAKE"
+                    },
+                    {
+                        "balance": "0.0",
+                        "locked_balance": "0.0",
+                        "currency": "ETH"
+                    },
+                    {
+                        "balance": "167.827",
+                        "locked_balance": "0.0",
+                        "currency": "INR"
+                    },
+                    {
+                        "balance": "67.635390615",
+                        "locked_balance": "6.67332",
+                        "currency": "USDT"
+                    },
+                    {
+                        "balance": "0.0",
+                        "locked_balance": "0.0",
+                        "currency": "XRP"
+                    }
+                ],
+                "parsedResponse": {
+                    "info": [
+                        {
+                            "balance": "0.0",
+                            "locked_balance": "0.0",
+                            "currency": "ACH"
+                        },
+                        {
+                            "balance": "0.0",
+                            "locked_balance": "0.0",
+                            "currency": "BTC"
+                        },
+                        {
+                            "balance": "0.0",
+                            "locked_balance": "0.0",
+                            "currency": "CAKE"
+                        },
+                        {
+                            "balance": "0.0",
+                            "locked_balance": "0.0",
+                            "currency": "ETH"
+                        },
+                        {
+                            "balance": "167.827",
+                            "locked_balance": "0.0",
+                            "currency": "INR"
+                        },
+                        {
+                            "balance": "67.635390615",
+                            "locked_balance": "6.67332",
+                            "currency": "USDT"
+                        },
+                        {
+                            "balance": "0.0",
+                            "locked_balance": "0.0",
+                            "currency": "XRP"
+                        }
+                    ],
+                    "ACH": {
+                        "free": 0,
+                        "used": 0,
+                        "total": 0
+                    },
+                    "BTC": {
+                        "free": 0,
+                        "used": 0,
+                        "total": 0
+                    },
+                    "CAKE": {
+                        "free": 0,
+                        "used": 0,
+                        "total": 0
+                    },
+                    "ETH": {
+                        "free": 0,
+                        "used": 0,
+                        "total": 0
+                    },
+                    "INR": {
+                        "free": 167.827,
+                        "used": 0,
+                        "total": 167.827
+                    },
+                    "USDT": {
+                        "free": 67.635390615,
+                        "used": 6.67332,
+                        "total": 74.308710615
+                    },
+                    "XRP": {
+                        "free": 0,
+                        "used": 0,
+                        "total": 0
+                    },
+                    "free": {
+                        "ACH": 0,
+                        "BTC": 0,
+                        "CAKE": 0,
+                        "ETH": 0,
+                        "INR": 167.827,
+                        "USDT": 67.635390615,
+                        "XRP": 0
+                    },
+                    "used": {
+                        "ACH": 0,
+                        "BTC": 0,
+                        "CAKE": 0,
+                        "ETH": 0,
+                        "INR": 0,
+                        "USDT": 6.67332,
+                        "XRP": 0
+                    },
+                    "total": {
+                        "ACH": 0,
+                        "BTC": 0,
+                        "CAKE": 0,
+                        "ETH": 0,
+                        "INR": 167.827,
+                        "USDT": 74.308710615,
+                        "XRP": 0
+                    }
+                }
+            }
+        ]
+    }
+}
