@@ -1295,6 +1295,14 @@
                 "input": [
                     "BTC/USDT:USDT"
                 ]
+            },
+            {
+                "description": "inverse swap fetch funding rate",
+                "method": "fetchFundingRate",
+                "url": "https://open-api.bingx.com/openApi/cswap/v1/market/premiumIndex?symbol=BTC-USD&timestamp=1720252368816",
+                "input": [
+                  "BTC/USD:BTC"
+                ]
             }
         ],
         "addMargin": [
