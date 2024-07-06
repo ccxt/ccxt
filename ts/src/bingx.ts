@@ -1284,6 +1284,7 @@ export default class bingx extends Exchange {
          * @name bingx#fetchFundingRate
          * @description fetch the current funding rate
          * @see https://bingx-api.github.io/docs/#/swapV2/market-api.html#Current%20Funding%20Rate
+         * @see https://bingx-api.github.io/docs/#/en-us/cswap/market-api.html#Price%20&%20Current%20Funding%20Rate
          * @param {string} symbol unified market symbol
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
@@ -1293,7 +1294,12 @@ export default class bingx extends Exchange {
         const request: Dict = {
             'symbol': market['id'],
         };
-        const response = await this.swapV2PublicGetQuotePremiumIndex (this.extend (request, params));
+        let response = undefined;
+        if (market['inverse']) {
+            response = await this.cswapV1PublicGetMarketPremiumIndex (this.extend (request, params));
+        } else {
+            response = await this.swapV2PublicGetQuotePremiumIndex (this.extend (request, params));
+        }
         //
         //    {
         //        "code":0,
