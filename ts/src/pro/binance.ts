@@ -622,8 +622,7 @@ export default class binance extends binanceRest {
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];
             const market = this.market (symbol);
-            const messageHash = 'orderbook::' + symbol;
-            messageHashes.push (messageHash);
+            messageHashes.push (this.messageHash ('orderbook', symbol));
             const subscriptionHash = market['lowercaseId'] + '@' + name;
             const symbolHash = subscriptionHash + '@' + watchOrderBookRate + 'ms';
             subParams.push (symbolHash);
@@ -829,7 +828,7 @@ export default class binance extends binanceRest {
         const marketId = this.safeString (message, 's');
         const market = this.safeMarket (marketId, undefined, undefined, marketType);
         const symbol = market['symbol'];
-        const messageHash = 'orderbook::' + symbol;
+        const messageHash = this.messageHash ('orderbook', symbol);
         if (!(symbol in this.orderbooks)) {
             //
             // https://github.com/ccxt/ccxt/issues/6672
@@ -905,6 +904,10 @@ export default class binance extends binanceRest {
         }
     }
 
+    messageHash (unifiedChannel: Str, symbol: Str = undefined) {
+        return unifiedChannel + '::' + symbol;
+    }
+
     handleOrderBookSubscription (client: Client, message, subscription) {
         const defaultLimit = this.safeInteger (this.options, 'watchOrderBookLimit', 1000);
         // const messageHash = this.safeString (subscription, 'messageHash');
@@ -969,12 +972,14 @@ export default class binance extends binanceRest {
         if (firstMarket['contract']) {
             type = firstMarket['linear'] ? 'future' : 'delivery';
         }
+        const messageHashes = [];
         const subParams = [];
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];
             const market = this.market (symbol);
-            const currentMessageHash = market['lowercaseId'] + '@' + name;
-            subParams.push (currentMessageHash);
+            messageHashes.push (this.messageHash ('trades', symbol));
+            const rawHash = market['lowercaseId'] + '@' + name;
+            subParams.push (rawHash);
         }
         const query = this.omit (params, 'type');
         const subParamsLength = subParams.length;
@@ -988,7 +993,7 @@ export default class binance extends binanceRest {
         const subscribe: Dict = {
             'id': requestId,
         };
-        const trades = await this.watchMultiple (url, subParams, this.extend (request, query), subParams, subscribe);
+        const trades = await this.watchMultiple (url, messageHashes, this.extend (request, query), messageHashes, subscribe);
         if (this.newUpdates) {
             const first = this.safeValue (trades, 0);
             const tradeSymbol = this.safeString (first, 'symbol');
@@ -1182,9 +1187,7 @@ export default class binance extends binanceRest {
         const marketId = this.safeString (message, 's');
         const market = this.safeMarket (marketId, undefined, undefined, marketType);
         const symbol = market['symbol'];
-        const lowerCaseId = this.safeStringLower (message, 's');
-        const event = this.safeString (message, 'e');
-        const messageHash = lowerCaseId + '@' + event;
+        const messageHash = this.messageHash ('trades', symbol);
         const trade = this.parseWsTrade (message, market);
         let tradesArray = this.safeValue (this.trades, symbol);
         if (tradesArray === undefined) {
