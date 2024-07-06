@@ -3,7 +3,7 @@
 import Exchange from './abstract/alpaca.js';
 import { ExchangeError, BadRequest, PermissionDenied, BadSymbol, NotSupported, InsufficientFunds, InvalidOrder, RateLimitExceeded } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Trade, int } from './base/types.js';
+import type { Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Trade, Ticker, Tickers, Str, Strings, int } from './base/types.js';
 
 //  ---------------------------------------------------------------------------xs
 /**
@@ -33,7 +33,7 @@ export default class alpaca extends Exchange {
                 'test': {
                     'broker': 'https://broker-api.sandbox.{hostname}',
                     'trader': 'https://paper-api.{hostname}',
-                    'market': 'https://data.sandbox.{hostname}',
+                    'market': 'https://data.{hostname}',
                 },
                 'doc': 'https://alpaca.markets/docs/',
                 'fees': 'https://docs.alpaca.markets/docs/crypto-fees',
@@ -79,8 +79,8 @@ export default class alpaca extends Exchange {
                 'fetchPositionsHistory': false,
                 'fetchPositionsRisk': false,
                 'fetchStatus': false,
-                'fetchTicker': false,
-                'fetchTickers': false,
+                'fetchTicker': true,
+                'fetchTickers': true,
                 'fetchTime': true,
                 'fetchTrades': true,
                 'fetchTradingFee': false,
@@ -250,10 +250,18 @@ export default class alpaca extends Exchange {
                     'CBSE', // Coinbase
                     'FTX', // FTXUS
                     'GNSS', // Genesis
-                    'ERSX', // ErisX
+                    'ERSX', // ErisX,
+                    'IEX', // only the Investors Exchange
+                    'SIP', // contains all US exchanges (requires subscription payment)
+                ],
+                'default_asset_class': 'crypto',
+                'asset_classes': [
+                    'crypto',
+                    'us_equity',
                 ],
                 'defaultTimeInForce': 'gtc', // fok, gtc, ioc
                 'clientOrderId': 'ccxt_{id}',
+                'location': 'us', // only applies to stocks
             },
             'exceptions': {
                 'exact': {
@@ -296,6 +304,133 @@ export default class alpaca extends Exchange {
         const jetlag = timestamp.slice (jetlagStrStart, jetlagStrEnd);
         const iso = this.parse8601 (localTime) - this.parseToNumeric (jetlag) * 3600 * 1000;
         return iso;
+    }
+
+    async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+        /**
+         * @method
+         * @name btcturk#fetchTickers
+         * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+         * @see https://docs.btcturk.com/public-endpoints/ticker
+         * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+         */
+        await this.loadMarkets ();
+        const loc = this.safeString (this.options, 'location');
+        const parsedSymbols = symbols.join (',');
+        const request: Dict = {
+            'symbols': parsedSymbols,
+            'loc': loc,
+        };
+        const response = await this.marketPublicGetV1beta3CryptoLocSnapshots (this.extend (request, params));
+        const tickers = this.safeValue (response, 'snapshots');
+        return this.parseTickers (tickers, symbols);
+    }
+
+    async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
+        /**
+         * @method
+         * @name btcturk#fetchTicker
+         * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+         * @see https://docs.btcturk.com/public-endpoints/ticker
+         * @param {string} symbol unified symbol of the market to fetch the ticker for
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+         */
+        await this.loadMarkets ();
+        // const market = this.market (symbol);
+        const tickers = await this.fetchTickers ([ symbol ], params);
+        const ticker = this.safeValue (tickers, symbol) as Ticker;
+        return ticker;
+        // return this.parseTicker (ticker, market);
+    }
+
+    parseTicker (ticker: Dict, market: Market = undefined): Ticker {
+        // {
+        //     "snapshots": {
+        //       "BTC/USD": {
+        //         "dailyBar": {
+        //           "c": 55469.02,
+        //           "h": 55609.85,
+        //           "l": 53825.764,
+        //           "n": 120,
+        //           "o": 53875.3225,
+        //           "t": "2024-07-05T05:00:00Z",
+        //           "v": 21.230385823,
+        //           "vw": 53971.7511405569
+        //         },
+        //         "latestQuote": {
+        //           "ap": 55467.71,
+        //           "as": 0.5509,
+        //           "bp": 55418.694,
+        //           "bs": 0.280395,
+        //           "t": "2024-07-05T12:00:42.719572979Z"
+        //         },
+        //         "latestTrade": {
+        //           "i": 1185754875117519400,
+        //           "p": 55429.826,
+        //           "s": 0.004388608,
+        //           "t": "2024-07-05T11:57:42.90617378Z",
+        //           "tks": "B"
+        //         },
+        //         "minuteBar": {
+        //           "c": 55469.02,
+        //           "h": 55469.02,
+        //           "l": 55469.02,
+        //           "n": 0,
+        //           "o": 55469.02,
+        //           "t": "2024-07-05T11:59:00Z",
+        //           "v": 0,
+        //           "vw": 0
+        //         },
+        //         "prevDailyBar": {
+        //           "c": 53899.8305,
+        //           "h": 59011.03,
+        //           "l": 53598.014888337,
+        //           "n": 272,
+        //           "o": 58950.878,
+        //           "t": "2024-07-04T05:00:00Z",
+        //           "v": 4.698869739,
+        //           "vw": 56806.8153858409
+        //         }
+        //       }
+        //     }
+        //   }
+        const marketId = this.safeString (ticker, 'symbol');
+        const symbol = this.safeSymbol (marketId, market);
+        // split the snapshot into it's component parts
+        const latestQuote = this.safeValue (ticker, 'latestQuote');
+        const latestTrade = this.safeValue (ticker, 'latestTrade');
+        // last 24h values not available - dailyBar and previousDailyBar refer to actual days not previous 24h
+        // const dailyBar = this.safeValue (ticker, 'dailyBar');
+        // const previousDailyBar = this.safeValue (ticker, 'prevDailyBar');
+        // const minuteBar = this.safeValue (ticker, 'minuteBar');
+        // extract some key values
+        const timestamp = this.parse8601 (this.safeString (latestQuote, 't'));
+        const last = this.safeString (latestTrade, 'p');
+        return this.safeTicker ({
+            'symbol': symbol,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'high': undefined,
+            'low': undefined,
+            'bid': this.safeString (latestQuote, 'bp'),
+            'bidVolume': this.safeString (latestQuote, 'bs'),
+            'ask': this.safeString (latestQuote, 'ap'),
+            'askVolume': this.safeString (latestQuote, 'as'),
+            'vwap': undefined,
+            'open': undefined,
+            'close': last,
+            'last': last,
+            'previousClose': undefined,
+            'change': undefined,
+            'percentage': undefined,
+            'average': undefined,
+            'baseVolume': undefined,
+            'quoteVolume': undefined,
+            'info': ticker,
+        }, market);
     }
 
     async fetchMarkets (params = {}): Promise<Market[]> {
@@ -445,7 +580,7 @@ export default class alpaca extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const marketId = market['id'];
-        const loc = this.safeString (params, 'loc', 'us');
+        const loc = this.safeString (this.options, 'location');
         const method = this.safeString (params, 'method', 'marketPublicGetV1beta3CryptoLocTrades');
         const request: Dict = {
             'symbols': marketId,
@@ -518,7 +653,7 @@ export default class alpaca extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const id = market['id'];
-        const loc = this.safeString (params, 'loc', 'us');
+        const loc = this.safeString (this.options, 'location');
         const request: Dict = {
             'symbols': id,
             'loc': loc,
@@ -586,7 +721,7 @@ export default class alpaca extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const marketId = market['id'];
-        const loc = this.safeString (params, 'loc', 'us');
+        const loc = this.safeString (this.options, 'location');
         const method = this.safeString (params, 'method', 'marketPublicGetV1beta3CryptoLocBars');
         const request: Dict = {
             'symbols': marketId,
