@@ -1899,8 +1899,8 @@ export default class okx extends okxRest {
     }
 
     ping (client) {
-        // okex does not support built-in ws protocol-level ping-pong
-        // instead it requires custom text-based ping-pong
+        // OKX does not support the built-in WebSocket protocol-level ping-pong.
+        // Instead, it requires a custom text-based ping-pong mechanism.
         return 'ping';
     }
 
