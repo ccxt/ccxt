@@ -622,7 +622,7 @@ export default class binance extends binanceRest {
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];
             const market = this.market (symbol);
-            messageHashes.push (this.messageHash ('orderbook', symbol));
+            messageHashes.push ('orderbook::' + symbol);
             const subscriptionHash = market['lowercaseId'] + '@' + name;
             const symbolHash = subscriptionHash + '@' + watchOrderBookRate + 'ms';
             subParams.push (symbolHash);
@@ -828,7 +828,7 @@ export default class binance extends binanceRest {
         const marketId = this.safeString (message, 's');
         const market = this.safeMarket (marketId, undefined, undefined, marketType);
         const symbol = market['symbol'];
-        const messageHash = this.messageHash ('orderbook', symbol);
+        const messageHash = 'orderbook::' + symbol;
         if (!(symbol in this.orderbooks)) {
             //
             // https://github.com/ccxt/ccxt/issues/6672
@@ -981,7 +981,7 @@ export default class binance extends binanceRest {
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];
             const market = this.market (symbol);
-            messageHashes.push (this.messageHash ('trade', symbol));
+            messageHashes.push ('trade::' + symbol);
             const rawHash = market['lowercaseId'] + '@' + name;
             subParams.push (rawHash);
         }
@@ -1191,7 +1191,7 @@ export default class binance extends binanceRest {
         const marketId = this.safeString (message, 's');
         const market = this.safeMarket (marketId, undefined, undefined, marketType);
         const symbol = market['symbol'];
-        const messageHash = this.messageHash ('trade', symbol);
+        const messageHash = 'trade::' + symbol;
         const trade = this.parseWsTrade (message, market);
         let tradesArray = this.safeValue (this.trades, symbol);
         if (tradesArray === undefined) {
