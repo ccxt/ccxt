@@ -905,7 +905,11 @@ export default class binance extends binanceRest {
     }
 
     messageHash (unifiedChannel: Str, symbol: Str = undefined) {
-        return unifiedChannel + '::' + symbol;
+        let hash: string = unifiedChannel;
+        if (symbol !== undefined) {
+            hash += '::' + symbol;
+        }
+        return hash;
     }
 
     handleOrderBookSubscription (client: Client, message, subscription) {
