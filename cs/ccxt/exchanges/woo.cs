@@ -290,7 +290,7 @@ public partial class woo : Exchange
             { "commonCurrencies", new Dictionary<string, object>() {} },
             { "exceptions", new Dictionary<string, object>() {
                 { "exact", new Dictionary<string, object>() {
-                    { "-1000", typeof(ExchangeError) },
+                    { "-1000", typeof(OperationFailed) },
                     { "-1001", typeof(AuthenticationError) },
                     { "-1002", typeof(AuthenticationError) },
                     { "-1003", typeof(RateLimitExceeded) },

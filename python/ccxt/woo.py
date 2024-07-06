@@ -15,6 +15,7 @@ from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import NotSupported
+from ccxt.base.errors import OperationFailed
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import OnMaintenance
 from ccxt.base.decimal_to_precision import TICK_SIZE
@@ -316,7 +317,7 @@ class woo(Exchange, ImplicitAPI):
             'commonCurrencies': {},
             'exceptions': {
                 'exact': {
-                    '-1000': ExchangeError,  # {"code": -1000,  "message": "An unknown error occurred while processing the request"}
+                    '-1000': OperationFailed,  # {"code": -1000,  "message": "An unknown error occurred while processing the request"} or  {"success":false,"code":"-1000","message":"An internal error has occurred. We are unable to process your request. Please try again later."}
                     '-1001': AuthenticationError,  # {"code": -1001,  "message": "The api key or secret is in wrong format"}
                     '-1002': AuthenticationError,  # {"code": -1002,  "message": "API key or secret is invalid, it may because key have insufficient permission or the key is expired/revoked."}
                     '-1003': RateLimitExceeded,  # {"code": -1003,  "message": "Rate limit exceed."}

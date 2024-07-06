@@ -1236,6 +1236,7 @@ class bingx(Exchange, ImplicitAPI):
         """
         fetch the current funding rate
         :see: https://bingx-api.github.io/docs/#/swapV2/market-api.html#Current%20Funding%20Rate
+        :see: https://bingx-api.github.io/docs/#/en-us/cswap/market-api.html#Price%20&%20Current%20Funding%20Rate
         :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `funding rate structure <https://docs.ccxt.com/#/?id=funding-rate-structure>`
@@ -1245,7 +1246,11 @@ class bingx(Exchange, ImplicitAPI):
         request: dict = {
             'symbol': market['id'],
         }
-        response = self.swapV2PublicGetQuotePremiumIndex(self.extend(request, params))
+        response = None
+        if market['inverse']:
+            response = self.cswapV1PublicGetMarketPremiumIndex(self.extend(request, params))
+        else:
+            response = self.swapV2PublicGetQuotePremiumIndex(self.extend(request, params))
         #
         #    {
         #        "code":0,
