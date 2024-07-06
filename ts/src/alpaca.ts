@@ -64,7 +64,7 @@ export default class alpaca extends Exchange {
                 'fetchL1OrderBook': true,
                 'fetchL2OrderBook': false,
                 'fetchMarkets': true,
-                'fetchMyTrades': false,
+                'fetchMyTrades': true,
                 'fetchOHLCV': true,
                 'fetchOpenOrder': false,
                 'fetchOpenOrders': true,
@@ -638,6 +638,48 @@ export default class alpaca extends Exchange {
         return this.parseTrades (symbolTrades, market, since, limit);
     }
 
+    async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+        /**
+         * @method
+         * @name alpaca#fetchMyTrades
+         * @description fetch all trades made by the user
+         * @see https://docs.alpaca.markets/reference/getaccountactivities-2
+         * @param {string} symbol unified symbol of the market to fetch trades for
+         * @param {int} [since] timestamp in ms of the earliest trade to fetch
+         * @param {int} [limit] the maximum amount of trades to fetch
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.until] timestamp in ms of the earliest trade to fetch
+         * @param {string} [params.page_token] page_token - used for paging
+         * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+         */
+        await this.loadMarkets ();
+        const request: Dict = {
+            'category': 'trade_activity',
+        };
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
+        const until = this.safeInteger (params, 'until');
+        if (until !== undefined) {
+            params = this.omit (params, 'until');
+            request['until'] = this.iso8601 (until);
+        }
+        if (since !== undefined) {
+            request['after'] = this.iso8601 (since);
+        }
+        if (limit !== undefined) {
+            request['page_size'] = limit;
+        }
+        // add a page token if in params
+        const page_token = this.safeString (params, 'page_token');
+        if (page_token !== undefined) {
+            request['page_token'] = page_token;
+        }
+        const response = await this.traderPrivateGetV2AccountActivities (this.extend (request, params));
+        return this.parseTrades (response, market, since, limit);
+    }
+
     async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         /**
          * @method
@@ -1199,7 +1241,7 @@ export default class alpaca extends Exchange {
     }
 
     parseTrade (trade: Dict, market: Market = undefined): Trade {
-        //
+        // fetchTrades
         //   {
         //       "t":"2022-06-14T05:00:00.027869Z",
         //       "x":"CBSE",
@@ -1208,30 +1250,70 @@ export default class alpaca extends Exchange {
         //       "tks":"S",
         //       "i":"355681339"
         //   }
-        //
-        const marketId = this.safeString (trade, 'S');
-        const symbol = this.safeSymbol (marketId, market);
-        const datetime = this.safeString (trade, 't');
-        const timestamp = this.parse8601 (datetime);
-        const alpacaSide = this.safeString (trade, 'tks');
-        let side: string;
-        if (alpacaSide === 'B') {
-            side = 'buy';
-        } else if (alpacaSide === 'S') {
-            side = 'sell';
+        // fetchMyTrades
+        //         {
+        //              "id": "20240706050546575::cfe04e5c-6be3-462d-ab60-e486a127f487",
+        //              "activity_type": "FILL",
+        //              "transaction_time": "2024-07-06T09:05:46.575035Z",
+        //              "type": "partial_fill",
+        //              "price": "56584.3",
+        //              "qty": "0.5565",
+        //              "side": "buy", // "sell"
+        //              "symbol": "BTC/USD",
+        //              "leaves_qty": "0.164569",
+        //              "order_id": "fdcc711c-1212-4d43-992d-c07f2adaf56f",
+        //              "cum_qty": "0.835431",
+        //              "order_status": "partially_filled",
+        //              "swap_rate": "1"
+        //         }
+        let marketId = undefined;
+        let symbol = undefined;
+        let datetime = undefined;
+        let timestamp = undefined;
+        let id = undefined;
+        let order_id = undefined;
+        let side = undefined;
+        let priceString = undefined;
+        let amountString = undefined;
+        if ('order_id' in trade) {
+            // fetchMyTrades
+            marketId = this.safeString (trade, 'symbol');
+            symbol = this.safeSymbol (marketId, market, '/');
+            datetime = this.safeString (trade, 'transaction_time');
+            timestamp = this.parse8601 (datetime);
+            id = this.safeString (trade, 'id');
+            order_id = this.safeString (trade, 'order_id');
+            side = this.safeString (trade, 'side'); // buy and sell are the two options, no parsing required
+            priceString = this.safeString (trade, 'price');
+            amountString = this.safeString (trade, 'qty');
+            // 'type': undefined,
+            // 'fee': undefined,
+        } else {
+            // fetchTrades
+            id = this.safeString (trade, 'i');
+            marketId = this.safeString (trade, 'S');
+            symbol = this.safeSymbol (marketId, market);
+            datetime = this.safeString (trade, 't');
+            timestamp = this.parse8601 (datetime);
+            const alpacaSide = this.safeString (trade, 'tks');
+            if (alpacaSide === 'B') {
+                side = 'buy';
+            } else if (alpacaSide === 'S') {
+                side = 'sell';
+            }
+            priceString = this.safeString (trade, 'p');
+            amountString = this.safeString (trade, 's');
         }
-        const priceString = this.safeString (trade, 'p');
-        const amountString = this.safeString (trade, 's');
         return this.safeTrade ({
             'info': trade,
-            'id': this.safeString (trade, 'i'),
+            'id': id,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'symbol': symbol,
-            'order': undefined,
+            'order': order_id,
             'type': undefined,
             'side': side,
-            'takerOrMaker': 'taker',
+            'takerOrMaker': undefined,
             'price': priceString,
             'amount': amountString,
             'cost': undefined,
