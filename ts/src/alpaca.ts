@@ -261,7 +261,7 @@ export default class alpaca extends Exchange {
                 ],
                 'defaultTimeInForce': 'gtc', // fok, gtc, ioc
                 'clientOrderId': 'ccxt_{id}',
-                'location': 'us', // only applies to stocks
+                'location': 'us', // only one available right now
             },
             'exceptions': {
                 'exact': {
@@ -309,15 +309,15 @@ export default class alpaca extends Exchange {
     async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         /**
          * @method
-         * @name btcturk#fetchTickers
-         * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
-         * @see https://docs.btcturk.com/public-endpoints/ticker
-         * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+         * @name alpaca#fetchTickers
+         * @see https://docs.alpaca.markets/reference/cryptosnapshots-1
+         * @param {string[]} symbols unified symbols of the markets to fetch the ticker for
+         * @param {string} loc Crypto location ('us' only valid entry)
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets ();
-        const loc = this.safeString (this.options, 'location');
+        const loc = this.safeString (params, 'loc', this.safeString (this.options, 'location'));
         const parsedSymbols = symbols.join (',');
         const request: Dict = {
             'symbols': parsedSymbols,
@@ -331,10 +331,10 @@ export default class alpaca extends Exchange {
     async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
         /**
          * @method
-         * @name btcturk#fetchTicker
-         * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-         * @see https://docs.btcturk.com/public-endpoints/ticker
-         * @param {string} symbol unified symbol of the market to fetch the ticker for
+         * @name alpaca#fetchTickers
+         * @see https://docs.alpaca.markets/reference/cryptosnapshots-1
+         * @param {string} symbols unified symbols of the markets to fetch the ticker for
+         * @param {string} loc Crypto location ('us' only valid entry)
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
@@ -580,7 +580,7 @@ export default class alpaca extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const marketId = market['id'];
-        const loc = this.safeString (this.options, 'location');
+        const loc = this.safeString (params, 'loc', this.safeString (this.options, 'location'));
         const method = this.safeString (params, 'method', 'marketPublicGetV1beta3CryptoLocTrades');
         const request: Dict = {
             'symbols': marketId,
@@ -653,7 +653,7 @@ export default class alpaca extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const id = market['id'];
-        const loc = this.safeString (this.options, 'location');
+        const loc = this.safeString (params, 'loc', this.safeString (this.options, 'location'));
         const request: Dict = {
             'symbols': id,
             'loc': loc,
@@ -721,7 +721,7 @@ export default class alpaca extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const marketId = market['id'];
-        const loc = this.safeString (this.options, 'location');
+        const loc = this.safeString (params, 'loc', this.safeString (this.options, 'location'));
         const method = this.safeString (params, 'method', 'marketPublicGetV1beta3CryptoLocBars');
         const request: Dict = {
             'symbols': marketId,
