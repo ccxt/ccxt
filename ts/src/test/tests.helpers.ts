@@ -50,11 +50,15 @@ const argvMethod   = selectArgv (argv, '()');
 
 
 // non-transpiled part, but shared names among langs
+const fileParts = import.meta.url.split ('.');
+const ext = fileParts[fileParts.length - 1];
+
 function getCliArgValue (arg) {
     return process.argv.includes (arg) || false;
 }
 
 const proxyTestFileName = 'proxies';
+
 class baseMainTestClass {
     lang = 'JS';
     isSynchronous = false;
@@ -83,14 +87,10 @@ class baseMainTestClass {
     onlySpecificTests = [];
     envVars = process.env;
     proxyTestFileName = proxyTestFileName;
-    ext = import.meta.url.split ('.')[1];
+    ext = ext;
 }
-// const rootDir = DIR_NAME + '/../../../';
-// const rootDirForSkips = DIR_NAME + '/../../../';
-// const envVars = process.env;
+
 const LOG_CHARS_LENGTH = 10000;
-const parts = import.meta.url.split ('.');
-const ext = parts[parts.length - 1];
 
 function dump (...args) {
     console.log (...args);
