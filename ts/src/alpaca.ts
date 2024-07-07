@@ -3,7 +3,7 @@
 import Exchange from './abstract/alpaca.js';
 import { ExchangeError, BadRequest, PermissionDenied, BadSymbol, NotSupported, InsufficientFunds, InvalidOrder, RateLimitExceeded } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Trade, Ticker, Tickers, Str, Strings, int } from './base/types.js';
+import type { Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Trade, Ticker, Tickers, Str, Strings, Balances, int } from './base/types.js';
 
 //  ---------------------------------------------------------------------------xs
 /**
@@ -50,7 +50,7 @@ export default class alpaca extends Exchange {
                 'closeAllPositions': false,
                 'closePosition': false,
                 'createOrder': true,
-                'fetchBalance': false,
+                'fetchBalance': true,
                 'fetchBidsAsks': false,
                 'fetchClosedOrders': true,
                 'fetchCurrencies': false,
@@ -306,6 +306,173 @@ export default class alpaca extends Exchange {
         return iso;
     }
 
+    async fetchAccountInfo (params = {}) {
+        /**
+         * @method
+         * @name alpaca#fetchAccount
+         * @description fetches the account level information, including the cash balance
+         * @see https://docs.alpaca.markets/reference/getaccount-1
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {response} the account level information - not-parsed into typed object
+         */
+        // {
+        //     "id": "dd87af37-8ccc-48af-b40f-248115a19354",
+        //     "admin_configurations": {},
+        //     "user_configurations": {
+        //       "max_options_trading_level": 0
+        //     },
+        //     "account_number": "PA376Y73B28S",
+        //     "status": "ACTIVE",
+        //     "crypto_status": "ACTIVE",
+        //     "options_approved_level": 2,
+        //     "options_trading_level": 0,
+        //     "currency": "USD",
+        //     "buying_power": "112643.96",
+        //     "regt_buying_power": "112643.96",
+        //     "daytrading_buying_power": "0",
+        //     "effective_buying_power": "112643.96",
+        //     "non_marginable_buying_power": "56208.81",
+        //     "options_buying_power": "56367.24",
+        //     "bod_dtbp": "0",
+        //     "cash": "56208.81",
+        //     "accrued_fees": "0",
+        //     "pending_transfer_in": "0",
+        //     "portfolio_value": "100531.63",
+        //     "pattern_day_trader": false,
+        //     "trading_blocked": false,
+        //     "transfers_blocked": false,
+        //     "account_blocked": false,
+        //     "created_at": "2024-07-04T11:53:19.230206Z",
+        //     "trade_suspended_by_user": false,
+        //     "multiplier": "2",
+        //     "shorting_enabled": true,
+        //     "equity": "100531.63",
+        //     "last_equity": "100004.46",
+        //     "long_market_value": "44322.82",
+        //     "short_market_value": "0",
+        //     "position_market_value": "44322.82",
+        //     "initial_margin": "113.17",
+        //     "maintenance_margin": "67.9",
+        //     "last_maintenance_margin": "67.9",
+        //     "sma": "0",
+        //     "daytrade_count": 0,
+        //     "balance_asof": "2024-07-05",
+        //     "crypto_tier": 1,
+        //     "intraday_adjustments": "0",
+        //     "pending_reg_taf_fees": "0"
+        //   }
+        const response = await this.traderPrivateGetV2Account (params);
+        return response;
+    }
+
+    async fetchOpenPositions (params = {}) {
+        /**
+         * @method
+         * @name alpaca#fetchOpenPositions
+         * @description fetches all the account open positions
+         * @see https://docs.alpaca.markets/reference/getallopenpositions-1
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {response} the account open positions (not-parsed into typed object)
+         */
+        const response = await this.traderPrivateGetV2Positions (params);
+        return response;
+        // [
+        //     {
+        //       "asset_id": "b0b6dd9d-8b9b-48a9-ba46-b9d54906e415",
+        //       "symbol": "AAPL",
+        //       "exchange": "NASDAQ",
+        //       "asset_class": "us_equity",
+        //       "asset_marginable": true,
+        //       "qty": "1",
+        //       "avg_entry_price": "221.88",
+        //       "side": "long",
+        //       "market_value": "226.34",
+        //       "cost_basis": "221.88",
+        //       "unrealized_pl": "4.46",
+        //       "unrealized_plpc": "0.020100955471426",
+        //       "unrealized_intraday_pl": "4.46",
+        //       "unrealized_intraday_plpc": "0.020100955471426",
+        //       "current_price": "226.34",
+        //       "lastday_price": "226.34",
+        //       "change_today": "0",
+        //       "qty_available": "1"
+        //     },
+        //     {
+        //       "asset_id": "64bbff51-59d6-4b3c-9351-13ad85e3c752",
+        //       "symbol": "BTCUSD",
+        //       "exchange": "CRYPTO",
+        //       "asset_class": "crypto",
+        //       "asset_marginable": false,
+        //       "qty": "0.767499999",
+        //       "avg_entry_price": "56579.59532038",
+        //       "side": "long",
+        //       "market_value": "44059.91849259294",
+        //       "cost_basis": "43424.839351812",
+        //       "unrealized_pl": "635.07914078094",
+        //       "unrealized_plpc": "0.0146247896425307",
+        //       "unrealized_intraday_pl": "635.07914078088532038",
+        //       "unrealized_intraday_plpc": "0.0146247896425294",
+        //       "current_price": "57407.06",
+        //       "lastday_price": "58026.611",
+        //       "change_today": "-0.0106770150681383",
+        //       "qty_available": "0.767499999"
+        //     }
+        //   ]
+    }
+
+    async fetchBalance (params = {}): Promise<Balances> {
+        /**
+         * @method
+         * @name alpaca#fetchBalance
+         * @description fetches the balance on the account, uses fetch positions
+         * @see https://docs.alpaca.markets/reference/getaccount-1
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {int} the current integer timestamp in milliseconds from the exchange server
+         */
+        // get the account level information
+        const accountInfo = await this.fetchAccountInfo ();
+        // get the positions on the account
+        const positions = await this.fetchOpenPositions ();
+        // combine the two inputs
+        const combinedBalanceData: Dict = {
+            'accountInfo': accountInfo,
+            'positions': positions,
+        };
+        return this.parseBalance (combinedBalanceData);
+    }
+
+    parseBalance (response): Balances {
+        // loop through the positions and add them to the dict
+        const milliseconds = this.milliseconds ();
+        const result: Dict = {
+            'info': response,
+            'timestamp': milliseconds,
+            'datetime': this.iso8601 (milliseconds),
+        };
+        // parse the account cash
+        const accountInfo = this.safeValue (response, 'accountInfo');
+        let currencyId = this.safeString (accountInfo, 'currency');
+        let code = this.safeCurrencyCode (currencyId);
+        const accountCash = this.account ();
+        accountCash['total'] = this.safeString (accountInfo, 'cash');
+        accountCash['free'] = this.safeString (accountInfo, 'cash');
+        accountCash['used'] = '0';
+        result[code] = accountCash;
+        // parse the positions
+        const positions = this.safeValue (response, 'positions');
+        for (let i = 0; i < positions.length; i++) {
+            const entry = positions[i];
+            currencyId = this.safeString (entry, 'symbol');
+            code = this.safeCurrencyCode (currencyId);
+            const position = this.account ();
+            position['total'] = this.safeString (entry, 'qty');
+            position['free'] = '0';
+            position['used'] = this.safeString (entry, 'qty');
+            result[code] = position;
+        }
+        return this.safeBalance (result);
+    }
+
     async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         /**
          * @method
@@ -343,7 +510,6 @@ export default class alpaca extends Exchange {
         const tickers = await this.fetchTickers ([ symbol ], params);
         const ticker = this.safeValue (tickers, symbol) as Ticker;
         return ticker;
-        // return this.parseTicker (ticker, market);
     }
 
     parseTicker (ticker: Dict, market: Market = undefined): Ticker {
