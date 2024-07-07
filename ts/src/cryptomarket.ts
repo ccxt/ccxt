@@ -1,14 +1,12 @@
-'use strict';
+import Exchange from './abstract/cryptomarket.js';
+import { ArgumentsRequired, AuthenticationError, BadRequest, BadSymbol, ExchangeError, ExchangeNotAvailable, InsufficientFunds, InvalidAddress, OrderNotFound, PermissionDenied, RateLimitExceeded } from './base/errors.js';
+import { TICK_SIZE } from './base/functions/number.js';
+import type { Account, Balances, Currencies, Currency, Dict, Int, Market, Num, OHLCV, Order, OrderBook, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntries, TransferEntry } from './base/types.js';
+import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 
 //  ---------------------------------------------------------------------------
 
-const Exchange = require ('./base/Exchange');
-const { AuthenticationError, ExchangeNotAvailable, PermissionDenied, RateLimitExceeded, InvalidAddress, ArgumentsRequired, ExchangeError, InsufficientFunds, BadRequest, OrderNotFound, BadSymbol } = require ('./base/errors');
-const { TICK_SIZE } = require ('./base/functions/number');
-
-//  ---------------------------------------------------------------------------
-
-module.exports = class cryptomarket extends Exchange {
+export default class cryptomarket extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'cryptomarket',
@@ -130,6 +128,8 @@ module.exports = class cryptomarket extends Exchange {
                         'wallet/transactions',
                         'wallet/transactions/{id}',
                         'wallet/crypto/fee/estimate',
+                        'wallet/crypto/fee/deposit/estimate',
+                        'wallet/crypto/fee/deposit/levels',
                         'wallet/amount-locks',
                         'sub-account',
                         'sub-account/acl',
@@ -146,6 +146,8 @@ module.exports = class cryptomarket extends Exchange {
                         'wallet/crypto/withdraw',
                         'wallet/crypto/check-offchain-available',
                         'wallet/crypto/fees/estimate',
+                        'wallet/crypto/fee/deposit/estimate/bulk',
+                        'wallet/crypto/fee/estimate/bulk',
                         'sub-account/freeze',
                         'sub-account/activate',
                         'sub-account/transfer',
@@ -210,63 +212,63 @@ module.exports = class cryptomarket extends Exchange {
             },
             'exceptions': {
                 'exact': {
-                    '400': ExchangeError, //  400  Bad request The request contains values that cannot be processed.
-                    '429': RateLimitExceeded, //  429  Too many requests Action is being rate limited for the account.
-                    '500': ExchangeError, //  500  Internal Server Error The request cannot be fulfilled at the moment. Try submitting the request later.
-                    '503': ExchangeNotAvailable, //  503  Service Unavailable Try sending the request again later.
-                    '504': ExchangeError, //  504  Gateway Timeout Check the result of a request later.
-                    '600': PermissionDenied, //  400  Action not allowed Operation is not permitted. See the message field for more information.
-                    '602': ExchangeError, //  400  Payout blacklisted Impossible to make a payout.
-                    '604': ExchangeError, //  400  Payout amount bigger than locked amount Provide a smaller payout amount.
-                    '800': ExchangeError, //  404  Resource Not Found Check the submitted parameters to ensure they were entered correctly.
-                    '1002': AuthenticationError, //  401  Authorization required or has been failed Check that authorization data were provided.
-                    '1003': PermissionDenied, //  403  Action forbidden for this API key Check permissions for API key, whitelists, or any security feature that might block this request.
-                    '1004': ExchangeError, //  401  Unsupported authorization method Use a valid authentication method.
-                    '1005': AuthenticationError, //  401  Authorization is invalid The device has not been recognized. Use a valid authorization token.
-                    '1006': ExchangeError, //  400  Should upgrade scopes Check permission scopes.
-                    '2001': BadSymbol, //  400  Symbol not found The symbol code does not exist. Use GET /api/3/public/symbol to get the list of all available symbols.
-                    '2002': BadRequest, //  400  Currency not found The currency code does not exist or is not enabled on a platform. See the message field for more information.
-                    '2003': BadRequest, //  400  Unknown channel The channel name value is incorrect.
-                    '2010': BadRequest, //  400  Quantity not a valid number Quantity value has to be a positive number.
-                    '2011': BadRequest, //  400  Quantity too low Quantity value has to be more than or equal to the quantity_increment parameter value of a symbol.
-                    '2012': BadRequest, //  400  Bad quantity Pass the quantity value that can be divided by the quantity_increment value of the selected symbol with no remainder.
-                    '2020': BadRequest, //  400  Price not a valid number Price value has to be a positive number no less than the tick_size value of the selected symbol.
-                    '2022': BadRequest, //  400  Bad price Pass the price value that can be divided by the tick_size value of the selected symbol with no remainder.
-                    '10001': BadRequest, //  400  Validation error Input is not valid or the number of orders in an order list is incorrect. See the message field for more information.
-                    '10021': BadRequest, //  400  User disabled Either a wrong input format or a sub account is frozen or disabled.
-                    '20001': InsufficientFunds, //  400  Insufficient funds Insufficient funds for creating an order, placing an order list, or any account operations. Check that the funds are sufficient, given commissions.
-                    '20002': OrderNotFound, //  400  Order not found Attempt to get an active order that does not exist or is filled, canceled, expired. Attempt to cancel a non-existing order. Attempt to cancel an already filled or expired order.
-                    '20003': BadRequest, //  400  Limit exceeded Pass a lower limit value. See the message field for more information.
-                    '20004': BadRequest, //  400  Transaction not found Requested transaction was not found.
-                    '20005': BadRequest, //  400  Payout not found Check the submitted parameters.
-                    '20006': BadRequest, //  400  Payout already committed Operation cannot be performed since the payout has already been committed.
-                    '20007': BadRequest, //  400  Payout already rolled back Operation cannot be performed since the payout has already been rolled back.
-                    '20008': BadRequest, //  400  Duplicate clientOrderId An order with the submitted ID already exists.
-                    '20009': BadRequest, //  400  Price and quantity not changed The order has not been changed. Enter a new price/quantity to fix the error.
-                    '20010': ExchangeNotAvailable, //  400  Exchange temporary closed Exchange market is temporary closed on the symbol.
-                    '20011': InvalidAddress, //  400  Payout address is invalid Check the payout address format.
-                    '20012': InvalidAddress, //  400  Payout payment address is invalid Check the payment ID format.
-                    '20014': InvalidAddress, //  400  Payout offchain unavailable Address does not belong to exchange, belongs to the same user, or is unavailable for currency.
-                    '20016': BadRequest, //  400  Payout fee level invalid Submit a valid fee value.
-                    '20044': ExchangeError, //  400  Trading operation not allowed Platform is unavailable.
-                    '20045': ExchangeError, //  400  Fat finger limit exceeded Order price differs from the market price more than for 10% (for stopLimit and takeProfitLimit orders, the restriction is also applied to the difference between the stop price and the limit price). Fix the value and re-submit the request.
-                    '20080': ExchangeError, //  400  Internal order execution deadline exceeded Order was not placed.
-                    '21001': ExchangeError, //  404  Cannot find sub account A sub account with the specified ID cannot be found in the system.
-                    '21003': ExchangeError, //  400  Sub account is already frozen Operation cannot be performed since the sub account has already been frozen.
-                    '21004': ExchangeError, //  400  Sub account is already frozen or disabled Operation cannot be performed since the sub account has already been frozen or disabled.
-                    '22000': ExchangeError, //  404  Payment icon is not found Check whether the payment method icon with the passed parameters exist.
-                    '22002': ExchangeError, //  400  Icon already set for payment type Impossible to set a new payment method icon until the existing one is unset.
-                    '22003': ExchangeError, //  404  User does not have a bank account The user cannot commit operations requiring a bank account.
-                    '22004': ExchangeError, //  404  User is not found Check if the functionality is accessable.
-                    '22005': BadRequest, //  400  Source amount is less than minimum Pass a larger source amount.
-                    '22006': BadRequest, //  400  Source amount is more than maximum Pass a smaller source amount.
-                    '22007': ExchangeError, //  400  Currency is disabled Impossible to perform the request with the passed currency value.
+                    '400': ExchangeError, // 400  Bad request The request contains values that cannot be processed.
+                    '429': RateLimitExceeded, // 429  Too many requests Action is being rate limited for the account.
+                    '500': ExchangeError, // 500  Internal Server Error The request cannot be fulfilled at the moment. Try submitting the request later.
+                    '503': ExchangeNotAvailable, // 503  Service Unavailable Try sending the request again later.
+                    '504': ExchangeError, // 504  Gateway Timeout Check the result of a request later.
+                    '600': PermissionDenied, // 400  Action not allowed Operation is not permitted. See the message field for more information.
+                    '602': ExchangeError, // 400  Payout blacklisted Impossible to make a payout.
+                    '604': ExchangeError, // 400  Payout amount bigger than locked amount Provide a smaller payout amount.
+                    '800': ExchangeError, // 404  Resource Not Found Check the submitted parameters to ensure they were entered correctly.
+                    '1002': AuthenticationError, // 401  Authorization required or has been failed Check that authorization data were provided.
+                    '1003': PermissionDenied, // 403  Action forbidden for this API key Check permissions for API key, whitelists, or any security feature that might block this request.
+                    '1004': ExchangeError, // 401  Unsupported authorization method Use a valid authentication method.
+                    '1005': AuthenticationError, // 401  Authorization is invalid The device has not been recognized. Use a valid authorization token.
+                    '1006': ExchangeError, // 400  Should upgrade scopes Check permission scopes.
+                    '2001': BadSymbol, // 400  Symbol not found The symbol code does not exist. Use GET /api/3/public/symbol to get the list of all available symbols.
+                    '2002': BadRequest, // 400  Currency not found The currency code does not exist or is not enabled on a platform. See the message field for more information.
+                    '2003': BadRequest, // 400  Unknown channel The channel name value is incorrect.
+                    '2010': BadRequest, // 400  Quantity not a valid number Quantity value has to be a positive number.
+                    '2011': BadRequest, // 400  Quantity too low Quantity value has to be more than or equal to the quantity_increment parameter value of a symbol.
+                    '2012': BadRequest, // 400  Bad quantity Pass the quantity value that can be divided by the quantity_increment value of the selected symbol with no remainder.
+                    '2020': BadRequest, // 400  Price not a valid number Price value has to be a positive number no less than the tick_size value of the selected symbol.
+                    '2022': BadRequest, // 400  Bad price Pass the price value that can be divided by the tick_size value of the selected symbol with no remainder.
+                    '10001': BadRequest, // 400  Validation error Input is not valid or the number of orders in an order list is incorrect. See the message field for more information.
+                    '10021': BadRequest, // 400  User disabled Either a wrong input format or a sub account is frozen or disabled.
+                    '20001': InsufficientFunds, // 400  Insufficient funds Insufficient funds for creating an order, placing an order list, or any account operations. Check that the funds are sufficient, given commissions.
+                    '20002': OrderNotFound, // 400  Order not found Attempt to get an active order that does not exist or is filled, canceled, expired. Attempt to cancel a non-existing order. Attempt to cancel an already filled or expired order.
+                    '20003': BadRequest, // 400  Limit exceeded Pass a lower limit value. See the message field for more information.
+                    '20004': BadRequest, // 400  Transaction not found Requested transaction was not found.
+                    '20005': BadRequest, // 400  Payout not found Check the submitted parameters.
+                    '20006': BadRequest, // 400  Payout already committed Operation cannot be performed since the payout has already been committed.
+                    '20007': BadRequest, // 400  Payout already rolled back Operation cannot be performed since the payout has already been rolled back.
+                    '20008': BadRequest, // 400  Duplicate clientOrderId An order with the submitted ID already exists.
+                    '20009': BadRequest, // 400  Price and quantity not changed The order has not been changed. Enter a new price/quantity to fix the error.
+                    '20010': ExchangeNotAvailable, // 400  Exchange temporary closed Exchange market is temporary closed on the symbol.
+                    '20011': InvalidAddress, // 400  Payout address is invalid Check the payout address format.
+                    '20012': InvalidAddress, // 400  Payout payment address is invalid Check the payment ID format.
+                    '20014': InvalidAddress, // 400  Payout offchain unavailable Address does not belong to exchange, belongs to the same user, or is unavailable for currency.
+                    '20016': BadRequest, // 400  Payout fee level invalid Submit a valid fee value.
+                    '20044': ExchangeError, // 400  Trading operation not allowed Platform is unavailable.
+                    '20045': ExchangeError, // 400  Fat finger limit exceeded Order price differs from the market price more than for 10% (for stopLimit and takeProfitLimit orders, the restriction is also applied to the difference between the stop price and the limit price). Fix the value and re-submit the request.
+                    '20080': ExchangeError, // 400  Internal order execution deadline exceeded Order was not placed.
+                    '21001': ExchangeError, // 404  Cannot find sub account A sub account with the specified ID cannot be found in the system.
+                    '21003': ExchangeError, // 400  Sub account is already frozen Operation cannot be performed since the sub account has already been frozen.
+                    '21004': ExchangeError, // 400  Sub account is already frozen or disabled Operation cannot be performed since the sub account has already been frozen or disabled.
+                    '22000': ExchangeError, // 404  Payment icon is not found Check whether the payment method icon with the passed parameters exist.
+                    '22002': ExchangeError, // 400  Icon already set for payment type Impossible to set a new payment method icon until the existing one is unset.
+                    '22003': ExchangeError, // 404  User does not have a bank account The user cannot commit operations requiring a bank account.
+                    '22004': ExchangeError, // 404  User is not found Check if the functionality is accessable.
+                    '22005': BadRequest, // 400  Source amount is less than minimum Pass a larger source amount.
+                    '22006': BadRequest, // 400  Source amount is more than maximum Pass a smaller source amount.
+                    '22007': ExchangeError, // 400  Currency is disabled Impossible to perform the request with the passed currency value.
                 },
             },
         });
     }
 
-    async fetchMarkets (params = {}) {
+    async fetchMarkets (params = {}): Promise<Market[]> {
         const response = await this.publicGetPublicSymbol (params);
         //
         // {
@@ -295,8 +297,10 @@ module.exports = class cryptomarket extends Exchange {
             const maker = this.safeNumber (market, 'make_rate');
             const taker = this.safeNumber (market, 'take_rate');
             const type = this.safeString (market, 'type');
-            const precisionPrice = this.parseNumber (this.parsePrecision (this.safeString (market, 'tick_size')));
-            const precisionAmount = this.parseNumber (this.parsePrecision (this.safeString (market, 'quantity_increment')));
+            const status = this.safeString (market, 'status', '');
+            const active = status === 'working';
+            const precisionPrice = this.parseNumber (this.safeString (market, 'tick_size'));
+            const precisionAmount = this.parseNumber (this.safeString (market, 'quantity_increment'));
             result.push ({
                 'id': id,
                 'symbol': base + '/' + quote,
@@ -314,7 +318,7 @@ module.exports = class cryptomarket extends Exchange {
                 'swap': false,
                 'future': false,
                 'option': false,
-                'active': true,
+                'active': active,
                 'contract': false,
                 'linear': undefined,
                 'inverse': undefined,
@@ -347,13 +351,13 @@ module.exports = class cryptomarket extends Exchange {
                         'max': undefined,
                     },
                 },
-                'info': response,
+                'info': market,
             });
         }
         return result;
     }
 
-    async fetchCurrencies (params = {}) {
+    async fetchCurrencies (params = {}): Promise<Currencies> {
         const response = await this.publicGetPublicCurrency (params);
         //
         //  {
@@ -388,6 +392,7 @@ module.exports = class cryptomarket extends Exchange {
             const name = this.safeString (currency, 'full_name');
             const withdrawEnabled = this.safeValue (currency, 'payout_enabled');
             const depositEnabled = this.safeValue (currency, 'payin_enabled');
+            const precision = this.parseNumber (this.safeString (currency, 'precision_transfer'));
             const active = withdrawEnabled && depositEnabled;
             result[code] = {
                 'id': key,
@@ -395,7 +400,7 @@ module.exports = class cryptomarket extends Exchange {
                 'name': name,
                 'active': active,
                 'fee': undefined,
-                'precision': undefined,
+                'precision': precision,
                 'deposit': depositEnabled,
                 'withdraw': withdrawEnabled,
                 'limits': {
@@ -428,7 +433,7 @@ module.exports = class cryptomarket extends Exchange {
         // }
         const id = this.safeString (network, 'code');
         const networkName = this.safeString (network, 'network_name');
-        const networkCode = this.safeStringUper (network, 'network');
+        const networkCode = this.safeStringUpper (network, 'network');
         const withdrawEnabled = this.safeValue (network, 'payout_enabled');
         const depositEnabled = this.safeValue (network, 'payin_enabled');
         const active = withdrawEnabled && depositEnabled;
@@ -461,7 +466,7 @@ module.exports = class cryptomarket extends Exchange {
         };
     }
 
-    parseTrade (trade, market = undefined) {
+    parseTrade (trade, market = undefined): Trade {
         // public trade
         //  {
         //      "id":3495,
@@ -528,7 +533,7 @@ module.exports = class cryptomarket extends Exchange {
         });
     }
 
-    async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         await this.loadMarkets ();
         const market = this.market (symbol);
         let request = {
@@ -548,7 +553,7 @@ module.exports = class cryptomarket extends Exchange {
         return this.parseTrades (response, market, since, limit);
     }
 
-    parseTicker (ticker, market = undefined) {
+    parseTicker (ticker: Dict, market: Market = undefined): Ticker {
         // {
         //     "ask": "0.050043",
         //     "bid": "0.050042",
@@ -595,7 +600,7 @@ module.exports = class cryptomarket extends Exchange {
         };
     }
 
-    async fetchTicker (symbol, params = {}) {
+    async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -605,7 +610,7 @@ module.exports = class cryptomarket extends Exchange {
         return this.parseTicker (response, market);
     }
 
-    async fetchTickers (symbols = undefined, params = {}) {
+    async fetchTickers (symbols: string[] = undefined, params = {}): Promise<Tickers> {
         await this.loadMarkets ();
         const request = {};
         if (symbols !== undefined) {
@@ -616,7 +621,7 @@ module.exports = class cryptomarket extends Exchange {
         return this.parseTickers (response, symbols);
     }
 
-    async fetchOrderBook (symbol, limit = undefined, params = {}) {
+    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         // {
         //     "timestamp": "2021-06-11T11:30:38.597950917Z",
         //     "ask": [
@@ -647,7 +652,7 @@ module.exports = class cryptomarket extends Exchange {
         return this.parseOrderBook (response, market['symbol'], timestamp, 'bid', 'ask');
     }
 
-    parseOHLCV (ohlcv, market = undefined) {
+    parseOHLCV (ohlcv, market = undefined): OHLCV {
         // {
         //     "timestamp": "2021-07-01T20:00:00.000Z",
         //     "open": "0.063420",
@@ -668,7 +673,7 @@ module.exports = class cryptomarket extends Exchange {
         ];
     }
 
-    async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         // [
         //     {
         //         "timestamp": "2021-06-20T20:00:00.000Z",
@@ -709,7 +714,7 @@ module.exports = class cryptomarket extends Exchange {
         return this.parseOHLCVs (response, market, timeframe, since, limit);
     }
 
-    parseBalance (response) {
+    parseBalance (response): Balances {
         const result = {
             'info': response,
         };
@@ -725,7 +730,7 @@ module.exports = class cryptomarket extends Exchange {
         return this.safeBalance (result);
     }
 
-    async fetchBalance (params = {}) {
+    async fetchBalance (params = {}): Promise<Balances> {
         await this.loadMarkets ();
         // [
         //     {
@@ -744,21 +749,21 @@ module.exports = class cryptomarket extends Exchange {
         return balances;
     }
 
-    async fetchCanceledOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchCanceledOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         const request = {
             'state': 'canceled',
         };
         return await this.fetchOrders (symbol, since, limit, this.extend (request, params));
     }
 
-    async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchClosedOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         const request = {
             'state': 'filled',
         };
         return await this.fetchOrders (symbol, since, limit, this.extend (request, params));
     }
 
-    parseOrderStatus (status) {
+    parseOrderStatus (status): string {
         const statuses = {
             'new': 'open',
             'suspended': 'open',
@@ -770,7 +775,7 @@ module.exports = class cryptomarket extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseOrder (order, market = undefined) {
+    parseOrder (order, market = undefined): Order {
         // {
         //     "id": 828680665,
         //     "client_order_id": "f4307c6e507e49019907c917b6d7a084",
@@ -800,7 +805,7 @@ module.exports = class cryptomarket extends Exchange {
         const clientOrderId = this.safeString (order, 'client_order_id');
         const timestamp = this.parse8601 (this.safeString (order, 'created_at'));
         const datetime = this.iso8601 (timestamp);
-        const lastTradeTimestamp = this.safeString (order, 'updated_at');
+        const lastTradeTimestamp = this.parse8601 (this.safeString (order, 'updated_at'));
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
         const marketId = this.safeString (order, 'symbol');
         const symbol = this.safeSymbol (marketId, market);
@@ -834,11 +839,12 @@ module.exports = class cryptomarket extends Exchange {
             'cost': undefined,
             'trades': trades,
             'fee': undefined,
+            'reduceOnly': undefined,
             'info': order,
         };
     }
 
-    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+    async createOrder (symbol: string, type: string, side: string, amount: number, price: Num = undefined, params = {}): Promise<Order> {
         await this.loadMarkets ();
         const marketId = this.marketId (symbol);
         const request = {
@@ -854,7 +860,7 @@ module.exports = class cryptomarket extends Exchange {
         return this.parseOrder (response);
     }
 
-    async cancelOrder (id, symbol = undefined, params = {}) {
+    async cancelOrder (id: string, symbol: string = undefined, params = {}): Promise<Order> {
         await this.loadMarkets ();
         const request = {
             'client_order_id': id,
@@ -863,7 +869,7 @@ module.exports = class cryptomarket extends Exchange {
         return this.parseOrder (response);
     }
 
-    async cancelAllOrders (symbol = undefined, params = {}) {
+    async cancelAllOrders (symbol: string = undefined, params = {}): Promise<Order[]> {
         const request = {};
         let market = undefined;
         if (symbol !== undefined) {
@@ -875,7 +881,7 @@ module.exports = class cryptomarket extends Exchange {
         return this.parseOrders (response, market);
     }
 
-    async fetchOpenOrder (id, symbol = undefined, params = {}) {
+    async fetchOpenOrder (id, symbol = undefined, params = {}): Promise<Order> {
         await this.loadMarkets ();
         const request = {
             'client_order_id': id,
@@ -884,7 +890,7 @@ module.exports = class cryptomarket extends Exchange {
         return this.parseOrder (response);
     }
 
-    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchOpenOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         await this.loadMarkets ();
         const request = {};
         const market = this.market (symbol);
@@ -895,7 +901,7 @@ module.exports = class cryptomarket extends Exchange {
         return this.parseOrders (response, market);
     }
 
-    async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         await this.loadMarkets ();
         let request = {};
         if (symbol !== undefined) {
@@ -918,7 +924,7 @@ module.exports = class cryptomarket extends Exchange {
         return this.parseOrders (response);
     }
 
-    parseTransactionStatus (status) {
+    parseTransactionStatus (status): string {
         const statuses = {
             'CREATED': 'pending',
             'PENDING': 'pending',
@@ -929,7 +935,7 @@ module.exports = class cryptomarket extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseTransaction (transaction, currency = undefined) {
+    parseTransaction (transaction, currency = undefined): Transaction {
         // {
         //     "id": 36896428,
         //     "created_at": "2020-11-12T10:27:26.135Z",
@@ -967,7 +973,7 @@ module.exports = class cryptomarket extends Exchange {
         const tag = this.safeString (native, 'payment_id');
         const amount = this.safeNumber (native, 'amount');
         const currencyId = this.safeString (native, 'currency');
-        const fee = this.safeString (native, 'fee');
+        const feeCost = this.safeNumber (native, 'fee');
         const code = this.safeCurrencyCode (currencyId, currency);
         return {
             'info': transaction,
@@ -975,6 +981,8 @@ module.exports = class cryptomarket extends Exchange {
             'txid': txid,
             'timestamp': timestamp,
             'datetime': datetime,
+            'network': undefined,
+            'internal': undefined,
             'addressFrom': undefined,
             'address': address,
             'addressTo': undefined,
@@ -987,11 +995,15 @@ module.exports = class cryptomarket extends Exchange {
             'status': status,
             'updated': updated,
             'comment': undefined,
-            'fee': fee,
+            'fee': {
+                'cost': feeCost,
+                'currency': currency,
+                'rate': undefined,
+            },
         };
     }
 
-    async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchMyTrades (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         const request = {};
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -1008,14 +1020,14 @@ module.exports = class cryptomarket extends Exchange {
         return this.parseTrades (response, market);
     }
 
-    async fetchOrderTrades (id, symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchOrderTrades (id: string, symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         const request = {
             'order_id': id,
         };
         return await this.fetchMyTrades (symbol, since, limit, this.extend (request, params));
     }
 
-    async fetchAccounts (params = {}) {
+    async fetchAccounts (params = {}): Promise<Account[]> {
         const response = await this.privateGetSubAccount (params);
         const result = [];
         for (let i = 0; i < response.length; i++) {
@@ -1032,7 +1044,7 @@ module.exports = class cryptomarket extends Exchange {
         return result;
     }
 
-    async editOrder (id, symbol, type, side, amount, price = undefined, params = {}) {
+    async editOrder (id: string, symbol: string, type: string, side: string, amount: Num = undefined, price: Num = undefined, params = {}): Promise<Order> {
         const request = {
             'client_order_id': id,
         };
@@ -1042,11 +1054,11 @@ module.exports = class cryptomarket extends Exchange {
         if (price !== undefined) {
             request['price'] = price;
         }
-        const response = await this.privatePathSpotOrderClientOrderId (this.extend (request, params));
+        const response = await this.privatePatchSpotOrderClientOrderId (this.extend (request, params));
         return this.parseOrder (response);
     }
 
-    async fetchTransactions (code = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchTransactions (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         await this.loadMarkets ();
         let currency = undefined;
         const request = {};
@@ -1064,7 +1076,7 @@ module.exports = class cryptomarket extends Exchange {
         return this.parseTransactions (response, currency);
     }
 
-    parseDepositAddress (depositAddress, currency = undefined) {
+    parseDepositAddress (depositAddress, currency: Currency = undefined) {
         // {
         //     "currency":"BTC",
         //     "address":"3E8WKmTJzaTsBc4kvuEJVjPNtak6vQRcRv"
@@ -1073,17 +1085,18 @@ module.exports = class cryptomarket extends Exchange {
         const code = this.safeCurrencyCode (currencyId);
         const address = this.safeString (depositAddress, 'address');
         const tag = this.safeString2 (depositAddress, 'memo', 'payment_id');
-        const network_code = this.safeString (depositAddress, 'network_code');
+        // const network_code = this.safeString (depositAddress, 'network_code');
         return {
             'currency': code,
-            'network': network_code,
+            // TODO: what about this network??
+            // 'network': network_code,
             'address': address,
             'tag': tag,
             'info': depositAddress,
         };
     }
 
-    async fetchDepositAddress (code, params = {}) {
+    async fetchDepositAddress (code: string, params = {}) {
         await this.loadMarkets ();
         let currency = undefined;
         const request = {};
@@ -1091,17 +1104,17 @@ module.exports = class cryptomarket extends Exchange {
             currency = this.currency (code);
             request['currency'] = currency['id'];
         }
-        const result = this.privateWalletCryptoAddress (request);
+        const result = this.privateGetWalletCryptoAddress (request);
         const address = result[0];
         return this.parseDepositAddress (address);
     }
 
-    async fetchDepositAddresses (codes = undefined, params = {}) {
-        const result = this.privateWalletCryptoAddress ();
+    async fetchDepositAddresses (codes: string[] = undefined, params = {}) {
+        const result = this.privateGetWalletCryptoAddress ();
         return this.parseDepositAddresses (result);
     }
 
-    async fetchDeposit (id, code = undefined, params = {}) {
+    async fetchDeposit (id, code = undefined, params = {}): Promise<Transaction> {
         const request = {
             'tx_id': id,
         };
@@ -1109,7 +1122,7 @@ module.exports = class cryptomarket extends Exchange {
         return this.parseTransaction (response);
     }
 
-    async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchDeposits (code = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         const request = {
             'types': 'DEPOSIT',
         };
@@ -1124,14 +1137,14 @@ module.exports = class cryptomarket extends Exchange {
         return this.parseTransaction (response);
     }
 
-    async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchWithdrawals (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         const request = {
             'types': 'WITHDRAW',
         };
         return this.fetchTransactions (code, since, limit, this.extend (request, params));
     }
 
-    async fetchTransfer (id, code = undefined, params = {}) {
+    async fetchTransfer (id: string, code: string = undefined, params = {}): Promise<TransferEntry> {
         const request = {
             'tx_id': id,
         };
@@ -1139,14 +1152,38 @@ module.exports = class cryptomarket extends Exchange {
         return this.parseTransaction (response);
     }
 
-    async fetchTransfers (code = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchTransfers (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<TransferEntries> {
         const request = {
             'types': 'TRANSFER',
         };
-        return this.fetchTransactions (code, since, limit, this.extend (request, params));
+        let currency = undefined;
+        if (code !== undefined) {
+            currency = this.currency (code);
+            request['currencies'] = currency['id'];
+        }
+        if (since !== undefined) {
+            request['from'] = since;
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const response = await this.privateGetWalletTransactions (this.extend (request, params));
+        return this.parseTransfers (response);
     }
 
-    async withdraw (code, amount, address, tag = undefined, params = {}) {
+    parseTransfers (transfers: any[], currency: Currency = undefined, since: Int = undefined, limit: Int = undefined, params = {}): TransferEntries {
+        transfers = this.toArray (transfers);
+        let result = [];
+        for (let i = 0; i < transfers.length; i++) {
+            const transfer = this.extend (this.parseTransfer (transfers[i], currency), params);
+            result.push (transfer);
+        }
+        result = this.sortBy (result, 'timestamp');
+        const code = (currency !== undefined) ? currency['code'] : undefined;
+        return this.filterByCurrencySinceLimit (result, code, since, limit);
+    }
+
+    async withdraw (code, amount, address, tag = undefined, params = {}): Promise<Transaction> {
         await this.loadMarkets ();
         const currency = this.currency (code);
         const request = {
@@ -1161,7 +1198,7 @@ module.exports = class cryptomarket extends Exchange {
         return this.parseTransaction (response, currency);
     }
 
-    async transfer (code, amount, fromAccount, toAccount, params = {}) {
+    async transfer (code: string, amount: number, fromAccount: string, toAccount: string, params = {}): Promise<TransferEntry> {
         await this.loadMarkets ();
         const currency = this.currency (code);
         const accountsByType = this.safeValue (this.options, 'accountsByType', {});
@@ -1177,7 +1214,7 @@ module.exports = class cryptomarket extends Exchange {
         return this.parseTransaction (response, currency);
     }
 
-    parseTradingFee (fee, market = undefined) {
+    parseTradingFee (fee, market = undefined): TradingFeeInterface {
         // {
         //     "symbol": "BTCUSDT",
         //     "take_rate": "0.001",
@@ -1192,10 +1229,12 @@ module.exports = class cryptomarket extends Exchange {
             'taker': taker,
             'info': fee,
             'symbol': symbol,
+            'percentage': false,
+            'tierBased': false,
         };
     }
 
-    async fetchTradingFee (symbol, params = {}) {
+    async fetchTradingFee (symbol: string, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -1205,7 +1244,7 @@ module.exports = class cryptomarket extends Exchange {
         return this.parseTradingFee (response, market);
     }
 
-    async fetchTradingFees (params = {}) {
+    async fetchTradingFees (params = {}): Promise<TradingFees> {
         await this.loadMarkets ();
         const response = await this.privateGetSpotFee (params);
         const result = {};
@@ -1218,7 +1257,7 @@ module.exports = class cryptomarket extends Exchange {
         return result;
     }
 
-    async fetchTransactionFee (code, params = {}) {
+    async fetchTransactionFee (code: string, params = {}) {
         await this.loadMarkets ();
         const currency = this.currency (code);
         const amount = this.safeString (params, 'amount');
@@ -1229,7 +1268,7 @@ module.exports = class cryptomarket extends Exchange {
             'currency': currency['id'],
             'amount': amount,
         };
-        const response = await this.privateGetWalletCryptoEstimate (this.extend (request, params));
+        const response = await this.privateGetWalletCryptoFeeEstimate (this.extend (request, params));
         // {
         //     "fee": "0.000625"
         // }
@@ -1252,7 +1291,7 @@ module.exports = class cryptomarket extends Exchange {
         };
         const urlEncodedParams = this.urlencode (this.keysort (query));
         if (method === 'GET' || method === 'PUT') {
-            if (!this.isEmpty (urlEncodedParams)) {
+            if (urlEncodedParams !== '') {
                 url += '?' + urlEncodedParams;
             }
         }
@@ -1260,7 +1299,7 @@ module.exports = class cryptomarket extends Exchange {
             this.checkRequiredCredentials ();
             let msg = method + '/api/3/' + path;
             if (method === 'GET' || method === 'PUT') {
-                if (!this.isEmpty (urlEncodedParams)) {
+                if (urlEncodedParams !== '') {
                     msg += '?';
                 }
             }
@@ -1270,14 +1309,14 @@ module.exports = class cryptomarket extends Exchange {
             if (this.options['recvWindow']) {
                 msg += this.options['recvWindow'];
             }
-            const signature = this.hmac (this.encode (msg), this.encode (this.secret));
+            const signature = this.hmac (this.encode (msg), this.encode (this.secret), sha256);
             let signed = this.apiKey + ':' + signature + ':' + timestamp;
             if (this.options['recvWindow']) {
                 signed += ':' + this.options['recvWindow'];
             }
             const token = this.stringToBase64 (signed);
-            headers['Authorization'] = 'HS256 ' + this.decode (token);
+            headers['Authorization'] = 'HS256 ' + token;
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
-};
+}
