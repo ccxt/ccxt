@@ -1,0 +1,28 @@
+from ccxt.base.types import Entry
+
+
+class ImplicitAPI:
+    public_get_latest = publicGetLatest = Entry('latest', 'public', 'GET', {})
+    private_post_orders = privatePostOrders = Entry('orders', 'private', 'POST', {})
+    private_post_orders_history = privatePostOrdersHistory = Entry('orders/history', 'private', 'POST', {})
+    private_post_my_coin_deposit = privatePostMyCoinDeposit = Entry('my/coin/deposit', 'private', 'POST', {})
+    private_post_my_coin_send = privatePostMyCoinSend = Entry('my/coin/send', 'private', 'POST', {})
+    private_post_quote_buy = privatePostQuoteBuy = Entry('quote/buy', 'private', 'POST', {})
+    private_post_quote_sell = privatePostQuoteSell = Entry('quote/sell', 'private', 'POST', {})
+    private_post_my_balances = privatePostMyBalances = Entry('my/balances', 'private', 'POST', {})
+    private_post_my_orders = privatePostMyOrders = Entry('my/orders', 'private', 'POST', {})
+    private_post_my_buy = privatePostMyBuy = Entry('my/buy', 'private', 'POST', {})
+    private_post_my_sell = privatePostMySell = Entry('my/sell', 'private', 'POST', {})
+    private_post_my_buy_cancel = privatePostMyBuyCancel = Entry('my/buy/cancel', 'private', 'POST', {})
+    private_post_my_sell_cancel = privatePostMySellCancel = Entry('my/sell/cancel', 'private', 'POST', {})
+    private_post_ro_my_balances = privatePostRoMyBalances = Entry('ro/my/balances', 'private', 'POST', {})
+    private_post_ro_my_balances_cointype = privatePostRoMyBalancesCointype = Entry('ro/my/balances/{cointype}', 'private', 'POST', {})
+    private_post_ro_my_deposits = privatePostRoMyDeposits = Entry('ro/my/deposits', 'private', 'POST', {})
+    private_post_ro_my_withdrawals = privatePostRoMyWithdrawals = Entry('ro/my/withdrawals', 'private', 'POST', {})
+    private_post_ro_my_transactions = privatePostRoMyTransactions = Entry('ro/my/transactions', 'private', 'POST', {})
+    private_post_ro_my_transactions_cointype = privatePostRoMyTransactionsCointype = Entry('ro/my/transactions/{cointype}', 'private', 'POST', {})
+    private_post_ro_my_transactions_open = privatePostRoMyTransactionsOpen = Entry('ro/my/transactions/open', 'private', 'POST', {})
+    private_post_ro_my_transactions_cointype_open = privatePostRoMyTransactionsCointypeOpen = Entry('ro/my/transactions/{cointype}/open', 'private', 'POST', {})
+    private_post_ro_my_sendreceive = privatePostRoMySendreceive = Entry('ro/my/sendreceive', 'private', 'POST', {})
+    private_post_ro_my_affiliatepayments = privatePostRoMyAffiliatepayments = Entry('ro/my/affiliatepayments', 'private', 'POST', {})
+    private_post_ro_my_referralpayments = privatePostRoMyReferralpayments = Entry('ro/my/referralpayments', 'private', 'POST', {})

@@ -20,7 +20,7 @@ function main () {
     const symbols = [
         'BTC/USDT', // unified symbols used here as opposed to exchange-specific market ids
         'ETH/USDT', // more about unified symbols vs exchange-specific ids here:
-        'ADA/USDT', // https://docs.ccxt.com/en/latest/manual.html#markets
+        'ADA/USDT', // https://github.com/ccxt/ccxt/wiki/Manual#markets
     ]
     const timeframe = '1m'
     exchange.loadMarkets ().then (markets => {

@@ -21,15 +21,18 @@ async def main():
     })
     await exchange.load_markets()
     market_id = 'ETH-221028-1500-C'
+    symbol = 'ETH/USDT:USDT-221028-1500-C'
     limit = 10
     try:
-        response = await exchange.eapiPublicGetDepth({
-            'symbol': market_id,
-            # 'limit': limit,  # optional
-        })
+        response = await exchange.fetch_order_book(symbol, limit)
+        # Implicit API:
+        # response = await exchange.eapiPublicGetDepth({
+        #     'symbol': market_id,
+        #     # 'limit': limit,  # optional
+        # })
         pprint(response)
     except Exception as e:
-        print('eapiPublicGetDepth() failed')
+        print('fetch_order_book() failed')
         print(e)
     await exchange.close()
 

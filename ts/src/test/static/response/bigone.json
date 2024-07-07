@@ -1,0 +1,238 @@
+{
+    "exchange": "bigone",
+    "skipKeys": [],
+    "methods": {
+        "fetchTime": [
+            {
+                "description": "Fetch time",
+                "method": "fetchTime",
+                "input": [],
+                "httpResponse": {
+                    "code": "0",
+                    "data": {
+                        "Timestamp": "1714400719083822092"
+                    }
+                },
+                "parsedResponse": 1714400719083
+            }
+        ],
+        "fetchDepositAddress": [
+            {
+                "description": "Fetch deposit address for USDT",
+                "method": "fetchDepositAddress",
+                "input": [
+                    "USDT"
+                ],
+                "httpResponse": {
+                    "code": "0",
+                    "message": "",
+                    "data": [
+                        {
+                            "id": "6374866",
+                            "chain": "EOS",
+                            "value": "pxneosincome",
+                            "memo": "GYBXLNQ2"
+                        },
+                        {
+                            "id": "6374867",
+                            "chain": "Ethereum",
+                            "value": "0x64385715672a3565992e9f134a1b7e36cfe4a00f",
+                            "memo": ""
+                        },
+                        {
+                            "id": "6374868",
+                            "chain": "Tron",
+                            "value": "TQrDjvr1uKceBUUXVHkrYV4UZdMNtLAg6V",
+                            "memo": ""
+                        }
+                    ]
+                },
+                "parsedResponse": {
+                    "currency": "USDT",
+                    "address": "TQrDjvr1uKceBUUXVHkrYV4UZdMNtLAg6V",
+                    "tag": null,
+                    "network": "TRC20",
+                    "info": {
+                        "code": "0",
+                        "message": "",
+                        "data": [
+                            {
+                                "id": "6374866",
+                                "chain": "EOS",
+                                "value": "pxneosincome",
+                                "memo": "GYBXLNQ2"
+                            },
+                            {
+                                "id": "6374867",
+                                "chain": "Ethereum",
+                                "value": "0x64385715672a3565992e9f134a1b7e36cfe4a00f",
+                                "memo": ""
+                            },
+                            {
+                                "id": "6374868",
+                                "chain": "Tron",
+                                "value": "TQrDjvr1uKceBUUXVHkrYV4UZdMNtLAg6V",
+                                "memo": ""
+                            }
+                        ]
+                    }
+                }
+            }
+        ],
+        "fetchTrades": [
+            {
+                "description": "public spot trades",
+                "method": "fetchTrades",
+                "input": [
+                    "BTC/USDT",
+                    null,
+                    1
+                ],
+                "httpResponse": {
+                    "code": "0",
+                    "data": [
+                        {
+                            "id": "4107849607",
+                            "price": "73238.69",
+                            "amount": "0.05039",
+                            "taker_side": "BID",
+                            "inserted_at": "2024-03-13T11:01:00.792Z",
+                            "created_at": "2024-03-13T11:01:00.792Z"
+                        }
+                    ]
+                },
+                "parsedResponse": [
+                    {
+                        "id": "4107849607",
+                        "timestamp": 1710327660792,
+                        "datetime": "2024-03-13T11:01:00.792Z",
+                        "symbol": "BTC/USDT",
+                        "order": null,
+                        "type": "limit",
+                        "side": "buy",
+                        "takerOrMaker": null,
+                        "price": 73238.69,
+                        "amount": 0.05039,
+                        "cost": 3690.4975891,
+                        "info": {
+                            "id": "4107849607",
+                            "price": "73238.69",
+                            "amount": "0.05039",
+                            "taker_side": "BID",
+                            "inserted_at": "2024-03-13T11:01:00.792Z",
+                            "created_at": "2024-03-13T11:01:00.792Z"
+                        },
+                        "fee": null,
+                        "fees": []
+                    }
+                ]
+            }
+        ],
+        "fetchTicker": [
+            {
+                "description": "public spot ticker",
+                "method": "fetchTicker",
+                "input": [
+                    "BTC/USDT"
+                ],
+                "httpResponse": {
+                    "code": "0",
+                    "data": {
+                        "asset_pair_name": "BTC-USDT",
+                        "bid": {
+                            "price": "73364.66",
+                            "order_count": "1",
+                            "quantity": "0.014291"
+                        },
+                        "ask": {
+                            "price": "73379.68",
+                            "order_count": "1",
+                            "quantity": "0.018454"
+                        },
+                        "open": "72164.48",
+                        "high": "73624.77",
+                        "low": "68677.64",
+                        "close": "73368.3",
+                        "volume": "7094.1242",
+                        "daily_change": "1203.82"
+                    }
+                },
+                "parsedResponse": {
+                    "symbol": "BTC/USDT",
+                    "timestamp": null,
+                    "datetime": null,
+                    "high": 73624.77,
+                    "low": 68677.64,
+                    "bid": 73364.66,
+                    "bidVolume": 0.014291,
+                    "ask": 73379.68,
+                    "askVolume": 0.018454,
+                    "vwap": null,
+                    "open": 72164.48,
+                    "close": 73368.3,
+                    "last": 73368.3,
+                    "previousClose": null,
+                    "change": 1203.82,
+                    "percentage": 1.6681614001791463,
+                    "average": 72766.39,
+                    "baseVolume": 7094.1242,
+                    "quoteVolume": null,
+                    "info": {
+                        "asset_pair_name": "BTC-USDT",
+                        "bid": {
+                            "price": "73364.66",
+                            "order_count": "1",
+                            "quantity": "0.014291"
+                        },
+                        "ask": {
+                            "price": "73379.68",
+                            "order_count": "1",
+                            "quantity": "0.018454"
+                        },
+                        "open": "72164.48",
+                        "high": "73624.77",
+                        "low": "68677.64",
+                        "close": "73368.3",
+                        "volume": "7094.1242",
+                        "daily_change": "1203.82"
+                    }
+                }
+            }
+        ],
+        "fetchOHLCV": [
+            {
+                "description": "public spot ohlcv",
+                "method": "fetchOHLCV",
+                "input": [
+                    "BTC/USDT",
+                    "1h",
+                    null,
+                    1
+                ],
+                "httpResponse": {
+                    "code": "0",
+                    "data": [
+                        {
+                            "close": "73422.06",
+                            "high": "73442.95",
+                            "low": "73238.69",
+                            "open": "73246.67",
+                            "time": "2024-03-13T11:00:00Z",
+                            "volume": "40.023109"
+                        }
+                    ]
+                },
+                "parsedResponse": [
+                    [
+                        1710327600000,
+                        73246.67,
+                        73442.95,
+                        73238.69,
+                        73422.06,
+                        40.023109
+                    ]
+                ]
+            }
+        ]
+    }
+}

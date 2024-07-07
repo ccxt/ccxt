@@ -1,8 +1,8 @@
-'use strict';
+import ccxt from '../../js/ccxt.js';
+import ololog from 'ololog';
 
-
-const ccxt = require ('../../ccxt.js')
-    , log  = require ('ololog').noLocate
+const { noLocate } = ololog;
+const log = noLocate;
 
 const exchange = new ccxt.coinbasepro ()
 

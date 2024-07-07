@@ -1,0 +1,79 @@
+{
+    "BTC": {
+        "id": "2",
+        "code": "BTC",
+        "precision": 0.000001,
+        "fees": {},
+        "networks": {},
+        "limits": {
+            "deposit": {},
+            "withdraw": {}
+        }
+    },
+    "USDT": {
+        "id": "14",
+        "code": "USDT",
+        "precision": 1e-8,
+        "fees": {},
+        "networks": {},
+        "limits": {
+            "deposit": {},
+            "withdraw": {}
+        }
+    },
+    "LTC": {
+        "id": "7",
+        "code": "LTC",
+        "precision": 0.001,
+        "fees": {},
+        "networks": {},
+        "limits": {
+            "deposit": {},
+            "withdraw": {}
+        }
+    },
+    "ETH": {
+        "id": "4",
+        "code": "ETH",
+        "precision": 0.001,
+        "fees": {},
+        "networks": {},
+        "limits": {
+            "deposit": {},
+            "withdraw": {}
+        }
+    },
+    "ADA": {
+        "id": "122",
+        "code": "ADA",
+        "precision": 0.01,
+        "fees": {},
+        "networks": {},
+        "limits": {
+            "deposit": {},
+            "withdraw": {}
+        }
+    },
+    "XRP": {
+        "id": "10",
+        "code": "XRP",
+        "precision": 0.01,
+        "fees": {},
+        "networks": {},
+        "limits": {
+            "deposit": {},
+            "withdraw": {}
+        }
+    },
+    "USDC": {
+        "id": "57",
+        "code": "USDC",
+        "precision": 0.01,
+        "fees": {},
+        "networks": {},
+        "limits": {
+            "deposit": {},
+            "withdraw": {}
+        }
+    }
+}

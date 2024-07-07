@@ -1,0 +1,11 @@
+blank_issues_enabled: false
+contact_links:
+  - name: CCXT Documentation
+    url: https://github.com/ccxt/ccxt/wiki
+    about: Read CCXT documentation for answers to common questions
+  - name: Troubleshooting
+    url: https://github.com/ccxt/ccxt/wiki/Manual#troubleshooting
+    about: Read our troubleshooting recommendations in our documentation
+  - name: CCXT Discord
+    url: https://discord.gg/dhzSKYU
+    about: Ask questions, get help and discuss new things you're building with the CCXT community

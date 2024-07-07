@@ -1,0 +1,366 @@
+{
+    "BTC": {
+        "info": [
+            "BTC",
+            "Bitcoin",
+            1,
+            8,
+            0,
+            8,
+            8,
+            false,
+            null,
+            "bitcoin"
+        ],
+        "id": "BTC",
+        "code": "BTC",
+        "name": "Bitcoin",
+        "type": "fiat",
+        "precision": 1e-8,
+        "limits": {
+            "deposit": {},
+            "withdraw": {}
+        },
+        "networks": {
+            "BTC": {
+                "info": [
+                    "BTC",
+                    "Bitcoin",
+                    1,
+                    8,
+                    0,
+                    8,
+                    8,
+                    false,
+                    null,
+                    "bitcoin"
+                ],
+                "id": "bitcoin",
+                "network": "BTC",
+                "precision": 1e-8,
+                "limits": {
+                    "deposit": {},
+                    "withdraw": {}
+                }
+            }
+        }
+    },
+    "USDT": {
+        "info": [
+            "USDT",
+            "Tether",
+            50,
+            6,
+            0,
+            6,
+            8,
+            false,
+            null,
+            "ethereum"
+        ],
+        "id": "USDT",
+        "code": "USDT",
+        "name": "Tether",
+        "type": "fiat",
+        "precision": 0.000001,
+        "limits": {
+            "deposit": {},
+            "withdraw": {}
+        },
+        "networks": {
+            "ERC20": {
+                "info": [
+                    "USDT",
+                    "Tether",
+                    50,
+                    6,
+                    0,
+                    6,
+                    8,
+                    false,
+                    null,
+                    "ethereum"
+                ],
+                "id": "ethereum",
+                "network": "ERC20",
+                "precision": 0.000001,
+                "limits": {
+                    "deposit": {},
+                    "withdraw": {}
+                }
+            }
+        }
+    },
+    "EUR": {
+        "info": [
+            "EUR",
+            "Euro",
+            21,
+            2,
+            2,
+            2,
+            2,
+            true,
+            "€",
+            null
+        ],
+        "id": "EUR",
+        "code": "EUR",
+        "name": "Euro",
+        "type": "fiat",
+        "precision": 0.01,
+        "limits": {
+            "deposit": {},
+            "withdraw": {}
+        },
+        "networks": {
+            "undefined": {
+                "info": [
+                    "EUR",
+                    "Euro",
+                    21,
+                    2,
+                    2,
+                    2,
+                    2,
+                    true,
+                    "€",
+                    null
+                ],
+                "precision": 0.01,
+                "limits": {
+                    "deposit": {},
+                    "withdraw": {}
+                }
+            }
+        }
+    },
+    "USD": {
+        "info": [
+            "USD",
+            "U.S. Dollar",
+            0,
+            2,
+            2,
+            2,
+            2,
+            true,
+            "$",
+            null
+        ],
+        "id": "USD",
+        "code": "USD",
+        "name": "U.S. Dollar",
+        "type": "fiat",
+        "precision": 0.01,
+        "limits": {
+            "deposit": {},
+            "withdraw": {}
+        },
+        "networks": {
+            "undefined": {
+                "info": [
+                    "USD",
+                    "U.S. Dollar",
+                    0,
+                    2,
+                    2,
+                    2,
+                    2,
+                    true,
+                    "$",
+                    null
+                ],
+                "precision": 0.01,
+                "limits": {
+                    "deposit": {},
+                    "withdraw": {}
+                }
+            }
+        }
+    },
+    "LTC": {
+        "info": [
+            "LTC",
+            "Litecoin",
+            4,
+            6,
+            0,
+            8,
+            8,
+            false,
+            "Ł",
+            "litecoin"
+        ],
+        "id": "LTC",
+        "code": "LTC",
+        "name": "Litecoin",
+        "type": "fiat",
+        "precision": 1e-8,
+        "limits": {
+            "deposit": {},
+            "withdraw": {}
+        },
+        "networks": {
+            "LTC": {
+                "info": [
+                    "LTC",
+                    "Litecoin",
+                    4,
+                    6,
+                    0,
+                    8,
+                    8,
+                    false,
+                    "Ł",
+                    "litecoin"
+                ],
+                "id": "litecoin",
+                "network": "LTC",
+                "precision": 1e-8,
+                "limits": {
+                    "deposit": {},
+                    "withdraw": {}
+                }
+            }
+        }
+    },
+    "ETH": {
+        "info": [
+            "ETH",
+            "Ether",
+            2,
+            6,
+            0,
+            18,
+            8,
+            false,
+            null,
+            "ethereum"
+        ],
+        "id": "ETH",
+        "code": "ETH",
+        "name": "Ether",
+        "type": "fiat",
+        "precision": 1e-18,
+        "limits": {
+            "deposit": {},
+            "withdraw": {}
+        },
+        "networks": {
+            "ERC20": {
+                "info": [
+                    "ETH",
+                    "Ether",
+                    2,
+                    6,
+                    0,
+                    18,
+                    8,
+                    false,
+                    null,
+                    "ethereum"
+                ],
+                "id": "ethereum",
+                "network": "ERC20",
+                "precision": 1e-18,
+                "limits": {
+                    "deposit": {},
+                    "withdraw": {}
+                }
+            }
+        }
+    },
+    "XRP": {
+        "info": [
+            "XRP",
+            "XRP",
+            47,
+            6,
+            0,
+            6,
+            8,
+            false,
+            null,
+            "xrpl"
+        ],
+        "id": "XRP",
+        "code": "XRP",
+        "name": "XRP",
+        "type": "fiat",
+        "precision": 0.000001,
+        "limits": {
+            "deposit": {},
+            "withdraw": {}
+        },
+        "networks": {
+            "xrpl": {
+                "info": [
+                    "XRP",
+                    "XRP",
+                    47,
+                    6,
+                    0,
+                    6,
+                    8,
+                    false,
+                    null,
+                    "xrpl"
+                ],
+                "id": "xrpl",
+                "network": "xrpl",
+                "precision": 0.000001,
+                "limits": {
+                    "deposit": {},
+                    "withdraw": {}
+                }
+            }
+        }
+    },
+    "USDC": {
+        "info": [
+            "USDC",
+            "USD Coin",
+            39,
+            6,
+            0,
+            6,
+            8,
+            false,
+            null,
+            "ethereum"
+        ],
+        "id": "USDC",
+        "code": "USDC",
+        "name": "USD Coin",
+        "type": "fiat",
+        "precision": 0.000001,
+        "limits": {
+            "deposit": {},
+            "withdraw": {}
+        },
+        "networks": {
+            "ERC20": {
+                "info": [
+                    "USDC",
+                    "USD Coin",
+                    39,
+                    6,
+                    0,
+                    6,
+                    8,
+                    false,
+                    null,
+                    "ethereum"
+                ],
+                "id": "ethereum",
+                "network": "ERC20",
+                "precision": 0.000001,
+                "limits": {
+                    "deposit": {},
+                    "withdraw": {}
+                }
+            }
+        }
+    }
+}

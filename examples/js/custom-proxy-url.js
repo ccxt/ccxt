@@ -1,8 +1,8 @@
-"use strict";
 
-const ccxt = require ('../../ccxt.js')
 
-;(async function main () {
+import ccxt from '../../js/ccxt.js';
+
+(async function main () {
 
     const kraken1 = new ccxt.kraken ({
         proxy: function (url) {

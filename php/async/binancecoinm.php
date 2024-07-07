@@ -6,6 +6,7 @@ namespace ccxt\async;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
+use ccxt\async\abstract\binancecoinm as binance;
 use React\Async;
 
 class binancecoinm extends binance {
@@ -19,6 +20,7 @@ class binancecoinm extends binance {
                 'doc' => array(
                     'https://binance-docs.github.io/apidocs/delivery/en/',
                     'https://binance-docs.github.io/apidocs/spot/en',
+                    'https://developers.binance.com/en',
                 ),
             ),
             'has' => array(
@@ -31,20 +33,21 @@ class binancecoinm extends binance {
                 'createStopMarketOrder' => true,
             ),
             'options' => array(
-                'defaultType' => 'delivery',
+                'fetchMarkets' => array( 'inverse' ),
+                'defaultSubType' => 'inverse',
                 'leverageBrackets' => null,
             ),
         ));
     }
 
-    public function transfer_in($code, $amount, $params = array ()) {
+    public function transfer_in(string $code, $amount, $params = array ()) {
         return Async\async(function () use ($code, $amount, $params) {
             // transfer from spot wallet to coinm futures wallet
             return Async\await($this->futuresTransfer ($code, $amount, 3, $params));
         }) ();
     }
 
-    public function transfer_out($code, $amount, $params = array ()) {
+    public function transfer_out(string $code, $amount, $params = array ()) {
         return Async\async(function () use ($code, $amount, $params) {
             // transfer from coinm futures wallet to spot wallet
             return Async\await($this->futuresTransfer ($code, $amount, 4, $params));

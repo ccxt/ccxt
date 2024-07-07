@@ -21,15 +21,20 @@ async def main():
     })
     await exchange.load_markets()
     market_id = 'ETH-221028-1700-C'
+    symbol = 'ETH/USDT:USDT-221028-1700-C'
+    since = 1677102900000
+    limit = 10
     order_id = 4612098335294532880
     try:
-        response = await exchange.eapiPrivateGetOpenOrders({
-            # 'symbol': market_id,  # optional
-            # 'orderId': order_id,  # optional
-        })
+        response = await exchange.fetch_open_orders(symbol, since, limit)
+        # Implicit API:
+        # response = await exchange.eapiPrivateGetOpenOrders({
+        #     # 'symbol': market_id,  # optional
+        #     # 'orderId': order_id,  # optional
+        # })
         pprint(response)
     except Exception as e:
-        print('eapiPrivateGetOpenOrders() failed')
+        print('fetch_open_orders() failed')
         print(e)
     await exchange.close()
 

@@ -65,6 +65,21 @@ The CCXT Pro library currently supports the following 46 cryptocurrency exchange
      - ver
      - certified
      - pro
+   * - .. image:: https://user-images.githubusercontent.com/1294454/187234005-b864db3d-f1e3-447a-aaf9-a9fc7b955d07.jpg
+          :target: https://alpaca.markets
+          :alt: alpaca
+     
+     - alpaca
+     - `Alpaca <https://alpaca.markets>`__
+     - .. image:: https://img.shields.io/badge/*-lightgray
+          :target: https://alpaca.markets/docs/
+          :alt: API Version *
+     
+     - 
+     - .. image:: https://img.shields.io/badge/CCXT-Pro-black
+          :target: https://ccxt.pro
+          :alt: CCXT Pro
+     
    * - .. image:: https://user-images.githubusercontent.com/1294454/112027508-47984600-8b48-11eb-9e17-d26459cc36c6.jpg
           :target: https://ascendex.com/en-us/register?inviteCode=EL6BXBQM
           :alt: ascendex
@@ -488,21 +503,6 @@ The CCXT Pro library currently supports the following 46 cryptocurrency exchange
      - .. image:: https://img.shields.io/badge/2-lightgray
           :target: https://api.hitbtc.com/v2
           :alt: API Version 2
-     
-     - 
-     - .. image:: https://img.shields.io/badge/CCXT-Pro-black
-          :target: https://ccxt.pro
-          :alt: CCXT Pro
-     
-   * - .. image:: https://user-images.githubusercontent.com/1294454/27766555-8eaec20e-5edc-11e7-9c5b-6dc69fc42f5e.jpg
-          :target: https://hitbtc.com/?ref_id=5a5d39a65d466
-          :alt: hitbtc3
-     
-     - hitbtc3
-     - `HitBTC <https://hitbtc.com/?ref_id=5a5d39a65d466>`__
-     - .. image:: https://img.shields.io/badge/3-lightgray
-          :target: https://api.hitbtc.com
-          :alt: API Version 3
      
      - 
      - .. image:: https://img.shields.io/badge/CCXT-Pro-black
@@ -1312,6 +1312,8 @@ The ``limit`` argument does not guarantee that the number of bids or asks will a
 watchTicker
 """""""""""
 
+Some exchanges allow different topics to listen to tickers (ie: bookTicker). You can set this in ``exchange.options['watchTicker']['name']``
+
 .. code-block:: JavaScript
 
    // JavaScript
@@ -1454,7 +1456,7 @@ If your application is not very time-critical, you can still subscribe to OHLCV 
    if (exchange.has['watchOHLCV']) {
        while (true) {
            try {
-               const candles = await exchange.watchOHLCV (symbol, since, limit, params)
+               const candles = await exchange.watchOHLCV (symbol, timeframe, since, limit, params)
                console.log (new Date (), candles)
            } catch (e) {
                console.log (e)
@@ -1470,7 +1472,7 @@ If your application is not very time-critical, you can still subscribe to OHLCV 
    if exchange.has['watchOHLCV']:
        while True:
            try:
-               candles = await exchange.watch_ohlcv(symbol, since, limit, params)
+               candles = await exchange.watch_ohlcv(symbol, timeframe, since, limit, params)
                print(exchange.iso8601(exchange.milliseconds()), candles)
            except Exception as e:
                print(e)

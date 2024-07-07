@@ -1,4 +1,4 @@
-const ccxt = require ('../../ccxt')
+import ccxt from '../../js/ccxt.js';
 
 // ----------------------------------------------------------------------------
 // an example of how to load markets for each exchange just once

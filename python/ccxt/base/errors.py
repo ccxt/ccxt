@@ -10,7 +10,12 @@ error_hierarchy = {
             'ArgumentsRequired': {},
             'BadRequest': {
                 'BadSymbol': {},
-                'MarginModeAlreadySet': {},
+            },
+            'OperationRejected': {
+                'NoChange': {
+                    'MarginModeAlreadySet': {},
+                },
+                'MarketClosed': {},
             },
             'BadResponse': {
                 'NullResponse': {},
@@ -26,18 +31,22 @@ error_hierarchy = {
                 'OrderImmediatelyFillable': {},
                 'OrderNotFillable': {},
                 'DuplicateOrderId': {},
+                'ContractUnavailable': {},
             },
             'NotSupported': {},
+            'ProxyError': {},
+            'ExchangeClosedByUser': {},
         },
-        'NetworkError': {
-            'DDoSProtection': {
+        'OperationFailed': {
+            'NetworkError': {
+                'DDoSProtection': {},
                 'RateLimitExceeded': {},
+                'ExchangeNotAvailable': {
+                    'OnMaintenance': {},
+                },
+                'InvalidNonce': {},
+                'RequestTimeout': {},
             },
-            'ExchangeNotAvailable': {
-                'OnMaintenance': {},
-            },
-            'InvalidNonce': {},
-            'RequestTimeout': {},
         },
     },
 }
@@ -79,7 +88,19 @@ class BadSymbol(BadRequest):
     pass
 
 
-class MarginModeAlreadySet(BadRequest):
+class OperationRejected(ExchangeError):
+    pass
+
+
+class NoChange(OperationRejected):
+    pass
+
+
+class MarginModeAlreadySet(NoChange):
+    pass
+
+
+class MarketClosed(OperationRejected):
     pass
 
 
@@ -131,11 +152,27 @@ class DuplicateOrderId(InvalidOrder):
     pass
 
 
+class ContractUnavailable(InvalidOrder):
+    pass
+
+
 class NotSupported(ExchangeError):
     pass
 
 
-class NetworkError(BaseError):
+class ProxyError(ExchangeError):
+    pass
+
+
+class ExchangeClosedByUser(ExchangeError):
+    pass
+
+
+class OperationFailed(BaseError):
+    pass
+
+
+class NetworkError(OperationFailed):
     pass
 
 
@@ -143,7 +180,7 @@ class DDoSProtection(NetworkError):
     pass
 
 
-class RateLimitExceeded(DDoSProtection):
+class RateLimitExceeded(NetworkError):
     pass
 
 
@@ -174,7 +211,10 @@ __all__ = [
     'ArgumentsRequired',
     'BadRequest',
     'BadSymbol',
+    'OperationRejected',
+    'NoChange',
     'MarginModeAlreadySet',
+    'MarketClosed',
     'BadResponse',
     'NullResponse',
     'InsufficientFunds',
@@ -187,7 +227,11 @@ __all__ = [
     'OrderImmediatelyFillable',
     'OrderNotFillable',
     'DuplicateOrderId',
+    'ContractUnavailable',
     'NotSupported',
+    'ProxyError',
+    'ExchangeClosedByUser',
+    'OperationFailed',
     'NetworkError',
     'DDoSProtection',
     'RateLimitExceeded',

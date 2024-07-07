@@ -1,10 +1,13 @@
-"use strict";
+
 
 // ----------------------------------------------------------------------------
 
-const ccxt = require("../../ccxt.js"),
-    log = require ('ololog').handleNodeErrors (),
-    asTable = require("as-table").configure({ delimiter: " | " });
+import ccxt from '../../js/ccxt.js';
+import ololog from 'ololog'
+
+// ----------------------------------------------------------------------------
+
+const log = ololog.configure.handleNodeErrors (), asTable = require("as-table").configure({ delimiter: " | " });
 
 // ----------------------------------------------------------------------------
 
