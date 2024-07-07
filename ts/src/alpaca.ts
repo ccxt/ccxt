@@ -910,7 +910,7 @@ export default class alpaca extends Exchange {
         return this.parseOrderBook (rawOrderbook, market['symbol'], timestamp, 'b', 'a', 'p', 's');
     }
 
-    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = 0, limit: Int = 1000, params = {}): Promise<OHLCV[]> {
         /**
          * @method
          * @name alpaca#fetchOHLCV
@@ -919,8 +919,8 @@ export default class alpaca extends Exchange {
          * @see https://docs.alpaca.markets/reference/cryptolatestbars
          * @param {string} symbol unified symbol of the market to fetch OHLCV data for
          * @param {string} timeframe the length of time each candle represents
-         * @param {int} [since] timestamp in ms of the earliest candle to fetch
-         * @param {int} [limit] the maximum amount of candles to fetch
+         * @param {int} [since] timestamp in ms of the earliest candle to fetch - required parameter - defaulted to 0
+         * @param {int} [limit] the maximum amount of candles to fetch - defaults to 1000
          * @param {object} [params] extra parameters specific to the alpha api endpoint
          * @param {string} [params.loc] crypto location, default: us
          * @param {string} [params.method] method, default: marketPublicGetV1beta3CryptoLocBars
@@ -941,9 +941,11 @@ export default class alpaca extends Exchange {
             if (limit !== undefined) {
                 request['limit'] = limit;
             }
-            if (since !== undefined) {
-                request['start'] = this.yyyymmdd (since);
+            if (since === undefined) {
+                since = 0;
             }
+            request['start'] = this.yyyymmdd (since);
+            request['sort'] = 'desc';
             request['timeframe'] = this.safeString (this.timeframes, timeframe, timeframe);
             const response = await this.marketPublicGetV1beta3CryptoLocBars (this.extend (request, params));
             //
