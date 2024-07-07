@@ -26,7 +26,7 @@ process.on ('unhandledRejection', (e: any) => {
 const AuthenticationError = ccxt.AuthenticationError;
 const NotSupported = ccxt.NotSupported;
 const ExchangeError = ccxt.ExchangeError;
-const ProxyError = ccxt.ProxyError;
+const InvalidProxySettings = ccxt.InvalidProxySettings;
 const ExchangeNotAvailable = ccxt.ExchangeNotAvailable;
 const OperationFailed = ccxt.OperationFailed;
 const OnMaintenance = ccxt.OnMaintenance;
@@ -221,7 +221,7 @@ export {
     AuthenticationError,
     NotSupported,
     ExchangeError,
-    ProxyError,
+    InvalidProxySettings,
     ExchangeNotAvailable,
     OperationFailed,
     OnMaintenance,
