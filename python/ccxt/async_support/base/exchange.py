@@ -476,7 +476,10 @@ class Exchange(BaseExchange):
             del self.clients[client.url]
 
     def on_close(self, client, error):
-        self.clear_cache()
+        options = self.safe_dict(self.options, 'ws')
+        use_clear_cache = self.safe_bool(options, 'clearCacheOnClose', True)
+        if use_clear_cache:
+            self.clear_cache()
         if client.error:
             # connection closed by the user or due to an error
             pass

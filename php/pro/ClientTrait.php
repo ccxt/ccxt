@@ -215,7 +215,11 @@ trait ClientTrait {
     }
 
     public function on_close(Client $client, $message) {
-        $this->clear_cache();
+        $options = $this->safe_dict ($this->options, 'ws');
+        $use_clear_cache = $this->safe_bool ($options, 'clearCacheOnClose', true);
+        if ($use_clear_cache) {
+            $this->clear_cache();
+        }
         if ($client->error) {
             // connection closed by the user or due to an error, do nothing
         } else {
