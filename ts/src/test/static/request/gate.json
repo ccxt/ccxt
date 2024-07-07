@@ -100,6 +100,22 @@
                   100
                 ],
                 "output": "{\"contract\":\"LTC_USDT\",\"size\":-1,\"price\":\"100\"}"
+            },
+            {
+                "description": "swap trigger market buy order",
+                "method": "createOrder",
+                "url": "https://api.gateio.ws/api/v4/futures/usdt/price_orders",
+                "input": [
+                  "LTC/USDT:USDT",
+                  "market",
+                  "buy",
+                  1,
+                  null,
+                  {
+                    "triggerPrice": 90
+                  }
+                ],
+                "output": "{\"initial\":{\"contract\":\"LTC_USDT\",\"size\":1,\"price\":\"0\",\"tif\":\"ioc\"},\"trigger\":{\"price_type\":0,\"price\":\"90\",\"rule\":1}}"
             }
         ],
         "createOrders": [
