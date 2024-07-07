@@ -1307,6 +1307,14 @@
                 "input": [
                     "BTC/USDT:USDT"
                 ]
+            },
+            {
+                "description": "inverse swap fetch funding rate",
+                "method": "fetchFundingRate",
+                "url": "https://open-api.bingx.com/openApi/cswap/v1/market/premiumIndex?symbol=BTC-USD&timestamp=1720252368816",
+                "input": [
+                  "BTC/USD:BTC"
+                ]
             }
         ],
         "addMargin": [
@@ -1339,6 +1347,24 @@
                 "url": "https://open-api.bingx.com/openApi/swap/v2/trade/forceOrders?autoCloseType=LIQUIDATION&symbol=BTC-USDT&timestamp=1713364573101&signature=f8eb5457ce479316113f59ab7c9be200d7bd2b39e394a480143b0f2ec59a1d91",
                 "input": [
                   "BTC/USDT:USDT"
+                ]
+            }
+        ],
+        "fetchOpenInterest": [
+            {
+                "description": "Linear swap fetch open interest",
+                "method": "fetchOpenInterest",
+                "url": "https://open-api.bingx.com/openApi/swap/v2/quote/openInterest?symbol=BTC-USDT&timestamp=1720328413135",
+                "input": [
+                  "BTC/USDT:USDT"
+                ]
+            },
+            {
+                "description": "Inverse swap fetch open interest",
+                "method": "fetchOpenInterest",
+                "url": "https://open-api.bingx.com/openApi/cswap/v1/market/openInterest?symbol=BTC-USD&timestamp=1720328338678",
+                "input": [
+                  "BTC/USD:BTC"
                 ]
             }
         ]

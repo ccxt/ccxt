@@ -1116,7 +1116,7 @@ class coinone(Exchange, ImplicitAPI):
         #     {"result":"error","error_code":"108","error_msg":"Unknown CryptoCurrency"}
         #
         errorCode = self.safe_string(response, 'error_code')
-        if errorCode != '0':
+        if errorCode is not None and errorCode != '0':
             feedback = self.id + ' ' + body
             self.throw_exactly_matched_exception(self.exceptions, errorCode, feedback)
             raise ExchangeError(feedback)  # unknown message
