@@ -90,7 +90,7 @@ public partial class Exchange
                 if (queue.TryDequeue(out object result))
                 {
                     future.resolve(result);
-                    (this.futures as ConcurrentDictionary<string, Future>).TryRemove(messageHash, out Future removedFuture)
+                    (this.futures as ConcurrentDictionary<string, Future>).TryRemove(messageHash, out Future removedFuture);
                 }
             }
             return future;
