@@ -2116,7 +2116,7 @@ export default class bingx extends Exchange {
                 positionSide = (side === 'buy') ? 'LONG' : 'SHORT';
             }
             request['positionSide'] = positionSide;
-            request['quantity'] = this.parseToNumeric (this.amountToPrecision (symbol, amount));
+            request['quantity'] = amount;
         }
         params = this.omit (params, [ 'reduceOnly', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'trailingAmount', 'trailingPercent', 'trailingType', 'takeProfit', 'stopLoss', 'clientOrderId' ]);
         return this.extend (request, params);
