@@ -83,6 +83,7 @@ class Client {
             $queue = $this->message_queue[$message_hash];
             if (count($queue) > 0) {
                 $future->resolve(array_shift($queue));
+                unset($this->futures[$message_hash]);
             }
         }
         return $future;

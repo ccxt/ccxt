@@ -76,6 +76,7 @@ class Client(object):
             queue = self.message_queue[message_hash]
             if len(queue):
                 future.resolve(queue.popleft())
+                del self.futures[message_hash]
         return future
 
     def resolve(self, result, message_hash):
