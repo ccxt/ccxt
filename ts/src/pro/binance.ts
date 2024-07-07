@@ -904,14 +904,6 @@ export default class binance extends binanceRest {
         }
     }
 
-    messageHash (unifiedChannel: Str, symbol: Str = undefined) {
-        let hash: string = unifiedChannel;
-        if (symbol !== undefined) {
-            hash += '::' + symbol;
-        }
-        return hash;
-    }
-
     handleOrderBookSubscription (client: Client, message, subscription) {
         const defaultLimit = this.safeInteger (this.options, 'watchOrderBookLimit', 1000);
         // const messageHash = this.safeString (subscription, 'messageHash');
