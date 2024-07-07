@@ -2129,6 +2129,7 @@ export default class bingx extends Exchange {
          * @description create a trade order
          * @see https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Trade%20order
          * @see https://bingx-api.github.io/docs/#/en-us/spot/trade-api.html#Create%20an%20Order
+         * @see https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Trade%20order
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
@@ -2161,6 +2162,8 @@ export default class bingx extends Exchange {
         if (market['swap']) {
             if (test) {
                 response = await this.swapV2PrivatePostTradeOrderTest (request);
+            } else if (market['inverse']) {
+                response = await this.cswapV1PrivatePostTradeOrder (request);
             } else {
                 response = await this.swapV2PrivatePostTradeOrder (request);
             }
@@ -2187,7 +2190,7 @@ export default class bingx extends Exchange {
         //        }
         //    }
         //
-        // swap
+        // linear swap
         //
         //     {
         //         "code": 0,
@@ -2205,6 +2208,21 @@ export default class bingx extends Exchange {
         //         }
         //     }
         //
+        // inverse swap
+        //
+        //     {
+        //         "orderId": 1809841379603398656,
+        //         "symbol": "SOL-USD",
+        //         "positionSide": "LONG",
+        //         "side": "BUY",
+        //         "type": "LIMIT",
+        //         "price": 100,
+        //         "quantity": 1,
+        //         "stopPrice": 0,
+        //         "workingType": "",
+        //         "timeInForce": ""
+        //     }
+        //
         if (typeof response === 'string') {
             // broken api engine : order-ids are too long numbers (i.e. 1742930526912864656)
             // and JSON.parse can not handle them in JS, so we have to use .parseJson
@@ -2212,9 +2230,18 @@ export default class bingx extends Exchange {
             response = this.fixStringifiedJsonMembers (response);
             response = this.parseJson (response);
         }
-        const data = this.safeValue (response, 'data', {});
-        const order = this.safeDict (data, 'order', data);
-        return this.parseOrder (order, market);
+        const data = this.safeDict (response, 'data', {});
+        let result: Dict = {};
+        if (market['swap']) {
+            if (market['inverse']) {
+                result = response;
+            } else {
+                result = this.safeDict (data, 'order', {});
+            }
+        } else {
+            result = data;
+        }
+        return this.parseOrder (result, market);
     }
 
     async createOrders (orders: OrderRequest[], params = {}) {
@@ -2390,7 +2417,7 @@ export default class bingx extends Exchange {
         //   }
         //
         //
-        // swap
+        // linear swap
         // createOrder, createOrders
         //
         //    {
@@ -2400,6 +2427,21 @@ export default class bingx extends Exchange {
         //      "positionSide": "LONG",
         //      "type": "LIMIT"
         //    }
+        //
+        // inverse swap createOrder
+        //
+        //     {
+        //         "orderId": 1809841379603398656,
+        //         "symbol": "SOL-USD",
+        //         "positionSide": "LONG",
+        //         "side": "BUY",
+        //         "type": "LIMIT",
+        //         "price": 100,
+        //         "quantity": 1,
+        //         "stopPrice": 0,
+        //         "workingType": "",
+        //         "timeInForce": ""
+        //     }
         //
         // fetchOrder, fetchOpenOrders, fetchClosedOrders
         //
