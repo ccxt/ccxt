@@ -7728,6 +7728,10 @@ public partial class okx : Exchange
                 }
                 ((IDictionary<string,object>)getValue(getValue(depositWithdrawFees, code), "info"))[(string)currencyId] = feeInfo;
                 object chain = this.safeString(feeInfo, "chain");
+                if (isTrue(isEqual(chain, null)))
+                {
+                    continue;
+                }
                 object chainSplit = ((string)chain).Split(new [] {((string)"-")}, StringSplitOptions.None).ToList<object>();
                 object networkId = this.safeValue(chainSplit, 1);
                 object withdrawFee = this.safeNumber(feeInfo, "minFee");

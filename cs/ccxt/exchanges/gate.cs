@@ -4259,7 +4259,7 @@ public partial class gate : Exchange
                     ((IDictionary<string,object>)request)["price"] = price; // set to 0 for market orders
                 } else
                 {
-                    ((IDictionary<string,object>)request)["price"] = this.priceToPrecision(symbol, price);
+                    ((IDictionary<string,object>)request)["price"] = ((bool) isTrue((isEqual(price, 0)))) ? "0" : this.priceToPrecision(symbol, price);
                 }
                 if (isTrue(!isEqual(reduceOnly, null)))
                 {
@@ -4363,10 +4363,16 @@ public partial class gate : Exchange
                     { "initial", new Dictionary<string, object>() {
                         { "contract", getValue(market, "id") },
                         { "size", amount },
-                        { "price", this.priceToPrecision(symbol, price) },
                     } },
                     { "settle", getValue(market, "settleId") },
                 };
+                if (isTrue(isEqual(type, "market")))
+                {
+                    ((IDictionary<string,object>)getValue(request, "initial"))["price"] = "0";
+                } else
+                {
+                    ((IDictionary<string,object>)getValue(request, "initial"))["price"] = ((bool) isTrue((isEqual(price, 0)))) ? "0" : this.priceToPrecision(symbol, price);
+                }
                 if (isTrue(isEqual(trigger, null)))
                 {
                     object rule = null;
