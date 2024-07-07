@@ -1337,6 +1337,24 @@
                   "BTC/USDT:USDT"
                 ]
             }
+        ],
+        "fetchOpenInterest": [
+            {
+                "description": "Linear swap fetch open interest",
+                "method": "fetchOpenInterest",
+                "url": "https://open-api.bingx.com/openApi/swap/v2/quote/openInterest?symbol=BTC-USDT&timestamp=1720328413135",
+                "input": [
+                  "BTC/USDT:USDT"
+                ]
+            },
+            {
+                "description": "Inverse swap fetch open interest",
+                "method": "fetchOpenInterest",
+                "url": "https://open-api.bingx.com/openApi/cswap/v1/market/openInterest?symbol=BTC-USD&timestamp=1720328338678",
+                "input": [
+                  "BTC/USD:BTC"
+                ]
+            }
         ]
     }
 }
