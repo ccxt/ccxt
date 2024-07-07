@@ -1,9 +1,20 @@
 import assert from 'assert';
+import { BaseError, Exchange } from "../../../../ccxt";
 
-async function testRateLimit (exchange, skippedProperties) {
+async function runUntilTimeout (exchange: Exchange) {
+    await exchange.sleep (10000);
+    throw new BaseError ('Timeout');
+}
+
+async function testRateLimit (exchange: Exchange, skippedProperties) {
     let errorThrown = false;
-    let symbols = exchange.symbols;
-    symbols = symbols.slice (0, 1000);
+    const symbols = [];
+    const exchangeSymbols = exchange.symbols;
+    // TODO: can replace with slice once AST transpiler is updated
+    const exchangeSymbolsLength = exchangeSymbols.length;
+    for (let i = 0; i < 350 && i < exchangeSymbolsLength; i++) {
+        symbols.push (exchangeSymbols[i]);
+    }
     // Test without rate limit
     exchange.enableRateLimit = false;
     let promises = [];
@@ -22,12 +33,14 @@ async function testRateLimit (exchange, skippedProperties) {
     exchange.enableRateLimit = true;
     promises = [];
     try {
+        exchange.verbose = true;
         for (let i = 0; i < symbols.length; i++) {
             promises.push (exchange.watchOHLCV (symbols[i], '1m'));
         }
+        promises.push (runUntilTimeout (exchange));
         await Promise.all (promises);
     } catch (e) {
-        assert (false, 'Recieved unexpected error: ' + e.toString ());
+        assert (e['message'] === 'Timeout', 'Recieved unexpected error: ' + e.toString ());
     }
     await exchange.close ();
 }

@@ -359,8 +359,8 @@ class Exchange(BaseExchange):
             on_connected = self.on_connected
             # decide client type here: aiohttp ws / websockets / signalr / socketio
             ws_options = self.safe_value(self.options, 'ws', {})
-            ws_connections_config = self.calculate_ws_token_bucket(ws_options, url)
-            ws_messages_config = self.calculate_ws_token_bucket(ws_options, url, 'messages')
+            ws_connections_config = self.get_ws_rate_limit_config(url, 'connections')
+            ws_messages_config = self.get_ws_rate_limit_config(url, 'messages')
             options = self.extend(self.streaming, {
                 'log': getattr(self, 'log'),
                 'ping': getattr(self, 'ping', None),
@@ -392,10 +392,9 @@ class Exchange(BaseExchange):
             raise NotSupported(self.id + '.handle_message() not implemented yet')
         return {}
 
-    def watch_multiple(self, url, message_hashes, message=None, subscribe_hashes=None, subscription=None, message_cost=1):
+    def watch_multiple(self, url, message_hashes, message=None, subscribe_hashes=None, subscription=None, message_cost=None):
         # base exchange self.open starts the aiohttp Session in an async context
         self.open()
-        backoff_delay = 0
         client = self.client(url)
 
         future = Future.race([client.future(message_hash) for message_hash in message_hashes])
@@ -413,14 +412,16 @@ class Exchange(BaseExchange):
             async def connect():
                 if self.enableRateLimit:
                     await client.connections_throttler()
-                return client.connect(self.session, backoff_delay)
+                await client.connect(self.session)
             connected = asyncio.ensure_future(connect())
 
         def after(fut):
             # todo: decouple signing from subscriptions
             if message:
-                async def send_message():
+                async def send_message(message_cost):
                     if self.enableRateLimit:
+                        if message_cost is None:
+                            message_cost = self.get_ws_rate_limit_cost(url, 'messages')
                         await client.messages_throttler(message_cost)
                     try:
                         await client.send(message)
@@ -428,17 +429,16 @@ class Exchange(BaseExchange):
                         client.on_error(e)
                     except Exception as e:
                         client.on_error(e)
-                asyncio.ensure_future(send_message())
+                asyncio.ensure_future(send_message(message_cost))
 
         if missing_subscriptions:
             connected.add_done_callback(after)
 
         return future
 
-    def watch(self, url, message_hash, message=None, subscribe_hash=None, subscription=None, message_cost=1):
+    def watch(self, url, message_hash, message=None, subscribe_hash=None, subscription=None, message_cost=None):
         # base exchange self.open starts the aiohttp Session in an async context
         self.open()
-        backoff_delay = 0
         client = self.client(url)
         if subscribe_hash is None and message_hash in client.futures:
             return client.futures[message_hash]
@@ -454,25 +454,26 @@ class Exchange(BaseExchange):
         else:
             async def connect():
                 if self.enableRateLimit:
-                    await client.connections_throttler()
-                return client.connect(self.session, backoff_delay)
+                    cost = self.get_ws_rate_limit_cost(url, 'connections')
+                    await client.connections_throttler(cost)
+                await client.connect(self.session)
             connected = asyncio.ensure_future(connect())
 
         def after(fut):
             # todo: decouple signing from subscriptions
-            options = self.safe_value(self.options, 'ws')
-            cost = self.safe_value(options, 'cost', 1)
             if message:
-                async def send_message():
+                async def send_message(message_cost):
                     if self.enableRateLimit:
-                        await client.messages_throttle(cost)
+                        if message_cost is None:
+                            message_cost = self.get_ws_rate_limit_cost(url, 'messages')
+                        await client.messages_throttler(message_cost)
                     try:
                         await client.send(message)
                     except ConnectionError as e:
                         client.on_error(e)
                     except Exception as e:
                         client.on_error(e)
-                asyncio.ensure_future(send_message())
+                asyncio.ensure_future(send_message(message_cost))
 
         if not subscribed:
             connected.add_done_callback(after)
@@ -571,37 +572,6 @@ class Exchange(BaseExchange):
     # ########################################################################
 
     # METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
-
-    def calculate_ws_token_bucket(self, wsOptions, url, tokenKey='connections'):
-        rateLimits = self.safe_value(wsOptions, 'rateLimits')
-        rateLimit = self.safe_number(rateLimits, 'rateLimit')
-        if rateLimits is None or rateLimit is None:
-            return self.tokenBucket  # default to the rest bucket
-        cost = None
-        rateLimitsKeys = list(rateLimits.keys())
-        for i in range(0, len(rateLimitsKeys)):
-            rateLimitKey = rateLimitsKeys[i]
-            if url.startswith(rateLimitKey):
-                value = self.safe_value(rateLimits, rateLimitKey)
-                cost = self.safe_integer(value, tokenKey)
-        if cost is None:
-            # try default
-            defaultConfig = self.safe_value(rateLimits, 'default')
-            if defaultConfig is not None:
-                cost = self.safe_integer(defaultConfig, tokenKey)
-            if cost is None:
-                # default not found
-                return self.tokenBucket
-        refillRate = (1 / rateLimit) if (rateLimit is not None) else float('inf')
-        tokenBucket = self.safe_value(rateLimits, 'tokenBucket', {})
-        config = self.extend({
-            'delay': 0.001,
-            'capacity': 1,
-            'cost': cost,
-            'maxCapacity': 1000,
-            'refillRate': refillRate,
-        }, tokenBucket)
-        return config
 
     async def fetch_accounts(self, params={}):
         raise NotSupported(self.id + ' fetchAccounts() is not supported yet')

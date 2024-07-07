@@ -53,9 +53,9 @@ public partial class Exchange
 
         public bool error = false;
     
-        public Throttler connectionsThrottler = new Throttler();
+        public Throttler connectionsThrottler;
 
-        public Throttler messagesThrottler = new Throttler();
+        public Throttler messagesThrottler;
 
         public WebSocketClient(string url, string proxy, handleMessageDelegate handleMessage, pingDelegate ping = null, onCloseDelegate onClose = null, onErrorDelegate onError = null, bool isVerbose = false, Int64 keepA = 30000)
         {
@@ -135,7 +135,7 @@ public partial class Exchange
             });
         }
 
-        public Task connect(int backoffDelay = 0)
+        public Task connect()
         {
             if (!this.startedConnecting)
             {

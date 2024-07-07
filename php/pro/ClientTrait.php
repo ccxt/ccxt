@@ -55,16 +55,15 @@ trait ClientTrait {
             $on_close = array($this, 'on_close');
             $on_connected = array($this, 'on_connected');
             $ws_options = $this->safe_value($this->options, 'ws', array());
-            $ws_connections_config = $this->calculate_ws_token_bucket($ws_options, $url);
-            $ws_messages_config = $this->calculate_ws_token_bucket($ws_options, $url, 'messages');
+            $ws_connections_config = $this->get_ws_rate_limit_config($url, 'connections');
+            $ws_messages_config = $this->get_ws_rate_limit_config($url, 'messages');
             $options = array_replace_recursive(array(
                 'log' => array($this, 'log'),
                 'verbose' => $this->verbose,
-                'throttle' => new Throttler($this->tokenBucket),
-                'connections_throttler' => new Throttler($ws_connections_config),
-                'messages_throttler' => new Throttler($ws_messages_config),
             ), $this->streaming, $ws_options);
             $this->clients[$url] = new Client($url, $on_message, $on_error, $on_close, $on_connected, $options);
+            $this->clients[$url]->connections_throttler = new Throttler($ws_connections_config);
+            $this->clients[$url]->messages_throttler = new Throttler($ws_messages_config);
             $this->configure_proxy_client($this->clients[$url]);
         }
         return $this->clients[$url];
@@ -117,12 +116,11 @@ trait ClientTrait {
         }
         $connected = null;
         if ($this->enableRateLimit) {
-            $connected = call_user_func($client->connections_throttler)->then(function ($result) use ($client, $backoff_delay) {
-                return $client->connect($backoff_delay);
-            });
-        } else{
-            $connected = $client->connect($backoff_delay);
+            $cost = $this->get_ws_rate_limit_cost($url, 'connections');
+            $throttler = $client->connections_throttler;
+            Async\await($throttler($cost));
         }
+        $connected = $client->connect();
 
         if ($missing_subscriptions) {
             $connected->then(
@@ -130,19 +128,16 @@ trait ClientTrait {
                     // todo: decouple signing from subscriptions
                     if ($message) {
                         if ($this->enableRateLimit) {
-                            \call_user_func($client->messages_throttler, $message_cost)->then(function ($result) use ($client, $message, $message_hashes, $subscribe_hashes, $future) {
-                                try {
-                                    Async\await($client->send($message));
-                                } catch (Exception $error) {
-                                    $client->on_error($error);
-                                }
-                            });
-                        } else {
-                            try {
-                                Async\await($client->send($message));
-                            } catch (Exception $error) {
-                                $client->on_error($error);
+                            if($message_cost == null) {
+                                $message_cost = $this->get_ws_rate_limit_cost($client->url, 'messages');
                             }
+                            $throttler = $client->messages_throttler;
+                            Async\await($throttler($message_cost));
+                        }
+                        try {
+                            Async\await($client->send($message));
+                        } catch (Exception $error) {
+                            $client->on_error($error);
                         }
                     }
                 },
@@ -160,8 +155,6 @@ trait ClientTrait {
     public function watch($url, $message_hash, $message = null, $subscribe_hash = null, $subscription = null, $message_cost = 1) {
         $client = $this->client($url);
 
-        // todo: calculate the backoff delay in php
-        $backoff_delay = 0; // milliseconds
         if (($subscribe_hash == null) && array_key_exists($message_hash, $client->futures)) {
             return $client->futures[$message_hash];
         }
@@ -172,31 +165,27 @@ trait ClientTrait {
         }
         $connected = null;
         if ($this->enableRateLimit) {
-            $connected = call_user_func($client->connections_throttler)->then(function ($result) use ($client, $backoff_delay) {
-                return $client->connect($backoff_delay);
-            });
-        } else{
-            $connected = $client->connect($backoff_delay);
+            $cost = $this->get_ws_rate_limit_cost($url, 'connections');
+            $throttler = $client->connections_throttler;
+            // Async\await($throttler($cost));
         }
+        $connected = $client->connect();
         if (!$subscribed) {
             $connected->then(
-                function($result) use ($client, $message, $message_hash, $subscribe_hash, $message_cost) {
+                function($result) use ($client, $message, $message_cost, $url) {
                     // todo: decouple signing from subscriptions
                     if ($message) {
                         if ($this->enableRateLimit) {
-                            \call_user_func($client->messages_throttler, $message_cost)->then(function ($result) use ($client, $message, $message_hash, $subscribe_hash) {
-                                try {
-                                    Async\await($client->send($message));
-                                } catch (Exception $error) {
-                                    $client->on_error($error);
-                                }
-                            });
-                        } else {
-                            try {
-                                Async\await($client->send($message));
-                            } catch (Exception $error) {
-                                $client->on_error($error);
+                            if($message_cost == null) {
+                                $message_cost = $this->get_ws_rate_limit_cost($url, 'messages');
                             }
+                            $throttler = $client->messages_throttler;
+                            // Async\await($throttler($message_cost));
+                        }
+                        try {
+                            Async\await($client->send($message));
+                        } catch (Exception $error) {
+                            $client->on_error($error);
                         }
                     }
                 },

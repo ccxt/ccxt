@@ -54,6 +54,7 @@ const {
     , safeStringLower
     , parse8601
     , yyyymmdd
+    , sleep
     , safeStringUpper
     , safeTimestamp
     , binaryConcatArray
@@ -419,6 +420,7 @@ export default class Exchange {
     safeStringLower = safeStringLower
     parse8601 = parse8601
     yyyymmdd = yyyymmdd
+    sleep = sleep
     safeStringUpper = safeStringUpper
     safeTimestamp = safeTimestamp
     binaryConcatArray = binaryConcatArray
@@ -1582,7 +1584,7 @@ export default class Exchange {
         return future;
     }
 
-    watch (url: string, messageHash: string, message = undefined, subscribeHash = undefined, subscription = undefined, messageCost = 1) {
+    watch (url: string, messageHash: string, message = undefined, subscribeHash = undefined, subscription = undefined, messageCost: Int = undefined) {
         //
         // Without comments the code of this method is short and easy:
         //
@@ -1629,9 +1631,10 @@ export default class Exchange {
         // either with a call to client.resolve or client.reject with
         //  a proper exception class instance
         let connected = undefined;
+        const options = this.safeValue (this.options, 'ws');
         if (this.enableRateLimit && !client.startedConnecting) {
-            // const connectionCost = this.safeValue (this.options, 'ws', {}).connectionCost;
-            connected = client.connectionsThrottler.throttle ().then (() => client.connect (backoffDelay));
+            const cost = this.getWsRateLimitCost (url, 'connections');
+            connected = client.connectionsThrottler.throttle (cost).then (() => client.connect (backoffDelay));
         } else {
             connected = client.connect (backoffDelay);
         }
@@ -1640,11 +1643,12 @@ export default class Exchange {
         // (connection established successfully)
         if (!clientSubscription) {
             connected.then (() => {
-                const options = this.safeValue (this.options, 'ws');
-                const cost = this.safeValue (options, 'cost', messageCost);
                 if (message) {
                     if (this.enableRateLimit && client.messagesThrottler) {
-                        client.messagesThrottler.throttle (cost).then (() => {
+                        if (!messageCost) {
+                            messageCost = this.getWsRateLimitCost (url, 'messages');
+                        }
+                        client.messagesThrottler.throttle (messageCost).then (() => {
                             client.send (message);
                         }).catch ((e) => {
                             client.onError (e);
@@ -1847,6 +1851,29 @@ export default class Exchange {
     // ------------------------------------------------------------------------
     // METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
 
+    getWsRateLimitCost (url: string, type: string): number {
+        /**
+         * @ignore
+         * @method
+         * @description Safely returns message or connection cost for ws rate limit
+         * @returns {number}
+         */
+        const wsOptions = this.safeDict (this.options, 'ws');
+        const rateLimits = this.safeDict (wsOptions, 'rateLimits', {});
+        const exchangeDefaultRateLimit = this.safeDict (rateLimits, 'default', {});
+        let cost = this.safeNumber (exchangeDefaultRateLimit, type, 1);
+        const rateLimitsKeys = Object.keys (rateLimits);
+        for (let i = 0; i < rateLimitsKeys.length; i++) {
+            const rateLimitKey = rateLimitsKeys[i];
+            if (url.startsWith (rateLimitKey)) {
+                const value = this.safeDict (rateLimits, rateLimitKey);
+                cost = this.safeNumber (value, type, cost);
+                break;
+            }
+        }
+        return cost;
+    }
+
     getWsRateLimitConfig (url, bucketHash = 'connections'): Dictionary<any> {
         /**
          * @ignore
@@ -1880,7 +1907,7 @@ export default class Exchange {
         const wsOptions = this.safeDict (this.options, 'ws');
         const rateLimits = this.safeDict (wsOptions, 'rateLimits', {});
         const exchangeDefaultRateLimit = this.safeDict (rateLimits, 'default', {});
-        let cost = this.safeNumber (exchangeDefaultRateLimit, bucketHash);
+        let cost = this.safeNumber (exchangeDefaultRateLimit, bucketHash, 1);
         let rateLimit = this.safeNumber (exchangeDefaultRateLimit, 'rateLimit');
         const rateLimitsKeys = Object.keys (rateLimits);
         for (let i = 0; i < rateLimitsKeys.length; i++) {

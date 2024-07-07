@@ -2,6 +2,7 @@
 
 namespace ccxt\pro;
 
+use ccxt\async\Throttler;
 use Ratchet\Client\Connector;
 use React;
 use React\EventLoop\Loop;
@@ -50,8 +51,6 @@ class Client {
     public $verbose = false; // verbose output
     public $gunzip = false;
     public $inflate = false;
-    public $throttler = null;
-    public $throttle = null;
     public $connection = null;
     public $connected; // connection-related Future
     public $isConnected = false;
@@ -59,10 +58,9 @@ class Client {
     public $log = null;
     public $heartbeat = null;
     public $cost = 1;
-    public $messages_throttler;
-    public $connections_throttler;
+    public Throttler $messages_throttler;
+    public Throttler $connections_throttler;
     public $rateLimits;
-    public $throttle;
 
     // ratchet/pawl/reactphp stuff
     public $connector = null;

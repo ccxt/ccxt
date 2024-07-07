@@ -396,16 +396,6 @@ function assertRoundMinuteTimestamp (exchange: Exchange, skippedProperties: obje
     assert (Precise.stringMod (ts, '60000') === '0', 'timestamp should be a multiple of 60 seconds (1 minute)' + logText);
 }
 
-async function test (description, fn) {
-    try {
-        await fn ();
-        console.log (`✓ ${description}`);
-    } catch (error) {
-        console.error (`✗ ${description}`);
-        console.error (error);
-    }
-}
-
 export default {
     logTemplate,
     isTemporaryFailure,
@@ -432,5 +422,4 @@ export default {
     setProxyOptions,
     assertNonEmtpyArray,
     assertRoundMinuteTimestamp,
-    test,
 };

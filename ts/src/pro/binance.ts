@@ -147,8 +147,6 @@ export default class binance extends binanceRest {
                     'rateLimits': {
                         'default': {
                             'rateLimit': 1000,
-                            'connections': 1000, // The WS-API now only allows 300 connections requests every 5 minutes. // 1 req per second  = 1000ms
-                            'messages': 100, // biggest limit: futures 10 message per second = 100ms
                         },
                         'wss://stream.binance.com:9443': {
                             'connections': 1,
@@ -162,15 +160,15 @@ export default class binance extends binanceRest {
                             'connections': 1,
                             'messages': 1, // 10 per second
                         },
-                        'wss://stream.binancefuture.com/ws': { // testnet url
+                        'wss://stream.binancefuture.com/ws': {
                             'connections': 1,
                             'messages': 1, // 10 per second
                         },
-                        'wss://testnet.binance.vision': { // testnet url
+                        'wss://testnet.binance.vision': {
                             'connections': 1,
                             'messages': 2,  // spot is 5 msg per second
                         },
-                        'wss://dstream.binancefuture.com': { // testnet url
+                        'wss://dstream.binancefuture.com': {
                             'connections': 1,
                             'messages': 1,
                         },
