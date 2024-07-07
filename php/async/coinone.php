@@ -1187,7 +1187,7 @@ class coinone extends Exchange {
         //     array("result":"error","error_code":"108","error_msg":"Unknown CryptoCurrency")
         //
         $errorCode = $this->safe_string($response, 'error_code');
-        if ($errorCode !== '0') {
+        if ($errorCode !== null && $errorCode !== '0') {
             $feedback = $this->id . ' ' . $body;
             $this->throw_exactly_matched_exception($this->exceptions, $errorCode, $feedback);
             throw new ExchangeError($feedback); // unknown message

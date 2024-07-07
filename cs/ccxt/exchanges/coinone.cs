@@ -1182,7 +1182,7 @@ public partial class coinone : Exchange
         //     {"result":"error","error_code":"108","error_msg":"Unknown CryptoCurrency"}
         //
         object errorCode = this.safeString(response, "error_code");
-        if (isTrue(!isEqual(errorCode, "0")))
+        if (isTrue(isTrue(!isEqual(errorCode, null)) && isTrue(!isEqual(errorCode, "0"))))
         {
             object feedback = add(add(this.id, " "), body);
             this.throwExactlyMatchedException(this.exceptions, errorCode, feedback);

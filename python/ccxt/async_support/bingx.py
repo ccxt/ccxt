@@ -1389,9 +1389,10 @@ class bingx(Exchange, ImplicitAPI):
 
     async def fetch_open_interest(self, symbol: str, params={}):
         """
-        Retrieves the open interest of a currency
+        retrieves the open interest of a trading pair
         :see: https://bingx-api.github.io/docs/#/swapV2/market-api.html#Get%20Swap%20Open%20Positions
-        :param str symbol: Unified CCXT market symbol
+        :see: https://bingx-api.github.io/docs/#/en-us/cswap/market-api.html#Get%20Swap%20Open%20Positions
+        :param str symbol: unified CCXT market symbol
         :param dict [params]: exchange specific parameters
         :returns dict} an open interest structure{@link https://docs.ccxt.com/#/?id=open-interest-structure:
         """
@@ -1400,7 +1401,13 @@ class bingx(Exchange, ImplicitAPI):
         request: dict = {
             'symbol': market['id'],
         }
-        response = await self.swapV2PublicGetQuoteOpenInterest(self.extend(request, params))
+        response = None
+        if market['inverse']:
+            response = await self.cswapV1PublicGetMarketOpenInterest(self.extend(request, params))
+        else:
+            response = await self.swapV2PublicGetQuoteOpenInterest(self.extend(request, params))
+        #
+        # linear swap
         #
         #     {
         #         "code": 0,
@@ -1412,18 +1419,48 @@ class bingx(Exchange, ImplicitAPI):
         #         }
         #     }
         #
-        data = self.safe_dict(response, 'data', {})
-        return self.parse_open_interest(data, market)
+        # inverse swap
+        #
+        #     {
+        #         "code": 0,
+        #         "msg": "",
+        #         "timestamp": 1720328247986,
+        #         "data": [
+        #             {
+        #                 "symbol": "BTC-USD",
+        #                 "openInterest": "749.1160",
+        #                 "timestamp": 1720310400000
+        #             }
+        #         ]
+        #     }
+        #
+        result: dict = {}
+        if market['inverse']:
+            data = self.safe_list(response, 'data', [])
+            result = self.safe_dict(data, 0, {})
+        else:
+            result = self.safe_dict(response, 'data', {})
+        return self.parse_open_interest(result, market)
 
     def parse_open_interest(self, interest, market: Market = None):
         #
-        #    {
-        #        "openInterest": "3289641547.10",
-        #        "symbol": "BTC-USDT",
-        #        "time": 1672026617364
-        #    }
+        # linear swap
         #
-        timestamp = self.safe_integer(interest, 'time')
+        #     {
+        #         "openInterest": "3289641547.10",
+        #         "symbol": "BTC-USDT",
+        #         "time": 1672026617364
+        #     }
+        #
+        # inverse swap
+        #
+        #     {
+        #         "symbol": "BTC-USD",
+        #         "openInterest": "749.1160",
+        #         "timestamp": 1720310400000
+        #     }
+        #
+        timestamp = self.safe_integer_2(interest, 'time', 'timestamp')
         id = self.safe_string(interest, 'symbol')
         symbol = self.safe_symbol(id, market, '-', 'swap')
         openInterest = self.safe_number(interest, 'openInterest')

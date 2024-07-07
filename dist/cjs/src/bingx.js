@@ -1443,9 +1443,10 @@ class bingx extends bingx$1 {
         /**
          * @method
          * @name bingx#fetchOpenInterest
-         * @description Retrieves the open interest of a currency
+         * @description retrieves the open interest of a trading pair
          * @see https://bingx-api.github.io/docs/#/swapV2/market-api.html#Get%20Swap%20Open%20Positions
-         * @param {string} symbol Unified CCXT market symbol
+         * @see https://bingx-api.github.io/docs/#/en-us/cswap/market-api.html#Get%20Swap%20Open%20Positions
+         * @param {string} symbol unified CCXT market symbol
          * @param {object} [params] exchange specific parameters
          * @returns {object} an open interest structure{@link https://docs.ccxt.com/#/?id=open-interest-structure}
          */
@@ -1454,7 +1455,15 @@ class bingx extends bingx$1 {
         const request = {
             'symbol': market['id'],
         };
-        const response = await this.swapV2PublicGetQuoteOpenInterest(this.extend(request, params));
+        let response = undefined;
+        if (market['inverse']) {
+            response = await this.cswapV1PublicGetMarketOpenInterest(this.extend(request, params));
+        }
+        else {
+            response = await this.swapV2PublicGetQuoteOpenInterest(this.extend(request, params));
+        }
+        //
+        // linear swap
         //
         //     {
         //         "code": 0,
@@ -1466,18 +1475,50 @@ class bingx extends bingx$1 {
         //         }
         //     }
         //
-        const data = this.safeDict(response, 'data', {});
-        return this.parseOpenInterest(data, market);
+        // inverse swap
+        //
+        //     {
+        //         "code": 0,
+        //         "msg": "",
+        //         "timestamp": 1720328247986,
+        //         "data": [
+        //             {
+        //                 "symbol": "BTC-USD",
+        //                 "openInterest": "749.1160",
+        //                 "timestamp": 1720310400000
+        //             }
+        //         ]
+        //     }
+        //
+        let result = {};
+        if (market['inverse']) {
+            const data = this.safeList(response, 'data', []);
+            result = this.safeDict(data, 0, {});
+        }
+        else {
+            result = this.safeDict(response, 'data', {});
+        }
+        return this.parseOpenInterest(result, market);
     }
     parseOpenInterest(interest, market = undefined) {
         //
-        //    {
-        //        "openInterest": "3289641547.10",
-        //        "symbol": "BTC-USDT",
-        //        "time": 1672026617364
-        //    }
+        // linear swap
         //
-        const timestamp = this.safeInteger(interest, 'time');
+        //     {
+        //         "openInterest": "3289641547.10",
+        //         "symbol": "BTC-USDT",
+        //         "time": 1672026617364
+        //     }
+        //
+        // inverse swap
+        //
+        //     {
+        //         "symbol": "BTC-USD",
+        //         "openInterest": "749.1160",
+        //         "timestamp": 1720310400000
+        //     }
+        //
+        const timestamp = this.safeInteger2(interest, 'time', 'timestamp');
         const id = this.safeString(interest, 'symbol');
         const symbol = this.safeSymbol(id, market, '-', 'swap');
         const openInterest = this.safeNumber(interest, 'openInterest');

@@ -1519,9 +1519,10 @@ public partial class bingx : Exchange
         /**
         * @method
         * @name bingx#fetchOpenInterest
-        * @description Retrieves the open interest of a currency
+        * @description retrieves the open interest of a trading pair
         * @see https://bingx-api.github.io/docs/#/swapV2/market-api.html#Get%20Swap%20Open%20Positions
-        * @param {string} symbol Unified CCXT market symbol
+        * @see https://bingx-api.github.io/docs/#/en-us/cswap/market-api.html#Get%20Swap%20Open%20Positions
+        * @param {string} symbol unified CCXT market symbol
         * @param {object} [params] exchange specific parameters
         * @returns {object} an open interest structure{@link https://docs.ccxt.com/#/?id=open-interest-structure}
         */
@@ -1531,7 +1532,16 @@ public partial class bingx : Exchange
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
         };
-        object response = await this.swapV2PublicGetQuoteOpenInterest(this.extend(request, parameters));
+        object response = null;
+        if (isTrue(getValue(market, "inverse")))
+        {
+            response = await this.cswapV1PublicGetMarketOpenInterest(this.extend(request, parameters));
+        } else
+        {
+            response = await this.swapV2PublicGetQuoteOpenInterest(this.extend(request, parameters));
+        }
+        //
+        // linear swap
         //
         //     {
         //         "code": 0,
@@ -1543,20 +1553,53 @@ public partial class bingx : Exchange
         //         }
         //     }
         //
-        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
-        return this.parseOpenInterest(data, market);
+        // inverse swap
+        //
+        //     {
+        //         "code": 0,
+        //         "msg": "",
+        //         "timestamp": 1720328247986,
+        //         "data": [
+        //             {
+        //                 "symbol": "BTC-USD",
+        //                 "openInterest": "749.1160",
+        //                 "timestamp": 1720310400000
+        //             }
+        //         ]
+        //     }
+        //
+        object result = new Dictionary<string, object>() {};
+        if (isTrue(getValue(market, "inverse")))
+        {
+            object data = this.safeList(response, "data", new List<object>() {});
+            result = this.safeDict(data, 0, new Dictionary<string, object>() {});
+        } else
+        {
+            result = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        }
+        return this.parseOpenInterest(result, market);
     }
 
     public override object parseOpenInterest(object interest, object market = null)
     {
         //
-        //    {
-        //        "openInterest": "3289641547.10",
-        //        "symbol": "BTC-USDT",
-        //        "time": 1672026617364
-        //    }
+        // linear swap
         //
-        object timestamp = this.safeInteger(interest, "time");
+        //     {
+        //         "openInterest": "3289641547.10",
+        //         "symbol": "BTC-USDT",
+        //         "time": 1672026617364
+        //     }
+        //
+        // inverse swap
+        //
+        //     {
+        //         "symbol": "BTC-USD",
+        //         "openInterest": "749.1160",
+        //         "timestamp": 1720310400000
+        //     }
+        //
+        object timestamp = this.safeInteger2(interest, "time", "timestamp");
         object id = this.safeString(interest, "symbol");
         object symbol = this.safeSymbol(id, market, "-", "swap");
         object openInterest = this.safeNumber(interest, "openInterest");
