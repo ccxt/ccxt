@@ -10,7 +10,7 @@ import {
     AuthenticationError,
     NotSupported,
     ExchangeError,
-    ProxyError,
+    InvalidProxySettings,
     ExchangeNotAvailable,
     OperationFailed,
     OnMaintenance,
@@ -1124,7 +1124,7 @@ class testMainClass extends baseMainTestClass {
                 callExchangeMethodDynamicallySync (exchange, method, this.sanitizeDataInput (data['input']));
             }
         } catch (e) {
-            if (!(e instanceof ProxyError)) {
+            if (!(e instanceof InvalidProxySettings)) {
                 // if it's not a BadRequest, it means our request was not created succesfully
                 // so we might have an error in the request creation
                 throw e;

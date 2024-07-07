@@ -130,7 +130,7 @@ import {
     , DDoSProtection
     , RequestTimeout
     , NetworkError
-    , ProxyError
+    , InvalidProxySettings
     , ExchangeNotAvailable
     , ArgumentsRequired
     , RateLimitExceeded,
@@ -2006,7 +2006,7 @@ export default class Exchange {
         const length = usedProxies.length;
         if (length > 1) {
             const joinedProxyNames = usedProxies.join (',');
-            throw new ProxyError (this.id + ' you have multiple conflicting proxy settings (' + joinedProxyNames + '), please use only one from : proxyUrl, proxy_url, proxyUrlCallback, proxy_url_callback');
+            throw new InvalidProxySettings (this.id + ' you have multiple conflicting proxy settings (' + joinedProxyNames + '), please use only one from : proxyUrl, proxy_url, proxyUrlCallback, proxy_url_callback');
         }
         return proxyUrl;
     }
@@ -2071,7 +2071,7 @@ export default class Exchange {
         const length = usedProxies.length;
         if (length > 1) {
             const joinedProxyNames = usedProxies.join (',');
-            throw new ProxyError (this.id + ' you have multiple conflicting proxy settings (' + joinedProxyNames + '), please use only one from: httpProxy, httpsProxy, httpProxyCallback, httpsProxyCallback, socksProxy, socksProxyCallback');
+            throw new InvalidProxySettings (this.id + ' you have multiple conflicting proxy settings (' + joinedProxyNames + '), please use only one from: httpProxy, httpsProxy, httpProxyCallback, httpsProxyCallback, socksProxy, socksProxyCallback');
         }
         return [ httpProxy, httpsProxy, socksProxy ];
     }
@@ -2112,14 +2112,14 @@ export default class Exchange {
         const length = usedProxies.length;
         if (length > 1) {
             const joinedProxyNames = usedProxies.join (',');
-            throw new ProxyError (this.id + ' you have multiple conflicting proxy settings (' + joinedProxyNames + '), please use only one from: wsProxy, wssProxy, wsSocksProxy');
+            throw new InvalidProxySettings (this.id + ' you have multiple conflicting proxy settings (' + joinedProxyNames + '), please use only one from: wsProxy, wssProxy, wsSocksProxy');
         }
         return [ wsProxy, wssProxy, wsSocksProxy ];
     }
 
     checkConflictingProxies (proxyAgentSet, proxyUrlSet) {
         if (proxyAgentSet && proxyUrlSet) {
-            throw new ProxyError (this.id + ' you have multiple conflicting proxy settings, please use only one from : proxyUrl, httpProxy, httpsProxy, socksProxy');
+            throw new InvalidProxySettings (this.id + ' you have multiple conflicting proxy settings, please use only one from : proxyUrl, httpProxy, httpsProxy, socksProxy');
         }
     }
 
