@@ -212,8 +212,8 @@ export default class coindcx extends Exchange {
                         'exchange/v1/margin/remove_margin': 1, // done
                         'exchange/v1/margin/fetch_orders': 1, // done
                         'exchange/v1/margin/order': 1, // done
-                        'exchange/v1/derivatives/futures/orders': 1,
-                        'exchange/v1/derivatives/futures/orders/create': 1,
+                        'exchange/v1/derivatives/futures/orders': 1, // done
+                        'exchange/v1/derivatives/futures/orders/create': 1, // done
                         'exchange/v1/derivatives/futures/orders/cancel': 1,
                         'exchange/v1/derivatives/futures/positions': 1,
                         'exchange/v1/derivatives/futures/positions/add_margin': 1, // done todo check
@@ -223,7 +223,7 @@ export default class coindcx extends Exchange {
                         'exchange/v1/derivatives/futures/positions/exit': 1,
                         'exchange/v1/derivatives/futures/positions/create_tpsl': 1,
                         'exchange/v1/derivatives/futures/positions/transactions': 1,
-                        'exchange/v1/derivatives/futures/trades': 1,
+                        'exchange/v1/derivatives/futures/trades': 1, // done
                     },
                 },
             },
@@ -246,6 +246,7 @@ export default class coindcx extends Exchange {
             },
             'exceptions': {
                 'exact': {
+                    // {"code":400,"message":"Minimum order value should be 24.0 USDT","status":"error"}
                     // {"code":400,"message":"Invalid Request.","status":"error"}
                     // {"code":401,"message":"Invalid credentials","status":"error"}
                     // {"status":"error","message":"not_found","code":404}
@@ -254,6 +255,7 @@ export default class coindcx extends Exchange {
                     // {"code":422,"message":"Cannot exit this order","status":"error"}
                     // {"code":422,"message":"Price can't be empty for limit_order Order","status":"error"}
                     // {"code":422,"message":"Side Filter values are incorrect","status":"error"}
+                    // {"code":422,"message":"Post only order not allowed for this instrument","status":"error"}
                 },
                 'broad': {
                     // todo: add more error codes
@@ -1257,8 +1259,8 @@ export default class coindcx extends Exchange {
         if (price !== undefined) {
             request['price'] = this.priceToPrecision (symbol, price);
         }
-        const stopLossPrice = this.safeString (params, 'stopLossPrice');
-        const takeProfitPrice = this.safeString (params, 'takeProfitPrice');
+        const isStopLoss = (this.safeString (params, 'stopLossPrice') !== undefined);
+        const isTakeProfit = (this.safeString (params, 'takeProfitPrice') !== undefined);
         const triggerPrice = this.safeStringN (params, [ 'triggerPrice', 'stopLossPrice', 'takeProfitPrice' ]);
         if (triggerPrice !== undefined) {
             if (type === 'market_order') {
@@ -1266,9 +1268,9 @@ export default class coindcx extends Exchange {
             }
             request['stop_price'] = this.priceToPrecision (symbol, triggerPrice);
             if (type === 'limit_order') {
-                if (stopLossPrice !== undefined) {
+                if (isStopLoss) {
                     request['order_type'] = 'stop_limit';
-                } else if (takeProfitPrice !== undefined) {
+                } else if (isTakeProfit) {
                     request['order_type'] = 'take_profit';
                 }
             }
@@ -1355,6 +1357,104 @@ export default class coindcx extends Exchange {
         return parsedOrder;
     }
 
+    async createContractOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}): Promise<Order> {
+        /**
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {string} type 'market', 'limit', 'stop_market', 'stop_limit', 'take_profit_market', 'take_profit_limit'
+         * @param {string} side 'buy' or 'sell'
+         * @param {float} amount how much of currency you want to trade in units of base currency
+         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {int} [params.leverage] the rate of leverage
+         * @param {float} [params.triggerPrice] triggerPrice at which the attached take profit / stop loss order will be triggered
+         * @param {float} [params.stopLossPrice] stop loss trigger price
+         * @param {float} [params.takeProfitPrice] take profit trigger price
+         * @param {string} [params.timeInForce] *for limit orders only* 'GTC', 'IOC', 'FOK', or 'PO' - 'PO' is not supported at the moment
+         * @param {bool} [params.postOnly] true or false - not supported at the moment
+         * @param {string} [params.notification] no_notification or email_notification - set as email_notification to receive an email once the order is filled
+         * @param {bool} [params.hidden] not supported at the moment
+         */
+        const market = this.market (symbol);
+        const orderRequest: Dict = {
+            'pair': market['id'],
+            'order_type': type,
+            'side': side,
+            'total_quantity': this.amountToPrecision (symbol, amount),
+        };
+        if (price !== undefined) {
+            orderRequest['price'] = this.priceToPrecision (symbol, price);
+        }
+        let postOnly = false;
+        const exchangeSpecificPostOnlyOption = this.safeBool (params, 'post_only');
+        const isMarketOrder = type === 'market';
+        [ postOnly, params ] = this.handlePostOnly (isMarketOrder, exchangeSpecificPostOnlyOption, params);
+        if (postOnly) {
+            orderRequest['post_only'] = true;
+        }
+        const timeInForce = this.safeString (params, 'timeInForce');
+        if (timeInForce !== undefined) {
+            orderRequest['time_in_force'] = this.encodeTimeInForce (timeInForce);
+            params = this.omit (params, 'timeInForce');
+        }
+        const isStopLoss = (this.safeString (params, 'stopLossPrice') !== undefined);
+        const isTakeProfit = (this.safeString (params, 'takeProfitPrice') !== undefined);
+        const triggerPrice = this.safeStringN (params, [ 'triggerPrice', 'stopLossPrice', 'takeProfitPrice' ]);
+        if (triggerPrice !== undefined) {
+            orderRequest['stop_price'] = this.priceToPrecision (symbol, triggerPrice);
+            if (type === 'limit_order') {
+                if (isStopLoss) {
+                    orderRequest['order_type'] = 'stop_limit';
+                } else if (isTakeProfit) {
+                    orderRequest['order_type'] = 'take_profit_limit';
+                }
+            } else if (type === 'market_order') {
+                if (isStopLoss) {
+                    orderRequest['order_type'] = 'stop_market';
+                } else if (isTakeProfit) {
+                    orderRequest['order_type'] = 'take_profit_market';
+                }
+            }
+            params = this.omit (params, [ 'triggerPrice', 'stopLossPrice', 'takeProfitPrice' ]);
+        }
+        const request: Dict = {
+            'order': this.extend (orderRequest, params),
+        };
+        const response = await this.privatePostExchangeV1DerivativesFuturesOrdersCreate (request);
+        //
+        //     [
+        //         {
+        //             "id": "091da8ec-3c3a-11ef-ae30-eff9d9f1239c",
+        //             "pair": "B-ETH_USDT",
+        //             "side": "buy",
+        //             "status": "initial",
+        //             "order_type": "limit_order",
+        //             "stop_trigger_instruction": "last_price",
+        //             "notification": "no_notification",
+        //             "leverage": 1.0,
+        //             "maker_fee": 0.025,
+        //             "taker_fee": 0.075,
+        //             "fee_amount": 0.0,
+        //             "price": 3000.0,
+        //             "stop_price": 0.0,
+        //             "avg_price": 0.0,
+        //             "total_quantity": 0.01,
+        //             "remaining_quantity": 0.01,
+        //             "cancelled_quantity": 0.0,
+        //             "ideal_margin": 30.045,
+        //             "order_category": null,
+        //             "stage": "default",
+        //             "group_id": null,
+        //             "display_message": null,
+        //             "group_status": null,
+        //             "created_at": 1720340542955,
+        //             "updated_at": 1720340542955
+        //         }
+        //     ]
+        //
+        const order = this.safeDict (response, 0, {});
+        return this.parseOrder (order, market);
+    }
+
     encodeSpotOrderType (type) {
         const types = {
             'market': 'market_order',
@@ -1362,7 +1462,7 @@ export default class coindcx extends Exchange {
             'market_order': 'market_order',
             'limit_order': 'limit_order',
         };
-        return this.safeString (types, type, undefined);
+        return this.safeString (types, type, undefined); // todo check
     }
 
     encodeMarginOrderType (type) {
@@ -1392,10 +1492,13 @@ export default class coindcx extends Exchange {
         return this.safeString (types, type, undefined);
     }
 
-    async createContractOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}): Promise<Order> {
-        const market = this.market (symbol);
-        // todo implement this method
-        return this.parseOrder ({}, market);
+    encodeTimeInForce (type) {
+        const types = {
+            'GTC': 'good_till_cancel',
+            'IOC': 'immediate_or_cancel',
+            'FOK': 'fill_or_kill',
+        };
+        return this.safeString (types, type, type);
     }
 
     async createOrders (orders: OrderRequest[], params = {}): Promise<Order[]> {
@@ -2273,6 +2376,35 @@ export default class coindcx extends Exchange {
         //         "updated_at": 1719472930403
         //     }
         //
+        // privatePostExchangeV1DerivativesFuturesOrdersCreate
+        //     {
+        //         "id": "091da8ec-3c3a-11ef-ae30-eff9d9f1239c",
+        //         "pair": "B-ETH_USDT",
+        //         "side": "buy",
+        //         "status": "initial",
+        //         "order_type": "limit_order",
+        //         "stop_trigger_instruction": "last_price",
+        //         "notification": "no_notification",
+        //         "leverage": 1.0,
+        //         "maker_fee": 0.025,
+        //         "taker_fee": 0.075,
+        //         "fee_amount": 0.0,
+        //         "price": 3000.0,
+        //         "stop_price": 0.0,
+        //         "avg_price": 0.0,
+        //         "total_quantity": 0.01,
+        //         "remaining_quantity": 0.01,
+        //         "cancelled_quantity": 0.0,
+        //         "ideal_margin": 30.045,
+        //         "order_category": null,
+        //         "stage": "default",
+        //         "group_id": null,
+        //         "display_message": null,
+        //         "group_status": null,
+        //         "created_at": 1720340542955,
+        //         "updated_at": 1720340542955
+        //     }
+        //
         const marketId = this.safeString2 (order, 'market', 'pair');
         market = this.safeMarket (marketId, market);
         let timestamp = this.safeInteger (order, 'created_at');
@@ -2290,7 +2422,7 @@ export default class coindcx extends Exchange {
         let lastUpdateTimestamp = this.safeInteger (order, 'updated_at');
         if (lastUpdateTimestamp === undefined) {
             datetime = this.safeString (order, 'updated_at');
-            lastUpdateTimestamp = this.parse8601 (datetime);
+            lastUpdateTimestamp = this.parse8601 (datetime); // todo check
         }
         const fee = {
             'currency': undefined, // todo check
@@ -2302,9 +2434,9 @@ export default class coindcx extends Exchange {
         let takeProfitPrice: Str = undefined;
         let stopLossPrice: Str = undefined;
         if ((triggerPrice !== undefined) && (type !== undefined)) {
-            if (type.indexOf ('take_profit') > 0) {
+            if (type.indexOf ('take_profit') >= 0) {
                 takeProfitPrice = triggerPrice;
-            } else if (type.indexOf ('stop') > 0) {
+            } else if (type.indexOf ('stop') >= 0) {
                 stopLossPrice = triggerPrice;
             }
         }
@@ -2320,7 +2452,7 @@ export default class coindcx extends Exchange {
             'type': this.parseOrderType (type),
             'timeInForce': this.parseOrderTimeInForce (this.safeString (order, 'time_in_force')), // only for limit orders
             'side': this.safeString (order, 'side'),
-            'price': this.omitZero (this.safeString (order, 'price_per_unit')),
+            'price': this.omitZero (this.safeString2 (order, 'price_per_unit', 'price')),
             'average': this.omitZero (this.safeString (order, 'avg_price')),
             'amount': this.safeString (order, 'total_quantity'),
             'filled': this.safeString (order, 'filled_quantity'),
