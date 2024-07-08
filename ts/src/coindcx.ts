@@ -2044,6 +2044,7 @@ export default class coindcx extends Exchange {
          * @description cancels an open order
          * @see https://docs.coindcx.com/#cancel
          * @see https://docs.coindcx.com/#cancel-order
+         * @see https://docs.coindcx.com/#cancel-order-2
          * @param {string} id order id
          * @param {string} symbol not used by coindcx cancelOrder
          * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -2085,6 +2086,15 @@ export default class coindcx extends Exchange {
             //
             //     {
             //         "message": "Cancellation accepted",
+            //         "status": 200,
+            //         "code": 200
+            //     }
+            //
+        } else if ((marketType === 'future') || (marketType === 'swap')) {
+            return await this.privatePostExchangeV1DerivativesFuturesOrdersCancel (this.extend (request, params));
+            //
+            //     {
+            //         "message": "success",
             //         "status": 200,
             //         "code": 200
             //     }
