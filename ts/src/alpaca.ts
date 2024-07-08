@@ -1,7 +1,7 @@
 //  ---------------------------------------------------------------------------
 
 import Exchange from './abstract/alpaca.js';
-import { ExchangeError, BadRequest, PermissionDenied, BadSymbol, NotSupported, InsufficientFunds, InvalidOrder, RateLimitExceeded } from './base/errors.js';
+import { ExchangeError, ArgumentsRequired, BadRequest, PermissionDenied, BadSymbol, NotSupported, InsufficientFunds, InvalidOrder, RateLimitExceeded } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import type { Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Trade, Ticker, Tickers, Str, Strings, Balances, int } from './base/types.js';
 
@@ -485,7 +485,13 @@ export default class alpaca extends Exchange {
          */
         await this.loadMarkets ();
         const loc = this.safeString (params, 'loc', this.safeString (this.options, 'location'));
-        const parsedSymbols = symbols.join (',');
+        let parsedSymbols = undefined;
+        if (symbols !== undefined) {
+            symbols = this.marketSymbols (symbols);
+            parsedSymbols = symbols.join (',');
+        } else {
+            throw new ArgumentsRequired (this.id + ' fetchTickers() requires "symbols" argument');
+        }
         const request: Dict = {
             'symbols': parsedSymbols,
             'loc': loc,
@@ -837,11 +843,6 @@ export default class alpaca extends Exchange {
         if (limit !== undefined) {
             request['page_size'] = limit;
         }
-        // add a page token if in params
-        const page_token = this.safeString (params, 'page_token');
-        if (page_token !== undefined) {
-            request['page_token'] = page_token;
-        }
         const response = await this.traderPrivateGetV2AccountActivities (this.extend (request, params));
         return this.parseTrades (response, market, since, limit);
     }
@@ -910,7 +911,7 @@ export default class alpaca extends Exchange {
         return this.parseOrderBook (rawOrderbook, market['symbol'], timestamp, 'b', 'a', 'p', 's');
     }
 
-    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = 0, limit: Int = 1000, params = {}): Promise<OHLCV[]> {
+    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         /**
          * @method
          * @name alpaca#fetchOHLCV
@@ -919,7 +920,7 @@ export default class alpaca extends Exchange {
          * @see https://docs.alpaca.markets/reference/cryptolatestbars
          * @param {string} symbol unified symbol of the market to fetch OHLCV data for
          * @param {string} timeframe the length of time each candle represents
-         * @param {int} [since] timestamp in ms of the earliest candle to fetch - required parameter - defaulted to 0
+         * @param {int} [since] timestamp in ms of the earliest candle to fetch
          * @param {int} [limit] the maximum amount of candles to fetch - defaults to 1000
          * @param {object} [params] extra parameters specific to the alpha api endpoint
          * @param {string} [params.loc] crypto location, default: us
@@ -936,14 +937,16 @@ export default class alpaca extends Exchange {
             'loc': loc,
         };
         params = this.omit (params, [ 'loc', 'method' ]);
+        // required parameters
+        if (limit === undefined) {
+            limit = 1000;
+        }
+        if (since === undefined) {
+            since = 0;
+        }
         let ohlcvs = undefined;
         if (method === 'marketPublicGetV1beta3CryptoLocBars') {
-            if (limit !== undefined) {
-                request['limit'] = limit;
-            }
-            if (since === undefined) {
-                since = 0;
-            }
+            request['limit'] = limit;
             request['start'] = this.yyyymmdd (since);
             request['sort'] = 'desc';
             request['timeframe'] = this.safeString (this.timeframes, timeframe, timeframe);
@@ -1489,11 +1492,13 @@ export default class alpaca extends Exchange {
         }, market);
     }
 
-    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign (path, api = [], method = 'GET', params = {}, headers = undefined, body = undefined) {
         let endpoint = '/' + this.implodeParams (path, params);
         let url = this.implodeHostname (this.urls['api'][api[0]]);
         headers = (headers !== undefined) ? headers : {};
-        if (api[1] === 'private') {
+        const signed = api[1] === 'private';
+        if (signed) {
+            this.checkRequiredCredentials ();
             headers['APCA-API-KEY-ID'] = this.apiKey;
             headers['APCA-API-SECRET-KEY'] = this.secret;
         }
