@@ -70,7 +70,7 @@ declare class ContractUnavailable extends InvalidOrder {
 declare class NotSupported extends ExchangeError {
     constructor(message: string);
 }
-declare class ProxyError extends ExchangeError {
+declare class InvalidProxySettings extends ExchangeError {
     constructor(message: string);
 }
 declare class ExchangeClosedByUser extends ExchangeError {
@@ -109,7 +109,7 @@ declare class NullResponse extends BadResponse {
 declare class CancelPending extends OperationFailed {
     constructor(message: string);
 }
-export { BaseError, ExchangeError, AuthenticationError, PermissionDenied, AccountNotEnabled, AccountSuspended, ArgumentsRequired, BadRequest, BadSymbol, OperationRejected, NoChange, MarginModeAlreadySet, MarketClosed, InsufficientFunds, InvalidAddress, AddressPending, InvalidOrder, OrderNotFound, OrderNotCached, OrderImmediatelyFillable, OrderNotFillable, DuplicateOrderId, ContractUnavailable, NotSupported, ProxyError, ExchangeClosedByUser, OperationFailed, NetworkError, DDoSProtection, RateLimitExceeded, ExchangeNotAvailable, OnMaintenance, InvalidNonce, RequestTimeout, BadResponse, NullResponse, CancelPending };
+export { BaseError, ExchangeError, AuthenticationError, PermissionDenied, AccountNotEnabled, AccountSuspended, ArgumentsRequired, BadRequest, BadSymbol, OperationRejected, NoChange, MarginModeAlreadySet, MarketClosed, InsufficientFunds, InvalidAddress, AddressPending, InvalidOrder, OrderNotFound, OrderNotCached, OrderImmediatelyFillable, OrderNotFillable, DuplicateOrderId, ContractUnavailable, NotSupported, InvalidProxySettings, ExchangeClosedByUser, OperationFailed, NetworkError, DDoSProtection, RateLimitExceeded, ExchangeNotAvailable, OnMaintenance, InvalidNonce, RequestTimeout, BadResponse, NullResponse, CancelPending };
 declare const _default: {
     BaseError: typeof BaseError;
     ExchangeError: typeof ExchangeError;
@@ -135,7 +135,7 @@ declare const _default: {
     DuplicateOrderId: typeof DuplicateOrderId;
     ContractUnavailable: typeof ContractUnavailable;
     NotSupported: typeof NotSupported;
-    ProxyError: typeof ProxyError;
+    InvalidProxySettings: typeof InvalidProxySettings;
     ExchangeClosedByUser: typeof ExchangeClosedByUser;
     OperationFailed: typeof OperationFailed;
     NetworkError: typeof NetworkError;

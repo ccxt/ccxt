@@ -65,7 +65,7 @@ from ccxt.base.errors import OrderNotFillable                         # noqa: F4
 from ccxt.base.errors import DuplicateOrderId                         # noqa: F401
 from ccxt.base.errors import ContractUnavailable                      # noqa: F401
 from ccxt.base.errors import NotSupported                             # noqa: F401
-from ccxt.base.errors import ProxyError                               # noqa: F401
+from ccxt.base.errors import InvalidProxySettings                     # noqa: F401
 from ccxt.base.errors import ExchangeClosedByUser                     # noqa: F401
 from ccxt.base.errors import OperationFailed                          # noqa: F401
 from ccxt.base.errors import NetworkError                             # noqa: F401

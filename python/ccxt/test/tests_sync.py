@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from tests_helpers import get_cli_arg_value, dump, exit_script, get_test_files, init_exchange, set_exchange_prop, call_method, exception_message, io_file_exists, io_file_read, baseMainTestClass, AuthenticationError, NotSupported, OperationFailed, OnMaintenance, ExchangeNotAvailable, ProxyError, get_exchange_prop, close, json_parse, json_stringify, is_null_value, io_dir_read, convert_ascii, call_exchange_method_dynamically, set_fetch_response, call_exchange_method_dynamically_sync  # noqa: F401
+from tests_helpers import get_cli_arg_value, dump, exit_script, get_test_files, init_exchange, set_exchange_prop, call_method, exception_message, io_file_exists, io_file_read, baseMainTestClass, AuthenticationError, NotSupported, OperationFailed, OnMaintenance, ExchangeNotAvailable, InvalidProxySettings, get_exchange_prop, close, json_parse, json_stringify, is_null_value, io_dir_read, convert_ascii, call_exchange_method_dynamically, set_fetch_response, call_exchange_method_dynamically_sync  # noqa: F401
 
 class testMainClass(baseMainTestClass):
     def parse_cli_args(self):
@@ -824,7 +824,7 @@ class testMainClass(baseMainTestClass):
             else:
                 call_exchange_method_dynamically_sync(exchange, method, self.sanitize_data_input(data['input']))
         except Exception as e:
-            if not (isinstance(e, ProxyError)):
+            if not (isinstance(e, InvalidProxySettings)):
                 raise e
             output = exchange.last_request_body
             request_url = exchange.last_request_url

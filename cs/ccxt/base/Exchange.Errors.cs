@@ -147,11 +147,11 @@ namespace ccxt;
         public NotSupported(string message) : base(message) { }
         public NotSupported(string message, ExchangeError inner) : base(message, inner) { }
     }
-   public class ProxyError : ExchangeError
+   public class InvalidProxySettings : ExchangeError
     {
-        public ProxyError() : base() { }
-        public ProxyError(string message) : base(message) { }
-        public ProxyError(string message, ExchangeError inner) : base(message, inner) { }
+        public InvalidProxySettings() : base() { }
+        public InvalidProxySettings(string message) : base(message) { }
+        public InvalidProxySettings(string message, ExchangeError inner) : base(message, inner) { }
     }
    public class ExchangeClosedByUser : ExchangeError
     {

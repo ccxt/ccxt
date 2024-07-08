@@ -30,7 +30,7 @@ error_hierarchy = {
                 'ContractUnavailable': {},
             },
             'NotSupported': {},
-            'ProxyError': {},
+            'InvalidProxySettings': {},
             'ExchangeClosedByUser': {},
         },
         'OperationFailed': {
@@ -148,7 +148,7 @@ class NotSupported(ExchangeError):
     pass
 
 
-class ProxyError(ExchangeError):
+class InvalidProxySettings(ExchangeError):
     pass
 
 
@@ -226,7 +226,7 @@ __all__ = [
     'DuplicateOrderId',
     'ContractUnavailable',
     'NotSupported',
-    'ProxyError',
+    'InvalidProxySettings',
     'ExchangeClosedByUser',
     'OperationFailed',
     'NetworkError',
