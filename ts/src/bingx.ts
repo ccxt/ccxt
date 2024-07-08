@@ -1455,9 +1455,10 @@ export default class bingx extends Exchange {
         /**
          * @method
          * @name bingx#fetchOpenInterest
-         * @description Retrieves the open interest of a currency
+         * @description retrieves the open interest of a trading pair
          * @see https://bingx-api.github.io/docs/#/swapV2/market-api.html#Get%20Swap%20Open%20Positions
-         * @param {string} symbol Unified CCXT market symbol
+         * @see https://bingx-api.github.io/docs/#/en-us/cswap/market-api.html#Get%20Swap%20Open%20Positions
+         * @param {string} symbol unified CCXT market symbol
          * @param {object} [params] exchange specific parameters
          * @returns {object} an open interest structure{@link https://docs.ccxt.com/#/?id=open-interest-structure}
          */
@@ -1466,7 +1467,14 @@ export default class bingx extends Exchange {
         const request: Dict = {
             'symbol': market['id'],
         };
-        const response = await this.swapV2PublicGetQuoteOpenInterest (this.extend (request, params));
+        let response = undefined;
+        if (market['inverse']) {
+            response = await this.cswapV1PublicGetMarketOpenInterest (this.extend (request, params));
+        } else {
+            response = await this.swapV2PublicGetQuoteOpenInterest (this.extend (request, params));
+        }
+        //
+        // linear swap
         //
         //     {
         //         "code": 0,
@@ -1478,19 +1486,50 @@ export default class bingx extends Exchange {
         //         }
         //     }
         //
-        const data = this.safeDict (response, 'data', {});
-        return this.parseOpenInterest (data, market);
+        // inverse swap
+        //
+        //     {
+        //         "code": 0,
+        //         "msg": "",
+        //         "timestamp": 1720328247986,
+        //         "data": [
+        //             {
+        //                 "symbol": "BTC-USD",
+        //                 "openInterest": "749.1160",
+        //                 "timestamp": 1720310400000
+        //             }
+        //         ]
+        //     }
+        //
+        let result: Dict = {};
+        if (market['inverse']) {
+            const data = this.safeList (response, 'data', []);
+            result = this.safeDict (data, 0, {});
+        } else {
+            result = this.safeDict (response, 'data', {});
+        }
+        return this.parseOpenInterest (result, market);
     }
 
     parseOpenInterest (interest, market: Market = undefined) {
         //
-        //    {
-        //        "openInterest": "3289641547.10",
-        //        "symbol": "BTC-USDT",
-        //        "time": 1672026617364
-        //    }
+        // linear swap
         //
-        const timestamp = this.safeInteger (interest, 'time');
+        //     {
+        //         "openInterest": "3289641547.10",
+        //         "symbol": "BTC-USDT",
+        //         "time": 1672026617364
+        //     }
+        //
+        // inverse swap
+        //
+        //     {
+        //         "symbol": "BTC-USD",
+        //         "openInterest": "749.1160",
+        //         "timestamp": 1720310400000
+        //     }
+        //
+        const timestamp = this.safeInteger2 (interest, 'time', 'timestamp');
         const id = this.safeString (interest, 'symbol');
         const symbol = this.safeSymbol (id, market, '-', 'swap');
         const openInterest = this.safeNumber (interest, 'openInterest');
@@ -1991,7 +2030,7 @@ export default class bingx extends Exchange {
             request['timeInForce'] = 'GTC';
         }
         if (isSpot) {
-            const cost = this.safeNumber2 (params, 'cost', 'quoteOrderQty');
+            const cost = this.safeString2 (params, 'cost', 'quoteOrderQty');
             params = this.omit (params, 'cost');
             if (cost !== undefined) {
                 request['quoteOrderQty'] = this.parseToNumeric (this.costToPrecision (symbol, cost));
@@ -2122,7 +2161,7 @@ export default class bingx extends Exchange {
                 positionSide = (side === 'buy') ? 'LONG' : 'SHORT';
             }
             request['positionSide'] = positionSide;
-            request['quantity'] = this.parseToNumeric (this.amountToPrecision (symbol, amount));
+            request['quantity'] = (market['inverse']) ? amount : this.parseToNumeric (this.amountToPrecision (symbol, amount)); // precision not available for inverse contracts
         }
         params = this.omit (params, [ 'reduceOnly', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'trailingAmount', 'trailingPercent', 'trailingType', 'takeProfit', 'stopLoss', 'clientOrderId' ]);
         return this.extend (request, params);
@@ -2135,6 +2174,7 @@ export default class bingx extends Exchange {
          * @description create a trade order
          * @see https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Trade%20order
          * @see https://bingx-api.github.io/docs/#/en-us/spot/trade-api.html#Create%20an%20Order
+         * @see https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Trade%20order
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
@@ -2167,6 +2207,8 @@ export default class bingx extends Exchange {
         if (market['swap']) {
             if (test) {
                 response = await this.swapV2PrivatePostTradeOrderTest (request);
+            } else if (market['inverse']) {
+                response = await this.cswapV1PrivatePostTradeOrder (request);
             } else {
                 response = await this.swapV2PrivatePostTradeOrder (request);
             }
@@ -2193,7 +2235,7 @@ export default class bingx extends Exchange {
         //        }
         //    }
         //
-        // swap
+        // linear swap
         //
         //     {
         //         "code": 0,
@@ -2211,6 +2253,21 @@ export default class bingx extends Exchange {
         //         }
         //     }
         //
+        // inverse swap
+        //
+        //     {
+        //         "orderId": 1809841379603398656,
+        //         "symbol": "SOL-USD",
+        //         "positionSide": "LONG",
+        //         "side": "BUY",
+        //         "type": "LIMIT",
+        //         "price": 100,
+        //         "quantity": 1,
+        //         "stopPrice": 0,
+        //         "workingType": "",
+        //         "timeInForce": ""
+        //     }
+        //
         if (typeof response === 'string') {
             // broken api engine : order-ids are too long numbers (i.e. 1742930526912864656)
             // and JSON.parse can not handle them in JS, so we have to use .parseJson
@@ -2218,9 +2275,18 @@ export default class bingx extends Exchange {
             response = this.fixStringifiedJsonMembers (response);
             response = this.parseJson (response);
         }
-        const data = this.safeValue (response, 'data', {});
-        const order = this.safeDict (data, 'order', data);
-        return this.parseOrder (order, market);
+        const data = this.safeDict (response, 'data', {});
+        let result: Dict = {};
+        if (market['swap']) {
+            if (market['inverse']) {
+                result = response;
+            } else {
+                result = this.safeDict (data, 'order', {});
+            }
+        } else {
+            result = data;
+        }
+        return this.parseOrder (result, market);
     }
 
     async createOrders (orders: OrderRequest[], params = {}) {
@@ -2396,7 +2462,7 @@ export default class bingx extends Exchange {
         //   }
         //
         //
-        // swap
+        // linear swap
         // createOrder, createOrders
         //
         //    {
@@ -2406,6 +2472,21 @@ export default class bingx extends Exchange {
         //      "positionSide": "LONG",
         //      "type": "LIMIT"
         //    }
+        //
+        // inverse swap createOrder
+        //
+        //     {
+        //         "orderId": 1809841379603398656,
+        //         "symbol": "SOL-USD",
+        //         "positionSide": "LONG",
+        //         "side": "BUY",
+        //         "type": "LIMIT",
+        //         "price": 100,
+        //         "quantity": 1,
+        //         "stopPrice": 0,
+        //         "workingType": "",
+        //         "timeInForce": ""
+        //     }
         //
         // fetchOrder, fetchOpenOrders, fetchClosedOrders
         //

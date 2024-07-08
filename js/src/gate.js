@@ -4022,7 +4022,7 @@ export default class gate extends Exchange {
                     request['price'] = price; // set to 0 for market orders
                 }
                 else {
-                    request['price'] = this.priceToPrecision(symbol, price);
+                    request['price'] = (price === 0) ? '0' : this.priceToPrecision(symbol, price);
                 }
                 if (reduceOnly !== undefined) {
                     request['reduce_only'] = reduceOnly;
@@ -4113,8 +4113,8 @@ export default class gate extends Exchange {
                 request = {
                     'initial': {
                         'contract': market['id'],
-                        'size': amount,
-                        'price': this.priceToPrecision(symbol, price), // set to 0 to use market price
+                        'size': amount, // positive = buy, negative = sell, set to 0 to close the position
+                        // 'price': (price === 0) ? '0' : this.priceToPrecision (symbol, price), // set to 0 to use market price
                         // 'close': false, // set to true if trying to close the position
                         // 'tif': 'gtc', // gtc, ioc, if using market price, only ioc is supported
                         // 'text': clientOrderId, // web, api, app
@@ -4122,6 +4122,12 @@ export default class gate extends Exchange {
                     },
                     'settle': market['settleId'],
                 };
+                if (type === 'market') {
+                    request['initial']['price'] = '0';
+                }
+                else {
+                    request['initial']['price'] = (price === 0) ? '0' : this.priceToPrecision(symbol, price);
+                }
                 if (trigger === undefined) {
                     let rule = undefined;
                     let triggerOrderPrice = undefined;

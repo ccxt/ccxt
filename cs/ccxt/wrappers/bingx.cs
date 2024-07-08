@@ -249,10 +249,11 @@ public partial class bingx
         return ((IList<object>)res).Select(item => new FundingRateHistory(item)).ToList<FundingRateHistory>();
     }
     /// <summary>
-    /// Retrieves the open interest of a currency
+    /// retrieves the open interest of a trading pair
     /// </summary>
     /// <remarks>
     /// See <see href="https://bingx-api.github.io/docs/#/swapV2/market-api.html#Get%20Swap%20Open%20Positions"/>  <br/>
+    /// See <see href="https://bingx-api.github.io/docs/#/en-us/cswap/market-api.html#Get%20Swap%20Open%20Positions"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -453,6 +454,7 @@ public partial class bingx
     /// <remarks>
     /// See <see href="https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Trade%20order"/>  <br/>
     /// See <see href="https://bingx-api.github.io/docs/#/en-us/spot/trade-api.html#Create%20an%20Order"/>  <br/>
+    /// See <see href="https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Trade%20order"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>price</term>

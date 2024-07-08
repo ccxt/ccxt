@@ -1170,7 +1170,7 @@ class coinone extends coinone$1 {
         //     {"result":"error","error_code":"108","error_msg":"Unknown CryptoCurrency"}
         //
         const errorCode = this.safeString(response, 'error_code');
-        if (errorCode !== '0') {
+        if (errorCode !== undefined && errorCode !== '0') {
             const feedback = this.id + ' ' + body;
             this.throwExactlyMatchedException(this.exceptions, errorCode, feedback);
             throw new errors.ExchangeError(feedback); // unknown message

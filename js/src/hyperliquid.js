@@ -101,7 +101,7 @@ export default class hyperliquid extends Exchange {
                 'fetchTickers': false,
                 'fetchTime': false,
                 'fetchTrades': true,
-                'fetchTradingFee': false,
+                'fetchTradingFee': true,
                 'fetchTradingFees': false,
                 'fetchTransfer': false,
                 'fetchTransfers': false,
@@ -2517,6 +2517,112 @@ export default class hyperliquid extends Exchange {
             'comment': undefined,
             'internal': undefined,
             'fee': undefined,
+        };
+    }
+    async fetchTradingFee(symbol, params = {}) {
+        /**
+         * @method
+         * @name hyperliquid#fetchTradingFee
+         * @description fetch the trading fees for a market
+         * @param {string} symbol unified market symbol
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.user] user address, will default to this.walletAddress if not provided
+         * @returns {object} a [fee structure]{@link https://docs.ccxt.com/#/?id=fee-structure}
+         */
+        await this.loadMarkets();
+        let userAddress = undefined;
+        [userAddress, params] = this.handlePublicAddress('fetchTradingFee', params);
+        const market = this.market(symbol);
+        const request = {
+            'type': 'userFees',
+            'user': userAddress,
+        };
+        const response = await this.publicPostInfo(this.extend(request, params));
+        //
+        //     {
+        //         "dailyUserVlm": [
+        //             {
+        //                 "date": "2024-07-08",
+        //                 "userCross": "0.0",
+        //                 "userAdd": "0.0",
+        //                 "exchange": "90597185.23639999"
+        //             }
+        //         ],
+        //         "feeSchedule": {
+        //             "cross": "0.00035",
+        //             "add": "0.0001",
+        //             "tiers": {
+        //                 "vip": [
+        //                     {
+        //                         "ntlCutoff": "5000000.0",
+        //                         "cross": "0.0003",
+        //                         "add": "0.00005"
+        //                     }
+        //                 ],
+        //                 "mm": [
+        //                     {
+        //                         "makerFractionCutoff": "0.005",
+        //                         "add": "-0.00001"
+        //                     }
+        //                 ]
+        //             },
+        //             "referralDiscount": "0.04"
+        //         },
+        //         "userCrossRate": "0.00035",
+        //         "userAddRate": "0.0001",
+        //         "activeReferralDiscount": "0.0"
+        //     }
+        //
+        const data = {
+            'userCrossRate': this.safeString(response, 'userCrossRate'),
+            'userAddRate': this.safeString(response, 'userAddRate'),
+        };
+        return this.parseTradingFee(data, market);
+    }
+    parseTradingFee(fee, market = undefined) {
+        //
+        //     {
+        //         "dailyUserVlm": [
+        //             {
+        //                 "date": "2024-07-08",
+        //                 "userCross": "0.0",
+        //                 "userAdd": "0.0",
+        //                 "exchange": "90597185.23639999"
+        //             }
+        //         ],
+        //         "feeSchedule": {
+        //             "cross": "0.00035",
+        //             "add": "0.0001",
+        //             "tiers": {
+        //                 "vip": [
+        //                     {
+        //                         "ntlCutoff": "5000000.0",
+        //                         "cross": "0.0003",
+        //                         "add": "0.00005"
+        //                     }
+        //                 ],
+        //                 "mm": [
+        //                     {
+        //                         "makerFractionCutoff": "0.005",
+        //                         "add": "-0.00001"
+        //                     }
+        //                 ]
+        //             },
+        //             "referralDiscount": "0.04"
+        //         },
+        //         "userCrossRate": "0.00035",
+        //         "userAddRate": "0.0001",
+        //         "activeReferralDiscount": "0.0"
+        //     }
+        //
+        const symbol = this.safeSymbol(undefined, market);
+        return {
+            'info': fee,
+            'symbol': symbol,
+            'maker': this.safeNumber(fee, 'userAddRate'),
+            'taker': this.safeNumber(fee, 'userCrossRate'),
+            'percentage': undefined,
+            'tierBased': undefined,
         };
     }
     formatVaultAddress(address = undefined) {

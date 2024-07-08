@@ -3786,7 +3786,7 @@ class gate(Exchange, ImplicitAPI):
                 if isMarketOrder:
                     request['price'] = price  # set to 0 for market orders
                 else:
-                    request['price'] = self.price_to_precision(symbol, price)
+                    request['price'] = '0' if (price == 0) else self.price_to_precision(symbol, price)
                 if reduceOnly is not None:
                     request['reduce_only'] = reduceOnly
                 if timeInForce is not None:
@@ -3857,7 +3857,7 @@ class gate(Exchange, ImplicitAPI):
                     'initial': {
                         'contract': market['id'],
                         'size': amount,  # positive = buy, negative = sell, set to 0 to close the position
-                        'price': self.price_to_precision(symbol, price),  # set to 0 to use market price
+                        # 'price': '0' if (price == 0) else self.price_to_precision(symbol, price),  # set to 0 to use market price
                         # 'close': False,  # set to True if trying to close the position
                         # 'tif': 'gtc',  # gtc, ioc, if using market price, only ioc is supported
                         # 'text': clientOrderId,  # web, api, app
@@ -3865,6 +3865,10 @@ class gate(Exchange, ImplicitAPI):
                     },
                     'settle': market['settleId'],
                 }
+                if type == 'market':
+                    request['initial']['price'] = '0'
+                else:
+                    request['initial']['price'] = '0' if (price == 0) else self.price_to_precision(symbol, price)
                 if trigger is None:
                     rule = None
                     triggerOrderPrice = None

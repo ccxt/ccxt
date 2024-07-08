@@ -1571,7 +1571,7 @@ class okx(ccxt.async_support.okx):
         if self.is_empty(args):
             method = self.safe_string(message, 'op')
             stringMsg = self.json(message)
-            self.handle_errors(None, None, client.url, method, None, stringMsg, stringMsg, None, None)
+            self.handle_errors(None, None, client.url, method, None, stringMsg, message, None, None)
         orders = self.parse_orders(args, None, None, None)
         first = self.safe_dict(orders, 0, {})
         client.resolve(first, messageHash)
@@ -1729,8 +1729,8 @@ class okx(ccxt.async_support.okx):
         future.resolve(True)
 
     def ping(self, client):
-        # okex does not support built-in ws protocol-level ping-pong
-        # instead it requires custom text-based ping-pong
+        # OKX does not support the built-in WebSocket protocol-level ping-pong.
+        # Instead, it requires a custom text-based ping-pong mechanism.
         return 'ping'
 
     def handle_pong(self, client: Client, message):

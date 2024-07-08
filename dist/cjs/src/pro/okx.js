@@ -1682,7 +1682,7 @@ class okx extends okx$1 {
         if (this.isEmpty(args)) {
             const method = this.safeString(message, 'op');
             const stringMsg = this.json(message);
-            this.handleErrors(undefined, undefined, client.url, method, undefined, stringMsg, stringMsg, undefined, undefined);
+            this.handleErrors(undefined, undefined, client.url, method, undefined, stringMsg, message, undefined, undefined);
         }
         const orders = this.parseOrders(args, undefined, undefined, undefined);
         const first = this.safeDict(orders, 0, {});
@@ -1857,8 +1857,8 @@ class okx extends okx$1 {
         future.resolve(true);
     }
     ping(client) {
-        // okex does not support built-in ws protocol-level ping-pong
-        // instead it requires custom text-based ping-pong
+        // OKX does not support the built-in WebSocket protocol-level ping-pong.
+        // Instead, it requires a custom text-based ping-pong mechanism.
         return 'ping';
     }
     handlePong(client, message) {

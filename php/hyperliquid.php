@@ -93,7 +93,7 @@ class hyperliquid extends Exchange {
                 'fetchTickers' => false,
                 'fetchTime' => false,
                 'fetchTrades' => true,
-                'fetchTradingFee' => false,
+                'fetchTradingFee' => true,
                 'fetchTradingFees' => false,
                 'fetchTransfer' => false,
                 'fetchTransfers' => false,
@@ -2495,6 +2495,112 @@ class hyperliquid extends Exchange {
             'comment' => null,
             'internal' => null,
             'fee' => null,
+        );
+    }
+
+    public function fetch_trading_fee(string $symbol, $params = array ()): array {
+        /**
+         * fetch the trading fees for a $market
+         * @param {string} $symbol unified $market $symbol
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->user] user address, will default to $this->walletAddress if not provided
+         * @return {array} a ~@link https://docs.ccxt.com/#/?id=fee-structure fee structure~
+         */
+        $this->load_markets();
+        $userAddress = null;
+        list($userAddress, $params) = $this->handle_public_address('fetchTradingFee', $params);
+        $market = $this->market($symbol);
+        $request = array(
+            'type' => 'userFees',
+            'user' => $userAddress,
+        );
+        $response = $this->publicPostInfo ($this->extend($request, $params));
+        //
+        //     {
+        //         "dailyUserVlm" => array(
+        //             {
+        //                 "date" => "2024-07-08",
+        //                 "userCross" => "0.0",
+        //                 "userAdd" => "0.0",
+        //                 "exchange" => "90597185.23639999"
+        //             }
+        //         ),
+        //         "feeSchedule" => {
+        //             "cross" => "0.00035",
+        //             "add" => "0.0001",
+        //             "tiers" => {
+        //                 "vip" => array(
+        //                     array(
+        //                         "ntlCutoff" => "5000000.0",
+        //                         "cross" => "0.0003",
+        //                         "add" => "0.00005"
+        //                     }
+        //                 ),
+        //                 "mm" => array(
+        //                     array(
+        //                         "makerFractionCutoff" => "0.005",
+        //                         "add" => "-0.00001"
+        //                     }
+        //                 )
+        //             ),
+        //             "referralDiscount" => "0.04"
+        //         ),
+        //         "userCrossRate" => "0.00035",
+        //         "userAddRate" => "0.0001",
+        //         "activeReferralDiscount" => "0.0"
+        //     }
+        //
+        $data = array(
+            'userCrossRate' => $this->safe_string($response, 'userCrossRate'),
+            'userAddRate' => $this->safe_string($response, 'userAddRate'),
+        );
+        return $this->parse_trading_fee($data, $market);
+    }
+
+    public function parse_trading_fee(array $fee, ?array $market = null): array {
+        //
+        //     {
+        //         "dailyUserVlm" => array(
+        //             {
+        //                 "date" => "2024-07-08",
+        //                 "userCross" => "0.0",
+        //                 "userAdd" => "0.0",
+        //                 "exchange" => "90597185.23639999"
+        //             }
+        //         ),
+        //         "feeSchedule" => {
+        //             "cross" => "0.00035",
+        //             "add" => "0.0001",
+        //             "tiers" => {
+        //                 "vip" => array(
+        //                     array(
+        //                         "ntlCutoff" => "5000000.0",
+        //                         "cross" => "0.0003",
+        //                         "add" => "0.00005"
+        //                     }
+        //                 ),
+        //                 "mm" => array(
+        //                     array(
+        //                         "makerFractionCutoff" => "0.005",
+        //                         "add" => "-0.00001"
+        //                     }
+        //                 )
+        //             ),
+        //             "referralDiscount" => "0.04"
+        //         ),
+        //         "userCrossRate" => "0.00035",
+        //         "userAddRate" => "0.0001",
+        //         "activeReferralDiscount" => "0.0"
+        //     }
+        //
+        $symbol = $this->safe_symbol(null, $market);
+        return array(
+            'info' => $fee,
+            'symbol' => $symbol,
+            'maker' => $this->safe_number($fee, 'userAddRate'),
+            'taker' => $this->safe_number($fee, 'userCrossRate'),
+            'percentage' => null,
+            'tierBased' => null,
         );
     }
 

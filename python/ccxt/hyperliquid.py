@@ -5,7 +5,7 @@
 
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.hyperliquid import ImplicitAPI
-from ccxt.base.types import Balances, Currencies, Currency, Int, MarginModification, Market, Num, Order, OrderBook, OrderRequest, CancellationRequest, OrderSide, OrderType, Str, Strings, Trade, Transaction, TransferEntry
+from ccxt.base.types import Balances, Currencies, Currency, Int, MarginModification, Market, Num, Order, OrderBook, OrderRequest, CancellationRequest, OrderSide, OrderType, Str, Strings, Trade, TradingFeeInterface, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
@@ -105,7 +105,7 @@ class hyperliquid(Exchange, ImplicitAPI):
                 'fetchTickers': False,
                 'fetchTime': False,
                 'fetchTrades': True,
-                'fetchTradingFee': False,
+                'fetchTradingFee': True,
                 'fetchTradingFees': False,
                 'fetchTransfer': False,
                 'fetchTransfers': False,
@@ -2379,6 +2379,110 @@ class hyperliquid(Exchange, ImplicitAPI):
             'comment': None,
             'internal': None,
             'fee': None,
+        }
+
+    def fetch_trading_fee(self, symbol: str, params={}) -> TradingFeeInterface:
+        """
+        fetch the trading fees for a market
+        :param str symbol: unified market symbol
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.user]: user address, will default to self.walletAddress if not provided
+        :returns dict: a `fee structure <https://docs.ccxt.com/#/?id=fee-structure>`
+        """
+        self.load_markets()
+        userAddress = None
+        userAddress, params = self.handle_public_address('fetchTradingFee', params)
+        market = self.market(symbol)
+        request: dict = {
+            'type': 'userFees',
+            'user': userAddress,
+        }
+        response = self.publicPostInfo(self.extend(request, params))
+        #
+        #     {
+        #         "dailyUserVlm": [
+        #             {
+        #                 "date": "2024-07-08",
+        #                 "userCross": "0.0",
+        #                 "userAdd": "0.0",
+        #                 "exchange": "90597185.23639999"
+        #             }
+        #         ],
+        #         "feeSchedule": {
+        #             "cross": "0.00035",
+        #             "add": "0.0001",
+        #             "tiers": {
+        #                 "vip": [
+        #                     {
+        #                         "ntlCutoff": "5000000.0",
+        #                         "cross": "0.0003",
+        #                         "add": "0.00005"
+        #                     }
+        #                 ],
+        #                 "mm": [
+        #                     {
+        #                         "makerFractionCutoff": "0.005",
+        #                         "add": "-0.00001"
+        #                     }
+        #                 ]
+        #             },
+        #             "referralDiscount": "0.04"
+        #         },
+        #         "userCrossRate": "0.00035",
+        #         "userAddRate": "0.0001",
+        #         "activeReferralDiscount": "0.0"
+        #     }
+        #
+        data: dict = {
+            'userCrossRate': self.safe_string(response, 'userCrossRate'),
+            'userAddRate': self.safe_string(response, 'userAddRate'),
+        }
+        return self.parse_trading_fee(data, market)
+
+    def parse_trading_fee(self, fee: dict, market: Market = None) -> TradingFeeInterface:
+        #
+        #     {
+        #         "dailyUserVlm": [
+        #             {
+        #                 "date": "2024-07-08",
+        #                 "userCross": "0.0",
+        #                 "userAdd": "0.0",
+        #                 "exchange": "90597185.23639999"
+        #             }
+        #         ],
+        #         "feeSchedule": {
+        #             "cross": "0.00035",
+        #             "add": "0.0001",
+        #             "tiers": {
+        #                 "vip": [
+        #                     {
+        #                         "ntlCutoff": "5000000.0",
+        #                         "cross": "0.0003",
+        #                         "add": "0.00005"
+        #                     }
+        #                 ],
+        #                 "mm": [
+        #                     {
+        #                         "makerFractionCutoff": "0.005",
+        #                         "add": "-0.00001"
+        #                     }
+        #                 ]
+        #             },
+        #             "referralDiscount": "0.04"
+        #         },
+        #         "userCrossRate": "0.00035",
+        #         "userAddRate": "0.0001",
+        #         "activeReferralDiscount": "0.0"
+        #     }
+        #
+        symbol = self.safe_symbol(None, market)
+        return {
+            'info': fee,
+            'symbol': symbol,
+            'maker': self.safe_number(fee, 'userAddRate'),
+            'taker': self.safe_number(fee, 'userCrossRate'),
+            'percentage': None,
+            'tierBased': None,
         }
 
     def format_vault_address(self, address: Str = None):
