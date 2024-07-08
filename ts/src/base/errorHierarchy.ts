@@ -17,9 +17,6 @@ const errorHierarchy = {
                 },
                 'MarketClosed': {},
             },
-            'BadResponse': {
-                'NullResponse': {},
-            },
             'InsufficientFunds': {},
             'InvalidAddress': {
                 'AddressPending': {},
@@ -27,7 +24,6 @@ const errorHierarchy = {
             'InvalidOrder': {
                 'OrderNotFound': {},
                 'OrderNotCached': {},
-                'CancelPending': {},
                 'OrderImmediatelyFillable': {},
                 'OrderNotFillable': {},
                 'DuplicateOrderId': {},
@@ -47,6 +43,10 @@ const errorHierarchy = {
                 'InvalidNonce': {},
                 'RequestTimeout': {},
             },
+            'BadResponse': {
+                'NullResponse': {},
+            },
+            'CancelPending': {},
         },
     },
 };
