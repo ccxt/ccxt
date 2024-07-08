@@ -81,18 +81,6 @@ class MarketClosed extends OperationRejected {
         this.name = 'MarketClosed';
     }
 }
-class BadResponse extends ExchangeError {
-    constructor(message) {
-        super(message);
-        this.name = 'BadResponse';
-    }
-}
-class NullResponse extends BadResponse {
-    constructor(message) {
-        super(message);
-        this.name = 'NullResponse';
-    }
-}
 class InsufficientFunds extends ExchangeError {
     constructor(message) {
         super(message);
@@ -127,12 +115,6 @@ class OrderNotCached extends InvalidOrder {
     constructor(message) {
         super(message);
         this.name = 'OrderNotCached';
-    }
-}
-class CancelPending extends InvalidOrder {
-    constructor(message) {
-        super(message);
-        this.name = 'CancelPending';
     }
 }
 class OrderImmediatelyFillable extends InvalidOrder {
@@ -225,7 +207,25 @@ class RequestTimeout extends NetworkError {
         this.name = 'RequestTimeout';
     }
 }
-var errors = { BaseError, ExchangeError, AuthenticationError, PermissionDenied, AccountNotEnabled, AccountSuspended, ArgumentsRequired, BadRequest, BadSymbol, OperationRejected, NoChange, MarginModeAlreadySet, MarketClosed, BadResponse, NullResponse, InsufficientFunds, InvalidAddress, AddressPending, InvalidOrder, OrderNotFound, OrderNotCached, CancelPending, OrderImmediatelyFillable, OrderNotFillable, DuplicateOrderId, ContractUnavailable, NotSupported, ProxyError, ExchangeClosedByUser, OperationFailed, NetworkError, DDoSProtection, RateLimitExceeded, ExchangeNotAvailable, OnMaintenance, InvalidNonce, RequestTimeout };
+class BadResponse extends OperationFailed {
+    constructor(message) {
+        super(message);
+        this.name = 'BadResponse';
+    }
+}
+class NullResponse extends BadResponse {
+    constructor(message) {
+        super(message);
+        this.name = 'NullResponse';
+    }
+}
+class CancelPending extends OperationFailed {
+    constructor(message) {
+        super(message);
+        this.name = 'CancelPending';
+    }
+}
+var errors = { BaseError, ExchangeError, AuthenticationError, PermissionDenied, AccountNotEnabled, AccountSuspended, ArgumentsRequired, BadRequest, BadSymbol, OperationRejected, NoChange, MarginModeAlreadySet, MarketClosed, InsufficientFunds, InvalidAddress, AddressPending, InvalidOrder, OrderNotFound, OrderNotCached, OrderImmediatelyFillable, OrderNotFillable, DuplicateOrderId, ContractUnavailable, NotSupported, ProxyError, ExchangeClosedByUser, OperationFailed, NetworkError, DDoSProtection, RateLimitExceeded, ExchangeNotAvailable, OnMaintenance, InvalidNonce, RequestTimeout, BadResponse, NullResponse, CancelPending };
 
 exports.AccountNotEnabled = AccountNotEnabled;
 exports.AccountSuspended = AccountSuspended;

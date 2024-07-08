@@ -81,18 +81,6 @@ namespace ccxt;
         public MarketClosed(string message) : base(message) { }
         public MarketClosed(string message, OperationRejected inner) : base(message, inner) { }
     }
-   public class BadResponse : ExchangeError
-    {
-        public BadResponse() : base() { }
-        public BadResponse(string message) : base(message) { }
-        public BadResponse(string message, ExchangeError inner) : base(message, inner) { }
-    }
-   public class NullResponse : BadResponse
-    {
-        public NullResponse() : base() { }
-        public NullResponse(string message) : base(message) { }
-        public NullResponse(string message, BadResponse inner) : base(message, inner) { }
-    }
    public class InsufficientFunds : ExchangeError
     {
         public InsufficientFunds() : base() { }
@@ -128,12 +116,6 @@ namespace ccxt;
         public OrderNotCached() : base() { }
         public OrderNotCached(string message) : base(message) { }
         public OrderNotCached(string message, InvalidOrder inner) : base(message, inner) { }
-    }
-   public class CancelPending : InvalidOrder
-    {
-        public CancelPending() : base() { }
-        public CancelPending(string message) : base(message) { }
-        public CancelPending(string message, InvalidOrder inner) : base(message, inner) { }
     }
    public class OrderImmediatelyFillable : InvalidOrder
     {
@@ -224,4 +206,22 @@ namespace ccxt;
         public RequestTimeout() : base() { }
         public RequestTimeout(string message) : base(message) { }
         public RequestTimeout(string message, NetworkError inner) : base(message, inner) { }
+    }
+   public class BadResponse : OperationFailed
+    {
+        public BadResponse() : base() { }
+        public BadResponse(string message) : base(message) { }
+        public BadResponse(string message, OperationFailed inner) : base(message, inner) { }
+    }
+   public class NullResponse : BadResponse
+    {
+        public NullResponse() : base() { }
+        public NullResponse(string message) : base(message) { }
+        public NullResponse(string message, BadResponse inner) : base(message, inner) { }
+    }
+   public class CancelPending : OperationFailed
+    {
+        public CancelPending() : base() { }
+        public CancelPending(string message) : base(message) { }
+        public CancelPending(string message, OperationFailed inner) : base(message, inner) { }
     }

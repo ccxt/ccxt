@@ -182,6 +182,7 @@ public partial class bitmart : Exchange
                         { "contract/private/get-open-orders", 1.2 },
                         { "contract/private/current-plan-order", 1.2 },
                         { "contract/private/trades", 10 },
+                        { "contract/private/position-risk", 10 },
                     } },
                     { "post", new Dictionary<string, object>() {
                         { "account/sub-account/main/v1/sub-to-main", 30 },
