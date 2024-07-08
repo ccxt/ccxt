@@ -2030,7 +2030,7 @@ export default class bingx extends Exchange {
             request['timeInForce'] = 'GTC';
         }
         if (isSpot) {
-            const cost = this.safeNumber2 (params, 'cost', 'quoteOrderQty');
+            const cost = this.safeString2 (params, 'cost', 'quoteOrderQty');
             params = this.omit (params, 'cost');
             if (cost !== undefined) {
                 request['quoteOrderQty'] = this.parseToNumeric (this.costToPrecision (symbol, cost));
@@ -2161,7 +2161,7 @@ export default class bingx extends Exchange {
                 positionSide = (side === 'buy') ? 'LONG' : 'SHORT';
             }
             request['positionSide'] = positionSide;
-            request['quantity'] = amount;
+            request['quantity'] = (market['inverse']) ? amount : this.parseToNumeric (this.amountToPrecision (symbol, amount)); // precision not available for inverse contracts
         }
         params = this.omit (params, [ 'reduceOnly', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'trailingAmount', 'trailingPercent', 'trailingType', 'takeProfit', 'stopLoss', 'clientOrderId' ]);
         return this.extend (request, params);
