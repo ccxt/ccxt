@@ -2110,6 +2110,7 @@ export default class coindcx extends Exchange {
          * @name coindcx#cancelAllOrders
          * @description cancel all open orders
          * @see https://docs.coindcx.com/#cancel-all
+         * @see https://docs.coindcx.com/#cancel-all-open-orders
          * @param {string} symbol *for spot markets without margin only* unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {string} [params.type] 'spot', 'margin', 'future' or 'swap'
@@ -2136,6 +2137,15 @@ export default class coindcx extends Exchange {
             //
         } else if (marketType === 'margin') {
             throw new NotSupported (this.id + ' cancelAllOrders is not supported for spot margin markets');
+        } else if ((marketType === 'future') || (marketType === 'swap')) {
+            return await this.privatePostExchangeV1DerivativesFuturesPositionsCancelAllOpenOrders (this.extend (request, params));
+            //
+            //     {
+            //         "message": "success",
+            //         "status": 200,
+            //         "code": 200
+            //     }
+            //
         } else {
             throw new NotSupported (this.id + ' cancelAllOrders is not supported for ' + marketType + ' markets'); // todo implement this method for contract markets
         }
