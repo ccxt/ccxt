@@ -23,7 +23,7 @@ const PAD_WITH_ZERO = ccxt\PAD_WITH_ZERO;
 use ccxt\Precise;
 use ccxt\AuthenticationError;
 use ccxt\ExchangeError;
-use ccxt\ProxyError;
+use ccxt\INvalidProxySettings;
 use ccxt\NotSupported;
 use ccxt\BadSymbol;
 use ccxt\ArgumentsRequired;
