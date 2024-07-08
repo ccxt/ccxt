@@ -3,14 +3,6 @@
     "skipKeys": ["timestamp"],
     "outputType": "json",
     "methods": {
-        "fetchCurrencies": [
-            {
-                "description": "Fetch all currencies",
-                "method": "fetchCurrencies",
-                "url": "https://api.coindcx.com/exchange/v1/derivatives/futures/data/instrument?pair=B-ETH_USDT",
-                "input": []
-            }
-        ],
         "fetchBalance": [
             {
                 "description": "Fetch balance",
