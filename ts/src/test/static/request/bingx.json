@@ -498,6 +498,18 @@
                     "positionSide": "BOTH"
                   }
                 ]
+            },
+            {
+                "description": "Inverse swap create order",
+                "method": "createOrder",
+                "url": "https://open-api.bingx.com/openApi/cswap/v1/trade/order?positionSide=LONG&price=100&quantity=1&side=BUY&symbol=SOL-USD&timestamp=1720334783819&type=LIMIT&signature=7343c8212f5cfaca9c064c80e50ecc2f071e658ac98bea4581d164e1ed5643f5",
+                "input": [
+                  "SOL/USD:SOL",
+                  "limit",
+                  "buy",
+                  1,
+                  100
+                ]
             }
         ],
         "createOrders": [
