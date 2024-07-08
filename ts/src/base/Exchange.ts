@@ -3286,36 +3286,55 @@ export default class Exchange {
             }
             cost = Precise.stringMul (multiplyPrice, amount);
         }
-        const fee = this.safeDict (trade, 'fee');
-        const fees = this.safeList (trade, 'fees');
-        const feeDefined = fee !== undefined;
-        const feesDefined = fees !== undefined;
-        // parsing only if one of them is undefined (if both of them is undefined, then there is nothing to parse)
-        const shouldParseFees = (feeDefined && !feesDefined) || (!feeDefined && feesDefined);
-        if (shouldParseFees) {
-            const feesTemp = (fees !== undefined) ? fees : [ fee ];
-            const reducedFees = this.reduceFees ? this.reduceFeesByCurrency (feesTemp) : feesTemp;
-            const reducedLength = reducedFees.length;
-            for (let i = 0; i < reducedLength; i++) {
-                reducedFees[i]['cost'] = this.safeNumber (reducedFees[i], 'cost');
-                if ('rate' in reducedFees[i]) {
-                    reducedFees[i]['rate'] = this.safeNumber (reducedFees[i], 'rate');
-                }
-            }
-            if (!feesDefined) {
-                trade['fees'] = reducedFees;
-            }
-            if (!feeDefined && (reducedLength === 1)) {
-                trade['fee'] = reducedFees[0];
-            }
-        }
-        if (!('fees' in trade)) {
-            trade['fees'] = [];
-        }
+        const [ resultFee, resultFees ] = this.parsedFeeAndFees (trade);
+        trade['fee'] = resultFee;
+        trade['fees'] = resultFees;
         trade['amount'] = this.parseNumber (amount);
         trade['price'] = this.parseNumber (price);
         trade['cost'] = this.parseNumber (cost);
         return trade as Trade;
+    }
+
+    parsedFeeAndFees (container:any) {
+        let fee = this.safeDict (container, 'fee');
+        let fees = this.safeList (container, 'fees');
+        const feeDefined = fee !== undefined;
+        const feesDefined = fees !== undefined;
+        // parsing only if at least one of them is defined
+        const shouldParseFees = (feeDefined || feesDefined);
+        if (shouldParseFees) {
+            if (feeDefined) {
+                fee = this.parseFeeNumeric (fee);
+            }
+            if (!feesDefined) {
+                // just set it directly, no further processing needed
+                fees = [ fee ];
+            } else {
+                // 'fees' were set, so reparse them
+                const reducedFees = this.reduceFees ? this.reduceFeesByCurrency (fees) : fees;
+                const reducedLength = reducedFees.length;
+                for (let i = 0; i < reducedLength; i++) {
+                    reducedFees[i] = this.parseFeeNumeric (reducedFees[i]);
+                }
+                fees = reducedFees;
+                if (!feeDefined && (reducedLength === 1)) {
+                    fee = reducedFees[0];
+                }
+            }
+        }
+        // in case `fee & fees` are undefined, set `fees` as empty array
+        if (fees === undefined) {
+            fees = [];
+        }
+        return [ fee, fees ];
+    }
+
+    parseFeeNumeric (fee: any) {
+        fee['cost'] = this.safeNumber (fee, 'cost'); // ensure numeric
+        if ('rate' in fee) {
+            fee['rate'] = this.safeNumber (fee, 'rate');
+        }
+        return fee;
     }
 
     findNearestCeiling (arr: number[], providedValue: number) {
