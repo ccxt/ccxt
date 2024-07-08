@@ -2156,7 +2156,7 @@ public partial class bingx : Exchange
         }
         if (isTrue(isSpot))
         {
-            object cost = this.safeNumber2(parameters, "cost", "quoteOrderQty");
+            object cost = this.safeString2(parameters, "cost", "quoteOrderQty");
             parameters = this.omit(parameters, "cost");
             if (isTrue(!isEqual(cost, null)))
             {
@@ -2322,7 +2322,7 @@ public partial class bingx : Exchange
                 positionSide = ((bool) isTrue((isEqual(side, "buy")))) ? "LONG" : "SHORT";
             }
             ((IDictionary<string,object>)request)["positionSide"] = positionSide;
-            ((IDictionary<string,object>)request)["quantity"] = this.parseToNumeric(this.amountToPrecision(symbol, amount));
+            ((IDictionary<string,object>)request)["quantity"] = ((bool) isTrue((getValue(market, "inverse")))) ? amount : this.parseToNumeric(this.amountToPrecision(symbol, amount)); // precision not available for inverse contracts
         }
         parameters = this.omit(parameters, new List<object>() {"reduceOnly", "triggerPrice", "stopLossPrice", "takeProfitPrice", "trailingAmount", "trailingPercent", "trailingType", "takeProfit", "stopLoss", "clientOrderId"});
         return this.extend(request, parameters);
@@ -2336,6 +2336,7 @@ public partial class bingx : Exchange
         * @description create a trade order
         * @see https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Trade%20order
         * @see https://bingx-api.github.io/docs/#/en-us/spot/trade-api.html#Create%20an%20Order
+        * @see https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Trade%20order
         * @param {string} symbol unified symbol of the market to create an order in
         * @param {string} type 'market' or 'limit'
         * @param {string} side 'buy' or 'sell'
@@ -2371,6 +2372,9 @@ public partial class bingx : Exchange
             if (isTrue(test))
             {
                 response = await this.swapV2PrivatePostTradeOrderTest(request);
+            } else if (isTrue(getValue(market, "inverse")))
+            {
+                response = await this.cswapV1PrivatePostTradeOrder(request);
             } else
             {
                 response = await this.swapV2PrivatePostTradeOrder(request);
@@ -2399,7 +2403,7 @@ public partial class bingx : Exchange
         //        }
         //    }
         //
-        // swap
+        // linear swap
         //
         //     {
         //         "code": 0,
@@ -2417,6 +2421,21 @@ public partial class bingx : Exchange
         //         }
         //     }
         //
+        // inverse swap
+        //
+        //     {
+        //         "orderId": 1809841379603398656,
+        //         "symbol": "SOL-USD",
+        //         "positionSide": "LONG",
+        //         "side": "BUY",
+        //         "type": "LIMIT",
+        //         "price": 100,
+        //         "quantity": 1,
+        //         "stopPrice": 0,
+        //         "workingType": "",
+        //         "timeInForce": ""
+        //     }
+        //
         if (isTrue((response is string)))
         {
             // broken api engine : order-ids are too long numbers (i.e. 1742930526912864656)
@@ -2425,9 +2444,22 @@ public partial class bingx : Exchange
             response = this.fixStringifiedJsonMembers(response);
             response = this.parseJson(response);
         }
-        object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
-        object order = this.safeDict(data, "order", data);
-        return this.parseOrder(order, market);
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        object result = new Dictionary<string, object>() {};
+        if (isTrue(getValue(market, "swap")))
+        {
+            if (isTrue(getValue(market, "inverse")))
+            {
+                result = response;
+            } else
+            {
+                result = this.safeDict(data, "order", new Dictionary<string, object>() {});
+            }
+        } else
+        {
+            result = data;
+        }
+        return this.parseOrder(result, market);
     }
 
     public async override Task<object> createOrders(object orders, object parameters = null)
@@ -2614,7 +2646,7 @@ public partial class bingx : Exchange
         //   }
         //
         //
-        // swap
+        // linear swap
         // createOrder, createOrders
         //
         //    {
@@ -2624,6 +2656,21 @@ public partial class bingx : Exchange
         //      "positionSide": "LONG",
         //      "type": "LIMIT"
         //    }
+        //
+        // inverse swap createOrder
+        //
+        //     {
+        //         "orderId": 1809841379603398656,
+        //         "symbol": "SOL-USD",
+        //         "positionSide": "LONG",
+        //         "side": "BUY",
+        //         "type": "LIMIT",
+        //         "price": 100,
+        //         "quantity": 1,
+        //         "stopPrice": 0,
+        //         "workingType": "",
+        //         "timeInForce": ""
+        //     }
         //
         // fetchOrder, fetchOpenOrders, fetchClosedOrders
         //

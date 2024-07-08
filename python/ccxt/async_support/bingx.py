@@ -1920,7 +1920,7 @@ class bingx(Exchange, ImplicitAPI):
         elif timeInForce == 'GTC':
             request['timeInForce'] = 'GTC'
         if isSpot:
-            cost = self.safe_number_2(params, 'cost', 'quoteOrderQty')
+            cost = self.safe_string_2(params, 'cost', 'quoteOrderQty')
             params = self.omit(params, 'cost')
             if cost is not None:
                 request['quoteOrderQty'] = self.parse_to_numeric(self.cost_to_precision(symbol, cost))
@@ -2030,7 +2030,7 @@ class bingx(Exchange, ImplicitAPI):
             else:
                 positionSide = 'LONG' if (side == 'buy') else 'SHORT'
             request['positionSide'] = positionSide
-            request['quantity'] = self.parse_to_numeric(self.amount_to_precision(symbol, amount))
+            request['quantity'] = amount if (market['inverse']) else self.parse_to_numeric(self.amount_to_precision(symbol, amount))  # precision not available for inverse contracts
         params = self.omit(params, ['reduceOnly', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'trailingAmount', 'trailingPercent', 'trailingType', 'takeProfit', 'stopLoss', 'clientOrderId'])
         return self.extend(request, params)
 
@@ -2039,6 +2039,7 @@ class bingx(Exchange, ImplicitAPI):
         create a trade order
         :see: https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Trade%20order
         :see: https://bingx-api.github.io/docs/#/en-us/spot/trade-api.html#Create%20an%20Order
+        :see: https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Trade%20order
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
@@ -2071,6 +2072,8 @@ class bingx(Exchange, ImplicitAPI):
         if market['swap']:
             if test:
                 response = await self.swapV2PrivatePostTradeOrderTest(request)
+            elif market['inverse']:
+                response = await self.cswapV1PrivatePostTradeOrder(request)
             else:
                 response = await self.swapV2PrivatePostTradeOrder(request)
         else:
@@ -2095,7 +2098,7 @@ class bingx(Exchange, ImplicitAPI):
         #        }
         #    }
         #
-        # swap
+        # linear swap
         #
         #     {
         #         "code": 0,
@@ -2113,15 +2116,37 @@ class bingx(Exchange, ImplicitAPI):
         #         }
         #     }
         #
+        # inverse swap
+        #
+        #     {
+        #         "orderId": 1809841379603398656,
+        #         "symbol": "SOL-USD",
+        #         "positionSide": "LONG",
+        #         "side": "BUY",
+        #         "type": "LIMIT",
+        #         "price": 100,
+        #         "quantity": 1,
+        #         "stopPrice": 0,
+        #         "workingType": "",
+        #         "timeInForce": ""
+        #     }
+        #
         if isinstance(response, str):
             # broken api engine : order-ids are too long numbers(i.e. 1742930526912864656)
             # and json.loadscan not handle them in JS, so we have to use .parseJson
             # however, when order has an attached SL/TP, their value types need extra parsing
             response = self.fix_stringified_json_members(response)
             response = self.parse_json(response)
-        data = self.safe_value(response, 'data', {})
-        order = self.safe_dict(data, 'order', data)
-        return self.parse_order(order, market)
+        data = self.safe_dict(response, 'data', {})
+        result: dict = {}
+        if market['swap']:
+            if market['inverse']:
+                result = response
+            else:
+                result = self.safe_dict(data, 'order', {})
+        else:
+            result = data
+        return self.parse_order(result, market)
 
     async def create_orders(self, orders: List[OrderRequest], params={}):
         """
@@ -2287,7 +2312,7 @@ class bingx(Exchange, ImplicitAPI):
         #   }
         #
         #
-        # swap
+        # linear swap
         # createOrder, createOrders
         #
         #    {
@@ -2297,6 +2322,21 @@ class bingx(Exchange, ImplicitAPI):
         #      "positionSide": "LONG",
         #      "type": "LIMIT"
         #    }
+        #
+        # inverse swap createOrder
+        #
+        #     {
+        #         "orderId": 1809841379603398656,
+        #         "symbol": "SOL-USD",
+        #         "positionSide": "LONG",
+        #         "side": "BUY",
+        #         "type": "LIMIT",
+        #         "price": 100,
+        #         "quantity": 1,
+        #         "stopPrice": 0,
+        #         "workingType": "",
+        #         "timeInForce": ""
+        #     }
         #
         # fetchOrder, fetchOpenOrders, fetchClosedOrders
         #
