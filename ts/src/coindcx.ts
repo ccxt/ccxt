@@ -3,6 +3,7 @@
 
 import Exchange from './abstract/coindcx.js';
 import { ArgumentsRequired, NotSupported } from './base/errors.js';
+import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import type { Balances, Bool, Dict, IndexType, Int, MarginModification, Market, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade } from './base/types.js';
@@ -214,11 +215,11 @@ export default class coindcx extends Exchange {
                         'exchange/v1/margin/order': 1, // done
                         'exchange/v1/derivatives/futures/orders': 1, // done
                         'exchange/v1/derivatives/futures/orders/create': 1, // done
-                        'exchange/v1/derivatives/futures/orders/cancel': 1,
-                        'exchange/v1/derivatives/futures/positions': 1,
+                        'exchange/v1/derivatives/futures/orders/cancel': 1, // done
+                        'exchange/v1/derivatives/futures/positions': 1, // done
                         'exchange/v1/derivatives/futures/positions/add_margin': 1, // done todo check
                         'exchange/v1/derivatives/futures/positions/remove_margin': 1, // done todo check
-                        'exchange/v1/derivatives/futures/positions/cancel_all_open_orders': 1,
+                        'exchange/v1/derivatives/futures/positions/cancel_all_open_orders': 1, // done
                         'exchange/v1/derivatives/futures/positions/cancel_all_open_orders_for_position': 1,
                         'exchange/v1/derivatives/futures/positions/exit': 1,
                         'exchange/v1/derivatives/futures/positions/create_tpsl': 1,
@@ -2592,6 +2593,73 @@ export default class coindcx extends Exchange {
         }
     }
 
+    async fetchPosition (symbol: string, params = {}): Promise<Position> {
+        /**
+         * @method
+         * @name coindcx#fetchPosition
+         * @description *for contract markets only* fetch data on an open position
+         * @see https://docs.coindcx.com/?javascript#list-positions
+         * @see https://docs.coindcx.com/?javascript#get-positions-by-pairs-or-positionid
+         * @param {string} symbol unified market symbol of the market the position is held in
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.id] position id (can be used instead of symbol)
+         * @returns {object} a [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        if (!market['contract']) {
+            throw new NotSupported (this.id + ' fetchPosition() supports contract markets only');
+        }
+        const positions = await this.fetchPositions ([ symbol ], params);
+        return positions[0];
+    }
+
+    async fetchPositions (symbols: Strings = undefined, params = {}) {
+        /**
+         * @method
+         * @name coindcx#fetchPositions
+         * @description *for contract markets only* fetch all open positions
+         * @see https://docs.coindcx.com/?javascript#list-positions
+         * @see https://docs.coindcx.com/?javascript#get-positions-by-pairs-or-positionid
+         * @param {string[]} symbols list of unified market symbols
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {int} [params.page] required page number
+         * @param {int} [params.size] number of records needed per page
+         * @param {string} [params.position_ids] position id’s separated with comma (can be used instead of symbols)
+         * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+         */
+        await this.loadMarkets ();
+        const request: Dict = {};
+        if (symbols !== undefined) {
+            const marketIds = this.marketIds (symbols);
+            request['pairs'] = marketIds.join ();
+        }
+        const response = await this.privatePostExchangeV1DerivativesFuturesPositions (this.extend (request, params));
+        //
+        //     [
+        //         {
+        //             "id": "5265ec86-3455-11ef-93b4-a74b335c160f",
+        //             "pair": "B-ETH_USDT",
+        //             "active_pos": 0.01,
+        //             "inactive_pos_buy": 0.0,
+        //             "inactive_pos_sell": 0.0,
+        //             "avg_price": 3045.02,
+        //             "liquidation_price": 43.088450847474,
+        //             "locked_margin": 30.47606849152526,
+        //             "locked_user_margin": 30.501684,
+        //             "locked_order_margin": 0.0,
+        //             "take_profit_trigger": 0.0,
+        //             "stop_loss_trigger": 0.0,
+        //             "leverage": 1.0,
+        //             "maintenance_margin": 0.445336501137,
+        //             "mark_price": 2968.91000758,
+        //             "updated_at": 1720454415762
+        //         }
+        //     ]
+        //
+        return this.parsePositions (response, symbols); // todo should we add timestamp here?
+    }
+
     async fetchPositionsHistory (symbols: Strings = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Position[]> {
         /**
          * @method
@@ -2766,43 +2834,70 @@ export default class coindcx extends Exchange {
         //         ]
         //     }
         //
+        // fetchPosition and fetchPositions
+        //     {
+        //         "id": "5265ec86-3455-11ef-93b4-a74b335c160f",
+        //         "pair": "B-ETH_USDT",
+        //         "active_pos": 0.01,
+        //         "inactive_pos_buy": 0.0,
+        //         "inactive_pos_sell": 0.0,
+        //         "avg_price": 3045.02,
+        //         "liquidation_price": 43.088450847474,
+        //         "locked_margin": 30.47606849152526,
+        //         "locked_user_margin": 30.501684,
+        //         "locked_order_margin": 0.0,
+        //         "take_profit_trigger": 0.0,
+        //         "stop_loss_trigger": 0.0,
+        //         "leverage": 1.0,
+        //         "maintenance_margin": 0.445336501137,
+        //         "mark_price": 2968.91000758,
+        //         "updated_at": 1720454415762
+        //     }
+        //
+        // todo how to parse zero position
         const marketId = this.safeString2 (position, 'market', 'pair');
         market = this.safeMarket (marketId, market);
         const symbol = market['symbol'];
-        const timestamp = this.safeInteger2 (position, 'created_at', 'updated_at');
-        const initialMargin = this.safeString (position, 'initial_margin');
-        const side = this.parsePositionSide (this.safeString (position, 'side'));
-        const leverage = this.safeString (position, 'leverage');
-        const baseAmount = this.safeString (position, 'quantity');
-        const entryPrice = this.safeString (position, 'avg_entry');
+        const timestamp = this.safeInteger2 (position, 'created_at', 'updated_at'); // todo check
+        const initialMargin = this.safeString2 (position, 'initial_margin', 'locked_user_margin');
+        let side = this.parsePositionSide (this.safeString (position, 'side', 'long'));
+        let baseAmount = this.safeString2 (position, 'quantity', 'active_pos');
+        if (Precise.stringLt (baseAmount, '0')) {
+            baseAmount = Precise.stringAbs (baseAmount);
+            side = 'short';
+        }
+        const leverage = this.omitZero (this.safeString (position, 'leverage'));
+        const entryPrice = this.safeString2 (position, 'avg_entry', 'avg_price');
+        const stopLossPrice = this.omitZero (this.safeString (position, 'stop_loss_trigger'));
+        const takeProfitPrice = this.omitZero (this.safeString (position, 'take_profit_trigger'));
         return this.safePosition ({
             'id': this.safeString (position, 'id'),
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'notional': undefined, // todo check
-            'marginMode': 'cross', // todo check
-            'liquidationPrice': undefined, // todo check
+            'marginMode': 'isolated', // todo check
+            'liquidationPrice': this.safeNumber (position, 'liquidation_price'),
             'entryPrice': this.parseNumber (entryPrice),
             'unrealizedPnl': undefined, // todo check
             'realizedPnl': this.safeNumber (position, 'pnl'),
             'percentage': undefined, // todo check
             'contracts': this.parseNumber (baseAmount), // todo check
-            'contractSize': 1, // todo check
-            'markPrice': undefined, // todo check
+            'contractSize': this.safeNumber (market, 'contractSize'), // todo check
+            'markPrice': this.safeNumber (position, 'mark_price'), // todo check
             'lastPrice': this.safeNumber (position, 'avg_exit'),
             'side': side,
-            'hedged': false, // todo check
+            'hedged': true, // todo check
             'lastUpdateTimestamp': this.safeInteger (position, 'updated_at'),
-            'maintenanceMargin': undefined, // todo check
+            'maintenanceMargin': this.safeNumber (position, 'maintenance_margin'),
             'maintenanceMarginPercentage': undefined, // todo check
             'collateral': undefined, // todo check
             'initialMargin': this.parseNumber (initialMargin),
             'initialMarginPercentage': undefined, // todo check
             'leverage': this.parseNumber (leverage),
             'marginRatio': undefined, // todo check
-            'stopLossPrice': undefined, // todo check
-            'takeProfitPrice': undefined, // todo check
+            'stopLossPrice': this.parseNumber (stopLossPrice), // todo check
+            'takeProfitPrice': this.parseNumber (takeProfitPrice), // todo check
             'info': position,
         });
     }
