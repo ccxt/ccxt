@@ -572,8 +572,8 @@ export default class alpaca extends Exchange {
         const marketId = this.safeString (ticker, 'symbol');
         const symbol = this.safeSymbol (marketId, market);
         // split the snapshot into it's component parts
-        const latestQuote = this.safeValue (ticker, 'latestQuote');
-        const latestTrade = this.safeValue (ticker, 'latestTrade');
+        const latestQuote = this.safeDict (ticker, 'latestQuote');
+        const latestTrade = this.safeDict (ticker, 'latestTrade');
         // last 24h values not available - dailyBar and previousDailyBar refer to actual days not previous 24h
         // const dailyBar = this.safeValue (ticker, 'dailyBar');
         // const previousDailyBar = this.safeValue (ticker, 'prevDailyBar');
