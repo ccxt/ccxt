@@ -182,6 +182,15 @@ public partial class Exchange
             return this.connected.Task;
         }
 
+        public void onPong()
+        {
+            this.lastPong = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+            if (this.verbose)
+            {
+                Console.WriteLine("Pong received: " + this.lastPong.ToString());
+            }
+        }
+
         public async void PingLoop()
         {
             if (keepAlive != null)
