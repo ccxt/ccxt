@@ -76,7 +76,11 @@ class ndax(Exchange, ImplicitAPI):
                 'fetchOrders': True,
                 'fetchOrderTrades': True,
                 'fetchPosition': False,
+                'fetchPositionHistory': False,
+                'fetchPositionMode': False,
                 'fetchPositions': False,
+                'fetchPositionsForSymbol': False,
+                'fetchPositionsHistory': False,
                 'fetchPositionsRisk': False,
                 'fetchPremiumIndexOHLCV': False,
                 'fetchTicker': True,
@@ -87,6 +91,7 @@ class ndax(Exchange, ImplicitAPI):
                 'fetchTradingFees': False,
                 'fetchWithdrawals': True,
                 'reduceMargin': False,
+                'sandbox': True,
                 'setLeverage': False,
                 'setMarginMode': False,
                 'setPositionMode': False,
@@ -291,7 +296,7 @@ class ndax(Exchange, ImplicitAPI):
         self.check_required_credentials()
         if self.login is None or self.password is None:
             raise AuthenticationError(self.id + ' signIn() requires exchange.login, exchange.password')
-        request = {
+        request: dict = {
             'grant_type': 'client_credentials',  # the only supported value
         }
         response = self.publicGetAuthenticate(self.extend(request, params))
@@ -337,7 +342,7 @@ class ndax(Exchange, ImplicitAPI):
         :returns dict: an associative dictionary of currencies
         """
         omsId = self.safe_integer(self.options, 'omsId', 1)
-        request = {
+        request: dict = {
             'omsId': omsId,
         }
         response = self.publicGetGetProducts(self.extend(request, params))
@@ -357,7 +362,7 @@ class ndax(Exchange, ImplicitAPI):
         #         },
         #     ]
         #
-        result = {}
+        result: dict = {}
         for i in range(0, len(response)):
             currency = response[i]
             id = self.safe_string(currency, 'ProductId')
@@ -403,7 +408,7 @@ class ndax(Exchange, ImplicitAPI):
         :returns dict[]: an array of objects representing market data
         """
         omsId = self.safe_integer(self.options, 'omsId', 1)
-        request = {
+        request: dict = {
             'omsId': omsId,
         }
         response = self.publicGetGetInstruments(self.extend(request, params))
@@ -455,7 +460,7 @@ class ndax(Exchange, ImplicitAPI):
         #
         return self.parse_markets(response)
 
-    def parse_market(self, market) -> Market:
+    def parse_market(self, market: dict) -> Market:
         id = self.safe_string(market, 'InstrumentId')
         # lowercaseId = self.safe_string_lower(market, 'symbol')
         baseId = self.safe_string(market, 'Product1')
@@ -517,7 +522,7 @@ class ndax(Exchange, ImplicitAPI):
 
     def parse_order_book(self, orderbook, symbol, timestamp=None, bidsKey='bids', asksKey='asks', priceKey: IndexType = 6, amountKey: IndexType = 8, countOrIdKey: IndexType = 2):
         nonce = None
-        result = {
+        result: dict = {
             'symbol': symbol,
             'bids': [],
             'asks': [],
@@ -561,7 +566,7 @@ class ndax(Exchange, ImplicitAPI):
         self.load_markets()
         market = self.market(symbol)
         limit = 100 if (limit is None) else limit  # default 100
-        request = {
+        request: dict = {
             'omsId': omsId,
             'InstrumentId': market['id'],
             'Depth': limit,  # default 100
@@ -591,7 +596,7 @@ class ndax(Exchange, ImplicitAPI):
         #
         return self.parse_order_book(response, symbol)
 
-    def parse_ticker(self, ticker, market: Market = None) -> Ticker:
+    def parse_ticker(self, ticker: dict, market: Market = None) -> Ticker:
         #
         # fetchTicker
         #
@@ -668,7 +673,7 @@ class ndax(Exchange, ImplicitAPI):
         omsId = self.safe_integer(self.options, 'omsId', 1)
         self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'omsId': omsId,
             'InstrumentId': market['id'],
         }
@@ -742,7 +747,7 @@ class ndax(Exchange, ImplicitAPI):
         omsId = self.safe_integer(self.options, 'omsId', 1)
         self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'omsId': omsId,
             'InstrumentId': market['id'],
             'Interval': self.safe_string(self.timeframes, timeframe, timeframe),
@@ -769,7 +774,7 @@ class ndax(Exchange, ImplicitAPI):
         #
         return self.parse_ohlcvs(response, market, timeframe, since, limit)
 
-    def parse_trade(self, trade, market: Market = None) -> Trade:
+    def parse_trade(self, trade: dict, market: Market = None) -> Trade:
         #
         # fetchTrades(public)
         #
@@ -946,7 +951,7 @@ class ndax(Exchange, ImplicitAPI):
         omsId = self.safe_integer(self.options, 'omsId', 1)
         self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'omsId': omsId,
             'InstrumentId': market['id'],
         }
@@ -973,7 +978,7 @@ class ndax(Exchange, ImplicitAPI):
             raise AuthenticationError(self.id + ' fetchAccounts() requires exchange.login email credential')
         omsId = self.safe_integer(self.options, 'omsId', 1)
         self.check_required_credentials()
-        request = {
+        request: dict = {
             'omsId': omsId,
             'UserId': self.uid,
             'UserName': self.login,
@@ -994,7 +999,7 @@ class ndax(Exchange, ImplicitAPI):
         return result
 
     def parse_balance(self, response) -> Balances:
-        result = {
+        result: dict = {
             'info': response,
             'timestamp': None,
             'datetime': None,
@@ -1023,7 +1028,7 @@ class ndax(Exchange, ImplicitAPI):
         defaultAccountId = self.safe_integer_2(self.options, 'accountId', 'AccountId', int(self.accounts[0]['id']))
         accountId = self.safe_integer_2(params, 'accountId', 'AccountId', defaultAccountId)
         params = self.omit(params, ['accountId', 'AccountId'])
-        request = {
+        request: dict = {
             'omsId': omsId,
             'AccountId': accountId,
         }
@@ -1062,7 +1067,7 @@ class ndax(Exchange, ImplicitAPI):
         return self.parse_balance(response)
 
     def parse_ledger_entry_type(self, type):
-        types = {
+        types: dict = {
             'Trade': 'trade',
             'Deposit': 'transaction',
             'Withdraw': 'transaction',
@@ -1079,7 +1084,7 @@ class ndax(Exchange, ImplicitAPI):
         }
         return self.safe_string(types, type, type)
 
-    def parse_ledger_entry(self, item, currency: Currency = None):
+    def parse_ledger_entry(self, item: dict, currency: Currency = None):
         #
         #     {
         #         "TransactionId": 2663709493,
@@ -1148,7 +1153,7 @@ class ndax(Exchange, ImplicitAPI):
         defaultAccountId = self.safe_integer_2(self.options, 'accountId', 'AccountId', int(self.accounts[0]['id']))
         accountId = self.safe_integer_2(params, 'accountId', 'AccountId', defaultAccountId)
         params = self.omit(params, ['accountId', 'AccountId'])
-        request = {
+        request: dict = {
             'omsId': omsId,
             'AccountId': accountId,
         }
@@ -1178,8 +1183,8 @@ class ndax(Exchange, ImplicitAPI):
             currency = self.currency(code)
         return self.parse_ledger(response, currency, since, limit)
 
-    def parse_order_status(self, status):
-        statuses = {
+    def parse_order_status(self, status: Str):
+        statuses: dict = {
             'Accepted': 'open',
             'Rejected': 'rejected',
             'Working': 'open',
@@ -1189,7 +1194,7 @@ class ndax(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_order(self, order, market: Market = None) -> Order:
+    def parse_order(self, order: dict, market: Market = None) -> Order:
         #
         # createOrder
         #
@@ -1291,7 +1296,7 @@ class ndax(Exchange, ImplicitAPI):
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
         :param float amount: how much of currency you want to trade in units of base currency
-        :param float [price]: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param float [params.triggerPrice]: the price at which a trigger order would be triggered
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
@@ -1312,7 +1317,7 @@ class ndax(Exchange, ImplicitAPI):
         params = self.omit(params, ['accountId', 'AccountId', 'clientOrderId', 'ClientOrderId', 'triggerPrice'])
         market = self.market(symbol)
         orderSide = 0 if (side == 'buy') else 1
-        request = {
+        request: dict = {
             'InstrumentId': int(market['id']),
             'omsId': omsId,
             'AccountId': accountId,
@@ -1357,7 +1362,7 @@ class ndax(Exchange, ImplicitAPI):
         params = self.omit(params, ['accountId', 'AccountId', 'clientOrderId', 'ClientOrderId'])
         market = self.market(symbol)
         orderSide = 0 if (side == 'buy') else 1
-        request = {
+        request: dict = {
             'OrderIdToReplace': int(id),
             'InstrumentId': int(market['id']),
             'omsId': omsId,
@@ -1408,7 +1413,7 @@ class ndax(Exchange, ImplicitAPI):
         defaultAccountId = self.safe_integer_2(self.options, 'accountId', 'AccountId', int(self.accounts[0]['id']))
         accountId = self.safe_integer_2(params, 'accountId', 'AccountId', defaultAccountId)
         params = self.omit(params, ['accountId', 'AccountId'])
-        request = {
+        request: dict = {
             'omsId': omsId,
             'AccountId': accountId,
             # 'InstrumentId': market['id'],
@@ -1489,7 +1494,7 @@ class ndax(Exchange, ImplicitAPI):
         defaultAccountId = self.safe_integer_2(self.options, 'accountId', 'AccountId', int(self.accounts[0]['id']))
         accountId = self.safe_integer_2(params, 'accountId', 'AccountId', defaultAccountId)
         params = self.omit(params, ['accountId', 'AccountId'])
-        request = {
+        request: dict = {
             'omsId': omsId,
             'AccountId': accountId,
         }
@@ -1505,7 +1510,11 @@ class ndax(Exchange, ImplicitAPI):
         #         "detail":null
         #     }
         #
-        return response
+        return [
+            self.safe_order({
+                'info': response,
+            }),
+        ]
 
     def cancel_order(self, id: str, symbol: Str = None, params={}):
         """
@@ -1525,7 +1534,7 @@ class ndax(Exchange, ImplicitAPI):
         market = None
         if symbol is not None:
             market = self.market(symbol)
-        request = {
+        request: dict = {
             'omsId': omsId,
             # 'AccountId': accountId,
         }
@@ -1561,7 +1570,7 @@ class ndax(Exchange, ImplicitAPI):
         market = None
         if symbol is not None:
             market = self.market(symbol)
-        request = {
+        request: dict = {
             'omsId': omsId,
             'AccountId': accountId,
         }
@@ -1634,7 +1643,7 @@ class ndax(Exchange, ImplicitAPI):
         defaultAccountId = self.safe_integer_2(self.options, 'accountId', 'AccountId', int(self.accounts[0]['id']))
         accountId = self.safe_integer_2(params, 'accountId', 'AccountId', defaultAccountId)
         params = self.omit(params, ['accountId', 'AccountId'])
-        request = {
+        request: dict = {
             'omsId': omsId,
             'AccountId': accountId,
             # 'ClientOrderId': clientOrderId,
@@ -1725,7 +1734,7 @@ class ndax(Exchange, ImplicitAPI):
         market = None
         if symbol is not None:
             market = self.market(symbol)
-        request = {
+        request: dict = {
             'omsId': omsId,
             'AccountId': accountId,
             'OrderId': int(id),
@@ -1801,7 +1810,7 @@ class ndax(Exchange, ImplicitAPI):
         market = None
         if symbol is not None:
             market = self.market(symbol)
-        request = {
+        request: dict = {
             'OMSId': self.parse_to_int(omsId),
             # 'AccountId': accountId,
             'OrderId': int(id),
@@ -1875,7 +1884,7 @@ class ndax(Exchange, ImplicitAPI):
         accountId = self.safe_integer_2(params, 'accountId', 'AccountId', defaultAccountId)
         params = self.omit(params, ['accountId', 'AccountId'])
         currency = self.currency(code)
-        request = {
+        request: dict = {
             'omsId': omsId,
             'AccountId': accountId,
             'ProductId': currency['id'],
@@ -1937,7 +1946,7 @@ class ndax(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `address structure <https://docs.ccxt.com/#/?id=address-structure>`
         """
-        request = {
+        request: dict = {
             'GenerateNewKey': True,
         }
         return self.fetch_deposit_address(code, self.extend(request, params))
@@ -1961,7 +1970,7 @@ class ndax(Exchange, ImplicitAPI):
         currency = None
         if code is not None:
             currency = self.currency(code)
-        request = {
+        request: dict = {
             'omsId': omsId,
             'AccountId': accountId,
         }
@@ -2017,7 +2026,7 @@ class ndax(Exchange, ImplicitAPI):
         currency = None
         if code is not None:
             currency = self.currency(code)
-        request = {
+        request: dict = {
             'omsId': omsId,
             'AccountId': accountId,
         }
@@ -2049,7 +2058,7 @@ class ndax(Exchange, ImplicitAPI):
         return self.parse_transactions(response, currency, since, limit)
 
     def parse_transaction_status_by_type(self, status, type=None):
-        statusesByType = {
+        statusesByType: dict = {
             'deposit': {
                 'New': 'pending',  # new ticket awaiting operator review
                 'AdminProcessing': 'pending',  # an admin is looking at the ticket
@@ -2096,7 +2105,7 @@ class ndax(Exchange, ImplicitAPI):
         statuses = self.safe_value(statusesByType, type, {})
         return self.safe_string(statuses, status, status)
 
-    def parse_transaction(self, transaction, currency: Currency = None) -> Transaction:
+    def parse_transaction(self, transaction: dict, currency: Currency = None) -> Transaction:
         #
         # fetchDeposits
         #
@@ -2191,7 +2200,7 @@ class ndax(Exchange, ImplicitAPI):
             'network': None,
         }
 
-    def withdraw(self, code: str, amount: float, address, tag=None, params={}):
+    def withdraw(self, code: str, amount: float, address: str, tag=None, params={}):
         """
         make a withdrawal
         :param str code: unified currency code
@@ -2216,7 +2225,7 @@ class ndax(Exchange, ImplicitAPI):
         accountId = self.safe_integer_2(params, 'accountId', 'AccountId', defaultAccountId)
         params = self.omit(params, ['accountId', 'AccountId'])
         currency = self.currency(code)
-        withdrawTemplateTypesRequest = {
+        withdrawTemplateTypesRequest: dict = {
             'omsId': omsId,
             'AccountId': accountId,
             'ProductId': currency['id'],
@@ -2239,7 +2248,7 @@ class ndax(Exchange, ImplicitAPI):
         if firstTemplateType is None:
             raise ExchangeError(self.id + ' withdraw() could not find a withdraw template type for ' + currency['code'])
         templateName = self.safe_string(firstTemplateType, 'TemplateName')
-        withdrawTemplateRequest = {
+        withdrawTemplateRequest: dict = {
             'omsId': omsId,
             'AccountId': accountId,
             'ProductId': currency['id'],
@@ -2263,14 +2272,14 @@ class ndax(Exchange, ImplicitAPI):
         if tag is not None:
             if 'Memo' in withdrawTemplate:
                 withdrawTemplate['Memo'] = tag
-        withdrawPayload = {
+        withdrawPayload: dict = {
             'omsId': omsId,
             'AccountId': accountId,
             'ProductId': currency['id'],
             'TemplateForm': self.json(withdrawTemplate),
             'TemplateType': templateName,
         }
-        withdrawRequest = {
+        withdrawRequest: dict = {
             'TfaType': 'Google',
             'TFaCode': self.totp(self.twofa),
             'Payload': self.json(withdrawPayload),
@@ -2327,7 +2336,7 @@ class ndax(Exchange, ImplicitAPI):
                     url += '?' + self.urlencode(query)
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response, requestHeaders, requestBody):
         if code == 404:
             raise AuthenticationError(self.id + ' ' + body)
         if response is None:

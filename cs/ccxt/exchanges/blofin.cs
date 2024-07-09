@@ -185,6 +185,8 @@ public partial class blofin : Exchange
                         { "trade/orders-tpsl-pending", 1 },
                         { "trade/orders-history", 1 },
                         { "trade/orders-tpsl-history", 1 },
+                        { "user/query-apikey", 1 },
+                        { "affiliate/basic", 1 },
                     } },
                     { "post", new Dictionary<string, object>() {
                         { "trade/order", 1 },
@@ -1243,7 +1245,7 @@ public partial class blofin : Exchange
         * @param {string} type 'market' or 'limit' or 'post_only' or 'ioc' or 'fok'
         * @param {string} side 'buy' or 'sell'
         * @param {float} amount how much of currency you want to trade in units of base currency
-        * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @param {bool} [params.reduceOnly] a mark to reduce the position size for margin, swap and future orders
         * @param {bool} [params.postOnly] true to place a post only order

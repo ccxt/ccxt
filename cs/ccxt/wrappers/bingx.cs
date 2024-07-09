@@ -36,12 +36,18 @@ public partial class bingx
         var res = await this.fetchSwapMarkets(parameters);
         return ((IList<object>)res).Select(item => new MarketInterface(item)).ToList<MarketInterface>();
     }
+    public async Task<List<MarketInterface>> FetchInverseSwapMarkets(object parameters)
+    {
+        var res = await this.fetchInverseSwapMarkets(parameters);
+        return ((IList<object>)res).Select(item => new MarketInterface(item)).ToList<MarketInterface>();
+    }
     /// <summary>
     /// retrieves data on all markets for bingx
     /// </summary>
     /// <remarks>
     /// See <see href="https://bingx-api.github.io/docs/#/spot/market-api.html#Query%20Symbols"/>  <br/>
     /// See <see href="https://bingx-api.github.io/docs/#/swapV2/market-api.html#Contract%20Information"/>  <br/>
+    /// See <see href="https://bingx-api.github.io/docs/#/en-us/cswap/market-api.html#Contract%20Information"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -65,6 +71,7 @@ public partial class bingx
     /// See <see href="https://bingx-api.github.io/docs/#/spot/market-api.html#Candlestick%20chart%20data"/>  <br/>
     /// See <see href="https://bingx-api.github.io/docs/#/swapV2/market-api.html#%20K-Line%20Data"/>  <br/>
     /// See <see href="https://bingx-api.github.io/docs/#/en-us/swapV2/market-api.html#K-Line%20Data%20-%20Mark%20Price"/>  <br/>
+    /// See <see href="https://bingx-api.github.io/docs/#/en-us/cswap/market-api.html#Get%20K-line%20Data"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -93,7 +100,7 @@ public partial class bingx
     /// <item>
     /// <term>params.paginate</term>
     /// <description>
-    /// boolean : default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+    /// boolean : default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
     /// </description>
     /// </item>
     /// </list>
@@ -147,6 +154,7 @@ public partial class bingx
     /// <remarks>
     /// See <see href="https://bingx-api.github.io/docs/#/spot/market-api.html#Query%20depth%20information"/>  <br/>
     /// See <see href="https://bingx-api.github.io/docs/#/swapV2/market-api.html#Get%20Market%20Depth"/>  <br/>
+    /// See <see href="https://bingx-api.github.io/docs/#/en-us/cswap/market-api.html#Query%20Depth%20Data"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>limit</term>
@@ -241,10 +249,11 @@ public partial class bingx
         return ((IList<object>)res).Select(item => new FundingRateHistory(item)).ToList<FundingRateHistory>();
     }
     /// <summary>
-    /// Retrieves the open interest of a currency
+    /// retrieves the open interest of a trading pair
     /// </summary>
     /// <remarks>
     /// See <see href="https://bingx-api.github.io/docs/#/swapV2/market-api.html#Get%20Swap%20Open%20Positions"/>  <br/>
+    /// See <see href="https://bingx-api.github.io/docs/#/en-us/cswap/market-api.html#Get%20Swap%20Open%20Positions"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -421,7 +430,7 @@ public partial class bingx
     /// <item>
     /// <term>price</term>
     /// <description>
-    /// float : the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+    /// float : the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
     /// </description>
     /// </item>
     /// <item>
@@ -445,11 +454,12 @@ public partial class bingx
     /// <remarks>
     /// See <see href="https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Trade%20order"/>  <br/>
     /// See <see href="https://bingx-api.github.io/docs/#/en-us/spot/trade-api.html#Create%20an%20Order"/>  <br/>
+    /// See <see href="https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Trade%20order"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>price</term>
     /// <description>
-    /// float : the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+    /// float : the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
     /// </description>
     /// </item>
     /// <item>
@@ -485,19 +495,19 @@ public partial class bingx
     /// <item>
     /// <term>params.triggerPrice</term>
     /// <description>
-    /// float : *swap only* triggerPrice at which the attached take profit / stop loss order will be triggered
+    /// float : triggerPrice at which the attached take profit / stop loss order will be triggered
     /// </description>
     /// </item>
     /// <item>
     /// <term>params.stopLossPrice</term>
     /// <description>
-    /// float : *swap only* stop loss trigger price
+    /// float : stop loss trigger price
     /// </description>
     /// </item>
     /// <item>
     /// <term>params.takeProfitPrice</term>
     /// <description>
-    /// float : *swap only* take profit trigger price
+    /// float : take profit trigger price
     /// </description>
     /// </item>
     /// <item>
@@ -615,10 +625,10 @@ public partial class bingx
     /// </list>
     /// </remarks>
     /// <returns> <term>object[]</term> a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
-    public async Task<Dictionary<string, object>> CancelAllOrders(string symbol = null, Dictionary<string, object> parameters = null)
+    public async Task<List<Order>> CancelAllOrders(string symbol = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.cancelAllOrders(symbol, parameters);
-        return ((Dictionary<string, object>)res);
+        return ((IList<object>)res).Select(item => new Order(item)).ToList<Order>();
     }
     /// <summary>
     /// cancel multiple orders
@@ -636,9 +646,36 @@ public partial class bingx
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
-    public async Task<Dictionary<string, object>> CancelOrders(List<string> ids, string symbol = null, Dictionary<string, object> parameters = null)
+    public async Task<List<Order>> CancelOrders(List<string> ids, string symbol = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.cancelOrders(ids, symbol, parameters);
+        return ((IList<object>)res).Select(item => new Order(item)).ToList<Order>();
+    }
+    /// <summary>
+    /// dead man's switch, cancel all orders after the given timeout
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://bingx-api.github.io/docs/#/en-us/spot/trade-api.html#Cancel%20all%20orders%20in%20countdown"/>  <br/>
+    /// See <see href="https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Cancel%20all%20orders%20in%20countdown"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.type</term>
+    /// <description>
+    /// string : spot or swap market
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> the api result.</returns>
+    public async Task<Dictionary<string, object>> CancelAllOrdersAfter(Int64 timeout, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.cancelAllOrdersAfter(timeout, parameters);
         return ((Dictionary<string, object>)res);
     }
     /// <summary>
@@ -850,12 +887,12 @@ public partial class bingx
     /// </list>
     /// </remarks>
     /// <returns> <term>object[]</term> a list of [transfer structures]{@link https://docs.ccxt.com/#/?id=transfer-structure}.</returns>
-    public async Task<Dictionary<string, object>> FetchTransfers(string code = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    public async Task<TransferEntries> FetchTransfers(string code = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;
         var limit = limit2 == 0 ? null : (object)limit2;
         var res = await this.fetchTransfers(code, since, limit, parameters);
-        return ((Dictionary<string, object>)res);
+        return new TransferEntries(res);
     }
     /// <summary>
     /// fetch the deposit addresses for a currency associated with this account
@@ -1157,7 +1194,7 @@ public partial class bingx
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}.</returns>
-    public async Task<Transaction> Withdraw(string code, double amount, object address, object tag = null, Dictionary<string, object> parameters = null)
+    public async Task<Transaction> Withdraw(string code, double amount, string address, object tag = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.withdraw(code, amount, address, tag, parameters);
         return new Transaction(res);
@@ -1258,7 +1295,7 @@ public partial class bingx
     /// <item>
     /// <term>price</term>
     /// <description>
-    /// float : the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+    /// float : the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
     /// </description>
     /// </item>
     /// <item>

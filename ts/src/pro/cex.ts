@@ -66,7 +66,7 @@ export default class cex extends cexRest {
         await this.authenticate (params);
         const messageHash = this.requestId ();
         const url = this.urls['api']['ws'];
-        const subscribe = {
+        const subscribe: Dict = {
             'e': 'get-balance',
             'data': {},
             'oid': this.requestId (),
@@ -99,7 +99,7 @@ export default class cex extends cexRest {
         const data = this.safeValue (message, 'data', {});
         const freeBalance = this.safeValue (data, 'balance', {});
         const usedBalance = this.safeValue (data, 'obalance', {});
-        const result = {
+        const result: Dict = {
             'info': data,
         };
         const currencyIds = Object.keys (freeBalance);
@@ -149,7 +149,7 @@ export default class cex extends cexRest {
                 }
             }
         }
-        const message = {
+        const message: Dict = {
             'e': 'subscribe',
             'rooms': [ 'pair-' + market['base'] + '-' + market['quote'] ],
         };
@@ -302,7 +302,7 @@ export default class cex extends cexRest {
         symbols = this.marketSymbols (symbols);
         const url = this.urls['api']['ws'];
         const messageHash = 'tickers';
-        const message = {
+        const message: Dict = {
             'e': 'subscribe',
             'rooms': [
                 'tickers',
@@ -315,14 +315,14 @@ export default class cex extends cexRest {
             return await this.watchTickers (symbols, params);
         }
         if (this.newUpdates) {
-            const result = {};
+            const result: Dict = {};
             result[tickerSymbol] = ticker;
             return result;
         }
         return this.filterByArray (this.tickers, 'symbol', symbols);
     }
 
-    async fetchTickerWs (symbol: string, params = {}) {
+    async fetchTickerWs (symbol: string, params = {}): Promise<Ticker> {
         /**
          * @method
          * @name cex#fetchTickerWs
@@ -341,7 +341,7 @@ export default class cex extends cexRest {
             'oid': messageHash,
             'data': [ market['base'], market['quote'] ],
         }, params);
-        return await this.watch (url, messageHash, request, messageHash);
+        return await this.watch (url, messageHash, request, messageHash) as Ticker;
     }
 
     handleTicker (client: Client, message) {
@@ -478,7 +478,7 @@ export default class cex extends cexRest {
         const market = this.market (symbol);
         symbol = market['symbol'];
         const messageHash = 'orders:' + symbol;
-        const message = {
+        const message: Dict = {
             'e': 'open-orders',
             'data': {
                 'pair': [
@@ -517,7 +517,7 @@ export default class cex extends cexRest {
         const market = this.market (symbol);
         const messageHash = 'myTrades:' + market['symbol'];
         const subscriptionHash = 'orders:' + market['symbol'];
-        const message = {
+        const message: Dict = {
             'e': 'open-orders',
             'data': {
                 'pair': [
@@ -635,7 +635,7 @@ export default class cex extends cexRest {
             symbol = quote + '/' + base;
             amount = Precise.stringDiv (amount, price); // due to rounding errors amount in not exact to trade
         }
-        const parsedTrade = {
+        const parsedTrade: Dict = {
             'id': this.safeString (trade, 'id'),
             'order': this.safeString (trade, 'order'),
             'info': trade,
@@ -694,7 +694,7 @@ export default class cex extends cexRest {
         //             }
         //         }
         //     }
-        //  fullfilledOrder
+        //  fulfilledOrder
         //     {
         //         "e": "order",
         //         "data": {
@@ -854,7 +854,7 @@ export default class cex extends cexRest {
         } else if (isTransaction) {
             status = 'closed';
         }
-        const parsedOrder = {
+        const parsedOrder: Dict = {
             'id': this.safeString2 (order, 'id', 'order'),
             'clientOrderId': undefined,
             'info': order,
@@ -959,7 +959,7 @@ export default class cex extends cexRest {
         const url = this.urls['api']['ws'];
         const messageHash = 'orderbook:' + symbol;
         const depth = (limit === undefined) ? 0 : limit;
-        const subscribe = {
+        const subscribe: Dict = {
             'e': 'order-book-subscribe',
             'data': {
                 'pair': [
@@ -1004,7 +1004,7 @@ export default class cex extends cexRest {
         const symbol = this.pairToSymbol (pair);
         const messageHash = 'orderbook:' + symbol;
         const timestamp = this.safeInteger2 (data, 'timestamp_ms', 'timestamp');
-        const incrementalId = this.safeNumber (data, 'id');
+        const incrementalId = this.safeInteger (data, 'id');
         const orderbook = this.orderBook ({});
         const snapshot = this.parseOrderBook (data, symbol, timestamp, 'bids', 'asks');
         snapshot['nonce'] = incrementalId;
@@ -1093,7 +1093,7 @@ export default class cex extends cexRest {
         symbol = market['symbol'];
         const messageHash = 'ohlcv:' + symbol;
         const url = this.urls['api']['ws'];
-        const request = {
+        const request: Dict = {
             'e': 'init-ohlcv',
             'i': timeframe,
             'rooms': [
@@ -1246,7 +1246,7 @@ export default class cex extends cexRest {
         }, params);
         const url = this.urls['api']['ws'];
         const messageHash = this.requestId ();
-        const request = {
+        const request: Dict = {
             'e': 'get-order',
             'oid': messageHash,
             'data': data,
@@ -1278,7 +1278,7 @@ export default class cex extends cexRest {
         const data = this.extend ({
             'pair': [ market['baseId'], market['quoteId'] ],
         }, params);
-        const request = {
+        const request: Dict = {
             'e': 'open-orders',
             'oid': messageHash,
             'data': data,
@@ -1297,7 +1297,7 @@ export default class cex extends cexRest {
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {float} price the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the kraken api endpoint
          * @param {boolean} [params.maker_only] Optional, maker only places an order only if offers best sell (<= max) or buy(>= max) price for this pair, if not order placement will be rejected with an error - "Order is not maker"
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
@@ -1316,7 +1316,7 @@ export default class cex extends cexRest {
             'price': price,
             'type': side,
         }, params);
-        const request = {
+        const request: Dict = {
             'e': 'place-order',
             'oid': messageHash,
             'data': data,
@@ -1336,7 +1336,7 @@ export default class cex extends cexRest {
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of the currency you want to trade in units of the base currency
-         * @param {float|undefined} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {float|undefined} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the cex api endpoint
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
@@ -1358,7 +1358,7 @@ export default class cex extends cexRest {
         }, params);
         const messageHash = this.requestId ();
         const url = this.urls['api']['ws'];
-        const request = {
+        const request: Dict = {
             'e': 'cancel-replace-order',
             'oid': messageHash,
             'data': data,
@@ -1389,7 +1389,7 @@ export default class cex extends cexRest {
         }, params);
         const messageHash = this.requestId ();
         const url = this.urls['api']['ws'];
-        const request = {
+        const request: Dict = {
             'e': 'cancel-order',
             'oid': messageHash,
             'data': data,
@@ -1419,7 +1419,7 @@ export default class cex extends cexRest {
             'cancel-orders': ids,
         }, params);
         const url = this.urls['api']['ws'];
-        const request = {
+        const request: Dict = {
             'e': 'mass-cancel-place-orders',
             'oid': messageHash,
             'data': data,
@@ -1506,7 +1506,7 @@ export default class cex extends cexRest {
             return;
         }
         const event = this.safeString (message, 'e');
-        const handlers = {
+        const handlers: Dict = {
             'auth': this.handleAuthenticationMessage,
             'connected': this.handleConnected,
             'tick': this.handleTicker,
@@ -1563,7 +1563,7 @@ export default class cex extends cexRest {
             const nonce = this.seconds ().toString ();
             const auth = nonce + this.apiKey;
             const signature = this.hmac (this.encode (auth), this.encode (this.secret), sha256);
-            const request = {
+            const request: Dict = {
                 'e': 'auth',
                 'auth': {
                     'key': this.apiKey,

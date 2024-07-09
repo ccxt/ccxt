@@ -12,8 +12,8 @@ sys.path.append(root)
 # ----------------------------------------------------------------------------
 # -*- coding: utf-8 -*-
 
-from ccxt.test.base import test_trade  # noqa E402
-from ccxt.test.base import test_shared_methods  # noqa E402
+from ccxt.test.exchange.base import test_trade  # noqa E402
+from ccxt.test.exchange.base import test_shared_methods  # noqa E402
 
 async def test_watch_trades_for_symbols(exchange, skipped_properties, symbols):
     method = 'watchTradesForSymbols'
@@ -36,4 +36,5 @@ async def test_watch_trades_for_symbols(exchange, skipped_properties, symbols):
             symbol = trade['symbol']
             test_trade(exchange, skipped_properties, method, trade, symbol, now)
             test_shared_methods.assert_in_array(exchange, skipped_properties, method, trade, 'symbol', symbols)
-        test_shared_methods.assert_timestamp_order(exchange, method, symbol, response)
+        if not ('timestamp' in skipped_properties):
+            test_shared_methods.assert_timestamp_order(exchange, method, symbol, response)

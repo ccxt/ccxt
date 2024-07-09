@@ -52,8 +52,11 @@ class btcbox extends Exchange {
                 'fetchOrderBook' => true,
                 'fetchOrders' => true,
                 'fetchPosition' => false,
+                'fetchPositionHistory' => false,
                 'fetchPositionMode' => false,
                 'fetchPositions' => false,
+                'fetchPositionsForSymbol' => false,
+                'fetchPositionsHistory' => false,
                 'fetchPositionsRisk' => false,
                 'fetchPremiumIndexOHLCV' => false,
                 'fetchTicker' => true,
@@ -168,11 +171,11 @@ class btcbox extends Exchange {
         if ($numSymbols > 1) {
             $request['coin'] = $market['baseId'];
         }
-        $response = $this->publicGetDepth (array_merge($request, $params));
+        $response = $this->publicGetDepth ($this->extend($request, $params));
         return $this->parse_order_book($response, $market['symbol']);
     }
 
-    public function parse_ticker($ticker, ?array $market = null): array {
+    public function parse_ticker(array $ticker, ?array $market = null): array {
         $symbol = $this->safe_symbol(null, $market);
         $last = $this->safe_string($ticker, 'last');
         return $this->safe_ticker(array(
@@ -214,11 +217,11 @@ class btcbox extends Exchange {
         if ($numSymbols > 1) {
             $request['coin'] = $market['baseId'];
         }
-        $response = $this->publicGetTicker (array_merge($request, $params));
+        $response = $this->publicGetTicker ($this->extend($request, $params));
         return $this->parse_ticker($response, $market);
     }
 
-    public function parse_trade($trade, ?array $market = null): array {
+    public function parse_trade(array $trade, ?array $market = null): array {
         //
         // fetchTrades (public)
         //
@@ -271,7 +274,7 @@ class btcbox extends Exchange {
         if ($numSymbols > 1) {
             $request['coin'] = $market['baseId'];
         }
-        $response = $this->publicGetOrders (array_merge($request, $params));
+        $response = $this->publicGetOrders ($this->extend($request, $params));
         //
         //     array(
         //          array(
@@ -294,7 +297,7 @@ class btcbox extends Exchange {
          * @param {string} $type 'market' or 'limit'
          * @param {string} $side 'buy' or 'sell'
          * @param {float} $amount how much of currency you want to trade in units of base currency
-         * @param {float} [$price] the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
+         * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
          */
@@ -306,7 +309,7 @@ class btcbox extends Exchange {
             'type' => $side,
             'coin' => $market['baseId'],
         );
-        $response = $this->privatePostTradeAdd (array_merge($request, $params));
+        $response = $this->privatePostTradeAdd ($this->extend($request, $params));
         //
         //     {
         //         "result":true,
@@ -335,14 +338,14 @@ class btcbox extends Exchange {
             'id' => $id,
             'coin' => $market['baseId'],
         );
-        $response = $this->privatePostTradeCancel (array_merge($request, $params));
+        $response = $this->privatePostTradeCancel ($this->extend($request, $params));
         //
         //     array("result":true, "id":"11")
         //
         return $this->parse_order($response, $market);
     }
 
-    public function parse_order_status($status) {
+    public function parse_order_status(?string $status) {
         $statuses = array(
             // TODO => complete list
             'part' => 'open', // partially or not at all executed
@@ -354,7 +357,7 @@ class btcbox extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_order($order, ?array $market = null): array {
+    public function parse_order(array $order, ?array $market = null): array {
         //
         //     {
         //         "id":11,
@@ -427,11 +430,11 @@ class btcbox extends Exchange {
             $symbol = 'BTC/JPY';
         }
         $market = $this->market($symbol);
-        $request = array_merge(array(
+        $request = $this->extend(array(
             'id' => $id,
             'coin' => $market['baseId'],
         ), $params);
-        $response = $this->privatePostTradeView (array_merge($request, $params));
+        $response = $this->privatePostTradeView ($this->extend($request, $params));
         //
         //      {
         //          "id":11,
@@ -458,7 +461,7 @@ class btcbox extends Exchange {
             'type' => $type, // 'open' or 'all'
             'coin' => $market['baseId'],
         );
-        $response = $this->privatePostTradeList (array_merge($request, $params));
+        $response = $this->privatePostTradeList ($this->extend($request, $params));
         //
         // array(
         //      array(
@@ -521,7 +524,7 @@ class btcbox extends Exchange {
         } else {
             $this->check_required_credentials();
             $nonce = (string) $this->nonce();
-            $query = array_merge(array(
+            $query = $this->extend(array(
                 'key' => $this->apiKey,
                 'nonce' => $nonce,
             ), $params);
@@ -536,7 +539,7 @@ class btcbox extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors($httpCode, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
         if ($response === null) {
             return null; // resort to defaultErrorHandler
         }

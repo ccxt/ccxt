@@ -1,4 +1,5 @@
 export declare type Int = number | undefined;
+export declare type int = number;
 export declare type Str = string | undefined;
 export declare type Strings = string[] | undefined;
 export declare type Num = number | undefined;
@@ -73,6 +74,10 @@ export interface MarketInterface {
         price: Num;
         cost?: Num;
     };
+    marginMode?: {
+        isolated: boolean;
+        cross: boolean;
+    };
     limits: {
         amount?: MinMax;
         cost?: MinMax;
@@ -121,6 +126,8 @@ export interface Order {
     cost: number;
     trades: Trade[];
     fee: Fee;
+    reduceOnly: Bool;
+    postOnly: Bool;
     info: any;
 }
 export interface OrderBook {
@@ -263,6 +270,8 @@ export interface FundingRate {
     previousFundingDatetime?: string;
     previousFundingRate?: number;
 }
+export interface FundingRates extends Dictionary<FundingRate> {
+}
 export interface Position {
     symbol: string;
     id?: Str;
@@ -351,13 +360,24 @@ export interface TransferEntry {
     toAccount?: Str;
     status?: Str;
 }
-export interface BorrowRate {
+export interface CrossBorrowRate {
+    info: any;
     currency?: Str;
-    rate?: number;
+    rate: number;
     period?: number;
     timestamp?: number;
     datetime?: Str;
+}
+export interface IsolatedBorrowRate {
     info: any;
+    symbol: string;
+    base: string;
+    baseRate: number;
+    quote: string;
+    quoteRate: number;
+    period?: Int;
+    timestamp?: Int;
+    datetime?: Str;
 }
 export interface FundingRateHistory {
     info: any;
@@ -392,6 +412,11 @@ export interface OrderRequest {
     amount?: number;
     price?: number | undefined;
     params?: any;
+}
+export interface CancellationRequest {
+    id: string;
+    clientOrderId?: string;
+    symbol: string;
 }
 export interface FundingHistory {
     info: any;
@@ -497,6 +522,14 @@ export interface TradingFees extends Dictionary<TradingFeeInterface> {
 export interface MarginModes extends Dictionary<MarginMode> {
 }
 export interface OptionChain extends Dictionary<Option> {
+}
+export interface IsolatedBorrowRates extends Dictionary<IsolatedBorrowRates> {
+}
+export interface CrossBorrowRates extends Dictionary<CrossBorrowRates> {
+}
+export interface TransferEntries extends Dictionary<TransferEntry> {
+}
+export interface LeverageTiers extends Dictionary<LeverageTier[]> {
 }
 /** [ timestamp, open, high, low, close, volume ] */
 export declare type OHLCV = [Num, Num, Num, Num, Num, Num];

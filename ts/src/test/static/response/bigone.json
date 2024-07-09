@@ -2,6 +2,83 @@
     "exchange": "bigone",
     "skipKeys": [],
     "methods": {
+        "fetchTime": [
+            {
+                "description": "Fetch time",
+                "method": "fetchTime",
+                "input": [],
+                "httpResponse": {
+                    "code": "0",
+                    "data": {
+                        "Timestamp": "1714400719083822092"
+                    }
+                },
+                "parsedResponse": 1714400719083
+            }
+        ],
+        "fetchDepositAddress": [
+            {
+                "description": "Fetch deposit address for USDT",
+                "method": "fetchDepositAddress",
+                "input": [
+                    "USDT"
+                ],
+                "httpResponse": {
+                    "code": "0",
+                    "message": "",
+                    "data": [
+                        {
+                            "id": "6374866",
+                            "chain": "EOS",
+                            "value": "pxneosincome",
+                            "memo": "GYBXLNQ2"
+                        },
+                        {
+                            "id": "6374867",
+                            "chain": "Ethereum",
+                            "value": "0x64385715672a3565992e9f134a1b7e36cfe4a00f",
+                            "memo": ""
+                        },
+                        {
+                            "id": "6374868",
+                            "chain": "Tron",
+                            "value": "TQrDjvr1uKceBUUXVHkrYV4UZdMNtLAg6V",
+                            "memo": ""
+                        }
+                    ]
+                },
+                "parsedResponse": {
+                    "currency": "USDT",
+                    "address": "TQrDjvr1uKceBUUXVHkrYV4UZdMNtLAg6V",
+                    "tag": null,
+                    "network": "TRC20",
+                    "info": {
+                        "code": "0",
+                        "message": "",
+                        "data": [
+                            {
+                                "id": "6374866",
+                                "chain": "EOS",
+                                "value": "pxneosincome",
+                                "memo": "GYBXLNQ2"
+                            },
+                            {
+                                "id": "6374867",
+                                "chain": "Ethereum",
+                                "value": "0x64385715672a3565992e9f134a1b7e36cfe4a00f",
+                                "memo": ""
+                            },
+                            {
+                                "id": "6374868",
+                                "chain": "Tron",
+                                "value": "TQrDjvr1uKceBUUXVHkrYV4UZdMNtLAg6V",
+                                "memo": ""
+                            }
+                        ]
+                    }
+                }
+            }
+        ],
         "fetchTrades": [
             {
                 "description": "public spot trades",

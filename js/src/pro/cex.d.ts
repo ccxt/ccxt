@@ -12,7 +12,7 @@ export default class cex extends cexRest {
     handleTrade(client: Client, message: any): void;
     watchTicker(symbol: string, params?: {}): Promise<Ticker>;
     watchTickers(symbols?: Strings, params?: {}): Promise<Tickers>;
-    fetchTickerWs(symbol: string, params?: {}): Promise<any>;
+    fetchTickerWs(symbol: string, params?: {}): Promise<Ticker>;
     handleTicker(client: Client, message: any): void;
     parseWsTicker(ticker: any, market?: any): Ticker;
     fetchBalanceWs(params?: {}): Promise<Balances>;

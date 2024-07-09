@@ -3,7 +3,7 @@
 
 import bithumbRest from '../bithumb.js';
 import { ArrayCache } from '../base/ws/Cache.js';
-import type { Int, OrderBook, Ticker, Trade, Strings, Tickers } from '../base/types.js';
+import type { Int, OrderBook, Ticker, Trade, Strings, Tickers, Dict } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 import { ExchangeError } from '../base/errors.js';
 
@@ -46,7 +46,7 @@ export default class bithumb extends bithumbRest {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const messageHash = 'ticker:' + market['symbol'];
-        const request = {
+        const request: Dict = {
             'type': 'ticker',
             'symbols': [ market['base'] + '_' + market['quote'] ],
             'tickTypes': [ this.safeString (params, 'tickTypes', '24H') ],
@@ -74,7 +74,7 @@ export default class bithumb extends bithumbRest {
             marketIds.push (market['base'] + '_' + market['quote']);
             messageHashes.push ('ticker:' + market['symbol']);
         }
-        const request = {
+        const request: Dict = {
             'type': 'ticker',
             'symbols': marketIds,
             'tickTypes': [ this.safeString (params, 'tickTypes', '24H') ],
@@ -82,7 +82,7 @@ export default class bithumb extends bithumbRest {
         const message = this.extend (request, params);
         const newTicker = await this.watchMultiple (url, messageHashes, message, messageHashes);
         if (this.newUpdates) {
-            const result = {};
+            const result: Dict = {};
             result[newTicker['symbol']] = newTicker;
             return result;
         }
@@ -186,7 +186,7 @@ export default class bithumb extends bithumbRest {
         const market = this.market (symbol);
         symbol = market['symbol'];
         const messageHash = 'orderbook' + ':' + symbol;
-        const request = {
+        const request: Dict = {
             'type': 'orderbookdepth',
             'symbols': [ market['base'] + '_' + market['quote'] ],
         };
@@ -277,7 +277,7 @@ export default class bithumb extends bithumbRest {
         const market = this.market (symbol);
         symbol = market['symbol'];
         const messageHash = 'trade:' + symbol;
-        const request = {
+        const request: Dict = {
             'type': 'transaction',
             'symbols': [ market['base'] + '_' + market['quote'] ],
         };
@@ -387,7 +387,7 @@ export default class bithumb extends bithumbRest {
         }
         const topic = this.safeString (message, 'type');
         if (topic !== undefined) {
-            const methods = {
+            const methods: Dict = {
                 'ticker': this.handleTicker,
                 'orderbookdepth': this.handleOrderBook,
                 'transaction': this.handleTrades,

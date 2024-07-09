@@ -5,7 +5,7 @@ export default class kraken extends krakenRest {
     describe(): any;
     createOrderWs(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): Promise<Order>;
     handleCreateEditOrder(client: any, message: any): void;
-    editOrderWs(id: string, symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): Promise<Order>;
+    editOrderWs(id: string, symbol: string, type: OrderType, side: OrderSide, amount?: Num, price?: Num, params?: {}): Promise<Order>;
     cancelOrdersWs(ids: string[], symbol?: Str, params?: {}): Promise<any>;
     cancelOrderWs(id: string, symbol?: Str, params?: {}): Promise<Order>;
     handleCancelOrder(client: any, message: any): void;

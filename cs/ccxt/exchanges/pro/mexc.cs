@@ -34,7 +34,7 @@ public partial class mexc : ccxt.mexc
                 { "api", new Dictionary<string, object>() {
                     { "ws", new Dictionary<string, object>() {
                         { "spot", "wss://wbs.mexc.com/ws" },
-                        { "swap", "wss://contract.mexc.com/ws" },
+                        { "swap", "wss://contract.mexc.com/edge" },
                     } },
                 } },
             } },
@@ -60,7 +60,7 @@ public partial class mexc : ccxt.mexc
             } },
             { "streaming", new Dictionary<string, object>() {
                 { "ping", this.ping },
-                { "keepAlive", 10000 },
+                { "keepAlive", 8000 },
             } },
             { "exceptions", new Dictionary<string, object>() {} },
         });
@@ -70,7 +70,7 @@ public partial class mexc : ccxt.mexc
     {
         /**
         * @method
-        * @name mexc3#watchTicker
+        * @name mexc#watchTicker
         * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         * @param {string} symbol unified symbol of the market to fetch the ticker for
         * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -224,7 +224,7 @@ public partial class mexc : ccxt.mexc
     {
         /**
         * @method
-        * @name mexc3#watchOHLCV
+        * @name mexc#watchOHLCV
         * @see https://mxcdevelop.github.io/apidocs/spot_v3_en/#kline-streams
         * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         * @param {string} symbol unified symbol of the market to fetch OHLCV data for
@@ -374,7 +374,7 @@ public partial class mexc : ccxt.mexc
     {
         /**
         * @method
-        * @name mexc3#watchOrderBook
+        * @name mexc#watchOrderBook
         * @see https://mxcdevelop.github.io/apidocs/spot_v3_en/#diff-depth-stream
         * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
         * @param {string} symbol unified symbol of the market to fetch the order book for
@@ -556,8 +556,8 @@ public partial class mexc : ccxt.mexc
             return;
         }
         ((IDictionary<string,object>)orderbook)["nonce"] = deltaNonce;
-        object asks = this.safeValue(delta, "asks", new List<object>() {});
-        object bids = this.safeValue(delta, "bids", new List<object>() {});
+        object asks = this.safeList(delta, "asks", new List<object>() {});
+        object bids = this.safeList(delta, "bids", new List<object>() {});
         object asksOrderSide = getValue(orderbook, "asks");
         object bidsOrderSide = getValue(orderbook, "bids");
         this.handleBooksideDelta(asksOrderSide, asks);
@@ -568,7 +568,7 @@ public partial class mexc : ccxt.mexc
     {
         /**
         * @method
-        * @name mexc3#watchTrades
+        * @name mexc#watchTrades
         * @see https://mxcdevelop.github.io/apidocs/spot_v3_en/#trade-streams
         * @description get the list of most recent trades for a particular symbol
         * @param {string} symbol unified symbol of the market to fetch trades for
@@ -667,7 +667,7 @@ public partial class mexc : ccxt.mexc
     {
         /**
         * @method
-        * @name mexc3#watchMyTrades
+        * @name mexc#watchMyTrades
         * @see https://mxcdevelop.github.io/apidocs/spot_v3_en/#spot-account-deals
         * @description watches information on multiple trades made by the user
         * @param {string} symbol unified market symbol of the market trades were made in
@@ -776,6 +776,21 @@ public partial class mexc : ccxt.mexc
         //        "v": "5"
         //    }
         //
+        //
+        //   d: {
+        //       p: '1.0005',
+        //       v: '5.71',
+        //       a: '5.712855',
+        //       S: 1,
+        //       T: 1714325698237,
+        //       t: 'edafcd9fdc2f426e82443d114691f724',
+        //       c: '',
+        //       i: 'C02__413321238354677760043',
+        //       m: 0,
+        //       st: 0,
+        //       n: '0.005712855',
+        //       N: 'USDT'
+        //   }
         object timestamp = this.safeInteger(trade, "T");
         object tradeId = this.safeString(trade, "t");
         if (isTrue(isEqual(timestamp, null)))
@@ -788,6 +803,8 @@ public partial class mexc : ccxt.mexc
         object rawSide = this.safeString(trade, "S");
         object side = ((bool) isTrue((isEqual(rawSide, "1")))) ? "buy" : "sell";
         object isMaker = this.safeInteger(trade, "m");
+        object feeAmount = this.safeNumber(trade, "n");
+        object feeCurrencyId = this.safeString(trade, "N");
         return this.safeTrade(new Dictionary<string, object>() {
             { "info", trade },
             { "id", tradeId },
@@ -801,7 +818,10 @@ public partial class mexc : ccxt.mexc
             { "price", priceString },
             { "amount", amountString },
             { "cost", null },
-            { "fee", null },
+            { "fee", new Dictionary<string, object>() {
+                { "cost", feeAmount },
+                { "currency", this.safeCurrencyCode(feeCurrencyId) },
+            } },
         }, market);
     }
 
@@ -809,7 +829,7 @@ public partial class mexc : ccxt.mexc
     {
         /**
         * @method
-        * @name mexc3#watchOrders
+        * @name mexc#watchOrders
         * @see https://mxcdevelop.github.io/apidocs/spot_v3_en/#spot-account-orders
         * @see https://mxcdevelop.github.io/apidocs/spot_v3_en/#margin-account-orders
         * @description watches information on multiple orders made by the user
@@ -1082,7 +1102,7 @@ public partial class mexc : ccxt.mexc
     {
         /**
         * @method
-        * @name mexc3#watchBalance
+        * @name mexc#watchBalance
         * @see https://mxcdevelop.github.io/apidocs/spot_v3_en/#spot-account-upadte
         * @description watch balance and get the amount of funds available for trading or funds locked in orders
         * @param {object} [params] extra parameters specific to the exchange API endpoint

@@ -93,8 +93,10 @@ export default class mexc extends Exchange {
                 'fetchOrders': true,
                 'fetchOrderTrades': true,
                 'fetchPosition': true,
+                'fetchPositionHistory': 'emulated',
                 'fetchPositionMode': true,
                 'fetchPositions': true,
+                'fetchPositionsHistory': true,
                 'fetchPositionsRisk': undefined,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchStatus': true,
@@ -148,7 +150,7 @@ export default class mexc extends Exchange {
                 'fees': [
                     'https://www.mexc.com/fee',
                 ],
-                'referral': 'https://m.mexc.com/auth/signup?inviteCode=1FQ1G',
+                'referral': 'https://www.mexc.com/register?inviteCode=mexc-1FQ1GNu1',
             },
             'api': {
                 'spot': {
@@ -222,6 +224,7 @@ export default class mexc extends Exchange {
                             'sub-account/margin': 1,
                             'batchOrders': 10,
                             'capital/withdraw/apply': 1,
+                            'capital/withdraw': 1,
                             'capital/transfer': 1,
                             'capital/transfer/internal': 1,
                             'capital/deposit/address': 1,
@@ -240,6 +243,7 @@ export default class mexc extends Exchange {
                             'margin/order': 1,
                             'margin/openOrders': 1,
                             'userDataStream': 1,
+                            'capital/withdraw': 1,
                         },
                     },
                 },
@@ -1067,7 +1071,7 @@ export default class mexc extends Exchange {
             const chains = this.safeValue(currency, 'networkList', []);
             for (let j = 0; j < chains.length; j++) {
                 const chain = chains[j];
-                const networkId = this.safeString(chain, 'network');
+                const networkId = this.safeString2(chain, 'network', 'netWork');
                 const network = this.networkIdToCode(networkId);
                 const isDepositEnabled = this.safeBool(chain, 'depositEnable', false);
                 const isWithdrawEnabled = this.safeBool(chain, 'withdrawEnable', false);
@@ -1484,7 +1488,7 @@ export default class mexc extends Exchange {
         }
         let trades = undefined;
         if (market['spot']) {
-            const until = this.safeIntegerN(params, ['endTime', 'until', 'till']);
+            const until = this.safeIntegerN(params, ['endTime', 'until']);
             if (since !== undefined) {
                 request['startTime'] = since;
                 if (until === undefined) {
@@ -1769,7 +1773,7 @@ export default class mexc extends Exchange {
         };
         let candles = undefined;
         if (market['spot']) {
-            const until = this.safeIntegerN(params, ['until', 'endTime', 'till']);
+            const until = this.safeIntegerN(params, ['until', 'endTime']);
             if (since !== undefined) {
                 request['startTime'] = since;
                 if (until === undefined) {
@@ -1783,7 +1787,7 @@ export default class mexc extends Exchange {
                 request['limit'] = limit;
             }
             if (until !== undefined) {
-                params = this.omit(params, ['until', 'till']);
+                params = this.omit(params, ['until']);
                 request['endTime'] = until;
             }
             const response = await this.spotPublicGetKlines(this.extend(request, params));
@@ -1804,12 +1808,12 @@ export default class mexc extends Exchange {
             candles = response;
         }
         else if (market['swap']) {
-            const until = this.safeIntegerProductN(params, ['until', 'endTime', 'till'], 0.001);
+            const until = this.safeIntegerProductN(params, ['until', 'endTime'], 0.001);
             if (since !== undefined) {
                 request['start'] = this.parseToInt(since / 1000);
             }
             if (until !== undefined) {
-                params = this.omit(params, ['until', 'till']);
+                params = this.omit(params, ['until']);
                 request['end'] = until;
             }
             const priceType = this.safeString(params, 'price', 'default');
@@ -2208,7 +2212,7 @@ export default class mexc extends Exchange {
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {string} [params.marginMode] only 'isolated' is supported for spot-margin trading
          * @param {float} [params.triggerPrice] The price at which a trigger order is triggered at
@@ -2419,7 +2423,7 @@ export default class mexc extends Exchange {
         //     {"success":true,"code":0,"data":259208506303929856}
         //
         const data = this.safeString(response, 'data');
-        return this.parseOrder(data, market);
+        return this.safeOrder({ 'id': data }, market);
     }
     async createOrders(orders, params = {}) {
         /**
@@ -4414,8 +4418,8 @@ export default class mexc extends Exchange {
                 {
                     'tier': 0,
                     'currency': this.safeCurrencyCode(quoteId),
-                    'notionalFloor': undefined,
-                    'notionalCap': undefined,
+                    'minNotional': undefined,
+                    'maxNotional': undefined,
                     'maintenanceMarginRate': undefined,
                     'maxLeverage': this.safeNumber(info, 'maxLeverage'),
                     'info': info,
@@ -4427,8 +4431,8 @@ export default class mexc extends Exchange {
             tiers.push({
                 'tier': this.parseNumber(Precise.stringDiv(cap, riskIncrVol)),
                 'currency': this.safeCurrencyCode(quoteId),
-                'notionalFloor': this.parseNumber(floor),
-                'notionalCap': this.parseNumber(cap),
+                'minNotional': this.parseNumber(floor),
+                'maxNotional': this.parseNumber(cap),
                 'maintenanceMarginRate': this.parseNumber(maintenanceMarginRate),
                 'maxLeverage': this.parseNumber(Precise.stringDiv('1', initialMarginRate)),
                 'info': info,
@@ -4868,6 +4872,8 @@ export default class mexc extends Exchange {
     }
     parsePosition(position, market = undefined) {
         //
+        // fetchPositions
+        //
         //     {
         //         "positionId": 1394650,
         //         "symbol": "ETH_USDT",
@@ -4890,6 +4896,40 @@ export default class mexc extends Exchange {
         //         "updateTime": 1609991676000,
         //         "autoAddIm": false
         //     }
+        //
+        // fetchPositionsHistory
+        //
+        //    {
+        //        positionId: '390281084',
+        //        symbol: 'RVN_USDT',
+        //        positionType: '1',
+        //        openType: '2',
+        //        state: '3',
+        //        holdVol: '0',
+        //        frozenVol: '0',
+        //        closeVol: '1141',
+        //        holdAvgPrice: '0.03491',
+        //        holdAvgPriceFullyScale: '0.03491',
+        //        openAvgPrice: '0.03491',
+        //        openAvgPriceFullyScale: '0.03491',
+        //        closeAvgPrice: '0.03494',
+        //        liquidatePrice: '0.03433',
+        //        oim: '0',
+        //        im: '0',
+        //        holdFee: '0',
+        //        realised: '0.1829',
+        //        leverage: '50',
+        //        createTime: '1711512408000',
+        //        updateTime: '1711512553000',
+        //        autoAddIm: false,
+        //        version: '4',
+        //        profitRatio: '0.0227',
+        //        newOpenAvgPrice: '0.03491',
+        //        newCloseAvgPrice: '0.03494',
+        //        closeProfitLoss: '0.3423',
+        //        fee: '0.1593977',
+        //        positionShowStatus: 'CLOSED'
+        //    }
         //
         market = this.safeMarket(this.safeString(position, 'symbol'), market);
         const symbol = market['symbol'];
@@ -4933,7 +4973,7 @@ export default class mexc extends Exchange {
             'lastUpdateTimestamp': undefined,
         });
     }
-    async fetchTransfer(id, since = undefined, limit = undefined, params = {}) {
+    async fetchTransfer(id, code = undefined, params = {}) {
         const [marketType, query] = this.handleMarketTypeAndParams('fetchTransfer', undefined, params);
         await this.loadMarkets();
         if (marketType === 'spot') {
@@ -5187,7 +5227,7 @@ export default class mexc extends Exchange {
          * @method
          * @name mexc#withdraw
          * @description make a withdrawal
-         * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#withdraw
+         * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#withdraw-new
          * @param {string} code unified currency code
          * @param {float} amount the amount to withdraw
          * @param {string} address the address to withdraw to
@@ -5197,7 +5237,7 @@ export default class mexc extends Exchange {
          */
         [tag, params] = this.handleWithdrawTagAndParams(tag, params);
         const networks = this.safeValue(this.options, 'networks', {});
-        let network = this.safeString2(params, 'network', 'chain'); // this line allows the user to specify either ERC20 or ETH
+        let network = this.safeString2(params, 'network', 'netWork'); // this line allows the user to specify either ERC20 or ETH
         network = this.safeString(networks, network, network); // handle ETH > ERC-20 alias
         this.checkAddress(address);
         await this.loadMarkets();
@@ -5211,10 +5251,10 @@ export default class mexc extends Exchange {
             request['memo'] = tag;
         }
         if (network !== undefined) {
-            request['network'] = network;
-            params = this.omit(params, ['network', 'chain']);
+            request['netWork'] = network;
+            params = this.omit(params, ['network', 'netWork']);
         }
-        const response = await this.spotPrivatePostCapitalWithdrawApply(this.extend(request, params));
+        const response = await this.spotPrivatePostCapitalWithdraw(this.extend(request, params));
         //
         //     {
         //       "id":"7213fea8e94b4a5593d507237e5a555b"
@@ -5527,6 +5567,79 @@ export default class mexc extends Exchange {
             marginMode = 'isolated';
         }
         return [marginMode, params];
+    }
+    async fetchPositionsHistory(symbols = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name mexc#fetchPositionsHistory
+         * @description fetches historical positions
+         * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-the-user-s-history-position-information
+         * @param {string[]} [symbols] unified contract symbols
+         * @param {int} [since] not used by mexc fetchPositionsHistory
+         * @param {int} [limit] the maximum amount of candles to fetch, default=1000
+         * @param {object} params extra parameters specific to the exchange api endpoint
+         *
+         * EXCHANGE SPECIFIC PARAMETERS
+         * @param {int} type position type，1: long, 2: short
+         * @param {int} page_num current page number, default is 1
+         * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
+         */
+        await this.loadMarkets();
+        const request = {};
+        if (symbols !== undefined) {
+            const symbolsLength = symbols.length;
+            if (symbolsLength === 1) {
+                const market = this.market(symbols[0]);
+                request['symbol'] = market['id'];
+            }
+        }
+        if (limit !== undefined) {
+            request['page_size'] = limit;
+        }
+        const response = await this.contractPrivateGetPositionListHistoryPositions(this.extend(request, params));
+        //
+        //    {
+        //        success: true,
+        //        code: '0',
+        //        data: [
+        //            {
+        //                positionId: '390281084',
+        //                symbol: 'RVN_USDT',
+        //                positionType: '1',
+        //                openType: '2',
+        //                state: '3',
+        //                holdVol: '0',
+        //                frozenVol: '0',
+        //                closeVol: '1141',
+        //                holdAvgPrice: '0.03491',
+        //                holdAvgPriceFullyScale: '0.03491',
+        //                openAvgPrice: '0.03491',
+        //                openAvgPriceFullyScale: '0.03491',
+        //                closeAvgPrice: '0.03494',
+        //                liquidatePrice: '0.03433',
+        //                oim: '0',
+        //                im: '0',
+        //                holdFee: '0',
+        //                realised: '0.1829',
+        //                leverage: '50',
+        //                createTime: '1711512408000',
+        //                updateTime: '1711512553000',
+        //                autoAddIm: false,
+        //                version: '4',
+        //                profitRatio: '0.0227',
+        //                newOpenAvgPrice: '0.03491',
+        //                newCloseAvgPrice: '0.03494',
+        //                closeProfitLoss: '0.3423',
+        //                fee: '0.1593977',
+        //                positionShowStatus: 'CLOSED'
+        //            },
+        //            ...
+        //        ]
+        //    }
+        //
+        const data = this.safeList(response, 'data');
+        const positions = this.parsePositions(data, symbols, params);
+        return this.filterBySinceLimit(positions, since, limit);
     }
     sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const section = this.safeString(api, 0);

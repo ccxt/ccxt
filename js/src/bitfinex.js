@@ -863,7 +863,7 @@ export default class bitfinex extends Exchange {
         const response = await this.publicGetTickers(params);
         const result = {};
         for (let i = 0; i < response.length; i++) {
-            const ticker = this.parseTicker(response[i]);
+            const ticker = this.parseTicker({ 'result': response[i] });
             const symbol = ticker['symbol'];
             result[symbol] = ticker;
         }
@@ -885,9 +885,33 @@ export default class bitfinex extends Exchange {
             'symbol': market['id'],
         };
         const ticker = await this.publicGetPubtickerSymbol(this.extend(request, params));
+        //
+        //    {
+        //        mid: '63560.5',
+        //        bid: '63560.0',
+        //        ask: '63561.0',
+        //        last_price: '63547.0',
+        //        low: '62812.0',
+        //        high: '64480.0',
+        //        volume: '517.25634977',
+        //        timestamp: '1715102384.9849467'
+        //    }
+        //
         return this.parseTicker(ticker, market);
     }
     parseTicker(ticker, market = undefined) {
+        //
+        //    {
+        //        mid: '63560.5',
+        //        bid: '63560.0',
+        //        ask: '63561.0',
+        //        last_price: '63547.0',
+        //        low: '62812.0',
+        //        high: '64480.0',
+        //        volume: '517.25634977',
+        //        timestamp: '1715102384.9849467'
+        //    }
+        //
         const timestamp = this.safeTimestamp(ticker, 'timestamp');
         const marketId = this.safeString(ticker, 'pair');
         market = this.safeMarket(marketId, market);
@@ -1061,7 +1085,7 @@ export default class bitfinex extends Exchange {
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */

@@ -59,6 +59,8 @@ public partial class bitget : Exchange
                 { "fetchClosedOrders", true },
                 { "fetchConvertCurrencies", true },
                 { "fetchConvertQuote", true },
+                { "fetchConvertTrade", false },
+                { "fetchConvertTradeHistory", true },
                 { "fetchCrossBorrowRate", true },
                 { "fetchCrossBorrowRates", false },
                 { "fetchCurrencies", true },
@@ -97,8 +99,10 @@ public partial class bitget : Exchange
                 { "fetchOrders", false },
                 { "fetchOrderTrades", false },
                 { "fetchPosition", true },
+                { "fetchPositionHistory", "emulated" },
                 { "fetchPositionMode", false },
                 { "fetchPositions", true },
+                { "fetchPositionsHistory", true },
                 { "fetchPositionsRisk", false },
                 { "fetchPremiumIndexOHLCV", false },
                 { "fetchStatus", false },
@@ -287,6 +291,9 @@ public partial class bitget : Exchange
                             { "v2/spot/account/subaccount-assets", 2 },
                             { "v2/spot/account/bills", 2 },
                             { "v2/spot/account/transferRecords", 1 },
+                            { "v2/account/funding-assets", 2 },
+                            { "v2/account/bot-assets", 2 },
+                            { "v2/account/all-account-balance", 20 },
                             { "v2/spot/wallet/deposit-address", 2 },
                             { "v2/spot/wallet/deposit-records", 2 },
                             { "v2/spot/wallet/withdrawal-records", 2 },
@@ -457,7 +464,7 @@ public partial class bitget : Exchange
                             { "v2/mix/account/set-margin", 4 },
                             { "v2/mix/account/set-margin-mode", 4 },
                             { "v2/mix/account/set-position-mode", 4 },
-                            { "v2/mix/order/place-order", 20 },
+                            { "v2/mix/order/place-order", 2 },
                             { "v2/mix/order/click-backhand", 20 },
                             { "v2/mix/order/batch-place-order", 20 },
                             { "v2/mix/order/modify-order", 2 },
@@ -731,6 +738,7 @@ public partial class bitget : Exchange
                             { "v2/earn/loan/borrow-history", 2 },
                             { "v2/earn/loan/debts", 2 },
                             { "v2/earn/loan/reduces", 2 },
+                            { "v2/earn/account/assets", 2 },
                         } },
                         { "post", new Dictionary<string, object>() {
                             { "v2/earn/savings/subscribe", 2 },
@@ -1182,6 +1190,7 @@ public partial class bitget : Exchange
                     { "40712", typeof(InsufficientFunds) },
                     { "40713", typeof(ExchangeError) },
                     { "40714", typeof(ExchangeError) },
+                    { "40762", typeof(InsufficientFunds) },
                     { "40768", typeof(OrderNotFound) },
                     { "41114", typeof(OnMaintenance) },
                     { "43011", typeof(InvalidOrder) },
@@ -2703,12 +2712,7 @@ public partial class bitget : Exchange
         //
         object marketId = this.safeString(ticker, "symbol");
         object close = this.safeString(ticker, "lastPr");
-        object timestampString = this.omitZero(this.safeString(ticker, "ts")); // exchange sometimes provided 0
-        object timestamp = null;
-        if (isTrue(!isEqual(timestampString, null)))
-        {
-            timestamp = this.parseToInt(timestampString);
-        }
+        object timestamp = this.safeIntegerOmitZero(ticker, "ts"); // exchange bitget provided 0
         object change = this.safeString(ticker, "change24h");
         object open24 = this.safeString(ticker, "open24");
         object open = this.safeString(ticker, "open");
@@ -3499,11 +3503,11 @@ public partial class bitget : Exchange
             { "symbol", getValue(market, "id") },
             { "granularity", this.safeString(timeframes, timeframe, timeframe) },
         };
-        object until = this.safeInteger2(parameters, "until", "till");
+        object until = this.safeInteger(parameters, "until");
         object limitDefined = !isEqual(limit, null);
         object sinceDefined = !isEqual(since, null);
         object untilDefined = !isEqual(until, null);
-        parameters = this.omit(parameters, new List<object>() {"until", "till"});
+        parameters = this.omit(parameters, new List<object>() {"until"});
         object response = null;
         object now = this.milliseconds();
         // retrievable periods listed here:
@@ -4319,7 +4323,7 @@ public partial class bitget : Exchange
         * @param {string} type 'market' or 'limit'
         * @param {string} side 'buy' or 'sell'
         * @param {float} amount how much you want to trade in units of the base currency
-        * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @param {float} [params.cost] *spot only* how much you want to trade in units of the quote currency, for market buy orders only
         * @param {float} [params.triggerPrice] *swap only* The price at which a trigger order is triggered at
@@ -4341,6 +4345,7 @@ public partial class bitget : Exchange
         * @param {string} [params.trailingTriggerPrice] *swap and future only* the price to trigger a trailing stop order, default uses the price argument
         * @param {string} [params.triggerType] *swap and future only* 'fill_price', 'mark_price' or 'index_price'
         * @param {boolean} [params.oneWayMode] *swap and future only* required to set this to true in one_way_mode and you can leave this as undefined in hedge_mode, can adjust the mode using the setPositionMode() method
+        * @param {bool} [params.reduceOnly] true or false whether the order is reduce-only
         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
         */
         parameters ??= new Dictionary<string, object>();
@@ -4568,12 +4573,23 @@ public partial class bitget : Exchange
                 }
                 object marginModeRequest = ((bool) isTrue((isEqual(marginMode, "cross")))) ? "crossed" : "isolated";
                 ((IDictionary<string,object>)request)["marginMode"] = marginModeRequest;
-                object oneWayMode = this.safeBool(parameters, "oneWayMode", false);
-                parameters = this.omit(parameters, "oneWayMode");
+                object hedged = null;
+                var hedgedparametersVariable = this.handleParamBool(parameters, "hedged", false);
+                hedged = ((IList<object>)hedgedparametersVariable)[0];
+                parameters = ((IList<object>)hedgedparametersVariable)[1];
+                // backward compatibility for `oneWayMode`
+                object oneWayMode = null;
+                var oneWayModeparametersVariable = this.handleParamBool(parameters, "oneWayMode");
+                oneWayMode = ((IList<object>)oneWayModeparametersVariable)[0];
+                parameters = ((IList<object>)oneWayModeparametersVariable)[1];
+                if (isTrue(!isEqual(oneWayMode, null)))
+                {
+                    hedged = !isTrue(oneWayMode);
+                }
                 object requestSide = side;
                 if (isTrue(reduceOnly))
                 {
-                    if (isTrue(oneWayMode))
+                    if (!isTrue(hedged))
                     {
                         ((IDictionary<string,object>)request)["reduceOnly"] = "YES";
                     } else
@@ -4584,7 +4600,7 @@ public partial class bitget : Exchange
                     }
                 } else
                 {
-                    if (!isTrue(oneWayMode))
+                    if (isTrue(hedged))
                     {
                         ((IDictionary<string,object>)request)["tradeSide"] = "Open";
                     }
@@ -4640,7 +4656,7 @@ public partial class bitget : Exchange
             if (isTrue(!isEqual(marginMode, null)))
             {
                 ((IDictionary<string,object>)request)["loanType"] = "normal";
-                if (isTrue(isTrue(isTrue(createMarketBuyOrderRequiresPrice) && isTrue(isMarketOrder)) && isTrue((isEqual(side, "buy")))))
+                if (isTrue(isTrue(isMarketOrder) && isTrue((isEqual(side, "buy")))))
                 {
                     ((IDictionary<string,object>)request)["quoteSize"] = quantity;
                 } else
@@ -4812,7 +4828,7 @@ public partial class bitget : Exchange
         * @param {string} type 'market' or 'limit'
         * @param {string} side 'buy' or 'sell'
         * @param {float} amount how much you want to trade in units of the base currency
-        * @param {float} [price] the price at which the order is to be fullfilled, in units of the base currency, ignored in market orders
+        * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @param {float} [params.triggerPrice] the price that a trigger order is triggered at
         * @param {float} [params.stopLossPrice] *swap only* The price at which a stop loss order is triggered at
@@ -4872,6 +4888,10 @@ public partial class bitget : Exchange
         object response = null;
         if (isTrue(getValue(market, "spot")))
         {
+            if (isTrue(isEqual(triggerPrice, null)))
+            {
+                throw new NotSupported ((string)add(this.id, "editOrder() only supports plan/trigger spot orders")) ;
+            }
             object editMarketBuyOrderRequiresPrice = this.safeBool(this.options, "editMarketBuyOrderRequiresPrice", true);
             if (isTrue(isTrue(isTrue(editMarketBuyOrderRequiresPrice) && isTrue(isMarketOrder)) && isTrue((isEqual(side, "buy")))))
             {
@@ -5332,6 +5352,25 @@ public partial class bitget : Exchange
                 {
                     response = await this.privateSpotPostV2SpotTradeCancelSymbolOrder(this.extend(request, parameters));
                 }
+                //
+                //     {
+                //         "code": "00000",
+                //         "msg": "success",
+                //         "requestTime": 1700716953996,
+                //         "data": {
+                //             "symbol": "BTCUSDT"
+                //         }
+                //     }
+                //
+                object timestamp = this.safeInteger(response, "requestTime");
+                object responseData = this.safeDict(response, "data");
+                object marketId = this.safeString(responseData, "symbol");
+                return new List<object> {this.safeOrder(new Dictionary<string, object>() {
+    { "info", response },
+    { "symbol", this.safeSymbol(marketId, null, null, "spot") },
+    { "timestamp", timestamp },
+    { "datetime", this.iso8601(timestamp) },
+})};
             }
         } else
         {
@@ -5348,53 +5387,11 @@ public partial class bitget : Exchange
                 response = await this.privateMixPostV2MixOrderBatchCancelOrders(this.extend(request, parameters));
             }
         }
-        //
-        // spot
-        //
-        //     {
-        //         "code": "00000",
-        //         "msg": "success",
-        //         "requestTime": 1700716953996,
-        //         "data": {
-        //             "symbol": "BTCUSDT"
-        //         }
-        //     }
-        //
-        // swap
-        //
-        //     {
-        //         "code": "00000",
-        //         "msg": "success",
-        //         "requestTime": "1680008815965",
-        //         "data": {
-        //             "successList": [
-        //                 {
-        //                     "orderId": "1024598257429823488",
-        //                     "clientOid": "876493ce-c287-4bfc-9f4a-8b1905881313"
-        //                 },
-        //             ],
-        //             "failureList": []
-        //         }
-        //     }
-        //
-        // spot margin
-        //
-        //     {
-        //         "code": "00000",
-        //         "msg": "success",
-        //         "requestTime": 1700717155622,
-        //         "data": {
-        //             "resultList": [
-        //                 {
-        //                     "orderId": "1111453253721796609",
-        //                     "clientOid": "2ae7fc8a4ff949b6b60d770ca3950e2d"
-        //                 },
-        //             ],
-        //             "failure": []
-        //         }
-        //     }
-        //
-        return response;
+        object data = this.safeDict(response, "data");
+        object resultList = this.safeList2(data, "resultList", "successList");
+        object failureList = this.safeList2(data, "failure", "failureList");
+        object responseList = this.arrayConcat(resultList, failureList);
+        return this.parseOrders(responseList);
     }
 
     public async override Task<object> fetchOrder(object id, object symbol = null, object parameters = null)
@@ -6035,8 +6032,8 @@ public partial class bitget : Exchange
                     {
                         throw new ArgumentsRequired ((string)add(this.id, " fetchCanceledAndClosedOrders() requires a symbol argument")) ;
                     }
-                    object endTime = this.safeIntegerN(parameters, new List<object>() {"endTime", "until", "till"});
-                    parameters = this.omit(parameters, new List<object>() {"until", "till"});
+                    object endTime = this.safeIntegerN(parameters, new List<object>() {"endTime", "until"});
+                    parameters = this.omit(parameters, new List<object>() {"until"});
                     if (isTrue(isEqual(since, null)))
                     {
                         since = subtract(now, 7776000000);
@@ -7026,7 +7023,7 @@ public partial class bitget : Exchange
         //         "cTime": "1700807507275"
         //     }
         //
-        // fetchPositions: privateMixGetV2MixPositionHistoryPosition
+        // fetchPositionsHistory: privateMixGetV2MixPositionHistoryPosition
         //
         //     {
         //         "symbol": "BTCUSDT",
@@ -7911,7 +7908,7 @@ public partial class bitget : Exchange
         }, market);
     }
 
-    public async virtual Task<object> fetchTransfers(object code = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<object> fetchTransfers(object code = null, object since = null, object limit = null, object parameters = null)
     {
         /**
         * @method
@@ -8655,7 +8652,7 @@ public partial class bitget : Exchange
         return this.parseIsolatedBorrowRate(first, market);
     }
 
-    public virtual object parseIsolatedBorrowRate(object info, object market = null)
+    public override object parseIsolatedBorrowRate(object info, object market = null)
     {
         //
         //     {
@@ -9141,6 +9138,85 @@ public partial class bitget : Exchange
         };
     }
 
+    public async override Task<object> fetchPositionsHistory(object symbols = null, object since = null, object limit = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name bitget#fetchPositionsHistory
+        * @description fetches historical positions
+        * @see https://www.bitget.com/api-doc/contract/position/Get-History-Position
+        * @param {string[]} [symbols] unified contract symbols
+        * @param {int} [since] timestamp in ms of the earliest position to fetch, default=3 months ago, max range for params["until"] - since is 3 months
+        * @param {int} [limit] the maximum amount of records to fetch, default=20, max=100
+        * @param {object} params extra parameters specific to the exchange api endpoint
+        * @param {int} [params.until] timestamp in ms of the latest position to fetch, max range for params["until"] - since is 3 months
+        *
+        * EXCHANGE SPECIFIC PARAMETERS
+        * @param {string} [params.productType] USDT-FUTURES (default), COIN-FUTURES, USDC-FUTURES, SUSDT-FUTURES, SCOIN-FUTURES, or SUSDC-FUTURES
+        * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object until = this.safeInteger(parameters, "until");
+        parameters = this.omit(parameters, "until");
+        object request = new Dictionary<string, object>() {};
+        if (isTrue(!isEqual(symbols, null)))
+        {
+            object symbolsLength = getArrayLength(symbols);
+            if (isTrue(isGreaterThan(symbolsLength, 0)))
+            {
+                object market = this.market(getValue(symbols, 0));
+                ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
+            }
+        }
+        if (isTrue(!isEqual(since, null)))
+        {
+            ((IDictionary<string,object>)request)["startTime"] = since;
+        }
+        if (isTrue(!isEqual(limit, null)))
+        {
+            ((IDictionary<string,object>)request)["limit"] = limit;
+        }
+        if (isTrue(!isEqual(until, null)))
+        {
+            ((IDictionary<string,object>)request)["endTime"] = until;
+        }
+        object response = await this.privateMixGetV2MixPositionHistoryPosition(this.extend(request, parameters));
+        //
+        //    {
+        //        code: '00000',
+        //        msg: 'success',
+        //        requestTime: '1712794148791',
+        //        data: {
+        //            list: [
+        //                {
+        //                    symbol: 'XRPUSDT',
+        //                    marginCoin: 'USDT',
+        //                    holdSide: 'long',
+        //                    openAvgPrice: '0.64967',
+        //                    closeAvgPrice: '0.58799',
+        //                    marginMode: 'isolated',
+        //                    openTotalPos: '10',
+        //                    closeTotalPos: '10',
+        //                    pnl: '-0.62976205',
+        //                    netProfit: '-0.65356802',
+        //                    totalFunding: '-0.01638',
+        //                    openFee: '-0.00389802',
+        //                    closeFee: '-0.00352794',
+        //                    ctime: '1709590322199',
+        //                    utime: '1709667583395'
+        //                },
+        //                ...
+        //            ]
+        //        }
+        //    }
+        //
+        object data = this.safeDict(response, "data");
+        object responseList = this.safeList(data, "list");
+        object positions = this.parsePositions(responseList, symbols, parameters);
+        return this.filterBySinceLimit(positions, since, limit);
+    }
+
     public async override Task<object> fetchConvertQuote(object fromCode, object toCode, object amount = null, object parameters = null)
     {
         /**
@@ -9243,6 +9319,72 @@ public partial class bitget : Exchange
         return this.parseConversion(data, null, toCurrency);
     }
 
+    public async virtual Task<object> fetchConvertTradeHistory(object code = null, object since = null, object limit = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name bitget#fetchConvertTradeHistory
+        * @description fetch the users history of conversion trades
+        * @see https://www.bitget.com/api-doc/common/convert/Get-Convert-Record
+        * @param {string} [code] the unified currency code
+        * @param {int} [since] the earliest time in ms to fetch conversions for
+        * @param {int} [limit] the maximum number of conversion structures to retrieve
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {object[]} a list of [conversion structures]{@link https://docs.ccxt.com/#/?id=conversion-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object request = new Dictionary<string, object>() {};
+        object msInDay = 86400000;
+        object now = this.milliseconds();
+        if (isTrue(!isEqual(since, null)))
+        {
+            ((IDictionary<string,object>)request)["startTime"] = since;
+        } else
+        {
+            ((IDictionary<string,object>)request)["startTime"] = subtract(now, msInDay);
+        }
+        object endTime = this.safeString2(parameters, "endTime", "until");
+        if (isTrue(!isEqual(endTime, null)))
+        {
+            ((IDictionary<string,object>)request)["endTime"] = endTime;
+        } else
+        {
+            ((IDictionary<string,object>)request)["endTime"] = now;
+        }
+        if (isTrue(!isEqual(limit, null)))
+        {
+            ((IDictionary<string,object>)request)["limit"] = limit;
+        }
+        parameters = this.omit(parameters, "until");
+        object response = await this.privateConvertGetV2ConvertConvertRecord(this.extend(request, parameters));
+        //
+        //     {
+        //         "code": "00000",
+        //         "msg": "success",
+        //         "requestTime": 1712124371799,
+        //         "data": {
+        //             "dataList": [
+        //                 {
+        //                     "id": "1159296505255219205",
+        //                     "fromCoin": "USDT",
+        //                     "fromCoinSize": "5",
+        //                     "cnvtPrice": "0.99940076",
+        //                     "toCoin": "USDC",
+        //                     "toCoinSize": "4.99700379",
+        //                     "ts": "1712123746217",
+        //                     "fee": "0"
+        //                 }
+        //             ],
+        //             "endId": "1159296505255219205"
+        //         }
+        //     }
+        //
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        object dataList = this.safeList(data, "dataList", new List<object>() {});
+        return this.parseConversions(dataList, code, "fromCoin", "toCoin", since, limit);
+    }
+
     public override object parseConversion(object conversion, object fromCurrency = null, object toCurrency = null)
     {
         //
@@ -9267,6 +9409,19 @@ public partial class bitget : Exchange
         //         "ts": "1712123746217"
         //     }
         //
+        // fetchConvertTradeHistory
+        //
+        //     {
+        //         "id": "1159296505255219205",
+        //         "fromCoin": "USDT",
+        //         "fromCoinSize": "5",
+        //         "cnvtPrice": "0.99940076",
+        //         "toCoin": "USDC",
+        //         "toCoinSize": "4.99700379",
+        //         "ts": "1712123746217",
+        //         "fee": "0"
+        //     }
+        //
         object timestamp = this.safeInteger(conversion, "ts");
         object fromCoin = this.safeString(conversion, "fromCoin");
         object fromCode = this.safeCurrencyCode(fromCoin, fromCurrency);
@@ -9276,7 +9431,7 @@ public partial class bitget : Exchange
             { "info", conversion },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
-            { "id", this.safeString(conversion, "traceId") },
+            { "id", this.safeString2(conversion, "id", "traceId") },
             { "fromCurrency", fromCode },
             { "fromAmount", this.safeNumber(conversion, "fromCoinSize") },
             { "toCurrency", toCode },
@@ -9362,6 +9517,8 @@ public partial class bitget : Exchange
         //
         // spot
         //
+        //     {"code":"00000","msg":"success","requestTime":1713294492511,"data":[...]}"
+        //
         //     {"status":"fail","err_code":"01001","err_msg":"系统异常，请稍后重试"}
         //     {"status":"error","ts":1595594160149,"err_code":"invalid-parameter","err_msg":"invalid size, valid range: [1,2000]"}
         //     {"status":"error","ts":1595684716042,"err_code":"invalid-parameter","err_msg":"illegal sign invalid"}
@@ -9383,15 +9540,15 @@ public partial class bitget : Exchange
         //     {"code":"40108","msg":"","requestTime":1595885064600,"data":null}
         //     {"order_id":"513468410013679613","client_oid":null,"symbol":"ethusd","result":false,"err_code":"order_no_exist_error","err_msg":"订单不存在！"}
         //
-        object message = this.safeString(response, "err_msg");
-        object errorCode = this.safeString2(response, "code", "err_code");
+        object message = this.safeString2(response, "err_msg", "msg");
         object feedback = add(add(this.id, " "), body);
-        object nonEmptyMessage = (isTrue((!isEqual(message, null))) && isTrue((!isEqual(message, ""))));
+        object nonEmptyMessage = (isTrue(isTrue((!isEqual(message, null))) && isTrue((!isEqual(message, "")))) && isTrue((!isEqual(message, "success"))));
         if (isTrue(nonEmptyMessage))
         {
             this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), message, feedback);
             this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), message, feedback);
         }
+        object errorCode = this.safeString2(response, "code", "err_code");
         object nonZeroErrorCode = isTrue((!isEqual(errorCode, null))) && isTrue((!isEqual(errorCode, "00000")));
         if (isTrue(nonZeroErrorCode))
         {

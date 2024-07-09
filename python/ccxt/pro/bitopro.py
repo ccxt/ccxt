@@ -357,7 +357,7 @@ class bitopro(ccxt.async_support.bitopro):
         })
         payload = self.string_to_base64(rawData)
         signature = self.hmac(self.encode(payload), self.encode(self.secret), hashlib.sha384)
-        defaultOptions = {
+        defaultOptions: dict = {
             'ws': {
                 'options': {
                     'headers': {},
@@ -367,7 +367,7 @@ class bitopro(ccxt.async_support.bitopro):
         # self.options = self.extend(defaultOptions, self.options)
         self.extend_exchange_options(defaultOptions)
         originalHeaders = self.options['ws']['options']['headers']
-        headers = {
+        headers: dict = {
             'X-BITOPRO-API': 'ccxt',
             'X-BITOPRO-APIKEY': self.apiKey,
             'X-BITOPRO-PAYLOAD': payload,
@@ -414,7 +414,7 @@ class bitopro(ccxt.async_support.bitopro):
         timestamp = self.safe_integer(message, 'timestamp')
         datetime = self.safe_string(message, 'datetime')
         currencies = list(data.keys())
-        result = {
+        result: dict = {
             'info': data,
             'timestamp': timestamp,
             'datetime': datetime,
@@ -432,7 +432,7 @@ class bitopro(ccxt.async_support.bitopro):
         client.resolve(self.balance, event)
 
     def handle_message(self, client: Client, message):
-        methods = {
+        methods: dict = {
             'TRADE': self.handle_trade,
             'TICKER': self.handle_ticker,
             'ORDER_BOOK': self.handle_order_book,

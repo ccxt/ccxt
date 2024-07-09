@@ -25,6 +25,7 @@ public partial class woo : Exchange
                 { "option", false },
                 { "addMargin", false },
                 { "cancelAllOrders", true },
+                { "cancelAllOrdersAfter", true },
                 { "cancelOrder", true },
                 { "cancelWithdraw", false },
                 { "closeAllPositions", false },
@@ -34,7 +35,7 @@ public partial class woo : Exchange
                 { "createMarketBuyOrderWithCost", true },
                 { "createMarketOrder", false },
                 { "createMarketOrderWithCost", false },
-                { "createMarketSellOrderWithCost", false },
+                { "createMarketSellOrderWithCost", true },
                 { "createOrder", true },
                 { "createOrderWithTakeProfitAndStopLoss", true },
                 { "createReduceOnlyOrder", true },
@@ -53,6 +54,8 @@ public partial class woo : Exchange
                 { "fetchClosedOrders", true },
                 { "fetchConvertCurrencies", true },
                 { "fetchConvertQuote", true },
+                { "fetchConvertTrade", true },
+                { "fetchConvertTradeHistory", true },
                 { "fetchCurrencies", true },
                 { "fetchDepositAddress", true },
                 { "fetchDeposits", true },
@@ -78,8 +81,10 @@ public partial class woo : Exchange
                 { "fetchOrders", true },
                 { "fetchOrderTrades", true },
                 { "fetchPosition", true },
+                { "fetchPositionHistory", false },
                 { "fetchPositionMode", false },
                 { "fetchPositions", true },
+                { "fetchPositionsHistory", false },
                 { "fetchPremiumIndexOHLCV", false },
                 { "fetchStatus", true },
                 { "fetchTicker", false },
@@ -92,6 +97,7 @@ public partial class woo : Exchange
                 { "fetchTransfers", true },
                 { "fetchWithdrawals", true },
                 { "reduceMargin", false },
+                { "sandbox", true },
                 { "setLeverage", true },
                 { "setMargin", false },
                 { "setPositionMode", true },
@@ -186,6 +192,7 @@ public partial class woo : Exchange
                         } },
                         { "post", new Dictionary<string, object>() {
                             { "order", 5 },
+                            { "order/cancel_all_after", 1 },
                             { "asset/main_sub_transfer", 30 },
                             { "asset/ltv", 30 },
                             { "asset/withdraw", 30 },
@@ -283,7 +290,7 @@ public partial class woo : Exchange
             { "commonCurrencies", new Dictionary<string, object>() {} },
             { "exceptions", new Dictionary<string, object>() {
                 { "exact", new Dictionary<string, object>() {
-                    { "-1000", typeof(ExchangeError) },
+                    { "-1000", typeof(OperationFailed) },
                     { "-1001", typeof(AuthenticationError) },
                     { "-1002", typeof(AuthenticationError) },
                     { "-1003", typeof(RateLimitExceeded) },
@@ -387,6 +394,7 @@ public partial class woo : Exchange
         * @method
         * @name woo#fetchMarkets
         * @description retrieves data on all markets for woo
+        * @see https://docs.woo.org/#exchange-information
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object[]} an array of objects representing market data
         */
@@ -511,6 +519,7 @@ public partial class woo : Exchange
         * @method
         * @name woo#fetchTrades
         * @description get the list of most recent trades for a particular symbol
+        * @see https://docs.woo.org/#market-trades-public
         * @param {string} symbol unified symbol of the market to fetch trades for
         * @param {int} [since] timestamp in ms of the earliest trade to fetch
         * @param {int} [limit] the maximum amount of trades to fetch
@@ -707,6 +716,7 @@ public partial class woo : Exchange
         * @method
         * @name woo#fetchCurrencies
         * @description fetches all available currencies on an exchange
+        * @see https://docs.woo.org/#available-token-public
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} an associative dictionary of currencies
         */
@@ -862,8 +872,29 @@ public partial class woo : Exchange
         {
             throw new NotSupported ((string)add(this.id, " createMarketBuyOrderWithCost() supports spot orders only")) ;
         }
-        ((IDictionary<string,object>)parameters)["createMarketBuyOrderRequiresPrice"] = false;
-        return await this.createOrder(symbol, "market", "buy", cost, null, parameters);
+        return await this.createOrder(symbol, "market", "buy", cost, 1, parameters);
+    }
+
+    public async override Task<object> createMarketSellOrderWithCost(object symbol, object cost, object parameters = null)
+    {
+        /**
+        * @method
+        * @name woo#createMarketSellOrderWithCost
+        * @description create a market sell order by providing the symbol and cost
+        * @see https://docs.woo.org/#send-order
+        * @param {string} symbol unified symbol of the market to create an order in
+        * @param {float} cost how much you want to trade in units of the quote currency
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object market = this.market(symbol);
+        if (!isTrue(getValue(market, "spot")))
+        {
+            throw new NotSupported ((string)add(this.id, " createMarketSellOrderWithCost() supports spot orders only")) ;
+        }
+        return await this.createOrder(symbol, "market", "sell", cost, 1, parameters);
     }
 
     public async override Task<object> createTrailingAmountOrder(object symbol, object type, object side, object amount, object price = null, object trailingAmount = null, object trailingTriggerPrice = null, object parameters = null)
@@ -872,6 +903,7 @@ public partial class woo : Exchange
         * @method
         * @name woo#createTrailingAmountOrder
         * @description create a trailing order by providing the symbol, type, side, amount, price and trailingAmount
+        * @see https://docs.woo.org/#send-algo-order
         * @param {string} symbol unified symbol of the market to create an order in
         * @param {string} type 'market' or 'limit'
         * @param {string} side 'buy' or 'sell'
@@ -902,6 +934,7 @@ public partial class woo : Exchange
         * @method
         * @name woo#createTrailingPercentOrder
         * @description create a trailing order by providing the symbol, type, side, amount, price and trailingPercent
+        * @see https://docs.woo.org/#send-algo-order
         * @param {string} symbol unified symbol of the market to create an order in
         * @param {string} type 'market' or 'limit'
         * @param {string} side 'buy' or 'sell'
@@ -938,7 +971,7 @@ public partial class woo : Exchange
         * @param {string} type 'market' or 'limit'
         * @param {string} side 'buy' or 'sell'
         * @param {float} amount how much of currency you want to trade in units of base currency
-        * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @param {float} [params.triggerPrice] The price a trigger order is triggered at
         * @param {object} [params.takeProfit] *takeProfit object in params* containing the triggerPrice at which the attached take profit order will be triggered (perpetual swap markets only)
@@ -1000,40 +1033,28 @@ public partial class woo : Exchange
         {
             ((IDictionary<string,object>)request)[(string)reduceOnlyKey] = reduceOnly;
         }
-        if (isTrue(!isEqual(price, null)))
+        if (isTrue(!isTrue(isMarket) && isTrue(!isEqual(price, null))))
         {
             ((IDictionary<string,object>)request)[(string)priceKey] = this.priceToPrecision(symbol, price);
         }
         if (isTrue(isTrue(isMarket) && !isTrue(isStop)))
         {
             // for market buy it requires the amount of quote currency to spend
-            if (isTrue(isTrue(getValue(market, "spot")) && isTrue(isEqual(orderSide, "BUY"))))
+            object cost = this.safeString2(parameters, "cost", "order_amount");
+            parameters = this.omit(parameters, new List<object>() {"cost", "order_amount"});
+            object isPriceProvided = !isEqual(price, null);
+            if (isTrue(isTrue(getValue(market, "spot")) && isTrue((isTrue(isPriceProvided) || isTrue((!isEqual(cost, null)))))))
             {
                 object quoteAmount = null;
-                object createMarketBuyOrderRequiresPrice = true;
-                var createMarketBuyOrderRequiresPriceparametersVariable = this.handleOptionAndParams(parameters, "createOrder", "createMarketBuyOrderRequiresPrice", true);
-                createMarketBuyOrderRequiresPrice = ((IList<object>)createMarketBuyOrderRequiresPriceparametersVariable)[0];
-                parameters = ((IList<object>)createMarketBuyOrderRequiresPriceparametersVariable)[1];
-                object cost = this.safeNumber2(parameters, "cost", "order_amount");
-                parameters = this.omit(parameters, new List<object>() {"cost", "order_amount"});
                 if (isTrue(!isEqual(cost, null)))
                 {
                     quoteAmount = this.costToPrecision(symbol, cost);
-                } else if (isTrue(createMarketBuyOrderRequiresPrice))
-                {
-                    if (isTrue(isEqual(price, null)))
-                    {
-                        throw new InvalidOrder ((string)add(this.id, " createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend (quote quantity) in the amount argument")) ;
-                    } else
-                    {
-                        object amountString = this.numberToString(amount);
-                        object priceString = this.numberToString(price);
-                        object costRequest = Precise.stringMul(amountString, priceString);
-                        quoteAmount = this.costToPrecision(symbol, costRequest);
-                    }
                 } else
                 {
-                    quoteAmount = this.costToPrecision(symbol, amount);
+                    object amountString = this.numberToString(amount);
+                    object priceString = this.numberToString(price);
+                    object costRequest = Precise.stringMul(amountString, priceString);
+                    quoteAmount = this.costToPrecision(symbol, costRequest);
                 }
                 ((IDictionary<string,object>)request)["order_amount"] = quoteAmount;
             } else
@@ -1168,7 +1189,7 @@ public partial class woo : Exchange
         * @param {string} type 'market' or 'limit'
         * @param {string} side 'buy' or 'sell'
         * @param {float} amount how much of currency you want to trade in units of base currency
-        * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @param {float} [params.triggerPrice] The price a trigger order is triggered at
         * @param {float} [params.stopLossPrice] price to trigger stop-loss orders
@@ -1363,7 +1384,37 @@ public partial class woo : Exchange
         //         "status":"CANCEL_ALL_SENT"
         //     }
         //
-        return response;
+        return new List<object> {this.safeOrder(response)};
+    }
+
+    public async override Task<object> cancelAllOrdersAfter(object timeout, object parameters = null)
+    {
+        /**
+        * @method
+        * @name woo#cancelAllOrdersAfter
+        * @description dead man's switch, cancel all orders after the given timeout
+        * @see https://docs.woo.org/#cancel-all-after
+        * @param {number} timeout time in milliseconds, 0 represents cancel the timer
+        * @param {boolean} activated countdown
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {object} the api result
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object request = new Dictionary<string, object>() {
+            { "trigger_after", ((bool) isTrue((isGreaterThan(timeout, 0)))) ? timeout : 0 },
+        };
+        object response = await this.v1PrivatePostOrderCancelAllAfter(this.extend(request, parameters));
+        //
+        //     {
+        //         "success": true,
+        //         "data": {
+        //             "expected_trigger_time": 1711534302938
+        //         },
+        //         "timestamp": 1711534302943
+        //     }
+        //
+        return new List<object> {this.safeOrder(response)};
     }
 
     public async override Task<object> fetchOrder(object id, object symbol = null, object parameters = null)
@@ -1670,8 +1721,8 @@ public partial class woo : Exchange
         object side = this.safeStringLower(order, "side");
         object filled = this.omitZero(this.safeValue2(order, "executed", "totalExecutedQuantity"));
         object average = this.omitZero(this.safeString2(order, "average_executed_price", "averageExecutedPrice"));
-        object remaining = Precise.stringSub(cost, filled);
-        object fee = this.safeValue2(order, "total_fee", "totalFee");
+        // const remaining = Precise.stringSub (cost, filled);
+        object fee = this.safeNumber2(order, "total_fee", "totalFee");
         object feeCurrency = this.safeString2(order, "fee_asset", "feeAsset");
         object transactions = this.safeValue(order, "Transactions");
         object stopPrice = this.safeNumber(order, "triggerPrice");
@@ -1714,7 +1765,7 @@ public partial class woo : Exchange
             { "average", average },
             { "amount", amount },
             { "filled", filled },
-            { "remaining", remaining },
+            { "remaining", null },
             { "cost", cost },
             { "trades", transactions },
             { "fee", new Dictionary<string, object>() {
@@ -1751,6 +1802,7 @@ public partial class woo : Exchange
         * @method
         * @name woo#fetchOrderBook
         * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+        * @see https://docs.woo.org/#orderbook-snapshot-public
         * @param {string} symbol unified symbol of the market to fetch the order book for
         * @param {int} [limit] the maximum amount of order book entries to return
         * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -1850,6 +1902,7 @@ public partial class woo : Exchange
         * @method
         * @name woo#fetchOrderTrades
         * @description fetch all the trades made from a single order
+        * @see https://docs.woo.org/#get-trades
         * @param {string} id order id
         * @param {string} symbol unified market symbol
         * @param {int} [since] the earliest time in ms to fetch trades for
@@ -1895,8 +1948,8 @@ public partial class woo : Exchange
         /**
         * @method
         * @name woo#fetchMyTrades
-        * @see https://docs.woo.org/#get-trades
         * @description fetch all trades made by the user
+        * @see https://docs.woo.org/#get-trades
         * @param {string} symbol unified market symbol
         * @param {int} [since] the earliest time in ms to fetch trades for
         * @param {int} [limit] the maximum number of trades structures to retrieve
@@ -1966,6 +2019,7 @@ public partial class woo : Exchange
         * @method
         * @name woo#fetchAccounts
         * @description fetch all the accounts associated with a profile
+        * @see https://docs.woo.org/#get-assets-of-subaccounts
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/#/?id=account-structure} indexed by the account type
         */
@@ -2074,6 +2128,7 @@ public partial class woo : Exchange
         * @method
         * @name woo#fetchDepositAddress
         * @description fetch the deposit address for a currency associated with this account
+        * @see https://docs.woo.org/#get-token-deposit-address
         * @param {string} code unified currency code
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
@@ -2167,7 +2222,7 @@ public partial class woo : Exchange
         //     "meta": { total: '1', records_per_page: "25", current_page: "1" },
         //     "success": true
         // }
-        return new List<object>() {currency, this.safeValue(response, "rows", new Dictionary<string, object>() {})};
+        return new List<object>() {currency, this.safeList(response, "rows", new List<object>() {})};
     }
 
     public async override Task<object> fetchLedger(object code = null, object since = null, object limit = null, object parameters = null)
@@ -2176,6 +2231,7 @@ public partial class woo : Exchange
         * @method
         * @name woo#fetchLedger
         * @description fetch the history of changes, actions done by the user or operations that altered balance of the user
+        * @see https://docs.woo.org/#get-asset-history
         * @param {string} code unified currency code, default is undefined
         * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
         * @param {int} [limit] max number of ledger entrys to return, default is undefined
@@ -2253,6 +2309,7 @@ public partial class woo : Exchange
         * @method
         * @name woo#fetchDeposits
         * @description fetch all deposits made to an account
+        * @see https://docs.woo.org/#get-asset-history
         * @param {string} code unified currency code
         * @param {int} [since] the earliest time in ms to fetch deposits for
         * @param {int} [limit] the maximum number of deposits structures to retrieve
@@ -2272,6 +2329,7 @@ public partial class woo : Exchange
         * @method
         * @name woo#fetchWithdrawals
         * @description fetch all withdrawals made from an account
+        * @see https://docs.woo.org/#get-asset-history
         * @param {string} code unified currency code
         * @param {int} [since] the earliest time in ms to fetch withdrawals for
         * @param {int} [limit] the maximum number of withdrawals structures to retrieve
@@ -2291,6 +2349,7 @@ public partial class woo : Exchange
         * @method
         * @name woo#fetchDepositsWithdrawals
         * @description fetch history of deposits and withdrawals
+        * @see https://docs.woo.org/#get-asset-history
         * @param {string} [code] unified currency code for the currency of the deposit/withdrawals, default is undefined
         * @param {int} [since] timestamp in ms of the earliest deposit/withdrawal, default is undefined
         * @param {int} [limit] max number of deposit/withdrawals to return, default is undefined
@@ -2374,8 +2433,8 @@ public partial class woo : Exchange
         /**
         * @method
         * @name woo#transfer
-        * @see https://docs.woo.org/#get-transfer-history
         * @description transfer currency internally between wallets on the same account
+        * @see https://docs.woo.org/#get-transfer-history
         * @param {string} code unified currency code
         * @param {float} amount amount to transfer
         * @param {string} fromAccount account to transfer from
@@ -2411,7 +2470,7 @@ public partial class woo : Exchange
         return transfer;
     }
 
-    public async virtual Task<object> fetchTransfers(object code = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<object> fetchTransfers(object code = null, object since = null, object limit = null, object parameters = null)
     {
         /**
         * @method
@@ -2435,8 +2494,8 @@ public partial class woo : Exchange
         {
             ((IDictionary<string,object>)request)["start_t"] = since;
         }
-        object until = this.safeInteger2(parameters, "until", "till"); // unified in milliseconds
-        parameters = this.omit(parameters, new List<object>() {"until", "till"});
+        object until = this.safeInteger(parameters, "until"); // unified in milliseconds
+        parameters = this.omit(parameters, new List<object>() {"until"});
         if (isTrue(!isEqual(until, null)))
         {
             ((IDictionary<string,object>)request)["end_t"] = until;
@@ -2534,6 +2593,7 @@ public partial class woo : Exchange
         * @method
         * @name woo#withdraw
         * @description make a withdrawal
+        * @see https://docs.woo.org/#token-withdraw
         * @param {string} code unified currency code
         * @param {float} amount the amount to withdraw
         * @param {string} address the address to withdraw to
@@ -2654,6 +2714,13 @@ public partial class woo : Exchange
         if (isTrue(isEqual(access, "public")))
         {
             url = add(url, add(add(access, "/"), pathWithParams));
+            if (isTrue(getArrayLength(new List<object>(((IDictionary<string,object>)parameters).Keys))))
+            {
+                url = add(url, add("?", this.urlencode(parameters)));
+            }
+        } else if (isTrue(isEqual(access, "pub")))
+        {
+            url = add(url, pathWithParams);
             if (isTrue(getArrayLength(new List<object>(((IDictionary<string,object>)parameters).Keys))))
             {
                 url = add(url, add("?", this.urlencode(parameters)));
@@ -3310,6 +3377,108 @@ public partial class woo : Exchange
         return this.parseConversion(data);
     }
 
+    public async virtual Task<object> fetchConvertTrade(object id, object code = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name woo#fetchConvertTrade
+        * @description fetch the data for a conversion trade
+        * @see https://docs.woo.org/#get-quote-trade
+        * @param {string} id the id of the trade that you want to fetch
+        * @param {string} [code] the unified currency code of the conversion trade
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/#/?id=conversion-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object request = new Dictionary<string, object>() {
+            { "quoteId", id },
+        };
+        object response = await this.v3PrivateGetConvertTrade(this.extend(request, parameters));
+        //
+        //     {
+        //         "success": true,
+        //         "data": {
+        //             "quoteId": 12,
+        //             "buyAsset": "",
+        //             "sellAsset": "",
+        //             "buyAmount": 12.11,
+        //             "sellAmount": 12.11,
+        //             "tradeStatus": 12,
+        //             "createdTime": ""
+        //         }
+        //     }
+        //
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        object fromCurrencyId = this.safeString(data, "sellAsset");
+        object toCurrencyId = this.safeString(data, "buyAsset");
+        object fromCurrency = null;
+        object toCurrency = null;
+        if (isTrue(!isEqual(fromCurrencyId, null)))
+        {
+            fromCurrency = this.currency(fromCurrencyId);
+        }
+        if (isTrue(!isEqual(toCurrencyId, null)))
+        {
+            toCurrency = this.currency(toCurrencyId);
+        }
+        return this.parseConversion(data, fromCurrency, toCurrency);
+    }
+
+    public async virtual Task<object> fetchConvertTradeHistory(object code = null, object since = null, object limit = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name woo#fetchConvertTradeHistory
+        * @description fetch the users history of conversion trades
+        * @see https://docs.woo.org/#get-quote-trades
+        * @param {string} [code] the unified currency code
+        * @param {int} [since] the earliest time in ms to fetch conversions for
+        * @param {int} [limit] the maximum number of conversion structures to retrieve
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @param {int} [params.until] timestamp in ms of the latest conversion to fetch
+        * @returns {object[]} a list of [conversion structures]{@link https://docs.ccxt.com/#/?id=conversion-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object request = new Dictionary<string, object>() {};
+        var requestparametersVariable = this.handleUntilOption("endTime", request, parameters);
+        request = ((IList<object>)requestparametersVariable)[0];
+        parameters = ((IList<object>)requestparametersVariable)[1];
+        if (isTrue(!isEqual(since, null)))
+        {
+            ((IDictionary<string,object>)request)["startTime"] = since;
+        }
+        if (isTrue(!isEqual(limit, null)))
+        {
+            ((IDictionary<string,object>)request)["size"] = limit;
+        }
+        object response = await this.v3PrivateGetConvertTrades(this.extend(request, parameters));
+        //
+        //     {
+        //         "success": true,
+        //         "data": {
+        //             "count": 12,
+        //             "tradeVos":[
+        //                 {
+        //                     "quoteId": 12,
+        //                     "buyAsset": "",
+        //                     "sellAsset": "",
+        //                     "buyAmount": 12.11,
+        //                     "sellAmount": 12.11,
+        //                     "tradeStatus": 12,
+        //                     "createdTime": ""
+        //                 }
+        //                 ...
+        //             ]
+        //         }
+        //     }
+        //
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        object rows = this.safeList(data, "tradeVos", new List<object>() {});
+        return this.parseConversions(rows, code, "sellAsset", "buyAsset", since, limit);
+    }
+
     public override object parseConversion(object conversion, object fromCurrency = null, object toCurrency = null)
     {
         //
@@ -3335,10 +3504,22 @@ public partial class woo : Exchange
         //         "rftAccepted": 1 // 1 -> success; 2 -> processing; 3 -> fail
         //     }
         //
-        object timestamp = this.safeInteger(conversion, "expireTimestamp");
-        object fromCoin = this.safeString(conversion, "sellToken");
-        object fromCode = this.safeCurrencyCode(fromCoin, fromCurrency);
-        object to = this.safeString(conversion, "buyToken");
+        // fetchConvertTrade, fetchConvertTradeHistory
+        //
+        //     {
+        //         "quoteId": 12,
+        //         "buyAsset": "",
+        //         "sellAsset": "",
+        //         "buyAmount": 12.11,
+        //         "sellAmount": 12.11,
+        //         "tradeStatus": 12,
+        //         "createdTime": ""
+        //     }
+        //
+        object timestamp = this.safeInteger2(conversion, "expireTimestamp", "createdTime");
+        object fromCurr = this.safeString2(conversion, "sellToken", "buyAsset");
+        object fromCode = this.safeCurrencyCode(fromCurr, fromCurrency);
+        object to = this.safeString2(conversion, "buyToken", "sellAsset");
         object toCode = this.safeCurrencyCode(to, toCurrency);
         return new Dictionary<string, object>() {
             { "info", conversion },
@@ -3346,9 +3527,9 @@ public partial class woo : Exchange
             { "datetime", this.iso8601(timestamp) },
             { "id", this.safeString(conversion, "quoteId") },
             { "fromCurrency", fromCode },
-            { "fromAmount", this.safeNumber(conversion, "sellQuantity") },
+            { "fromAmount", this.safeNumber2(conversion, "sellQuantity", "sellAmount") },
             { "toCurrency", toCode },
-            { "toAmount", this.safeNumber(conversion, "buyQuantity") },
+            { "toAmount", this.safeNumber2(conversion, "buyQuantity", "buyAmount") },
             { "price", this.safeNumber(conversion, "buyPrice") },
             { "fee", null },
         };

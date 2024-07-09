@@ -112,7 +112,7 @@ public partial class kraken : ccxt.kraken
         * @param {string} type 'market' or 'limit'
         * @param {string} side 'buy' or 'sell'
         * @param {float} amount how much of currency you want to trade in units of base currency
-        * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
         */
@@ -132,7 +132,7 @@ public partial class kraken : ccxt.kraken
             { "pair", getValue(market, "wsId") },
             { "volume", this.amountToPrecision(symbol, amount) },
         };
-        var requestparametersVariable = this.orderRequest("createOrderWs", symbol, type, request, price, parameters);
+        var requestparametersVariable = this.orderRequest("createOrderWs", symbol, type, request, amount, price, parameters);
         request = ((IList<object>)requestparametersVariable)[0];
         parameters = ((IList<object>)requestparametersVariable)[1];
         return await this.watch(url, messageHash, this.extend(request, parameters), messageHash);
@@ -164,7 +164,7 @@ public partial class kraken : ccxt.kraken
         callDynamically(client as WebSocketClient, "resolve", new object[] {order, messageHash});
     }
 
-    public async override Task<object> editOrderWs(object id, object symbol, object type, object side, object amount, object price = null, object parameters = null)
+    public async override Task<object> editOrderWs(object id, object symbol, object type, object side, object amount = null, object price = null, object parameters = null)
     {
         /**
         * @method
@@ -176,7 +176,7 @@ public partial class kraken : ccxt.kraken
         * @param {string} type 'market' or 'limit'
         * @param {string} side 'buy' or 'sell'
         * @param {float} amount how much of the currency you want to trade in units of the base currency
-        * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
         */
@@ -193,9 +193,12 @@ public partial class kraken : ccxt.kraken
             { "reqid", requestId },
             { "orderid", id },
             { "pair", getValue(market, "wsId") },
-            { "volume", this.amountToPrecision(symbol, amount) },
         };
-        var requestparametersVariable = this.orderRequest("editOrderWs", symbol, type, request, price, parameters);
+        if (isTrue(!isEqual(amount, null)))
+        {
+            ((IDictionary<string,object>)request)["volume"] = this.amountToPrecision(symbol, amount);
+        }
+        var requestparametersVariable = this.orderRequest("editOrderWs", symbol, type, request, amount, price, parameters);
         request = ((IList<object>)requestparametersVariable)[0];
         parameters = ((IList<object>)requestparametersVariable)[1];
         return await this.watch(url, messageHash, this.extend(request, parameters), messageHash);
@@ -847,6 +850,8 @@ public partial class kraken : ccxt.kraken
                 if (isTrue(!isEqual(localChecksum, c)))
                 {
                     var error = new InvalidNonce(add(this.id, " invalid checksum"));
+
+
                     ((WebSocketClient)client).reject(error, messageHash);
                     return;
                 }
@@ -1468,7 +1473,7 @@ public partial class kraken : ccxt.kraken
             } },
         };
         object url = getValue(getValue(getValue(this.urls, "api"), "ws"), "public");
-        return await this.watchMultiple(url, messageHashes, this.extend(request, parameters), messageHashes, subscriptionArgs);
+        return await this.watchMultiple(url, messageHashes, this.deepExtend(request, parameters), messageHashes, subscriptionArgs);
     }
 
     public virtual object getMessageHash(object unifiedElementName, object subChannelName = null, object symbol = null)

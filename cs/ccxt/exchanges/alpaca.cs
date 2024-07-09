@@ -63,7 +63,13 @@ public partial class alpaca : Exchange
                 { "fetchOrder", true },
                 { "fetchOrderBook", true },
                 { "fetchOrders", true },
+                { "fetchPosition", false },
+                { "fetchPositionHistory", false },
+                { "fetchPositionMode", false },
                 { "fetchPositions", false },
+                { "fetchPositionsForSymbol", false },
+                { "fetchPositionsHistory", false },
+                { "fetchPositionsRisk", false },
                 { "fetchStatus", false },
                 { "fetchTicker", false },
                 { "fetchTickers", false },
@@ -75,6 +81,7 @@ public partial class alpaca : Exchange
                 { "fetchTransactions", false },
                 { "fetchTransfers", false },
                 { "fetchWithdrawals", false },
+                { "sandbox", true },
                 { "setLeverage", false },
                 { "setMarginMode", false },
                 { "transfer", false },
@@ -602,7 +609,7 @@ public partial class alpaca : Exchange
         * @param {string} type 'market', 'limit' or 'stop_limit'
         * @param {string} side 'buy' or 'sell'
         * @param {float} amount how much of currency you want to trade in units of base currency
-        * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @param {float} [params.triggerPrice] The price at which a trigger order is triggered at
         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -711,7 +718,7 @@ public partial class alpaca : Exchange
         //       "message": "order is not found."
         //   }
         //
-        return this.safeValue(response, "message", new Dictionary<string, object>() {});
+        return this.parseOrder(response);
     }
 
     public async override Task<object> cancelAllOrders(object symbol = null, object parameters = null)
@@ -733,7 +740,9 @@ public partial class alpaca : Exchange
             return this.parseOrders(response, null);
         } else
         {
-            return response;
+            return new List<object> {this.safeOrder(new Dictionary<string, object>() {
+    { "info", response },
+})};
         }
     }
 

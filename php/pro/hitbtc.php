@@ -143,7 +143,7 @@ class hitbtc extends \ccxt\async\hitbtc {
                 'id' => $this->nonce(),
                 'ch' => $name,
             );
-            $request = array_merge($subscribe, $params);
+            $request = $this->extend($subscribe, $params);
             return Async\await($this->watch($url, $messageHash, $request, $messageHash));
         }) ();
     }
@@ -598,7 +598,7 @@ class hitbtc extends \ccxt\async\hitbtc {
         $trades = $this->to_array($trades);
         $result = array();
         for ($i = 0; $i < count($trades); $i++) {
-            $trade = array_merge($this->parse_ws_trade($trades[$i], $market), $params);
+            $trade = $this->extend($this->parse_ws_trade($trades[$i], $market), $params);
             $result[] = $trade;
         }
         $result = $this->sort_by_2($result, 'timestamp', 'id');
@@ -1018,7 +1018,7 @@ class hitbtc extends \ccxt\async\hitbtc {
             $request = array(
                 'mode' => $mode,
             );
-            return Async\await($this->subscribe_private($name, null, array_merge($request, $params)));
+            return Async\await($this->subscribe_private($name, null, $this->extend($request, $params)));
         }) ();
     }
 
@@ -1033,7 +1033,7 @@ class hitbtc extends \ccxt\async\hitbtc {
              * @param {string} $type 'market' or 'limit'
              * @param {string} $side 'buy' or 'sell'
              * @param {float} $amount how much of currency you want to trade in units of base currency
-             * @param {float} [$price] the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
+             * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->marginMode] 'cross' or 'isolated' only 'isolated' is supported for spot-margin, swap supports both, default is 'cross'
              * @param {bool} [$params->margin] true for creating a margin order
@@ -1050,7 +1050,7 @@ class hitbtc extends \ccxt\async\hitbtc {
             $marginMode = null;
             list($marginMode, $params) = $this->handle_margin_mode_and_params('createOrder', $params);
             list($request, $params) = $this->create_order_request($market, $marketType, $type, $side, $amount, $price, $marginMode, $params);
-            $request = array_merge($request, $params);
+            $request = $this->extend($request, $params);
             if ($marketType === 'swap') {
                 return Async\await($this->trade_request('futures_new_order', $request));
             } elseif (($marketType === 'margin') || ($marginMode !== null)) {
@@ -1086,7 +1086,7 @@ class hitbtc extends \ccxt\async\hitbtc {
             $marketType = null;
             list($marketType, $params) = $this->handle_market_type_and_params('cancelOrderWs', $market, $params);
             list($marginMode, $query) = $this->handle_margin_mode_and_params('cancelOrderWs', $params);
-            $request = array_merge($request, $query);
+            $request = $this->extend($request, $query);
             if ($marketType === 'swap') {
                 return Async\await($this->trade_request('futures_cancel_order', $request));
             } elseif (($marketType === 'margin') || ($marginMode !== null)) {
@@ -1222,7 +1222,7 @@ class hitbtc extends \ccxt\async\hitbtc {
         //        "id" => 1700233093414
         //    }
         //
-        $messageHash = $this->safe_integer($message, 'id');
+        $messageHash = $this->safe_string($message, 'id');
         $result = $this->safe_value($message, 'result', array());
         if (gettype($result) === 'array' && array_keys($result) === array_keys(array_keys($result))) {
             $parsedOrders = array();

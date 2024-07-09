@@ -2,11 +2,11 @@
 // ---------------------------------------------------------------------------
 
 import Exchange from './abstract/woo.js';
-import { AuthenticationError, RateLimitExceeded, BadRequest, ExchangeError, InvalidOrder, ArgumentsRequired, NotSupported, OnMaintenance } from './base/errors.js';
+import { AuthenticationError, RateLimitExceeded, BadRequest, OperationFailed, ExchangeError, InvalidOrder, ArgumentsRequired, NotSupported, OnMaintenance } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { TransferEntry, Balances, Bool, Currency, FundingRateHistory, Int, Market, MarketType, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Trade, Transaction, Leverage, Account, Currencies, TradingFees, Conversion } from './base/types.js';
+import type { TransferEntry, Balances, Conversion, Currency, FundingRateHistory, Int, Market, MarketType, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Dict, Bool, Strings, Trade, Transaction, Leverage, Account, Currencies, TradingFees, TransferEntries, int } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -34,6 +34,7 @@ export default class woo extends Exchange {
                 'option': false,
                 'addMargin': false,
                 'cancelAllOrders': true,
+                'cancelAllOrdersAfter': true,
                 'cancelOrder': true,
                 'cancelWithdraw': false, // exchange have that endpoint disabled atm, but was once implemented in ccxt per old docs: https://kronosresearch.github.io/wootrade-documents/#cancel-withdraw-request
                 'closeAllPositions': false,
@@ -43,7 +44,7 @@ export default class woo extends Exchange {
                 'createMarketBuyOrderWithCost': true,
                 'createMarketOrder': false,
                 'createMarketOrderWithCost': false,
-                'createMarketSellOrderWithCost': false,
+                'createMarketSellOrderWithCost': true,
                 'createOrder': true,
                 'createOrderWithTakeProfitAndStopLoss': true,
                 'createReduceOnlyOrder': true,
@@ -62,6 +63,8 @@ export default class woo extends Exchange {
                 'fetchClosedOrders': true,
                 'fetchConvertCurrencies': true,
                 'fetchConvertQuote': true,
+                'fetchConvertTrade': true,
+                'fetchConvertTradeHistory': true,
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
                 'fetchDeposits': true,
@@ -87,8 +90,10 @@ export default class woo extends Exchange {
                 'fetchOrders': true,
                 'fetchOrderTrades': true,
                 'fetchPosition': true,
+                'fetchPositionHistory': false,
                 'fetchPositionMode': false,
                 'fetchPositions': true,
+                'fetchPositionsHistory': false,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchStatus': true,
                 'fetchTicker': false,
@@ -101,6 +106,7 @@ export default class woo extends Exchange {
                 'fetchTransfers': true,
                 'fetchWithdrawals': true,
                 'reduceMargin': false,
+                'sandbox': true,
                 'setLeverage': true,
                 'setMargin': false,
                 'setPositionMode': true,
@@ -199,6 +205,7 @@ export default class woo extends Exchange {
                         },
                         'post': {
                             'order': 5, // 2 requests per 1 second per symbol
+                            'order/cancel_all_after': 1,
                             'asset/main_sub_transfer': 30, // 20 requests per 60 seconds
                             'asset/ltv': 30,
                             'asset/withdraw': 30,  // implemented in ccxt, disabled on the exchange side https://kronosresearch.github.io/wootrade-documents/#token-withdraw
@@ -301,7 +308,7 @@ export default class woo extends Exchange {
             'commonCurrencies': {},
             'exceptions': {
                 'exact': {
-                    '-1000': ExchangeError, // { "code": -1000,  "message": "An unknown error occurred while processing the request" }
+                    '-1000': OperationFailed, // { "code": -1000,  "message": "An unknown error occurred while processing the request" } ||  {"success":false,"code":"-1000","message":"An internal error has occurred. We are unable to process your request. Please try again later."}
                     '-1001': AuthenticationError, // { "code": -1001,  "message": "The api key or secret is in wrong format" }
                     '-1002': AuthenticationError, // { "code": -1002,  "message": "API key or secret is invalid, it may because key have insufficient permission or the key is expired/revoked." }
                     '-1003': RateLimitExceeded, // { "code": -1003,  "message": "Rate limit exceed." }
@@ -397,6 +404,7 @@ export default class woo extends Exchange {
          * @method
          * @name woo#fetchMarkets
          * @description retrieves data on all markets for woo
+         * @see https://docs.woo.org/#exchange-information
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} an array of objects representing market data
          */
@@ -426,7 +434,7 @@ export default class woo extends Exchange {
         return this.parseMarkets (data);
     }
 
-    parseMarket (market): Market {
+    parseMarket (market: Dict): Market {
         const marketId = this.safeString (market, 'symbol');
         const parts = marketId.split ('_');
         const first = this.safeString (parts, 0);
@@ -515,6 +523,7 @@ export default class woo extends Exchange {
          * @method
          * @name woo#fetchTrades
          * @description get the list of most recent trades for a particular symbol
+         * @see https://docs.woo.org/#market-trades-public
          * @param {string} symbol unified symbol of the market to fetch trades for
          * @param {int} [since] timestamp in ms of the earliest trade to fetch
          * @param {int} [limit] the maximum amount of trades to fetch
@@ -523,7 +532,7 @@ export default class woo extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'symbol': market['id'],
         };
         if (limit !== undefined) {
@@ -563,7 +572,7 @@ export default class woo extends Exchange {
         return this.parseTrades (resultResponse, market, since, limit);
     }
 
-    parseTrade (trade, market: Market = undefined): Trade {
+    parseTrade (trade: Dict, market: Market = undefined): Trade {
         //
         // public/market_trades
         //
@@ -681,7 +690,7 @@ export default class woo extends Exchange {
         const data = this.safeDict (response, 'data', {});
         const maker = this.safeString (data, 'makerFeeRate');
         const taker = this.safeString (data, 'takerFeeRate');
-        const result = {};
+        const result: Dict = {};
         for (let i = 0; i < this.symbols.length; i++) {
             const symbol = this.symbols[i];
             result[symbol] = {
@@ -701,10 +710,11 @@ export default class woo extends Exchange {
          * @method
          * @name woo#fetchCurrencies
          * @description fetches all available currencies on an exchange
+         * @see https://docs.woo.org/#available-token-public
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} an associative dictionary of currencies
          */
-        const result = {};
+        const result: Dict = {};
         const tokenResponse = await this.v1PublicGetToken (params);
         //
         // {
@@ -775,7 +785,7 @@ export default class woo extends Exchange {
             const code = this.safeCurrencyCode (currencyId);
             let name: Str = undefined;
             let minPrecision = undefined;
-            const resultingNetworks = {};
+            const resultingNetworks: Dict = {};
             for (let j = 0; j < networks.length; j++) {
                 const network = networks[j];
                 name = this.safeString (network, 'fullname');
@@ -849,8 +859,26 @@ export default class woo extends Exchange {
         if (!market['spot']) {
             throw new NotSupported (this.id + ' createMarketBuyOrderWithCost() supports spot orders only');
         }
-        params['createMarketBuyOrderRequiresPrice'] = false;
-        return await this.createOrder (symbol, 'market', 'buy', cost, undefined, params);
+        return await this.createOrder (symbol, 'market', 'buy', cost, 1, params);
+    }
+
+    async createMarketSellOrderWithCost (symbol: string, cost: number, params = {}) {
+        /**
+         * @method
+         * @name woo#createMarketSellOrderWithCost
+         * @description create a market sell order by providing the symbol and cost
+         * @see https://docs.woo.org/#send-order
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {float} cost how much you want to trade in units of the quote currency
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        if (!market['spot']) {
+            throw new NotSupported (this.id + ' createMarketSellOrderWithCost() supports spot orders only');
+        }
+        return await this.createOrder (symbol, 'market', 'sell', cost, 1, params);
     }
 
     async createTrailingAmountOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, trailingAmount = undefined, trailingTriggerPrice = undefined, params = {}): Promise<Order> {
@@ -858,6 +886,7 @@ export default class woo extends Exchange {
          * @method
          * @name woo#createTrailingAmountOrder
          * @description create a trailing order by providing the symbol, type, side, amount, price and trailingAmount
+         * @see https://docs.woo.org/#send-algo-order
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
@@ -884,6 +913,7 @@ export default class woo extends Exchange {
          * @method
          * @name woo#createTrailingPercentOrder
          * @description create a trailing order by providing the symbol, type, side, amount, price and trailingPercent
+         * @see https://docs.woo.org/#send-algo-order
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
@@ -916,7 +946,7 @@ export default class woo extends Exchange {
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {float} [params.triggerPrice] The price a trigger order is triggered at
          * @param {object} [params.takeProfit] *takeProfit object in params* containing the triggerPrice at which the attached take profit order will be triggered (perpetual swap markets only)
@@ -936,7 +966,7 @@ export default class woo extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const orderSide = side.toUpperCase ();
-        const request = {
+        const request: Dict = {
             'symbol': market['id'],
             'side': orderSide,
         };
@@ -972,30 +1002,23 @@ export default class woo extends Exchange {
         if (reduceOnly) {
             request[reduceOnlyKey] = reduceOnly;
         }
-        if (price !== undefined) {
+        if (!isMarket && price !== undefined) {
             request[priceKey] = this.priceToPrecision (symbol, price);
         }
         if (isMarket && !isStop) {
             // for market buy it requires the amount of quote currency to spend
-            if (market['spot'] && orderSide === 'BUY') {
+            const cost = this.safeString2 (params, 'cost', 'order_amount');
+            params = this.omit (params, [ 'cost', 'order_amount' ]);
+            const isPriceProvided = price !== undefined;
+            if (market['spot'] && (isPriceProvided || (cost !== undefined))) {
                 let quoteAmount = undefined;
-                let createMarketBuyOrderRequiresPrice = true;
-                [ createMarketBuyOrderRequiresPrice, params ] = this.handleOptionAndParams (params, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
-                const cost = this.safeNumber2 (params, 'cost', 'order_amount');
-                params = this.omit (params, [ 'cost', 'order_amount' ]);
                 if (cost !== undefined) {
                     quoteAmount = this.costToPrecision (symbol, cost);
-                } else if (createMarketBuyOrderRequiresPrice) {
-                    if (price === undefined) {
-                        throw new InvalidOrder (this.id + ' createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend (quote quantity) in the amount argument');
-                    } else {
-                        const amountString = this.numberToString (amount);
-                        const priceString = this.numberToString (price);
-                        const costRequest = Precise.stringMul (amountString, priceString);
-                        quoteAmount = this.costToPrecision (symbol, costRequest);
-                    }
                 } else {
-                    quoteAmount = this.costToPrecision (symbol, amount);
+                    const amountString = this.numberToString (amount);
+                    const priceString = this.numberToString (price);
+                    const costRequest = Precise.stringMul (amountString, priceString);
+                    quoteAmount = this.costToPrecision (symbol, costRequest);
                 }
                 request['order_amount'] = quoteAmount;
             } else {
@@ -1027,7 +1050,7 @@ export default class woo extends Exchange {
             }
         } else if ((stopLoss !== undefined) || (takeProfit !== undefined)) {
             request['algoType'] = 'BRACKET';
-            const outterOrder = {
+            const outterOrder: Dict = {
                 'symbol': market['id'],
                 'reduceOnly': false,
                 'algoType': 'POSITIONAL_TP_SL',
@@ -1036,7 +1059,7 @@ export default class woo extends Exchange {
             const closeSide = (orderSide === 'BUY') ? 'SELL' : 'BUY';
             if (stopLoss !== undefined) {
                 const stopLossPrice = this.safeNumber2 (stopLoss, 'triggerPrice', 'price', stopLoss);
-                const stopLossOrder = {
+                const stopLossOrder: Dict = {
                     'side': closeSide,
                     'algoType': 'STOP_LOSS',
                     'triggerPrice': this.priceToPrecision (symbol, stopLossPrice),
@@ -1047,7 +1070,7 @@ export default class woo extends Exchange {
             }
             if (takeProfit !== undefined) {
                 const takeProfitPrice = this.safeNumber2 (takeProfit, 'triggerPrice', 'price', takeProfit);
-                const takeProfitOrder = {
+                const takeProfitOrder: Dict = {
                     'side': closeSide,
                     'algoType': 'TAKE_PROFIT',
                     'triggerPrice': this.priceToPrecision (symbol, takeProfitPrice),
@@ -1114,7 +1137,7 @@ export default class woo extends Exchange {
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {float} [params.triggerPrice] The price a trigger order is triggered at
          * @param {float} [params.stopLossPrice] price to trigger stop-loss orders
@@ -1126,7 +1149,7 @@ export default class woo extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             // 'quantity': this.amountToPrecision (symbol, amount),
             // 'price': this.priceToPrecision (symbol, price),
         };
@@ -1218,7 +1241,7 @@ export default class woo extends Exchange {
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        const request = {};
+        const request: Dict = {};
         const clientOrderIdUnified = this.safeString2 (params, 'clOrdID', 'clientOrderId');
         const clientOrderIdExchangeSpecific = this.safeString (params, 'client_order_id', clientOrderIdUnified);
         const isByClientOrder = clientOrderIdExchangeSpecific !== undefined;
@@ -1240,7 +1263,7 @@ export default class woo extends Exchange {
         //
         // { success: true, status: "CANCEL_SENT" }
         //
-        const extendParams = { 'symbol': symbol };
+        const extendParams: Dict = { 'symbol': symbol };
         if (isByClientOrder) {
             extendParams['client_order_id'] = clientOrderIdExchangeSpecific;
         } else {
@@ -1272,7 +1295,7 @@ export default class woo extends Exchange {
             throw new ArgumentsRequired (this.id + ' cancelOrders() requires a symbol argument');
         }
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'symbol': market['id'],
         };
         const response = await this.v1PrivateDeleteOrders (this.extend (request, params));
@@ -1282,7 +1305,39 @@ export default class woo extends Exchange {
         //         "status":"CANCEL_ALL_SENT"
         //     }
         //
-        return response;
+        return [
+            this.safeOrder (response),
+        ];
+    }
+
+    async cancelAllOrdersAfter (timeout: Int, params = {}) {
+        /**
+         * @method
+         * @name woo#cancelAllOrdersAfter
+         * @description dead man's switch, cancel all orders after the given timeout
+         * @see https://docs.woo.org/#cancel-all-after
+         * @param {number} timeout time in milliseconds, 0 represents cancel the timer
+         * @param {boolean} activated countdown
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} the api result
+         */
+        await this.loadMarkets ();
+        const request: Dict = {
+            'trigger_after': (timeout > 0) ? timeout : 0,
+        };
+        const response = await this.v1PrivatePostOrderCancelAllAfter (this.extend (request, params));
+        //
+        //     {
+        //         "success": true,
+        //         "data": {
+        //             "expected_trigger_time": 1711534302938
+        //         },
+        //         "timestamp": 1711534302943
+        //     }
+        //
+        return [
+            this.safeOrder (response),
+        ];
     }
 
     async fetchOrder (id: string, symbol: Str = undefined, params = {}) {
@@ -1301,7 +1356,7 @@ export default class woo extends Exchange {
         const market = (symbol !== undefined) ? this.market (symbol) : undefined;
         const stop = this.safeBool2 (params, 'stop', 'trigger');
         params = this.omit (params, [ 'stop', 'trigger' ]);
-        const request = {};
+        const request: Dict = {};
         const clientOrderId = this.safeString2 (params, 'clOrdID', 'clientOrderId');
         let response = undefined;
         if (stop) {
@@ -1377,7 +1432,7 @@ export default class woo extends Exchange {
         if (paginate) {
             return await this.fetchPaginatedCallIncremental ('fetchOrders', symbol, since, limit, params, 'page', 500) as Order[];
         }
-        const request = {};
+        const request: Dict = {};
         let market: Market = undefined;
         const stop = this.safeBool2 (params, 'stop', 'trigger');
         const trailing = this.safeBool (params, 'trailing', false);
@@ -1491,8 +1546,8 @@ export default class woo extends Exchange {
         return await this.fetchOrders (symbol, since, limit, extendedParams);
     }
 
-    parseTimeInForce (timeInForce) {
-        const timeInForces = {
+    parseTimeInForce (timeInForce: Str) {
+        const timeInForces: Dict = {
             'ioc': 'IOC',
             'fok': 'FOK',
             'post_only': 'PO',
@@ -1500,7 +1555,7 @@ export default class woo extends Exchange {
         return this.safeString (timeInForces, timeInForce, undefined);
     }
 
-    parseOrder (order, market: Market = undefined): Order {
+    parseOrder (order: Dict, market: Market = undefined): Order {
         //
         // Possible input functions:
         // * createOrder
@@ -1559,8 +1614,8 @@ export default class woo extends Exchange {
         const side = this.safeStringLower (order, 'side');
         const filled = this.omitZero (this.safeValue2 (order, 'executed', 'totalExecutedQuantity'));
         const average = this.omitZero (this.safeString2 (order, 'average_executed_price', 'averageExecutedPrice'));
-        const remaining = Precise.stringSub (cost, filled);
-        const fee = this.safeValue2 (order, 'total_fee', 'totalFee');
+        // const remaining = Precise.stringSub (cost, filled);
+        const fee = this.safeNumber2 (order, 'total_fee', 'totalFee');
         const feeCurrency = this.safeString2 (order, 'fee_asset', 'feeAsset');
         const transactions = this.safeValue (order, 'Transactions');
         const stopPrice = this.safeNumber (order, 'triggerPrice');
@@ -1601,7 +1656,7 @@ export default class woo extends Exchange {
             'average': average,
             'amount': amount,
             'filled': filled,
-            'remaining': remaining, // TO_DO
+            'remaining': undefined, // TO_DO
             'cost': cost,
             'trades': transactions,
             'fee': {
@@ -1612,9 +1667,9 @@ export default class woo extends Exchange {
         }, market);
     }
 
-    parseOrderStatus (status) {
+    parseOrderStatus (status: Str) {
         if (status !== undefined) {
-            const statuses = {
+            const statuses: Dict = {
                 'NEW': 'open',
                 'FILLED': 'closed',
                 'CANCEL_SENT': 'canceled',
@@ -1635,6 +1690,7 @@ export default class woo extends Exchange {
          * @method
          * @name woo#fetchOrderBook
          * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @see https://docs.woo.org/#orderbook-snapshot-public
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int} [limit] the maximum amount of order book entries to return
          * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -1642,7 +1698,7 @@ export default class woo extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'symbol': market['id'],
         };
         if (limit !== undefined) {
@@ -1686,7 +1742,7 @@ export default class woo extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'symbol': market['id'],
             'type': this.safeString (this.timeframes, timeframe, timeframe),
         };
@@ -1771,6 +1827,7 @@ export default class woo extends Exchange {
          * @method
          * @name woo#fetchOrderTrades
          * @description fetch all the trades made from a single order
+         * @see https://docs.woo.org/#get-trades
          * @param {string} id order id
          * @param {string} symbol unified market symbol
          * @param {int} [since] the earliest time in ms to fetch trades for
@@ -1783,7 +1840,7 @@ export default class woo extends Exchange {
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        const request = {
+        const request: Dict = {
             'oid': id,
         };
         const response = await this.v1PrivateGetOrderOidTrades (this.extend (request, params));
@@ -1813,8 +1870,8 @@ export default class woo extends Exchange {
         /**
          * @method
          * @name woo#fetchMyTrades
-         * @see https://docs.woo.org/#get-trades
          * @description fetch all trades made by the user
+         * @see https://docs.woo.org/#get-trades
          * @param {string} symbol unified market symbol
          * @param {int} [since] the earliest time in ms to fetch trades for
          * @param {int} [limit] the maximum number of trades structures to retrieve
@@ -1828,7 +1885,7 @@ export default class woo extends Exchange {
         if (paginate) {
             return await this.fetchPaginatedCallIncremental ('fetchMyTrades', symbol, since, limit, params, 'page', 500) as Trade[];
         }
-        const request = {};
+        const request: Dict = {};
         let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
@@ -1875,6 +1932,7 @@ export default class woo extends Exchange {
          * @method
          * @name woo#fetchAccounts
          * @description fetch all the accounts associated with a profile
+         * @see https://docs.woo.org/#get-assets-of-subaccounts
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/#/?id=account-structure} indexed by the account type
          */
@@ -1956,7 +2014,7 @@ export default class woo extends Exchange {
     }
 
     parseBalance (response): Balances {
-        const result = {
+        const result: Dict = {
             'info': response,
         };
         const balances = this.safeList (response, 'holding', []);
@@ -1976,6 +2034,7 @@ export default class woo extends Exchange {
          * @method
          * @name woo#fetchDepositAddress
          * @description fetch the deposit address for a currency associated with this account
+         * @see https://docs.woo.org/#get-token-deposit-address
          * @param {string} code unified currency code
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
@@ -1987,7 +2046,7 @@ export default class woo extends Exchange {
         const networkCode = this.safeString (params, 'network', networkCodeDefault);
         params = this.omit (params, 'network');
         const codeForExchange = networkCode + '_' + currency['code'];
-        const request = {
+        const request: Dict = {
             'token': codeForExchange,
         };
         const response = await this.v1PrivateGetAssetDeposit (this.extend (request, params));
@@ -2008,9 +2067,9 @@ export default class woo extends Exchange {
         };
     }
 
-    async getAssetHistoryRows (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async getAssetHistoryRows (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<any> {
         await this.loadMarkets ();
-        const request = { };
+        const request: Dict = { };
         let currency: Currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
@@ -2062,7 +2121,7 @@ export default class woo extends Exchange {
         //     "meta": { total: '1', records_per_page: "25", current_page: "1" },
         //     "success": true
         // }
-        return [ currency, this.safeValue (response, 'rows', {}) ];
+        return [ currency, this.safeList (response, 'rows', []) ];
     }
 
     async fetchLedger (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
@@ -2070,6 +2129,7 @@ export default class woo extends Exchange {
          * @method
          * @name woo#fetchLedger
          * @description fetch the history of changes, actions done by the user or operations that altered balance of the user
+         * @see https://docs.woo.org/#get-asset-history
          * @param {string} code unified currency code, default is undefined
          * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
          * @param {int} [limit] max number of ledger entrys to return, default is undefined
@@ -2080,7 +2140,7 @@ export default class woo extends Exchange {
         return this.parseLedger (rows, currency, since, limit, params);
     }
 
-    parseLedgerEntry (item, currency: Currency = undefined) {
+    parseLedgerEntry (item: Dict, currency: Currency = undefined) {
         const networkizedCode = this.safeString (item, 'token');
         const currencyDefined = this.getCurrencyFromChaincode (networkizedCode, currency);
         const code = currencyDefined['code'];
@@ -2109,7 +2169,7 @@ export default class woo extends Exchange {
     }
 
     parseLedgerEntryType (type) {
-        const types = {
+        const types: Dict = {
             'BALANCE': 'transaction', // Funds moved in/out wallet
             'COLLATERAL': 'transfer', // Funds moved between portfolios
         };
@@ -2137,13 +2197,14 @@ export default class woo extends Exchange {
          * @method
          * @name woo#fetchDeposits
          * @description fetch all deposits made to an account
+         * @see https://docs.woo.org/#get-asset-history
          * @param {string} code unified currency code
          * @param {int} [since] the earliest time in ms to fetch deposits for
          * @param {int} [limit] the maximum number of deposits structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
-        const request = {
+        const request: Dict = {
             'token_side': 'DEPOSIT',
         };
         return await this.fetchDepositsWithdrawals (code, since, limit, this.extend (request, params));
@@ -2154,13 +2215,14 @@ export default class woo extends Exchange {
          * @method
          * @name woo#fetchWithdrawals
          * @description fetch all withdrawals made from an account
+         * @see https://docs.woo.org/#get-asset-history
          * @param {string} code unified currency code
          * @param {int} [since] the earliest time in ms to fetch withdrawals for
          * @param {int} [limit] the maximum number of withdrawals structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
-        const request = {
+        const request: Dict = {
             'token_side': 'WITHDRAW',
         };
         return await this.fetchDepositsWithdrawals (code, since, limit, this.extend (request, params));
@@ -2171,13 +2233,14 @@ export default class woo extends Exchange {
          * @method
          * @name woo#fetchDepositsWithdrawals
          * @description fetch history of deposits and withdrawals
+         * @see https://docs.woo.org/#get-asset-history
          * @param {string} [code] unified currency code for the currency of the deposit/withdrawals, default is undefined
          * @param {int} [since] timestamp in ms of the earliest deposit/withdrawal, default is undefined
          * @param {int} [limit] max number of deposit/withdrawals to return, default is undefined
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a list of [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
-        const request = {
+        const request: Dict = {
             'type': 'BALANCE',
         };
         const [ currency, rows ] = await this.getAssetHistoryRows (code, since, limit, this.extend (request, params));
@@ -2195,7 +2258,7 @@ export default class woo extends Exchange {
         return this.parseTransactions (rows, currency, since, limit, params);
     }
 
-    parseTransaction (transaction, currency: Currency = undefined): Transaction {
+    parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {
         // example in fetchLedger
         const networkizedCode = this.safeString (transaction, 'token');
         const currencyDefined = this.getCurrencyFromChaincode (networkizedCode, currency);
@@ -2232,8 +2295,8 @@ export default class woo extends Exchange {
         };
     }
 
-    parseTransactionStatus (status) {
-        const statuses = {
+    parseTransactionStatus (status: Str) {
+        const statuses: Dict = {
             'NEW': 'pending',
             'CONFIRMING': 'pending',
             'PROCESSING': 'pending',
@@ -2247,8 +2310,8 @@ export default class woo extends Exchange {
         /**
          * @method
          * @name woo#transfer
-         * @see https://docs.woo.org/#get-transfer-history
          * @description transfer currency internally between wallets on the same account
+         * @see https://docs.woo.org/#get-transfer-history
          * @param {string} code unified currency code
          * @param {float} amount amount to transfer
          * @param {string} fromAccount account to transfer from
@@ -2258,7 +2321,7 @@ export default class woo extends Exchange {
          */
         await this.loadMarkets ();
         const currency = this.currency (code);
-        const request = {
+        const request: Dict = {
             'token': currency['id'],
             'amount': this.parseToNumeric (amount),
             'from_application_id': fromAccount,
@@ -2282,7 +2345,7 @@ export default class woo extends Exchange {
         return transfer;
     }
 
-    async fetchTransfers (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchTransfers (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<TransferEntries> {
         /**
          * @method
          * @name woo#fetchTransfers
@@ -2295,15 +2358,15 @@ export default class woo extends Exchange {
          * @param {int} [params.until] the latest time in ms to fetch entries for
          * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/#/?id=transfer-structure}
          */
-        const request = {};
+        const request: Dict = {};
         if (limit !== undefined) {
             request['size'] = limit;
         }
         if (since !== undefined) {
             request['start_t'] = since;
         }
-        const until = this.safeInteger2 (params, 'until', 'till'); // unified in milliseconds
-        params = this.omit (params, [ 'until', 'till' ]);
+        const until = this.safeInteger (params, 'until'); // unified in milliseconds
+        params = this.omit (params, [ 'until' ]);
         if (until !== undefined) {
             request['end_t'] = until;
         }
@@ -2336,7 +2399,7 @@ export default class woo extends Exchange {
         return this.parseTransfers (data, undefined, since, limit, params);
     }
 
-    parseTransfer (transfer, currency: Currency = undefined) {
+    parseTransfer (transfer: Dict, currency: Currency = undefined): TransferEntry {
         //
         //    fetchTransfers
         //     {
@@ -2380,8 +2443,8 @@ export default class woo extends Exchange {
         };
     }
 
-    parseTransferStatus (status) {
-        const statuses = {
+    parseTransferStatus (status: Str): Str {
+        const statuses: Dict = {
             'NEW': 'pending',
             'CONFIRMING': 'pending',
             'PROCESSING': 'pending',
@@ -2391,11 +2454,12 @@ export default class woo extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    async withdraw (code: string, amount: number, address, tag = undefined, params = {}) {
+    async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}) {
         /**
          * @method
          * @name woo#withdraw
          * @description make a withdrawal
+         * @see https://docs.woo.org/#token-withdraw
          * @param {string} code unified currency code
          * @param {float} amount the amount to withdraw
          * @param {string} address the address to withdraw to
@@ -2407,7 +2471,7 @@ export default class woo extends Exchange {
         await this.loadMarkets ();
         this.checkAddress (address);
         const currency = this.currency (code);
-        const request = {
+        const request: Dict = {
             'amount': amount,
             'address': address,
         };
@@ -2453,7 +2517,7 @@ export default class woo extends Exchange {
             symbol = market['symbol'];
         }
         const currency = this.currency (code);
-        const request = {
+        const request: Dict = {
             'token': currency['id'], // interest token that you want to repay
             'amount': this.currencyToPrecision (code, amount),
         };
@@ -2501,6 +2565,11 @@ export default class woo extends Exchange {
         params = this.keysort (params);
         if (access === 'public') {
             url += access + '/' + pathWithParams;
+            if (Object.keys (params).length) {
+                url += '?' + this.urlencode (params);
+            }
+        } else if (access === 'pub') {
+            url += pathWithParams;
             if (Object.keys (params).length) {
                 url += '?' + this.urlencode (params);
             }
@@ -2557,7 +2626,7 @@ export default class woo extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    handleErrors (httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+    handleErrors (httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response, requestHeaders, requestBody) {
         if (!response) {
             return undefined; // fallback to default error handler
         }
@@ -2610,7 +2679,7 @@ export default class woo extends Exchange {
 
     async fetchFundingHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         await this.loadMarkets ();
-        const request = {};
+        const request: Dict = {};
         let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
@@ -2688,7 +2757,7 @@ export default class woo extends Exchange {
     async fetchFundingRate (symbol: string, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'symbol': market['id'],
         };
         const response = await this.v1PublicGetFundingRateSymbol (this.extend (request, params));
@@ -2752,7 +2821,7 @@ export default class woo extends Exchange {
         if (paginate) {
             return await this.fetchPaginatedCallIncremental ('fetchFundingRateHistory', symbol, since, limit, params, 'page', 25) as FundingRateHistory[];
         }
-        let request = {};
+        let request: Dict = {};
         if (symbol !== undefined) {
             const market = this.market (symbol);
             symbol = market['symbol'];
@@ -2817,7 +2886,7 @@ export default class woo extends Exchange {
         } else {
             hedgeMode = 'ONE_WAY';
         }
-        const request = {
+        const request: Dict = {
             'position_mode': hedgeMode,
         };
         const response = await this.v1PrivatePostClientPositionMode (this.extend (request, params));
@@ -2876,7 +2945,7 @@ export default class woo extends Exchange {
         return this.parseLeverage (data, market);
     }
 
-    parseLeverage (leverage, market = undefined): Leverage {
+    parseLeverage (leverage: Dict, market: Market = undefined): Leverage {
         const leverageValue = this.safeInteger (leverage, 'leverage');
         return {
             'info': leverage,
@@ -2892,7 +2961,7 @@ export default class woo extends Exchange {
         if ((leverage < 1) || (leverage > 20)) {
             throw new BadRequest (this.id + ' leverage should be between 1 and 20');
         }
-        const request = {
+        const request: Dict = {
             'leverage': leverage,
         };
         return await this.v1PrivatePostClientLeverage (this.extend (request, params));
@@ -2901,7 +2970,7 @@ export default class woo extends Exchange {
     async fetchPosition (symbol: Str = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'symbol': market['id'],
         };
         const response = await this.v1PrivateGetPositionSymbol (this.extend (request, params));
@@ -2954,7 +3023,7 @@ export default class woo extends Exchange {
         return this.parsePositions (positions, symbols);
     }
 
-    parsePosition (position, market: Market = undefined) {
+    parsePosition (position: Dict, market: Market = undefined) {
         //
         //     {
         //         "symbol": "0_symbol",
@@ -3032,7 +3101,7 @@ export default class woo extends Exchange {
          * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/#/?id=conversion-structure}
          */
         await this.loadMarkets ();
-        const request = {
+        const request: Dict = {
             'sellToken': fromCode.toUpperCase (),
             'buyToken': toCode.toUpperCase (),
             'sellQuantity': this.numberToString (amount),
@@ -3076,7 +3145,7 @@ export default class woo extends Exchange {
          * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/#/?id=conversion-structure}
          */
         await this.loadMarkets ();
-        const request = {
+        const request: Dict = {
             'quoteId': id,
         };
         const response = await this.v3PrivatePostConvertRft (this.extend (request, params));
@@ -3094,7 +3163,99 @@ export default class woo extends Exchange {
         return this.parseConversion (data);
     }
 
-    parseConversion (conversion, fromCurrency: Currency = undefined, toCurrency: Currency = undefined): Conversion {
+    async fetchConvertTrade (id: string, code: Str = undefined, params = {}): Promise<Conversion> {
+        /**
+         * @method
+         * @name woo#fetchConvertTrade
+         * @description fetch the data for a conversion trade
+         * @see https://docs.woo.org/#get-quote-trade
+         * @param {string} id the id of the trade that you want to fetch
+         * @param {string} [code] the unified currency code of the conversion trade
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/#/?id=conversion-structure}
+         */
+        await this.loadMarkets ();
+        const request: Dict = {
+            'quoteId': id,
+        };
+        const response = await this.v3PrivateGetConvertTrade (this.extend (request, params));
+        //
+        //     {
+        //         "success": true,
+        //         "data": {
+        //             "quoteId": 12,
+        //             "buyAsset": "",
+        //             "sellAsset": "",
+        //             "buyAmount": 12.11,
+        //             "sellAmount": 12.11,
+        //             "tradeStatus": 12,
+        //             "createdTime": ""
+        //         }
+        //     }
+        //
+        const data = this.safeDict (response, 'data', {});
+        const fromCurrencyId = this.safeString (data, 'sellAsset');
+        const toCurrencyId = this.safeString (data, 'buyAsset');
+        let fromCurrency = undefined;
+        let toCurrency = undefined;
+        if (fromCurrencyId !== undefined) {
+            fromCurrency = this.currency (fromCurrencyId);
+        }
+        if (toCurrencyId !== undefined) {
+            toCurrency = this.currency (toCurrencyId);
+        }
+        return this.parseConversion (data, fromCurrency, toCurrency);
+    }
+
+    async fetchConvertTradeHistory (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Conversion[]> {
+        /**
+         * @method
+         * @name woo#fetchConvertTradeHistory
+         * @description fetch the users history of conversion trades
+         * @see https://docs.woo.org/#get-quote-trades
+         * @param {string} [code] the unified currency code
+         * @param {int} [since] the earliest time in ms to fetch conversions for
+         * @param {int} [limit] the maximum number of conversion structures to retrieve
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {int} [params.until] timestamp in ms of the latest conversion to fetch
+         * @returns {object[]} a list of [conversion structures]{@link https://docs.ccxt.com/#/?id=conversion-structure}
+         */
+        await this.loadMarkets ();
+        let request: Dict = {};
+        [ request, params ] = this.handleUntilOption ('endTime', request, params);
+        if (since !== undefined) {
+            request['startTime'] = since;
+        }
+        if (limit !== undefined) {
+            request['size'] = limit;
+        }
+        const response = await this.v3PrivateGetConvertTrades (this.extend (request, params));
+        //
+        //     {
+        //         "success": true,
+        //         "data": {
+        //             "count": 12,
+        //             "tradeVos":[
+        //                 {
+        //                     "quoteId": 12,
+        //                     "buyAsset": "",
+        //                     "sellAsset": "",
+        //                     "buyAmount": 12.11,
+        //                     "sellAmount": 12.11,
+        //                     "tradeStatus": 12,
+        //                     "createdTime": ""
+        //                 }
+        //                 ...
+        //             ]
+        //         }
+        //     }
+        //
+        const data = this.safeDict (response, 'data', {});
+        const rows = this.safeList (data, 'tradeVos', []);
+        return this.parseConversions (rows, code, 'sellAsset', 'buyAsset', since, limit);
+    }
+
+    parseConversion (conversion: Dict, fromCurrency: Currency = undefined, toCurrency: Currency = undefined): Conversion {
         //
         // fetchConvertQuote
         //
@@ -3118,10 +3279,22 @@ export default class woo extends Exchange {
         //         "rftAccepted": 1 // 1 -> success; 2 -> processing; 3 -> fail
         //     }
         //
-        const timestamp = this.safeInteger (conversion, 'expireTimestamp');
-        const fromCoin = this.safeString (conversion, 'sellToken');
-        const fromCode = this.safeCurrencyCode (fromCoin, fromCurrency);
-        const to = this.safeString (conversion, 'buyToken');
+        // fetchConvertTrade, fetchConvertTradeHistory
+        //
+        //     {
+        //         "quoteId": 12,
+        //         "buyAsset": "",
+        //         "sellAsset": "",
+        //         "buyAmount": 12.11,
+        //         "sellAmount": 12.11,
+        //         "tradeStatus": 12,
+        //         "createdTime": ""
+        //     }
+        //
+        const timestamp = this.safeInteger2 (conversion, 'expireTimestamp', 'createdTime');
+        const fromCurr = this.safeString2 (conversion, 'sellToken', 'buyAsset');
+        const fromCode = this.safeCurrencyCode (fromCurr, fromCurrency);
+        const to = this.safeString2 (conversion, 'buyToken', 'sellAsset');
         const toCode = this.safeCurrencyCode (to, toCurrency);
         return {
             'info': conversion,
@@ -3129,9 +3302,9 @@ export default class woo extends Exchange {
             'datetime': this.iso8601 (timestamp),
             'id': this.safeString (conversion, 'quoteId'),
             'fromCurrency': fromCode,
-            'fromAmount': this.safeNumber (conversion, 'sellQuantity'),
+            'fromAmount': this.safeNumber2 (conversion, 'sellQuantity', 'sellAmount'),
             'toCurrency': toCode,
-            'toAmount': this.safeNumber (conversion, 'buyQuantity'),
+            'toAmount': this.safeNumber2 (conversion, 'buyQuantity', 'buyAmount'),
             'price': this.safeNumber (conversion, 'buyPrice'),
             'fee': undefined,
         } as Conversion;
@@ -3161,7 +3334,7 @@ export default class woo extends Exchange {
         //         ]
         //     }
         //
-        const result = {};
+        const result: Dict = {};
         const data = this.safeList (response, 'rows', []);
         for (let i = 0; i < data.length; i++) {
             const entry = data[i];

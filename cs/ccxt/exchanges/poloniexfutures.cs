@@ -372,8 +372,23 @@ public partial class poloniexfutures : Exchange
         object marketId = this.safeString(ticker, "symbol");
         object symbol = this.safeSymbol(marketId, market);
         object timestampString = this.safeString(ticker, "ts");
-        // check timestamp bcz bug: https://app.travis-ci.com/github/ccxt/ccxt/builds/269959181#L4011
-        object multiplier = ((bool) isTrue((isEqual(((string)timestampString).Length, 18)))) ? 0.00001 : 0.000001;
+        object multiplier = null;
+        if (isTrue(isEqual(((string)timestampString).Length, 16)))
+        {
+            // 16 digits: https://app.travis-ci.com/github/ccxt/ccxt/builds/270587157#L5454
+            multiplier = 0.001;
+        } else if (isTrue(isEqual(((string)timestampString).Length, 17)))
+        {
+            // 17 digits: https://app.travis-ci.com/github/ccxt/ccxt/builds/269959181#L4011
+            multiplier = 0.0001;
+        } else if (isTrue(isEqual(((string)timestampString).Length, 18)))
+        {
+            multiplier = 0.00001;
+        } else
+        {
+            // 19 length default
+            multiplier = 0.000001;
+        }
         object timestamp = this.safeIntegerProduct(ticker, "ts", multiplier);
         object last = this.safeString2(ticker, "price", "lastPrice");
         object percentage = Precise.stringMul(this.safeString(ticker, "priceChgPct"), "100");
@@ -454,7 +469,8 @@ public partial class poloniexfutures : Exchange
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object response = await this.publicGetTickers(parameters);
-        return this.parseTickers(this.safeValue(response, "data", new List<object>() {}), symbols);
+        object data = this.safeList(response, "data", new List<object>() {});
+        return this.parseTickers(data, symbols);
     }
 
     public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
@@ -860,7 +876,7 @@ public partial class poloniexfutures : Exchange
         * @param {string} type 'limit' or 'market'
         * @param {string} side 'buy' or 'sell'
         * @param {float} amount the amount of currency to trade
-        * @param {float} [price] *ignored in "market" orders* the price at which the order is to be fullfilled at in units of the quote currency
+        * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         * @param {object} [params]  extra parameters specific to the exchange API endpoint
         * @param {float} [params.leverage] Leverage size of the order
         * @param {float} [params.stopPrice] The price at which a trigger order is triggered at
@@ -1297,7 +1313,7 @@ public partial class poloniexfutures : Exchange
         for (object i = 0; isLessThan(i, cancelledOrderIdsLength); postFixIncrement(ref i))
         {
             object cancelledOrderId = this.safeString(cancelledOrderIds, i);
-            ((IList<object>)result).Add(new Dictionary<string, object>() {
+            ((IList<object>)result).Add(this.safeOrder(new Dictionary<string, object>() {
                 { "id", cancelledOrderId },
                 { "clientOrderId", null },
                 { "timestamp", null },
@@ -1319,7 +1335,7 @@ public partial class poloniexfutures : Exchange
                 { "postOnly", null },
                 { "stopPrice", null },
                 { "info", response },
-            });
+            }));
         }
         return result;
     }
@@ -1346,8 +1362,8 @@ public partial class poloniexfutures : Exchange
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object stop = this.safeValue2(parameters, "stop", "trigger");
-        object until = this.safeInteger2(parameters, "until", "till");
-        parameters = this.omit(parameters, new List<object>() {"triger", "stop", "until", "till"});
+        object until = this.safeInteger(parameters, "until");
+        parameters = this.omit(parameters, new List<object>() {"trigger", "stop", "until"});
         if (isTrue(isEqual(status, "closed")))
         {
             status = "done";
@@ -1457,7 +1473,7 @@ public partial class poloniexfutures : Exchange
         * @param {int} [since] the earliest time in ms to fetch open orders for
         * @param {int} [limit] the maximum number of  open orders structures to retrieve
         * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {int} [params.till] end time in ms
+        * @param {int} [params.until] end time in ms
         * @param {string} [params.side] buy or sell
         * @param {string} [params.type] limit, or market
         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -1478,7 +1494,7 @@ public partial class poloniexfutures : Exchange
         * @param {int} [since] the earliest time in ms to fetch orders for
         * @param {int} [limit] the maximum number of order structures to retrieve
         * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {int} [params.till] end time in ms
+        * @param {int} [params.until] end time in ms
         * @param {string} [params.side] buy or sell
         * @param {string} [params.type] limit, or market
         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}

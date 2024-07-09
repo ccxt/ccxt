@@ -202,12 +202,11 @@ class luno extends \ccxt\async\luno {
         //
         $symbol = $subscription['symbol'];
         $messageHash = 'orderbook:' . $symbol;
-        $timestamp = $this->safe_string($message, 'timestamp');
-        $orderbook = $this->safe_value($this->orderbooks, $symbol);
-        if ($orderbook === null) {
-            $orderbook = $this->indexed_order_book(array());
-            $this->orderbooks[$symbol] = $orderbook;
+        $timestamp = $this->safe_integer($message, 'timestamp');
+        if (!(is_array($this->orderbooks) && array_key_exists($symbol, $this->orderbooks))) {
+            $this->orderbooks[$symbol] = $this->indexed_order_book(array());
         }
+        $orderbook = $this->orderbooks[$symbol];
         $asks = $this->safe_value($message, 'asks');
         if ($asks !== null) {
             $snapshot = $this->custom_parse_order_book($message, $symbol, $timestamp, 'bids', 'asks', 'price', 'volume', 'id');
@@ -324,7 +323,7 @@ class luno extends \ccxt\async\luno {
             return;
         }
         $subscriptions = is_array($client->subscriptions) ? array_values($client->subscriptions) : array();
-        $handlers = [ array($this, 'handle_order_book'), $this->handle_trades];
+        $handlers = array( array($this, 'handle_order_book'), array($this, 'handle_trades'));
         for ($j = 0; $j < count($handlers); $j++) {
             $handler = $handlers[$j];
             $handler($client, $message, $subscriptions[0]);

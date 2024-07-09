@@ -3,7 +3,7 @@
 A tests launcher. Runs tests for all languages and all exchanges, in
 parallel, with a humanized error reporting.
 
-Usage: node run-tests [--php] [--js] [--python] [--python-async] [exchange] [symbol]
+Usage: node run-tests [--php] [--js] [--python] [--python-async] [exchange] [method|symbol]
 
 --------------------------------------------------------------------------- */
 
@@ -47,6 +47,7 @@ const exchangeSpecificFlags = {
 
 let exchanges = []
 let symbol = 'all'
+let method = undefined
 let maxConcurrency = 5 // Number.MAX_VALUE // no limit
 
 for (const arg of args) {
@@ -60,6 +61,7 @@ for (const arg of args) {
             log.bright.red ('\nUnknown option', arg.white, '\n');
         }
     }
+    else if (arg.includes ('()'))            { method = arg }
     else if (arg.includes ('/'))             { symbol = arg }
     else if (Number.isFinite (Number (arg))) { maxConcurrency = Number (arg) }
     else                                     { exchanges.push (arg) }
@@ -117,9 +119,8 @@ const exec = (bin, ...args) => {
 
     const generateResultFromOutput = (output, stderr, code) => {
             // keep this commented code for a while (just in case), as the below avoids vscode false positive warnings from output: https://github.com/nodejs/node/issues/34799 during debugging
-            // const removeDebuger = (str) => str.replace ('Debugger attached.\r\n','').replace('Waiting for the debugger to disconnect...\r\n', '').replace(/\(node:\d+\) ExperimentalWarning: Custom ESM Loaders is an experimental feature and might change at any time\n\(Use `node --trace-warnings ...` to show where the warning was created\)\n/, '');
-            // stderr = removeDebuger(stderr);
-            // output = removeDebuger(output);
+            // const removeDebuger = (str) => str.replace ('Debugger attached.','').replace('Waiting for the debugger to disconnect...', '').replace(/\(node:\d+\) ExperimentalWarning: Custom ESM Loaders is an experimental feature and might change at any time\n\(Use `node --trace-warnings ...` to show where the warning was created\)\n/, '');
+            // stderr = removeDebuger(stderr), output = removeDebuger(output);
 
             output = ansi.strip (output.trim ())
 
@@ -260,19 +261,22 @@ const testExchange = async (exchange) => {
     if (symbol !== undefined && symbol !== 'all') {
         args.push(symbol);
     }
+    if (method !== undefined) {
+        args.push(method);
+    }
     args = args.concat(exchangeOptions)
     // pass it to the test(ts/py/php) script too
     if (debugKeys['--info']) {
         args.push ('--info')
     }
     let allTests = [
-        { key: '--js',           language: 'JavaScript',   exec: ['node',      'js/src/test/test.js',                     ...args] },
-        { key: '--python-async', language: 'Python Async', exec: ['python3',   'python/ccxt/test/test_async.py',          ...args] },
-        { key: '--php-async',    language: 'PHP Async',    exec: ['php', '-f', 'php/test/test_async.php',                 ...args] },
+        { key: '--js',           language: 'JavaScript',   exec: ['node',      'js/src/test/tests.init.js',                     ...args] },
+        { key: '--python-async', language: 'Python Async', exec: ['python3',   'python/ccxt/test/tests_init.py',          ...args] },
+        { key: '--php-async',    language: 'PHP Async',    exec: ['php', '-f', 'php/test/tests_init.php',                 ...args] },
         { key: '--csharp',       language: 'C#',           exec: ['dotnet', 'run', '--project', 'cs/tests/tests.csproj',  ...args] },
-        { key: '--ts',           language: 'TypeScript',   exec: ['node',  '--import', 'tsx', 'ts/src/test/test.ts',      ...args] },
-        { key: '--python',       language: 'Python',       exec: ['python3',   'python/ccxt/test/test_sync.py',           ...args] },
-        { key: '--php',          language: 'PHP',          exec: ['php', '-f', 'php/test/test_sync.php',                  ...args] },
+        { key: '--ts',           language: 'TypeScript',   exec: ['node',  '--import', 'tsx', 'ts/src/test/tests.init.ts',      ...args] },
+        { key: '--python',       language: 'Python',       exec: ['python3',   'python/ccxt/test/tests_init.py',  '--sync',  ...args] },
+        { key: '--php',          language: 'PHP',          exec: ['php', '-f', 'php/test/tests_init.php',  '--sync',  ...args] },
     ];
 
     // select tests based on cli arguments
@@ -421,7 +425,7 @@ async function testAllExchanges () {
     // show output like `Testing { exchanges: ["binance"], symbol: "all", debugKeys: { '--warnings': false, '--info': true }, langKeys: { '--ts': false, '--js': false, '--php': false, '--python': false, '--python-async': false, '--php-async': false }, exchangeSpecificFlags: { '--ws': true, '--sandbox': false, '--verbose': false, '--private': false, '--privateOnly': false }, maxConcurrency: 100 }`
     log.bright.magenta.noPretty (
         'Testing'.white, 
-        Object.assign ({ exchanges, symbol, debugKeys, langKeys, exchangeSpecificFlags }, maxConcurrency >= Number.MAX_VALUE ? {} : { maxConcurrency })
+        Object.assign ({ exchanges, method, symbol, debugKeys, langKeys, exchangeSpecificFlags }, maxConcurrency >= Number.MAX_VALUE ? {} : { maxConcurrency })
     )
 
     const tested    = await testAllExchanges ()

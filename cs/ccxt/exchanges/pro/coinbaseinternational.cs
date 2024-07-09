@@ -72,6 +72,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
         * @returns {object} subscription to a websocket channel
         */
         parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
         this.checkRequiredCredentials();
         object market = null;
         object messageHash = name;
@@ -126,6 +127,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
         * @returns {object} subscription to a websocket channel
         */
         parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
         this.checkRequiredCredentials();
         if (isTrue(this.isEmpty(symbols)))
         {
@@ -175,6 +177,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
         * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
         */
         parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
         return await this.subscribe("RISK", new List<object>() {symbol}, parameters);
     }
 
@@ -190,7 +193,16 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
         * @returns {object} a dictionary of [funding rates structures]{@link https://docs.ccxt.com/#/?id=funding-rates-structure}, indexe by market symbols
         */
         parameters ??= new Dictionary<string, object>();
-        return await this.subscribeMultiple("RISK", symbols, parameters);
+        await this.loadMarkets();
+        object fundingRate = await this.subscribeMultiple("RISK", symbols, parameters);
+        object symbol = this.safeString(fundingRate, "symbol");
+        if (isTrue(this.newUpdates))
+        {
+            object result = new Dictionary<string, object>() {};
+            ((IDictionary<string,object>)result)[(string)symbol] = fundingRate;
+            return result;
+        }
+        return this.filterByArray(this.fundingRates, "symbol", symbols);
     }
 
     public async override Task<object> watchTicker(object symbol, object parameters = null)
@@ -205,6 +217,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
         */
         parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
         object channel = null;
         var channelparametersVariable = this.handleOptionAndParams(parameters, "watchTicker", "channel", "LEVEL1");
         channel = ((IList<object>)channelparametersVariable)[0];
@@ -650,6 +663,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
         //
         object channel = this.safeString(message, "channel");
         object fundingRate = this.parseFundingRate(message);
+        ((IDictionary<string,object>)this.fundingRates)[(string)getValue(fundingRate, "symbol")] = fundingRate;
         callDynamically(client as WebSocketClient, "resolve", new object[] {fundingRate, add(add(channel, "::"), getValue(fundingRate, "symbol"))});
     }
 
