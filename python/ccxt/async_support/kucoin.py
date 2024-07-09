@@ -260,6 +260,8 @@ class kucoin(Exchange, ImplicitAPI):
                         'purchase/orders': 10,  # 10SW
                         # broker
                         'broker/api/rebase/download': 3,
+                        # affiliate
+                        'affiliate/inviter/statistics': 30,
                     },
                     'post': {
                         # account
@@ -701,6 +703,7 @@ class kucoin(Exchange, ImplicitAPI):
                             'redeem/orders': 'v3',
                             'purchase/orders': 'v3',
                             'margin/symbols': 'v3',
+                            'affiliate/inviter/statistics': 'v2',
                         },
                         'POST': {
                             # account

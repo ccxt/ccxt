@@ -2125,7 +2125,21 @@ class deribit extends deribit$1 {
             request['instrument_name'] = market['id'];
             response = await this.privateGetCancelAllByInstrument(this.extend(request, params));
         }
-        return response;
+        //
+        //    {
+        //        jsonrpc: '2.0',
+        //        result: '1',
+        //        usIn: '1720508354127369',
+        //        usOut: '1720508354133603',
+        //        usDiff: '6234',
+        //        testnet: true
+        //    }
+        //
+        return [
+            this.safeOrder({
+                'info': response,
+            }),
+        ];
     }
     async fetchOpenOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**

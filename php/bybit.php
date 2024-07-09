@@ -3020,15 +3020,18 @@ class bybit extends Exchange {
         list($enableUnifiedMargin, $enableUnifiedAccount) = $this->is_unified_enabled();
         $isUnifiedAccount = ($enableUnifiedMargin || $enableUnifiedAccount);
         $type = null;
-        list($type, $params) = $this->handle_market_type_and_params('fetchBalance', null, $params);
+        list($type, $params) = $this->get_bybit_type('fetchBalance', null, $params);
         $isSpot = ($type === 'spot');
-        $isSwap = ($type === 'swap');
+        $isLinear = ($type === 'linear');
+        $isInverse = ($type === 'inverse');
         if ($isUnifiedAccount) {
-            if ($isSpot || $isSwap) {
+            if ($isInverse) {
+                $type = 'contract';
+            } else {
                 $type = 'unified';
             }
         } else {
-            if ($isSwap) {
+            if ($isLinear || $isInverse) {
                 $type = 'contract';
             }
         }
@@ -3290,13 +3293,13 @@ class bybit extends Exchange {
         if ($code !== null) {
             if ($code !== '0') {
                 $category = $this->safe_string($order, 'category');
-                $inferedMarketType = ($category === 'spot') ? 'spot' : 'contract';
+                $inferredMarketType = ($category === 'spot') ? 'spot' : 'contract';
                 return $this->safe_order(array(
                     'info' => $order,
                     'status' => 'rejected',
                     'id' => $this->safe_string($order, 'orderId'),
                     'clientOrderId' => $this->safe_string($order, 'orderLinkId'),
-                    'symbol' => $this->safe_symbol($this->safe_string($order, 'symbol'), null, null, $inferedMarketType),
+                    'symbol' => $this->safe_symbol($this->safe_string($order, 'symbol'), null, null, $inferredMarketType),
                 ));
             }
         }
@@ -3344,7 +3347,7 @@ class bybit extends Exchange {
                 $feeCurrencyCode = $market['inverse'] ? $market['base'] : $market['settle'];
             }
             $fee = array(
-                'cost' => $feeCostString,
+                'cost' => $this->parse_number($feeCostString),
                 'currency' => $feeCurrencyCode,
             );
         }

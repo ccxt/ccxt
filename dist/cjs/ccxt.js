@@ -187,10 +187,11 @@ var wazirx$1 = require('./src/pro/wazirx.js');
 var whitebit$1 = require('./src/pro/whitebit.js');
 var woo$1 = require('./src/pro/woo.js');
 var woofipro$1 = require('./src/pro/woofipro.js');
+var xt$1 = require('./src/pro/xt.js');
 
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
-const version = '4.3.55';
+const version = '4.3.58';
 Exchange["default"].ccxtVersion = version;
 const exchanges = {
     'ace': ace,
@@ -370,6 +371,7 @@ const pro = {
     'whitebit': whitebit$1,
     'woo': woo$1,
     'woofipro': woofipro$1,
+    'xt': xt$1,
 };
 pro.exchanges = Object.keys(pro);
 pro['Exchange'] = Exchange["default"]; // now the same for rest and ts
@@ -400,6 +402,7 @@ exports.InsufficientFunds = errors.InsufficientFunds;
 exports.InvalidAddress = errors.InvalidAddress;
 exports.InvalidNonce = errors.InvalidNonce;
 exports.InvalidOrder = errors.InvalidOrder;
+exports.InvalidProxySettings = errors.InvalidProxySettings;
 exports.MarginModeAlreadySet = errors.MarginModeAlreadySet;
 exports.MarketClosed = errors.MarketClosed;
 exports.NetworkError = errors.NetworkError;
@@ -414,7 +417,6 @@ exports.OrderNotCached = errors.OrderNotCached;
 exports.OrderNotFillable = errors.OrderNotFillable;
 exports.OrderNotFound = errors.OrderNotFound;
 exports.PermissionDenied = errors.PermissionDenied;
-exports.ProxyError = errors.ProxyError;
 exports.RateLimitExceeded = errors.RateLimitExceeded;
 exports.RequestTimeout = errors.RequestTimeout;
 exports.errors = errors;

@@ -660,9 +660,9 @@ public partial class binance : ccxt.binance
         {
             object symbol = getValue(symbols, i);
             object market = this.market(symbol);
-            object messageHash = add(add(getValue(market, "lowercaseId"), "@"), name);
-            ((IList<object>)messageHashes).Add(messageHash);
-            object symbolHash = add(add(add(messageHash, "@"), watchOrderBookRate), "ms");
+            ((IList<object>)messageHashes).Add(add("orderbook::", symbol));
+            object subscriptionHash = add(add(getValue(market, "lowercaseId"), "@"), name);
+            object symbolHash = add(add(add(subscriptionHash, "@"), watchOrderBookRate), "ms");
             ((IList<object>)subParams).Add(symbolHash);
         }
         object messageHashesLength = getArrayLength(messageHashes);
@@ -682,8 +682,7 @@ public partial class binance : ccxt.binance
             { "type", type },
             { "params", parameters },
         };
-        object message = this.extend(request, parameters);
-        object orderbook = await this.watchMultiple(url, messageHashes, message, messageHashes, subscription);
+        object orderbook = await this.watchMultiple(url, messageHashes, this.extend(request, parameters), messageHashes, subscription);
         return (orderbook as IOrderBook).limit();
     }
 
@@ -890,8 +889,7 @@ public partial class binance : ccxt.binance
         object marketId = this.safeString(message, "s");
         object market = this.safeMarket(marketId, null, null, marketType);
         object symbol = getValue(market, "symbol");
-        object name = "depth";
-        object messageHash = add(add(getValue(market, "lowercaseId"), "@"), name);
+        object messageHash = add("orderbook::", symbol);
         if (!isTrue((inOp(this.orderbooks, symbol))))
         {
             //
@@ -1060,13 +1058,15 @@ public partial class binance : ccxt.binance
         {
             type = ((bool) isTrue(getValue(firstMarket, "linear"))) ? "future" : "delivery";
         }
+        object messageHashes = new List<object>() {};
         object subParams = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
         {
             object symbol = getValue(symbols, i);
             object market = this.market(symbol);
-            object currentMessageHash = add(add(getValue(market, "lowercaseId"), "@"), name);
-            ((IList<object>)subParams).Add(currentMessageHash);
+            ((IList<object>)messageHashes).Add(add("trade::", symbol));
+            object rawHash = add(add(getValue(market, "lowercaseId"), "@"), name);
+            ((IList<object>)subParams).Add(rawHash);
         }
         object query = this.omit(parameters, "type");
         object subParamsLength = getArrayLength(subParams);
@@ -1080,7 +1080,7 @@ public partial class binance : ccxt.binance
         object subscribe = new Dictionary<string, object>() {
             { "id", requestId },
         };
-        object trades = await this.watchMultiple(url, subParams, this.extend(request, query), subParams, subscribe);
+        object trades = await this.watchMultiple(url, messageHashes, this.extend(request, query), messageHashes, subscribe);
         if (isTrue(this.newUpdates))
         {
             object first = this.safeValue(trades, 0);
@@ -1286,9 +1286,7 @@ public partial class binance : ccxt.binance
         object marketId = this.safeString(message, "s");
         object market = this.safeMarket(marketId, null, null, marketType);
         object symbol = getValue(market, "symbol");
-        object lowerCaseId = this.safeStringLower(message, "s");
-        object eventVar = this.safeString(message, "e");
-        object messageHash = add(add(lowerCaseId, "@"), eventVar);
+        object messageHash = add("trade::", symbol);
         object trade = this.parseWsTrade(message, market);
         object tradesArray = this.safeValue(this.trades, symbol);
         if (isTrue(isEqual(tradesArray, null)))

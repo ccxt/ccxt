@@ -103,16 +103,17 @@ public partial class btcmarkets : Exchange
             } },
             { "precisionMode", TICK_SIZE },
             { "exceptions", new Dictionary<string, object>() {
-                { "3", typeof(InvalidOrder) },
-                { "6", typeof(DDoSProtection) },
-                { "InsufficientFund", typeof(InsufficientFunds) },
-                { "InvalidPrice", typeof(InvalidOrder) },
-                { "InvalidAmount", typeof(InvalidOrder) },
-                { "MissingArgument", typeof(InvalidOrder) },
-                { "OrderAlreadyCancelled", typeof(InvalidOrder) },
-                { "OrderNotFound", typeof(OrderNotFound) },
-                { "OrderStatusIsFinal", typeof(InvalidOrder) },
-                { "InvalidPaginationParameter", typeof(BadRequest) },
+                { "exact", new Dictionary<string, object>() {
+                    { "InsufficientFund", typeof(InsufficientFunds) },
+                    { "InvalidPrice", typeof(InvalidOrder) },
+                    { "InvalidAmount", typeof(InvalidOrder) },
+                    { "MissingArgument", typeof(BadRequest) },
+                    { "OrderAlreadyCancelled", typeof(InvalidOrder) },
+                    { "OrderNotFound", typeof(OrderNotFound) },
+                    { "OrderStatusIsFinal", typeof(InvalidOrder) },
+                    { "InvalidPaginationParameter", typeof(BadRequest) },
+                } },
+                { "broad", new Dictionary<string, object>() {} },
             } },
             { "fees", new Dictionary<string, object>() {
                 { "percentage", true },
@@ -1351,24 +1352,18 @@ public partial class btcmarkets : Exchange
         {
             return null;  // fallback to default error handler
         }
-        if (isTrue(inOp(response, "success")))
+        //
+        //     {"code":"UnAuthorized","message":"invalid access token"}
+        //     {"code":"MarketNotFound","message":"invalid marketId"}
+        //
+        object errorCode = this.safeString(response, "code");
+        object message = this.safeString(response, "message");
+        if (isTrue(!isEqual(errorCode, null)))
         {
-            if (!isTrue(getValue(response, "success")))
-            {
-                object error = this.safeString(response, "errorCode");
-                object feedback = add(add(this.id, " "), body);
-                this.throwExactlyMatchedException(this.exceptions, error, feedback);
-                throw new ExchangeError ((string)feedback) ;
-            }
-        }
-        // v3 api errors
-        if (isTrue(isGreaterThanOrEqual(code, 400)))
-        {
-            object errorCode = this.safeString(response, "code");
-            object message = this.safeString(response, "message");
             object feedback = add(add(this.id, " "), body);
-            this.throwExactlyMatchedException(this.exceptions, errorCode, feedback);
-            this.throwExactlyMatchedException(this.exceptions, message, feedback);
+            this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), message, feedback);
+            this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), errorCode, feedback);
+            this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), message, feedback);
             throw new ExchangeError ((string)feedback) ;
         }
         return null;

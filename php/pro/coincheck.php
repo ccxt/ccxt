@@ -168,7 +168,7 @@ class coincheck extends \ccxt\async\coincheck {
         $client->resolve ($stored, $messageHash);
     }
 
-    public function parse_ws_trade($trade, ?array $market = null): array {
+    public function parse_ws_trade(array $trade, ?array $market = null): array {
         //
         //     array(
         //         "1663318663", // transaction $timestamp (unix time)

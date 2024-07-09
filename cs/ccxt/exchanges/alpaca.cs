@@ -740,7 +740,9 @@ public partial class alpaca : Exchange
             return this.parseOrders(response, null);
         } else
         {
-            return response;
+            return new List<object> {this.safeOrder(new Dictionary<string, object>() {
+    { "info", response },
+})};
         }
     }
 

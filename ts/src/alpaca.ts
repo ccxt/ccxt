@@ -814,7 +814,11 @@ export default class alpaca extends Exchange {
         if (Array.isArray (response)) {
             return this.parseOrders (response, undefined);
         } else {
-            return response;
+            return [
+                this.safeOrder ({
+                    'info': response,
+                }),
+            ];
         }
     }
 

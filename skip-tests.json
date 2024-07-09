@@ -1701,6 +1701,10 @@
             "fetchTickers": {
                 "ask": "weird values",
                 "bid": "weird values"
+            },
+            "watchOrderBook": {
+                "timestamp": "not provided",
+                "spread": "bid-ask crossing"
             }
         }
     },

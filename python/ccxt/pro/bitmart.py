@@ -452,7 +452,7 @@ class bitmart(ccxt.async_support.bitmart):
             client.resolve(newOrders, symbolSpecificMessageHash)
         client.resolve(newOrders, messageHash)
 
-    def parse_ws_order(self, order, market: Market = None):
+    def parse_ws_order(self, order: dict, market: Market = None):
         #
         # spot
         #    {
@@ -802,7 +802,7 @@ class bitmart(ccxt.async_support.bitmart):
         stored.append(trade)
         return symbol
 
-    def parse_ws_trade(self, trade, market: Market = None):
+    def parse_ws_trade(self, trade: dict, market: Market = None):
         # spot
         #    {
         #        "price": "52700.50",

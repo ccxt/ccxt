@@ -812,7 +812,11 @@ export default class alpaca extends Exchange {
             return this.parseOrders(response, undefined);
         }
         else {
-            return response;
+            return [
+                this.safeOrder({
+                    'info': response,
+                }),
+            ];
         }
     }
     async fetchOrder(id, symbol = undefined, params = {}) {

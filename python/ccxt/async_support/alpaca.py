@@ -787,7 +787,11 @@ class alpaca(Exchange, ImplicitAPI):
         if isinstance(response, list):
             return self.parse_orders(response, None)
         else:
-            return response
+            return [
+                self.safe_order({
+                    'info': response,
+                }),
+            ]
 
     async def fetch_order(self, id: str, symbol: Str = None, params={}):
         """

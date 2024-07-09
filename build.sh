@@ -211,16 +211,16 @@ ws_args=$(IFS=" " ; echo "${WS_EXCHANGES[*]}") || "skip"
 #request static tests
 for exchange in "${REST_EXCHANGES[@]}"; do
   npm run request-js -- $exchange
-  npm run request-py -- $exchange
-  npm run request-php -- $exchange
+  npm run request-py-sync -- $exchange && npm run request-py-async -- $exchange
+  npm run request-php-sync -- $exchange && npm run request-php-async -- $exchange
   npm run request-cs -- $exchange
 done
 
 #response static tests
 for exchange in "${REST_EXCHANGES[@]}"; do
   npm run response-js -- $exchange
-  npm run response-py -- $exchange
-  npm run response-php -- $exchange
+  npm run response-py-sync -- $exchange && npm run response-py-async -- $exchange
+  npm run response-php-sync -- $exchange && npm run response-php-async -- $exchange
   npm run response-cs -- $exchange
 done
 

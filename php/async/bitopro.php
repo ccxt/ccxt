@@ -1100,6 +1100,23 @@ class bitopro extends Exchange {
         }) ();
     }
 
+    public function parse_cancel_orders($data) {
+        $dataKeys = is_array($data) ? array_keys($data) : array();
+        $orders = array();
+        for ($i = 0; $i < count($dataKeys); $i++) {
+            $marketId = $dataKeys[$i];
+            $orderIds = $data[$marketId];
+            for ($j = 0; $j < count($orderIds); $j++) {
+                $orders[] = $this->safe_order(array(
+                    'info' => $orderIds[$j],
+                    'id' => $orderIds[$j],
+                    'symbol' => $this->safe_symbol($marketId),
+                ));
+            }
+        }
+        return $orders;
+    }
+
     public function cancel_orders($ids, ?string $symbol = null, $params = array ()) {
         return Async\async(function () use ($ids, $symbol, $params) {
             /**
@@ -1129,7 +1146,8 @@ class bitopro extends Exchange {
             //         }
             //     }
             //
-            return $response;
+            $data = $this->safe_dict($response, 'data');
+            return $this->parse_cancel_orders($data);
         }) ();
     }
 
@@ -1154,7 +1172,7 @@ class bitopro extends Exchange {
             } else {
                 $response = Async\await($this->privateDeleteOrdersAll ($this->extend($request, $params)));
             }
-            $result = $this->safe_value($response, 'data', array());
+            $data = $this->safe_value($response, 'data', array());
             //
             //     {
             //         "data":{
@@ -1165,7 +1183,7 @@ class bitopro extends Exchange {
             //         }
             //     }
             //
-            return $result;
+            return $this->parse_cancel_orders($data);
         }) ();
     }
 

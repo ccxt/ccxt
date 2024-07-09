@@ -86,6 +86,7 @@ interface kucoin {
     privateGetRedeemOrders(params?: {}): Promise<implicitReturnType>;
     privateGetPurchaseOrders(params?: {}): Promise<implicitReturnType>;
     privateGetBrokerApiRebaseDownload(params?: {}): Promise<implicitReturnType>;
+    privateGetAffiliateInviterStatistics(params?: {}): Promise<implicitReturnType>;
     privatePostSubUserCreated(params?: {}): Promise<implicitReturnType>;
     privatePostSubApiKey(params?: {}): Promise<implicitReturnType>;
     privatePostSubApiKeyUpdate(params?: {}): Promise<implicitReturnType>;

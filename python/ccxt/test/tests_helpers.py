@@ -25,7 +25,7 @@ import ccxt.pro as ccxtpro  # noqa: E402
 # from typing import Optional
 # from typing import List
 from ccxt.base.errors import NotSupported  # noqa: F401
-from ccxt.base.errors import ProxyError  # noqa: F401
+from ccxt.base.errors import InvalidProxySettings  # noqa: F401
 from ccxt.base.errors import OperationFailed  # noqa: F401
 # from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ExchangeNotAvailable  # noqa: F401

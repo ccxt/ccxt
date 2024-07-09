@@ -8,7 +8,7 @@
 import assert from 'assert';
 import { 
 // errors
-AuthenticationError, NotSupported, ProxyError, ExchangeNotAvailable, OperationFailed, OnMaintenance, 
+AuthenticationError, NotSupported, InvalidProxySettings, ExchangeNotAvailable, OperationFailed, OnMaintenance, 
 // shared
 getCliArgValue, baseMainTestClass, dump, jsonParse, jsonStringify, convertAscii, ioFileExists, ioFileRead, ioDirRead, callMethod, callExchangeMethodDynamically, callExchangeMethodDynamicallySync, exceptionMessage, exitScript, getExchangeProp, setExchangeProp, initExchange, getTestFiles, setFetchResponse, isNullValue, close, } from './tests.helpers.js';
 class testMainClass extends baseMainTestClass {
@@ -1088,7 +1088,7 @@ class testMainClass extends baseMainTestClass {
             }
         }
         catch (e) {
-            if (!(e instanceof ProxyError)) {
+            if (!(e instanceof InvalidProxySettings)) {
                 // if it's not a BadRequest, it means our request was not created succesfully
                 // so we might have an error in the request creation
                 throw e;

@@ -205,7 +205,7 @@ public partial class Exchange
         if (isTrue(isGreaterThan(length, 1)))
         {
             object joinedProxyNames = String.Join(",", ((IList<object>)usedProxies).ToArray());
-            throw new ProxyError ((string)add(add(add(this.id, " you have multiple conflicting proxy settings ("), joinedProxyNames), "), please use only one from : proxyUrl, proxy_url, proxyUrlCallback, proxy_url_callback")) ;
+            throw new InvalidProxySettings ((string)add(add(add(this.id, " you have multiple conflicting proxy settings ("), joinedProxyNames), "), please use only one from : proxyUrl, proxy_url, proxyUrlCallback, proxy_url_callback")) ;
         }
         return proxyUrl;
     }
@@ -284,7 +284,7 @@ public partial class Exchange
         if (isTrue(isGreaterThan(length, 1)))
         {
             object joinedProxyNames = String.Join(",", ((IList<object>)usedProxies).ToArray());
-            throw new ProxyError ((string)add(add(add(this.id, " you have multiple conflicting proxy settings ("), joinedProxyNames), "), please use only one from: httpProxy, httpsProxy, httpProxyCallback, httpsProxyCallback, socksProxy, socksProxyCallback")) ;
+            throw new InvalidProxySettings ((string)add(add(add(this.id, " you have multiple conflicting proxy settings ("), joinedProxyNames), "), please use only one from: httpProxy, httpsProxy, httpProxyCallback, httpsProxyCallback, socksProxy, socksProxyCallback")) ;
         }
         return new List<object>() {httpProxy, httpsProxy, socksProxy};
     }
@@ -333,7 +333,7 @@ public partial class Exchange
         if (isTrue(isGreaterThan(length, 1)))
         {
             object joinedProxyNames = String.Join(",", ((IList<object>)usedProxies).ToArray());
-            throw new ProxyError ((string)add(add(add(this.id, " you have multiple conflicting proxy settings ("), joinedProxyNames), "), please use only one from: wsProxy, wssProxy, wsSocksProxy")) ;
+            throw new InvalidProxySettings ((string)add(add(add(this.id, " you have multiple conflicting proxy settings ("), joinedProxyNames), "), please use only one from: wsProxy, wssProxy, wsSocksProxy")) ;
         }
         return new List<object>() {wsProxy, wssProxy, wsSocksProxy};
     }
@@ -342,7 +342,7 @@ public partial class Exchange
     {
         if (isTrue(isTrue(proxyAgentSet) && isTrue(proxyUrlSet)))
         {
-            throw new ProxyError ((string)add(this.id, " you have multiple conflicting proxy settings, please use only one from : proxyUrl, httpProxy, httpsProxy, socksProxy")) ;
+            throw new InvalidProxySettings ((string)add(this.id, " you have multiple conflicting proxy settings, please use only one from : proxyUrl, httpProxy, httpsProxy, socksProxy")) ;
         }
     }
 

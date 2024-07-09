@@ -155,16 +155,18 @@ class btcmarkets extends Exchange {
             ),
             'precisionMode' => TICK_SIZE,
             'exceptions' => array(
-                '3' => '\\ccxt\\InvalidOrder',
-                '6' => '\\ccxt\\DDoSProtection',
-                'InsufficientFund' => '\\ccxt\\InsufficientFunds',
-                'InvalidPrice' => '\\ccxt\\InvalidOrder',
-                'InvalidAmount' => '\\ccxt\\InvalidOrder',
-                'MissingArgument' => '\\ccxt\\InvalidOrder',
-                'OrderAlreadyCancelled' => '\\ccxt\\InvalidOrder',
-                'OrderNotFound' => '\\ccxt\\OrderNotFound',
-                'OrderStatusIsFinal' => '\\ccxt\\InvalidOrder',
-                'InvalidPaginationParameter' => '\\ccxt\\BadRequest',
+                'exact' => array(
+                    'InsufficientFund' => '\\ccxt\\InsufficientFunds',
+                    'InvalidPrice' => '\\ccxt\\InvalidOrder',
+                    'InvalidAmount' => '\\ccxt\\InvalidOrder',
+                    'MissingArgument' => '\\ccxt\\BadRequest',
+                    'OrderAlreadyCancelled' => '\\ccxt\\InvalidOrder',
+                    'OrderNotFound' => '\\ccxt\\OrderNotFound',
+                    'OrderStatusIsFinal' => '\\ccxt\\InvalidOrder',
+                    'InvalidPaginationParameter' => '\\ccxt\\BadRequest',
+                ),
+                'broad' => array(
+                ),
             ),
             'fees' => array(
                 'percentage' => true,
@@ -1310,24 +1312,20 @@ class btcmarkets extends Exchange {
 
     public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
         if ($response === null) {
-            return null; // fallback to default $error handler
+            return null; // fallback to default error handler
         }
-        if (is_array($response) && array_key_exists('success', $response)) {
-            if (!$response['success']) {
-                $error = $this->safe_string($response, 'errorCode');
-                $feedback = $this->id . ' ' . $body;
-                $this->throw_exactly_matched_exception($this->exceptions, $error, $feedback);
-                throw new ExchangeError($feedback);
-            }
-        }
-        // v3 api errors
-        if ($code >= 400) {
-            $errorCode = $this->safe_string($response, 'code');
-            $message = $this->safe_string($response, 'message');
+        //
+        //     array("code":"UnAuthorized","message":"invalid access token")
+        //     array("code":"MarketNotFound","message":"invalid marketId")
+        //
+        $errorCode = $this->safe_string($response, 'code');
+        $message = $this->safe_string($response, 'message');
+        if ($errorCode !== null) {
             $feedback = $this->id . ' ' . $body;
-            $this->throw_exactly_matched_exception($this->exceptions, $errorCode, $feedback);
-            $this->throw_exactly_matched_exception($this->exceptions, $message, $feedback);
-            throw new ExchangeError($feedback);
+            $this->throw_exactly_matched_exception($this->exceptions['exact'], $message, $feedback);
+            $this->throw_exactly_matched_exception($this->exceptions['exact'], $errorCode, $feedback);
+            $this->throw_broadly_matched_exception($this->exceptions['broad'], $message, $feedback);
+            throw new ExchangeError($feedback); // unknown $message
         }
         return null;
     }

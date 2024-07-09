@@ -1390,7 +1390,11 @@ class latoken extends Exchange {
         //         "status":"SUCCESS"
         //     }
         //
-        return $response;
+        return array(
+            $this->safe_order(array(
+                'info' => $response,
+            )),
+        );
     }
 
     public function fetch_transactions(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {

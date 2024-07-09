@@ -252,7 +252,7 @@ export default class bitopro extends bitoproRest {
         client.resolve (trades, messageHash + ':' + symbol);
     }
 
-    parseWsTrade (trade, market: Market = undefined): Trade {
+    parseWsTrade (trade: Dict, market: Market = undefined): Trade {
         //
         //     {
         //         "base": "usdt",

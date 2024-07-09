@@ -3172,20 +3172,24 @@ public partial class bybit : Exchange
         var enableUnifiedAccount = ((IList<object>) enableUnifiedMarginenableUnifiedAccountVariable)[1];
         object isUnifiedAccount = (isTrue(enableUnifiedMargin) || isTrue(enableUnifiedAccount));
         object type = null;
-        var typeparametersVariable = this.handleMarketTypeAndParams("fetchBalance", null, parameters);
+        var typeparametersVariable = this.getBybitType("fetchBalance", null, parameters);
         type = ((IList<object>)typeparametersVariable)[0];
         parameters = ((IList<object>)typeparametersVariable)[1];
         object isSpot = (isEqual(type, "spot"));
-        object isSwap = (isEqual(type, "swap"));
+        object isLinear = (isEqual(type, "linear"));
+        object isInverse = (isEqual(type, "inverse"));
         if (isTrue(isUnifiedAccount))
         {
-            if (isTrue(isTrue(isSpot) || isTrue(isSwap)))
+            if (isTrue(isInverse))
+            {
+                type = "contract";
+            } else
             {
                 type = "unified";
             }
         } else
         {
-            if (isTrue(isSwap))
+            if (isTrue(isTrue(isLinear) || isTrue(isInverse)))
             {
                 type = "contract";
             }
@@ -3455,13 +3459,13 @@ public partial class bybit : Exchange
             if (isTrue(!isEqual(code, "0")))
             {
                 object category = this.safeString(order, "category");
-                object inferedMarketType = ((bool) isTrue((isEqual(category, "spot")))) ? "spot" : "contract";
+                object inferredMarketType = ((bool) isTrue((isEqual(category, "spot")))) ? "spot" : "contract";
                 return this.safeOrder(new Dictionary<string, object>() {
                     { "info", order },
                     { "status", "rejected" },
                     { "id", this.safeString(order, "orderId") },
                     { "clientOrderId", this.safeString(order, "orderLinkId") },
-                    { "symbol", this.safeSymbol(this.safeString(order, "symbol"), null, null, inferedMarketType) },
+                    { "symbol", this.safeSymbol(this.safeString(order, "symbol"), null, null, inferredMarketType) },
                 });
             }
         }
@@ -3520,7 +3524,7 @@ public partial class bybit : Exchange
                 feeCurrencyCode = ((bool) isTrue(getValue(market, "inverse"))) ? getValue(market, "base") : getValue(market, "settle");
             }
             fee = new Dictionary<string, object>() {
-                { "cost", feeCostString },
+                { "cost", this.parseNumber(feeCostString) },
                 { "currency", feeCurrencyCode },
             };
         }

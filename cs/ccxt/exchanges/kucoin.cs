@@ -218,6 +218,7 @@ public partial class kucoin : Exchange
                         { "redeem/orders", 10 },
                         { "purchase/orders", 10 },
                         { "broker/api/rebase/download", 3 },
+                        { "affiliate/inviter/statistics", 30 },
                     } },
                     { "post", new Dictionary<string, object>() {
                         { "sub/user/created", 22.5 },
@@ -607,6 +608,7 @@ public partial class kucoin : Exchange
                             { "redeem/orders", "v3" },
                             { "purchase/orders", "v3" },
                             { "margin/symbols", "v3" },
+                            { "affiliate/inviter/statistics", "v2" },
                         } },
                         { "POST", new Dictionary<string, object>() {
                             { "sub/user/created", "v2" },
