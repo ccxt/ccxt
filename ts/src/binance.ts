@@ -2888,8 +2888,7 @@ export default class binance extends Exchange {
                 const keys = Object.keys (this.indexBy (res, 'symbol'));
                 const idsList = this.invertFlatStringDictionary (keys);
                 // first one is the cross-margin promise
-                const length = Object.entries (this.options['crossMarginPairsData']).length;
-                if (length === 0) {
+                if (!(Object.keys (this.options['crossMarginPairsData'])).length) {
                     this.options['crossMarginPairsData'] = idsList;
                 } else {
                     this.options['isolatedMarginPairsData'] = idsList;
