@@ -3187,13 +3187,13 @@ class bybit(Exchange, ImplicitAPI):
         if code is not None:
             if code != '0':
                 category = self.safe_string(order, 'category')
-                inferedMarketType = 'spot' if (category == 'spot') else 'contract'
+                inferredMarketType = 'spot' if (category == 'spot') else 'contract'
                 return self.safe_order({
                     'info': order,
                     'status': 'rejected',
                     'id': self.safe_string(order, 'orderId'),
                     'clientOrderId': self.safe_string(order, 'orderLinkId'),
-                    'symbol': self.safe_symbol(self.safe_string(order, 'symbol'), None, None, inferedMarketType),
+                    'symbol': self.safe_symbol(self.safe_string(order, 'symbol'), None, None, inferredMarketType),
                 })
         marketId = self.safe_string(order, 'symbol')
         isContract = ('tpslMode' in order)

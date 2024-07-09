@@ -3459,13 +3459,13 @@ public partial class bybit : Exchange
             if (isTrue(!isEqual(code, "0")))
             {
                 object category = this.safeString(order, "category");
-                object inferedMarketType = ((bool) isTrue((isEqual(category, "spot")))) ? "spot" : "contract";
+                object inferredMarketType = ((bool) isTrue((isEqual(category, "spot")))) ? "spot" : "contract";
                 return this.safeOrder(new Dictionary<string, object>() {
                     { "info", order },
                     { "status", "rejected" },
                     { "id", this.safeString(order, "orderId") },
                     { "clientOrderId", this.safeString(order, "orderLinkId") },
-                    { "symbol", this.safeSymbol(this.safeString(order, "symbol"), null, null, inferedMarketType) },
+                    { "symbol", this.safeSymbol(this.safeString(order, "symbol"), null, null, inferredMarketType) },
                 });
             }
         }
