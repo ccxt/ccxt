@@ -109,7 +109,7 @@ public partial class xt : ccxt.xt
         // return the first index of the cache that can be applied to the orderbook or -1 if not possible
         object nonce = this.safeInteger(orderbook, "nonce");
         object firstDelta = this.safeValue(cache, 0);
-        object firstDeltaNonce = this.safeInteger(firstDelta, "i");
+        object firstDeltaNonce = this.safeInteger2(firstDelta, "i", "u");
         if (isTrue(isLessThan(nonce, subtract(firstDeltaNonce, 1))))
         {
             return -1;
@@ -117,7 +117,7 @@ public partial class xt : ccxt.xt
         for (object i = 0; isLessThan(i, getArrayLength(cache)); postFixIncrement(ref i))
         {
             object delta = getValue(cache, i);
-            object deltaNonce = this.safeInteger(delta, "i");
+            object deltaNonce = this.safeInteger2(delta, "i", "u");
             if (isTrue(isGreaterThanOrEqual(deltaNonce, nonce)))
             {
                 return i;
@@ -128,7 +128,7 @@ public partial class xt : ccxt.xt
 
     public override void handleDelta(object orderbook, object delta)
     {
-        ((IDictionary<string,object>)orderbook)["nonce"] = this.safeInteger(delta, "i");
+        ((IDictionary<string,object>)orderbook)["nonce"] = this.safeInteger2(delta, "i", "u");
         object obAsks = this.safeList(delta, "a", new List<object>() {});
         object obBids = this.safeList(delta, "b", new List<object>() {});
         object bids = getValue(orderbook, "bids");

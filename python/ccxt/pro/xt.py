@@ -101,18 +101,18 @@ class xt(ccxt.async_support.xt):
         # return the first index of the cache that can be applied to the orderbook or -1 if not possible
         nonce = self.safe_integer(orderbook, 'nonce')
         firstDelta = self.safe_value(cache, 0)
-        firstDeltaNonce = self.safe_integer(firstDelta, 'i')
+        firstDeltaNonce = self.safe_integer_2(firstDelta, 'i', 'u')
         if nonce < firstDeltaNonce - 1:
             return -1
         for i in range(0, len(cache)):
             delta = cache[i]
-            deltaNonce = self.safe_integer(delta, 'i')
+            deltaNonce = self.safe_integer_2(delta, 'i', 'u')
             if deltaNonce >= nonce:
                 return i
         return len(cache)
 
     def handle_delta(self, orderbook, delta):
-        orderbook['nonce'] = self.safe_integer(delta, 'i')
+        orderbook['nonce'] = self.safe_integer_2(delta, 'i', 'u')
         obAsks = self.safe_list(delta, 'a', [])
         obBids = self.safe_list(delta, 'b', [])
         bids = orderbook['bids']
@@ -996,7 +996,7 @@ class xt(ccxt.async_support.xt):
         tradeType = 'contract' if market['contract'] else 'spot'
         client.resolve(stored, 'trade::' + tradeType)
 
-    def handle_message(self, client: Client, message: dict):
+    def handle_message(self, client: Client, message):
         event = self.safe_string(message, 'event')
         if event == 'pong':
             client.onPong()

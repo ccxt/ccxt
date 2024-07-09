@@ -25,7 +25,7 @@ export default class xt extends xtRest {
     handleOrder(client: Client, message: Dict): Dict;
     handleBalance(client: Client, message: Dict): void;
     handleMyTrades(client: Client, message: Dict): void;
-    handleMessage(client: Client, message: Dict): void;
+    handleMessage(client: Client, message: any): void;
     ping(client: Client): string;
     handleErrorMessage(client: Client, message: Dict): void;
 }

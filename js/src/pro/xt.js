@@ -103,13 +103,13 @@ export default class xt extends xtRest {
         // return the first index of the cache that can be applied to the orderbook or -1 if not possible
         const nonce = this.safeInteger(orderbook, 'nonce');
         const firstDelta = this.safeValue(cache, 0);
-        const firstDeltaNonce = this.safeInteger(firstDelta, 'i');
+        const firstDeltaNonce = this.safeInteger2(firstDelta, 'i', 'u');
         if (nonce < firstDeltaNonce - 1) {
             return -1;
         }
         for (let i = 0; i < cache.length; i++) {
             const delta = cache[i];
-            const deltaNonce = this.safeInteger(delta, 'i');
+            const deltaNonce = this.safeInteger2(delta, 'i', 'u');
             if (deltaNonce >= nonce) {
                 return i;
             }
@@ -117,7 +117,7 @@ export default class xt extends xtRest {
         return cache.length;
     }
     handleDelta(orderbook, delta) {
-        orderbook['nonce'] = this.safeInteger(delta, 'i');
+        orderbook['nonce'] = this.safeInteger2(delta, 'i', 'u');
         const obAsks = this.safeList(delta, 'a', []);
         const obBids = this.safeList(delta, 'b', []);
         const bids = orderbook['bids'];
