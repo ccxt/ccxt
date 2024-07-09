@@ -1072,7 +1072,7 @@ export default class xt extends xtRest {
         client.resolve (stored, 'trade::' + tradeType);
     }
 
-    handleMessage (client: Client, message: Dict) {
+    handleMessage (client: Client, message) {
         const event = this.safeString (message, 'event');
         if (event === 'pong') {
             client.onPong ();
