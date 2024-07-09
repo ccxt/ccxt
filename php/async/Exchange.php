@@ -915,15 +915,15 @@ class Exchange extends \ccxt\Exchange {
         throw new NotSupported($this->id . ' parseIsolatedBorrowRate() is not supported yet');
     }
 
-    public function parse_ws_trade($trade, ?array $market = null) {
+    public function parse_ws_trade(array $trade, ?array $market = null) {
         throw new NotSupported($this->id . ' parseWsTrade() is not supported yet');
     }
 
-    public function parse_ws_order($order, ?array $market = null) {
+    public function parse_ws_order(array $order, ?array $market = null) {
         throw new NotSupported($this->id . ' parseWsOrder() is not supported yet');
     }
 
-    public function parse_ws_order_trade($trade, ?array $market = null) {
+    public function parse_ws_order_trade(array $trade, ?array $market = null) {
         throw new NotSupported($this->id . ' parseWsOrderTrade() is not supported yet');
     }
 

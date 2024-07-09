@@ -269,7 +269,7 @@ class hyperliquid(ccxt.async_support.hyperliquid):
         messageHash = 'trade:' + symbol
         client.resolve(trades, messageHash)
 
-    def parse_ws_trade(self, trade, market: Market = None) -> Trade:
+    def parse_ws_trade(self, trade: dict, market: Market = None) -> Trade:
         #
         # fetchMyTrades
         #

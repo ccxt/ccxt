@@ -1,5 +1,5 @@
 import bitoproRest from '../bitopro.js';
-import type { Int, OrderBook, Trade, Ticker, Balances, Market, Str } from '../base/types.js';
+import type { Int, OrderBook, Trade, Ticker, Balances, Market, Str, Dict } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class bitopro extends bitoproRest {
     describe(): any;
@@ -10,7 +10,7 @@ export default class bitopro extends bitoproRest {
     handleTrade(client: Client, message: any): void;
     watchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     handleMyTrade(client: Client, message: any): void;
-    parseWsTrade(trade: any, market?: Market): Trade;
+    parseWsTrade(trade: Dict, market?: Market): Trade;
     watchTicker(symbol: string, params?: {}): Promise<Ticker>;
     handleTicker(client: Client, message: any): void;
     authenticate(url: any): void;

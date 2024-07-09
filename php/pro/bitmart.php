@@ -506,7 +506,7 @@ class bitmart extends \ccxt\async\bitmart {
         $client->resolve ($newOrders, $messageHash);
     }
 
-    public function parse_ws_order($order, ?array $market = null) {
+    public function parse_ws_order(array $order, ?array $market = null) {
         //
         // spot
         //    {
@@ -881,7 +881,7 @@ class bitmart extends \ccxt\async\bitmart {
         return $symbol;
     }
 
-    public function parse_ws_trade($trade, ?array $market = null) {
+    public function parse_ws_trade(array $trade, ?array $market = null) {
         // spot
         //    {
         //        "price" => "52700.50",

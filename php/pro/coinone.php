@@ -316,7 +316,7 @@ class coinone extends \ccxt\async\coinone {
         $client->resolve ($stored, $messageHash);
     }
 
-    public function parse_ws_trade($trade, ?array $market = null): array {
+    public function parse_ws_trade(array $trade, ?array $market = null): array {
         //
         //     {
         //         "quote_currency" => "KRW",

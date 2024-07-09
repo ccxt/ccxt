@@ -231,7 +231,7 @@ class bitopro(ccxt.async_support.bitopro):
         client.resolve(trades, messageHash)
         client.resolve(trades, messageHash + ':' + symbol)
 
-    def parse_ws_trade(self, trade, market: Market = None) -> Trade:
+    def parse_ws_trade(self, trade: dict, market: Market = None) -> Trade:
         #
         #     {
         #         "base": "usdt",

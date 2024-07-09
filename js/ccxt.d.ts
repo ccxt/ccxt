@@ -180,6 +180,7 @@ import wazirxPro from './src/pro/wazirx.js';
 import whitebitPro from './src/pro/whitebit.js';
 import wooPro from './src/pro/woo.js';
 import woofiproPro from './src/pro/woofipro.js';
+import xtPro from './src/pro/xt.js';
 declare const exchanges: {
     ace: typeof ace;
     alpaca: typeof alpaca;
@@ -358,6 +359,7 @@ declare const pro: {
     whitebit: typeof whitebitPro;
     woo: typeof wooPro;
     woofipro: typeof woofiproPro;
+    xt: typeof xtPro;
 };
 declare const ccxt: {
     version: string;
@@ -432,6 +434,7 @@ declare const ccxt: {
         whitebit: typeof whitebitPro;
         woo: typeof wooPro;
         woofipro: typeof woofiproPro;
+        xt: typeof xtPro;
     };
 } & {
     ace: typeof ace;

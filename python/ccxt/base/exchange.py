@@ -2258,13 +2258,13 @@ class Exchange(object):
     def parse_isolated_borrow_rate(self, info: dict, market: Market = None):
         raise NotSupported(self.id + ' parseIsolatedBorrowRate() is not supported yet')
 
-    def parse_ws_trade(self, trade, market: Market = None):
+    def parse_ws_trade(self, trade: dict, market: Market = None):
         raise NotSupported(self.id + ' parseWsTrade() is not supported yet')
 
-    def parse_ws_order(self, order, market: Market = None):
+    def parse_ws_order(self, order: dict, market: Market = None):
         raise NotSupported(self.id + ' parseWsOrder() is not supported yet')
 
-    def parse_ws_order_trade(self, trade, market: Market = None):
+    def parse_ws_order_trade(self, trade: dict, market: Market = None):
         raise NotSupported(self.id + ' parseWsOrderTrade() is not supported yet')
 
     def parse_ws_ohlcv(self, ohlcv, market: Market = None):

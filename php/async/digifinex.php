@@ -1920,9 +1920,39 @@ class digifinex extends Exchange {
                 if ($numCanceledOrders !== 1) {
                     throw new OrderNotFound($this->id . ' cancelOrder() ' . $id . ' not found');
                 }
+                $orders = $this->parse_cancel_orders($response);
+                return $this->safe_dict($orders, 0);
+            } else {
+                return $this->safe_order(array(
+                    'info' => $response,
+                    'orderId' => $this->safe_string($response, 'data'),
+                ));
             }
-            return $response;
         }) ();
+    }
+
+    public function parse_cancel_orders($response) {
+        $success = $this->safe_list($response, 'success');
+        $error = $this->safe_list($response, 'error');
+        $result = array();
+        for ($i = 0; $i < count($success); $i++) {
+            $order = $success[$i];
+            $result[] = $this->safe_order(array(
+                'info' => $order,
+                'id' => $order,
+                'status' => 'canceled',
+            ));
+        }
+        for ($i = 0; $i < count($error); $i++) {
+            $order = $error[$i];
+            $result[] = $this->safe_order(array(
+                'info' => $order,
+                'id' => $this->safe_string_2($order, 'order-id', 'order_id'),
+                'status' => 'failed',
+                'clientOrderId' => $this->safe_string($order, 'client-$order-id'),
+            ));
+        }
+        return $result;
     }
 
     public function cancel_orders($ids, ?string $symbol = null, $params = array ()) {
@@ -1955,12 +1985,7 @@ class digifinex extends Exchange {
             //         )
             //     }
             //
-            $canceledOrders = $this->safe_value($response, 'success', array());
-            $numCanceledOrders = count($canceledOrders);
-            if ($numCanceledOrders < 1) {
-                throw new OrderNotFound($this->id . ' cancelOrders() error');
-            }
-            return $response;
+            return $this->parse_cancel_orders($response);
         }) ();
     }
 

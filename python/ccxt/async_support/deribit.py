@@ -2022,7 +2022,21 @@ class deribit(Exchange, ImplicitAPI):
             market = self.market(symbol)
             request['instrument_name'] = market['id']
             response = await self.privateGetCancelAllByInstrument(self.extend(request, params))
-        return response
+        #
+        #    {
+        #        jsonrpc: '2.0',
+        #        result: '1',
+        #        usIn: '1720508354127369',
+        #        usOut: '1720508354133603',
+        #        usDiff: '6234',
+        #        testnet: True
+        #    }
+        #
+        return [
+            self.safe_order({
+                'info': response,
+            }),
+        ]
 
     async def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
