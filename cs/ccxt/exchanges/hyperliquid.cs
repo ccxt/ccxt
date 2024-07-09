@@ -89,7 +89,7 @@ public partial class hyperliquid : Exchange
                 { "fetchTickers", false },
                 { "fetchTime", false },
                 { "fetchTrades", true },
-                { "fetchTradingFee", false },
+                { "fetchTradingFee", true },
                 { "fetchTradingFees", false },
                 { "fetchTransfer", false },
                 { "fetchTransfers", false },
@@ -601,7 +601,7 @@ public partial class hyperliquid : Exchange
             { "limits", new Dictionary<string, object>() {
                 { "leverage", new Dictionary<string, object>() {
                     { "min", null },
-                    { "max", null },
+                    { "max", this.safeInteger(market, "maxLeverage") },
                 } },
                 { "amount", new Dictionary<string, object>() {
                     { "min", null },
@@ -1090,7 +1090,7 @@ public partial class hyperliquid : Exchange
         * @param {string} type 'market' or 'limit'
         * @param {string} side 'buy' or 'sell'
         * @param {float} amount how much of currency you want to trade in units of base currency
-        * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @param {string} [params.timeInForce] 'Gtc', 'Ioc', 'Alo'
         * @param {bool} [params.postOnly] true or false whether the order is post-only
@@ -1546,7 +1546,7 @@ public partial class hyperliquid : Exchange
         * @param {string} type 'market' or 'limit'
         * @param {string} side 'buy' or 'sell'
         * @param {float} amount how much of currency you want to trade in units of base currency
-        * @param {float} [price] the price at which the order is to be fullfilled, in units of the base currency, ignored in market orders
+        * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @param {string} [params.timeInForce] 'Gtc', 'Ioc', 'Alo'
         * @param {bool} [params.postOnly] true or false whether the order is post-only
@@ -2732,6 +2732,119 @@ public partial class hyperliquid : Exchange
             { "comment", null },
             { "internal", null },
             { "fee", null },
+        };
+    }
+
+    public async override Task<object> fetchTradingFee(object symbol, object parameters = null)
+    {
+        /**
+        * @method
+        * @name hyperliquid#fetchTradingFee
+        * @description fetch the trading fees for a market
+        * @param {string} symbol unified market symbol
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @param {string} [params.user] user address, will default to this.walletAddress if not provided
+        * @returns {object} a [fee structure]{@link https://docs.ccxt.com/#/?id=fee-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object userAddress = null;
+        var userAddressparametersVariable = this.handlePublicAddress("fetchTradingFee", parameters);
+        userAddress = ((IList<object>)userAddressparametersVariable)[0];
+        parameters = ((IList<object>)userAddressparametersVariable)[1];
+        object market = this.market(symbol);
+        object request = new Dictionary<string, object>() {
+            { "type", "userFees" },
+            { "user", userAddress },
+        };
+        object response = await this.publicPostInfo(this.extend(request, parameters));
+        //
+        //     {
+        //         "dailyUserVlm": [
+        //             {
+        //                 "date": "2024-07-08",
+        //                 "userCross": "0.0",
+        //                 "userAdd": "0.0",
+        //                 "exchange": "90597185.23639999"
+        //             }
+        //         ],
+        //         "feeSchedule": {
+        //             "cross": "0.00035",
+        //             "add": "0.0001",
+        //             "tiers": {
+        //                 "vip": [
+        //                     {
+        //                         "ntlCutoff": "5000000.0",
+        //                         "cross": "0.0003",
+        //                         "add": "0.00005"
+        //                     }
+        //                 ],
+        //                 "mm": [
+        //                     {
+        //                         "makerFractionCutoff": "0.005",
+        //                         "add": "-0.00001"
+        //                     }
+        //                 ]
+        //             },
+        //             "referralDiscount": "0.04"
+        //         },
+        //         "userCrossRate": "0.00035",
+        //         "userAddRate": "0.0001",
+        //         "activeReferralDiscount": "0.0"
+        //     }
+        //
+        object data = new Dictionary<string, object>() {
+            { "userCrossRate", this.safeString(response, "userCrossRate") },
+            { "userAddRate", this.safeString(response, "userAddRate") },
+        };
+        return this.parseTradingFee(data, market);
+    }
+
+    public virtual object parseTradingFee(object fee, object market = null)
+    {
+        //
+        //     {
+        //         "dailyUserVlm": [
+        //             {
+        //                 "date": "2024-07-08",
+        //                 "userCross": "0.0",
+        //                 "userAdd": "0.0",
+        //                 "exchange": "90597185.23639999"
+        //             }
+        //         ],
+        //         "feeSchedule": {
+        //             "cross": "0.00035",
+        //             "add": "0.0001",
+        //             "tiers": {
+        //                 "vip": [
+        //                     {
+        //                         "ntlCutoff": "5000000.0",
+        //                         "cross": "0.0003",
+        //                         "add": "0.00005"
+        //                     }
+        //                 ],
+        //                 "mm": [
+        //                     {
+        //                         "makerFractionCutoff": "0.005",
+        //                         "add": "-0.00001"
+        //                     }
+        //                 ]
+        //             },
+        //             "referralDiscount": "0.04"
+        //         },
+        //         "userCrossRate": "0.00035",
+        //         "userAddRate": "0.0001",
+        //         "activeReferralDiscount": "0.0"
+        //     }
+        //
+        object symbol = this.safeSymbol(null, market);
+        return new Dictionary<string, object>() {
+            { "info", fee },
+            { "symbol", symbol },
+            { "maker", this.safeNumber(fee, "userAddRate") },
+            { "taker", this.safeNumber(fee, "userCrossRate") },
+            { "percentage", null },
+            { "tierBased", null },
         };
     }
 

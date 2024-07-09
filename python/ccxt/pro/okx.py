@@ -1520,7 +1520,7 @@ class okx(ccxt.async_support.okx):
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
         :param float amount: how much of currency you want to trade in units of base currency
-        :param float|None [price]: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param float|None [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param boolean params['test']: test order, default False
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
@@ -1571,7 +1571,7 @@ class okx(ccxt.async_support.okx):
         if self.is_empty(args):
             method = self.safe_string(message, 'op')
             stringMsg = self.json(message)
-            self.handle_errors(None, None, client.url, method, None, stringMsg, stringMsg, None, None)
+            self.handle_errors(None, None, client.url, method, None, stringMsg, message, None, None)
         orders = self.parse_orders(args, None, None, None)
         first = self.safe_dict(orders, 0, {})
         client.resolve(first, messageHash)
@@ -1586,7 +1586,7 @@ class okx(ccxt.async_support.okx):
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
         :param float amount: how much of the currency you want to trade in units of the base currency
-        :param float|None [price]: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param float|None [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
@@ -1729,8 +1729,8 @@ class okx(ccxt.async_support.okx):
         future.resolve(True)
 
     def ping(self, client):
-        # okex does not support built-in ws protocol-level ping-pong
-        # instead it requires custom text-based ping-pong
+        # OKX does not support the built-in WebSocket protocol-level ping-pong.
+        # Instead, it requires a custom text-based ping-pong mechanism.
         return 'ping'
 
     def handle_pong(self, client: Client, message):

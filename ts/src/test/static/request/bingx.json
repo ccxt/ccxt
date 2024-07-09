@@ -498,6 +498,18 @@
                     "positionSide": "BOTH"
                   }
                 ]
+            },
+            {
+                "description": "Inverse swap create order",
+                "method": "createOrder",
+                "url": "https://open-api.bingx.com/openApi/cswap/v1/trade/order?positionSide=LONG&price=100&quantity=1&side=BUY&symbol=SOL-USD&timestamp=1720334783819&type=LIMIT&signature=7343c8212f5cfaca9c064c80e50ecc2f071e658ac98bea4581d164e1ed5643f5",
+                "input": [
+                  "SOL/USD:SOL",
+                  "limit",
+                  "buy",
+                  1,
+                  100
+                ]
             }
         ],
         "createOrders": [
@@ -1195,6 +1207,15 @@
                 "input": [
                     "BTC/USDT:USDT"
                 ]
+            },
+            {
+                "description": "inverse swap orderbook with symbol and limit arguments",
+                "method": "fetchOrderBook",
+                "url": "https://open-api.bingx.com/openApi/cswap/v1/market/depth?limit=5&symbol=BTC-USD&timestamp=1720164891997",
+                "input": [
+                  "BTC/USD:BTC",
+                  5
+                ]
             }
         ],
         "fetchTicker": [
@@ -1255,6 +1276,17 @@
                 "input": [
                     "BTC/USDT:USDT"
                 ]
+            },
+            {
+                "description": "inverse swap ohlcv with timeframe and limit arguments",
+                "method": "fetchOHLCV",
+                "url": "https://open-api.bingx.com/openApi/cswap/v1/market/klines?interval=1m&limit=3&symbol=BTC-USD&timestamp=1720124710777",
+                "input": [
+                  "BTC/USD:BTC",
+                  "1m",
+                  null,
+                  3
+                ]
             }
         ],
         "fetchFundingRateHistory": [
@@ -1274,6 +1306,14 @@
                 "url": "https://open-api.bingx.com/openApi/swap/v2/quote/premiumIndex?symbol=BTC-USDT&timestamp=1709992987600",
                 "input": [
                     "BTC/USDT:USDT"
+                ]
+            },
+            {
+                "description": "inverse swap fetch funding rate",
+                "method": "fetchFundingRate",
+                "url": "https://open-api.bingx.com/openApi/cswap/v1/market/premiumIndex?symbol=BTC-USD&timestamp=1720252368816",
+                "input": [
+                  "BTC/USD:BTC"
                 ]
             }
         ],
@@ -1307,6 +1347,24 @@
                 "url": "https://open-api.bingx.com/openApi/swap/v2/trade/forceOrders?autoCloseType=LIQUIDATION&symbol=BTC-USDT&timestamp=1713364573101&signature=f8eb5457ce479316113f59ab7c9be200d7bd2b39e394a480143b0f2ec59a1d91",
                 "input": [
                   "BTC/USDT:USDT"
+                ]
+            }
+        ],
+        "fetchOpenInterest": [
+            {
+                "description": "Linear swap fetch open interest",
+                "method": "fetchOpenInterest",
+                "url": "https://open-api.bingx.com/openApi/swap/v2/quote/openInterest?symbol=BTC-USDT&timestamp=1720328413135",
+                "input": [
+                  "BTC/USDT:USDT"
+                ]
+            },
+            {
+                "description": "Inverse swap fetch open interest",
+                "method": "fetchOpenInterest",
+                "url": "https://open-api.bingx.com/openApi/cswap/v1/market/openInterest?symbol=BTC-USD&timestamp=1720328338678",
+                "input": [
+                  "BTC/USD:BTC"
                 ]
             }
         ]

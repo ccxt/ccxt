@@ -2921,14 +2921,17 @@ class bybit(Exchange, ImplicitAPI):
         enableUnifiedMargin, enableUnifiedAccount = self.is_unified_enabled()
         isUnifiedAccount = (enableUnifiedMargin or enableUnifiedAccount)
         type = None
-        type, params = self.handle_market_type_and_params('fetchBalance', None, params)
+        type, params = self.get_bybit_type('fetchBalance', None, params)
         isSpot = (type == 'spot')
-        isSwap = (type == 'swap')
+        isLinear = (type == 'linear')
+        isInverse = (type == 'inverse')
         if isUnifiedAccount:
-            if isSpot or isSwap:
+            if isInverse:
+                type = 'contract'
+            else:
                 type = 'unified'
         else:
-            if isSwap:
+            if isLinear or isInverse:
                 type = 'contract'
         accountTypes = self.safe_dict(self.options, 'accountsByType', {})
         unifiedType = self.safe_string_upper(accountTypes, type, type)
@@ -3231,7 +3234,7 @@ class bybit(Exchange, ImplicitAPI):
             else:
                 feeCurrencyCode = market['base'] if market['inverse'] else market['settle']
             fee = {
-                'cost': feeCostString,
+                'cost': self.parse_number(feeCostString),
                 'currency': feeCurrencyCode,
             }
         clientOrderId = self.safe_string(order, 'orderLinkId')
@@ -3335,7 +3338,7 @@ class bybit(Exchange, ImplicitAPI):
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
         :param float amount: how much of currency you want to trade in units of base currency
-        :param float [price]: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.timeInForce]: "GTC", "IOC", "FOK"
         :param bool [params.postOnly]: True or False whether the order is post-only
@@ -3892,7 +3895,7 @@ class bybit(Exchange, ImplicitAPI):
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
         :param float amount: how much of currency you want to trade in units of base currency
-        :param float price: the price at which the order is to be fullfilled, in units of the base currency, ignored in market orders
+        :param float price: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param float [params.triggerPrice]: The price that a trigger order is triggered at
         :param float [params.stopLossPrice]: The price that a stop loss order is triggered at

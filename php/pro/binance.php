@@ -618,9 +618,9 @@ class binance extends \ccxt\async\binance {
             for ($i = 0; $i < count($symbols); $i++) {
                 $symbol = $symbols[$i];
                 $market = $this->market($symbol);
-                $messageHash = $market['lowercaseId'] . '@' . $name;
-                $messageHashes[] = $messageHash;
-                $symbolHash = $messageHash . '@' . $watchOrderBookRate . 'ms';
+                $messageHashes[] = 'orderbook::' . $symbol;
+                $subscriptionHash = $market['lowercaseId'] . '@' . $name;
+                $symbolHash = $subscriptionHash . '@' . $watchOrderBookRate . 'ms';
                 $subParams[] = $symbolHash;
             }
             $messageHashesLength = count($messageHashes);
@@ -640,8 +640,7 @@ class binance extends \ccxt\async\binance {
                 'type' => $type,
                 'params' => $params,
             );
-            $message = $this->extend($request, $params);
-            $orderbook = Async\await($this->watch_multiple($url, $messageHashes, $message, $messageHashes, $subscription));
+            $orderbook = Async\await($this->watch_multiple($url, $messageHashes, $this->extend($request, $params), $messageHashes, $subscription));
             return $orderbook->limit ();
         }) ();
     }
@@ -828,8 +827,7 @@ class binance extends \ccxt\async\binance {
         $marketId = $this->safe_string($message, 's');
         $market = $this->safe_market($marketId, null, null, $marketType);
         $symbol = $market['symbol'];
-        $name = 'depth';
-        $messageHash = $market['lowercaseId'] . '@' . $name;
+        $messageHash = 'orderbook::' . $symbol;
         if (!(is_array($this->orderbooks) && array_key_exists($symbol, $this->orderbooks))) {
             //
             // https://github.com/ccxt/ccxt/issues/6672
@@ -968,12 +966,14 @@ class binance extends \ccxt\async\binance {
             if ($firstMarket['contract']) {
                 $type = $firstMarket['linear'] ? 'future' : 'delivery';
             }
+            $messageHashes = array();
             $subParams = array();
             for ($i = 0; $i < count($symbols); $i++) {
                 $symbol = $symbols[$i];
                 $market = $this->market($symbol);
-                $currentMessageHash = $market['lowercaseId'] . '@' . $name;
-                $subParams[] = $currentMessageHash;
+                $messageHashes[] = 'trade::' . $symbol;
+                $rawHash = $market['lowercaseId'] . '@' . $name;
+                $subParams[] = $rawHash;
             }
             $query = $this->omit($params, 'type');
             $subParamsLength = count($subParams);
@@ -987,7 +987,7 @@ class binance extends \ccxt\async\binance {
             $subscribe = array(
                 'id' => $requestId,
             );
-            $trades = Async\await($this->watch_multiple($url, $subParams, $this->extend($request, $query), $subParams, $subscribe));
+            $trades = Async\await($this->watch_multiple($url, $messageHashes, $this->extend($request, $query), $messageHashes, $subscribe));
             if ($this->newUpdates) {
                 $first = $this->safe_value($trades, 0);
                 $tradeSymbol = $this->safe_string($first, 'symbol');
@@ -1182,9 +1182,7 @@ class binance extends \ccxt\async\binance {
         $marketId = $this->safe_string($message, 's');
         $market = $this->safe_market($marketId, null, null, $marketType);
         $symbol = $market['symbol'];
-        $lowerCaseId = $this->safe_string_lower($message, 's');
-        $event = $this->safe_string($message, 'e');
-        $messageHash = $lowerCaseId . '@' . $event;
+        $messageHash = 'trade::' . $symbol;
         $trade = $this->parse_ws_trade($message, $market);
         $tradesArray = $this->safe_value($this->trades, $symbol);
         if ($tradesArray === null) {
@@ -2367,7 +2365,7 @@ class binance extends \ccxt\async\binance {
              * @param {string} $type 'market' or 'limit'
              * @param {string} $side 'buy' or 'sell'
              * @param {float} $amount how much of currency you want to trade in units of base currency
-             * @param {float|null} [$price] the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
+             * @param {float|null} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {boolean} $params->test $test order, default false
              * @param {boolean} $params->returnRateLimits set to true to return rate limit information, default false
@@ -2518,7 +2516,7 @@ class binance extends \ccxt\async\binance {
              * @param {string} $type 'market' or 'limit'
              * @param {string} $side 'buy' or 'sell'
              * @param {float} $amount how much of the currency you want to trade in units of the base currency
-             * @param {float|null} [$price] the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
+             * @param {float|null} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} an ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
              */
@@ -3766,7 +3764,7 @@ class binance extends \ccxt\async\binance {
             $rejected = true;
             // private endpoint uses $id
             $client->reject ($e, $id);
-            // public endpoint stores messageHash in subscriptios
+            // public endpoint stores messageHash in subscriptions
             $subscriptionKeys = is_array($client->subscriptions) ? array_keys($client->subscriptions) : array();
             for ($i = 0; $i < count($subscriptionKeys); $i++) {
                 $subscriptionHash = $subscriptionKeys[$i];

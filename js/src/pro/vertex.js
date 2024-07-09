@@ -260,7 +260,7 @@ export default class vertex extends vertexRest {
         const price = this.convertFromX18(this.safeString(trade, 'price'));
         const amount = this.convertFromX18(this.safeString2(trade, 'taker_qty', 'filled_qty'));
         const cost = Precise.stringMul(price, amount);
-        const timestamp = Precise.stringDiv(this.safeString(trade, 'timestamp'), '1000000');
+        const timestamp = this.safeIntegerProduct(trade, 'timestamp', 0.000001);
         let takerOrMaker = undefined;
         const isTaker = this.safeBool(trade, 'is_taker');
         if (isTaker !== undefined) {
@@ -325,7 +325,7 @@ export default class vertex extends vertexRest {
         //     "ask_qty": "1000" // quantity at the lowest ask
         // }
         //
-        const timestamp = Precise.stringDiv(this.safeString(ticker, 'timestamp'), '1000000');
+        const timestamp = this.safeIntegerProduct(ticker, 'timestamp', 0.000001);
         return this.safeTicker({
             'symbol': this.safeSymbol(undefined, market),
             'timestamp': timestamp,

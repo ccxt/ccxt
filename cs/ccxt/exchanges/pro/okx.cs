@@ -1801,7 +1801,7 @@ public partial class okx : ccxt.okx
         * @param {string} type 'market' or 'limit'
         * @param {string} side 'buy' or 'sell'
         * @param {float} amount how much of currency you want to trade in units of base currency
-        * @param {float|undefined} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        * @param {float|undefined} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @param {boolean} params.test test order, default false
         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -1862,7 +1862,7 @@ public partial class okx : ccxt.okx
         {
             object method = this.safeString(message, "op");
             object stringMsg = this.json(message);
-            this.handleErrors(null, null, client.url, method, null, stringMsg, stringMsg, null, null);
+            this.handleErrors(null, null, client.url, method, null, stringMsg, message, null, null);
         }
         object orders = this.parseOrders(args, null, null, null);
         object first = this.safeDict(orders, 0, new Dictionary<string, object>() {});
@@ -1882,7 +1882,7 @@ public partial class okx : ccxt.okx
         * @param {string} type 'market' or 'limit'
         * @param {string} side 'buy' or 'sell'
         * @param {float} amount how much of the currency you want to trade in units of the base currency
-        * @param {float|undefined} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        * @param {float|undefined} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
         */
@@ -2066,8 +2066,8 @@ public partial class okx : ccxt.okx
 
     public override object ping(WebSocketClient client)
     {
-        // okex does not support built-in ws protocol-level ping-pong
-        // instead it requires custom text-based ping-pong
+        // OKX does not support the built-in WebSocket protocol-level ping-pong.
+        // Instead, it requires a custom text-based ping-pong mechanism.
         return "ping";
     }
 

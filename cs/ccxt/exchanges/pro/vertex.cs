@@ -279,7 +279,7 @@ public partial class vertex : ccxt.vertex
         object price = this.convertFromX18(this.safeString(trade, "price"));
         object amount = this.convertFromX18(this.safeString2(trade, "taker_qty", "filled_qty"));
         object cost = Precise.stringMul(price, amount);
-        object timestamp = Precise.stringDiv(this.safeString(trade, "timestamp"), "1000000");
+        object timestamp = this.safeIntegerProduct(trade, "timestamp", 0.000001);
         object takerOrMaker = null;
         object isTaker = this.safeBool(trade, "is_taker");
         if (isTrue(!isEqual(isTaker, null)))
@@ -351,7 +351,7 @@ public partial class vertex : ccxt.vertex
         //     "ask_qty": "1000" // quantity at the lowest ask
         // }
         //
-        object timestamp = Precise.stringDiv(this.safeString(ticker, "timestamp"), "1000000");
+        object timestamp = this.safeIntegerProduct(ticker, "timestamp", 0.000001);
         return this.safeTicker(new Dictionary<string, object>() {
             { "symbol", this.safeSymbol(null, market) },
             { "timestamp", timestamp },

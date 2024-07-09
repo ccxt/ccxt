@@ -522,6 +522,15 @@ The same is true not only for JS/ES6 but also for Python 3 async code as well. I
 
 Modern async syntax allows you to combine and split the execution into parallel pathways and then merge them, group them, prioritize them, and what not. With promises one can easily convert from direct async-style control flow to inverted callback-style control flow, back and forth.
 
+### Message Queue Configuration
+The client will return a message each time a message is received and the watch function is being awaited.
+However it can happen that due to the users code or a possible race condition a message is received and at that moment the watch function is not being awaited and therefore there is no future to resolve. In this case the message is saved in a messageQueue of the websocket client to be returned next time the watch function is called.
+
+To stop this behavior you can switch off the message queue by setting the following options:
+```
+exchange.options['ws']['useMessageQueue'] = false
+```
+
 ### Real-Time vs Throttling
 
 CCXT Pro supports two modes of tick function loops – the real-time mode and the throttling mode. Both of them are shown below in pseudocode:

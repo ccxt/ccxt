@@ -1531,7 +1531,7 @@ public partial class binance : Exchange
                         { "-3042", typeof(BadRequest) },
                         { "-3043", typeof(PermissionDenied) },
                         { "-3044", typeof(OperationFailed) },
-                        { "-3045", typeof(OperationFailed) },
+                        { "-3045", typeof(OperationRejected) },
                         { "-3999", typeof(PermissionDenied) },
                         { "-4000", typeof(ExchangeError) },
                         { "-4001", typeof(BadRequest) },
@@ -1547,7 +1547,7 @@ public partial class binance : Exchange
                         { "-4011", typeof(BadRequest) },
                         { "-4012", typeof(PermissionDenied) },
                         { "-4013", typeof(AuthenticationError) },
-                        { "-4014", typeof(OperationFailed) },
+                        { "-4014", typeof(OperationRejected) },
                         { "-4015", typeof(PermissionDenied) },
                         { "-4016", typeof(PermissionDenied) },
                         { "-4017", typeof(PermissionDenied) },
@@ -1556,7 +1556,7 @@ public partial class binance : Exchange
                         { "-4020", typeof(ExchangeError) },
                         { "-4021", typeof(BadRequest) },
                         { "-4022", typeof(BadRequest) },
-                        { "-4023", typeof(OperationFailed) },
+                        { "-4023", typeof(OperationRejected) },
                         { "-4024", typeof(InsufficientFunds) },
                         { "-4025", typeof(InsufficientFunds) },
                         { "-4026", typeof(InsufficientFunds) },
@@ -1565,7 +1565,7 @@ public partial class binance : Exchange
                         { "-4029", typeof(BadRequest) },
                         { "-4030", typeof(BadResponse) },
                         { "-4031", typeof(OperationFailed) },
-                        { "-4032", typeof(OperationFailed) },
+                        { "-4032", typeof(OperationRejected) },
                         { "-4033", typeof(BadRequest) },
                         { "-4034", typeof(OperationRejected) },
                         { "-4035", typeof(PermissionDenied) },
@@ -1685,7 +1685,7 @@ public partial class binance : Exchange
                         { "-5003", typeof(InsufficientFunds) },
                         { "-5004", typeof(OperationRejected) },
                         { "-5005", typeof(OperationRejected) },
-                        { "-5006", typeof(OperationFailed) },
+                        { "-5006", typeof(OperationRejected) },
                         { "-5007", typeof(BadRequest) },
                         { "-5008", typeof(OperationRejected) },
                         { "-5009", typeof(BadSymbol) },
@@ -1700,8 +1700,8 @@ public partial class binance : Exchange
                         { "-6004", typeof(BadRequest) },
                         { "-6005", typeof(BadRequest) },
                         { "-6006", typeof(BadRequest) },
-                        { "-6007", typeof(OperationFailed) },
-                        { "-6008", typeof(OperationFailed) },
+                        { "-6007", typeof(OperationRejected) },
+                        { "-6008", typeof(OperationRejected) },
                         { "-6009", typeof(RateLimitExceeded) },
                         { "-6011", typeof(OperationRejected) },
                         { "-6012", typeof(InsufficientFunds) },
@@ -4788,7 +4788,7 @@ public partial class binance : Exchange
         * @param {string} type 'market' or 'limit' or 'STOP_LOSS' or 'STOP_LOSS_LIMIT' or 'TAKE_PROFIT' or 'TAKE_PROFIT_LIMIT' or 'STOP'
         * @param {string} side 'buy' or 'sell'
         * @param {float} amount how much of currency you want to trade in units of base currency
-        * @param {float} [price] the price at which the order is to be fullfilled, in units of the base currency, ignored in market orders
+        * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         * @param {string} [params.marginMode] 'cross' or 'isolated', for spot margin trading
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -4857,7 +4857,7 @@ public partial class binance : Exchange
         * @param {string} type 'market' or 'limit' or 'STOP_LOSS' or 'STOP_LOSS_LIMIT' or 'TAKE_PROFIT' or 'TAKE_PROFIT_LIMIT' or 'STOP'
         * @param {string} side 'buy' or 'sell'
         * @param {float} amount how much of currency you want to trade in units of base currency
-        * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         * @param {object} params extra parameters specific to the exchange API endpoint
         * @param {string} [params.marginMode] 'cross' or 'isolated', for spot margin trading
         * @returns {object} request to be sent to the exchange
@@ -5044,7 +5044,7 @@ public partial class binance : Exchange
         * @param {string} type 'market' or 'limit'
         * @param {string} side 'buy' or 'sell'
         * @param {float} amount how much of currency you want to trade in units of base currency
-        * @param {float} [price] the price at which the order is to be fullfilled, in units of the base currency, ignored in market orders
+        * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
         */
@@ -5104,7 +5104,7 @@ public partial class binance : Exchange
         * @param {string} type 'market' or 'limit'
         * @param {string} side 'buy' or 'sell'
         * @param {float} amount how much of currency you want to trade in units of base currency
-        * @param {float} [price] the price at which the order is to be fullfilled, in units of the base currency, ignored in market orders
+        * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
         */
@@ -5827,7 +5827,7 @@ public partial class binance : Exchange
         * @param {string} type 'market' or 'limit' or 'STOP_LOSS' or 'STOP_LOSS_LIMIT' or 'TAKE_PROFIT' or 'TAKE_PROFIT_LIMIT' or 'STOP'
         * @param {string} side 'buy' or 'sell'
         * @param {float} amount how much of you want to trade in units of the base currency
-        * @param {float} [price] the price that the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        * @param {float} [price] the price that the order is to be fulfilled, in units of the quote currency, ignored in market orders
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @param {string} [params.reduceOnly] for swap and future reduceOnly is a string 'true' or 'false' that cant be sent with close position set to true or in hedge mode. For spot margin and option reduceOnly is a boolean.
         * @param {string} [params.marginMode] 'cross' or 'isolated', for spot margin trading
@@ -5946,7 +5946,7 @@ public partial class binance : Exchange
         * @param {string} type 'market' or 'limit'
         * @param {string} side 'buy' or 'sell'
         * @param {float} amount how much you want to trade in units of the base currency
-        * @param {float} [price] the price that the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        * @param {float} [price] the price that the order is to be fulfilled, in units of the quote currency, ignored in market orders
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} request to be sent to the exchange
         */

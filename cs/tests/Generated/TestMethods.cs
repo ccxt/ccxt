@@ -282,7 +282,11 @@ public partial class testMainClass : BaseTest
             dump(this.addPadding("[INFO] TESTING", 25), this.exchangeHint(exchange), methodName, argsStringified);
         }
         await callMethod(this.testFiles, methodName, exchange, skippedPropertiesForMethod, args);
-        // if it was passed successfully, add to the list of successfull tests
+        if (isTrue(this.info))
+        {
+            dump(this.addPadding("[INFO] TESTING DONE", 25), this.exchangeHint(exchange), methodName);
+        }
+        // add to the list of successed tests
         if (isTrue(isPublic))
         {
             ((IDictionary<string,object>)this.checkedPublicTests)[(string)methodName] = true;
@@ -364,7 +368,7 @@ public partial class testMainClass : BaseTest
         args ??= new List<object>();
         isPublic ??= false;
         object maxRetries = 3;
-        object argsStringified = exchange.json(args); // args.join() breaks when we provide a list of symbols | "args.toString()" breaks bcz of "array to string conversion"
+        object argsStringified = exchange.json(args); // args.join() breaks when we provide a list of symbols or multidimensional array; "args.toString()" breaks bcz of "array to string conversion"
         for (object i = 0; isLessThan(i, maxRetries); postFixIncrement(ref i))
         {
             try
@@ -844,17 +848,20 @@ public partial class testMainClass : BaseTest
             try
             {
                 await this.testMethod(proxyTestName, exchange, new List<object>() {}, true);
-                break; // if successfull, then break
+                return;  // if successfull, then end the test
             } catch(Exception e)
             {
                 exception = e;
+                await exchange.sleep(multiply(j, 1000));
             }
         }
         // if exception was set, then throw it
-        if (isTrue(exception))
+        if (isTrue(!isEqual(exception, null)))
         {
             object errorMessage = add(add(add("[TEST_FAILURE] Failed ", proxyTestName), " : "), exceptionMessage(exception));
-            throw new ExchangeError (((object)errorMessage).ToString()) ;
+            // temporary comment the below, because c# transpilation failure
+            // throw new ExchangeError (errorMessage.toString ());
+            dump(add("[TEST_WARNING]", ((object)errorMessage).ToString()));
         }
     }
 
@@ -1206,10 +1213,16 @@ public partial class testMainClass : BaseTest
         object requestUrl = null;
         try
         {
-            await callExchangeMethodDynamically(exchange, method, this.sanitizeDataInput(getValue(data, "input")));
+            if (!isTrue(this.isSynchronous))
+            {
+                await callExchangeMethodDynamically(exchange, method, this.sanitizeDataInput(getValue(data, "input")));
+            } else
+            {
+                callExchangeMethodDynamicallySync(exchange, method, this.sanitizeDataInput(getValue(data, "input")));
+            }
         } catch(Exception e)
         {
-            if (!isTrue((e is ProxyError)))
+            if (!isTrue((e is InvalidProxySettings)))
             {
                 throw e;
             }
@@ -1234,8 +1247,15 @@ public partial class testMainClass : BaseTest
         var mockedExchange = setFetchResponse(exchange, getValue(data, "httpResponse"));
         try
         {
-            object unifiedResult = await callExchangeMethodDynamically(exchange, method, this.sanitizeDataInput(getValue(data, "input")));
-            this.assertStaticResponseOutput(mockedExchange, skipKeys, unifiedResult, expectedResult);
+            if (!isTrue(this.isSynchronous))
+            {
+                object unifiedResult = await callExchangeMethodDynamically(exchange, method, this.sanitizeDataInput(getValue(data, "input")));
+                this.assertStaticResponseOutput(mockedExchange, skipKeys, unifiedResult, expectedResult);
+            } else
+            {
+                object unifiedResultSync = callExchangeMethodDynamicallySync(exchange, method, this.sanitizeDataInput(getValue(data, "input")));
+                this.assertStaticResponseOutput(mockedExchange, skipKeys, unifiedResultSync, expectedResult);
+            }
         } catch(Exception e)
         {
             this.requestTestsFailed = true;
@@ -1346,7 +1366,10 @@ public partial class testMainClass : BaseTest
                 exchange.extendExchangeOptions(exchange.deepExtend(oldExchangeOptions, new Dictionary<string, object>() {}));
             }
         }
-        await close(exchange);
+        if (!isTrue(this.isSynchronous))
+        {
+            await close(exchange);
+        }
         return true;  // in c# methods that will be used with promiseAll need to return something
     }
 
@@ -1421,7 +1444,10 @@ public partial class testMainClass : BaseTest
                 exchange.extendExchangeOptions(exchange.deepExtend(oldExchangeOptions, new Dictionary<string, object>() {}));
             }
         }
-        await close(exchange);
+        if (!isTrue(this.isSynchronous))
+        {
+            await close(exchange);
+        }
         return true;  // in c# methods that will be used with promiseAll need to return something
     }
 
@@ -1489,7 +1515,8 @@ public partial class testMainClass : BaseTest
             exitScript(1);
         } else
         {
-            object successMessage = add(add(add(add(add(add("[", this.lang), "][TEST_SUCCESS] "), ((object)sum).ToString()), " static "), type), " tests passed.");
+            object prefix = ((bool) isTrue((this.isSynchronous))) ? "[SYNC]" : "";
+            object successMessage = add(add(add(add(add(add(add(add("[", this.lang), "]"), prefix), "[TEST_SUCCESS] "), ((object)sum).ToString()), " static "), type), " tests passed.");
             dump(add("[INFO]", successMessage));
         }
     }

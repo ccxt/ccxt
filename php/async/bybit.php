@@ -3061,15 +3061,18 @@ class bybit extends Exchange {
             list($enableUnifiedMargin, $enableUnifiedAccount) = Async\await($this->is_unified_enabled());
             $isUnifiedAccount = ($enableUnifiedMargin || $enableUnifiedAccount);
             $type = null;
-            list($type, $params) = $this->handle_market_type_and_params('fetchBalance', null, $params);
+            list($type, $params) = $this->get_bybit_type('fetchBalance', null, $params);
             $isSpot = ($type === 'spot');
-            $isSwap = ($type === 'swap');
+            $isLinear = ($type === 'linear');
+            $isInverse = ($type === 'inverse');
             if ($isUnifiedAccount) {
-                if ($isSpot || $isSwap) {
+                if ($isInverse) {
+                    $type = 'contract';
+                } else {
                     $type = 'unified';
                 }
             } else {
-                if ($isSwap) {
+                if ($isLinear || $isInverse) {
                     $type = 'contract';
                 }
             }
@@ -3386,7 +3389,7 @@ class bybit extends Exchange {
                 $feeCurrencyCode = $market['inverse'] ? $market['base'] : $market['settle'];
             }
             $fee = array(
-                'cost' => $feeCostString,
+                'cost' => $this->parse_number($feeCostString),
                 'currency' => $feeCurrencyCode,
             );
         }
@@ -3509,7 +3512,7 @@ class bybit extends Exchange {
              * @param {string} $type 'market' or 'limit'
              * @param {string} $side 'buy' or 'sell'
              * @param {float} $amount how much of currency you want to trade in units of base currency
-             * @param {float} [$price] the $price at which the $order is to be fullfilled, in units of the quote currency, ignored in $market orders
+             * @param {float} [$price] the $price at which the $order is to be fulfilled, in units of the quote currency, ignored in $market orders
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->timeInForce] "GTC", "IOC", "FOK"
              * @param {bool} [$params->postOnly] true or false whether the $order is post-only
@@ -4143,7 +4146,7 @@ class bybit extends Exchange {
              * @param {string} $type 'market' or 'limit'
              * @param {string} $side 'buy' or 'sell'
              * @param {float} $amount how much of currency you want to trade in units of base currency
-             * @param {float} $price the $price at which the order is to be fullfilled, in units of the base currency, ignored in $market orders
+             * @param {float} $price the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {float} [$params->triggerPrice] The $price that a trigger order is triggered at
              * @param {float} [$params->stopLossPrice] The $price that a stop loss order is triggered at
