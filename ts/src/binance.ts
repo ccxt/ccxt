@@ -3196,7 +3196,7 @@ export default class binance extends Exchange {
         } else if (linear || inverse) {
             marginMode = {
                 'cross': true,
-                'isolated': false,
+                'isolated': true,
             };
         }
         let unifiedType = undefined;
