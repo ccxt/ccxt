@@ -75,6 +75,8 @@ public partial class gate : Exchange
                 { "borrowIsolatedMargin", true },
                 { "cancelAllOrders", true },
                 { "cancelOrder", true },
+                { "cancelOrders", true },
+                { "cancelOrdersForSymbols", true },
                 { "createMarketBuyOrderWithCost", true },
                 { "createMarketOrder", true },
                 { "createMarketOrderWithCost", false },
@@ -612,6 +614,7 @@ public partial class gate : Exchange
                 { "createOrder", new Dictionary<string, object>() {
                     { "expiration", 86400 },
                 } },
+                { "createMarketBuyOrderRequiresPrice", true },
                 { "networks", new Dictionary<string, object>() {
                     { "AVAXC", "AVAX_C" },
                     { "BEP20", "BSC" },
@@ -3967,7 +3970,7 @@ public partial class gate : Exchange
         * @param {string} type 'limit' or 'market' *"market" is contract only*
         * @param {string} side 'buy' or 'sell'
         * @param {float} amount the amount of currency to trade
-        * @param {float} [price] *ignored in "market" orders* the price at which the order is to be fullfilled at in units of the quote currency
+        * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         * @param {object} [params]  extra parameters specific to the exchange API endpoint
         * @param {float} [params.stopPrice] The price at which a trigger order is triggered at
         * @param {string} [params.timeInForce] "GTC", "IOC", or "PO"
@@ -4256,7 +4259,7 @@ public partial class gate : Exchange
                     ((IDictionary<string,object>)request)["price"] = price; // set to 0 for market orders
                 } else
                 {
-                    ((IDictionary<string,object>)request)["price"] = this.priceToPrecision(symbol, price);
+                    ((IDictionary<string,object>)request)["price"] = ((bool) isTrue((isEqual(price, 0)))) ? "0" : this.priceToPrecision(symbol, price);
                 }
                 if (isTrue(!isEqual(reduceOnly, null)))
                 {
@@ -4360,10 +4363,16 @@ public partial class gate : Exchange
                     { "initial", new Dictionary<string, object>() {
                         { "contract", getValue(market, "id") },
                         { "size", amount },
-                        { "price", this.priceToPrecision(symbol, price) },
                     } },
                     { "settle", getValue(market, "settleId") },
                 };
+                if (isTrue(isEqual(type, "market")))
+                {
+                    ((IDictionary<string,object>)getValue(request, "initial"))["price"] = "0";
+                } else
+                {
+                    ((IDictionary<string,object>)getValue(request, "initial"))["price"] = ((bool) isTrue((isEqual(price, 0)))) ? "0" : this.priceToPrecision(symbol, price);
+                }
                 if (isTrue(isEqual(trigger, null)))
                 {
                     object rule = null;
@@ -4534,7 +4543,7 @@ public partial class gate : Exchange
         * @param {string} type 'market' or 'limit'
         * @param {string} side 'buy' or 'sell'
         * @param {float} amount how much of the currency you want to trade in units of the base currency
-        * @param {float} [price] the price at which the order is to be fullfilled, in units of the base currency, ignored in market orders
+        * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
         */
@@ -4745,6 +4754,8 @@ public partial class gate : Exchange
         //        "message": "Not enough balance"
         //    }
         //
+        //  {"user_id":10406147,"id":"id","succeeded":false,"message":"INVALID_PROTOCOL","label":"INVALID_PROTOCOL"}
+        //
         object succeeded = this.safeBool(order, "succeeded", true);
         if (!isTrue(succeeded))
         {
@@ -4753,6 +4764,7 @@ public partial class gate : Exchange
                 { "clientOrderId", this.safeString(order, "text") },
                 { "info", order },
                 { "status", "rejected" },
+                { "id", this.safeString(order, "id") },
             });
         }
         object put = this.safeValue2(order, "put", "initial", new Dictionary<string, object>() {});
@@ -5423,6 +5435,107 @@ public partial class gate : Exchange
         //     }
         //
         return this.parseOrder(response, market);
+    }
+
+    public async virtual Task<object> cancelOrders(object ids, object symbol = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name gate#cancelOrders
+        * @description cancel multiple orders
+        * @see https://www.gate.io/docs/developers/apiv4/en/#cancel-a-batch-of-orders-with-an-id-list
+        * @see https://www.gate.io/docs/developers/apiv4/en/#cancel-a-batch-of-orders-with-an-id-list-2
+        * @param {string[]} ids order ids
+        * @param {string} symbol unified symbol of the market the order was made in
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object market = null;
+        if (isTrue(!isEqual(symbol, null)))
+        {
+            market = this.market(symbol);
+        }
+        object type = null;
+        object defaultSettle = ((bool) isTrue((isEqual(market, null)))) ? "usdt" : getValue(market, "settle");
+        object settle = this.safeStringLower(parameters, "settle", defaultSettle);
+        var typeparametersVariable = this.handleMarketTypeAndParams("cancelOrders", market, parameters);
+        type = ((IList<object>)typeparametersVariable)[0];
+        parameters = ((IList<object>)typeparametersVariable)[1];
+        object isSpot = (isEqual(type, "spot"));
+        if (isTrue(isTrue(isSpot) && isTrue((isEqual(symbol, null)))))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " cancelOrders requires a symbol argument for spot markets")) ;
+        }
+        if (isTrue(isSpot))
+        {
+            object ordersRequests = new List<object>() {};
+            for (object i = 0; isLessThan(i, getArrayLength(ids)); postFixIncrement(ref i))
+            {
+                object id = getValue(ids, i);
+                object orderItem = new Dictionary<string, object>() {
+                    { "id", id },
+                    { "symbol", symbol },
+                };
+                ((IList<object>)ordersRequests).Add(orderItem);
+            }
+            return await this.cancelOrdersForSymbols(ordersRequests, parameters);
+        }
+        object request = new Dictionary<string, object>() {
+            { "settle", settle },
+        };
+        object finalList = ((object)new List<object>() {request}); // hacky but needs to be done here
+        for (object i = 0; isLessThan(i, getArrayLength(ids)); postFixIncrement(ref i))
+        {
+            ((IList<object>)finalList).Add(getValue(ids, i));
+        }
+        object response = await this.privateFuturesPostSettleBatchCancelOrders(finalList);
+        return this.parseOrders(response);
+    }
+
+    public async override Task<object> cancelOrdersForSymbols(object orders, object parameters = null)
+    {
+        /**
+        * @method
+        * @name gate#cancelOrdersForSymbols
+        * @description cancel multiple orders for multiple symbols
+        * @see https://www.gate.io/docs/developers/apiv4/en/#cancel-a-batch-of-orders-with-an-id-list
+        * @param {string[]} ids order ids
+        * @param {string} symbol unified symbol of the market the order was made in
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @param {string[]} [params.clientOrderIds] client order ids
+        * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object ordersRequests = new List<object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(orders)); postFixIncrement(ref i))
+        {
+            object order = getValue(orders, i);
+            object symbol = this.safeString(order, "symbol");
+            object market = this.market(symbol);
+            if (!isTrue(getValue(market, "spot")))
+            {
+                throw new NotSupported ((string)add(this.id, " cancelOrdersForSymbols() supports only spot markets")) ;
+            }
+            object id = this.safeString(order, "id");
+            object orderItem = new Dictionary<string, object>() {
+                { "id", id },
+                { "currency_pair", getValue(market, "id") },
+            };
+            ((IList<object>)ordersRequests).Add(orderItem);
+        }
+        object response = await this.privateSpotPostCancelBatchOrders(ordersRequests);
+        //
+        // [
+        //     {
+        //       "currency_pair": "BTC_USDT",
+        //       "id": "123456"
+        //     }
+        // ]
+        //
+        return this.parseOrders(response);
     }
 
     public async override Task<object> cancelAllOrders(object symbol = null, object parameters = null)
@@ -6531,7 +6644,23 @@ public partial class gate : Exchange
         object authentication = getValue(api, 0); // public, private
         object type = getValue(api, 1); // spot, margin, future, delivery
         object query = this.omit(parameters, this.extractParams(path));
-        if (isTrue(((parameters is IList<object>) || (parameters.GetType().IsGenericType && parameters.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
+        object containsSettle = isGreaterThan(getIndexOf(path, "settle"), -1);
+        if (isTrue(isTrue(containsSettle) && isTrue(((string)path).EndsWith(((string)"batch_cancel_orders")))))
+        {
+            // special case where we need to extract the settle from the path
+            // but the body is an array of strings
+            object settle = this.safeDict(parameters, 0);
+            path = this.implodeParams(path, settle);
+            // remove the first element from params
+            object newParams = new List<object>() {};
+            object anyParams = ((object)parameters);
+            for (object i = 1; isLessThan(i, getArrayLength(anyParams)); postFixIncrement(ref i))
+            {
+                ((IList<object>)newParams).Add(getValue(parameters, i));
+            }
+            parameters = newParams;
+            query = newParams;
+        } else if (isTrue(((parameters is IList<object>) || (parameters.GetType().IsGenericType && parameters.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
         {
             // endpoints like createOrders use an array instead of an object
             // so we infer the settle from one of the elements
@@ -8075,6 +8204,7 @@ public partial class gate : Exchange
         //    {"label": "INVALID_PARAM_VALUE", "message": "invalid argument: Trigger.rule"}
         //    {"label": "INVALID_PARAM_VALUE", "message": "invalid argument: trigger.expiration invalid range"}
         //    {"label": "INVALID_ARGUMENT", "detail": "invalid size"}
+        //    {"user_id":10406147,"id":"id","succeeded":false,"message":"INVALID_PROTOCOL","label":"INVALID_PROTOCOL"}
         //
         object label = this.safeString(response, "label");
         if (isTrue(!isEqual(label, null)))

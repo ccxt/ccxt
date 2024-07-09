@@ -199,8 +199,8 @@ class CCXTProTranspiler extends Transpiler {
             name: testName,
             tsFile: this.wsTestsDirectories.ts + currentFolder + testName + '.ts',
             pyFileSync: this.wsTestsDirectories.py + currentFolder + testNameUncameled + '.py',
-            pyHeaders: ['\n', 'from ccxt.async_support.base.ws.order_book import OrderBook, IndexedOrderBook, CountedOrderBook  # noqa: F402', '\n', '\n', this.arrayEqualFunctionForPy, '\n'],
-            phpHeaders: [ '\n', this.arrayEqualFunctionForPhp, '\n'],
+            pyHeaders: ['\n', 'from ccxt.async_support.base.ws.order_book import OrderBook, IndexedOrderBook, CountedOrderBook  # noqa: F402', '\n', '\n'],
+            phpHeaders: [],
             phpFileSync: this.wsTestsDirectories.php + currentFolder + testNameUncameled + '.php',
         };
         this.transpileAndSaveExchangeTests ([test]);
@@ -215,8 +215,8 @@ class CCXTProTranspiler extends Transpiler {
             name: testName,
             tsFile: this.wsTestsDirectories.ts + currentFolder + testName + '.ts',
             pyFileSync: this.wsTestsDirectories.py + currentFolder + testNameUncameled + '.py',
-            pyHeaders: ['from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide  # noqa: F402', '\n', '\n', this.arrayEqualFunctionForPy, '\n'],
-            phpHeaders: [ '\n', this.arrayEqualFunctionForPhp, '\n'],
+            pyHeaders: ['from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide  # noqa: F402', '\n', '\n'],
+            phpHeaders: [],
             phpFileSync: this.wsTestsDirectories.php + currentFolder + testNameUncameled + '.php',
         };
         this.transpileAndSaveExchangeTests ([test]);

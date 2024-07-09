@@ -3172,20 +3172,24 @@ public partial class bybit : Exchange
         var enableUnifiedAccount = ((IList<object>) enableUnifiedMarginenableUnifiedAccountVariable)[1];
         object isUnifiedAccount = (isTrue(enableUnifiedMargin) || isTrue(enableUnifiedAccount));
         object type = null;
-        var typeparametersVariable = this.handleMarketTypeAndParams("fetchBalance", null, parameters);
+        var typeparametersVariable = this.getBybitType("fetchBalance", null, parameters);
         type = ((IList<object>)typeparametersVariable)[0];
         parameters = ((IList<object>)typeparametersVariable)[1];
         object isSpot = (isEqual(type, "spot"));
-        object isSwap = (isEqual(type, "swap"));
+        object isLinear = (isEqual(type, "linear"));
+        object isInverse = (isEqual(type, "inverse"));
         if (isTrue(isUnifiedAccount))
         {
-            if (isTrue(isTrue(isSpot) || isTrue(isSwap)))
+            if (isTrue(isInverse))
+            {
+                type = "contract";
+            } else
             {
                 type = "unified";
             }
         } else
         {
-            if (isTrue(isSwap))
+            if (isTrue(isTrue(isLinear) || isTrue(isInverse)))
             {
                 type = "contract";
             }
@@ -3520,7 +3524,7 @@ public partial class bybit : Exchange
                 feeCurrencyCode = ((bool) isTrue(getValue(market, "inverse"))) ? getValue(market, "base") : getValue(market, "settle");
             }
             fee = new Dictionary<string, object>() {
-                { "cost", feeCostString },
+                { "cost", this.parseNumber(feeCostString) },
                 { "currency", feeCurrencyCode },
             };
         }
@@ -3659,7 +3663,7 @@ public partial class bybit : Exchange
         * @param {string} type 'market' or 'limit'
         * @param {string} side 'buy' or 'sell'
         * @param {float} amount how much of currency you want to trade in units of base currency
-        * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @param {string} [params.timeInForce] "GTC", "IOC", "FOK"
         * @param {bool} [params.postOnly] true or false whether the order is post-only
@@ -4363,7 +4367,7 @@ public partial class bybit : Exchange
         * @param {string} type 'market' or 'limit'
         * @param {string} side 'buy' or 'sell'
         * @param {float} amount how much of currency you want to trade in units of base currency
-        * @param {float} price the price at which the order is to be fullfilled, in units of the base currency, ignored in market orders
+        * @param {float} price the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @param {float} [params.triggerPrice] The price that a trigger order is triggered at
         * @param {float} [params.stopLossPrice] The price that a stop loss order is triggered at

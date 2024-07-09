@@ -14,6 +14,24 @@
   order = await exchange.createMarketBuyOrderWithCost(symbol, cost)
   ```
 
+## What does the `createMarketBuyRequiresPrice` option mean?
+
+Many exchanges require the amount to be in the quote currency (they don't accept the base amount) when placing spot-market buy orders. In those cases, the exchange will have the option `createMarketBuyRequiresPrice` set to `true`.
+
+Example: If you wanted to buy BTC/USDT with a market buy-order, you would need to provide an amount = 5 USDT instead of 0.000X. We have a check to prevent errors that explicitly require the price because users will usually provide the amount in the base currency.
+
+So by default, if you do, `create_order(symbol, 'market,' 'buy,' 10)` will throw an error if the exchange has that option (`createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false...`).
+
+If the exchange requires the cost and the user provided the base amount, we need to request an extra parameter **price** and multiply them to get the cost. If you're aware of this behavior, you can simply disable `createMarketBuyOrderRequiresPrice` and pass the cost in the amount parameter, but disabling it does not mean you can place the order using the base amount instead of the quote.
+
+If you do `create_order(symbol, 'market', 'buy', 0.001, 20000)`  ccxt will use the required price to calculate the cost by doing `0.01*20000` and send that value to the exchange.
+
+If you want to provide the cost directly in the amount argument, you can do `exchange.options['createMarketBuyOrderRequiresPrice'] = False` (you acknowledge that the amount will be the cost for market-buy) and then you can do `create_order(symbol, 'market', 'buy', 10)`
+
+This is basically to avoid a user doing this: `create_order('SHIB/USDT', market, buy, 1000000)` and thinking he's trying to buy 1kk of shib but in reality he's buying 1kk USDT worth of SHIB. For that reason, by default ccxt always accepts the base currency in the amount parameter.
+
+Alternatively, you can use the functions `createMarketBuyOrderWithCost`/ `createMarketSellOrderWithCost` if they are available.
+
   See more: [Market Buys](Manual.md#market-buys)
 
   ## What's the difference between trading spot and swap/perpetual futures?

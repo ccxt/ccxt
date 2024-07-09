@@ -256,7 +256,7 @@ class vertex(ccxt.async_support.vertex):
         price = self.convertFromX18(self.safe_string(trade, 'price'))
         amount = self.convertFromX18(self.safe_string_2(trade, 'taker_qty', 'filled_qty'))
         cost = Precise.string_mul(price, amount)
-        timestamp = Precise.string_div(self.safe_string(trade, 'timestamp'), '1000000')
+        timestamp = self.safe_integer_product(trade, 'timestamp', 0.000001)
         takerOrMaker = None
         isTaker = self.safe_bool(trade, 'is_taker')
         if isTaker is not None:
@@ -317,7 +317,7 @@ class vertex(ccxt.async_support.vertex):
         #     "ask_qty": "1000"  # quantity at the lowest ask
         # }
         #
-        timestamp = Precise.string_div(self.safe_string(ticker, 'timestamp'), '1000000')
+        timestamp = self.safe_integer_product(ticker, 'timestamp', 0.000001)
         return self.safe_ticker({
             'symbol': self.safe_symbol(None, market),
             'timestamp': timestamp,

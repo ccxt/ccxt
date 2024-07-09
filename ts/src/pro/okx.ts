@@ -1663,7 +1663,7 @@ export default class okx extends okxRest {
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float|undefined} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {float|undefined} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {boolean} params.test test order, default false
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -1717,7 +1717,7 @@ export default class okx extends okxRest {
         if (this.isEmpty (args)) {
             const method = this.safeString (message, 'op');
             const stringMsg = this.json (message);
-            this.handleErrors (undefined, undefined, client.url, method, undefined, stringMsg, stringMsg, undefined, undefined);
+            this.handleErrors (undefined, undefined, client.url, method, undefined, stringMsg, message, undefined, undefined);
         }
         const orders = this.parseOrders (args, undefined, undefined, undefined);
         const first = this.safeDict (orders, 0, {});
@@ -1736,7 +1736,7 @@ export default class okx extends okxRest {
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of the currency you want to trade in units of the base currency
-         * @param {float|undefined} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {float|undefined} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
@@ -1899,8 +1899,8 @@ export default class okx extends okxRest {
     }
 
     ping (client) {
-        // okex does not support built-in ws protocol-level ping-pong
-        // instead it requires custom text-based ping-pong
+        // OKX does not support the built-in WebSocket protocol-level ping-pong.
+        // Instead, it requires a custom text-based ping-pong mechanism.
         return 'ping';
     }
 
