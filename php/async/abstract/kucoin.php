@@ -148,6 +148,9 @@ abstract class kucoin extends \ccxt\async\Exchange {
     public function private_get_hf_orders_active_symbols($params = array()) {
         return $this->request('hf/orders/active/symbols', 'private', 'GET', $params, null, null, array("cost" => 2));
     }
+    public function private_get_hf_margin_order_active_symbols($params = array()) {
+        return $this->request('hf/margin/order/active/symbols', 'private', 'GET', $params, null, null, array("cost" => 2));
+    }
     public function private_get_hf_orders_done($params = array()) {
         return $this->request('hf/orders/done', 'private', 'GET', $params, null, null, array("cost" => 2));
     }
@@ -229,6 +232,9 @@ abstract class kucoin extends \ccxt\async\Exchange {
     public function private_get_isolated_symbols($params = array()) {
         return $this->request('isolated/symbols', 'private', 'GET', $params, null, null, array("cost" => 20));
     }
+    public function private_get_margin_symbols($params = array()) {
+        return $this->request('margin/symbols', 'private', 'GET', $params, null, null, array("cost" => 5));
+    }
     public function private_get_isolated_account_symbol($params = array()) {
         return $this->request('isolated/account/{symbol}', 'private', 'GET', $params, null, null, array("cost" => 50));
     }
@@ -237,6 +243,9 @@ abstract class kucoin extends \ccxt\async\Exchange {
     }
     public function private_get_margin_repay($params = array()) {
         return $this->request('margin/repay', 'private', 'GET', $params, null, null, array("cost" => 15));
+    }
+    public function private_get_margin_interest($params = array()) {
+        return $this->request('margin/interest', 'private', 'GET', $params, null, null, array("cost" => 20));
     }
     public function private_get_project_list($params = array()) {
         return $this->request('project/list', 'private', 'GET', $params, null, null, array("cost" => 10));
@@ -249,6 +258,12 @@ abstract class kucoin extends \ccxt\async\Exchange {
     }
     public function private_get_purchase_orders($params = array()) {
         return $this->request('purchase/orders', 'private', 'GET', $params, null, null, array("cost" => 10));
+    }
+    public function private_get_broker_api_rebase_download($params = array()) {
+        return $this->request('broker/api/rebase/download', 'private', 'GET', $params, null, null, array("cost" => 3));
+    }
+    public function private_get_affiliate_inviter_statistics($params = array()) {
+        return $this->request('affiliate/inviter/statistics', 'private', 'GET', $params, null, null, array("cost" => 30));
     }
     public function private_post_sub_user_created($params = array()) {
         return $this->request('sub/user/created', 'private', 'POST', $params, null, null, array("cost" => 22.5));
@@ -345,6 +360,9 @@ abstract class kucoin extends \ccxt\async\Exchange {
     }
     public function private_post_bullet_private($params = array()) {
         return $this->request('bullet-private', 'private', 'POST', $params, null, null, array("cost" => 10));
+    }
+    public function private_post_position_update_user_leverage($params = array()) {
+        return $this->request('position/update-user-leverage', 'private', 'POST', $params, null, null, array("cost" => 5));
     }
     public function private_delete_sub_api_key($params = array()) {
         return $this->request('sub/api-key', 'private', 'DELETE', $params, null, null, array("cost" => 45));
@@ -562,6 +580,75 @@ abstract class kucoin extends \ccxt\async\Exchange {
     public function webexchange_get_currency_currency_chain_info($params = array()) {
         return $this->request('currency/currency/chain-info', 'webExchange', 'GET', $params, null, null, array("cost" => 1));
     }
+    public function broker_get_broker_nd_info($params = array()) {
+        return $this->request('broker/nd/info', 'broker', 'GET', $params, null, null, array("cost" => 2));
+    }
+    public function broker_get_broker_nd_account($params = array()) {
+        return $this->request('broker/nd/account', 'broker', 'GET', $params, null, null, array("cost" => 2));
+    }
+    public function broker_get_broker_nd_account_apikey($params = array()) {
+        return $this->request('broker/nd/account/apikey', 'broker', 'GET', $params, null, null, array("cost" => 2));
+    }
+    public function broker_get_broker_nd_rebase_download($params = array()) {
+        return $this->request('broker/nd/rebase/download', 'broker', 'GET', $params, null, null, array("cost" => 3));
+    }
+    public function broker_get_broker_nd_transfer_detail($params = array()) {
+        return $this->request('broker/nd/transfer/detail', 'broker', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function broker_get_broker_nd_deposit_detail($params = array()) {
+        return $this->request('broker/nd/deposit/detail', 'broker', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function broker_get_broker_nd_withdraw_detail($params = array()) {
+        return $this->request('broker/nd/withdraw/detail', 'broker', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function broker_post_broker_nd_transfer($params = array()) {
+        return $this->request('broker/nd/transfer', 'broker', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function broker_post_broker_nd_account($params = array()) {
+        return $this->request('broker/nd/account', 'broker', 'POST', $params, null, null, array("cost" => 3));
+    }
+    public function broker_post_broker_nd_account_apikey($params = array()) {
+        return $this->request('broker/nd/account/apikey', 'broker', 'POST', $params, null, null, array("cost" => 3));
+    }
+    public function broker_post_broker_nd_account_update_apikey($params = array()) {
+        return $this->request('broker/nd/account/update-apikey', 'broker', 'POST', $params, null, null, array("cost" => 3));
+    }
+    public function broker_delete_broker_nd_account_apikey($params = array()) {
+        return $this->request('broker/nd/account/apikey', 'broker', 'DELETE', $params, null, null, array("cost" => 3));
+    }
+    public function earn_get_otc_loan_loan($params = array()) {
+        return $this->request('otc-loan/loan', 'earn', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function earn_get_otc_loan_accounts($params = array()) {
+        return $this->request('otc-loan/accounts', 'earn', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function earn_get_earn_redeem_preview($params = array()) {
+        return $this->request('earn/redeem-preview', 'earn', 'GET', $params, null, null, array("cost" => 7.5));
+    }
+    public function earn_get_earn_saving_products($params = array()) {
+        return $this->request('earn/saving/products', 'earn', 'GET', $params, null, null, array("cost" => 7.5));
+    }
+    public function earn_get_earn_hold_assets($params = array()) {
+        return $this->request('earn/hold-assets', 'earn', 'GET', $params, null, null, array("cost" => 7.5));
+    }
+    public function earn_get_earn_promotion_products($params = array()) {
+        return $this->request('earn/promotion/products', 'earn', 'GET', $params, null, null, array("cost" => 7.5));
+    }
+    public function earn_get_earn_kcs_staking_products($params = array()) {
+        return $this->request('earn/kcs-staking/products', 'earn', 'GET', $params, null, null, array("cost" => 7.5));
+    }
+    public function earn_get_earn_staking_products($params = array()) {
+        return $this->request('earn/staking/products', 'earn', 'GET', $params, null, null, array("cost" => 7.5));
+    }
+    public function earn_get_earn_eth_staking_products($params = array()) {
+        return $this->request('earn/eth-staking/products', 'earn', 'GET', $params, null, null, array("cost" => 7.5));
+    }
+    public function earn_post_earn_orders($params = array()) {
+        return $this->request('earn/orders', 'earn', 'POST', $params, null, null, array("cost" => 7.5));
+    }
+    public function earn_delete_earn_orders($params = array()) {
+        return $this->request('earn/orders', 'earn', 'DELETE', $params, null, null, array("cost" => 7.5));
+    }
     public function publicGetCurrencies($params = array()) {
         return $this->request('currencies', 'public', 'GET', $params, null, null, array("cost" => 4.5));
     }
@@ -703,6 +790,9 @@ abstract class kucoin extends \ccxt\async\Exchange {
     public function privateGetHfOrdersActiveSymbols($params = array()) {
         return $this->request('hf/orders/active/symbols', 'private', 'GET', $params, null, null, array("cost" => 2));
     }
+    public function privateGetHfMarginOrderActiveSymbols($params = array()) {
+        return $this->request('hf/margin/order/active/symbols', 'private', 'GET', $params, null, null, array("cost" => 2));
+    }
     public function privateGetHfOrdersDone($params = array()) {
         return $this->request('hf/orders/done', 'private', 'GET', $params, null, null, array("cost" => 2));
     }
@@ -784,6 +874,9 @@ abstract class kucoin extends \ccxt\async\Exchange {
     public function privateGetIsolatedSymbols($params = array()) {
         return $this->request('isolated/symbols', 'private', 'GET', $params, null, null, array("cost" => 20));
     }
+    public function privateGetMarginSymbols($params = array()) {
+        return $this->request('margin/symbols', 'private', 'GET', $params, null, null, array("cost" => 5));
+    }
     public function privateGetIsolatedAccountSymbol($params = array()) {
         return $this->request('isolated/account/{symbol}', 'private', 'GET', $params, null, null, array("cost" => 50));
     }
@@ -792,6 +885,9 @@ abstract class kucoin extends \ccxt\async\Exchange {
     }
     public function privateGetMarginRepay($params = array()) {
         return $this->request('margin/repay', 'private', 'GET', $params, null, null, array("cost" => 15));
+    }
+    public function privateGetMarginInterest($params = array()) {
+        return $this->request('margin/interest', 'private', 'GET', $params, null, null, array("cost" => 20));
     }
     public function privateGetProjectList($params = array()) {
         return $this->request('project/list', 'private', 'GET', $params, null, null, array("cost" => 10));
@@ -804,6 +900,12 @@ abstract class kucoin extends \ccxt\async\Exchange {
     }
     public function privateGetPurchaseOrders($params = array()) {
         return $this->request('purchase/orders', 'private', 'GET', $params, null, null, array("cost" => 10));
+    }
+    public function privateGetBrokerApiRebaseDownload($params = array()) {
+        return $this->request('broker/api/rebase/download', 'private', 'GET', $params, null, null, array("cost" => 3));
+    }
+    public function privateGetAffiliateInviterStatistics($params = array()) {
+        return $this->request('affiliate/inviter/statistics', 'private', 'GET', $params, null, null, array("cost" => 30));
     }
     public function privatePostSubUserCreated($params = array()) {
         return $this->request('sub/user/created', 'private', 'POST', $params, null, null, array("cost" => 22.5));
@@ -900,6 +1002,9 @@ abstract class kucoin extends \ccxt\async\Exchange {
     }
     public function privatePostBulletPrivate($params = array()) {
         return $this->request('bullet-private', 'private', 'POST', $params, null, null, array("cost" => 10));
+    }
+    public function privatePostPositionUpdateUserLeverage($params = array()) {
+        return $this->request('position/update-user-leverage', 'private', 'POST', $params, null, null, array("cost" => 5));
     }
     public function privateDeleteSubApiKey($params = array()) {
         return $this->request('sub/api-key', 'private', 'DELETE', $params, null, null, array("cost" => 45));
@@ -1116,5 +1221,74 @@ abstract class kucoin extends \ccxt\async\Exchange {
     }
     public function webExchangeGetCurrencyCurrencyChainInfo($params = array()) {
         return $this->request('currency/currency/chain-info', 'webExchange', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function brokerGetBrokerNdInfo($params = array()) {
+        return $this->request('broker/nd/info', 'broker', 'GET', $params, null, null, array("cost" => 2));
+    }
+    public function brokerGetBrokerNdAccount($params = array()) {
+        return $this->request('broker/nd/account', 'broker', 'GET', $params, null, null, array("cost" => 2));
+    }
+    public function brokerGetBrokerNdAccountApikey($params = array()) {
+        return $this->request('broker/nd/account/apikey', 'broker', 'GET', $params, null, null, array("cost" => 2));
+    }
+    public function brokerGetBrokerNdRebaseDownload($params = array()) {
+        return $this->request('broker/nd/rebase/download', 'broker', 'GET', $params, null, null, array("cost" => 3));
+    }
+    public function brokerGetBrokerNdTransferDetail($params = array()) {
+        return $this->request('broker/nd/transfer/detail', 'broker', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function brokerGetBrokerNdDepositDetail($params = array()) {
+        return $this->request('broker/nd/deposit/detail', 'broker', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function brokerGetBrokerNdWithdrawDetail($params = array()) {
+        return $this->request('broker/nd/withdraw/detail', 'broker', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function brokerPostBrokerNdTransfer($params = array()) {
+        return $this->request('broker/nd/transfer', 'broker', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function brokerPostBrokerNdAccount($params = array()) {
+        return $this->request('broker/nd/account', 'broker', 'POST', $params, null, null, array("cost" => 3));
+    }
+    public function brokerPostBrokerNdAccountApikey($params = array()) {
+        return $this->request('broker/nd/account/apikey', 'broker', 'POST', $params, null, null, array("cost" => 3));
+    }
+    public function brokerPostBrokerNdAccountUpdateApikey($params = array()) {
+        return $this->request('broker/nd/account/update-apikey', 'broker', 'POST', $params, null, null, array("cost" => 3));
+    }
+    public function brokerDeleteBrokerNdAccountApikey($params = array()) {
+        return $this->request('broker/nd/account/apikey', 'broker', 'DELETE', $params, null, null, array("cost" => 3));
+    }
+    public function earnGetOtcLoanLoan($params = array()) {
+        return $this->request('otc-loan/loan', 'earn', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function earnGetOtcLoanAccounts($params = array()) {
+        return $this->request('otc-loan/accounts', 'earn', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function earnGetEarnRedeemPreview($params = array()) {
+        return $this->request('earn/redeem-preview', 'earn', 'GET', $params, null, null, array("cost" => 7.5));
+    }
+    public function earnGetEarnSavingProducts($params = array()) {
+        return $this->request('earn/saving/products', 'earn', 'GET', $params, null, null, array("cost" => 7.5));
+    }
+    public function earnGetEarnHoldAssets($params = array()) {
+        return $this->request('earn/hold-assets', 'earn', 'GET', $params, null, null, array("cost" => 7.5));
+    }
+    public function earnGetEarnPromotionProducts($params = array()) {
+        return $this->request('earn/promotion/products', 'earn', 'GET', $params, null, null, array("cost" => 7.5));
+    }
+    public function earnGetEarnKcsStakingProducts($params = array()) {
+        return $this->request('earn/kcs-staking/products', 'earn', 'GET', $params, null, null, array("cost" => 7.5));
+    }
+    public function earnGetEarnStakingProducts($params = array()) {
+        return $this->request('earn/staking/products', 'earn', 'GET', $params, null, null, array("cost" => 7.5));
+    }
+    public function earnGetEarnEthStakingProducts($params = array()) {
+        return $this->request('earn/eth-staking/products', 'earn', 'GET', $params, null, null, array("cost" => 7.5));
+    }
+    public function earnPostEarnOrders($params = array()) {
+        return $this->request('earn/orders', 'earn', 'POST', $params, null, null, array("cost" => 7.5));
+    }
+    public function earnDeleteEarnOrders($params = array()) {
+        return $this->request('earn/orders', 'earn', 'DELETE', $params, null, null, array("cost" => 7.5));
     }
 }

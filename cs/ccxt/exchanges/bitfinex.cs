@@ -404,7 +404,7 @@ public partial class bitfinex : Exchange
         //        }
         //    }
         //
-        object withdraw = this.safeValue(response, "withdraw");
+        object withdraw = this.safeList(response, "withdraw");
         return this.parseDepositWithdrawFees(withdraw, codes);
     }
 
@@ -857,7 +857,9 @@ public partial class bitfinex : Exchange
         object result = new Dictionary<string, object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
         {
-            object ticker = this.parseTicker(getValue(response, i));
+            object ticker = this.parseTicker(new Dictionary<string, object>() {
+                { "result", getValue(response, i) },
+            });
             object symbol = getValue(ticker, "symbol");
             ((IDictionary<string,object>)result)[(string)symbol] = ticker;
         }
@@ -882,11 +884,35 @@ public partial class bitfinex : Exchange
             { "symbol", getValue(market, "id") },
         };
         object ticker = await this.publicGetPubtickerSymbol(this.extend(request, parameters));
+        //
+        //    {
+        //        mid: '63560.5',
+        //        bid: '63560.0',
+        //        ask: '63561.0',
+        //        last_price: '63547.0',
+        //        low: '62812.0',
+        //        high: '64480.0',
+        //        volume: '517.25634977',
+        //        timestamp: '1715102384.9849467'
+        //    }
+        //
         return this.parseTicker(ticker, market);
     }
 
     public override object parseTicker(object ticker, object market = null)
     {
+        //
+        //    {
+        //        mid: '63560.5',
+        //        bid: '63560.0',
+        //        ask: '63561.0',
+        //        last_price: '63547.0',
+        //        low: '62812.0',
+        //        high: '64480.0',
+        //        volume: '517.25634977',
+        //        timestamp: '1715102384.9849467'
+        //    }
+        //
         object timestamp = this.safeTimestamp(ticker, "timestamp");
         object marketId = this.safeString(ticker, "pair");
         market = this.safeMarket(marketId, market);
@@ -1076,7 +1102,7 @@ public partial class bitfinex : Exchange
         * @param {string} type 'market' or 'limit'
         * @param {string} side 'buy' or 'sell'
         * @param {float} amount how much of currency you want to trade in units of base currency
-        * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
         */
@@ -1376,6 +1402,9 @@ public partial class bitfinex : Exchange
         if (isTrue(isEqual(limit, null)))
         {
             limit = 100;
+        } else
+        {
+            limit = mathMin(limit, 10000);
         }
         object market = this.market(symbol);
         object v2id = add("t", getValue(market, "id"));

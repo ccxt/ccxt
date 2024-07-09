@@ -15,9 +15,7 @@ const errorHierarchy = {
                 'NoChange': {
                     'MarginModeAlreadySet': {},
                 },
-            },
-            'BadResponse': {
-                'NullResponse': {},
+                'MarketClosed': {},
             },
             'InsufficientFunds': {},
             'InvalidAddress': {
@@ -26,14 +24,14 @@ const errorHierarchy = {
             'InvalidOrder': {
                 'OrderNotFound': {},
                 'OrderNotCached': {},
-                'CancelPending': {},
                 'OrderImmediatelyFillable': {},
                 'OrderNotFillable': {},
                 'DuplicateOrderId': {},
                 'ContractUnavailable': {},
             },
             'NotSupported': {},
-            'ProxyError': {},
+            'InvalidProxySettings': {},
+            'ExchangeClosedByUser': {},
         },
         'OperationFailed': {
             'NetworkError': {
@@ -45,8 +43,11 @@ const errorHierarchy = {
                 'InvalidNonce': {},
                 'RequestTimeout': {},
             },
+            'BadResponse': {
+                'NullResponse': {},
+            },
+            'CancelPending': {},
         },
-        'ExchangeClosedByUser': {},
     },
 };
 

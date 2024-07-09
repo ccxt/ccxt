@@ -25,6 +25,7 @@ public partial class bitmex : Exchange
                 { "option", false },
                 { "addMargin", null },
                 { "cancelAllOrders", true },
+                { "cancelAllOrdersAfter", true },
                 { "cancelOrder", true },
                 { "cancelOrders", true },
                 { "closeAllPositions", false },
@@ -48,9 +49,11 @@ public partial class bitmex : Exchange
                 { "fetchFundingRates", true },
                 { "fetchIndexOHLCV", false },
                 { "fetchLedger", true },
-                { "fetchLeverage", false },
+                { "fetchLeverage", "emulated" },
+                { "fetchLeverages", true },
                 { "fetchLeverageTiers", false },
                 { "fetchLiquidations", true },
+                { "fetchMarginAdjustmentHistory", false },
                 { "fetchMarketLeverageTiers", false },
                 { "fetchMarkets", true },
                 { "fetchMarkOHLCV", false },
@@ -62,7 +65,9 @@ public partial class bitmex : Exchange
                 { "fetchOrderBook", true },
                 { "fetchOrders", true },
                 { "fetchPosition", false },
+                { "fetchPositionHistory", false },
                 { "fetchPositions", true },
+                { "fetchPositionsHistory", false },
                 { "fetchPositionsRisk", false },
                 { "fetchPremiumIndexOHLCV", false },
                 { "fetchTicker", true },
@@ -72,6 +77,7 @@ public partial class bitmex : Exchange
                 { "fetchTransfer", false },
                 { "fetchTransfers", false },
                 { "reduceMargin", null },
+                { "sandbox", true },
                 { "setLeverage", true },
                 { "setMargin", null },
                 { "setMarginMode", true },
@@ -221,6 +227,7 @@ public partial class bitmex : Exchange
                     { "orderQty is invalid", typeof(InvalidOrder) },
                     { "Invalid price", typeof(InvalidOrder) },
                     { "Invalid stopPx for ordType", typeof(InvalidOrder) },
+                    { "Account is restricted", typeof(PermissionDenied) },
                 } },
                 { "broad", new Dictionary<string, object>() {
                     { "Signature not valid", typeof(AuthenticationError) },
@@ -1578,7 +1585,7 @@ public partial class bitmex : Exchange
         }
         // send JSON key/value pairs, such as {"key": "value"}
         // filter by individual fields and do advanced queries on timestamps
-        // let filter = { 'key': 'value' };
+        // let filter: Dict = { 'key': 'value' };
         // send a bare series (e.g. XBU) to nearest expiring contract in that series
         // you can also send a timeframe, e.g. XBU:monthly
         // timeframes: daily, weekly, monthly, quarterly, and biquarterly
@@ -1599,7 +1606,7 @@ public partial class bitmex : Exchange
             ((IDictionary<string,object>)request)["endTime"] = this.iso8601(until);
         }
         object duration = multiply(this.parseTimeframe(timeframe), 1000);
-        object fetchOHLCVOpenTimestamp = this.safeValue(this.options, "fetchOHLCVOpenTimestamp", true);
+        object fetchOHLCVOpenTimestamp = this.safeBool(this.options, "fetchOHLCVOpenTimestamp", true);
         // if since is not set, they will return candles starting from 2017-01-01
         if (isTrue(!isEqual(since, null)))
         {
@@ -1977,7 +1984,7 @@ public partial class bitmex : Exchange
         * @param {string} type 'market' or 'limit'
         * @param {string} side 'buy' or 'sell'
         * @param {float} amount how much of currency you want to trade in units of base currency
-        * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @param {object} [params.triggerPrice] the price at which a trigger order is triggered at
         * @param {object} [params.triggerDirection] the direction whenever the trigger happens with relation to price - 'above' or 'below'
@@ -2274,6 +2281,61 @@ public partial class bitmex : Exchange
         //     ]
         //
         return this.parseOrders(response, market);
+    }
+
+    public async override Task<object> cancelAllOrdersAfter(object timeout, object parameters = null)
+    {
+        /**
+        * @method
+        * @name bitmex#cancelAllOrdersAfter
+        * @description dead man's switch, cancel all orders after the given timeout
+        * @see https://www.bitmex.com/api/explorer/#!/Order/Order_cancelAllAfter
+        * @param {number} timeout time in milliseconds, 0 represents cancel the timer
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {object} the api result
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object request = new Dictionary<string, object>() {
+            { "timeout", ((bool) isTrue((isGreaterThan(timeout, 0)))) ? this.parseToInt(divide(timeout, 1000)) : 0 },
+        };
+        object response = await this.privatePostOrderCancelAllAfter(this.extend(request, parameters));
+        //
+        //     {
+        //         now: '2024-04-09T09:01:56.560Z',
+        //         cancelTime: '2024-04-09T09:01:56.660Z'
+        //     }
+        //
+        return response;
+    }
+
+    public async override Task<object> fetchLeverages(object symbols = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name bitmex#fetchLeverages
+        * @description fetch the set leverage for all contract markets
+        * @see https://www.bitmex.com/api/explorer/#!/Position/Position_get
+        * @param {string[]} [symbols] a list of unified market symbols
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {object} a list of [leverage structures]{@link https://docs.ccxt.com/#/?id=leverage-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object leverages = await this.fetchPositions(symbols, parameters);
+        return this.parseLeverages(leverages, symbols, "symbol");
+    }
+
+    public override object parseLeverage(object leverage, object market = null)
+    {
+        object marketId = this.safeString(leverage, "symbol");
+        return new Dictionary<string, object>() {
+            { "info", leverage },
+            { "symbol", this.safeSymbol(marketId, market) },
+            { "marginMode", this.safeStringLower(leverage, "marginMode") },
+            { "longLeverage", this.safeInteger(leverage, "leverage") },
+            { "shortLeverage", this.safeInteger(leverage, "leverage") },
+        };
     }
 
     public async override Task<object> fetchPositions(object symbols = null, object parameters = null)
@@ -2704,13 +2766,16 @@ public partial class bitmex : Exchange
         {
             ((IDictionary<string,object>)request)["count"] = limit;
         }
-        object until = this.safeInteger2(parameters, "until", "till");
-        parameters = this.omit(parameters, new List<object>() {"until", "till"});
+        object until = this.safeInteger(parameters, "until");
+        parameters = this.omit(parameters, new List<object>() {"until"});
         if (isTrue(!isEqual(until, null)))
         {
             ((IDictionary<string,object>)request)["endTime"] = this.iso8601(until);
         }
-        ((IDictionary<string,object>)request)["reverse"] = true;
+        if (isTrue(isTrue((isEqual(since, null))) && isTrue((isEqual(until, null)))))
+        {
+            ((IDictionary<string,object>)request)["reverse"] = true;
+        }
         object response = await this.publicGetFunding(this.extend(request, parameters));
         //
         //    [

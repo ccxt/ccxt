@@ -4,7 +4,7 @@
 
 # ----------------------------------------------------------------------------
 
-__version__ = '4.2.45'
+__version__ = '4.3.58'
 
 # ----------------------------------------------------------------------------
 
@@ -24,6 +24,7 @@ from ccxt.pro.bitcoincom import bitcoincom                                # noqa
 from ccxt.pro.bitfinex import bitfinex                                    # noqa: F401
 from ccxt.pro.bitfinex2 import bitfinex2                                  # noqa: F401
 from ccxt.pro.bitget import bitget                                        # noqa: F401
+from ccxt.pro.bithumb import bithumb                                      # noqa: F401
 from ccxt.pro.bitmart import bitmart                                      # noqa: F401
 from ccxt.pro.bitmex import bitmex                                        # noqa: F401
 from ccxt.pro.bitopro import bitopro                                      # noqa: F401
@@ -35,7 +36,8 @@ from ccxt.pro.blockchaincom import blockchaincom                          # noqa
 from ccxt.pro.bybit import bybit                                          # noqa: F401
 from ccxt.pro.cex import cex                                              # noqa: F401
 from ccxt.pro.coinbase import coinbase                                    # noqa: F401
-from ccxt.pro.coinbasepro import coinbasepro                              # noqa: F401
+from ccxt.pro.coinbaseexchange import coinbaseexchange                    # noqa: F401
+from ccxt.pro.coinbaseinternational import coinbaseinternational          # noqa: F401
 from ccxt.pro.coincheck import coincheck                                  # noqa: F401
 from ccxt.pro.coinex import coinex                                        # noqa: F401
 from ccxt.pro.coinone import coinone                                      # noqa: F401
@@ -51,6 +53,7 @@ from ccxt.pro.hollaex import hollaex                                      # noqa
 from ccxt.pro.htx import htx                                              # noqa: F401
 from ccxt.pro.huobi import huobi                                          # noqa: F401
 from ccxt.pro.huobijp import huobijp                                      # noqa: F401
+from ccxt.pro.hyperliquid import hyperliquid                              # noqa: F401
 from ccxt.pro.idex import idex                                            # noqa: F401
 from ccxt.pro.independentreserve import independentreserve                # noqa: F401
 from ccxt.pro.kraken import kraken                                        # noqa: F401
@@ -64,15 +67,19 @@ from ccxt.pro.ndax import ndax                                            # noqa
 from ccxt.pro.okcoin import okcoin                                        # noqa: F401
 from ccxt.pro.okx import okx                                              # noqa: F401
 from ccxt.pro.onetrading import onetrading                                # noqa: F401
+from ccxt.pro.oxfun import oxfun                                          # noqa: F401
 from ccxt.pro.p2b import p2b                                              # noqa: F401
 from ccxt.pro.phemex import phemex                                        # noqa: F401
 from ccxt.pro.poloniex import poloniex                                    # noqa: F401
 from ccxt.pro.poloniexfutures import poloniexfutures                      # noqa: F401
 from ccxt.pro.probit import probit                                        # noqa: F401
 from ccxt.pro.upbit import upbit                                          # noqa: F401
+from ccxt.pro.vertex import vertex                                        # noqa: F401
 from ccxt.pro.wazirx import wazirx                                        # noqa: F401
 from ccxt.pro.whitebit import whitebit                                    # noqa: F401
 from ccxt.pro.woo import woo                                              # noqa: F401
+from ccxt.pro.woofipro import woofipro                                    # noqa: F401
+from ccxt.pro.xt import xt                                                # noqa: F401
 
 exchanges = [
     'alpaca',
@@ -87,6 +94,7 @@ exchanges = [
     'bitfinex',
     'bitfinex2',
     'bitget',
+    'bithumb',
     'bitmart',
     'bitmex',
     'bitopro',
@@ -98,7 +106,8 @@ exchanges = [
     'bybit',
     'cex',
     'coinbase',
-    'coinbasepro',
+    'coinbaseexchange',
+    'coinbaseinternational',
     'coincheck',
     'coinex',
     'coinone',
@@ -114,6 +123,7 @@ exchanges = [
     'htx',
     'huobi',
     'huobijp',
+    'hyperliquid',
     'idex',
     'independentreserve',
     'kraken',
@@ -127,13 +137,17 @@ exchanges = [
     'okcoin',
     'okx',
     'onetrading',
+    'oxfun',
     'p2b',
     'phemex',
     'poloniex',
     'poloniexfutures',
     'probit',
     'upbit',
+    'vertex',
     'wazirx',
     'whitebit',
     'woo',
+    'woofipro',
+    'xt',
 ]

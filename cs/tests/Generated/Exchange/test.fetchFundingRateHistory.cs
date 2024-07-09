@@ -11,7 +11,7 @@ public partial class testMainClass : BaseTest
     {
         object method = "fetchFundingRateHistory";
         object fundingRatesHistory = await exchange.fetchFundingRateHistory(symbol);
-        assert(((fundingRatesHistory is IList<object>) || (fundingRatesHistory.GetType().IsGenericType && fundingRatesHistory.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))), add(add(add(add(add(add(exchange.id, " "), method), " "), symbol), " must return an array, returned "), exchange.json(fundingRatesHistory)));
+        testSharedMethods.assertNonEmtpyArray(exchange, skippedProperties, method, fundingRatesHistory, symbol);
         for (object i = 0; isLessThan(i, getArrayLength(fundingRatesHistory)); postFixIncrement(ref i))
         {
             testFundingRateHistory(exchange, skippedProperties, method, getValue(fundingRatesHistory, i), symbol);

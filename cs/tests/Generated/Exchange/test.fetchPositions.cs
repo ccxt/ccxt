@@ -13,7 +13,7 @@ public partial class testMainClass : BaseTest
         object now = exchange.milliseconds();
         // without symbol
         object positions = await exchange.fetchPositions();
-        assert(((positions is IList<object>) || (positions.GetType().IsGenericType && positions.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))), add(add(add(add(exchange.id, " "), method), " must return an array, returned "), exchange.json(positions)));
+        testSharedMethods.assertNonEmtpyArray(exchange, skippedProperties, method, positions, symbol);
         for (object i = 0; isLessThan(i, getArrayLength(positions)); postFixIncrement(ref i))
         {
             testPosition(exchange, skippedProperties, method, getValue(positions, i), null, now);

@@ -34,6 +34,9 @@ abstract class coinmetro extends \ccxt\async\Exchange {
     public function private_get_users_balances($params = array()) {
         return $this->request('users/balances', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
+    public function private_get_users_wallets($params = array()) {
+        return $this->request('users/wallets', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
     public function private_get_users_wallets_history_since($params = array()) {
         return $this->request('users/wallets/history/{since}', 'private', 'GET', $params, null, null, array("cost" => 1.67));
     }
@@ -120,6 +123,9 @@ abstract class coinmetro extends \ccxt\async\Exchange {
     }
     public function privateGetUsersBalances($params = array()) {
         return $this->request('users/balances', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function privateGetUsersWallets($params = array()) {
+        return $this->request('users/wallets', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
     public function privateGetUsersWalletsHistorySince($params = array()) {
         return $this->request('users/wallets/history/{since}', 'private', 'GET', $params, null, null, array("cost" => 1.67));

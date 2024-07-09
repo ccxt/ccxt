@@ -57,7 +57,7 @@ public partial class bitfinex2 : ccxt.bitfinex2
         object result = await this.watch(url, messageHash, this.deepExtend(request, parameters), messageHash, new Dictionary<string, object>() {
             { "checksum", false },
         });
-        object checksum = this.safeValue(this.options, "checksum", true);
+        object checksum = this.safeBool(this.options, "checksum", true);
         if (isTrue(isTrue(isTrue(checksum) && !isTrue(getValue(getValue(((WebSocketClient)client).subscriptions, messageHash), "checksum"))) && isTrue((isEqual(channel, "book")))))
         {
             ((IDictionary<string,object>)getValue(((WebSocketClient)client).subscriptions, messageHash))["checksum"] = true;
@@ -357,10 +357,13 @@ public partial class bitfinex2 : ccxt.bitfinex2
         if (isTrue(isEqual(messageLength, 2)))
         {
             // initial snapshot
-            object trades = this.safeValue(message, 1, new List<object>() {});
-            for (object i = 0; isLessThan(i, getArrayLength(trades)); postFixIncrement(ref i))
+            object trades = this.safeList(message, 1, new List<object>() {});
+            // needs to be reversed to make chronological order
+            object length = getArrayLength(trades);
+            for (object i = 0; isLessThan(i, length); postFixIncrement(ref i))
             {
-                object parsed = this.parseWsTrade(getValue(trades, i), market);
+                object index = subtract(subtract(length, i), 1);
+                object parsed = this.parseWsTrade(getValue(trades, index), market);
                 callDynamically(stored, "append", new object[] {parsed});
             }
         } else
@@ -632,8 +635,7 @@ public partial class bitfinex2 : ccxt.bitfinex2
         object prec = this.safeString(subscription, "prec", "P0");
         object isRaw = (isEqual(prec, "R0"));
         // if it is an initial snapshot
-        object orderbook = this.safeValue(this.orderbooks, symbol);
-        if (isTrue(isEqual(orderbook, null)))
+        if (!isTrue((inOp(this.orderbooks, symbol))))
         {
             object limit = this.safeInteger(subscription, "len");
             if (isTrue(isRaw))
@@ -645,7 +647,7 @@ public partial class bitfinex2 : ccxt.bitfinex2
                 // P0, P1, P2, P3, P4
                 ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.countedOrderBook(new Dictionary<string, object>() {}, limit);
             }
-            orderbook = getValue(this.orderbooks, symbol);
+            object orderbook = getValue(this.orderbooks, symbol);
             if (isTrue(isRaw))
             {
                 object deltas = getValue(message, 1);
@@ -658,7 +660,7 @@ public partial class bitfinex2 : ccxt.bitfinex2
                     object bookside = getValue(orderbook, side);
                     object idString = this.safeString(delta, 0);
                     object price = this.safeFloat(delta, 1);
-                    (bookside as IOrderBookSide).store(price, size, idString);
+                    (bookside as IOrderBookSide).storeArray(new List<object>() {price, size, idString});
                 }
             } else
             {
@@ -672,13 +674,14 @@ public partial class bitfinex2 : ccxt.bitfinex2
                     object size = ((bool) isTrue((isLessThan(amount, 0)))) ? prefixUnaryNeg(ref amount) : amount;
                     object side = ((bool) isTrue((isLessThan(amount, 0)))) ? "asks" : "bids";
                     object bookside = getValue(orderbook, side);
-                    (bookside as IOrderBookSide).store(price, size, counter);
+                    (bookside as IOrderBookSide).storeArray(new List<object>() {price, size, counter});
                 }
             }
             ((IDictionary<string,object>)orderbook)["symbol"] = symbol;
             callDynamically(client as WebSocketClient, "resolve", new object[] {orderbook, messageHash});
         } else
         {
+            object orderbook = getValue(this.orderbooks, symbol);
             object deltas = getValue(message, 1);
             object orderbookItem = getValue(this.orderbooks, symbol);
             if (isTrue(isRaw))
@@ -691,7 +694,7 @@ public partial class bitfinex2 : ccxt.bitfinex2
                 // price = 0 means that you have to remove the order from your book
                 object amount = ((bool) isTrue(Precise.stringGt(price, "0"))) ? size : "0";
                 object idString = this.safeString(deltas, 0);
-                (bookside as IOrderBookSide).store(this.parseNumber(price), this.parseNumber(amount), idString);
+                (bookside as IOrderBookSide).storeArray(new List<object> {this.parseNumber(price), this.parseNumber(amount), idString});
             } else
             {
                 object amount = this.safeString(deltas, 2);
@@ -700,7 +703,7 @@ public partial class bitfinex2 : ccxt.bitfinex2
                 object size = ((bool) isTrue(Precise.stringLt(amount, "0"))) ? Precise.stringNeg(amount) : amount;
                 object side = ((bool) isTrue(Precise.stringLt(amount, "0"))) ? "asks" : "bids";
                 object bookside = getValue(orderbookItem, side);
-                (bookside as IOrderBookSide).store(this.parseNumber(price), this.parseNumber(size), this.parseNumber(counter));
+                (bookside as IOrderBookSide).storeArray(new List<object> {this.parseNumber(price), this.parseNumber(size), this.parseNumber(counter)});
             }
             callDynamically(client as WebSocketClient, "resolve", new object[] {orderbook, messageHash});
         }
@@ -750,6 +753,8 @@ public partial class bitfinex2 : ccxt.bitfinex2
         if (isTrue(!isEqual(responseChecksum, localChecksum)))
         {
             var error = new InvalidNonce(add(this.id, " invalid checksum"));
+
+
             ((WebSocketClient)client).reject(error, messageHash);
         }
     }
@@ -948,7 +953,7 @@ public partial class bitfinex2 : ccxt.bitfinex2
             object message = this.extend(request, parameters);
             this.watch(url, messageHash, message, messageHash);
         }
-        return future;
+        return await (future as Exchange.Future);
     }
 
     public virtual void handleAuthenticationMessage(WebSocketClient client, object message)

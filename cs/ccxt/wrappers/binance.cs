@@ -15,14 +15,20 @@ public partial class binance
     /// fetches the current integer timestamp in milliseconds from the exchange server
     /// </summary>
     /// <remarks>
-    /// See <see href="https://binance-docs.github.io/apidocs/spot/en/#check-server-time"/>  <br/>
-    /// See <see href="https://binance-docs.github.io/apidocs/futures/en/#check-server-time"/>  <br/>
-    /// See <see href="https://binance-docs.github.io/apidocs/delivery/en/#check-server-time"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/binance-spot-api-docs/rest-api#check-server-time"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Check-Server-Time"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/Check-Server-time"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
     /// <description>
     /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.subType</term>
+    /// <description>
+    /// string : "linear" or "inverse"
     /// </description>
     /// </item>
     /// </list>
@@ -37,10 +43,10 @@ public partial class binance
     /// retrieves data on all markets for binance
     /// </summary>
     /// <remarks>
-    /// See <see href="https://binance-docs.github.io/apidocs/spot/en/#exchange-information"/>  <br/>
-    /// See <see href="https://binance-docs.github.io/apidocs/futures/en/#exchange-information"/>  <br/>
-    /// See <see href="https://binance-docs.github.io/apidocs/delivery/en/#exchange-information"/>  <br/>
-    /// See <see href="https://binance-docs.github.io/apidocs/voptions/en/#exchange-information"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/binance-spot-api-docs/rest-api#exchange-information"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Exchange-Information"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/Exchange-Information"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/option/market-data/Exchange-Information"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -51,24 +57,23 @@ public partial class binance
     /// </list>
     /// </remarks>
     /// <returns> <term>object[]</term> an array of objects representing market data.</returns>
-    public async Task<List<Dictionary<string, object>>> FetchMarkets(Dictionary<string, object> parameters = null)
+    public async Task<List<MarketInterface>> FetchMarkets(Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchMarkets(parameters);
-        return ((IList<object>)res).Select(item => (item as Dictionary<string, object>)).ToList();
+        return ((IList<object>)res).Select(item => new MarketInterface(item)).ToList<MarketInterface>();
     }
     /// <summary>
     /// query for balance and get the amount of funds available for trading or funds locked in orders
     /// </summary>
     /// <remarks>
-    /// See <see href="https://binance-docs.github.io/apidocs/spot/en/#account-information-user_data"/>  <br/>
-    /// See <see href="https://binance-docs.github.io/apidocs/spot/en/#query-cross-margin-account-details-user_data"/>  <br/>
-    /// See <see href="https://binance-docs.github.io/apidocs/spot/en/#query-isolated-margin-account-info-user_data"/>  <br/>
-    /// See <see href="https://binance-docs.github.io/apidocs/spot/en/#lending-account-user_data"/>  <br/>
-    /// See <see href="https://binance-docs.github.io/apidocs/spot/en/#funding-wallet-user_data"/>  <br/>
-    /// See <see href="https://binance-docs.github.io/apidocs/futures/en/#account-information-v2-user_data"/>  <br/>
-    /// See <see href="https://binance-docs.github.io/apidocs/delivery/en/#account-information-user_data"/>  <br/>
-    /// See <see href="https://binance-docs.github.io/apidocs/voptions/en/#option-account-information-trade"/>  <br/>
-    /// See <see href="https://binance-docs.github.io/apidocs/pm/en/#account-balance-user_data"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/binance-spot-api-docs/rest-api#account-information-user_data"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/margin_trading/account/Query-Cross-Margin-Account-Details"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/margin_trading/account/Query-Isolated-Margin-Account-Info"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/wallet/asset/funding-wallet"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Futures-Account-Balance-V2"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/coin-margined-futures/account/Futures-Account-Balance"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/option/account/Option-Account-Information"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/portfolio-margin/account/Account-Balance"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -94,6 +99,12 @@ public partial class binance
     /// boolean : set to true if you would like to fetch the balance for a portfolio margin account
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>params.subType</term>
+    /// <description>
+    /// string : 'linear' or 'inverse'
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}.</returns>
@@ -106,10 +117,10 @@ public partial class binance
     /// fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
     /// </summary>
     /// <remarks>
-    /// See <see href="https://binance-docs.github.io/apidocs/spot/en/#order-book"/>  <br/>
-    /// See <see href="https://binance-docs.github.io/apidocs/futures/en/#order-book"/>  <br/>
-    /// See <see href="https://binance-docs.github.io/apidocs/delivery/en/#order-book"/>  <br/>
-    /// See <see href="https://binance-docs.github.io/apidocs/voptions/en/#order-book"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/binance-spot-api-docs/rest-api#order-book"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Order-Book"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/Order-Book"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/option/market-data/Order-Book"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>limit</term>
@@ -136,7 +147,7 @@ public partial class binance
     /// the latest known information on the availability of the exchange API
     /// </summary>
     /// <remarks>
-    /// See <see href="https://binance-docs.github.io/apidocs/spot/en/#system-status-system"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/wallet/others/system-status"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -156,11 +167,11 @@ public partial class binance
     /// fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
     /// </summary>
     /// <remarks>
-    /// See <see href="https://binance-docs.github.io/apidocs/spot/en/#24hr-ticker-price-change-statistics"/>  <br/>
-    /// See <see href="https://binance-docs.github.io/apidocs/spot/en/#rolling-window-price-change-statistics"/>  <br/>
-    /// See <see href="https://binance-docs.github.io/apidocs/futures/en/#24hr-ticker-price-change-statistics"/>  <br/>
-    /// See <see href="https://binance-docs.github.io/apidocs/delivery/en/#24hr-ticker-price-change-statistics"/>  <br/>
-    /// See <see href="https://binance-docs.github.io/apidocs/voptions/en/#24hr-ticker-price-change-statistics"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/binance-spot-api-docs/rest-api#24hr-ticker-price-change-statistics"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/binance-spot-api-docs/rest-api#rolling-window-price-change-statistics"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/24hr-Ticker-Price-Change-Statistics"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/24hr-Ticker-Price-Change-Statistics"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/option/market-data/24hr-Ticker-Price-Change-Statistics"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -186,9 +197,9 @@ public partial class binance
     /// fetches the bid and ask price and volume for multiple markets
     /// </summary>
     /// <remarks>
-    /// See <see href="https://binance-docs.github.io/apidocs/spot/en/#symbol-order-book-ticker"/>  <br/>
-    /// See <see href="https://binance-docs.github.io/apidocs/futures/en/#symbol-order-book-ticker"/>  <br/>
-    /// See <see href="https://binance-docs.github.io/apidocs/delivery/en/#symbol-order-book-ticker"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/binance-spot-api-docs/rest-api#symbol-order-book-ticker"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Symbol-Order-Book-Ticker"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/Symbol-Order-Book-Ticker"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -196,21 +207,27 @@ public partial class binance
     /// object : extra parameters specific to the exchange API endpoint
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>params.subType</term>
+    /// <description>
+    /// string : "linear" or "inverse"
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}.</returns>
-    public async Task<Dictionary<string, Ticker>> FetchBidsAsks(List<String> symbols = null, Dictionary<string, object> parameters = null)
+    public async Task<Tickers> FetchBidsAsks(List<String> symbols = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchBidsAsks(symbols, parameters);
-        return ((Dictionary<string, Ticker>)res);
+        return new Tickers(res);
     }
     /// <summary>
     /// fetches the last price for multiple markets
     /// </summary>
     /// <remarks>
-    /// See <see href="https://binance-docs.github.io/apidocs/spot/en/#symbol-price-ticker"/>  <br/>
-    /// See <see href="https://binance-docs.github.io/apidocs/future/en/#symbol-price-ticker"/>  <br/>
-    /// See <see href="https://binance-docs.github.io/apidocs/delivery/en/#symbol-price-ticker"/>  <br/>
+    /// See <see href="https://www.htx.com/en-us/opend/newApiPages/?id=8cb81024-77b5-11ed-9966-0242ac110003"/>  <br/>
+    /// See <see href="https://www.htx.com/en-us/opend/newApiPages/?id=28c2e8fc-77ae-11ed-9966-0242ac110003"/>  <br/>
+    /// See <see href="https://www.htx.com/en-us/opend/newApiPages/?id=5d517ef5-77b6-11ed-9966-0242ac110003"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -221,24 +238,36 @@ public partial class binance
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a dictionary of lastprices structures.</returns>
-    public async Task<Dictionary<string, object>> FetchLastPrices(List<String> symbols = null, Dictionary<string, object> parameters = null)
+    public async Task<LastPrices> FetchLastPrices(List<String> symbols = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchLastPrices(symbols, parameters);
-        return ((Dictionary<string, object>)res);
+        return new LastPrices(res);
     }
     /// <summary>
     /// fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
     /// </summary>
     /// <remarks>
-    /// See <see href="https://binance-docs.github.io/apidocs/spot/en/#24hr-ticker-price-change-statistics"/>  <br/>
-    /// See <see href="https://binance-docs.github.io/apidocs/futures/en/#24hr-ticker-price-change-statistics"/>  <br/>
-    /// See <see href="https://binance-docs.github.io/apidocs/delivery/en/#24hr-ticker-price-change-statistics"/>  <br/>
-    /// See <see href="https://binance-docs.github.io/apidocs/voptions/en/#24hr-ticker-price-change-statistics"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/binance-spot-api-docs/rest-api#24hr-ticker-price-change-statistics"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/24hr-Ticker-Price-Change-Statistics"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/24hr-Ticker-Price-Change-Statistics"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/option/market-data/24hr-Ticker-Price-Change-Statistics"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
     /// <description>
     /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.subType</term>
+    /// <description>
+    /// string : "linear" or "inverse"
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.type</term>
+    /// <description>
+    /// string : 'spot', 'option', use params["subType"] for swap and future markets
     /// </description>
     /// </item>
     /// </list>
@@ -253,14 +282,16 @@ public partial class binance
     /// fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
     /// </summary>
     /// <remarks>
-    /// See <see href="https://binance-docs.github.io/apidocs/spot/en/#kline-candlestick-data"/>  <br/>
-    /// See <see href="https://binance-docs.github.io/apidocs/voptions/en/#kline-candlestick-data"/>  <br/>
-    /// See <see href="https://binance-docs.github.io/apidocs/futures/en/#index-price-kline-candlestick-data"/>  <br/>
-    /// See <see href="https://binance-docs.github.io/apidocs/futures/en/#mark-price-kline-candlestick-data"/>  <br/>
-    /// See <see href="https://binance-docs.github.io/apidocs/futures/en/#kline-candlestick-data"/>  <br/>
-    /// See <see href="https://binance-docs.github.io/apidocs/delivery/en/#index-price-kline-candlestick-data"/>  <br/>
-    /// See <see href="https://binance-docs.github.io/apidocs/delivery/en/#mark-price-kline-candlestick-data"/>  <br/>
-    /// See <see href="https://binance-docs.github.io/apidocs/delivery/en/#kline-candlestick-data"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/binance-spot-api-docs/rest-api#klinecandlestick-data"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/option/market-data/Kline-Candlestick-Data"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Kline-Candlestick-Data"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Index-Price-Kline-Candlestick-Data"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Mark-Price-Kline-Candlestick-Data"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Premium-Index-Kline-Data"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/Kline-Candlestick-Data"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/Index-Price-Kline-Candlestick-Data"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/Mark-Price-Kline-Candlestick-Data"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/Premium-Index-Kline-Data"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -295,7 +326,7 @@ public partial class binance
     /// <item>
     /// <term>params.paginate</term>
     /// <description>
-    /// boolean : default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+    /// boolean : default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
     /// </description>
     /// </item>
     /// </list>
@@ -312,17 +343,17 @@ public partial class binance
     /// get the list of most recent trades for a particular symbol
     /// </summary>
     /// <remarks>
-    /// See <see href="https://binance-docs.github.io/apidocs/spot/en/#compressed-aggregate-trades-list"/>  <br/>
-    /// See <see href="https://binance-docs.github.io/apidocs/futures/en/#compressed-aggregate-trades-list"/>  <br/>
-    /// See <see href="https://binance-docs.github.io/apidocs/delivery/en/#compressed-aggregate-trades-list"/>  <br/>
-    /// See <see href="https://binance-docs.github.io/apidocs/voptions/en/#recent-trades-list"/>  <br/>
-    /// See <see href="https://binance-docs.github.io/apidocs/spot/en/#recent-trades-list"/>  <br/>
-    /// See <see href="https://binance-docs.github.io/apidocs/futures/en/#recent-trades-list"/>  <br/>
-    /// See <see href="https://binance-docs.github.io/apidocs/delivery/en/#recent-trades-list"/>  <br/>
-    /// See <see href="https://binance-docs.github.io/apidocs/spot/en/#old-trade-lookup-market_data"/>  <br/>
-    /// See <see href="https://binance-docs.github.io/apidocs/future/en/#old-trade-lookup-market_data"/>  <br/>
-    /// See <see href="https://binance-docs.github.io/apidocs/delivery/en/#old-trade-lookup-market_data"/>  <br/>
-    /// See <see href="https://binance-docs.github.io/apidocs/voptions/en/#old-trade-lookup-market_data"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/binance-spot-api-docs/rest-api#compressedaggregate-trades-list"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Compressed-Aggregate-Trades-List"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/Compressed-Aggregate-Trades-List"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/option/market-data/Recent-Trades-List"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/binance-spot-api-docs/rest-api#recent-trades-list"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Recent-Trades-List"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/Recent-Trades-List"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/binance-spot-api-docs/rest-api#old-trade-lookup"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Old-Trades-Lookup"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/Old-Trades-Lookup"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/option/market-data/Old-Trades-Lookup"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -380,12 +411,12 @@ public partial class binance
     /// edit a trade order
     /// </summary>
     /// <remarks>
-    /// See <see href="https://binance-docs.github.io/apidocs/spot/en/#cancel-an-existing-order-and-send-a-new-order-trade"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/binance-spot-api-docs/rest-api#cancel-an-existing-order-and-send-a-new-order-trade"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>price</term>
     /// <description>
-    /// float : the price at which the order is to be fullfilled, in units of the base currency, ignored in market orders
+    /// float : the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
     /// </description>
     /// </item>
     /// <item>
@@ -403,7 +434,7 @@ public partial class binance
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
-    public async Task<Order> EditSpotOrder(string id, object symbol, object type, object side, double amount, double? price2 = 0, Dictionary<string, object> parameters = null)
+    public async Task<Order> EditSpotOrder(string id, string symbol, string type, string side, double amount, double? price2 = 0, Dictionary<string, object> parameters = null)
     {
         var price = price2 == 0 ? null : (object)price2;
         var res = await this.editSpotOrder(id, symbol, type, side, amount, price, parameters);
@@ -417,7 +448,7 @@ public partial class binance
     /// <item>
     /// <term>price</term>
     /// <description>
-    /// float : the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+    /// float : the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
     /// </description>
     /// </item>
     /// <item>
@@ -429,23 +460,29 @@ public partial class binance
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> request to be sent to the exchange.</returns>
-    public Dictionary<string, object> EditSpotOrderRequest(string id, object symbol, object type, object side, double amount, double? price2 = 0, Dictionary<string, object> parameters = null)
+    public Dictionary<string, object> EditSpotOrderRequest(string id, string symbol, string type, string side, double amount, double? price2 = 0, Dictionary<string, object> parameters = null)
     {
         var price = price2 == 0 ? null : (object)price2;
         var res = this.editSpotOrderRequest(id, symbol, type, side, amount, price, parameters);
+        return ((Dictionary<string, object>)res);
+    }
+    public Dictionary<string, object> EditContractOrderRequest(string id, string symbol, string type, string side, double amount, double? price2 = 0, Dictionary<string, object> parameters = null)
+    {
+        var price = price2 == 0 ? null : (object)price2;
+        var res = this.editContractOrderRequest(id, symbol, type, side, amount, price, parameters);
         return ((Dictionary<string, object>)res);
     }
     /// <summary>
     /// edit a trade order
     /// </summary>
     /// <remarks>
-    /// See <see href="https://binance-docs.github.io/apidocs/futures/en/#modify-order-trade"/>  <br/>
-    /// See <see href="https://binance-docs.github.io/apidocs/delivery/en/#modify-order-trade"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Modify-Order"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/Modify-Order"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>price</term>
     /// <description>
-    /// float : the price at which the order is to be fullfilled, in units of the base currency, ignored in market orders
+    /// float : the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
     /// </description>
     /// </item>
     /// <item>
@@ -457,7 +494,7 @@ public partial class binance
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
-    public async Task<Order> EditContractOrder(string id, object symbol, object type, object side, double amount, double? price2 = 0, Dictionary<string, object> parameters = null)
+    public async Task<Order> EditContractOrder(string id, string symbol, string type, string side, double amount, double? price2 = 0, Dictionary<string, object> parameters = null)
     {
         var price = price2 == 0 ? null : (object)price2;
         var res = await this.editContractOrder(id, symbol, type, side, amount, price, parameters);
@@ -467,14 +504,14 @@ public partial class binance
     /// edit a trade order
     /// </summary>
     /// <remarks>
-    /// See <see href="https://binance-docs.github.io/apidocs/spot/en/#cancel-an-existing-order-and-send-a-new-order-trade"/>  <br/>
-    /// See <see href="https://binance-docs.github.io/apidocs/futures/en/#modify-order-trade"/>  <br/>
-    /// See <see href="https://binance-docs.github.io/apidocs/delivery/en/#modify-order-trade"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/binance-spot-api-docs/rest-api#cancel-an-existing-order-and-send-a-new-order-trade"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Modify-Order"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/Modify-Order"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>price</term>
     /// <description>
-    /// float : the price at which the order is to be fullfilled, in units of the base currency, ignored in market orders
+    /// float : the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
     /// </description>
     /// </item>
     /// <item>
@@ -497,7 +534,9 @@ public partial class binance
     /// *contract only* create a list of trade orders
     /// </summary>
     /// <remarks>
-    /// See <see href="https://binance-docs.github.io/apidocs/futures/en/#place-multiple-orders-trade"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/Place-Multiple-Orders"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Place-Multiple-Orders"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/option/trade/Place-Multiple-Orders"/>  <br/>
     /// <list type="table">
     /// </list>
     /// </remarks>
@@ -511,23 +550,23 @@ public partial class binance
     /// create a trade order
     /// </summary>
     /// <remarks>
-    /// See <see href="https://binance-docs.github.io/apidocs/spot/en/#new-order-trade"/>  <br/>
-    /// See <see href="https://binance-docs.github.io/apidocs/spot/en/#test-new-order-trade"/>  <br/>
-    /// See <see href="https://binance-docs.github.io/apidocs/futures/en/#new-order-trade"/>  <br/>
-    /// See <see href="https://binance-docs.github.io/apidocs/delivery/en/#new-order-trade"/>  <br/>
-    /// See <see href="https://binance-docs.github.io/apidocs/voptions/en/#new-order-trade"/>  <br/>
-    /// See <see href="https://binance-docs.github.io/apidocs/spot/en/#new-order-using-sor-trade"/>  <br/>
-    /// See <see href="https://binance-docs.github.io/apidocs/spot/en/#test-new-order-using-sor-trade"/>  <br/>
-    /// See <see href="https://binance-docs.github.io/apidocs/pm/en/#new-um-order-trade"/>  <br/>
-    /// See <see href="https://binance-docs.github.io/apidocs/pm/en/#new-cm-order-trade"/>  <br/>
-    /// See <see href="https://binance-docs.github.io/apidocs/pm/en/#new-margin-order-trade"/>  <br/>
-    /// See <see href="https://binance-docs.github.io/apidocs/pm/en/#new-um-conditional-order-trade"/>  <br/>
-    /// See <see href="https://binance-docs.github.io/apidocs/pm/en/#new-cm-conditional-order-trade"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/binance-spot-api-docs/rest-api#new-order-trade"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/binance-spot-api-docs/rest-api#test-new-order-trade"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/New-Order"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/New-Order"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/option/trade/New-Order"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/binance-spot-api-docs/rest-api#sor"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/binance-spot-api-docs/rest-api#test-new-order-using-sor-trade"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/portfolio-margin/trade/New-UM-Order"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/portfolio-margin/trade/New-CM-Order"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/portfolio-margin/trade/New-Margin-Order"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/portfolio-margin/trade/New-UM-Conditional-Order"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/portfolio-margin/trade/New-CM-Conditional-Order"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>price</term>
     /// <description>
-    /// float : the price that the order is to be fullfilled, in units of the quote currency, ignored in market orders
+    /// float : the price that the order is to be fulfilled, in units of the quote currency, ignored in market orders
     /// </description>
     /// </item>
     /// <item>
@@ -596,6 +635,12 @@ public partial class binance
     /// boolean : set to true if you would like to create an order in a portfolio margin account
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>params.stopLossOrTakeProfit</term>
+    /// <description>
+    /// string : 'stopLoss' or 'takeProfit', required for spot trailing orders
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
@@ -613,7 +658,7 @@ public partial class binance
     /// <item>
     /// <term>price</term>
     /// <description>
-    /// float : the price that the order is to be fullfilled, in units of the quote currency, ignored in market orders
+    /// float : the price that the order is to be fulfilled, in units of the quote currency, ignored in market orders
     /// </description>
     /// </item>
     /// <item>
@@ -635,7 +680,7 @@ public partial class binance
     /// create a market order by providing the symbol, side and cost
     /// </summary>
     /// <remarks>
-    /// See <see href="https://binance-docs.github.io/apidocs/spot/en/#new-order-trade"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/binance-spot-api-docs/rest-api#new-order-trade"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -655,7 +700,7 @@ public partial class binance
     /// create a market buy order by providing the symbol and cost
     /// </summary>
     /// <remarks>
-    /// See <see href="https://binance-docs.github.io/apidocs/spot/en/#new-order-trade"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/binance-spot-api-docs/rest-api#new-order-trade"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -675,7 +720,7 @@ public partial class binance
     /// create a market sell order by providing the symbol and cost
     /// </summary>
     /// <remarks>
-    /// See <see href="https://binance-docs.github.io/apidocs/spot/en/#new-order-trade"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/binance-spot-api-docs/rest-api#new-order-trade"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -695,14 +740,13 @@ public partial class binance
     /// fetches information on an order made by the user
     /// </summary>
     /// <remarks>
-    /// See <see href="https://binance-docs.github.io/apidocs/spot/en/#query-order-user_data"/>  <br/>
-    /// See <see href="https://binance-docs.github.io/apidocs/futures/en/#query-order-user_data"/>  <br/>
-    /// See <see href="https://binance-docs.github.io/apidocs/delivery/en/#query-order-user_data"/>  <br/>
-    /// See <see href="https://binance-docs.github.io/apidocs/voptions/en/#query-single-order-trade"/>  <br/>
-    /// See <see href="https://binance-docs.github.io/apidocs/spot/en/#query-margin-account-39-s-order-user_data"/>  <br/>
-    /// See <see href="https://binance-docs.github.io/apidocs/pm/en/#query-um-order-user_data"/>  <br/>
-    /// See <see href="https://binance-docs.github.io/apidocs/pm/en/#query-cm-order-user_data"/>  <br/>
-    /// See <see href="https://binance-docs.github.io/apidocs/pm/en/#query-margin-account-order-user_data"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/binance-spot-api-docs/rest-api#query-order-user_data"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Query-Order"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/Query-Order"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/option/trade/Query-Single-Order"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/margin_trading/trade/Query-Margin-Account-Order"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-UM-Order"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-CM-Order"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -734,16 +778,15 @@ public partial class binance
     /// fetches information on multiple orders made by the user
     /// </summary>
     /// <remarks>
-    /// See <see href="https://binance-docs.github.io/apidocs/spot/en/#all-orders-user_data"/>  <br/>
-    /// See <see href="https://binance-docs.github.io/apidocs/futures/en/#all-orders-user_data"/>  <br/>
-    /// See <see href="https://binance-docs.github.io/apidocs/delivery/en/#all-orders-user_data"/>  <br/>
-    /// See <see href="https://binance-docs.github.io/apidocs/voptions/en/#query-option-order-history-trade"/>  <br/>
-    /// See <see href="https://binance-docs.github.io/apidocs/spot/en/#query-margin-account-39-s-all-orders-user_data"/>  <br/>
-    /// See <see href="https://binance-docs.github.io/apidocs/pm/en/#query-all-um-orders-user_data"/>  <br/>
-    /// See <see href="https://binance-docs.github.io/apidocs/pm/en/#query-all-cm-orders-user_data"/>  <br/>
-    /// See <see href="https://binance-docs.github.io/apidocs/pm/en/#query-all-um-conditional-orders-user_data"/>  <br/>
-    /// See <see href="https://binance-docs.github.io/apidocs/pm/en/#query-all-cm-conditional-orders-user_data"/>  <br/>
-    /// See <see href="https://binance-docs.github.io/apidocs/pm/en/#query-all-margin-account-orders-user_data"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/binance-spot-api-docs/rest-api#all-orders-user_data"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/All-Orders"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/All-Orders"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/option/trade/Query-Option-Order-History"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/margin_trading/trade/Query-Margin-Account-All-Orders"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-UM-Orders"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-CM-Orders"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-UM-Conditional-Orders"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-CM-Conditional-Orders"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -807,20 +850,15 @@ public partial class binance
     /// fetch all unfilled currently open orders
     /// </summary>
     /// <remarks>
-    /// See <see href="https://binance-docs.github.io/apidocs/spot/en/#cancel-an-existing-order-and-send-a-new-order-trade"/>  <br/>
-    /// See <see href="https://binance-docs.github.io/apidocs/futures/en/#current-all-open-orders-user_data"/>  <br/>
-    /// See <see href="https://binance-docs.github.io/apidocs/delivery/en/#current-all-open-orders-user_data"/>  <br/>
-    /// See <see href="https://binance-docs.github.io/apidocs/voptions/en/#query-current-open-option-orders-user_data"/>  <br/>
-    /// See <see href="https://binance-docs.github.io/apidocs/spot/en/#current-open-orders-user_data"/>  <br/>
-    /// See <see href="https://binance-docs.github.io/apidocs/futures/en/#current-all-open-orders-user_data"/>  <br/>
-    /// See <see href="https://binance-docs.github.io/apidocs/delivery/en/#current-all-open-orders-user_data"/>  <br/>
-    /// See <see href="https://binance-docs.github.io/apidocs/voptions/en/#query-current-open-option-orders-user_data"/>  <br/>
-    /// See <see href="https://binance-docs.github.io/apidocs/spot/en/#query-margin-account-39-s-open-orders-user_data"/>  <br/>
-    /// See <see href="https://binance-docs.github.io/apidocs/pm/en/#query-all-current-um-open-orders-user_data"/>  <br/>
-    /// See <see href="https://binance-docs.github.io/apidocs/pm/en/#query-all-current-cm-open-orders-user_data"/>  <br/>
-    /// See <see href="https://binance-docs.github.io/apidocs/pm/en/#query-all-current-um-open-conditional-orders-user_data"/>  <br/>
-    /// See <see href="https://binance-docs.github.io/apidocs/pm/en/#query-all-current-cm-open-conditional-orders-user_data"/>  <br/>
-    /// See <see href="https://binance-docs.github.io/apidocs/pm/en/#query-current-margin-open-order-user_data"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/binance-spot-api-docs/rest-api#current-open-orders-user_data"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Current-All-Open-Orders"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/Current-All-Open-Orders"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/option/trade/Query-Current-Open-Option-Orders"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/margin_trading/trade/Query-Margin-Account-Open-Orders"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-Current-UM-Open-Orders"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-Current-UM-Open-Conditional-Orders"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-Current-CM-Open-Orders"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-Current-CM-Open-Conditional-Orders"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -858,6 +896,12 @@ public partial class binance
     /// boolean : set to true if you would like to fetch portfolio margin account conditional orders
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>params.subType</term>
+    /// <description>
+    /// string : "linear" or "inverse"
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
     /// <returns> <term>Order[]</term> a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
@@ -872,12 +916,12 @@ public partial class binance
     /// fetch an open order by the id
     /// </summary>
     /// <remarks>
-    /// See <see href="https://binance-docs.github.io/apidocs/futures/en/#query-current-open-order-user_data"/>  <br/>
-    /// See <see href="https://binance-docs.github.io/apidocs/delivery/en/#query-current-open-order-user_data"/>  <br/>
-    /// See <see href="https://binance-docs.github.io/apidocs/pm/en/#query-current-um-open-order-user_data"/>  <br/>
-    /// See <see href="https://binance-docs.github.io/apidocs/pm/en/#query-current-cm-open-order-user_data"/>  <br/>
-    /// See <see href="https://binance-docs.github.io/apidocs/pm/en/#query-current-um-open-conditional-order-user_data"/>  <br/>
-    /// See <see href="https://binance-docs.github.io/apidocs/pm/en/#query-current-cm-open-conditional-order-user_data"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Query-Current-Open-Order"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/Query-Current-Open-Order"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-Current-UM-Open-Order"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-Current-UM-Open-Conditional-Order"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-Current-CM-Open-Order"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-Current-CM-Open-Conditional-Order"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -903,16 +947,15 @@ public partial class binance
     /// fetches information on multiple closed orders made by the user
     /// </summary>
     /// <remarks>
-    /// See <see href="https://binance-docs.github.io/apidocs/spot/en/#all-orders-user_data"/>  <br/>
-    /// See <see href="https://binance-docs.github.io/apidocs/futures/en/#all-orders-user_data"/>  <br/>
-    /// See <see href="https://binance-docs.github.io/apidocs/delivery/en/#all-orders-user_data"/>  <br/>
-    /// See <see href="https://binance-docs.github.io/apidocs/voptions/en/#query-option-order-history-trade"/>  <br/>
-    /// See <see href="https://binance-docs.github.io/apidocs/spot/en/#query-margin-account-39-s-all-orders-user_data"/>  <br/>
-    /// See <see href="https://binance-docs.github.io/apidocs/pm/en/#query-all-um-orders-user_data"/>  <br/>
-    /// See <see href="https://binance-docs.github.io/apidocs/pm/en/#query-all-cm-orders-user_data"/>  <br/>
-    /// See <see href="https://binance-docs.github.io/apidocs/pm/en/#query-all-um-conditional-orders-user_data"/>  <br/>
-    /// See <see href="https://binance-docs.github.io/apidocs/pm/en/#query-all-cm-conditional-orders-user_data"/>  <br/>
-    /// See <see href="https://binance-docs.github.io/apidocs/pm/en/#query-all-margin-account-orders-user_data"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/binance-spot-api-docs/rest-api#all-orders-user_data"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/All-Orders"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/All-Orders"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/option/trade/Query-Option-Order-History"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/margin_trading/trade/Query-Margin-Account-All-Orders"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-UM-Orders"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-CM-Orders"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-UM-Conditional-Orders"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-CM-Conditional-Orders"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -964,14 +1007,15 @@ public partial class binance
     /// fetches information on multiple canceled orders made by the user
     /// </summary>
     /// <remarks>
-    /// See <see href="https://binance-docs.github.io/apidocs/spot/en/#all-orders-user_data"/>  <br/>
-    /// See <see href="https://binance-docs.github.io/apidocs/spot/en/#query-margin-account-39-s-all-orders-user_data"/>  <br/>
-    /// See <see href="https://binance-docs.github.io/apidocs/voptions/en/#query-option-order-history-trade"/>  <br/>
-    /// See <see href="https://binance-docs.github.io/apidocs/pm/en/#query-all-um-orders-user_data"/>  <br/>
-    /// See <see href="https://binance-docs.github.io/apidocs/pm/en/#query-all-cm-orders-user_data"/>  <br/>
-    /// See <see href="https://binance-docs.github.io/apidocs/pm/en/#query-all-um-conditional-orders-user_data"/>  <br/>
-    /// See <see href="https://binance-docs.github.io/apidocs/pm/en/#query-all-cm-conditional-orders-user_data"/>  <br/>
-    /// See <see href="https://binance-docs.github.io/apidocs/pm/en/#query-all-margin-account-orders-user_data"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/binance-spot-api-docs/rest-api#all-orders-user_data"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/All-Orders"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/All-Orders"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/option/trade/Query-Option-Order-History"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/margin_trading/trade/Query-Margin-Account-All-Orders"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-UM-Orders"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-CM-Orders"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-UM-Conditional-Orders"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-CM-Conditional-Orders"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -1020,19 +1064,79 @@ public partial class binance
         return ((Dictionary<string, object>)res);
     }
     /// <summary>
+    /// fetches information on multiple canceled orders made by the user
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://developers.binance.com/docs/binance-spot-api-docs/rest-api#all-orders-user_data"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/All-Orders"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/All-Orders"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/option/trade/Query-Option-Order-History"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/margin_trading/trade/Query-Margin-Account-All-Orders"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-UM-Orders"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-CM-Orders"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-UM-Conditional-Orders"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-CM-Conditional-Orders"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>since</term>
+    /// <description>
+    /// int : the earliest time in ms to fetch orders for
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>limit</term>
+    /// <description>
+    /// int : the maximum number of order structures to retrieve
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.paginate</term>
+    /// <description>
+    /// boolean : default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.portfolioMargin</term>
+    /// <description>
+    /// boolean : set to true if you would like to fetch orders in a portfolio margin account
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.stop</term>
+    /// <description>
+    /// boolean : set to true if you would like to fetch portfolio margin account stop or conditional orders
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object[]</term> a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
+    public async Task<List<Order>> FetchCanceledAndClosedOrders(string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    {
+        var since = since2 == 0 ? null : (object)since2;
+        var limit = limit2 == 0 ? null : (object)limit2;
+        var res = await this.fetchCanceledAndClosedOrders(symbol, since, limit, parameters);
+        return ((IList<object>)res).Select(item => new Order(item)).ToList<Order>();
+    }
+    /// <summary>
     /// cancels an open order
     /// </summary>
     /// <remarks>
-    /// See <see href="https://binance-docs.github.io/apidocs/spot/en/#cancel-order-trade"/>  <br/>
-    /// See <see href="https://binance-docs.github.io/apidocs/futures/en/#cancel-order-trade"/>  <br/>
-    /// See <see href="https://binance-docs.github.io/apidocs/delivery/en/#cancel-order-trade"/>  <br/>
-    /// See <see href="https://binance-docs.github.io/apidocs/voptions/en/#cancel-option-order-trade"/>  <br/>
-    /// See <see href="https://binance-docs.github.io/apidocs/spot/en/#margin-account-cancel-order-trade"/>  <br/>
-    /// See <see href="https://binance-docs.github.io/apidocs/pm/en/#cancel-um-order-trade"/>  <br/>
-    /// See <see href="https://binance-docs.github.io/apidocs/pm/en/#cancel-cm-order-trade"/>  <br/>
-    /// See <see href="https://binance-docs.github.io/apidocs/pm/en/#cancel-um-conditional-order-trade"/>  <br/>
-    /// See <see href="https://binance-docs.github.io/apidocs/pm/en/#cancel-cm-conditional-order-trade"/>  <br/>
-    /// See <see href="https://binance-docs.github.io/apidocs/pm/en/#cancel-margin-account-order-trade"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/binance-spot-api-docs/rest-api#cancel-order-trade"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Cancel-Order"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/Cancel-Order"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/option/trade/Cancel-Option-Order"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/margin_trading/trade/Margin-Account-Cancel-Order"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Cancel-UM-Order"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Cancel-CM-Order"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Cancel-UM-Conditional-Order"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Cancel-CM-Conditional-Order"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Cancel-Margin-Account-Order"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -1064,16 +1168,15 @@ public partial class binance
     /// cancel all open orders in a market
     /// </summary>
     /// <remarks>
-    /// See <see href="https://binance-docs.github.io/apidocs/spot/en/#cancel-all-open-orders-on-a-symbol-trade"/>  <br/>
-    /// See <see href="https://binance-docs.github.io/apidocs/futures/en/#cancel-all-open-orders-trade"/>  <br/>
-    /// See <see href="https://binance-docs.github.io/apidocs/delivery/en/#cancel-all-open-orders-trade"/>  <br/>
-    /// See <see href="https://binance-docs.github.io/apidocs/voptions/en/#cancel-all-option-orders-on-specific-symbol-trade"/>  <br/>
-    /// See <see href="https://binance-docs.github.io/apidocs/spot/en/#margin-account-cancel-order-trade"/>  <br/>
-    /// See <see href="https://binance-docs.github.io/apidocs/pm/en/#cancel-all-um-open-orders-trade"/>  <br/>
-    /// See <see href="https://binance-docs.github.io/apidocs/pm/en/#cancel-all-cm-open-orders-trade"/>  <br/>
-    /// See <see href="https://binance-docs.github.io/apidocs/pm/en/#cancel-all-um-open-conditional-orders-trade"/>  <br/>
-    /// See <see href="https://binance-docs.github.io/apidocs/pm/en/#cancel-all-cm-open-conditional-orders-trade"/>  <br/>
-    /// See <see href="https://binance-docs.github.io/apidocs/pm/en/#cancel-margin-account-all-open-orders-on-a-symbol-trade"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/binance-spot-api-docs/rest-api#cancel-all-open-orders-on-a-symbol-trade"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Cancel-All-Open-Orders"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/option/trade/Cancel-all-Option-orders-on-specific-symbol"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/margin_trading/trade/Margin-Account-Cancel-All-Open-Orders"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Cancel-All-UM-Open-Orders"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Cancel-All-UM-Open-Conditional-Orders"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Cancel-All-CM-Open-Orders"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Cancel-All-CM-Open-Conditional-Orders"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Cancel-Margin-Account-All-Open-Orders-on-a-Symbol"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -1111,8 +1214,8 @@ public partial class binance
     /// cancel multiple orders
     /// </summary>
     /// <remarks>
-    /// See <see href="https://binance-docs.github.io/apidocs/futures/en/#cancel-multiple-orders-trade"/>  <br/>
-    /// See <see href="https://binance-docs.github.io/apidocs/delivery/en/#cancel-multiple-orders-trade"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Cancel-Multiple-Orders"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/Cancel-Multiple-Orders"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>symbol</term>
@@ -1138,10 +1241,10 @@ public partial class binance
     /// fetch all the trades made from a single order
     /// </summary>
     /// <remarks>
-    /// See <see href="https://binance-docs.github.io/apidocs/spot/en/#account-trade-list-user_data"/>  <br/>
-    /// See <see href="https://binance-docs.github.io/apidocs/futures/en/#account-trade-list-user_data"/>  <br/>
-    /// See <see href="https://binance-docs.github.io/apidocs/delivery/en/#account-trade-list-user_data"/>  <br/>
-    /// See <see href="https://binance-docs.github.io/apidocs/spot/en/#query-margin-account-39-s-trade-list-user_data"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/binance-spot-api-docs/rest-api#account-trade-list-user_data"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Account-Trade-List"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/Account-Trade-List"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/margin_trading/trade/Query-Margin-Account-Trade-List"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -1175,13 +1278,13 @@ public partial class binance
     /// fetch all trades made by the user
     /// </summary>
     /// <remarks>
-    /// See <see href="https://binance-docs.github.io/apidocs/spot/en/#account-trade-list-user_data"/>  <br/>
-    /// See <see href="https://binance-docs.github.io/apidocs/futures/en/#account-trade-list-user_data"/>  <br/>
-    /// See <see href="https://binance-docs.github.io/apidocs/delivery/en/#account-trade-list-user_data"/>  <br/>
-    /// See <see href="https://binance-docs.github.io/apidocs/spot/en/#query-margin-account-39-s-trade-list-user_data"/>  <br/>
-    /// See <see href="https://binance-docs.github.io/apidocs/pm/en/#margin-account-trade-list-user_data"/>  <br/>
-    /// See <see href="https://binance-docs.github.io/apidocs/pm/en/#um-account-trade-list-user_data"/>  <br/>
-    /// See <see href="https://binance-docs.github.io/apidocs/pm/en/#cm-account-trade-list-user_data"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/binance-spot-api-docs/rest-api#account-trade-list-user_data"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Account-Trade-List"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/Account-Trade-List"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/margin_trading/trade/Query-Margin-Account-Trade-List"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/option/trade/Account-Trade-List"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/portfolio-margin/trade/UM-Account-Trade-List"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/portfolio-margin/trade/CM-Account-Trade-List"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -1233,7 +1336,7 @@ public partial class binance
     /// fetch all dust trades made by the user
     /// </summary>
     /// <remarks>
-    /// See <see href="https://binance-docs.github.io/apidocs/spot/en/#dustlog-user_data"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/wallet/asset/dust-log"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -1273,9 +1376,8 @@ public partial class binance
     /// fetch all deposits made to an account
     /// </summary>
     /// <remarks>
-    /// See <see href="https://binance-docs.github.io/apidocs/spot/en/#get-fiat-deposit-withdraw-history-user_data"/>  <br/>
-    /// See <see href="https://binance-docs.github.io/apidocs/spot/en/#get-fiat-deposit-withdraw-history-user_data"/>  <br/>
-    /// See <see href="https://binance-docs.github.io/apidocs/spot/en/#deposit-history-supporting-network-user_data"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/wallet/capital/deposite-history"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/fiat/rest-api/Get-Fiat-Deposit-Withdraw-History"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -1310,7 +1412,7 @@ public partial class binance
     /// <item>
     /// <term>params.paginate</term>
     /// <description>
-    /// boolean : default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+    /// boolean : default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
     /// </description>
     /// </item>
     /// </list>
@@ -1327,10 +1429,8 @@ public partial class binance
     /// fetch all withdrawals made from an account
     /// </summary>
     /// <remarks>
-    /// See <see href="https://binance-docs.github.io/apidocs/spot/en/#get-fiat-deposit-withdraw-history-user_data"/>  <br/>
-    /// See <see href="https://binance-docs.github.io/apidocs/spot/en/#withdraw-history-supporting-network-user_data"/>  <br/>
-    /// See <see href="https://binance-docs.github.io/apidocs/spot/en/#get-fiat-deposit-withdraw-history-user_data"/>  <br/>
-    /// See <see href="https://binance-docs.github.io/apidocs/spot/en/#withdraw-history-supporting-network-user_data"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/wallet/capital/withdraw-history"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/fiat/rest-api/Get-Fiat-Deposit-Withdraw-History"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -1365,7 +1465,7 @@ public partial class binance
     /// <item>
     /// <term>params.paginate</term>
     /// <description>
-    /// boolean : default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+    /// boolean : default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
     /// </description>
     /// </item>
     /// </list>
@@ -1382,7 +1482,7 @@ public partial class binance
     /// transfer currency internally between wallets on the same account
     /// </summary>
     /// <remarks>
-    /// See <see href="https://binance-docs.github.io/apidocs/spot/en/#user-universal-transfer-user_data"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/wallet/asset/user-universal-transfer"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -1414,8 +1514,7 @@ public partial class binance
     /// fetch a history of internal transfers made on an account
     /// </summary>
     /// <remarks>
-    /// See <see href="https://binance-docs.github.io/apidocs/spot/en/#user-universal-transfer-user_data"/>  <br/>
-    /// See <see href="https://binance-docs.github.io/apidocs/spot/en/#query-user-universal-transfer-history-user_data"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/wallet/asset/query-user-universal-transfer"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -1444,24 +1543,30 @@ public partial class binance
     /// <item>
     /// <term>params.paginate</term>
     /// <description>
-    /// boolean : default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+    /// boolean : default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.internal</term>
+    /// <description>
+    /// boolean : default false, when true will fetch pay trade history
     /// </description>
     /// </item>
     /// </list>
     /// </remarks>
     /// <returns> <term>object[]</term> a list of [transfer structures]{@link https://docs.ccxt.com/#/?id=transfer-structure}.</returns>
-    public async Task<Dictionary<string, object>> FetchTransfers(string code = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    public async Task<TransferEntries> FetchTransfers(string code = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;
         var limit = limit2 == 0 ? null : (object)limit2;
         var res = await this.fetchTransfers(code, since, limit, parameters);
-        return ((Dictionary<string, object>)res);
+        return new TransferEntries(res);
     }
     /// <summary>
     /// fetch the deposit address for a currency associated with this account
     /// </summary>
     /// <remarks>
-    /// See <see href="https://binance-docs.github.io/apidocs/spot/en/#deposit-address-supporting-network-user_data"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/wallet/capital/deposite-address"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -1481,7 +1586,7 @@ public partial class binance
     /// please use fetchDepositWithdrawFees instead
     /// </summary>
     /// <remarks>
-    /// See <see href="https://binance-docs.github.io/apidocs/spot/en/#all-coins-39-information-user_data"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/wallet/capital/all-coins-info"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -1492,7 +1597,7 @@ public partial class binance
     /// </list>
     /// </remarks>
     /// <returns> <term>object[]</term> a list of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure}.</returns>
-    public async Task<Dictionary<string, object>> FetchTransactionFees(List<string> codes = null, Dictionary<string, object> parameters = null)
+    public async Task<Dictionary<string, object>> FetchTransactionFees(List<String> codes = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchTransactionFees(codes, parameters);
         return ((Dictionary<string, object>)res);
@@ -1501,7 +1606,7 @@ public partial class binance
     /// fetch deposit and withdraw fees
     /// </summary>
     /// <remarks>
-    /// See <see href="https://binance-docs.github.io/apidocs/spot/en/#all-coins-39-information-user_data"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/wallet/capital/all-coins-info"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -1521,7 +1626,7 @@ public partial class binance
     /// make a withdrawal
     /// </summary>
     /// <remarks>
-    /// See <see href="https://binance-docs.github.io/apidocs/spot/en/#withdraw-user_data"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/wallet/capital/withdraw"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -1532,7 +1637,7 @@ public partial class binance
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}.</returns>
-    public async Task<Transaction> Withdraw(string code, double amount, object address, object tag = null, Dictionary<string, object> parameters = null)
+    public async Task<Transaction> Withdraw(string code, double amount, string address, object tag = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.withdraw(code, amount, address, tag, parameters);
         return new Transaction(res);
@@ -1541,11 +1646,11 @@ public partial class binance
     /// fetch the trading fees for a market
     /// </summary>
     /// <remarks>
-    /// See <see href="https://binance-docs.github.io/apidocs/spot/en/#trade-fee-user_data"/>  <br/>
-    /// See <see href="https://binance-docs.github.io/apidocs/futures/en/#user-commission-rate-user_data"/>  <br/>
-    /// See <see href="https://binance-docs.github.io/apidocs/delivery/en/#user-commission-rate-user_data"/>  <br/>
-    /// See <see href="https://binance-docs.github.io/apidocs/pm/en/#get-user-commission-rate-for-um-user_data"/>  <br/>
-    /// See <see href="https://binance-docs.github.io/apidocs/pm/en/#get-user-commission-rate-for-cm-user_data"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/wallet/asset/trade-fee"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/User-Commission-Rate"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/coin-margined-futures/account/User-Commission-Rate"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/portfolio-margin/account/Get-User-Commission-Rate-for-UM"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/portfolio-margin/account/Get-User-Commission-Rate-for-CM"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -1559,21 +1664,27 @@ public partial class binance
     /// boolean : set to true if you would like to fetch trading fees in a portfolio margin account
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>params.subType</term>
+    /// <description>
+    /// string : "linear" or "inverse"
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a [fee structure]{@link https://docs.ccxt.com/#/?id=fee-structure}.</returns>
-    public async Task<Dictionary<string, object>> FetchTradingFee(string symbol, Dictionary<string, object> parameters = null)
+    public async Task<TradingFeeInterface> FetchTradingFee(string symbol, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchTradingFee(symbol, parameters);
-        return ((Dictionary<string, object>)res);
+        return new TradingFeeInterface(res);
     }
     /// <summary>
     /// fetch the trading fees for multiple markets
     /// </summary>
     /// <remarks>
-    /// See <see href="https://binance-docs.github.io/apidocs/spot/en/#trade-fee-user_data"/>  <br/>
-    /// See <see href="https://binance-docs.github.io/apidocs/futures/en/#account-information-v2-user_data"/>  <br/>
-    /// See <see href="https://binance-docs.github.io/apidocs/delivery/en/#account-information-user_data"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/wallet/asset/trade-fee"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Account-Information-V2"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/coin-margined-futures/account/Account-Information"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -1581,20 +1692,26 @@ public partial class binance
     /// object : extra parameters specific to the exchange API endpoint
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>params.subType</term>
+    /// <description>
+    /// string : "linear" or "inverse"
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols.</returns>
-    public async Task<Dictionary<string, object>> FetchTradingFees(Dictionary<string, object> parameters = null)
+    public async Task<TradingFees> FetchTradingFees(Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchTradingFees(parameters);
-        return ((Dictionary<string, object>)res);
+        return new TradingFees(res);
     }
     /// <summary>
     /// fetch the current funding rate
     /// </summary>
     /// <remarks>
-    /// See <see href="https://binance-docs.github.io/apidocs/futures/en/#mark-price"/>  <br/>
-    /// See <see href="https://binance-docs.github.io/apidocs/delivery/en/#index-price-and-mark-price"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Mark-Price"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/Index-Price-and-Mark-Price"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -1614,8 +1731,8 @@ public partial class binance
     /// fetches historical funding rate prices
     /// </summary>
     /// <remarks>
-    /// See <see href="https://binance-docs.github.io/apidocs/futures/en/#get-funding-rate-history"/>  <br/>
-    /// See <see href="https://binance-docs.github.io/apidocs/delivery/en/#get-funding-rate-history-of-perpetual-futures"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Get-Funding-Rate-History"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/Get-Funding-Rate-History-of-Perpetual-Futures"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -1647,6 +1764,12 @@ public partial class binance
     /// boolean : default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>params.subType</term>
+    /// <description>
+    /// string : "linear" or "inverse"
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
     /// <returns> <term>object[]</term> a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure}.</returns>
@@ -1661,13 +1784,19 @@ public partial class binance
     /// fetch the funding rate for multiple markets
     /// </summary>
     /// <remarks>
-    /// See <see href="https://binance-docs.github.io/apidocs/futures/en/#mark-price"/>  <br/>
-    /// See <see href="https://binance-docs.github.io/apidocs/delivery/en/#index-price-and-mark-price"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Mark-Price"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/Index-Price-and-Mark-Price"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
     /// <description>
     /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.subType</term>
+    /// <description>
+    /// string : "linear" or "inverse"
     /// </description>
     /// </item>
     /// </list>
@@ -1682,10 +1811,10 @@ public partial class binance
     /// retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes
     /// </summary>
     /// <remarks>
-    /// See <see href="https://binance-docs.github.io/apidocs/futures/en/#notional-and-leverage-brackets-user_data"/>  <br/>
-    /// See <see href="https://binance-docs.github.io/apidocs/delivery/en/#notional-bracket-for-symbol-user_data"/>  <br/>
-    /// See <see href="https://binance-docs.github.io/apidocs/pm/en/#um-notional-and-leverage-brackets-user_data"/>  <br/>
-    /// See <see href="https://binance-docs.github.io/apidocs/pm/en/#cm-notional-and-leverage-brackets-user_data"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Notional-and-Leverage-Brackets"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/coin-margined-futures/account/Notional-Bracket-for-Symbol"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/portfolio-margin/account/UM-Notional-and-Leverage-Brackets"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/portfolio-margin/account/CM-Notional-and-Leverage-Brackets"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -1699,19 +1828,25 @@ public partial class binance
     /// boolean : set to true if you would like to fetch the leverage tiers for a portfolio margin account
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>params.subType</term>
+    /// <description>
+    /// string : "linear" or "inverse"
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/#/?id=leverage-tiers-structure}, indexed by market symbols.</returns>
-    public async Task<Dictionary<string, object>> FetchLeverageTiers(List<String> symbols = null, Dictionary<string, object> parameters = null)
+    public async Task<LeverageTiers> FetchLeverageTiers(List<String> symbols = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchLeverageTiers(symbols, parameters);
-        return ((Dictionary<string, object>)res);
+        return new LeverageTiers(res);
     }
     /// <summary>
     /// fetch data on an open position
     /// </summary>
     /// <remarks>
-    /// See <see href="https://binance-docs.github.io/apidocs/voptions/en/#option-position-information-user_data"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/option/trade/Option-Position-Information"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -1731,7 +1866,7 @@ public partial class binance
     /// fetch data on open options positions
     /// </summary>
     /// <remarks>
-    /// See <see href="https://binance-docs.github.io/apidocs/voptions/en/#option-position-information-user_data"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/option/trade/Option-Position-Information"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -1751,11 +1886,11 @@ public partial class binance
     /// fetch all open positions
     /// </summary>
     /// <remarks>
-    /// See <see href="https://binance-docs.github.io/apidocs/futures/en/#position-information-v2-user_data"/>  <br/>
-    /// See <see href="https://binance-docs.github.io/apidocs/delivery/en/#position-information-user_data"/>  <br/>
-    /// See <see href="https://binance-docs.github.io/apidocs/futures/en/#account-information-v2-user_data"/>  <br/>
-    /// See <see href="https://binance-docs.github.io/apidocs/delivery/en/#account-information-user_data"/>  <br/>
-    /// See <see href="https://binance-docs.github.io/apidocs/voptions/en/#option-position-information-user_data"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Account-Information-V2"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/coin-margined-futures/account/Account-Information"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Position-Information-V2"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/Position-Information"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/option/trade/Option-Position-Information"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -1781,10 +1916,10 @@ public partial class binance
     /// fetch account positions
     /// </summary>
     /// <remarks>
-    /// See <see href="https://binance-docs.github.io/apidocs/futures/en/#account-information-v2-user_data"/>  <br/>
-    /// See <see href="https://binance-docs.github.io/apidocs/delivery/en/#account-information-user_data"/>  <br/>
-    /// See <see href="https://binance-docs.github.io/apidocs/pm/en/#get-um-account-detail-user_data"/>  <br/>
-    /// See <see href="https://binance-docs.github.io/apidocs/pm/en/#get-cm-account-detail-user_data"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Account-Information-V2"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/coin-margined-futures/account/Account-Information"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Position-Information-V2"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/Position-Information"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -1796,6 +1931,18 @@ public partial class binance
     /// <term>params.portfolioMargin</term>
     /// <description>
     /// boolean : set to true if you would like to fetch positions in a portfolio margin account
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.subType</term>
+    /// <description>
+    /// string : "linear" or "inverse"
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.filterClosed</term>
+    /// <description>
+    /// boolean : set to true if you would like to filter out closed positions, default is false
     /// </description>
     /// </item>
     /// </list>
@@ -1810,10 +1957,10 @@ public partial class binance
     /// fetch positions risk
     /// </summary>
     /// <remarks>
-    /// See <see href="https://binance-docs.github.io/apidocs/futures/en/#position-information-v2-user_data"/>  <br/>
-    /// See <see href="https://binance-docs.github.io/apidocs/delivery/en/#position-information-user_data"/>  <br/>
-    /// See <see href="https://binance-docs.github.io/apidocs/pm/en/#query-um-position-information-user_data"/>  <br/>
-    /// See <see href="https://binance-docs.github.io/apidocs/pm/en/#query-cm-position-information-user_data"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Position-Information-V2"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/Position-Information"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/portfolio-margin/account/Query-UM-Position-Information"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/portfolio-margin/account/Query-CM-Position-Information"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -1825,6 +1972,12 @@ public partial class binance
     /// <term>params.portfolioMargin</term>
     /// <description>
     /// boolean : set to true if you would like to fetch positions for a portfolio margin account
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.subType</term>
+    /// <description>
+    /// string : "linear" or "inverse"
     /// </description>
     /// </item>
     /// </list>
@@ -1839,10 +1992,10 @@ public partial class binance
     /// fetch the history of funding payments paid and received on this account
     /// </summary>
     /// <remarks>
-    /// See <see href="https://binance-docs.github.io/apidocs/futures/en/#get-income-history-user_data"/>  <br/>
-    /// See <see href="https://binance-docs.github.io/apidocs/delivery/en/#get-income-history-user_data"/>  <br/>
-    /// See <see href="https://binance-docs.github.io/apidocs/pm/en/#get-um-income-history-user_data"/>  <br/>
-    /// See <see href="https://binance-docs.github.io/apidocs/pm/en/#get-cm-income-history-user_data"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Get-Income-History"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/coin-margined-futures/account/Get-Income-History"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/portfolio-margin/account/Get-UM-Income-History"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/portfolio-margin/account/Get-CM-Income-History"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -1874,6 +2027,12 @@ public partial class binance
     /// boolean : set to true if you would like to fetch the funding history for a portfolio margin account
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>params.subType</term>
+    /// <description>
+    /// string : "linear" or "inverse"
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a [funding history structure]{@link https://docs.ccxt.com/#/?id=funding-history-structure}.</returns>
@@ -1888,10 +2047,10 @@ public partial class binance
     /// set the level of leverage for a market
     /// </summary>
     /// <remarks>
-    /// See <see href="https://binance-docs.github.io/apidocs/futures/en/#change-initial-leverage-trade"/>  <br/>
-    /// See <see href="https://binance-docs.github.io/apidocs/delivery/en/#change-initial-leverage-trade"/>  <br/>
-    /// See <see href="https://binance-docs.github.io/apidocs/pm/en/#change-um-initial-leverage-trade"/>  <br/>
-    /// See <see href="https://binance-docs.github.io/apidocs/pm/en/#change-cm-initial-leverage-trade"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Change-Initial-Leverage"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/Change-Initial-Leverage"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/portfolio-margin/account/Change-UM-Initial-Leverage"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/portfolio-margin/account/Change-CM-Initial-Leverage"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -1917,8 +2076,8 @@ public partial class binance
     /// set margin mode to 'cross' or 'isolated'
     /// </summary>
     /// <remarks>
-    /// See <see href="https://binance-docs.github.io/apidocs/futures/en/#change-margin-type-trade"/>  <br/>
-    /// See <see href="https://binance-docs.github.io/apidocs/delivery/en/#change-margin-type-trade"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Change-Margin-Type"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/Change-Margin-Type"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -1938,10 +2097,10 @@ public partial class binance
     /// set hedged to true or false for a market
     /// </summary>
     /// <remarks>
-    /// See <see href="https://binance-docs.github.io/apidocs/futures/en/#change-position-mode-trade"/>  <br/>
-    /// See <see href="https://binance-docs.github.io/apidocs/delivery/en/#change-position-mode-trade"/>  <br/>
-    /// See <see href="https://binance-docs.github.io/apidocs/pm/en/#change-um-position-mode-trade"/>  <br/>
-    /// See <see href="https://binance-docs.github.io/apidocs/pm/en/#change-cm-position-mode-trade"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Change-Position-Mode"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/Change-Position-Mode"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/portfolio-margin/account/Get-UM-Current-Position-Mode"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/portfolio-margin/account/Get-CM-Current-Position-Mode"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -1955,6 +2114,12 @@ public partial class binance
     /// boolean : set to true if you would like to set the position mode for a portfolio margin account
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>params.subType</term>
+    /// <description>
+    /// string : "linear" or "inverse"
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> response from the exchange.</returns>
@@ -1964,10 +2129,39 @@ public partial class binance
         return ((Dictionary<string, object>)res);
     }
     /// <summary>
+    /// fetch the set leverage for all markets
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Account-Information-V2"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/coin-margined-futures/account/Account-Information"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/portfolio-margin/account/Get-UM-Account-Detail"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/portfolio-margin/account/Get-CM-Account-Detail"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.subType</term>
+    /// <description>
+    /// string : "linear" or "inverse"
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a list of [leverage structures]{@link https://docs.ccxt.com/#/?id=leverage-structure}.</returns>
+    public async Task<Leverages> FetchLeverages(List<String> symbols = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchLeverages(symbols, parameters);
+        return new Leverages(res);
+    }
+    /// <summary>
     /// fetches historical settlement records
     /// </summary>
     /// <remarks>
-    /// See <see href="https://binance-docs.github.io/apidocs/voptions/en/#historical-exercise-records"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/option/market-data/Historical-Exercise-Records"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -2001,7 +2195,7 @@ public partial class binance
     /// fetches historical settlement records of the user
     /// </summary>
     /// <remarks>
-    /// See <see href="https://binance-docs.github.io/apidocs/voptions/en/#user-exercise-record-user_data"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/option/trade/User-Exercise-Record"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -2031,15 +2225,20 @@ public partial class binance
         var res = await this.fetchMySettlementHistory(symbol, since, limit, parameters);
         return ((Dictionary<string, object>)res);
     }
+    public async Task<Dictionary<string, object>> FetchLedgerEntry(string id, string code = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchLedgerEntry(id, code, parameters);
+        return ((Dictionary<string, object>)res);
+    }
     /// <summary>
     /// fetch the history of changes, actions done by the user or operations that altered the balance of the user
     /// </summary>
     /// <remarks>
-    /// See <see href="https://binance-docs.github.io/apidocs/voptions/en/#account-funding-flow-user_data"/>  <br/>
-    /// See <see href="https://binance-docs.github.io/apidocs/futures/en/#get-income-history-user_data"/>  <br/>
-    /// See <see href="https://binance-docs.github.io/apidocs/delivery/en/#get-income-history-user_data"/>  <br/>
-    /// See <see href="https://binance-docs.github.io/apidocs/pm/en/#get-um-income-history-user_data"/>  <br/>
-    /// See <see href="https://binance-docs.github.io/apidocs/pm/en/#get-cm-income-history-user_data"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/option/account/Account-Funding-Flow"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Get-Income-History"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/coin-margined-futures/account/Get-Income-History"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/portfolio-margin/account/Get-UM-Income-History"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/portfolio-margin/account/Get-CM-Income-History"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -2077,6 +2276,12 @@ public partial class binance
     /// boolean : set to true if you would like to fetch the ledger for a portfolio margin account
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>params.subType</term>
+    /// <description>
+    /// string : "linear" or "inverse"
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}.</returns>
@@ -2091,7 +2296,7 @@ public partial class binance
     /// fetch the rate of interest to borrow a currency for margin trading
     /// </summary>
     /// <remarks>
-    /// See <see href="https://binance-docs.github.io/apidocs/spot/en/#query-margin-interest-rate-history-user_data"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/margin_trading/borrow-and-repay/Query-Margin-Interest-Rate-History"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -2102,16 +2307,74 @@ public partial class binance
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a [borrow rate structure]{@link https://docs.ccxt.com/#/?id=borrow-rate-structure}.</returns>
-    public async Task<Dictionary<string, object>> FetchCrossBorrowRate(string code, Dictionary<string, object> parameters = null)
+    public async Task<CrossBorrowRate> FetchCrossBorrowRate(string code, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchCrossBorrowRate(code, parameters);
-        return ((Dictionary<string, object>)res);
+        return new CrossBorrowRate(res);
+    }
+    /// <summary>
+    /// fetch the rate of interest to borrow a currency for margin trading
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://developers.binance.com/docs/margin_trading/account/Query-Isolated-Margin-Fee-Data"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.vipLevel</term>
+    /// <description>
+    /// object : user's current specific margin data will be returned if viplevel is omitted
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> an [isolated borrow rate structure]{@link https://docs.ccxt.com/#/?id=isolated-borrow-rate-structure}.</returns>
+    public async Task<IsolatedBorrowRate> FetchIsolatedBorrowRate(string symbol, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchIsolatedBorrowRate(symbol, parameters);
+        return new IsolatedBorrowRate(res);
+    }
+    /// <summary>
+    /// fetch the borrow interest rates of all currencies
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://developers.binance.com/docs/margin_trading/account/Query-Isolated-Margin-Fee-Data"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.symbol</term>
+    /// <description>
+    /// object : unified market symbol
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.vipLevel</term>
+    /// <description>
+    /// object : user's current specific margin data will be returned if viplevel is omitted
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a [borrow rate structure]{@link https://docs.ccxt.com/#/?id=borrow-rate-structure}.</returns>
+    public async Task<IsolatedBorrowRates> FetchIsolatedBorrowRates(Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchIsolatedBorrowRates(parameters);
+        return new IsolatedBorrowRates(res);
     }
     /// <summary>
     /// retrieves a history of a currencies borrow interest rate at specific time slots
     /// </summary>
     /// <remarks>
-    /// See <see href="https://binance-docs.github.io/apidocs/spot/en/#query-margin-interest-rate-history-user_data"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/margin_trading/borrow-and-repay/Query-Margin-Interest-Rate-History"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -2145,7 +2408,7 @@ public partial class binance
     /// create gift code
     /// </summary>
     /// <remarks>
-    /// See <see href="https://binance-docs.github.io/apidocs/spot/en/#create-a-single-token-gift-card-user_data"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/gift_card/market-data/Create-a-single-token-gift-card"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -2165,8 +2428,8 @@ public partial class binance
     /// fetch the interest owed by the user for borrowing currency for margin trading
     /// </summary>
     /// <remarks>
-    /// See <see href="https://binance-docs.github.io/apidocs/spot/en/#get-interest-history-user_data"/>  <br/>
-    /// See <see href="https://binance-docs.github.io/apidocs/pm/en/#get-margin-borrow-loan-interest-history-user_data"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/margin_trading/borrow-and-repay/Get-Interest-History"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/portfolio-margin/account/Get-Margin-BorrowLoan-Interest-History"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>code</term>
@@ -2218,8 +2481,8 @@ public partial class binance
     /// Retrieves the open interest history of a currency
     /// </summary>
     /// <remarks>
-    /// See <see href="https://binance-docs.github.io/apidocs/delivery/en/#open-interest-statistics"/>  <br/>
-    /// See <see href="https://binance-docs.github.io/apidocs/futures/en/#open-interest-statistics"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Open-Interest-Statistics"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/Open-Interest-Statistics"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -2245,6 +2508,12 @@ public partial class binance
     /// int : the time(ms) of the latest record to retrieve as a unix timestamp
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>params.paginate</term>
+    /// <description>
+    /// boolean : default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> an array of [open interest structure]{@link https://docs.ccxt.com/#/?id=open-interest-structure}.</returns>
@@ -2259,9 +2528,9 @@ public partial class binance
     /// retrieves the open interest of a contract trading pair
     /// </summary>
     /// <remarks>
-    /// See <see href="https://binance-docs.github.io/apidocs/futures/en/#open-interest"/>  <br/>
-    /// See <see href="https://binance-docs.github.io/apidocs/delivery/en/#open-interest"/>  <br/>
-    /// See <see href="https://binance-docs.github.io/apidocs/voptions/en/#open-interest"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Open-Interest"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/Open-Interest"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/option/market-data/Open-Interest"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -2281,12 +2550,11 @@ public partial class binance
     /// retrieves the users liquidated positions
     /// </summary>
     /// <remarks>
-    /// See <see href="https://binance-docs.github.io/apidocs/spot/en/#get-force-liquidation-record-user_data"/>  <br/>
-    /// See <see href="https://binance-docs.github.io/apidocs/futures/en/#user-39-s-force-orders-user_data"/>  <br/>
-    /// See <see href="https://binance-docs.github.io/apidocs/delivery/en/#user-39-s-force-orders-user_data"/>  <br/>
-    /// See <see href="https://binance-docs.github.io/apidocs/pm/en/#query-user-39-s-margin-force-orders-user_data"/>  <br/>
-    /// See <see href="https://binance-docs.github.io/apidocs/pm/en/#query-user-39-s-um-force-orders-user_data"/>  <br/>
-    /// See <see href="https://binance-docs.github.io/apidocs/pm/en/#query-user-39-s-cm-force-orders-user_data"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/margin_trading/trade/Get-Force-Liquidation-Record"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Users-Force-Orders"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/Users-Force-Orders"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-Users-UM-Force-Orders"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-Users-CM-Force-Orders"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>symbol</term>
@@ -2330,6 +2598,18 @@ public partial class binance
     /// boolean : set to true if you would like to fetch liquidations in a portfolio margin account
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>params.type</term>
+    /// <description>
+    /// string : "spot"
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.subType</term>
+    /// <description>
+    /// string : "linear" or "inverse"
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> an array of [liquidation structures]{@link https://docs.ccxt.com/#/?id=liquidation-structure}.</returns>
@@ -2344,7 +2624,7 @@ public partial class binance
     /// fetches an option contracts greeks, financial metrics used to measure the factors that affect the price of an options contract
     /// </summary>
     /// <remarks>
-    /// See <see href="https://binance-docs.github.io/apidocs/voptions/en/#option-mark-price"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/option/market-data/Option-Mark-Price"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -2359,5 +2639,215 @@ public partial class binance
     {
         var res = await this.fetchGreeks(symbol, parameters);
         return new Greeks(res);
+    }
+    public async Task<Dictionary<string, object>> FetchTradingLimits(List<String> symbols = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchTradingLimits(symbols, parameters);
+        return ((Dictionary<string, object>)res);
+    }
+    /// <summary>
+    /// fetchs the position mode, hedged or one way, hedged for binance is set identically for all linear markets or all inverse markets
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Get-Current-Position-Mode"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/coin-margined-futures/account/Get-Current-Position-Mode"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.subType</term>
+    /// <description>
+    /// string : "linear" or "inverse"
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> an object detailing whether the market is in hedged or one-way mode.</returns>
+    public async Task<Dictionary<string, object>> FetchPositionMode(string symbol = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchPositionMode(symbol, parameters);
+        return ((Dictionary<string, object>)res);
+    }
+    public async Task<MarginModes> FetchMarginModes(List<String> symbols = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchMarginModes(symbols, parameters);
+        return new MarginModes(res);
+    }
+    /// <summary>
+    /// fetches option data that is commonly found in an option chain
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://developers.binance.com/docs/derivatives/option/market-data/24hr-Ticker-Price-Change-Statistics"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> an [option chain structure]{@link https://docs.ccxt.com/#/?id=option-chain-structure}.</returns>
+    public async Task<Option> FetchOption(string symbol, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchOption(symbol, parameters);
+        return new Option(res);
+    }
+    public async Task<List<MarginModification>> FetchMarginAdjustmentHistory(string symbol = null, string type = null, double? since2 = 0, double? limit2 = 0, Dictionary<string, object> parameters = null)
+    {
+        var since = since2 == 0 ? null : (object)since2;
+        var limit = limit2 == 0 ? null : (object)limit2;
+        var res = await this.fetchMarginAdjustmentHistory(symbol, type, since, limit, parameters);
+        return ((IList<object>)res).Select(item => new MarginModification(item)).ToList<MarginModification>();
+    }
+    /// <summary>
+    /// fetches all available currencies that can be converted
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://developers.binance.com/docs/convert/market-data/Query-order-quantity-precision-per-asset"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> an associative dictionary of currencies.</returns>
+    public async Task<Currencies> FetchConvertCurrencies(Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchConvertCurrencies(parameters);
+        return new Currencies(res);
+    }
+    /// <summary>
+    /// fetch a quote for converting from one currency to another
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://developers.binance.com/docs/convert/trade/Send-quote-request"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.walletType</term>
+    /// <description>
+    /// string : either 'SPOT' or 'FUNDING', the default is 'SPOT'
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a [conversion structure]{@link https://docs.ccxt.com/#/?id=conversion-structure}.</returns>
+    public async Task<Conversion> FetchConvertQuote(string fromCode, string toCode, double? amount2 = 0, Dictionary<string, object> parameters = null)
+    {
+        var amount = amount2 == 0 ? null : (object)amount2;
+        var res = await this.fetchConvertQuote(fromCode, toCode, amount, parameters);
+        return new Conversion(res);
+    }
+    /// <summary>
+    /// convert from one currency to another
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://developers.binance.com/docs/convert/trade/Accept-Quote"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>amount</term>
+    /// <description>
+    /// float : how much you want to trade in units of the from currency
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a [conversion structure]{@link https://docs.ccxt.com/#/?id=conversion-structure}.</returns>
+    public async Task<Conversion> CreateConvertTrade(string id, string fromCode, string toCode, double? amount2 = 0, Dictionary<string, object> parameters = null)
+    {
+        var amount = amount2 == 0 ? null : (object)amount2;
+        var res = await this.createConvertTrade(id, fromCode, toCode, amount, parameters);
+        return new Conversion(res);
+    }
+    /// <summary>
+    /// fetch the data for a conversion trade
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://developers.binance.com/docs/convert/trade/Order-Status"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>code</term>
+    /// <description>
+    /// string : the unified currency code of the conversion trade
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a [conversion structure]{@link https://docs.ccxt.com/#/?id=conversion-structure}.</returns>
+    public async Task<Conversion> FetchConvertTrade(string id, string code = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchConvertTrade(id, code, parameters);
+        return new Conversion(res);
+    }
+    /// <summary>
+    /// fetch the users history of conversion trades
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://developers.binance.com/docs/convert/trade/Get-Convert-Trade-History"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>code</term>
+    /// <description>
+    /// string : the unified currency code
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>since</term>
+    /// <description>
+    /// int : the earliest time in ms to fetch conversions for
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>limit</term>
+    /// <description>
+    /// int : the maximum number of conversion structures to retrieve
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.until</term>
+    /// <description>
+    /// int : timestamp in ms of the latest conversion to fetch
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object[]</term> a list of [conversion structures]{@link https://docs.ccxt.com/#/?id=conversion-structure}.</returns>
+    public async Task<List<Conversion>> FetchConvertTradeHistory(string code = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    {
+        var since = since2 == 0 ? null : (object)since2;
+        var limit = limit2 == 0 ? null : (object)limit2;
+        var res = await this.fetchConvertTradeHistory(code, since, limit, parameters);
+        return ((IList<object>)res).Select(item => new Conversion(item)).ToList<Conversion>();
     }
 }

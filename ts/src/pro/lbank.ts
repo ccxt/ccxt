@@ -2,7 +2,7 @@
 import lbankRest from '../lbank.js';
 import { ExchangeError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
-import type { Int, Str, Trade, OrderBook, Order, OHLCV, Ticker } from '../base/types.js';
+import type { Int, Str, Trade, OrderBook, Order, OHLCV, Ticker, Dict } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -80,7 +80,7 @@ export default class lbank extends lbankRest {
         const timeframes = this.safeValue (watchOHLCVOptions, 'timeframes', {});
         const timeframeId = this.safeString (timeframes, timeframe, timeframe);
         const messageHash = 'fetchOHLCV:' + market['symbol'] + ':' + timeframeId;
-        const message = {
+        const message: Dict = {
             'action': 'request',
             'request': 'kbar',
             'kbar': timeframeId,
@@ -117,7 +117,7 @@ export default class lbank extends lbankRest {
         const timeframeId = this.safeString (timeframes, timeframe, timeframe);
         const messageHash = 'ohlcv:' + market['symbol'] + ':' + timeframeId;
         const url = this.urls['api']['ws'];
-        const subscribe = {
+        const subscribe: Dict = {
             'action': 'subscribe',
             'subscribe': 'kbar',
             'kbar': timeframeId,
@@ -180,7 +180,7 @@ export default class lbank extends lbankRest {
         //          },
         //          type: 'kbar',
         //          pair: 'btc_usdt',
-        //          TS: '2022-10-02T12:44:15.864'
+        //          TS: '2022-10-02T12:44:15.865'
         //      }
         //
         const marketId = this.safeString (message, 'pair');
@@ -236,7 +236,7 @@ export default class lbank extends lbankRest {
         }
     }
 
-    async fetchTickerWs (symbol, params = {}): Promise<Ticker> {
+    async fetchTickerWs (symbol: string, params = {}): Promise<Ticker> {
         /**
          * @method
          * @name lbank#fetchTickerWs
@@ -250,7 +250,7 @@ export default class lbank extends lbankRest {
         const market = this.market (symbol);
         const url = this.urls['api']['ws'];
         const messageHash = 'fetchTicker:' + market['symbol'];
-        const message = {
+        const message: Dict = {
             'action': 'request',
             'request': 'tick',
             'pair': market['id'],
@@ -274,7 +274,7 @@ export default class lbank extends lbankRest {
         const market = this.market (symbol);
         const url = this.urls['api']['ws'];
         const messageHash = 'ticker:' + market['symbol'];
-        const message = {
+        const message: Dict = {
             'action': 'subscribe',
             'subscribe': 'tick',
             'pair': market['id'],
@@ -385,7 +385,7 @@ export default class lbank extends lbankRest {
         if (limit === undefined) {
             limit = 10;
         }
-        const message = {
+        const message: Dict = {
             'action': 'request',
             'request': 'trade',
             'pair': market['id'],
@@ -412,7 +412,7 @@ export default class lbank extends lbankRest {
         const market = this.market (symbol);
         const url = this.urls['api']['ws'];
         const messageHash = 'trades:' + market['symbol'];
-        const message = {
+        const message: Dict = {
             'action': 'subscribe',
             'subscribe': 'trade',
             'pair': market['id'],
@@ -440,7 +440,7 @@ export default class lbank extends lbankRest {
         //             "volume":6.3607,
         //             "amount":77148.9303,
         //             "price":12129,
-        //             "direction":"sell",
+        //             "direction":"sell", // or "sell_market"
         //             "TS":"2019-06-28T19:55:49.460"
         //         },
         //         "type":"trade",
@@ -481,7 +481,7 @@ export default class lbank extends lbankRest {
         //        "volume":6.3607,
         //        "amount":77148.9303,
         //        "price":12129,
-        //        "direction":"sell",
+        //        "direction":"sell", // or "sell_market"
         //        "TS":"2019-06-28T19:55:49.460"
         //    }
         //
@@ -490,6 +490,8 @@ export default class lbank extends lbankRest {
         if (timestamp === undefined) {
             timestamp = this.parse8601 (datetime);
         }
+        let side = this.safeString2 (trade, 'direction', 3);
+        side = side.replace ('_market', '');
         return this.safeTrade ({
             'timestamp': timestamp,
             'datetime': datetime,
@@ -498,7 +500,7 @@ export default class lbank extends lbankRest {
             'order': undefined,
             'type': undefined,
             'takerOrMaker': undefined,
-            'side': this.safeString2 (trade, 'direction', 3),
+            'side': side,
             'price': this.safeString2 (trade, 'price', 1),
             'amount': this.safeString2 (trade, 'volume', 2),
             'cost': this.safeString (trade, 'amount'),
@@ -532,7 +534,7 @@ export default class lbank extends lbankRest {
             messageHash = 'orders:' + market['symbol'];
             pair = market['id'];
         }
-        const message = {
+        const message: Dict = {
             'action': 'subscribe',
             'subscribe': 'orderUpdate',
             'subscribeKey': key,
@@ -664,7 +666,7 @@ export default class lbank extends lbankRest {
     }
 
     parseWsOrderStatus (status) {
-        const statuses = {
+        const statuses: Dict = {
             '-1': 'canceled',  // Withdrawn
             '0': 'open',   // Unsettled
             '1': 'open',   // Partial sale
@@ -692,7 +694,7 @@ export default class lbank extends lbankRest {
         if (limit === undefined) {
             limit = 100;
         }
-        const subscribe = {
+        const subscribe: Dict = {
             'action': 'request',
             'request': 'depth',
             'depth': limit,
@@ -723,7 +725,7 @@ export default class lbank extends lbankRest {
         if (limit === undefined) {
             limit = 100;
         }
-        const subscribe = {
+        const subscribe: Dict = {
             'action': 'subscribe',
             'subscribe': 'depth',
             'depth': limit,
@@ -796,11 +798,11 @@ export default class lbank extends lbankRest {
         const orderBook = this.safeValue (message, 'depth', message);
         const datetime = this.safeString (message, 'TS');
         const timestamp = this.parse8601 (datetime);
-        let orderbook = this.safeValue (this.orderbooks, symbol);
-        if (orderbook === undefined) {
-            orderbook = this.orderBook ({});
-            this.orderbooks[symbol] = orderbook;
+        // let orderbook = this.safeValue (this.orderbooks, symbol);
+        if (!(symbol in this.orderbooks)) {
+            this.orderbooks[symbol] = this.orderBook ({});
         }
+        const orderbook = this.orderbooks[symbol];
         const snapshot = this.parseOrderBook (orderBook, symbol, timestamp, 'bids', 'asks');
         orderbook.reset (snapshot);
         let messageHash = 'orderbook:' + symbol;
@@ -845,7 +847,7 @@ export default class lbank extends lbankRest {
             this.spawn (this.handlePing, client, message);
             return;
         }
-        const handlers = {
+        const handlers: Dict = {
             'kbar': this.handleOHLCV,
             'depth': this.handleOrderBook,
             'trade': this.handleTrades,
@@ -883,7 +885,7 @@ export default class lbank extends lbankRest {
         } else {
             const expires = this.safeInteger (authenticated, 'expires', 0);
             if (expires < now) {
-                const request = {
+                const request: Dict = {
                     'subscribeKey': authenticated['key'],
                 };
                 const response = await this.spotPrivatePostSubscribeRefreshKey (this.extend (request, params));

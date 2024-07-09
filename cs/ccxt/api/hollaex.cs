@@ -66,6 +66,21 @@ public partial class hollaex : Exchange
         return await this.callAsync ("publicGetCharts",parameters);
     }
 
+    public async Task<object> publicGetMinicharts (object parameters = null)
+    {
+        return await this.callAsync ("publicGetMinicharts",parameters);
+    }
+
+    public async Task<object> publicGetOraclePrices (object parameters = null)
+    {
+        return await this.callAsync ("publicGetOraclePrices",parameters);
+    }
+
+    public async Task<object> publicGetQuickTrade (object parameters = null)
+    {
+        return await this.callAsync ("publicGetQuickTrade",parameters);
+    }
+
     public async Task<object> publicGetUdfConfig (object parameters = null)
     {
         return await this.callAsync ("publicGetUdfConfig",parameters);

@@ -43,6 +43,9 @@ export default class mercado extends Exchange {
                 'fetchBorrowRateHistory': false,
                 'fetchCrossBorrowRate': false,
                 'fetchCrossBorrowRates': false,
+                'fetchDepositAddress': false,
+                'fetchDepositAddresses': false,
+                'fetchDepositAddressesByNetwork': false,
                 'fetchFundingHistory': false,
                 'fetchFundingRate': false,
                 'fetchFundingRateHistory': false,
@@ -63,8 +66,11 @@ export default class mercado extends Exchange {
                 'fetchOrderBook': true,
                 'fetchOrders': true,
                 'fetchPosition': false,
+                'fetchPositionHistory': false,
                 'fetchPositionMode': false,
                 'fetchPositions': false,
+                'fetchPositionsForSymbol': false,
+                'fetchPositionsHistory': false,
                 'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchTicker': true,
@@ -436,7 +442,7 @@ export default class mercado extends Exchange {
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
@@ -514,7 +520,7 @@ export default class mercado extends Exchange {
         //     }
         //
         const responseData = this.safeValue(response, 'response_data', {});
-        const order = this.safeValue(responseData, 'order', {});
+        const order = this.safeDict(responseData, 'order', {});
         return this.parseOrder(order, market);
     }
     parseOrderStatus(status) {
@@ -617,7 +623,7 @@ export default class mercado extends Exchange {
         };
         const response = await this.privatePostGetOrder(this.extend(request, params));
         const responseData = this.safeValue(response, 'response_data', {});
-        const order = this.safeValue(responseData, 'order');
+        const order = this.safeDict(responseData, 'order');
         return this.parseOrder(order, market);
     }
     async withdraw(code, amount, address, tag = undefined, params = {}) {
@@ -684,7 +690,7 @@ export default class mercado extends Exchange {
         //     }
         //
         const responseData = this.safeValue(response, 'response_data', {});
-        const withdrawal = this.safeValue(responseData, 'withdrawal');
+        const withdrawal = this.safeDict(responseData, 'withdrawal');
         return this.parseTransaction(withdrawal, currency);
     }
     parseTransaction(transaction, currency = undefined) {
@@ -789,7 +795,7 @@ export default class mercado extends Exchange {
         };
         const response = await this.privatePostListOrders(this.extend(request, params));
         const responseData = this.safeValue(response, 'response_data', {});
-        const orders = this.safeValue(responseData, 'orders', []);
+        const orders = this.safeList(responseData, 'orders', []);
         return this.parseOrders(orders, market, since, limit);
     }
     async fetchOpenOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -814,7 +820,7 @@ export default class mercado extends Exchange {
         };
         const response = await this.privatePostListOrders(this.extend(request, params));
         const responseData = this.safeValue(response, 'response_data', {});
-        const orders = this.safeValue(responseData, 'orders', []);
+        const orders = this.safeList(responseData, 'orders', []);
         return this.parseOrders(orders, market, since, limit);
     }
     async fetchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {

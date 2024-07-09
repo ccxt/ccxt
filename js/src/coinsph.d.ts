@@ -1,5 +1,5 @@
 import Exchange from './abstract/coinsph.js';
-import type { Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
+import type { Balances, Currency, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, int } from './base/types.js';
 /**
  * @class coinsph
  * @augments Exchange
@@ -15,50 +15,40 @@ export default class coinsph extends Exchange {
         info: any;
     }>;
     fetchTime(params?: {}): Promise<number>;
-    fetchMarkets(params?: {}): Promise<any[]>;
+    fetchMarkets(params?: {}): Promise<Market[]>;
     fetchTickers(symbols?: Strings, params?: {}): Promise<Tickers>;
     fetchTicker(symbol: string, params?: {}): Promise<Ticker>;
-    parseTicker(ticker: any, market?: Market): Ticker;
+    parseTicker(ticker: Dict, market?: Market): Ticker;
     fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
     fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
     parseOHLCV(ohlcv: any, market?: Market): OHLCV;
     fetchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     fetchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     fetchOrderTrades(id: string, symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
-    parseTrade(trade: any, market?: Market): Trade;
+    parseTrade(trade: Dict, market?: Market): Trade;
     fetchBalance(params?: {}): Promise<Balances>;
     parseBalance(response: any): Balances;
-    createOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: number, params?: {}): Promise<Order>;
+    createOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): Promise<Order>;
     fetchOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
     fetchOpenOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     fetchClosedOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     cancelOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
     cancelAllOrders(symbol?: Str, params?: {}): Promise<Order[]>;
-    parseOrder(order: any, market?: Market): Order;
+    parseOrder(order: Dict, market?: Market): Order;
     parseOrderSide(status: any): string;
     encodeOrderSide(status: any): string;
     parseOrderType(status: any): string;
     encodeOrderType(status: any): string;
-    parseOrderStatus(status: any): string;
+    parseOrderStatus(status: Str): string;
     parseOrderTimeInForce(status: any): string;
-    fetchTradingFee(symbol: string, params?: {}): Promise<{
-        info: any;
-        symbol: string;
-        maker: number;
-        taker: number;
-    }>;
-    fetchTradingFees(params?: {}): Promise<{}>;
-    parseTradingFee(fee: any, market?: Market): {
-        info: any;
-        symbol: string;
-        maker: number;
-        taker: number;
-    };
-    withdraw(code: string, amount: number, address: any, tag?: any, params?: {}): Promise<Transaction>;
+    fetchTradingFee(symbol: string, params?: {}): Promise<TradingFeeInterface>;
+    fetchTradingFees(params?: {}): Promise<TradingFees>;
+    parseTradingFee(fee: Dict, market?: Market): TradingFeeInterface;
+    withdraw(code: string, amount: number, address: string, tag?: any, params?: {}): Promise<Transaction>;
     fetchDeposits(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
     fetchWithdrawals(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
-    parseTransaction(transaction: any, currency?: Currency): Transaction;
-    parseTransactionStatus(status: any): string;
+    parseTransaction(transaction: Dict, currency?: Currency): Transaction;
+    parseTransactionStatus(status: Str): string;
     fetchDepositAddress(code: string, params?: {}): Promise<{
         currency: string;
         address: string;
@@ -81,5 +71,5 @@ export default class coinsph extends Exchange {
         body: any;
         headers: any;
     };
-    handleErrors(code: any, reason: any, url: any, method: any, headers: any, body: any, response: any, requestHeaders: any, requestBody: any): any;
+    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): any;
 }

@@ -11,7 +11,7 @@ public partial class coinmate : Exchange
             { "id", "coinmate" },
             { "name", "CoinMate" },
             { "countries", new List<object>() {"GB", "CZ", "EU"} },
-            { "rateLimit", 1000 },
+            { "rateLimit", 600 },
             { "has", new Dictionary<string, object>() {
                 { "CORS", true },
                 { "spot", true },
@@ -50,11 +50,15 @@ public partial class coinmate : Exchange
                 { "fetchOrderBook", true },
                 { "fetchOrders", true },
                 { "fetchPosition", false },
+                { "fetchPositionHistory", false },
                 { "fetchPositionMode", false },
                 { "fetchPositions", false },
+                { "fetchPositionsForSymbol", false },
+                { "fetchPositionsHistory", false },
                 { "fetchPositionsRisk", false },
                 { "fetchPremiumIndexOHLCV", false },
                 { "fetchTicker", true },
+                { "fetchTickers", true },
                 { "fetchTrades", true },
                 { "fetchTradingFee", true },
                 { "fetchTradingFees", false },
@@ -83,21 +87,21 @@ public partial class coinmate : Exchange
             } },
             { "api", new Dictionary<string, object>() {
                 { "public", new Dictionary<string, object>() {
-                    { "get", new List<object>() {"orderBook", "ticker", "transactions", "tradingPairs"} },
+                    { "get", new List<object>() {"orderBook", "ticker", "tickerAll", "products", "transactions", "tradingPairs"} },
                 } },
                 { "private", new Dictionary<string, object>() {
-                    { "post", new List<object>() {"balances", "bitcoinCashWithdrawal", "bitcoinCashDepositAddresses", "bitcoinDepositAddresses", "bitcoinWithdrawal", "bitcoinWithdrawalFees", "buyInstant", "buyLimit", "cancelOrder", "cancelOrderWithInfo", "createVoucher", "dashDepositAddresses", "dashWithdrawal", "ethereumWithdrawal", "ethereumDepositAddresses", "litecoinWithdrawal", "litecoinDepositAddresses", "openOrders", "order", "orderHistory", "orderById", "pusherAuth", "redeemVoucher", "replaceByBuyLimit", "replaceByBuyInstant", "replaceBySellLimit", "replaceBySellInstant", "rippleDepositAddresses", "rippleWithdrawal", "sellInstant", "sellLimit", "transactionHistory", "traderFees", "tradeHistory", "transfer", "transferHistory", "unconfirmedBitcoinDeposits", "unconfirmedBitcoinCashDeposits", "unconfirmedDashDeposits", "unconfirmedEthereumDeposits", "unconfirmedLitecoinDeposits", "unconfirmedRippleDeposits"} },
+                    { "post", new List<object>() {"balances", "bitcoinCashWithdrawal", "bitcoinCashDepositAddresses", "bitcoinDepositAddresses", "bitcoinWithdrawal", "bitcoinWithdrawalFees", "buyInstant", "buyLimit", "cancelOrder", "cancelOrderWithInfo", "createVoucher", "dashDepositAddresses", "dashWithdrawal", "ethereumWithdrawal", "ethereumDepositAddresses", "litecoinWithdrawal", "litecoinDepositAddresses", "openOrders", "order", "orderHistory", "orderById", "pusherAuth", "redeemVoucher", "replaceByBuyLimit", "replaceByBuyInstant", "replaceBySellLimit", "replaceBySellInstant", "rippleDepositAddresses", "rippleWithdrawal", "sellInstant", "sellLimit", "transactionHistory", "traderFees", "tradeHistory", "transfer", "transferHistory", "unconfirmedBitcoinDeposits", "unconfirmedBitcoinCashDeposits", "unconfirmedDashDeposits", "unconfirmedEthereumDeposits", "unconfirmedLitecoinDeposits", "unconfirmedRippleDeposits", "cancelAllOpenOrders", "withdrawVirtualCurrency", "virtualCurrencyDepositAddresses", "unconfirmedVirtualCurrencyDeposits", "adaWithdrawal", "adaDepositAddresses", "unconfirmedAdaDeposits", "solWithdrawal", "solDepositAddresses", "unconfirmedSolDeposits"} },
                 } },
             } },
             { "fees", new Dictionary<string, object>() {
                 { "trading", new Dictionary<string, object>() {
                     { "tierBased", true },
                     { "percentage", true },
-                    { "maker", this.parseNumber("0.0012") },
-                    { "taker", this.parseNumber("0.0025") },
+                    { "taker", this.parseNumber("0.006") },
+                    { "maker", this.parseNumber("0.004") },
                     { "tiers", new Dictionary<string, object>() {
-                        { "taker", new List<object>() {new List<object> {this.parseNumber("0"), this.parseNumber("0.0035")}, new List<object> {this.parseNumber("10000"), this.parseNumber("0.0023")}, new List<object> {this.parseNumber("100000"), this.parseNumber("0.0021")}, new List<object> {this.parseNumber("250000"), this.parseNumber("0.0020")}, new List<object> {this.parseNumber("500000"), this.parseNumber("0.0015")}, new List<object> {this.parseNumber("1000000"), this.parseNumber("0.0013")}, new List<object> {this.parseNumber("3000000"), this.parseNumber("0.0010")}, new List<object> {this.parseNumber("15000000"), this.parseNumber("0.0005")}} },
-                        { "maker", new List<object>() {new List<object> {this.parseNumber("0"), this.parseNumber("0.003")}, new List<object> {this.parseNumber("10000"), this.parseNumber("0.0011")}, new List<object> {this.parseNumber("100000"), this.parseNumber("0.0010")}, new List<object> {this.parseNumber("250000"), this.parseNumber("0.0008")}, new List<object> {this.parseNumber("500000"), this.parseNumber("0.0005")}, new List<object> {this.parseNumber("1000000"), this.parseNumber("0.0003")}, new List<object> {this.parseNumber("3000000"), this.parseNumber("0.0002")}, new List<object> {this.parseNumber("15000000"), this.parseNumber("0")}} },
+                        { "taker", new List<object>() {new List<object> {this.parseNumber("0"), this.parseNumber("0.006")}, new List<object> {this.parseNumber("10000"), this.parseNumber("0.003")}, new List<object> {this.parseNumber("100000"), this.parseNumber("0.0023")}, new List<object> {this.parseNumber("250000"), this.parseNumber("0.0021")}, new List<object> {this.parseNumber("500000"), this.parseNumber("0.0018")}, new List<object> {this.parseNumber("1000000"), this.parseNumber("0.0015")}, new List<object> {this.parseNumber("3000000"), this.parseNumber("0.0012")}, new List<object> {this.parseNumber("15000000"), this.parseNumber("0.001")}} },
+                        { "maker", new List<object>() {new List<object> {this.parseNumber("0"), this.parseNumber("0.004")}, new List<object> {this.parseNumber("10000"), this.parseNumber("0.002")}, new List<object> {this.parseNumber("100000"), this.parseNumber("0.0012")}, new List<object> {this.parseNumber("250000"), this.parseNumber("0.0009")}, new List<object> {this.parseNumber("500000"), this.parseNumber("0.0005")}, new List<object> {this.parseNumber("1000000"), this.parseNumber("0.0003")}, new List<object> {this.parseNumber("3000000"), this.parseNumber("0.0002")}, new List<object> {this.parseNumber("15000000"), this.parseNumber("-0.0004")}} },
                     } },
                 } },
             } },
@@ -112,6 +116,8 @@ public partial class coinmate : Exchange
                         { "XRP", "privatePostRippleWithdrawal" },
                         { "DASH", "privatePostDashWithdrawal" },
                         { "DAI", "privatePostDaiWithdrawal" },
+                        { "ADA", "privatePostAdaWithdrawal" },
+                        { "SOL", "privatePostSolWithdrawal" },
                     } },
                 } },
             } },
@@ -138,6 +144,7 @@ public partial class coinmate : Exchange
         * @method
         * @name coinmate#fetchMarkets
         * @description retrieves data on all markets for coinmate
+        * @see https://coinmate.docs.apiary.io/#reference/trading-pairs/get-trading-pairs/get
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object[]} an array of objects representing market data
         */
@@ -253,6 +260,7 @@ public partial class coinmate : Exchange
         * @method
         * @name coinmate#fetchBalance
         * @description query for balance and get the amount of funds available for trading or funds locked in orders
+        * @see https://coinmate.docs.apiary.io/#reference/balance/get-balances/post
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
         */
@@ -268,6 +276,7 @@ public partial class coinmate : Exchange
         * @method
         * @name coinmate#fetchOrderBook
         * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+        * @see https://coinmate.docs.apiary.io/#reference/order-book/get-order-book/get
         * @param {string} symbol unified symbol of the market to fetch the order book for
         * @param {int} [limit] the maximum amount of order book entries to return
         * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -292,6 +301,7 @@ public partial class coinmate : Exchange
         * @method
         * @name coinmate#fetchTicker
         * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+        * @see https://coinmate.docs.apiary.io/#reference/ticker/get-ticker/get
         * @param {string} symbol unified symbol of the market to fetch the ticker for
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
@@ -303,7 +313,88 @@ public partial class coinmate : Exchange
             { "currencyPair", getValue(market, "id") },
         };
         object response = await this.publicGetTicker(this.extend(request, parameters));
-        object ticker = this.safeValue(response, "data");
+        //
+        //     {
+        //         "error": false,
+        //         "errorMessage": null,
+        //         "data": {
+        //             "last": 0.55105,
+        //             "high": 0.56439,
+        //             "low": 0.54358,
+        //             "amount": 37038.993381,
+        //             "bid": 0.54595,
+        //             "ask": 0.55324,
+        //             "change": 3.03659243,
+        //             "open": 0.53481,
+        //             "timestamp": 1708074779
+        //         }
+        //     }
+        //
+        object data = this.safeDict(response, "data");
+        return this.parseTicker(data, market);
+    }
+
+    public async override Task<object> fetchTickers(object symbols = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name coinmate#fetchTickers
+        * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+        * @see https://coinmate.docs.apiary.io/#reference/ticker/get-ticker-all/get
+        * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        symbols = this.marketSymbols(symbols);
+        object response = await this.publicGetTickerAll(parameters);
+        //
+        //     {
+        //         "error": false,
+        //         "errorMessage": null,
+        //         "data": {
+        //             "LTC_BTC": {
+        //                 "last": "0.001337",
+        //                 "high": "0.001348",
+        //                 "low": "0.001332",
+        //                 "amount": "34.75472959",
+        //                 "bid": "0.001348",
+        //                 "ask": "0.001356",
+        //                 "change": "-0.74239050",
+        //                 "open": "0.001347",
+        //                 "timestamp": "1708074485"
+        //             }
+        //         }
+        //     }
+        //
+        object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
+        object keys = new List<object>(((IDictionary<string,object>)data).Keys);
+        object result = new Dictionary<string, object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
+        {
+            object market = this.market(getValue(keys, i));
+            object ticker = this.parseTicker(this.safeValue(data, getValue(keys, i)), market);
+            ((IDictionary<string,object>)result)[(string)getValue(market, "symbol")] = ticker;
+        }
+        return this.filterByArrayTickers(result, "symbol", symbols);
+    }
+
+    public override object parseTicker(object ticker, object market = null)
+    {
+        //
+        //     {
+        //         "last": "0.001337",
+        //         "high": "0.001348",
+        //         "low": "0.001332",
+        //         "amount": "34.75472959",
+        //         "bid": "0.001348",
+        //         "ask": "0.001356",
+        //         "change": "-0.74239050",
+        //         "open": "0.001347",
+        //         "timestamp": "1708074485"
+        //     }
+        //
         object timestamp = this.safeTimestamp(ticker, "timestamp");
         object last = this.safeNumber(ticker, "last");
         return this.safeTicker(new Dictionary<string, object>() {
@@ -336,6 +427,7 @@ public partial class coinmate : Exchange
         * @method
         * @name coinmate#fetchDepositsWithdrawals
         * @description fetch history of deposits and withdrawals
+        * @see https://coinmate.docs.apiary.io/#reference/transfers/get-transfer-history/post
         * @param {string} [code] unified currency code for the currency of the deposit/withdrawals, default is undefined
         * @param {int} [since] timestamp in ms of the earliest deposit/withdrawal, default is undefined
         * @param {int} [limit] max number of deposit/withdrawals to return, default is undefined
@@ -458,6 +550,12 @@ public partial class coinmate : Exchange
         * @method
         * @name coinmate#withdraw
         * @description make a withdrawal
+        * @see https://coinmate.docs.apiary.io/#reference/bitcoin-withdrawal-and-deposit/withdraw-bitcoins/post
+        * @see https://coinmate.docs.apiary.io/#reference/litecoin-withdrawal-and-deposit/withdraw-litecoins/post
+        * @see https://coinmate.docs.apiary.io/#reference/ethereum-withdrawal-and-deposit/withdraw-ethereum/post
+        * @see https://coinmate.docs.apiary.io/#reference/ripple-withdrawal-and-deposit/withdraw-ripple/post
+        * @see https://coinmate.docs.apiary.io/#reference/cardano-withdrawal-and-deposit/withdraw-cardano/post
+        * @see https://coinmate.docs.apiary.io/#reference/solana-withdrawal-and-deposit/withdraw-solana/post
         * @param {string} code unified currency code
         * @param {float} amount the amount to withdraw
         * @param {string} address the address to withdraw to
@@ -519,6 +617,7 @@ public partial class coinmate : Exchange
         * @method
         * @name coinmate#fetchMyTrades
         * @description fetch all trades made by the user
+        * @see https://coinmate.docs.apiary.io/#reference/trade-history/get-trade-history/post
         * @param {string} symbol unified market symbol
         * @param {int} [since] the earliest time in ms to fetch trades for
         * @param {int} [limit] the maximum number of trades structures to retrieve
@@ -544,7 +643,7 @@ public partial class coinmate : Exchange
             ((IDictionary<string,object>)request)["timestampFrom"] = since;
         }
         object response = await this.privatePostTradeHistory(this.extend(request, parameters));
-        object data = this.safeValue(response, "data", new List<object>() {});
+        object data = this.safeList(response, "data", new List<object>() {});
         return this.parseTrades(data, null, since, limit);
     }
 
@@ -620,6 +719,7 @@ public partial class coinmate : Exchange
         * @method
         * @name coinmate#fetchTrades
         * @description get the list of most recent trades for a particular symbol
+        * @see https://coinmate.docs.apiary.io/#reference/transactions/transactions/get
         * @param {string} symbol unified symbol of the market to fetch trades for
         * @param {int} [since] timestamp in ms of the earliest trade to fetch
         * @param {int} [limit] the maximum amount of trades to fetch
@@ -650,7 +750,7 @@ public partial class coinmate : Exchange
         //         ]
         //     }
         //
-        object data = this.safeValue(response, "data", new List<object>() {});
+        object data = this.safeList(response, "data", new List<object>() {});
         return this.parseTrades(data, market, since, limit);
     }
 
@@ -660,6 +760,7 @@ public partial class coinmate : Exchange
         * @method
         * @name coinmate#fetchTradingFee
         * @description fetch the trading fees for a market
+        * @see https://coinmate.docs.apiary.io/#reference/trader-fees/get-trading-fees/post
         * @param {string} symbol unified market symbol
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} a [fee structure]{@link https://docs.ccxt.com/#/?id=fee-structure}
@@ -699,6 +800,7 @@ public partial class coinmate : Exchange
         * @method
         * @name coinmate#fetchOpenOrders
         * @description fetch all unfilled currently open orders
+        * @see https://coinmate.docs.apiary.io/#reference/order/get-open-orders/post
         * @param {string} symbol unified market symbol
         * @param {int} [since] the earliest time in ms to fetch open orders for
         * @param {int} [limit] the maximum number of  open orders structures to retrieve
@@ -719,6 +821,7 @@ public partial class coinmate : Exchange
         * @method
         * @name coinmate#fetchOrders
         * @description fetches information on multiple orders made by the user
+        * @see https://coinmate.docs.apiary.io/#reference/order/order-history/post
         * @param {string} symbol unified market symbol of the market orders were made in
         * @param {int} [since] the earliest time in ms to fetch orders for
         * @param {int} [limit] the maximum number of order structures to retrieve
@@ -808,6 +911,13 @@ public partial class coinmate : Exchange
         //         "trailing": false,
         //     }
         //
+        // cancelOrder
+        //
+        //    {
+        //        "success": true,
+        //        "remainingAmount": 0.1
+        //    }
+        //
         object id = this.safeString(order, "id");
         object timestamp = this.safeInteger(order, "timestamp");
         object side = this.safeStringLower(order, "type");
@@ -853,11 +963,15 @@ public partial class coinmate : Exchange
         * @method
         * @name coinmate#createOrder
         * @description create a trade order
+        * @see https://coinmate.docs.apiary.io/#reference/order/buy-limit-order/post
+        * @see https://coinmate.docs.apiary.io/#reference/order/sell-limit-order/post
+        * @see https://coinmate.docs.apiary.io/#reference/order/buy-instant-order/post
+        * @see https://coinmate.docs.apiary.io/#reference/order/sell-instant-order/post
         * @param {string} symbol unified symbol of the market to create an order in
         * @param {string} type 'market' or 'limit'
         * @param {string} side 'buy' or 'sell'
         * @param {float} amount how much of currency you want to trade in units of base currency
-        * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
         */
@@ -898,6 +1012,8 @@ public partial class coinmate : Exchange
         * @method
         * @name coinmate#fetchOrder
         * @description fetches information on an order made by the user
+        * @see https://coinmate.docs.apiary.io/#reference/order/get-order-by-orderid/post
+        * @see https://coinmate.docs.apiary.io/#reference/order/get-order-by-clientorderid/post
         * @param {string} symbol unified symbol of the market the order was made in
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -913,7 +1029,7 @@ public partial class coinmate : Exchange
             market = this.market(symbol);
         }
         object response = await this.privatePostOrderById(this.extend(request, parameters));
-        object data = this.safeValue(response, "data");
+        object data = this.safeDict(response, "data");
         return this.parseOrder(data, market);
     }
 
@@ -923,6 +1039,7 @@ public partial class coinmate : Exchange
         * @method
         * @name coinmate#cancelOrder
         * @description cancels an open order
+        * @see https://coinmate.docs.apiary.io/#reference/order/cancel-order/post
         * @param {string} id order id
         * @param {string} symbol not used by coinmate cancelOrder ()
         * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -934,9 +1051,18 @@ public partial class coinmate : Exchange
             { "orderId", id },
         };
         object response = await this.privatePostCancelOrderWithInfo(this.extend(request, parameters));
-        return new Dictionary<string, object>() {
-            { "info", response },
-        };
+        //
+        //    {
+        //        "error": false,
+        //        "errorMessage": null,
+        //        "data": {
+        //          "success": true,
+        //          "remainingAmount": 0.1
+        //        }
+        //    }
+        //
+        object data = this.safeDict(response, "data");
+        return this.parseOrder(data);
     }
 
     public override object nonce()
@@ -982,31 +1108,21 @@ public partial class coinmate : Exchange
 
     public override object handleErrors(object code, object reason, object url, object method, object headers, object body, object response, object requestHeaders, object requestBody)
     {
-        if (isTrue(!isEqual(response, null)))
+        if (isTrue(isEqual(response, null)))
         {
-            if (isTrue(inOp(response, "error")))
-            {
-                // {"error":true,"errorMessage":"Minimum Order Size 0.01 ETH","data":null}
-                if (isTrue(getValue(response, "error")))
-                {
-                    object message = this.safeString(response, "errorMessage");
-                    object feedback = add(add(this.id, " "), message);
-                    this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), message, feedback);
-                    this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), message, feedback);
-                    throw new ExchangeError ((string)add(add(this.id, " "), this.json(response))) ;
-                }
-            }
+            return null;  // fallback to default error handler
         }
-        if (isTrue(isGreaterThan(code, 400)))
+        //
+        //     {"error":true,"errorMessage":"Api internal error","data":null}
+        //     {"error":true,"errorMessage":"Access denied.","data":null}
+        //
+        object errorMessage = this.safeString(response, "errorMessage");
+        if (isTrue(!isEqual(errorMessage, null)))
         {
-            if (isTrue(body))
-            {
-                object feedback = add(add(this.id, " "), body);
-                this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), body, feedback);
-                this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), body, feedback);
-                throw new ExchangeError ((string)feedback) ;
-            }
-            throw new ExchangeError ((string)add(add(this.id, " "), body)) ;
+            object feedback = add(add(this.id, " "), body);
+            this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), errorMessage, feedback);
+            this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), errorMessage, feedback);
+            throw new ExchangeError ((string)feedback) ;
         }
         return null;
     }

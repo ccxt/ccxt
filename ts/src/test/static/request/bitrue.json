@@ -12,10 +12,10 @@
                 "method": "createOrder",
                 "url": "https://www.bitrue.com/api/v1/order",
                 "input": [
-                  "LTC/USDT",
-                  "market",
-                  "buy",
-                  0.2
+                    "LTC/USDT",
+                    "market",
+                    "buy",
+                    0.2
                 ],
                 "output": "timestamp=1700667100215&recvWindow=5000&side=BUY&type=MARKET&symbol=LTCUSDT&quantity=0.2&signature=e7055632b348105337e21151c8a0ea36dc466767d49eadb428b1a132f8e32dd5"
             },
@@ -24,10 +24,10 @@
                 "method": "createOrder",
                 "url": "https://www.bitrue.com/api/v1/order",
                 "input": [
-                  "LTC/USDT",
-                  "market",
-                  "sell",
-                  0.2
+                    "LTC/USDT",
+                    "market",
+                    "sell",
+                    0.2
                 ],
                 "output": "timestamp=1700667143220&recvWindow=5000&side=SELL&type=MARKET&symbol=LTCUSDT&quantity=0.2&signature=365a3b9612d53caec57874d40de2ff06fa437d81a60c8d04e16c1cf20d5b4e47"
             },
@@ -36,11 +36,11 @@
                 "method": "createOrder",
                 "url": "https://www.bitrue.com/api/v1/order",
                 "input": [
-                  "LTC/USDT",
-                  "limit",
-                  "buy",
-                  0.2,
-                  "50"
+                    "LTC/USDT",
+                    "limit",
+                    "buy",
+                    0.2,
+                    "50"
                 ],
                 "output": "timestamp=1700667180381&recvWindow=5000&side=BUY&type=LIMIT&price=50&symbol=LTCUSDT&quantity=0.2&signature=7e0639853ef89a213ed80711a4fc155a0b8b25d97b7dfc72027646c1925f4213"
             },
@@ -49,15 +49,15 @@
                 "method": "createOrder",
                 "url": "https://fapi.bitrue.com/fapi/v2/order",
                 "input": [
-                  "LTC/USDT:USDT",
-                  "limit",
-                  "sell",
-                  0.1,
-                  "100",
-                  {
-                    "postOnly": true,
-                    "leverage": 5
-                  }
+                    "LTC/USDT:USDT",
+                    "limit",
+                    "sell",
+                    0.1,
+                    "100",
+                    {
+                        "postOnly": true,
+                        "leverage": 5
+                    }
                 ],
                 "output": "{\"recvWindow\":5000,\"side\":\"SELL\",\"type\":\"POST_ONLY\",\"price\":\"100\",\"contractName\":\"E-LTC-USDT\",\"amount\":0.1,\"volume\":0.1,\"positionType\":1,\"open\":\"OPEN\",\"leverage\":5,\"postOnly\":true}"
             },
@@ -66,14 +66,14 @@
                 "method": "createOrder",
                 "url": "https://fapi.bitrue.com/fapi/v2/order",
                 "input": [
-                  "LTC/USDT:USDT",
-                  "market",
-                  "buy",
-                  "15",
-                  "1",
-                  {
-                    "leverage": 1
-                  }
+                    "LTC/USDT:USDT",
+                    "market",
+                    "buy",
+                    "15",
+                    "1",
+                    {
+                        "leverage": 1
+                    }
                 ],
                 "output": "{\"recvWindow\":5000,\"side\":\"BUY\",\"type\":\"MARKET\",\"contractName\":\"E-LTC-USDT\",\"amount\":\"15\",\"volume\":\"15\",\"positionType\":1,\"open\":\"OPEN\",\"leverage\":1}"
             },
@@ -82,14 +82,14 @@
                 "method": "createOrder",
                 "url": "https://fapi.bitrue.com/fapi/v2/order",
                 "input": [
-                  "LTC/USDT:USDT",
-                  "market",
-                  "buy",
-                  0,
-                  null,
-                  {
-                    "cost": 15
-                  }
+                    "LTC/USDT:USDT",
+                    "market",
+                    "buy",
+                    0,
+                    null,
+                    {
+                        "cost": 15
+                    }
                 ],
                 "output": "{\"recvWindow\":5000,\"side\":\"BUY\",\"type\":\"MARKET\",\"contractName\":\"E-LTC-USDT\",\"amount\":\"15\",\"volume\":\"15\",\"positionType\":1,\"open\":\"OPEN\",\"leverage\":1}"
             },
@@ -98,15 +98,15 @@
                 "method": "createOrder",
                 "url": "https://fapi.bitrue.com/fapi/v2/order",
                 "input": [
-                  "BTC/USDT:USDT",
-                  "market",
-                  "buy",
-                  50,
-                  null,
-                  {
-                    "createMarketBuyOrderRequiresPrice": false,
-                    "leverage": 10
-                  }
+                    "BTC/USDT:USDT",
+                    "market",
+                    "buy",
+                    50,
+                    null,
+                    {
+                        "createMarketBuyOrderRequiresPrice": false,
+                        "leverage": 10
+                    }
                 ],
                 "output": "{\"recvWindow\":5000,\"side\":\"BUY\",\"type\":\"MARKET\",\"contractName\":\"E-BTC-USDT\",\"amount\":50,\"volume\":50,\"positionType\":1,\"open\":\"OPEN\",\"leverage\":10}"
             },
@@ -115,15 +115,15 @@
                 "method": "createOrder",
                 "url": "https://fapi.bitrue.com/fapi/v2/order",
                 "input": [
-                  "BTC/USDT:USDT",
-                  "market",
-                  "sell",
-                  0.0011,
-                  null,
-                  {
-                    "reduceOnly": true,
-                    "leverage": 10
-                  }
+                    "BTC/USDT:USDT",
+                    "market",
+                    "sell",
+                    0.0011,
+                    null,
+                    {
+                        "reduceOnly": true,
+                        "leverage": 10
+                    }
                 ],
                 "output": "{\"recvWindow\":5000,\"side\":\"SELL\",\"type\":\"MARKET\",\"contractName\":\"E-BTC-USDT\",\"amount\":0.0011,\"volume\":0.0011,\"positionType\":1,\"open\":\"CLOSE\",\"leverage\":10}"
             }
@@ -134,12 +134,12 @@
                 "method": "createMarketBuyOrderWithCost",
                 "url": "https://fapi.bitrue.com/fapi/v2/order",
                 "input": [
-                  "BTC/USDT:USDT",
-                  50,
-                  {
-                    "leverage": 10,
-                    "createMarketBuyOrderRequiresPrice": false
-                  }
+                    "BTC/USDT:USDT",
+                    50,
+                    {
+                        "leverage": 10,
+                        "createMarketBuyOrderRequiresPrice": false
+                    }
                 ],
                 "output": "{\"recvWindow\":5000,\"side\":\"BUY\",\"type\":\"MARKET\",\"contractName\":\"E-BTC-USDT\",\"amount\":50,\"volume\":50,\"positionType\":1,\"open\":\"OPEN\",\"leverage\":10}"
             }
@@ -160,7 +160,7 @@
                 "method": "fetchMyTrades",
                 "url": "https://fapi.bitrue.com/fapi/v2/myTrades?contractName=E-LTC-USDT",
                 "input": [
-                  "LTC/USDT:USDT"
+                    "LTC/USDT:USDT"
                 ]
             }
         ],
@@ -206,8 +206,8 @@
                 "method": "fetchOrder",
                 "url": "https://fapi.bitrue.com/fapi/v2/order?orderId=1941111689217512895&contractName=E-LTC-USDT",
                 "input": [
-                  "1941111689217512895",
-                  "LTC/USDT:USDT"
+                    "1941111689217512895",
+                    "LTC/USDT:USDT"
                 ]
             }
         ],
@@ -223,9 +223,9 @@
                 "method": "fetchBalance",
                 "url": "https://fapi.bitrue.com/fapi/v2/account?",
                 "input": [
-                  {
-                    "type": "swap"
-                  }
+                    {
+                        "type": "swap"
+                    }
                 ]
             }
         ],
@@ -235,19 +235,127 @@
                 "method": "cancelOrder",
                 "url": "https://www.bitrue.com/api/v1/order?timestamp=1700667227940&recvWindow=5000&orderId=482075019769610240&symbol=LTCUSDT&signature=9b1b6fbab9a003ebb0af7128dd0f4f3597b5e3fc40d7ed195d5ba255562160cc",
                 "input": [
-                  "482075019769610240",
-                  "LTC/USDT"
+                    "482075019769610240",
+                    "LTC/USDT"
                 ]
             },
             {
-                "description": "Cancel spot order",
+                "description": "Cancel swap order",
                 "method": "cancelOrder",
                 "url": "https://fapi.bitrue.com/fapi/v2/cancel",
                 "input": [
-                  "1941111689217512895",
-                  "LTC/USDT:USDT"
+                    "1941111689217512895",
+                    "LTC/USDT:USDT"
                 ],
                 "output": "{\"recvWindow\":5000,\"orderId\":\"1941111689217512895\",\"contractName\":\"E-LTC-USDT\"}"
+            }
+        ],
+        "fetchWithdrawals": [
+            {
+                "description": "Fetch Withdrawals",
+                "method": "fetchWithdrawals",
+                "url": "https://www.bitrue.com/api/v1/withdraw/history?timestamp=1709351446237&recvWindow=5000&coin=usdc&status=5&signature=5f27a957b7e087e9eb4ade590ae3969695b19d9f3d6de68713d75a0376fbce0d",
+                "input": [
+                    "USDC"
+                ]
+            }
+        ],
+        "fetchTime": [
+            {
+                "description": "fetchTime",
+                "method": "fetchTime",
+                "url": "https://www.bitrue.com/api/v1/time",
+                "input": []
+            }
+        ],
+        "fetchTrades": [
+            {
+                "description": "spot fetchTrades",
+                "method": "fetchTrades",
+                "url": "https://www.bitrue.com/api/v1/trades?symbol=BTCUSDT",
+                "input": [
+                    "BTC/USDT"
+                ]
+            }
+        ],
+        "fetchOrderBook": [
+            {
+                "description": "spot orderbook",
+                "method": "fetchOrderBook",
+                "url": "https://www.bitrue.com/api/v1/depth?symbol=BTCUSDT",
+                "input": [
+                    "BTC/USDT"
+                ]
+            },
+            {
+                "description": "swap orderbook",
+                "method": "fetchOrderBook",
+                "url": "https://fapi.bitrue.com/fapi/v1/depth?contractName=E-BTC-USDT",
+                "input": [
+                    "BTC/USDT:USDT"
+                ]
+            }
+        ],
+        "fetchTicker": [
+            {
+                "description": "Swap ticker",
+                "method": "fetchTicker",
+                "url": "https://fapi.bitrue.com/fapi/v1/ticker?contractName=E-BTC-USDT",
+                "input": [
+                    "BTC/USDT:USDT"
+                ]
+            },
+            {
+                "description": "spot ticker",
+                "method": "fetchTicker",
+                "url": "https://www.bitrue.com/api/v1/ticker/24hr?symbol=BTCUSDT",
+                "input": [
+                    "BTC/USDT"
+                ]
+            }
+        ],
+        "fetchTickers": [
+            {
+                "description": "spot tickers",
+                "method": "fetchTickers",
+                "url": "https://www.bitrue.com/api/v1/ticker/24hr",
+                "input": [
+                    [
+                        "BTC/USDT",
+                        "ETH/USDT"
+                    ]
+                ]
+            }
+        ],
+        "fetchBidsAsks": [
+            {
+                "description": "spot bidsasks",
+                "method": "fetchBidsAsks",
+                "url": "https://www.bitrue.com/api/v1/ticker/bookTicker?symbol=BTCUSDT",
+                "input": [
+                    [
+                        "BTC/USDT",
+                        "ETH/USDT"
+                    ]
+                ]
+            }
+        ],
+        "fetchOHLCV": [
+            {
+                "description": "spot ohlcv",
+                "method": "fetchOHLCV",
+                "url": "https://www.bitrue.com/api/v1/market/kline?symbol=BTCUSDT&scale=1m",
+                "input": [
+                    "BTC/USDT"
+                ]
+            },
+            {
+                "description": "swap ohlcv",
+                "method": "fetchOHLCV",
+                "url": "https://fapi.bitrue.com/fapi/v1/klines?contractName=E-BTC-USDT&interval=1min",
+                "input": [
+                    "BTC/USDT:USDT"
+                ]
             }
         ]
     }

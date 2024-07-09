@@ -192,6 +192,7 @@ interface htx {
     spotPrivatePostV2SubUserApiKeyModification(params?: {}): Promise<implicitReturnType>;
     spotPrivatePostV2SubUserApiKeyDeletion(params?: {}): Promise<implicitReturnType>;
     spotPrivatePostV1SubuserTransfer(params?: {}): Promise<implicitReturnType>;
+    spotPrivatePostV1TrustUserActiveCredit(params?: {}): Promise<implicitReturnType>;
     spotPrivatePostV1OrderOrdersPlace(params?: {}): Promise<implicitReturnType>;
     spotPrivatePostV1OrderBatchOrders(params?: {}): Promise<implicitReturnType>;
     spotPrivatePostV1OrderAutoPlace(params?: {}): Promise<implicitReturnType>;

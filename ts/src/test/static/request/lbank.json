@@ -2,7 +2,8 @@
     "exchange": "lbank2",
     "skipKeys": [
         "api_key",
-        "sign"
+        "sign",
+        "time"
     ],
     "outputType": "urlencoded",
     "methods": {
@@ -154,6 +155,14 @@
                         "method": "spotPublicGetSupplementTrades"
                     }
                 ]
+            },
+            {
+                "description": "spot fetchTrades",
+                "method": "fetchTrades",
+                "url": "https://api.lbank.info/v2/trades.do?size=600&symbol=btc_usdt",
+                "input": [
+                    "BTC/USDT"
+                ]
             }
         ],
         "fetchDepositAddress": [
@@ -196,6 +205,84 @@
                     {
                         "method": "fetchPublicTransactionFees"
                     }
+                ]
+            }
+        ],
+        "fetchTime": [
+            {
+                "description": "fetchTime",
+                "method": "fetchTime",
+                "url": "https://api.lbank.info/v2/timestamp.do",
+                "input": []
+            }
+        ],
+        "fetchOrderBook": [
+            {
+                "description": "spot orderbook",
+                "method": "fetchOrderBook",
+                "url": "https://api.lbank.info/v2/depth.do?size=60&symbol=btc_usdt",
+                "input": [
+                    "BTC/USDT"
+                ]
+            },
+            {
+                "description": "swap orderbook",
+                "method": "fetchOrderBook",
+                "url": "https://lbkperp.lbank.com/cfd/openApi/v1/pub/marketOrder?depth=60&symbol=BTCUSDT",
+                "input": [
+                    "BTC/USDT:USDT"
+                ]
+            }
+        ],
+        "fetchTicker": [
+            {
+                "description": "Swap ticker",
+                "method": "fetchTicker",
+                "url": "https://lbkperp.lbank.com/cfd/openApi/v1/pub/marketData?productGroup=SwapU",
+                "input": [
+                    "BTC/USDT:USDT"
+                ]
+            },
+            {
+                "description": "spot ticker",
+                "method": "fetchTicker",
+                "url": "https://api.lbank.info/v2/ticker/24hr.do?symbol=btc_usdt",
+                "input": [
+                    "BTC/USDT"
+                ]
+            }
+        ],
+        "fetchTickers": [
+            {
+                "description": "spot tickers",
+                "method": "fetchTickers",
+                "url": "https://api.lbank.info/v2/ticker/24hr.do?symbol=all",
+                "input": [
+                    [
+                        "BTC/USDT",
+                        "ETH/USDT"
+                    ]
+                ]
+            },
+            {
+                "description": "swap tickers",
+                "method": "fetchTickers",
+                "url": "https://lbkperp.lbank.com/cfd/openApi/v1/pub/marketData?productGroup=SwapU",
+                "input": [
+                    [
+                        "BTC/USDT:USDT",
+                        "ETH/USDT:USDT"
+                    ]
+                ]
+            }
+        ],
+        "fetchOHLCV": [
+            {
+                "description": "spot ohlcv",
+                "method": "fetchOHLCV",
+                "url": "https://api.lbank.info/v2/kline.do?size=100&symbol=btc_usdt&time=1709986989&type=minute1",
+                "input": [
+                    "BTC/USDT"
                 ]
             }
         ]

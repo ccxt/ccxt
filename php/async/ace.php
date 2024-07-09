@@ -63,8 +63,13 @@ class ace extends Exchange {
                 'fetchOrderBook' => true,
                 'fetchOrders' => false,
                 'fetchOrderTrades' => true,
+                'fetchPosition' => false,
+                'fetchPositionHistory' => false,
                 'fetchPositionMode' => false,
                 'fetchPositions' => false,
+                'fetchPositionsForSymbol' => false,
+                'fetchPositionsHistory' => false,
+                'fetchPositionsRisk' => false,
                 'fetchPremiumIndexOHLCV' => false,
                 'fetchTicker' => true,
                 'fetchTickers' => true,
@@ -170,7 +175,7 @@ class ace extends Exchange {
         ));
     }
 
-    public function fetch_markets($params = array ()) {
+    public function fetch_markets($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * retrieves data on all markets for ace
@@ -197,7 +202,7 @@ class ace extends Exchange {
         }) ();
     }
 
-    public function parse_market($market): array {
+    public function parse_market(array $market): array {
         $baseId = $this->safe_string($market, 'base');
         $base = $this->safe_currency_code($baseId);
         $quoteId = $this->safe_string($market, 'quote');
@@ -255,7 +260,7 @@ class ace extends Exchange {
         );
     }
 
-    public function parse_ticker($ticker, ?array $market = null): array {
+    public function parse_ticker(array $ticker, ?array $market = null): array {
         //
         //     {
         //         "base_volume":229196.34035399999,
@@ -368,7 +373,7 @@ class ace extends Exchange {
             if ($limit !== null) {
                 $request['depth'] = $limit;
             }
-            $response = Async\await($this->publicGetOpenV2PublicGetOrderBook (array_merge($request, $params)));
+            $response = Async\await($this->publicGetOpenV2PublicGetOrderBook ($this->extend($request, $params)));
             //
             //     {
             //         "attachment" => array(
@@ -406,7 +411,7 @@ class ace extends Exchange {
             //         "status" => 200
             //     }
             //
-            $orderBook = $this->safe_value($response, 'attachment');
+            $orderBook = $this->safe_dict($response, 'attachment');
             return $this->parse_order_book($orderBook, $market['symbol'], null, 'bids', 'asks');
         }) ();
     }
@@ -466,7 +471,7 @@ class ace extends Exchange {
             if ($since !== null) {
                 $request['startTime'] = $since;
             }
-            $response = Async\await($this->privatePostV2KlineGetKline (array_merge($request, $params)));
+            $response = Async\await($this->privatePostV2KlineGetKline ($this->extend($request, $params)));
             $data = $this->safe_value($response, 'attachment', array());
             //
             //     {
@@ -490,7 +495,7 @@ class ace extends Exchange {
         }) ();
     }
 
-    public function parse_order_status($status) {
+    public function parse_order_status(?string $status) {
         $statuses = array(
             '0' => 'open',
             '1' => 'open',
@@ -501,7 +506,7 @@ class ace extends Exchange {
         return $this->safe_string($statuses, $status, null);
     }
 
-    public function parse_order($order, ?array $market = null): array {
+    public function parse_order(array $order, ?array $market = null): array {
         //
         // createOrder
         //         "15697850529570392100421100482693"
@@ -604,7 +609,7 @@ class ace extends Exchange {
              * @param {string} $type 'market' or 'limit'
              * @param {string} $side 'buy' or 'sell'
              * @param {float} $amount how much of currency you want to trade in units of base currency
-             * @param {float} [$price] the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
+             * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
              */
@@ -622,7 +627,7 @@ class ace extends Exchange {
             if ($type === 'limit') {
                 $request['price'] = $this->price_to_precision($symbol, $price);
             }
-            $response = Async\await($this->privatePostV2OrderOrder (array_merge($request, $params)));
+            $response = Async\await($this->privatePostV2OrderOrder ($this->extend($request, $params)));
             //
             //     {
             //         "attachment" => "15697850529570392100421100482693",
@@ -631,7 +636,7 @@ class ace extends Exchange {
             //         "status" => 200
             //     }
             //
-            $data = $this->safe_value($response, 'attachment');
+            $data = $this->safe_dict($response, 'attachment');
             return $this->parse_order($data, $market);
         }) ();
     }
@@ -650,7 +655,7 @@ class ace extends Exchange {
             $request = array(
                 'orderNo' => $id,
             );
-            $response = Async\await($this->privatePostV2OrderCancel (array_merge($request, $params)));
+            $response = Async\await($this->privatePostV2OrderCancel ($this->extend($request, $params)));
             //
             //     {
             //         "attachment" => 200,
@@ -676,7 +681,7 @@ class ace extends Exchange {
             $request = array(
                 'orderNo' => $id,
             );
-            $response = Async\await($this->privatePostV2OrderShowOrderStatus (array_merge($request, $params)));
+            $response = Async\await($this->privatePostV2OrderShowOrderStatus ($this->extend($request, $params)));
             //
             //     {
             //         "attachment" => array(
@@ -699,7 +704,7 @@ class ace extends Exchange {
             //         "status" => 200
             //     }
             //
-            $data = $this->safe_value($response, 'attachment');
+            $data = $this->safe_dict($response, 'attachment');
             return $this->parse_order($data, null);
         }) ();
     }
@@ -728,7 +733,7 @@ class ace extends Exchange {
             if ($limit !== null) {
                 $request['size'] = $limit;
             }
-            $response = Async\await($this->privatePostV2OrderGetOrderList (array_merge($request, $params)));
+            $response = Async\await($this->privatePostV2OrderGetOrderList ($this->extend($request, $params)));
             $orders = $this->safe_value($response, 'attachment');
             //
             //     {
@@ -763,7 +768,7 @@ class ace extends Exchange {
         }) ();
     }
 
-    public function parse_trade($trade, ?array $market = null): array {
+    public function parse_trade(array $trade, ?array $market = null): array {
         //
         // fetchOrderTrades
         //         {
@@ -860,7 +865,7 @@ class ace extends Exchange {
             $request = array(
                 'orderNo' => $id,
             );
-            $response = Async\await($this->privatePostV2OrderShowOrderHistory (array_merge($request, $params)));
+            $response = Async\await($this->privatePostV2OrderShowOrderHistory ($this->extend($request, $params)));
             //
             //     {
             //         "attachment" => {
@@ -895,7 +900,7 @@ class ace extends Exchange {
             //     }
             //
             $data = $this->safe_value($response, 'attachment');
-            $trades = $this->safe_value($data, 'trades', array());
+            $trades = $this->safe_list($data, 'trades', array());
             return $this->parse_trades($trades, $market, $since, $limit);
         }) ();
     }
@@ -924,7 +929,7 @@ class ace extends Exchange {
             if ($limit !== null) {
                 $request['size'] = $limit; // default 10, max 500
             }
-            $response = Async\await($this->privatePostV2OrderGetTradeList (array_merge($request, $params)));
+            $response = Async\await($this->privatePostV2OrderGetTradeList ($this->extend($request, $params)));
             //
             //     {
             //         "attachment" => array(
@@ -955,7 +960,7 @@ class ace extends Exchange {
             //         "status" => 200
             //     }
             //
-            $trades = $this->safe_value($response, 'attachment', array());
+            $trades = $this->safe_list($response, 'attachment', array());
             return $this->parse_trades($trades, $market, $since, $limit);
         }) ();
     }
@@ -1031,16 +1036,13 @@ class ace extends Exchange {
             $this->check_required_credentials();
             $nonce = $this->milliseconds();
             $auth = 'ACE_SIGN' . $this->secret;
-            $data = array_merge(array(
+            $data = $this->extend(array(
                 'apiKey' => $this->apiKey,
-                'timeStamp' => $nonce,
+                'timeStamp' => $this->number_to_string($nonce),
             ), $params);
-            $dataKeys = is_array($data) ? array_keys($data) : array();
-            $sortedDataKeys = $this->sort_by($dataKeys, 0, false, '');
-            for ($i = 0; $i < count($sortedDataKeys); $i++) {
-                $key = $sortedDataKeys[$i];
-                $auth .= $this->safe_string($data, $key);
-            }
+            $sortedData = $this->keysort($data);
+            $values = is_array($sortedData) ? array_values($sortedData) : array();
+            $auth .= implode('', $values);
             $signature = $this->hash($this->encode($auth), 'sha256', 'hex');
             $data['signKey'] = $signature;
             $headers = array(
@@ -1062,7 +1064,7 @@ class ace extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
         if ($response === null) {
             return null; // fallback to the default error handler
         }

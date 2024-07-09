@@ -136,6 +136,7 @@ public partial class cex : ccxt.cex
         object url = getValue(getValue(this.urls, "api"), "ws");
         object messageHash = "trades";
         object subscriptionHash = add("old:", symbol);
+        ((IDictionary<string,object>)this.options)["currentWatchTradeSymbol"] = symbol; // exchange supports only 1 symbol for this watchTrades channel
         var client = this.safeValue(this.clients, url);
         if (isTrue(!isEqual(client as WebSocketClient, null)))
         {
@@ -174,22 +175,32 @@ public partial class cex : ccxt.cex
         //     {
         //         "e": "history",
         //         "data": [
-        //             "sell:1665467367741:3888551:19058.8:14541219",
-        //             "buy:1665467367741:1059339:19071.5:14541218",
+        //            'buy:1710255706095:444444:71222.2:14892622'
+        //            'sell:1710255658251:42530:71300:14892621'
+        //            'buy:1710252424241:87913:72800:14892620'
+        //            ... timestamp descending
         //         ]
         //     }
         //
-        object data = this.safeValue(message, "data", new List<object>() {});
+        object data = this.safeList(message, "data", new List<object>() {});
         object limit = this.safeInteger(this.options, "tradesLimit", 1000);
         var stored = new ArrayCache(limit);
-        for (object i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
+        object symbol = this.safeString(this.options, "currentWatchTradeSymbol");
+        if (isTrue(isEqual(symbol, null)))
         {
-            object rawTrade = getValue(data, i);
-            object parsed = this.parseWsOldTrade(rawTrade);
+            return;
+        }
+        object market = this.market(symbol);
+        object dataLength = getArrayLength(data);
+        for (object i = 0; isLessThan(i, dataLength); postFixIncrement(ref i))
+        {
+            object index = subtract(subtract(dataLength, 1), i);
+            object rawTrade = getValue(data, index);
+            object parsed = this.parseWsOldTrade(rawTrade, market);
             callDynamically(stored, "append", new object[] {parsed});
         }
         object messageHash = "trades";
-        this.trades = stored;
+        this.trades = ((object)stored); // trades don't have symbol
         callDynamically(client as WebSocketClient, "resolve", new object[] {this.trades, messageHash});
     }
 
@@ -215,7 +226,7 @@ public partial class cex : ccxt.cex
             { "id", id },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
-            { "symbol", null },
+            { "symbol", this.safeString(market, "symbol") },
             { "type", null },
             { "side", side },
             { "order", null },
@@ -238,10 +249,12 @@ public partial class cex : ccxt.cex
         //     }
         //
         object data = this.safeValue(message, "data", new List<object>() {});
-        object stored = this.trades;
-        for (object i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
+        object stored = ((object)this.trades); // to do fix this, this.trades is not meant to be used like this
+        object dataLength = getArrayLength(data);
+        for (object i = 0; isLessThan(i, dataLength); postFixIncrement(ref i))
         {
-            object rawTrade = getValue(data, i);
+            object index = subtract(subtract(dataLength, 1), i);
+            object rawTrade = getValue(data, index);
             object parsed = this.parseWsOldTrade(rawTrade);
             callDynamically(stored, "append", new object[] {parsed});
         }
@@ -324,7 +337,7 @@ public partial class cex : ccxt.cex
         return this.filterByArray(this.tickers, "symbol", symbols);
     }
 
-    public async virtual Task<object> fetchTickerWs(object symbol, object parameters = null)
+    public async override Task<object> fetchTickerWs(object symbol, object parameters = null)
     {
         /**
         * @method
@@ -365,12 +378,19 @@ public partial class cex : ccxt.cex
         object data = this.safeValue(message, "data", new Dictionary<string, object>() {});
         object ticker = this.parseWsTicker(data);
         object symbol = getValue(ticker, "symbol");
+        if (isTrue(isEqual(symbol, null)))
+        {
+            return;
+        }
         ((IDictionary<string,object>)this.tickers)[(string)symbol] = ticker;
         object messageHash = add("ticker:", symbol);
         callDynamically(client as WebSocketClient, "resolve", new object[] {ticker, messageHash});
         callDynamically(client as WebSocketClient, "resolve", new object[] {ticker, "tickers"});
         messageHash = this.safeString(message, "oid");
-        callDynamically(client as WebSocketClient, "resolve", new object[] {ticker, messageHash});
+        if (isTrue(!isEqual(messageHash, null)))
+        {
+            callDynamically(client as WebSocketClient, "resolve", new object[] {ticker, messageHash});
+        }
     }
 
     public virtual object parseWsTicker(object ticker, object market = null)
@@ -709,7 +729,7 @@ public partial class cex : ccxt.cex
         //             }
         //         }
         //     }
-        //  fullfilledOrder
+        //  fulfilledOrder
         //     {
         //         "e": "order",
         //         "data": {
@@ -1041,7 +1061,7 @@ public partial class cex : ccxt.cex
         object symbol = this.pairToSymbol(pair);
         object messageHash = add("orderbook:", symbol);
         object timestamp = this.safeInteger2(data, "timestamp_ms", "timestamp");
-        object incrementalId = this.safeNumber(data, "id");
+        object incrementalId = this.safeInteger(data, "id");
         object orderbook = this.orderBook(new Dictionary<string, object>() {});
         object snapshot = this.parseOrderBook(data, symbol, timestamp, "bids", "asks");
         ((IDictionary<string,object>)snapshot)["nonce"] = incrementalId;
@@ -1186,7 +1206,11 @@ public partial class cex : ccxt.cex
         {
             callDynamically(stored, "append", new object[] {this.parseOHLCV(getValue(sorted, i), market)});
         }
-        ((IDictionary<string,object>)this.ohlcvs)[(string)symbol] = stored;
+        if (!isTrue((inOp(this.ohlcvs, symbol))))
+        {
+            ((IDictionary<string,object>)this.ohlcvs)[(string)symbol] = new Dictionary<string, object>() {};
+        }
+        ((IDictionary<string,object>)getValue(this.ohlcvs, symbol))["unknown"] = stored;
         callDynamically(client as WebSocketClient, "resolve", new object[] {stored, messageHash});
     }
 
@@ -1244,7 +1268,8 @@ public partial class cex : ccxt.cex
         object pair = this.safeString(message, "pair");
         object symbol = this.pairToSymbol(pair);
         object messageHash = add("ohlcv:", symbol);
-        object stored = this.safeValue(this.ohlcvs, symbol);
+        // const stored = this.safeValue (this.ohlcvs, symbol);
+        object stored = getValue(getValue(this.ohlcvs, symbol), "unknown");
         for (object i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
         {
             object ohlcv = new List<object> {this.safeTimestamp(getValue(data, i), 0), this.safeNumber(getValue(data, i), 1), this.safeNumber(getValue(data, i), 2), this.safeNumber(getValue(data, i), 3), this.safeNumber(getValue(data, i), 4), this.safeNumber(getValue(data, i), 5)};
@@ -1336,7 +1361,7 @@ public partial class cex : ccxt.cex
         * @param {string} type 'market' or 'limit'
         * @param {string} side 'buy' or 'sell'
         * @param {float} amount how much of currency you want to trade in units of base currency
-        * @param {float} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        * @param {float} price the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         * @param {object} [params] extra parameters specific to the kraken api endpoint
         * @param {boolean} [params.maker_only] Optional, maker only places an order only if offers best sell (<= max) or buy(>= max) price for this pair, if not order placement will be rejected with an error - "Order is not maker"
         * @returns {object} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
@@ -1378,7 +1403,7 @@ public partial class cex : ccxt.cex
         * @param {string} type 'market' or 'limit'
         * @param {string} side 'buy' or 'sell'
         * @param {float} amount how much of the currency you want to trade in units of the base currency
-        * @param {float|undefined} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        * @param {float|undefined} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         * @param {object} [params] extra parameters specific to the cex api endpoint
         * @returns {object} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
         */

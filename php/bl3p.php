@@ -30,6 +30,7 @@ class bl3p extends Exchange {
                 'cancelOrder' => true,
                 'closeAllPositions' => false,
                 'closePosition' => false,
+                'createDepositAddress' => true,
                 'createOrder' => true,
                 'createReduceOnlyOrder' => false,
                 'createStopLimitOrder' => false,
@@ -40,6 +41,9 @@ class bl3p extends Exchange {
                 'fetchBorrowRateHistory' => false,
                 'fetchCrossBorrowRate' => false,
                 'fetchCrossBorrowRates' => false,
+                'fetchDepositAddress' => false,
+                'fetchDepositAddresses' => false,
+                'fetchDepositAddressesByNetwork' => false,
                 'fetchFundingHistory' => false,
                 'fetchFundingRate' => false,
                 'fetchFundingRateHistory' => false,
@@ -53,8 +57,11 @@ class bl3p extends Exchange {
                 'fetchOpenInterestHistory' => false,
                 'fetchOrderBook' => true,
                 'fetchPosition' => false,
+                'fetchPositionHistory' => false,
                 'fetchPositionMode' => false,
                 'fetchPositions' => false,
+                'fetchPositionsForSymbol' => false,
+                'fetchPositionsHistory' => false,
                 'fetchPositionsRisk' => false,
                 'fetchPremiumIndexOHLCV' => false,
                 'fetchTicker' => true,
@@ -168,12 +175,12 @@ class bl3p extends Exchange {
         $request = array(
             'market' => $market['id'],
         );
-        $response = $this->publicGetMarketOrderbook (array_merge($request, $params));
-        $orderbook = $this->safe_value($response, 'data');
+        $response = $this->publicGetMarketOrderbook ($this->extend($request, $params));
+        $orderbook = $this->safe_dict($response, 'data');
         return $this->parse_order_book($orderbook, $market['symbol'], null, 'bids', 'asks', 'price_int', 'amount_int');
     }
 
-    public function parse_ticker($ticker, ?array $market = null): array {
+    public function parse_ticker(array $ticker, ?array $market = null): array {
         //
         // {
         //     "currency":"BTC",
@@ -229,7 +236,7 @@ class bl3p extends Exchange {
         $request = array(
             'market' => $market['id'],
         );
-        $ticker = $this->publicGetMarketTicker (array_merge($request, $params));
+        $ticker = $this->publicGetMarketTicker ($this->extend($request, $params));
         //
         // {
         //     "currency":"BTC",
@@ -248,7 +255,7 @@ class bl3p extends Exchange {
         return $this->parse_ticker($ticker, $market);
     }
 
-    public function parse_trade($trade, ?array $market = null): array {
+    public function parse_trade(array $trade, ?array $market = null): array {
         //
         // fetchTrades
         //
@@ -292,7 +299,7 @@ class bl3p extends Exchange {
          * @return {Trade[]} a list of ~@link https://docs.ccxt.com/#/?id=public-trades trade structures~
          */
         $market = $this->market($symbol);
-        $response = $this->publicGetMarketTrades (array_merge(array(
+        $response = $this->publicGetMarketTrades ($this->extend(array(
             'market' => $market['id'],
         ), $params));
         //
@@ -313,7 +320,7 @@ class bl3p extends Exchange {
         return $result;
     }
 
-    public function fetch_trading_fees($params = array ()) {
+    public function fetch_trading_fees($params = array ()): array {
         /**
          * fetch the trading fees for multiple markets
          * @see https://github.com/BitonicNL/bl3p-api/blob/master/docs/authenticated_api/http.md#35---get-account-info--balance
@@ -376,7 +383,7 @@ class bl3p extends Exchange {
          * @param {string} $type 'market' or 'limit'
          * @param {string} $side 'buy' or 'sell'
          * @param {float} $amount how much of currency you want to trade in units of base currency
-         * @param {float} [$price] the $price at which the $order is to be fullfilled, in units of the quote currency, ignored in $market orders
+         * @param {float} [$price] the $price at which the $order is to be fulfilled, in units of the quote currency, ignored in $market orders
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          *
          * EXCHANGE SPECIFIC PARAMETERS
@@ -396,7 +403,7 @@ class bl3p extends Exchange {
         if ($type === 'limit') {
             $order['price_int'] = intval(Precise::string_mul($priceString, '100000.0'));
         }
-        $response = $this->privatePostMarketMoneyOrderAdd (array_merge($order, $params));
+        $response = $this->privatePostMarketMoneyOrderAdd ($this->extend($order, $params));
         $orderId = $this->safe_string($response['data'], 'order_id');
         return $this->safe_order(array(
             'info' => $response,
@@ -416,7 +423,56 @@ class bl3p extends Exchange {
         $request = array(
             'order_id' => $id,
         );
-        return $this->privatePostMarketMoneyOrderCancel (array_merge($request, $params));
+        $response = $this->privatePostMarketMoneyOrderCancel ($this->extend($request, $params));
+        //
+        // "success"
+        //
+        return $this->safe_order(array(
+            'info' => $response,
+        ));
+    }
+
+    public function create_deposit_address(string $code, $params = array ()) {
+        /**
+         * create a $currency deposit address
+         * @see https://github.com/BitonicNL/bl3p-api/blob/master/docs/authenticated_api/http.md#32---create-a-new-deposit-address
+         * @param {string} $code unified $currency $code of the $currency for the deposit address
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} an ~@link https://docs.ccxt.com/#/?id=address-structure address structure~
+         */
+        $this->load_markets();
+        $currency = $this->currency($code);
+        $request = array(
+            'currency' => $currency['id'],
+        );
+        $response = $this->privatePostGENMKTMoneyNewDepositAddress ($this->extend($request, $params));
+        //
+        //    {
+        //        "result" => "success",
+        //        "data" => {
+        //            "address" => "36Udu9zi1uYicpXcJpoKfv3bewZeok5tpk"
+        //        }
+        //    }
+        //
+        $data = $this->safe_dict($response, 'data');
+        return $this->parse_deposit_address($data, $currency);
+    }
+
+    public function parse_deposit_address($depositAddress, ?array $currency = null) {
+        //
+        //    {
+        //        "address" => "36Udu9zi1uYicpXcJpoKfv3bewZeok5tpk"
+        //    }
+        //
+        $address = $this->safe_string($depositAddress, 'address');
+        $this->check_address($address);
+        return array(
+            'info' => $depositAddress,
+            'currency' => $this->safe_string($currency, 'code'),
+            'address' => $address,
+            'tag' => null,
+            'network' => null,
+        );
     }
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
@@ -430,7 +486,7 @@ class bl3p extends Exchange {
         } else {
             $this->check_required_credentials();
             $nonce = $this->nonce();
-            $body = $this->urlencode(array_merge(array( 'nonce' => $nonce ), $query));
+            $body = $this->urlencode($this->extend(array( 'nonce' => $nonce ), $query));
             $secret = base64_decode($this->secret);
             // eslint-disable-next-line quotes
             $auth = $request . "\0" . $body;

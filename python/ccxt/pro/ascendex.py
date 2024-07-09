@@ -9,8 +9,8 @@ import hashlib
 from ccxt.base.types import Balances, Int, Order, OrderBook, Str, Trade
 from ccxt.async_support.base.ws.client import Client
 from typing import List
-from ccxt.base.errors import NetworkError
 from ccxt.base.errors import AuthenticationError
+from ccxt.base.errors import NetworkError
 
 
 class ascendex(ccxt.async_support.ascendex):
@@ -55,7 +55,7 @@ class ascendex(ccxt.async_support.ascendex):
     async def watch_public(self, messageHash, params={}):
         url = self.urls['api']['ws']['public']
         id = self.nonce()
-        request = {
+        request: dict = {
             'id': str(id),
             'op': 'sub',
         }
@@ -68,7 +68,7 @@ class ascendex(ccxt.async_support.ascendex):
         url = self.urls['api']['ws']['private']
         url = self.implode_params(url, {'accountGroup': accountGroup})
         id = self.nonce()
-        request = {
+        request: dict = {
             'id': str(id),
             'op': 'sub',
             'ch': channel,
@@ -202,7 +202,7 @@ class ascendex(ccxt.async_support.ascendex):
         """
         await self.load_markets()
         market = self.market(symbol)
-        channel = 'depth-realtime' + ':' + market['id']
+        channel = 'depth' + ':' + market['id']
         params = self.extend(params, {
             'ch': channel,
         })
@@ -212,7 +212,7 @@ class ascendex(ccxt.async_support.ascendex):
     async def watch_order_book_snapshot(self, symbol: str, limit: Int = None, params={}):
         await self.load_markets()
         market = self.market(symbol)
-        action = 'depth-snapshot-realtime'
+        action = 'depth-snapshot'
         channel = action + ':' + market['id']
         params = self.extend(params, {
             'action': action,
@@ -223,6 +223,14 @@ class ascendex(ccxt.async_support.ascendex):
         })
         orderbook = await self.watch_public(channel, params)
         return orderbook.limit()
+
+    async def fetch_order_book_snapshot(self, symbol: str, limit: Int = None, params={}):
+        restOrderBook = await self.fetch_rest_order_book_safe(symbol, limit, params)
+        if not (symbol in self.orderbooks):
+            self.orderbooks[symbol] = self.order_book()
+        orderbook = self.orderbooks[symbol]
+        orderbook.reset(restOrderBook)
+        return orderbook
 
     def handle_order_book_snapshot(self, client: Client, message):
         #
@@ -277,9 +285,9 @@ class ascendex(ccxt.async_support.ascendex):
         marketId = self.safe_string(message, 'symbol')
         symbol = self.safe_symbol(marketId)
         messageHash = channel + ':' + marketId
-        orderbook = self.safe_value(self.orderbooks, symbol)
-        if orderbook is None:
-            orderbook = self.order_book({})
+        if not (symbol in self.orderbooks):
+            self.orderbooks[symbol] = self.order_book({})
+        orderbook = self.orderbooks[symbol]
         if orderbook['nonce'] is None:
             orderbook.cache.append(message)
         else:
@@ -822,12 +830,12 @@ class ascendex(ccxt.async_support.ascendex):
         # }
         #
         subject = self.safe_string(message, 'm')
-        methods = {
+        methods: dict = {
             'ping': self.handle_ping,
             'auth': self.handle_authenticate,
             'sub': self.handle_subscription_status,
-            'depth-realtime': self.handle_order_book,
-            'depth-snapshot-realtime': self.handle_order_book_snapshot,
+            'depth': self.handle_order_book,
+            'depth-snapshot': self.handle_order_book_snapshot,
             'trades': self.handle_trades,
             'bar': self.handle_ohlcv,
             'balance': self.handle_balance,
@@ -851,7 +859,7 @@ class ascendex(ccxt.async_support.ascendex):
         #     {m: 'sub', id: "1647515701", ch: "depth:BTC/USDT", code: 0}
         #
         channel = self.safe_string(message, 'ch', '')
-        if channel.find('depth-realtime') > -1:
+        if channel.find('depth') > -1 and not (channel.find('depth-snapshot') > -1):
             self.handle_order_book_subscription(client, message)
         return message
 
@@ -859,11 +867,15 @@ class ascendex(ccxt.async_support.ascendex):
         channel = self.safe_string(message, 'ch')
         parts = channel.split(':')
         marketId = parts[1]
-        symbol = self.safe_symbol(marketId)
+        market = self.safe_market(marketId)
+        symbol = market['symbol']
         if symbol in self.orderbooks:
             del self.orderbooks[symbol]
         self.orderbooks[symbol] = self.order_book({})
-        self.spawn(self.watch_order_book_snapshot, symbol)
+        if self.options['defaultType'] == 'swap' or market['contract']:
+            self.spawn(self.fetch_order_book_snapshot, symbol)
+        else:
+            self.spawn(self.watch_order_book_snapshot, symbol)
 
     async def pong(self, client, message):
         #
@@ -892,13 +904,13 @@ class ascendex(ccxt.async_support.ascendex):
             auth = timestamp + '+' + version + '/' + path
             secret = self.base64_to_binary(self.secret)
             signature = self.hmac(self.encode(auth), secret, hashlib.sha256, 'base64')
-            request = {
+            request: dict = {
                 'op': 'auth',
                 'id': str(self.nonce()),
                 't': timestamp,
                 'key': self.apiKey,
                 'sig': signature,
             }
-            future = self.watch(url, messageHash, self.extend(request, params))
+            future = await self.watch(url, messageHash, self.extend(request, params), messageHash)
             client.subscriptions[messageHash] = future
         return future

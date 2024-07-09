@@ -1,0 +1,185 @@
+{
+    "exchange": "upbit",
+    "skipKeys": [],
+    "methods": {
+        "fetchTrades": [
+            {
+                "description": "public spot trades",
+                "method": "fetchTrades",
+                "input": [
+                    "BTC/USDT",
+                    null,
+                    1
+                ],
+                "httpResponse": [
+                    {
+                        "market": "USDT-BTC",
+                        "trade_date_utc": "2024-03-13",
+                        "trade_time_utc": "10:59:31",
+                        "timestamp": "1710327571922",
+                        "trade_price": "73249.66500000",
+                        "trade_volume": "0.00840925",
+                        "prev_closing_price": "71126.14598036",
+                        "change_price": "2123.51901964",
+                        "ask_bid": "ASK",
+                        "sequential_id": "17103275719220001"
+                    }
+                ],
+                "parsedResponse": [
+                    {
+                        "id": "17103275719220001",
+                        "info": {
+                            "market": "USDT-BTC",
+                            "trade_date_utc": "2024-03-13",
+                            "trade_time_utc": "10:59:31",
+                            "timestamp": "1710327571922",
+                            "trade_price": "73249.66500000",
+                            "trade_volume": "0.00840925",
+                            "prev_closing_price": "71126.14598036",
+                            "change_price": "2123.51901964",
+                            "ask_bid": "ASK",
+                            "sequential_id": "17103275719220001"
+                        },
+                        "order": null,
+                        "timestamp": 1710327571922,
+                        "datetime": "2024-03-13T10:59:31.922Z",
+                        "symbol": "BTC/USDT",
+                        "type": null,
+                        "side": "sell",
+                        "takerOrMaker": null,
+                        "price": 73249.665,
+                        "amount": 0.00840925,
+                        "cost": 615.97474540125,
+                        "fee": null,
+                        "fees": []
+                    }
+                ]
+            }
+        ],
+        "fetchTicker": [
+            {
+                "description": "public spot ticker",
+                "method": "fetchTicker",
+                "input": [
+                    "BTC/USDT"
+                ],
+                "httpResponse": [
+                    {
+                        "market": "USDT-BTC",
+                        "trade_date": "20240313",
+                        "trade_time": "111037",
+                        "trade_date_kst": "20240313",
+                        "trade_time_kst": "201037",
+                        "trade_timestamp": "1710328237798",
+                        "opening_price": "71126.14598036",
+                        "high_price": "73831.69765763",
+                        "low_price": "70857.00039906",
+                        "trade_price": "73578.65500000",
+                        "prev_closing_price": "71126.14598036",
+                        "change": "RISE",
+                        "change_price": "2452.50901964",
+                        "change_rate": "0.0344811178",
+                        "signed_change_price": "2452.50901964",
+                        "signed_change_rate": "0.0344811178",
+                        "trade_volume": "0.00325605",
+                        "acc_trade_price": "306095.1228293561797048",
+                        "acc_trade_price_24h": "506342.98398488",
+                        "acc_trade_volume": "4.22369565",
+                        "acc_trade_volume_24h": "7.03935349",
+                        "highest_52_week_price": "73831.69765763",
+                        "highest_52_week_date": "2024-03-13",
+                        "lowest_52_week_price": "23936.80694835",
+                        "lowest_52_week_date": "2023-03-16",
+                        "timestamp": "1710328237828"
+                    }
+                ],
+                "parsedResponse": {
+                    "symbol": "BTC/USDT",
+                    "timestamp": 1710328237798,
+                    "datetime": "2024-03-13T11:10:37.798Z",
+                    "high": 73831.69765763,
+                    "low": 70857.00039906,
+                    "bid": null,
+                    "bidVolume": null,
+                    "ask": null,
+                    "askVolume": null,
+                    "vwap": 71930.32495160007,
+                    "open": 71126.14598036,
+                    "close": 73578.655,
+                    "last": 73578.655,
+                    "previousClose": 71126.14598036,
+                    "change": 2452.50901964,
+                    "percentage": 0.0344811178,
+                    "average": 72352.40049018,
+                    "baseVolume": 7.03935349,
+                    "quoteVolume": 506342.98398488,
+                    "info": {
+                        "market": "USDT-BTC",
+                        "trade_date": "20240313",
+                        "trade_time": "111037",
+                        "trade_date_kst": "20240313",
+                        "trade_time_kst": "201037",
+                        "trade_timestamp": "1710328237798",
+                        "opening_price": "71126.14598036",
+                        "high_price": "73831.69765763",
+                        "low_price": "70857.00039906",
+                        "trade_price": "73578.65500000",
+                        "prev_closing_price": "71126.14598036",
+                        "change": "RISE",
+                        "change_price": "2452.50901964",
+                        "change_rate": "0.0344811178",
+                        "signed_change_price": "2452.50901964",
+                        "signed_change_rate": "0.0344811178",
+                        "trade_volume": "0.00325605",
+                        "acc_trade_price": "306095.1228293561797048",
+                        "acc_trade_price_24h": "506342.98398488",
+                        "acc_trade_volume": "4.22369565",
+                        "acc_trade_volume_24h": "7.03935349",
+                        "highest_52_week_price": "73831.69765763",
+                        "highest_52_week_date": "2024-03-13",
+                        "lowest_52_week_price": "23936.80694835",
+                        "lowest_52_week_date": "2023-03-16",
+                        "timestamp": "1710328237828"
+                    }
+                }
+            }
+        ],
+        "fetchOHLCV": [
+            {
+                "description": "public spot ohlcv",
+                "method": "fetchOHLCV",
+                "input": [
+                    "BTC/USDT",
+                    "1h",
+                    null,
+                    1
+                ],
+                "httpResponse": [
+                    {
+                        "market": "USDT-BTC",
+                        "candle_date_time_utc": "2024-03-13T11:00:00",
+                        "candle_date_time_kst": "2024-03-13T20:00:00",
+                        "opening_price": "72738.58583492",
+                        "high_price": "73578.65700000",
+                        "low_price": "72738.58583492",
+                        "trade_price": "73578.65500000",
+                        "timestamp": "1710328237828",
+                        "candle_acc_trade_price": "1669.08358949",
+                        "candle_acc_trade_volume": "0.02284923",
+                        "unit": "60"
+                    }
+                ],
+                "parsedResponse": [
+                    [
+                        1710327600000,
+                        72738.58583492,
+                        73578.657,
+                        72738.58583492,
+                        73578.655,
+                        0.02284923
+                    ]
+                ]
+            }
+        ]
+    }
+}

@@ -1,621 +1,667 @@
 {
-  "exchange": "bitmex",
-  "skipKeys": [],
-  "outputType": "json",
-  "methods": {
-    "createOrder": [
-      {
-        "description": "spot limit buy",
-        "method": "createOrder",
-        "url": "https://www.bitmex.com/api/v1/order",
-        "input": [
-          "BTC/USDT",
-          "limit",
-          "buy",
-          0.0001,
-          37000
+    "exchange": "bitmex",
+    "skipKeys": [],
+    "outputType": "json",
+    "methods": {
+        "createOrder": [
+            {
+                "description": "spot limit buy",
+                "method": "createOrder",
+                "url": "https://www.bitmex.com/api/v1/order",
+                "input": [
+                    "BTC/USDT",
+                    "limit",
+                    "buy",
+                    0.0001,
+                    37000
+                ],
+                "output": "{\"symbol\":\"XBT_USDT\",\"side\":\"Buy\",\"orderQty\":10000,\"ordType\":\"Limit\",\"text\":\"CCXT\",\"price\":37000}"
+            },
+            {
+                "description": "swap limit buy",
+                "method": "createOrder",
+                "url": "https://www.bitmex.com/api/v1/order",
+                "input": [
+                    "BTC/USDT:USDT",
+                    "limit",
+                    "buy",
+                    1000,
+                    35000
+                ],
+                "output": "{\"symbol\":\"XBTUSDT\",\"side\":\"Buy\",\"orderQty\":1000,\"ordType\":\"Limit\",\"text\":\"CCXT\",\"price\":35000}"
+            },
+            {
+                "description": "spot limit sell",
+                "method": "createOrder",
+                "url": "https://www.bitmex.com/api/v1/order",
+                "input": [
+                    "BTC/USDT",
+                    "limit",
+                    "sell",
+                    0.0001,
+                    36000
+                ],
+                "output": "{\"symbol\":\"XBT_USDT\",\"side\":\"Sell\",\"orderQty\":10000,\"ordType\":\"Limit\",\"text\":\"CCXT\",\"price\":36000}"
+            },
+            {
+                "description": "spot market buy",
+                "method": "createOrder",
+                "url": "https://www.bitmex.com/api/v1/order",
+                "input": [
+                    "BTC/USDT",
+                    "market",
+                    "buy",
+                    0.0001,
+                    null
+                ],
+                "output": "{\"symbol\":\"XBT_USDT\",\"side\":\"Buy\",\"orderQty\":10000,\"ordType\":\"Market\",\"text\":\"CCXT\"}"
+            },
+            {
+                "description": "swap market buy",
+                "method": "createOrder",
+                "url": "https://testnet.bitmex.com/api/v1/order",
+                "input": [
+                    "BTC/USDT:USDT",
+                    "market",
+                    "buy",
+                    1000
+                ],
+                "output": "{\"symbol\":\"XBTUSDT\",\"side\":\"Buy\",\"orderQty\":1000,\"ordType\":\"Market\",\"text\":\"CCXT\"}"
+            },
+            {
+                "description": "spot market buy with defined price",
+                "method": "createOrder",
+                "url": "https://www.bitmex.com/api/v1/order",
+                "input": [
+                    "BTC/USDT",
+                    "market",
+                    "buy",
+                    0.0001,
+                    37000
+                ],
+                "output": "{\"symbol\":\"XBT_USDT\",\"side\":\"Buy\",\"orderQty\":10000,\"ordType\":\"Market\",\"text\":\"CCXT\"}"
+            },
+            {
+                "description": "spot market sell",
+                "method": "createOrder",
+                "url": "https://www.bitmex.com/api/v1/order",
+                "input": [
+                    "BTC/USDT",
+                    "market",
+                    "sell",
+                    0.0001,
+                    null
+                ],
+                "output": "{\"symbol\":\"XBT_USDT\",\"side\":\"Sell\",\"orderQty\":10000,\"ordType\":\"Market\",\"text\":\"CCXT\"}"
+            },
+            {
+                "description": "spot market sell with defined price",
+                "method": "createOrder",
+                "url": "https://www.bitmex.com/api/v1/order",
+                "input": [
+                    "BTC/USDT",
+                    "market",
+                    "sell",
+                    0.0001,
+                    36000
+                ],
+                "output": "{\"symbol\":\"XBT_USDT\",\"side\":\"Sell\",\"orderQty\":10000,\"ordType\":\"Market\",\"text\":\"CCXT\"}"
+            },
+            {
+                "description": "spot limit buy with PO and GTC",
+                "method": "createOrder",
+                "url": "https://www.bitmex.com/api/v1/order",
+                "input": [
+                    "BTC/USDT",
+                    "limit",
+                    "buy",
+                    0.0001,
+                    36000,
+                    {
+                        "postOnly": true,
+                        "timeInForce": "GTC"
+                    }
+                ],
+                "output": "{\"symbol\":\"XBT_USDT\",\"side\":\"Buy\",\"orderQty\":10000,\"ordType\":\"Limit\",\"text\":\"CCXT\",\"price\":36000,\"postOnly\":true,\"timeInForce\":\"GTC\"}"
+            },
+            {
+                "description": "spot market buy with triggerPrice and triggerDirection below",
+                "method": "createOrder",
+                "url": "https://www.bitmex.com/api/v1/order",
+                "input": [
+                    "BTC/USDT",
+                    "market",
+                    "buy",
+                    0.1,
+                    null,
+                    {
+                        "triggerPrice": 35,
+                        "triggerDirection": "below"
+                    }
+                ],
+                "output": "{\"symbol\":\"XBT_USDT\",\"side\":\"Buy\",\"orderQty\":10000000,\"ordType\":\"MarketIfTouched\",\"text\":\"CCXT\",\"stopPx\":35}"
+            },
+            {
+                "description": "spot market buy with triggerPrice and triggerDirection above",
+                "method": "createOrder",
+                "url": "https://www.bitmex.com/api/v1/order",
+                "input": [
+                    "BTC/USDT",
+                    "market",
+                    "buy",
+                    0.1,
+                    null,
+                    {
+                        "triggerPrice": 37000,
+                        "triggerDirection": "above"
+                    }
+                ],
+                "output": "{\"symbol\":\"XBT_USDT\",\"side\":\"Buy\",\"orderQty\":10000000,\"ordType\":\"Stop\",\"text\":\"CCXT\",\"stopPx\":37000}"
+            },
+            {
+                "description": "Spot limit buy with trigger direction infered from exchange-specific order type",
+                "method": "createOrder",
+                "url": "https://testnet.bitmex.com/api/v1/order",
+                "input": [
+                    "BTC/USDT",
+                    "LimitIfTouched",
+                    "buy",
+                    0.0001,
+                    36000,
+                    {
+                        "triggerPrice": 36944
+                    }
+                ],
+                "output": "{\"symbol\":\"XBT_USDT\",\"side\":\"Buy\",\"orderQty\":10000,\"ordType\":\"LimitIfTouched\",\"text\":\"CCXT\",\"stopPx\":36944,\"price\":36000}"
+            },
+            {
+                "description": "Swap market sell order with reduceOnly",
+                "method": "createOrder",
+                "url": "https://testnet.bitmex.com/api/v1/order",
+                "input": [
+                    "BTC/USDT:USDT",
+                    "market",
+                    "sell",
+                    1000,
+                    null,
+                    {
+                        "reduceOnly": true
+                    }
+                ],
+                "output": "{\"symbol\":\"XBTUSDT\",\"side\":\"Sell\",\"orderQty\":1000,\"ordType\":\"Market\",\"text\":\"CCXT\",\"reduceOnly\":true}"
+            },
+            {
+                "description": "Swap market trailing order",
+                "method": "createOrder",
+                "url": "https://testnet.bitmex.com/api/v1/order",
+                "input": [
+                    "BTC/USDT:USDT",
+                    "market",
+                    "sell",
+                    1000,
+                    null,
+                    {
+                        "trailingAmount": 100,
+                        "triggerDirection": "above"
+                    }
+                ],
+                "output": "{\"symbol\":\"XBTUSDT\",\"side\":\"Sell\",\"orderQty\":1000,\"ordType\":\"MarketIfTouched\",\"text\":\"CCXT\",\"pegOffsetValue\":100,\"pegPriceType\":\"TrailingStopPeg\"}"
+            },
+            {
+                "description": "Swap limit trailing order",
+                "method": "createOrder",
+                "url": "https://testnet.bitmex.com/api/v1/order",
+                "input": [
+                    "BTC/USDT:USDT",
+                    "limit",
+                    "sell",
+                    1000,
+                    45000,
+                    {
+                        "trailingAmount": 100,
+                        "triggerDirection": "above"
+                    }
+                ],
+                "output": "{\"symbol\":\"XBTUSDT\",\"side\":\"Sell\",\"orderQty\":1000,\"ordType\":\"LimitIfTouched\",\"text\":\"CCXT\",\"pegOffsetValue\":100,\"pegPriceType\":\"TrailingStopPeg\",\"price\":45000}"
+            }
         ],
-        "output": "{\"symbol\":\"XBT_USDT\",\"side\":\"Buy\",\"orderQty\":10000,\"ordType\":\"Limit\",\"text\":\"CCXT\",\"price\":37000}"
-      },
-      {
-        "description": "swap limit buy",
-        "method": "createOrder",
-        "url": "https://www.bitmex.com/api/v1/order",
-        "input": [
-          "BTC/USDT:USDT",
-          "limit",
-          "buy",
-          1000,
-          35000
+        "fetchTrades": [
+            {
+                "description": "Spot fetch public trades",
+                "method": "fetchTrades",
+                "url": "https://www.bitmex.com/api/v1/trade?symbol=XBT_USDT&reverse=true",
+                "input": [
+                    "BTC/USDT"
+                ]
+            },
+            {
+                "description": "Swap fetch public trades",
+                "method": "fetchTrades",
+                "url": "https://testnet.bitmex.com/api/v1/trade?symbol=XBTUSDT&reverse=true",
+                "input": [
+                    "BTC/USDT:USDT"
+                ]
+            }
         ],
-        "output": "{\"symbol\":\"XBTUSDT\",\"side\":\"Buy\",\"orderQty\":1000,\"ordType\":\"Limit\",\"text\":\"CCXT\",\"price\":35000}"
-      },
-      {
-        "description": "spot limit sell",
-        "method": "createOrder",
-        "url": "https://www.bitmex.com/api/v1/order",
-        "input": [
-          "BTC/USDT",
-          "limit",
-          "sell",
-          0.0001,
-          36000
+        "editOrder": [
+            {
+                "description": "Spot edit order",
+                "method": "editOrder",
+                "url": "https://testnet.bitmex.com/api/v1/order",
+                "input": [
+                    "9a647c5c-59c7-43dc-94ca-d16f6628a7ad",
+                    "BTC/USDT",
+                    "limit",
+                    "buy",
+                    0.0001,
+                    34000
+                ],
+                "output": "{\"orderID\":\"9a647c5c-59c7-43dc-94ca-d16f6628a7ad\",\"orderQty\":10000,\"price\":34000,\"text\":\"CCXT\"}"
+            },
+            {
+                "description": "Swap edit order",
+                "method": "editOrder",
+                "url": "https://testnet.bitmex.com/api/v1/order",
+                "input": [
+                    "e9c8109c-1b6c-4526-b6b9-9619d95cba47",
+                    "BTC/USDT:USDT",
+                    "limit",
+                    "buy",
+                    1000,
+                    35000
+                ],
+                "output": "{\"orderID\":\"e9c8109c-1b6c-4526-b6b9-9619d95cba47\",\"orderQty\":1000,\"price\":35000,\"text\":\"CCXT\"}"
+            },
+            {
+                "description": "Swap edit trailing order",
+                "method": "editOrder",
+                "url": "https://testnet.bitmex.com/api/v1/order",
+                "input": [
+                    "f21aa11e-3857-4e39-9230-53cb15a04c3f",
+                    "BTC/USDT:USDT",
+                    "market",
+                    "sell",
+                    1000,
+                    null,
+                    {
+                        "trailingAmount": 11000,
+                        "triggerDirection": "above"
+                    }
+                ],
+                "output": "{\"pegOffsetValue\":11000,\"orderID\":\"f21aa11e-3857-4e39-9230-53cb15a04c3f\",\"orderQty\":1000,\"text\":\"CCXT\"}"
+            }
         ],
-        "output": "{\"symbol\":\"XBT_USDT\",\"side\":\"Sell\",\"orderQty\":10000,\"ordType\":\"Limit\",\"text\":\"CCXT\",\"price\":36000}"
-      },
-      {
-        "description": "spot market buy",
-        "method": "createOrder",
-        "url": "https://www.bitmex.com/api/v1/order",
-        "input": [
-          "BTC/USDT",
-          "market",
-          "buy",
-          0.0001,
-          null
+        "fetchOrderBook": [
+            {
+                "description": "Spot fetch order book with a limit argument",
+                "method": "fetchOrderBook",
+                "url": "https://testnet.bitmex.com/api/v1/orderBook/L2?symbol=XBT_USDT&depth=3",
+                "input": [
+                    "BTC/USDT",
+                    3
+                ]
+            },
+            {
+                "description": "Swap fetch order book with a limit argument",
+                "method": "fetchOrderBook",
+                "url": "https://testnet.bitmex.com/api/v1/orderBook/L2?symbol=XBTUSDT&depth=3",
+                "input": [
+                    "BTC/USDT:USDT",
+                    3
+                ]
+            }
         ],
-        "output": "{\"symbol\":\"XBT_USDT\",\"side\":\"Buy\",\"orderQty\":10000,\"ordType\":\"Market\",\"text\":\"CCXT\"}"
-      },
-      {
-        "description": "swap market buy",
-        "method": "createOrder",
-        "url": "https://testnet.bitmex.com/api/v1/order",
-        "input": [
-          "BTC/USDT:USDT",
-          "market",
-          "buy",
-          1000
+        "fetchOrder": [
+            {
+                "description": "Spot fetch an order",
+                "method": "fetchOrder",
+                "url": "https://testnet.bitmex.com/api/v1/order?symbol=XBT_USDT&filter=%7B%22orderID%22%3A%229a647c5c-59c7-43dc-94ca-d16f6628a7ad%22%7D",
+                "input": [
+                    "9a647c5c-59c7-43dc-94ca-d16f6628a7ad",
+                    "BTC/USDT"
+                ]
+            },
+            {
+                "description": "Swap fetch an order",
+                "method": "fetchOrder",
+                "url": "https://testnet.bitmex.com/api/v1/order?symbol=XBTUSDT&filter=%7B%22orderID%22%3A%22e9c8109c-1b6c-4526-b6b9-9619d95cba47%22%7D",
+                "input": [
+                    "e9c8109c-1b6c-4526-b6b9-9619d95cba47",
+                    "BTC/USDT:USDT"
+                ]
+            }
         ],
-        "output": "{\"symbol\":\"XBTUSDT\",\"side\":\"Buy\",\"orderQty\":1000,\"ordType\":\"Market\",\"text\":\"CCXT\"}"
-      },
-      {
-        "description": "spot market buy with defined price",
-        "method": "createOrder",
-        "url": "https://www.bitmex.com/api/v1/order",
-        "input": [
-          "BTC/USDT",
-          "market",
-          "buy",
-          0.0001,
-          37000
+        "fetchOrders": [
+            {
+                "description": "Spot fetch all orders",
+                "method": "fetchOrders",
+                "url": "https://testnet.bitmex.com/api/v1/order?symbol=XBT_USDT",
+                "input": [
+                    "BTC/USDT"
+                ]
+            },
+            {
+                "description": "Swap fetch all orders",
+                "method": "fetchOrders",
+                "url": "https://testnet.bitmex.com/api/v1/order?symbol=XBTUSDT",
+                "input": [
+                    "BTC/USDT:USDT"
+                ]
+            }
         ],
-        "output": "{\"symbol\":\"XBT_USDT\",\"side\":\"Buy\",\"orderQty\":10000,\"ordType\":\"Market\",\"text\":\"CCXT\"}"
-      },
-      {
-        "description": "spot market sell",
-        "method": "createOrder",
-        "url": "https://www.bitmex.com/api/v1/order",
-        "input": [
-          "BTC/USDT",
-          "market",
-          "sell",
-          0.0001,
-          null
+        "fetchOpenOrders": [
+            {
+                "description": "Spot fetch all open orders",
+                "method": "fetchOpenOrders",
+                "url": "https://testnet.bitmex.com/api/v1/order?symbol=XBT_USDT&filter=%7B%22open%22%3Atrue%7D",
+                "input": [
+                    "BTC/USDT"
+                ]
+            },
+            {
+                "description": "Swap fetch all open orders",
+                "method": "fetchOpenOrders",
+                "url": "https://testnet.bitmex.com/api/v1/order?symbol=XBTUSDT&filter=%7B%22open%22%3Atrue%7D",
+                "input": [
+                    "BTC/USDT:USDT"
+                ]
+            }
         ],
-        "output": "{\"symbol\":\"XBT_USDT\",\"side\":\"Sell\",\"orderQty\":10000,\"ordType\":\"Market\",\"text\":\"CCXT\"}"
-      },
-      {
-        "description": "spot market sell with defined price",
-        "method": "createOrder",
-        "url": "https://www.bitmex.com/api/v1/order",
-        "input": [
-          "BTC/USDT",
-          "market",
-          "sell",
-          0.0001,
-          36000
+        "fetchClosedOrders": [
+            {
+                "description": "Spot fetch all closed orders",
+                "method": "fetchClosedOrders",
+                "url": "https://testnet.bitmex.com/api/v1/order?symbol=XBT_USDT",
+                "input": [
+                    "BTC/USDT"
+                ]
+            },
+            {
+                "description": "Swap fetch all closed orders",
+                "method": "fetchClosedOrders",
+                "url": "https://testnet.bitmex.com/api/v1/order?symbol=XBTUSDT",
+                "input": [
+                    "BTC/USDT:USDT"
+                ]
+            }
         ],
-        "output": "{\"symbol\":\"XBT_USDT\",\"side\":\"Sell\",\"orderQty\":10000,\"ordType\":\"Market\",\"text\":\"CCXT\"}"
-      },
-      {
-        "description": "spot limit buy with PO and GTC",
-        "method": "createOrder",
-        "url": "https://www.bitmex.com/api/v1/order",
-        "input": [
-          "BTC/USDT",
-          "limit",
-          "buy",
-          0.0001,
-          36000,
-          {
-            "postOnly": true,
-            "timeInForce": "GTC"
-          }
+        "fetchMyTrades": [
+            {
+                "description": "Spot fetch my trades",
+                "method": "fetchMyTrades",
+                "url": "https://testnet.bitmex.com/api/v1/execution/tradeHistory?symbol=XBT_USDT",
+                "input": [
+                    "BTC/USDT"
+                ]
+            },
+            {
+                "description": "Swap fetch my trades",
+                "method": "fetchMyTrades",
+                "url": "https://testnet.bitmex.com/api/v1/execution/tradeHistory?symbol=XBTUSDT",
+                "input": [
+                    "BTC/USDT:USDT"
+                ]
+            }
         ],
-        "output": "{\"symbol\":\"XBT_USDT\",\"side\":\"Buy\",\"orderQty\":10000,\"ordType\":\"Limit\",\"text\":\"CCXT\",\"price\":36000,\"postOnly\":true,\"timeInForce\":\"GTC\"}"
-      },
-      {
-        "description": "spot market buy with triggerPrice and triggerDirection below",
-        "method": "createOrder",
-        "url": "https://www.bitmex.com/api/v1/order",
-        "input": [
-          "BTC/USDT",
-          "market",
-          "buy",
-          0.1,
-          null,
-          {
-            "triggerPrice": 35,
-            "triggerDirection": "below"
-          }
+        "fetchLedger": [
+            {
+                "description": "fetch the ledger of USDT transactions",
+                "method": "fetchLedger",
+                "url": "https://testnet.bitmex.com/api/v1/user/walletHistory?currency=USDt",
+                "input": [
+                    "USDT"
+                ]
+            }
         ],
-        "output": "{\"symbol\":\"XBT_USDT\",\"side\":\"Buy\",\"orderQty\":10000000,\"ordType\":\"MarketIfTouched\",\"text\":\"CCXT\",\"stopPx\":35}"
-      },
-      {
-        "description": "spot market buy with triggerPrice and triggerDirection above",
-        "method": "createOrder",
-        "url": "https://www.bitmex.com/api/v1/order",
-        "input": [
-          "BTC/USDT",
-          "market",
-          "buy",
-          0.1,
-          null,
-          {
-            "triggerPrice": 37000,
-            "triggerDirection": "above"
-          }
+        "fetchDepositsWithdrawals": [
+            {
+                "description": "Fetch USDT deposits and withdrawals",
+                "method": "fetchDepositsWithdrawals",
+                "url": "https://testnet.bitmex.com/api/v1/user/walletHistory?currency=USDt",
+                "input": [
+                    "USDT"
+                ]
+            }
         ],
-        "output": "{\"symbol\":\"XBT_USDT\",\"side\":\"Buy\",\"orderQty\":10000000,\"ordType\":\"Stop\",\"text\":\"CCXT\",\"stopPx\":37000}"
-      },
-      {
-        "description": "Spot limit buy with trigger direction infered from exchange-specific order type",
-        "method": "createOrder",
-        "url": "https://testnet.bitmex.com/api/v1/order",
-        "input": [
-          "BTC/USDT",
-          "LimitIfTouched",
-          "buy",
-          0.0001,
-          36000,
-          {
-            "triggerPrice": 36944
-          }
+        "fetchTicker": [
+            {
+                "description": "Spot fetch ticker",
+                "method": "fetchTicker",
+                "url": "https://testnet.bitmex.com/api/v1/instrument?symbol=XBT_USDT",
+                "input": [
+                    "BTC/USDT"
+                ]
+            },
+            {
+                "description": "Swap fetch ticker",
+                "method": "fetchTicker",
+                "url": "https://testnet.bitmex.com/api/v1/instrument?symbol=XBTUSDT",
+                "input": [
+                    "BTC/USDT:USDT"
+                ]
+            }
         ],
-        "output": "{\"symbol\":\"XBT_USDT\",\"side\":\"Buy\",\"orderQty\":10000,\"ordType\":\"LimitIfTouched\",\"text\":\"CCXT\",\"stopPx\":36944,\"price\":36000}"
-      },
-      {
-        "description": "Swap market sell order with reduceOnly",
-        "method": "createOrder",
-        "url": "https://testnet.bitmex.com/api/v1/order",
-        "input": [
-          "BTC/USDT:USDT",
-          "market",
-          "sell",
-          1000,
-          null,
-          {
-            "reduceOnly": true
-          }
+        "fetchTickers": [
+            {
+                "description": "Spot fetch multiple tickers",
+                "method": "fetchTickers",
+                "url": "https://testnet.bitmex.com/api/v1/instrument/activeAndIndices",
+                "input": [
+                    [
+                        "BTC/USDT",
+                        "ETH/USDT"
+                    ]
+                ]
+            },
+            {
+                "description": "Swap fetch multiple tickers",
+                "method": "fetchTickers",
+                "url": "https://testnet.bitmex.com/api/v1/instrument/activeAndIndices",
+                "input": [
+                    [
+                        "BTC/USDT:USDT",
+                        "ETH/USDT:USDT"
+                    ]
+                ]
+            }
         ],
-        "output": "{\"symbol\":\"XBTUSDT\",\"side\":\"Sell\",\"orderQty\":1000,\"ordType\":\"Market\",\"text\":\"CCXT\",\"reduceOnly\":true}"
-      },
-      {
-        "description": "Swap market trailing order",
-        "method": "createOrder",
-        "url": "https://testnet.bitmex.com/api/v1/order",
-        "input": [
-          "BTC/USDT:USDT",
-          "market",
-          "sell",
-          1000,
-          null,
-          {
-            "trailingAmount": 100,
-            "triggerDirection": "above"
-          }
+        "fetchOHLCV": [
+            {
+                "description": "Spot fetch candles with a since timestamp argument",
+                "method": "fetchOHLCV",
+                "url": "https://testnet.bitmex.com/api/v1/trade/bucketed?symbol=XBT_USDT&binSize=1m&partial=true&startTime=2024-01-13T05%3A37%3A00.000Z",
+                "input": [
+                    "BTC/USDT",
+                    "1m",
+                    1705124160000
+                ]
+            },
+            {
+                "description": "Swap fetch candles with a since timestamp argument",
+                "method": "fetchOHLCV",
+                "url": "https://testnet.bitmex.com/api/v1/trade/bucketed?symbol=XBTUSDT&binSize=1m&partial=true&startTime=2024-01-13T05%3A37%3A00.000Z",
+                "input": [
+                    "BTC/USDT:USDT",
+                    "1m",
+                    1705124160000
+                ]
+            }
         ],
-        "output": "{\"symbol\":\"XBTUSDT\",\"side\":\"Sell\",\"orderQty\":1000,\"ordType\":\"MarketIfTouched\",\"text\":\"CCXT\",\"pegOffsetValue\":100,\"pegPriceType\":\"TrailingStopPeg\"}"
-      },
-      {
-        "description": "Swap limit trailing order",
-        "method": "createOrder",
-        "url": "https://testnet.bitmex.com/api/v1/order",
-        "input": [
-          "BTC/USDT:USDT",
-          "limit",
-          "sell",
-          1000,
-          45000,
-          {
-            "trailingAmount": 100,
-            "triggerDirection": "above"
-          }
+        "cancelOrder": [
+            {
+                "description": "Cancel an order",
+                "method": "cancelOrder",
+                "url": "https://testnet.bitmex.com/api/v1/order",
+                "input": [
+                    "9a647c5c-59c7-43dc-94ca-d16f6628a7ad"
+                ],
+                "output": "{\"orderID\":\"9a647c5c-59c7-43dc-94ca-d16f6628a7ad\"}"
+            }
         ],
-        "output": "{\"symbol\":\"XBTUSDT\",\"side\":\"Sell\",\"orderQty\":1000,\"ordType\":\"LimitIfTouched\",\"text\":\"CCXT\",\"pegOffsetValue\":100,\"pegPriceType\":\"TrailingStopPeg\",\"price\":45000}"
-      }
-    ],
-    "fetchTrades": [
-      {
-        "description": "Spot fetch public trades",
-        "method": "fetchTrades",
-        "url": "https://www.bitmex.com/api/v1/trade?symbol=XBT_USDT&reverse=true",
-        "input": [
-          "BTC/USDT"
-        ]
-      },
-      {
-        "description": "Swap fetch public trades",
-        "method": "fetchTrades",
-        "url": "https://testnet.bitmex.com/api/v1/trade?symbol=XBTUSDT&reverse=true",
-        "input": [
-          "BTC/USDT:USDT"
-        ]
-      }
-    ],
-    "editOrder": [
-      {
-        "description": "Spot edit order",
-        "method": "editOrder",
-        "url": "https://testnet.bitmex.com/api/v1/order",
-        "input": [
-          "9a647c5c-59c7-43dc-94ca-d16f6628a7ad",
-          "BTC/USDT",
-          "limit",
-          "buy",
-          0.0001,
-          34000
+        "cancelOrders": [
+            {
+                "description": "Cancel multiple orders at once",
+                "method": "cancelOrders",
+                "url": "https://testnet.bitmex.com/api/v1/order",
+                "input": [
+                    [
+                        "e9c8109c-1b6c-4526-b6b9-9619d95cba47"
+                    ]
+                ],
+                "output": "{\"orderID\":[\"e9c8109c-1b6c-4526-b6b9-9619d95cba47\"]}"
+            }
         ],
-        "output": "{\"orderID\":\"9a647c5c-59c7-43dc-94ca-d16f6628a7ad\",\"orderQty\":10000,\"price\":34000,\"text\":\"CCXT\"}"
-      },
-      {
-        "description": "Swap edit order",
-        "method": "editOrder",
-        "url": "https://testnet.bitmex.com/api/v1/order",
-        "input": [
-          "e9c8109c-1b6c-4526-b6b9-9619d95cba47",
-          "BTC/USDT:USDT",
-          "limit",
-          "buy",
-          1000,
-          35000
+        "cancelAllOrders": [
+            {
+                "description": "Cancel all open orders",
+                "method": "cancelAllOrders",
+                "url": "https://testnet.bitmex.com/api/v1/order/all",
+                "input": [
+                    "BTC/USDT"
+                ],
+                "output": "{\"symbol\":\"XBT_USDT\"}"
+            }
         ],
-        "output": "{\"orderID\":\"e9c8109c-1b6c-4526-b6b9-9619d95cba47\",\"orderQty\":1000,\"price\":35000,\"text\":\"CCXT\"}"
-      },
-      {
-        "description": "Swap edit trailing order",
-        "method": "editOrder",
-        "url": "https://testnet.bitmex.com/api/v1/order",
-        "input": [
-          "f21aa11e-3857-4e39-9230-53cb15a04c3f",
-          "BTC/USDT:USDT",
-          "market",
-          "sell",
-          1000,
-          null,
-          {
-            "trailingAmount": 11000,
-            "triggerDirection": "above"
-          }
+        "cancelAllOrdersAfter": [
+            {
+                "description": "Cancel all orders after",
+                "method": "cancelAllOrdersAfter",
+                "url": "https://testnet.bitmex.com/api/v1/order/cancelAllAfter",
+                "input": [
+                    100000
+                ],
+                "output": "{\"timeout\":100}"
+            },
+            {
+                "description": "Close cancel all orders after",
+                "method": "cancelAllOrdersAfter",
+                "url": "https://testnet.bitmex.com/api/v1/order/cancelAllAfter",
+                "input": [
+                    0
+                ],
+                "output": "{\"timeout\":0}"
+            }
         ],
-        "output": "{\"pegOffsetValue\":11000,\"orderID\":\"f21aa11e-3857-4e39-9230-53cb15a04c3f\",\"orderQty\":1000,\"text\":\"CCXT\"}"
-      }
-    ],
-    "fetchOrderBook": [
-      {
-        "description": "Spot fetch order book with a limit argument",
-        "method": "fetchOrderBook",
-        "url": "https://testnet.bitmex.com/api/v1/orderBook/L2?symbol=XBT_USDT&depth=3",
-        "input": [
-          "BTC/USDT",
-          3
-        ]
-      },
-      {
-        "description": "Swap fetch order book with a limit argument",
-        "method": "fetchOrderBook",
-        "url": "https://testnet.bitmex.com/api/v1/orderBook/L2?symbol=XBTUSDT&depth=3",
-        "input": [
-          "BTC/USDT:USDT",
-          3
-        ]
-      }
-    ],
-    "fetchOrder": [
-      {
-        "description": "Spot fetch an order",
-        "method": "fetchOrder",
-        "url": "https://testnet.bitmex.com/api/v1/order?symbol=XBT_USDT&filter=%7B%22orderID%22%3A%229a647c5c-59c7-43dc-94ca-d16f6628a7ad%22%7D",
-        "input": [
-          "9a647c5c-59c7-43dc-94ca-d16f6628a7ad",
-          "BTC/USDT"
-        ]
-      },
-      {
-        "description": "Swap fetch an order",
-        "method": "fetchOrder",
-        "url": "https://testnet.bitmex.com/api/v1/order?symbol=XBTUSDT&filter=%7B%22orderID%22%3A%22e9c8109c-1b6c-4526-b6b9-9619d95cba47%22%7D",
-        "input": [
-          "e9c8109c-1b6c-4526-b6b9-9619d95cba47",
-          "BTC/USDT:USDT"
-        ]
-      }
-    ],
-    "fetchOrders": [
-      {
-        "description": "Spot fetch all orders",
-        "method": "fetchOrders",
-        "url": "https://testnet.bitmex.com/api/v1/order?symbol=XBT_USDT",
-        "input": [
-          "BTC/USDT"
-        ]
-      },
-      {
-        "description": "Swap fetch all orders",
-        "method": "fetchOrders",
-        "url": "https://testnet.bitmex.com/api/v1/order?symbol=XBTUSDT",
-        "input": [
-          "BTC/USDT:USDT"
-        ]
-      }
-    ],
-    "fetchOpenOrders": [
-      {
-        "description": "Spot fetch all open orders",
-        "method": "fetchOpenOrders",
-        "url": "https://testnet.bitmex.com/api/v1/order?symbol=XBT_USDT&filter=%7B%22open%22%3Atrue%7D",
-        "input": [
-          "BTC/USDT"
-        ]
-      },
-      {
-        "description": "Swap fetch all open orders",
-        "method": "fetchOpenOrders",
-        "url": "https://testnet.bitmex.com/api/v1/order?symbol=XBTUSDT&filter=%7B%22open%22%3Atrue%7D",
-        "input": [
-          "BTC/USDT:USDT"
-        ]
-      }
-    ],
-    "fetchClosedOrders": [
-      {
-        "description": "Spot fetch all closed orders",
-        "method": "fetchClosedOrders",
-        "url": "https://testnet.bitmex.com/api/v1/order?symbol=XBT_USDT",
-        "input": [
-          "BTC/USDT"
-        ]
-      },
-      {
-        "description": "Swap fetch all closed orders",
-        "method": "fetchClosedOrders",
-        "url": "https://testnet.bitmex.com/api/v1/order?symbol=XBTUSDT",
-        "input": [
-          "BTC/USDT:USDT"
-        ]
-      }
-    ],
-    "fetchMyTrades": [
-      {
-        "description": "Spot fetch my trades",
-        "method": "fetchMyTrades",
-        "url": "https://testnet.bitmex.com/api/v1/execution/tradeHistory?symbol=XBT_USDT",
-        "input": [
-          "BTC/USDT"
-        ]
-      },
-      {
-        "description": "Swap fetch my trades",
-        "method": "fetchMyTrades",
-        "url": "https://testnet.bitmex.com/api/v1/execution/tradeHistory?symbol=XBTUSDT",
-        "input": [
-          "BTC/USDT:USDT"
-        ]
-      }
-    ],
-    "fetchLedger": [
-      {
-        "description": "fetch the ledger of USDT transactions",
-        "method": "fetchLedger",
-        "url": "https://testnet.bitmex.com/api/v1/user/walletHistory?currency=USDt",
-        "input": [
-          "USDT"
-        ]
-      }
-    ],
-    "fetchDepositsWithdrawals": [
-      {
-        "description": "Fetch USDT deposits and withdrawals",
-        "method": "fetchDepositsWithdrawals",
-        "url": "https://testnet.bitmex.com/api/v1/user/walletHistory?currency=USDt",
-        "input": [
-          "USDT"
-        ]
-      }
-    ],
-    "fetchTicker": [
-      {
-        "description": "Spot fetch ticker",
-        "method": "fetchTicker",
-        "url": "https://testnet.bitmex.com/api/v1/instrument?symbol=XBT_USDT",
-        "input": [
-          "BTC/USDT"
-        ]
-      },
-      {
-        "description": "Swap fetch ticker",
-        "method": "fetchTicker",
-        "url": "https://testnet.bitmex.com/api/v1/instrument?symbol=XBTUSDT",
-        "input": [
-          "BTC/USDT:USDT"
-        ]
-      }
-    ],
-    "fetchTickers": [
-      {
-        "description": "Spot fetch multiple tickers",
-        "method": "fetchTickers",
-        "url": "https://testnet.bitmex.com/api/v1/instrument/activeAndIndices",
-        "input": [
-          [
-            "BTC/USDT",
-            "ETH/USDT"
-          ]
-        ]
-      },
-      {
-        "description": "Swap fetch multiple tickers",
-        "method": "fetchTickers",
-        "url": "https://testnet.bitmex.com/api/v1/instrument/activeAndIndices",
-        "input": [
-          [
-            "BTC/USDT:USDT",
-            "ETH/USDT:USDT"
-          ]
-        ]
-      }
-    ],
-    "fetchOHLCV": [
-      {
-        "description": "Spot fetch candles with a since timestamp argument",
-        "method": "fetchOHLCV",
-        "url": "https://testnet.bitmex.com/api/v1/trade/bucketed?symbol=XBT_USDT&binSize=1m&partial=true&startTime=2024-01-13T05%3A37%3A00.000Z",
-        "input": [
-          "BTC/USDT",
-          "1m",
-          1705124160000
-        ]
-      },
-      {
-        "description": "Swap fetch candles with a since timestamp argument",
-        "method": "fetchOHLCV",
-        "url": "https://testnet.bitmex.com/api/v1/trade/bucketed?symbol=XBTUSDT&binSize=1m&partial=true&startTime=2024-01-13T05%3A37%3A00.000Z",
-        "input": [
-          "BTC/USDT:USDT",
-          "1m",
-          1705124160000
-        ]
-      }
-    ],
-    "cancelOrder": [
-      {
-        "description": "Cancel an order",
-        "method": "cancelOrder",
-        "url": "https://testnet.bitmex.com/api/v1/order",
-        "input": [
-          "9a647c5c-59c7-43dc-94ca-d16f6628a7ad"
+        "fetchFundingRates": [
+            {
+                "description": "Fetch funding rates",
+                "method": "fetchFundingRates",
+                "url": "https://testnet.bitmex.com/api/v1/instrument/activeAndIndices",
+                "input": [
+                    [
+                        "BTC/USDT:USDT"
+                    ]
+                ]
+            }
         ],
-        "output": "{\"orderID\":\"9a647c5c-59c7-43dc-94ca-d16f6628a7ad\"}"
-      }
-    ],
-    "cancelOrders": [
-      {
-        "description": "Cancel multiple orders at once",
-        "method": "cancelOrders",
-        "url": "https://testnet.bitmex.com/api/v1/order",
-        "input": [
-          [
-            "e9c8109c-1b6c-4526-b6b9-9619d95cba47"
-          ]
+        "fetchFundingRateHistory": [
+            {
+                "description": "Fetch funding rate history with symbol and since arguments",
+                "method": "fetchFundingRateHistory",
+                "url": "https://testnet.bitmex.com/api/v1/funding?symbol=XBTUSDT&startTime=2024-01-12T12%3A00%3A00.000Z",
+                "input": [
+                    "BTC/USDT:USDT",
+                    1705060800000
+                ]
+            },
+            {
+                "description": "fetchFundingRateHistory without since should use reverse",
+                "method": "fetchFundingRateHistory",
+                "url": "https://testnet.bitmex.com/api/v1/funding?symbol=XBTUSDT&reverse=true",
+                "input": [
+                    "BTC/USDT:USDT"
+                ]
+            }
         ],
-        "output": "{\"orderID\":[\"e9c8109c-1b6c-4526-b6b9-9619d95cba47\"]}"
-      }
-    ],
-    "cancelAllOrders": [
-      {
-        "description": "Cancel all open orders",
-        "method": "cancelAllOrders",
-        "url": "https://testnet.bitmex.com/api/v1/order/all",
-        "input": [
-          "BTC/USDT"
+        "setLeverage": [
+            {
+                "description": "Set the leverage amount for a swap trading pair",
+                "method": "setLeverage",
+                "url": "https://testnet.bitmex.com/api/v1/position/leverage",
+                "input": [
+                    25,
+                    "BTC/USDT:USDT"
+                ],
+                "output": "{\"symbol\":\"XBTUSDT\",\"leverage\":25}"
+            }
         ],
-        "output": "{\"symbol\":\"XBT_USDT\"}"
-      }
-    ],
-    "fetchFundingRates": [
-      {
-        "description": "Fetch funding rates",
-        "method": "fetchFundingRates",
-        "url": "https://testnet.bitmex.com/api/v1/instrument/activeAndIndices",
-        "input": [
-          [
-            "BTC/USDT:USDT"
-          ]
-        ]
-      }
-    ],
-    "fetchFundingRateHistory": [
-      {
-        "description": "Fetch funding rate history with symbol and since arguments",
-        "method": "fetchFundingRateHistory",
-        "url": "https://testnet.bitmex.com/api/v1/funding?symbol=XBTUSDT&startTime=2024-01-12T12%3A00%3A00.000Z&reverse=true",
-        "input": [
-          "BTC/USDT:USDT",
-          1705060800000
-        ]
-      }
-    ],
-    "setLeverage": [
-      {
-        "description": "Set the leverage amount for a swap trading pair",
-        "method": "setLeverage",
-        "url": "https://testnet.bitmex.com/api/v1/position/leverage",
-        "input": [
-          25,
-          "BTC/USDT:USDT"
+        "setMarginMode": [
+            {
+                "description": "Set the margin mode to cross for a swap trading pair",
+                "method": "setMarginMode",
+                "url": "https://testnet.bitmex.com/api/v1/position/isolate",
+                "input": [
+                    "cross",
+                    "BTC/USDT:USDT"
+                ],
+                "output": "{\"symbol\":\"XBTUSDT\",\"enabled\":false}"
+            }
         ],
-        "output": "{\"symbol\":\"XBTUSDT\",\"leverage\":25}"
-      }
-    ],
-    "setMarginMode": [
-      {
-        "description": "Set the margin mode to cross for a swap trading pair",
-        "method": "setMarginMode",
-        "url": "https://testnet.bitmex.com/api/v1/position/isolate",
-        "input": [
-          "cross",
-          "BTC/USDT:USDT"
+        "fetchLiquidations": [
+            {
+                "description": "Fetch liquidations for a swap trading pair",
+                "method": "fetchLiquidations",
+                "url": "https://testnet.bitmex.com/api/v1/liquidation?symbol=XBTUSDT",
+                "input": [
+                    "BTC/USDT:USDT"
+                ]
+            }
         ],
-        "output": "{\"symbol\":\"XBTUSDT\",\"enabled\":false}"
-      }
-    ],
-    "fetchLiquidations": [
-      {
-        "description": "Fetch liquidations for a swap trading pair",
-        "method": "fetchLiquidations",
-        "url": "https://testnet.bitmex.com/api/v1/liquidation?symbol=XBTUSDT",
-        "input": [
-          "BTC/USDT:USDT"
+        "fetchDepositAddress": [
+            {
+                "description": "Fetch a BTC deposit address",
+                "method": "fetchDepositAddress",
+                "url": "https://testnet.bitmex.com/api/v1/user/depositAddress?currency=XBt&network=btc",
+                "input": [
+                    "BTC",
+                    {
+                        "network": "BTC"
+                    }
+                ]
+            }
+        ],
+        "fetchDepositWithdrawFees": [
+            {
+                "description": "Fetch deposit and withdraw fees for multiple crypto currencies",
+                "method": "fetchDepositWithdrawFees",
+                "url": "https://testnet.bitmex.com/api/v1/wallet/assets",
+                "input": [
+                    [
+                        "ETH",
+                        "USDT"
+                    ]
+                ]
+            }
+        ],
+        "fetchPositions": [
+            {
+                "description": "Fetch positions",
+                "method": "fetchPositions",
+                "url": "https://testnet.bitmex.com/api/v1/position",
+                "input": [
+                    [
+                        "BTC/USDT:USDT"
+                    ]
+                ]
+            }
+        ],
+        "fetchLeverages": [
+            {
+                "description": "Fetch leverages",
+                "method": "fetchLeverages",
+                "url": "https://testnet.bitmex.com/api/v1/position",
+                "input": []
+            }
+        ],
+        "fetchLeverage": [
+            {
+                "description": "Swap fetch leverage",
+                "method": "fetchLeverage",
+                "url": "https://testnet.bitmex.com/api/v1/position",
+                "input": [
+                    "BTC/USDT:USDT"
+                ]
+            }
         ]
-      }
-    ],
-    "fetchDepositAddress": [
-      {
-        "description": "Fetch a BTC deposit address",
-        "method": "fetchDepositAddress",
-        "url": "https://testnet.bitmex.com/api/v1/user/depositAddress?currency=XBt&network=btc",
-        "input": [
-          "BTC",
-          {
-            "network": "BTC"
-          }
-        ]
-      }
-    ],
-    "fetchDepositWithdrawFees": [
-      {
-        "description": "Fetch deposit and withdraw fees for multiple crypto currencies",
-        "method": "fetchDepositWithdrawFees",
-        "url": "https://testnet.bitmex.com/api/v1/wallet/assets",
-        "input": [
-          [
-            "ETH",
-            "USDT"
-          ]
-        ]
-      }
-    ],
-    "fetchPositions": [
-      {
-        "description": "Fetch positions",
-        "method": "fetchPositions",
-        "url": "https://testnet.bitmex.com/api/v1/position",
-        "input": [
-          [
-            "BTC/USDT:USDT"
-          ]
-        ]
-      }
-    ]
-  }
+    }
 }

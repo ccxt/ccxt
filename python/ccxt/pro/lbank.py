@@ -82,7 +82,7 @@ class lbank(ccxt.async_support.lbank):
         timeframes = self.safe_value(watchOHLCVOptions, 'timeframes', {})
         timeframeId = self.safe_string(timeframes, timeframe, timeframe)
         messageHash = 'fetchOHLCV:' + market['symbol'] + ':' + timeframeId
-        message = {
+        message: dict = {
             'action': 'request',
             'request': 'kbar',
             'kbar': timeframeId,
@@ -114,7 +114,7 @@ class lbank(ccxt.async_support.lbank):
         timeframeId = self.safe_string(timeframes, timeframe, timeframe)
         messageHash = 'ohlcv:' + market['symbol'] + ':' + timeframeId
         url = self.urls['api']['ws']
-        subscribe = {
+        subscribe: dict = {
             'action': 'subscribe',
             'subscribe': 'kbar',
             'kbar': timeframeId,
@@ -175,7 +175,7 @@ class lbank(ccxt.async_support.lbank):
         #          },
         #          type: 'kbar',
         #          pair: 'btc_usdt',
-        #          TS: '2022-10-02T12:44:15.864'
+        #          TS: '2022-10-02T12:44:15.865'
         #      }
         #
         marketId = self.safe_string(message, 'pair')
@@ -227,7 +227,7 @@ class lbank(ccxt.async_support.lbank):
             messageHash = 'ohlcv:' + symbol + ':' + timeframeId
             client.resolve(stored, messageHash)
 
-    async def fetch_ticker_ws(self, symbol, params={}) -> Ticker:
+    async def fetch_ticker_ws(self, symbol: str, params={}) -> Ticker:
         """
         :see: https://www.lbank.com/en-US/docs/index.html#request-amp-subscription-instruction
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
@@ -239,7 +239,7 @@ class lbank(ccxt.async_support.lbank):
         market = self.market(symbol)
         url = self.urls['api']['ws']
         messageHash = 'fetchTicker:' + market['symbol']
-        message = {
+        message: dict = {
             'action': 'request',
             'request': 'tick',
             'pair': market['id'],
@@ -260,7 +260,7 @@ class lbank(ccxt.async_support.lbank):
         market = self.market(symbol)
         url = self.urls['api']['ws']
         messageHash = 'ticker:' + market['symbol']
-        message = {
+        message: dict = {
             'action': 'subscribe',
             'subscribe': 'tick',
             'pair': market['id'],
@@ -365,7 +365,7 @@ class lbank(ccxt.async_support.lbank):
         messageHash = 'fetchTrades:' + market['symbol']
         if limit is None:
             limit = 10
-        message = {
+        message: dict = {
             'action': 'request',
             'request': 'trade',
             'pair': market['id'],
@@ -389,7 +389,7 @@ class lbank(ccxt.async_support.lbank):
         market = self.market(symbol)
         url = self.urls['api']['ws']
         messageHash = 'trades:' + market['symbol']
-        message = {
+        message: dict = {
             'action': 'subscribe',
             'subscribe': 'trade',
             'pair': market['id'],
@@ -416,7 +416,7 @@ class lbank(ccxt.async_support.lbank):
         #             "volume":6.3607,
         #             "amount":77148.9303,
         #             "price":12129,
-        #             "direction":"sell",
+        #             "direction":"sell",  # or "sell_market"
         #             "TS":"2019-06-28T19:55:49.460"
         #         },
         #         "type":"trade",
@@ -454,7 +454,7 @@ class lbank(ccxt.async_support.lbank):
         #        "volume":6.3607,
         #        "amount":77148.9303,
         #        "price":12129,
-        #        "direction":"sell",
+        #        "direction":"sell",  # or "sell_market"
         #        "TS":"2019-06-28T19:55:49.460"
         #    }
         #
@@ -462,6 +462,8 @@ class lbank(ccxt.async_support.lbank):
         datetime = (self.iso8601(timestamp)) if (timestamp is not None) else (self.safe_string(trade, 'TS'))
         if timestamp is None:
             timestamp = self.parse8601(datetime)
+        side = self.safe_string_2(trade, 'direction', 3)
+        side = side.replace('_market', '')
         return self.safe_trade({
             'timestamp': timestamp,
             'datetime': datetime,
@@ -470,7 +472,7 @@ class lbank(ccxt.async_support.lbank):
             'order': None,
             'type': None,
             'takerOrMaker': None,
-            'side': self.safe_string_2(trade, 'direction', 3),
+            'side': side,
             'price': self.safe_string_2(trade, 'price', 1),
             'amount': self.safe_string_2(trade, 'volume', 2),
             'cost': self.safe_string(trade, 'amount'),
@@ -500,7 +502,7 @@ class lbank(ccxt.async_support.lbank):
             symbol = self.symbol(symbol)
             messageHash = 'orders:' + market['symbol']
             pair = market['id']
-        message = {
+        message: dict = {
             'action': 'subscribe',
             'subscribe': 'orderUpdate',
             'subscribeKey': key,
@@ -626,7 +628,7 @@ class lbank(ccxt.async_support.lbank):
         }, market)
 
     def parse_ws_order_status(self, status):
-        statuses = {
+        statuses: dict = {
             '-1': 'canceled',  # Withdrawn
             '0': 'open',   # Unsettled
             '1': 'open',   # Partial sale
@@ -650,7 +652,7 @@ class lbank(ccxt.async_support.lbank):
         messageHash = 'fetchOrderbook:' + market['symbol']
         if limit is None:
             limit = 100
-        subscribe = {
+        subscribe: dict = {
             'action': 'request',
             'request': 'depth',
             'depth': limit,
@@ -677,7 +679,7 @@ class lbank(ccxt.async_support.lbank):
         params = self.omit(params, 'aggregation')
         if limit is None:
             limit = 100
-        subscribe = {
+        subscribe: dict = {
             'action': 'subscribe',
             'subscribe': 'depth',
             'depth': limit,
@@ -749,10 +751,10 @@ class lbank(ccxt.async_support.lbank):
         orderBook = self.safe_value(message, 'depth', message)
         datetime = self.safe_string(message, 'TS')
         timestamp = self.parse8601(datetime)
-        orderbook = self.safe_value(self.orderbooks, symbol)
-        if orderbook is None:
-            orderbook = self.order_book({})
-            self.orderbooks[symbol] = orderbook
+        # orderbook = self.safe_value(self.orderbooks, symbol)
+        if not (symbol in self.orderbooks):
+            self.orderbooks[symbol] = self.order_book({})
+        orderbook = self.orderbooks[symbol]
         snapshot = self.parse_order_book(orderBook, symbol, timestamp, 'bids', 'asks')
         orderbook.reset(snapshot)
         messageHash = 'orderbook:' + symbol
@@ -792,7 +794,7 @@ class lbank(ccxt.async_support.lbank):
         if type == 'ping':
             self.spawn(self.handle_ping, client, message)
             return
-        handlers = {
+        handlers: dict = {
             'kbar': self.handle_ohlcv,
             'depth': self.handle_order_book,
             'trade': self.handle_trades,
@@ -827,7 +829,7 @@ class lbank(ccxt.async_support.lbank):
         else:
             expires = self.safe_integer(authenticated, 'expires', 0)
             if expires < now:
-                request = {
+                request: dict = {
                     'subscribeKey': authenticated['key'],
                 }
                 response = await self.spotPrivatePostSubscribeRefreshKey(self.extend(request, params))

@@ -306,6 +306,11 @@ public partial class bitmart : Exchange
         return await this.callAsync ("privateGetContractPrivateTrades",parameters);
     }
 
+    public async Task<object> privateGetContractPrivatePositionRisk (object parameters = null)
+    {
+        return await this.callAsync ("privateGetContractPrivatePositionRisk",parameters);
+    }
+
     public async Task<object> privatePostAccountSubAccountMainV1SubToMain (object parameters = null)
     {
         return await this.callAsync ("privatePostAccountSubAccountMainV1SubToMain",parameters);
@@ -399,6 +404,16 @@ public partial class bitmart : Exchange
     public async Task<object> privatePostSpotV4QueryOrderTrades (object parameters = null)
     {
         return await this.callAsync ("privatePostSpotV4QueryOrderTrades",parameters);
+    }
+
+    public async Task<object> privatePostSpotV4CancelOrders (object parameters = null)
+    {
+        return await this.callAsync ("privatePostSpotV4CancelOrders",parameters);
+    }
+
+    public async Task<object> privatePostSpotV4BatchOrders (object parameters = null)
+    {
+        return await this.callAsync ("privatePostSpotV4BatchOrders",parameters);
     }
 
     public async Task<object> privatePostSpotV3CancelOrder (object parameters = null)

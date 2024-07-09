@@ -12,6 +12,7 @@ public partial class bithumb : Exchange
             { "name", "Bithumb" },
             { "countries", new List<object>() {"KR"} },
             { "rateLimit", 500 },
+            { "pro", true },
             { "has", new Dictionary<string, object>() {
                 { "CORS", true },
                 { "spot", true },
@@ -47,7 +48,11 @@ public partial class bithumb : Exchange
                 { "fetchOrder", true },
                 { "fetchOrderBook", true },
                 { "fetchPosition", false },
+                { "fetchPositionHistory", false },
+                { "fetchPositionMode", false },
                 { "fetchPositions", false },
+                { "fetchPositionsForSymbol", false },
+                { "fetchPositionsHistory", false },
                 { "fetchPositionsRisk", false },
                 { "fetchPremiumIndexOHLCV", false },
                 { "fetchTicker", true },
@@ -75,7 +80,7 @@ public partial class bithumb : Exchange
             } },
             { "api", new Dictionary<string, object>() {
                 { "public", new Dictionary<string, object>() {
-                    { "get", new List<object>() {"ticker/ALL_{quoteId}", "ticker/{baseId}_{quoteId}", "orderbook/ALL_{quoteId}", "orderbook/{baseId}_{quoteId}", "transaction_history/{baseId}_{quoteId}", "assetsstatus/ALL", "assetsstatus/{baseId}", "candlestick/{baseId}_{quoteId}/{interval}"} },
+                    { "get", new List<object>() {"ticker/ALL_{quoteId}", "ticker/{baseId}_{quoteId}", "orderbook/ALL_{quoteId}", "orderbook/{baseId}_{quoteId}", "transaction_history/{baseId}_{quoteId}", "network-info", "assetsstatus/multichain/ALL", "assetsstatus/multichain/{currency}", "withdraw/minimum/ALL", "withdraw/minimum/{currency}", "assetsstatus/ALL", "assetsstatus/{baseId}", "candlestick/{baseId}_{quoteId}/{interval}"} },
                 } },
                 { "private", new Dictionary<string, object>() {
                     { "post", new List<object>() {"info/account", "info/balance", "info/wallet_address", "info/ticker", "info/orders", "info/user_transactions", "info/order_detail", "trade/place", "trade/cancel", "trade/btc_withdrawal", "trade/krw_deposit", "trade/krw_withdrawal", "trade/market_buy", "trade/market_sell", "trade/stop_limit"} },
@@ -142,7 +147,7 @@ public partial class bithumb : Exchange
         });
     }
 
-    public override object safeMarket(object marketId, object market = null, object delimiter = null, object marketType = null)
+    public override object safeMarket(object marketId = null, object market = null, object delimiter = null, object marketType = null)
     {
         // bithumb has a different type of conflict in markets, because
         // their ids are the base currency (BTC for instance), so we can have
@@ -491,7 +496,7 @@ public partial class bithumb : Exchange
         //         }
         //     }
         //
-        object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         return this.parseTicker(data, market);
     }
 
@@ -557,7 +562,7 @@ public partial class bithumb : Exchange
         //         }
         //     }
         //
-        object data = this.safeValue(response, "data", new List<object>() {});
+        object data = this.safeList(response, "data", new List<object>() {});
         return this.parseOHLCVs(data, market, timeframe, since, limit);
     }
 
@@ -685,7 +690,7 @@ public partial class bithumb : Exchange
         //         ]
         //     }
         //
-        object data = this.safeValue(response, "data", new List<object>() {});
+        object data = this.safeList(response, "data", new List<object>() {});
         return this.parseTrades(data, market, since, limit);
     }
 
@@ -702,7 +707,7 @@ public partial class bithumb : Exchange
         * @param {string} type 'market' or 'limit'
         * @param {string} side 'buy' or 'sell'
         * @param {float} amount how much of currency you want to trade in units of base currency
-        * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
         */
@@ -790,7 +795,7 @@ public partial class bithumb : Exchange
         //         }
         //     }
         //
-        object data = this.safeValue(response, "data");
+        object data = this.safeDict(response, "data");
         return this.parseOrder(this.extend(data, new Dictionary<string, object>() {
             { "order_id", id },
         }), market);
@@ -963,7 +968,7 @@ public partial class bithumb : Exchange
         //         ]
         //     }
         //
-        object data = this.safeValue(response, "data", new List<object>() {});
+        object data = this.safeList(response, "data", new List<object>() {});
         return this.parseOrders(data, market, since, limit);
     }
 
@@ -999,7 +1004,15 @@ public partial class bithumb : Exchange
             { "order_currency", getValue(market, "base") },
             { "payment_currency", getValue(market, "quote") },
         };
-        return await this.privatePostTradeCancel(this.extend(request, parameters));
+        object response = await this.privatePostTradeCancel(this.extend(request, parameters));
+        //
+        //    {
+        //       'status': 'string',
+        //    }
+        //
+        return this.safeOrder(new Dictionary<string, object>() {
+            { "info", response },
+        });
     }
 
     public async override Task<object> cancelUnifiedOrder(object order, object parameters = null)

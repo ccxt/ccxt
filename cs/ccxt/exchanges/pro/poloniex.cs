@@ -106,7 +106,7 @@ public partial class poloniex : ccxt.poloniex
                 } },
             };
             object message = this.extend(request, parameters);
-            future = await this.watch(url, messageHash, message);
+            future = await this.watch(url, messageHash, message, messageHash);
             //
             //    {
             //        "data": {
@@ -201,7 +201,7 @@ public partial class poloniex : ccxt.poloniex
         * @param {string} type 'market' or 'limit'
         * @param {string} side 'buy' or 'sell'
         * @param {float} amount how much of currency you want to trade in units of base currency
-        * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         * @param {object} [params] extra parameters specific to the poloniex api endpoint
         * @param {string} [params.timeInForce] GTC (default), IOC, FOK
         * @param {string} [params.clientOrderId] Maximum 64-character length.*
@@ -345,7 +345,7 @@ public partial class poloniex : ccxt.poloniex
         //        }]
         //    }
         //
-        object messageHash = this.safeInteger(message, "id");
+        object messageHash = this.safeString(message, "id");
         object data = this.safeValue(message, "data", new List<object>() {});
         object orders = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
@@ -725,8 +725,8 @@ public partial class poloniex : ccxt.poloniex
             { "type", this.safeStringLower(trade, "type") },
             { "side", this.safeStringLower2(trade, "takerSide", "side") },
             { "takerOrMaker", takerMaker },
-            { "price", this.omitZero(this.safeNumber2(trade, "tradePrice", "price")) },
-            { "amount", this.omitZero(this.safeNumber2(trade, "filledQuantity", "quantity")) },
+            { "price", this.omitZero(this.safeString2(trade, "tradePrice", "price")) },
+            { "amount", this.omitZero(this.safeString2(trade, "filledQuantity", "quantity")) },
             { "cost", this.safeString2(trade, "amount", "filledAmount") },
             { "fee", new Dictionary<string, object>() {
                 { "rate", null },

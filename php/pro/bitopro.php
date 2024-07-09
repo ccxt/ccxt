@@ -255,7 +255,7 @@ class bitopro extends \ccxt\async\bitopro {
         $client->resolve ($trades, $messageHash . ':' . $symbol);
     }
 
-    public function parse_ws_trade($trade, ?array $market = null): array {
+    public function parse_ws_trade(array $trade, ?array $market = null): array {
         //
         //     {
         //         "base" => "usdt",
@@ -399,7 +399,8 @@ class bitopro extends \ccxt\async\bitopro {
                 ),
             ),
         );
-        $this->options = array_merge($defaultOptions, $this->options);
+        // $this->options = $this->extend($defaultOptions, $this->options);
+        $this->extend_exchange_options($defaultOptions);
         $originalHeaders = $this->options['ws']['options']['headers'];
         $headers = array(
             'X-BITOPRO-API' => 'ccxt',

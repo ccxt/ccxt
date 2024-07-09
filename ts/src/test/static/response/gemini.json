@@ -1,0 +1,240 @@
+{
+    "exchange": "gemini",
+    "skipKeys": [],
+    "methods": {
+        "fetchTrades": [
+            {
+                "description": "public spot trades",
+                "method": "fetchTrades",
+                "input": [
+                    "BTC/USDT",
+                    null,
+                    1
+                ],
+                "httpResponse": [
+                    {
+                        "timestamp": "1710325796",
+                        "timestampms": "1710325796526",
+                        "tid": "2840140831246421",
+                        "price": "73268.24",
+                        "amount": "0.00028921",
+                        "exchange": "gemini",
+                        "type": "buy"
+                    }
+                ],
+                "parsedResponse": [
+                    {
+                        "id": "2840140831246421",
+                        "order": null,
+                        "info": {
+                            "timestamp": "1710325796",
+                            "timestampms": "1710325796526",
+                            "tid": "2840140831246421",
+                            "price": "73268.24",
+                            "amount": "0.00028921",
+                            "exchange": "gemini",
+                            "type": "buy"
+                        },
+                        "timestamp": 1710325796526,
+                        "datetime": "2024-03-13T10:29:56.526Z",
+                        "symbol": "BTC/USDT",
+                        "type": null,
+                        "side": "buy",
+                        "takerOrMaker": null,
+                        "price": 73268.24,
+                        "cost": 21.1899076904,
+                        "amount": 0.00028921,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "fees": [
+                            {
+                                "cost": null,
+                                "currency": null
+                            }
+                        ]
+                    }
+                ]
+            }
+        ],
+        "fetchTicker": [
+            {
+                "description": "public spot ticker",
+                "method": "fetchTicker",
+                "input": [
+                    "BTC/USDT"
+                ],
+                "httpResponse": {
+                    "bid": "73367.96",
+                    "ask": "73385.27",
+                    "last": "73268.24",
+                    "volume": {
+                        "BTC": "3.5434218",
+                        "USDT": "259620.278863632",
+                        "timestamp": "1710328245000"
+                    }
+                },
+                "parsedResponse": {
+                    "symbol": "BTC/USDT",
+                    "timestamp": 1710328245000,
+                    "datetime": "2024-03-13T11:10:45.000Z",
+                    "high": null,
+                    "low": null,
+                    "bid": 73367.96,
+                    "bidVolume": null,
+                    "ask": 73385.27,
+                    "askVolume": null,
+                    "vwap": 73268.24,
+                    "open": null,
+                    "close": 73268.24,
+                    "last": 73268.24,
+                    "previousClose": null,
+                    "change": null,
+                    "percentage": null,
+                    "average": null,
+                    "baseVolume": 3.5434218,
+                    "quoteVolume": 259620.278863632,
+                    "info": {
+                        "bid": "73367.96",
+                        "ask": "73385.27",
+                        "last": "73268.24",
+                        "volume": {
+                            "BTC": "3.5434218",
+                            "USDT": "259620.278863632",
+                            "timestamp": "1710328245000"
+                        }
+                    }
+                }
+            },
+            {
+                "description": "usdcusc ticker",
+                "method": "fetchTicker",
+                "input": [
+                  "USDC/USD"
+                ],
+                "httpResponse": {
+                  "bid": "1.00001",
+                  "ask": "1.00026",
+                  "last": "1.00026",
+                  "volume": {
+                    "USDC": "2444794.70237",
+                    "USD": "2445430.3489926162",
+                    "timestamp": "1712847810000"
+                  }
+                },
+                "parsedResponse": {
+                  "symbol": "USDC/USD",
+                  "timestamp": 1712847810000,
+                  "datetime": "2024-04-11T15:03:30.000Z",
+                  "high": null,
+                  "low": null,
+                  "bid": 1.00001,
+                  "bidVolume": null,
+                  "ask": 1.00026,
+                  "askVolume": null,
+                  "vwap": 1.00026,
+                  "open": null,
+                  "close": 1.00026,
+                  "last": 1.00026,
+                  "previousClose": null,
+                  "change": null,
+                  "percentage": null,
+                  "average": null,
+                  "baseVolume": 2444794.70237,
+                  "quoteVolume": 2445430.3489926164,
+                  "info": {
+                    "bid": "1.00001",
+                    "ask": "1.00026",
+                    "last": "1.00026",
+                    "volume": {
+                      "USDC": "2444794.70237",
+                      "USD": "2445430.3489926162",
+                      "timestamp": "1712847810000"
+                    }
+                  }
+                }
+            },
+            {
+                "description": "swap ticker",
+                "method": "fetchTicker",
+                "input": [
+                  "BTC/GUSD:GUSD"
+                ],
+                "httpResponse": {
+                  "bid": "69755.00",
+                  "ask": "69785.00",
+                  "last": "69835.00",
+                  "volume": {
+                    "BTC": "41.7433",
+                    "GUSD": "2915143.3555",
+                    "timestamp": "1712847943000"
+                  }
+                },
+                "parsedResponse": {
+                  "symbol": "BTC/GUSD:GUSD",
+                  "timestamp": 1712847943000,
+                  "datetime": "2024-04-11T15:05:43.000Z",
+                  "high": null,
+                  "low": null,
+                  "bid": 69755,
+                  "bidVolume": null,
+                  "ask": 69785,
+                  "askVolume": null,
+                  "vwap": 69835,
+                  "open": null,
+                  "close": 69835,
+                  "last": 69835,
+                  "previousClose": null,
+                  "change": null,
+                  "percentage": null,
+                  "average": null,
+                  "baseVolume": 41.7433,
+                  "quoteVolume": 2915143.3555,
+                  "info": {
+                    "bid": "69755.00",
+                    "ask": "69785.00",
+                    "last": "69835.00",
+                    "volume": {
+                      "BTC": "41.7433",
+                      "GUSD": "2915143.3555",
+                      "timestamp": "1712847943000"
+                    }
+                  }
+                }
+            }
+        ],
+        "fetchOHLCV": [
+            {
+                "description": "public spot ohlcv",
+                "method": "fetchOHLCV",
+                "input": [
+                    "BTC/USDT",
+                    "1h",
+                    null,
+                    1
+                ],
+                "httpResponse": [
+                    [
+                        1710324000000,
+                        73402.61,
+                        73402.61,
+                        73268.24,
+                        73268.24,
+                        0.05445598
+                    ]
+                ],
+                "parsedResponse": [
+                    [
+                        1710324000000,
+                        73402.61,
+                        73402.61,
+                        73268.24,
+                        73268.24,
+                        0.05445598
+                    ]
+                ]
+            }
+        ]
+    }
+}

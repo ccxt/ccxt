@@ -1,5 +1,5 @@
 import okxRest from '../okx.js';
-import type { Int, OrderSide, OrderType, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Position, Balances } from '../base/types.js';
+import type { Int, OrderSide, OrderType, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Position, Balances, Num, FundingRate, FundingRates, Liquidation } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class okx extends okxRest {
     describe(): any;
@@ -9,9 +9,18 @@ export default class okx extends okxRest {
     watchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     watchTradesForSymbols(symbols: string[], since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     handleTrades(client: Client, message: any): void;
+    watchFundingRate(symbol: string, params?: {}): Promise<FundingRate>;
+    watchFundingRates(symbols: string[], params?: {}): Promise<FundingRates>;
+    handleFundingRate(client: Client, message: any): void;
     watchTicker(symbol: string, params?: {}): Promise<Ticker>;
     watchTickers(symbols?: Strings, params?: {}): Promise<Tickers>;
     handleTicker(client: Client, message: any): any;
+    watchLiquidationsForSymbols(symbols?: string[], since?: Int, limit?: Int, params?: {}): Promise<Liquidation[]>;
+    handleLiquidation(client: Client, message: any): void;
+    watchMyLiquidationsForSymbols(symbols?: string[], since?: Int, limit?: Int, params?: {}): Promise<Liquidation[]>;
+    handleMyLiquidation(client: Client, message: any): void;
+    parseWsMyLiquidation(liquidation: any, market?: any): Liquidation;
+    parseWsLiquidation(liquidation: any, market?: any): Liquidation;
     watchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
     watchOHLCVForSymbols(symbolsAndTimeframes: string[][], since?: Int, limit?: Int, params?: {}): Promise<import("../base/types.js").Dictionary<import("../base/types.js").Dictionary<OHLCV[]>>>;
     handleOHLCV(client: Client, message: any): void;
@@ -23,6 +32,7 @@ export default class okx extends okxRest {
     handleOrderBook(client: Client, message: any): any;
     authenticate(params?: {}): Promise<any>;
     watchBalance(params?: {}): Promise<Balances>;
+    handleBalanceAndPosition(client: Client, message: any): void;
     handleBalance(client: Client, message: any): void;
     orderToTrade(order: any, market?: any): Trade;
     watchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
@@ -31,9 +41,9 @@ export default class okx extends okxRest {
     watchOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     handleOrders(client: Client, message: any, subscription?: any): void;
     handleMyTrades(client: Client, message: any): void;
-    createOrderWs(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: number, params?: {}): Promise<Order>;
+    createOrderWs(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): Promise<Order>;
     handlePlaceOrders(client: Client, message: any): void;
-    editOrderWs(id: string, symbol: string, type: OrderType, side: OrderSide, amount: number, price?: number, params?: {}): Promise<Order>;
+    editOrderWs(id: string, symbol: string, type: OrderType, side: OrderSide, amount?: Num, price?: Num, params?: {}): Promise<Order>;
     cancelOrderWs(id: string, symbol?: Str, params?: {}): Promise<Order>;
     cancelOrdersWs(ids: string[], symbol?: Str, params?: {}): Promise<any>;
     cancelAllOrdersWs(symbol?: Str, params?: {}): Promise<any>;

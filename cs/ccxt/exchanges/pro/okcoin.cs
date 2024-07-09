@@ -525,7 +525,7 @@ public partial class okcoin : ccxt.okcoin
             };
             this.spawn(this.watch, new object[] { url, messageHash, request, messageHash, future});
         }
-        return future;
+        return await (future as Exchange.Future);
     }
 
     public async override Task<object> watchBalance(object parameters = null)

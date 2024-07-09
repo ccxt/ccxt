@@ -285,7 +285,7 @@ public partial class bitvavo
     /// <item>
     /// <term>price</term>
     /// <description>
-    /// float : the price at which the order is to be fullfilled, in units of the base currency, ignored in market orders
+    /// float : the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
     /// </description>
     /// </item>
     /// <item>
@@ -606,10 +606,10 @@ public partial class bitvavo
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols.</returns>
-    public async Task<Dictionary<string, object>> FetchTradingFeesWs(Dictionary<string, object> parameters = null)
+    public async Task<TradingFees> FetchTradingFeesWs(Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchTradingFeesWs(parameters);
-        return ((Dictionary<string, object>)res);
+        return new TradingFees(res);
     }
     /// <summary>
     /// retrieves data on all markets for bitvavo

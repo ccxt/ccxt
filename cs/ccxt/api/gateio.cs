@@ -336,6 +336,16 @@ public partial class gateio : gate
         return await this.callAsync ("privateWalletGetTotalBalance",parameters);
     }
 
+    public async Task<object> privateWalletGetSmallBalance (object parameters = null)
+    {
+        return await this.callAsync ("privateWalletGetSmallBalance",parameters);
+    }
+
+    public async Task<object> privateWalletGetSmallBalanceHistory (object parameters = null)
+    {
+        return await this.callAsync ("privateWalletGetSmallBalanceHistory",parameters);
+    }
+
     public async Task<object> privateWalletPostTransfers (object parameters = null)
     {
         return await this.callAsync ("privateWalletPostTransfers",parameters);
@@ -349,6 +359,11 @@ public partial class gateio : gate
     public async Task<object> privateWalletPostSubAccountToSubAccount (object parameters = null)
     {
         return await this.callAsync ("privateWalletPostSubAccountToSubAccount",parameters);
+    }
+
+    public async Task<object> privateWalletPostSmallBalance (object parameters = null)
+    {
+        return await this.callAsync ("privateWalletPostSmallBalance",parameters);
     }
 
     public async Task<object> privateSubAccountsGetSubAccounts (object parameters = null)
@@ -401,49 +416,59 @@ public partial class gateio : gate
         return await this.callAsync ("privateSubAccountsDeleteSubAccountsUserIdKeysKey",parameters);
     }
 
-    public async Task<object> privatePortfolioGetAccounts (object parameters = null)
+    public async Task<object> privateUnifiedGetAccounts (object parameters = null)
     {
-        return await this.callAsync ("privatePortfolioGetAccounts",parameters);
+        return await this.callAsync ("privateUnifiedGetAccounts",parameters);
     }
 
-    public async Task<object> privatePortfolioGetAccountMode (object parameters = null)
+    public async Task<object> privateUnifiedGetAccountMode (object parameters = null)
     {
-        return await this.callAsync ("privatePortfolioGetAccountMode",parameters);
+        return await this.callAsync ("privateUnifiedGetAccountMode",parameters);
     }
 
-    public async Task<object> privatePortfolioGetBorrowable (object parameters = null)
+    public async Task<object> privateUnifiedGetBorrowable (object parameters = null)
     {
-        return await this.callAsync ("privatePortfolioGetBorrowable",parameters);
+        return await this.callAsync ("privateUnifiedGetBorrowable",parameters);
     }
 
-    public async Task<object> privatePortfolioGetTransferable (object parameters = null)
+    public async Task<object> privateUnifiedGetTransferable (object parameters = null)
     {
-        return await this.callAsync ("privatePortfolioGetTransferable",parameters);
+        return await this.callAsync ("privateUnifiedGetTransferable",parameters);
     }
 
-    public async Task<object> privatePortfolioGetLoans (object parameters = null)
+    public async Task<object> privateUnifiedGetLoans (object parameters = null)
     {
-        return await this.callAsync ("privatePortfolioGetLoans",parameters);
+        return await this.callAsync ("privateUnifiedGetLoans",parameters);
     }
 
-    public async Task<object> privatePortfolioGetLoanRecords (object parameters = null)
+    public async Task<object> privateUnifiedGetLoanRecords (object parameters = null)
     {
-        return await this.callAsync ("privatePortfolioGetLoanRecords",parameters);
+        return await this.callAsync ("privateUnifiedGetLoanRecords",parameters);
     }
 
-    public async Task<object> privatePortfolioGetInterestRecords (object parameters = null)
+    public async Task<object> privateUnifiedGetInterestRecords (object parameters = null)
     {
-        return await this.callAsync ("privatePortfolioGetInterestRecords",parameters);
+        return await this.callAsync ("privateUnifiedGetInterestRecords",parameters);
     }
 
-    public async Task<object> privatePortfolioPostAccountMode (object parameters = null)
+    public async Task<object> privateUnifiedGetEstimateRate (object parameters = null)
     {
-        return await this.callAsync ("privatePortfolioPostAccountMode",parameters);
+        return await this.callAsync ("privateUnifiedGetEstimateRate",parameters);
     }
 
-    public async Task<object> privatePortfolioPostLoans (object parameters = null)
+    public async Task<object> privateUnifiedGetCurrencyDiscountTiers (object parameters = null)
     {
-        return await this.callAsync ("privatePortfolioPostLoans",parameters);
+        return await this.callAsync ("privateUnifiedGetCurrencyDiscountTiers",parameters);
+    }
+
+    public async Task<object> privateUnifiedPostAccountMode (object parameters = null)
+    {
+        return await this.callAsync ("privateUnifiedPostAccountMode",parameters);
+    }
+
+    public async Task<object> privateUnifiedPostLoans (object parameters = null)
+    {
+        return await this.callAsync ("privateUnifiedPostLoans",parameters);
     }
 
     public async Task<object> privateSpotGetFee (object parameters = null)

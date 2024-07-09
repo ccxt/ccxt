@@ -70,8 +70,11 @@ class bitvavo extends bitvavo$1 {
                 'fetchOrderBook': true,
                 'fetchOrders': true,
                 'fetchPosition': false,
+                'fetchPositionHistory': false,
                 'fetchPositionMode': false,
                 'fetchPositions': false,
+                'fetchPositionsForSymbol': false,
+                'fetchPositionsHistory': false,
                 'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchTicker': true,
@@ -568,7 +571,7 @@ class bitvavo extends bitvavo$1 {
         //         "market":"ETH-BTC",
         //         "open":"0.022578",
         //         "high":"0.023019",
-        //         "low":"0.022573",
+        //         "low":"0.022572",
         //         "last":"0.023019",
         //         "volume":"25.16366324",
         //         "volumeQuote":"0.57333305",
@@ -932,6 +935,9 @@ class bitvavo extends bitvavo$1 {
             if (limit === undefined) {
                 limit = 1440;
             }
+            else {
+                limit = Math.min(limit, 1440);
+            }
             request['end'] = this.sum(since, limit * duration * 1000);
         }
         [request, params] = this.handleUntilOption('end', request, params);
@@ -1120,7 +1126,7 @@ class bitvavo extends bitvavo$1 {
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {float} price the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the bitvavo api endpoint
          * @param {string} [params.timeInForce] "GTC", "IOC", or "PO"
          * @param {float} [params.stopPrice] The price at which a trigger order is triggered at
@@ -1221,7 +1227,7 @@ class bitvavo extends bitvavo$1 {
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} [amount] how much of currency you want to trade in units of base currency
-         * @param {float} [price] the price at which the order is to be fullfilled, in units of the base currency, ignored in market orders
+         * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the bitvavo api endpoint
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
