@@ -1125,13 +1125,13 @@ public partial class htx : Exchange
                 } },
             } },
             { "commonCurrencies", new Dictionary<string, object>() {
-                { "GET", "Themis" },
-                { "GTC", "Game.com" },
-                { "HIT", "HitChain" },
-                { "PNT", "Penta" },
-                { "SBTC", "Super Bitcoin" },
-                { "SOUL", "Soulsaver" },
-                { "BIFI", "Bitcoin File" },
+                { "GET", "THEMIS" },
+                { "GTC", "GAMECOM" },
+                { "HIT", "HITCHAIN" },
+                { "PNT", "PENTA" },
+                { "SBTC", "SUPERBITCOIN" },
+                { "SOUL", "SOULSAVER" },
+                { "BIFI", "BITCOINFILE" },
             } },
         });
     }
